@@ -1,0 +1,288 @@
+"use client";
+
+import { Tx, Opt, useT } from "@/components/bos/I18n";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { ActionState } from "@/lib/bos/action";
+import { ActionButton, ConfirmButton, ModalButton } from "@/components/bos/Dialog";
+import { ActionForm, MoneyField, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
+import { EntitySelector, type EntityOption } from "@/components/bos/EntitySelector";
+import { searchEntitiesAction } from "@/app/admin/_actions/common";
+import {
+  assignTicketAction, bugQaAction, bugStatusAction, convertToBugAction, featureStatusAction, featureUpsellAction, mergeTicketAction,
+  replyTicketAction, saveBugAction, saveFeatureAction, ticketStatusAction, updateTicketAction,
+} from "./actions";
+
+type Opt = { value: string; label: string };
+
+export const priorities: Opt[] = [
+  { value: "low", label: "منخفضة" },
+  { value: "medium", label: "متوسطة" },
+  { value: "high", label: "عالية" },
+  { value: "urgent", label: "عاجلة" },
+];
+export const ticketCategories: Opt[] = [
+  { value: "general", label: "عام" },
+  { value: "technical", label: "تقني" },
+  { value: "billing", label: "مالي" },
+  { value: "access", label: "وصول / حساب" },
+  { value: "content", label: "محتوى" },
+  { value: "bug", label: "خطأ" },
+];
+
+const ticketStatusLabels: Record<string, string> = { open: "مفتوحة", in_progress: "قيد المعالجة", waiting_for_client: "بانتظار العميل", resolved: "تم الحل", closed: "مغلقة" };
+const ticketNext: Record<string, string[]> = {
+  open: ["in_progress", "waiting_for_client", "resolved", "closed"],
+  in_progress: ["waiting_for_client", "resolved", "closed"],
+  waiting_for_client: ["in_progress", "resolved", "closed"],
+  resolved: ["in_progress", "closed"],
+  closed: [],
+};
+
+export function TicketForm({ action, clientInit, staff, canAssign }: { action: (s: ActionState, f: FormData) => Promise<ActionState>; clientInit?: EntityOption | null; staff: Opt[]; canAssign: boolean }) {
+  const [client, setClient] = useState<EntityOption | null>(clientInit ?? null);
+  return (
+    <ActionForm action={action}>
+      <div className="bos-form-grid">
+        <div className="bos-field" style={{ gridColumn: "1 / -1" }}>
+          <label><Tx>الحساب *</Tx></label>
+          <EntitySelector name="client_id" required search={(q) => searchEntitiesAction("client", q)} initial={client} onChange={setClient} placeholder="ابحث عن الحساب..." />
+        </div>
+        {client ? (
+          <>
+            <div className="bos-field">
+              <label><Tx>جهة الاتصال</Tx></label>
+              <EntitySelector key={`c-${client.id}`} name="contact_id" search={(q) => searchEntitiesAction("contact", q, { client_id: client.id })} placeholder="اختياري" />
+            </div>
+            <div className="bos-field">
+              <label><Tx>المشروع</Tx></label>
+              <EntitySelector key={`p-${client.id}`} name="project_id" search={(q) => searchEntitiesAction("project", q, { client_id: client.id })} placeholder="اختياري" />
+            </div>
+          </>
+        ) : null}
+        <SelectField name="category" label="التصنيف" options={ticketCategories} defaultValue="general" />
+        <SelectField name="priority" label="الأولوية" options={priorities} defaultValue="medium" />
+        {canAssign ? <SelectField name="assigned_to" label="المسؤول" placeholder="تعيين تلقائي" options={staff} /> : null}
+        <TextField name="subject" label="الموضوع" required span="all" maxLength={300} />
+        <TextAreaField name="description" label="الوصف" required rows={6} />
+      </div>
+      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>مواعيد SLA تُحسب تلقائياً من الأولوية. بدون تعيين: مدير المشروع خلال فترة الدعم، وإلا توزيع دوري على فريق الدعم.</Tx></p>
+      <div className="bos-form-actions"><SubmitButton label="إنشاء التذكرة" /></div>
+    </ActionForm>
+  );
+}
+
+export function TicketStatusButtons({ id, status }: { id: string; status: string }) {
+  return (
+    <>
+      {(ticketNext[status] ?? []).map((to) =>
+        to === "closed" ? (
+          <ConfirmButton key={to} label="إغلاق" className="admin-btn small ghost" message="إغلاق التذكرة؟ لن يتمكن العميل من الرد عليها." action={(r) => ticketStatusAction(id, to, r)} />
+        ) : (
+          <ActionButton key={to} label={ticketStatusLabels[to]} className={`admin-btn small ${to === "resolved" ? "success" : "secondary"}`} action={() => ticketStatusAction(id, to)} />
+        ),
+      )}
+    </>
+  );
+}
+
+export function AssignSelect({ id, current, staff }: { id: string; current: string | null; staff: Opt[] }) {
+  const t = useT();
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <select aria-label={t("المسؤول")} value={current ?? "none"} disabled={pending} onChange={(e) => start(async () => { await assignTicketAction(id, e.target.value); router.refresh(); })}>
+      <Opt value="none">— غير معيّن —</Opt>
+      {staff.map((s) => <Opt key={s.value} value={s.value}>{s.label}</Opt>)}
+    </select>
+  );
+}
+
+export function TicketMetaForm({ id, category, priority, projectInit, clientId }: { id: string; category: string; priority: string; projectInit: EntityOption | null; clientId: string }) {
+  return (
+    <ActionForm action={updateTicketAction.bind(null, id)} successMessage="تم الحفظ">
+      <SelectField name="category" label="التصنيف" options={ticketCategories} defaultValue={category} />
+      <SelectField name="priority" label="الأولوية" options={priorities} defaultValue={priority} hint="تغيير الأولوية يعيد حساب مواعيد SLA" />
+      <div className="bos-field">
+        <label><Tx>المشروع</Tx></label>
+        <EntitySelector name="project_id" search={(q) => searchEntitiesAction("project", q, clientId ? { client_id: clientId } : {})} initial={projectInit} placeholder="ربط بمشروع" />
+      </div>
+      <SubmitButton label="حفظ" className="admin-btn small" />
+    </ActionForm>
+  );
+}
+
+export function ReplyForm({ id, disabled }: { id: string; disabled?: boolean }) {
+  const [internal, setInternal] = useState(false);
+  if (disabled) return <div className="bos-faint" style={{ fontSize: 13 }}><Tx>التذكرة مغلقة.</Tx></div>;
+  return (
+    <ActionForm action={replyTicketAction.bind(null, id)} resetOnSuccess>
+      <div className="bos-row" style={{ gap: 6, marginBottom: 6 }}>
+        <button type="button" className={`admin-btn small ${internal ? "ghost" : "secondary"}`} onClick={() => setInternal(false)}><Tx>رد للعميل</Tx></button>
+        <button type="button" className={`admin-btn small ${internal ? "secondary" : "ghost"}`} onClick={() => setInternal(true)}><Tx>ملاحظة داخلية</Tx></button>
+      </div>
+      {internal ? <input type="hidden" name="internal" value="on" /> : null}
+      <TextAreaField name="body" label={internal ? "ملاحظة داخلية (لا تظهر للعميل)" : "الرد (يظهر للعميل في البوابة)"} required rows={4} />
+      <div className="bos-form-actions"><SubmitButton label={internal ? "إضافة ملاحظة" : "إرسال الرد"} /></div>
+    </ActionForm>
+  );
+}
+
+export function ConvertToBugButton({ id, subject, developers }: { id: string; subject: string; developers: Opt[] }) {
+  return (
+    <ModalButton label="تحويل لخطأ برمجي" title="تحويل التذكرة إلى خطأ برمجي" className="admin-btn small secondary" wide>
+      {() => (
+        <ActionForm action={convertToBugAction.bind(null, id)}>
+          <div className="bos-form-grid">
+            <TextField name="title" label="العنوان" required defaultValue={subject} span="all" />
+            <SelectField name="severity" label="الخطورة" options={[{ value: "critical", label: "حرجة" }, { value: "major", label: "كبيرة" }, { value: "minor", label: "صغيرة" }, { value: "trivial", label: "بسيطة" }]} defaultValue="minor" />
+            <SelectField name="environment" label="البيئة" options={[{ value: "production", label: "الإنتاج" }, { value: "staging", label: "Staging" }, { value: "development", label: "التطوير" }]} defaultValue="production" />
+            <SelectField name="assigned_to" label="المطوّر" placeholder="—" options={developers} />
+            <TextAreaField name="steps_to_reproduce" label="خطوات إعادة الإنتاج (مطلوبة للإنتاج)" rows={4} />
+          </div>
+          <div className="bos-form-actions"><SubmitButton label="إنشاء الخطأ" /></div>
+        </ActionForm>
+      )}
+    </ModalButton>
+  );
+}
+
+export function MergeTicketButton({ id, clientId }: { id: string; clientId: string }) {
+  return (
+    <ModalButton label="دمج" title="دمج هذه التذكرة في تذكرة أخرى" className="admin-btn small ghost">
+      {() => (
+        <ActionForm action={mergeTicketAction.bind(null, id)}>
+          <p className="bos-faint" style={{ fontSize: 13 }}><Tx>ستُنقل المحادثة والمرفقات للتذكرة الهدف وتُغلق هذه التذكرة.</Tx></p>
+          <div className="bos-field">
+            <label><Tx>التذكرة الهدف (نفس الحساب)</Tx></label>
+            <EntitySelector name="target" required search={async (q) => (await searchEntitiesAction("ticket", q, { client_id: clientId })).filter((o) => o.id !== id)} placeholder="رقم أو موضوع التذكرة..." />
+          </div>
+          <div className="bos-form-actions"><SubmitButton label="دمج" className="admin-btn danger" /></div>
+        </ActionForm>
+      )}
+    </ModalButton>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bugs
+// ---------------------------------------------------------------------------
+
+export interface BugValues {
+  id?: string;
+  project_id?: string;
+  title?: string;
+  environment?: string;
+  severity?: string;
+  priority?: string;
+  description?: string | null;
+  steps_to_reproduce?: string | null;
+  expected_behavior?: string | null;
+  actual_behavior?: string | null;
+  assigned_to?: string | null;
+}
+
+export function BugForm({ initial = {}, developers, projectInit }: { initial?: BugValues; developers: Opt[]; projectInit?: EntityOption | null }) {
+  const [env, setEnv] = useState(initial.environment ?? "production");
+  return (
+    <ActionForm action={saveBugAction.bind(null, initial.id ?? null)} successMessage={initial.id ? "تم الحفظ" : undefined}>
+      <div className="bos-form-grid">
+        {!initial.id ? (
+          <div className="bos-field" style={{ gridColumn: "1 / -1" }}>
+            <label><Tx>المشروع *</Tx></label>
+            <EntitySelector name="project_id" required search={(q) => searchEntitiesAction("project", q)} initial={projectInit ?? null} placeholder="ابحث عن المشروع..." />
+          </div>
+        ) : null}
+        <TextField name="title" label="العنوان" required defaultValue={initial.title ?? ""} span="all" />
+        <SelectField name="environment" label="البيئة" options={[{ value: "production", label: "الإنتاج" }, { value: "staging", label: "Staging" }, { value: "development", label: "التطوير" }]} value={env} onChange={(e) => setEnv(e.target.value)} />
+        <SelectField name="severity" label="الخطورة" options={[{ value: "critical", label: "حرجة" }, { value: "major", label: "كبيرة" }, { value: "minor", label: "صغيرة" }, { value: "trivial", label: "بسيطة" }]} defaultValue={initial.severity ?? "minor"} />
+        <SelectField name="priority" label="الأولوية" options={priorities} defaultValue={initial.priority ?? "medium"} />
+        <SelectField name="assigned_to" label="المطوّر" placeholder="—" options={developers} defaultValue={initial.assigned_to ?? ""} />
+        <TextAreaField name="description" label="الوصف" rows={3} defaultValue={initial.description ?? ""} />
+        <TextAreaField name="steps_to_reproduce" label={`خطوات إعادة الإنتاج${env === "production" ? " *" : ""}`} required={env === "production"} rows={4} defaultValue={initial.steps_to_reproduce ?? ""} />
+        <TextAreaField name="expected_behavior" label="السلوك المتوقع" rows={2} defaultValue={initial.expected_behavior ?? ""} span={2} />
+        <TextAreaField name="actual_behavior" label="السلوك الفعلي" rows={2} defaultValue={initial.actual_behavior ?? ""} span={2} />
+      </div>
+      <div className="bos-form-actions"><SubmitButton label={initial.id ? "حفظ" : "إنشاء"} /></div>
+    </ActionForm>
+  );
+}
+
+const bugLabels: Record<string, string> = { reported: "مُبلّغ", triaged: "تم الفرز", in_progress: "قيد العمل", ready_for_qa: "جاهز للاختبار", qa: "قيد الاختبار", fixed: "تم الإصلاح", closed: "مغلق" };
+const bugNext: Record<string, string[]> = { reported: ["triaged", "closed"], triaged: ["in_progress", "closed"], in_progress: ["ready_for_qa"], ready_for_qa: ["qa", "in_progress"], qa: [], fixed: ["closed", "in_progress"], closed: [] };
+
+export function BugStatusControls({ id, status, canQa }: { id: string; status: string; canQa: boolean }) {
+  return (
+    <>
+      {(bugNext[status] ?? []).map((to) => <ActionButton key={to} label={bugLabels[to]} className="admin-btn small secondary" action={() => bugStatusAction(id, to)} />)}
+      {canQa && ["ready_for_qa", "qa"].includes(status) ? (
+        <>
+          <ActionButton label="نجح الاختبار" className="admin-btn small success" action={() => bugQaAction(id, "passed")} />
+          <ConfirmButton label="فشل الاختبار" className="admin-btn small danger" message="سيعود الخطأ لقيد العمل. اكتب ملاحظة الاختبار." requireReason action={(r) => bugQaAction(id, "failed", r)} />
+        </>
+      ) : null}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Feature requests
+// ---------------------------------------------------------------------------
+
+export interface FeatureValues {
+  id?: string;
+  client_id?: string | null;
+  project_id?: string | null;
+  title?: string;
+  description?: string | null;
+  business_value?: string | null;
+  priority?: string;
+  estimated_effort_hours?: number | string | null;
+  cost?: number | string | null;
+  currency?: string | null;
+}
+
+export function FeatureForm({ initial = {}, clientInit, projectInit, currencies }: { initial?: FeatureValues; clientInit?: EntityOption | null; projectInit?: EntityOption | null; currencies: string[] }) {
+  const [client, setClient] = useState<EntityOption | null>(clientInit ?? null);
+  return (
+    <ActionForm action={saveFeatureAction.bind(null, initial.id ?? null)} successMessage={initial.id ? "تم الحفظ" : undefined}>
+      <div className="bos-form-grid">
+        <div className="bos-field">
+          <label><Tx>الحساب</Tx></label>
+          <EntitySelector name="client_id" search={(q) => searchEntitiesAction("client", q)} initial={client} onChange={setClient} placeholder="اختياري" />
+        </div>
+        <div className="bos-field">
+          <label><Tx>المشروع</Tx></label>
+          <EntitySelector key={client?.id ?? "none"} name="project_id" search={(q) => searchEntitiesAction("project", q, client ? { client_id: client.id } : undefined)} initial={projectInit ?? null} placeholder="اختياري" />
+        </div>
+        <TextField name="title" label="الميزة" required defaultValue={initial.title ?? ""} span="all" />
+        <TextAreaField name="description" label="الوصف" rows={4} defaultValue={initial.description ?? ""} />
+        <TextAreaField name="business_value" label="القيمة للأعمال" rows={2} defaultValue={initial.business_value ?? ""} />
+        <SelectField name="priority" label="الأولوية" options={priorities} defaultValue={initial.priority ?? "medium"} />
+        <TextField name="estimated_effort_hours" label="الجهد المقدّر (ساعات)" inputMode="decimal" defaultValue={initial.estimated_effort_hours != null ? String(initial.estimated_effort_hours) : ""} />
+        <MoneyField name="cost" currencyName="currency" label="التكلفة" currencies={currencies} defaultValue={initial.cost ?? ""} defaultCurrency={initial.currency ?? "USD"} />
+      </div>
+      <div className="bos-form-actions"><SubmitButton label={initial.id ? "حفظ" : "إنشاء"} /></div>
+    </ActionForm>
+  );
+}
+
+const featureLabels: Record<string, string> = { requested: "مطلوب", review: "مراجعة", approved: "اعتماد", rejected: "رفض", planned: "مخطط", in_development: "قيد التطوير", released: "تم الإطلاق" };
+const featureNext: Record<string, string[]> = { requested: ["review", "rejected"], review: ["approved", "rejected"], approved: ["planned", "rejected"], rejected: ["review"], planned: ["in_development"], in_development: ["released"], released: [] };
+
+export function FeatureStatusControls({ id, status, canUpsell }: { id: string; status: string; canUpsell: boolean }) {
+  return (
+    <>
+      {(featureNext[status] ?? []).map((to) =>
+        to === "rejected" ? (
+          <ConfirmButton key={to} label="رفض" className="admin-btn small danger" message="رفض طلب الميزة؟" requireReason action={(r) => featureStatusAction(id, to, r)} />
+        ) : (
+          <ActionButton key={to} label={featureLabels[to]} className="admin-btn small secondary" action={() => featureStatusAction(id, to)} />
+        ),
+      )}
+      {canUpsell ? <ActionButton label="إنشاء صفقة بيع إضافي" className="admin-btn small" action={() => featureUpsellAction(id)} /> : null}
+    </>
+  );
+}
+

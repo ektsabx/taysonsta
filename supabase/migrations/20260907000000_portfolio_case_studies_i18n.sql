@@ -1,0 +1,23 @@
+alter table portfolio_companies rename column short_description to short_description_ar;
+alter table portfolio_companies add column short_description_en text;
+alter table portfolio_companies rename column description to description_ar;
+alter table portfolio_companies add column description_en text;
+alter table portfolio_companies rename column industry to industry_ar;
+alter table portfolio_companies add column industry_en text;
+
+alter table case_studies rename column short_description to short_description_ar;
+alter table case_studies add column short_description_en text;
+alter table case_studies rename column description to description_ar;
+alter table case_studies add column description_en text;
+alter table case_studies rename column industry to industry_ar;
+alter table case_studies add column industry_en text;
+alter table case_studies rename column challenge to challenge_ar;
+alter table case_studies add column challenge_en text;
+alter table case_studies rename column solution to solution_ar;
+alter table case_studies add column solution_en text;
+alter table case_studies rename column result to result_ar;
+alter table case_studies add column result_en text;
+alter table case_studies rename column testimonial_quote to testimonial_quote_ar;
+alter table case_studies add column testimonial_quote_en text;
+alter table case_studies rename column testimonial_role to testimonial_role_ar;
+alter table case_studies add column testimonial_role_en text;

@@ -1,0 +1,2 @@
+// Import job status labels.
+export const jobStatus: Record<string, { label: string; tone: "neutral" | "info" | "success" | "warning" | "danger" }> = { uploaded: { label: "تم الرفع", tone: "info" }, validated: { label: "تم التحقق", tone: "warning" }, running: { label: "قيد التنفيذ", tone: "info" }, completed: { label: "مكتمل", tone: "success" }, failed: { label: "فشل", tone: "danger" }, rolled_back: { label: "تم التراجع", tone: "neutral" }, cancelled: { label: "ملغى", tone: "neutral" } };

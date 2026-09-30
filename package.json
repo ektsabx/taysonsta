@@ -6,12 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "node --import ./tests/integration/register.mjs --test \"tests/unit/*.test.ts\"",
+    "test:db": "bash tests/run-db-tests.sh",
+    "test": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:integration",
+    "seed:bos": "bash scripts/seed-bos.sh",
+    "db:reset:local": "supabase db reset && bash scripts/seed-bos.sh",
+    "test:integration": "node --import ./tests/integration/register.mjs --test --test-concurrency=1 \"tests/integration/*.test.ts\""
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
+    "@supabase/ssr": "^0.12.5",
+    "@supabase/supabase-js": "^2.115.0",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -21,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.129.0"
   }
 }
