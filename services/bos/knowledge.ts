@@ -45,14 +45,16 @@ export async function visibleFilter(bos: BosUser) {
   };
 }
 
-export async function listArticles(bos: BosUser, f: { q?: string; kind?: string | string[]; category?: string; tag?: string; status?: string; section?: string; limit?: number }) {
-  let q = db().from("kb_articles").select("id, kind, slug, title, category_id, tags, author_id, owner_id, version, status, allowed_role_ids, playbook_section, published_at, updated_at, kb_categories(key, name)").order("updated_at", { ascending: false }).limit(Math.min(f.limit ?? 200, 500));
+export async function listArticles(bos: BosUser, f: { q?: string; kind?: string | string[]; category?: string; tag?: string; status?: string; section?: string; limit?: number; audience?: "internal" | "public"; ai?: boolean }) {
+  let q = db().from("kb_articles").select("id, kind, slug, title, category_id, tags, author_id, owner_id, version, status, allowed_role_ids, playbook_section, published_at, updated_at, audience, ai_allowed, language, kb_categories(key, name)").order("updated_at", { ascending: false }).limit(Math.min(f.limit ?? 200, 500));
   if (f.kind) q = Array.isArray(f.kind) ? q.in("kind", f.kind as ArticleKind[]) : q.eq("kind", f.kind as ArticleKind);
   if (f.category) q = q.eq("category_id", f.category);
   if (f.tag) q = q.contains("tags", [f.tag.toLowerCase()]);
   if (f.status) q = q.eq("status", f.status);
   else q = q.neq("status", "archived");
   if (f.section) q = q.eq("playbook_section", f.section as DbEnum<"playbook_section">);
+  if (f.audience) q = q.eq("audience", f.audience);
+  if (f.ai !== undefined) q = q.eq("ai_allowed", f.ai);
   if (f.q) q = q.textSearch("search", f.q.trim().split(/\s+/).map((w) => `${w.replace(/[^\p{L}\p{N}]/gu, "")}:*`).filter((w) => w.length > 2).join(" & ") || "''", { config: "simple" });
   const { data, error } = await q;
   if (error) throw error;
@@ -169,6 +171,16 @@ export async function setArticleStatus(bos: BosUser, id: string, status: "draft"
   await recordStatus("kb_article", id, before.status, status, bos.userId);
   await audit({ actorId: bos.userId, action: `kb.article_${status}`, entityType: "kb_article", entityId: id, oldValue: { status: before.status }, newValue: { status } });
   if (status === "published" && before.status !== "published") await emitPublished(bos, before);
+}
+
+// Support knowledge base (docs/bos/37 §7.6): make an article available to
+// the AI support agent. The agent only reads published, public articles.
+export async function setArticleAiAllowed(bos: BosUser, id: string, allowed: boolean) {
+  const { data: before } = await db().from("kb_articles").select("id, ai_allowed, audience, status").eq("id", id).single();
+  if (!before) throw new NotFoundError();
+  if (allowed && before.audience !== "public") throw new ValidationError("اجعل جمهور المقال «عام» أولاً — وكيل الذكاء الاصطناعي لا يستخدم المقالات الداخلية.");
+  await db().from("kb_articles").update({ ai_allowed: allowed }).eq("id", id);
+  await audit({ actorId: bos.userId, action: "kb.article_ai_allowed", entityType: "kb_article", entityId: id, oldValue: { ai_allowed: before.ai_allowed }, newValue: { ai_allowed: allowed } });
 }
 
 export async function saveSteps(bos: BosUser, articleId: string, steps: { kind: "step" | "checklist"; title: string; description: string | null }[]) {

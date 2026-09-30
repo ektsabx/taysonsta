@@ -16,7 +16,7 @@ export default async function NewArticlePage({ searchParams }: { searchParams: S
       <Card>
         <ArticleEditor
           action={createArticleAction}
-          initial={{ kind: sp.kind ?? "article", owner_id: bos.userId }}
+          initial={{ kind: sp.kind ?? "article", owner_id: bos.userId, ...(sp.audience === "public" ? { audience: "public" } : {}), ...(sp.ai === "1" ? { ai_allowed: true } : {}) }}
           categories={categories.map((c) => ({ value: c.id, label: c.name }))}
           roles={roles.filter((r) => !r.is_client_role).map((r) => ({ value: r.id, label: r.name }))}
           staff={staff.map((s) => ({ value: s.userId, label: s.name }))}

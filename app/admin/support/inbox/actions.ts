@@ -9,7 +9,7 @@ import { db } from "@/lib/bos/db";
 import { audit } from "@/lib/bos/audit";
 import {
   assignConversation, createConversation, createTicketFromConversation, escalateConversation, linkCustomer, mergeCustomers,
-  replyToConversation, setConversationStatus, updateConversationMeta, updateCustomer, type ConvStatus,
+  markConversationSpam, replyToConversation, restoreConversationFromSpam, setConversationStatus, updateConversationMeta, updateCustomer, type ConvStatus,
 } from "@/services/bos/conversations";
 
 // Support inbox actions (docs/bos/30 §10.2–10.4).
@@ -17,6 +17,7 @@ const uuid = /^[0-9a-f-]{36}$/i;
 const refresh = () => {
   revalidatePath("/admin/support/inbox");
   revalidatePath("/admin/support");
+  revalidatePath("/admin/support/spam");
 };
 
 export async function replyAction(id: string, body: string, internal: boolean): Promise<ActionState<{ delivery: string | null; error?: string | null }>> {
@@ -179,5 +180,17 @@ export async function myAvailabilityAction(available: boolean): Promise<ActionSt
     await db().from("support_team_members").update({ is_available: available }).eq("user_id", bos.userId);
     revalidatePath("/admin/support/inbox");
     return { ok: true, message: available ? "أنت متاح لاستقبال المحادثات" : "لن تُسند إليك محادثات جديدة" };
+  });
+}
+
+// Spam folder (docs/bos/37 §3) — permission checked in the service.
+export async function spamAction(id: string, op: "mark" | "restore", reason?: string): Promise<ActionState> {
+  return handleAction("conversationSpam", async () => {
+    const bos = await requireBosUserForAction();
+    if (!uuid.test(id)) throw new ValidationError("قيمة غير صالحة.");
+    if (op === "mark") await markConversationSpam(bos, id, reason ?? null);
+    else await restoreConversationFromSpam(bos, id);
+    refresh();
+    return { ok: true, message: op === "mark" ? "نُقلت المحادثة إلى الرسائل المزعجة" : "أُعيدت المحادثة إلى صندوق الوارد" };
   });
 }

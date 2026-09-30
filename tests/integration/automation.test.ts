@@ -33,12 +33,12 @@ test("money conditions compare as decimals, not floats", () => {
 
 test("rule runs once per event (idempotent), dry run matches, loop protection, retry", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
-  const trigger = "feature_request.created";
+  const trigger = "ticket.created";
   const input = base({ trigger_event: trigger, conditions: [{ field: "marker", op: "eq", value: "auto-test" }], actions: [{ type: "notify", params: { recipients: [{ kind: "user", value: admin.userId }], title: "Auto {{payload.marker}}" } }] });
   const id = await saveRule(admin, null, input);
   cleanup.push(() => db().from("automation_rules").delete().eq("id", id));
   const entityId = crypto.randomUUID();
-  const eventId = await emitEvent({ type: trigger, entityType: "feature_request", entityId, summary: "auto test", payload: { marker: "auto-test" }, dedupeKey: `auto-test:${entityId}` });
+  const eventId = await emitEvent({ type: trigger, entityType: "ticket", entityId, summary: "auto test", payload: { marker: "auto-test" }, dedupeKey: `auto-test:${entityId}` });
   assert.ok(eventId);
   await dispatchPendingEvents();
   const { data: runs } = await db().from("automation_runs").select("id, status").eq("rule_id", id);
@@ -58,7 +58,7 @@ test("rule runs once per event (idempotent), dry run matches, loop protection, r
 
   // Loop protection: events at automation depth 3 never trigger rules.
   const deep = crypto.randomUUID();
-  await emitEvent({ type: trigger, entityType: "feature_request", entityId: deep, summary: "deep", payload: { marker: "auto-test", automation_depth: 3 }, dedupeKey: `auto-deep:${deep}` });
+  await emitEvent({ type: trigger, entityType: "ticket", entityId: deep, summary: "deep", payload: { marker: "auto-test", automation_depth: 3 }, dedupeKey: `auto-deep:${deep}` });
   await dispatchPendingEvents();
   const { data: deepRuns } = await db().from("automation_runs").select("id").eq("rule_id", id).eq("entity_id", deep);
   assert.equal(deepRuns?.length, 0, "loop protection");
@@ -66,7 +66,7 @@ test("rule runs once per event (idempotent), dry run matches, loop protection, r
   // Failure is logged without throwing; retry creates a flagged run.
   await db().from("automation_rules").update({ actions: [{ type: "update_field", params: { entity: "lead", field: "not_allowed", value: 1 } }] }).eq("id", id);
   const failId = crypto.randomUUID();
-  await emitEvent({ type: trigger, entityType: "feature_request", entityId: failId, summary: "fail", payload: { marker: "auto-test" }, dedupeKey: `auto-fail:${failId}` });
+  await emitEvent({ type: trigger, entityType: "ticket", entityId: failId, summary: "fail", payload: { marker: "auto-test" }, dedupeKey: `auto-fail:${failId}` });
   await dispatchPendingEvents();
   const { data: failed } = await db().from("automation_runs").select("id, status, error").eq("rule_id", id).eq("entity_id", failId).single();
   assert.equal(failed!.status, "failed");

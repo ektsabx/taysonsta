@@ -8,7 +8,9 @@ import { PageHeader, StatusBadge, EmptyState } from "@/components/bos/ui";
 import { DataTable } from "@/components/bos/DataTable";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { formatDate } from "@/lib/bos/format";
-import { statusOptions } from "@/lib/bos/labels";
+import { statusOptions, statusDef } from "@/lib/bos/labels";
+
+const statusLabel = (s: string) => statusDef("ticket_status", s)?.label ?? s;
 import { SlaIndicator } from "../SlaIndicator";
 import { ticketCategories, priorities } from "../SupportControls";
 import { bulkAssignTicketsAction } from "../actions";
@@ -17,11 +19,21 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
   const { bos, scope } = await requirePermission("tickets.read");
   const sp = await readParams(searchParams);
   const params = { ...sp, status: sp.status ?? "open_all" };
-  const [result, staff, names] = await Promise.all([listTickets(bos, scope, { ...params, page: pageOf(sp) }), listActiveStaff(), userNameMap()]);
+  const statuses = ["open", "in_progress", "waiting_for_client", "resolved", "closed"] as const;
+  const [result, staff, names, ...counts] = await Promise.all([
+    listTickets(bos, scope, { ...params, page: pageOf(sp) }), listActiveStaff(), userNameMap(),
+    // Status summary within the viewer's scope (same query as the list).
+    ...statuses.map((st) => listTickets(bos, scope, { status: st, page: 1 }).then((r) => r.total)),
+  ]);
+  const qsFor = (status: string) => { const p = new URLSearchParams(Object.entries({ ...sp, status }).filter(([, v]) => v) as [string, string][]); p.delete("page"); return `/admin/support/tickets?${p}`; };
   const catLabel = new Map(ticketCategories.map((c) => [c.value, c.label]));
   return (
     <>
       <PageHeader title="تذاكر الدعم" subtitle={<Tx vars={{ total: result.total }}>{"{total} تذكرة"}</Tx>} actions={can(bos, "tickets.create") ? <Link className="admin-btn small" href="/admin/support/tickets/new"><Tx>+ تذكرة</Tx></Link> : null} />
+      <nav className="bos-chips" aria-label="ticket status">
+        <Link href={qsFor("open_all")} className={params.status === "open_all" ? "on" : undefined}><Tx>كل المفتوحة</Tx> {counts.slice(0, 3).reduce((a, b) => a + b, 0)}</Link>
+        {statuses.map((st, i) => <Link key={st} href={qsFor(st)} className={params.status === st ? "on" : undefined}><Tx>{statusLabel(st)}</Tx> {counts[i]}</Link>)}
+      </nav>
       <FilterBar
         searchPlaceholder="رقم أو موضوع التذكرة..."
         filters={[
@@ -43,6 +55,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
           { key: "assignee", label: "المسؤول" },
           { key: "status", label: "الحالة" },
           { key: "sla", label: "SLA" },
+          { key: "conversation", label: "المحادثة", defaultHidden: true },
           { key: "created", label: "أُنشئت" },
           { key: "updated", label: "آخر تحديث", defaultHidden: true },
         ]}
@@ -67,6 +80,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
               assignee: t.assigned_to ? names.get(t.assigned_to) ?? "—" : <span className="bos-faint"><Tx>غير معيّن</Tx></span>,
               status: <StatusBadge map="ticket_status" value={t.status} />,
               sla: <SlaIndicator t={t} compact />,
+              conversation: t.conversation_id ? <Link className="bos-link" href={`/admin/support/inbox?c=${t.conversation_id}`}><Tx>فتح المحادثة</Tx></Link> : "—",
               created: formatDate(t.created_at),
               updated: formatDate(t.updated_at),
             },

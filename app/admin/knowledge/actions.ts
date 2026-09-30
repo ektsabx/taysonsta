@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { authorize } from "@/lib/bos/auth";
 import { assertCanAccess } from "@/lib/bos/access";
 import { handleAction, parseForm, zf, type ActionState } from "@/lib/bos/action";
-import { createArticle, markRead, saveSteps, setArticleStatus, updateArticle, type ArticleInput } from "@/services/bos/knowledge";
+import { createArticle, markRead, saveSteps, setArticleStatus, updateArticle, type ArticleInput, setArticleAiAllowed } from "@/services/bos/knowledge";
 
 const articleSchema = z.object({
   kind: z.enum(["article", "sop", "playbook", "documentation", "policy", "onboarding_guide"]),
@@ -67,6 +67,7 @@ export async function setArticleStatusAction(id: string, status: "draft" | "publ
     const { bos } = await authorize("knowledge.manage");
     await setArticleStatus(bos, id, status);
     revalidatePath("/admin/knowledge", "layout");
+    revalidatePath("/admin/support/knowledge");
     return { ok: true, message: status === "published" ? "تم النشر" : status === "archived" ? "تمت الأرشفة" : "أصبح مسودة" };
   });
 }
@@ -91,5 +92,15 @@ export async function markReadAction(articleId: string): Promise<ActionState> {
     await markRead(bos, articleId);
     revalidatePath("/admin/knowledge", "layout");
     return { ok: true, message: "تم تسجيل القراءة" };
+  });
+}
+
+export async function setArticleAiAction(id: string, allowed: boolean): Promise<ActionState> {
+  return handleAction("setArticleAi", async () => {
+    const { bos } = await authorize("knowledge.update");
+    await setArticleAiAllowed(bos, id, allowed);
+    revalidatePath("/admin/knowledge", "layout");
+    revalidatePath("/admin/support/knowledge");
+    return { ok: true, message: allowed ? "أصبح المقال متاحاً لوكيل الذكاء الاصطناعي" : "لم يعد المقال متاحاً للوكيل" };
   });
 }

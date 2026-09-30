@@ -1885,94 +1885,6 @@ export type Database = {
           },
         ]
       }
-      bugs: {
-        Row: {
-          actual_behavior: string | null
-          assigned_to: string | null
-          bug_number: string
-          created_at: string
-          description: string | null
-          environment: string
-          expected_behavior: string | null
-          id: string
-          priority: Database["public"]["Enums"]["priority_level"]
-          project_id: string
-          qa_status: string
-          reported_by_contact_id: string | null
-          reported_by_user_id: string | null
-          severity: string
-          status: Database["public"]["Enums"]["bug_status"]
-          steps_to_reproduce: string | null
-          ticket_id: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          actual_behavior?: string | null
-          assigned_to?: string | null
-          bug_number?: string
-          created_at?: string
-          description?: string | null
-          environment?: string
-          expected_behavior?: string | null
-          id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          project_id: string
-          qa_status?: string
-          reported_by_contact_id?: string | null
-          reported_by_user_id?: string | null
-          severity?: string
-          status?: Database["public"]["Enums"]["bug_status"]
-          steps_to_reproduce?: string | null
-          ticket_id?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          actual_behavior?: string | null
-          assigned_to?: string | null
-          bug_number?: string
-          created_at?: string
-          description?: string | null
-          environment?: string
-          expected_behavior?: string | null
-          id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          project_id?: string
-          qa_status?: string
-          reported_by_contact_id?: string | null
-          reported_by_user_id?: string | null
-          severity?: string
-          status?: Database["public"]["Enums"]["bug_status"]
-          steps_to_reproduce?: string | null
-          ticket_id?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bugs_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bugs_reported_by_contact_id_fkey"
-            columns: ["reported_by_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bugs_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       camera_events: {
         Row: {
           actor_user_id: string | null
@@ -3914,6 +3826,9 @@ export type Database = {
           reopened_count: number
           resolved_at: string | null
           snoozed_until: string | null
+          spam_at: string | null
+          spam_by: string | null
+          spam_reason: string | null
           status: string
           subject: string | null
           tags: string[]
@@ -3947,6 +3862,9 @@ export type Database = {
           reopened_count?: number
           resolved_at?: string | null
           snoozed_until?: string | null
+          spam_at?: string | null
+          spam_by?: string | null
+          spam_reason?: string | null
           status?: string
           subject?: string | null
           tags?: string[]
@@ -3980,6 +3898,9 @@ export type Database = {
           reopened_count?: number
           resolved_at?: string | null
           snoozed_until?: string | null
+          spam_at?: string | null
+          spam_by?: string | null
+          spam_reason?: string | null
           status?: string
           subject?: string | null
           tags?: string[]
@@ -6320,99 +6241,6 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
-      }
-      feature_requests: {
-        Row: {
-          business_value: string | null
-          client_id: string | null
-          cost: number | null
-          created_at: string
-          currency: string | null
-          deal_id: string | null
-          description: string | null
-          estimated_effort_hours: number | null
-          id: string
-          priority: Database["public"]["Enums"]["priority_level"]
-          project_id: string | null
-          requested_by_contact_id: string | null
-          requested_by_user_id: string | null
-          status: Database["public"]["Enums"]["feature_request_status"]
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          business_value?: string | null
-          client_id?: string | null
-          cost?: number | null
-          created_at?: string
-          currency?: string | null
-          deal_id?: string | null
-          description?: string | null
-          estimated_effort_hours?: number | null
-          id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          project_id?: string | null
-          requested_by_contact_id?: string | null
-          requested_by_user_id?: string | null
-          status?: Database["public"]["Enums"]["feature_request_status"]
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          business_value?: string | null
-          client_id?: string | null
-          cost?: number | null
-          created_at?: string
-          currency?: string | null
-          deal_id?: string | null
-          description?: string | null
-          estimated_effort_hours?: number | null
-          id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          project_id?: string | null
-          requested_by_contact_id?: string | null
-          requested_by_user_id?: string | null
-          status?: Database["public"]["Enums"]["feature_request_status"]
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feature_requests_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feature_requests_currency_fkey"
-            columns: ["currency"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "feature_requests_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feature_requests_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feature_requests_requested_by_contact_id_fkey"
-            columns: ["requested_by_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       file_shares: {
         Row: {
@@ -13687,14 +13515,6 @@ export type Database = {
         | "remote"
         | "on_break"
         | "day_off"
-      bug_status:
-        | "reported"
-        | "triaged"
-        | "in_progress"
-        | "ready_for_qa"
-        | "qa"
-        | "fixed"
-        | "closed"
       change_request_status:
         | "requested"
         | "assessment"
@@ -13787,14 +13607,6 @@ export type Database = {
         | "contractor"
         | "intern"
         | "freelancer"
-      feature_request_status:
-        | "requested"
-        | "review"
-        | "approved"
-        | "rejected"
-        | "planned"
-        | "in_development"
-        | "released"
       invoice_status:
         | "draft"
         | "sent"
@@ -14113,15 +13925,6 @@ export const Constants = {
         "on_break",
         "day_off",
       ],
-      bug_status: [
-        "reported",
-        "triaged",
-        "in_progress",
-        "ready_for_qa",
-        "qa",
-        "fixed",
-        "closed",
-      ],
       change_request_status: [
         "requested",
         "assessment",
@@ -14224,15 +14027,6 @@ export const Constants = {
         "contractor",
         "intern",
         "freelancer",
-      ],
-      feature_request_status: [
-        "requested",
-        "review",
-        "approved",
-        "rejected",
-        "planned",
-        "in_development",
-        "released",
       ],
       invoice_status: [
         "draft",

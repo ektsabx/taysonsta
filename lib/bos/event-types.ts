@@ -54,8 +54,6 @@ export const eventCatalog: EventType[] = [
   ...e("الموافقات", [["approval.requested", "طلب موافقة", ["approval_type"]], ["approval.decided", "قرار موافقة", ["decision", "approval_type"]]]),
   ...e("الدعم", [
     ["ticket.created", "تذكرة جديدة", ["priority", "client_id", "project_id"]], ["ticket.assigned", "تعيين تذكرة"], ["ticket.replied", "رد على تذكرة"], ["ticket.client_replied", "رد العميل"], ["ticket.status_changed", "تغيير حالة تذكرة", ["to"]], ["ticket.sla_breached", "تجاوز SLA", ["priority"]],
-    ["bug.created", "خطأ برمجي جديد", ["severity"]], ["bug.status_changed", "تغيير حالة خطأ", ["to"]], ["bug.ready_for_qa", "جاهز للاختبار"],
-    ["feature_request.created", "طلب ميزة"], ["feature_request.status_changed", "تغيير حالة طلب ميزة", ["to"]],
   ]),
   ...e("العملاء", [["client.created", "إنشاء حساب"], ["client.assigned", "تعيين مدير حساب"], ["onboarding.started", "بدء تهيئة"], ["onboarding.completed", "اكتمال تهيئة"], ["onboarding.overdue", "تهيئة متأخرة"]]),
   ...e("الفريق والحضور", [
@@ -77,7 +75,6 @@ export const eventCatalog: EventType[] = [
   ...e("المالية", [["invoice.cancelled", "إلغاء فاتورة"], ["commission.adjustment_required", "تعديل عمولة مطلوب"]]),
   ...e("المشاريع والمهام", [["project.member_added", "إضافة عضو للمشروع"], ["project.member_removed_with_tasks", "إزالة عضو لديه مهام"], ["project.pm_assignment_required", "مطلوب تعيين مدير مشروع"], ["project.cancelled_with_unpaid_invoices", "إلغاء مشروع بفواتير غير مسددة"], ["project.satisfaction_recorded", "تسجيل رضا العميل"], ["milestone.created", "إنشاء مرحلة"], ["issue.created", "مشكلة جديدة"], ["issue.assigned", "تعيين مشكلة"], ["issue.status_changed", "تغيير حالة مشكلة"], ["time.logged", "تسجيل وقت"], ["comment.added", "تعليق جديد"]]),
   ...e("الأنشطة والتواصل", [["meeting.invited", "دعوة اجتماع"], ["file.shared", "مشاركة ملف"]]),
-  ...e("الدعم", [["bug.assigned", "تعيين خطأ برمجي"]]),
   ...e("العملاء", [["client.merged", "دمج حسابين"]]),
   ...e("الفريق والحضور", [["employee.manager_changed", "تغيير المدير المباشر"], ["employee.promoted", "ترقية موظف"], ["employee.probation_ending", "قرب انتهاء فترة الاختبار"], ["employee.reports_need_reassignment", "مرؤوسون يحتاجون مديراً"], ["compensation.changed", "تغيير الراتب"], ["offboarding.started", "بدء إنهاء الخدمة"], ["offboarding.completed", "اكتمال إنهاء الخدمة"], ["user.invited", "دعوة موظف للنظام"]]),
   ...e("الموارد البشرية", [

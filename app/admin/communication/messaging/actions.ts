@@ -11,7 +11,10 @@ import { normalizeDomains } from "@/services/bos/widgets";
 
 // WhatsApp / SMS messaging actions (docs/bos/30 §11).
 const uuid = /^[0-9a-f-]{36}$/i;
-const refresh = () => revalidatePath("/admin/communication/messaging");
+const refresh = () => {
+  revalidatePath("/admin/communication/messaging");
+  revalidatePath("/admin/settings/integrations/widgets");
+};
 
 const sendSchema = z.object({
   channel: z.enum(["whatsapp", "sms"]),

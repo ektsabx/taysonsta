@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Tx, useT } from "@/components/bos/I18n";
 import { ModalButton } from "@/components/bos/Dialog";
 import { ActionForm, CheckboxField, FormSection, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
-import { saveAgentAction, testAgentAction } from "../widgets/actions";
+import { saveAgentAction, testAgentAction } from "./actions";
 import type { AgentDecision } from "@/services/bos/ai-agents";
 
 type O = { value: string; label: string };

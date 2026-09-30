@@ -20,7 +20,7 @@ async function resolveRelation(relation: string, event: ActivityEvent): Promise<
   const entityColumn = async (column: string): Promise<string | null> => {
     const tableByType: Record<string, string> = {
       lead: "leads", deal: "deals", task: "tasks", activity: "activities", project: "projects", ticket: "tickets",
-      bug: "bugs", meeting: "meetings", change_request: "change_requests", issue: "issues", invoice: "invoices",
+      meeting: "meetings", change_request: "change_requests", issue: "issues", invoice: "invoices",
     };
     const table = tableByType[event.entity_type];
     if (!table) return null;

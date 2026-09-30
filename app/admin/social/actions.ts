@@ -16,6 +16,7 @@ import { platformKeys, type MetricKey, type Platform } from "@/lib/bos/social/pl
 const uuid = /^[0-9a-f-]{36}$/i;
 const refresh = (id?: string) => {
   revalidatePath("/admin/social", "layout");
+  revalidatePath("/admin/settings/integrations/social");
   if (id) revalidatePath(`/admin/social/posts/${id}`);
 };
 

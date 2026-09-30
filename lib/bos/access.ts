@@ -59,7 +59,7 @@ async function ownerIn(bos: BosUser, scope: Scope, owners: (string | null | unde
 const entityPermission: Record<string, string> = {
   content_item: "content",
   lead: "leads", deal: "deals", client: "clients", contact: "contacts", project: "projects", task: "tasks",
-  milestone: "milestones", ticket: "tickets", bug: "bugs", feature_request: "feature_requests", invoice: "invoices",
+  milestone: "milestones", ticket: "tickets", invoice: "invoices",
   payment: "payments", contract: "contracts", proposal: "proposals", change_request: "change_requests", issue: "issues",
   meeting: "meetings", employee: "employees", expense: "expenses", vendor: "vendors", kb_article: "knowledge",
   device: "devices", activity: "activities", commission: "commissions", approval: "approvals",
@@ -263,20 +263,6 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
       if (data.project_id && (await myProjectIds(bos)).includes(data.project_id)) return true;
       const clients = await myClientIds(bos, scope);
       return !!data.client_id && !!clients?.includes(data.client_id);
-    }
-    case "feature_request": {
-      const { data } = await client.from("feature_requests").select("requested_by_user_id, project_id, client_id").eq("id", entityId).maybeSingle();
-      if (!data) return false;
-      if (await ownerIn(bos, scope, [data.requested_by_user_id])) return true;
-      if (data.project_id && (await myProjectIds(bos)).includes(data.project_id)) return true;
-      const clients = await myClientIds(bos, scope);
-      return !!data.client_id && !!clients?.includes(data.client_id);
-    }
-    case "bug": {
-      const { data } = await client.from("bugs").select("assigned_to, reported_by_user_id, project_id").eq("id", entityId).maybeSingle();
-      if (!data) return false;
-      if (await ownerIn(bos, scope, [data.assigned_to, data.reported_by_user_id])) return true;
-      return (await myProjectIds(bos)).includes(data.project_id);
     }
     case "invoice":
     case "payment":

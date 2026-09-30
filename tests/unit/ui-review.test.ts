@@ -46,8 +46,10 @@ test("navigation: products standalone under the assistant, removed pages gone, s
   assert.equal(keys.indexOf("products"), keys.indexOf("assistant") + 1);
   assert.ok(!keys.includes("website"), "website section removed");
   const hrefs = navigation.flatMap((g) => [g.href, ...(g.items ?? []).flatMap((i) => [i.href, ...(i.children ?? []).map((c) => c.href)])]).filter(Boolean) as string[];
-  for (const gone of ["/admin/settings/pricing", "/admin/settings/commission", "/admin/settings/products"]) assert.ok(!hrefs.includes(gone), gone);
-  for (const nested of ["/admin/team/payroll/loans", "/admin/ads/accounts", "/admin/content/ideas", "/admin/team/attendance/corrections", "/admin/settings/branches", "/admin/reports/bd"]) assert.ok(hrefs.includes(nested), nested);
+  for (const gone of ["/admin/settings/pricing", "/admin/settings/commission", "/admin/settings/products", "/admin/support/widgets", "/admin/social/accounts", "/admin/ads/accounts"]) assert.ok(!hrefs.includes(gone), gone);
+  const support = navigation.find((g) => g.key === "support")!.items!.map((i) => i.href);
+  assert.deepEqual(support, ["/admin/support", "/admin/support/inbox", "/admin/support/spam", "/admin/support/ai-agents", "/admin/support/tickets", "/admin/support/knowledge"], "support shows exactly the six pages in order");
+  for (const nested of ["/admin/team/payroll/loans", "/admin/settings/integrations/ads", "/admin/settings/integrations/widgets", "/admin/support/spam", "/admin/support/knowledge", "/admin/content/ideas", "/admin/team/attendance/corrections", "/admin/settings/branches", "/admin/reports/bd"]) assert.ok(hrefs.includes(nested), nested);
 });
 
 test("branding: readable text on the brand colour, tokens and font stylesheet", () => {

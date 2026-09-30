@@ -45,7 +45,7 @@ export default async function AdsPage({ searchParams }: { searchParams: SearchPa
           { key: "convert", label: "العملة", type: "select" as const, options: [{ value: "1", label: "تحويل للعملة الأساسية" }] },
         ] : []),
       ]} />
-      {!accounts.length ? <Card><EmptyState title="لا توجد حسابات إعلانية" description="اربط Meta أو Google Ads، أو أضف حساباً يُستورد من CSV." actions={can(bos, "ads.manage") ? <Link className="admin-btn small" href="/admin/ads/accounts"><Tx>الحسابات الإعلانية</Tx></Link> : undefined} /></Card>
+      {!accounts.length ? <Card><EmptyState title="لا توجد حسابات إعلانية" description="اربط Meta أو Google Ads، أو أضف حساباً يُستورد من CSV." actions={can(bos, "ads.manage") ? <Link className="admin-btn small" href="/admin/settings/integrations/ads"><Tx>الحسابات الإعلانية</Tx></Link> : undefined} /></Card>
         : view === "organic" ? <Organic bos={bos} from={from} to={to} /> : <Report bos={bos} f={{ from, to, platform: sp.platform || null, account_id: sp.account || null, campaign_id: sp.campaign || null, by, convert: sp.convert === "1" }} />}
     </>
   );

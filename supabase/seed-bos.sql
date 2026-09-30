@@ -455,7 +455,7 @@ select c.id, (select id from auth.users where email = 'omar@taysonsta.local'), '
 from channels c join channel_members m1 on m1.channel_id = c.id join auth.users u on u.id = m1.user_id and u.email = 'nour@taysonsta.local'
 where c.kind = 'direct';
 
--- Support: tickets (one overdue SLA), a bug from a ticket, a feature request
+-- Support: tickets (one overdue SLA)
 insert into tickets (client_id, contact_id, project_id, category, priority, subject, description, assigned_to, status, source, created_by_user_id, created_at)
 select p.client_id, (select id from contacts where client_id = p.client_id order by created_at limit 1), p.id, 'technical', 'high',
        'Contact form not sending emails', 'Since yesterday the contact form on the landing page shows success but no email arrives.',
@@ -472,15 +472,6 @@ update tickets set first_responded_at = now() - interval '1 day' where subject =
 insert into comments (entity_type, entity_id, body, is_internal, author_user_id)
 select 'ticket', t.id, 'Checked SMTP logs — provider rejects the sender domain. Needs DNS fix.', true, (select id from auth.users where email = 'support@taysonsta.local')
 from tickets t where t.subject = 'Contact form not sending emails';
-insert into bugs (project_id, ticket_id, title, environment, severity, priority, description, steps_to_reproduce, expected_behavior, actual_behavior, assigned_to, reported_by_user_id, status)
-select t.project_id, t.id, 'Contact form emails rejected by provider', 'production', 'major', 'high',
-       'SPF record missing the email provider include.', E'1. Open landing page\n2. Submit contact form\n3. Check inbox', 'Email received', 'No email; provider bounce',
-       (select id from auth.users where email = 'youssef.dev@taysonsta.local'), (select id from auth.users where email = 'support@taysonsta.local'), 'in_progress'
-from tickets t where t.subject = 'Contact form not sending emails' and t.project_id is not null;
-insert into feature_requests (client_id, project_id, title, description, business_value, priority, estimated_effort_hours, cost, currency, status, requested_by_user_id)
-select p.client_id, p.id, 'Online booking for delivery slots', 'Let customers pick a delivery slot on the website.', 'Reduces calls to the dispatch team by ~30%.',
-       'high', 40, 2400, 'USD', 'review', (select id from auth.users where email = 'am@taysonsta.local')
-from projects p where p.status = 'completed' limit 1;
 
 -- Client portal users (LOCAL demo only; password Taysonsta!2026):
 --   nabil.client@example.test → Nabil Academy, mansour.client@example.test → Mansour Logistics

@@ -12,6 +12,9 @@ export interface NavLink {
   perm?: PermissionKey | PermissionKey[];
   // Needs this permission with scope "all" (on top of `perm`).
   all?: PermissionKey;
+  // Permission for `href` itself when `perm` also admits child-only users;
+  // without it the item links to the first permitted child.
+  hrefPerm?: PermissionKey;
   // Pages inside this area, shown under the item while it is active (they
   // replace the in-page tab strips — docs/bos/35 B1).
   children?: NavLink[];
@@ -133,7 +136,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/social", label: "التواصل الاجتماعي", perm: "social.read" },
       { href: "/admin/social/calendar", label: "تقويم المحتوى", perm: "social.read" },
       { href: "/admin/social/posts", label: "المنشورات", perm: "social.read" },
-      { href: "/admin/social/accounts", label: "الحسابات المتصلة", perm: "social.manage" },
       {
         href: "/admin/content", label: "استوديو المحتوى", perm: "content.read",
         children: [
@@ -147,7 +149,6 @@ export const navigation: NavGroup[] = [
         href: "/admin/ads", label: "الإعلانات", perm: "ads.read",
         children: [
           { href: "/admin/ads", label: "الأداء", perm: "ads.read" },
-          { href: "/admin/ads/accounts", label: "الحسابات الإعلانية", perm: "ads.manage" },
           { href: "/admin/ads/alerts", label: "التنبيهات", perm: "ads.manage" },
         ],
       },
@@ -168,16 +169,15 @@ export const navigation: NavGroup[] = [
     key: "support",
     label: "الدعم",
     icon: "support",
+    // docs/bos/37 §3: exactly these six pages; customers and teams open from
+    // the inbox, the website widget lives in Settings → Integrations.
     items: [
       { href: "/admin/support", label: "نظرة عامة", perm: "conversations.read" },
       { href: "/admin/support/inbox", label: "صندوق الوارد", perm: "conversations.read" },
-      { href: "/admin/support/customers", label: "عملاء الدعم", perm: "conversations.read" },
-      { href: "/admin/support/teams", label: "الفرق والوكلاء", perm: "conversations.manage" },
-      { href: "/admin/support/widgets", label: "ويدجت الموقع", perm: "conversations.manage" },
-      { href: "/admin/support/ai-agents", label: "وكلاء الذكاء الاصطناعي", perm: "conversations.manage" },
+      { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
+      { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
       { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
-      { href: "/admin/support/bugs", label: "الأخطاء البرمجية", perm: "bugs.read" },
-      { href: "/admin/support/feature-requests", label: "طلبات الميزات", perm: "feature_requests.read" },
+      { href: "/admin/support/knowledge", label: "قاعدة المعرفة", perm: "knowledge.read" },
     ],
   },
   {
@@ -235,7 +235,17 @@ export const navigation: NavGroup[] = [
       { href: "/admin/settings/hr", label: "الموارد البشرية", perm: ["settings.manage", "attendance.manage", "payroll.manage"] },
       { href: "/admin/settings/notifications", label: "الإشعارات", perm: "settings.manage" },
       { href: "/admin/settings/dashboards", label: "لوحات التحكم", perm: "settings.manage" },
-      { href: "/admin/settings/integrations", label: "مركز التكاملات", perm: "integrations.manage" },
+      // docs/bos/37 §5: everything that connects the system to an outside
+      // service, site or platform is managed here.
+      {
+        href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage", "messaging.manage", "social.manage", "ads.manage"], hrefPerm: "integrations.manage",
+        children: [
+          { href: "/admin/settings/integrations", label: "الخدمات والمفاتيح", perm: "integrations.manage", all: "integrations.manage" },
+          { href: "/admin/settings/integrations/widgets", label: "ويدجت الموقع", perm: ["conversations.manage", "messaging.manage"] },
+          { href: "/admin/settings/integrations/social", label: "الحسابات الاجتماعية", perm: "social.manage" },
+          { href: "/admin/settings/integrations/ads", label: "الحسابات الإعلانية", perm: "ads.manage" },
+        ],
+      },
       { href: "/admin/settings/import", label: "استيراد البيانات", perm: "imports.create" },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },
       { href: "/admin/settings/it", label: "التطبيقات الخارجية", perm: "apps.manage" },
@@ -254,8 +264,9 @@ function allowed(bos: BosUser, perm: NavLink["perm"], all?: PermissionKey): bool
 
 function linkFor(bos: BosUser, item: NavLink): NavLink {
   const children = item.children?.filter((c) => allowed(bos, c.perm, c.all));
+  const href = item.hrefPerm && !allowed(bos, item.hrefPerm, item.hrefPerm) && children?.length ? children[0].href : item.href;
   // A single sub-page is the page itself — no third level.
-  return { ...item, children: children && children.length > 1 ? children : undefined };
+  return { ...item, href, children: children && children.length > 1 ? children : undefined };
 }
 
 export function navigationFor(bos: BosUser): NavGroup[] {

@@ -121,8 +121,32 @@ export const pageGuides: Record<string, PageGuide> = {
     { title: "Knowledge", purpose: "Approved company articles, procedures and guides.", owner: "Everyone reads; owners write and review.", steps: ["Search or browse by category.", "Open an article and follow the steps.", "Suggest an edit if something is wrong."] },
   ),
   "/admin/support": g(
-    { title: "الدعم", purpose: "محادثات العملاء والتذاكر والأخطاء وطلبات الميزات.", owner: "فريق الدعم ووكلاؤه.", steps: ["رد على المحادثات في صندوق الوارد.", "حوّل المشكلات إلى تذاكر.", "راقب مهلة الاستجابة (SLA)."] },
-    { title: "Support", purpose: "Client conversations, tickets, bugs and feature requests.", owner: "The support team and agents.", steps: ["Reply to conversations in the inbox.", "Turn problems into tickets.", "Watch the response time (SLA)."] },
+    { title: "الدعم", purpose: "محادثات العملاء من كل القنوات، ووكلاء الذكاء الاصطناعي، والتذاكر، وقاعدة المعرفة.", owner: "فريق الدعم ووكلاؤه.", steps: ["رد على المحادثات في صندوق الوارد.", "حوّل المشكلات إلى تذاكر.", "راقب مهلة الاستجابة (SLA)."] },
+    { title: "Support", purpose: "Client conversations from every channel, AI agents, tickets and the knowledge base.", owner: "The support team and agents.", steps: ["Reply to conversations in the inbox.", "Turn problems into tickets.", "Watch the response time (SLA)."] },
+  ),
+  "/admin/support/inbox": g(
+    { title: "صندوق الوارد", purpose: "مكان العمل اليومي للرد على محادثات العملاء من كل القنوات.", owner: "وكلاء الدعم وقادة الفرق.", steps: ["اختر العرض من العمود الأول (المسندة لي، غير المسندة، الحالة).", "افتح المحادثة ورد من تبويب «رد» أو اكتب «ملاحظة» داخلية.", "من لوحة العميل غيّر المسؤول والفريق والأولوية، ومن «⋯» أنشئ تذكرة أو انقلها للرسائل المزعجة."] },
+    { title: "Inbox", purpose: "The daily workspace for replying to customer conversations from every channel.", owner: "Support agents and team leads.", steps: ["Pick a view in the first column (mine, unassigned, status).", "Open a conversation and reply in “Reply”, or write an internal “Note”.", "Use the customer panel for assignee, team and priority; use “⋯” to create a ticket or move it to spam."] },
+  ),
+  "/admin/support/spam": g(
+    { title: "الرسائل المزعجة", purpose: "المحادثات المصنفة كرسائل مزعجة، بعيداً عن صندوق الوارد والتقارير.", owner: "وكلاء الدعم.", steps: ["راجع المحادثة قبل القرار.", "اضغط «ليست رسالة مزعجة — استعادة» لإعادتها بحالتها السابقة.", "الرسائل الجديدة من نفس العميل تصل هنا تلقائياً دون تنبيهات."] },
+    { title: "Spam", purpose: "Conversations flagged as spam, kept out of the inbox and the reports.", owner: "Support agents.", steps: ["Review the conversation before deciding.", "Click “Not spam — restore” to return it with its previous status.", "New messages from the same customer land here automatically, without alerts."] },
+  ),
+  "/admin/support/ai-agents": g(
+    { title: "وكيل الذكاء الاصطناعي", purpose: "يرد على زوار الموقع من مقالات قاعدة المعرفة المسموح بها ويحوّل لموظف عند الحاجة.", owner: "مدير الدعم.", steps: ["تأكد أن مزود الذكاء الاصطناعي متصل من مركز التكاملات.", "اضبط الأسلوب وحدود التحويل ومصادر المعرفة.", "جرّب الوكيل، ثم اربطه بويدجت الموقع."] },
+    { title: "AI agent", purpose: "Answers website visitors from permitted knowledge-base articles and hands off to a person when needed.", owner: "The support manager.", steps: ["Make sure an AI provider is connected in the Integrations hub.", "Set the tone, hand-off limits and knowledge sources.", "Test the agent, then attach it to a website widget."] },
+  ),
+  "/admin/support/tickets": g(
+    { title: "التذاكر", purpose: "طلبات الدعم التي تحتاج متابعة بمهلة (SLA) وحالة وأولوية ومسؤول.", owner: "فريق الدعم.", steps: ["استخدم شرائح الحالة والفلاتر.", "افتح التذكرة لتحديث الحالة والرد.", "التذاكر المنشأة من محادثة ترتبط بها في الاتجاهين."] },
+    { title: "Tickets", purpose: "Support requests tracked with an SLA, status, priority and owner.", owner: "The support team.", steps: ["Use the status chips and filters.", "Open a ticket to update its status and reply.", "Tickets created from a conversation stay linked both ways."] },
+  ),
+  "/admin/support/knowledge": g(
+    { title: "قاعدة المعرفة", purpose: "مقالات المساعدة والأسئلة الشائعة للعملاء، ومصدر إجابات الوكيل الذكي.", owner: "فريق الدعم والمحتوى.", steps: ["أنشئ «مقال مساعدة» (جمهوره عام).", "انشره بعد المعاينة.", "فعّل «للوكيل الذكي» ليستخدمه في الردود."] },
+    { title: "Knowledge base", purpose: "Customer help articles and FAQs, and the AI agent's source of answers.", owner: "Support and content team.", steps: ["Create a “help article” (public audience).", "Publish it after previewing.", "Enable “For the AI agent” so it is used in replies."] },
+  ),
+  "/admin/settings/integrations/widgets": g(
+    { title: "ويدجت الموقع", purpose: "أدوات تضعها في موقعك: نافذة محادثة الدعم وزر واتساب.", owner: "مدير الدعم ومسؤول الرسائل.", steps: ["أنشئ الويدجت وأضف نطاق موقعك.", "انسخ كود التضمين إلى صفحات الموقع.", "اربطه بفريق ووكيل ذكاء اصطناعي عند الحاجة."] },
+    { title: "Website widgets", purpose: "Tools you place on your website: the support chat window and the WhatsApp button.", owner: "Support manager and messaging owner.", steps: ["Create the widget and add your site's domain.", "Copy the embed code into your pages.", "Attach a team and an AI agent if needed."] },
   ),
   "/admin/reports": g(
     { title: "التقارير", purpose: "تقارير وتحليلات على مستوى الشركة من بيانات الموديولات الفعلية.", owner: "الإدارة ومن لديه صلاحية التقارير.", steps: ["اختر التقرير من القائمة.", "حدد نطاق التاريخ والفلاتر.", "صدّر أو اطبع النتيجة."] },

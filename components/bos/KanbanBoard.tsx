@@ -18,7 +18,7 @@ export interface KanbanCard {
   content: ReactNode;
 }
 
-// Drag-and-drop board used by lead/deal pipelines, tasks, bugs (§98).
+// Drag-and-drop board used by lead/deal pipelines, tasks (§98).
 // Moves are optimistic; the server action is the source of truth and can
 // reject a move (e.g. invalid transition, Won needs a dialog).
 export function KanbanBoard({

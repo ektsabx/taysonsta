@@ -172,23 +172,6 @@ export async function portalReplyTicket(p: PortalUser, id: string, body: string)
   await replyToTicket({ contactId: p.contactId }, id, body, false);
 }
 
-export async function portalFeatureRequests(p: PortalUser) {
-  const s = await portalDb();
-  const { data } = await s.from("feature_requests").select("id, title, status, priority, created_at").eq("client_id", p.clientId).order("created_at", { ascending: false });
-  return data ?? [];
-}
-
-export async function portalCreateFeatureRequest(p: PortalUser, input: { title: string; description: string; businessValue: string | null; projectId: string | null }) {
-  if (input.projectId) await assertOwns(p, "project", input.projectId);
-  const { createFeatureRequest } = await import("@/services/bos/support");
-  return createFeatureRequest({ contactId: p.contactId ?? undefined }, { client_id: p.clientId, project_id: input.projectId, title: input.title, description: input.description, business_value: input.businessValue, priority: "medium", estimated_effort_hours: null, cost: null, currency: null });
-}
-
-// ---------------------------------------------------------------------------
-// Messages: one client-visible channel per project (docs/bos/14 edge case:
-// only messages in client channels are ever shown in the portal).
-// ---------------------------------------------------------------------------
-
 export async function ensureClientChannel(projectId: string) {
   const { data: existing } = await db().from("channels").select("id").eq("project_id", projectId).eq("kind", "project").eq("client_visible", true).maybeSingle();
   if (existing) return existing.id;

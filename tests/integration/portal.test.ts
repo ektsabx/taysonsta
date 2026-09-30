@@ -7,7 +7,7 @@ import "@/services/bos/approval-handlers";
 import { db } from "@/lib/bos/db";
 import { bosUserFor, uniq } from "@/tests/integration/helpers";
 import type { PortalUser } from "@/lib/bos/portal-auth";
-import { createTicket, replyToTicket, changeTicketStatus, convertTicketToBug, setQaStatus, advanceBug, createFeatureRequest, changeFeatureStatus, createUpsellDealFromFeatureRequest, listTicketConversation } from "@/services/bos/support";
+import { createTicket, replyToTicket, changeTicketStatus, listTicketConversation } from "@/services/bos/support";
 import { decideApproval } from "@/services/bos/approvals";
 
 const cleanup: (() => PromiseLike<unknown>)[] = [];
@@ -44,14 +44,13 @@ test("RLS: a portal JWT only reads its own client's rows via PostgREST", async (
   assert.ok((files ?? []).every((f) => f.client_visible), "only client-visible files");
 });
 
-test("support: SLA, public vs internal replies, client reopen, ticket→bug, QA workflow", async () => {
+test("support: SLA, public vs internal replies, client reopen", async () => {
   const support = await bosUserFor("support@taysonsta.local");
   const { data: client } = await db().from("clients").select("id").eq("company_name", "Nabil Academy").single();
   const { data: contact } = await db().from("contacts").select("id").eq("email", "nabil.client@example.test").single();
   const { data: project } = await db().from("projects").select("id").eq("client_id", client!.id).limit(1).single();
   const t = await createTicket({ contactId: contact!.id }, { client_id: client!.id, contact_id: contact!.id, project_id: project!.id, category: "technical", priority: "urgent", subject: uniq("Site down"), description: "Homepage returns 500", assigned_to: null }, "portal");
   cleanup.push(async () => {
-    await db().from("bugs").delete().eq("ticket_id", t.id);
     await db().from("comments").delete().eq("entity_type", "ticket").eq("entity_id", t.id);
     await db().from("tickets").delete().eq("id", t.id);
   });
@@ -74,48 +73,6 @@ test("support: SLA, public vs internal replies, client reopen, ticket→bug, QA 
   const { data: reopened } = await db().from("tickets").select("status, resolved_at").eq("id", t.id).single();
   assert.equal(reopened!.status, "in_progress", "client reply reopens");
   assert.equal(reopened!.resolved_at, null);
-
-  const dev = await bosUserFor("youssef.dev@taysonsta.local");
-  const hana = await bosUserFor("hana@taysonsta.local");
-  const bug = await convertTicketToBug(support, t.id, { title: "Homepage 500", severity: "critical", environment: "production", steps_to_reproduce: "Open /", assigned_to: dev.userId });
-  assert.equal(bug.reported_by_contact_id, contact!.id, "reporter contact kept");
-  await advanceBug(support, bug.id, "triaged");
-  await advanceBug(dev, bug.id, "in_progress");
-  await advanceBug(dev, bug.id, "ready_for_qa");
-  await setQaStatus(hana, bug.id, "failed", "Still 500 on mobile");
-  const { data: b1 } = await db().from("bugs").select("status, qa_status").eq("id", bug.id).single();
-  assert.deepEqual(b1, { status: "in_progress", qa_status: "failed" }, "QA failed → back to In Progress");
-  await advanceBug(dev, bug.id, "ready_for_qa");
-  await setQaStatus(hana, bug.id, "passed", null);
-  const { data: b2 } = await db().from("bugs").select("status, qa_status").eq("id", bug.id).single();
-  assert.deepEqual(b2, { status: "fixed", qa_status: "passed" });
-  await assert.rejects(advanceBug(dev, bug.id, "reported"), "invalid transition rejected");
-});
-
-test("feature request → upsell deal linked to client and previous project/deal", async () => {
-  const am = await bosUserFor("am@taysonsta.local");
-  // A completed project of an active (non-archived) account — other suites leave archived E2E accounts behind.
-  const { data: project } = await db().from("projects").select("id, client_id, deal_id, clients!inner(archived_at)").eq("status", "completed").is("clients.archived_at", null).limit(1).single();
-  const fr = await createFeatureRequest({ bos: am }, { client_id: project!.client_id, project_id: project!.id, title: uniq("Loyalty points"), description: "Reward repeat customers", business_value: "Retention", priority: "medium", estimated_effort_hours: "24", cost: "1500", currency: "USD" });
-  cleanup.push(async () => {
-    const { data } = await db().from("feature_requests").select("deal_id").eq("id", fr.id).single();
-    await db().from("feature_requests").delete().eq("id", fr.id);
-    if (data?.deal_id) {
-      await db().from("deal_products").delete().eq("deal_id", data.deal_id);
-      await db().from("deals").delete().eq("id", data.deal_id);
-    }
-  });
-  await assert.rejects(createUpsellDealFromFeatureRequest(am, fr.id), "requires approval first");
-  const admin = await bosUserFor("admin@taysonsta.local");
-  await changeFeatureStatus(admin, fr.id, "review", null);
-  await changeFeatureStatus(admin, fr.id, "approved", null);
-  const deal = await createUpsellDealFromFeatureRequest(am, fr.id);
-  const { data: d } = await db().from("deals").select("is_upsell, client_id, previous_project_id, previous_deal_id, value").eq("id", deal.id).single();
-  assert.equal(d!.is_upsell, true);
-  assert.equal(d!.client_id, project!.client_id);
-  assert.equal(d!.previous_project_id, project!.id);
-  assert.equal(d!.previous_deal_id, project!.deal_id);
-  assert.equal(Number(d!.value), 1500);
 });
 
 test("portal approval decided by the contact is recorded with the contact as decider", async () => {

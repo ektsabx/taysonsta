@@ -6,13 +6,13 @@ import { canAccessEntity } from "@/lib/bos/access";
 import { NotFoundError } from "@/lib/bos/errors";
 import { db } from "@/lib/bos/db";
 import { getTicket, listTicketConversation } from "@/services/bos/support";
-import { listActiveStaff, staffWithRole, userNameMap } from "@/services/bos/shared";
+import { listActiveStaff, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Summary, Card, StatusBadge } from "@/components/bos/ui";
 import { ActivityTimeline } from "@/components/bos/ActivityTimeline";
 import { FileManager } from "@/components/bos/FileManager";
 import { formatDateTime } from "@/lib/bos/format";
 import { SlaIndicator } from "../../SlaIndicator";
-import { AssignSelect, ConvertToBugButton, MergeTicketButton, ReplyForm, TicketMetaForm, TicketStatusButtons, ticketCategories } from "../../SupportControls";
+import { AssignSelect, MergeTicketButton, ReplyForm, TicketMetaForm, TicketStatusButtons, ticketCategories } from "../../SupportControls";
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { bos } = await requirePermission("tickets.read");
@@ -26,12 +26,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     throw e;
   }
   const canUpdate = can(bos, "tickets.update") && (await canAccessEntity(bos, "ticket", id, "update"));
-  const [conversation, names, staff, devs, { data: bugs }] = await Promise.all([
+  const [conversation, names, staff] = await Promise.all([
     listTicketConversation(id, true),
     userNameMap(),
     listActiveStaff(),
-    staffWithRole("developer"),
-    db().from("bugs").select("id, bug_number, title, status").eq("ticket_id", id),
   ]);
   const { data: contactNames } = await db().from("contacts").select("id, full_name").in("id", [...new Set(conversation.map((c) => c.author_contact_id).filter(Boolean))] as string[]);
   const cName = new Map((contactNames ?? []).map((c) => [c.id, c.full_name]));
@@ -49,7 +47,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           canUpdate ? (
             <>
               <TicketStatusButtons id={id} status={t.status} />
-              {can(bos, "bugs.create") && t.status !== "closed" ? <ConvertToBugButton id={id} subject={t.subject} developers={devs.map((d) => ({ value: d.userId, label: d.name }))} /> : null}
               {t.status !== "closed" && t.client_id ? <MergeTicketButton id={id} clientId={t.client_id} /> : null}
             </>
           ) : null
@@ -89,11 +86,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </div>
         <div>
           {canUpdate ? <Card title="بيانات التذكرة"><TicketMetaForm id={id} category={t.category} priority={t.priority} clientId={t.client_id ?? ""} projectInit={project ? { id: project.id, label: project.name } : null} /></Card> : null}
-          {(bugs ?? []).length ? (
-            <Card title="الأخطاء المرتبطة">
-              {(bugs ?? []).map((b) => <div key={b.id}><Link className="bos-link" href={`/admin/support/bugs/${b.id}`}>{b.bug_number}</Link> <Tx>{b.title}</Tx> <StatusBadge map="bug_status" value={b.status} /></div>)}
-            </Card>
-          ) : null}
           <Card title="المرفقات"><FileManager entityType="ticket" entityId={id} canUpload={can(bos, "files.create")} allowClientVisible /></Card>
           <Card title="السجل"><ActivityTimeline entityType="ticket" entityId={id} limit={40} /></Card>
         </div>

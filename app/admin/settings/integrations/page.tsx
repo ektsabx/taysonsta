@@ -1,6 +1,6 @@
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
-import { requirePermission } from "@/lib/bos/auth";
+import { can, requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { getSetting } from "@/lib/bos/settings";
 import { siteUrl } from "@/lib/seo";
@@ -20,7 +20,7 @@ import { connState } from "@/lib/bos/integrations/state";
 // place — encrypted credentials, several accounts per provider, default
 // account, connection tests, AI settings and usage, call and webhook logs.
 export default async function IntegrationsPage({ searchParams }: { searchParams: SearchParams }) {
-  await requirePermission("integrations.manage", "all");
+  const { bos } = await requirePermission("integrations.manage", "all");
   const sp = await readParams(searchParams);
   const tab = ["connections", "ai", "logs", "webhooks", "system"].includes(sp.tab ?? "") ? (sp.tab as string) : "connections";
   const keyOk = secretsConfigured();
@@ -37,6 +37,8 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
     if (states.includes("danger")) return "error" as const;
     return "pending" as const;
   };
+  // Identity colour per provider for the card mark (no third-party logos bundled).
+  const brandHue: Record<string, string> = { resend: "#111827", openai: "#10a37f", gemini: "#4285f4", anthropic: "#d97757", whatsapp_cloud: "#25d366", twilio: "#f22f46", google_maps: "#34a853", google_workspace: "#4285f4", meta: "#0866ff", telegram: "#27a7e7", linkedin: "#0a66c2", tiktok: "#111111", google_ads: "#fbbc04", docusign: "#4c00ff" };
   const stateMeta = { connected: { tone: "success", label: "متصل" }, error: { tone: "danger", label: "يحتاج إصلاح" }, pending: { tone: "warning", label: "محفوظ — لم يُتحقق" }, available: { tone: "neutral", label: "غير مربوط" } } as const;
   const counts = { connected: 0, error: 0, pending: 0, available: 0 };
   for (const p of providers) counts[provState(p.key, p.testable)]++;
@@ -68,6 +70,19 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
 
       {tab === "connections" ? (
         <>
+          <div className="bos-int-grid" style={{ marginBottom: 14 }}>
+            {[
+              { href: "/admin/settings/integrations/widgets", title: "ويدجت الموقع", desc: "نافذة محادثة الدعم وزر واتساب لموقعك — أكواد التضمين والنطاقات المسموحة.", show: can(bos, "conversations.manage", "all") || can(bos, "messaging.manage") },
+              { href: "/admin/settings/integrations/social", title: "الحسابات الاجتماعية", desc: "صفحات وحسابات النشر المربوطة بالمنصات الاجتماعية.", show: can(bos, "social.manage") },
+              { href: "/admin/settings/integrations/ads", title: "الحسابات الإعلانية", desc: "حسابات Meta وGoogle Ads للقراءة، وحسابات الاستيراد من CSV.", show: can(bos, "ads.manage") },
+            ].filter((x) => x.show).map((x) => (
+              <Link key={x.href} href={x.href} className="bos-int-tile bos-report-tile">
+                <strong>{<Tx>{x.title}</Tx>}</strong>
+                <p className="bos-int-desc"><Tx>{x.desc}</Tx></p>
+                <span className="bos-link" style={{ fontSize: 12.5 }}><Tx>إدارة</Tx></span>
+              </Link>
+            ))}
+          </div>
           <div className="bos-kpis">
             {(["connected", "error", "pending", "available"] as const).map((k) => (
               <Link key={k} href={qs({ status: statusFilter === k ? null : k })} className={`bos-int-kpi${statusFilter === k ? " on" : ""}`}>
@@ -89,16 +104,15 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
                 return (
                   <article key={p.key} className="bos-int-tile">
                     <div className="bos-int-tile-head">
-                      <span className="bos-int-mark" aria-hidden>{p.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || p.name.slice(0, 1)}</span>
+                      <span className="bos-int-mark" style={{ background: brandHue[p.key] ?? "var(--bos-secondary)" }} aria-hidden>{p.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || p.name.slice(0, 1)}</span>
                       <div style={{ minWidth: 0 }}>
                         <strong>{p.name}</strong>
                         <div className="bos-faint" style={{ fontSize: 11.5 }}><Tx>{categoryLabels[p.category]}</Tx></div>
                       </div>
-                      <span className={`bos-badge tone-${stateMeta[st].tone}`} style={{ marginInlineStart: "auto" }}><Tx>{stateMeta[st].label}</Tx></span>
                     </div>
                     <p className="bos-int-desc"><Tx>{p.description}</Tx></p>
                     <div className="bos-int-tile-foot">
-                      <span className="bos-faint" style={{ fontSize: 12 }}>{list.length ? <Tx vars={{ n: list.length }}>{"{n} حساب"}</Tx> : null}</span>
+                      <span className="bos-int-state"><span className={`bos-int-dot tone-${stateMeta[st].tone}`} /><Tx>{stateMeta[st].label}</Tx>{list.length > 1 ? <> · <Tx vars={{ n: list.length }}>{"{n} حساب"}</Tx></> : null}</span>
                       {list.length ? <ProviderManage def={p} conns={list} keyOk={keyOk} fmt={fmt} /> : keyOk ? <ConnectionButton def={p} label="ربط" /> : null}
                     </div>
                   </article>

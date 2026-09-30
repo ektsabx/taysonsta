@@ -211,11 +211,16 @@ export interface InboxFilters {
   priority?: string;
   q?: string;
   customer?: string;
+  // Spam folder (docs/bos/37 §3): spam is hidden from every other view.
+  spam?: boolean;
 }
 
 export async function listConversations(bos: BosUser, scope: Scope, f: InboxFilters, limit = 100) {
-  let q = db().from("conversations").select("*, support_customers(id, name, email, phone, company)").order("last_message_at", { ascending: false }).limit(limit);
-  if (f.status === "active" || !f.status) q = q.in("status", ["open", "pending_customer", "pending_internal", "snoozed"]);
+  let q = db().from("conversations").select("*, support_customers(id, name, email, phone, company, country)").order("last_message_at", { ascending: false }).limit(limit);
+  q = f.spam ? q.not("spam_at", "is", null) : q.is("spam_at", null);
+  if (f.spam) {
+    if (f.status && f.status !== "all" && f.status !== "active") q = q.eq("status", f.status as ConvStatus);
+  } else if (f.status === "active" || !f.status) q = q.in("status", ["open", "pending_customer", "pending_internal", "snoozed"]);
   else if (f.status !== "all") q = q.eq("status", f.status as ConvStatus);
   if (f.channel) q = q.eq("channel", f.channel as Channel);
   if (f.who === "me") q = q.eq("assignee_id", bos.userId);
@@ -339,6 +344,16 @@ export async function receiveInbound(input: { channel: Channel; customer: Custom
   const reopen = ["resolved", "closed"].includes(conv.status);
   await c.from("conversations").update({ last_customer_message_at: nowIso(), last_message_at: nowIso(), unread_for_agent: (conv.unread_for_agent ?? 0) + (isNew ? 0 : 1), ...(reopen ? { status: "open" as const, reopened_count: conv.reopened_count + 1, resolved_at: null, closed_at: null } : conv.status === "pending_customer" || conv.status === "snoozed" ? { status: "open" as const, snoozed_until: null } : {}) }).eq("id", conv.id);
   if (reopen) await recordStatus("conversation", conv.id, conv.status, "open", null, "Customer replied");
+  // A customer already marked as spam keeps landing in the spam folder, silently.
+  let spam = !!conv.spam_at;
+  if (isNew && !spam) {
+    const { count } = await c.from("conversations").select("id", { count: "exact", head: true }).eq("customer_id", customer.id).not("spam_at", "is", null);
+    if (count) {
+      await c.from("conversations").update({ spam_at: nowIso(), spam_reason: "auto: customer previously marked as spam" }).eq("id", conv.id);
+      spam = true;
+    }
+  }
+  if (spam) return { conversation: conv, duplicate: false, isNew, spam: true };
   if (!isNew && !conv.ai_active) await emitEvent({ type: "conversation.customer_message", entityType: "conversation", entityId: conv.id, summary: `${customer.name}: ${body.slice(0, 120)}`, actorType: "client", payload: { title: conv.subject ?? customer.name, assignee_user_id: conv.assignee_id, channel: input.channel, customer_id: customer.id } });
   return { conversation: conv, duplicate: false, isNew };
 }
@@ -443,6 +458,27 @@ export async function assignConversation(bos: BosUser, id: string, patch: { assi
   if (next.assignee_id && next.assignee_id !== conv.assignee_id) await emitEvent({ type: "conversation.assigned", entityType: "conversation", entityId: id, summary: `Conversation assigned: ${conv.number}`, actorId: bos.userId, payload: { title: conv.subject ?? conv.number, assignee_user_id: next.assignee_id, previous_assignee_user_id: conv.assignee_id } });
 }
 
+// Spam folder (docs/bos/37 §3): a real flag on the conversation; restoring
+// clears it and the conversation returns with its previous status.
+export async function markConversationSpam(bos: BosUser, id: string, reason: string | null) {
+  const { conversation: conv } = await getConversation(bos, id);
+  if (!can(bos, "conversations.update")) throw new ForbiddenError();
+  if (conv.spam_at) return;
+  const clean = reason?.trim().slice(0, 500) || null;
+  await db().from("conversations").update({ spam_at: nowIso(), spam_by: bos.userId, spam_reason: clean, unread_for_agent: 0 }).eq("id", id);
+  await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "spam:marked" });
+  await audit({ actorId: bos.userId, action: "conversation.marked_spam", entityType: "conversation", entityId: id, reason: clean ?? undefined });
+}
+
+export async function restoreConversationFromSpam(bos: BosUser, id: string) {
+  const { conversation: conv } = await getConversation(bos, id);
+  if (!can(bos, "conversations.update")) throw new ForbiddenError();
+  if (!conv.spam_at) return;
+  await db().from("conversations").update({ spam_at: null, spam_by: null, spam_reason: null }).eq("id", id);
+  await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "spam:restored" });
+  await audit({ actorId: bos.userId, action: "conversation.restored_from_spam", entityType: "conversation", entityId: id, oldValue: { spam_at: conv.spam_at, spam_reason: conv.spam_reason } });
+}
+
 // Escalate: raise priority and alert the team leads (or admins).
 export async function escalateConversation(bos: BosUser, id: string, reason: string) {
   const { conversation: conv } = await getConversation(bos, id);
@@ -498,29 +534,46 @@ export async function createTicketFromConversation(bos: BosUser, id: string, inp
 // Analytics (docs/bos/30 §10.1)
 // ---------------------------------------------------------------------------
 
-export async function supportAnalytics(days = 30) {
-  const since = new Date(nowMs() - days * 86400_000).toISOString();
+// Period = last N days or an explicit From–To (YYYY-MM-DD, inclusive).
+// Everything is computed from real conversations and tickets; spam excluded.
+export async function supportAnalytics(period: number | { from: string; to: string } = 30) {
+  const range = typeof period === "number"
+    ? { since: new Date(nowMs() - period * 86400_000).toISOString(), until: new Date(nowMs() + 60_000).toISOString() }
+    : { since: `${period.from}T00:00:00Z`, until: `${period.to}T23:59:59Z` };
   const c = db();
-  const [{ data: convs }, { data: open }] = await Promise.all([
-    c.from("conversations").select("channel, status, assignee_id, created_at, first_response_at, resolved_at, reopened_count").gte("created_at", since).limit(10000),
-    c.from("conversations").select("status, team_id, assignee_id, priority, last_customer_message_at, last_agent_message_at").not("status", "in", "(resolved,closed)").limit(10000),
+  const [{ data: convs }, { data: open }, { data: tickets }, { data: openTickets }, { count: spam }] = await Promise.all([
+    c.from("conversations").select("channel, status, assignee_id, team_id, created_at, first_response_at, resolved_at, reopened_count, ai_agent_id, handed_off_at").is("spam_at", null).gte("created_at", range.since).lte("created_at", range.until).limit(20000),
+    c.from("conversations").select("status, team_id, assignee_id, priority, last_customer_message_at, last_agent_message_at").is("spam_at", null).not("status", "in", "(resolved,closed)").limit(20000),
+    c.from("tickets").select("status, created_at, first_responded_at, resolved_at, sla_breached_at, conversation_id").gte("created_at", range.since).lte("created_at", range.until).limit(20000),
+    c.from("tickets").select("status, sla_breached_at").not("status", "in", "(resolved,closed)").limit(20000),
+    c.from("conversations").select("id", { count: "exact", head: true }).not("spam_at", "is", null).gte("created_at", range.since).lte("created_at", range.until),
   ]);
   const rows = convs ?? [];
-  const frt = rows.filter((r) => r.first_response_at).map((r) => (new Date(r.first_response_at!).getTime() - new Date(r.created_at).getTime()) / 60000);
-  const res = rows.filter((r) => r.resolved_at).map((r) => (new Date(r.resolved_at!).getTime() - new Date(r.created_at).getTime()) / 3600000);
+  const mins = (a: string, b: string) => (new Date(b).getTime() - new Date(a).getTime()) / 60000;
+  const frt = rows.filter((r) => r.first_response_at).map((r) => mins(r.created_at, r.first_response_at!));
+  const res = rows.filter((r) => r.resolved_at).map((r) => mins(r.created_at, r.resolved_at!) / 60);
   const avg = (a: number[]) => (a.length ? Math.round((a.reduce((s, x) => s + x, 0) / a.length) * 10) / 10 : null);
-  const byChannel = new Map<string, number>();
-  const byAgent = new Map<string, { handled: number; resolved: number }>();
+  const tally = <K extends string>(list: K[]) => { const m = new Map<K, number>(); for (const k of list) m.set(k, (m.get(k) ?? 0) + 1); return m; };
+  const byChannel = tally(rows.map((r) => r.channel));
+  const byStatus = tally(rows.map((r) => r.status));
+  const byTeam = tally(rows.map((r) => r.team_id ?? "none"));
+  const byAgent = new Map<string, { handled: number; resolved: number; frt: number[] }>();
   for (const r of rows) {
-    byChannel.set(r.channel, (byChannel.get(r.channel) ?? 0) + 1);
-    if (r.assignee_id) {
-      const a = byAgent.get(r.assignee_id) ?? { handled: 0, resolved: 0 };
-      a.handled++;
-      if (r.resolved_at) a.resolved++;
-      byAgent.set(r.assignee_id, a);
-    }
+    if (!r.assignee_id) continue;
+    const a = byAgent.get(r.assignee_id) ?? { handled: 0, resolved: 0, frt: [] };
+    a.handled++;
+    if (r.resolved_at) a.resolved++;
+    if (r.first_response_at) a.frt.push(mins(r.created_at, r.first_response_at));
+    byAgent.set(r.assignee_id, a);
   }
+  const ai = rows.filter((r) => r.ai_agent_id);
+  // Daily trend (UTC days) of conversations and tickets created.
+  const dayKeys: string[] = [];
+  for (let t = new Date(range.since.slice(0, 10) + "T00:00:00Z").getTime(); t <= Math.min(new Date(range.until).getTime(), nowMs()) && dayKeys.length < 400; t += 86400_000) dayKeys.push(new Date(t).toISOString().slice(0, 10));
+  const convDaily = tally(rows.map((r) => r.created_at.slice(0, 10)));
+  const ticketDaily = tally((tickets ?? []).map((t) => t.created_at.slice(0, 10)));
   const waiting = (open ?? []).filter((o) => o.last_customer_message_at && (!o.last_agent_message_at || o.last_agent_message_at < o.last_customer_message_at)).length;
+  const tRows = tickets ?? [];
   return {
     total: rows.length,
     resolved: res.length,
@@ -530,7 +583,23 @@ export async function supportAnalytics(days = 30) {
     open: (open ?? []).length,
     unassigned: (open ?? []).filter((o) => !o.assignee_id).length,
     waitingOnUs: waiting,
+    pending: (open ?? []).filter((o) => o.status === "pending_customer" || o.status === "pending_internal").length,
+    snoozed: (open ?? []).filter((o) => o.status === "snoozed").length,
+    closedInPeriod: rows.filter((r) => r.status === "resolved" || r.status === "closed").length,
+    spam: spam ?? 0,
     byChannel: [...byChannel.entries()].map(([channel, n]) => ({ channel, n })).sort((a, b) => b.n - a.n),
-    byAgent: [...byAgent.entries()].map(([userId, v]) => ({ userId, ...v })).sort((a, b) => b.handled - a.handled),
+    byStatus: [...byStatus.entries()].map(([status, n]) => ({ status, n })).sort((a, b) => b.n - a.n),
+    byTeam: [...byTeam.entries()].map(([teamId, n]) => ({ teamId, n })).sort((a, b) => b.n - a.n),
+    byAgent: [...byAgent.entries()].map(([userId, v]) => ({ userId, handled: v.handled, resolved: v.resolved, avgFirstResponseMin: avg(v.frt) })).sort((a, b) => b.handled - a.handled),
+    ai: { total: ai.length, handedOff: ai.filter((r) => r.handed_off_at).length, resolvedByAi: ai.filter((r) => !r.handed_off_at && r.resolved_at).length },
+    tickets: {
+      created: tRows.length,
+      resolved: tRows.filter((t) => t.resolved_at).length,
+      fromConversations: tRows.filter((t) => t.conversation_id).length,
+      avgFirstResponseMin: avg(tRows.filter((t) => t.first_responded_at).map((t) => mins(t.created_at, t.first_responded_at!))),
+      open: (openTickets ?? []).length,
+      breached: (openTickets ?? []).filter((t) => t.sla_breached_at).length,
+    },
+    daily: dayKeys.map((d) => ({ day: d, conversations: convDaily.get(d) ?? 0, tickets: ticketDaily.get(d) ?? 0 })),
   };
 }

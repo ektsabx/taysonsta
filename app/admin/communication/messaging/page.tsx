@@ -1,18 +1,15 @@
 import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { formatDateTime } from "@/lib/bos/format";
 import { listMessages } from "@/services/bos/messaging";
-import { listWaWidgets, waClicks } from "@/services/bos/whatsapp-widgets";
 import { userNameMap } from "@/services/bos/shared";
-import { PageHeader, Card, StatusBadge, EmptyState, Tabs, KeyValues } from "@/components/bos/ui";
+import { PageHeader, Card, StatusBadge, EmptyState, Tabs } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { EmbedCode } from "@/app/admin/support/widgets/WidgetControls";
-import { ConsentForm, RetryMessage, SendMessageForm, SyncTemplates, TemplateButton, WaWidgetButton, type TemplateOpt } from "./MessagingControls";
+import { ConsentForm, RetryMessage, SendMessageForm, SyncTemplates, TemplateButton, type TemplateOpt } from "./MessagingControls";
 
 const statusTone = { queued: "info", sent: "info", delivered: "success", read: "success", failed: "danger", skipped: "neutral" } as const;
 const statusLabels: Record<string, string> = { queued: "بالانتظار", sent: "أُرسل", delivered: "وصل", read: "قُرئ", failed: "فشل", skipped: "لم يُرسل" };
@@ -25,7 +22,7 @@ export default async function MessagingPage({ searchParams }: { searchParams: Se
   const { bos } = await requirePermission("messaging.read");
   const sp = await readParams(searchParams);
   const manage = can(bos, "messaging.manage");
-  const tabs = ["log", ...(can(bos, "messaging.create") ? ["send"] : []), "templates", ...(can(bos, "messaging.create") ? ["consent"] : []), ...(manage ? ["whatsapp_button"] : [])];
+  const tabs = ["log", ...(can(bos, "messaging.create") ? ["send"] : []), "templates", ...(can(bos, "messaging.create") ? ["consent"] : [])];
   const tab = tabs.includes(sp.tab ?? "") ? (sp.tab as string) : "log";
   const [{ data: tpls }, { count: waConn }, { count: smsConn }] = await Promise.all([
     db().from("message_templates").select("id, channel, name, language, body, variables, provider_status, category, is_active, synced_at").order("channel").order("name"),
@@ -44,13 +41,11 @@ export default async function MessagingPage({ searchParams }: { searchParams: Se
         { key: "send", label: "إرسال", hidden: !tabs.includes("send") },
         { key: "templates", label: "القوالب" },
         { key: "consent", label: "الموافقات وإلغاء الاشتراك", hidden: !tabs.includes("consent") },
-        { key: "whatsapp_button", label: "زر واتساب للموقع", hidden: !manage },
       ]} />
       {tab === "log" ? <Log bos={bos} sp={sp} /> : null}
       {tab === "send" ? <Card title="رسالة جديدة"><SendMessageForm templates={templates} canMarketing={manage} defaults={{ to: sp.to ?? "", channel: sp.channel ?? undefined }} /></Card> : null}
       {tab === "templates" ? <Templates templates={templates} manage={manage} /> : null}
       {tab === "consent" ? <Consent /> : null}
-      {tab === "whatsapp_button" ? <WaButtons /> : null}
     </>
   );
 }
@@ -141,28 +136,3 @@ async function Consent() {
   );
 }
 
-async function WaButtons() {
-  const [widgets, clicks, h] = await Promise.all([listWaWidgets(), waClicks(30), headers()]);
-  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3100"}`;
-  return (
-    <>
-      <Card title="زر واتساب مقابل محادثة واتساب للأعمال" actions={<WaWidgetButton />}>
-        <p className="bos-hint" style={{ margin: 0 }}><Tx>زر واتساب يفتح تطبيق واتساب لدى الزائر برسالة مكتوبة مسبقاً إلى رقمك (wa.me) — لا يحتاج API، والمحادثة تتم في واتساب. أما «واتساب للأعمال (API)» فيجعل الرسائل تصل إلى صندوق وارد الدعم هنا ويرد عليها الفريق بتتبع حالة التسليم. إذا كان رقم الزر هو نفس رقم الـAPI المتصل، تظهر المحادثات في صندوق الوارد تلقائياً.</Tx></p>
-      </Card>
-      {widgets.length ? widgets.map((w) => (
-        <Card key={w.id} title={<span className="bos-row" style={{ gap: 8 }}>{w.name}{w.is_active ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="neutral" label="معطّل" />}</span>} actions={<WaWidgetButton w={w} />}>
-          <EmbedCode src={`${origin}/api/public/whatsapp/${w.public_key}/embed.js`} />
-          <div style={{ marginTop: 10 }}>
-            <KeyValues items={[
-              { label: "الرقم", value: <span dir="ltr">+{w.phone}</span> },
-              { label: "نص الزر", value: w.label },
-              { label: "الرسالة المكتوبة مسبقاً", value: w.greeting || "—" },
-              { label: "النقرات (30 يوماً)", value: clicks.get(w.id) ?? 0 },
-              { label: "معاينة", value: <a href={`https://wa.me/${w.phone}?text=${encodeURIComponent(w.greeting)}`} target="_blank" rel="noreferrer"><Tx>فتح الرابط</Tx></a> },
-            ]} />
-          </div>
-        </Card>
-      )) : <EmptyState title="لا يوجد زر واتساب بعد" />}
-    </>
-  );
-}

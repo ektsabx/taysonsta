@@ -9,7 +9,10 @@ import { connectGoogleAds, createImportAccount, deleteAlertRule, importCsv, impo
 
 // Ads actions (docs/bos/30 §14). Read-only towards ad platforms.
 const uuid = /^[0-9a-f-]{36}$/i;
-const refresh = () => revalidatePath("/admin/ads", "layout");
+const refresh = () => {
+  revalidatePath("/admin/ads", "layout");
+  revalidatePath("/admin/settings/integrations/ads");
+};
 
 export async function adAccountAction(op: "import_meta" | "connect_google" | "sync" | "enable" | "disable", id?: string): Promise<ActionState> {
   return handleAction(`ads.${op}`, async () => {

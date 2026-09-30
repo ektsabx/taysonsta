@@ -11,7 +11,7 @@ import { getSetting } from "@/lib/bos/settings";
 import { handleAction, parseForm, zf, type ActionState } from "@/lib/bos/action";
 import { requirePortalUserForAction, requirePortalSectionForAction } from "@/lib/bos/portal-auth";
 import {
-  markPortalLogin, portalCreateChangeRequest, portalCreateFeatureRequest, portalCreateTicket, portalDecideApproval, portalPostMessage, portalReplyTicket, portalSubmitSatisfaction,
+  markPortalLogin, portalCreateChangeRequest, portalCreateTicket, portalDecideApproval, portalPostMessage, portalReplyTicket, portalSubmitSatisfaction,
 } from "@/services/bos/portal";
 
 export interface PortalLoginState {
@@ -115,16 +115,6 @@ export async function portalReplyTicketAction(ticketId: string, _prev: ActionSta
     revalidatePath(`/portal/support/${ticketId}`);
     return { ok: true, message: "تم إرسال الرد" };
   }, "تعذر إرسال الرد.");
-}
-
-export async function portalCreateFeatureAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("portalCreateFeature", async () => {
-    const p = await requirePortalSectionForAction("support");
-    const v = parseForm(z.object({ title: zf.required("العنوان", 300), description: zf.required("الوصف", 10000), business_value: zf.optionalText(2000), project_id: zf.optionalUuid() }), formData);
-    await portalCreateFeatureRequest(p, { title: v.title, description: v.description, businessValue: v.business_value ?? null, projectId: v.project_id });
-    revalidatePath("/portal/support");
-    return { ok: true, message: "تم إرسال طلب الميزة" };
-  }, "تعذر إرسال الطلب.");
 }
 
 export async function portalPostMessageAction(projectId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {

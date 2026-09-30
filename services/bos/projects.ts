@@ -29,7 +29,6 @@ export function allowedTransitions(from: ProjectStatus): ProjectStatus[] {
 
 export const blockerLabels: Record<string, string> = {
   required_tasks_incomplete: "توجد مهام مطلوبة غير مكتملة",
-  qa_open_bugs: "توجد أخطاء برمجية حرجة/كبيرة مفتوحة (لم يجتز اختبار الجودة)",
   final_approval_missing: "لم يوافق العميل على التسليم النهائي بعد",
   pending_approvals: "توجد موافقات معلقة على المشروع",
   final_payment_pending: "لم يتم استلام الدفعة النهائية (فواتير غير مسددة)",

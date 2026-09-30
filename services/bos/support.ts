@@ -10,13 +10,11 @@ import { emitEvent } from "@/lib/bos/events";
 import { staffWithRole } from "@/services/bos/shared";
 import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 
-// Support (§48–50): SLA tickets with public replies vs internal notes, bugs
-// with a QA workflow, feature requests that can become upsell deals.
+// Support (§48): SLA tickets with public replies vs internal notes.
+// Bugs and feature requests were removed (docs/bos/39 §1).
 
 export type Ticket = Tables<"tickets">;
 export type TicketStatus = DbEnum<"ticket_status">;
-export type BugStatus = DbEnum<"bug_status">;
-export type FeatureStatus = DbEnum<"feature_request_status">;
 
 export const ticketTransitions: Record<TicketStatus, TicketStatus[]> = {
   open: ["in_progress", "waiting_for_client", "resolved", "closed"],
@@ -25,27 +23,6 @@ export const ticketTransitions: Record<TicketStatus, TicketStatus[]> = {
   resolved: ["in_progress", "closed"],
   closed: [],
 };
-
-export const bugTransitions: Record<BugStatus, BugStatus[]> = {
-  reported: ["triaged", "closed"],
-  triaged: ["in_progress", "closed"],
-  in_progress: ["ready_for_qa"],
-  ready_for_qa: ["qa", "in_progress"],
-  qa: ["fixed", "in_progress"],
-  fixed: ["closed", "in_progress"],
-  closed: [],
-};
-
-export const featureTransitions: Record<FeatureStatus, FeatureStatus[]> = {
-  requested: ["review", "rejected"],
-  review: ["approved", "rejected"],
-  approved: ["planned", "rejected"],
-  rejected: ["review"],
-  planned: ["in_development"],
-  in_development: ["released"],
-  released: [],
-};
-
 
 // ---------------------------------------------------------------------------
 // Tickets
@@ -212,27 +189,6 @@ export async function listTicketConversation(id: string, includeInternal: boolea
   return data ?? [];
 }
 
-export async function convertTicketToBug(bos: BosUser, ticketId: string, input: { title: string; severity: string; environment: string; steps_to_reproduce: string | null; assigned_to: string | null }) {
-  const t = await getTicket(ticketId);
-  if (!t.project_id) throw new ValidationError("اربط التذكرة بمشروع أولاً لإنشاء خطأ برمجي.", { project_id: "مطلوب" });
-  const bug = await createBug(bos, {
-    project_id: t.project_id,
-    ticket_id: ticketId,
-    title: input.title || t.subject,
-    environment: input.environment as BugInput["environment"],
-    severity: input.severity as BugInput["severity"],
-    priority: t.priority,
-    description: t.description,
-    steps_to_reproduce: input.steps_to_reproduce,
-    expected_behavior: null,
-    actual_behavior: null,
-    assigned_to: input.assigned_to,
-    reported_by_contact_id: t.contact_id ?? t.created_by_contact_id,
-  });
-  await replyToTicket({ bos }, ticketId, `Converted to bug ${bug.bug_number}`, true);
-  return bug;
-}
-
 // Merge: the duplicate's conversation moves to the target and it closes.
 export async function mergeTickets(bos: BosUser, sourceId: string, targetId: string) {
   if (sourceId === targetId) throw new ValidationError("لا يمكن دمج التذكرة مع نفسها.");
@@ -257,202 +213,4 @@ export async function autoCloseResolved(days = 7) {
     await recordStatus("ticket", t.id, "resolved", "closed", null, `Auto-closed after ${days} days`);
   }
   return (data ?? []).length;
-}
-
-// ---------------------------------------------------------------------------
-// Bugs
-// ---------------------------------------------------------------------------
-
-export interface BugInput {
-  project_id: string;
-  ticket_id: string | null;
-  title: string;
-  environment: "production" | "staging" | "development";
-  severity: "critical" | "major" | "minor" | "trivial";
-  priority: Ticket["priority"];
-  description: string | null;
-  steps_to_reproduce: string | null;
-  expected_behavior: string | null;
-  actual_behavior: string | null;
-  assigned_to: string | null;
-  reported_by_contact_id?: string | null;
-}
-
-export async function listBugs(bos: BosUser, scope: Scope, f: { q?: string; status?: string; severity?: string; project?: string; assigned?: string; qa?: string }) {
-  let q = db().from("bugs").select("*, projects(id, name)").order("created_at", { ascending: false }).limit(500);
-  if (scope !== "all") {
-    const users = (await scopeUserIds(bos, scope)) ?? [bos.userId];
-    const projects = await myProjectIds(bos);
-    q = q.or([`assigned_to.in.(${users.join(",")})`, `reported_by_user_id.in.(${users.join(",")})`, ...(projects.length ? [`project_id.in.(${projects.join(",")})`] : [])].join(","));
-  }
-  if (f.status) q = q.eq("status", f.status as BugStatus);
-  if (f.severity) q = q.eq("severity", f.severity);
-  if (f.project) q = q.eq("project_id", f.project);
-  if (f.assigned === "me") q = q.eq("assigned_to", bos.userId);
-  else if (f.assigned) q = q.eq("assigned_to", f.assigned);
-  if (f.qa) q = q.eq("qa_status", f.qa);
-  if (f.q) q = q.or(`title.ilike.%${f.q.replace(/[%_,()]/g, " ")}%,bug_number.ilike.%${f.q.replace(/[%_,()]/g, " ")}%`);
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function getBug(id: string) {
-  const { data } = await db().from("bugs").select("*, projects(id, name, pm_id), tickets(id, ticket_number, subject), contacts(full_name)").eq("id", id).maybeSingle();
-  if (!data) throw new NotFoundError();
-  return data;
-}
-
-export async function createBug(bos: BosUser, input: BugInput) {
-  if (input.environment === "production" && !input.steps_to_reproduce?.trim()) throw new ValidationError("خطوات إعادة الإنتاج مطلوبة لأخطاء بيئة الإنتاج.", { steps_to_reproduce: "مطلوب" });
-  const { data, error } = await db().from("bugs").insert({ ...input, reported_by_user_id: bos.userId }).select("*").single();
-  if (error) throw error;
-  await recordStatus("bug", data.id, null, "reported", bos.userId);
-  await audit({ actorId: bos.userId, action: "bug.created", entityType: "bug", entityId: data.id, newValue: input });
-  await emitEvent({ type: "bug.created", entityType: "bug", entityId: data.id, summary: `Bug ${data.bug_number}: ${data.title} (${data.severity})`, actorId: bos.userId, payload: { project_id: data.project_id, severity: data.severity, assignee_user_id: data.assigned_to }, links: [{ type: "project", id: data.project_id }, { type: "ticket", id: data.ticket_id }] });
-  if (data.assigned_to) await emitEvent({ type: "bug.assigned", entityType: "bug", entityId: data.id, summary: `Bug assigned: ${data.bug_number} ${data.title}`, actorId: bos.userId, payload: { assignee_user_id: data.assigned_to, project_id: data.project_id } });
-  return data;
-}
-
-export async function updateBug(bos: BosUser, id: string, input: Omit<BugInput, "project_id" | "ticket_id">) {
-  const before = await getBug(id);
-  if (input.environment === "production" && !input.steps_to_reproduce?.trim()) throw new ValidationError("خطوات إعادة الإنتاج مطلوبة لأخطاء بيئة الإنتاج.", { steps_to_reproduce: "مطلوب" });
-  await db().from("bugs").update(input).eq("id", id);
-  await audit({ actorId: bos.userId, action: "bug.updated", entityType: "bug", entityId: id, oldValue: { severity: before.severity, assigned_to: before.assigned_to, priority: before.priority }, newValue: { severity: input.severity, assigned_to: input.assigned_to, priority: input.priority } });
-  if (input.assigned_to && input.assigned_to !== before.assigned_to) await emitEvent({ type: "bug.assigned", entityType: "bug", entityId: id, summary: `Bug assigned: ${before.bug_number} ${input.title}`, actorId: bos.userId, payload: { assignee_user_id: input.assigned_to, project_id: before.project_id } });
-}
-
-export async function advanceBug(bos: BosUser, id: string, to: BugStatus, reason: string | null = null) {
-  const b = await getBug(id);
-  if (b.status === to) return;
-  if (!bugTransitions[b.status].includes(to)) throw new ValidationError(`لا يمكن الانتقال من «${b.status}» إلى «${to}».`);
-  const patch: Partial<Tables<"bugs">> = { status: to };
-  if (to === "ready_for_qa") patch.qa_status = "not_tested";
-  await db().from("bugs").update(patch).eq("id", id);
-  await recordStatus("bug", id, b.status, to, bos.userId, reason);
-  await audit({ actorId: bos.userId, action: "bug.status_changed", entityType: "bug", entityId: id, oldValue: { status: b.status }, newValue: { status: to }, reason });
-  await emitEvent({ type: to === "ready_for_qa" ? "bug.ready_for_qa" : "bug.status_changed", entityType: "bug", entityId: id, summary: `${b.bug_number}: ${b.status} → ${to}`, actorId: bos.userId, payload: { from: b.status, to, project_id: b.project_id, assignee_user_id: b.assigned_to } });
-}
-
-// QA passed → Fixed; QA failed → back to In Progress (workflow §49).
-export async function setQaStatus(bos: BosUser, id: string, qa: "passed" | "failed", note: string | null) {
-  const b = await getBug(id);
-  if (!["qa", "ready_for_qa"].includes(b.status)) throw new ValidationError("الخطأ ليس في مرحلة الاختبار.");
-  await db().from("bugs").update({ qa_status: qa }).eq("id", id);
-  await audit({ actorId: bos.userId, action: `bug.qa_${qa}`, entityType: "bug", entityId: id, reason: note });
-  if (b.status === "ready_for_qa") await advanceBug(bos, id, "qa");
-  await advanceBug(bos, id, qa === "passed" ? "fixed" : "in_progress", note);
-}
-
-// ---------------------------------------------------------------------------
-// Feature requests
-// ---------------------------------------------------------------------------
-
-export interface FeatureInput {
-  client_id: string | null;
-  project_id: string | null;
-  title: string;
-  description: string | null;
-  business_value: string | null;
-  priority: Ticket["priority"];
-  estimated_effort_hours: string | null;
-  cost: string | null;
-  currency: string | null;
-}
-
-export async function listFeatureRequests(bos: BosUser, scope: Scope, f: { q?: string; status?: string; client?: string; priority?: string }) {
-  let q = db().from("feature_requests").select("*, clients(id, name, company_name), projects(id, name)").order("created_at", { ascending: false }).limit(500);
-  if (scope !== "all") {
-    const users = (await scopeUserIds(bos, scope)) ?? [bos.userId];
-    const [projects, clients] = await Promise.all([myProjectIds(bos), myClientIds(bos, scope)]);
-    q = q.or([`requested_by_user_id.in.(${users.join(",")})`, ...(projects.length ? [`project_id.in.(${projects.join(",")})`] : []), ...(clients?.length ? [`client_id.in.(${clients.join(",")})`] : [])].join(","));
-  }
-  if (f.status) q = q.eq("status", f.status as FeatureStatus);
-  if (f.client) q = q.eq("client_id", f.client);
-  if (f.priority) q = q.eq("priority", f.priority as Ticket["priority"]);
-  if (f.q) q = q.ilike("title", `%${f.q.replace(/[%_]/g, " ")}%`);
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function getFeatureRequest(id: string) {
-  const { data } = await db().from("feature_requests").select("*, clients(id, name, company_name, account_manager_id), projects(id, name, deal_id), contacts(full_name), deals(id, deal_number, name)").eq("id", id).maybeSingle();
-  if (!data) throw new NotFoundError();
-  return data;
-}
-
-function validateFeature(input: FeatureInput) {
-  if (!input.title.trim()) throw new ValidationError("العنوان مطلوب.", { title: "مطلوب" });
-  if (input.cost && !input.currency) throw new ValidationError("حدد العملة للتكلفة.", { currency: "مطلوب" });
-}
-
-export async function createFeatureRequest(actor: { bos?: BosUser; contactId?: string }, input: FeatureInput) {
-  validateFeature(input);
-  if (input.project_id && input.client_id) {
-    const { data } = await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle();
-    if (!data || data.client_id !== input.client_id) throw new ValidationError("المشروع لا يتبع هذا الحساب.");
-  }
-  const { data, error } = await db()
-    .from("feature_requests")
-    .insert({ ...input, cost: dec(input.cost), estimated_effort_hours: dec(input.estimated_effort_hours), requested_by_user_id: actor.bos?.userId ?? null, requested_by_contact_id: actor.contactId ?? null })
-    .select("*")
-    .single();
-  if (error) throw error;
-  await recordStatus("feature_request", data.id, null, "requested", actor.bos?.userId ?? null);
-  await audit({ actorId: actor.bos?.userId ?? null, actorType: actor.contactId ? "client" : "user", action: "feature_request.created", entityType: "feature_request", entityId: data.id, newValue: input });
-  await emitEvent({ type: "feature_request.created", entityType: "feature_request", entityId: data.id, summary: `Feature request: ${data.title}`, actorId: actor.bos?.userId ?? null, actorType: actor.contactId ? "client" : "user", payload: { client_id: data.client_id, project_id: data.project_id }, links: [{ type: "client", id: data.client_id }] });
-  return data;
-}
-
-export async function updateFeatureRequest(bos: BosUser, id: string, input: FeatureInput) {
-  validateFeature(input);
-  const before = await getFeatureRequest(id);
-  await db().from("feature_requests").update({ ...input, cost: dec(input.cost), estimated_effort_hours: dec(input.estimated_effort_hours) }).eq("id", id);
-  await audit({ actorId: bos.userId, action: "feature_request.updated", entityType: "feature_request", entityId: id, oldValue: { cost: before.cost, priority: before.priority }, newValue: { cost: input.cost, priority: input.priority } });
-}
-
-export async function changeFeatureStatus(bos: BosUser, id: string, to: FeatureStatus, reason: string | null) {
-  const fr = await getFeatureRequest(id);
-  if (fr.status === to) return;
-  if (!featureTransitions[fr.status].includes(to)) throw new ValidationError(`لا يمكن الانتقال من «${fr.status}» إلى «${to}».`);
-  if (to === "rejected" && !reason) throw new ValidationError("سبب الرفض مطلوب.");
-  await db().from("feature_requests").update({ status: to }).eq("id", id);
-  await recordStatus("feature_request", id, fr.status, to, bos.userId, reason);
-  await audit({ actorId: bos.userId, action: "feature_request.status_changed", entityType: "feature_request", entityId: id, oldValue: { status: fr.status }, newValue: { status: to }, reason });
-  const client = fr.clients as unknown as { account_manager_id: string | null } | null;
-  await emitEvent({ type: "feature_request.status_changed", entityType: "feature_request", entityId: id, summary: `Feature request "${fr.title}": ${fr.status} → ${to}`, actorId: bos.userId, visibility: "client", payload: { from: to === fr.status ? null : fr.status, to, client_id: fr.client_id, assignee_user_id: to === "approved" && fr.cost ? client?.account_manager_id ?? null : null } });
-}
-
-// Feature request → upsell deal linked to client/project/previous deal (§85).
-export async function createUpsellDealFromFeatureRequest(bos: BosUser, id: string) {
-  const fr = await getFeatureRequest(id);
-  if (!fr.client_id) throw new ValidationError("اربط طلب الميزة بحساب أولاً.");
-  if (fr.deal_id) throw new ValidationError("تم إنشاء صفقة لهذا الطلب بالفعل.");
-  if (!["approved", "planned"].includes(fr.status)) throw new ValidationError("يمكن إنشاء صفقة لطلب معتمد أو مخطط فقط.");
-  const project = fr.projects as unknown as { id: string; name: string; deal_id: string | null } | null;
-  const client = fr.clients as unknown as { account_manager_id: string | null; company_name: string | null; name: string };
-  const { createDeal } = await import("@/services/bos/deals");
-  const deal = await createDeal(bos, {
-    name: `Upsell: ${fr.title}`,
-    client_id: fr.client_id,
-    contact_id: fr.requested_by_contact_id,
-    lead_id: null,
-    source_id: null,
-    value: fr.cost ? String(fr.cost) : "0",
-    currency: fr.currency ?? "USD",
-    probability: null,
-    expected_close_date: null,
-    assigned_to: client.account_manager_id ?? bos.userId,
-    scope: [fr.description, fr.business_value ? `Business value: ${fr.business_value}` : null].filter(Boolean).join("\n\n") || null,
-    notes: `Created from feature request ${fr.id}`,
-    payment_terms: [{ label: "Full payment", percent: 100 }] as never,
-    products: [],
-    is_upsell: true,
-    previous_project_id: project?.id ?? null,
-    previous_deal_id: project?.deal_id ?? null,
-  });
-  await db().from("feature_requests").update({ deal_id: deal.id }).eq("id", id);
-  await audit({ actorId: bos.userId, action: "feature_request.upsell_created", entityType: "feature_request", entityId: id, newValue: { deal_id: deal.id } });
-  return deal;
 }
