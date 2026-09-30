@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -5,8 +6,6 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { listCandidates, listJobs } from "@/services/bos/hr/recruitment";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusLabel, statusOptions } from "@/lib/bos/labels";
 import { ManualApplicationButton } from "../RecruitmentControls";
@@ -19,8 +18,7 @@ export default async function CandidatesPage({ searchParams }: { searchParams: S
   const canCreate = bos.permissions.get("recruitment.create") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="المرشحون" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} مرشح"}</Tx>} breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "المرشحون" }]} actions={canCreate ? <ManualApplicationButton jobs={jobs.map((j) => ({ value: j.id, label: j.title }))} /> : null} />
-      <SubNav items={hrSection(bos, "recruitment")} active="candidates" label="التوظيف" />
+      <PageHeader title="المرشحون" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} مرشح"}</Tx>} actions={canCreate ? <ManualApplicationButton jobs={jobs.map((j) => ({ value: j.id, label: j.title }))} /> : null} />
       <FilterBar searchPlaceholder="بحث بالاسم أو البريد أو الهاتف..." filters={[
         { key: "job", label: "الوظيفة", type: "select", options: jobs.map((j) => ({ value: j.id, label: j.title })) },
         { key: "stage", label: "المرحلة", type: "select", options: statusOptions("application_status") },
@@ -28,7 +26,7 @@ export default async function CandidatesPage({ searchParams }: { searchParams: S
       ]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>المرشح</Tx></th><th><Tx>الطلبات</Tx></th><th><Tx>المصدر</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر تحديث</Tx></th></tr></thead>
             <tbody>
               {rows.map((c) => (
@@ -41,7 +39,7 @@ export default async function CandidatesPage({ searchParams }: { searchParams: S
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد مرشحون" description="يُنشأ المرشح تلقائياً عند التقديم من صفحة الوظائف على الموقع أو يدوياً." />}
       </Card>
     </>

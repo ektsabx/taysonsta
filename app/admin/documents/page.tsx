@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -28,14 +29,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Se
   const shownTemplates = q ? templates.filter((t) => `${t.key} ${t.name}`.toLowerCase().includes(q)) : templates;
   return (
     <>
-      <PageHeader title="المستندات والقوالب" subtitle="قوالب مركزية بإصدارات، ومستندات صادرة بنسخ مجمّدة لا تتغير" breadcrumbs={[{ label: "الملفات" }, { label: "المستندات" }]}
+      <PageHeader title="المستندات والقوالب" subtitle="قوالب مركزية بإصدارات، ومستندات صادرة بنسخ مجمّدة لا تتغير"
         actions={canManage ? <Link className="admin-btn small" href="/admin/documents/templates/new"><Tx>+ قالب جديد</Tx></Link> : null} />
       <Tabs param="tab" active={tab} baseHref="/admin/documents" tabs={[{ key: "documents", label: "المستندات الصادرة" }, { key: "templates", label: "القوالب" }]} />
       <FilterBar searchPlaceholder="بحث بالرقم أو العنوان..." filters={[{ key: "type", label: "النوع", type: "select", options: typeOptions }, ...(tab === "templates" ? [{ key: "lang", label: "اللغة", type: "select" as const, options: [{ value: "ar", label: "العربية" }, { value: "en", label: "English" }] }] : [])]} />
       {tab === "documents" ? (
         <Card flush>
           {shownDocs.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الرقم</Tx></th><th><Tx>العنوان</Tx></th><th><Tx>النوع</Tx></th><th><Tx>السجل</Tx></th><th><Tx>اللغة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
               <tbody>
                 {shownDocs.map((d) => (
@@ -50,13 +51,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Se
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد مستندات صادرة" description="تُصدر المستندات من صفحة السجل نفسه (فاتورة، عقد، صفقة، عرض عمل، موظف، مشروع، عميل)." />}
         </Card>
       ) : (
         <Card flush>
           {shownTemplates.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>القالب</Tx></th><th><Tx>النوع</Tx></th><th><Tx>اللغة</Tx></th><th><Tx>الإصدار</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
               <tbody>
                 {shownTemplates.map((t) => {
@@ -72,7 +73,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Se
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد قوالب" />}
         </Card>
       )}

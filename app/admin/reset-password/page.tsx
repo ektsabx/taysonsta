@@ -2,7 +2,7 @@
 
 import { Tx } from "@/components/bos/I18n";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,28 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
+  // Password changes only through a recovery/invitation link sent by an
+  // administrator (docs/bos/35 B7) — not from an ordinary signed-in session.
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const code = new URL(window.location.href).searchParams.get("code");
+    (code ? supabase.auth.exchangeCodeForSession(code) : Promise.resolve(null))
+      .then(() => supabase.auth.getSession())
+      .then(({ data }) => {
+        const token = data.session?.access_token;
+        let methods: string[] = [];
+        try {
+          const payload = JSON.parse(atob((token ?? "").split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+          methods = ((payload.amr ?? []) as { method: string }[]).map((a) => a.method);
+        } catch {
+          methods = [];
+        }
+        setAllowed(methods.some((m) => ["recovery", "invite", "otp", "magiclink"].includes(m)));
+      })
+      .catch(() => setAllowed(false));
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +68,11 @@ export default function ResetPasswordPage() {
     <div className="admin-login-shell">
       <div className="admin-login-card">
         <h1><Tx>تعيين كلمة مرور جديدة</Tx></h1>
-        {done ? (
+        {allowed === null ? (
+          <p className="admin-faint"><Tx>جارٍ التحقق من الرابط...</Tx></p>
+        ) : !allowed ? (
+          <p className="admin-error"><Tx>تغيير كلمة المرور يتم عبر رابط إعادة التعيين الذي يرسله مسؤول النظام إلى بريدك. تواصل مع الإدارة إذا احتجت ذلك.</Tx></p>
+        ) : done ? (
           <p className="admin-success"><Tx>تم تعيين كلمة المرور بنجاح، جارِ التحويل...</Tx></p>
         ) : (
           <form onSubmit={handleSubmit}>

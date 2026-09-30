@@ -40,7 +40,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
 
   return (
     <>
-      <PageHeader title="المهام" breadcrumbs={[{ label: "المشاريع" }, { label: "المهام" }]} actions={can(bos, "tasks.create") ? <Link href="/admin/projects/tasks/new" className="admin-btn small"><Tx>+ مهمة</Tx></Link> : null} />
+      <PageHeader title="المهام" actions={can(bos, "tasks.create") ? <Link href="/admin/projects/tasks/new" className="admin-btn small"><Tx>+ مهمة</Tx></Link> : null} />
       <Tabs tabs={views.map((v) => ({ ...v, hidden: v.key === "team" && scope === "own" }))} active={view} baseHref="/admin/projects/tasks" param="view" />
       <FilterBar
         searchPlaceholder="بحث في المهام..."
@@ -68,7 +68,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
               title: <Link href={`/admin/projects/tasks/${t.id}`}>{t.title}{t.parent_task_id ? <span className="cell-sub"><Tx>مهمة فرعية</Tx></span> : null}</Link>,
               related: project ? <Link href={`/admin/projects/${t.project_id}?tab=tasks`}>{project.name}</Link> : deal ? <Link href={`/admin/sales/deals/${t.deal_id}`}>{deal.name}</Link> : client?.name ?? "—",
               assignee: t.assigned_to ? names.get(t.assigned_to) ?? "—" : <span className="bos-faint"><Tx>غير معيّن</Tx></span>,
-              due: <span style={t.status === "overdue" ? { color: "#f87171" } : undefined}>{formatDate(t.due_date)}</span>,
+              due: <span style={t.status === "overdue" ? { color: "var(--bos-danger)" } : undefined}>{formatDate(t.due_date)}</span>,
               priority: <StatusBadge map="priority" value={t.priority} />,
               time: `${formatMinutes(t.actual_minutes)} / ${t.estimated_minutes ? formatMinutes(t.estimated_minutes) : "—"}`,
               status: canUpdate ? <TaskStatusSelect id={t.id} status={t.status} /> : <StatusBadge map="task_status" value={t.status} />,

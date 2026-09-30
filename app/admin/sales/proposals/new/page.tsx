@@ -19,7 +19,7 @@ export default async function NewProposalPage({ searchParams }: { searchParams: 
   }
   return (
     <>
-      <PageHeader title="مقترح جديد" breadcrumbs={[{ label: "المقترحات", href: "/admin/sales/proposals" }, { label: "جديد" }]} />
+      <PageHeader title="مقترح جديد" />
       <NewBosProposalForm initialDeal={deal} initialClient={client} />
     </>
   );

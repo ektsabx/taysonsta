@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -95,7 +96,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
             {deal.is_upsell ? <StatusBadge tone="accent" label="بيع إضافي" /> : null}
           </span>
         }
-        breadcrumbs={[{ label: "المبيعات" }, { label: "الصفقات", href: "/admin/sales/deals" }, { label: deal.deal_number }]}
+       
         actions={
           <>
             {can(bos, "chat.create") ? <ActionButton label="مناقشة داخلية" className="admin-btn small secondary" action={discussAction.bind(null, "deal", id)} /> : null}
@@ -147,7 +148,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
           <div>
             <Card title="المنتجات والخدمات">
               {products.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>البند</Tx></th>
@@ -166,7 +167,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم تُحدد بنود.</Tx></div>
               )}
@@ -174,7 +175,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
             <Card title="النطاق المعتمد">{deal.scope ? <div className="bos-prose"><Tx>{deal.scope}</Tx></div> : <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم يُحدد النطاق بعد — يُنسخ للمشروع عند كسب الصفقة.</Tx></div>}</Card>
             <Card title="شروط الدفع">
               {terms.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الدفعة</Tx></th>
@@ -193,7 +194,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-form-error" style={{ fontSize: 12.5 }}><Tx>لم تُحدد شروط الدفع — مطلوبة قبل كسب الصفقة.</Tx></div>
               )}
@@ -224,7 +225,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
       {tab === "proposals" ? (
         <Card title="المقترحات" actions={can(bos, "proposals.create") ? <Link href={`/admin/sales/proposals/new?dealId=${id}`} className="admin-btn small"><Tx>+ مقترح</Tx></Link> : null}>
           {proposals.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>المقترح</Tx></th>
@@ -247,7 +248,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد مقترحات" description="أنشئ مقترحاً من الصفقة ليُملأ العميل والأسعار وشروط الدفع تلقائياً." />
           )}
@@ -257,7 +258,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
       {tab === "contract" ? (
         <Card title="العقود" actions={can(bos, "contracts.create") ? <Link href={`/admin/sales/contracts/new?dealId=${id}`} className="admin-btn small"><Tx>+ عقد</Tx></Link> : null}>
           {contracts.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>العقد</Tx></th>
@@ -280,7 +281,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا يوجد عقد" />
           )}
@@ -291,7 +292,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
         <>
           <Card title="جدول الدفعات">
             {schedules.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead>
                   <tr>
                     <th><Tx>الدفعة</Tx></th>
@@ -312,7 +313,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : (
               <EmptyState title="لم يُنشأ جدول الدفعات بعد" description="يُنشأ تلقائياً من شروط الدفع عند كسب الصفقة." />
             )}
@@ -320,7 +321,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
           <div className="bos-grid cols-2">
             <Card title="الفواتير">
               {invoices.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الفاتورة</Tx></th>
@@ -339,14 +340,14 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد فواتير.</Tx></div>
               )}
             </Card>
             <Card title="المدفوعات">
               {payments.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الدفعة</Tx></th>
@@ -365,7 +366,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد مدفوعات.</Tx></div>
               )}
@@ -377,7 +378,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
       {tab === "commission" && canSeeCommission ? (
         <Card title="العمولة">
           {commissions.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>الموظف</Tx></th>
@@ -405,7 +406,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                     );
                   })}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد عمولة محسوبة" description="تُحسب العمولة تلقائياً عند كسب الصفقة حسب قواعد العمولة المعتمدة." />
           )}

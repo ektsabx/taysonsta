@@ -47,7 +47,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Se
     <>
       <PageHeader
         title="المقترحات"
-        breadcrumbs={[{ label: "المبيعات" }, { label: "المقترحات" }]}
+       
         actions={can(bos, "proposals.create") ? <Link href="/admin/sales/proposals/new" className="admin-btn small"><Tx>+ مقترح</Tx></Link> : null}
       />
       <FilterBar
@@ -78,7 +78,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Se
               status: <StatusBadge map="proposal_status" value={p.status} />,
               sent: formatDate(p.sent_at),
               views: p.view_count,
-              valid: <span style={expired ? { color: "#f87171" } : undefined}>{formatDate(p.valid_until)}</span>,
+              valid: <span style={expired ? { color: "var(--bos-danger)" } : undefined}>{formatDate(p.valid_until)}</span>,
               owner: p.owner_id ? names.get(p.owner_id) ?? "—" : "—",
             },
           };

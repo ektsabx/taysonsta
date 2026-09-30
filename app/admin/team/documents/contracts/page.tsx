@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { listContracts, daysUntil } from "@/services/bos/hr/documents";
 import { listCurrencies } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, KpiCard, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { NewContractButton } from "../../HrControls";
@@ -32,10 +31,9 @@ export default async function EmployeeContractsPage({ searchParams }: { searchPa
       <PageHeader
         title="عقود الموظفين"
         subtitle="كل العقود والنسخ والتجديدات والملاحق"
-        breadcrumbs={[{ label: "الفريق" }, { label: "المستندات", href: "/admin/team/documents" }, { label: "العقود" }]}
+       
         actions={bos.permissions.get("hr_documents.update") === "all" || bos.isSuperAdmin ? <NewContractButton employees={empOptions} currencies={currencies} /> : null}
       />
-      <SubNav items={hrSection(bos, "documents")} active="contracts" label="المستندات" />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 12 }}>
         <KpiCard label="سارية" value={visible.filter((r) => r.status === "active").length} href="/admin/team/documents/contracts?status=active" />
         <KpiCard label="تنتهي خلال 30 يوماً" value={visible.filter((r) => r.expiry === "expiring").length} href="/admin/team/documents/contracts?expiring=1" />
@@ -55,7 +53,7 @@ export default async function EmployeeContractsPage({ searchParams }: { searchPa
       />
       <Card flush>
         {visible.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>العقد</Tx></th><th><Tx>النوع</Tx></th><th><Tx>البداية</Tx></th><th><Tx>النهاية</Tx></th><th><Tx>التوقيع</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
             <tbody>
               {visible.map((k) => {
@@ -73,7 +71,7 @@ export default async function EmployeeContractsPage({ searchParams }: { searchPa
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد عقود" />}
       </Card>
     </>

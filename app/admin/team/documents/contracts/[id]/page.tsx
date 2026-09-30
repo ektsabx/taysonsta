@@ -34,7 +34,7 @@ export default async function EmployeeContractPage({ params }: { params: Promise
       <PageHeader
         title={k.title}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><StatusBadge map="employee_contract_status" value={k.status} /><StatusBadge map="signature_status" value={k.signature_status} /><span>{k.contract_number} · v{k.version}</span></span>}
-        breadcrumbs={[{ label: "العقود", href: "/admin/team/documents/contracts" }, { label: emp?.full_name ?? "", href: emp ? `/admin/team/employees/${emp.id}?tab=contracts` : undefined }, { label: k.contract_number ?? "" }]}
+       
         actions={
           <span className="bos-row" style={{ gap: 6, flexWrap: "wrap" }}>
             <ContractSteps id={k.id} status={k.status} signature={k.signature_status} canManage={canManage} isEmployee={isEmployee} />

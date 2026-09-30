@@ -45,6 +45,24 @@ export default async function PortalProjectPage({ params }: { params: Promise<{ 
           </table>
         ) : <PEmpty title="لا توجد مراحل" />}
       </div>
+      <div className="portal-card">
+        <h2>المهام</h2>
+        {d.tasks.length ? (
+          <table className="portal-table">
+            <thead><tr><th>المهمة</th><th>المرحلة</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
+            <tbody>
+              {d.tasks.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.title}</td>
+                  <td>{d.milestones.find((m) => m.id === t.milestone_id)?.name ?? "—"}</td>
+                  <td>{formatDate(t.due_date)}</td>
+                  <td><PBadge map="task_status" value={t.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : <PEmpty title="لا توجد مهام معروضة لك في هذا المشروع" />}
+      </div>
       <div className="portal-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
         <div className="portal-card">
           <h2>الموافقات</h2>

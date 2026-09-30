@@ -24,7 +24,7 @@ export default async function EditLeadPage({ params }: { params: Promise<{ id: s
     <>
       <PageHeader
         title={<Tx vars={{ name: lead.name }}>{"تعديل: {name}"}</Tx>}
-        breadcrumbs={[{ label: "العملاء المحتملون", href: "/admin/sales/leads" }, { label: lead.lead_number, href: `/admin/sales/leads/${id}` }, { label: "تعديل" }]}
+       
       />
       <LeadForm
         action={updateLeadAction.bind(null, id)}

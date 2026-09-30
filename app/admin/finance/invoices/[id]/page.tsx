@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -60,7 +61,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
       <PageHeader
         title={<Tx vars={{ invoice_number: inv.invoice_number }}>{"فاتورة {invoice_number}"}</Tx>}
         subtitle={<StatusBadge map="invoice_status" value={inv.status} />}
-        breadcrumbs={[{ label: "المالية" }, { label: "الفواتير", href: "/admin/finance/invoices" }, { label: inv.invoice_number }]}
+       
         actions={
           <>
             <Link href={`/admin/finance/invoices/${id}/print`} className="admin-btn small secondary" target="_blank">
@@ -95,7 +96,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
         <div className="bos-grid main-side">
           <div>
             <Card title="البنود">
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead>
                   <tr>
                     <th><Tx>الوصف</Tx></th>
@@ -114,7 +115,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
               <div className="bos-divider" />
               <div className="bos-stack" style={{ alignItems: "flex-end", fontSize: 13 }}>
                 <div><Tx>المجموع:</Tx> <Money value={inv.subtotal} currency={inv.currency} /></div>
@@ -125,7 +126,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
             </Card>
             <Card title="المدفوعات">
               {(payments ?? []).length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الدفعة</Tx></th>
@@ -148,7 +149,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد مدفوعات بعد.</Tx></div>
               )}

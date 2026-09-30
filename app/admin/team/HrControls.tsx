@@ -1,4 +1,6 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
+import { DateRangeFormField } from "@/components/bos/DateRangeField";
 
 import { Tx, Opt, useT } from "@/components/bos/I18n";
 
@@ -455,7 +457,7 @@ export function ScheduleEditorButton({ schedule, label }: { schedule?: { id: str
             <TextField name="color" label="اللون (اختياري)" dir="ltr" placeholder="#60a5fa" defaultValue={schedule?.color ?? ""} />
           </>)}
           <div className="bos-table-scroll">
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>اليوم</Tx></th><th><Tx>يوم عمل</Tx></th><th><Tx>البداية</Tx></th><th><Tx>النهاية</Tx></th><th><Tx>الاستراحة (د)</Tx></th><th /></tr></thead>
               <tbody>
                 {weekOrder.map((wd) => {
@@ -472,7 +474,7 @@ export function ScheduleEditorButton({ schedule, label }: { schedule?: { id: str
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
           <TextField name="description" label="الوصف" defaultValue={schedule?.description ?? ""} />
           <CheckboxField name="is_active" label="نشط" defaultChecked={schedule?.is_active ?? true} />
@@ -527,8 +529,7 @@ export function ShiftsButton({ schedules, employees }: { schedules: Opt[]; emplo
         <ActionForm action={setShiftsAction} onSuccess={close}>
           {grid(<>
             <SelectField name="schedule_id" label="الوردية" placeholder="— إزالة الورديات (الرجوع للجدول الأساسي) —" options={schedules} />
-            <TextField name="from" label="من" type="date" required />
-            <TextField name="to" label="إلى" type="date" required />
+            <DateRangeFormField label="الفترة" required />
           </>)}
           <div className="bos-field span-all">
             <label><Tx>الأيام (فارغ = كل الأيام)</Tx></label>
@@ -584,8 +585,7 @@ export function DayOffButton({ departments, teams, employees }: { departments: O
           {grid(<>
             <SelectField name="scope" label="لمن" value={scope} onChange={(e) => setScope(e.target.value)} options={[{ value: "employee", label: "موظف" }, { value: "team", label: "فريق" }, { value: "department", label: "قسم" }]} />
             <SelectField key={scope} name="target_id" label="الهدف" required placeholder="اختر..." options={targets} />
-            <TextField name="from" label="من" type="date" required />
-            <TextField name="to" label="إلى" type="date" required />
+            <DateRangeFormField label="الفترة" required />
           </>)}
           <TextField name="reason" label="السبب" required />
           {actions(<SubmitButton />)}

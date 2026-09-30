@@ -34,7 +34,7 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: S
       <PageHeader
         title="الأنشطة"
         subtitle="مكالمات ورسائل ومتابعات ومهام مرتبطة بالعملاء المحتملين والصفقات والحسابات والمشاريع"
-        breadcrumbs={[{ label: "المبيعات" }, { label: "الأنشطة" }]}
+       
         actions={
           <Link href="/admin/calendar?type=follow_up" className="admin-btn small secondary">
             <Tx>عرض في التقويم</Tx>
@@ -89,7 +89,7 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: S
               type: statusLabel("activity_type", a.type),
               related,
               assigned: a.assigned_to ? names.get(a.assigned_to) ?? "—" : "—",
-              due: <span style={overdue || a.status === "overdue" ? { color: "#f87171" } : undefined}>{formatDateTime(a.due_at ?? a.completed_at ?? a.created_at)}</span>,
+              due: <span style={overdue || a.status === "overdue" ? { color: "var(--bos-danger)" } : undefined}>{formatDateTime(a.due_at ?? a.completed_at ?? a.created_at)}</span>,
               priority: <StatusBadge map="priority" value={a.priority} />,
               status: <StatusBadge map="activity_status" value={a.status} />,
               actions: can(bos, "activities.update") && !["completed", "cancelled"].includes(a.status) ? <ActivityRowActions id={a.id} /> : null,

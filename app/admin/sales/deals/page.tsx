@@ -47,7 +47,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
     <>
       <PageHeader
         title="الصفقات"
-        breadcrumbs={[{ label: "المبيعات" }, { label: "الصفقات" }]}
+       
         actions={
           <>
             <Link href="/admin/sales/pipeline" className="admin-btn secondary small">

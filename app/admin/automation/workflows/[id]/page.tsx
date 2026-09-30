@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,7 +28,7 @@ export default async function WorkflowPage({ params }: { params: Promise<{ id: s
   const [staff, roles, runs] = await Promise.all([listActiveStaff(), listRoles(), listRuns({ rule: id })]);
   return (
     <>
-      <PageHeader title={rule.name} subtitle={rule.is_system ? "قاعدة نظام" : undefined} breadcrumbs={[{ label: "الأتمتة" }, { label: rule.is_system ? "قواعد النظام" : "مسارات العمل", href: rule.is_system ? "/admin/automation/rules" : "/admin/automation/workflows" }, { label: rule.name }]} actions={canEdit && !rule.is_system ? <DeleteRuleButton id={id} /> : null} />
+      <PageHeader title={rule.name} subtitle={rule.is_system ? "قاعدة نظام" : undefined} actions={canEdit && !rule.is_system ? <DeleteRuleButton id={id} /> : null} />
       <WorkflowBuilder
         canEdit={canEdit}
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}
@@ -36,7 +37,7 @@ export default async function WorkflowPage({ params }: { params: Promise<{ id: s
       />
       <Card title={<Tx vars={{ total: runs.total }}>{"آخر التشغيلات ({total})"}</Tx>} actions={<Link className="bos-link" href={`/admin/automation/logs?rule=${id}`}><Tx>كل السجل</Tx></Link>} flush>
         {runs.rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>الحدث</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>النتيجة</Tx></th><th /></tr></thead>
             <tbody>
               {runs.rows.slice(0, 15).map((r) => {
@@ -53,7 +54,7 @@ export default async function WorkflowPage({ params }: { params: Promise<{ id: s
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لم يُشغَّل بعد" />}
       </Card>
       {can(bos, "audit.read") ? <Card title="سجل التعديلات"><AuditLogPanel entityType="automation_rule" entityId={id} /></Card> : null}

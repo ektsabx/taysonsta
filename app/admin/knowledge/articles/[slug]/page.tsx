@@ -53,7 +53,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
             <span className="bos-faint"><Tx vars={{ version: a.version, v: formatDate(a.updated_at) }}>{"v{version} · آخر تحديث {v}"}</Tx></span>
           </span>
         }
-        breadcrumbs={[{ label: "المعرفة", href: "/admin/knowledge" }, ...(cat ? [{ label: cat.name, href: `/admin/knowledge?category=${a.category_id}` }] : []), { label: a.title }]}
+       
         actions={
           <>
             {a.status === "published" && !old ? (upToDate ? <span className="bos-faint" style={{ fontSize: 12 }}><Tx vars={{ v: a.myRead!.version, v2: formatDate(a.myRead!.read_at) }}>{"✓ قرأت v{v} في {v2}"}</Tx></span> : <MarkReadButton id={a.id} label={a.myRead ? `قرأت الإصدار الجديد v${a.version}` : "تم الاطلاع"} />) : null}

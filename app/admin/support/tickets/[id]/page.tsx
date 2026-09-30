@@ -44,7 +44,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       <PageHeader
         title={t.subject}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><span>{t.ticket_number}</span><StatusBadge map="ticket_status" value={t.status} /><StatusBadge map="priority" value={t.priority} />{t.source === "portal" ? <StatusBadge tone="accent" label="من البوابة" /> : null}</span>}
-        breadcrumbs={[{ label: "الدعم" }, { label: "التذاكر", href: "/admin/support/tickets" }, { label: t.ticket_number }]}
+       
         actions={
           canUpdate ? (
             <>

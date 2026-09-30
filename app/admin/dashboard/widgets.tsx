@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RelTime } from "@/components/bos/RelTime";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs, nowIso } from "@/lib/bos/clock";
@@ -563,7 +564,7 @@ export async function FinProfitabilityWidget({ bos }: Props) {
   if (!active.length) return <EmptyState title="لا مشاريع بعد" />;
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>
             <th><Tx>المشروع</Tx></th>
@@ -584,7 +585,7 @@ export async function FinProfitabilityWidget({ bos }: Props) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }

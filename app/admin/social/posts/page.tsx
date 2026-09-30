@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { userNameMap } from "@/services/bos/shared";
 import { platforms, type Platform } from "@/lib/bos/social/platforms";
 import { PageHeader, Card, StatusBadge, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { socialNav } from "../social-nav";
 import { postStatus } from "../labels";
 
 // Social posts list (docs/bos/30 §12.2–12.3).
@@ -23,12 +22,11 @@ export default async function SocialPostsPage({ searchParams }: { searchParams: 
   const [{ data: posts }, names] = await Promise.all([q, userNameMap()]);
   return (
     <>
-      <PageHeader title="المنشورات" breadcrumbs={[{ label: "التسويق" }, { label: "المنشورات" }]} actions={can(bos, "social.create") ? <Link className="admin-btn small" href="/admin/social/posts/new"><Tx>+ منشور</Tx></Link> : null} />
-      <SubNav items={socialNav(bos)} active="posts" label="التواصل الاجتماعي" />
+      <PageHeader title="المنشورات" actions={can(bos, "social.create") ? <Link className="admin-btn small" href="/admin/social/posts/new"><Tx>+ منشور</Tx></Link> : null} />
       <FilterBar searchPlaceholder="بحث بالعنوان..." filters={[{ key: "status", label: "الحالة", type: "select", options: Object.entries(postStatus).map(([value, s]) => ({ value, label: s.label })) }]} />
       <Card flush>
         {posts?.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th>#</th><th><Tx>العنوان</Tx></th><th><Tx>المنصات</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الموعد / النشر</Tx></th><th><Tx>المسؤول</Tx></th></tr></thead>
             <tbody>
               {posts.map((p) => {
@@ -45,7 +43,7 @@ export default async function SocialPostsPage({ searchParams }: { searchParams: 
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد منشورات" />}
       </Card>
     </>

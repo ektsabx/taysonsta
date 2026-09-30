@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -18,7 +19,7 @@ export default async function BdReport({ searchParams }: { searchParams: SearchP
       {!r.ok ? r.node : (
         <Card flush>
           {r.data.data.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>عملاء محتملون</Tx></th><th><Tx>مؤهلون</Tx></th><th><Tx>تواصل صادر</Tx></th><th><Tx>اجتماعات</Tx></th><th><Tx>مقترحات</Tx></th>{money ? <><th><Tx>خط المبيعات</Tx></th><th><Tx>الموزون</Tx></th></> : null}<th><Tx>مكسوبة</Tx></th>{money ? <><th><Tx>القيمة المكسوبة</Tx></th><th><Tx>العمولة</Tx></th></> : null}</tr></thead>
               <tbody>
                 {r.data.data.map((b) => (
@@ -30,7 +31,7 @@ export default async function BdReport({ searchParams }: { searchParams: SearchP
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد بيانات" />}
         </Card>
       )}

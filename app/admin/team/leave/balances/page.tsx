@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { peopleScope } from "@/services/bos/team-scope";
 import { getBalances, listBalanceAdjustments, listLeaveTypes } from "@/services/bos/leave";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, UserAvatar } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { BalanceAdjustButton } from "../../HrControls";
 
@@ -30,8 +29,7 @@ export default async function LeaveBalancesPage({ searchParams }: { searchParams
   const adjustments = selected ? await listBalanceAdjustments(selected.e.user_id as string, year) : [];
   return (
     <>
-      <PageHeader title="أرصدة الإجازات" subtitle={<Tx vars={{ year }}>{"سنة {year}"}</Tx>} breadcrumbs={[{ label: "الفريق" }, { label: "الإجازات", href: "/admin/team/leave" }, { label: "الأرصدة" }]} />
-      <SubNav items={hrSection(bos, "leave")} active="balances" label="الإجازات" />
+      <PageHeader title="أرصدة الإجازات" subtitle={<Tx vars={{ year }}>{"سنة {year}"}</Tx>} />
       <div className="bos-row" style={{ gap: 8, marginBottom: 10 }}>
         <Link className="admin-btn small ghost" href={`/admin/team/leave/balances?year=${year - 1}`}>{year - 1}</Link>
         <Link className="admin-btn small ghost" href={`/admin/team/leave/balances?year=${year + 1}`}>{year + 1}</Link>
@@ -39,7 +37,7 @@ export default async function LeaveBalancesPage({ searchParams }: { searchParams
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>الموظف</Tx></th>{types.map((t) => <th key={t.id}>{t.name}<span className="cell-sub"><Tx>المتبقي / الرصيد</Tx></span></th>)}<th /></tr></thead>
               <tbody>
                 {rows.map(({ e, balances }) => (
@@ -54,7 +52,7 @@ export default async function LeaveBalancesPage({ searchParams }: { searchParams
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا يوجد موظفون" />}
       </Card>

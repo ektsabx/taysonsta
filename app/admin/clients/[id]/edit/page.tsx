@@ -23,7 +23,7 @@ export default async function EditAccountPage({ params }: { params: Promise<{ id
   const [staff, currencies] = await Promise.all([listActiveStaff(), listCurrencies()]);
   return (
     <>
-      <PageHeader title={<Tx vars={{ company_name: account.company_name ?? account.name }}>{"تعديل: {company_name}"}</Tx>} breadcrumbs={[{ label: "الحسابات", href: "/admin/clients" }, { label: account.company_name ?? account.name, href: `/admin/clients/${id}` }, { label: "تعديل" }]} />
+      <PageHeader title={<Tx vars={{ company_name: account.company_name ?? account.name }}>{"تعديل: {company_name}"}</Tx>} />
       <AccountForm action={updateAccountAction.bind(null, id)} initial={account} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} currencies={currencies} canAssign={can(bos, "clients.assign")} />
     </>
   );

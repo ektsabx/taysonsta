@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -26,7 +27,7 @@ export default async function PerformanceReport({ searchParams }: { searchParams
     <ReportShell name="performance" canExport={false} sp={sp} note={`تحقيق المؤشرات للفترة الحالية حتى ${date} — حسب الفئة، بدون رقم إجمالي واحد`}>
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الدور</Tx></th>{categories.map((c) => <th key={c}>{c}</th>)}</tr></thead>
             <tbody>
               {rows.map(({ s, kpis }) => (
@@ -42,7 +43,7 @@ export default async function PerformanceReport({ searchParams }: { searchParams
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مؤشرات مخصصة" />}
       </Card>
     </ReportShell>

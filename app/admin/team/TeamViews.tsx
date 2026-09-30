@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { nowIso } from "@/lib/bos/clock";
 import Link from "next/link";
@@ -46,7 +47,7 @@ export function ChecklistView({
       {sections.map((section) => (
         <div key={section}>
           <div style={{ fontWeight: 600, fontSize: 13, margin: "6px 0" }}><Tx>{sectionLabels[section] ?? section}</Tx></div>
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <tbody>
               {checklist.items.filter((i) => i.section === section).map((it) => {
                 const link = it.auto_key ? links[it.auto_key] ?? (it.auto_key.startsWith("read:") ? { href: `/admin/knowledge/articles/${it.auto_key.slice(5)}`, label: "فتح المقال" } : undefined) : undefined;
@@ -78,7 +79,7 @@ export function ChecklistView({
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         </div>
       ))}
     </div>
@@ -107,7 +108,7 @@ export function AccessProfileView({ employeeId, grants, canManage }: { employeeI
         return (
           <div key={grp.key}>
             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}><Tx>{grp.label}</Tx> <span className="bos-faint">({rows.length})</span></div>
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <tbody>
                 {rows.map((g) => {
                   const app = g.external_apps as { name: string; category: string; access_levels: string[]; requires_mfa: boolean; is_sensitive: boolean };
@@ -132,7 +133,7 @@ export function AccessProfileView({ employeeId, grants, canManage }: { employeeI
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         );
       })}
@@ -146,7 +147,7 @@ export function AttendanceTable({ rows, actions }: { rows: AttendanceRow[]; acti
   if (!rows.length) return <EmptyState title="لا توجد سجلات حضور في هذه الفترة" />;
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>
             <th><Tx>اليوم</Tx></th>
@@ -183,7 +184,7 @@ export function AttendanceTable({ rows, actions }: { rows: AttendanceRow[]; acti
             );
           })}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }
@@ -195,7 +196,7 @@ export function LeaveTable({ rows, names, viewerId, canManage, showEmployee }: {
   const today = nowIso().slice(0, 10);
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>
             {showEmployee ? <th><Tx>الموظف</Tx></th> : null}
@@ -224,7 +225,7 @@ export function LeaveTable({ rows, names, viewerId, canManage, showEmployee }: {
             );
           })}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }

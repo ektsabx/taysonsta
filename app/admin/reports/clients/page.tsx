@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -28,10 +29,10 @@ export default async function ClientsReport({ searchParams }: { searchParams: Se
             </div>
             <Card flush>
               {d.clients.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead><tr><th><Tx>العميل</Tx></th><th><Tx>الدولة</Tx></th><th><Tx>المشاريع</Tx></th><th><Tx>نشطة</Tx></th>{money ? <th><Tx>الإيراد</Tx></th> : null}<th><Tx>بيع إضافي</Tx></th>{money ? <th><Tx>قيمة البيع الإضافي المفتوح</Tx></th> : null}</tr></thead>
                   <tbody>{d.clients.map((c) => <tr key={c.id}><td className="cell-primary"><Link href={`/admin/clients/${c.id}`}>{c.name}</Link></td><td><Tx>{c.country ?? "—"}</Tx></td><td><Tx>{c.projects}</Tx></td><td><Tx>{c.active_projects}</Tx></td>{money ? <td>{base(c.revenue)}</td> : null}<td><Tx>{c.upsells}</Tx></td>{money ? <td>{base(c.open_upsell_value)}</td> : null}</tr>)}</tbody>
-                </table>
+                </BosTable>
               ) : <EmptyState title="لا توجد بيانات" />}
             </Card>
           </>

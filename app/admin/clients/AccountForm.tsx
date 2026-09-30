@@ -60,7 +60,7 @@ export function AccountForm({
           <TextField name="tax_id" label="الرقم الضريبي" defaultValue={initial.tax_id ?? ""} />
           <SelectField name="default_currency" label="العملة الافتراضية" placeholder="—" options={currencies.map((c) => ({ value: c, label: c }))} defaultValue={initial.default_currency ?? ""} />
           <SelectField name="account_status" label="حالة الحساب" options={accountStatusOptions} defaultValue={initial.account_status ?? "prospect"} />
-          <SelectField name="account_manager_id" label="مدير الحساب" placeholder="— بدون —" options={staff} defaultValue={initial.account_manager_id ?? ""} disabled={!canAssign} hint={canAssign ? undefined : "تعيين مدير الحساب يتطلب صلاحية clients.assign"} />
+          <SelectField name="account_manager_id" label="مدير الحساب" placeholder="— بدون —" options={staff} defaultValue={initial.account_manager_id ?? ""} disabled={!canAssign} hint={canAssign ? undefined : "يحدد مدير الحساب المسؤولون المخوّلون بالتعيين فقط"} />
         </div>
       </FormSection>
       {isNew ? (

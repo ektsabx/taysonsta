@@ -48,7 +48,7 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: S
 
   return (
     <>
-      <PageHeader title="فاتورة جديدة" breadcrumbs={[{ label: "الفواتير", href: "/admin/finance/invoices" }, { label: "جديدة" }]} />
+      <PageHeader title="فاتورة جديدة" />
       <InvoiceForm
         action={createInvoiceAction}
         currencies={currencies}

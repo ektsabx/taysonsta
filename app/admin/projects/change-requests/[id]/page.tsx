@@ -31,7 +31,7 @@ export default async function ChangeRequestPage({ params }: { params: Promise<{ 
       <PageHeader
         title={`${cr.cr_number} — ${cr.title}`}
         subtitle={<StatusBadge map="change_request_status" value={cr.status} />}
-        breadcrumbs={[{ label: "طلبات التغيير", href: "/admin/projects/change-requests" }, { label: cr.cr_number }]}
+       
         actions={canUpdate ? <ChangeRequestControls id={id} status={cr.status} canApply={can(bos, "change_requests.approve")} /> : null}
       />
       <Summary

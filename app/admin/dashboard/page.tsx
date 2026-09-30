@@ -33,7 +33,6 @@ export default async function DashboardPage() {
     <>
       <PageHeader
         title={<Tx vars={{ greeting: <Tx>{greeting}</Tx>, v: bos.employee.full_name.split(" ")[0] }}>{"{greeting}، {v}"}</Tx>}
-        subtitle={bos.roleNames.join(" · ") || "موظف"}
         actions={
           <>
             <Link href="/admin/dashboard/customize" className="admin-btn small ghost"><Tx>تخصيص</Tx></Link>

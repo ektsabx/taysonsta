@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
@@ -27,7 +28,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
   const fieldLabel = new Map(type.fields.map((f) => [f.key, f.label]));
   return (
     <>
-      <PageHeader title={`${job.number} · ${job.file_name}`} subtitle={<span className="bos-row" style={{ gap: 6 }}><Tx>{type.label}</Tx><StatusBadge tone={jobStatus[job.status]?.tone ?? "neutral"} label={jobStatus[job.status]?.label ?? job.status} /></span>} breadcrumbs={[{ label: "الإعدادات" }, { label: "استيراد البيانات", href: "/admin/settings/import" }, { label: job.number }]} />
+      <PageHeader title={`${job.number} · ${job.file_name}`} subtitle={<span className="bos-row" style={{ gap: 6 }}><Tx>{type.label}</Tx><StatusBadge tone={jobStatus[job.status]?.tone ?? "neutral"} label={jobStatus[job.status]?.label ?? job.status} /></span>} />
       <div className="bos-kpis">
         <KpiCard label="الصفوف" value={job.total_rows} />
         {job.validated_at ? <><KpiCard label="صالحة" value={job.valid_rows} /><KpiCard label="أخطاء" value={job.error_rows} /><KpiCard label="موجودة مسبقاً" value={job.duplicate_rows} /></> : null}
@@ -35,10 +36,10 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
       </div>
       <Card title="معاينة أول الصفوف" flush>
         <div style={{ overflowX: "auto" }}>
-          <table className="bos-table" style={{ fontSize: 12 }}>
+          <BosTable className="bos-table" style={{ fontSize: 12 }}>
             <thead><tr><th>#</th>{job.headers.map((h) => <th key={h}>{h}</th>)}</tr></thead>
             <tbody>{sample.map((r) => <tr key={r.row_no}><td>{r.row_no}</td>{job.headers.map((h) => <td key={h}>{String((r.raw as Record<string, string>)[h] ?? "").slice(0, 60)}</td>)}</tr>)}</tbody>
-          </table>
+          </BosTable>
         </div>
       </Card>
       {editable ? (
@@ -56,10 +57,10 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
       {job.status === "completed" ? <Card title="التراجع"><p className="bos-hint"><Tx>خلال 7 أيام من التنفيذ: يُحذف ما أُنشئ (أو يؤرشف إن ارتبطت به سجلات أخرى) وتُستعاد القيم السابقة لما عُدّل.</Tx></p><RollbackButton jobId={job.id} /></Card> : null}
       <Card title="الأخطاء والتكرارات" actions={problems.length ? <a className="admin-btn small secondary" href={`/api/bos/imports/${job.id}/errors`}><Tx>تنزيل تقرير الأخطاء</Tx></a> : null} flush>
         {problems.length ? (
-          <table className="bos-table" style={{ fontSize: 12.5 }}>
+          <BosTable className="bos-table" style={{ fontSize: 12.5 }}>
             <thead><tr><th><Tx>السطر</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التفاصيل</Tx></th></tr></thead>
             <tbody>{problems.map((p) => <tr key={p.row_no}><td>{p.row_no}</td><td><StatusBadge tone={p.status === "duplicate" ? "warning" : "danger"} label={p.status === "duplicate" ? "موجود مسبقاً" : p.status === "failed" ? "فشل" : "خطأ"} /></td><td>{p.status === "duplicate" ? <Tx>يطابق سجلاً موجوداً</Tx> : (p.errors ?? []).join(" · ")}</td></tr>)}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title={job.validated_at ? "لا توجد أخطاء" : "تظهر بعد التحقق"} />}
       </Card>
       {job.executed_at ? <p className="bos-faint" style={{ fontSize: 12 }}><Tx>نُفّذ</Tx> {formatDateTime(job.executed_at)}{job.rolled_back_at ? <> · <Tx>تم التراجع</Tx> {formatDateTime(job.rolled_back_at)}</> : null}</p> : null}

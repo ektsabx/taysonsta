@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -10,7 +11,6 @@ import { PageHeader, Card, StatusBadge, EmptyState, Tabs, Summary } from "@/comp
 import { FilterBar } from "@/components/bos/FilterBar";
 import { ApprovalDecision } from "@/components/bos/ApprovalDecision";
 import { formatDate, formatMinutes } from "@/lib/bos/format";
-import { AttendanceNav } from "../attendance/AttendanceNav";
 import { OvertimeMinutesButton } from "../HrControls";
 import { CompensationSelect, OvertimeButton } from "../TeamControls";
 
@@ -33,14 +33,13 @@ export default async function OvertimePage({ searchParams }: { searchParams: Sea
   const canComp = can(bos, "overtime.manage");
   return (
     <>
-      <PageHeader title="العمل الإضافي" breadcrumbs={[{ label: "الفريق" }, { label: "العمل الإضافي" }]} actions={can(bos, "overtime.create") ? <OvertimeButton /> : null} />
-      <AttendanceNav active="overtime" />
+      <PageHeader title="العمل الإضافي" actions={can(bos, "overtime.create") ? <OvertimeButton /> : null} />
       {canTeam ? <Tabs param="view" active={view} baseHref="/admin/team/overtime" tabs={[{ key: "team", label: "الفريق" }, { key: "mine", label: "طلباتي" }]} /> : null}
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: [{ value: "pending", label: "بانتظار المراجعة" }, { value: "approved", label: "معتمد" }, { value: "rejected", label: "مرفوض" }] }, { key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
       <Summary items={[{ label: "معتمد", value: formatMinutes(rows.filter((r) => r.status === "approved").reduce((s, r) => s + r.minutes, 0)) }, { label: "بانتظار", value: formatMinutes(rows.filter((r) => r.status === "pending").reduce((s, r) => s + r.minutes, 0)) }, { label: "بانتظار التعويض", value: rows.filter((r) => r.status === "approved" && r.compensation_status === "pending").length }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>التاريخ</Tx></th>{view !== "mine" ? <th><Tx>الموظف</Tx></th> : null}<th><Tx>الفعلي (الحضور)</Tx></th><th><Tx>المطلوب</Tx></th><th><Tx>المعتمد</Tx></th><th><Tx>المعامل</Tx></th><th><Tx>السبب</Tx></th><th><Tx>الموافقة</Tx></th><th><Tx>اعتمده</Tx></th><th><Tx>التعويض</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((o) => (
@@ -59,7 +58,7 @@ export default async function OvertimePage({ searchParams }: { searchParams: Sea
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات عمل إضافي" />}
       </Card>
     </>

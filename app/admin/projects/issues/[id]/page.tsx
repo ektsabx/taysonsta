@@ -22,7 +22,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
   const p = i.projects as unknown as { id: string; name: string };
   return (
     <>
-      <PageHeader title={i.title} subtitle={<StatusBadge map="severity" value={i.severity} />} breadcrumbs={[{ label: "المشكلات", href: "/admin/projects/issues" }, { label: i.title }]} />
+      <PageHeader title={i.title} subtitle={<StatusBadge map="severity" value={i.severity} />} />
       <Summary
         items={[
           { label: "الحالة", value: can(bos, "issues.update") ? <IssueStatusSelect id={id} status={i.status} /> : <StatusBadge map="issue_status" value={i.status} /> },

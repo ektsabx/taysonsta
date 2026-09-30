@@ -10,8 +10,6 @@ import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Tabs } from "@/components/bos/ui";
 import { ApprovalDecision } from "@/components/bos/ApprovalDecision";
 import { formatDate, todayIn, addDays, startOfMonth } from "@/lib/bos/format";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { LeaveTable } from "../TeamViews";
 import { LeaveRequestButton } from "../TeamControls";
 
@@ -111,10 +109,9 @@ export default async function LeavePage({ searchParams }: { searchParams: Search
     <>
       <PageHeader
         title="الإجازات"
-        breadcrumbs={[{ label: "الفريق" }, { label: "الإجازات" }]}
+       
         actions={can(bos, "leave.create") ? <LeaveRequestButton types={typeOptions} forUsers={canForOthers ? [...names.entries()].map(([value, label]) => ({ value, label })) : undefined} /> : null}
       />
-      <SubNav items={hrSection(bos, "leave")} active="requests" label="الإجازات" />
       <Tabs param="view" active={view} baseHref="/admin/team/leave" tabs={[{ key: "mine", label: "إجازاتي" }, { key: "team", label: "طلبات الفريق", hidden: !canTeam }, { key: "calendar", label: "التقويم" }]} />
       {body ?? <EmptyState title="—" />}
     </>

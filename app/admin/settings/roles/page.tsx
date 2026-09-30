@@ -1,9 +1,9 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
 import { db } from "@/lib/bos/db";
 import { PageHeader, Card, StatusBadge } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { ArchiveRoleButton, CloneRoleButton, RoleForm } from "../SettingsControls";
 
 export default async function RolesPage() {
@@ -15,10 +15,9 @@ export default async function RolesPage() {
   for (const p of perms ?? []) pc.set(p.role_id, (pc.get(p.role_id) ?? 0) + 1);
   return (
     <>
-      <PageHeader title="الأدوار" breadcrumbs={[{ label: "الإعدادات" }, { label: "الأدوار" }]} actions={<RoleForm id={null} label="+ دور" />} />
-      <SettingsNav active="roles" />
+      <PageHeader title="الأدوار" actions={<RoleForm id={null} label="+ دور" />} />
       <Card flush>
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الدور</Tx></th><th><Tx>المفتاح</Tx></th><th><Tx>المستخدمون</Tx></th><th><Tx>الصلاحيات</Tx></th><th /></tr></thead>
           <tbody>
             {(roles ?? []).map((r) => (
@@ -31,7 +30,7 @@ export default async function RolesPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );

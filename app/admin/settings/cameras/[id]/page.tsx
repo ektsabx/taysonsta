@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -30,7 +31,7 @@ export default async function CameraPage({ params }: { params: Promise<{ id: str
   const name = new Map((people ?? []).map((p) => [p.user_id, p.full_name]));
   return (
     <>
-      <PageHeader title={cam.name} breadcrumbs={[{ label: "الإعدادات" }, { label: "الكاميرات", href: "/admin/settings/cameras" }, { label: cam.name }]} />
+      <PageHeader title={cam.name} />
       <Card title="العرض">
         {viewer ? (
           <>
@@ -40,7 +41,7 @@ export default async function CameraPage({ params }: { params: Promise<{ id: str
         ) : <p className="bos-hint" style={{ margin: 0 }}><Tx>{reason ?? "غير متاح"}</Tx></p>}
       </Card>
       <Card title="سجل الأحداث" flush>
-        {events.length ? <table className="bos-table" style={{ fontSize: 12.5 }}><tbody>{events.map((e) => <tr key={e.id}><td className="bos-nowrap">{formatDateTime(e.occurred_at)}</td><td><Tx>{kindLabel[e.kind] ?? e.kind}</Tx></td><td>{e.actor_user_id ? name.get(e.actor_user_id) ?? "—" : "—"}</td><td>{e.detail ?? ""}</td></tr>)}</tbody></table> : <EmptyState title="لا توجد أحداث" />}
+        {events.length ? <BosTable className="bos-table" style={{ fontSize: 12.5 }}><tbody>{events.map((e) => <tr key={e.id}><td className="bos-nowrap">{formatDateTime(e.occurred_at)}</td><td><Tx>{kindLabel[e.kind] ?? e.kind}</Tx></td><td>{e.actor_user_id ? name.get(e.actor_user_id) ?? "—" : "—"}</td><td>{e.detail ?? ""}</td></tr>)}</tbody></BosTable> : <EmptyState title="لا توجد أحداث" />}
       </Card>
     </>
   );

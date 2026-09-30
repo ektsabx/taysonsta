@@ -11,7 +11,7 @@ export default async function NewBugPage({ searchParams }: { searchParams: Searc
   const [devs, project] = await Promise.all([staffWithRole("developer"), sp.projectId ? db().from("projects").select("id, name, project_number").eq("id", sp.projectId).maybeSingle().then((r) => r.data) : Promise.resolve(null)]);
   return (
     <>
-      <PageHeader title="خطأ برمجي جديد" breadcrumbs={[{ label: "الدعم" }, { label: "الأخطاء البرمجية", href: "/admin/support/bugs" }, { label: "جديد" }]} />
+      <PageHeader title="خطأ برمجي جديد" />
       <Card><BugForm developers={devs.map((d) => ({ value: d.userId, label: d.name }))} projectInit={project ? { id: project.id, label: project.name, sub: project.project_number } : null} /></Card>
     </>
   );

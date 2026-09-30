@@ -36,7 +36,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
       <PageHeader
         title={meeting.title}
         subtitle={<StatusBadge map="meeting_status" value={meeting.status} />}
-        breadcrumbs={[{ label: "الاجتماعات", href: "/admin/communication/meetings" }, { label: meeting.title }]}
+       
         actions={
           <>
             {meeting.meeting_link && meeting.status === "scheduled" ? (

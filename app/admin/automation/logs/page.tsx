@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -34,7 +35,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
         <FilterBar searchPlaceholder="بحث في الملخص..." filters={[{ key: "type", label: "الحدث", type: "select", options: eventCatalog.map((e) => ({ value: e.key, label: `${e.label} (${e.key})` })) }, { key: "entity", label: "نوع السجل", type: "text" }]} />
         <Card flush>
           {ev.rows.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th>#</th><th><Tx>الوقت</Tx></th><th><Tx>الحدث</Tx></th><th><Tx>الملخص</Tx></th><th><Tx>بواسطة</Tx></th><th><Tx>معالجة</Tx></th></tr></thead>
               <tbody>
                 {ev.rows.map((e) => {
@@ -51,7 +52,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد أحداث" />}
           {pager(ev.total, ev.pageSize)}
         </Card>
@@ -62,7 +63,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
     body = (
       <Card flush>
         {(sweeps ?? []).length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>بواسطة</Tx></th><th><Tx>النتائج</Tx></th></tr></thead>
             <tbody>
               {(sweeps ?? []).map((s) => {
@@ -70,7 +71,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
                 return <tr key={s.id}><td>{formatDateTime(s.created_at)}</td><td><Tx>{s.actor_user_id ? names.get(s.actor_user_id) ?? "—" : "المجدول"}</Tx></td><td style={{ fontSize: 12 }}>{res.map((r) => <span key={r.step} style={{ marginInlineEnd: 8, color: r.error ? "#f87171" : undefined }}>{r.step}: {r.error ? "✗" : r.count ?? "✓"}</span>)}</td></tr>;
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لم تُنفَّذ فحوصات مجدولة بعد" />}
       </Card>
     );
@@ -81,7 +82,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
         <FilterBar filters={[{ key: "rule", label: "المسار", type: "select", options: rules.map((r) => ({ value: r.id, label: r.name })) }, { key: "status", label: "الحالة", type: "select", options: [{ value: "success", label: "نجح" }, { value: "failed", label: "فشل" }, { value: "skipped", label: "تخطّى" }, { value: "running", label: "قيد التشغيل" }] }, { key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
         <Card flush>
           {runs.rows.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>المسار</Tx></th><th><Tx>الحدث</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المدة</Tx></th><th><Tx>النتائج / الخطأ</Tx></th><th /></tr></thead>
               <tbody>
                 {runs.rows.map((r) => {
@@ -97,13 +98,13 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
                       <td>{href ? <Link href={href}>{ev?.summary ?? r.entity_type}</Link> : ev?.summary ?? "—"}</td>
                       <td><StatusBadge tone={r.status === "success" ? "success" : r.status === "failed" ? "danger" : "neutral"} label={r.status} /></td>
                       <td className="bos-num">{dur != null ? `${dur} ms` : "—"}</td>
-                      <td style={{ fontSize: 12 }}>{r.error ? <span style={{ color: "#f87171" }}><Tx>{r.error}</Tx></span> : results.map((x) => `${x.type}: ${x.status}`).join(" · ")}</td>
+                      <td style={{ fontSize: 12 }}>{r.error ? <span style={{ color: "var(--bos-danger)" }}><Tx>{r.error}</Tx></span> : results.map((x) => `${x.type}: ${x.status}`).join(" · ")}</td>
                       <td>{canEdit && r.status === "failed" ? <RetryButton id={r.id} /> : null}</td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد تشغيلات" />}
           {pager(runs.total, runs.pageSize)}
         </Card>
@@ -112,7 +113,7 @@ export default async function AutomationLogsPage({ searchParams }: { searchParam
   }
   return (
     <>
-      <PageHeader title="سجل الأتمتة" breadcrumbs={[{ label: "الأتمتة" }, { label: "السجل" }]} actions={canEdit ? <RunSweepButton /> : null} />
+      <PageHeader title="سجل الأتمتة" actions={canEdit ? <RunSweepButton /> : null} />
       <Tabs param="view" active={view} baseHref="/admin/automation/logs" tabs={[{ key: "runs", label: "تشغيلات المسارات" }, { key: "events", label: "سجل الأحداث" }, { key: "sweeps", label: "الفحوصات المجدولة" }]} />
       {body}
     </>

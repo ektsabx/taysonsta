@@ -1,4 +1,6 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
+import { DateRangeFormField } from "@/components/bos/DateRangeField";
 
 import { Tx, Opt, useT } from "@/components/bos/I18n";
 
@@ -308,7 +310,6 @@ export function CompanyAccountButton({ initial = {}, employees, apps, staff, lab
 
 export function LeaveRequestButton({ types, forUsers, label = "+ طلب إجازة" }: { types: Opt[]; forUsers?: Opt[]; label?: string }) {
   const [half, setHalf] = useState(false);
-  const [start, setStart] = useState("");
   return (
     <ModalButton label={label} title="طلب إجازة" className="admin-btn small">
       {(close) => (
@@ -316,8 +317,7 @@ export function LeaveRequestButton({ types, forUsers, label = "+ طلب إجاز
           <div className="bos-form-grid">
             {forUsers?.length ? <SelectField name="user_id" label="الموظف" placeholder="أنا" options={forUsers} /> : null}
             <SelectField name="leave_type_id" label="نوع الإجازة" required placeholder="اختر..." options={types} />
-            <TextField name="start_date" label="من" type="date" required value={start} onChange={(e) => setStart(e.target.value)} />
-            {half ? <input type="hidden" name="end_date" value={start} /> : <TextField name="end_date" label="إلى" type="date" required min={start || undefined} />}
+            <DateRangeFormField label={half ? "اليوم" : "الفترة"} fromName="start_date" toName="end_date" required singleDay={half} />
           </div>
           <label className="bos-check"><input type="checkbox" name="half_day" checked={half} onChange={(e) => setHalf(e.target.checked)} /> <Tx>نصف يوم</Tx></label>
           <TextAreaField name="reason" label="السبب" rows={3} hint="مطلوب للإجازات المرضية والشخصية وغير المدفوعة" />
@@ -457,7 +457,7 @@ export function ReviewButton({ userId, review, label = "+ مراجعة أداء"
             <div className="bos-alert" style={{ background: "rgba(var(--bos-fg-rgb), 0.03)" }}><strong>التقييم الذاتي{review.self_rating ? ` (${review.self_rating}/5)` : ""}:</strong><div className="bos-prose" style={{ fontSize: 13 }}><Tx>{review.self_assessment}</Tx></div></div>
           ) : null}
           <div className="bos-table-scroll">
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>الكفاءة</Tx></th><th><Tx>التقييم</Tx></th><th><Tx>تعليق</Tx></th></tr></thead>
               <tbody>
                 {comp.map((c, i) => (
@@ -468,7 +468,7 @@ export function ReviewButton({ userId, review, label = "+ مراجعة أداء"
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
           <TextAreaField name="summary" label="الملخص وملاحظات المدير" rows={3} defaultValue={review?.summary ?? ""} />
           <TextAreaField name="strengths" label="نقاط القوة" rows={2} defaultValue={review?.strengths ?? ""} />

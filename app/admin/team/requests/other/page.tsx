@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -7,8 +8,6 @@ import { managedEmployeeIds } from "@/services/bos/team-scope";
 import { listHrRequests, listRequestTypes } from "@/services/bos/hr/requests";
 import { PageHeader, Card, EmptyState, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { HrRequestButton, HrRequestSteps } from "../../HrControls";
@@ -29,13 +28,12 @@ export default async function OtherRequestsPage({ searchParams }: { searchParams
   const canForOthers = bos.isSuperAdmin || bos.permissions.get("hr_requests.create") === "all";
   return (
     <>
-      <PageHeader title="طلبات أخرى" breadcrumbs={[{ label: "الفريق" }, { label: "الطلبات", href: "/admin/team/requests" }, { label: "طلبات أخرى" }]}
+      <PageHeader title="طلبات أخرى"
         actions={<HrRequestButton employees={(employees ?? []).map((e) => ({ value: e.id, label: e.full_name }))} fixedEmployeeId={canForOthers ? undefined : bos.employee.id} types={types.map((t) => ({ value: t.id, label: t.name }))} />} />
-      <SubNav items={hrSection(bos, "requests")} active="other" label="الطلبات" />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("hr_request_status") }, { key: "type", label: "النوع", type: "select", options: types.map((t) => ({ value: t.id, label: t.name })) }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الرقم</Tx></th><th><Tx>الموظف</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الموضوع</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الرد</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((r) => {
@@ -54,7 +52,7 @@ export default async function OtherRequestsPage({ searchParams }: { searchParams
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات" />}
       </Card>
     </>

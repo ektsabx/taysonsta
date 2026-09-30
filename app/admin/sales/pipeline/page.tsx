@@ -117,7 +117,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Sea
     <>
       <PageHeader
         title={entity === "deal" ? "مسار الصفقات" : "مسار العملاء المحتملين"}
-        breadcrumbs={[{ label: "المبيعات" }, { label: "المسار" }]}
+       
         subtitle={
           metrics
             ? `المسار ${formatMoney(metrics.pipelineValue, metrics.baseCurrency)} · الموزون ${formatMoney(metrics.weightedPipeline, metrics.baseCurrency)} · المكسوب هذا الشهر ${formatMoney(metrics.wonRevenue, metrics.baseCurrency)} · التحويل ${metrics.conversionRate}%`

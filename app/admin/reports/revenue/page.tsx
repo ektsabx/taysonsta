@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { redirect } from "next/navigation";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -34,7 +35,7 @@ export default async function RevenueReport({ searchParams }: { searchParams: Se
               </Card>
               <Card title="المحصّل حسب العميل">{d.by_client.length ? <HBarList items={d.by_client.map((c) => ({ label: c.client, value: Number(c.collected) }))} format={base} /> : <span className="bos-faint"><Tx>لا يوجد</Tx></span>}</Card>
               <Card title="حسب العملة الأصلية">
-                <table className="bos-table"><thead><tr><th><Tx>العملة</Tx></th><th><Tx>المفوتر</Tx></th><th><Tx>المستحق</Tx></th></tr></thead><tbody>{d.by_currency.map((c) => <tr key={c.currency}><td>{c.currency}</td><td><Money value={c.invoiced ?? 0} currency={c.currency} /></td><td><Money value={c.outstanding ?? 0} currency={c.currency} /></td></tr>)}</tbody></table>
+                <BosTable className="bos-table"><thead><tr><th><Tx>العملة</Tx></th><th><Tx>المفوتر</Tx></th><th><Tx>المستحق</Tx></th></tr></thead><tbody>{d.by_currency.map((c) => <tr key={c.currency}><td>{c.currency}</td><td><Money value={c.invoiced ?? 0} currency={c.currency} /></td><td><Money value={c.outstanding ?? 0} currency={c.currency} /></td></tr>)}</tbody></BosTable>
               </Card>
             </div>
           </>

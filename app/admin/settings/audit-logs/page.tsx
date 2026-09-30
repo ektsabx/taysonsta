@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -8,7 +9,6 @@ import { entityHref } from "@/lib/bos/links";
 import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { formatDateTime } from "@/lib/bos/format";
-import { SettingsNav } from "../SettingsNav";
 
 // Immutable audit log viewer (§60, docs/bos/23).
 export default async function AuditLogsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -29,8 +29,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Se
   const exportQs = new URLSearchParams(Object.entries(sp).filter(([k, v]) => typeof v === "string" && k !== "page") as [string, string][]).toString();
   return (
     <>
-      <PageHeader title="سجل التدقيق" subtitle={<Tx vars={{ count: count ?? 0 }}>{"{count} سجل — غير قابل للتعديل أو الحذف"}</Tx>} breadcrumbs={[{ label: "الإعدادات" }, { label: "سجل التدقيق" }]} actions={can(bos, "audit.export") ? <a className="admin-btn small secondary" href={`/api/bos/export/audit?${exportQs}`}><Tx>تصدير CSV</Tx></a> : null} />
-      <SettingsNav active="audit-logs" />
+      <PageHeader title="سجل التدقيق" subtitle={<Tx vars={{ count: count ?? 0 }}>{"{count} سجل — غير قابل للتعديل أو الحذف"}</Tx>} actions={can(bos, "audit.export") ? <a className="admin-btn small secondary" href={`/api/bos/export/audit?${exportQs}`}><Tx>تصدير CSV</Tx></a> : null} />
       <FilterBar filters={[
         { key: "action", label: "الإجراء", type: "text" }, { key: "entity_type", label: "نوع السجل", type: "text" },
         { key: "actor", label: "المستخدم", type: "select", options: [...names.entries()].map(([value, label]) => ({ value, label })) },
@@ -40,7 +39,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Se
       <Card flush>
         {(data ?? []).length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>الفاعل</Tx></th><th><Tx>الإجراء</Tx></th><th><Tx>السجل</Tx></th><th><Tx>القيمة القديمة → الجديدة</Tx></th><th><Tx>السبب</Tx></th><th>IP</th></tr></thead>
               <tbody>
                 {(data ?? []).map((a) => {
@@ -60,7 +59,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Se
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد سجلات" />}
         {pages > 1 ? <div className="bos-row" style={{ justifyContent: "center", gap: 8, padding: 10 }}>{page > 1 ? <Link className="admin-btn small secondary" href={qs(page - 1)}><Tx>السابق</Tx></Link> : null}<span className="bos-faint">{page}/{pages}</span>{page < pages ? <Link className="admin-btn small secondary" href={qs(page + 1)}><Tx>التالي</Tx></Link> : null}</div> : null}

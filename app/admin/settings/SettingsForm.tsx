@@ -11,7 +11,9 @@ export type SField =
   | { path: string; label: string; type: "select"; options: { value: string; label: string }[]; hint?: string }
   | { path: string; label: string; type: "multiselect"; options: { value: string; label: string }[]; hint?: string }
   | { path: string; label: string; type: "list"; hint?: string }
-  | { path: string; label: string; type: "json"; hint?: string };
+  | { path: string; label: string; type: "json"; hint?: string }
+  // Hex colour; `optional` allows "" (= theme default).
+  | { path: string; label: string; type: "color"; hint?: string; optional?: boolean };
 
 function get(obj: Record<string, unknown>, path: string): unknown {
   return path.split(".").reduce<unknown>((o, k) => (o && typeof o === "object" ? (o as Record<string, unknown>)[k] : undefined), obj);
@@ -64,6 +66,13 @@ export function SettingsForm({ settingKey, value, fields, title }: { settingKey:
                 : f.type === "multiselect" ? <div className="bos-row" style={{ gap: 12, flexWrap: "wrap" }}>{f.options.map((o) => { const cur = (v as string[]) ?? []; return <label key={o.value} className="bos-check"><input type="checkbox" checked={cur.includes(o.value)} onChange={(e) => set(e.target.checked ? [...cur, o.value] : cur.filter((x) => x !== o.value))} /> <Tx>{o.label}</Tx></label>; })}</div>
                 : f.type === "list" ? <input value={((v as string[]) ?? []).join(", ")} onChange={(e) => set(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} dir="ltr" />
                 : f.type === "json" ? <JsonInput value={v} onChange={set} />
+                : f.type === "color" ? (
+                  <div className="bos-color-input">
+                    <input type="color" aria-label={f.label} value={/^#[0-9a-fA-F]{6}$/.test(String(v ?? "")) ? String(v) : "#888888"} onChange={(e) => set(e.target.value)} />
+                    <input dir="ltr" value={String(v ?? "")} placeholder={f.optional ? "—" : "#RRGGBB"} onChange={(e) => set(e.target.value.trim())} />
+                    {f.optional && v ? <button type="button" className="admin-btn small ghost" onClick={() => set("")}><Tx>افتراضي</Tx></button> : null}
+                  </div>
+                )
                 : <input value={String(v ?? "")} onChange={(e) => set(e.target.value)} />}
               {f.hint ? <span className="bos-hint"><Tx>{f.hint}</Tx></span> : null}
             </div>

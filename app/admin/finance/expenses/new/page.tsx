@@ -17,7 +17,7 @@ export default async function NewExpensePage({ searchParams }: { searchParams: S
   }
   return (
     <>
-      <PageHeader title="مصروف جديد" breadcrumbs={[{ label: "المصروفات", href: "/admin/finance/expenses" }, { label: "جديد" }]} />
+      <PageHeader title="مصروف جديد" />
       <ExpenseForm
         currencies={currencies}
         today={todayIn(bos.employee.timezone)}

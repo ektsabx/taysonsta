@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { ActionButton } from "@/components/bos/Dialog";
@@ -78,7 +79,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
             {lead.archived_at ? <StatusBadge tone="neutral" label="مؤرشف" /> : null}
           </span>
         }
-        breadcrumbs={[{ label: "المبيعات" }, { label: "العملاء المحتملون", href: "/admin/sales/leads" }, { label: lead.lead_number }]}
+       
         actions={
           <>
             {can(bos, "chat.create") ? <ActionButton label="مناقشة داخلية" className="admin-btn small secondary" action={discussAction.bind(null, "lead", id)} /> : null}
@@ -252,7 +253,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
       {tab === "deals" ? (
         <Card title="الصفقات">
           {deals.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>الصفقة</Tx></th>
@@ -274,7 +275,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد صفقات لهذا العميل المحتمل" description="عند تأهيل العميل حوّله إلى صفقة من زر “تحويل إلى صفقة”." />
           )}
@@ -284,7 +285,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
       {tab === "meetings" ? (
         <Card title="الاجتماعات" actions={can(bos, "meetings.create") ? <MeetingScheduler related={{ lead_id: id, client_id: lead.client_id, contact_id: lead.contact_id }} staff={staffOptions} /> : null}>
           {meetings.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>الاجتماع</Tx></th>
@@ -305,7 +306,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد اجتماعات" />
           )}

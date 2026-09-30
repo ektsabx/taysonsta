@@ -7,12 +7,11 @@ import { getSetting } from "@/lib/bos/settings";
 import { configTables } from "@/lib/bos/config-tables";
 import { listConfigRows } from "@/services/bos/settings-admin";
 import { PageHeader, Card, Tabs } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { SettingsForm } from "../SettingsForm";
 import { ConfigTableEditor } from "../ConfigTableEditor";
 import { settingsLookups } from "../lookups";
 
-const stepsHint = "بالترتيب، مثال: manager, role:hr, role:finance — أو user:<id>";
+const stepsHint = "خطوات الموافقة بالترتيب مفصولة بفواصل، مثل: manager, role:hr, role:finance (manager = المدير المباشر)";
 
 // HR Settings (docs/bos/28 §5): leave types, schedules/shifts, holidays,
 // salary components, overtime / attendance / payroll rules, approval rules,
@@ -154,8 +153,7 @@ export default async function HrSettingsPage({ searchParams }: { searchParams: S
 
   return (
     <>
-      <PageHeader title="إعدادات الموارد البشرية" breadcrumbs={[{ label: "الإعدادات" }, { label: "الموارد البشرية" }]} />
-      <SettingsNav active="hr" />
+      <PageHeader title="إعدادات الموارد البشرية" />
       <Tabs tabs={tabs} active={tab} baseHref="/admin/settings/hr" param="s" />
       {body}
     </>

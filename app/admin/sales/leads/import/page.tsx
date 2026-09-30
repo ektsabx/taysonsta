@@ -9,7 +9,7 @@ export default async function ImportLeadsPage() {
       <PageHeader
         title="استيراد العملاء المحتملين"
         subtitle="ملف CSV بترميز UTF-8. الصف الأول يحتوي على أسماء الأعمدة."
-        breadcrumbs={[{ label: "العملاء المحتملون", href: "/admin/sales/leads" }, { label: "استيراد" }]}
+       
       />
       <ImportWizard />
     </>

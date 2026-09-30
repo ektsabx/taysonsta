@@ -55,8 +55,13 @@ export async function portalProject(p: PortalUser, id: string) {
     s.from("meetings").select("id, title, start_at, duration_minutes, status, meeting_link").eq("project_id", id).order("start_at", { ascending: false }),
   ]);
   const milestoneIds = (milestones.data ?? []).map((m) => m.id);
-  const [files, approvals] = await Promise.all([portalFiles(p, { projectId: id, milestoneIds }), portalApprovals(p, { projectId: id, milestoneIds })]);
-  return { project, milestones: milestones.data ?? [], changeRequests: crs.data ?? [], meetings: meetings.data ?? [], files, approvals };
+  const [files, approvals, tasks] = await Promise.all([
+    portalFiles(p, { projectId: id, milestoneIds }),
+    portalApprovals(p, { projectId: id, milestoneIds }),
+    // Ownership was verified above; only client-visible tasks and safe columns.
+    db().from("tasks").select("id, title, status, due_date, milestone_id, completed_at").eq("project_id", id).eq("client_visible", true).is("archived_at", null).order("due_date", { ascending: true, nullsFirst: false }).limit(300),
+  ]);
+  return { project, milestones: milestones.data ?? [], changeRequests: crs.data ?? [], meetings: meetings.data ?? [], files, approvals, tasks: tasks.data ?? [] };
 }
 
 export async function portalFiles(p: PortalUser, f: { projectId?: string; milestoneIds?: string[] } = {}) {

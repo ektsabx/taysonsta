@@ -4,30 +4,34 @@ import { nowMs } from "@/lib/bos/clock";
 
 export const DEFAULT_TZ = "Africa/Cairo";
 
+// Latin dates inside Arabic (RTL) text keep their order: wrap them in a
+// left-to-right isolate (U+2066 … U+2069), invisible in both directions.
+const ltr = (s: string) => `\u2066${s}\u2069`;
+
 export function formatDate(value: string | Date | null | undefined, tz = DEFAULT_TZ): string {
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T00:00:00Z` : value) : value;
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
+  return ltr(new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     timeZone: typeof value === "string" && value.length === 10 ? "UTC" : tz,
-  }).format(date);
+  }).format(date));
 }
 
 export function formatDateTime(value: string | Date | null | undefined, tz = DEFAULT_TZ): string {
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
+  return ltr(new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
     timeZone: tz,
-  }).format(date);
+  }).format(date));
 }
 
 export function formatTime(value: string | Date | null | undefined, tz = DEFAULT_TZ): string {

@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { listCycles, listGoals } from "@/services/bos/hr/performance";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, ProgressBar, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { GoalButton, GoalProgressButton } from "../../HrControls";
@@ -32,9 +31,8 @@ export default async function GoalsPage({ searchParams }: { searchParams: Search
   const kpiOpts = (kpis ?? []).map((k) => ({ value: k.id, label: k.name }));
   return (
     <>
-      <PageHeader title="الأهداف" breadcrumbs={[{ label: "الفريق" }, { label: "الأداء", href: "/admin/team/performance" }, { label: "الأهداف" }]}
+      <PageHeader title="الأهداف"
         actions={<GoalButton users={canManageAll || manages ? peopleOpts : peopleOpts.filter((p) => p.value === bos.userId)} fixedUserId={canManageAll || manages ? undefined : bos.userId} kpis={kpiOpts} cycles={cycleOpts} />} />
-      <SubNav items={hrSection(bos, "performance")} active="goals" label="الأداء" />
       <FilterBar filters={[
         ...(peopleOpts.length > 1 ? [{ key: "user", label: "الموظف", type: "select" as const, options: peopleOpts }] : []),
         { key: "status", label: "الحالة", type: "select", options: statusOptions("goal_status") },
@@ -42,7 +40,7 @@ export default async function GoalsPage({ searchParams }: { searchParams: Search
       ]} />
       <Card flush>
         {goals.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الهدف</Tx></th><th><Tx>المستهدف</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {goals.map((g) => {
@@ -60,7 +58,7 @@ export default async function GoalsPage({ searchParams }: { searchParams: Search
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد أهداف" />}
       </Card>
       <p className="bos-faint" style={{ fontSize: 12 }}><Tx>مؤشرات الأداء المحسوبة من النظام في</Tx> <Link className="bos-link" href="/admin/team/kpis"><Tx>مؤشرات الأداء</Tx></Link>.</p>

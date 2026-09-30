@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -5,8 +6,6 @@ import { db } from "@/lib/bos/db";
 import { listAssignments, listSchedules } from "@/services/bos/hr/schedules";
 import { listDepartments, listTeams } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { AssignScheduleButton, RemoveAssignmentButton } from "../../HrControls";
 
@@ -14,7 +13,7 @@ const scopeLabels: Record<string, string> = { company: "الشركة", departmen
 
 // Schedule assignments at company / department / team / employee level (§12).
 export default async function ScheduleAssignmentsPage() {
-  const { bos } = await requirePermission("attendance.manage", "all");
+  await requirePermission("attendance.manage", "all");
   const [rows, schedules, departments, teams, { data: employees }, { data: direct }] = await Promise.all([
     listAssignments(),
     listSchedules(false),
@@ -25,12 +24,11 @@ export default async function ScheduleAssignmentsPage() {
   ]);
   return (
     <>
-      <PageHeader title="تعيين الجداول" subtitle="الأولوية: وردية يوم محدد ← الموظف ← الفريق ← القسم ← الشركة ← الجدول الافتراضي" breadcrumbs={[{ label: "الفريق" }, { label: "الجداول", href: "/admin/team/schedules" }, { label: "التعيينات" }]}
+      <PageHeader title="تعيين الجداول" subtitle="الأولوية: وردية يوم محدد ← الموظف ← الفريق ← القسم ← الشركة ← الجدول الافتراضي"
         actions={<AssignScheduleButton schedules={schedules.map((s) => ({ value: s.id, label: s.name }))} departments={departments.map((d) => ({ value: d.id, label: d.name }))} teams={teams.map((t) => ({ value: t.id, label: t.name }))} employees={(employees ?? []).map((e) => ({ value: e.id, label: e.full_name }))} />} />
-      <SubNav items={hrSection(bos, "schedules")} active="assignments" label="الجداول" />
       <Card title="التعيينات (بتواريخ سريان)" flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>المستوى</Tx></th><th><Tx>الهدف</Tx></th><th><Tx>الجدول</Tx></th><th><Tx>من</Tx></th><th><Tx>حتى</Tx></th><th><Tx>ملاحظات</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((a) => (
@@ -45,7 +43,7 @@ export default async function ScheduleAssignmentsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد تعيينات" description="بدون تعيينات يطبق الجدول الافتراضي للشركة على الجميع." />}
       </Card>
       <Card title="جدول محدد في ملف الموظف (دائم)">

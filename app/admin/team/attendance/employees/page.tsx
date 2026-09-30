@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -9,7 +10,6 @@ import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { todayIn, addDays, formatMinutes } from "@/lib/bos/format";
 import { statusDef } from "@/lib/bos/labels";
-import { AttendanceNav } from "../AttendanceNav";
 
 const short: Record<string, string> = { present: "ح", late: "م", absent: "غ", half_day: "½", leave: "إ", holiday: "ع", overtime: "+", remote: "ح", on_break: "س" };
 
@@ -27,8 +27,7 @@ export default async function AttendanceEmployeesPage({ searchParams }: { search
   const byKey = new Map(records.map((r) => [`${r.user_id}|${r.work_date}`, r]));
   return (
     <>
-      <PageHeader title="حضور الموظفين" subtitle={`${from} → ${to}`} breadcrumbs={[{ label: "الفريق" }, { label: "الحضور", href: "/admin/team/attendance" }, { label: "الموظفون" }]} />
-      <AttendanceNav active="employees" />
+      <PageHeader title="حضور الموظفين" subtitle={`${from} → ${to}`} />
       <FilterBar
         filters={[
           { key: "from", label: "من", type: "date" },
@@ -40,7 +39,7 @@ export default async function AttendanceEmployeesPage({ searchParams }: { search
       <Card flush>
         {employees.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table bos-att-grid">
+            <BosTable className="bos-table bos-att-grid">
               <thead>
                 <tr>
                   <th><Tx>الموظف</Tx></th>
@@ -68,7 +67,7 @@ export default async function AttendanceEmployeesPage({ searchParams }: { search
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا يوجد موظفون" />}
       </Card>

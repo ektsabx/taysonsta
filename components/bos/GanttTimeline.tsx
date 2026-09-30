@@ -24,11 +24,11 @@ export async function GanttTimeline({
   const chartW = width - labelW - 10;
   const today = nowMs() / 86400000;
   const x = (d: number) => labelW + ((d - min) / span) * chartW;
-  const colors: Record<string, string> = { completed: "#4ade80", in_progress: "#60a5fa", blocked: "#facc15", not_started: "#525252" };
+  const colors: Record<string, string> = { completed: "var(--bos-success)", in_progress: "var(--bos-info)", blocked: "var(--bos-warning)", not_started: "var(--bos-surface-3)" };
 
   return (
     <svg className="bos-chart" viewBox={`0 0 ${width} ${dated.length * rowH + 30}`} role="img" aria-label={t("الجدول الزمني للمراحل")}>
-      {today >= min && today <= max ? <line x1={x(today)} x2={x(today)} y1={0} y2={dated.length * rowH + 10} stroke="#e51f26" strokeDasharray="3 3" /> : null}
+      {today >= min && today <= max ? <line x1={x(today)} x2={x(today)} y1={0} y2={dated.length * rowH + 10} style={{ stroke: "var(--bos-accent)" }} strokeDasharray="3 3" /> : null}
       {dated.map((i, idx) => {
         const from = toDay(i.from ?? i.to!);
         const to = toDay(i.to!);
@@ -41,7 +41,7 @@ export async function GanttTimeline({
               {i.name.length > 24 ? `${i.name.slice(0, 23)}…` : i.name}
             </text>
             <rect x={x1} y={y} width={w} height={18} rx={4} fill="rgba(var(--bos-fg-rgb), 0.08)" />
-            <rect x={x1} y={y} width={(w * Math.min(100, i.progress)) / 100} height={18} rx={4} fill={colors[i.status] ?? "#525252"}>
+            <rect x={x1} y={y} width={(w * Math.min(100, i.progress)) / 100} height={18} rx={4} style={{ fill: colors[i.status] ?? "var(--bos-surface-3)" }}>
               <title>{`${i.name}: ${i.from ?? ""} → ${i.to} · ${i.progress}%`}</title>
             </rect>
           </g>

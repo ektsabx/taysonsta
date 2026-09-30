@@ -11,7 +11,7 @@ export default async function CustomizeDashboardPage() {
   const available = widgets.filter((w) => w.perm.every((p) => bos.permissions.has(p))).map((w) => ({ key: w.key, title: w.title, dashboard: w.dashboard }));
   return (
     <>
-      <PageHeader title="تخصيص لوحة التحكم" subtitle="تظهر فقط العناصر المسموحة لصلاحياتك" breadcrumbs={[{ label: "لوحة التحكم", href: "/admin/dashboard" }, { label: "تخصيص" }]} />
+      <PageHeader title="تخصيص لوحة التحكم" subtitle="تظهر فقط العناصر المسموحة لصلاحياتك" />
       <LayoutEditor roleId={null} available={available} initial={current.map((w) => w.key)} />
     </>
   );

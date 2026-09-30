@@ -80,7 +80,7 @@ function PackageEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="admin-card" style={{ background: "#0d0d0d" }}>
+    <div className="admin-card" style={{ background: "var(--bos-surface)" }}>
       <div className="admin-title-row" style={{ marginBottom: 12 }}>
         <h2 style={{ margin: 0 }}><Tx>{pkg.name || "باقة بدون اسم"}</Tx></h2>
         <button type="button" className="admin-btn danger" onClick={onRemove}>
@@ -275,7 +275,7 @@ export function ProposalContentForm({
                     display: "flex",
                     gap: 10,
                     alignItems: "flex-start",
-                    background: "#0d0d0d",
+                    background: "var(--bos-surface-2)",
                     border: `1px solid ${checked ? "var(--red, #e51f26)" : "rgba(var(--bos-fg-rgb), 0.08)"}`,
                     borderRadius: 10,
                     padding: 12,

@@ -1,3 +1,5 @@
+import { BosTable } from "@/components/bos/BosTable";
+import { DateRangeInputs } from "@/components/bos/DateRangeField";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { RelTime } from "@/components/bos/RelTime";
 import { getT } from "@/lib/bos/i18n/server";
@@ -143,7 +145,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
             {emp.roles.map((r) => <StatusBadge key={r.id} tone="neutral" label={r.name} />)}
           </span>
         }
-        breadcrumbs={[{ label: "الفريق" }, { label: "الموظفون", href: "/admin/team/employees" }, { label: emp.full_name }]}
+       
         actions={
           <>
             {canPhoto && !emp.archived_at ? <PhotoUploader employeeId={id} hasPhoto={!!emp.photo_path} /> : null}
@@ -223,18 +225,18 @@ export default async function EmployeePage({ params, searchParams }: { params: P
       {tab === "tasks" ? (
         <Card title="المهام المفتوحة">
           {tasks.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <tbody>
                 {(tasks as { id: string; title: string; status: string; priority: string; due_date: string | null; projects: unknown }[]).map((t) => (
                   <tr key={t.id}>
                     <td className="cell-primary"><Link href={`/admin/projects/tasks/${t.id}`}><Tx>{t.title}</Tx></Link><span className="cell-sub">{(t.projects as { name: string } | null)?.name ?? ""}</span></td>
                     <td><StatusBadge map="task_status" value={t.status} /></td>
                     <td><StatusBadge map="priority" value={t.priority} /></td>
-                    <td style={t.due_date && t.due_date < today ? { color: "#f87171" } : undefined}>{formatDate(t.due_date)}</td>
+                    <td style={t.due_date && t.due_date < today ? { color: "var(--bos-danger)" } : undefined}>{formatDate(t.due_date)}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد مهام مفتوحة" />}
         </Card>
       ) : null}
@@ -243,8 +245,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         <>
           <form className="bos-row" style={{ gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
             <input type="hidden" name="tab" value="attendance" />
-            <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>من</Tx> <input type="date" name="from" defaultValue={from} /></label>
-            <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>إلى</Tx> <input type="date" name="to" defaultValue={to} /></label>
+            <DateRangeInputs defaultFrom={from} defaultTo={to} submitOnApply />
             <button className="admin-btn small secondary" type="submit"><Tx>عرض</Tx></button>
             {isSelf ? <CorrectionButton /> : null}
             {can(bos, "attendance.update") && bos.permissions.get("attendance.update") === "all" ? <HrEditButton userId={uid} label="إضافة/تعديل جلسة (HR)" /> : null}
@@ -280,14 +281,13 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         <>
           <form className="bos-row" style={{ gap: 8, marginBottom: 10 }}>
             <input type="hidden" name="tab" value="timesheets" />
-            <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>من</Tx> <input type="date" name="from" defaultValue={from} /></label>
-            <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>إلى</Tx> <input type="date" name="to" defaultValue={to} /></label>
+            <DateRangeInputs defaultFrom={from} defaultTo={to} submitOnApply />
             <button className="admin-btn small secondary" type="submit"><Tx>عرض</Tx></button>
           </form>
           <Summary items={[{ label: "جلسات العمل", value: formatMinutes(timesheets.sessions.reduce((s, x) => s + (x.clock_out_at ? Math.round((new Date(x.clock_out_at).getTime() - new Date(x.clock_in_at).getTime()) / 60000) : 0), 0)) }, { label: "وقت المشاريع", value: formatMinutes(timesheets.entries.reduce((s, x) => s + (x.duration_minutes ?? 0), 0)) }, { label: "قابل للفوترة", value: formatMinutes(timesheets.entries.filter((x) => x.billable).reduce((s, x) => s + (x.duration_minutes ?? 0), 0)) }]} />
           <Card title="الوقت على المشاريع والمهام">
             {timesheets.entries.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>المشروع / المهمة</Tx></th><th><Tx>المدة</Tx></th><th><Tx>الوصف</Tx></th></tr></thead>
                 <tbody>
                   {timesheets.entries.map((t) => (
@@ -299,7 +299,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا يوجد وقت مسجل" />}
           </Card>
         </>
@@ -308,7 +308,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
       {tab === "kpis" ? (
         <Card title={<Tx>{"المؤشرات — الفترة الحالية"}</Tx>} actions={<Link className="bos-link" href={`/admin/team/performance/${uid}`}><Tx>ملف الأداء</Tx></Link>}>
           {kpis.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>المؤشر</Tx></th><th><Tx>الفترة</Tx></th><th><Tx>الفعلي</Tx></th><th><Tx>المستهدف</Tx></th><th><Tx>التحقيق</Tx></th><th /></tr></thead>
               <tbody>
                 {kpis.map((k) => (
@@ -322,7 +322,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد مؤشرات مخصصة" description="المؤشرات تُخصص حسب الدور أو يدوياً من صفحة مؤشرات الأداء." />}
         </Card>
       ) : null}
@@ -342,7 +342,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
       {tab === "commission" ? (
         <Card title="العمولات">
           {commissions.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <tbody>
                 {(commissions as { id: string; amount: number; currency: string; status: string; created_at: string; deals: unknown; commission_rules: unknown }[]).map((cm) => (
                   <tr key={cm.id}>
@@ -353,7 +353,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد عمولات" />}
         </Card>
       ) : null}
@@ -399,7 +399,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
             <div className="bos-row" style={{ gap: 12, flexWrap: "wrap", margin: "10px 0", fontSize: 12.5 }}>
               <span><Tx vars={{ required_count: access.groups.required.length }}>{"مطلوب: {required_count}"}</Tx></span>
               <span style={{ color: "var(--bos-success)" }}><Tx vars={{ granted_count: access.groups.granted.length }}>{"مفعّل: {granted_count}"}</Tx></span>
-              <span style={{ color: "#f87171" }}><Tx vars={{ missing_count: access.groups.missing.length }}>{"ناقص: {missing_count}"}</Tx></span>
+              <span style={{ color: "var(--bos-danger)" }}><Tx vars={{ missing_count: access.groups.missing.length }}>{"ناقص: {missing_count}"}</Tx></span>
               <span style={{ color: "var(--bos-warning)" }}><Tx vars={{ pending_count: access.groups.pending.length }}>{"قيد الطلب: {pending_count}"}</Tx></span>
               <span><Tx vars={{ revoked_count: access.groups.revoked.length }}>{"مسحوب: {revoked_count}"}</Tx></span>
               <span><Tx vars={{ expired_count: access.groups.expired.length }}>{"منتهي: {expired_count}"}</Tx></span>
@@ -409,7 +409,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
           </Card>
           <Card title="حسابات الشركة" actions={canManageAccess ? <CompanyAccountButton initial={{ employee_id: id }} employees={[{ value: id, label: emp.full_name }]} apps={apps.map((a) => ({ value: a.id, label: a.name }))} staff={[...names.entries()].map(([value, label]) => ({ value, label }))} /> : null}>
             {access.accounts.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <tbody>
                   {access.accounts.map((a) => (
                     <tr key={a.id}>
@@ -421,7 +421,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا توجد حسابات مسجلة" />}
           </Card>
           <Card title="طلبات الوصول">
@@ -438,7 +438,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         <>
           <Card title="الأجهزة المسلّمة">
             {devices.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <tbody>
                   {devices.map((d) => {
                     const open = ((d.device_assignments as { id: string; employee_id: string; confirmed_by_employee_at: string | null; returned_at: string | null }[]) ?? []).find((x) => !x.returned_at && x.employee_id === id);
@@ -453,7 +453,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                     );
                   })}
                 </tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا توجد أجهزة مسلّمة" />}
           </Card>
           <Card title="سجل التسليم والاسترجاع">

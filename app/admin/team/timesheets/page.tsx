@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -8,7 +9,6 @@ import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Summary } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { formatDateTime, formatMinutes, todayIn, addDays } from "@/lib/bos/format";
-import { AttendanceNav } from "../attendance/AttendanceNav";
 
 const mins = (a: string, b: string | null) => (b ? Math.max(0, Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000)) : 0);
 
@@ -31,13 +31,12 @@ export default async function TimesheetsPage({ searchParams }: { searchParams: S
   const staffOptions = (users ?? [...names.keys()]).map((u) => ({ value: u, label: names.get(u) ?? u }));
   return (
     <>
-      <PageHeader title="سجلات الوقت" subtitle={`${from} → ${to}`} breadcrumbs={[{ label: "الفريق" }, { label: "سجلات الوقت" }]} actions={can(bos, "timesheets.export") ? <a className="admin-btn small secondary" href={`/api/bos/export/timesheets?from=${from}&to=${to}`}><Tx>تصدير</Tx></a> : null} />
-      <AttendanceNav active="timesheets" />
+      <PageHeader title="سجلات الوقت" subtitle={`${from} → ${to}`} actions={can(bos, "timesheets.export") ? <a className="admin-btn small secondary" href={`/api/bos/export/timesheets?from=${from}&to=${to}`}><Tx>تصدير</Tx></a> : null} />
       <FilterBar filters={[{ key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }, ...(staffOptions.length > 1 ? [{ key: "user", label: "الموظف", type: "select" as const, options: staffOptions }] : [])]} />
       <Summary items={[{ label: "جلسات العمل", value: formatMinutes(perUser.reduce((t, r) => t + r.session, 0)) }, { label: "وقت المشاريع", value: formatMinutes(perUser.reduce((t, r) => t + r.project, 0)) }, { label: "قابل للفوترة", value: formatMinutes(perUser.reduce((t, r) => t + r.billable, 0)) }]} />
       <Card title="الملخص حسب الموظف" flush>
         {perUser.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الجلسات</Tx></th><th><Tx>وقت الحضور</Tx></th><th><Tx>وقت المشاريع</Tx></th><th><Tx>قابل للفوترة</Tx></th><th><Tx>نسبة التوزيع على المشاريع</Tx></th></tr></thead>
             <tbody>
               {perUser.map((r) => (
@@ -51,7 +50,7 @@ export default async function TimesheetsPage({ searchParams }: { searchParams: S
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد وقت مسجل" />}
       </Card>
       {userFilter ? (

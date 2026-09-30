@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, type BosUser } from "@/lib/bos/auth";
@@ -19,7 +20,7 @@ export async function RecordDocuments({ bos, entityType, entityId, docTypes }: {
   return (
     <Card title="المستندات" actions={<GenerateDocumentButton entityType={entityType} entityId={entityId} templates={usable} />} flush>
       {docs.length ? (
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <tbody>
             {docs.map((d) => (
               <tr key={d.id}>
@@ -30,7 +31,7 @@ export async function RecordDocuments({ bos, entityType, entityId, docTypes }: {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <div className="bos-faint" style={{ padding: 12, fontSize: 12.5 }}><Tx>لم تُصدر مستندات من هذا السجل بعد.</Tx></div>}
     </Card>
   );

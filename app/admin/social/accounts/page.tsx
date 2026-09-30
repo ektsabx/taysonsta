@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { formatDateTime } from "@/lib/bos/format";
 import { listAccounts } from "@/services/bos/social";
 import { platforms, platformKeys, type Platform } from "@/lib/bos/social/platforms";
 import { PageHeader, Card, StatusBadge, EmptyState } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { socialNav } from "../social-nav";
 import { AccountRowControls, AddAccountButtons } from "../SocialControls";
 
 const statusLabel: Record<string, { label: string; tone: "success" | "danger" | "neutral" | "warning" }> = { connected: { label: "متصل", tone: "success" }, error: { label: "خطأ في الاتصال", tone: "danger" }, disconnected: { label: "مفصول", tone: "neutral" }, manual: { label: "يدوي", tone: "warning" } };
@@ -15,17 +14,16 @@ const statusLabel: Record<string, { label: string; tone: "success" | "danger" | 
 // Connected social accounts (docs/bos/30 §12.1) + the platform capability
 // matrix (what is published by API vs manually, and why).
 export default async function SocialAccountsPage() {
-  const { bos } = await requirePermission("social.manage");
+  await requirePermission("social.manage");
   const [accounts, { data: fol }] = await Promise.all([listAccounts(), db().from("social_account_metrics").select("account_id, value, day").eq("metric", "followers").order("day", { ascending: false }).limit(500)]);
   const latest = new Map<string, number>();
   for (const f of fol ?? []) if (!latest.has(f.account_id)) latest.set(f.account_id, Number(f.value));
   return (
     <>
-      <PageHeader title="الحسابات المتصلة" subtitle="حسابات تُنشر تلقائياً عبر الواجهات الرسمية، وحسابات تُسجّل يدوياً" breadcrumbs={[{ label: "التسويق" }, { label: "الحسابات" }]} actions={<AddAccountButtons platforms={platformKeys.map((p) => ({ value: p, label: platforms[p].label }))} />} />
-      <SubNav items={socialNav(bos)} active="accounts" label="التواصل الاجتماعي" />
+      <PageHeader title="الحسابات المتصلة" subtitle="حسابات تُنشر تلقائياً عبر الواجهات الرسمية، وحسابات تُسجّل يدوياً" actions={<AddAccountButtons platforms={platformKeys.map((p) => ({ value: p, label: platforms[p].label }))} />} />
       <Card flush>
         {accounts.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>المنصة</Tx></th><th><Tx>الحساب</Tx></th><th><Tx>الطريقة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المتابعون</Tx></th><th><Tx>آخر مزامنة</Tx></th><th><Tx>تاريخ الربط</Tx></th><th /></tr></thead>
             <tbody>
               {accounts.map((a) => (
@@ -41,11 +39,11 @@ export default async function SocialAccountsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد حسابات بعد" description="استورد صفحاتك من Meta، أضف قناة تيليجرام، أو أضف حساباً يدوياً." />}
       </Card>
       <Card title="ما الذي يدعمه النظام لكل منصة" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <thead><tr><th><Tx>المنصة</Tx></th><th><Tx>النشر</Tx></th><th><Tx>حد النص</Tx></th><th><Tx>الأرقام التلقائية</Tx></th><th><Tx>ملاحظات</Tx></th></tr></thead>
           <tbody>
             {platformKeys.map((p) => (
@@ -58,7 +56,7 @@ export default async function SocialAccountsPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
         <p className="bos-hint" style={{ padding: "8px 14px" }}><Tx>المفاتيح تُدخل من</Tx> <Link href="/admin/settings/integrations"><Tx>مركز التكاملات</Tx></Link> (Meta، Telegram Bot).</p>
       </Card>
     </>

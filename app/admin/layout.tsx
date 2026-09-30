@@ -9,17 +9,23 @@ import { getSystemTime } from "@/lib/bos/system-time";
 import { currentBranchSelection } from "@/lib/bos/branch";
 import { getUiPrefs } from "@/lib/bos/i18n/server";
 import { I18nProvider } from "@/components/bos/I18n";
+import { getSetting } from "@/lib/bos/settings";
+import { brandFontHref, brandStyle } from "@/lib/bos/branding";
 import "./admin.css";
 import "./bos.css";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const [session, ui] = await Promise.all([getBosSession(), getUiPrefs()]);
+  const [session, ui, company] = await Promise.all([getBosSession(), getUiPrefs(), getSetting("company")]);
+  const brand = brandStyle(company, ui.locale);
+  const fontHref = brandFontHref(company);
+  const fontLink = fontHref ? <link rel="stylesheet" href={fontHref} precedence="default" /> : null;
 
   // Login, reset-password and forbidden pages render without the chrome.
   if (session.status !== "ok") {
     return (
       <I18nProvider locale={ui.locale}>
-        <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme}>{children}</div>
+        {fontLink}
+        <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme} style={brand}>{children}</div>
       </I18nProvider>
     );
   }
@@ -36,14 +42,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <I18nProvider locale={ui.locale}>
-    <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme}>
+    {fontLink}
+    <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme} style={brand}>
       <AdminChrome
         name={bos.employee.full_name}
         ui={{ locale: ui.locale, theme: ui.theme }}
         email={bos.email}
         roleNames={bos.roleNames}
         navigation={navigationFor(bos)
-          .map((g) => ({ ...g, items: g.items?.filter((i) => pageAllowed(rules, i.href, bos.roleKeys, bos.isSuperAdmin)) }))
+          .map((g) => ({ ...g, items: g.items?.filter((i) => pageAllowed(rules, i.href, bos.roleKeys, bos.isSuperAdmin)).map((i) => ({ ...i, children: i.children?.filter((c) => pageAllowed(rules, c.href, bos.roleKeys, bos.isSuperAdmin)) })) }))
           .filter((g) => (g.href ? pageAllowed(rules, g.href, bos.roleKeys, bos.isSuperAdmin) : (g.items?.length ?? 0) > 0))}
         unreadNotifications={unread ?? 0}
         systemTime={{ ms: systemTime.ms, timezone: systemTime.timezone }}

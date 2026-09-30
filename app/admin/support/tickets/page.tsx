@@ -21,7 +21,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
   const catLabel = new Map(ticketCategories.map((c) => [c.value, c.label]));
   return (
     <>
-      <PageHeader title="تذاكر الدعم" subtitle={<Tx vars={{ total: result.total }}>{"{total} تذكرة"}</Tx>} breadcrumbs={[{ label: "الدعم" }, { label: "التذاكر" }]} actions={can(bos, "tickets.create") ? <Link className="admin-btn small" href="/admin/support/tickets/new"><Tx>+ تذكرة</Tx></Link> : null} />
+      <PageHeader title="تذاكر الدعم" subtitle={<Tx vars={{ total: result.total }}>{"{total} تذكرة"}</Tx>} actions={can(bos, "tickets.create") ? <Link className="admin-btn small" href="/admin/support/tickets/new"><Tx>+ تذكرة</Tx></Link> : null} />
       <FilterBar
         searchPlaceholder="رقم أو موضوع التذكرة..."
         filters={[

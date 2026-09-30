@@ -35,7 +35,7 @@ export default async function NewDealPage({ searchParams }: { searchParams: Sear
 
   return (
     <>
-      <PageHeader title={title} breadcrumbs={[{ label: "المبيعات" }, { label: "الصفقات", href: "/admin/sales/deals" }, { label: "جديدة" }]} />
+      <PageHeader title={title} />
       <DealForm
         action={createDealAction}
         initialClient={initialClient}

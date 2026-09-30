@@ -33,7 +33,7 @@ export default async function FeaturePage({ params }: { params: Promise<{ id: st
       <PageHeader
         title={f.title}
         subtitle={<StatusBadge map="feature_request_status" value={f.status} />}
-        breadcrumbs={[{ label: "الدعم" }, { label: "طلبات الميزات", href: "/admin/support/feature-requests" }, { label: f.title }]}
+       
         actions={canUpdate ? <FeatureStatusControls id={id} status={f.status} canUpsell={can(bos, "deals.create") && !!f.client_id && !f.deal_id && ["approved", "planned"].includes(f.status)} /> : null}
       />
       <Summary

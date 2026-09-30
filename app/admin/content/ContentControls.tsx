@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -213,7 +214,7 @@ export function StagesEditor({ stages }: { stages: { key: string; name: string; 
   const move = (i: number, d: -1 | 1) => setOrder((o) => { const n = [...o]; const j = i + d; if (j < 0 || j >= n.length) return o; [n[i], n[j]] = [n[j], n[i]]; return n; });
   return (
     <ActionForm action={saveStagesAction} successMessage="تم الحفظ">
-      <table className="bos-table">
+      <BosTable className="bos-table">
         <thead><tr><th /><th><Tx>المرحلة</Tx></th><th><Tx>مفعّلة</Tx></th><th><Tx>تتطلب اعتماداً</Tx></th><th /></tr></thead>
         <tbody>
           {order.map((k, i) => {
@@ -229,7 +230,7 @@ export function StagesEditor({ stages }: { stages: { key: string; name: string; 
             );
           })}
         </tbody>
-      </table>
+      </BosTable>
       <FormSection title="إضافة مرحلة">
         <div className="bos-form-grid">
           <TextField name="new_key" label="المفتاح" dir="ltr" placeholder="voiceover" hint="حروف إنجليزية صغيرة وأرقام و _" />

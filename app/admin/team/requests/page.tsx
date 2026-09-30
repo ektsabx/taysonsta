@@ -8,8 +8,6 @@ import { listExpenseClaims, listHrRequests, listLoans, listRequestTypes } from "
 import { listLeaveRequests } from "@/services/bos/leave";
 import { listOvertime } from "@/services/bos/attendance";
 import { PageHeader, Card, KpiCard, StatusBadge, EmptyState } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { ExpenseClaimButton, HrRequestButton, LoanButton } from "../HrControls";
 import { LeaveRequestButton } from "../TeamControls";
@@ -36,8 +34,7 @@ export default async function RequestsHubPage() {
   const pending = (s: string) => s === "pending";
   return (
     <>
-      <PageHeader title="المصروفات والطلبات" subtitle="قدّم طلباتك وتابع حالتها" breadcrumbs={[{ label: "الفريق" }, { label: "المصروفات والطلبات" }]} actions={<Link className="admin-btn small secondary" href="/admin/approvals"><Tx vars={{ approvals: approvals ?? 0 }}>{"موافقاتي ({approvals})"}</Tx></Link>} />
-      <SubNav items={hrSection(bos, "requests")} active="overview" label="الطلبات" />
+      <PageHeader title="المصروفات والطلبات" subtitle="قدّم طلباتك وتابع حالتها" actions={<Link className="admin-btn small secondary" href="/admin/approvals"><Tx vars={{ approvals: approvals ?? 0 }}>{"موافقاتي ({approvals})"}</Tx></Link>} />
       <Card title="طلب جديد">
         <div className="bos-row" style={{ gap: 8, flexWrap: "wrap" }}>
           <LeaveRequestButton types={leaveTypes.map((t) => ({ value: t.id, label: t.name }))} />

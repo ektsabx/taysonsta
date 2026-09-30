@@ -1,8 +1,7 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { getT } from "@/lib/bos/i18n/server";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
@@ -38,7 +37,7 @@ export default async function KpisPage({ searchParams }: { searchParams: SearchP
     const kpi = kpis.find((k) => k.id === sp.kpi) ?? kpis[0];
     assignView = kpi ? (
       <Card title={<Tx vars={{ name: kpi.name }}>{"تخصيص: {name}"}</Tx>} actions={<form><input type="hidden" name="view" value="assignments" /><select name="kpi" defaultValue={kpi.id} aria-label={t("المؤشر")}>{kpis.map((k) => <option key={k.id} value={k.id}>{k.name}</option>)}</select> <button className="admin-btn small secondary" type="submit"><Tx>عرض</Tx></button></form>}>
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>عبر الدور</Tx></th><th><Tx>تخصيص مباشر</Tx></th></tr></thead>
           <tbody>
             {people.map((p) => {
@@ -53,7 +52,7 @@ export default async function KpisPage({ searchParams }: { searchParams: SearchP
               );
             })}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
     ) : <EmptyState title="لا توجد مؤشرات" />;
   }
@@ -62,7 +61,7 @@ export default async function KpisPage({ searchParams }: { searchParams: SearchP
       <PageHeader
         title="مؤشرات الأداء"
         subtitle="تعريفات قابلة للتعديل — المستهدفات تُحسب من بيانات النظام الفعلية"
-        breadcrumbs={[{ label: "الفريق" }, { label: "مؤشرات الأداء" }]}
+       
         actions={
           <>
             {canEdit ? <KpiModalButton roles={roleOpts} departments={deptOpts} staff={staffOpts} /> : null}
@@ -70,19 +69,18 @@ export default async function KpisPage({ searchParams }: { searchParams: SearchP
           </>
         }
       />
-      <SubNav items={hrSection(bos, "performance")} active="kpis" label="الأداء" />
       <Tabs param="view" active={view} baseHref="/admin/team/kpis" tabs={[{ key: "definitions", label: "التعريفات" }, { key: "assignments", label: "التخصيص" }]} />
       {view === "definitions" ? (
         <Card flush actions={<Link className="bos-link" href={`/admin/team/kpis?inactive=${sp.inactive === "1" ? "0" : "1"}`}><Tx>{sp.inactive === "1" ? "إخفاء غير النشطة" : "عرض غير النشطة"}</Tx></Link>}>
           {kpis.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>المؤشر</Tx></th><th><Tx>الدور</Tx></th><th><Tx>المصدر</Tx></th><th><Tx>المستهدف</Tx></th><th><Tx>الفترة</Tx></th><th><Tx>الوزن</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
               <tbody>
                 {kpis.map((k) => (
                   <tr key={k.id}>
                     <td className="cell-primary">{k.name}<span className="cell-sub">{k.category ?? ""}{k.description ? ` · ${k.description}` : ""}</span></td>
                     <td>{(k.roles as { name: string } | null)?.name ?? "—"}{(k.departments as { name: string } | null) ? <span className="cell-sub">{(k.departments as { name: string }).name}</span> : null}</td>
-                    <td>{kpiMetricMap.get(k.data_source)?.label ?? <span style={{ color: "#f87171" }}><Tx>مصدر غير صالح</Tx></span>}<span className="cell-sub"><Tx>{k.direction === "lower_better" ? "الأقل أفضل" : "الأعلى أفضل"}</Tx></span></td>
+                    <td>{kpiMetricMap.get(k.data_source)?.label ?? <span style={{ color: "var(--bos-danger)" }}><Tx>مصدر غير صالح</Tx></span>}<span className="cell-sub"><Tx>{k.direction === "lower_better" ? "الأقل أفضل" : "الأعلى أفضل"}</Tx></span></td>
                     <td className="bos-num">{Number(k.target)} <span className="bos-faint"><Tx>{kpiUnitLabels[k.unit]}</Tx></span></td>
                     <td><Tx>{kpiPeriodLabels[k.period]}</Tx></td>
                     <td>{k.weight_enabled ? `${Number(k.weight ?? 0)}%` : "—"}</td>
@@ -91,7 +89,7 @@ export default async function KpisPage({ searchParams }: { searchParams: SearchP
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد مؤشرات" />}
         </Card>
       ) : assignView}

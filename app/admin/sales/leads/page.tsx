@@ -61,7 +61,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
       <PageHeader
         title="العملاء المحتملون"
         subtitle={scope === "all" ? "كل العملاء المحتملين" : scope === "team" ? "عملاء فريقك المحتملون" : "العملاء المحتملون المسندون إليك"}
-        breadcrumbs={[{ label: "المبيعات" }, { label: "العملاء المحتملون" }]}
+       
         actions={
           <>
             <Link href="/admin/sales/pipeline?entity=lead" className="admin-btn secondary small">
@@ -170,7 +170,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
                 score: <span className="bos-num"><Tx>{l.total_score}</Tx></span>,
                 budget: l.estimated_budget ? <Money value={l.estimated_budget} currency={l.budget_currency} /> : "—",
                 last: l.last_activity_at ? formatDateTime(l.last_activity_at) : "—",
-                next: l.next_activity_at ? <span style={overdue ? { color: "#f87171" } : undefined}>{formatDateTime(l.next_activity_at)}</span> : <span className="bos-faint"><Tx>لا يوجد</Tx></span>,
+                next: l.next_activity_at ? <span style={overdue ? { color: "var(--bos-danger)" } : undefined}>{formatDateTime(l.next_activity_at)}</span> : <span className="bos-faint"><Tx>لا يوجد</Tx></span>,
                 created: formatDate(l.created_at),
                 updated: formatDate(l.updated_at),
               },

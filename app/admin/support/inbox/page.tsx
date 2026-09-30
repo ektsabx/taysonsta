@@ -8,11 +8,9 @@ import { getConversation, listConversations, listTeams } from "@/services/bos/co
 import { listActiveStaff, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, StatusBadge, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
 import { RelTime } from "@/components/bos/RelTime";
 import { formatDateTime } from "@/lib/bos/format";
 import { AvailabilityToggle, Composer, ConversationActions, LiveRefresh, NewConversationButton } from "./InboxControls";
-import { supportNav } from "../support-nav";
 
 const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", whatsapp: "واتساب", sms: "SMS", portal: "البوابة", phone: "مكالمة", manual: "أخرى" };
 const statusLabels: Record<string, { label: string; tone: "info" | "warning" | "success" | "neutral" | "danger" }> = {
@@ -58,9 +56,8 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
   return (
     <>
       <LiveRefresh />
-      <PageHeader title="صندوق الوارد" subtitle="محادثات العملاء من كل القنوات في مكان واحد" breadcrumbs={[{ label: "الدعم" }, { label: "صندوق الوارد" }]}
+      <PageHeader title="صندوق الوارد" subtitle="محادثات العملاء من كل القنوات في مكان واحد"
         actions={<div className="bos-row" style={{ gap: 6 }}><AvailabilityToggle available={available} />{can(bos, "conversations.create") ? <NewConversationButton teams={teamOpts} /> : null}</div>} />
-      <SubNav items={supportNav(bos)} active="inbox" label="الدعم" />
       <div className="bos-row" style={{ gap: 6, marginBottom: 8 }}>
         {(["me", "unassigned", ...(scope === "all" ? ["all"] : [])] as const).map((w) => <Link key={w} className={`admin-btn small ${who === w ? "" : "ghost"}`} href={qs({ who: w, c: null })}><Tx>{w === "me" ? "المسندة لي" : w === "unassigned" ? "غير المسندة" : "الكل"}</Tx></Link>)}
       </div>

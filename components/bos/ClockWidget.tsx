@@ -82,7 +82,7 @@ export function HeaderClock({ clockInAt, onBreak, staleOpenSession }: ClockProps
         <>
           <Link href="/admin/team/attendance/me" className="bos-clock-timer">
             {onBreak ? "استراحة · " : staleOpenSession ? "جلسة سابقة مفتوحة · " : ""}
-            {elapsed(clockInAt, now)}
+            <span suppressHydrationWarning>{elapsed(clockInAt, now)}</span>
           </Link>
           <button type="button" className="admin-btn small danger" onClick={clockOut} disabled={pending} aria-busy={pending}>
             END WORK

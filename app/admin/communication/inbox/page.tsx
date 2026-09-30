@@ -48,7 +48,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
 
   return (
     <>
-      <PageHeader title="صندوق الوارد" subtitle="كل ما يحتاج انتباهك في مكان واحد" breadcrumbs={[{ label: "التواصل" }, { label: "صندوق الوارد" }]} />
+      <PageHeader title="صندوق الوارد" subtitle="كل ما يحتاج انتباهك في مكان واحد" />
       <Tabs
         param="view"
         active={view}

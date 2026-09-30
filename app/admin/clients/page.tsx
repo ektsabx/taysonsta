@@ -43,7 +43,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
       <PageHeader
         title="الحسابات"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} حساب"}</Tx>}
-        breadcrumbs={[{ label: "العملاء" }, { label: "الحسابات" }]}
+       
         actions={can(bos, "clients.create") ? <Link href="/admin/clients/new" className="admin-btn small"><Tx>+ حساب جديد</Tx></Link> : null}
       />
       <FilterBar

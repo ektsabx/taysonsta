@@ -22,7 +22,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ sl
   const [categories, roles, staff] = await Promise.all([listCategories(), listRoles(), listActiveStaff()]);
   return (
     <>
-      <PageHeader title={<Tx vars={{ title: a.title }}>{"تعديل: {title}"}</Tx>} subtitle={<Tx vars={{ version: a.version }}>{"الإصدار الحالي v{version} — أي تغيير في العنوان أو المحتوى يُنشئ إصداراً جديداً"}</Tx>} breadcrumbs={[{ label: "المعرفة", href: "/admin/knowledge" }, { label: a.title, href: `/admin/knowledge/articles/${a.slug}` }, { label: "تعديل" }]} />
+      <PageHeader title={<Tx vars={{ title: a.title }}>{"تعديل: {title}"}</Tx>} subtitle={<Tx vars={{ version: a.version }}>{"الإصدار الحالي v{version} — أي تغيير في العنوان أو المحتوى يُنشئ إصداراً جديداً"}</Tx>} />
       <Card>
         <ArticleEditor
           action={updateArticleAction.bind(null, a.id)}

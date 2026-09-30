@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -29,7 +30,7 @@ export default async function DealRadarPage({ searchParams }: { searchParams: Se
   const staffOpts = staff.map((s) => ({ value: s.userId, label: s.name }));
   return (
     <>
-      <PageHeader title="رادار الصفقات" subtitle="الصفقات القريبة من الإغلاق أو المعرّضة للخطر — مع أسباب كل تقدير" breadcrumbs={[{ label: "المبيعات" }, { label: "رادار الصفقات" }]} />
+      <PageHeader title="رادار الصفقات" subtitle="الصفقات القريبة من الإغلاق أو المعرّضة للخطر — مع أسباب كل تقدير" />
       <FilterBar filters={[
         { key: "flag", label: "العرض", type: "select", options: [{ value: "nearClosing", label: "قريبة من الإغلاق" }, { value: "overdue", label: "متأخرة" }, { value: "stale", label: "بلا نشاط حديث" }, { value: "intervention", label: "تحتاج تدخل المدير" }, { value: "followUp", label: "فرص متابعة" }, { value: "risky", label: "مخاطر وعوائق" }] },
         { key: "owner", label: "المسؤول", type: "select", options: staffOpts },
@@ -83,8 +84,8 @@ export default async function DealRadarPage({ searchParams }: { searchParams: Se
       {r.summary.byOwner.length ? (
         <Card title="حسب المسؤول والمرحلة" flush>
           <div style={{ display: "grid", gap: 0, gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
-            <table className="bos-table"><thead><tr><th><Tx>المسؤول</Tx></th><th><Tx>الصفقات والقيمة</Tx></th></tr></thead><tbody>{r.summary.byOwner.map((o) => <tr key={o.key}><td>{o.key === "none" ? <Tx>بلا مسؤول</Tx> : names.get(o.key) ?? "—"}</td><td>{o.byCurrency.map((x) => <div key={x.currency}>{x.count} · <Money value={x.value} currency={x.currency} /></div>)}</td></tr>)}</tbody></table>
-            <table className="bos-table"><thead><tr><th><Tx>المرحلة</Tx></th><th><Tx>الصفقات والقيمة</Tx></th></tr></thead><tbody>{r.summary.byStage.map((o) => <tr key={o.key}><td>{o.key}</td><td>{o.byCurrency.map((x) => <div key={x.currency}>{x.count} · <Money value={x.value} currency={x.currency} /></div>)}</td></tr>)}</tbody></table>
+            <BosTable className="bos-table"><thead><tr><th><Tx>المسؤول</Tx></th><th><Tx>الصفقات والقيمة</Tx></th></tr></thead><tbody>{r.summary.byOwner.map((o) => <tr key={o.key}><td>{o.key === "none" ? <Tx>بلا مسؤول</Tx> : names.get(o.key) ?? "—"}</td><td>{o.byCurrency.map((x) => <div key={x.currency}>{x.count} · <Money value={x.value} currency={x.currency} /></div>)}</td></tr>)}</tbody></BosTable>
+            <BosTable className="bos-table"><thead><tr><th><Tx>المرحلة</Tx></th><th><Tx>الصفقات والقيمة</Tx></th></tr></thead><tbody>{r.summary.byStage.map((o) => <tr key={o.key}><td>{o.key}</td><td>{o.byCurrency.map((x) => <div key={x.currency}>{x.count} · <Money value={x.value} currency={x.currency} /></div>)}</td></tr>)}</tbody></BosTable>
           </div>
         </Card>
       ) : null}

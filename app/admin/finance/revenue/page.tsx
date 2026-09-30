@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -30,7 +31,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
   const sensitive = bos.permissions.has("revenue.view_sensitive");
   return (
     <>
-      <PageHeader title="الإيرادات" subtitle={<Tx vars={{ from, to, base }}>{"{from} → {to} · بعملة الأساس {base}"}</Tx>} breadcrumbs={[{ label: "المالية" }, { label: "الإيرادات" }]} actions={<Link href="/admin/reports/revenue" className="admin-btn small secondary"><Tx>التقرير الكامل</Tx></Link>} />
+      <PageHeader title="الإيرادات" subtitle={<Tx vars={{ from, to, base }}>{"{from} → {to} · بعملة الأساس {base}"}</Tx>} actions={<Link href="/admin/reports/revenue" className="admin-btn small secondary"><Tx>التقرير الكامل</Tx></Link>} />
       <FilterBar filters={[{ key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
       <div className="bos-kpis">
         <KpiCard label="الإيراد (فواتير صادرة)" value={formatMoney(r.revenue, base)} />
@@ -56,14 +57,14 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
           {r.by_client.length ? <HBarList format={(v) => formatMoney(v, base)} items={r.by_client.map((c) => ({ label: c.client, value: Number(c.collected) }))} /> : <div className="bos-faint"><Tx>لا توجد مدفوعات في الفترة</Tx></div>}
         </Card>
         <Card title="حسب العملة الأصلية">
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>العملة</Tx></th><th><Tx>مفوتر</Tx></th><th><Tx>مستحق</Tx></th></tr></thead>
             <tbody>
               {r.by_currency.map((c) => (
                 <tr key={c.currency}><td>{c.currency}</td><td><Money value={c.invoiced ?? 0} currency={c.currency} /></td><td><Money value={c.outstanding ?? 0} currency={c.currency} /></td></tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         </Card>
       </div>
     </>

@@ -41,7 +41,7 @@ export default async function ChannelPage({ params, searchParams }: { params: Pr
       <PageHeader
         title={current?.displayName ?? channel.name}
         subtitle={channel.description ?? (channel.kind === "team" && !channel.is_private ? "قناة عامة لكل الفريق" : `${memberIds.size} عضو`)}
-        breadcrumbs={[{ label: "التواصل" }, { label: "المحادثات", href: "/admin/communication/chat" }, { label: current?.displayName ?? channel.name }]}
+       
         actions={
           <>
             {linked ? <Link className="admin-btn small secondary" href={linked.href}><Tx>{linked.label}</Tx></Link> : null}

@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ export function ApprovalQueue({ rows }: { rows: { id: string; who: string; proje
   const run = (d: "approved" | "rejected") => start(async () => { const r = await reviewTimeAction(sel, d, reason || null); setMsg(r.ok ? { ok: true, text: r.message ?? "تم" } : { ok: false, text: r.error }); if (r.ok) { setSel([]); setReason(""); } router.refresh(); });
   return (
     <div className="bos-stack" style={{ gap: 8 }}>
-      <table className="bos-table">
+      <BosTable className="bos-table">
         <thead><tr><th><input type="checkbox" checked={sel.length === rows.length && rows.length > 0} onChange={(e) => setSel(e.target.checked ? rows.map((r) => r.id) : [])} aria-label={t("تحديد الكل")} /></th><th><Tx>الموظف</Tx></th><th><Tx>المشروع / المهمة</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>الساعات</Tx></th><th><Tx>الوصف</Tx></th></tr></thead>
         <tbody>
           {rows.map((r) => (
@@ -29,7 +30,7 @@ export function ApprovalQueue({ rows }: { rows: { id: string; who: string; proje
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
       <div className="bos-row" style={{ gap: 6, flexWrap: "wrap", padding: "0 12px 12px" }}>
         <button type="button" className="admin-btn small" disabled={pending || !sel.length} onClick={() => run("approved")}><Tx>اعتماد المحدد</Tx></button>
         <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("سبب الرفض")} style={{ minWidth: 200 }} />

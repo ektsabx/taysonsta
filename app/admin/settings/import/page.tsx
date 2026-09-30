@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -17,13 +18,13 @@ export default async function ImportsPage() {
   const types = importTypes.filter((t) => can(bos, t.perm)).map((t) => ({ value: t.key, label: t.label }));
   return (
     <>
-      <PageHeader title="استيراد البيانات" subtitle="رفع → ربط الأعمدة → تحقق → تأكيد → تنفيذ آمن، مع تقرير أخطاء وإمكانية التراجع" breadcrumbs={[{ label: "الإعدادات" }, { label: "استيراد البيانات" }]} />
+      <PageHeader title="استيراد البيانات" subtitle="رفع → ربط الأعمدة → تحقق → تأكيد → تنفيذ آمن، مع تقرير أخطاء وإمكانية التراجع" />
       <Card title="استيراد جديد">{types.length ? <NewImport types={types} /> : <EmptyState title="لا توجد أنواع بيانات مسموح لك باستيرادها" />}
         <p className="bos-hint"><Tx>لا يُنفَّذ أي محتوى من الملف (قيم الخلايا فقط)، ولا تُكتب سجلات قبل مراجعتك وتأكيدك. السجلات الموجودة لا تُعدّل إلا إذا اخترت ذلك صراحة.</Tx></p>
       </Card>
       <Card title="السجل" flush>
         {jobs.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th>#</th><th><Tx>النوع</Tx></th><th><Tx>الملف</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>النتيجة</Tx></th><th><Tx>بواسطة</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
             <tbody>{jobs.map((j) => (
               <tr key={j.id}>
@@ -36,7 +37,7 @@ export default async function ImportsPage() {
                 <td className="bos-nowrap">{formatDateTime(j.created_at)}</td>
               </tr>
             ))}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد عمليات استيراد" />}
       </Card>
     </>

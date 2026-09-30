@@ -24,7 +24,7 @@ export default async function EditDealPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <PageHeader title={<Tx vars={{ name: deal.name }}>{"تعديل: {name}"}</Tx>} breadcrumbs={[{ label: "الصفقات", href: "/admin/sales/deals" }, { label: deal.deal_number, href: `/admin/sales/deals/${id}` }, { label: "تعديل" }]} />
+      <PageHeader title={<Tx vars={{ name: deal.name }}>{"تعديل: {name}"}</Tx>} />
       <DealForm
         action={updateDealAction.bind(null, id)}
         initialClient={client ? { id: client.id, label: client.company_name ?? client.name } : null}

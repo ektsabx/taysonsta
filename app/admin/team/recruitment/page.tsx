@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { listJobs, recruitmentStats } from "@/services/bos/hr/recruitment";
 import { listDepartments } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, KpiCard, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 
@@ -20,9 +19,8 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
   const canCreate = bos.permissions.get("recruitment.create") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="التوظيف" subtitle={sp.published === "1" ? "الوظائف المنشورة على الموقع" : "الوظائف والمرشحون والمقابلات والعروض والتعيين"} breadcrumbs={[{ label: "الفريق" }, { label: "التوظيف" }]}
+      <PageHeader title="التوظيف" subtitle={sp.published === "1" ? "الوظائف المنشورة على الموقع" : "الوظائف والمرشحون والمقابلات والعروض والتعيين"}
         actions={canCreate ? <Link className="admin-btn small" href="/admin/team/recruitment/jobs/new"><Tx>+ وظيفة جديدة</Tx></Link> : null} />
-      <SubNav items={hrSection(bos, "recruitment")} active="overview" label="التوظيف" />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 14 }}>
         <KpiCard label="وظائف مفتوحة" value={stats.openJobs} sub={<Tx vars={{ openings: stats.openings, published: stats.published }}>{"{openings} شاغر · {published} منشورة"}</Tx>} href="/admin/team/recruitment?status=open" />
         <KpiCard label="طلبات جديدة" value={stats.newApplications} href="/admin/team/recruitment/applications?stage=new" />
@@ -38,7 +36,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
       ]} />
       <Card flush>
         {jobs.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الوظيفة</Tx></th><th><Tx>القسم</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الموقع</Tx></th><th><Tx>الشواغر</Tx></th><th><Tx>الطلبات (النشطة)</Tx></th><th><Tx>تم التعيين</Tx></th><th><Tx>آخر موعد</Tx></th></tr></thead>
             <tbody>
               {jobs.map((j) => (
@@ -54,7 +52,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد وظائف" />}
       </Card>
       {can(bos, "reports.read") ? <p className="bos-faint" style={{ fontSize: 12 }}><Link className="bos-link" href="/admin/reports/hr?r=candidates_by_stage"><Tx>تقارير التوظيف</Tx></Link></p> : null}

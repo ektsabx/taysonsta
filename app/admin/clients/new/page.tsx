@@ -9,7 +9,7 @@ export default async function NewAccountPage() {
   const [staff, currencies] = await Promise.all([listActiveStaff(), listCurrencies()]);
   return (
     <>
-      <PageHeader title="حساب جديد" breadcrumbs={[{ label: "العملاء" }, { label: "الحسابات", href: "/admin/clients" }, { label: "جديد" }]} />
+      <PageHeader title="حساب جديد" />
       <AccountForm
         action={createAccountAction}
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}

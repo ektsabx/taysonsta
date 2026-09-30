@@ -1,7 +1,6 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
@@ -15,7 +14,7 @@ import { CompanyAccountButton } from "../TeamControls";
 
 // Company-managed accounts (IT §3): the company owns the account; no passwords stored.
 export default async function CompanyAccountsPage({ searchParams }: { searchParams: SearchParams }) {
-  const { bos } = await requirePermission("access.manage", "all");
+  await requirePermission("access.manage", "all");
   const sp = await readParams(searchParams);
   const [rows, apps, names, { data: emps }] = await Promise.all([listCompanyAccounts(sp), listApps(), userNameMap(), db().from("employees").select("id, full_name").is("archived_at", null).order("full_name")]);
   const empOpts = (emps ?? []).map((e) => ({ value: e.id, label: e.full_name }));
@@ -23,13 +22,12 @@ export default async function CompanyAccountsPage({ searchParams }: { searchPara
   const staffOpts = [...names.entries()].map(([value, label]) => ({ value, label }));
   return (
     <>
-      <PageHeader title="حسابات الشركة" subtitle="حسابات تملكها الشركة ويُمنح الموظف حق استخدامها — لا تُخزن كلمات المرور هنا أبداً" breadcrumbs={[{ label: "الفريق" }, { label: "حسابات الشركة" }]} actions={<CompanyAccountButton employees={empOpts} apps={appOpts} staff={staffOpts} />} />
-      <SubNav items={hrSection(bos, "it")} active="accounts" label="الأجهزة والصلاحيات" />
+      <PageHeader title="حسابات الشركة" subtitle="حسابات تملكها الشركة ويُمنح الموظف حق استخدامها — لا تُخزن كلمات المرور هنا أبداً" actions={<CompanyAccountButton employees={empOpts} apps={appOpts} staff={staffOpts} />} />
       <FilterBar searchPlaceholder="المعرّف أو المزوّد..." filters={[{ key: "employee", label: "الموظف", type: "select", options: empOpts }, { key: "status", label: "الحالة", type: "select", options: statusOptions("access_status") }, { key: "mfa", label: "2FA", type: "select", options: [{ value: "noncompliant", label: "غير ملتزم" }] }]} />
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الحساب</Tx></th><th><Tx>الموظف</Tx></th><th><Tx>الحالة</Tx></th><th>2FA</th><th><Tx>المالك / الاسترداد</Tx></th><th><Tx>آخر وصول</Tx></th><th><Tx>آخر مراجعة</Tx></th><th><Tx>أُنشئ</Tx></th><th /></tr></thead>
               <tbody>
                 {rows.map((a) => (
@@ -46,7 +44,7 @@ export default async function CompanyAccountsPage({ searchParams }: { searchPara
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد حسابات مسجلة" />}
       </Card>

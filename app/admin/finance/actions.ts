@@ -230,7 +230,7 @@ export async function saveCommissionRuleAction(id: string | null, _prev: ActionS
     const { bos } = await authorize("settings.manage");
     const v = parseForm(ruleSchema, formData);
     await saveCommissionRule(bos, id, { ...v, fixed_amount: v.fixed_amount ?? null, min_amount: v.min_amount ?? null, max_amount: v.max_amount ?? null });
-    revalidatePath("/admin/settings/commission");
+    revalidatePath("/admin/settings/company");
     return { ok: true, message: "تم حفظ القاعدة" };
   });
 }

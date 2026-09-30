@@ -37,7 +37,7 @@ export default async function ProjectFilesPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeader title="ملفات المشاريع" subtitle="يتم الرفع من تبويب «الملفات» داخل كل مشروع" breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: "الملفات" }]} />
+      <PageHeader title="ملفات المشاريع" subtitle="يتم الرفع من تبويب «الملفات» داخل كل مشروع" />
       <FilterBar
         searchPlaceholder="اسم الملف..."
         filters={[

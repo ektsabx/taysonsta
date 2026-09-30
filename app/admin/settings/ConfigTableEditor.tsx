@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { Tx, Opt } from "@/components/bos/I18n";
 
@@ -95,7 +96,7 @@ export function ConfigTableEditor({ spec, tableKey, rows, lookups, canEdit = tru
       </div>
       {msg ? <div className="bos-faint" style={{ fontSize: 12.5, marginBottom: 6 }}><Tx>{msg}</Tx></div> : null}
       <div className="bos-table-scroll">
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr>{listed.map((f) => <th key={f.key}><Tx>{f.label}</Tx></th>)}{canEdit ? <th className="col-actions" /> : null}</tr></thead>
           <tbody>
             {rows.map((r) => {
@@ -113,7 +114,7 @@ export function ConfigTableEditor({ spec, tableKey, rows, lookups, canEdit = tru
               );
             })}
           </tbody>
-        </table>
+        </BosTable>
       </div>
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.__id ? `تعديل — ${spec.title}` : `إضافة — ${spec.title}`} wide>
         {editing ? (

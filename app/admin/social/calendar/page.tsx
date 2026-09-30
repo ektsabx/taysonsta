@@ -5,8 +5,6 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { calendarPosts } from "@/services/bos/social";
 import { platforms, type Platform } from "@/lib/bos/social/platforms";
 import { PageHeader, Card } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { socialNav } from "../social-nav";
 import { postStatus } from "../labels";
 
 const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -52,8 +50,7 @@ export default async function SocialCalendarPage({ searchParams }: { searchParam
   const title = view === "day" ? iso(anchor) : view === "week" ? `${iso(start)} → ${iso(end)}` : `${anchor.getUTCFullYear()}-${String(month + 1).padStart(2, "0")}`;
   return (
     <>
-      <PageHeader title="تقويم المحتوى" breadcrumbs={[{ label: "التسويق" }, { label: "التقويم" }]} actions={can(bos, "social.create") ? <Link className="admin-btn small" href="/admin/social/posts/new"><Tx>+ منشور</Tx></Link> : null} />
-      <SubNav items={socialNav(bos)} active="calendar" label="التواصل الاجتماعي" />
+      <PageHeader title="تقويم المحتوى" actions={can(bos, "social.create") ? <Link className="admin-btn small" href="/admin/social/posts/new"><Tx>+ منشور</Tx></Link> : null} />
       <div className="bos-row" style={{ gap: 6, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
         {(["month", "week", "day"] as const).map((v) => <Link key={v} className={`admin-btn small ${view === v ? "" : "ghost"}`} href={link({ view: v })}><Tx>{v === "month" ? "شهر" : v === "week" ? "أسبوع" : "يوم"}</Tx></Link>)}
         <span style={{ flex: 1 }} />

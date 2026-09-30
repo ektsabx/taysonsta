@@ -36,7 +36,7 @@ export default async function BugPage({ params }: { params: Promise<{ id: string
       <PageHeader
         title={b.title}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><span>{b.bug_number}</span><StatusBadge map="bug_status" value={b.status} /><StatusBadge tone={b.severity === "critical" ? "danger" : b.severity === "major" ? "warning" : "info"} label={sevLabel[b.severity]} /></span>}
-        breadcrumbs={[{ label: "الدعم" }, { label: "الأخطاء البرمجية", href: "/admin/support/bugs" }, { label: b.bug_number }]}
+       
         actions={canUpdate ? <BugStatusControls id={id} status={b.status} canQa={canQa} /> : null}
       />
       <Summary

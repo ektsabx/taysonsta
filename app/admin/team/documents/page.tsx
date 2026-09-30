@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { managedEmployeeIds } from "@/services/bos/team-scope";
 import { listDocuments, listDocumentTypes, daysUntil } from "@/services/bos/hr/documents";
 import { PageHeader, Card, EmptyState, KpiCard, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusLabel, statusOptions } from "@/lib/bos/labels";
 import { DocumentRowActions, NewDocumentButton } from "../HrControls";
@@ -34,10 +33,9 @@ export default async function HrDocumentsPage({ searchParams }: { searchParams: 
       <PageHeader
         title="مستندات الموظفين"
         subtitle="ملف الموظف: الهوية، العقود، المؤهلات، المستندات المالية والتأمينية"
-        breadcrumbs={[{ label: "الفريق" }, { label: "المستندات" }]}
+       
         actions={<NewDocumentButton employees={empOptions} fixedEmployeeId={canCreateAll ? undefined : bos.employee.id} types={(canCreateAll ? types : types.filter((t) => t.employee_can_upload)).filter((t) => t.is_active).map((t) => ({ value: t.id, label: t.name, requires_expiry: t.requires_expiry }))} canConfidential={canCreateAll} />}
       />
-      <SubNav items={hrSection(bos, "documents")} active="documents" label="المستندات" />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 12 }}>
         <KpiCard label="بانتظار التحقق" value={docs.filter((d) => d.status === "pending_verification").length} href="/admin/team/documents?status=pending_verification" />
         <KpiCard label="تنتهي قريباً" value={docs.filter((d) => d.expiry === "expiring").length} href="/admin/team/documents?expiry=expiring" />
@@ -56,7 +54,7 @@ export default async function HrDocumentsPage({ searchParams }: { searchParams: 
       />
       <Card flush>
         {docs.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>المستند</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الإصدار / الانتهاء</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الملف</Tx></th><th /></tr></thead>
             <tbody>
               {docs.map((d) => {
@@ -83,7 +81,7 @@ export default async function HrDocumentsPage({ searchParams }: { searchParams: 
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مستندات" />}
       </Card>
     </>

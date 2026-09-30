@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -7,7 +8,6 @@ import { listBranches } from "@/lib/bos/branch";
 import { listBranchGrants } from "@/services/bos/branches";
 import { listCurrencies } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { BranchAccessToggle, BranchButton, BranchRowActions } from "../CompanyControls";
 
 // Branches (docs/bos/30 §3.2): one company installation, many branches.
@@ -27,11 +27,10 @@ export default async function BranchesSettingsPage() {
   const staff = (employees ?? []).filter((e) => e.user_id);
   return (
     <>
-      <PageHeader title="الفروع" subtitle="كل فرع له منطقته الزمنية وعملته ومديره وجدوله — البيانات لا تتكرر بين الفروع" breadcrumbs={[{ label: "الإعدادات" }, { label: "الفروع" }]} actions={<BranchButton currencies={currencies} managers={managers} schedules={scheduleOpts} />} />
-      <SettingsNav active="branches" />
+      <PageHeader title="الفروع" subtitle="كل فرع له منطقته الزمنية وعملته ومديره وجدوله — البيانات لا تتكرر بين الفروع" actions={<BranchButton currencies={currencies} managers={managers} schedules={scheduleOpts} />} />
       <Card flush>
         {branches.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الفرع</Tx></th><th><Tx>الكود</Tx></th><th><Tx>المدينة / الدولة</Tx></th><th><Tx>المنطقة الزمنية</Tx></th><th><Tx>العملة</Tx></th><th><Tx>المدير</Tx></th><th><Tx>الموظفون</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {branches.map((b) => (
@@ -48,14 +47,14 @@ export default async function BranchesSettingsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد فروع" />}
       </Card>
       {branches.length > 1 ? (
         <Card title="وصول إضافي لفروع أخرى">
           <p className="bos-faint" style={{ fontSize: 12.5 }}><Tx>كل مستخدم يرى فرعه والفروع التي يديرها تلقائياً؛ أصحاب صلاحية «الفروع: قراءة — الكل» يرون كل الفروع. هنا تمنح وصولاً إضافياً لمستخدمين محددين.</Tx></p>
           <div className="bos-table-scroll">
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>المستخدم</Tx></th>{branches.map((b) => <th key={b.id}>{b.code}</th>)}</tr></thead>
               <tbody>
                 {staff.map((e) => (
@@ -65,7 +64,7 @@ export default async function BranchesSettingsPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         </Card>
       ) : null}

@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -25,7 +26,7 @@ export default async function FilesPage({ searchParams }: { searchParams: Search
   const roleOpts = roles.filter((r) => !r.is_client_role).map((r) => ({ value: r.id, label: r.name }));
   return (
     <>
-      <PageHeader title="كل الملفات" subtitle={<Tx vars={{ total: res.total }}>{"{total} ملف"}</Tx>} breadcrumbs={[{ label: "الملفات" }]} actions={<><Link className="admin-btn small ghost" href="/admin/files/shared"><Tx>المشتركة معي</Tx></Link><Link className="admin-btn small ghost" href="/admin/files/templates"><Tx>القوالب</Tx></Link></>} />
+      <PageHeader title="كل الملفات" subtitle={<Tx vars={{ total: res.total }}>{"{total} ملف"}</Tx>} actions={<><Link className="admin-btn small ghost" href="/admin/files/shared"><Tx>المشتركة معي</Tx></Link><Link className="admin-btn small ghost" href="/admin/files/templates"><Tx>القوالب</Tx></Link></>} />
       <Tabs param="deleted" active={deleted ? "1" : "0"} baseHref="/admin/files" tabs={[{ key: "0", label: "الملفات" }, { key: "1", label: "المحذوفة" }]} />
       <FilterBar searchPlaceholder="اسم الملف..." filters={[
         { key: "entity_type", label: "مرتبط بـ", type: "select", options: Object.entries(entityTypeLabels).map(([value, label]) => ({ value, label })) },
@@ -36,7 +37,7 @@ export default async function FilesPage({ searchParams }: { searchParams: Search
       <Card flush>
         {res.rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الملف</Tx></th><th><Tx>مرتبط بـ</Tx></th><th><Tx>الحجم</Tx></th><th><Tx>الإصدار</Tx></th><th><Tx>رفعه</Tx></th><th><Tx>التاريخ</Tx></th><th className="col-actions" /></tr></thead>
               <tbody>
                 {res.rows.map((f) => {
@@ -61,7 +62,7 @@ export default async function FilesPage({ searchParams }: { searchParams: Search
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title={deleted ? "لا توجد ملفات محذوفة" : "لا توجد ملفات"} description="تُرفع الملفات من تبويب «الملفات» داخل كل سجل (عميل، مشروع، مهمة، عقد...)." />}
         {pages > 1 ? <div className="bos-row" style={{ justifyContent: "center", gap: 8, padding: 10 }}>{page > 1 ? <Link className="admin-btn small secondary" href={qs(page - 1)}><Tx>السابق</Tx></Link> : null}<span className="bos-faint">{page}/{pages}</span>{page < pages ? <Link className="admin-btn small secondary" href={qs(page + 1)}><Tx>التالي</Tx></Link> : null}</div> : null}

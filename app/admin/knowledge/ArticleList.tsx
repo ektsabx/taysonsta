@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { StatusBadge, EmptyState } from "@/components/bos/ui";
@@ -9,7 +10,7 @@ type Row = { id: string; kind: string; slug: string; title: string; tags: string
 export function ArticleList({ rows, empty = "لا توجد مقالات" }: { rows: Row[]; empty?: string }) {
   if (!rows.length) return <EmptyState title={empty} />;
   return (
-    <table className="bos-table responsive">
+    <BosTable className="bos-table responsive">
       <thead><tr><th><Tx>العنوان</Tx></th><th><Tx>النوع</Tx></th><th><Tx>التصنيف</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الإصدار</Tx></th><th><Tx>آخر تحديث</Tx></th></tr></thead>
       <tbody>
         {rows.map((a) => (
@@ -27,6 +28,6 @@ export function ArticleList({ rows, empty = "لا توجد مقالات" }: { ro
           </tr>
         ))}
       </tbody>
-    </table>
+    </BosTable>
   );
 }

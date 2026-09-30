@@ -10,7 +10,7 @@ export default async function NewMeetingPage({ searchParams }: { searchParams: S
   const staff = await listActiveStaff();
   return (
     <>
-      <PageHeader title="جدولة اجتماع" breadcrumbs={[{ label: "الاجتماعات", href: "/admin/communication/meetings" }, { label: "جديد" }]} />
+      <PageHeader title="جدولة اجتماع" />
       <section className="bos-form-section">
         <MeetingFields
           related={{ lead_id: sp.leadId, deal_id: sp.dealId, client_id: sp.clientId, project_id: sp.projectId, contact_id: sp.contactId }}

@@ -24,7 +24,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
   const groups = [...new Set(hits.map((h) => h.type))];
   return (
     <>
-      <PageHeader title="البحث" breadcrumbs={[{ label: "البحث" }]} />
+      <PageHeader title="البحث" />
       <form className="bos-row" style={{ gap: 8, marginBottom: 14 }}>
         <input name="q" defaultValue={q} placeholder={t("ابحث في الموظفين، العملاء، الصفقات، المشاريع، المهام، الفواتير، المصروفات، الاجتماعات، المستندات، التذاكر، المحادثات، الملفات، المعرفة...")} style={{ flex: 1 }} autoFocus aria-label={t("البحث")} />
         {type ? <input type="hidden" name="type" value={type} /> : null}

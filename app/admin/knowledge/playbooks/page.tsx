@@ -10,7 +10,7 @@ export default async function PlaybooksPage() {
   const rows = await listArticles(bos, { kind: "playbook" });
   return (
     <>
-      <PageHeader title="أدلة المبيعات" breadcrumbs={[{ label: "المعرفة", href: "/admin/knowledge" }, { label: "أدلة المبيعات" }]} actions={can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?kind=playbook"><Tx>+ قسم</Tx></Link> : null} />
+      <PageHeader title="أدلة المبيعات" actions={can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?kind=playbook"><Tx>+ قسم</Tx></Link> : null} />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
         {Object.entries(playbookLabels).map(([key, label]) => {
           const items = rows.filter((r) => r.playbook_section === key);

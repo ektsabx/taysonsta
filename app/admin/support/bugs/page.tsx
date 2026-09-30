@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -29,7 +30,7 @@ export default async function BugsPage({ searchParams }: { searchParams: SearchP
   const sevLabel: Record<string, string> = { critical: "حرجة", major: "كبيرة", minor: "صغيرة", trivial: "بسيطة" };
   return (
     <>
-      <PageHeader title="الأخطاء البرمجية" subtitle={<Tx vars={{ bugs_count: bugs.length }}>{"{bugs_count} خطأ"}</Tx>} breadcrumbs={[{ label: "الدعم" }, { label: "الأخطاء البرمجية" }]} actions={can(bos, "bugs.create") ? <Link className="admin-btn small" href="/admin/support/bugs/new"><Tx>+ خطأ</Tx></Link> : null} />
+      <PageHeader title="الأخطاء البرمجية" subtitle={<Tx vars={{ bugs_count: bugs.length }}>{"{bugs_count} خطأ"}</Tx>} actions={can(bos, "bugs.create") ? <Link className="admin-btn small" href="/admin/support/bugs/new"><Tx>+ خطأ</Tx></Link> : null} />
       <Tabs param="view" active={view} baseHref="/admin/support/bugs" tabs={[{ key: "board", label: "لوحة" }, { key: "list", label: "قائمة" }]} />
       <FilterBar
         searchPlaceholder="رقم أو عنوان..."
@@ -64,7 +65,7 @@ export default async function BugsPage({ searchParams }: { searchParams: SearchP
       ) : (
         <Card flush>
           {bugs.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الخطأ</Tx></th><th><Tx>المشروع</Tx></th><th><Tx>الخطورة</Tx></th><th><Tx>البيئة</Tx></th><th><Tx>المطوّر</Tx></th><th><Tx>الحالة</Tx></th><th>QA</th><th><Tx>التاريخ</Tx></th></tr></thead>
               <tbody>
                 {bugs.map((b) => (
@@ -80,7 +81,7 @@ export default async function BugsPage({ searchParams }: { searchParams: SearchP
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد أخطاء" />}
         </Card>
       )}

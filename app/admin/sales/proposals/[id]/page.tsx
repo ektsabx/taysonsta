@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -65,7 +66,7 @@ export default async function ProposalDetailPage({ params, searchParams }: { par
             {p.is_archived ? <StatusBadge tone="neutral" label="مؤرشف" /> : null}
           </span>
         }
-        breadcrumbs={[{ label: "المبيعات" }, { label: "المقترحات", href: "/admin/sales/proposals" }, { label: p.title }]}
+       
         actions={
           canUpdate ? (
             <Link href={`/admin/sales/proposals/${id}/edit`} className="admin-btn small">
@@ -102,7 +103,7 @@ export default async function ProposalDetailPage({ params, searchParams }: { par
             </Card>
             <Card title="جدول الدفعات">
               {schedule.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الدفعة</Tx></th>
@@ -119,7 +120,7 @@ export default async function ProposalDetailPage({ params, searchParams }: { par
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم يُحدد جدول الدفعات.</Tx></div>
               )}

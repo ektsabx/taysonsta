@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -15,11 +16,11 @@ export default async function SignaturesPage({ searchParams }: { searchParams: S
   const rows = await listSignatureRequests(bos, { status: sp.status });
   return (
     <>
-      <PageHeader title="طلبات التوقيع" subtitle="تتبع إرسال المستندات والاطلاع والتوقيع والنسخ الموقعة" breadcrumbs={[{ label: "المستندات", href: "/admin/documents" }, { label: "طلبات التوقيع" }]} />
+      <PageHeader title="طلبات التوقيع" subtitle="تتبع إرسال المستندات والاطلاع والتوقيع والنسخ الموقعة" />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: Object.entries(requestStatus).map(([value, s]) => ({ value, label: s.label })) }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th>#</th><th><Tx>المستند</Tx></th><th><Tx>الطريقة</Tx></th><th><Tx>الموقّعون</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>أُرسل</Tx></th></tr></thead>
             <tbody>
               {rows.map((r) => {
@@ -36,7 +37,7 @@ export default async function SignaturesPage({ searchParams }: { searchParams: S
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات توقيع" description="افتح مستنداً صادراً واختر «إرسال للتوقيع»." />}
       </Card>
     </>

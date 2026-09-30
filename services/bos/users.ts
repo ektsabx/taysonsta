@@ -86,3 +86,16 @@ export async function staffSignInCheck(userId: string, email: string, method: "p
   return { ok: true };
 }
 
+
+// Admin-initiated password reset (docs/bos/35 B7): employees cannot change
+// their password from the profile; an administrator sends a recovery link.
+export async function sendStaffPasswordReset(bos: BosUser, employeeId: string, origin: string) {
+  const { data: emp } = await db().from("employees").select("id, user_id, email, full_name").eq("id", employeeId).maybeSingle();
+  if (!emp?.user_id) throw new NotFoundError();
+  const { data: u } = await db().auth.admin.getUserById(emp.user_id);
+  const email = u.user?.email ?? emp.email;
+  if (!email) throw new ValidationError("لا يوجد بريد لهذا المستخدم.");
+  const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: `${origin}/admin/reset-password` });
+  if (error) throw new ValidationError(error.message);
+  await audit({ actorId: bos.userId, action: "user.password_reset_sent", entityType: "employee", entityId: emp.id, newValue: { email } });
+}

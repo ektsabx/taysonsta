@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -30,7 +31,7 @@ export default async function ProjectsReport({ searchParams }: { searchParams: S
             </div>
             <Card flush>
               {d.projects.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead><tr><th><Tx>المشروع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>الساعات (فعلي/مخطط)</Tx></th>{margin ? <><th><Tx>الميزانية</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>الربح</Tx></th><th><Tx>الهامش</Tx></th></> : null}<th><Tx>الموعد</Tx></th></tr></thead>
                   <tbody>
                     {d.projects.map((p) => (
@@ -44,7 +45,7 @@ export default async function ProjectsReport({ searchParams }: { searchParams: S
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : <EmptyState title="لا توجد مشاريع" />}
             </Card>
           </>

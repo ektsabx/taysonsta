@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RelTime } from "@/components/bos/RelTime";
 import { getT } from "@/lib/bos/i18n/server";
 import { Tx } from "@/components/bos/I18n";
@@ -12,7 +13,6 @@ import { FilterBar } from "@/components/bos/FilterBar";
 import { LiveTimer } from "@/components/bos/LiveTimer";
 import { formatMinutes, formatTime } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
-import { AttendanceNav } from "./AttendanceNav";
 import { branchFilter } from "@/lib/bos/branch";
 
 // Attendance → Today (§33).
@@ -20,13 +20,12 @@ export default async function AttendanceTodayPage({ searchParams }: { searchPara
   const t = await getT();
   const { bos } = await requirePermission("attendance.read");
   const params = await readParams(searchParams);
-  const { users, manages } = await peopleScope(bos, "attendance.read");
+  const { users } = await peopleScope(bos, "attendance.read");
   const [rows, departments, teams] = await Promise.all([getToday(users, { ...params, branchIds: await branchFilter(bos) }), listDepartments(), listTeams()]);
   const count = (s: string | string[]) => rows.filter((r) => (Array.isArray(s) ? s.includes(r.status) : r.status === s)).length;
   return (
     <>
-      <PageHeader title="الحضور — اليوم" subtitle={users && users.length === 1 ? "حضورك اليوم" : `${rows.length} موظف`} breadcrumbs={[{ label: "الفريق" }, { label: "الحضور" }]} actions={<Link href="/admin/team/attendance/me" className="admin-btn small"><Tx>حضوري</Tx></Link>} />
-      <AttendanceNav active="today" hide={manages || bos.permissions.get("attendance.read") === "all" ? [] : ["employees", "reports"]} />
+      <PageHeader title="الحضور — اليوم" subtitle={users && users.length === 1 ? "حضورك اليوم" : `${rows.length} موظف`} actions={<Link href="/admin/team/attendance/me" className="admin-btn small"><Tx>حضوري</Tx></Link>} />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 14 }}>
         <KpiCard label="حاضر" value={count(["present", "remote", "overtime"])} />
         <KpiCard label="متأخر" value={count("late")} />
@@ -46,7 +45,7 @@ export default async function AttendanceTodayPage({ searchParams }: { searchPara
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr>
                   <th><Tx>الموظف</Tx></th>
@@ -83,7 +82,7 @@ export default async function AttendanceTodayPage({ searchParams }: { searchPara
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا يوجد موظفون في هذا العرض" />}
       </Card>

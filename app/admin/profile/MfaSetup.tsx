@@ -10,7 +10,10 @@ import { syncMyMfaAction } from "./actions";
 
 // TOTP enrollment through Supabase Auth. The secret/QR is shown once in the
 // browser and never sent to or stored by the BOS (IT §10).
-export function MfaSetup({ enabled }: { enabled: boolean }) {
+const statusLabel: Record<string, string> = { enabled: "مفعّل", pending: "بانتظار التأكيد", required: "مطلوب — غير مفعّل", not_configured: "غير مفعّل", disabled: "معطّل", recovery_required: "يحتاج استعادة" };
+
+export function MfaSetup({ status }: { status: string }) {
+  const enabled = status === "enabled";
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [factorId, setFactorId] = useState<string | null>(null);
@@ -48,11 +51,22 @@ export function MfaSetup({ enabled }: { enabled: boolean }) {
 
   return (
     <div className="bos-stack" style={{ gap: 10 }}>
-      {enabled ? <div className="bos-alert success"><Tx>التحقق بخطوتين مفعّل على حسابك.</Tx></div> : <div className="bos-alert warning"><Tx>التحقق بخطوتين غير مفعّل. فعّله لحماية حسابك وبيانات الشركة.</Tx></div>}
+      <div className="bos-row" style={{ gap: 10, alignItems: "center" }}>
+        <span className="bos-kv-label"><Tx>الحالة</Tx></span>
+        <span className={`bos-badge tone-${enabled ? "success" : status === "pending" ? "warning" : "danger"}`} data-status={status}><Tx>{statusLabel[status] ?? status}</Tx></span>
+      </div>
+      <p style={{ fontSize: 13, margin: 0 }}><Tx>تطبيق المصادقة يضيف رمزاً من 6 أرقام يتغيّر كل 30 ثانية ويُطلب مع كلمة المرور عند الدخول، فلا يكفي تسريب كلمة المرور وحدها للوصول إلى حسابك.</Tx></p>
+      {!enabled ? (
+        <ol className="bos-steps-list">
+          <li><Tx>ثبّت تطبيق مصادقة على هاتفك (Google Authenticator أو Microsoft Authenticator أو 1Password أو Authy).</Tx></li>
+          <li><Tx>اضغط «تفعيل عبر تطبيق المصادقة» وامسح رمز QR بالتطبيق.</Tx></li>
+          <li><Tx>أدخل الرمز المكوّن من 6 أرقام الظاهر في التطبيق ثم اضغط «تأكيد».</Tx></li>
+        </ol>
+      ) : <p className="bos-faint" style={{ fontSize: 12.5, margin: 0 }}><Tx>لإيقاف التحقق بخطوتين أو عند فقدان الهاتف تواصل مع مسؤول النظام لاستعادة الحساب.</Tx></p>}
       {!qr ? (
         <div className="bos-row" style={{ gap: 8 }}>
           {!enabled ? <button type="button" className="admin-btn small" disabled={pending} onClick={enroll}><Tx>تفعيل عبر تطبيق المصادقة</Tx></button> : null}
-          <button type="button" className="admin-btn small ghost" disabled={pending} onClick={sync}><Tx>مزامنة الحالة</Tx></button>
+          <button type="button" className="admin-btn small ghost" disabled={pending} onClick={sync}><Tx>تحديث الحالة</Tx></button>
         </div>
       ) : (
         <div className="bos-stack" style={{ gap: 8 }}>
@@ -62,7 +76,7 @@ export function MfaSetup({ enabled }: { enabled: boolean }) {
           <div className="bos-faint" style={{ fontSize: 12 }} dir="ltr"><Tx>{secret}</Tx></div>
           <div className="bos-row" style={{ gap: 6 }}>
             <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} placeholder="123456" dir="ltr" style={{ width: 120 }} />
-            <button type="button" className="admin-btn small" disabled={pending || code.length < 6} onClick={verify}>تأكيد</button>
+            <button type="button" className="admin-btn small" disabled={pending || code.length < 6} onClick={verify}><Tx>تأكيد</Tx></button>
           </div>
         </div>
       )}

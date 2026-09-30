@@ -63,6 +63,7 @@ export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNoti
           clock={clock}
           systemTime={systemTime}
           branches={branches}
+          settingsHrefs={navigation.find((g) => g.key === "settings")?.items?.map((i) => i.href) ?? []}
         />
         <main className="admin-main">{children}</main>
       </div>

@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { useT } from "@/components/bos/I18n";
+import { DateRangeField } from "@/components/bos/DateRangeField";
 
 export interface FilterDef {
   key: string;
@@ -39,6 +40,16 @@ export function FilterBar({ filters = [], searchPlaceholder = "بحث...", child
   }
 
   const active = filters.filter((f) => searchParams.get(f.key));
+  // A from/to pair of date filters renders as one range picker (docs/bos/35 A9).
+  const pairOf = (f: FilterDef) => {
+    if (f.type !== "date") return null;
+    const m = /^(.*?)(from|From|_from)$/.exec(f.key);
+    if (!m) return null;
+    const toKey = m[1] + (m[2] === "From" ? "To" : m[2] === "_from" ? "_to" : "to");
+    return filters.find((x) => x.key === toKey && x.type === "date") ?? null;
+  };
+  const pairedTo = new Set(filters.map(pairOf).filter(Boolean).map((f) => f!.key));
+  const rangeLabel = (label: string) => label.replace(/\s*من$/, "").trim() || "التاريخ";
 
   return (
     <div className="bos-stack" style={{ gap: 6, marginBottom: 12 }}>
@@ -61,6 +72,13 @@ export function FilterBar({ filters = [], searchPlaceholder = "بحث...", child
                 </option>
               ))}
             </select>
+          ) : f.type === "date" && pairedTo.has(f.key) ? null : f.type === "date" && pairOf(f) ? (
+            <DateRangeField
+              key={f.key}
+              label={rangeLabel(f.label)}
+              value={{ from: searchParams.get(f.key) ?? "", to: searchParams.get(pairOf(f)!.key) ?? "" }}
+              onApply={(r) => push({ [f.key]: r.from || null, [pairOf(f)!.key]: r.to || null })}
+            />
           ) : f.type === "date" ? (
             <label key={f.key} className="bos-row" style={{ gap: 4, fontSize: 12, color: "rgba(var(--bos-fg-rgb), 0.5)" }}>
               {t(f.label)}
@@ -111,25 +129,25 @@ export function FilterBar({ filters = [], searchPlaceholder = "بحث...", child
   );
 }
 
-export function DateRangePicker({ fromKey = "from", toKey = "to" }: { fromKey?: string; toKey?: string }) {
+// URL-bound range picker for pages without a FilterBar.
+export function DateRangePicker({ fromKey = "from", toKey = "to", label }: { fromKey?: string; toKey?: string; label?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
-  const t = useT();
-
-  function set(key: string, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(key, value);
-    else params.delete(key);
-    startTransition(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
-  }
-
   return (
-    <span className="bos-row" style={{ gap: 4 }}>
-      <input type="date" aria-label={t("من")} value={searchParams.get(fromKey) ?? ""} onChange={(e) => set(fromKey, e.target.value)} />
-      <span className="bos-faint">→</span>
-      <input type="date" aria-label={t("إلى")} value={searchParams.get(toKey) ?? ""} onChange={(e) => set(toKey, e.target.value)} />
-    </span>
+    <DateRangeField
+      label={label}
+      value={{ from: searchParams.get(fromKey) ?? "", to: searchParams.get(toKey) ?? "" }}
+      onApply={(r) => {
+        const params = new URLSearchParams(searchParams.toString());
+        for (const [k, v] of [[fromKey, r.from], [toKey, r.to]] as const) {
+          if (v) params.set(k, v);
+          else params.delete(k);
+        }
+        params.delete("page");
+        startTransition(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
+      }}
+    />
   );
 }

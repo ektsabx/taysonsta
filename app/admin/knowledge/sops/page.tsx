@@ -10,7 +10,7 @@ export default async function SopsPage() {
   const rows = await listArticles(bos, { kind: "sop" });
   return (
     <>
-      <PageHeader title="إجراءات التشغيل (SOPs)" subtitle="خطوات مرتبة، مالك، مستندات مطلوبة، وقائمة تحقق تفاعلية" breadcrumbs={[{ label: "المعرفة", href: "/admin/knowledge" }, { label: "إجراءات التشغيل" }]} actions={can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?kind=sop"><Tx>+ إجراء</Tx></Link> : null} />
+      <PageHeader title="إجراءات التشغيل (SOPs)" subtitle="خطوات مرتبة، مالك، مستندات مطلوبة، وقائمة تحقق تفاعلية" actions={can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?kind=sop"><Tx>+ إجراء</Tx></Link> : null} />
       <Card flush><ArticleList rows={rows} empty="لا توجد إجراءات منشورة" /></Card>
     </>
   );

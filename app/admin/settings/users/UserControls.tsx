@@ -1,10 +1,11 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Tx, Opt, useT } from "@/components/bos/I18n";
 import { ConfirmButton } from "@/components/bos/Dialog";
-import { invitationAction, removePageRuleAction, savePageRuleAction } from "./actions";
+import { invitationAction, removePageRuleAction, savePageRuleAction, sendPasswordResetAction } from "./actions";
 
 type O = { value: string; label: string };
 
@@ -52,7 +53,7 @@ export function PageRulesEditor({ rules, roles }: { rules: { prefix: string; rol
   return (
     <div className="bos-stack">
       {rules.length ? (
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <thead><tr><th><Tx>مسار الصفحة</Tx></th><th><Tx>الأدوار المسموحة</Tx></th><th><Tx>ملاحظة</Tx></th><th /></tr></thead>
           <tbody>
             {rules.map((r) => (
@@ -64,7 +65,7 @@ export function PageRulesEditor({ rules, roles }: { rules: { prefix: string; rol
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا توجد قيود — صلاحيات الوحدات وحدها تحدد الوصول.</Tx></div>}
       <div className="bos-form-grid">
         <div className="bos-field"><label><Tx>مسار الصفحة</Tx></label><input dir="ltr" value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="/admin/finance/revenue" /></div>
@@ -81,4 +82,8 @@ export function PageRulesEditor({ rules, roles }: { rules: { prefix: string; rol
       </div>
     </div>
   );
+}
+
+export function PasswordResetButton({ employeeId }: { employeeId: string }) {
+  return <ConfirmButton label="رابط كلمة المرور" title="إعادة تعيين كلمة المرور" message="سيُرسل رابط آمن إلى بريد المستخدم لتعيين كلمة مرور جديدة. لا يرى أحد كلمة المرور." confirmLabel="إرسال" className="admin-btn small ghost" action={() => sendPasswordResetAction(employeeId)} />;
 }

@@ -1,3 +1,5 @@
+import { BosTable } from "@/components/bos/BosTable";
+import { nowMs } from "@/lib/bos/clock";
 import { Tx } from "@/components/bos/I18n";
 import { can, requireBosUser } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -23,12 +25,12 @@ export default async function LocationsPage({ searchParams }: { searchParams: Se
   const tab = sp.tab === "team" && viewer ? "team" : sp.tab === "settings" && manager ? "settings" : sp.tab === "log" && manager ? "log" : "mine";
   const today = new Date().toISOString().slice(0, 10);
   const d = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
-  const from = d(sp.from) ?? new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
+  const from = d(sp.from) ?? new Date(nowMs() - 7 * 86400_000).toISOString().slice(0, 10);
   const to = d(sp.to) ?? today;
   const st = await locationStatus(bos);
   return (
     <>
-      <PageHeader title="مشاركة الموقع" subtitle="تُسجّل فقط عند تسجيل الحضور/الانصراف وبموافقتك — لا تتبع مستمر" breadcrumbs={[{ label: "الفريق" }, { label: "مشاركة الموقع" }]} />
+      <PageHeader title="مشاركة الموقع" subtitle="تُسجّل فقط عند تسجيل الحضور/الانصراف وبموافقتك — لا تتبع مستمر" />
       <Tabs param="tab" active={tab} baseHref="/admin/team/locations" tabs={[{ key: "mine", label: "موقعي وموافقتي" }, { key: "team", label: "مواقع الفريق", hidden: !viewer }, { key: "settings", label: "الإعدادات", hidden: !manager }, { key: "log", label: "سجل الاطلاع", hidden: !manager }]} />
       {tab === "mine" ? <Mine bos={bos} st={st} from={from} to={to} /> : null}
       {tab === "team" ? <Team bos={bos} sp={sp} from={from} to={to} /> : null}
@@ -84,7 +86,7 @@ async function Team({ bos, sp, from, to }: { bos: Bos; sp: Record<string, string
 
 function PointsTable({ points, showEmployee }: { points: Awaited<ReturnType<typeof viewLocations>>; showEmployee: boolean }) {
   return (
-    <table className="bos-table" style={{ fontSize: 12.5 }}>
+    <BosTable className="bos-table" style={{ fontSize: 12.5 }}>
       <thead><tr><th><Tx>الوقت</Tx></th>{showEmployee ? <th><Tx>الموظف</Tx></th> : null}<th><Tx>الحدث</Tx></th><th><Tx>العنوان / الإحداثيات</Tx></th><th><Tx>الدقة</Tx></th><th><Tx>المسافة من الفرع</Tx></th></tr></thead>
       <tbody>{points.map((p) => (
         <tr key={p.id}>
@@ -96,7 +98,7 @@ function PointsTable({ points, showEmployee }: { points: Awaited<ReturnType<type
           <td className="bos-num">{p.distance_to_branch_m != null ? `${p.distance_to_branch_m} m` : <span className="bos-faint"><Tx>غير متاح</Tx></span>}</td>
         </tr>
       ))}</tbody>
-    </table>
+    </BosTable>
   );
 }
 
@@ -106,9 +108,9 @@ async function Settings() {
     <>
       <Card title="إعدادات الموقع"><LocationSettings initial={{ enabled: cfg.enabled, purpose_text: cfg.purpose_text, retention_days: cfg.retention_days, allow_task_checkins: cfg.allow_task_checkins }} /><p className="bos-hint"><Tx>تغيير نص الغرض يطلب موافقة جديدة من كل موظف. تأكد من توافق الاستخدام مع قوانين العمل وحماية البيانات في بلدك.</Tx></p></Card>
       <Card title="إحداثيات الفروع (لحساب المسافة)" flush>
-        <table className="bos-table"><thead><tr><th><Tx>الفرع</Tx></th><th><Tx>خط العرض</Tx></th><th><Tx>خط الطول</Tx></th><th><Tx>النطاق (متر)</Tx></th><th /></tr></thead>
+        <BosTable className="bos-table"><thead><tr><th><Tx>الفرع</Tx></th><th><Tx>خط العرض</Tx></th><th><Tx>خط الطول</Tx></th><th><Tx>النطاق (متر)</Tx></th><th /></tr></thead>
           <tbody>{(branches ?? []).map((b) => <BranchGeoRow key={b.id} id={b.id} name={b.name} lat={b.latitude != null ? Number(b.latitude) : null} lng={b.longitude != null ? Number(b.longitude) : null} fence={b.geofence_m} />)}</tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );
@@ -120,7 +122,7 @@ async function Log({ bos }: { bos: Bos }) {
   const name = new Map((viewers ?? []).map((v) => [v.user_id, v.full_name]));
   return (
     <Card title="من اطّلع على مواقع الموظفين" flush>
-      {rows.length ? <table className="bos-table" style={{ fontSize: 12.5 }}><thead><tr><th><Tx>الوقت</Tx></th><th><Tx>المطّلع</Tx></th><th><Tx>الموظف</Tx></th><th><Tx>الفترة</Tx></th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td className="bos-nowrap">{formatDateTime(r.viewed_at)}</td><td>{name.get(r.viewer_user_id) ?? "—"}</td><td>{(r.employees as { full_name: string } | null)?.full_name ?? <Tx>الكل</Tx>}</td><td dir="ltr">{r.period}</td></tr>)}</tbody></table> : <EmptyState title="لا يوجد اطلاع مسجل" />}
+      {rows.length ? <BosTable className="bos-table" style={{ fontSize: 12.5 }}><thead><tr><th><Tx>الوقت</Tx></th><th><Tx>المطّلع</Tx></th><th><Tx>الموظف</Tx></th><th><Tx>الفترة</Tx></th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td className="bos-nowrap">{formatDateTime(r.viewed_at)}</td><td>{name.get(r.viewer_user_id) ?? "—"}</td><td>{(r.employees as { full_name: string } | null)?.full_name ?? <Tx>الكل</Tx>}</td><td dir="ltr">{r.period}</td></tr>)}</tbody></BosTable> : <EmptyState title="لا يوجد اطلاع مسجل" />}
     </Card>
   );
 }

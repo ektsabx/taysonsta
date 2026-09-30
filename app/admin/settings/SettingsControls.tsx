@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { Tx, Opt, useT } from "@/components/bos/I18n";
 
@@ -22,7 +23,7 @@ export function StageEditor({ pipelineId, initial, entity }: { pipelineId: strin
   const move = (i: number, d: number) => { const j = i + d; if (j < 0 || j >= rows.length) return; const n = [...rows]; [n[i], n[j]] = [n[j], n[i]]; setRows(n); };
   return (
     <div>
-      <table className="bos-table">
+      <BosTable className="bos-table">
         <thead><tr><th /><th><Tx>المفتاح</Tx></th><th><Tx>الاسم</Tx></th><th><Tx>الاحتمالية %</Tx></th><th><Tx>الفئة</Tx></th><th><Tx>نشطة</Tx></th><th /></tr></thead>
         <tbody>
           {rows.map((r, i) => (
@@ -37,7 +38,7 @@ export function StageEditor({ pipelineId, initial, entity }: { pipelineId: strin
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
       <p className="bos-faint" style={{ fontSize: 12 }}>{entity === "deal" ? "يجب وجود مرحلة مفتوحة واحدة على الأقل، ومرحلة «مكسوبة» واحدة و«خاسرة» واحدة بالضبط." : "يجب وجود مرحلة مفتوحة واحدة على الأقل."} المراحل المستخدمة تُعطّل بدلاً من الحذف.</p>
       <div className="bos-row" style={{ gap: 6 }}>
         <button type="button" className="admin-btn small ghost" onClick={() => setRows([...rows, { id: null, key: "", name: "", probability: 0, category: "open", is_active: true }])}><Tx>+ مرحلة</Tx></button>

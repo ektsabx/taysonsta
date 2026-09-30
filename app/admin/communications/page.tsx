@@ -35,7 +35,7 @@ export default async function CommunicationsPage({ searchParams }: { searchParam
       <PageHeader
         title="سجل التواصل"
         subtitle={filterClient ? `الحساب: ${filterClient.company_name ?? filterClient.name}` : "المكالمات والرسائل والبريد والاجتماعات في مكان واحد"}
-        breadcrumbs={[{ label: "العملاء" }, { label: "سجل التواصل" }]}
+       
         actions={can(bos, "activities.create") && params.client ? <ActivityComposer related={{ client_id: params.client }} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} label="+ تسجيل تواصل" defaultType="client_communication" /> : null}
       />
       <FilterBar

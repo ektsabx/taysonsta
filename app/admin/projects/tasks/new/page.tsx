@@ -21,7 +21,7 @@ export default async function NewTaskPage({ searchParams }: { searchParams: Sear
   milestonesByProject = { ...milestonesByProject };
   return (
     <>
-      <PageHeader title="مهمة جديدة" breadcrumbs={[{ label: "المهام", href: "/admin/projects/tasks" }, { label: "جديدة" }]} />
+      <PageHeader title="مهمة جديدة" />
       <TaskForm
         action={createTaskAction}
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}

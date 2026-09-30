@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -20,10 +21,10 @@ export default async function CamerasPage() {
   const roleOpts = roles.map((r) => ({ value: r.id, label: r.name }));
   return (
     <>
-      <PageHeader title="كاميرات المكتب" subtitle="سجل الأجهزة المسموح بها وحالتها — العرض فقط حيث يدعم الجهاز بروتوكولاً مناسباً" breadcrumbs={[{ label: "الإعدادات" }, { label: "الكاميرات" }]} actions={manage ? <CameraButton branches={branchOpts} roles={roleOpts} /> : null} />
+      <PageHeader title="كاميرات المكتب" subtitle="سجل الأجهزة المسموح بها وحالتها — العرض فقط حيث يدعم الجهاز بروتوكولاً مناسباً" actions={manage ? <CameraButton branches={branchOpts} roles={roleOpts} /> : null} />
       <Card flush>
         {cams.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>الكاميرا</Tx></th><th><Tx>الفرع / الموقع</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الاتصال</Tx></th><th><Tx>الإشعار</Tx></th><th /></tr></thead>
             <tbody>{cams.map((c) => (
               <tr key={c.id}>
@@ -36,7 +37,7 @@ export default async function CamerasPage() {
                 <td className="bos-nowrap">{manage ? <><CheckButton id={c.id} /> <CameraButton camera={c} branches={branchOpts} roles={roleOpts} /></> : null}</td>
               </tr>
             ))}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد كاميرات مسجلة" />}
       </Card>
       <Card title="دليل الإعداد والحدود">

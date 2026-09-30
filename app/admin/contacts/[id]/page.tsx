@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -62,7 +63,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
             {contact.archived_at ? <StatusBadge tone="neutral" label="مؤرشفة" /> : null}
           </span>
         }
-        breadcrumbs={[{ label: "العملاء" }, { label: "جهات الاتصال", href: "/admin/contacts" }, { label: contact.full_name }]}
+       
         actions={
           <>
             {can(bos, "contacts.update") && !contact.archived_at ? <ContactModalButton label="تعديل" initial={{ ...contact, isPrimary: primary }} account={account ? { id: account.id, label: account.company_name ?? account.name } : null} lockAccount={!!account} /> : null}
@@ -85,7 +86,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
         <div>
           <Card title="الصفقات">
             {deals.length ? (
-              <table className="bos-table responsive"><tbody>
+              <BosTable className="bos-table responsive"><tbody>
                 {(deals as { id: string; deal_number: string; name: string; value: number; currency: string; pipeline_stages: unknown }[]).map((d) => (
                   <tr key={d.id}>
                     <td className="cell-primary"><Link href={`/admin/sales/deals/${d.id}`}>{d.name}</Link><span className="cell-sub">{d.deal_number}</span></td>
@@ -93,7 +94,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                     <td><Money value={d.value} currency={d.currency} /></td>
                   </tr>
                 ))}
-              </tbody></table>
+              </tbody></BosTable>
             ) : <EmptyState title="لا توجد صفقات مرتبطة" />}
           </Card>
           {projects?.length ? (

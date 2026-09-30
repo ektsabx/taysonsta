@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { getBosSession } from "@/lib/bos/auth";
 import { db } from "@/lib/bos/db";
 import { audit } from "@/lib/bos/audit";
-import { getSetting } from "@/lib/bos/settings";
 import { BOS_LOCALE_COOKIE, BOS_THEME_COOKIE, isBosLocale, isBosTheme } from "@/lib/bos/i18n/core";
 
 // Interface language / theme (docs/bos/30 §4–5). Signed-in users store it on
@@ -15,7 +14,6 @@ export async function setUiPreferenceAction(input: { language?: string | null; t
   const patch: { language?: string | null; theme?: string | null } = {};
   if (input.language !== undefined) {
     if (input.language !== null && !isBosLocale(input.language)) return { ok: false };
-    if (input.language && !(await getSetting("company")).enabled_languages.includes(input.language)) return { ok: false };
     patch.language = input.language;
   }
   if (input.theme !== undefined) {

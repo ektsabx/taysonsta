@@ -173,6 +173,7 @@ const taskSchema = z.object({
   start_date: zf.optionalDate(),
   estimated_hours: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.coerce.number().min(0).max(10000).nullable()),
   is_required: zf.checkbox(),
+  client_visible: zf.checkbox(),
 });
 
 function toTaskInput(v: z.infer<typeof taskSchema>): TaskInput {
@@ -191,6 +192,7 @@ function toTaskInput(v: z.infer<typeof taskSchema>): TaskInput {
     start_date: v.start_date,
     estimated_minutes: v.estimated_hours === null ? null : Math.round(v.estimated_hours * 60),
     is_required: v.is_required,
+    client_visible: v.client_visible,
   };
 }
 

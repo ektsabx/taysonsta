@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -54,7 +55,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
         {tabs}
         <Card title="التفويض والموافِق البديل" flush>
           {list.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>المفوِّض</Tx></th><th><Tx>المفوَّض إليه</Tx></th><th><Tx>الفترة</Tx></th><th><Tx>الأنواع</Tx></th><th><Tx>السبب</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
               <tbody>
                 {list.map((d) => {
@@ -72,7 +73,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد تفويضات" description="أثناء الإجازة أو الغياب فوّض موافقاتك لزميل؛ تصل الطلبات الجديدة إليه ويستطيع اتخاذ القرار في المفتوحة." />}
         </Card>
       </>
@@ -88,18 +89,18 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
         {tabs}
         <Card title="حسب النوع (آخر 90 يوماً)" flush>
           {report.types.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>النوع</Tx></th><th><Tx>قرارات</Tx></th><th><Tx>متوسط وقت القرار (ساعة)</Tx></th><th><Tx>بعد الموعد</Tx></th><th><Tx>معلّقة</Tx></th><th><Tx>متأخرة الآن</Tx></th></tr></thead>
               <tbody>{report.types.map((r) => <tr key={r.type}><td><Tx>{approvalTypeLabels[r.type] ?? r.type}</Tx></td><td className="bos-num">{r.decided}</td><td className="bos-num">{r.avgHours ?? "—"}</td><td className="bos-num">{r.late}</td><td className="bos-num">{r.pending}</td><td className="bos-num">{r.overdue ? <span className="bos-danger">{r.overdue}</span> : 0}</td></tr>)}</tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد بيانات" />}
         </Card>
         <Card title="المعلّق حسب الموافِق" flush>
           {report.approvers.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الموافِق</Tx></th><th><Tx>معلّقة</Tx></th><th><Tx>متأخرة</Tx></th><th><Tx>أقدم طلب (ساعة)</Tx></th></tr></thead>
               <tbody>{report.approvers.map((r) => <tr key={r.key}><td>{r.key.startsWith("user:") ? names.get(r.key.slice(5)) ?? "—" : <><Tx>دور:</Tx> <Tx>{roleNames.get(r.key.slice(5)) ?? "—"}</Tx></>}</td><td className="bos-num">{r.pending}</td><td className="bos-num">{r.overdue ? <span className="bos-danger">{r.overdue}</span> : 0}</td><td className="bos-num">{r.oldestHours}</td></tr>)}</tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد موافقات معلّقة" />}
         </Card>
       </>

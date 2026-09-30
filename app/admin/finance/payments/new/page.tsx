@@ -20,7 +20,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: S
   }
   return (
     <>
-      <PageHeader title="تسجيل دفعة" breadcrumbs={[{ label: "المدفوعات", href: "/admin/finance/payments" }, { label: "جديدة" }]} />
+      <PageHeader title="تسجيل دفعة" />
       <PaymentForm
         currencies={currencies}
         today={todayIn(bos.employee.timezone)}

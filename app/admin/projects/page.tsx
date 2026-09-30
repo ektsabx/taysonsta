@@ -12,7 +12,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
     <>
       <PageHeader
         title="كل المشاريع"
-        breadcrumbs={[{ label: "المشاريع" }]}
+       
         actions={
           <>
             <Link href="/admin/projects/my" className="admin-btn small secondary"><Tx>مشاريعي</Tx></Link>

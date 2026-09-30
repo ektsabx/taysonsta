@@ -10,6 +10,7 @@ export const sectionDelegates: Record<string, PermissionKey> = {
   commission: "commissions.manage",
   pricing: "invoices.manage",
   pipeline: "leads.manage",
+  products: "products.manage",
 };
 
 export const tableSection: Record<string, string> = {
@@ -19,6 +20,7 @@ export const tableSection: Record<string, string> = {
   commission_rules: "commission",
   currencies: "pricing", exchange_rates: "pricing",
   lead_sources: "pipeline",
+  products: "products", project_templates: "products",
 };
 
 export const settingKeySection: Record<string, string> = {

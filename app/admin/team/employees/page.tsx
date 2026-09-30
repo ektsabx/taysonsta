@@ -11,8 +11,6 @@ import { FilterBar } from "@/components/bos/FilterBar";
 import { formatTime } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { db } from "@/lib/bos/db";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { listEmployeeCategories } from "@/services/bos/hr/people";
 import { currentBranchSelection } from "@/lib/bos/branch";
 
@@ -35,10 +33,9 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
       <PageHeader
         title="الموظفون"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} موظف"}</Tx>}
-        breadcrumbs={[{ label: "الفريق" }, { label: "الموظفون" }]}
+       
         actions={can(bos, "employees.create") ? <Link href="/admin/team/employees/new" className="admin-btn small"><Tx>+ موظف جديد</Tx></Link> : null}
       />
-      <SubNav items={hrSection(bos, "employees")} active="list" label="أقسام الموظفين" />
       <FilterBar
         searchPlaceholder="بحث بالاسم أو البريد أو المسمى أو الكود..."
         filters={[

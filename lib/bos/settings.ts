@@ -8,6 +8,8 @@ import { db } from "@/lib/bos/db";
 // schema with defaults so a missing/partial row never breaks the app.
 
 const optionalText = (max = 500) => z.string().trim().max(max).default("");
+export const brandFontsAr = ["IBM Plex Sans Arabic", "Cairo", "Tajawal", "Almarai", "Noto Sans Arabic", "Readex Pro"] as const;
+export const brandFontsEn = ["Inter", "Roboto", "Poppins", "Manrope", "IBM Plex Sans"] as const;
 const hexColor = z.string().regex(/^#([0-9a-fA-F]{6})$/, "لون غير صالح (#RRGGBB)");
 const socialSchema = z.object({
   facebook: optionalText(), instagram: optionalText(), linkedin: optionalText(), x: optionalText(), youtube: optionalText(),
@@ -25,7 +27,15 @@ const companySchema = z.object({
   logo_path: z.string().nullable().default(null),
   icon_path: z.string().nullable().default(null),
   brand_primary: hexColor.default("#e51f26"),
+  // Secondary colour (docs/bos/35 B3).
   brand_accent: hexColor.default("#60a5fa"),
+  // Status colours; "" keeps the theme default (tuned for light/dark contrast).
+  brand_success: z.union([hexColor, z.literal("")]).default(""),
+  brand_warning: z.union([hexColor, z.literal("")]).default(""),
+  brand_danger: z.union([hexColor, z.literal("")]).default(""),
+  brand_info: z.union([hexColor, z.literal("")]).default(""),
+  brand_font_ar: z.enum(brandFontsAr).default("IBM Plex Sans Arabic"),
+  brand_font_en: z.enum(brandFontsEn).default("Inter"),
   website: optionalText(),
   address: z.string().default(""),
   country: optionalText(100),
@@ -39,6 +49,7 @@ const companySchema = z.object({
   base_currency: z.string().length(3).default("USD"),
   timezone: z.string().default("Africa/Cairo"),
   email_domain: z.string().default("taysonsta.com"),
+  // Kept for stored data only: Arabic and English are both always available (docs/bos/35 A5).
   enabled_languages: z.array(z.enum(["ar", "en"])).min(1).default(["ar", "en"]),
   default_language: z.enum(["ar", "en"]).default("ar"),
   default_theme: z.enum(["dark", "light", "system"]).default("dark"),

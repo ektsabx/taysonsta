@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { getT } from "@/lib/bos/i18n/server";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -8,7 +9,6 @@ import { permissionMatrix } from "@/services/bos/settings-admin";
 import { listActiveStaff, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
 import { formatDateTime } from "@/lib/bos/format";
-import { SettingsNav } from "../SettingsNav";
 import { OverrideForm, RemoveOverrideButton, ScopeCell } from "../SettingsControls";
 
 const actionLabels: Record<string, string> = { create: "إنشاء", read: "قراءة", update: "تعديل", delete: "حذف", approve: "موافقة", export: "تصدير", assign: "تعيين", manage: "إدارة", view_sensitive: "حساس" };
@@ -24,13 +24,12 @@ export default async function PermissionsPage({ searchParams }: { searchParams: 
   const locked = role?.key === "super_admin";
   return (
     <>
-      <PageHeader title="الأذونات" breadcrumbs={[{ label: "الإعدادات" }, { label: "الأذونات" }]} />
-      <SettingsNav active="permissions" />
+      <PageHeader title="الأذونات" />
       <nav className="bos-tabs" aria-label={t("الأدوار")}>{(roles ?? []).map((r) => <Link key={r.id} href={`/admin/settings/permissions?role=${r.id}`} className={r.id === role?.id ? "active" : undefined}>{r.name}</Link>)}</nav>
       {matrix && role ? (
         <Card title={<Tx vars={{ name: role.name, v: locked ? " — كل الصلاحيات (ثابتة)" : "" }}>{"{name}{v}"}</Tx>} flush>
           <div className="bos-table-scroll">
-            <table className="bos-table bos-perm-matrix">
+            <BosTable className="bos-table bos-perm-matrix">
               <thead><tr><th><Tx>الوحدة</Tx></th>{matrix.actions.map((a) => <th key={a}><Tx>{actionLabels[a] ?? a}</Tx></th>)}</tr></thead>
               <tbody>
                 {matrix.modules.map((m) => (
@@ -43,17 +42,17 @@ export default async function PermissionsPage({ searchParams }: { searchParams: 
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         </Card>
       ) : null}
       <Card title="استثناءات المستخدمين">
         {can(bos, "users.manage") ? <OverrideForm users={staff.map((s) => ({ value: s.userId, label: s.name }))} permissions={(matrix?.permissions ?? []).map((p) => ({ value: p.id, label: p.key }))} /> : null}
         {(overrides ?? []).length ? (
-          <table className="bos-table" style={{ marginTop: 10 }}>
+          <BosTable className="bos-table" style={{ marginTop: 10 }}>
             <thead><tr><th><Tx>المستخدم</Tx></th><th><Tx>الصلاحية</Tx></th><th><Tx>النوع</Tx></th><th><Tx>النطاق</Tx></th><th><Tx>السبب</Tx></th><th><Tx>التاريخ</Tx></th><th /></tr></thead>
             <tbody>{(overrides ?? []).map((o) => <tr key={`${o.user_id}-${o.permission_id}`}><td>{names.get(o.user_id) ?? "—"}</td><td dir="ltr">{(o.permissions as unknown as { key: string } | null)?.key}</td><td><Tx>{o.effect === "grant" ? "منح" : "منع"}</Tx></td><td><Tx>{o.scope ?? "—"}</Tx></td><td>{o.reason ?? "—"}</td><td>{formatDateTime(o.created_at)}</td><td>{can(bos, "users.manage") ? <RemoveOverrideButton userId={o.user_id} permissionId={o.permission_id} /> : null}</td></tr>)}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد استثناءات" />}
       </Card>
     </>

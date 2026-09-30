@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { Tx } from "@/components/bos/I18n";
 import { nowIso } from "@/lib/bos/clock";
@@ -37,7 +38,7 @@ function SimpleTable({ head, rows, empty }: { head: string[]; rows: React.ReactN
   if (!rows.length) return <EmptyState title={empty} />;
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>{head.map((h) => <th key={h}>{h}</th>)}</tr>
         </thead>
@@ -50,7 +51,7 @@ function SimpleTable({ head, rows, empty }: { head: string[]; rows: React.ReactN
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }
@@ -138,7 +139,7 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
             <span className="bos-faint" dir="ltr">{account.email}</span>
           </span>
         }
-        breadcrumbs={[{ label: "العملاء" }, { label: "الحسابات", href: "/admin/clients" }, { label: title }]}
+       
         actions={
           <>
             {can(bos, "chat.create") ? <ActionButton label="مناقشة داخلية" className="admin-btn small secondary" action={discussAction.bind(null, "client", id)} /> : null}
@@ -163,7 +164,7 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
           { label: "مشاريع نشطة", value: `${counts.activeProjects} / ${counts.projects}` },
           { label: "صفقات مفتوحة", value: counts.openDeals },
           ...(canRevenue ? [{ label: "إجمالي الإيراد", value: multi(a360.revenue) }] : []),
-          ...(canInvoices ? [{ label: "المستحق", value: <>{multi(a360.outstanding)}{a360.overdueInvoices ? <span className="cell-sub" style={{ color: "#f87171" }}><Tx vars={{ overdueInvoices: a360.overdueInvoices }}>{"{overdueInvoices} فاتورة متأخرة"}</Tx></span> : null}</> }] : []),
+          ...(canInvoices ? [{ label: "المستحق", value: <>{multi(a360.outstanding)}{a360.overdueInvoices ? <span className="cell-sub" style={{ color: "var(--bos-danger)" }}><Tx vars={{ overdueInvoices: a360.overdueInvoices }}>{"{overdueInvoices} فاتورة متأخرة"}</Tx></span> : null}</> }] : []),
           { label: "آخر نشاط", value: formatDate(a360.lastActivityAt) },
         ]}
       />
@@ -505,7 +506,7 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
                   <ProgressBar value={o.percent} tone={o.percent === 100 ? "success" : undefined} />
                   <div className="bos-faint" style={{ fontSize: 12, marginTop: 4 }}>{o.percent}% · بدأت {formatDate(o.created_at)}{o.due_date ? ` · الاستحقاق ${formatDate(o.due_date)}` : ""}{o.completed_at ? ` · اكتملت ${formatDate(o.completed_at)}` : ""}</div>
                 </div>
-                <table className="bos-table">
+                <BosTable className="bos-table">
                   <tbody>
                     {o.items.map((it) => (
                       <tr key={it.id}>
@@ -520,7 +521,7 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               </Card>
             );
           })}

@@ -12,7 +12,7 @@ export default async function NewLeadPage() {
 
   return (
     <>
-      <PageHeader title="عميل محتمل جديد" breadcrumbs={[{ label: "المبيعات" }, { label: "العملاء المحتملون", href: "/admin/sales/leads" }, { label: "جديد" }]} />
+      <PageHeader title="عميل محتمل جديد" />
       <LeadForm
         action={createLeadAction}
         sources={sources.filter((s) => s.is_active).map((s) => ({ value: s.id, label: s.name }))}

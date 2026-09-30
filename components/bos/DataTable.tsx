@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import type { ActionState } from "@/lib/bos/action";
+import { RecordSummary } from "@/components/bos/BosTable";
 
 export interface DataColumn {
   key: string;
@@ -95,6 +96,7 @@ export function DataTable({
   const [pending, startTransition] = useTransition();
   const t = useT();
   const menuRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Column preferences live in localStorage (external system): read after mount.
   useEffect(() => {
@@ -162,18 +164,42 @@ export function DataTable({
     });
   }
 
+  // Selected rows → CSV of the visible columns as shown (docs/bos/35 B5).
+  function exportSelected() {
+    const esc = (v: string) => (/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""');
+    const lines = [visibleColumns.map((c) => `"${esc(t(c.label))}"`).join(",")];
+    tableRef.current?.querySelectorAll<HTMLTableRowElement>("tbody tr").forEach((tr) => {
+      if (!selected.has(tr.dataset.id ?? "")) return;
+      const cells = [...tr.querySelectorAll<HTMLTableCellElement>("td:not(.col-check)")].map((td) => `"${esc(td.innerText.replace(/\s+/g, " ").trim())}"`);
+      lines.push(cells.join(","));
+    });
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${tableId}-selected.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   const currentQuery = searchParams.toString();
+  const firstShown = rows.length ? (page - 1) * pageSize + 1 : 0;
+  const lastShown = rows.length ? firstShown + rows.length - 1 : 0;
 
   return (
     <div className="bos-table-wrap">
       <div className="bos-table-toolbar">
         <div className="bos-row">
-          {selected.size > 0 && bulkActions?.length ? (
+          {selected.size > 0 ? (
             <>
               <span className="bos-muted" style={{ fontSize: 12.5 }}>
                 {t("{n} محدد", { n: selected.size })}
               </span>
-              {bulkActions.map((action) => (
+              {allSelected && total > rows.length ? (
+                <span className="bos-faint" style={{ fontSize: 12 }}>{t("كل سجلات هذه الصفحة فقط ({n} من أصل {total})", { n: rows.length, total: total.toLocaleString("en-US") })}</span>
+              ) : null}
+              <button type="button" className="admin-btn small ghost" onClick={exportSelected}>{t("تصدير المحدد")}</button>
+              <button type="button" className="admin-btn small ghost" onClick={() => setSelected(new Set())}>{t("إلغاء التحديد")}</button>
+              {(bulkActions ?? []).map((action) => (
                 <span key={action.key} className="bos-row" style={{ gap: 4 }}>
                   {action.options ? (
                     <select
@@ -293,19 +319,21 @@ export function DataTable({
         empty ?? <div className="bos-empty"><div className="bos-empty-title">{t("لا توجد نتائج")}</div></div>
       ) : (
         <div className="bos-table-scroll">
-          <table className="bos-table responsive">
+          <table className="bos-table responsive" ref={tableRef}>
             <thead>
               <tr>
-                {bulkActions?.length ? (
+                {(
                   <th className="col-check">
                     <input
                       type="checkbox"
-                      aria-label={t("تحديد الكل")}
+                      aria-label={t("تحديد كل سجلات الصفحة")}
+                      title={t("تحديد كل سجلات الصفحة")}
+                      ref={(el) => { if (el) el.indeterminate = selected.size > 0 && !allSelected; }}
                       checked={allSelected}
                       onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))}
                     />
                   </th>
-                ) : null}
+                )}
                 {visibleColumns.map((col) => (
                   <th key={col.key} style={col.align === "end" ? { textAlign: "end" } : undefined}>
                     {col.sortable ? (
@@ -322,8 +350,8 @@ export function DataTable({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className={selected.has(row.id) ? "selected" : undefined}>
-                  {bulkActions?.length ? (
+                <tr key={row.id} data-id={row.id} className={selected.has(row.id) ? "selected" : undefined}>
+                  {(
                     <td className="col-check">
                       <input
                         type="checkbox"
@@ -339,7 +367,7 @@ export function DataTable({
                         }
                       />
                     </td>
-                  ) : null}
+                  )}
                   {visibleColumns.map((col) => (
                     <td
                       key={col.key}
@@ -358,9 +386,7 @@ export function DataTable({
       )}
 
       <div className="bos-table-footer">
-        <span>
-          {t("صفحة {page} من {total}", { page, total: totalPages })}
-        </span>
+        <RecordSummary from={firstShown} to={lastShown} total={total} />
         <Pagination page={page} totalPages={totalPages} hrefFor={(p) => hrefWith({ page: p === 1 ? null : String(p) })} />
       </div>
     </div>

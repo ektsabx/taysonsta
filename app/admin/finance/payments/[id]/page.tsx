@@ -31,7 +31,7 @@ export default async function PaymentDetailPage({ params }: { params: Promise<{ 
       <PageHeader
         title={<Tx vars={{ payment_number: p.payment_number }}>{"دفعة {payment_number}"}</Tx>}
         subtitle={<StatusBadge map="payment_status" value={p.status} />}
-        breadcrumbs={[{ label: "المالية" }, { label: "المدفوعات", href: "/admin/finance/payments" }, { label: p.payment_number }]}
+       
         actions={can(bos, "payments.update") ? <PaymentControls paymentId={id} status={p.status} refundable={refundable} currency={p.currency} /> : null}
       />
       <Summary

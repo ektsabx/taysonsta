@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -40,7 +41,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ id: s
   return (
     <>
       <PageHeader title={<Tx>{template.name}</Tx>} subtitle={<Tx vars={{ type: <Tx>{docTypeLabels[template.doc_type]}</Tx>, v: current?.version ?? 0 }}>{"{type} · الإصدار الحالي v{v}"}</Tx>}
-        breadcrumbs={[{ label: "المستندات", href: "/admin/documents?tab=templates" }, { label: "القوالب" }]}
+       
         actions={<DuplicateTemplateButton id={template.id} baseKey={template.key} name={template.name} language={template.language} />} />
       <Card title="بيانات القالب">
         <KeyValues items={[{ label: "المفتاح", value: <span dir="ltr">{template.key}</span> }, { label: "النوع", value: docTypeLabels[template.doc_type] }, { label: "اللغة", value: template.language === "ar" ? "العربية" : "English" }, { label: "الحالة", value: template.is_active ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="neutral" label="معطّل" /> }, { label: "قالب نظام", value: template.is_system ? "نعم" : "لا" }]} />
@@ -72,7 +73,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ id: s
         </Card>
       </div>
       <Card title="سجل الإصدارات" flush>
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الإصدار</Tx></th><th><Tx>ملاحظة التغيير</Tx></th><th><Tx>التاريخ</Tx></th><th /></tr></thead>
           <tbody>
             {versions.map((v) => (
@@ -84,7 +85,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ id: s
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );

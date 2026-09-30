@@ -26,7 +26,7 @@ export default async function MilestonesPage({ searchParams }: { searchParams: S
   if (error) throw error;
   return (
     <>
-      <PageHeader title="المراحل" subtitle="مراحل كل المشاريع التي لديك صلاحية عليها" breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: "المراحل" }]} />
+      <PageHeader title="المراحل" subtitle="مراحل كل المشاريع التي لديك صلاحية عليها" />
       <Tabs param="view" active={view} baseHref="/admin/projects/milestones" tabs={[{ key: "upcoming", label: "القادمة (30 يوم)" }, { key: "overdue", label: "المتأخرة" }, { key: "blocked", label: "المتوقفة" }, { key: "approval", label: "بانتظار موافقة العميل" }, { key: "all", label: "الكل" }]} />
       <DataTable
         tableId="milestones"
@@ -50,7 +50,7 @@ export default async function MilestonesPage({ searchParams }: { searchParams: S
             cells: {
               name: m.name,
               project: <Link href={`/admin/projects/${p.id}?tab=milestones`}>{p.name}<span className="cell-sub">{p.project_number}</span></Link>,
-              due: <span style={m.status !== "completed" && m.due_date && m.due_date < today ? { color: "#f87171" } : undefined}>{formatDate(m.due_date)}</span>,
+              due: <span style={m.status !== "completed" && m.due_date && m.due_date < today ? { color: "var(--bos-danger)" } : undefined}>{formatDate(m.due_date)}</span>,
               owner: m.owner_id ? names.get(m.owner_id) ?? "—" : "—",
               progress: <div style={{ minWidth: 100 }}><ProgressBar value={m.progress} /></div>,
               approval: m.requires_client_approval ? <StatusBadge map="simple_approval" value={m.approval_status === "not_required" ? "pending" : m.approval_status} /> : "—",

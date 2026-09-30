@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -15,11 +16,11 @@ export default async function FeatureRequestsPage({ searchParams }: { searchPara
   const rows = await listFeatureRequests(bos, scope, sp);
   return (
     <>
-      <PageHeader title="طلبات الميزات" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} طلب"}</Tx>} breadcrumbs={[{ label: "الدعم" }, { label: "طلبات الميزات" }]} actions={can(bos, "feature_requests.create") ? <Link className="admin-btn small" href="/admin/support/feature-requests/new"><Tx>+ طلب</Tx></Link> : null} />
+      <PageHeader title="طلبات الميزات" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} طلب"}</Tx>} actions={can(bos, "feature_requests.create") ? <Link className="admin-btn small" href="/admin/support/feature-requests/new"><Tx>+ طلب</Tx></Link> : null} />
       <FilterBar searchPlaceholder="بحث..." filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("feature_request_status") }, { key: "priority", label: "الأولوية", type: "select", options: priorities }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الميزة</Tx></th><th><Tx>العميل / المشروع</Tx></th><th><Tx>الأولوية</Tx></th><th><Tx>الجهد</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
             <tbody>
               {rows.map((f) => {
@@ -38,7 +39,7 @@ export default async function FeatureRequestsPage({ searchParams }: { searchPara
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات ميزات" />}
       </Card>
     </>

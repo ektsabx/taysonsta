@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import type { listRules } from "@/services/bos/automation";
@@ -12,7 +13,7 @@ type Rule = Awaited<ReturnType<typeof listRules>>[number];
 export function RulesTable({ rules, canEdit }: { rules: Rule[]; canEdit: boolean }) {
   if (!rules.length) return <EmptyState title="لا توجد مسارات عمل" />;
   return (
-    <table className="bos-table responsive">
+    <BosTable className="bos-table responsive">
       <thead><tr><th><Tx>المسار</Tx></th><th><Tx>عند</Tx></th><th><Tx>الشروط</Tx></th><th><Tx>الإجراءات</Tx></th><th><Tx>آخر تشغيل</Tx></th><th><Tx>نجح / فشل</Tx></th><th><Tx>نشط</Tx></th></tr></thead>
       <tbody>
         {rules.map((r) => {
@@ -31,6 +32,6 @@ export function RulesTable({ rules, canEdit }: { rules: Rule[]; canEdit: boolean
           );
         })}
       </tbody>
-    </table>
+    </BosTable>
   );
 }

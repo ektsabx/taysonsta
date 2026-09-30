@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs } from "@/lib/bos/clock";
 import Link from "next/link";
@@ -7,8 +8,7 @@ import { db } from "@/lib/bos/db";
 import { PageHeader, Card, StatusBadge, EmptyState, Tabs } from "@/components/bos/ui";
 import { formatDateTime } from "@/lib/bos/format";
 import { listInvitations } from "@/services/bos/users";
-import { SettingsNav } from "../SettingsNav";
-import { InvitationActions } from "./UserControls";
+import { InvitationActions, PasswordResetButton } from "./UserControls";
 
 // Users (§63, docs/bos/30 §6): staff logins, roles, status, invitations
 // (resend / revoke), login history with method, per-user activity.
@@ -32,22 +32,21 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
   const openInvites = invitations.filter((i) => i.status === "sent");
   return (
     <>
-      <PageHeader title="المستخدمون" subtitle="حسابات الدخول تُنشأ من ملف الموظف (دعوة بالبريد — لا كلمات مرور تُخزّن)" breadcrumbs={[{ label: "الإعدادات" }, { label: "المستخدمون" }]} actions={<Link className="admin-btn small" href="/admin/team/employees/new"><Tx>+ موظف / مستخدم</Tx></Link>} />
-      <SettingsNav active="users" />
+      <PageHeader title="المستخدمون" subtitle="حسابات الدخول تُنشأ من ملف الموظف (دعوة بالبريد — لا كلمات مرور تُخزّن)" actions={<Link className="admin-btn small" href="/admin/team/employees/new"><Tx>+ موظف / مستخدم</Tx></Link>} />
       <Tabs param="view" active={view} baseHref="/admin/settings/users" tabs={[{ key: "users", label: "المستخدمون", count: withLogin.length }, { key: "invitations", label: "الدعوات المعلقة", count: view === "invitations" && sp.status === "all" ? undefined : openInvites.length }, { key: "logins", label: "سجل الدخول" }]} />
       {view === "logins" ? (
         <Card flush>
           {(logins ?? []).length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>البريد</Tx></th><th><Tx>الطريقة</Tx></th><th><Tx>النتيجة</Tx></th><th><Tx>السبب</Tx></th><th>IP</th><th><Tx>المتصفح</Tx></th></tr></thead>
               <tbody>{(logins ?? []).map((l) => <tr key={l.id}><td>{formatDateTime(l.created_at)}</td><td dir="ltr">{l.email}</td><td>{l.method === "google" ? "Google" : <Tx>كلمة المرور</Tx>}</td><td>{l.success ? <StatusBadge tone="success" label="نجح" /> : <StatusBadge tone="danger" label="فشل" />}</td><td><Tx>{l.failure_reason ?? "—"}</Tx></td><td dir="ltr">{l.ip ? String(l.ip) : "—"}</td><td style={{ fontSize: 11, maxWidth: 260 }}>{l.user_agent ?? "—"}</td></tr>)}</tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا يوجد سجل" />}
         </Card>
       ) : view === "invitations" ? (
         <Card flush actions={<Link className="bos-link" href={sp.status === "all" ? "/admin/settings/users?view=invitations" : "/admin/settings/users?view=invitations&status=all"}><Tx>{sp.status === "all" ? "المعلقة فقط" : "كل الدعوات"}</Tx></Link>}>
           {invitations.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>البريد</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر إرسال</Tx></th><th><Tx>مرات الإرسال</Tx></th><th /></tr></thead>
               <tbody>
                 {invitations.map((i) => {
@@ -64,12 +63,12 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد دعوات معلقة" />}
         </Card>
       ) : (
         <Card flush>
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>المستخدم</Tx></th><th><Tx>الأدوار</Tx></th><th><Tx>الفرع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الدخول</Tx></th><th>2FA</th><th><Tx>آخر دخول</Tx></th><th /></tr></thead>
             <tbody>
               {withLogin.map((e) => {
@@ -84,12 +83,12 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
                     <td>{banned ? <StatusBadge tone="danger" label="معطّل" /> : a?.last_sign_in_at ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="warning" label="دعوة معلقة" />}</td>
                     <td><StatusBadge map="mfa_status" value={e.mfa_status} /></td>
                     <td>{a?.last_sign_in_at ? formatDateTime(a.last_sign_in_at) : "—"}</td>
-                    <td>{can(bos, "audit.read") ? <Link className="bos-link" href={`/admin/settings/audit-logs?actor=${e.user_id}`}><Tx>النشاط</Tx></Link> : null}</td>
+                    <td><span className="bos-row" style={{ gap: 6, flexWrap: "nowrap" }}>{can(bos, "users.manage", "all") && a?.last_sign_in_at && !banned ? <PasswordResetButton employeeId={e.id} /> : null}{can(bos, "audit.read") ? <Link className="bos-link" href={`/admin/settings/audit-logs?actor=${e.user_id}`}><Tx>النشاط</Tx></Link> : null}</span></td>
                   </tr>
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         </Card>
       )}
     </>

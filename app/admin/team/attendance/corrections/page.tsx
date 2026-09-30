@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -10,7 +11,6 @@ import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, StatusBadge, EmptyState, Tabs } from "@/components/bos/ui";
 import { ApprovalDecision } from "@/components/bos/ApprovalDecision";
 import { formatDate, formatDateTime } from "@/lib/bos/format";
-import { AttendanceNav } from "../AttendanceNav";
 import { CorrectionButton } from "../../TeamControls";
 
 // Correction requests: mine / team queue (§36). Decisions go through the
@@ -32,13 +32,12 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
   const tzOf = new Map((emps ?? []).map((e) => [e.user_id, e.timezone]));
   return (
     <>
-      <PageHeader title="تصحيحات الحضور" breadcrumbs={[{ label: "الفريق" }, { label: "الحضور", href: "/admin/team/attendance" }, { label: "التصحيحات" }]} actions={<CorrectionButton label="+ طلب تصحيح" />} />
-      <AttendanceNav active="corrections" />
+      <PageHeader title="تصحيحات الحضور" actions={<CorrectionButton label="+ طلب تصحيح" />} />
       {canQueue ? <Tabs param="view" active={view} baseHref="/admin/team/attendance/corrections" tabs={[{ key: "queue", label: "بانتظار قراري / الفريق" }, { key: "all", label: "كل طلبات الفريق" }, { key: "mine", label: "طلباتي" }]} /> : null}
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr>{view !== "mine" ? <th><Tx>الموظف</Tx></th> : null}<th><Tx>اليوم</Tx></th><th><Tx>الأصل</Tx></th><th><Tx>المطلوب</Tx></th><th><Tx>السبب</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
               <tbody>
                 {rows.map((c) => {
@@ -64,7 +63,7 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد طلبات تصحيح" />}
       </Card>

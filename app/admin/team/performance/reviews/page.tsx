@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -8,8 +9,6 @@ import { listCycles } from "@/services/bos/hr/performance";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusLabel } from "@/lib/bos/labels";
 import { CycleButton, CycleStatusButtons, SelfAssessmentButton } from "../../HrControls";
@@ -29,11 +28,10 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Sear
   const cycleOpts = cycles.map((c) => ({ value: c.id, label: c.name }));
   return (
     <>
-      <PageHeader title="المراجعات ودورات التقييم" breadcrumbs={[{ label: "الفريق" }, { label: "الأداء", href: "/admin/team/performance" }, { label: "المراجعات" }]} actions={canCycles ? <CycleButton /> : null} />
-      <SubNav items={hrSection(bos, "performance")} active="reviews" label="الأداء" />
+      <PageHeader title="المراجعات ودورات التقييم" actions={canCycles ? <CycleButton /> : null} />
       <Card title="دورات التقييم">
         {cycles.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <tbody>
               {cycles.map((c) => (
                 <tr key={c.id}>
@@ -44,13 +42,13 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Sear
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد دورات تقييم" />}
       </Card>
       <FilterBar filters={[{ key: "cycle", label: "الدورة", type: "select", options: cycleOpts }, { key: "status", label: "الحالة", type: "select", options: [{ value: "draft", label: "مسودة" }, { value: "submitted", label: "بانتظار اطلاع الموظف" }, { value: "acknowledged", label: "تم الاطلاع" }] }]} />
       <Card title="المراجعات" flush>
         {(reviews ?? []).length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الفترة</Tx></th><th><Tx>الدورة</Tx></th><th><Tx>المراجِع</Tx></th><th><Tx>التقييم الذاتي</Tx></th><th><Tx>التقييم النهائي</Tx></th><th><Tx>التوصية</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {(reviews ?? []).map((r) => {
@@ -76,7 +74,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Sear
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مراجعات" />}
       </Card>
     </>

@@ -41,3 +41,10 @@ export function Opt({ children, suffix, ...rest }: React.OptionHTMLAttributes<HT
   const t = useT();
   return <option {...rest}>{suffix ? `${t(children)} — ${suffix}` : t(children)}</option>;
 }
+
+// SVG <title> may hold a single text node only: translate the parts and join
+// them into one string (several <Tx> children break hydration).
+export function SvgTitle({ parts, suffix = "" }: { parts: string[]; suffix?: string }) {
+  const t = useT();
+  return <title>{parts.map((p) => t(p)).join(" · ") + suffix}</title>;
+}

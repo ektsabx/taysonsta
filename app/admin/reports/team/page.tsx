@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -31,7 +32,7 @@ export default async function TeamReport({ searchParams }: { searchParams: Searc
             </div>
             <Card flush>
               {rows.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الاستغلال</Tx></th><th><Tx>مسجل / السعة (س)</Tx></th><th><Tx>حضور</Tx></th><th><Tx>تأخير</Tx></th><th><Tx>غياب</Tx></th><th><Tx>إجازة</Tx></th><th><Tx>إضافي</Tx></th><th><Tx>مهام مفتوحة / متأخرة</Tx></th><th><Tx>مشاريع</Tx></th></tr></thead>
                   <tbody>
                     {rows.map((x) => (
@@ -46,7 +47,7 @@ export default async function TeamReport({ searchParams }: { searchParams: Searc
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : <EmptyState title="لا توجد بيانات" />}
             </Card>
           </>

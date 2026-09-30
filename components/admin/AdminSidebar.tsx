@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BosIcon } from "@/components/bos/icons";
-import type { NavGroup } from "@/lib/bos/nav";
+import type { NavGroup, NavLink } from "@/lib/bos/nav";
 import { useT } from "@/components/bos/I18n";
 
 interface AdminSidebarProps {
@@ -24,8 +24,10 @@ function isActive(pathname: string, href: string, allHrefs: string[]): boolean {
 export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: AdminSidebarProps) {
   const t = useT();
   const pathname = usePathname();
-  const allHrefs = navigation.flatMap((g) => (g.href ? [g.href] : (g.items ?? []).map((i) => i.href)));
-  const activeGroup = navigation.find((g) => (g.href ? isActive(pathname, g.href, allHrefs) : g.items?.some((i) => isActive(pathname, i.href, allHrefs))))?.key;
+  const allHrefs = navigation.flatMap((g) => (g.href ? [g.href] : (g.items ?? []).flatMap((i) => [i.href, ...(i.children ?? []).map((c) => c.href)])));
+  // An item is active on its own page or on any of its sub-pages.
+  const itemActive = (i: NavLink) => isActive(pathname, i.href, allHrefs) || !!i.children?.some((c) => isActive(pathname, c.href, allHrefs));
+  const activeGroup = navigation.find((g) => (g.href ? isActive(pathname, g.href, allHrefs) : g.items?.some(itemActive)))?.key;
   const [open, setOpen] = useState<Set<string>>(() => new Set(activeGroup ? [activeGroup] : []));
 
   const [prevGroup, setPrevGroup] = useState(activeGroup);
@@ -82,11 +84,26 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
                 </button>
                 {isOpen && !collapsed ? (
                   <div className="bos-nav-sub">
-                    {group.items?.map((item) => (
-                      <Link key={item.href} href={item.href} className={isActive(pathname, item.href, allHrefs) ? "active" : undefined} onClick={onNavigate}>
-                        {t(item.label)}
-                      </Link>
-                    ))}
+                    {group.items?.map((item) => {
+                      const open = itemActive(item);
+                      const childActive = item.children?.find((c) => isActive(pathname, c.href, allHrefs));
+                      return (
+                        <div key={item.href} className="bos-nav-item">
+                          <Link href={item.href} className={open && (!item.children || !childActive || childActive.href === item.href) ? "active" : open ? "open" : undefined} aria-current={pathname === item.href ? "page" : undefined} onClick={onNavigate}>
+                            {t(item.label)}
+                          </Link>
+                          {open && item.children ? (
+                            <div className="bos-nav-sub3">
+                              {item.children.filter((c) => c.href !== item.href).map((c) => (
+                                <Link key={c.href} href={c.href} className={childActive?.href === c.href ? "active" : undefined} aria-current={pathname === c.href ? "page" : undefined} onClick={onNavigate}>
+                                  {t(c.label)}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>

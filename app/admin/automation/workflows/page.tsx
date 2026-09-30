@@ -11,7 +11,7 @@ export default async function WorkflowsPage() {
   const canEdit = can(bos, "automation.manage");
   return (
     <>
-      <PageHeader title="مسارات العمل" subtitle="عند (حدث) ← إذا (شروط) ← نفّذ (إجراءات)" breadcrumbs={[{ label: "الأتمتة" }, { label: "مسارات العمل" }]} actions={<>{canEdit ? <Link className="admin-btn small" href="/admin/automation/workflows/new"><Tx>+ مسار عمل</Tx></Link> : null}<Link className="admin-btn small ghost" href="/admin/automation/rules"><Tx>قواعد النظام</Tx></Link></>} />
+      <PageHeader title="مسارات العمل" subtitle="عند (حدث) ← إذا (شروط) ← نفّذ (إجراءات)" actions={<>{canEdit ? <Link className="admin-btn small" href="/admin/automation/workflows/new"><Tx>+ مسار عمل</Tx></Link> : null}<Link className="admin-btn small ghost" href="/admin/automation/rules"><Tx>قواعد النظام</Tx></Link></>} />
       <Card flush><RulesTable rules={rules} canEdit={canEdit} /></Card>
     </>
   );

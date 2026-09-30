@@ -7,7 +7,8 @@ import { handleAction, type ActionState } from "@/lib/bos/action";
 import { ValidationError } from "@/lib/bos/errors";
 import { getSetting, saveSetting } from "@/lib/bos/settings";
 import { audit } from "@/lib/bos/audit";
-import { resendInvitation, revokeInvitation } from "@/services/bos/users";
+import { headers } from "next/headers";
+import { resendInvitation, revokeInvitation, sendStaffPasswordReset } from "@/services/bos/users";
 
 // Users & access actions (docs/bos/30 §6, doc 31 Phase 3).
 
@@ -51,5 +52,16 @@ export async function removePageRuleAction(prefix: string): Promise<ActionState>
     await audit({ actorId: bos.userId, action: "settings.page_rule_removed", entityType: "setting", entityId: null, newValue: { prefix } });
     revalidatePath("/admin", "layout");
     return { ok: true, message: "تم حذف القيد" };
+  });
+}
+
+export async function sendPasswordResetAction(employeeId: string): Promise<ActionState> {
+  return handleAction("sendPasswordReset", async () => {
+    const { bos } = await authorize("users.manage", "all");
+    if (!/^[0-9a-f-]{36}$/i.test(employeeId)) throw new ValidationError("قيمة غير صالحة.");
+    const h = await headers();
+    const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
+    await sendStaffPasswordReset(bos, employeeId, origin);
+    return { ok: true, message: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريد المستخدم" };
   });
 }

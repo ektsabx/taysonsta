@@ -35,8 +35,8 @@ export default async function CommissionsPage({ searchParams }: { searchParams: 
       <PageHeader
         title="العمولات"
         subtitle="تُحسب تلقائياً حسب قواعد العمولة وتصبح مستحقة عند تحقق شرط القاعدة (توقيع، تحصيل، سداد كامل، دفعة مرحلة)."
-        breadcrumbs={[{ label: "المالية" }, { label: "العمولات" }]}
-        actions={can(bos, "settings.manage") ? <Link href="/admin/settings/commission" className="admin-btn small secondary"><Tx>قواعد العمولة</Tx></Link> : null}
+       
+        actions={can(bos, "settings.manage", "all") || can(bos, "commissions.manage", "all") ? <Link href="/admin/settings/company#sales-rules" className="admin-btn small secondary"><Tx>قواعد العمولة</Tx></Link> : null}
       />
       <FilterBar
         filters={[

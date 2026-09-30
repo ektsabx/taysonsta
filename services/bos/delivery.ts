@@ -86,6 +86,8 @@ export interface TaskInput {
   start_date: string | null;
   estimated_minutes: number | null;
   is_required: boolean;
+  // Shown to the client in the portal (docs/bos/35 B14a).
+  client_visible?: boolean;
 }
 
 async function inheritLinks(input: TaskInput): Promise<TaskInput> {
@@ -141,7 +143,7 @@ export async function updateTask(bos: BosUser, id: string, raw: TaskInput) {
   const reopenFromOverdue = before.status === "overdue" && input.due_date && input.due_date >= todayIn(bos.employee.timezone);
   const { error } = await db().from("tasks").update({ ...input, ...(reopenFromOverdue ? { status: "pending" as const } : {}) }).eq("id", id);
   if (error) throw error;
-  const fields = ["title", "assigned_to", "due_date", "priority", "estimated_minutes", "is_required", "milestone_id"] as const;
+  const fields = ["title", "assigned_to", "due_date", "priority", "estimated_minutes", "is_required", "milestone_id", "client_visible"] as const;
   const changed = fields.filter((k) => String(before[k] ?? "") !== String(input[k] ?? ""));
   if (changed.length) {
     await audit({ actorId: bos.userId, action: "task.updated", entityType: "task", entityId: id, oldValue: Object.fromEntries(changed.map((k) => [k, before[k]])), newValue: Object.fromEntries(changed.map((k) => [k, input[k]])) });

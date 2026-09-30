@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -6,7 +7,6 @@ import { peopleScope } from "@/services/bos/team-scope";
 import { PageHeader, Card, EmptyState, Tabs } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { formatMinutes, todayIn, addDays, startOfMonth } from "@/lib/bos/format";
-import { AttendanceNav } from "../AttendanceNav";
 
 // Attendance reports (§33): daily, weekly, monthly, by employee, by department.
 export default async function AttendanceReportsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -26,8 +26,7 @@ export default async function AttendanceReportsPage({ searchParams }: { searchPa
   const totals = rows.reduce((t, r) => ({ worked: t.worked + r.worked, overtime: t.overtime + r.overtime, late: t.late + r.lateMinutes, absent: t.absent + r.absences, present: t.present + r.present }), { worked: 0, overtime: 0, late: 0, absent: 0, present: 0 });
   return (
     <>
-      <PageHeader title="تقارير الحضور" subtitle={`${from} → ${to}`} breadcrumbs={[{ label: "الفريق" }, { label: "الحضور", href: "/admin/team/attendance" }, { label: "التقارير" }]} />
-      <AttendanceNav active="reports" />
+      <PageHeader title="تقارير الحضور" subtitle={`${from} → ${to}`} />
       <Tabs param="range" active={sp.from ? "custom" : range} baseHref={`/admin/team/attendance/reports?group=${group}`} tabs={[{ key: "day", label: "يومي" }, { key: "week", label: "أسبوعي" }, { key: "month", label: "شهري" }]} />
       <FilterBar
         filters={[
@@ -39,7 +38,7 @@ export default async function AttendanceReportsPage({ searchParams }: { searchPa
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>{group === "employee" ? "الموظف" : group === "department" ? "القسم" : "اليوم"}</Tx></th><th><Tx>أيام مسجلة</Tx></th><th><Tx>حضور</Tx></th><th><Tx>تأخير (أيام)</Tx></th><th><Tx>دقائق التأخير</Tx></th><th><Tx>غياب</Tx></th><th><Tx>إجازات</Tx></th><th><Tx>نصف يوم</Tx></th><th><Tx>ساعات العمل</Tx></th><th><Tx>المتوقع</Tx></th><th><Tx>إضافي</Tx></th></tr></thead>
               <tbody>
                 {rows.map((r) => (
@@ -61,7 +60,7 @@ export default async function AttendanceReportsPage({ searchParams }: { searchPa
                   <td><Tx>الإجمالي</Tx></td><td /><td><Tx>{totals.present}</Tx></td><td /><td><Tx>{totals.late}</Tx></td><td><Tx>{totals.absent}</Tx></td><td /><td /><td>{formatMinutes(totals.worked)}</td><td /><td>{formatMinutes(totals.overtime)}</td>
                 </tr>
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد بيانات في هذه الفترة" />}
       </Card>

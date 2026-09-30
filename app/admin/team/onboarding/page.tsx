@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { getOnboardingDashboard, sectionLabels } from "@/services/bos/onboarding
 import { peopleEmployeeIds } from "@/services/bos/team-scope";
 import { PageHeader, Card, EmptyState, KpiCard, ProgressBar, StatusBadge } from "@/components/bos/ui";
 import { formatDate } from "@/lib/bos/format";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 
 const filters: Record<string, string> = { new: "موظفون جدد", in_progress: "قيد التهيئة", completed: "مكتملة", overdue: "متأخرة", missing_access: "صلاحيات ناقصة", missing_documents: "مستندات/قراءة ناقصة", missing_training: "تدريب ناقص", pending_manager: "إجراءات المدير" };
 
@@ -33,8 +32,7 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
   const card = (key: string, value: number) => <KpiCard label={filters[key]} value={value} href={`/admin/team/onboarding?filter=${key}`} />;
   return (
     <>
-      <PageHeader title="لوحة التهيئة" subtitle={f ? filters[f] : "كل الموظفين"} breadcrumbs={[{ label: "الفريق" }, { label: "التهيئة" }]} actions={can(bos, "employees.create") ? <Link className="admin-btn small" href="/admin/team/employees/new"><Tx>+ موظف جديد</Tx></Link> : null} />
-      <SubNav items={hrSection(bos, "employees")} active="onboarding" label="أقسام الموظفين" />
+      <PageHeader title="لوحة التهيئة" subtitle={f ? filters[f] : "كل الموظفين"} actions={can(bos, "employees.create") ? <Link className="admin-btn small" href="/admin/team/employees/new"><Tx>+ موظف جديد</Tx></Link> : null} />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 14 }}>
         {card("new", cards.newEmployees)}
         {card("in_progress", cards.inProgress)}
@@ -48,7 +46,7 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
       {f ? <div style={{ marginBottom: 8 }}><Link className="bos-link" href="/admin/team/onboarding"><Tx>إزالة الفلتر</Tx></Link></div> : null}
       <Card flush>
         {visible.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>الأقسام</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>ينقص</Tx></th></tr></thead>
             <tbody>
               {visible.map((r) => (
@@ -56,7 +54,7 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
                   <td className="cell-primary"><Link href={`/admin/team/onboarding/${r.employee.id}`}>{r.employee.full_name}</Link><span className="cell-sub">{r.employee.position ?? ""}{r.employee.departments ? ` · ${r.employee.departments.name}` : ""}</span><StatusBadge map="employee_lifecycle_status" value={r.employee.lifecycle_status} /></td>
                   <td style={{ minWidth: 140 }}><ProgressBar value={r.percent} tone={r.percent === 100 ? "success" : undefined} /><span className="cell-sub">{r.percent}%</span></td>
                   <td style={{ fontSize: 12 }}>{r.sections.map((s) => <span key={s.section} style={{ marginInlineEnd: 8, whiteSpace: "nowrap" }}>{s.complete ? "✓" : "○"} {sectionLabels[s.section] ?? s.section}</span>)}</td>
-                  <td style={r.overdue ? { color: "#f87171" } : undefined}>{formatDate(r.dueDate)}{r.overdue ? " (متأخرة)" : ""}</td>
+                  <td style={r.overdue ? { color: "var(--bos-danger)" } : undefined}>{formatDate(r.dueDate)}{r.overdue ? " (متأخرة)" : ""}</td>
                   <td style={{ fontSize: 12 }}>
                     {r.missingAccess ? <div><Tx vars={{ missingAccess: r.missingAccess }}>{"صلاحيات: {missingAccess}"}</Tx></div> : null}
                     {r.missingDocuments ? <div><Tx vars={{ missingDocuments: r.missingDocuments }}>{"قراءة: {missingDocuments}"}</Tx></div> : null}
@@ -66,7 +64,7 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد قوائم تهيئة" description="تبدأ التهيئة تلقائياً عند إنشاء موظف جديد." />}
       </Card>
     </>

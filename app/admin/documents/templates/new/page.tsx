@@ -7,7 +7,7 @@ export default async function NewTemplatePage() {
   await requirePermission("documents.manage", "all");
   return (
     <>
-      <PageHeader title="قالب جديد" breadcrumbs={[{ label: "المستندات", href: "/admin/documents?tab=templates" }, { label: "قالب جديد" }]} />
+      <PageHeader title="قالب جديد" />
       <Card>
         <NewTemplateForm types={Object.entries(docTypeLabels).map(([value, label]) => ({ value, label }))} />
       </Card>

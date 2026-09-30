@@ -1,7 +1,6 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { getAccessMatrix, listAccessRequests, listMfaNonCompliant } from "@/services/bos/it-access";
@@ -29,7 +28,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
         <Card flush>
           {rows.length ? (
             <div className="bos-table-scroll">
-              <table className="bos-table bos-att-grid">
+              <BosTable className="bos-table bos-att-grid">
                 <thead>
                   <tr>
                     <th><Tx>الموظف</Tx></th>
@@ -55,7 +54,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             </div>
           ) : <EmptyState title="لا يوجد موظفون" />}
         </Card>
@@ -67,7 +66,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
     body = (
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>التطبيق</Tx></th><th><Tx>المستوى</Tx></th><th><Tx>السبب</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
             <tbody>
               {rows.map((r) => (
@@ -81,7 +80,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات وصول" />}
         <p className="bos-faint" style={{ fontSize: 12, padding: 10 }}><Tx>القرارات تتم من</Tx> <Link className="bos-link" href="/admin/approvals"><Tx>صندوق الموافقات</Tx></Link>.</p>
       </Card>
@@ -93,7 +92,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
       <>
         <Card title={<Tx vars={{ visible_count: visible.length }}>{"موظفون بدون 2FA مفعّل ({visible_count})"}</Tx>} flush>
           {visible.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <tbody>
                 {visible.map((e) => (
                   <tr key={e.id}>
@@ -103,13 +102,13 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="كل الموظفين ملتزمون بـ 2FA" />}
         </Card>
         {bos.permissions.get("access.read") === "all" ? (
           <Card title={<Tx vars={{ accounts_count: accounts.length }}>{"حسابات شركة بدون 2FA ({accounts_count})"}</Tx>} flush>
             {accounts.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <tbody>
                   {accounts.map((a) => (
                     <tr key={a.id}>
@@ -119,7 +118,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا يوجد" />}
           </Card>
         ) : null}
@@ -130,10 +129,9 @@ export default async function AccessPage({ searchParams }: { searchParams: Searc
     <>
       <PageHeader
         title="الصلاحيات والأدوات"
-        breadcrumbs={[{ label: "الفريق" }, { label: "الصلاحيات والأدوات" }]}
+       
         actions={<>{can(bos, "access.create") ? <Link className="admin-btn small" href="/admin/team/access/requests/new"><Tx>طلب وصول</Tx></Link> : null}{own ? <Link className="admin-btn small secondary" href={`/admin/team/employees/${own}?tab=access`}><Tx>ملف صلاحياتي</Tx></Link> : null}</>}
       />
-      <SubNav items={hrSection(bos, "it")} active="access" label="الأجهزة والصلاحيات" />
       <Tabs param="view" active={view} baseHref="/admin/team/access" tabs={[{ key: "matrix", label: "مصفوفة الوصول" }, { key: "requests", label: "طلبات الوصول" }, { key: "mfa", label: "التزام 2FA" }]} />
       {body}
     </>

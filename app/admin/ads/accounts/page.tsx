@@ -1,25 +1,23 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { formatDateTime } from "@/lib/bos/format";
 import { listAdAccounts } from "@/services/bos/ads";
 import { PageHeader, Card, StatusBadge, EmptyState } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { adsNav } from "../ads-nav";
 import { AccountRow, ConnectButtons } from "../AdsControls";
 
 const platformLabels: Record<string, string> = { meta: "Meta", google: "Google Ads", linkedin: "LinkedIn", tiktok: "TikTok", snapchat: "Snapchat", x: "X", other: "أخرى" };
 
 // Ad accounts (docs/bos/30 §14): API (Meta, Google Ads) or CSV import.
 export default async function AdAccountsPage() {
-  const { bos } = await requirePermission("ads.manage");
+  await requirePermission("ads.manage");
   const accounts = await listAdAccounts();
   return (
     <>
-      <PageHeader title="الحسابات الإعلانية" subtitle="قراءة فقط — لا تُمنح أي صلاحية لتعديل الحملات" breadcrumbs={[{ label: "التسويق" }, { label: "الإعلانات", href: "/admin/ads" }, { label: "الحسابات" }]} actions={<ConnectButtons />} />
-      <SubNav items={adsNav(bos)} active="accounts" label="الإعلانات" />
+      <PageHeader title="الحسابات الإعلانية" subtitle="قراءة فقط — لا تُمنح أي صلاحية لتعديل الحملات" actions={<ConnectButtons />} />
       <Card flush>
         {accounts.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>المنصة</Tx></th><th><Tx>الحساب</Tx></th><th><Tx>العملة</Tx></th><th><Tx>الطريقة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر مزامنة</Tx></th><th /></tr></thead>
             <tbody>
               {accounts.map((a) => (
@@ -34,16 +32,8 @@ export default async function AdAccountsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد حسابات إعلانية" />}
-      </Card>
-      <Card title="الإعداد">
-        <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13 }}>
-          <li><Tx>Meta: نفس اتصال Meta في مركز التكاملات بصلاحية ads_read، ثم «استيراد حسابات Meta الإعلانية». أنواع التحويل المحتسبة من الإعدادات (ads.meta_conversion_types).</Tx></li>
-          <li><Tx>Google Ads: Developer token + Customer ID + OAuth (client id/secret + refresh token) في مركز التكاملات، ثم «ربط Google Ads».</Tx></li>
-          <li><Tx>LinkedIn / TikTok / غيرها: أنشئ حساب استيراد بعملته ثم ارفع ملف CSV المصدَّر من مدير الإعلانات.</Tx></li>
-          <li><Tx>المزامنة التلقائية كل 6 ساعات، وتعيد قراءة آخر أيام لالتقاط التحويلات المتأخرة.</Tx></li>
-        </ul>
       </Card>
     </>
   );

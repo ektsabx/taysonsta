@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -55,7 +56,7 @@ export default async function ContractDetailPage({ params, searchParams }: { par
       <PageHeader
         title={`${c.contract_number} — ${c.title}`}
         subtitle={<StatusBadge map="contract_status" value={c.status} />}
-        breadcrumbs={[{ label: "المبيعات" }, { label: "العقود", href: "/admin/sales/contracts" }, { label: c.contract_number }]}
+       
         actions={canUpdate ? <ContractActions contractId={id} status={c.status} hasFile={Boolean(c.file_id)} /> : null}
       />
       <Summary
@@ -76,7 +77,7 @@ export default async function ContractDetailPage({ params, searchParams }: { par
           <div>
             <Card title="التوقيعات">
               {(signatures ?? []).length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead>
                     <tr>
                       <th><Tx>الموقّع</Tx></th>
@@ -102,7 +103,7 @@ export default async function ContractDetailPage({ params, searchParams }: { par
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد توقيعات بعد.</Tx></div>
               )}

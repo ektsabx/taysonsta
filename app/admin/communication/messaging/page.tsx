@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { Tx } from "@/components/bos/I18n";
@@ -34,7 +35,7 @@ export default async function MessagingPage({ searchParams }: { searchParams: Se
   const templates = (tpls ?? []) as TemplateOpt[];
   return (
     <>
-      <PageHeader title="واتساب و SMS" subtitle="رسائل للعملاء والموظفين عبر مزوّدي مركز التكاملات، مع حالة التسليم والموافقات" breadcrumbs={[{ label: "التواصل" }, { label: "واتساب و SMS" }]} />
+      <PageHeader title="واتساب و SMS" subtitle="رسائل للعملاء والموظفين عبر مزوّدي مركز التكاملات، مع حالة التسليم والموافقات" />
       {!waConn || !smsConn ? (
         <Card><p className="bos-hint" style={{ margin: 0 }}>{!waConn ? <><Tx>واتساب للأعمال غير متصل.</Tx> </> : null}{!smsConn ? <><Tx>Twilio SMS غير متصل.</Tx> </> : null}<Tx>الرسائل على قناة غير متصلة تُسجّل كـ«لم يُرسل». اربطها من</Tx> <Link href="/admin/settings/integrations"><Tx>مركز التكاملات</Tx></Link>.</p></Card>
       ) : null}
@@ -64,7 +65,7 @@ async function Log({ bos, sp }: { bos: Awaited<ReturnType<typeof requirePermissi
       ]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>القناة</Tx></th><th><Tx>إلى</Tx></th><th><Tx>الرسالة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>بواسطة</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((m) => (
@@ -79,7 +80,7 @@ async function Log({ bos, sp }: { bos: Awaited<ReturnType<typeof requirePermissi
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد رسائل" />}
       </Card>
     </>
@@ -91,7 +92,7 @@ function Templates({ templates, manage }: { templates: (TemplateOpt & { synced_a
     <Card title="قوالب الرسائل" actions={manage ? <span className="bos-row" style={{ gap: 6 }}><SyncTemplates /><TemplateButton /></span> : null} flush>
       <p className="bos-hint" style={{ padding: "8px 14px 0" }}><Tx>قوالب واتساب تُنشأ وتُعتمد في WhatsApp Manager لدى Meta ثم تُزامن هنا؛ الرسائل خارج نافذة الـ24 ساعة والرسائل التسويقية تُرسل بقالب معتمد فقط. قوالب SMS محلية.</Tx> <Tx>للإشعارات عبر واتساب أنشئ قالباً باسم</Tx> <code dir="ltr">bos_notification</code> <Tx>بمتغيرين: العنوان والتفاصيل.</Tx></p>
       {templates.length ? (
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <thead><tr><th><Tx>الاسم</Tx></th><th><Tx>القناة</Tx></th><th><Tx>اللغة</Tx></th><th><Tx>الفئة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>النص</Tx></th><th /></tr></thead>
           <tbody>
             {templates.map((t) => (
@@ -106,7 +107,7 @@ function Templates({ templates, manage }: { templates: (TemplateOpt & { synced_a
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد قوالب" />}
     </Card>
   );
@@ -119,7 +120,7 @@ async function Consent() {
       <Card title="تسجيل موافقة أو إلغاء اشتراك"><ConsentForm /><p className="bos-hint"><Tx>الرسائل الخدمية تُرسل ما لم يلغِ الشخص كل الرسائل؛ التسويقية تحتاج موافقة صريحة. رد العميل بكلمة STOP أو «إلغاء» يُسجّل إلغاء الاشتراك تلقائياً.</Tx></p></Card>
       <Card flush>
         {data?.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>الرقم</Tx></th><th><Tx>القناة</Tx></th><th><Tx>النطاق</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المصدر</Tx></th><th><Tx>آخر تحديث</Tx></th></tr></thead>
             <tbody>
               {data.map((c) => (
@@ -133,7 +134,7 @@ async function Consent() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد سجلات موافقة" />}
       </Card>
     </>

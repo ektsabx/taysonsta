@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -30,7 +31,7 @@ export default async function HrOverviewPage() {
 
   return (
     <>
-      <PageHeader title="الموارد البشرية — نظرة عامة" subtitle={`${time.dateLabel} · ${time.timeLabel}`} breadcrumbs={[{ label: "الفريق" }, { label: "نظرة عامة" }]} />
+      <PageHeader title="الموارد البشرية — نظرة عامة" subtitle={`${time.dateLabel} · ${time.timeLabel}`} />
 
       <h3 className="bos-section-title"><Tx>اليوم</Tx></h3>
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 16 }}>
@@ -45,13 +46,13 @@ export default async function HrOverviewPage() {
 
       <div className="bos-grid cols-2" style={{ gap: 12 }}>
         <Card title="ساعات العمل">
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th /><th><Tx>المتوقع</Tx></th><th><Tx>الفعلي</Tx></th><th><Tx>إضافي</Tx></th></tr></thead>
             <tbody>
               <tr><td><Tx>اليوم</Tx></td><td>{formatMinutes(o.hours.today.expected)}</td><td>{formatMinutes(o.hours.today.worked)}</td><td>{formatMinutes(o.hours.today.overtime)}</td></tr>
               <tr><td><Tx>هذا الشهر</Tx></td><td>{formatMinutes(o.hours.month.expected)}</td><td>{formatMinutes(o.hours.month.worked)}</td><td>{formatMinutes(o.hours.month.overtime)}</td></tr>
             </tbody>
-          </table>
+          </BosTable>
         </Card>
         <Card title={<Tx vars={{ totalRequests }}>{"الطلبات المعلقة ({totalRequests})"}</Tx>} actions={<Link className="bos-link" href="/admin/approvals"><Tx vars={{ myApprovals: r.myApprovals }}>{"موافقاتي ({myApprovals})"}</Tx></Link>}>
           <ul className="bos-alert-list">

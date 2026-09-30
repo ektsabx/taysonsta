@@ -5,7 +5,6 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { widgets, defaultLayouts, roleDashboard } from "@/lib/bos/widgets";
 import { PageHeader } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { LayoutEditor } from "../../dashboard/LayoutEditor";
 
 // Role dashboard layouts (Admin, §79). Widgets still render only when the
@@ -20,8 +19,7 @@ export default async function DashboardLayoutsPage({ searchParams }: { searchPar
   const initial = layout ? (layout.widgets as { key: string }[]).map((w) => w.key) : role && roleDashboard[role.key] ? defaultLayouts[roleDashboard[role.key]] : defaultLayouts.employee;
   return (
     <>
-      <PageHeader title="تخطيطات لوحة التحكم حسب الدور" breadcrumbs={[{ label: "الإعدادات" }, { label: "لوحات التحكم" }]} />
-      <SettingsNav active="company" />
+      <PageHeader title="تخطيطات لوحة التحكم حسب الدور" />
       <nav className="bos-tabs" aria-label={t("الأدوار")}>{(roles ?? []).map((r) => <Link key={r.id} href={`/admin/settings/dashboards?role=${r.id}`} className={r.id === role?.id ? "active" : undefined}>{r.name}</Link>)}</nav>
       {role ? <LayoutEditor key={role.id} roleId={role.id} available={widgets.map((w) => ({ key: w.key, title: w.title, dashboard: w.dashboard }))} initial={initial} /> : null}
     </>

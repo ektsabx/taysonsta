@@ -48,7 +48,7 @@ export default async function NewContractPage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHeader title="عقد جديد" breadcrumbs={[{ label: "العقود", href: "/admin/sales/contracts" }, { label: "جديد" }]} />
+      <PageHeader title="عقد جديد" />
       <ContractForm action={createContractAction} currencies={currencies} initial={initial} initialClient={initialClient} initialDeal={initialDeal} proposalId={sp.proposalId} submitLabel="إنشاء العقد" />
     </>
   );

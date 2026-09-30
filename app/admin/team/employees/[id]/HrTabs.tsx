@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { db } from "@/lib/bos/db";
@@ -167,7 +168,7 @@ async function EmploymentTab({ ctx }: { ctx: HrTabContext }) {
       ) : null}
       <Card title="السجل الوظيفي (تعيين، ترقية، نقل، تعديل راتب)">
         {history.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>التغيير</Tx></th><th><Tx>من</Tx></th><th><Tx>إلى</Tx></th><th><Tx>السبب</Tx></th><th><Tx>بواسطة</Tx></th></tr></thead>
             <tbody>
               {history.map((h) => (
@@ -181,7 +182,7 @@ async function EmploymentTab({ ctx }: { ctx: HrTabContext }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد سجل" />}
       </Card>
     </>
@@ -198,7 +199,7 @@ async function ScheduleTab({ ctx }: { ctx: HrTabContext }) {
   const rows = [...roster.rows[0].days, ...next.rows[0].days];
   return (
     <Card title="جدول العمل — هذا الأسبوع والقادم" actions={<Link className="bos-link" href="/admin/team/schedules"><Tx>جدول الفريق</Tx></Link>}>
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead><tr><th><Tx>اليوم</Tx></th><th><Tx>الجدول</Tx></th><th><Tx>الدوام</Tx></th><th><Tx>ملاحظة</Tx></th></tr></thead>
         <tbody>
           {rows.map((d) => (
@@ -210,7 +211,7 @@ async function ScheduleTab({ ctx }: { ctx: HrTabContext }) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
     </Card>
   );
 }
@@ -242,7 +243,7 @@ async function PayrollTab({ ctx }: { ctx: HrTabContext }) {
         </Card>
         <Card title="البدلات والاستقطاعات الثابتة" actions={canEdit ? <ComponentButton employeeId={ctx.employee.id} components={catalog.map((c) => ({ value: c.id, label: `${c.name}${c.calc_type === "percent_of_basic" ? " (%)" : ""}`, calc: c.calc_type }))} /> : null}>
           {activeComponents.length ? (
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <tbody>
                 {activeComponents.map((c) => {
                   const def = c.salary_components as unknown as { name: string; kind: string; calc_type: string } | null;
@@ -255,21 +256,21 @@ async function PayrollTab({ ctx }: { ctx: HrTabContext }) {
                   );
                 })}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد بنود" />}
         </Card>
       </div>
       <Card title="سجل الرواتب">
         {comp.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>ساري من</Tx></th><th><Tx>الأساسي</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>السبب</Tx></th></tr></thead>
             <tbody>{comp.map((c) => <tr key={c.id}><td>{formatDate(c.effective_from)}</td><td><Money value={c.basic_salary} currency={c.currency} /></td><td><StatusBadge map="compensation_change" value={c.change_type} /></td><td><StatusBadge map="simple_approval" value={c.approval_status} /></td><td>{c.reason ?? "—"}</td></tr>)}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد" />}
       </Card>
       <Card title="قسائم الرواتب">
         {slips.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الفترة</Tx></th><th><Tx>الإجمالي</Tx></th><th><Tx>الاستقطاعات</Tx></th><th><Tx>الصافي</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {slips.map((s) => (
@@ -283,7 +284,7 @@ async function PayrollTab({ ctx }: { ctx: HrTabContext }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد قسائم" description={canHr ? undefined : "تظهر القسائم هنا بعد اعتماد ونشر الرواتب."} />}
       </Card>
     </>
@@ -300,10 +301,10 @@ async function BonusesLoansTab({ ctx }: { ctx: HrTabContext }) {
     <>
       <Card title="المكافآت" actions={canBonus ? <BonusButton employees={[]} fixedEmployeeId={ctx.employee.id} currencies={currencies} defaultPeriod={period} /> : null}>
         {bonuses.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>البيان</Tx></th><th><Tx>النوع</Tx></th><th><Tx>شهر الصرف</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
             <tbody>{bonuses.map((b) => <tr key={b.id}><td><Tx>{b.title}</Tx><span className="cell-sub">{b.reason}</span></td><td><StatusBadge map="bonus_type" value={b.bonus_type} /></td><td>{b.pay_period.slice(0, 7)}</td><td><Money value={b.amount} currency={b.currency} /></td><td><StatusBadge map="bonus_status" value={b.status} /></td></tr>)}</tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مكافآت" />}
       </Card>
       <Card title="السلف والقروض" actions={canLoan && ["active", "on_leave", "onboarding"].includes(ctx.employee.lifecycle_status) ? <LoanButton employees={[]} fixedEmployeeId={ctx.employee.id} currencies={currencies} defaultPeriod={period} /> : null}>
@@ -331,7 +332,7 @@ async function ExpensesTab({ ctx }: { ctx: HrTabContext }) {
   return (
     <Card title="المصروفات والاسترداد" actions={ctx.isSelf || all(ctx.bos, "hr_requests.create") ? <ExpenseClaimButton employees={[]} fixedEmployeeId={ctx.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} projects={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))} /> : null}>
       {claims.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>الوصف</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الموافقة</Tx></th><th><Tx>الاسترداد</Tx></th><th><Tx>الإيصال</Tx></th></tr></thead>
           <tbody>
             {claims.map((e) => (
@@ -345,7 +346,7 @@ async function ExpensesTab({ ctx }: { ctx: HrTabContext }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد مصروفات" />}
     </Card>
   );
@@ -357,7 +358,7 @@ async function OvertimeTab({ ctx }: { ctx: HrTabContext }) {
   return (
     <Card title="العمل الإضافي" actions={<Link className="bos-link" href="/admin/team/overtime"><Tx>صفحة العمل الإضافي</Tx></Link>}>
       {rows.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>نوع اليوم</Tx></th><th><Tx>الفعلي</Tx></th><th><Tx>المطلوب</Tx></th><th><Tx>المعتمد</Tx></th><th><Tx>المعامل</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الصرف</Tx></th><th /></tr></thead>
           <tbody>
             {rows.map((o) => (
@@ -374,7 +375,7 @@ async function OvertimeTab({ ctx }: { ctx: HrTabContext }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا يوجد عمل إضافي" />}
     </Card>
   );
@@ -386,7 +387,7 @@ async function RequestsTab({ ctx }: { ctx: HrTabContext }) {
   return (
     <Card title="طلبات الموارد البشرية" actions={ctx.isSelf || all(ctx.bos, "hr_requests.create") ? <HrRequestButton employees={[]} fixedEmployeeId={ctx.employee.id} types={types.map((t) => ({ value: t.id, label: t.name }))} /> : null}>
       {rows.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الرقم</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الموضوع</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الرد</Tx></th><th /></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -401,7 +402,7 @@ async function RequestsTab({ ctx }: { ctx: HrTabContext }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد طلبات" />}
     </Card>
   );
@@ -418,7 +419,7 @@ async function DocumentsTab({ ctx }: { ctx: HrTabContext }) {
   return (
     <Card title="ملف الموظف — المستندات" actions={canCreate ? <NewDocumentButton employees={[]} fixedEmployeeId={ctx.employee.id} types={uploadableTypes.map((t) => ({ value: t.id, label: t.name, requires_expiry: t.requires_expiry }))} canConfidential={all(ctx.bos, "hr_documents.create")} /> : null}>
       {docs.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>المستند</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الإصدار / الانتهاء</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الملف</Tx></th><th /></tr></thead>
           <tbody>
             {docs.map((d) => {
@@ -436,7 +437,7 @@ async function DocumentsTab({ ctx }: { ctx: HrTabContext }) {
               );
             })}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد مستندات" description="السيرة الذاتية، العقود، الهوية، المؤهلات، المستندات البنكية والتأمينية…" />}
     </Card>
   );
@@ -449,7 +450,7 @@ async function ContractsTab({ ctx }: { ctx: HrTabContext }) {
   return (
     <Card title="العقود" actions={all(ctx.bos, "hr_documents.update") ? <NewContractButton employees={[]} currencies={currencies} fixedEmployeeId={ctx.employee.id} /> : null}>
       {visible.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>العقد</Tx></th><th><Tx>النوع</Tx></th><th><Tx>النسخة</Tx></th><th><Tx>البداية</Tx></th><th><Tx>النهاية</Tx></th><th><Tx>التوقيع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الملف</Tx></th></tr></thead>
           <tbody>
             {visible.map((k) => (
@@ -465,7 +466,7 @@ async function ContractsTab({ ctx }: { ctx: HrTabContext }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد عقود" />}
     </Card>
   );
@@ -488,7 +489,7 @@ async function GoalsTab({ ctx }: { ctx: HrTabContext }) {
     <>
       <Card title="الأهداف" actions={canManage || ctx.isSelf ? <GoalButton users={[]} fixedUserId={uid} kpis={(kpis ?? []).map((k) => ({ value: k.id, label: k.name }))} cycles={cycleOpts} /> : null}>
         {goals.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الهدف</Tx></th><th><Tx>المستهدف</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {goals.map((g) => (
@@ -502,7 +503,7 @@ async function GoalsTab({ ctx }: { ctx: HrTabContext }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد أهداف" />}
       </Card>
       {ctx.isSelf || canManage ? (

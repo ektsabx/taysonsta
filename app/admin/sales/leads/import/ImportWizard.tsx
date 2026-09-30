@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { Tx, Opt } from "@/components/bos/I18n";
 
@@ -136,7 +137,7 @@ export function ImportWizard() {
         <section className="bos-form-section">
           <h2><Tx>3. معاينة (أول 5 صفوف)</Tx></h2>
           <div className="bos-table-scroll">
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead>
                 <tr>{header.map((h, i) => <th key={i}>{mapping[i] ? fields.find((f) => f.key === mapping[i])?.label : <span className="bos-faint">{h}</span>}</th>)}</tr>
               </thead>
@@ -145,7 +146,7 @@ export function ImportWizard() {
                   <tr key={i}>{header.map((_, j) => <td key={j} className={mapping[j] ? undefined : "bos-faint"}><Tx>{r[j]}</Tx></td>)}</tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
           <div className="bos-form-actions" style={{ marginTop: 12 }}>
             <button

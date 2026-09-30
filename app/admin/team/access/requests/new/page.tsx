@@ -14,7 +14,7 @@ export default async function NewAccessRequestPage() {
   const [{ data: emps }, apps] = await Promise.all([q, listApps(false)]);
   return (
     <>
-      <PageHeader title="طلب وصول إضافي" breadcrumbs={[{ label: "الفريق" }, { label: "الصلاحيات والأدوات", href: "/admin/team/access" }, { label: "طلب جديد" }]} />
+      <PageHeader title="طلب وصول إضافي" />
       <Card>
         <AccessRequestForm employees={(emps ?? []).map((e) => ({ value: e.id, label: e.full_name }))} defaultEmployee={bos.employee.id} apps={apps.map((a) => ({ id: a.id, name: a.name, access_levels: a.access_levels, is_sensitive: a.is_sensitive }))} />
       </Card>

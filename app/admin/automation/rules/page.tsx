@@ -9,7 +9,7 @@ export default async function SystemRulesPage() {
   const rules = await listRules({ system: true });
   return (
     <>
-      <PageHeader title="قواعد النظام" subtitle="مسارات عمل مُعدّة مسبقاً — قابلة للتعديل والتعطيل، لا تُحذف" breadcrumbs={[{ label: "الأتمتة", href: "/admin/automation/workflows" }, { label: "قواعد النظام" }]} />
+      <PageHeader title="قواعد النظام" subtitle="مسارات عمل مُعدّة مسبقاً — قابلة للتعديل والتعطيل، لا تُحذف" />
       <Card flush><RulesTable rules={rules} canEdit={can(bos, "automation.manage")} /></Card>
     </>
   );

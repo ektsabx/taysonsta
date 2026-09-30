@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,7 +7,6 @@ import { getSetting } from "@/lib/bos/settings";
 import { listRoles } from "@/services/bos/shared";
 import { PageHeader, Card, StatusBadge } from "@/components/bos/ui";
 import { formatDateTime } from "@/lib/bos/format";
-import { SettingsNav } from "../SettingsNav";
 import { SettingsForm } from "../SettingsForm";
 import { PageRulesEditor } from "../users/UserControls";
 
@@ -20,8 +20,7 @@ export default async function SecuritySettingsPage() {
   const enabled = (mfa ?? []).filter((m) => m.mfa_status === "enabled").length;
   return (
     <>
-      <PageHeader title="الأمان" subtitle="تغييرات هذا القسم تُبلَّغ للمديرين العامين وتُسجّل في التدقيق" breadcrumbs={[{ label: "الإعدادات" }, { label: "الأمان" }]} />
-      <SettingsNav active="security" />
+      <PageHeader title="الأمان" subtitle="تغييرات هذا القسم تُبلَّغ للمديرين العامين وتُسجّل في التدقيق" />
       <Card title="السياسات">
         <SettingsForm settingKey="security" value={security} fields={[
           { path: "password_min_length", label: "الحد الأدنى لطول كلمة المرور", type: "number", min: 8, max: 128 },
@@ -45,10 +44,10 @@ export default async function SecuritySettingsPage() {
         <Link className="bos-link" href="/admin/team/access?view=mfa"><Tx>عرض غير الملتزمين</Tx></Link>
       </Card>
       <Card title="آخر محاولات الدخول الفاشلة" flush>
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>البريد</Tx></th><th><Tx>السبب</Tx></th><th>IP</th></tr></thead>
           <tbody>{(failed ?? []).map((f, i) => <tr key={i}><td>{formatDateTime(f.created_at)}</td><td dir="ltr">{f.email}</td><td><StatusBadge tone="danger" label={f.failure_reason ?? "—"} /></td><td dir="ltr">{f.ip ? String(f.ip) : "—"}</td></tr>)}</tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );

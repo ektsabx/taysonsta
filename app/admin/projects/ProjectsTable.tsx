@@ -61,7 +61,7 @@ export async function ProjectsTable({ bos, scope, filters, mine }: { bos: BosUse
               status: <StatusBadge map="project_status" value={p.status} />,
               progress: <div style={{ minWidth: 110 }}><ProgressBar value={p.progress} /></div>,
               start: formatDate(p.start_date),
-              deadline: <span style={late ? { color: "#f87171" } : undefined}>{formatDate(p.deadline)}</span>,
+              deadline: <span style={late ? { color: "var(--bos-danger)" } : undefined}>{formatDate(p.deadline)}</span>,
               health: <StatusBadge map="project_health" value={p.health} />,
               payment: deal ? <StatusBadge map="deal_payment_status" value={deal.payment_status} /> : "—",
             },

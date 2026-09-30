@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -9,8 +10,6 @@ import { listLoans } from "@/services/bos/hr/requests";
 import { listCurrencies } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Money, ProgressBar, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { InstallmentActions, LoanButton, LoanSteps } from "../../HrControls";
@@ -32,9 +31,8 @@ export default async function LoansPage({ searchParams }: { searchParams: Search
   const canForOthers = bos.permissions.get("payroll.create") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="السلف والقروض" breadcrumbs={[{ label: "الرواتب", href: "/admin/team/payroll" }, { label: "السلف والقروض" }]}
+      <PageHeader title="السلف والقروض"
         actions={<LoanButton employees={(employees ?? []).map((e) => ({ value: e.id, label: e.full_name }))} fixedEmployeeId={canForOthers ? undefined : bos.employee.id} currencies={currencies} defaultPeriod={today.slice(0, 7)} label={canForOthers ? "+ سلفة / قرض" : "طلب سلفة / قرض"} />} />
-      <SubNav items={hrSection(bos, "payroll")} active="loans" label="الرواتب" />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("loan_status") }, ...(hrAll ? [{ key: "employee", label: "الموظف", type: "select" as const, options: (employees ?? []).map((e) => ({ value: e.id, label: e.full_name })) }] : [])]} />
       {rows.length ? rows.map((l) => {
         const emp = l.employees as unknown as { id: string; user_id: string | null; full_name: string; photo_updated_at: string | null } | null;
@@ -53,7 +51,7 @@ export default async function LoansPage({ searchParams }: { searchParams: Search
             <p className="bos-faint" style={{ fontSize: 12.5, margin: "6px 0" }}>{l.reason}{l.decision_comment ? ` · ${l.decision_comment}` : ""}</p>
             <details>
               <summary className="bos-link" style={{ cursor: "pointer", fontSize: 12.5 }}><Tx>جدول الأقساط</Tx></summary>
-              <table className="bos-table" style={{ marginTop: 6 }}>
+              <BosTable className="bos-table" style={{ marginTop: 6 }}>
                 <tbody>
                   {(l.installmentsList as { id: string; seq: number; due_period: string; amount: number; status: string; note: string | null }[]).map((i) => (
                     <tr key={i.id}>
@@ -65,7 +63,7 @@ export default async function LoansPage({ searchParams }: { searchParams: Search
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             </details>
           </Card>
         );

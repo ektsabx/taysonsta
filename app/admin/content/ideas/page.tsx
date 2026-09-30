@@ -2,8 +2,6 @@ import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { db } from "@/lib/bos/db";
 import { PageHeader, Card } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { contentNav } from "../content-nav";
 import { AiPanel } from "../ContentControls";
 
 // Idea generator (docs/bos/30 §13.2): AI drafts not tied to an item yet.
@@ -15,8 +13,7 @@ export default async function ContentIdeasPage() {
   ]);
   return (
     <>
-      <PageHeader title="مولّد الأفكار" subtitle="أفكار ومسودات بالذكاء الاصطناعي — انسخ ما يعجبك إلى فكرة جديدة" breadcrumbs={[{ label: "التسويق" }, { label: "استوديو المحتوى", href: "/admin/content" }, { label: "مولّد الأفكار" }]} />
-      <SubNav items={contentNav(bos)} active="ideas" label="استوديو المحتوى" />
+      <PageHeader title="مولّد الأفكار" subtitle="أفكار ومسودات بالذكاء الاصطناعي — انسخ ما يعجبك إلى فكرة جديدة" />
       <Card><AiPanel itemId={null} drafts={drafts ?? []} aiReady={!!ai} /></Card>
       <p className="bos-hint"><Tx>المسودات هنا خاصة بك.</Tx></p>
     </>

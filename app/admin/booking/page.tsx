@@ -1,3 +1,4 @@
+import { DateRangeInputs } from "@/components/bos/DateRangeField";
 import { getT } from "@/lib/bos/i18n/server";
 import { Tx, Opt } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -106,8 +107,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
             </option>
           ))}
         </select>
-        <input type="date" name="from" defaultValue={from} aria-label={t("من تاريخ")} />
-        <input type="date" name="to" defaultValue={to} aria-label={t("إلى تاريخ")} />
+        <DateRangeInputs defaultFrom={from ?? ""} defaultTo={to ?? ""} submitOnApply />
         <select name="sort" defaultValue={sort ?? "created_desc"}>
           <Opt value="created_desc">الأحدث إنشاءً</Opt>
           <Opt value="scheduled_asc">الموعد: الأقرب أولًا</Opt>

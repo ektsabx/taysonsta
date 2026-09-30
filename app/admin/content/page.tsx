@@ -6,8 +6,6 @@ import { listItems, listStages } from "@/services/bos/content";
 import { listActiveStaff, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { contentNav } from "./content-nav";
 import { platformOptions, priorityLabels, typeLabels } from "./labels";
 
 // Content board (docs/bos/30 §13.3): one column per active stage.
@@ -20,8 +18,7 @@ export default async function ContentBoardPage({ searchParams }: { searchParams:
   const cols = stages.filter((s) => showArchived || s.key !== "archived");
   return (
     <>
-      <PageHeader title="استوديو المحتوى" subtitle="من الفكرة حتى النشر والتحليل" breadcrumbs={[{ label: "التسويق" }, { label: "استوديو المحتوى" }]} actions={can(bos, "content.create") ? <Link className="admin-btn small" href="/admin/content/new"><Tx>+ فكرة</Tx></Link> : null} />
-      <SubNav items={contentNav(bos)} active="board" label="استوديو المحتوى" />
+      <PageHeader title="استوديو المحتوى" subtitle="من الفكرة حتى النشر والتحليل" actions={can(bos, "content.create") ? <Link className="admin-btn small" href="/admin/content/new"><Tx>+ فكرة</Tx></Link> : null} />
       <FilterBar searchPlaceholder="بحث بالعنوان..." filters={[
         { key: "owner", label: "المسؤول", type: "select", options: staff.map((s) => ({ value: s.userId, label: s.name })) },
         { key: "platform", label: "المنصة", type: "select", options: platformOptions },

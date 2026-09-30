@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { db } from "@/lib/bos/db";
@@ -5,7 +6,6 @@ import { configTables } from "@/lib/bos/config-tables";
 import { listConfigRows } from "@/services/bos/settings-admin";
 import { getSetting } from "@/lib/bos/settings";
 import { PageHeader, Card } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { ConfigTableEditor } from "../ConfigTableEditor";
 import { SettingsForm } from "../SettingsForm";
 import { RequirementCell } from "../SettingsControls";
@@ -18,12 +18,11 @@ export default async function ItSettingsPage() {
   const active = apps.filter((a) => a.is_active);
   return (
     <>
-      <PageHeader title="IT والتطبيقات الخارجية" subtitle="النظام يدير من يجب أن يملك أي وصول — لا يخزّن كلمات مرور أو أسرار MFA" breadcrumbs={[{ label: "الإعدادات" }, { label: "IT" }]} />
-      <SettingsNav active="it" />
+      <PageHeader title="IT والتطبيقات الخارجية" subtitle="النظام يدير من يجب أن يملك أي وصول — لا يخزّن كلمات مرور أو أسرار MFA" />
       <Card><ConfigTableEditor tableKey="external_apps" spec={configTables.external_apps} rows={apps} lookups={lookups} defaults={{ requires_mfa: true, is_active: true }} /></Card>
       <Card title="متطلبات الأدوات حسب الدور" flush>
         <div className="bos-table-scroll">
-          <table className="bos-table bos-perm-matrix">
+          <BosTable className="bos-table bos-perm-matrix">
             <thead><tr><th><Tx>الدور</Tx></th>{active.map((a) => <th key={String(a.id)} style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", height: 120, whiteSpace: "nowrap" }}>{String(a.name)}</th>)}</tr></thead>
             <tbody>
               {(roles ?? []).map((r) => (
@@ -36,7 +35,7 @@ export default async function ItSettingsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         </div>
         <p className="bos-faint" style={{ fontSize: 12, padding: 10 }}><Tx>تغيير الدور يضيف التطبيقات المطلوبة الجديدة لقوائم الموظفين عند إعادة توليدها، والتطبيقات غير المطلوبة تُعلَّم للمراجعة ولا تُسحب تلقائياً.</Tx></p>
       </Card>

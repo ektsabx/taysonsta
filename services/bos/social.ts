@@ -470,7 +470,7 @@ export async function socialAnalytics(bos: BosUser, f: AnalyticsFilter) {
 
 export async function calendarPosts(bos: BosUser, from: string, to: string) {
   need(bos, "social.read");
-  let q = db().from("social_posts").select("id, number, title, status, scheduled_at, published_at, created_at, owner_id, social_post_targets(status, social_accounts(platform))").neq("status", "cancelled").or(`and(scheduled_at.gte.${from},scheduled_at.lte.${to}),and(published_at.gte.${from},published_at.lte.${to}),and(scheduled_at.is.null,published_at.is.null,created_at.gte.${from},created_at.lte.${to})`).order("scheduled_at", { ascending: true, nullsFirst: false }).limit(500);
+  const q = db().from("social_posts").select("id, number, title, status, scheduled_at, published_at, created_at, owner_id, social_post_targets(status, social_accounts(platform))").neq("status", "cancelled").or(`and(scheduled_at.gte.${from},scheduled_at.lte.${to}),and(published_at.gte.${from},published_at.lte.${to}),and(scheduled_at.is.null,published_at.is.null,created_at.gte.${from},created_at.lte.${to})`).order("scheduled_at", { ascending: true, nullsFirst: false }).limit(500);
   const { data } = await q;
   const all = bos.permissions.get("social.read") === "all";
   return (data ?? []).filter((p) => all || p.owner_id === bos.userId);

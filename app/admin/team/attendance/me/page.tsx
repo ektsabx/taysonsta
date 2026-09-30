@@ -1,3 +1,5 @@
+import { BosTable } from "@/components/bos/BosTable";
+import { DateRangeInputs } from "@/components/bos/DateRangeField";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -5,7 +7,6 @@ import { getAttendanceRange, getClockState, summarize, listCorrections } from "@
 import { PageHeader, Card, Summary, StatusBadge, EmptyState } from "@/components/bos/ui";
 import { ClockCard } from "@/components/bos/ClockWidget";
 import { formatDate, formatDateTime, formatMinutes, todayIn, addDays, startOfMonth } from "@/lib/bos/format";
-import { AttendanceNav } from "../AttendanceNav";
 import { AttendanceTable } from "../../TeamViews";
 import { CorrectionButton, OvertimeButton } from "../../TeamControls";
 
@@ -29,8 +30,7 @@ export default async function MyAttendancePage({ searchParams }: { searchParams:
   const m = summarize(month);
   return (
     <>
-      <PageHeader title="حضوري" subtitle={<Tx vars={{ timezone: state.timezone }}>{"بتوقيت {timezone}"}</Tx>} breadcrumbs={[{ label: "الفريق" }, { label: "الحضور", href: "/admin/team/attendance" }, { label: "حضوري" }]} actions={<>{can(bos, "overtime.create") ? <OvertimeButton /> : null}<CorrectionButton /></>} />
-      <AttendanceNav active="me" />
+      <PageHeader title="حضوري" subtitle={<Tx vars={{ timezone: state.timezone }}>{"بتوقيت {timezone}"}</Tx>} actions={<>{can(bos, "overtime.create") ? <OvertimeButton /> : null}<CorrectionButton /></>} />
       <div className="bos-grid main-side">
         <div>
           <ClockCard clockInAt={state.clockInAt} onBreak={state.onBreak} staleOpenSession={state.staleOpenSession} workedMinutesToday={state.record?.worked_minutes ?? 0} />
@@ -55,8 +55,7 @@ export default async function MyAttendancePage({ searchParams }: { searchParams:
       </div>
       <Card title="السجل">
         <form className="bos-row" style={{ gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-          <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>من</Tx> <input type="date" name="from" defaultValue={from} /></label>
-          <label className="bos-faint" style={{ fontSize: 12.5 }}><Tx>إلى</Tx> <input type="date" name="to" defaultValue={to} /></label>
+          <DateRangeInputs defaultFrom={from} defaultTo={to} submitOnApply />
           <button className="admin-btn small secondary" type="submit"><Tx>عرض</Tx></button>
         </form>
         <AttendanceTable
@@ -66,7 +65,7 @@ export default async function MyAttendancePage({ searchParams }: { searchParams:
       </Card>
       <Card title="طلبات التصحيح">
         {corrections.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <tbody>
               {corrections.map((c) => (
                 <tr key={c.id}>
@@ -76,7 +75,7 @@ export default async function MyAttendancePage({ searchParams }: { searchParams:
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات تصحيح" />}
       </Card>
     </>

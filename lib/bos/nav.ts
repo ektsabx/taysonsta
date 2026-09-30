@@ -1,5 +1,6 @@
 import type { BosUser } from "@/lib/bos/auth";
 import type { PermissionKey } from "@/lib/bos/permissions";
+import { hrSections, type HrNavItem, type HrSectionKey } from "@/lib/bos/hr-nav";
 
 // Main sidebar (§5), extended with the IT & Access pages (addendum) and the
 // pre-existing website admin (careers, booking). Items are shown only when
@@ -9,6 +10,11 @@ export interface NavLink {
   href: string;
   label: string;
   perm?: PermissionKey | PermissionKey[];
+  // Needs this permission with scope "all" (on top of `perm`).
+  all?: PermissionKey;
+  // Pages inside this area, shown under the item while it is active (they
+  // replace the in-page tab strips — docs/bos/35 B1).
+  children?: NavLink[];
 }
 
 export interface NavGroup {
@@ -20,10 +26,14 @@ export interface NavGroup {
   items?: NavLink[];
 }
 
+const hr = (key: HrSectionKey): NavLink[] => (hrSections[key] as HrNavItem[]).map(({ href, label, perm, all }) => ({ href, label, perm, all }));
+
 export const navigation: NavGroup[] = [
   { key: "dashboard", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
   // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
-  { key: "assistant", label: "المساعد الذكي", icon: "knowledge", href: "/admin/assistant", perm: "dashboard.read" },
+  { key: "assistant", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
+  // docs/bos/35 A7: the catalogue is its own module, not a settings page.
+  { key: "products", label: "المنتجات والخدمات", icon: "products", href: "/admin/products", perm: "products.read" },
   {
     key: "sales",
     label: "المبيعات",
@@ -88,16 +98,16 @@ export const navigation: NavGroup[] = [
     items: [
       { href: "/admin/team", label: "نظرة عامة", perm: ["employees.read", "attendance.read"] },
       { href: "/admin/team/me", label: "ملفي", perm: "attendance.create" },
-      { href: "/admin/team/employees", label: "الموظفون", perm: "employees.read" },
-      { href: "/admin/team/attendance", label: "الحضور", perm: "attendance.read" },
-      { href: "/admin/team/schedules", label: "الجداول", perm: "attendance.read" },
-      { href: "/admin/team/leave", label: "الإجازات", perm: "leave.read" },
-      { href: "/admin/team/payroll", label: "الرواتب", perm: "payroll.read" },
-      { href: "/admin/team/recruitment", label: "التوظيف", perm: "recruitment.read" },
-      { href: "/admin/team/performance", label: "الأداء", perm: "performance.read" },
-      { href: "/admin/team/requests", label: "المصروفات والطلبات", perm: "hr_requests.read" },
-      { href: "/admin/team/documents", label: "المستندات والعقود", perm: "hr_documents.read" },
-      { href: "/admin/team/access", label: "الأجهزة والصلاحيات", perm: ["access.read", "devices.read"] },
+      { href: "/admin/team/employees", label: "الموظفون", perm: "employees.read", children: hr("employees") },
+      { href: "/admin/team/attendance", label: "الحضور", perm: "attendance.read", children: hr("attendance") },
+      { href: "/admin/team/schedules", label: "الجداول", perm: "attendance.read", children: hr("schedules") },
+      { href: "/admin/team/leave", label: "الإجازات", perm: "leave.read", children: hr("leave") },
+      { href: "/admin/team/payroll", label: "الرواتب", perm: "payroll.read", children: hr("payroll") },
+      { href: "/admin/team/recruitment", label: "التوظيف", perm: "recruitment.read", children: hr("recruitment") },
+      { href: "/admin/team/performance", label: "الأداء", perm: "performance.read", children: hr("performance") },
+      { href: "/admin/team/requests", label: "المصروفات والطلبات", perm: "hr_requests.read", children: hr("requests") },
+      { href: "/admin/team/documents", label: "المستندات والعقود", perm: "hr_documents.read", children: hr("documents") },
+      { href: "/admin/team/access", label: "الأجهزة والصلاحيات", perm: ["access.read", "devices.read"], children: hr("it") },
       { href: "/admin/team/locations", label: "مشاركة الموقع", perm: ["attendance.create", "location.read"] },
     ],
   },
@@ -124,9 +134,23 @@ export const navigation: NavGroup[] = [
       { href: "/admin/social/calendar", label: "تقويم المحتوى", perm: "social.read" },
       { href: "/admin/social/posts", label: "المنشورات", perm: "social.read" },
       { href: "/admin/social/accounts", label: "الحسابات المتصلة", perm: "social.manage" },
-      { href: "/admin/content", label: "استوديو المحتوى", perm: "content.read" },
+      {
+        href: "/admin/content", label: "استوديو المحتوى", perm: "content.read",
+        children: [
+          { href: "/admin/content", label: "لوحة المحتوى", perm: "content.read" },
+          { href: "/admin/content/ideas", label: "مولّد الأفكار", perm: "content.create" },
+          { href: "/admin/content/stages", label: "مراحل العمل", perm: "content.manage" },
+        ],
+      },
       { href: "/admin/content/insights", label: "أداء المحتوى", perm: "content.read" },
-      { href: "/admin/ads", label: "الإعلانات", perm: "ads.read" },
+      {
+        href: "/admin/ads", label: "الإعلانات", perm: "ads.read",
+        children: [
+          { href: "/admin/ads", label: "الأداء", perm: "ads.read" },
+          { href: "/admin/ads/accounts", label: "الحسابات الإعلانية", perm: "ads.manage" },
+          { href: "/admin/ads/alerts", label: "التنبيهات", perm: "ads.manage" },
+        ],
+      },
     ],
   },
   {
@@ -161,7 +185,9 @@ export const navigation: NavGroup[] = [
     label: "التقارير",
     icon: "reports",
     items: [
+      { href: "/admin/reports", label: "نظرة عامة", perm: "reports.read" },
       { href: "/admin/reports/sales", label: "المبيعات", perm: "reports.read" },
+      { href: "/admin/reports/bd", label: "تطوير الأعمال", perm: "reports.read" },
       { href: "/admin/reports/revenue", label: "الإيرادات", perm: ["revenue.read", "revenue.view_sensitive"] },
       { href: "/admin/reports/projects", label: "المشاريع", perm: "reports.read" },
       { href: "/admin/reports/finance", label: "المالية", perm: ["revenue.view_sensitive", "expenses.read"] },
@@ -196,31 +222,19 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "website",
-    label: "الموقع",
-    icon: "website",
-    items: [
-      // Careers presentation on the website; recruitment management is in Team → Recruitment.
-      { href: "/admin/team/recruitment?published=1", label: "الوظائف المنشورة", perm: "recruitment.read" },
-      { href: "/admin/booking", label: "الحجوزات", perm: "leads.read" },
-      { href: "/admin/booking/settings", label: "إعدادات الحجز", perm: "settings.manage" },
-    ],
-  },
-  {
     key: "settings",
     label: "الإعدادات",
     icon: "settings",
     items: [
-      { href: "/admin/settings/company", label: "الشركة", perm: "settings.manage" },
+      { href: "/admin/settings/company", label: "الشركة", perm: ["settings.manage", "commissions.manage", "invoices.manage"] },
+      { href: "/admin/settings/branches", label: "الفروع", perm: ["settings.manage", "branches.manage"] },
       { href: "/admin/settings/users", label: "المستخدمون", perm: "users.read" },
       { href: "/admin/settings/roles", label: "الأدوار", perm: "roles.manage" },
       { href: "/admin/settings/permissions", label: "الأذونات", perm: "roles.manage" },
-      { href: "/admin/settings/products", label: "المنتجات والخدمات", perm: "settings.manage" },
-      { href: "/admin/settings/pricing", label: "التسعير والعملات", perm: ["settings.manage", "invoices.manage"] },
-      { href: "/admin/settings/commission", label: "قواعد العمولة", perm: ["settings.manage", "commissions.manage"] },
       { href: "/admin/settings/pipeline", label: "مراحل المبيعات", perm: ["settings.manage", "leads.manage"] },
       { href: "/admin/settings/hr", label: "الموارد البشرية", perm: ["settings.manage", "attendance.manage", "payroll.manage"] },
       { href: "/admin/settings/notifications", label: "الإشعارات", perm: "settings.manage" },
+      { href: "/admin/settings/dashboards", label: "لوحات التحكم", perm: "settings.manage" },
       { href: "/admin/settings/integrations", label: "مركز التكاملات", perm: "integrations.manage" },
       { href: "/admin/settings/import", label: "استيراد البيانات", perm: "imports.create" },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },
@@ -231,14 +245,21 @@ export const navigation: NavGroup[] = [
   },
 ];
 
-function allowed(bos: BosUser, perm: NavLink["perm"]): boolean {
+function allowed(bos: BosUser, perm: NavLink["perm"], all?: PermissionKey): boolean {
+  if (all && bos.permissions.get(all) !== "all") return false;
   if (!perm) return true;
   const list = Array.isArray(perm) ? perm : [perm];
   return list.some((p) => bos.permissions.has(p));
 }
 
+function linkFor(bos: BosUser, item: NavLink): NavLink {
+  const children = item.children?.filter((c) => allowed(bos, c.perm, c.all));
+  // A single sub-page is the page itself — no third level.
+  return { ...item, children: children && children.length > 1 ? children : undefined };
+}
+
 export function navigationFor(bos: BosUser): NavGroup[] {
   return navigation
-    .map((group) => ({ ...group, items: group.items?.filter((i) => allowed(bos, i.perm)) }))
+    .map((group) => ({ ...group, items: group.items?.filter((i) => allowed(bos, i.perm, i.all)).map((i) => linkFor(bos, i)) }))
     .filter((group) => (group.href ? allowed(bos, group.perm) : (group.items?.length ?? 0) > 0));
 }

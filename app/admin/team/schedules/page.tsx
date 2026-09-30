@@ -9,8 +9,6 @@ import { getRoster, listSchedules, weekdayNames } from "@/services/bos/hr/schedu
 import { listDepartments, listTeams } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { addDays, formatDate } from "@/lib/bos/format";
 import { ShiftsButton } from "../HrControls";
 import { branchFilter, withBranch } from "@/lib/bos/branch";
@@ -35,9 +33,8 @@ export default async function RosterPage({ searchParams }: { searchParams: Searc
   const canManage = bos.permissions.get("attendance.manage") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="جدول العمل الأسبوعي" subtitle={`${formatDate(weekStart)} → ${formatDate(addDays(weekStart, 6))}`} breadcrumbs={[{ label: "الفريق" }, { label: "الجداول" }]}
+      <PageHeader title="جدول العمل الأسبوعي" subtitle={`${formatDate(weekStart)} → ${formatDate(addDays(weekStart, 6))}`}
         actions={canManage ? <ShiftsButton schedules={schedules.map((s) => ({ value: s.id, label: s.name }))} employees={(emps ?? []).map((e) => ({ value: e.id, label: e.full_name }))} /> : null} />
-      <SubNav items={hrSection(bos, "schedules")} active="roster" label="الجداول" />
       <div className="bos-row" style={{ gap: 8, marginBottom: 10 }}>
         <Link className="admin-btn small ghost" href={`/admin/team/schedules?week=${addDays(weekStart, -7)}`}><Tx>الأسبوع السابق</Tx></Link>
         <Link className="admin-btn small ghost" href="/admin/team/schedules"><Tx>هذا الأسبوع</Tx></Link>

@@ -10,7 +10,7 @@ export default async function NewProjectPage() {
   const [currencies, staff, currency] = await Promise.all([listCurrencies(), listActiveStaff(), defaultCurrencyFor(bos)]);
   return (
     <>
-      <PageHeader title="مشروع داخلي جديد" subtitle="مشاريع العملاء تُنشأ تلقائياً عند كسب الصفقة — استخدم هذا للمشاريع الداخلية أو الاستثنائية." breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: "جديد" }]} />
+      <PageHeader title="مشروع داخلي جديد" subtitle="مشاريع العملاء تُنشأ تلقائياً عند كسب الصفقة — استخدم هذا للمشاريع الداخلية أو الاستثنائية." />
       <ProjectForm action={createProjectAction} currencies={currencies} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} canEditBudget canAssign={can(bos, "projects.assign")} initial={{ pm_id: bos.userId, currency }} submitLabel="إنشاء المشروع" />
     </>
   );

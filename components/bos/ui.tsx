@@ -12,27 +12,15 @@ import { Tx } from "@/components/bos/I18n";
 export function PageHeader({
   title,
   subtitle,
-  breadcrumbs,
   actions,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
-  breadcrumbs?: { label: string; href?: string }[];
   actions?: ReactNode;
 }) {
   return (
     <div className="bos-page-header">
       <div style={{ minWidth: 0 }}>
-        {breadcrumbs?.length ? (
-          <nav className="bos-breadcrumbs" aria-label="breadcrumb">
-            {breadcrumbs.map((b, i) => (
-              <span key={`${b.label}-${i}`}>
-                {b.href ? <Link href={b.href}><Tx>{b.label}</Tx></Link> : <Tx>{b.label}</Tx>}
-                {i < breadcrumbs.length - 1 ? " / " : ""}
-              </span>
-            ))}
-          </nav>
-        ) : null}
         <h1><Tx>{title}</Tx></h1>
         {subtitle ? <div className="bos-subtitle"><Tx>{subtitle}</Tx></div> : null}
       </div>

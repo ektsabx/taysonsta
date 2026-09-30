@@ -42,7 +42,7 @@ export default async function ContractsPage({ searchParams }: { searchParams: Se
 
   return (
     <>
-      <PageHeader title="العقود" breadcrumbs={[{ label: "المبيعات" }, { label: "العقود" }]} actions={can(bos, "contracts.create") ? <Link href="/admin/sales/contracts/new" className="admin-btn small"><Tx>+ عقد</Tx></Link> : null} />
+      <PageHeader title="العقود" actions={can(bos, "contracts.create") ? <Link href="/admin/sales/contracts/new" className="admin-btn small"><Tx>+ عقد</Tx></Link> : null} />
       <FilterBar searchPlaceholder="بحث برقم أو عنوان العقد..." filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("contract_status") }]} />
       <DataTable
         tableId="contracts"

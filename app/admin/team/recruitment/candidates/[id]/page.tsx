@@ -26,7 +26,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   const canEdit = bos.permissions.get("recruitment.update") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title={`${c.first_name} ${c.last_name}`} subtitle={<StatusBadge map="candidate_status" value={c.status} />} breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "المرشحون", href: "/admin/team/recruitment/candidates" }, { label: `${c.first_name} ${c.last_name}` }]}
+      <PageHeader title={`${c.first_name} ${c.last_name}`} subtitle={<StatusBadge map="candidate_status" value={c.status} />}
         actions={<span className="bos-row" style={{ gap: 6 }}>{c.employee_id ? <Link className="admin-btn small success" href={`/admin/team/employees/${c.employee_id}`}><Tx>ملف الموظف</Tx></Link> : null}{canEdit ? <CandidateEditButton id={c.id} initial={c} /> : null}</span>} />
       <div className="bos-grid main-side">
         <div>

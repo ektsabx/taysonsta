@@ -21,7 +21,7 @@ export const permissionModules = [
   "change_requests", "issues", "approvals", "files", "employees", "attendance", "timesheets", "leave", "overtime",
   "kpis", "performance", "onboarding", "access", "devices", "apps", "chat", "meetings", "email", "notifications",
   "knowledge", "tickets", "bugs", "feature_requests", "reports", "automation", "settings", "users", "roles", "audit",
-  "portal", "calendar", "search", "payroll", "recruitment", "hr_documents", "hr_requests", "branches", "integrations", "documents", "conversations", "messaging", "social", "content", "ads", "imports", "location", "cameras",
+  "portal", "calendar", "search", "payroll", "recruitment", "hr_documents", "hr_requests", "branches", "integrations", "documents", "conversations", "messaging", "social", "content", "ads", "imports", "location", "cameras", "products",
 ] as const;
 
 export type PermissionModule = (typeof permissionModules)[number];

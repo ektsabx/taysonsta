@@ -1,4 +1,5 @@
-import { Fragment } from "react";
+import { BosTable } from "@/components/bos/BosTable";
+import { nowMs } from "@/lib/bos/clock";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -6,11 +7,8 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { formatDateTime } from "@/lib/bos/format";
 import { adsReport, listAdAccounts, organicVsPaid } from "@/services/bos/ads";
-import { metricDefinitions } from "@/lib/bos/ads/metrics";
-import { PageHeader, Card, KpiCard, EmptyState } from "@/components/bos/ui";
+import { PageHeader, Card, KpiCard, EmptyState, Tabs } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { adsNav } from "./ads-nav";
 
 const platformLabels: Record<string, string> = { meta: "Meta", google: "Google Ads", linkedin: "LinkedIn", tiktok: "TikTok", snapchat: "Snapchat", x: "X", other: "أخرى" };
 const n = (v: number | null | undefined, d = 0) => (v == null ? null : v.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d }));
@@ -24,7 +22,7 @@ export default async function AdsPage({ searchParams }: { searchParams: SearchPa
   const sp = await readParams(searchParams);
   const today = new Date().toISOString().slice(0, 10);
   const d = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
-  const from = d(sp.from) ?? new Date(Date.now() - 29 * 86400_000).toISOString().slice(0, 10);
+  const from = d(sp.from) ?? new Date(nowMs() - 29 * 86400_000).toISOString().slice(0, 10);
   const to = d(sp.to) ?? today;
   const by = (["day", "week", "month"].includes(sp.by ?? "") ? sp.by : "day") as "day" | "week" | "month";
   const view = sp.view === "organic" ? "organic" : "report";
@@ -33,9 +31,9 @@ export default async function AdsPage({ searchParams }: { searchParams: SearchPa
   const exportQs = new URLSearchParams(Object.entries({ from, to, platform: sp.platform ?? "", account: sp.account ?? "", campaign: sp.campaign ?? "" }).filter(([, v]) => v)).toString();
   return (
     <>
-      <PageHeader title="الإعلانات" subtitle="قراءة وتحليل فقط — لا يغيّر النظام أي حملة أو ميزانية" breadcrumbs={[{ label: "التسويق" }, { label: "الإعلانات" }]}
+      <PageHeader title="الإعلانات" subtitle="قراءة وتحليل فقط — لا يغيّر النظام أي حملة أو ميزانية"
         actions={can(bos, "ads.export") && view === "report" ? <a className="admin-btn small secondary" href={`/api/bos/ads/export?${exportQs}`}><Tx>تنزيل CSV</Tx></a> : null} />
-      <SubNav items={adsNav(bos)} active={view === "organic" ? "organic" : "report"} label="الإعلانات" />
+      <Tabs baseHref="/admin/ads" param="view" active={view} tabs={[{ key: "report", label: "الأداء" }, { key: "organic", label: "العضوي مقابل المدفوع" }]} />
       <FilterBar filters={[
         { key: "from", label: "من", type: "date" },
         { key: "to", label: "إلى", type: "date" },
@@ -49,11 +47,6 @@ export default async function AdsPage({ searchParams }: { searchParams: SearchPa
       ]} />
       {!accounts.length ? <Card><EmptyState title="لا توجد حسابات إعلانية" description="اربط Meta أو Google Ads، أو أضف حساباً يُستورد من CSV." actions={can(bos, "ads.manage") ? <Link className="admin-btn small" href="/admin/ads/accounts"><Tx>الحسابات الإعلانية</Tx></Link> : undefined} /></Card>
         : view === "organic" ? <Organic bos={bos} from={from} to={to} /> : <Report bos={bos} f={{ from, to, platform: sp.platform || null, account_id: sp.account || null, campaign_id: sp.campaign || null, by, convert: sp.convert === "1" }} />}
-      <Card title="تعريفات المقاييس">
-        <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "4px 12px", margin: 0, fontSize: 12.5 }}>
-          {Object.entries(metricDefinitions).map(([k, v]) => <Fragment key={k}><dt style={{ fontWeight: 600 }} dir="ltr">{k.toUpperCase()}</dt><dd style={{ margin: 0 }}><Tx>{v}</Tx></dd></Fragment>)}
-        </dl>
-      </Card>
     </>
   );
 }
@@ -77,7 +70,7 @@ async function Report({ bos, f }: { bos: Awaited<ReturnType<typeof requirePermis
       <Card title="الحملات" flush>
         {r.campaigns.length ? (
           <div style={{ overflowX: "auto" }}>
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>الحملة</Tx></th><th><Tx>الحساب</Tx></th><th><Tx>الإنفاق</Tx></th><th><Tx>مرات الظهور</Tx></th>{r.single ? <th><Tx>الوصول</Tx></th> : null}<th><Tx>النقرات</Tx></th><th>CTR</th><th>CPC</th><th>CPM</th><th><Tx>التحويلات</Tx></th><th>CPA</th><th>ROAS</th></tr></thead>
               <tbody>
                 {r.campaigns.map((c) => (
@@ -97,7 +90,7 @@ async function Report({ bos, f }: { bos: Awaited<ReturnType<typeof requirePermis
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد بيانات في هذه الفترة" />}
         {!r.single ? <p className="bos-hint" style={{ padding: "6px 14px" }}><Tx>الوصول لا يُجمع عبر الأيام (أشخاص فريدون) — اختر يوماً واحداً لعرضه.</Tx></p> : null}
@@ -106,7 +99,7 @@ async function Report({ bos, f }: { bos: Awaited<ReturnType<typeof requirePermis
         const max = Math.max(1, ...tr.points.map((p) => p.spend));
         return (
           <Card key={tr.currency} title={<Tx vars={{ cur: tr.currency }}>{"الاتجاه — الإنفاق مقابل النتائج ({cur})"}</Tx>} flush>
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>الفترة</Tx></th><th><Tx>الإنفاق</Tx></th><th /><th><Tx>النقرات</Tx></th><th><Tx>التحويلات</Tx></th><th>CPA</th><th>ROAS</th></tr></thead>
               <tbody>
                 {tr.points.map((p) => (
@@ -121,14 +114,14 @@ async function Report({ bos, f }: { bos: Awaited<ReturnType<typeof requirePermis
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </Card>
         );
       })}
       <Card title="حالة المزامنة" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <tbody>{r.accounts.map((a) => <tr key={a.id}><td>{platformLabels[a.platform] ?? a.platform} · {a.name} ({a.currency})</td><td><Tx>{a.mode === "api" ? "مزامنة تلقائية" : "استيراد CSV"}</Tx></td><td>{a.last_sync_at ? formatDateTime(a.last_sync_at) : "—"}</td><td className="bos-danger" style={{ fontSize: 12 }}>{a.last_error ?? ""}</td></tr>)}</tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );
@@ -163,7 +156,7 @@ async function Organic({ bos, from, to }: { bos: Awaited<ReturnType<typeof requi
       </div>
       <Card title="منشورات عليها إعلانات (علاقة فعلية)" flush>
         {r.linked.length ? (
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>المنشور</Tx></th><th><Tx>الإعلان</Tx></th><th><Tx>عضوي: ظهور / إعجابات</Tx></th><th><Tx>مدفوع: إنفاق / ظهور / نقرات</Tx></th></tr></thead>
             <tbody>
               {r.linked.map((l) => (
@@ -175,7 +168,7 @@ async function Organic({ bos, from, to }: { bos: Awaited<ReturnType<typeof requi
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <p className="bos-hint" style={{ padding: 12 }}><Tx>لا توجد إعلانات تروّج لمنشورات منشورة من النظام (يُربط الإعلان تلقائياً حين يستخدم منشور الصفحة نفسه).</Tx></p>}
       </Card>
     </>

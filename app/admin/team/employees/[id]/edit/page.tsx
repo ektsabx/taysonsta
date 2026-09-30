@@ -37,7 +37,7 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
   const canSensitive = can(bos, "employees.view_sensitive");
   return (
     <>
-      <PageHeader title={<Tx vars={{ full_name: emp.full_name }}>{"تعديل: {full_name}"}</Tx>} breadcrumbs={[{ label: "الموظفون", href: "/admin/team/employees" }, { label: emp.full_name, href: `/admin/team/employees/${id}` }, { label: "تعديل" }]} />
+      <PageHeader title={<Tx vars={{ full_name: emp.full_name }}>{"تعديل: {full_name}"}</Tx>} />
       <EmployeeForm
         action={updateEmployeeAction.bind(null, id)}
         initial={{ ...emp, hourly_cost: canSensitive ? emp.hourly_cost : null, role_ids: emp.roles.map((r) => r.id) }}

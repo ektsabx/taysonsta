@@ -33,7 +33,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Sea
     <>
       <PageHeader
         title="الفواتير"
-        breadcrumbs={[{ label: "المالية" }, { label: "الفواتير" }]}
+       
         actions={
           <>
             {can(bos, "payments.create") ? <Link href="/admin/finance/payments/new" className="admin-btn small secondary"><Tx>تسجيل دفعة</Tx></Link> : null}
@@ -75,7 +75,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Sea
               client: client ? <Link href={`/admin/clients/${i.client_id}`}>{client.company_name ?? client.name}</Link> : "—",
               project: (i.projects as unknown as { name: string } | null)?.name ?? "—",
               issue: formatDate(i.issue_date),
-              due: <span style={overdue || i.status === "overdue" ? { color: "#f87171" } : undefined}>{formatDate(i.due_date)}</span>,
+              due: <span style={overdue || i.status === "overdue" ? { color: "var(--bos-danger)" } : undefined}>{formatDate(i.due_date)}</span>,
               total: <Money value={i.total} currency={i.currency} />,
               paid: <Money value={Number(i.amount_paid) - Number(i.amount_refunded)} currency={i.currency} />,
               balance: <Money value={i.balance} currency={i.currency} />,

@@ -51,7 +51,7 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
       <PageHeader
         title={<span dir="ltr">{d.asset_id}</span>}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><StatusBadge map="device_type" value={d.type} /><StatusBadge map="device_status" value={d.status} /><StatusBadge map="device_security_status" value={d.security_status} /><Tx>{d.model ?? ""}</Tx></span>}
-        breadcrumbs={[{ label: "الفريق" }, { label: "الأجهزة", href: "/admin/team/devices" }, { label: d.asset_id }]}
+       
         actions={
           <>
             {canEdit && d.status === "purchased" ? <MarkAvailable id={id} /> : null}

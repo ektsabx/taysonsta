@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -31,7 +32,7 @@ export default async function SocialPostPage({ params }: { params: Promise<{ id:
   const canEdit = can(bos, "social.update") && EDITABLE.includes(post.status);
   return (
     <>
-      <PageHeader title={`${post.number} · ${post.title}`} breadcrumbs={[{ label: "التسويق" }, { label: "المنشورات", href: "/admin/social/posts" }, { label: post.number }]} />
+      <PageHeader title={`${post.number} · ${post.title}`} />
       <Card title={<span className="bos-row" style={{ gap: 8 }}><Tx>الحالة</Tx><StatusBadge tone={postStatus[post.status]?.tone ?? "neutral"} label={postStatus[post.status]?.label ?? post.status} /></span>}>
         <KeyValues items={[
           { label: "المسؤول", value: post.owner_id ? names.get(post.owner_id) ?? "—" : "—" },
@@ -44,7 +45,7 @@ export default async function SocialPostPage({ params }: { params: Promise<{ id:
         {can(bos, "social.update") ? <div style={{ marginTop: 10 }}><PostWorkflow id={post.id} status={post.status} canApprove={can(bos, "social.approve")} reviewers={staff.map((s) => ({ value: s.userId, label: s.name }))} /></div> : null}
       </Card>
       <Card title="المنصات" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <thead><tr><th><Tx>المنصة</Tx></th><th><Tx>النص النهائي</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الأرقام</Tx></th><th /></tr></thead>
           <tbody>
             {targets.map((t) => {
@@ -82,7 +83,7 @@ export default async function SocialPostPage({ params }: { params: Promise<{ id:
               );
             })}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
       {media.length ? <Card title="الوسائط"><div className="bos-row" style={{ gap: 8, flexWrap: "wrap" }}>{media.map((m) => m.type === "image" ? <a key={m.url} href={m.url} target="_blank" rel="noreferrer"><img src={m.url} alt={m.alt ?? ""} style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }} /></a> : <a key={m.url} href={m.url} target="_blank" rel="noreferrer" dir="ltr">{m.url}</a>)}</div></Card> : null}
       {canEdit ? (

@@ -193,7 +193,7 @@ export function FileRowActions({
           <div className="bos-menu-sep" />
           <button
             type="button"
-            style={{ color: "#f87171" }}
+            style={{ color: "var(--bos-danger)" }}
             onClick={() => {
               if (window.confirm(`حذف "${name}"؟ يمكن للمسؤول استعادته لاحقاً.`)) run(() => deleteFileAction(fileId));
             }}

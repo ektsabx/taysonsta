@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -9,8 +10,6 @@ import { listBonuses } from "@/services/bos/hr/requests";
 import { listCurrencies, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Money, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { BonusButton, CancelBonusButton } from "../../HrControls";
@@ -32,12 +31,11 @@ export default async function BonusesPage({ searchParams }: { searchParams: Sear
   const empOptions = (employees ?? []).map((e) => ({ value: e.id, label: e.full_name }));
   return (
     <>
-      <PageHeader title="المكافآت" breadcrumbs={[{ label: "الرواتب", href: "/admin/team/payroll" }, { label: "المكافآت" }]} actions={canRequest && empOptions.length ? <BonusButton employees={empOptions} currencies={currencies} defaultPeriod={today.slice(0, 7)} /> : null} />
-      <SubNav items={hrSection(bos, "payroll")} active="bonuses" label="الرواتب" />
+      <PageHeader title="المكافآت" actions={canRequest && empOptions.length ? <BonusButton employees={empOptions} currencies={currencies} defaultPeriod={today.slice(0, 7)} /> : null} />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("bonus_status") }, ...(empOptions.length ? [{ key: "employee", label: "الموظف", type: "select" as const, options: empOptions }] : [])]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>البيان</Tx></th><th><Tx>النوع</Tx></th><th><Tx>شهر الصرف</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>طلبها</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((b) => {
@@ -56,7 +54,7 @@ export default async function BonusesPage({ searchParams }: { searchParams: Sear
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مكافآت" />}
       </Card>
     </>

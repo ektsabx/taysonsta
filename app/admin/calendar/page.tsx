@@ -107,7 +107,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Sea
       <PageHeader
         title="التقويم"
         subtitle={`${formatDate(from)} → ${formatDate(to)}`}
-        breadcrumbs={[{ label: "التقويم" }]}
+       
         actions={
           <span className="bos-row" style={{ gap: 6 }}>
             <Link className="admin-btn small ghost" href={qs({ date: prev })}><Tx>السابق</Tx></Link>

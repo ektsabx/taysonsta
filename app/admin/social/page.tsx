@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -7,8 +8,6 @@ import { listAccounts, socialAnalytics } from "@/services/bos/social";
 import { metricDefs, platforms, platformKeys, type MetricKey, type Platform } from "@/lib/bos/social/platforms";
 import { PageHeader, Card, KpiCard, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { socialNav } from "./social-nav";
 
 const cols: MetricKey[] = ["views", "reach", "impressions", "likes", "comments", "shares", "saves", "clicks"];
 const fmt = (n: number | undefined) => (n == null ? null : n.toLocaleString("en-US"));
@@ -47,8 +46,7 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
   const accName = new Map(accounts.map((x) => [x.id, x.name]));
   return (
     <>
-      <PageHeader title="التواصل الاجتماعي" subtitle="الأرقام كما تعرضها كل منصة — مع مصدرها ووقت آخر تحديث" breadcrumbs={[{ label: "التسويق" }, { label: "التحليلات" }]} />
-      <SubNav items={socialNav(bos)} active="overview" label="التواصل الاجتماعي" />
+      <PageHeader title="التواصل الاجتماعي" subtitle="الأرقام كما تعرضها كل منصة — مع مصدرها ووقت آخر تحديث" />
       <FilterBar filters={[
         { key: "period", label: "الفترة", type: "select", options: [{ value: "today", label: "اليوم" }, { value: "week", label: "آخر 7 أيام" }, { value: "month", label: "آخر 30 يوماً" }, { value: "custom", label: "مخصص" }, { value: "all", label: "الكل" }] },
         { key: "from", label: "من", type: "date" },
@@ -65,7 +63,7 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
       <Card title="مقارنة المنصات" flush>
         {a.platforms.length ? (
           <div style={{ overflowX: "auto" }}>
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>المنصة</Tx></th><th><Tx>منشورات</Tx></th>{cols.map((c) => <th key={c} title={metricDefs[c].definition}><Tx>{metricDefs[c].label}</Tx></th>)}<th><Tx>معدل التفاعل</Tx></th></tr></thead>
               <tbody>
                 {a.platforms.map((p) => (
@@ -77,7 +75,7 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد منشورات منشورة في هذه الفترة" />}
         <p className="bos-hint" style={{ padding: "8px 14px" }}><Tx>معدل التفاعل = (إعجابات + تعليقات + مشاركات + حفظ) ÷ الوصول (أو مرات الظهور/المشاهدات إن لم يتوفر الوصول). تعريفات المقاييس تختلف بين المنصات — مرّر المؤشر على اسم المقياس.</Tx></p>
@@ -85,7 +83,7 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
       <Card title="أداء المنشورات" flush>
         {a.posts.length ? (
           <div style={{ overflowX: "auto" }}>
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>المنشور</Tx></th><th><Tx>المنصة</Tx></th><th><Tx>النشر</Tx></th>{(["reach", "views", "likes", "comments", "shares"] as MetricKey[]).map((c) => <th key={c}><Tx>{metricDefs[c].label}</Tx></th>)}<th><Tx>التفاعل</Tx></th><th><Tx>المصدر / آخر تحديث</Tx></th></tr></thead>
               <tbody>
                 {a.posts.slice(0, 50).map((p) => (
@@ -99,16 +97,16 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد بيانات" />}
       </Card>
       {a.followers.length ? (
         <Card title="نمو المتابعين" flush>
-          <table className="bos-table">
+          <BosTable className="bos-table">
             <thead><tr><th><Tx>الحساب</Tx></th><th><Tx>بداية الفترة</Tx></th><th><Tx>نهاية الفترة</Tx></th><th><Tx>التغيّر</Tx></th></tr></thead>
             <tbody>{a.followers.map((f) => <tr key={f.account_id}><td>{accName.get(f.account_id) ?? "—"}</td><td className="bos-num">{fmt(f.first)}</td><td className="bos-num">{fmt(f.last)}</td><td className="bos-num">{f.change >= 0 ? "+" : ""}{fmt(f.change)}</td></tr>)}</tbody>
-          </table>
+          </BosTable>
         </Card>
       ) : null}
     </>

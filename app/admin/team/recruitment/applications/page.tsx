@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -5,8 +6,6 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { listApplications, listJobs } from "@/services/bos/hr/recruitment";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { ManualApplicationButton } from "../RecruitmentControls";
@@ -19,8 +18,7 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
   const canCreate = bos.permissions.get("recruitment.create") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="طلبات التوظيف" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} طلب"}</Tx>} breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "الطلبات" }]} actions={canCreate ? <ManualApplicationButton jobs={jobs.map((j) => ({ value: j.id, label: j.title }))} /> : null} />
-      <SubNav items={hrSection(bos, "recruitment")} active="applications" label="التوظيف" />
+      <PageHeader title="طلبات التوظيف" subtitle={<Tx vars={{ rows_count: rows.length }}>{"{rows_count} طلب"}</Tx>} actions={canCreate ? <ManualApplicationButton jobs={jobs.map((j) => ({ value: j.id, label: j.title }))} /> : null} />
       <FilterBar searchPlaceholder="بحث بالاسم أو البريد أو الهاتف..." filters={[
         { key: "job", label: "الوظيفة", type: "select", options: jobs.map((j) => ({ value: j.id, label: j.title })) },
         { key: "stage", label: "المرحلة", type: "select", options: statusOptions("application_status") },
@@ -28,7 +26,7 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
       ]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>المرشح</Tx></th><th><Tx>الوظيفة</Tx></th><th><Tx>الدولة</Tx></th><th><Tx>الخبرة</Tx></th><th><Tx>المصدر</Tx></th><th><Tx>المرحلة</Tx></th><th><Tx>التقييم</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
             <tbody>
               {rows.map((a) => (
@@ -44,7 +42,7 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد طلبات" />}
       </Card>
     </>

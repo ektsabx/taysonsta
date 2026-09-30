@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { RecordDocuments } from "@/components/bos/RecordDocuments";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -122,7 +123,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             {project.health_reason ? <span className="bos-faint"><Tx>{project.health_reason}</Tx></span> : null}
           </span>
         }
-        breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: project.project_number }]}
+       
         actions={
           <>
             {can(bos, "chat.create") ? <ActionButton label="مناقشة داخلية" className="admin-btn small secondary" action={discussAction.bind(null, "project", id)} /> : null}
@@ -186,7 +187,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
               {blockers.length ? (
                 <ul style={{ paddingInlineStart: 18, fontSize: 13, lineHeight: 1.9 }}>
                   {blockers.map((b) => (
-                    <li key={b} style={{ color: "#fca5a5" }}><Tx>{blockerLabels[b] ?? b}</Tx></li>
+                    <li key={b} style={{ color: "var(--bos-danger)" }}><Tx>{blockerLabels[b] ?? b}</Tx></li>
                   ))}
                 </ul>
               ) : (
@@ -223,7 +224,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
       {tab === "milestones" ? (
         <Card title="المراحل" actions={can(bos, "milestones.create") && canUpdate ? <MilestoneFormButton projectId={id} staff={staffOptions} /> : null}>
           {milestones?.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead>
                 <tr><th><Tx>المرحلة</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>المسؤول</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>موافقة العميل</Tx></th><th><Tx>الحالة</Tx></th><th /></tr>
               </thead>
@@ -231,7 +232,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 {milestones.map((m) => (
                   <tr key={m.id}>
                     <td className="cell-primary cell-primary-mobile" data-label="المرحلة">{m.name}{m.deliverables ? <span className="cell-sub"><Tx>{m.deliverables}</Tx></span> : null}</td>
-                    <td data-label="الاستحقاق" style={m.status !== "completed" && m.due_date && m.due_date < today ? { color: "#f87171" } : undefined}>{formatDate(m.due_date)}</td>
+                    <td data-label="الاستحقاق" style={m.status !== "completed" && m.due_date && m.due_date < today ? { color: "var(--bos-danger)" } : undefined}>{formatDate(m.due_date)}</td>
                     <td data-label="المسؤول">{m.owner_id ? names.get(m.owner_id) : "—"}</td>
                     <td data-label="التقدم" style={{ minWidth: 110 }}><ProgressBar value={m.progress} /></td>
                     <td data-label="موافقة العميل">{m.requires_client_approval ? <StatusBadge map="simple_approval" value={m.approval_status === "not_required" ? "pending" : m.approval_status} /> : "—"}</td>
@@ -240,7 +241,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد مراحل" />
           )}
@@ -256,20 +257,20 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             return (
               <div key={m.id} style={{ marginTop: 14 }}>
                 <div className="bos-faint" style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{m.name}</div>
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <tbody>
                     {list.map((t) => (
                       <tr key={t.id}>
                         <td className="cell-primary cell-primary-mobile" data-label="المهمة"><Link href={`/admin/projects/tasks/${t.id}`}><Tx>{t.title}</Tx></Link>{t.is_required ? null : <span className="cell-sub"><Tx>اختيارية</Tx></span>}</td>
                         <td data-label="المسؤول">{t.assigned_to ? names.get(t.assigned_to) : <span className="bos-faint"><Tx>غير معيّن</Tx></span>}</td>
-                        <td data-label="الاستحقاق" style={t.status === "overdue" ? { color: "#f87171" } : undefined}>{formatDate(t.due_date)}</td>
+                        <td data-label="الاستحقاق" style={t.status === "overdue" ? { color: "var(--bos-danger)" } : undefined}>{formatDate(t.due_date)}</td>
                         <td data-label="الوقت" className="bos-num">{formatMinutes(t.actual_minutes)} / {t.estimated_minutes ? formatMinutes(t.estimated_minutes) : "—"}</td>
                         <td data-label="الأولوية"><StatusBadge map="priority" value={t.priority} /></td>
                         <td data-label="الحالة">{can(bos, "tasks.update") ? <TaskStatusSelect id={t.id} status={t.status} /> : <StatusBadge map="task_status" value={t.status} />}</td>
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               </div>
             );
           })}
@@ -279,7 +280,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
 
       {tab === "team" ? (
         <Card title="الفريق" actions={can(bos, "projects.manage") && canUpdate ? <AddMemberButton projectId={id} staff={staffOptions} /> : null}>
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>العضو</Tx></th><th><Tx>الدور</Tx></th><th><Tx>التخصيص</Tx></th><th><Tx>المهام المفتوحة</Tx></th><th /></tr></thead>
             <tbody>
               {(members ?? []).map((m) => (
@@ -292,7 +293,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         </Card>
       ) : null}
 
@@ -305,10 +306,10 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
       {tab === "client" ? (
         <Card title="النشر (يظهر للعميل في البوابة)" actions={canUpdate ? <DeploymentButton projectId={id} /> : null}>
           {(deployments ?? []).length ? (
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <thead><tr><th><Tx>البيئة</Tx></th><th><Tx>الإصدار</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>للعميل</Tx></th><th /></tr></thead>
               <tbody>{(deployments ?? []).map((d) => <tr key={d.id}><td>{d.environment}</td><td dir="ltr">{d.version ?? "—"}{d.url ? <> · <a href={d.url} target="_blank" rel="noreferrer">↗</a></> : null}</td><td><Tx>{({ planned: "مخطط", in_progress: "جارٍ النشر", deployed: "منشور", failed: "فشل", rolled_back: "تم التراجع" } as Record<string, string>)[d.status] ?? d.status}</Tx></td><td>{formatDateTime(d.deployed_at ?? d.scheduled_at)}</td><td>{d.client_visible ? "✓" : "—"}</td><td>{canUpdate ? <DeploymentButton projectId={id} dep={d} /> : null}</td></tr>)}</tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد عمليات نشر" />}
         </Card>
       ) : null}
@@ -356,7 +357,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
       {tab === "issues" ? (
         <Card title="المشكلات" actions={can(bos, "issues.create") ? <IssueFormButton projectId={id} staff={staffOptions} /> : null}>
           {issues?.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>المشكلة</Tx></th><th><Tx>الخطورة</Tx></th><th><Tx>المسؤول</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
               <tbody>
                 {issues.map((i) => (
@@ -369,7 +370,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد مشكلات" />
           )}
@@ -379,7 +380,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
       {tab === "change_requests" ? (
         <Card title="طلبات التغيير" actions={can(bos, "change_requests.create") ? <ChangeRequestButton projectId={id} currencies={await listCurrencies()} defaultCurrency={project.currency} contacts={contact ? [{ value: contact.id, label: contact.full_name }] : []} /> : null}>
           {crs?.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الطلب</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>أيام</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
               <tbody>
                 {crs.map((c) => (
@@ -392,7 +393,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <EmptyState title="لا توجد طلبات تغيير" description="أي عمل خارج النطاق الأصلي يُسجل كطلب تغيير ليُحدّث الميزانية والجدول عند الموافقة." />
           )}
@@ -403,7 +404,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
         <div className="bos-grid main-side">
           <Card title="سجل الوقت">
             {timeEntries?.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>المهمة</Tx></th><th><Tx>البداية</Tx></th><th><Tx>المدة</Tx></th>{sensitive ? <th><Tx>التكلفة</Tx></th> : null}</tr></thead>
                 <tbody>
                   {timeEntries.map((t) => (
@@ -416,7 +417,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : (
               <EmptyState title="لا يوجد وقت مسجل" />
             )}
@@ -444,7 +445,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
           <div>
             <Card title="جدول الدفعات">
               {schedules?.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead><tr><th><Tx>الدفعة</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
                   <tbody>
                     {schedules.map((s) => (
@@ -456,14 +457,14 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint"><Tx>لا يوجد جدول دفعات.</Tx></div>
               )}
             </Card>
             <Card title="الفواتير">
               {invoices?.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <thead><tr><th><Tx>الفاتورة</Tx></th><th><Tx>الإجمالي</Tx></th><th><Tx>المتبقي</Tx></th><th><Tx>الاستحقاق</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
                   <tbody>
                     {invoices.map((i) => (
@@ -476,7 +477,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint"><Tx>لا توجد فواتير.</Tx></div>
               )}
@@ -484,7 +485,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             {sensitive ? (
               <Card title="المصروفات" actions={can(bos, "expenses.create") ? <Link href={`/admin/finance/expenses/new?projectId=${id}`} className="admin-btn small ghost"><Tx>+ مصروف</Tx></Link> : null}>
                 {expenses?.length ? (
-                  <table className="bos-table responsive">
+                  <BosTable className="bos-table responsive">
                     <tbody>
                       {expenses.map((e) => (
                         <tr key={e.id}>
@@ -495,7 +496,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </BosTable>
                 ) : (
                   <div className="bos-faint"><Tx>لا توجد مصروفات.</Tx></div>
                 )}
@@ -503,8 +504,8 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             ) : null}
           </div>
           {sensitive && fin ? (
-            <Card title="ربحية المشروع (§52)">
-              <table className="bos-table">
+            <Card title="ربحية المشروع">
+              <BosTable className="bos-table">
                 <tbody>
                   <tr><td>الإيراد ({fin.revenue_basis === "invoiced" ? "مفوتر" : "محصّل"})</td><td className="bos-num" style={{ textAlign: "end" }}><Money value={fin.revenue} currency={project.currency} /></td></tr>
                   <tr><td><Tx vars={{ v: String(fin.hours) }}>{"− تكلفة الموظفين ({v} ساعة)"}</Tx></td><td style={{ textAlign: "end" }}><Money value={fin.employee_cost} currency={project.currency} /></td></tr>
@@ -516,7 +517,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   <tr><td style={{ fontWeight: 800 }}><Tx>= إجمالي ربح المشروع</Tx></td><td style={{ textAlign: "end", fontWeight: 800 }}><Money value={fin.profit} currency={project.currency} /></td></tr>
                   <tr><td><Tx>هامش الربح</Tx></td><td style={{ textAlign: "end" }}>{fin.margin === null ? "—" : `${fin.margin}%`}</td></tr>
                 </tbody>
-              </table>
+              </BosTable>
             </Card>
           ) : null}
         </div>

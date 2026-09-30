@@ -27,7 +27,7 @@ export default async function EmployeeOnboardingPage({ params }: { params: Promi
       <PageHeader
         title={<Tx vars={{ full_name: emp.full_name }}>{"تهيئة: {full_name}"}</Tx>}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><StatusBadge map="employee_lifecycle_status" value={emp.lifecycle_status} />{emp.position ?? ""}</span>}
-        breadcrumbs={[{ label: "الفريق" }, { label: "التهيئة", href: "/admin/team/onboarding" }, { label: emp.full_name }]}
+       
         actions={
           <>
             <RefreshOnboardingButton employeeId={employeeId} />

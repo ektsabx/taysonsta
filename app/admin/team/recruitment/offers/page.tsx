@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { listOffers } from "@/services/bos/hr/recruitment";
 import { listDocuments, listTemplates } from "@/services/bos/documents";
 import { PageHeader, Card, EmptyState, Money, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { GenerateDocumentButton } from "@/app/admin/documents/DocumentControls";
@@ -26,12 +25,11 @@ export default async function OffersPage({ searchParams }: { searchParams: Searc
   const tplOpts = templates.map((t) => ({ id: t.id, name: t.name, language: t.language, doc_type: t.doc_type }));
   return (
     <>
-      <PageHeader title="عروض العمل" breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "العروض" }]} />
-      <SubNav items={hrSection(bos, "recruitment")} active="offers" label="التوظيف" />
+      <PageHeader title="عروض العمل" />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("offer_status") }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>العرض</Tx></th><th><Tx>المرشح</Tx></th><th><Tx>الوظيفة</Tx></th><th><Tx>الراتب</Tx></th><th><Tx>البدء</Tx></th><th><Tx>صالح حتى</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المستندات</Tx></th></tr></thead>
             <tbody>
               {rows.map((o) => {
@@ -56,7 +54,7 @@ export default async function OffersPage({ searchParams }: { searchParams: Searc
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد عروض" />}
       </Card>
     </>

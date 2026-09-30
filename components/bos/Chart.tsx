@@ -1,8 +1,8 @@
-import { Tx } from "@/components/bos/I18n";
+import { SvgTitle, Tx } from "@/components/bos/I18n";
 // Lightweight SVG charts (server-rendered, no chart library). Colors come
-// from a fixed categorical palette tuned for the dark admin theme.
+// from the theme/brand tokens, then a fixed categorical palette.
 
-const palette = ["#e51f26", "#60a5fa", "#4ade80", "#facc15", "#c4b5fd", "#fb923c", "#2dd4bf", "#f472b6"];
+const palette = ["var(--bos-accent)", "var(--bos-secondary)", "var(--bos-success)", "var(--bos-warning)", "var(--bos-violet)", "#fb923c", "#2dd4bf", "#f472b6"];
 
 export interface Series {
   name: string;
@@ -62,11 +62,11 @@ export function BarChart({ labels, series, height = 200, stacked = false }: { la
                 const color = se.color ?? palette[si % palette.length];
                 if (stacked) {
                   stackY -= h;
-                  return <rect key={se.name} x={x0 + (groupW - barW) / 2} y={stackY} width={barW} height={Math.max(0, h)} fill={color} rx={2}><title><Tx>{se.name}</Tx>{`: ${v}`}</title></rect>;
+                  return <rect key={se.name} x={x0 + (groupW - barW) / 2} y={stackY} width={barW} height={Math.max(0, h)} style={{ fill: color }} rx={2}><SvgTitle parts={[se.name]} suffix={`: ${v}`} /></rect>;
                 }
                 return (
-                  <rect key={se.name} x={x0 + groupW * 0.15 + barW * si} y={pad.top + innerH - h} width={barW - 2} height={Math.max(0, h)} fill={color} rx={2}>
-                    <title><Tx>{label}</Tx>{" · "}<Tx>{se.name}</Tx>{`: ${v}`}</title>
+                  <rect key={se.name} x={x0 + groupW * 0.15 + barW * si} y={pad.top + innerH - h} width={barW - 2} height={Math.max(0, h)} style={{ fill: color }} rx={2}>
+                    <SvgTitle parts={[label, se.name]} suffix={`: ${v}`} />
                   </rect>
                 );
               })}
@@ -117,12 +117,12 @@ export function LineChart({ labels, series, height = 200 }: { labels: string[]; 
         </g>
         {series.map((s, si) => (
           <g key={s.name}>
-            <polyline fill="none" stroke={s.color ?? palette[si % palette.length]} strokeWidth={2} points={s.values.map((v, i) => point(v, i)).join(" ")} />
+            <polyline fill="none" style={{ stroke: s.color ?? palette[si % palette.length] }} strokeWidth={2} points={s.values.map((v, i) => point(v, i)).join(" ")} />
             {s.values.map((v, i) => {
               const [cx, cy] = point(v, i).split(",");
               return (
-                <circle key={i} cx={cx} cy={cy} r={2.5} fill={s.color ?? palette[si % palette.length]}>
-                  <title><Tx>{labels[i]}</Tx>{" · "}<Tx>{s.name}</Tx>{`: ${v}`}</title>
+                <circle key={i} cx={cx} cy={cy} r={2.5} style={{ fill: s.color ?? palette[si % palette.length] }}>
+                  <SvgTitle parts={[labels[i], s.name]} suffix={`: ${v}`} />
                 </circle>
               );
             })}

@@ -26,7 +26,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
   const result = await listPayments(bos, scope, { ...params, page: pageOf(params) });
   return (
     <>
-      <PageHeader title="المدفوعات" breadcrumbs={[{ label: "المالية" }, { label: "المدفوعات" }]} actions={can(bos, "payments.create") ? <Link href="/admin/finance/payments/new" className="admin-btn small"><Tx>+ تسجيل دفعة</Tx></Link> : null} />
+      <PageHeader title="المدفوعات" actions={can(bos, "payments.create") ? <Link href="/admin/finance/payments/new" className="admin-btn small"><Tx>+ تسجيل دفعة</Tx></Link> : null} />
       <FilterBar
         searchPlaceholder="رقم الدفعة أو المرجع..."
         filters={[

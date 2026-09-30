@@ -20,7 +20,7 @@ export function TaskForm({
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   staff: { value: string; label: string }[];
   milestonesByProject: Record<string, { value: string; label: string }[]>;
-  initial?: { title?: string; description?: string | null; assigned_to?: string | null; milestone_id?: string | null; priority?: string; due_date?: string | null; start_date?: string | null; estimated_hours?: string; is_required?: boolean };
+  initial?: { title?: string; description?: string | null; assigned_to?: string | null; milestone_id?: string | null; priority?: string; due_date?: string | null; start_date?: string | null; estimated_hours?: string; is_required?: boolean; client_visible?: boolean };
   initialProject?: EntityOption | null;
   initialDeal?: EntityOption | null;
   hidden?: Record<string, string | null | undefined>;
@@ -50,6 +50,7 @@ export function TaskForm({
         <TextField name="due_date" label="تاريخ الاستحقاق" type="date" defaultValue={initial.due_date ?? ""} />
         <TextField name="estimated_hours" label="الوقت المقدر (ساعات)" inputMode="decimal" defaultValue={initial.estimated_hours ?? ""} />
         <CheckboxField name="is_required" label="مطلوبة لإكمال المشروع" defaultChecked={initial.is_required ?? true} />
+        <CheckboxField name="client_visible" label="تظهر للعميل في بوابة العملاء" defaultChecked={initial.client_visible ?? false} />
         <TextAreaField name="description" label="الوصف" defaultValue={initial.description ?? ""} />
       </FormSection>
       <div className="bos-form-actions">

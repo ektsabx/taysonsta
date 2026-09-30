@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requireBosUser } from "@/lib/bos/auth";
@@ -18,7 +19,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Se
   const current = sp.t && /^[0-9a-f-]{36}$/i.test(sp.t) ? await getThread(bos, sp.t).catch(() => null) : null;
   return (
     <>
-      <PageHeader title="المساعد الذكي" subtitle="يجيب من بيانات النظام المسموح لك بها فقط — مع المصدر ووقت التحديث" breadcrumbs={[{ label: "المساعد الذكي" }]} actions={current ? <Link className="admin-btn small ghost" href="/admin/assistant"><Tx>محادثة جديدة</Tx></Link> : null} />
+      <PageHeader title="المساعد الذكي" subtitle="يجيب من بيانات النظام المسموح لك بها فقط — مع المصدر ووقت التحديث" actions={current ? <Link className="admin-btn small ghost" href="/admin/assistant"><Tx>محادثة جديدة</Tx></Link> : null} />
       {!ai ? <Card><p className="bos-hint" style={{ margin: 0 }}><Tx>لا يوجد مزود ذكاء اصطناعي متصل — سيعرض المساعد البيانات المطابقة لسؤالك مباشرة دون تحليل. أضف مفتاحاً من مركز التكاملات للإجابات التحليلية.</Tx></p></Card> : null}
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "minmax(0, 1fr) 260px" }} className="bos-assistant">
         <div className="bos-stack" style={{ gap: 12 }}>
@@ -52,7 +53,7 @@ function AnswerCard({ answer, tools, at }: { answer: AssistantAnswer; tools: Too
         <details key={t.tool} style={{ marginTop: 8 }}>
           <summary style={{ fontSize: 12.5 }}><Tx>{t.title}</Tx> · <span className="bos-faint"><Tx>المصدر</Tx>: <Tx>{t.source}</Tx> · <Tx>آخر تحديث</Tx>: {formatDateTime(t.updatedAt)} · {t.rows.length}</span></summary>
           {t.rows.length ? (
-            <table className="bos-table" style={{ fontSize: 12.5 }}><tbody>{t.rows.slice(0, 30).map((r, i) => <tr key={i}><td>{r.href ? <Link href={r.href}>{r.label}</Link> : r.label}</td><td className="bos-faint">{t.tool === "knowledge" ? (r.detail ?? "").slice(0, 160) + "…" : r.detail ?? ""}</td><td className="bos-num">{r.value ?? ""}</td></tr>)}</tbody></table>
+            <BosTable className="bos-table" style={{ fontSize: 12.5 }}><tbody>{t.rows.slice(0, 30).map((r, i) => <tr key={i}><td>{r.href ? <Link href={r.href}>{r.label}</Link> : r.label}</td><td className="bos-faint">{t.tool === "knowledge" ? (r.detail ?? "").slice(0, 160) + "…" : r.detail ?? ""}</td><td className="bos-num">{r.value ?? ""}</td></tr>)}</tbody></BosTable>
           ) : <p className="bos-hint"><Tx>لا توجد بيانات.</Tx></p>}
         </details>
       ))}

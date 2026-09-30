@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { listInterviews } from "@/services/bos/hr/recruitment";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDateTime } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 
@@ -19,12 +18,11 @@ export default async function InterviewsPage({ searchParams }: { searchParams: S
   const [rows, names] = await Promise.all([listInterviews({ from: sp.from, to: sp.to, status: sp.status, interviewer: sp.mine === "1" ? bos.userId : undefined }), userNameMap()]);
   return (
     <>
-      <PageHeader title="المقابلات" breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "المقابلات" }]} actions={<Link className="admin-btn small ghost" href="/admin/calendar"><Tx>التقويم</Tx></Link>} />
-      <SubNav items={hrSection(bos, "recruitment")} active="interviews" label="التوظيف" />
+      <PageHeader title="المقابلات" actions={<Link className="admin-btn small ghost" href="/admin/calendar"><Tx>التقويم</Tx></Link>} />
       <FilterBar filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("interview_status") }, { key: "mine", label: "المُقابِل", type: "select", options: [{ value: "1", label: "مقابلاتي" }] }, { key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموعد</Tx></th><th><Tx>المرشح</Tx></th><th><Tx>الوظيفة</Tx></th><th><Tx>الجولة</Tx></th><th><Tx>المُقابِل</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>النتيجة</Tx></th><th><Tx>التقييمات</Tx></th></tr></thead>
             <tbody>
               {rows.map((i) => {
@@ -44,7 +42,7 @@ export default async function InterviewsPage({ searchParams }: { searchParams: S
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مقابلات" />}
       </Card>
     </>

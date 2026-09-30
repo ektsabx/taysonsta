@@ -11,7 +11,7 @@ export default async function NewFeaturePage({ searchParams }: { searchParams: S
   const [currencies, client] = await Promise.all([listCurrencies(), sp.clientId ? db().from("clients").select("id, name, company_name").eq("id", sp.clientId).maybeSingle().then((r) => r.data) : Promise.resolve(null)]);
   return (
     <>
-      <PageHeader title="طلب ميزة جديد" breadcrumbs={[{ label: "الدعم" }, { label: "طلبات الميزات", href: "/admin/support/feature-requests" }, { label: "جديد" }]} />
+      <PageHeader title="طلب ميزة جديد" />
       <Card><FeatureForm currencies={currencies} clientInit={client ? { id: client.id, label: client.company_name ?? client.name } : null} /></Card>
     </>
   );

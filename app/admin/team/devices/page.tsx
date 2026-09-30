@@ -1,8 +1,7 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs, nowIso } from "@/lib/bos/clock";
 import Link from "next/link";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { listDevices } from "@/services/bos/devices";
@@ -20,8 +19,7 @@ export default async function DevicesPage({ searchParams }: { searchParams: Sear
   const staleCheck = nowMs() - 90 * 86400_000;
   return (
     <>
-      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} breadcrumbs={[{ label: "الفريق" }, { label: "الأجهزة" }]} actions={all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null} />
-      <SubNav items={hrSection(bos, "it")} active="devices" label="الأجهزة والصلاحيات" />
+      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} actions={all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null} />
       {all ? (
         <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 14 }}>
           <KpiCard label="مسلّمة" value={rows.filter((d) => d.status === "assigned").length} href="/admin/team/devices?status=assigned" />
@@ -45,7 +43,7 @@ export default async function DevicesPage({ searchParams }: { searchParams: Sear
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll">
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الأصل</Tx></th><th><Tx>النوع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الموظف</Tx></th><th><Tx>الأمان</Tx></th><th><Tx>آخر فحص</Tx></th><th><Tx>الضمان</Tx></th><th><Tx>الاسترجاع</Tx></th></tr></thead>
               <tbody>
                 {rows.map((d) => (
@@ -56,12 +54,12 @@ export default async function DevicesPage({ searchParams }: { searchParams: Sear
                     <td data-label="الموظف">{(d.employees as { id: string; full_name: string } | null) ? <Link href={`/admin/team/employees/${(d.employees as { id: string }).id}?tab=devices`}>{(d.employees as { full_name: string }).full_name}</Link> : "—"}</td>
                     <td data-label="الأمان"><StatusBadge map="device_security_status" value={d.security_status} /></td>
                     <td data-label="آخر فحص">{formatDate(d.last_security_check_at)}</td>
-                    <td data-label="الضمان" style={d.warranty_until && d.warranty_until < nowIso().slice(0, 10) ? { color: "#f87171" } : undefined}>{formatDate(d.warranty_until)}</td>
+                    <td data-label="الضمان" style={d.warranty_until && d.warranty_until < nowIso().slice(0, 10) ? { color: "var(--bos-danger)" } : undefined}>{formatDate(d.warranty_until)}</td>
                     <td data-label="الاسترجاع">{d.return_status !== "not_applicable" ? <StatusBadge map="return_status" value={d.return_status} /> : "—"}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         ) : <EmptyState title="لا توجد أجهزة" />}
       </Card>

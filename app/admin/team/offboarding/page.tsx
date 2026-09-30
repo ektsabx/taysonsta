@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { peopleEmployeeIds } from "@/services/bos/team-scope";
 import { PageHeader, Card, EmptyState, KpiCard, ProgressBar, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { formatDate } from "@/lib/bos/format";
 import { statusLabel } from "@/lib/bos/labels";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 
 // Offboarding (docs/bos/28 §24): Resignation / Termination → checklist →
 // Terminated once every item incl. the final approval is complete.
@@ -18,8 +17,7 @@ export default async function OffboardingPage() {
   const open = rows.filter((r) => r.status === "in_progress");
   return (
     <>
-      <PageHeader title="إنهاء الخدمة" subtitle="الاستقالات وإنهاء الخدمة والتسويات" breadcrumbs={[{ label: "الفريق" }, { label: "إنهاء الخدمة" }]} />
-      <SubNav items={hrSection(bos, "employees")} active="offboarding" label="أقسام الموظفين" />
+      <PageHeader title="إنهاء الخدمة" subtitle="الاستقالات وإنهاء الخدمة والتسويات" />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 14 }}>
         <KpiCard label="قيد التنفيذ" value={open.length} />
         <KpiCard label="متأخرة" value={open.filter((r) => r.overdue).length} />
@@ -27,7 +25,7 @@ export default async function OffboardingPage() {
       </div>
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>النوع</Tx></th><th><Tx>آخر يوم</Tx></th><th><Tx>التقدم</Tx></th><th><Tx>الأقسام</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
             <tbody>
               {rows.map((r) => (
@@ -41,7 +39,7 @@ export default async function OffboardingPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد إجراءات إنهاء خدمة" description="يبدأ إنهاء الخدمة من صفحة الموظف (استقالة / إنهاء خدمة)." />}
       </Card>
     </>

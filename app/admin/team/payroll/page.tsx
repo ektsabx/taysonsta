@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -9,8 +10,6 @@ import { listRuns } from "@/services/bos/hr/payroll";
 import { listDepartments } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { NewRunButton } from "../HrControls";
@@ -29,9 +28,8 @@ export default async function PayrollRunsPage({ searchParams }: { searchParams: 
   const canEdit = bos.permissions.get("payroll.update") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="الرواتب" subtitle="دورات الرواتب الشهرية والتسويات — مرتبطة بالمالية" breadcrumbs={[{ label: "الفريق" }, { label: "الرواتب" }]}
+      <PageHeader title="الرواتب" subtitle="دورات الرواتب الشهرية والتسويات — مرتبطة بالمالية"
         actions={canEdit ? <NewRunButton departments={departments.map((d) => ({ value: d.id, label: d.name }))} employees={(employees ?? []).map((e) => ({ value: e.id, label: e.full_name }))} defaultPeriod={today.slice(0, 7)} /> : null} />
-      <SubNav items={hrSection(bos, "payroll")} active="runs" label="الرواتب" />
       <FilterBar filters={[
         { key: "status", label: "الحالة", type: "select", options: statusOptions("payroll_run_status") },
         { key: "type", label: "النوع", type: "select", options: statusOptions("payroll_run_type") },
@@ -39,7 +37,7 @@ export default async function PayrollRunsPage({ searchParams }: { searchParams: 
       ]} />
       <Card flush>
         {runs.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الدورة</Tx></th><th><Tx>الفترة</Tx></th><th><Tx>النوع</Tx></th><th><Tx>النطاق</Tx></th><th><Tx>الموظفون</Tx></th><th><Tx>الصافي</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>تاريخ الصرف</Tx></th></tr></thead>
             <tbody>
               {runs.map((r) => {
@@ -58,7 +56,7 @@ export default async function PayrollRunsPage({ searchParams }: { searchParams: 
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد دورات رواتب" description="أنشئ دورة شهرية لحساب الرواتب من البيانات الفعلية." />}
       </Card>
     </>

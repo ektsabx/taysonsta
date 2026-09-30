@@ -10,7 +10,7 @@ export default async function NewSocialPostPage({ searchParams }: { searchParams
   const accounts = (await listAccounts({ activeOnly: true })) as AccountOpt[];
   return (
     <>
-      <PageHeader title="منشور جديد" breadcrumbs={[{ label: "التسويق" }, { label: "المنشورات", href: "/admin/social/posts" }, { label: "جديد" }]} />
+      <PageHeader title="منشور جديد" />
       <Card><PostEditor accounts={accounts} initial={{ scheduled_at: sp.date ? `${sp.date}T09:00:00` : null }} /></Card>
     </>
   );

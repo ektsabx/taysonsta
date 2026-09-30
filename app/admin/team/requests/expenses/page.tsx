@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -9,8 +10,6 @@ import { listExpenseClaims } from "@/services/bos/hr/requests";
 import { listCurrencies, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Money, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { FileManager } from "@/components/bos/FileManager";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
@@ -39,9 +38,8 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
   };
   return (
     <>
-      <PageHeader title="المصروفات والاسترداد" subtitle="تظهر في المالية بعد الاعتماد" breadcrumbs={[{ label: "الفريق" }, { label: "الطلبات", href: "/admin/team/requests" }, { label: "المصروفات" }]}
+      <PageHeader title="المصروفات والاسترداد" subtitle="تظهر في المالية بعد الاعتماد"
         actions={<ExpenseClaimButton employees={[]} fixedEmployeeId={bos.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} projects={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))} label="تقديم مصروف" />} />
-      <SubNav items={hrSection(bos, "requests")} active="expenses" label="الطلبات" />
       <div className="bos-row" style={{ gap: 16, flexWrap: "wrap", fontSize: 13, marginBottom: 10 }}>
         <span><Tx>بانتظار الموافقة:</Tx> <strong>{total(rows.filter((r) => r.approval_status === "pending"))}</strong></span>
         <span><Tx>بانتظار الاسترداد:</Tx> <strong>{total(rows.filter((r) => r.reimbursement_status === "pending"))}</strong></span>
@@ -54,7 +52,7 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
       ) : null}
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>الوصف</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الموافقة</Tx></th><th><Tx>الاسترداد</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((e) => (
@@ -72,7 +70,7 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد مصروفات" />}
       </Card>
     </>

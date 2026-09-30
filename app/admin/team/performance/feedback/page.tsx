@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { db } from "@/lib/bos/db";
@@ -5,8 +6,6 @@ import { peopleScope } from "@/services/bos/team-scope";
 import { listCycles, listFeedback } from "@/services/bos/hr/performance";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge, UserAvatar } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { statusLabel } from "@/lib/bos/labels";
 import { AnswerFeedbackButton, RequestFeedbackButton } from "../../HrControls";
@@ -29,8 +28,7 @@ export default async function FeedbackPage() {
   const cycleOpts = cycles.map((c) => ({ value: c.id, label: c.name }));
   return (
     <>
-      <PageHeader title="تقييم 360" breadcrumbs={[{ label: "الفريق" }, { label: "الأداء", href: "/admin/team/performance" }, { label: "تقييم 360" }]} />
-      <SubNav items={hrSection(bos, "performance")} active="feedback" label="الأداء" />
+      <PageHeader title="تقييم 360" />
       <Card title="طلبات التقييم الموجهة لي">
         {toMe.length ? toMe.map((f) => (
           <div key={f.id} className="bos-row" style={{ justifyContent: "space-between", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--bos-border)", fontSize: 13 }}>
@@ -45,7 +43,7 @@ export default async function FeedbackPage() {
             {managedPeople.slice(0, 30).map((p) => <span key={p.value} className="bos-row" style={{ gap: 4 }}><span style={{ fontSize: 12.5 }}><Tx>{p.label}</Tx></span><RequestFeedbackButton subjectUserId={p.value} people={peopleOpts} cycles={cycleOpts} /></span>)}
           </div>
           {aboutMine.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>عن</Tx></th><th><Tx>من</Tx></th><th><Tx>العلاقة</Tx></th><th><Tx>التقييم</Tx></th><th><Tx>الملاحظات</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
               <tbody>
                 {aboutMine.map((f) => (
@@ -59,7 +57,7 @@ export default async function FeedbackPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد تقييمات بعد" />}
         </Card>
       ) : null}

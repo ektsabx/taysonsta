@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -19,10 +20,10 @@ export default async function ProductsReport({ searchParams }: { searchParams: S
       {!r.ok ? r.node : (
         <Card flush>
           {r.data.data.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>المنتج / الخدمة</Tx></th><th><Tx>النوع</Tx></th><th><Tx>عملاء محتملون</Tx></th><th><Tx>صفقات</Tx></th><th><Tx>مكسوبة</Tx></th>{money ? <th><Tx>الإيراد</Tx></th> : null}<th><Tx>التحويل</Tx></th>{money ? <th><Tx>متوسط الصفقة</Tx></th> : null}{margin ? <th><Tx>الربحية</Tx></th> : null}</tr></thead>
               <tbody>{r.data.data.map((p) => <tr key={p.product_id}><td className="cell-primary">{p.name}</td><td><Tx>{p.kind === "service" ? "خدمة" : "منتج"}</Tx></td><td><Tx>{p.leads}</Tx></td><td><Tx>{p.deals}</Tx></td><td><Tx>{p.won}</Tx></td>{money ? <td>{base(p.revenue)}</td> : null}<td>{pct(p.conversion)}</td>{money ? <td>{base(p.avg_deal_value)}</td> : null}{margin ? <td>{base(Number(p.profit).toFixed(2))}</td> : null}</tr>)}</tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد بيانات" />}
         </Card>
       )}

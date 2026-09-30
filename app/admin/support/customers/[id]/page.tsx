@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
@@ -6,9 +7,7 @@ import { db } from "@/lib/bos/db";
 import { duplicateCandidates } from "@/services/bos/conversations";
 import { listActiveStaff } from "@/services/bos/shared";
 import { PageHeader, Card, StatusBadge, EmptyState, KeyValues } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
 import { formatDateTime } from "@/lib/bos/format";
-import { supportNav } from "../../support-nav";
 import { CustomerEditButton, CustomerLinkControls, MergeCustomerButton } from "./CustomerControls";
 
 const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", whatsapp: "واتساب", sms: "SMS", portal: "البوابة", phone: "مكالمة", manual: "أخرى" };
@@ -34,9 +33,8 @@ export default async function SupportCustomerPage({ params }: { params: Promise<
   const canEdit = can(bos, "conversations.update");
   return (
     <>
-      <PageHeader title={cust.name} subtitle={cust.merged_into ? <Tx>مدموج في ملف آخر</Tx> : cust.company ?? undefined} breadcrumbs={[{ label: "الدعم" }, { label: "العملاء", href: "/admin/support/customers" }, { label: cust.name }]}
+      <PageHeader title={cust.name} subtitle={cust.merged_into ? <Tx>مدموج في ملف آخر</Tx> : cust.company ?? undefined}
         actions={canEdit && !cust.merged_into ? <CustomerEditButton customer={{ id: cust.id, name: cust.name, email: cust.email, phone: cust.phone, whatsapp: cust.whatsapp, company: cust.company, country: cust.country, priority: cust.priority, tags: cust.tags.join(", "), notes: cust.notes, owner_id: cust.owner_id }} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} /> : null} />
-      <SubNav items={supportNav(bos)} active="customers" label="الدعم" />
       {cust.merged_into ? <div className="bos-form-error"><Link href={`/admin/support/customers/${cust.merged_into}`}><Tx>فتح الملف الذي دُمج فيه</Tx></Link></div> : null}
       <Card>
         <KeyValues items={[
@@ -56,19 +54,19 @@ export default async function SupportCustomerPage({ params }: { params: Promise<
       </Card>
       {dups.length && canEdit && !cust.merged_into ? (
         <Card title="ملفات محتملة التكرار">
-          <table className="bos-table"><tbody>{dups.map((d) => <tr key={d.id}><td><Link href={`/admin/support/customers/${d.id}`}>{d.name}</Link><span className="cell-sub" dir="ltr">{[d.email, d.phone].filter(Boolean).join(" · ")}</span></td><td>{d.company ?? "—"}</td><td><MergeCustomerButton sourceId={d.id} targetId={cust.id} sourceName={d.name} /></td></tr>)}</tbody></table>
+          <BosTable className="bos-table"><tbody>{dups.map((d) => <tr key={d.id}><td><Link href={`/admin/support/customers/${d.id}`}>{d.name}</Link><span className="cell-sub" dir="ltr">{[d.email, d.phone].filter(Boolean).join(" · ")}</span></td><td>{d.company ?? "—"}</td><td><MergeCustomerButton sourceId={d.id} targetId={cust.id} sourceName={d.name} /></td></tr>)}</tbody></BosTable>
         </Card>
       ) : null}
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 12 }}>
         <Card title="المحادثات" flush>
-          {(convs ?? []).length ? <table className="bos-table"><tbody>{(convs ?? []).map((v) => <tr key={v.id}><td className="cell-primary"><Link href={`/admin/support/inbox?c=${v.id}`}>{v.number}</Link><span className="cell-sub">{v.subject ?? ""}</span></td><td><span className="bos-tag"><Tx>{channelLabels[v.channel] ?? v.channel}</Tx></span></td><td><StatusBadge tone={v.status === "resolved" || v.status === "closed" ? "neutral" : "info"} label={v.status} /></td><td>{formatDateTime(v.last_message_at)}</td></tr>)}</tbody></table> : <EmptyState title="لا توجد محادثات" />}
+          {(convs ?? []).length ? <BosTable className="bos-table"><tbody>{(convs ?? []).map((v) => <tr key={v.id}><td className="cell-primary"><Link href={`/admin/support/inbox?c=${v.id}`}>{v.number}</Link><span className="cell-sub">{v.subject ?? ""}</span></td><td><span className="bos-tag"><Tx>{channelLabels[v.channel] ?? v.channel}</Tx></span></td><td><StatusBadge tone={v.status === "resolved" || v.status === "closed" ? "neutral" : "info"} label={v.status} /></td><td>{formatDateTime(v.last_message_at)}</td></tr>)}</tbody></BosTable> : <EmptyState title="لا توجد محادثات" />}
         </Card>
         <Card title="التذاكر" flush>
-          {(tickets ?? []).length ? <table className="bos-table"><tbody>{(tickets ?? []).map((t) => <tr key={t.id}><td className="cell-primary"><Link href={`/admin/support/tickets/${t.id}`}>{t.ticket_number}</Link><span className="cell-sub">{t.subject}</span></td><td><StatusBadge map="ticket_status" value={t.status} /></td><td>{formatDateTime(t.created_at)}</td></tr>)}</tbody></table> : <EmptyState title="لا توجد تذاكر" />}
+          {(tickets ?? []).length ? <BosTable className="bos-table"><tbody>{(tickets ?? []).map((t) => <tr key={t.id}><td className="cell-primary"><Link href={`/admin/support/tickets/${t.id}`}>{t.ticket_number}</Link><span className="cell-sub">{t.subject}</span></td><td><StatusBadge map="ticket_status" value={t.status} /></td><td>{formatDateTime(t.created_at)}</td></tr>)}</tbody></BosTable> : <EmptyState title="لا توجد تذاكر" />}
         </Card>
         {deals.length ? (
           <Card title="صفقات الحساب" flush>
-            <table className="bos-table"><tbody>{deals.map((d) => <tr key={d.id}><td className="cell-primary"><Link href={`/admin/sales/deals/${d.id}`}>{d.deal_number}</Link><span className="cell-sub">{d.name}</span></td></tr>)}</tbody></table>
+            <BosTable className="bos-table"><tbody>{deals.map((d) => <tr key={d.id}><td className="cell-primary"><Link href={`/admin/sales/deals/${d.id}`}>{d.deal_number}</Link><span className="cell-sub">{d.name}</span></td></tr>)}</tbody></BosTable>
           </Card>
         ) : null}
       </div>

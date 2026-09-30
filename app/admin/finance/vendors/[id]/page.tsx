@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -20,12 +21,12 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ i
   for (const e of expenses ?? []) if (e.project_id) projects.set(e.project_id, (e.projects as unknown as { name: string } | null)?.name ?? "");
   return (
     <>
-      <PageHeader title={v.name} subtitle={v.type} breadcrumbs={[{ label: "الموردون", href: "/admin/finance/vendors" }, { label: v.name }]} />
+      <PageHeader title={v.name} subtitle={v.type} />
       <div className="bos-grid main-side">
         <div>
           <Card title="التكاليف والفواتير">
             {expenses?.length ? (
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead><tr><th><Tx>البند</Tx></th><th><Tx>التاريخ</Tx></th><th><Tx>المشروع</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
                 <tbody>
                   {expenses.map((e) => (
@@ -38,7 +39,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ i
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : (
               <EmptyState title="لا توجد تكاليف مسجلة لهذا المورد" />
             )}

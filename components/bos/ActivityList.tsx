@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import type { Tables } from "@/lib/bos/db";
 import { formatDateTime } from "@/lib/bos/format";
@@ -10,7 +11,7 @@ export function ActivityList({ activities, names, emptyTitle = "لا توجد أ
   if (!activities.length) return <EmptyState title={emptyTitle} description="سجّل المكالمات والرسائل والمتابعات هنا ليظهر كل شيء في سجل النشاط." />;
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>
             <th><Tx>النشاط</Tx></th>
@@ -41,7 +42,7 @@ export function ActivityList({ activities, names, emptyTitle = "لا توجد أ
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }

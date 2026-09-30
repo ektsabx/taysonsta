@@ -1,3 +1,4 @@
+import { nowMs } from "@/lib/bos/clock";
 import { headers } from "next/headers";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,15 +7,13 @@ import { listTeams } from "@/services/bos/conversations";
 import { listAgents } from "@/services/bos/ai-agents";
 import { listWidgets } from "@/services/bos/widgets";
 import { PageHeader, Card, StatusBadge, EmptyState, KeyValues } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { supportNav } from "../support-nav";
 import { EmbedCode, RotateKey, WidgetButton, type WidgetValues } from "./WidgetControls";
 
 // Website support widgets (docs/bos/30 §10.5): embed code, allowed domains,
 // look & feel, working hours, AI agent, team; visitor activity.
 export default async function SupportWidgetsPage() {
-  const { bos } = await requirePermission("conversations.manage", "all");
-  const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+  await requirePermission("conversations.manage", "all");
+  const since = new Date(nowMs() - 30 * 86400_000).toISOString();
   const [widgets, agents, teams, { data: branches }, { data: sessions }, { data: convs }, h] = await Promise.all([
     listWidgets(), listAgents(), listTeams(),
     db().from("branches").select("id, name").eq("status", "active").order("name"),
@@ -29,8 +28,7 @@ export default async function SupportWidgetsPage() {
   const branchOpts = (branches ?? []).map((b) => ({ value: b.id, label: b.name }));
   return (
     <>
-      <PageHeader title="ويدجت الموقع" subtitle="نافذة دعم تضعها في موقعك؛ الرسائل تصل إلى صندوق الوارد والمساعد الذكي يرد أولاً إن فعّلته" breadcrumbs={[{ label: "الدعم" }, { label: "ويدجت الموقع" }]} actions={<WidgetButton agents={agentOpts} teams={teamOpts} branches={branchOpts} />} />
-      <SubNav items={supportNav(bos)} active="widgets" label="الدعم" />
+      <PageHeader title="ويدجت الموقع" subtitle="نافذة دعم تضعها في موقعك؛ الرسائل تصل إلى صندوق الوارد والمساعد الذكي يرد أولاً إن فعّلته" actions={<WidgetButton agents={agentOpts} teams={teamOpts} branches={branchOpts} />} />
       {widgets.length ? widgets.map((w) => {
         const values: WidgetValues = { ...w, working_hours: (w.working_hours ?? {}) as WidgetValues["working_hours"] };
         const wc = (convs ?? []).filter((c) => c.widget_id === w.id);

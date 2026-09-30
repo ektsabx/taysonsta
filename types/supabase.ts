@@ -12348,6 +12348,7 @@ export type Database = {
           archived_at: string | null
           assigned_to: string | null
           client_id: string | null
+          client_visible: boolean
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -12374,6 +12375,7 @@ export type Database = {
           archived_at?: string | null
           assigned_to?: string | null
           client_id?: string | null
+          client_visible?: boolean
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -12400,6 +12402,7 @@ export type Database = {
           archived_at?: string | null
           assigned_to?: string | null
           client_id?: string | null
+          client_visible?: boolean
           completed_at?: string | null
           created_at?: string
           created_by?: string | null

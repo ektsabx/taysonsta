@@ -89,7 +89,7 @@ test("themes: every token of the dark theme is redefined for light and system", 
   const dark = tokens(block(".admin-shell {\n  --bos-fg-rgb"));
   const light = tokens(block('.admin-shell[data-theme="light"]'));
   const system = tokens(block('.admin-shell[data-theme="system"]'));
-  const themed = [...dark].filter((t) => !["--bos-border", "--bos-border-strong", "--bos-text", "--bos-muted", "--bos-faint", "--bos-accent", "--bos-radius"].includes(t));
+  const themed = [...dark].filter((t) => !["--bos-border", "--bos-border-strong", "--bos-text", "--bos-muted", "--bos-faint", "--bos-accent", "--bos-radius", "--bos-accent-hover", "--bos-on-accent", "--bos-secondary"].includes(t));
   for (const t of themed) {
     assert.ok(light.has(t), `light theme misses ${t}`);
     assert.ok(system.has(t), `system theme misses ${t}`);

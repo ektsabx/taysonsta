@@ -1,4 +1,5 @@
 "use client";
+import { BosTable } from "@/components/bos/BosTable";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -51,12 +52,12 @@ export function MappingForm({ jobId, headers, fields, matchKeys, initial }: { jo
   const [pending, start] = useTransition();
   return (
     <div className="bos-stack" style={{ gap: 8 }}>
-      <table className="bos-table">
+      <BosTable className="bos-table">
         <thead><tr><th><Tx>حقل النظام</Tx></th><th><Tx>العمود في الملف</Tx></th></tr></thead>
         <tbody>{fields.map((f) => (
           <tr key={f.key}><td>{t(f.label)}{f.required ? <span className="bos-danger"> *</span> : null}</td><td><select value={mapping[f.key] ?? ""} onChange={(e) => setMapping((m) => ({ ...m, [f.key]: e.target.value }))} aria-label={t(f.label)}><option value="">{t("— لا يُستورد —")}</option>{headers.map((h) => <option key={h} value={h}>{h}</option>)}</select></td></tr>
         ))}</tbody>
-      </table>
+      </BosTable>
       <div className="bos-form-grid">
         {matchKeys.length ? <div className="bos-field"><label><Tx>حقل المطابقة مع السجلات الموجودة</Tx></label><select value={matchKey} onChange={(e) => setMatchKey(e.target.value)}><option value="">{t("بدون مطابقة")}</option>{matchKeys.map((m) => <option key={m.value} value={m.value}>{t(m.label)}</option>)}</select></div> : null}
         <div className="bos-field"><label><Tx>عند وجود السجل مسبقاً</Tx></label><select value={mode} onChange={(e) => setMode(e.target.value)}><option value="create_only">{t("تخطّيه (لا تعديل)")}</option><option value="update_matches">{t("تحديث الحقول المربوطة غير الفارغة فقط")}</option></select></div>

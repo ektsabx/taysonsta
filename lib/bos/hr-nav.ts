@@ -1,15 +1,23 @@
-import type { BosUser } from "@/lib/bos/auth";
 import type { PermissionKey } from "@/lib/bos/permissions";
 
-// Sub-sections of each HR area (docs/bos/28 §5, §37). The sidebar shows the
-// areas; these tabs show what is inside, filtered by permission.
-type Item = { key: string; href: string; label: string; perm?: PermissionKey | PermissionKey[]; all?: PermissionKey };
+// Sub-sections of each HR area (docs/bos/28 §5, §37). The sidebar shows them
+// as a third level under the active area (lib/bos/nav.ts), filtered by permission.
+export type HrNavItem = { key: string; href: string; label: string; perm?: PermissionKey | PermissionKey[]; all?: PermissionKey };
 
-const sections: Record<string, Item[]> = {
+export const hrSections = {
   employees: [
     { key: "list", href: "/admin/team/employees", label: "الموظفون", perm: "employees.read" },
     { key: "onboarding", href: "/admin/team/onboarding", label: "التهيئة", perm: "onboarding.read" },
     { key: "offboarding", href: "/admin/team/offboarding", label: "إنهاء الخدمة", perm: "onboarding.read" },
+  ],
+  attendance: [
+    { key: "today", href: "/admin/team/attendance", label: "اليوم", perm: "attendance.read" },
+    { key: "me", href: "/admin/team/attendance/me", label: "حضوري", perm: "attendance.create" },
+    { key: "employees", href: "/admin/team/attendance/employees", label: "الموظفون", perm: ["attendance.read", "attendance.manage"] },
+    { key: "corrections", href: "/admin/team/attendance/corrections", label: "التصحيحات", perm: "attendance.read" },
+    { key: "timesheets", href: "/admin/team/timesheets", label: "سجلات الوقت", perm: "timesheets.read" },
+    { key: "overtime", href: "/admin/team/overtime", label: "العمل الإضافي", perm: "overtime.read" },
+    { key: "reports", href: "/admin/team/attendance/reports", label: "التقارير", perm: ["attendance.read", "attendance.manage"] },
   ],
   schedules: [
     { key: "roster", href: "/admin/team/schedules", label: "جدول الأسبوع", perm: "attendance.read" },
@@ -59,12 +67,6 @@ const sections: Record<string, Item[]> = {
     { key: "accounts", href: "/admin/team/accounts", label: "حسابات الشركة", perm: "access.manage" },
     { key: "devices", href: "/admin/team/devices", label: "الأجهزة", perm: "devices.read" },
   ],
-};
+} satisfies Record<string, HrNavItem[]>;
 
-export function hrSection(bos: BosUser, key: keyof typeof sections) {
-  return sections[key].filter((i) => {
-    if (i.all && bos.permissions.get(i.all) !== "all") return false;
-    if (!i.perm) return true;
-    return (Array.isArray(i.perm) ? i.perm : [i.perm]).some((p) => bos.permissions.has(p));
-  });
-}
+export type HrSectionKey = keyof typeof hrSections;

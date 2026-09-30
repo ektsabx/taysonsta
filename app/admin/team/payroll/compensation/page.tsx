@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -7,8 +8,6 @@ import { getSystemTime } from "@/lib/bos/system-time";
 import { listDepartments } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, Money, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 
 // Salaries & allowances overview (docs/bos/28 §6 Compensation, §16).
@@ -31,12 +30,11 @@ export default async function CompensationPage({ searchParams }: { searchParams:
   const rows = (emps ?? []).filter((e) => !sp.missing || !current.has(e.id));
   return (
     <>
-      <PageHeader title="الرواتب والبدلات" subtitle="الراتب الأساسي الساري لكل موظف والبدلات الثابتة" breadcrumbs={[{ label: "الرواتب", href: "/admin/team/payroll" }, { label: "الرواتب والبدلات" }]} />
-      <SubNav items={hrSection(bos, "payroll")} active="compensation" label="الرواتب" />
+      <PageHeader title="الرواتب والبدلات" subtitle="الراتب الأساسي الساري لكل موظف والبدلات الثابتة" />
       <FilterBar filters={[{ key: "department", label: "القسم", type: "select", options: departments.map((d) => ({ value: d.id, label: d.name })) }, { key: "missing", label: "بدون راتب", type: "select", options: [{ value: "1", label: "بدون راتب معتمد فقط" }] }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>القسم</Tx></th><th><Tx>الأساسي</Tx></th><th><Tx>ساري من</Tx></th><th><Tx>البدلات الثابتة</Tx></th>{canSeeCost ? <th><Tx>تكلفة الساعة (للمشاريع)</Tx></th> : null}<th /></tr></thead>
             <tbody>
               {rows.map((e) => {
@@ -57,7 +55,7 @@ export default async function CompensationPage({ searchParams }: { searchParams:
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد" />}
       </Card>
     </>

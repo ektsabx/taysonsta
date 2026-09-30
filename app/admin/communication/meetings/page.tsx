@@ -27,7 +27,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Sea
     <>
       <PageHeader
         title="الاجتماعات"
-        breadcrumbs={[{ label: "التواصل" }, { label: "الاجتماعات" }]}
+       
         actions={can(bos, "meetings.create") ? <Link href="/admin/communication/meetings/new" className="admin-btn small"><Tx>+ اجتماع</Tx></Link> : null}
       />
       <Tabs

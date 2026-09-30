@@ -29,7 +29,7 @@ export default async function NewEmployeePage({ searchParams }: { searchParams: 
   const a = app as Record<string, unknown> | null;
   return (
     <>
-      <PageHeader title="موظف جديد" subtitle={a ? "من طلب توظيف" : undefined} breadcrumbs={[{ label: "الفريق" }, { label: "الموظفون", href: "/admin/team/employees" }, { label: "جديد" }]} />
+      <PageHeader title="موظف جديد" subtitle={a ? "من طلب توظيف" : undefined} />
       <EmployeeForm
         action={createEmployeeAction}
         isNew

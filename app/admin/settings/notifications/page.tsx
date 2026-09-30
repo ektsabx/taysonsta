@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -9,7 +10,6 @@ import { deliveryLog } from "@/services/bos/notification-delivery";
 import { listManualNotifications } from "@/services/bos/manual-notifications";
 import { PageHeader, Card, StatusBadge, EmptyState, Tabs } from "@/components/bos/ui";
 import { formatDateTime } from "@/lib/bos/format";
-import { SettingsNav } from "../SettingsNav";
 import { SettingsForm } from "../SettingsForm";
 import { AddSubscriptionForm, SubscriptionRowControls } from "../SettingsControls";
 import { ConditionsButton, RetryDeliveryButton, TemplateEditButton } from "./NotificationControls";
@@ -29,8 +29,7 @@ export default async function NotificationSettingsPage({ searchParams }: { searc
   const [roles, names] = await Promise.all([listRoles(), userNameMap()]);
   return (
     <>
-      <PageHeader title="إعدادات الإشعارات" breadcrumbs={[{ label: "الإعدادات" }, { label: "الإشعارات" }]} />
-      <SettingsNav active="notifications" />
+      <PageHeader title="إعدادات الإشعارات" />
       <Tabs param="tab" active={tab} baseHref="/admin/settings/notifications" tabs={[
         { key: "subscriptions", label: "الاشتراكات" },
         { key: "templates", label: "القوالب واللغات" },
@@ -59,7 +58,7 @@ async function Subscriptions({ roles, names }: { roles: Awaited<ReturnType<typeo
         <AddSubscriptionForm events={events.map((e) => ({ value: e, label: eventMap.get(e)?.label ?? e }))} roles={roles.filter((r) => !r.is_client_role).map((r) => ({ value: r.id, label: r.name }))} users={[...names.entries()].map(([value, label]) => ({ value, label }))} relations={relations.map((r) => ({ value: r, label: relationLabels[r] }))} />
       </Card>
       <Card title={<Tx vars={{ v: (subs ?? []).length }}>{"الاشتراكات ({v})"}</Tx>} flush>
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الحدث</Tx></th><th><Tx>المستلم</Tx></th><th><Tx>القنوات</Tx></th><th><Tx>قابل للتخصيص</Tx></th><th><Tx>الشروط</Tx></th><th><Tx>نشط</Tx></th></tr></thead>
           <tbody>
             {(subs ?? []).map((s) => (
@@ -73,7 +72,7 @@ async function Subscriptions({ roles, names }: { roles: Awaited<ReturnType<typeo
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );
@@ -90,7 +89,7 @@ async function Templates() {
   return (
     <Card title="قوالب الإشعارات حسب الحدث واللغة" flush>
       <p className="bos-faint" style={{ fontSize: 12.5, padding: "10px 14px 0" }}><Tx>كل مستلم يرى الإشعار بلغته. بدون قالب يُستخدم اسم الحدث مترجماً + اسم السجل.</Tx></p>
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead><tr><th><Tx>الحدث</Tx></th><th>العربية</th><th>English</th><th><Tx>الأولوية</Tx></th></tr></thead>
         <tbody>
           {eventCatalog.map((ev) => {
@@ -105,7 +104,7 @@ async function Templates() {
             );
           })}
         </tbody>
-      </table>
+      </BosTable>
     </Card>
   );
 }
@@ -115,7 +114,7 @@ async function Deliveries({ status, names }: { status?: string; names: Map<strin
   return (
     <Card title="سجل التسليم (بريد، Push، واتساب، SMS)" flush actions={<div className="bos-row" style={{ gap: 6 }}>{["", "failed", "queued", "sent", "skipped"].map((s) => <a key={s} className={`admin-btn small ${status === s || (!status && !s) ? "" : "ghost"}`} href={`/admin/settings/notifications?tab=deliveries${s ? `&status=${s}` : ""}`}><Tx>{s === "" ? "الكل" : s === "failed" ? "فشل" : s === "queued" ? "بالانتظار" : s === "sent" ? "أُرسل" : "تم تخطيه"}</Tx></a>)}</div>}>
       {rows.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>الإشعار</Tx></th><th><Tx>المستلم</Tx></th><th><Tx>القناة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المحاولات</Tx></th><th><Tx>السبب</Tx></th><th /></tr></thead>
           <tbody>
             {rows.map((d) => {
@@ -134,7 +133,7 @@ async function Deliveries({ status, names }: { status?: string; names: Map<strin
               );
             })}
           </tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد عمليات تسليم" />}
     </Card>
   );
@@ -147,10 +146,10 @@ async function Manual({ names }: { names: Map<string, string> }) {
     <Card title="سجل الإشعارات اليدوية" flush>
       <p className="bos-faint" style={{ fontSize: 12.5, padding: "10px 14px 0" }}><Tx>الإرسال من التواصل ← الإشعارات ← «إرسال إشعار». يُمنع تكرار نفس المحتوى لنفس المستلمين خلال 10 دقائق.</Tx></p>
       {rows.length ? (
-        <table className="bos-table responsive">
+        <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>المرسل</Tx></th><th><Tx>المستلمون</Tx></th><th><Tx>العنوان</Tx></th><th><Tx>القنوات</Tx></th></tr></thead>
           <tbody>{rows.map((m) => <tr key={m.id}><td>{formatDateTime(m.created_at)}</td><td>{names.get(m.sender_id ?? "") ?? "—"}</td><td><Tx>{targetLabels[m.target_kind] ?? m.target_kind}</Tx> · {m.recipient_count}</td><td>{m.title}</td><td>{m.channels.map((c) => channelLabels[c] ?? c).join("، ")}</td></tr>)}</tbody>
-        </table>
+        </BosTable>
       ) : <EmptyState title="لا توجد إشعارات يدوية" />}
     </Card>
   );

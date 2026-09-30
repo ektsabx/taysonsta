@@ -33,7 +33,7 @@ export default async function PayslipPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <div className="bos-no-print">
-        <PageHeader title={<Tx vars={{ v: run.period_start.slice(0, 7) }}>{"قسيمة راتب {v}"}</Tx>} subtitle={emp.full_name} breadcrumbs={[{ label: "الرواتب", href: "/admin/team/payroll" }, { label: "القسائم", href: "/admin/team/payroll/payslips" }, { label: emp.full_name }]}
+        <PageHeader title={<Tx vars={{ v: run.period_start.slice(0, 7) }}>{"قسيمة راتب {v}"}</Tx>} subtitle={emp.full_name}
           actions={<span className="bos-row" style={{ gap: 6 }}>{editable ? <ManualLineButton payslipId={s.id} /> : null}<PrintButton label="طباعة / تحميل PDF" /></span>} />
       </div>
       <Card>

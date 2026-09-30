@@ -22,7 +22,7 @@ export default async function KnowledgePage({ searchParams }: { searchParams: Se
     <>
       <PageHeader
         title="قاعدة المعرفة"
-        breadcrumbs={[{ label: "المعرفة" }]}
+       
         actions={<>{can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new"><Tx>+ مقال</Tx></Link> : null}<Link className="admin-btn small ghost" href="/admin/knowledge/sops"><Tx>إجراءات التشغيل</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/playbooks"><Tx>أدلة المبيعات</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/docs"><Tx>التوثيق والسياسات</Tx></Link></>}
       />
       {required.filter((r) => !r.upToDate).length ? (

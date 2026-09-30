@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
@@ -30,7 +31,7 @@ export default async function SignatureRequestPage({ params }: { params: Promise
   const source = entityHref(r.entity_type, r.entity_id);
   return (
     <>
-      <PageHeader title={`${r.number} · ${r.title}`} breadcrumbs={[{ label: "المستندات", href: "/admin/documents" }, { label: "طلبات التوقيع", href: "/admin/documents/signatures" }, { label: r.number }]} />
+      <PageHeader title={`${r.number} · ${r.title}`} />
       <Card title={<span className="bos-row" style={{ gap: 8 }}><Tx>الحالة</Tx><StatusBadge tone={requestStatus[r.status]?.tone ?? "neutral"} label={requestStatus[r.status]?.label ?? r.status} /></span>}>
         <KeyValues items={[
           { label: "المستند", value: <Link href={`/admin/documents/${r.document_id}`}><Tx>فتح المستند</Tx></Link> },
@@ -46,7 +47,7 @@ export default async function SignatureRequestPage({ params }: { params: Promise
         {can(bos, "documents.create") ? <div style={{ marginTop: 10 }}><RequestActions id={r.id} provider={r.provider} active={active} files={(files ?? []).map((f) => ({ value: f.id, label: `${f.name} · ${formatDateTime(f.created_at)}` }))} /></div> : null}
       </Card>
       <Card title="الأطراف" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <thead><tr><th>#</th><th><Tx>الاسم</Tx></th><th><Tx>البريد</Tx></th><th><Tx>الصفة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التوقيت</Tx></th><th /></tr></thead>
           <tbody>
             {signers.map((s) => (
@@ -61,12 +62,12 @@ export default async function SignatureRequestPage({ params }: { params: Promise
               </tr>
             ))}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
       <Card title="سجل الأحداث" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <tbody>{events.map((e) => <tr key={e.id}><td className="bos-nowrap">{formatDateTime(e.occurred_at)}</td><td><Tx>{eventLabels[e.event] ?? e.event}</Tx></td><td>{e.detail ?? ""}</td><td className="bos-faint" style={{ fontSize: 11 }}>{e.source}</td></tr>)}</tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );

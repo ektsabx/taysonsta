@@ -42,7 +42,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
       <PageHeader
         title={`${a.first_name} ${a.last_name}`}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><StatusBadge map="application_status" value={a.status} /><span><Tx>{job.title}</Tx></span>{canEdit ? <RatingControl applicationId={a.id} rating={a.rating ? Number(a.rating) : null} /> : null}</span>}
-        breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "الطلبات", href: "/admin/team/recruitment/applications" }, { label: `${a.first_name} ${a.last_name}` }]}
+       
         actions={
           <span className="bos-row" style={{ gap: 6, flexWrap: "wrap" }}>
             <Link className="admin-btn small ghost" href={`/admin/team/recruitment/candidates/${a.candidate_id}`}><Tx>ملف المرشح</Tx></Link>

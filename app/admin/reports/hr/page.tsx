@@ -1,4 +1,4 @@
-import { getT } from "@/lib/bos/i18n/server";
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -11,12 +11,10 @@ import { FilterBar } from "@/components/bos/FilterBar";
 import { formatDate, formatMinutes } from "@/lib/bos/format";
 import { reportTitles } from "@/services/bos/reports";
 
-const reportNav = ["sales", "revenue", "bd", "projects", "finance", "clients", "team", "hr", "performance", "countries", "products"];
 
 // HR reports (docs/bos/28 §28): attendance, payroll, people, recruitment —
 // computed live; exported with the same numbers.
 export default async function HrReportsPage({ searchParams }: { searchParams: SearchParams }) {
-  const t = await getT();
   const { bos } = await requirePermission("reports.read");
   const sp = await readParams(searchParams);
   const { today } = await getSystemTime();
@@ -35,11 +33,8 @@ export default async function HrReportsPage({ searchParams }: { searchParams: Se
   };
   return (
     <>
-      <PageHeader title={reportTitles.hr} subtitle={result ? `${result.def.title} · ${formatDate(from)} → ${formatDate(to)}` : undefined} breadcrumbs={[{ label: "التقارير" }, { label: "الموارد البشرية" }]}
+      <PageHeader title={reportTitles.hr} subtitle={result ? `${result.def.title} · ${formatDate(from)} → ${formatDate(to)}` : undefined}
         actions={result && can(bos, "reports.export") ? <a className="admin-btn small secondary" href={`/api/bos/export/hr_report?${qs.toString()}`}><Tx>تصدير CSV</Tx></a> : null} />
-      <nav className="bos-tabs" aria-label={t("التقارير")}>
-        {reportNav.map((n) => <Link key={n} href={`/admin/reports/${n}`} className={n === "hr" ? "active" : undefined}><Tx>{reportTitles[n]}</Tx></Link>)}
-      </nav>
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 12 }}>
         {(Object.keys(hrReportGroups) as HrReportGroup[]).map((g) => {
           const items = available.filter(([, d]) => d.group === g);
@@ -58,12 +53,12 @@ export default async function HrReportsPage({ searchParams }: { searchParams: Se
         <Card title={result.def.title} flush>
           {result.rows.length ? (
             <div className="bos-table-scroll">
-              <table className="bos-table responsive">
+              <BosTable className="bos-table responsive">
                 <thead><tr>{result.def.columns.map((c) => <th key={c.key}><Tx>{c.label}</Tx></th>)}</tr></thead>
                 <tbody>
                   {result.rows.map((row, i) => <tr key={i}>{result.def.columns.map((c) => <td key={c.key} className={c.kind && c.kind !== "date" ? "bos-num" : undefined}>{fmt(c.kind, row[c.key])}</td>)}</tr>)}
                 </tbody>
-              </table>
+              </BosTable>
             </div>
           ) : <EmptyState title="لا توجد بيانات في هذه الفترة" />}
         </Card>

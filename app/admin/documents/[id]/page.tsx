@@ -42,7 +42,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
   const source = entityHref(d.entity_type, d.entity_id);
   return (
     <>
-      <PageHeader title={d.title} subtitle={<Tx vars={{ n: d.number }}>{"مستند رقم {n} — نسخة مجمّدة"}</Tx>} breadcrumbs={[{ label: "المستندات", href: "/admin/documents" }, { label: d.number }]}
+      <PageHeader title={d.title} subtitle={<Tx vars={{ n: d.number }}>{"مستند رقم {n} — نسخة مجمّدة"}</Tx>}
         actions={
           <div className="bos-row" style={{ gap: 6 }}>
             <a className="admin-btn small secondary" href={`/api/bos/documents/${d.id}/docx`}><Tx>تنزيل DOCX</Tx></a>

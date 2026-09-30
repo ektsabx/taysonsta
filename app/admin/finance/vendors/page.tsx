@@ -31,7 +31,7 @@ export default async function VendorsPage({ searchParams }: { searchParams: Sear
   }
   return (
     <>
-      <PageHeader title="الموردون" breadcrumbs={[{ label: "المالية" }, { label: "الموردون" }]} actions={can(bos, "vendors.create") ? <ModalButtonVendor><VendorForm vendorId={null} /></ModalButtonVendor> : null} />
+      <PageHeader title="الموردون" actions={can(bos, "vendors.create") ? <ModalButtonVendor><VendorForm vendorId={null} /></ModalButtonVendor> : null} />
       <FilterBar searchPlaceholder="اسم المورد..." />
       <DataTable
         tableId="vendors"

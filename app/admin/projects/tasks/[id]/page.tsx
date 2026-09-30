@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { ActionButton } from "@/components/bos/Dialog";
@@ -59,7 +60,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
       <PageHeader
         title={t.title}
         subtitle={<span className="bos-row" style={{ gap: 6 }}><StatusBadge map="task_status" value={t.status} /><StatusBadge map="priority" value={t.priority} />{t.is_required ? null : <StatusBadge tone="neutral" label="اختيارية" />}</span>}
-        breadcrumbs={[{ label: "المهام", href: "/admin/projects/tasks" }, ...(project ? [{ label: project.name, href: `/admin/projects/${project.id}?tab=tasks` }] : []), { label: t.title }]}
+       
         actions={
           <>
             {can(bos, "chat.create") ? <ActionButton label="مناقشة داخلية" className="admin-btn small secondary" action={discussAction.bind(null, "task", id)} /> : null}
@@ -88,7 +89,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
             <Card title={<Tx vars={{ subtasks_count: subtasks?.length ?? 0 }}>{"المهام الفرعية ({subtasks_count})"}</Tx>}>
               {parent ? <div style={{ marginBottom: 8, fontSize: 12.5 }}><Tx>المهمة الأم:</Tx> <Link className="bos-link" href={`/admin/projects/tasks/${parent.id}`}><Tx>{parent.title}</Tx></Link></div> : null}
               {subtasks?.length ? (
-                <table className="bos-table responsive">
+                <BosTable className="bos-table responsive">
                   <tbody>
                     {subtasks.map((s) => (
                       <tr key={s.id}>
@@ -99,7 +100,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </BosTable>
               ) : (
                 <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا توجد مهام فرعية.</Tx></div>
               )}
@@ -131,7 +132,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
       {tab === "time" ? (
         <Card title="سجل الوقت">
           {entries?.length ? (
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>البداية</Tx></th><th><Tx>المدة</Tx></th><th><Tx>الوصف</Tx></th></tr></thead>
               <tbody>
                 {entries.map((e) => (
@@ -143,7 +144,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : (
             <div className="bos-faint"><Tx>لم يُسجل وقت على هذه المهمة.</Tx></div>
           )}
@@ -169,6 +170,7 @@ export default async function TaskDetailPage({ params, searchParams }: { params:
             start_date: t.start_date,
             estimated_hours: t.estimated_minutes ? String(Math.round((t.estimated_minutes / 60) * 100) / 100) : "",
             is_required: t.is_required,
+            client_visible: t.client_visible,
           }}
         />
       ) : null}

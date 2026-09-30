@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -7,8 +8,6 @@ import { getSystemTime } from "@/lib/bos/system-time";
 import { listDaysOff, listHolidays, weekdayNames } from "@/services/bos/hr/schedules";
 import { listDepartments, listTeams } from "@/services/bos/shared";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { DayOffButton, DeleteHolidayButton, HolidayButton, RemoveDayOffButton } from "../../HrControls";
 
@@ -28,9 +27,8 @@ export default async function HolidaysPage({ searchParams }: { searchParams: Sea
   const canManage = bos.permissions.get("attendance.manage") === "all" || bos.isSuperAdmin;
   return (
     <>
-      <PageHeader title="العطلات وأيام الراحة" subtitle={<Tx vars={{ year }}>{"سنة {year} — الحضور يعتبر هذه الأيام راحة وليست غياباً"}</Tx>} breadcrumbs={[{ label: "الفريق" }, { label: "الجداول", href: "/admin/team/schedules" }, { label: "العطلات" }]}
+      <PageHeader title="العطلات وأيام الراحة" subtitle={<Tx vars={{ year }}>{"سنة {year} — الحضور يعتبر هذه الأيام راحة وليست غياباً"}</Tx>}
         actions={canManage ? <span className="bos-row" style={{ gap: 6 }}><HolidayButton /><DayOffButton departments={departments.map((d) => ({ value: d.id, label: d.name }))} teams={teams.map((t) => ({ value: t.id, label: t.name }))} employees={(employees ?? []).map((e) => ({ value: e.id, label: e.full_name }))} /></span> : null} />
-      <SubNav items={hrSection(bos, "schedules")} active="holidays" label="الجداول" />
       <div className="bos-row" style={{ gap: 8, marginBottom: 10 }}>
         <Link className="admin-btn small ghost" href={`/admin/team/schedules/holidays?year=${Number(year) - 1}`}>{Number(year) - 1}</Link>
         <Link className="admin-btn small ghost" href={`/admin/team/schedules/holidays?year=${Number(year) + 1}`}>{Number(year) + 1}</Link>
@@ -38,7 +36,7 @@ export default async function HolidaysPage({ searchParams }: { searchParams: Sea
       <div className="bos-grid cols-2" style={{ gap: 12 }}>
         <Card title={<Tx vars={{ holidays_count: holidays.length }}>{"العطلات ({holidays_count})"}</Tx>}>
           {holidays.length ? (
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <tbody>
                 {holidays.map((h) => (
                   <tr key={h.id}>
@@ -50,12 +48,12 @@ export default async function HolidaysPage({ searchParams }: { searchParams: Sea
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد عطلات" />}
         </Card>
         <Card title={<Tx vars={{ daysOff_count: daysOff.length }}>{"أيام راحة مخصصة ({daysOff_count})"}</Tx>}>
           {daysOff.length ? (
-            <table className="bos-table">
+            <BosTable className="bos-table">
               <tbody>
                 {daysOff.map((o) => (
                   <tr key={o.id}>
@@ -66,7 +64,7 @@ export default async function HolidaysPage({ searchParams }: { searchParams: Sea
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           ) : <EmptyState title="لا توجد أيام راحة مخصصة" />}
           <p className="bos-faint" style={{ fontSize: 12, marginTop: 8 }}><Tx>عطلات نهاية الأسبوع تأتي من أيام الراحة في كل جدول عمل.</Tx></p>
         </Card>

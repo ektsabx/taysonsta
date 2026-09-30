@@ -23,7 +23,7 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
   const project = e.projects as unknown as { id: string; name: string } | null;
   return (
     <>
-      <PageHeader title={e.description} subtitle={<StatusBadge map="simple_approval" value={e.approval_status} />} breadcrumbs={[{ label: "المصروفات", href: "/admin/finance/expenses" }, { label: e.description }]} />
+      <PageHeader title={e.description} subtitle={<StatusBadge map="simple_approval" value={e.approval_status} />} />
       <Summary
         items={[
           { label: "المبلغ", value: <Money value={e.amount} currency={e.currency} /> },

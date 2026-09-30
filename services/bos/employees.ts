@@ -7,7 +7,7 @@ import type { Scope } from "@/lib/bos/permissions";
 import { audit, diffFields, recordStatus } from "@/lib/bos/audit";
 import { emitEvent } from "@/lib/bos/events";
 import { getSetting } from "@/lib/bos/settings";
-import { NotFoundError, ValidationError } from "@/lib/bos/errors";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { todayIn } from "@/lib/bos/format";
 import { recordInvitation } from "@/services/bos/users";
 
@@ -290,6 +290,9 @@ const tracked: (keyof Employee)[] = ["full_name", "employee_code", "email", "per
 export async function updateEmployee(bos: BosUser, id: string, input: EmployeeInput, opts: { canSensitive: boolean }) {
   const before = await getEmployee(id);
   if (before.archived_at) throw new ValidationError("الموظف مؤرشف.");
+  // Employment data is changed by HR / authorised admins only — never by the
+  // employee on their own record through a narrower scope (docs/bos/35 B7).
+  if (before.user_id === bos.userId && bos.permissions.get("employees.update") !== "all") throw new ForbiddenError("بياناتك الوظيفية تُعدَّل من الموارد البشرية فقط.");
   await validate(input, id);
   const row = toRow(input);
   if (!opts.canSensitive) {

@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,7 +32,7 @@ export default async function PerformanceProfilePage({ params, searchParams }: {
       <PageHeader
         title={<Tx vars={{ full_name: emp.full_name }}>{"الأداء: {full_name}"}</Tx>}
         subtitle={`${emp.position ?? ""} · ${from} → ${to}`}
-        breadcrumbs={[{ label: "الفريق" }, { label: "الأداء", href: "/admin/team/performance" }, { label: emp.full_name }]}
+       
         actions={<>{canReview ? <ReviewButton userId={userId} defaults={{ start: from, end: to }} /> : null}<Link className="admin-btn small secondary" href={`/admin/team/employees/${emp.id}`}><Tx>ملف الموظف</Tx></Link></>}
       />
       <FilterBar filters={[{ key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
@@ -57,7 +58,7 @@ export default async function PerformanceProfilePage({ params, searchParams }: {
         {p.kpiCategories.length ? p.kpiCategories.map((cat) => (
           <div key={cat.category} style={{ marginBottom: 14 }}>
             <div style={{ fontWeight: 600, marginBottom: 6 }}><Tx>{cat.category}</Tx></div>
-            <table className="bos-table responsive">
+            <BosTable className="bos-table responsive">
               <tbody>
                 {cat.items.map((k) => (
                   <tr key={k.kpi.id}>
@@ -68,7 +69,7 @@ export default async function PerformanceProfilePage({ params, searchParams }: {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </BosTable>
           </div>
         )) : <EmptyState title="لا توجد مؤشرات مخصصة" />}
         {p.weightedScore != null ? (

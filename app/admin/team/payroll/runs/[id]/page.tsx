@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -35,7 +36,7 @@ export default async function PayrollRunPage({ params }: { params: Promise<{ id:
       <PageHeader
         title={<Tx vars={{ v: run.period_start.slice(0, 7) }}>{"دورة رواتب {v}"}</Tx>}
         subtitle={<span className="bos-row" style={{ gap: 8 }}><StatusBadge map="payroll_run_status" value={run.status} /><StatusBadge map="payroll_run_type" value={run.run_type} /><span>{run.run_number}</span></span>}
-        breadcrumbs={[{ label: "الرواتب", href: "/admin/team/payroll" }, { label: run.run_number ?? "" }]}
+       
         actions={canEdit || canPay ? <RunSteps runId={run.id} status={run.status} canPay={canPay} today={today} /> : null}
       />
       <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10, marginBottom: 14 }}>
@@ -45,7 +46,7 @@ export default async function PayrollRunPage({ params }: { params: Promise<{ id:
       {missing.length ? <div className="bos-alert warning">موظفون بدون راتب معتمد لم تُحسب لهم قسائم: {missing.join("، ")}. حدد رواتبهم من تبويب الرواتب في ملف الموظف ثم أعد الحساب.</div> : null}
       <Card title="قسائم الرواتب" flush>
         {payslips.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الأساسي</Tx></th><th><Tx>أيام</Tx></th><th><Tx>غياب / بدون أجر</Tx></th><th><Tx>إضافي</Tx></th><th><Tx>الإجمالي</Tx></th><th><Tx>الاستقطاعات</Tx></th><th><Tx>الصافي</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
             <tbody>
               {payslips.map((s) => {
@@ -65,7 +66,7 @@ export default async function PayrollRunPage({ params }: { params: Promise<{ id:
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد قسائم" description="احسب الدورة لإنشاء القسائم." />}
       </Card>
       <div className="bos-grid cols-2" style={{ gap: 12 }}>

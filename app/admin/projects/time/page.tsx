@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -35,7 +36,7 @@ export default async function TimePage({ searchParams }: { searchParams: SearchP
   const pendingForMe = r.pending.filter((p) => p.user_id !== bos.userId);
   return (
     <>
-      <PageHeader title="الساعات" subtitle={<Tx vars={{ mode: settings.approval === "none" ? "لا يتطلب اعتماداً" : settings.approval === "manual" ? "الإدخالات اليدوية تتطلب اعتماداً" : "كل الإدخالات تتطلب اعتماداً" }}>{"التسجيل عبر المؤقت أو يدوياً من صفحات المشاريع والمهام · {mode}"}</Tx>} breadcrumbs={[{ label: "المشاريع" }, { label: "الساعات" }]} />
+      <PageHeader title="الساعات" subtitle={<Tx vars={{ mode: settings.approval === "none" ? "لا يتطلب اعتماداً" : settings.approval === "manual" ? "الإدخالات اليدوية تتطلب اعتماداً" : "كل الإدخالات تتطلب اعتماداً" }}>{"التسجيل عبر المؤقت أو يدوياً من صفحات المشاريع والمهام · {mode}"}</Tx>} />
       <Tabs param="tab" active={tab} baseHref="/admin/projects/time" tabs={[{ key: "report", label: "التقرير" }, { key: "approvals", label: "بانتظار الاعتماد", count: pendingForMe.length, hidden: !canApprove }]} />
       <FilterBar filters={[
         { key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" },
@@ -58,7 +59,7 @@ export default async function TimePage({ searchParams }: { searchParams: SearchP
           </div>
           <Card title="حسب المشروع" flush>
             {r.projects.length ? (
-              <table className="bos-table">
+              <BosTable className="bos-table">
                 <thead><tr><th><Tx>المشروع</Tx></th><th><Tx>الساعات</Tx></th><th><Tx>قابلة للفوترة</Tx></th><th><Tx>بانتظار</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>المقدّر مقابل الفعلي (مهام بتقدير)</Tx></th></tr></thead>
                 <tbody>
                   {r.projects.map((p) => (
@@ -72,24 +73,24 @@ export default async function TimePage({ searchParams }: { searchParams: SearchP
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا توجد ساعات في هذه الفترة" />}
             <p className="bos-hint" style={{ padding: "6px 14px" }}><Tx>المقدّر مقابل الفعلي يقارن تقدير كل مهمة بإجمالي ساعاتها المعتمدة منذ البداية. التكلفة الداخلية تُحسب من سعر الساعة للموظف (إن وُجد) ولا تُخلط العملات. الربحية الكاملة في تقرير المشاريع.</Tx> <Link href="/admin/reports/projects"><Tx>تقرير المشاريع</Tx></Link></p>
           </Card>
           {r.tasks.length ? (
             <Card title="المهام: المقدّر مقابل الفعلي" flush>
-              <table className="bos-table">
+              <BosTable className="bos-table">
                 <thead><tr><th><Tx>المهمة</Tx></th><th><Tx>المقدّر</Tx></th><th><Tx>الفعلي</Tx></th><th><Tx>الفرق</Tx></th></tr></thead>
                 <tbody>{r.tasks.map((t) => <tr key={t.id}><td><Link href={`/admin/projects/tasks/${t.id}`}>{t.title}</Link></td><td className="bos-num">{t.estimated ? h(t.estimated) : "—"}</td><td className="bos-num">{h(t.actual)}</td><td className={t.estimated && t.actual > t.estimated ? "bos-num bos-danger" : "bos-num"}>{t.estimated ? `${t.actual - t.estimated > 0 ? "+" : ""}${h(t.actual - t.estimated)}` : "—"}</td></tr>)}</tbody>
-              </table>
+              </BosTable>
             </Card>
           ) : null}
           <Card title="حسب الموظف" flush>
             {r.users.length ? (
-              <table className="bos-table">
+              <BosTable className="bos-table">
                 <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>الساعات</Tx></th><th><Tx>قابلة للفوترة</Tx></th><th><Tx>غير قابلة</Tx></th><th><Tx>بانتظار / مرفوضة</Tx></th><th><Tx>التكلفة</Tx></th></tr></thead>
                 <tbody>{r.users.map((u) => <tr key={u.id}><td>{names.get(u.id) ?? "—"}</td><td className="bos-num">{h(u.minutes)}</td><td className="bos-num">{h(u.billable)}</td><td className="bos-num">{h(u.nonBillable)}</td><td className="bos-num">{h(u.pending)} / {h(u.rejected)}</td><td style={{ fontSize: 12 }}>{costs(u.cost)}</td></tr>)}</tbody>
-              </table>
+              </BosTable>
             ) : <EmptyState title="لا توجد بيانات" />}
           </Card>
         </>

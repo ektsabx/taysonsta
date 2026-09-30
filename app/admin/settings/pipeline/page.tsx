@@ -6,7 +6,6 @@ import { configTables } from "@/lib/bos/config-tables";
 import { listConfigRows } from "@/services/bos/settings-admin";
 import { listRoles } from "@/services/bos/shared";
 import { PageHeader, Card } from "@/components/bos/ui";
-import { SettingsNav } from "../SettingsNav";
 import { SettingsForm } from "../SettingsForm";
 import { ConfigTableEditor } from "../ConfigTableEditor";
 import { StageEditor } from "../SettingsControls";
@@ -17,8 +16,7 @@ export default async function PipelineSettingsPage() {
   const [{ data: pipelines }, sources, sales, routing, roles, lookups] = await Promise.all([db().from("pipelines").select("*, pipeline_stages(*)").order("entity"), listConfigRows("lead_sources"), getSetting("sales"), getSetting("lead_routing"), listRoles(), settingsLookups()]);
   return (
     <>
-      <PageHeader title="إعدادات المبيعات والمراحل" breadcrumbs={[{ label: "الإعدادات" }, { label: "المبيعات" }]} />
-      <SettingsNav active="pipeline" />
+      <PageHeader title="إعدادات المبيعات والمراحل" />
       {(pipelines ?? []).map((p) => (
         <Card key={p.id} title={<Tx vars={{ v: p.entity === "lead" ? "مراحل العملاء المحتملين" : "مراحل الصفقات", name: p.name }}>{"{v} — {name}"}</Tx>}>
           <StageEditor pipelineId={p.id} entity={p.entity} initial={((p.pipeline_stages as unknown as { id: string; key: string; name: string; probability: number; category: "open" | "won" | "lost"; is_active: boolean; sort_order: number }[]) ?? []).sort((a, b) => a.sort_order - b.sort_order).map((s) => ({ id: s.id, key: s.key, name: s.name, probability: Number(s.probability), category: s.category, is_active: s.is_active }))} />

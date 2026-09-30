@@ -18,7 +18,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
       <PageHeader
         title="جهات الاتصال"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} جهة اتصال"}</Tx>}
-        breadcrumbs={[{ label: "العملاء" }, { label: "جهات الاتصال" }]}
+       
         actions={can(bos, "contacts.create") ? <ContactModalButton label="+ جهة اتصال" className="admin-btn small" /> : null}
       />
       <FilterBar

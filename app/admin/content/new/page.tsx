@@ -8,7 +8,7 @@ export default async function NewContentPage() {
   const staff = await listActiveStaff();
   return (
     <>
-      <PageHeader title="فكرة محتوى جديدة" breadcrumbs={[{ label: "التسويق" }, { label: "استوديو المحتوى", href: "/admin/content" }, { label: "جديد" }]} />
+      <PageHeader title="فكرة محتوى جديدة" />
       <Card><ItemForm staff={staff.map((s) => ({ value: s.userId, label: s.name }))} canAssign={can(bos, "content.assign") || can(bos, "content.manage")} /></Card>
     </>
   );

@@ -6,8 +6,6 @@ import { listApplications, listJobs } from "@/services/bos/hr/recruitment";
 import { PageHeader } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { KanbanBoard } from "@/components/bos/KanbanBoard";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { formatDate } from "@/lib/bos/format";
 import { moveApplicationAction } from "../actions";
 import { stageLabels } from "../RecruitmentControls";
@@ -17,14 +15,13 @@ const columns = ["new", "in_review", "contacted", "interview", "evaluation", "ac
 // Recruitment pipeline (kanban). Offer / accepted / hired move only through
 // the offer and hire actions; the server rejects other moves.
 export default async function PipelinePage({ searchParams }: { searchParams: SearchParams }) {
-  const { bos } = await requirePermission("recruitment.read");
+  await requirePermission("recruitment.read");
   const sp = await readParams(searchParams);
   const [apps, jobs] = await Promise.all([listApplications({ job: sp.job, q: sp.q }), listJobs()]);
   const visible = apps.filter((a) => columns.includes(a.status));
   return (
     <>
-      <PageHeader title="مسار التوظيف" subtitle={<Tx vars={{ visible_count: visible.length }}>{"{visible_count} طلب نشط"}</Tx>} breadcrumbs={[{ label: "التوظيف", href: "/admin/team/recruitment" }, { label: "المسار" }]} />
-      <SubNav items={hrSection(bos, "recruitment")} active="pipeline" label="التوظيف" />
+      <PageHeader title="مسار التوظيف" subtitle={<Tx vars={{ visible_count: visible.length }}>{"{visible_count} طلب نشط"}</Tx>} />
       <FilterBar searchPlaceholder="بحث..." filters={[{ key: "job", label: "الوظيفة", type: "select", options: jobs.map((j) => ({ value: j.id, label: j.title })) }]} />
       <KanbanBoard
         columns={columns.map((c) => ({ key: c, title: stageLabels[c], meta: visible.filter((a) => a.status === c).length }))}

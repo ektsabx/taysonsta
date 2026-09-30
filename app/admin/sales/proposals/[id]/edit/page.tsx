@@ -43,7 +43,7 @@ export default async function EditProposalPage({ params }: { params: Promise<{ i
       <PageHeader
         title={<Tx vars={{ title: proposal.title }}>{"منشئ المقترح: {title}"}</Tx>}
         subtitle={client ? <Link href={`/admin/clients/${client.id}`}>{client.company_name ?? client.name}</Link> : null}
-        breadcrumbs={[{ label: "المقترحات", href: "/admin/sales/proposals" }, { label: proposal.title, href: `/admin/sales/proposals/${id}` }, { label: "تحرير" }]}
+       
         actions={
           <Link href={`/admin/sales/proposals/${id}`} className="admin-btn small secondary">
             <Tx>صفحة المقترح</Tx>

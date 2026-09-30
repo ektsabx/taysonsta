@@ -25,7 +25,7 @@ export default async function ChangeRequestsPage({ searchParams }: { searchParam
   if (error) throw error;
   return (
     <>
-      <PageHeader title="طلبات التغيير" subtitle="الأعمال خارج النطاق الأصلي: تقييم → عرض → موافقة العميل → إضافة للمشروع" breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: "طلبات التغيير" }]} />
+      <PageHeader title="طلبات التغيير" subtitle="الأعمال خارج النطاق الأصلي: تقييم → عرض → موافقة العميل → إضافة للمشروع" />
       <FilterBar searchPlaceholder="رقم أو عنوان الطلب..." filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("change_request_status") }]} />
       <DataTable
         tableId="change-requests"

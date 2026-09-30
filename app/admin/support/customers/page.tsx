@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
@@ -5,13 +6,11 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
 import { RelTime } from "@/components/bos/RelTime";
-import { supportNav } from "../support-nav";
 
 // Support customer profiles (docs/bos/30 §10.3).
 export default async function SupportCustomersPage({ searchParams }: { searchParams: SearchParams }) {
-  const { bos } = await requirePermission("conversations.read");
+  await requirePermission("conversations.read");
   const sp = await readParams(searchParams);
   let q = db().from("support_customers").select("id, name, email, phone, company, country, source, priority, tags, client_id, last_seen_at").is("merged_into", null).order("last_seen_at", { ascending: false, nullsFirst: false }).limit(200);
   if (sp.q?.trim()) {
@@ -23,12 +22,11 @@ export default async function SupportCustomersPage({ searchParams }: { searchPar
   const { data: rows } = await q;
   return (
     <>
-      <PageHeader title="عملاء الدعم" subtitle="كل من تواصل مع الدعم — مرتبط بحساب العميل إن وُجد" breadcrumbs={[{ label: "الدعم" }, { label: "العملاء" }]} />
-      <SubNav items={supportNav(bos)} active="customers" label="الدعم" />
+      <PageHeader title="عملاء الدعم" subtitle="كل من تواصل مع الدعم — مرتبط بحساب العميل إن وُجد" />
       <FilterBar searchPlaceholder="بحث بالاسم أو البريد أو الهاتف أو الشركة..." filters={[{ key: "linked", label: "الربط بحساب", type: "select", options: [{ value: "yes", label: "مرتبط بحساب" }, { value: "no", label: "غير مرتبط" }] }]} />
       <Card flush>
         {(rows ?? []).length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>العميل</Tx></th><th><Tx>الشركة</Tx></th><th><Tx>المصدر</Tx></th><th><Tx>الأولوية</Tx></th><th><Tx>الوسوم</Tx></th><th><Tx>آخر تواصل</Tx></th></tr></thead>
             <tbody>
               {(rows ?? []).map((c) => (
@@ -42,7 +40,7 @@ export default async function SupportCustomersPage({ searchParams }: { searchPar
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد عملاء دعم بعد" description="يُنشأ ملف العميل تلقائياً عند أول محادثة." />}
       </Card>
     </>

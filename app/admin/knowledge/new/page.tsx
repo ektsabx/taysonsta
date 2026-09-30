@@ -12,7 +12,7 @@ export default async function NewArticlePage({ searchParams }: { searchParams: S
   const [categories, roles, staff] = await Promise.all([listCategories(), listRoles(), listActiveStaff()]);
   return (
     <>
-      <PageHeader title="مقال جديد" breadcrumbs={[{ label: "المعرفة", href: "/admin/knowledge" }, { label: "جديد" }]} />
+      <PageHeader title="مقال جديد" />
       <Card>
         <ArticleEditor
           action={createArticleAction}

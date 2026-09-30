@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { listEntityFiles } from "@/services/bos/shared";
 import { formatDateTime } from "@/lib/bos/format";
@@ -25,7 +26,7 @@ export async function FileManager({ entityType, entityId, canUpload = true, allo
         <EmptyState title="لا توجد ملفات" description="ارفع العقود والتصاميم والمستندات المرتبطة بهذا السجل." />
       ) : (
         <div className="bos-table-scroll">
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead>
               <tr>
                 <th><Tx>الملف</Tx></th>
@@ -56,7 +57,7 @@ export async function FileManager({ entityType, entityId, canUpload = true, allo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         </div>
       )}
     </div>

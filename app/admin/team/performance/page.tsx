@@ -1,7 +1,6 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
@@ -47,12 +46,11 @@ export default async function PerformancePage({ searchParams }: { searchParams: 
   );
   return (
     <>
-      <PageHeader title="الأداء" subtitle={`${from} → ${to}`} breadcrumbs={[{ label: "الفريق" }, { label: "الأداء" }]} />
-      <SubNav items={hrSection(bos, "performance")} active="overview" label="الأداء" />
+      <PageHeader title="الأداء" subtitle={`${from} → ${to}`} />
       <FilterBar filters={[{ key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>مهام منجزة</Tx></th><th><Tx>صفقات مكسوبة</Tx></th><th><Tx>ساعات العمل</Tx></th><th><Tx>أيام تأخير</Tx></th><th><Tx>تحقيق المؤشرات حسب الفئة</Tx></th></tr></thead>
             <tbody>
               {rows.map((r) => (
@@ -73,7 +71,7 @@ export default async function PerformancePage({ searchParams }: { searchParams: 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا يوجد موظفون" />}
       </Card>
     </>

@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
@@ -39,7 +40,7 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
   const stageName = (k: string | null) => stages.find((s) => s.key === k)?.name ?? k ?? "—";
   return (
     <>
-      <PageHeader title={`${item.number} · ${item.title}`} breadcrumbs={[{ label: "التسويق" }, { label: "استوديو المحتوى", href: "/admin/content" }, { label: item.number }]} />
+      <PageHeader title={`${item.number} · ${item.title}`} />
       <Card title={<span className="bos-row" style={{ gap: 8 }}><Tx>المرحلة</Tx><StatusBadge tone={stage?.is_review ? "warning" : item.approved_at ? "success" : "neutral"} label={stage?.name ?? item.stage} />{item.approved_at ? <span className="bos-tag">✓ <Tx>معتمد</Tx></span> : null}</span>}>
         <KeyValues items={[
           { label: "النوع", value: <Tx>{typeLabels[item.content_type] ?? item.content_type}</Tx> },
@@ -75,11 +76,11 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
       <Card title="الملفات"><FileManager entityType="content_item" entityId={item.id} canUpload={can(bos, "files.create") && canEdit} /></Card>
       {canEdit ? <Card title="التفاصيل"><ItemForm initial={item} staff={staffOpts} canAssign={can(bos, "content.assign") || can(bos, "content.manage")} /></Card> : null}
       <Card title="سجل التغييرات" flush>
-        <table className="bos-table">
+        <BosTable className="bos-table">
           <tbody>
             {(history ?? []).map((h, i) => <tr key={i}><td className="bos-nowrap">{formatDateTime(h.changed_at)}</td><td><Tx>{stageName(h.from_status)}</Tx> → <Tx>{stageName(h.to_status)}</Tx></td><td>{h.changed_by ? names.get(h.changed_by) ?? "—" : "—"}</td><td>{h.reason ?? ""}</td></tr>)}
           </tbody>
-        </table>
+        </BosTable>
       </Card>
     </>
   );

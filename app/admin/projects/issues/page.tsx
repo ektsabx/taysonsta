@@ -28,7 +28,7 @@ export default async function IssuesPage({ searchParams }: { searchParams: Searc
   if (error) throw error;
   return (
     <>
-      <PageHeader title="المشكلات" subtitle="العوائق والمخاطر في المشاريع (الأخطاء البرمجية في قسم الدعم)" breadcrumbs={[{ label: "المشاريع", href: "/admin/projects" }, { label: "المشكلات" }]} />
+      <PageHeader title="المشكلات" subtitle="العوائق والمخاطر في المشاريع (الأخطاء البرمجية في قسم الدعم)" />
       <FilterBar searchPlaceholder="بحث..." filters={[{ key: "status", label: "الحالة", type: "select", options: statusOptions("issue_status") }, { key: "severity", label: "الخطورة", type: "select", options: [{ value: "low", label: "منخفضة" }, { value: "medium", label: "متوسطة" }, { value: "high", label: "عالية" }, { value: "critical", label: "حرجة" }] }]} />
       <DataTable
         tableId="issues"

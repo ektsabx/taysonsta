@@ -8,7 +8,7 @@ export default async function NewWorkflowPage() {
   const [staff, roles] = await Promise.all([listActiveStaff(), listRoles()]);
   return (
     <>
-      <PageHeader title="مسار عمل جديد" breadcrumbs={[{ label: "الأتمتة" }, { label: "مسارات العمل", href: "/admin/automation/workflows" }, { label: "جديد" }]} />
+      <PageHeader title="مسار عمل جديد" />
       <WorkflowBuilder
         canEdit
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}

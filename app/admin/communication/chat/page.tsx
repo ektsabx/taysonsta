@@ -21,7 +21,7 @@ export default async function ChatPage({ searchParams }: { searchParams: SearchP
     <>
       <PageHeader
         title="المحادثات"
-        breadcrumbs={[{ label: "التواصل" }, { label: "المحادثات" }]}
+       
         actions={<>{can(bos, "chat.create") ? <NewDirectButton people={people} /> : null}{can(bos, "chat.manage") ? <NewChannelButton people={people} /> : null}</>}
       />
       <div className="bos-chat-layout">

@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { db } from "@/lib/bos/db";
 import { userNameMap } from "@/services/bos/shared";
@@ -24,7 +25,7 @@ export async function AuditLogPanel({ entityType, entityId, limit = 50 }: { enti
   if (!data?.length) return <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد سجلات تدقيق.</Tx></div>;
   return (
     <div className="bos-table-scroll">
-      <table className="bos-table responsive">
+      <BosTable className="bos-table responsive">
         <thead>
           <tr>
             <th><Tx>الوقت</Tx></th>
@@ -47,7 +48,7 @@ export async function AuditLogPanel({ entityType, entityId, limit = 50 }: { enti
             </tr>
           ))}
         </tbody>
-      </table>
+      </BosTable>
     </div>
   );
 }

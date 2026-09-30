@@ -1,3 +1,5 @@
+import { BosTable } from "@/components/bos/BosTable";
+import { nowMs } from "@/lib/bos/clock";
 import { Tx } from "@/components/bos/I18n";
 import { requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -7,8 +9,6 @@ import { platforms, type Platform } from "@/lib/bos/social/platforms";
 import { MIN_SAMPLE, type Dimension } from "@/lib/bos/content-insights";
 import { PageHeader, Card, EmptyState } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { contentNav } from "../content-nav";
 import { ExplainInsights } from "../ContentControls";
 import { typeLabels } from "../labels";
 
@@ -31,12 +31,11 @@ export default async function ContentInsightsPage({ searchParams }: { searchPara
   const sp = await readParams(searchParams);
   const days = ["30", "90", "180", "365"].includes(sp.days ?? "") ? Number(sp.days) : 90;
   const to = new Date().toISOString();
-  const from = new Date(Date.now() - days * 86400_000).toISOString();
+  const from = new Date(nowMs() - days * 86400_000).toISOString();
   const [r, { count: ai }] = await Promise.all([contentInsights(bos, { from, to }), db().from("integration_connections").select("id", { count: "exact", head: true }).in("provider", ["anthropic", "openai", "gemini"]).eq("status", "active")]);
   return (
     <>
-      <PageHeader title="لماذا ينجح المحتوى أو يفشل" subtitle="من أرقام المنشورات الفعلية فقط — مع حجم العينة لكل مجموعة" breadcrumbs={[{ label: "التسويق" }, { label: "استوديو المحتوى", href: "/admin/content" }, { label: "التحليل" }]} />
-      <SubNav items={contentNav(bos)} active="insights" label="استوديو المحتوى" />
+      <PageHeader title="لماذا ينجح المحتوى أو يفشل" subtitle="من أرقام المنشورات الفعلية فقط — مع حجم العينة لكل مجموعة" />
       <FilterBar filters={[{ key: "days", label: "الفترة", type: "select", options: [{ value: "30", label: "آخر 30 يوماً" }, { value: "90", label: "آخر 90 يوماً" }, { value: "180", label: "آخر 6 أشهر" }, { value: "365", label: "آخر سنة" }] }]} />
       <Card title="ما الذي ينقص البيانات"><ul style={{ margin: 0, paddingInlineStart: 18 }}>{r.missing.map((m) => <li key={m}><Tx>{missingLabels[m] ?? m}</Tx></li>)}</ul><p className="bos-hint"><Tx vars={{ n: String(MIN_SAMPLE) }}>{"المجموعات التي فيها أقل من {n} منشورات بأرقام تفاعل مُعلّمة «عينة صغيرة» ولا تصلح للاستنتاج."}</Tx></p></Card>
       {r.posts ? (
@@ -48,7 +47,7 @@ export default async function ContentInsightsPage({ searchParams }: { searchPara
               return (
                 <Card key={d} title={dimLabels[d]} flush>
                   {g.groups.length ? (
-                    <table className="bos-table">
+                    <BosTable className="bos-table">
                       <thead><tr><th><Tx>المجموعة</Tx></th><th><Tx>منشورات</Tx></th><th><Tx>متوسط التفاعل</Tx></th><th><Tx>متوسط الوصول</Tx></th></tr></thead>
                       <tbody>
                         {g.groups.map((x) => (
@@ -60,7 +59,7 @@ export default async function ContentInsightsPage({ searchParams }: { searchPara
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </BosTable>
                   ) : <p className="bos-hint" style={{ padding: 12 }}><Tx>لا توجد بيانات لهذا البُعد.</Tx></p>}
                   {g.missing ? <p className="bos-faint" style={{ fontSize: 11.5, padding: "4px 12px 10px" }}><Tx vars={{ n: String(g.missing) }}>{"{n} منشور بدون قيمة لهذا البُعد."}</Tx></p> : null}
                 </Card>

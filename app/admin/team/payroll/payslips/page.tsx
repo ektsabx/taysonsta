@@ -1,3 +1,4 @@
+import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
@@ -6,8 +7,6 @@ import { db } from "@/lib/bos/db";
 import { listPayslips } from "@/services/bos/hr/payroll";
 import { PageHeader, Card, EmptyState, Money, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
-import { SubNav } from "@/components/bos/SubNav";
-import { hrSection } from "@/lib/bos/hr-nav";
 import { statusOptions } from "@/lib/bos/labels";
 
 // Payslips: HR/Finance see all; employees see their published payslips (§26).
@@ -21,8 +20,7 @@ export default async function PayslipsPage({ searchParams }: { searchParams: Sea
   ]);
   return (
     <>
-      <PageHeader title={hrAll ? "قسائم الرواتب" : "قسائم راتبي"} breadcrumbs={[{ label: "الفريق" }, { label: "الرواتب", href: "/admin/team/payroll" }, { label: "القسائم" }]} />
-      <SubNav items={hrSection(bos, "payroll")} active="payslips" label="الرواتب" />
+      <PageHeader title={hrAll ? "قسائم الرواتب" : "قسائم راتبي"} />
       <FilterBar filters={[
         ...(hrAll ? [{ key: "employee", label: "الموظف", type: "select" as const, options: (employees ?? []).map((e) => ({ value: e.id, label: e.full_name })) }] : []),
         { key: "period", label: "الشهر (YYYY-MM)", type: "text" },
@@ -30,7 +28,7 @@ export default async function PayslipsPage({ searchParams }: { searchParams: Sea
       ]} />
       <Card flush>
         {rows.length ? (
-          <table className="bos-table responsive">
+          <BosTable className="bos-table responsive">
             <thead><tr>{hrAll ? <th><Tx>الموظف</Tx></th> : null}<th><Tx>الفترة</Tx></th><th><Tx>الدورة</Tx></th><th><Tx>الإجمالي</Tx></th><th><Tx>الاستقطاعات</Tx></th><th><Tx>الصافي</Tx></th><th><Tx>الحالة</Tx></th><th /></tr></thead>
             <tbody>
               {rows.map((s) => {
@@ -50,7 +48,7 @@ export default async function PayslipsPage({ searchParams }: { searchParams: Sea
                 );
               })}
             </tbody>
-          </table>
+          </BosTable>
         ) : <EmptyState title="لا توجد قسائم" description={hrAll ? undefined : "تظهر قسائمك بعد اعتماد ونشر الرواتب."} />}
       </Card>
     </>
