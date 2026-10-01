@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".open-next/**",
+    // Yolias is a separate app with its own lint config.
+    "Yolias/**",
   ]),
 ]);
 

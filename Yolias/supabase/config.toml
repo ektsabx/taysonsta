@@ -1,0 +1,58 @@
+# Local Supabase for Yolias — separate project and ports from Taysonsta BOS.
+project_id = "yolias"
+
+[api]
+enabled = true
+port = 54631
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54632
+shadow_port = 54630
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = true
+port = 54633
+
+[inbucket]
+enabled = true
+port = 54634
+
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3200"
+additional_redirect_urls = ["http://localhost:3200/auth/confirm", "http://127.0.0.1:3200/auth/confirm"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+# Magic link only: no passwords are ever set, and the templates below contain
+# the link only (no numeric code).
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+otp_expiry = 3600
+max_frequency = "30s"
+
+[auth.email.template.magic_link]
+subject = "Your Yolias sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your Yolias account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.invite]
+subject = "You've been invited to Yolias"
+content_path = "./supabase/templates/invite.html"
