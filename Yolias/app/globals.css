@@ -43,6 +43,7 @@
   --placeholder: #9c9c96;
   --modal-nav-hover: #f0eee9;
   --switch-off: #d8d8d3;
+  --switch-on: #141413;
   --track: #eeeee9;
   --avatar-bg: #171716;
   --avatar-line: #252524;
@@ -90,6 +91,7 @@ html[data-theme="dark"] {
   --placeholder: #6f6f69;
   --modal-nav-hover: #232321;
   --switch-off: #3a3a37;
+  --switch-on: #cf2525;
   --track: #2a2a28;
   --avatar-bg: #2a2a28;
   --avatar-line: #3a3a37;
@@ -921,7 +923,7 @@ textarea.form-input { resize: vertical; min-height: 88px; line-height: 1.5; }
   transition: .2s;
   border-radius: 50%;
 }
-input:checked + .slider { background-color: var(--ink); }
+input:checked + .slider { background-color: var(--switch-on); }
 input:checked + .slider:before { transform: translateX(16px); }
 input:disabled + .slider { cursor: not-allowed; opacity: .55; }
 

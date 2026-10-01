@@ -39,6 +39,13 @@ export function countryName(code: string | null | undefined): string {
   return countryNames[code.toUpperCase()] ?? code.toUpperCase();
 }
 
+const countryShort: Record<string, string> = { SA: "KSA", AE: "UAE", GB: "UK", US: "USA" };
+
+/** Compact form used in criteria lines ("KSA", "UAE"), as in the design. */
+export function countryShortName(code: string): string {
+  return countryShort[code.toUpperCase()] ?? countryName(code);
+}
+
 export function sizeLabel(icp: Pick<IcpCriteria, "employees_min" | "employees_max">): string {
   const { employees_min: min, employees_max: max } = icp;
   if (min != null && max != null) return `${min}–${max} employees`;
@@ -52,7 +59,7 @@ export function criteriaLine(icp: IcpCriteria): string {
   const parts = [
     icp.industries.slice(0, 2).join(", ") || icp.keywords.slice(0, 2).join(", "),
     sizeLabel(icp),
-    icp.countries.map(countryName).join(", "),
+    icp.countries.map(countryShortName).join(", "),
   ];
   return parts.filter(Boolean).join(" · ");
 }

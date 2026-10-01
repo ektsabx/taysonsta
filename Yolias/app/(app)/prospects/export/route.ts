@@ -6,7 +6,9 @@ import { listProspects, parseFilters } from "@/services/prospects";
 const csvCell = (v: unknown) => {
   const s = v == null ? "" : String(v);
   // Neutralise spreadsheet formula injection, then quote.
-  const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+  // Phone numbers like "+966 5…" are data, not formulas.
+  const isPhone = /^\+[\d\s()-]+$/.test(s);
+  const safe = !isPhone && /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
   return `"${safe.replace(/"/g, '""')}"`;
 };
 
