@@ -2,15 +2,16 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CampaignEventRow, CampaignRow, CompanyRow, ProspectRow, StrategyRow } from "@/types/database";
 
+// Sidebar history: all pinned strategies, then the most recent unpinned ones.
 export async function recentStrategies(workspaceId: string, limit = 12) {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("strategies")
-    .select("id, title")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  return data ?? [];
+  const [{ data: pinned }, { data: recent }] = await Promise.all([
+    supabase.from("strategies").select("id, title, pinned_at").eq("workspace_id", workspaceId)
+      .not("pinned_at", "is", null).order("pinned_at", { ascending: false }),
+    supabase.from("strategies").select("id, title, pinned_at").eq("workspace_id", workspaceId)
+      .is("pinned_at", null).order("created_at", { ascending: false }).limit(limit),
+  ]);
+  return [...(pinned ?? []), ...(recent ?? [])].map((s) => ({ id: s.id, title: s.title, pinned: s.pinned_at !== null }));
 }
 
 export interface StrategyView {

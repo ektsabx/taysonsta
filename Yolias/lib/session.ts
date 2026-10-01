@@ -2,9 +2,9 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasActivePlan, isPaidPlan, PLAN_COOKIE } from "@/lib/plans";
+import { hasActivePlan, isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
-import type { PaidPlan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
+import type { BillingPeriod, PaidPlan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
 
 export interface Session {
   userId: string;
@@ -57,7 +57,8 @@ export async function requireSession(): Promise<Session> {
   const session = await requireUser();
   if (!hasActivePlan(session.workspace)) {
     const plan = await pendingPlan(session);
-    redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
+    const period = await pendingPeriod();
+    redirect(plan ? `/checkout?plan=${plan}${period ? `&period=${period}` : ""}` : "/checkout");
   }
   if (!session.profile.onboarded_at) redirect("/onboarding");
   return session;
@@ -83,4 +84,10 @@ export async function pendingPlan(session: Session): Promise<PaidPlan | null> {
   const fromCookie = (await cookies()).get(PLAN_COOKIE)?.value;
   const plan = fromCookie ?? session.signupMeta.plan_intent;
   return isPaidPlan(plan) ? plan : null;
+}
+
+/** The billing period picked on /pricing before signing up. */
+export async function pendingPeriod(): Promise<BillingPeriod | null> {
+  const v = (await cookies()).get(PERIOD_COOKIE)?.value;
+  return isBillingPeriod(v) ? v : null;
 }

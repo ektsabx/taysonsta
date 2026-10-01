@@ -1,4 +1,4 @@
-import type { Plan, ProfileRow, SubscriptionStatus, WorkspaceRole } from "@/types/database";
+import type { BillingPeriod, Plan, ProfileRow, SubscriptionStatus, WorkspaceRole } from "@/types/database";
 
 export interface ShellData {
   user: {
@@ -18,6 +18,7 @@ export interface ShellData {
     companyLookups: number;
     subscriptionStatus: SubscriptionStatus;
     periodEnd: string | null;
+    billingPeriod: BillingPeriod;
   };
   role: WorkspaceRole;
   usage: { prospects: number; companies: number; resetsAt: string };
@@ -25,7 +26,7 @@ export interface ShellData {
     members: { user_id: string; role: WorkspaceRole; name: string; email: string; avatarUrl: string | null; initials: string }[];
     invitations: { id: string; email: string; role: string }[];
   };
-  recent: { id: string; title: string }[];
+  recent: { id: string; title: string; pinned: boolean }[];
   device: { label: string; ip: string | null };
 }
 

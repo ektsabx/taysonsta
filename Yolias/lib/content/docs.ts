@@ -1,0 +1,385 @@
+import type { Doc, Localized } from "./types";
+
+// Documentation: reference for how Yolias works. Task-style answers live in
+// the Help Center. Numbers here mirror the code (lib/discovery/match.ts,
+// lib/attachments.ts, lib/plans.ts).
+
+export interface DocGroup {
+  id: "start" | "core" | "workspace";
+  title: Localized<string>;
+}
+
+export const docGroups: DocGroup[] = [
+  { id: "start", title: { en: "Get started", ar: "البداية" } },
+  { id: "core", title: { en: "Core concepts", ar: "المفاهيم الأساسية" } },
+  { id: "workspace", title: { en: "Workspace", ar: "مساحة العمل" } },
+];
+
+export interface DocPage {
+  slug: string;
+  group: DocGroup["id"];
+  doc: Localized<Doc>;
+}
+
+export const docs: DocPage[] = [
+  {
+    slug: "introduction",
+    group: "start",
+    doc: {
+      en: {
+        title: "Introduction",
+        summary: "What Yolias is, and the path every request takes through it.",
+        blocks: [
+          { p: "Yolias is an autonomous customer-discovery product for B2B teams. You describe the customers you want; Yolias turns that into structured criteria, runs a discovery campaign and returns matching companies and decision makers." },
+          { h2: "The flow" },
+          { table: { head: ["Step", "What happens", "Where you see it"], rows: [
+            ["Strategy", "You write a request in plain language", "Yolias AI"],
+            ["Customer profile", "Yolias extracts criteria and assumptions", "The result card under the prompt"],
+            ["Campaign", "A discovery mission with a target and activity log", "Campaigns"],
+            ["Prospects", "Matched decision makers you choose to keep", "Prospects"],
+          ] } },
+          { h2: "What Yolias does not do" },
+          { p: "Yolias stops at discovery. It doesn’t send emails or messages, run sequences, or act as a CRM — you take the prospects into the tools you already use." },
+          { p: "Next: [Quickstart](/docs/quickstart)." },
+        ],
+      },
+      ar: {
+        title: "مقدمة",
+        summary: "ما هو يولـياس، والمسار الذي يمر به كل طلب.",
+        blocks: [
+          { p: "يولـياس منتج لاكتشاف العملاء بشكل مستقل لفرق B2B. تصف العملاء الذين تريدهم، فيحوّل يولـياس الوصف إلى معايير منظمة، ويشغّل حملة اكتشاف، ويعيد الشركات وصنّاع القرار المطابقين." },
+          { h2: "المسار" },
+          { table: { head: ["المرحلة", "ما يحدث", "أين تراه"], rows: [
+            ["الاستراتيجية", "تكتب طلبك بلغة طبيعية", "يولـياس AI"],
+            ["ملف العميل المثالي", "يستخرج يولـياس المعايير والافتراضات", "بطاقة النتيجة أسفل مربع الكتابة"],
+            ["الحملة", "مهمة اكتشاف لها هدف وسجل نشاط", "الحملات"],
+            ["العملاء المحتملون", "صنّاع القرار المطابقون الذين تختار الاحتفاظ بهم", "العملاء المحتملون"],
+          ] } },
+          { h2: "ما لا يفعله يولـياس" },
+          { p: "يتوقف يولـياس عند الاكتشاف. لا يرسل بريدًا أو رسائل، ولا يدير حملات تواصل، وليس نظام CRM — أنت من ينقل العملاء المحتملين إلى أدواتك الحالية." },
+          { p: "التالي: [البدء السريع](/docs/quickstart)." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "quickstart",
+    group: "start",
+    doc: {
+      en: {
+        title: "Quickstart",
+        summary: "From a new account to your first campaign in four steps.",
+        blocks: [
+          { ol: [
+            "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
+            "**Choose a plan.** Pick Pro, Growth or Scale and a monthly or annual period.",
+            "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every strategy, so be specific about the problem you solve.",
+            "**Write your first strategy.** In Yolias AI, describe who you want to sell to and press Enter.",
+          ] },
+          { p: "A good first strategy names a market, an industry or business type, a company size and the roles you want to reach. See [Strategies](/docs/strategies) for examples." },
+        ],
+      },
+      ar: {
+        title: "البدء السريع",
+        summary: "من حساب جديد إلى أول حملة في أربع خطوات.",
+        blocks: [
+          { ol: [
+            "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
+            "**اختر خطة.** اختر برو أو النمو أو التوسع وفترة شهرية أو سنوية.",
+            "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل استراتيجية، فكن محددًا في وصف المشكلة التي تحلها.",
+            "**اكتب أول استراتيجية.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
+          ] },
+          { p: "الاستراتيجية الأولى الجيدة تحدد سوقًا وقطاعًا أو نوع نشاط وحجم شركة والمناصب التي تريد الوصول إليها. راجع [الاستراتيجيات](/docs/strategies) للأمثلة." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "strategies",
+    group: "core",
+    doc: {
+      en: {
+        title: "Strategies",
+        summary: "How to write requests Yolias understands, and what you can attach.",
+        blocks: [
+          { p: "A strategy is one request in Yolias AI. Each strategy creates one campaign and appears in the sidebar history, where you can pin, rename or delete it." },
+          { h2: "What to include" },
+          { table: { head: ["Detail", "Example"], rows: [
+            ["How many", "“Find 80 companies…”"],
+            ["Market", "“…in Saudi Arabia and the UAE…”"],
+            ["Industry or type", "“…B2B SaaS and fintech…”"],
+            ["Size", "“…with 20–200 employees…”"],
+            ["Signals", "“…that are hiring sales roles or raised a Series A…”"],
+            ["People", "“…and reach founders or heads of sales.”"],
+          ] } },
+          { p: "Write in Arabic or English, or mix both. Press **Enter** to send and **Shift + Enter** for a new line. Requests can be up to 4,000 characters." },
+          { h2: "Voice and files" },
+          { ul: [
+            "**Voice** — press the microphone and speak; your words are added to the box. Works in Chrome and Edge.",
+            "**Images** — PNG, JPEG, GIF or WebP, e.g. a screenshot of a company you want more of.",
+            "**Files** — PDF, CSV, TXT, MD or TSV, e.g. an ICP brief or a list of current customers.",
+            "Up to three attachments per strategy, 4 MB each. Files are read to understand the request and are not stored.",
+          ] },
+        ],
+      },
+      ar: {
+        title: "الاستراتيجيات",
+        summary: "كيف تكتب طلبات يفهمها يولـياس، وما الذي يمكنك إرفاقه.",
+        blocks: [
+          { p: "الاستراتيجية طلب واحد في يولـياس AI. تنشئ كل استراتيجية حملة واحدة وتظهر في سجل الشريط الجانبي، حيث يمكنك تثبيتها أو إعادة تسميتها أو حذفها." },
+          { h2: "ما الذي تكتبه" },
+          { table: { head: ["التفصيل", "مثال"], rows: [
+            ["العدد", "«ابحث عن 80 شركة…»"],
+            ["السوق", "«…في السعودية والإمارات…»"],
+            ["القطاع أو النوع", "«…B2B SaaS وتقنية مالية…»"],
+            ["الحجم", "«…بها 20–200 موظف…»"],
+            ["المؤشرات", "«…توظّف في المبيعات أو أغلقت جولة Series A…»"],
+            ["الأشخاص", "«…وأريد الوصول إلى المؤسسين أو رؤساء المبيعات.»"],
+          ] } },
+          { p: "اكتب بالعربية أو الإنجليزية أو امزج بينهما. اضغط **Enter** للإرسال و**Shift + Enter** لسطر جديد. الحد الأقصى للطلب 4,000 حرف." },
+          { h2: "الصوت والملفات" },
+          { ul: [
+            "**الصوت** — اضغط الميكروفون وتحدّث؛ تُضاف كلماتك إلى المربع. يعمل في Chrome و Edge.",
+            "**الصور** — PNG أو JPEG أو GIF أو WebP، مثل لقطة شاشة لشركة تريد أمثالها.",
+            "**الملفات** — PDF أو CSV أو TXT أو MD أو TSV، مثل وصف ICP أو قائمة عملائك الحاليين.",
+            "حتى ثلاثة مرفقات لكل استراتيجية، 4 ميجابايت لكل منها. تُقرأ الملفات لفهم الطلب ولا تُخزن.",
+          ] },
+        ],
+      },
+    },
+  },
+  {
+    slug: "customer-profile",
+    group: "core",
+    doc: {
+      en: {
+        title: "Customer profile (ICP)",
+        summary: "The criteria Yolias extracts from a strategy, and how it fills gaps.",
+        blocks: [
+          { p: "Yolias AI reads your strategy together with your onboarding context and produces an ideal customer profile. The campaign uses it as its criteria." },
+          { h2: "Fields" },
+          { table: { head: ["Field", "Notes"], rows: [
+            ["Campaign name & summary", "Written in your interface language"],
+            ["Target", "A number of companies or prospects; 100 when not stated"],
+            ["Countries & cities", "Countries default to your Settings country when not stated"],
+            ["Industries & keywords", "What matching companies do"],
+            ["Company size", "Minimum and/or maximum employees"],
+            ["Job titles & seniority", "Founder, C-level, VP, director, head, manager"],
+            ["Signals", "Hiring (and for which roles), funding stages, technologies"],
+            ["Exclusions", "Companies or traits to leave out"],
+            ["Assumptions", "Every default Yolias chose because the request didn’t say"],
+          ] } },
+          { p: "If no titles are given, Yolias infers relevant decision makers from what you sell. To change any criterion, send a new strategy that states it explicitly." },
+        ],
+      },
+      ar: {
+        title: "ملف العميل المثالي (ICP)",
+        summary: "المعايير التي يستخرجها يولـياس من الاستراتيجية، وكيف يكمل الناقص.",
+        blocks: [
+          { p: "يقرأ يولـياس AI استراتيجيتك مع سياق الإعداد الأولي وينتج ملف العميل المثالي. وتستخدمه الحملة معاييرَ لها." },
+          { h2: "الحقول" },
+          { table: { head: ["الحقل", "ملاحظات"], rows: [
+            ["اسم الحملة والملخص", "يُكتبان بلغة الواجهة"],
+            ["الهدف", "عدد شركات أو عملاء محتملين؛ 100 إذا لم يُحدد"],
+            ["الدول والمدن", "الدولة الافتراضية هي دولة الإعدادات إذا لم تُحدد"],
+            ["القطاعات والكلمات المفتاحية", "ما تعمل فيه الشركات المطابقة"],
+            ["حجم الشركة", "الحد الأدنى و/أو الأقصى للموظفين"],
+            ["المسميات والمستوى الوظيفي", "مؤسس، إدارة تنفيذية، نائب رئيس، مدير، رئيس قسم، مدير فريق"],
+            ["المؤشرات", "التوظيف (ولأي أدوار)، جولات التمويل، التقنيات"],
+            ["الاستثناءات", "شركات أو صفات يجب استبعادها"],
+            ["الافتراضات", "كل قيمة افتراضية اختارها يولـياس لأن الطلب لم يذكرها"],
+          ] } },
+          { p: "إذا لم تُذكر مسميات، يستنتج يولـياس صنّاع القرار المناسبين مما تبيعه. لتغيير أي معيار أرسل استراتيجية جديدة تذكره صراحة." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "campaigns",
+    group: "core",
+    doc: {
+      en: {
+        title: "Campaigns",
+        summary: "Discovery missions: their stages, statuses and activity log.",
+        blocks: [
+          { p: "A campaign is the mission created from a strategy: the criteria, a target quota, the results and a log of what Yolias did. Open **Campaigns** to see them all; selecting one opens its strategy." },
+          { h2: "Stages" },
+          { ol: ["Understand the request", "Plan the mission", "Find companies", "Find decision makers", "Enrich & verify contact details", "Qualify, score and deliver"] },
+          { h2: "Statuses" },
+          { table: { head: ["Status", "Meaning"], rows: [
+            ["Active", "Queued or running — results are being collected"],
+            ["Awaiting data source", "Criteria are ready; no company data source is connected yet"],
+            ["Completed", "The mission finished and delivered its results"],
+            ["Paused", "Stopped for now; criteria and results are kept"],
+            ["Failed", "Discovery stopped with an error shown in the activity log"],
+          ] } },
+          { p: "The latest activity entry is shown at the bottom of the result card in Yolias AI." },
+        ],
+      },
+      ar: {
+        title: "الحملات",
+        summary: "مهام الاكتشاف: مراحلها وحالاتها وسجل نشاطها.",
+        blocks: [
+          { p: "الحملة هي المهمة التي تُنشأ من الاستراتيجية: المعايير وحصة مستهدفة والنتائج وسجل لما فعله يولـياس. افتح **الحملات** لرؤيتها كلها؛ واختيار إحداها يفتح استراتيجيتها." },
+          { h2: "المراحل" },
+          { ol: ["فهم الطلب", "تخطيط المهمة", "العثور على الشركات", "العثور على صنّاع القرار", "إثراء بيانات التواصل والتحقق منها", "التأهيل والتقييم والتسليم"] },
+          { h2: "الحالات" },
+          { table: { head: ["الحالة", "المعنى"], rows: [
+            ["نشطة", "في الانتظار أو قيد التشغيل — تُجمع النتائج"],
+            ["بانتظار مصدر بيانات", "المعايير جاهزة؛ ولا يوجد مصدر بيانات للشركات متصل بعد"],
+            ["مكتملة", "انتهت المهمة وسلّمت نتائجها"],
+            ["متوقفة مؤقتًا", "متوقفة حاليًا؛ مع الاحتفاظ بالمعايير والنتائج"],
+            ["فشلت", "توقف الاكتشاف بخطأ يظهر في سجل النشاط"],
+          ] } },
+          { p: "يظهر آخر نشاط أسفل بطاقة النتيجة في يولـياس AI." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "prospects",
+    group: "core",
+    doc: {
+      en: {
+        title: "Prospects",
+        summary: "What a prospect record contains, how the match score works, and the export format.",
+        blocks: [
+          { p: "Prospects are the decision makers a campaign delivers. They join your **Prospects** list when you press **Save to Prospects** on the strategy." },
+          { h2: "Match score" },
+          { p: "The score (0–100%) compares a prospect and their company with the criteria you actually specified. Criteria you left open are skipped, so they never lower the score." },
+          { table: { head: ["Criterion", "Weight"], rows: [
+            ["Market (country)", "20"], ["Industry or keywords", "25"], ["Company size", "20"],
+            ["Hiring", "10"], ["Funding stage", "5"], ["Decision-maker title or seniority", "20"],
+          ] } },
+          { h2: "Contact channels" },
+          { p: "Email, WhatsApp and LinkedIn appear only when found. Email shows a ✓ when verified; unverified emails are labelled as such, and invalid ones are hidden." },
+          { h2: "CSV columns" },
+          { p: "Name, Title, Company, Employees, City, Country, Campaign, Email, Email status, Phone, WhatsApp, LinkedIn, ICP match %." },
+        ],
+      },
+      ar: {
+        title: "العملاء المحتملون",
+        summary: "محتوى سجل العميل المحتمل، وطريقة حساب نسبة التطابق، وصيغة التصدير.",
+        blocks: [
+          { p: "العملاء المحتملون هم صنّاع القرار الذين تسلّمهم الحملة. ينضمون إلى قائمة **العملاء المحتملون** عند الضغط على **حفظ في العملاء المحتملين** في الاستراتيجية." },
+          { h2: "نسبة التطابق" },
+          { p: "تقارن النسبة (0–100%) العميل المحتمل وشركته بالمعايير التي حددتها فعلًا. المعايير التي تركتها مفتوحة لا تُحتسب، فلا تخفض النسبة أبدًا." },
+          { table: { head: ["المعيار", "الوزن"], rows: [
+            ["السوق (الدولة)", "20"], ["القطاع أو الكلمات المفتاحية", "25"], ["حجم الشركة", "20"],
+            ["التوظيف", "10"], ["جولة التمويل", "5"], ["مسمى صانع القرار أو مستواه", "20"],
+          ] } },
+          { h2: "قنوات التواصل" },
+          { p: "يظهر البريد وواتساب ولينكدإن فقط عند العثور عليها. يحمل البريد علامة ✓ عند التحقق منه، ويُوصف البريد غير المتحقق منه بذلك، ويُخفى البريد غير الصالح." },
+          { h2: "أعمدة ملف CSV" },
+          { p: "الاسم، المسمى الوظيفي، الشركة، عدد الموظفين، المدينة، الدولة، الحملة، البريد، حالة البريد، الهاتف، واتساب، لينكدإن، نسبة تطابق ICP." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "analytics",
+    group: "workspace",
+    doc: {
+      en: {
+        title: "Analytics",
+        summary: "The four discovery metrics and the market breakdown.",
+        blocks: [
+          { p: "Analytics covers the last 7, 30 or 90 days for the whole workspace." },
+          { table: { head: ["Metric", "Definition"], rows: [
+            ["Prospects found", "Prospects discovered in the period, with the share whose email is verified"],
+            ["Companies discovered", "Companies added to campaigns in the period"],
+            ["Decision makers extracted", "Prospects at founder, C-level, VP, director or head level"],
+            ["Qualified fit rate", "Share of scored prospects with a match of 70% or more"],
+          ] } },
+          { p: "**Discovery volume by market** groups prospects by country, largest first." },
+        ],
+      },
+      ar: {
+        title: "التحليلات",
+        summary: "مؤشرات الاكتشاف الأربعة وتوزيع الأسواق.",
+        blocks: [
+          { p: "تغطي التحليلات آخر 7 أو 30 أو 90 يومًا لمساحة العمل كلها." },
+          { table: { head: ["المؤشر", "التعريف"], rows: [
+            ["العملاء المحتملون", "العملاء المكتشفون في الفترة، مع نسبة من تم التحقق من بريدهم"],
+            ["الشركات المكتشفة", "الشركات المضافة إلى الحملات في الفترة"],
+            ["صنّاع القرار المستخرجون", "العملاء بمستوى مؤسس أو إدارة تنفيذية أو نائب رئيس أو مدير أو رئيس قسم"],
+            ["معدل التطابق المؤهل", "نسبة العملاء المقيّمين الذين بلغ تطابقهم 70% أو أكثر"],
+          ] } },
+          { p: "**حجم الاكتشاف حسب السوق** يجمع العملاء المحتملين حسب الدولة، من الأكبر إلى الأصغر." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "team-and-roles",
+    group: "workspace",
+    doc: {
+      en: {
+        title: "Team and roles",
+        summary: "Who can do what inside a workspace.",
+        blocks: [
+          { table: { head: ["Action", "Owner", "Admin", "Member"], rows: [
+            ["Write strategies, view campaigns and prospects", "✓", "✓", "✓"],
+            ["Save and export prospects", "✓", "✓", "✓"],
+            ["Invite and remove members", "✓", "✓", "—"],
+            ["Choose or change the plan", "✓", "✓", "—"],
+            ["Be removed by others", "—", "✓", "✓"],
+          ] } },
+          { p: "Every plan includes unlimited users. The person who creates the workspace is its owner." },
+        ],
+      },
+      ar: {
+        title: "الفريق والأدوار",
+        summary: "من يستطيع فعل ماذا داخل مساحة العمل.",
+        blocks: [
+          { table: { head: ["الإجراء", "المالك", "المسؤول", "العضو"], rows: [
+            ["كتابة الاستراتيجيات وعرض الحملات والعملاء", "✓", "✓", "✓"],
+            ["حفظ العملاء المحتملين وتصديرهم", "✓", "✓", "✓"],
+            ["دعوة الأعضاء وإزالتهم", "✓", "✓", "—"],
+            ["اختيار الخطة أو تغييرها", "✓", "✓", "—"],
+            ["إمكانية إزالته من الآخرين", "—", "✓", "✓"],
+          ] } },
+          { p: "كل الخطط تشمل مستخدمين غير محدودين. ومن ينشئ مساحة العمل هو مالكها." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "plans-and-usage",
+    group: "workspace",
+    doc: {
+      en: {
+        title: "Plans and usage",
+        summary: "Monthly limits per plan and how they are counted.",
+        blocks: [
+          { table: { head: ["Plan", "Monthly price", "Discovery credits", "Company lookups"], rows: [
+            ["Pro", "$20", "1,000", "200"], ["Growth", "$50", "3,000", "600"], ["Scale", "$100", "8,000", "1,500"],
+          ] } },
+          { ul: [
+            "One discovery credit is used for each decision maker a campaign delivers.",
+            "One company lookup is used for each company added to a campaign.",
+            "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
+            "Annual billing costs twelve times the monthly price.",
+          ] },
+          { p: "Current usage is in Settings → Usage." },
+        ],
+      },
+      ar: {
+        title: "الخطط والاستخدام",
+        summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
+        blocks: [
+          { table: { head: ["الخطة", "السعر الشهري", "رصيد الاكتشاف", "عمليات البحث عن الشركات"], rows: [
+            ["برو", "$20", "1,000", "200"], ["النمو", "$50", "3,000", "600"], ["التوسع", "$100", "8,000", "1,500"],
+          ] } },
+          { ul: [
+            "يُستهلك رصيد اكتشاف واحد لكل صانع قرار تسلّمه الحملة.",
+            "تُستهلك عملية بحث واحدة لكل شركة تُضاف إلى حملة.",
+            "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",
+            "الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري.",
+          ] },
+          { p: "تجد استخدامك الحالي في الإعدادات ← الاستخدام." },
+        ],
+      },
+    },
+  },
+];

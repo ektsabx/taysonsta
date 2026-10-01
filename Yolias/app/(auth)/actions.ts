@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { isPaidPlan, PLAN_COOKIE } from "@/lib/plans";
+import { isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
 
 export type MagicLinkMode = "login" | "signup" | "recover";
@@ -30,8 +30,12 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
   // A plan picked on /pricing is remembered so the user lands on checkout
   // right after confirming their email.
   const plan = formData.get("plan");
+  const period = formData.get("period");
   if (isPaidPlan(plan)) {
-    (await cookies()).set(PLAN_COOKIE, plan, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax", httpOnly: true });
+    const jar = await cookies();
+    const opts = { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" as const, httpOnly: true };
+    jar.set(PLAN_COOKIE, plan, opts);
+    jar.set(PERIOD_COOKIE, isBillingPeriod(period) ? period : "monthly", opts);
   }
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPaidPlan(plan) ? plan : undefined };

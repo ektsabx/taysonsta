@@ -338,7 +338,11 @@ function BillingTab({ data }: { data: ShellData }) {
         <div style={{ textAlign: "end" }}>
           <span className="plan-badge" style={{ fontSize: ".75rem", padding: "3px 8px" }}>{fmt(b.planBadge, { plan: planLabel(workspace.plan, t) })}</span>
           <div style={{ fontSize: ".8rem", fontWeight: 700, marginTop: 4 }}>
-            {workspace.priceUsd ? <><span dir="ltr">${workspace.priceUsd}</span> {t.common.perMonth}</> : t.common.free}
+            {workspace.priceUsd ? (
+              workspace.billingPeriod === "annual"
+                ? <><span dir="ltr">${workspace.priceUsd * 12}</span> {b.perYear}</>
+                : <><span dir="ltr">${workspace.priceUsd}</span> {t.common.perMonth}</>
+            ) : t.common.free}
           </div>
           <div className="setting-hint">
             {workspace.periodEnd

@@ -6,7 +6,7 @@ import { ArrowRight, MailCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { sendMagicLink, type MagicLinkMode, type MagicLinkState } from "./actions";
 
-export function MagicLinkForm({ mode, initialError, plan }: { mode: MagicLinkMode; initialError?: string; plan?: string }) {
+export function MagicLinkForm({ mode, initialError, plan, period }: { mode: MagicLinkMode; initialError?: string; plan?: string; period?: string }) {
   const { t } = useI18n();
   const a = t.auth;
   const [state, action, pending] = useActionState<MagicLinkState, FormData>(
@@ -31,6 +31,7 @@ export function MagicLinkForm({ mode, initialError, plan }: { mode: MagicLinkMod
         <form action={action}>
           <input type="hidden" name="email" value={state.email} />
           {plan && <input type="hidden" name="plan" value={plan} />}
+          {period && <input type="hidden" name="period" value={period} />}
           <button className="link-button" type="submit" disabled={pending}>{pending ? t.common.sending : a.resend}</button>
         </form>
       </div>
@@ -41,6 +42,7 @@ export function MagicLinkForm({ mode, initialError, plan }: { mode: MagicLinkMod
     <>
       <form className="auth-form" action={action}>
         {plan && <input type="hidden" name="plan" value={plan} />}
+        {period && <input type="hidden" name="period" value={period} />}
         <div className="field">
           <label htmlFor="email">{a.workEmail}</label>
           <input

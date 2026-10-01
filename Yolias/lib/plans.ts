@@ -1,5 +1,5 @@
 import type { Dictionary } from "@/lib/i18n/config";
-import type { PaidPlan, Plan, WorkspaceRow } from "@/types/database";
+import type { BillingPeriod, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
 // Plans from the Yolias pricing page. Every plan has the same features and
 // unlimited users; they differ only in monthly discovery usage. The usage
@@ -38,8 +38,18 @@ export function isPaidPlan(v: unknown): v is PaidPlan {
   return typeof v === "string" && (paidPlans as string[]).includes(v);
 }
 
-/** Cookie remembering which plan a visitor picked on /pricing before signing up. */
+/** Cookies remembering the plan and billing period picked on /pricing before signup. */
 export const PLAN_COOKIE = "yolias_plan";
+export const PERIOD_COOKIE = "yolias_period";
+
+export function isBillingPeriod(v: unknown): v is BillingPeriod {
+  return v === "monthly" || v === "annual";
+}
+
+/** Annual billing = 12 × the monthly price (no discount). */
+export function priceFor(monthlyUsd: number, period: BillingPeriod): number {
+  return period === "annual" ? monthlyUsd * 12 : monthlyUsd;
+}
 
 export function monthWindow(now = new Date()) {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

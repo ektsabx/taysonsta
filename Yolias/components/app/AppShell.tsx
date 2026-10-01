@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, History, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
+  ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
+  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -12,6 +13,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { planLabel } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
 import { SettingsModal } from "./SettingsModal";
+import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 
 const mainNav = [
@@ -35,6 +37,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,9 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
     setMenuOpen(false);
     setSettingsTab(tab);
   };
+
+  const pinned = data.recent.filter((st) => st.pinned);
+  const recent = data.recent.filter((st) => !st.pinned);
 
   // "+ New Strategy": back to Yolias AI with an empty prompt.
   const newStrategy = () => router.push(`/?new=${Date.now()}`);
@@ -96,16 +102,20 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
             ))}
           </section>
 
+          {pinned.length > 0 && (
+            <section className="nav-group">
+              <h2 className="nav-heading">{t.nav.pinned}</h2>
+              {pinned.map((st) => (
+                <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned active={pathname === `/strategies/${st.id}`} />
+              ))}
+            </section>
+          )}
+
           <section className="nav-group">
             <h2 className="nav-heading">{t.nav.recentStrategy}</h2>
-            {data.recent.length === 0 && <div className="nav-empty">{t.nav.recentEmpty}</div>}
-            {data.recent.map((s) => (
-              <Link key={s.id} href={`/strategies/${s.id}`} className={`nav-item${pathname === `/strategies/${s.id}` ? " active" : ""}`} title={s.title}>
-                <div className="nav-item-inner">
-                  <History />
-                  <span>{s.title}</span>
-                </div>
-              </Link>
+            {recent.length === 0 && <div className="nav-empty">{t.nav.recentEmpty}</div>}
+            {recent.map((st) => (
+              <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned={false} active={pathname === `/strategies/${st.id}`} />
             ))}
           </section>
         </nav>
@@ -123,6 +133,28 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Plug />
               <span>{t.settings.tabs.integration}</span>
             </button>
+            <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
+              <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen((o) => !o)}>
+                <CircleHelp />
+                <span>{t.nav.getHelp}</span>
+                <ChevronRight className="menu-chevron flip-rtl" />
+              </button>
+              {helpOpen && (
+                <div className="menu-flyout" role="menu">
+                  <Link className="menu-item" role="menuitem" href="/help-center" target="_blank" onClick={() => setMenuOpen(false)}>
+                    <BookOpen />
+                    <span>{t.nav.helpCenter}</span>
+                    <ArrowUpRight className="menu-chevron" />
+                  </Link>
+                  {/* Opens the support chatbot once it is connected. */}
+                  <button className="menu-item" role="menuitem" type="button" disabled>
+                    <MessageCircle />
+                    <span>{t.nav.getSupport}</span>
+                    <span className="coming-soon">{t.common.comingSoon}</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="menu-divider" />
             <button className="menu-item" type="button" onClick={() => signOut()}>
               <LogOut />

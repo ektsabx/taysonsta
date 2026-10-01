@@ -6,8 +6,8 @@ import { Check, CreditCard, Lock } from "lucide-react";
 import { formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planName, planUsage } from "@/lib/plans";
-import type { PaidPlan, Plan } from "@/types/database";
+import { planName, planUsage, priceFor } from "@/lib/plans";
+import type { BillingPeriod, PaidPlan, Plan } from "@/types/database";
 import { activatePlan } from "./actions";
 
 interface Option {
@@ -20,6 +20,8 @@ interface Option {
 interface Props {
   initialPlan: PaidPlan;
   currentPlan: Plan | null;
+  currentPeriod: BillingPeriod | null;
+  initialPeriod: BillingPeriod;
   canManage: boolean;
   testMode: boolean;
   email: string;
@@ -28,21 +30,24 @@ interface Props {
   options: Option[];
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, canManage, testMode, email, workspaceName, continueHref, options }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, email, workspaceName, continueHref, options }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
+  const [period, setPeriod] = useState<BillingPeriod>(initialPeriod);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const plan = options.find((o) => o.id === selected)!;
   const name = planName(selected, t);
-  const isCurrent = currentPlan === selected;
+  const isCurrent = currentPlan === selected && currentPeriod === period;
+  const price = (o: Option) => priceFor(o.priceUsd, period);
+  const per = period === "annual" ? t.plans.perYear : t.plans.perMonth;
   const money = (n: number) => `$${n.toFixed(2)}`;
 
   const subscribe = () =>
     start(async () => {
       setError(null);
-      const r = await activatePlan(selected);
+      const r = await activatePlan(selected, period);
       if (r && !r.ok) setError(r.error);
     });
 
@@ -52,6 +57,14 @@ export function CheckoutForm({ initialPlan, currentPlan, canManage, testMode, em
         <p className="checkout-eyebrow">{c.eyebrow}</p>
         <h1 className="checkout-title">{fmt(c.title, { plan: name })}</h1>
         <p className="checkout-lead">{c.lead}</p>
+
+        <div className="period-toggle app" role="radiogroup" aria-label={t.pricing.billingPeriod}>
+          {(["monthly", "annual"] as BillingPeriod[]).map((p) => (
+            <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
+              {p === "monthly" ? t.plans.monthly : t.plans.annual}
+            </button>
+          ))}
+        </div>
 
         <div className="checkout-plans" role="radiogroup" aria-label={c.eyebrow}>
           {options.map((o) => (
@@ -68,11 +81,11 @@ export function CheckoutForm({ initialPlan, currentPlan, canManage, testMode, em
                 <span className="checkout-plan-name">
                   {planName(o.id, t)}
                   {o.id === "growth" && <span className="plan-badge">{t.plans.recommended}</span>}
-                  {o.id === currentPlan && <span className="coming-soon">{c.currentPlan}</span>}
+                  {o.id === currentPlan && currentPeriod === period && <span className="coming-soon">{c.currentPlan}</span>}
                 </span>
                 <span className="checkout-plan-sub">{planUsage(o.id, t)}</span>
               </span>
-              <span className="checkout-plan-price">${o.priceUsd}<small>{c.perMonth}</small></span>
+              <span className="checkout-plan-price"><span dir="ltr">${price(o)}</span><small>{per}</small></span>
             </button>
           ))}
         </div>
@@ -93,13 +106,13 @@ export function CheckoutForm({ initialPlan, currentPlan, canManage, testMode, em
         <div className="checkout-line">
           <span>
             {name}
-            <small>{c.billedMonthly}{workspaceName ? ` · ${workspaceName}` : ""}</small>
+            <small>{period === "annual" ? t.plans.billedAnnually : t.plans.billedMonthly}{workspaceName ? ` · ${workspaceName}` : ""}</small>
           </span>
-          <span dir="ltr">{money(plan.priceUsd)}</span>
+          <span dir="ltr">{money(price(plan))}</span>
         </div>
-        <div className="checkout-line muted"><span>{c.subtotal}</span><span dir="ltr">{money(plan.priceUsd)}</span></div>
+        <div className="checkout-line muted"><span>{c.subtotal}</span><span dir="ltr">{money(price(plan))}</span></div>
         <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
-        <div className="checkout-line total"><span>{c.total}</span><span dir="ltr">{money(plan.priceUsd)}</span></div>
+        <div className="checkout-line total"><span>{c.total}</span><span dir="ltr">{money(price(plan))}</span></div>
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard /> {c.paymentMethod}</div>

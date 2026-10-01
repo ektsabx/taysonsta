@@ -142,6 +142,35 @@ export async function saveToProspects(campaignId: string): Promise<{ ok: boolean
   return { ok: true, saved: data?.length ?? 0 };
 }
 
+// Sidebar history actions (pin / rename / delete), like Claude and ChatGPT.
+// Deleting a strategy keeps its campaign and prospects (campaigns.strategy_id
+// is set to null by the database).
+export async function pinStrategy(id: string, pinned: boolean): Promise<{ ok: boolean }> {
+  await requireSession();
+  const supabase = await createClient();
+  const { error } = await supabase.from("strategies").update({ pinned_at: pinned ? new Date().toISOString() : null }).eq("id", id);
+  revalidatePath("/", "layout");
+  return { ok: !error };
+}
+
+export async function renameStrategy(id: string, title: string): Promise<{ ok: boolean }> {
+  await requireSession();
+  const clean = titleFrom(title);
+  if (!clean) return { ok: false };
+  const supabase = await createClient();
+  const { error } = await supabase.from("strategies").update({ title: clean }).eq("id", id);
+  revalidatePath("/", "layout");
+  return { ok: !error };
+}
+
+export async function deleteStrategy(id: string): Promise<{ ok: boolean }> {
+  await requireSession();
+  const supabase = await createClient();
+  const { error } = await supabase.from("strategies").delete().eq("id", id);
+  revalidatePath("/", "layout");
+  return { ok: !error };
+}
+
 function titleFrom(text: string) {
   const s = text.replace(/\s+/g, " ").trim();
   return s.length > 60 ? `${s.slice(0, 57)}…` : s;

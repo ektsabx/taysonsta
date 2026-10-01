@@ -5,8 +5,8 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan, isPaidPlan, paidPlans, plans } from "@/lib/plans";
-import { canManageTeam, pendingPlan, requireUser } from "@/lib/session";
+import { hasActivePlan, isBillingPeriod, isPaidPlan, paidPlans, plans } from "@/lib/plans";
+import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,11 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CheckoutPage({ searchParams }: PageProps<"/checkout">) {
   const session = await requireUser();
   const t = await getDictionary();
-  const { plan } = await searchParams;
+  const { plan, period } = await searchParams;
   const active = hasActivePlan(session.workspace);
   const current = active ? session.workspace.plan : null;
   const picked = isPaidPlan(plan) ? plan : await pendingPlan(session);
   const initial = picked ?? (current && current !== "free" ? current : "growth");
+  const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (active ? session.workspace.billing_period : "monthly");
 
   return (
     <div className="checkout-page">
@@ -35,6 +36,8 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
       <CheckoutForm
         initialPlan={initial}
         currentPlan={current}
+        currentPeriod={active ? session.workspace.billing_period : null}
+        initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
         email={session.email}

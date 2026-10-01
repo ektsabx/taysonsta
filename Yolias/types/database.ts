@@ -13,6 +13,7 @@ type Table<Row, Required extends keyof Row, Rel = []> = {
 export type WorkspaceRole = "owner" | "admin" | "member";
 export type Plan = "free" | "pro" | "growth" | "scale";
 export type PaidPlan = Exclude<Plan, "free">;
+export type BillingPeriod = "monthly" | "annual";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
 export type CampaignStatus = "awaiting_source" | "queued" | "running" | "completed" | "failed" | "paused";
@@ -29,6 +30,7 @@ export type WorkspaceRow = {
   plan: Plan;
   subscription_status: SubscriptionStatus;
   current_period_end: string | null;
+  billing_period: BillingPeriod;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -78,6 +80,7 @@ export type StrategyRow = {
   icp: Json | null;
   status: StrategyStatus;
   error: string | null;
+  pinned_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -162,7 +165,20 @@ export type SubscriptionEventRow = {
   status: "activated" | "changed" | "canceled";
   amount_usd: number;
   mode: "test" | "live";
+  billing_period: BillingPeriod;
   created_by: string | null;
+  created_at: string;
+};
+
+export type ContactMessageRow = {
+  id: string;
+  name: string;
+  email: string;
+  company: string | null;
+  topic: "sales" | "support" | "partnerships" | "press" | "other";
+  message: string;
+  locale: string;
+  user_id: string | null;
   created_at: string;
 };
 
@@ -178,6 +194,7 @@ export interface Database {
       campaign_events: Table<CampaignEventRow, "workspace_id" | "campaign_id" | "stage" | "message">;
       companies: Table<CompanyRow, "workspace_id" | "campaign_id" | "name" | "source">;
       prospects: Table<ProspectRow, "workspace_id" | "campaign_id" | "full_name" | "source">;
+      contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount_usd" | "mode">;
     };
     Views: { [_ in never]: never };

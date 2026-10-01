@@ -1250,3 +1250,66 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
 .lang-option[lang="ar"] { font-family: var(--font-kufi), sans-serif; }
 .auth-brand { display: flex; align-items: center; justify-content: space-between; }
 .checkout-top-actions { display: flex; align-items: center; gap: 8px; }
+.period-toggle.app { display: inline-flex; gap: 2px; margin-top: 18px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--soft); }
+.period-toggle.app button { min-width: 88px; height: 30px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: .8rem; font-weight: 600; cursor: pointer; }
+.period-toggle.app button.active { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+/* ================= SIDEBAR HISTORY MENU ================= */
+.nav-item.has-menu { padding: 0; position: relative; }
+.nav-item-link { flex: 1; min-width: 0; height: 32px; padding: 0 10px; color: inherit; }
+.nav-item-menu { position: relative; display: flex; align-items: center; padding-inline-end: 4px; }
+.nav-item-more {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  border: none; border-radius: 5px; background: transparent; color: var(--icon); cursor: pointer;
+  opacity: 0; transition: opacity .12s ease, background .12s ease;
+}
+.nav-item-more svg { width: 15px; height: 15px; }
+.nav-item.has-menu:hover .nav-item-more, .nav-item.menu-open .nav-item-more, .nav-item.active .nav-item-more, .nav-item-more:focus-visible { opacity: 1; }
+.nav-item-more:hover { background: var(--line); color: var(--ink); }
+.item-menu {
+  position: absolute; top: calc(100% + 4px); inset-inline-end: 0; z-index: 120; min-width: 168px;
+  padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+  box-shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04); animation: popoverFadeIn .14s ease;
+}
+.menu-item.danger, .menu-item.danger svg { color: var(--danger); }
+.nav-item.editing { padding: 0 4px; }
+.nav-rename {
+  width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--line-focus); border-radius: 6px;
+  background: var(--paper); color: var(--ink); font: inherit; font-size: .81rem; outline: none;
+}
+.confirm-dialog {
+  width: min(92vw, 420px); padding: 22px; border-radius: 14px; background: var(--paper);
+  box-shadow: 0 24px 60px rgba(0,0,0,.18); animation: popoverFadeIn .18s ease;
+}
+.confirm-dialog h3 { font-size: 1.02rem; font-weight: 700; }
+.confirm-dialog p { margin-top: 8px; font-size: .84rem; line-height: 1.5; color: var(--muted); }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.btn-danger.solid { background: var(--danger); color: #fff; }
+.btn-danger.solid:hover { background: #b91c1c; }
+
+/* Get help flyout */
+.menu-sub { position: relative; }
+.menu-chevron { margin-inline-start: auto; width: 14px !important; height: 14px !important; }
+.menu-flyout {
+  position: absolute; bottom: 0; inset-inline-start: calc(100% + 8px); z-index: 130; min-width: 200px;
+  padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+  box-shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04); animation: popoverFadeIn .14s ease;
+}
+.menu-flyout::before { content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: -10px; width: 10px; }
+.menu-item:disabled { cursor: default; opacity: .7; }
+.menu-item:disabled:hover { background: transparent; color: var(--text-3); }
+a.menu-item { text-decoration: none; }
+
+/* ================= ERROR PAGES ================= */
+.error-page {
+  min-height: 100vh; height: 100vh; overflow-y: auto; display: flex; flex-direction: column;
+  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+}
+.error-top { max-width: 1100px; width: 100%; margin: 0 auto; padding: 18px 24px; }
+.error-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 24px 12vh; }
+.error-code { font-family: var(--font-serif); font-size: 4.5rem; font-weight: 600; line-height: 1; color: var(--red); letter-spacing: -.04em; }
+.error-main h1 { margin-top: 14px; font-family: var(--font-serif); font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -.03em; }
+html[lang="ar"] .error-main h1 { letter-spacing: 0; }
+.error-main p { max-width: 480px; margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.65; }
+.error-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
+.error-actions .btn-primary, .error-actions .btn-secondary { height: 38px; padding: 0 16px; font-size: .84rem; }

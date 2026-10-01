@@ -57,6 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       companyLookups: plan.companyLookups,
       subscriptionStatus: workspace.subscription_status,
       periodEnd: workspace.current_period_end,
+      billingPeriod: workspace.billing_period,
     },
     role: session.role,
     usage,

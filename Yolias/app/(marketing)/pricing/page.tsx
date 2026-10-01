@@ -3,7 +3,6 @@ import { getDictionary } from "@/lib/i18n/server";
 import { plans } from "@/lib/plans";
 import { getSession } from "@/lib/session";
 import { PricingView } from "./PricingView";
-import "./pricing.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getDictionary()).pricing.title };
@@ -13,15 +12,6 @@ export async function generateMetadata(): Promise<Metadata> {
 // (signed-in users). Journey: signup → magic link → checkout → onboarding → Yolias.
 export default async function PricingPage() {
   const session = await getSession();
-  const signedIn = Boolean(session);
-  const href = (plan: "pro" | "growth" | "scale") => (signedIn ? `/checkout?plan=${plan}` : `/signup?plan=${plan}`);
   const usage = (p: "pro" | "growth" | "scale") => ({ credits: plans[p].prospectCredits, lookups: plans[p].companyLookups, price: plans[p].priceUsd });
-
-  return (
-    <PricingView
-      signedIn={signedIn}
-      planHref={{ pro: href("pro"), growth: href("growth"), scale: href("scale") }}
-      usage={{ pro: usage("pro"), growth: usage("growth"), scale: usage("scale") }}
-    />
-  );
+  return <PricingView signedIn={Boolean(session)} usage={{ pro: usage("pro"), growth: usage("growth"), scale: usage("scale") }} />;
 }

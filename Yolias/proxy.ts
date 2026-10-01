@@ -5,7 +5,9 @@ import type { Database } from "@/types/database";
 // Refreshes the Supabase session cookie on every request and keeps signed-out
 // visitors on the auth pages. Onboarding and workspace checks happen in the
 // (app) layout, which has database access.
-const publicPaths = ["/login", "/signup", "/recover", "/auth/", "/pricing"];
+// Pages that need a signed-in user. Everything else is public (website,
+// auth, legal, resources) and unknown paths fall through to the 404 page.
+const appPaths = ["/analytics", "/campaigns", "/prospects", "/strategies", "/checkout", "/onboarding"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -30,15 +32,21 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
   const { pathname } = request.nextUrl;
-  const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(p));
+  const isApp = appPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+  if (!signedIn && pathname === "/") {
+    // Visitors see the public home page at "/"; signed-in users get Yolias AI.
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.rewrite(url, { request });
+  }
   if (!signedIn && pathname === "/checkout") {
     // Picked a plan while signed out: create the account first, keep the plan.
     const url = request.nextUrl.clone();
     url.pathname = "/signup";
     return NextResponse.redirect(url);
   }
-  if (!signedIn && !isPublic) {
+  if (!signedIn && isApp) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
