@@ -20,7 +20,7 @@ the status and add a dated note.
 | D-110 | 2026-10 | Provider prices, limits and licenses live in the registry as configuration. |
 | D-001 | 2026-10-01 | **Hosting: Cloudflare** for the whole platform (both apps via OpenNext, the worker as Cloudflare Workers). Deploy only when the product is finished; until then everything runs locally. |
 | D-010 | 2026-10-01 | Admin reads Yolias data through a server-only client (`lib/yolias/db.ts`, env `YOLIAS_SUPABASE_URL` / `YOLIAS_SUPABASE_SERVICE_ROLE_KEY`) behind `platform.*` permissions. Two Supabase projects, both in the Taysonsta Supabase account (table `invoices` would collide if merged; see `13-audit.md`). |
-| D-011 | 2026-10-01 | Local dev: one command `npm run local` at the root. A host-based proxy on :3200 serves Yolias at `localhost:3200` and the Admin at `admin.localhost:3200` (apps on :3201 / :3202). |
+| D-011 | 2026-10-01 | Local dev: one command `npm run local` at the root. A host-based proxy on :3200 serves Yolias at `localhost:3200` and the Admin at `admin.localhost:3200` (apps on :3201 / :3202). Same command from `Yolias/`; ports are freed first and routing is self-tested on start. |
 | D-111 | 2026-10-01 | Yolias sends email through the **Taysonsta Resend account**. Sign-in emails: Supabase Auth SMTP → `smtp.resend.com`. Product emails: Resend API. The key is read from Yolias env, else from the Taysonsta root `.env.local`, else from the Taysonsta Integration Hub. |
 | D-112 | 2026-10-01 | Yolias may use the Taysonsta Supabase account and keys where it needs them (owner's permission). |
 

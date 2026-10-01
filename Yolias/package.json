@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "local": "bash scripts/dev-local.sh",
-    "dev": "next dev --port 3200",
+    "local": "bash ../scripts/dev-all.sh",
+    "local:yolias-only": "bash scripts/dev-local.sh",
+    "dev": "next dev --port 3201",
     "build": "next build",
     "start": "next start --port 3200",
     "lint": "eslint",

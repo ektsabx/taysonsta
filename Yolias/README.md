@@ -16,12 +16,12 @@ The whole platform (Yolias + Yolias Admin) from the repo root:
 npm run local                   # Yolias → http://localhost:3200 · Admin → http://admin.localhost:3200
 ```
 
-Yolias alone:
+`cd Yolias && npm run local` does the same (it runs the root command), so
+the Admin always gets `admin.localhost:3200`. Yolias alone, without the Admin:
 
 ```bash
 cd Yolias
-npm install
-npm run local                   # starts Yolias's local Supabase, writes .env.local, runs the app on :3200
+npm run local:yolias-only       # Yolias's Supabase + the app on :3200 (admin.localhost then shows a "not running" page)
 ```
 
 `npm run local` (scripts/dev-local.sh) uses Yolias's own local Supabase on ports 5463x (BOS uses 5442x). On Colima it restarts Colima with the ssh port forwarder if the database port isn't exposed in time. Magic-link emails are captured by Inbucket at http://127.0.0.1:54634.

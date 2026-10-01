@@ -53,10 +53,31 @@ grep -vE '^(YOLIAS_SUPABASE_URL|YOLIAS_SUPABASE_SERVICE_ROLE_KEY|YOLIAS_SITE_URL
   echo "YOLIAS_SITE_URL=http://localhost:$PROXY_PORT"
 } > .env.local && rm .env.local.tmp
 
-# 4) Servers.
-for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do lsof -ti:"$p" 2>/dev/null | xargs kill 2>/dev/null || true; done
+# 4) Servers. Free the ports first: an old `next dev` on :3200 (e.g. Yolias
+# started alone) would answer every host, so admin.localhost would show Yolias.
+port_pids() {
+  {
+    command -v lsof >/dev/null 2>&1 && lsof -ti tcp:"$1" -sTCP:LISTEN 2>/dev/null
+    command -v fuser >/dev/null 2>&1 && fuser "$1"/tcp 2>/dev/null
+  } | tr -s ' \t' '\n' | grep -E '^[0-9]+$' | sort -u
+}
+port_busy() { (exec 3<>/dev/tcp/127.0.0.1/"$1") 2>/dev/null; }
+for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do
+  pids_on="$(port_pids "$p" | tr '\n' ' ')"
+  [ -n "${pids_on// /}" ] && { say "Stopping what was running on port $p…"; kill $pids_on 2>/dev/null; }
+  for _ in $(seq 1 20); do port_busy "$p" || break; sleep 0.5; done
+  if port_busy "$p"; then
+    [ -n "${pids_on// /}" ] && kill -9 $pids_on 2>/dev/null; sleep 1
+    port_busy "$p" && { say "Port $p is still in use by another program. Stop it and run npm run local again."; exit 1; }
+  fi
+done
 pids=()
-cleanup() { kill "${pids[@]}" 2>/dev/null; wait 2>/dev/null; }
+# Ctrl+C stops everything, including the next dev processes behind the pipes.
+cleanup() {
+  kill "${pids[@]}" 2>/dev/null
+  for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do port_pids "$p" | xargs kill 2>/dev/null; done
+  wait 2>/dev/null
+}
 trap cleanup EXIT INT TERM
 
 prefix() { sed -u "s/^/[$1] /"; }
@@ -64,5 +85,19 @@ prefix() { sed -u "s/^/[$1] /"; }
 (cd "$ROOT" && exec npx next dev --port $ADMIN_PORT 2>&1 | prefix admin) & pids+=($!)
 (PROXY_PORT=$PROXY_PORT YOLIAS_PORT=$YOLIAS_PORT ADMIN_PORT=$ADMIN_PORT exec node "$ROOT/scripts/dev-proxy.mjs" 2>&1 | prefix proxy) & pids+=($!)
 
+# 5) Self-test the routing through the front door before saying "ready".
+check() { curl -s -m 5 -H "Host: $1:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/__yolias-proxy" | grep -o '"app":"[a-z]*"' | cut -d'"' -f4; }
+for _ in $(seq 1 40); do port_busy $PROXY_PORT && break; sleep 0.5; done
+Y_APP="$(check localhost)"; A_APP="$(check admin.localhost)"
+if [ "$Y_APP" != yolias ] || [ "$A_APP" != admin ]; then
+  say "Routing check failed (localhost → ${Y_APP:-nothing}, admin.localhost → ${A_APP:-nothing}). See the [proxy] lines above."
+  exit 1
+fi
+for _ in $(seq 1 120); do
+  code="$(curl -s -o /dev/null -m 10 -w '%{http_code}' -H "Host: admin.localhost:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/admin/login")"
+  [ "$code" = 200 ] && break; sleep 1
+done
+say "Routing OK ✓  localhost → Yolias · admin.localhost → Yolias Admin"
 say "Ready →  Yolias: http://localhost:$PROXY_PORT   ·   Yolias Admin: http://admin.localhost:$PROXY_PORT"
+say "If a browser can't open admin.localhost, add this line to /etc/hosts: 127.0.0.1 admin.localhost"
 wait

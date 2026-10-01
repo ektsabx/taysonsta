@@ -39,7 +39,14 @@ function unavailable(res, port) {
 <p>The app on port ${port} is starting. This page reloads by itself.</p></body>`);
 }
 
+const appOf = (port) => (port === ADMIN_PORT ? "admin" : "yolias");
+
 const server = http.createServer((req, res) => {
+  // Health/self-test: which app would this host get?
+  if (req.url === "/__yolias-proxy") {
+    res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+    return res.end(JSON.stringify({ proxy: true, host: req.headers.host, app: appOf(targetPort(req)) }));
+  }
   // admin.localhost:3200/ opens the admin directly.
   if (isAdminHost(req.headers.host) && (req.url === "/" || req.url?.startsWith("/?"))) {
     res.writeHead(302, { location: "/admin" });
@@ -53,6 +60,8 @@ const server = http.createServer((req, res) => {
       // point them back at the public host.
       const loc = up.headers.location;
       if (loc) up.headers.location = loc.replace(new RegExp(`^https?://(localhost|127\\.0\\.0\\.1|\\[::1\\]):${port}(?=/|$)`), `http://${req.headers.host}`);
+      // Which app answered — handy when checking routing in devtools.
+      up.headers["x-yolias-app"] = appOf(port);
       res.writeHead(up.statusCode || 502, up.headers);
       up.pipe(res);
     },
@@ -82,6 +91,16 @@ server.on("upgrade", (req, socket, head) => {
   };
   conn.on("error", close);
   socket.on("error", close);
+});
+
+server.on("error", (e) => {
+  if (e.code === "EADDRINUSE") {
+    console.error(`✖ Port ${PORT} is already in use by another program (often an old "next dev").`);
+    console.error(`  Stop it, then run "npm run local" again. On macOS/Linux: lsof -ti:${PORT} | xargs kill`);
+  } else {
+    console.error(`✖ Proxy failed: ${e.message}`);
+  }
+  process.exit(1);
 });
 
 server.listen(PORT, () => {

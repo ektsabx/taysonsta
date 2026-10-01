@@ -9,7 +9,26 @@ import type { Database } from "@/types/database";
 // auth, legal, resources) and unknown paths fall through to the 404 page.
 const appPaths = ["/analytics", "/campaigns", "/prospects", "/search", "/checkout", "/onboarding", "/invoices"];
 
+// admin.* belongs to Yolias Admin. If such a request reaches Yolias, the
+// local front door (scripts/dev-proxy.mjs) isn't the one serving :3200 —
+// say so instead of quietly showing the customer app (docs/02 "Local development").
+function misroutedAdmin(request: NextRequest) {
+  const host = (request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "").toLowerCase();
+  if (!host.startsWith("admin.")) return null;
+  const html = `<!doctype html><meta charset="utf-8"><title>Yolias Admin isn't running</title>
+<body style="font-family:system-ui;max-width:640px;margin:60px auto;padding:0 16px;line-height:1.6;color:#141413">
+<h1 style="font-size:22px">Yolias Admin isn't running on this port</h1>
+<p>This address belongs to <b>Yolias Admin</b>, but the request reached the Yolias customer app.
+Port 3200 is being served by Yolias alone instead of the local front door.</p>
+<p>Stop the running dev servers, then from the <b>repository root</b> run:</p>
+<pre style="background:#f4f4f1;padding:12px;border-radius:8px">npm run local</pre>
+<p>Yolias → <a href="http://localhost:3200">http://localhost:3200</a><br>Yolias Admin → http://admin.localhost:3200</p></body>`;
+  return new NextResponse(html, { status: 503, headers: { "content-type": "text/html; charset=utf-8", "x-yolias-app": "yolias" } });
+}
+
 export async function proxy(request: NextRequest) {
+  const misrouted = misroutedAdmin(request);
+  if (misrouted) return misrouted;
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(

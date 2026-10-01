@@ -104,5 +104,13 @@ npm run local
 (including the Taysonsta Resend key) and the Admin's `YOLIAS_*` variables,
 then runs both apps and `scripts/dev-proxy.mjs`. Browsers resolve
 `*.localhost` to 127.0.0.1, so no hosts-file change is needed. Each host
-keeps its own login cookies. `cd Yolias && npm run local` still runs Yolias
-alone on :3200.
+keeps its own login cookies.
+
+Routing safeguards:
+- `npm run local` works from the root and from `Yolias/` (same command).
+- Before starting, it stops anything already on :3200/:3201/:3202 (an old `next dev` on :3200 would answer every host, which is how `admin.localhost` used to show Yolias).
+- After starting, it checks the routing through `/__yolias-proxy` and stops with a clear error if a host goes to the wrong app.
+- Responses carry `x-yolias-app: yolias|admin`.
+- If an `admin.*` request ever reaches Yolias directly, Yolias shows "Yolias Admin isn't running" instead of the customer app.
+- `cd Yolias && npm run local:yolias-only` runs Yolias alone on :3200 (no Admin).
+- A browser that can't resolve `admin.localhost` needs `127.0.0.1 admin.localhost` in `/etc/hosts`.
