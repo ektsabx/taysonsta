@@ -13,8 +13,6 @@ export interface ShellData {
   workspace: {
     name: string;
     plan: Plan;
-    planLabel: string;
-    planName: string;
     priceUsd: number;
     prospectCredits: number;
     companyLookups: number;

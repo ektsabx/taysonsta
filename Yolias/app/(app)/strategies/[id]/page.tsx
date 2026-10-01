@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DiscoveryCard } from "@/components/app/DiscoveryCard";
 import { StrategyComposer } from "@/components/app/StrategyComposer";
+import { getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
 import { getStrategyView } from "@/services/strategies";
 
-export const metadata: Metadata = { title: "Strategy — Yolias" };
+export async function generateMetadata({ params }: PageProps<"/strategies/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const view = /^[0-9a-f-]{36}$/i.test(id) ? await getStrategyView(id) : null;
+  return { title: view ? `${view.strategy.title} — Yolias` : "Yolias" };
+}
 
 export default async function StrategyPage({ params }: PageProps<"/strategies/[id]">) {
   const session = await requireSession();
@@ -18,7 +23,7 @@ export default async function StrategyPage({ params }: PageProps<"/strategies/[i
     <div className="page-view">
       <header style={{ height: 44, flexShrink: 0 }} />
       <div className="chat-view">
-        <StrategyComposer key={view.strategy.id} initialPrompt={view.strategy.prompt} speechLang={session.profile.language === "ar" ? "ar-SA" : "en-US"} />
+        <StrategyComposer key={view.strategy.id} initialPrompt={view.strategy.prompt} speechLang={(await getLocale()) === "ar" ? "ar-SA" : "en-US"} />
         <DiscoveryCard view={view} />
       </div>
     </div>

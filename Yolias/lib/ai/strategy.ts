@@ -37,10 +37,17 @@ Rules:
 - Attached files or images may describe the ICP; use them.
 - Write campaign_name, summary and assumptions in {LANGUAGE}.`;
 
-export class StrategyAiError extends Error {}
+export type StrategyAiErrorCode = "aiNotConfigured" | "aiRefused" | "aiIncomplete" | "aiBusy" | "aiAuth" | "aiFailed";
+
+/** Carries a dictionary key (strategy.errors.*) so the UI can show it in any language. */
+export class StrategyAiError extends Error {
+  constructor(public code: StrategyAiErrorCode) {
+    super(code);
+  }
+}
 
 export async function understandStrategy(prompt: string, attachments: StrategyAttachment[], ctx: StrategyContext): Promise<IcpCriteria> {
-  if (!aiConfigured()) throw new StrategyAiError("Yolias AI is not configured yet (missing ANTHROPIC_API_KEY).");
+  if (!aiConfigured()) throw new StrategyAiError("aiNotConfigured");
 
   const business = [
     ctx.companyName && `Company: ${ctx.companyName}`,
@@ -73,14 +80,14 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
       system: SYSTEM.replace("{LANGUAGE}", ctx.language === "ar" ? "Arabic" : "English"),
       messages: [{ role: "user", content }],
     });
-    if (response.stop_reason === "refusal") throw new StrategyAiError("Yolias AI couldn't process this request. Try rephrasing it.");
-    if (!response.parsed_output) throw new StrategyAiError("Yolias AI returned an incomplete answer. Please try again.");
+    if (response.stop_reason === "refusal") throw new StrategyAiError("aiRefused");
+    if (!response.parsed_output) throw new StrategyAiError("aiIncomplete");
     return normalize(response.parsed_output);
   } catch (e) {
     if (e instanceof StrategyAiError) throw e;
-    if (e instanceof Anthropic.RateLimitError) throw new StrategyAiError("Yolias AI is busy right now. Please try again in a moment.");
-    if (e instanceof Anthropic.AuthenticationError) throw new StrategyAiError("Yolias AI credentials are invalid.");
-    if (e instanceof Anthropic.APIError) throw new StrategyAiError(`Yolias AI request failed (${e.status ?? "network"}).`);
+    if (e instanceof Anthropic.RateLimitError) throw new StrategyAiError("aiBusy");
+    if (e instanceof Anthropic.AuthenticationError) throw new StrategyAiError("aiAuth");
+    if (e instanceof Anthropic.APIError) throw new StrategyAiError("aiFailed");
     throw e;
   }
 }

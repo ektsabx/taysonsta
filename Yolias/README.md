@@ -49,11 +49,20 @@ After the first sign-in, `/onboarding` collects the user's name, company name, w
 | Campaigns | `/campaigns` | Search / discovery missions (not outreach) |
 | Prospects | `/prospects` | Saved discoveries, with filters and CSV export |
 | Recent Strategy | sidebar | History of strategies |
-| Pricing | `/pricing` (public) | Plans Pro $20 / Growth $50 / Scale $100, EN + AR. Picking a plan → signup → onboarding → checkout |
+| Pricing | `/pricing` (public) | Plans Pro $20 / Growth $50 / Scale $100. Picking a plan → signup → magic link → checkout → onboarding → Yolias |
 | Checkout | `/checkout?plan=…` | No payment provider yet: plans activate only with `BILLING_TEST_MODE=true` (local), recorded as test subscriptions |
 | Settings | user menu → modal | General, Account, Usage, Team (working). Billing and Integration are marked "Coming soon". |
 
 Out of scope by design (for now): CRM, inbox, meetings, contacts, deals, pipeline, sequences, outreach, support and marketing automation.
+
+## Languages (Arabic / English, RTL / LTR)
+
+Every page is bilingual. Copy lives in `lib/i18n/dictionaries/en.ts` and `ar.ts` (same keys, type-checked).
+
+- **Language choice**: cookie `yolias_locale`, else the account language (`profiles.language`), else the browser.
+- **Layout**: the root layout sets `<html lang dir>`. CSS uses logical properties (`inset-inline-*`, `margin-inline-*`, `text-align: start`), so layouts mirror automatically. Arrows and panel icons use `.flip-rtl`.
+- **In code**: server components use `getDictionary()`. Client components use `useI18n()`. Fill placeholders with `fmt(text, vars)`.
+- **Stored text**: server actions return text in the reader's language. Campaign events store a dictionary key in `meta`, so they are translated when shown.
 
 ## Discovery architecture
 

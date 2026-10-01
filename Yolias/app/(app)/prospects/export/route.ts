@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
+import { getDictionary } from "@/lib/i18n/server";
 import { listProspects, parseFilters } from "@/services/prospects";
 
 // CSV export of saved prospects (respects the Prospects page filters).
@@ -18,7 +19,8 @@ export async function GET(request: NextRequest) {
 
   const filters = parseFilters(Object.fromEntries(request.nextUrl.searchParams));
   const rows = await listProspects(session.workspace.id, filters, 10000);
-  const header = ["Name", "Title", "Company", "Employees", "City", "Country", "Campaign", "Email", "Email status", "Phone", "WhatsApp", "LinkedIn", "ICP match %"];
+  const h = (await getDictionary()).prospects.csv;
+  const header = [h.name, h.title, h.company, h.employees, h.city, h.country, h.campaign, h.email, h.emailStatus, h.phone, h.whatsapp, h.linkedin, h.match];
   const lines = rows.map((p) =>
     [
       p.full_name, p.title, p.company?.name, p.company?.employee_count, p.city ?? p.company?.city, p.country ?? p.company?.country,

@@ -1,4 +1,5 @@
-import type { PaidPlan, Plan } from "@/types/database";
+import type { Dictionary } from "@/lib/i18n/config";
+import type { PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
 // Plans from the Yolias pricing page. Every plan has the same features and
 // unlimited users; they differ only in monthly discovery usage. The usage
@@ -11,6 +12,27 @@ export const plans: Record<Plan, { label: string; name: string; priceUsd: number
 };
 
 export const paidPlans: PaidPlan[] = ["pro", "growth", "scale"];
+
+/** Localized "Yolias Growth" / "يولـياس للنمو". */
+export function planName(plan: Plan, t: Dictionary): string {
+  return t.plans[plan];
+}
+
+/** Short badge label: "Growth" / "نمو". */
+export function planLabel(plan: Plan, t: Dictionary): string {
+  const key = { free: "labelFree", pro: "labelPro", growth: "labelGrowth", scale: "labelScale" } as const;
+  return t.plans[key[plan]];
+}
+
+export function planUsage(plan: PaidPlan, t: Dictionary): string {
+  const key = { pro: "usagePro", growth: "usageGrowth", scale: "usageScale" } as const;
+  return t.plans[key[plan]];
+}
+
+/** A workspace has chosen a plan (paid, test, or — if offered later — free). */
+export function hasActivePlan(ws: Pick<WorkspaceRow, "subscription_status">): boolean {
+  return ws.subscription_status === "active" || ws.subscription_status === "test";
+}
 
 export function isPaidPlan(v: unknown): v is PaidPlan {
   return typeof v === "string" && (paidPlans as string[]).includes(v);

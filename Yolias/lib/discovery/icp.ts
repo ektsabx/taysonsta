@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { countryLabel } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/config";
 
 // The Ideal Customer Profile Yolias AI extracts from a strategy request. It is
 // stored on the strategy and as the campaign's criteria, and is the only input
@@ -29,37 +31,31 @@ export const IcpSchema = z.object({
 
 export type IcpCriteria = z.infer<typeof IcpSchema>;
 
-const countryNames: Record<string, string> = {
-  SA: "Saudi Arabia", AE: "UAE", EG: "Egypt", QA: "Qatar", KW: "Kuwait", BH: "Bahrain", OM: "Oman",
-  JO: "Jordan", MA: "Morocco", GB: "United Kingdom", US: "United States",
-};
-
-export function countryName(code: string | null | undefined): string {
-  if (!code) return "";
-  return countryNames[code.toUpperCase()] ?? code.toUpperCase();
+export interface IcpLabels {
+  anySize: string;
+  sizeRange: string;
+  sizeMin: string;
+  sizeMax: string;
 }
 
-const countryShort: Record<string, string> = { SA: "KSA", AE: "UAE", GB: "UK", US: "USA" };
+const enLabels: IcpLabels = { anySize: "Any size", sizeRange: "{min}–{max} employees", sizeMin: "{min}+ employees", sizeMax: "up to {max} employees" };
 
-/** Compact form used in criteria lines ("KSA", "UAE"), as in the design. */
-export function countryShortName(code: string): string {
-  return countryShort[code.toUpperCase()] ?? countryName(code);
-}
+const fill = (s: string, v: Record<string, number>) => s.replace(/\{(\w+)\}/g, (m, k: string) => (k in v ? String(v[k]) : m));
 
-export function sizeLabel(icp: Pick<IcpCriteria, "employees_min" | "employees_max">): string {
+export function sizeLabel(icp: Pick<IcpCriteria, "employees_min" | "employees_max">, labels: IcpLabels = enLabels): string {
   const { employees_min: min, employees_max: max } = icp;
-  if (min != null && max != null) return `${min}–${max} employees`;
-  if (min != null) return `${min}+ employees`;
-  if (max != null) return `up to ${max} employees`;
-  return "Any size";
+  if (min != null && max != null) return fill(labels.sizeRange, { min, max });
+  if (min != null) return fill(labels.sizeMin, { min });
+  if (max != null) return fill(labels.sizeMax, { max });
+  return labels.anySize;
 }
 
 // "B2B SaaS · 10–100 employees · KSA" — the Target ICP Criteria column.
-export function criteriaLine(icp: IcpCriteria): string {
+export function criteriaLine(icp: IcpCriteria, locale: Locale = "en", labels: IcpLabels = enLabels): string {
   const parts = [
     icp.industries.slice(0, 2).join(", ") || icp.keywords.slice(0, 2).join(", "),
-    sizeLabel(icp),
-    icp.countries.map(countryShortName).join(", "),
+    sizeLabel(icp, labels),
+    icp.countries.map((c) => countryLabel(c, locale, true)).join(", "),
   ];
   return parts.filter(Boolean).join(" · ");
 }

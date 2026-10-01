@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, RotateCcw } from "lucide-react";
 import { retryStrategy, saveToProspects } from "@/app/(app)/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 export function SaveToProspectsButton({ campaignId, alreadySaved, disabled }: { campaignId: string; alreadySaved: boolean; disabled: boolean }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [saved, setSaved] = useState(alreadySaved);
   const [pending, start] = useTransition();
@@ -25,12 +27,13 @@ export function SaveToProspectsButton({ campaignId, alreadySaved, disabled }: { 
       }}
     >
       <Check />
-      <span>{saved ? "Saved to Prospects" : "Save to Prospects"}</span>
+      <span>{saved ? t.discovery.savedToProspects : t.discovery.saveToProspects}</span>
     </button>
   );
 }
 
 export function RetryStrategyButton({ strategyId }: { strategyId: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
@@ -41,7 +44,7 @@ export function RetryStrategyButton({ strategyId }: { strategyId: string }) {
       onClick={() => start(async () => { await retryStrategy(strategyId); router.refresh(); })}
     >
       <RotateCcw />
-      <span>{pending ? "Retrying…" : "Try again"}</span>
+      <span>{pending ? t.common.retrying : t.common.tryAgain}</span>
     </button>
   );
 }

@@ -1,10 +1,13 @@
-export const authErrors: Record<string, string> = {
-  link_invalid: "That sign-in link is invalid or has expired. Request a new one below.",
-  account_unavailable: "Your account isn't linked to a workspace. Sign in again, or contact your workspace admin.",
-  link_missing: "That sign-in link is incomplete. Request a new one below.",
-};
+import type { Dictionary } from "@/lib/i18n/config";
 
-export async function errorFrom(searchParams: Promise<Record<string, string | string[] | undefined>>) {
+const keys = {
+  link_invalid: "linkInvalid",
+  link_missing: "linkMissing",
+  account_unavailable: "accountUnavailable",
+} as const;
+
+export async function errorFrom(searchParams: Promise<Record<string, string | string[] | undefined>>, t: Dictionary) {
   const sp = await searchParams;
-  return typeof sp.error === "string" ? authErrors[sp.error] : undefined;
+  const k = typeof sp.error === "string" ? keys[sp.error as keyof typeof keys] : undefined;
+  return k ? t.auth.errors[k] : undefined;
 }

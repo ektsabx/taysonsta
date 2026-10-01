@@ -2,24 +2,35 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
-import { isPaidPlan, paidPlans, plans } from "@/lib/plans";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { getDictionary } from "@/lib/i18n/server";
+import { hasActivePlan, isPaidPlan, paidPlans, plans } from "@/lib/plans";
+import { canManageTeam, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 
-export const metadata: Metadata = { title: "Checkout — Yolias" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: `${(await getDictionary()).checkout.eyebrow} — Yolias` };
+}
 
+// Step 2 of the journey (after signup): choose and activate a plan.
 export default async function CheckoutPage({ searchParams }: PageProps<"/checkout">) {
-  const session = await requireSession();
+  const session = await requireUser();
+  const t = await getDictionary();
   const { plan } = await searchParams;
-  const current = session.workspace.plan;
-  const initial = isPaidPlan(plan) ? plan : current !== "free" ? current : "growth";
+  const active = hasActivePlan(session.workspace);
+  const current = active ? session.workspace.plan : null;
+  const picked = isPaidPlan(plan) ? plan : await pendingPlan(session);
+  const initial = picked ?? (current && current !== "free" ? current : "growth");
 
   return (
     <div className="checkout-page">
       <header className="checkout-top">
-        <Link href="/" aria-label="Yolias home"><BrandLogo /></Link>
-        <Link href="/pricing" className="checkout-back"><ArrowLeft /> Back to pricing</Link>
+        <Link href={active ? "/" : "/pricing"} aria-label="Yolias"><BrandLogo /></Link>
+        <div className="checkout-top-actions">
+          <LanguageMenu />
+          <Link href="/pricing" className="checkout-back"><ArrowLeft className="flip-rtl" /> {t.checkout.back}</Link>
+        </div>
       </header>
       <CheckoutForm
         initialPlan={initial}
@@ -28,6 +39,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         testMode={billingTestMode()}
         email={session.email}
         workspaceName={session.workspace.name ?? ""}
+        continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
         options={paidPlans.map((p) => ({ id: p, ...plans[p] }))}
       />
     </div>

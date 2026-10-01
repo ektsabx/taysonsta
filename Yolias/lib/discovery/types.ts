@@ -41,7 +41,12 @@ export interface DiscoveryContext {
   /** What the user's company sells (onboarding) — lets providers rank relevance. */
   offering: string | null;
   limit: number;
-  log: (stage: PipelineStage, message: string, level?: "info" | "success" | "warning" | "error") => Promise<void>;
+  log: (
+    stage: PipelineStage,
+    message: string,
+    level?: "info" | "success" | "warning" | "error",
+    text?: { key?: string; vars?: Record<string, string | number> }
+  ) => Promise<void>;
 }
 
 interface ProviderBase {

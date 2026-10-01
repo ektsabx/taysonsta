@@ -1,42 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, Menu, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Menu, Plus } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { LanguageMenu } from "@/components/LanguageMenu";
 import { sendMagicLink } from "@/app/(auth)/actions";
-import { coreFeatureKeys, pricingCopy, usageRowKeys, type Lang, type PricingCopy } from "./content";
+import { formatNumber } from "@/lib/format";
+import { fmt, type Dictionary } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
+import { planName } from "@/lib/plans";
+
+type PricingCopy = Dictionary["pricing"];
+type PlanId = "pro" | "growth" | "scale";
+
+// Features that apply to Yolias today (customer discovery). Outreach, CRM and
+// support items from the original design were removed on purpose.
+const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "automations", "analytics", "integrations", "unlimitedUsers"] as const;
 
 interface Props {
   /** Where each plan's "Try Yolias" goes: checkout when signed in, signup otherwise. */
-  planHref: Record<"pro" | "growth" | "scale", string>;
+  planHref: Record<PlanId, string>;
   signedIn: boolean;
+  /** Monthly quotas per plan (lib/plans.ts) for the comparison table. */
+  usage: Record<PlanId, { credits: number; lookups: number; price: number }>;
 }
 
-const LANG_KEY = "yolias.lang";
-
-export function PricingView({ planHref, signedIn }: Props) {
-  const [lang, setLang] = useState<Lang>("en");
-  const t = pricingCopy[lang];
+export function PricingView({ planHref, signedIn, usage }: Props) {
+  const { t: dict, locale } = useI18n();
+  const t = dict.pricing;
   const rootRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [policy, setPolicy] = useState<"privacyNotice" | "termsNotice" | null>(null);
-
-  useEffect(() => {
-    let saved: string | null = null;
-    try {
-      saved = localStorage.getItem(LANG_KEY);
-    } catch {}
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- restore the visitor's saved language after hydration
-    if (saved === "ar") setLang("ar");
-  }, []);
-
-  useEffect(() => {
-    document.title = t.title;
-    try {
-      localStorage.setItem(LANG_KEY, lang);
-    } catch {}
-  }, [lang, t.title]);
+  const n = (v: number) => formatNumber(v, locale);
 
   const scrollTo = (id: string) => {
     setMenuOpen(false);
@@ -50,11 +46,9 @@ export function PricingView({ planHref, signedIn }: Props) {
     { id: "resources", label: t.navResources },
   ];
 
-  const signInHref = signedIn ? "/" : "/login";
-  const signInLabel = signedIn ? t.openApp : t.signIn;
 
   return (
-    <div ref={rootRef} className={`mk${lang === "ar" ? " is-arabic" : ""}`} dir={lang === "ar" ? "rtl" : "ltr"} lang={lang} id="top">
+    <div ref={rootRef} className="mk" id="top">
       <header className="nav-shell sticky top-0 z-50">
         <nav className="site-width flex h-[72px] items-center justify-between gap-4" aria-label="Primary navigation">
           <a href="#top" onClick={(e) => { e.preventDefault(); scrollTo("top"); }} className="focus-ring flex shrink-0 items-center gap-2 rounded">
@@ -65,14 +59,14 @@ export function PricingView({ planHref, signedIn }: Props) {
               <a key={l.id} className="nav-link focus-ring rounded" href={`#${l.id}`} onClick={(e) => { e.preventDefault(); scrollTo(l.id); }}>{l.label}</a>
             ))}
           </div>
-          <div className="hidden items-center gap-4 lg:flex">
-            <LanguageControl lang={lang} onChange={setLang} />
-            <Link className="nav-link focus-ring rounded" href={signInHref}>{signInLabel}</Link>
-            <Link className="primary-button cta-pill focus-ring" href={planHref.growth}>{t.tryYolias}</Link>
+          <div className="hidden items-center gap-3 lg:flex">
+            <LanguageMenu />
+            {!signedIn && <Link className="nav-link focus-ring rounded" href="/login">{t.signIn}</Link>}
+            <Link className="nav-cta focus-ring" href={planHref.growth}>{t.tryYolias}</Link>
           </div>
           <div className="flex items-center gap-2 lg:hidden">
-            <LanguageControl lang={lang} onChange={setLang} />
-            <button className="focus-ring rounded border border-neutral-300 p-2 text-neutral-800" type="button" aria-label="Open navigation menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
+            <LanguageMenu />
+            <button className="focus-ring rounded border border-neutral-300 p-2 text-neutral-800" type="button" aria-label={t.menu} aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
               <Menu width={20} height={20} />
             </button>
           </div>
@@ -82,8 +76,8 @@ export function PricingView({ planHref, signedIn }: Props) {
             {navLinks.map((l) => (
               <a key={l.id} className="nav-link focus-ring rounded py-2" href={`#${l.id}`} onClick={(e) => { e.preventDefault(); scrollTo(l.id); }}>{l.label}</a>
             ))}
-            <Link className="nav-link focus-ring rounded py-2" href={signInHref}>{signInLabel}</Link>
-            <Link className="primary-button focus-ring mt-2" href={planHref.growth}>{t.tryYolias}</Link>
+            {!signedIn && <Link className="nav-link focus-ring rounded py-2" href="/login">{t.signIn}</Link>}
+            <Link className="nav-cta focus-ring mt-2" href={planHref.growth}>{t.tryYolias}</Link>
           </div>
         </div>
       </header>
@@ -94,9 +88,7 @@ export function PricingView({ planHref, signedIn }: Props) {
             <div className="site-width text-center">
               <p className="eyebrow">{t.heroEyebrow}</p>
               <h1 className="display-font hero-title mt-5">{t.heroTitle}</h1>
-              <p className="hero-copy">{t.heroCopy}</p>
-              <p className="mt-5 text-[.95rem] font-semibold text-neutral-700">{t.heroSupport}</p>
-              <p className="philosophy"><Sparkles width={15} height={15} aria-hidden="true" /><span>{t.philosophy}</span></p>
+              <p className="hero-copy">{t.heroSupport}</p>
             </div>
           </div>
         </section>
@@ -104,16 +96,9 @@ export function PricingView({ planHref, signedIn }: Props) {
         <section className="bg-white py-16 lg:py-20">
           <div className="site-width">
             <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
-              <PlanCard t={t} name={t.proName} price={t.proPrice} description={t.proDescription} usage={t.limitedUsage} href={planHref.pro} />
-              <PlanCard t={t} name={t.growthName} price={t.growthPrice} description={t.growthDescription} usage={t.moreUsage} href={planHref.growth} recommended />
-              <PlanCard t={t} name={t.scaleName} price={t.scalePrice} description={t.scaleDescription} usage={t.highUsage} href={planHref.scale} />
-            </div>
-            <div className="mt-8 text-center">
-              <p className="text-[1.04rem] font-bold text-neutral-900">{t.unlimitedEveryPlan}</p>
-              <div className="mt-5 space-y-1 text-sm text-neutral-500">
-                <p>{t.usageLimits}</p>
-                <p>{t.taxNotice}</p>
-              </div>
+              <PlanCard t={t} name={planName("pro", dict)} price={`$${usage.pro.price}`} description={t.proDescription} usage={dict.plans.usagePro} href={planHref.pro} cta={t.tryYolias} />
+              <PlanCard t={t} name={planName("growth", dict)} price={`$${usage.growth.price}`} description={t.growthDescription} usage={dict.plans.usageGrowth} href={planHref.growth} cta={t.tryYolias} recommended={dict.plans.recommended} />
+              <PlanCard t={t} name={planName("scale", dict)} price={`$${usage.scale.price}`} description={t.scaleDescription} usage={dict.plans.usageScale} href={planHref.scale} cta={t.tryYolias} />
             </div>
           </div>
         </section>
@@ -130,30 +115,34 @@ export function PricingView({ planHref, signedIn }: Props) {
                 <thead>
                   <tr>
                     <th>{t.feature}</th>
-                    <th>{t.proName}</th>
-                    <th>{t.growthName}</th>
-                    <th>{t.scaleName}</th>
+                    <th>{planName("pro", dict)}</th>
+                    <th>{planName("growth", dict)}</th>
+                    <th>{planName("scale", dict)}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="section-row"><td colSpan={4}>{t.coreFeatures}</td></tr>
-                  {coreFeatureKeys.map((k) => (
+                  {featureKeys.map((k) => (
                     <tr key={k}>
-                      <td>{k in t ? (t[k as keyof PricingCopy] as string) : k}</td>
+                      <td>{t.features[k]}</td>
                       {[0, 1, 2].map((i) => (
                         <td key={i}><span className="included"><Check width={16} height={16} /><span>{t.included}</span></span></td>
                       ))}
                     </tr>
                   ))}
                   <tr className="section-row"><td colSpan={4}>{t.usageCapacity}</td></tr>
-                  {usageRowKeys.map((k) => (
-                    <tr key={k}>
-                      <td>{t[k]}</td>
-                      <td>{t.limited}</td>
-                      <td>{t.more}</td>
-                      <td>{t.high}</td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td>{t.usageCredits}</td>
+                    <td>{n(usage.pro.credits)}</td>
+                    <td>{n(usage.growth.credits)}</td>
+                    <td>{n(usage.scale.credits)}</td>
+                  </tr>
+                  <tr>
+                    <td>{t.usageLookups}</td>
+                    <td>{n(usage.pro.lookups)}</td>
+                    <td>{n(usage.growth.lookups)}</td>
+                    <td>{n(usage.scale.lookups)}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -179,7 +168,6 @@ export function PricingView({ planHref, signedIn }: Props) {
                 <p className="eyebrow text-[#ff7772]!">{t.finalEyebrow}</p>
                 <h2 className="display-font mt-4 max-w-xl text-[clamp(2.8rem,5vw,4.6rem)] font-semibold leading-[1.02] tracking-[-.055em] text-white">{t.finalTitle}</h2>
                 <p className="mt-6 max-w-xl text-[1.08rem] leading-8 text-neutral-300">{t.finalCopy}</p>
-                <p className="mt-7 text-sm font-bold text-[#ffaaa6]">{t.philosophy}</p>
               </div>
               <SignupPanel t={t} signedIn={signedIn} />
             </div>
@@ -243,38 +231,12 @@ export function PricingView({ planHref, signedIn }: Props) {
   );
 }
 
-function LanguageControl({ lang, onChange }: { lang: Lang; onChange: (l: Lang) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [open]);
-  return (
-    <div ref={ref} className={`language-control${open ? " open" : ""}`} role="group" aria-label="Language selector">
-      <button className="language-trigger focus-ring" type="button" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <span>{lang === "ar" ? "العربية" : "EN"}</span>
-        <ChevronDown aria-hidden="true" />
-      </button>
-      <div className="language-menu" role="menu">
-        {(["en", "ar"] as Lang[]).map((l) => (
-          <button key={l} className={`focus-ring${l === lang ? " active" : ""}`} type="button" role="menuitem" onClick={() => { onChange(l); setOpen(false); }}>
-            {l === "ar" ? "العربية" : "EN"}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PlanCard({ t, name, price, description, usage, href, recommended = false }: {
-  t: PricingCopy; name: string; price: string; description: string; usage: string; href: string; recommended?: boolean;
+function PlanCard({ t, name, price, description, usage, href, cta, recommended }: {
+  t: PricingCopy; name: string; price: string; description: string; usage: string; href: string; cta: string; recommended?: string;
 }) {
   return (
     <article className={`pricing-card${recommended ? " recommended" : ""}`}>
-      {recommended && <span className="recommended-label">{t.recommended}</span>}
+      {recommended && <span className="recommended-label">{recommended}</span>}
       <h2 className="plan-name">{name}</h2>
       <p className="price">{price}</p>
       <p className="price-note">{t.perMonth}</p>
@@ -285,7 +247,7 @@ function PlanCard({ t, name, price, description, usage, href, recommended = fals
         <li><Check width={17} height={17} /><span>{t.unlimitedUsers}</span></li>
         <li><Check width={17} height={17} /><span>{usage}</span></li>
       </ul>
-      <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{t.tryYolias}</Link>
+      <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{cta}</Link>
     </article>
   );
 }
@@ -313,7 +275,7 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
     return (
       <div className="form-panel p-6 sm:p-8">
         <h3 className="text-2xl font-bold tracking-[-.035em]">{t.formTitle}</h3>
-        <Link className="primary-button focus-ring mt-6 w-full" href="/">{t.openApp}<ArrowRight width={17} height={17} /></Link>
+        <Link className="primary-button focus-ring mt-6 w-full" href="/">{t.continue}<ArrowRight className="flip-rtl" width={17} height={17} /></Link>
       </div>
     );
   }
@@ -337,7 +299,7 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
           setStatus({ kind: "loading", text: t.loading });
           start(async () => {
             const r = await sendMagicLink("signup", { status: "idle" }, fd);
-            if (r.status === "sent") setStatus({ kind: "success", text: t.sent.replace("{email}", r.email) });
+            if (r.status === "sent") setStatus({ kind: "success", text: fmt(t.sent, { email: r.email }) });
             else if (r.status === "error") setStatus({ kind: "error", text: r.message });
           });
         }}
@@ -348,15 +310,15 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
         </div>
         <div>
           <label className="mb-2 block text-sm font-bold" htmlFor="work-email">{t.emailLabel}</label>
-          <input className="form-field" id="work-email" name="email" type="email" required autoComplete="email" />
+          <input className="form-field" id="work-email" name="email" type="email" dir="ltr" required autoComplete="email" />
         </div>
         <div>
           <label className="mb-2 block text-sm font-bold" htmlFor="company-name">{t.companyLabel}</label>
           <input className="form-field" id="company-name" name="company" type="text" required autoComplete="organization" />
         </div>
         <button className="primary-button focus-ring w-full" type="submit" disabled={pending}>
-          <span>{pending ? t.loading : t.submitIntent}</span>
-          <ArrowRight width={17} height={17} />
+          <span>{pending ? t.loading : t.submit}</span>
+          <ArrowRight className="flip-rtl" width={17} height={17} />
         </button>
         {status && <p className={`status-message status-${status.kind}`} role="status" aria-live="polite">{status.text}</p>}
       </form>

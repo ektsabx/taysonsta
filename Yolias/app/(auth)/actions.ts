@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isPaidPlan, PLAN_COOKIE } from "@/lib/plans";
+import { getDictionary } from "@/lib/i18n/server";
 
 export type MagicLinkMode = "login" | "signup" | "recover";
 export type MagicLinkState = { status: "idle" } | { status: "sent"; email: string } | { status: "error"; message: string; email?: string };
@@ -21,12 +22,13 @@ async function siteUrl() {
 // Magic link only: Supabase emails a one-time sign-in link — no password, no
 // numeric code. Login and recovery never create accounts; signup does.
 export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
+  const t = (await getDictionary()).auth.errors;
   const parsed = emailSchema.safeParse(formData.get("email"));
-  if (!parsed.success) return { status: "error", message: "Enter a valid email address." };
+  if (!parsed.success) return { status: "error", message: t.invalidEmail };
   const email = parsed.data;
 
   // A plan picked on /pricing is remembered so the user lands on checkout
-  // after confirming their email and finishing onboarding.
+  // right after confirming their email.
   const plan = formData.get("plan");
   if (isPaidPlan(plan)) {
     (await cookies()).set(PLAN_COOKIE, plan, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax", httpOnly: true });
@@ -46,10 +48,10 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
 
   if (error) {
     if (mode !== "signup" && /signups? not allowed|user not found/i.test(error.message)) {
-      return { status: "error", email, message: "No Yolias account uses this email yet. Create an account instead." };
+      return { status: "error", email, message: t.noAccount };
     }
-    if (error.status === 429) return { status: "error", email, message: "Too many requests. Wait a minute, then try again." };
-    return { status: "error", email, message: "We couldn't send the link. Please try again." };
+    if (error.status === 429) return { status: "error", email, message: t.rateLimited };
+    return { status: "error", email, message: t.sendFailed };
   }
   return { status: "sent", email };
 }

@@ -9,7 +9,7 @@
     "start": "next start --port 3200",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:unit": "node --experimental-strip-types --test \"tests/unit/*.test.ts\"",
+    "test:unit": "node --experimental-strip-types --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
     "test": "npm run typecheck && npm run test:unit"
   },
   "dependencies": {

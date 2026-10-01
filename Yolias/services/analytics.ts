@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export const ranges = { "7d": 7, "30d": 30, "90d": 90 } as const;
 export type RangeKey = keyof typeof ranges;
-export const rangeLabels: Record<RangeKey, string> = { "7d": "Last 7 Days", "30d": "Last 30 Days", "90d": "Last 90 Days" };
 
 export function parseRange(v: unknown): RangeKey {
   return typeof v === "string" && v in ranges ? (v as RangeKey) : "30d";

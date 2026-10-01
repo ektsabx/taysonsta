@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n/client";
 
 export interface CampaignRowView {
   id: string;
@@ -14,23 +15,25 @@ export interface CampaignRowView {
 
 export function CampaignsTable({ rows }: { rows: CampaignRowView[] }) {
   const router = useRouter();
+  const { t } = useI18n();
+  const c = t.campaigns;
   return (
     <div className="data-table-card">
       <div className="data-table-scroll">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Campaign Mission</th>
-              <th>Target ICP Criteria</th>
-              <th>Target Quota</th>
-              <th>Prospects Found</th>
-              <th>Status</th>
+              <th>{c.colMission}</th>
+              <th>{c.colCriteria}</th>
+              <th>{c.colQuota}</th>
+              <th>{c.colFound}</th>
+              <th>{c.colStatus}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="empty-cell">No campaigns yet. Tell Yolias who you want to sell to and it will create one.</td>
+                <td colSpan={5} className="empty-cell">{c.empty}</td>
               </tr>
             )}
             {rows.map((r) => (

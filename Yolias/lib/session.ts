@@ -1,8 +1,10 @@
 import "server-only";
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { hasActivePlan, isPaidPlan, PLAN_COOKIE } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
+import type { PaidPlan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
 
 export interface Session {
   userId: string;
@@ -42,12 +44,30 @@ export const getSession = cache(async (): Promise<Session | null> => {
   };
 });
 
-/** For app pages and actions: signed in, with a workspace, and onboarded. */
-export async function requireSession(): Promise<Session> {
+/** Signed in with a workspace — no plan/onboarding checks (checkout, onboarding). */
+export async function requireUser(): Promise<Session> {
   const session = await getSession();
   if (!session) redirect((await isSignedIn()) ? "/auth/signout" : "/login");
+  return session;
+}
+
+// Order of the journey: pricing → signup → magic link → checkout (plan) →
+// onboarding → Yolias. App pages and actions require all of it.
+export async function requireSession(): Promise<Session> {
+  const session = await requireUser();
+  if (!hasActivePlan(session.workspace)) {
+    const plan = await pendingPlan(session);
+    redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
+  }
   if (!session.profile.onboarded_at) redirect("/onboarding");
   return session;
+}
+
+/** Where a signed-in user should continue to next. */
+export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
+  if (!hasActivePlan(session.workspace)) return "/checkout";
+  if (!session.profile.onboarded_at) return "/onboarding";
+  return "/";
 }
 
 export const canManageTeam = (s: Session) => s.role === "owner" || s.role === "admin";
@@ -58,11 +78,8 @@ async function isSignedIn() {
   return Boolean(data?.claims?.sub);
 }
 
-/** The paid plan the user picked before signing up, if they haven't subscribed yet. */
-export async function pendingPlan(session: Session): Promise<string | null> {
-  if (session.workspace.plan !== "free" || session.role === "member") return null;
-  const { cookies } = await import("next/headers");
-  const { isPaidPlan, PLAN_COOKIE } = await import("@/lib/plans");
+/** The paid plan the user picked on /pricing before signing up. */
+export async function pendingPlan(session: Session): Promise<PaidPlan | null> {
   const fromCookie = (await cookies()).get(PLAN_COOKIE)?.value;
   const plan = fromCookie ?? session.signupMeta.plan_intent;
   return isPaidPlan(plan) ? plan : null;

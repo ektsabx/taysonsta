@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { isPaidPlan, plans } from "@/lib/plans";
+import { formatNumber } from "@/lib/format";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { isPaidPlan, planName, plans } from "@/lib/plans";
 import { MagicLinkForm } from "../MagicLinkForm";
 
-export const metadata: Metadata = { title: "Create account — Yolias" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: `${(await getDictionary()).auth.signupSubmit} — Yolias` };
+}
 
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
+  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const { plan } = await searchParams;
   const picked = isPaidPlan(plan) ? plan : undefined;
 
   return (
     <>
-      <h1>Tell Yolias who you want to sell to.</h1>
-      <p className="auth-lead">Create your account with your work email. We&apos;ll send you a magic link — no password needed.</p>
+      <h1>{t.auth.signupTitle}</h1>
+      <p className="auth-lead">{t.auth.signupLead}</p>
       {picked && (
         <div className="selected-plan">
           <div>
-            <span className="selected-plan-label">Selected plan</span>
-            <strong>{plans[picked].name}</strong> · ${plans[picked].priceUsd}/month
+            <span className="selected-plan-label">{t.auth.selectedPlan}</span>
+            <strong>{planName(picked, t)}</strong> · ${formatNumber(plans[picked].priceUsd, locale)}{t.checkout.perMonth}
           </div>
-          <Link href="/pricing">Change</Link>
+          <Link href="/pricing">{t.auth.change}</Link>
         </div>
       )}
       <MagicLinkForm mode="signup" plan={picked} />

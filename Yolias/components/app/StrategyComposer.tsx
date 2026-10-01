@@ -4,15 +4,10 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Mic, Paperclip, Search, Sparkles, X } from "lucide-react";
 import { createStrategy } from "@/app/(app)/actions";
+import { fmt } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
 
-const quickActions = [
-  { icon: Search, label: "UAE Fintech Companies (50-200)", prompt: "Find 100 fintech companies in UAE with 50–200 employees" },
-  { icon: Sparkles, label: "Saudi SaaS Founders", prompt: "Discover high-growth B2B SaaS founders in Saudi Arabia hiring sales & engineering" },
-  { icon: Building2, label: "Egyptian Logistics ICP", prompt: "Extract decision makers from top logistics companies in Egypt" },
-];
-
-const PLACEHOLDER = "e.g. Find 100 fintech companies in UAE with 50–200 employees and extract their founders...";
-const LISTENING = "Listening to your target customer criteria...";
+const pillIcons = [Search, Sparkles, Building2];
 const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -30,6 +25,8 @@ interface SpeechRecognitionLike {
 type SpeechCtor = new () => SpeechRecognitionLike;
 
 export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: { initialPrompt?: string; speechLang?: string }) {
+  const { t } = useI18n();
+  const c = t.composer;
   const router = useRouter();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [files, setFiles] = useState<File[]>([]);
@@ -52,11 +49,11 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
     const next = [...files];
     for (const f of Array.from(list)) {
       if (f.size > MAX_BYTES) {
-        setError(`${f.name} is larger than 4 MB.`);
+        setError(fmt(c.errors.tooLarge, { name: f.name }));
         continue;
       }
       if (next.length >= MAX_FILES) {
-        setError(`Attach up to ${MAX_FILES} files.`);
+        setError(fmt(c.errors.maxFiles, { count: MAX_FILES }));
         break;
       }
       next.push(f);
@@ -72,7 +69,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
     const w = window as unknown as { SpeechRecognition?: SpeechCtor; webkitSpeechRecognition?: SpeechCtor };
     const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!Ctor) {
-      setError("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      setError(c.errors.voiceUnsupported);
       return;
     }
     const rec = new Ctor();
@@ -88,7 +85,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
       setPrompt([base, spoken.trim()].filter(Boolean).join(" "));
     };
     rec.onerror = (e) => {
-      if (e.error === "not-allowed") setError("Microphone access was blocked.");
+      if (e.error === "not-allowed") setError(c.errors.micBlocked);
     };
     rec.onend = () => {
       setRecording(false);
@@ -124,16 +121,14 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
 
   return (
     <div className="center-hero">
-      <h1>Tell Yolias who you want to sell to.</h1>
-      <p>
-        Autonomous customer discovery. Specify your ideal company size, market, or industry, and Yolias finds verified decision makers for you.
-      </p>
+      <h1>{c.title}</h1>
+      <p>{c.subtitle}</p>
 
       <div className="prompt-container">
         <textarea
           ref={inputRef}
           className="prompt-input"
-          placeholder={recording ? LISTENING : PLACEHOLDER}
+          placeholder={recording ? c.listening : c.placeholder}
           rows={3}
           value={prompt}
           disabled={pending}
@@ -152,7 +147,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
               <span className="attachment-chip" key={`${f.name}-${i}`}>
                 {f.type.startsWith("image/") ? <ImageIcon /> : <Paperclip />}
                 {f.name}
-                <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles(files.filter((_, j) => j !== i))} disabled={pending}>
+                <button type="button" aria-label={fmt(c.removeFile, { name: f.name })} onClick={() => setFiles(files.filter((_, j) => j !== i))} disabled={pending}>
                   <X />
                 </button>
               </span>
@@ -162,20 +157,20 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
 
         <div className="prompt-footer">
           <div className="prompt-attachments">
-            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title="Record voice instructions" onClick={toggleRecording} disabled={pending}>
+            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title={c.record} onClick={toggleRecording} disabled={pending}>
               <Mic />
             </button>
-            <button className="btn-attach" type="button" title="Upload company screenshot / ICP document" onClick={() => imageRef.current?.click()} disabled={pending}>
+            <button className="btn-attach" type="button" title={c.image} onClick={() => imageRef.current?.click()} disabled={pending}>
               <ImageIcon />
             </button>
             <input ref={imageRef} type="file" className="hidden-input" accept="image/png,image/jpeg,image/gif,image/webp" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
-            <button className="btn-attach" type="button" title="Attach ICP Specs / CSV" onClick={() => fileRef.current?.click()} disabled={pending}>
+            <button className="btn-attach" type="button" title={c.file} onClick={() => fileRef.current?.click()} disabled={pending}>
               <Paperclip />
             </button>
             <input ref={fileRef} type="file" className="hidden-input" accept=".csv,.pdf,.txt,.md,.tsv" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
           </div>
 
-          <button className="btn-send" type="button" aria-label="Find customers" onClick={submit} disabled={pending}>
+          <button className="btn-send" type="button" aria-label={c.send} onClick={submit} disabled={pending}>
             {pending ? <LoaderCircle className="spin" /> : <ArrowUp />}
           </button>
         </div>
@@ -184,7 +179,9 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
       {error && <p className="prompt-error" role="alert">{error}</p>}
 
       <div className="quick-actions-bar">
-        {quickActions.map(({ icon: Icon, label, prompt: p }) => (
+        {c.pills.map(({ label, prompt: p }, i) => {
+          const Icon = pillIcons[i % pillIcons.length];
+          return (
           <button
             key={label}
             className="action-pill"
@@ -198,7 +195,8 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
             <Icon />
             <span>{label}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

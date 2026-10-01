@@ -52,8 +52,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     workspace: {
       name: workspace.name ?? "",
       plan: workspace.plan,
-      planLabel: plan.label,
-      planName: plan.name,
       priceUsd: plan.priceUsd,
       prospectCredits: plan.prospectCredits,
       companyLookups: plan.companyLookups,

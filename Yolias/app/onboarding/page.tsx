@@ -1,28 +1,33 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
-import { getSession } from "@/lib/session";
+import { LanguageMenu } from "@/components/LanguageMenu";
+import { fmt } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/server";
+import { hasActivePlan } from "@/lib/plans";
+import { requireUser } from "@/lib/session";
 import { OnboardingForm } from "./OnboardingForm";
 
-export const metadata: Metadata = { title: "Welcome — Yolias" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: `${(await getDictionary()).onboarding.title}` };
+}
 
 export default async function OnboardingPage() {
-  const session = await getSession();
-  if (!session) redirect("/auth/signout");
+  const session = await requireUser();
+  if (!hasActivePlan(session.workspace)) redirect("/checkout");
   if (session.profile.onboarded_at) redirect("/");
+  const t = await getDictionary();
 
   const isOwner = session.role === "owner";
   const { workspace, profile } = session;
 
   return (
     <div className="auth-page">
-      <div className="auth-brand"><BrandLogo /></div>
+      <div className="auth-brand"><BrandLogo /><LanguageMenu /></div>
       <main className="auth-card wide">
-        <h1>Welcome to Yolias</h1>
+        <h1>{t.onboarding.title}</h1>
         <p className="auth-lead">
-          {isOwner
-            ? "Let's get to know your business."
-            : `You're joining ${workspace.name ?? "your team's workspace"}. Tell us your name to get started.`}
+          {isOwner ? t.onboarding.leadOwner : fmt(t.onboarding.leadMember, { workspace: workspace.name ?? t.onboarding.teamWorkspace })}
         </p>
         <OnboardingForm
           isOwner={isOwner}
