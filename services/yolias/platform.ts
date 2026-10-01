@@ -44,7 +44,7 @@ export async function platformOverview() {
     ydb().from("campaigns").select("status"),
     ydb().from("profiles").select("id, email, full_name, created_at, workspace_id").order("created_at", { ascending: false }).limit(8),
   ]);
-  const terms = await getPlanTerms();
+  const [terms, { data: m30 }] = await Promise.all([getPlanTerms(), ydb().rpc("admin_platform_metrics", { p_since: days30.toISOString() })]);
 
   const plans = { free: 0, pro: 0, growth: 0 } as Record<YoliasPlan, number>;
   let livePaid = 0;
@@ -68,6 +68,7 @@ export async function platformOverview() {
   return {
     users, users30, workspaces, searches, searches30, prospects, prospectsMonth,
     plans, terms, livePaid, testPaid, mrrLive, mrrTest,
+    last30: (m30 ?? {}) as Record<string, number | null>,
     campaigns, campaignsTotal: (campRows.data ?? []).length,
     recentUsers: recent.data ?? [],
   };

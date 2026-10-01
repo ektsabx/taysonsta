@@ -85,7 +85,7 @@ audited.
 
 | Page | Path | Shows |
 | --- | --- | --- |
-| Overview | `/admin/platform` | users, workspaces, paid plans live vs test, MRR live vs test, searches, prospects, plan mix, campaigns by status, newest users |
+| Overview | `/admin/platform` | last-30-day metrics from SQL (`admin_platform_metrics`: active users/workspaces, campaign success, verified rate, avg match, data reuse, ICP cache rate, provider errors/latency, cancellations), users, workspaces, paid plans live vs test, MRR live vs test, searches, prospects, plan mix, campaigns by status, newest users |
 | Users | `/admin/platform/users` | every Yolias user, workspace, role, plan, language/country, sign-up, last sign-in |
 | Workspaces | `/admin/platform/workspaces` | plan, members, searches, this month's prospect usage vs quota |
 | Workspace | `/admin/platform/workspaces/[id]` | usage (quota, grants, used, reserved, available), ledger, grant/adjust form, details, members, invitations, searches, campaigns, invoices & subscription events |

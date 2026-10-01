@@ -70,6 +70,26 @@ export default async function PlatformOverviewPage() {
         </Card>
       </div>
 
+      <Card title="آخر 30 يوماً">
+        {(() => {
+          const m = o.last30;
+          const n = (k: string) => Number(m[k] ?? 0);
+          const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
+          const finished = n("campaigns_completed") + n("campaigns_partial") + n("campaigns_failed");
+          return (
+            <div className="bos-kpis">
+              <KpiCard label="مستخدمون نشطون" value={num(n("active_users"))} sub={<Tx vars={{ n: num(n("active_workspaces")) }}>{"{n} مساحة عمل نشطة"}</Tx>} />
+              <KpiCard label="نجاح الحملات" value={pct(n("campaigns_completed") + n("campaigns_partial"), finished)} sub={<Tx vars={{ c: num(n("campaigns")), f: num(n("campaigns_failed")) }}>{"{c} حملة · {f} فشلت"}</Tx>} />
+              <KpiCard label="نسبة البريد المُتحقق منه" value={pct(n("prospects_verified"), n("prospects"))} sub={m.avg_match_score == null ? undefined : <Tx vars={{ s: String(m.avg_match_score) }}>{"متوسط التطابق {s}%"}</Tx>} />
+              <KpiCard label="إعادة استخدام البيانات" value={pct(n("reused_prospects"), n("prospects"))} sub="عملاء محتملون من البيانات المشتركة" />
+              <KpiCard label="ذاكرة فهم البحث" value={pct(n("icp_cache_hits"), n("icp_calls"))} sub={<Tx vars={{ n: num(n("icp_calls")) }}>{"{n} طلب فهم"}</Tx>} />
+              <KpiCard label="أخطاء المزودين" value={pct(n("provider_failures"), n("provider_calls"))} sub={m.provider_p50_ms == null ? <Tx>غير متصل</Tx> : <Tx vars={{ ms: String(Math.round(Number(m.provider_p50_ms))) }}>{"الوسيط {ms} ms"}</Tx>} />
+              <KpiCard label="إلغاءات" value={num(n("canceled_workspaces"))} sub="مساحات عمل ألغت أو انتهت خطتها" />
+            </div>
+          );
+        })()}
+      </Card>
+
       <Card title="أحدث المستخدمين" actions={<Link className="bos-link" href="/admin/platform/users"><Tx>عرض الكل</Tx></Link>}>
         {o.recentUsers.length ? (
           <BosTable className="bos-table">
