@@ -13,12 +13,10 @@ Same stack and conventions as Taysonsta BOS: Next.js 16 (App Router, `proxy.ts`)
 ```bash
 cd Yolias
 npm install
-cp .env.example .env.local      # fill in the values (see below)
-npx supabase start              # local Supabase on ports 5463x (BOS uses 5442x)
-npm run dev                     # http://localhost:3200
+npm run local                   # starts Yolias's local Supabase, writes .env.local, runs the app on :3200
 ```
 
-After `supabase start`, copy the printed **API URL**, **anon key** and **service_role key** into `.env.local`. Magic-link emails are captured by Inbucket at http://127.0.0.1:54634.
+`npm run local` (scripts/dev-local.sh) uses Yolias's own local Supabase on ports 5463x (BOS uses 5442x). On Colima it restarts Colima with the ssh port forwarder if the database port isn't exposed in time. Magic-link emails are captured by Inbucket at http://127.0.0.1:54634.
 
 | Variable | Purpose |
 | --- | --- |
