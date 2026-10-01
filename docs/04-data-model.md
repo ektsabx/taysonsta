@@ -35,6 +35,13 @@ Credentials: `intel.set_provider_credential` / `clear_provider_credential` /
 `intel.cost_summary`, `intel.provider_spend`. Hosted Supabase: add `intel`
 to the API's exposed schemas (locally it is in `config.toml`).
 
+## In the code (phase 6)
+
+- `Yolias/lib/intel/identity.ts` (pure, unit-tested): eTLD+1 domains (incl. `.com.sa`, `.com.eg`, `.co.ae`…), LinkedIn keys, Arabic/Latin name normalisation, person matching, TTL checks.
+- `Yolias/lib/intel/shared.ts`: `upsertCompany`, `upsertPerson` (+ employment, contacts, possible duplicates), `saveContact` (a verified email becomes an identifier), field provenance with expiry, `isSuppressed`, search cache by ICP fingerprint (`cachedCompanies` / `cacheCompanies`).
+- Pipeline: reuses a fresh cached result for the same audience before paying (only cross-workspace when the source license allows redistribution); writes every company/person to shared intel; links `companies.intel_company_id` and `prospects.person_id` (unique per workspace); skips suppressed people.
+- Admin: `/admin/platform/data` (counts, sources, possible duplicates, suppression list).
+
 ## Identity resolution
 
 - **Company:** eTLD+1 of the website domain, then Google Place ID, then LinkedIn company URL.

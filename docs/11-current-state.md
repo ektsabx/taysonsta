@@ -49,7 +49,6 @@ Runs at http://admin.localhost:3200.
 
 | Gap | Spec | Where |
 | --- | --- | --- |
-| Shared intelligence tables exist but the pipeline doesn't write to them yet | `04` | phase 6 |
 | No provider live | `03` | phase 4 |
 | No cost logging for STT calls (LLM is logged) | `06` | `lib/stt.ts` |
 | `prospects` has no unique `(workspace_id, person_id)` | `04` | init migration |

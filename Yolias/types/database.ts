@@ -160,6 +160,7 @@ export type CompanyRow = {
   source: string;
   source_ref: string | null;
   raw: Json | null;
+  intel_company_id: string | null;
   created_at: string;
 };
 
@@ -181,6 +182,7 @@ export type ProspectRow = {
   match_score: number | null;
   match_reasons: Json;
   saved_at: string | null;
+  person_id: string | null;
   source: string;
   source_ref: string | null;
   raw: Json | null;
@@ -334,7 +336,24 @@ export type IntelLlmCacheRow = {
 
 export type IntelSettingRow = { key: string; value: Json; updated_by: string | null; updated_at: string };
 
-export type IntelSearchCacheRow = { fingerprint: string; company_ids: string[]; meta: Json; created_at: string; expires_at: string };
+export type IntelSearchCacheRow = { fingerprint: string; company_ids: string[]; meta: Json; created_at: string; expires_at: string; redistributable: boolean; workspace_id: string | null };
+
+export type IntelCompanyRow = {
+  id: string; name: string; domain: string | null; website: string | null; industry: string | null; description: string | null;
+  employee_count: number | null; city: string | null; country: string | null; linkedin_url: string | null; place_id: string | null;
+  socials: Json; created_at: string; updated_at: string; refreshed_at: string | null; redistributable: boolean;
+};
+export type IntelPersonRow = {
+  id: string; full_name: string; normalized_name: string; linkedin_url: string | null; title: string | null; seniority: string | null;
+  department: string | null; current_company_id: string | null; city: string | null; country: string | null;
+  created_at: string; updated_at: string; refreshed_at: string | null; redistributable: boolean;
+};
+export type IntelIdentifierRow = { kind: string; value: string; company_id: string; created_at: string };
+export type IntelPersonIdentifierRow = { kind: string; value: string; person_id: string; created_at: string };
+export type IntelEmploymentRow = { id: string; person_id: string; company_id: string; title: string | null; seniority: string | null; department: string | null; is_current: boolean; started_on: string | null; ended_on: string | null; source: string; observed_at: string };
+export type IntelContactRow = { id: string; person_id: string; kind: "work_email" | "personal_email" | "phone" | "mobile"; value: string; status: "unknown" | "valid" | "invalid" | "catch_all" | "risky"; verified_at: string | null; verified_by: string | null; source: string; observed_at: string };
+export type IntelFieldValueRow = { id: number; entity_type: "company" | "person" | "contact"; entity_id: string; field: string; value: Json; source: string; provider_call_id: number | null; confidence: number | null; license_scope: string | null; fetched_at: string; expires_at: string | null };
+export type IntelDuplicateRow = { id: string; entity_type: "company" | "person"; a: string; b: string; score: number | null; reason: string | null; status: "open" | "merged" | "distinct"; created_at: string };
 
 export type IntelCoverageRow = {
   provider: string;
@@ -402,6 +421,14 @@ export interface Database {
       search_cache: Table<IntelSearchCacheRow, "fingerprint" | "expires_at", Rel>;
       provider_coverage: Table<IntelCoverageRow, "provider" | "capability", Rel>;
       suppression_list: Table<IntelSuppressionRow, "kind" | "value", Rel>;
+      companies: Table<IntelCompanyRow, "name", Rel>;
+      company_identifiers: Table<IntelIdentifierRow, "kind" | "value" | "company_id", Rel>;
+      people: Table<IntelPersonRow, "full_name" | "normalized_name", Rel>;
+      person_identifiers: Table<IntelPersonIdentifierRow, "kind" | "value" | "person_id", Rel>;
+      employments: Table<IntelEmploymentRow, "person_id" | "company_id" | "source", Rel>;
+      contacts: Table<IntelContactRow, "person_id" | "kind" | "value" | "source", Rel>;
+      field_values: Table<IntelFieldValueRow, "entity_type" | "entity_id" | "field" | "source", Rel>;
+      possible_duplicates: Table<IntelDuplicateRow, "entity_type" | "a" | "b", Rel>;
     };
     Views: { [_ in never]: never };
     Functions: {

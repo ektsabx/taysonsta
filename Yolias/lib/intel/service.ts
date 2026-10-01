@@ -13,13 +13,21 @@ import { nextHealth, type SkipReason } from "@/lib/intel/routing";
 // its credential from Vault, calls the adapter, prices and logs the call,
 // updates provider health (circuit breaker) and falls back on failure.
 
+/** License terms of the data a call returned (docs/03 "Licensing"). */
+export interface SourceLicense {
+  scope: string | null;
+  redistributable: boolean;
+  customerFacing: boolean;
+  retentionDays: number | null;
+}
+
 export interface CallScope {
   workspaceId: string | null;
   campaignId: string | null;
 }
 
 export type CapabilityResult<C extends Capability> =
-  | { ok: true; provider: string; data: CapabilityOutput<C>; costUsd: number | null }
+  | { ok: true; provider: string; data: CapabilityOutput<C>; costUsd: number | null; license: SourceLicense; callId: number | null }
   | { ok: false; reason: "no_provider" | "all_failed"; skipped: { id: string; reason: SkipReason }[]; errors: { provider: string; error: string }[] };
 
 export async function runCapability<C extends Capability>(capability: C, input: CapabilityInput<C>, scope: CallScope): Promise<CapabilityResult<C>> {
@@ -58,14 +66,17 @@ export async function runCapability<C extends Capability>(capability: C, input: 
       });
       const price = unitCost(row.pricing, capability);
       const cost = price == null ? null : Math.round(price * result.units * 1_000_000) / 1_000_000;
-      await db.from("provider_calls").insert({
+      const { data: call } = await db.from("provider_calls").insert({
         provider: row.id, capability, operation: capability, workspace_id: scope.workspaceId, campaign_id: scope.campaignId,
         request_hash: cacheKey(capability, JSON.stringify(input)), ok: true, http_status: httpStatus, attempts: Math.max(attempts, 1),
         latency_ms: Date.now() - started, records_returned: Array.isArray(result.data) ? result.data.length : result.data ? 1 : 0,
         cost_usd: cost ?? 0,
-      });
+      }).select("id").single();
       await db.from("providers").update({ health: asJson(nextHealth(row.health as object, true, null, breaker)) }).eq("id", row.id);
-      return { ok: true, provider: row.id, data: result.data, costUsd: cost };
+      const license: SourceLicense = {
+        scope: row.license_scope, redistributable: row.redistribution_allowed, customerFacing: row.customer_facing_allowed, retentionDays: row.retention_days,
+      };
+      return { ok: true, provider: row.id, data: result.data, costUsd: cost, license, callId: call?.id ?? null };
     } catch (e) {
       const error = e instanceof Error ? e.message.slice(0, 500) : "adapter failed";
       errors.push({ provider: row.id, error });

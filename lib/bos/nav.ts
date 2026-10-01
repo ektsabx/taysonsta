@@ -49,6 +49,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/workspaces", label: "مساحات العمل", perm: "platform.read" },
       { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
       { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
+      { href: "/admin/platform/data", label: "البيانات المشتركة", perm: "platform.read" },
       { href: "/admin/platform/providers", label: "المزودون", perm: "platform.read" },
       { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },

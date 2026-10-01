@@ -8,6 +8,8 @@ import type { CompanyCandidate, DiscoveryContext, PersonCandidate } from "@/lib/
 import type { EmailStatus } from "@/types/database";
 import { hasProviderFor, sourceLabels } from "@/lib/intel/registry";
 import { runCapability, type CallScope } from "@/lib/intel/service";
+import { cacheCompanies, cachedCompanies, isSuppressed, saveContact, upsertCompany, upsertPerson, type Source } from "@/lib/intel/shared";
+import { fingerprintIcp } from "@/lib/intel/fingerprint";
 
 // Discovery pipeline: Search → Find Companies → Find Decision Makers →
 // Enrich & Verify → Qualify / Match → Prospects. Runs with the service role
@@ -136,10 +138,13 @@ async function discover(db: ReturnType<typeof createAdminClient>, campaignId: st
       if (prospectsFound >= remaining) break;
       await setStage("enriching");
       const p = await enrichPerson(person, enriched, ctx);
-      // The workspace never pays twice for the same person (docs/04).
-      if (await alreadyDelivered(db, ctx.workspaceId, p)) continue;
+      const companyIntelId = intelIds.get(enriched) ?? intelIds.get(company) ?? null;
+      const personId = companyIntelId ? await upsertPerson(p, companyIntelId, origin.get(p) ?? SHARED) : null;
+      // Never deliver suppressed people (rule 34); the workspace never pays twice for the same person (docs/04).
+      if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedinUrl, personId })) continue;
+      if (await alreadyDelivered(db, ctx.workspaceId, p, personId)) continue;
       await setStage("verifying");
-      const emailStatus = p.email ? await verifyEmail(p.email, ctx) : "unknown";
+      const emailStatus = p.email ? await verifyEmail(p.email, personId, ctx) : "unknown";
       await setStage("scoring");
       const match = scoreMatch(icp, enriched, p);
       await setStage("delivering");
@@ -148,7 +153,7 @@ async function discover(db: ReturnType<typeof createAdminClient>, campaignId: st
         seniority: classifySeniority(p.title), email: p.email, email_status: emailStatus, phone: p.phone, whatsapp: p.whatsapp,
         linkedin_url: p.linkedinUrl, city: p.city ?? enriched.city, country: p.country ?? enriched.country,
         match_score: match.score, match_reasons: match.reasons, source: sourceOf(p), source_ref: p.sourceRef,
-        raw: (p.raw ?? null) as never,
+        raw: (p.raw ?? null) as never, person_id: personId,
       }).select("id").single();
       if (insertError || !inserted) continue;
       // Delivered ⇒ one prospect used. Never deliver beyond what was reserved.
@@ -173,8 +178,9 @@ async function discover(db: ReturnType<typeof createAdminClient>, campaignId: st
   return { companies: companiesFound, prospects: prospectsFound, status: outcome.status };
 }
 
-async function alreadyDelivered(db: ReturnType<typeof createAdminClient>, workspaceId: string, p: PersonCandidate): Promise<boolean> {
+async function alreadyDelivered(db: ReturnType<typeof createAdminClient>, workspaceId: string, p: PersonCandidate, personId: string | null): Promise<boolean> {
   const checks: [string, string][] = [];
+  if (personId) checks.push(["person_id", personId]);
   if (p.linkedinUrl) checks.push(["linkedin_url", p.linkedinUrl]);
   if (p.email) checks.push(["email", p.email.toLowerCase()]);
   for (const [col, value] of checks) {
@@ -184,23 +190,43 @@ async function alreadyDelivered(db: ReturnType<typeof createAdminClient>, worksp
   return false;
 }
 
-// Provider id travels with each candidate so the row records where it came from.
-const origin = new WeakMap<object, string>();
-const sourceOf = (x: object) => origin.get(x) ?? "unknown";
+// Where each candidate came from (provider + license + call), so rows record their source.
+const origin = new WeakMap<object, Source>();
+const SHARED: Source = { provider: "yolias_shared", license: { scope: "yolias_shared", redistributable: true, customerFacing: true, retentionDays: null }, callId: null };
+const sourceOf = (x: object) => origin.get(x)?.provider ?? "unknown";
 const scopeOf = (ctx: DiscoveryContext): CallScope => ({ workspaceId: ctx.workspaceId, campaignId: ctx.campaignId });
+const intelIds = new WeakMap<object, string>();
 
+// Ladder step 1 (rule 15): reuse fresh, licensed results for the same audience
+// before paying a provider; otherwise search and store what we find.
 async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
+  const fingerprint = fingerprintIcp(icp);
+  const cached = await cachedCompanies(fingerprint, ctx.workspaceId);
+  if (cached) {
+    await ctx.log("companies", `Reusing ${cached.length} companies already found for this audience.`, "info", { key: "foundCompanies", vars: { count: cached.length } });
+    for (const c of cached) {
+      origin.set(c, SHARED);
+      intelIds.set(c, c.intelId);
+    }
+    return cached.slice(0, ctx.limit);
+  }
+
   const source = (await sourceLabels()).join(", ") || "Yolias";
   await ctx.log("companies", `Searching ${source} for matching companies…`, "info", { key: "searching", vars: { source } });
   const res = await runCapability("company.search", { icp, limit: ctx.limit, offering: ctx.offering }, scopeOf(ctx));
   const seen = new Map<string, CompanyCandidate>();
   if (res.ok) {
+    const src: Source = { provider: res.provider, license: res.license, callId: res.callId };
     for (const c of res.data) {
       const key = dedupeKey(c);
       if (seen.has(key)) continue;
-      origin.set(c, res.provider);
+      origin.set(c, src);
+      // Routing only uses providers whose license allows storage (rule 19), so it can join shared intelligence.
+      intelIds.set(c, await upsertCompany(c, src));
       seen.set(key, c);
     }
+    const ids = [...seen.values()].map((c) => intelIds.get(c)).filter(Boolean) as string[];
+    await cacheCompanies(fingerprint, ctx.workspaceId, ids, res.license.redistributable, res.provider);
   } else if (res.reason === "all_failed") {
     throw new Error(`company search failed (${res.errors.map((e) => e.provider).join(", ")})`);
   }
@@ -211,7 +237,8 @@ async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
 async function findPeople(company: CompanyCandidate, icp: IcpCriteria, ctx: DiscoveryContext) {
   const res = await runCapability("person.search", { company, icp, limit: 5 }, scopeOf(ctx));
   if (!res.ok) return [];
-  for (const p of res.data) origin.set(p, res.provider);
+  const src: Source = { provider: res.provider, license: res.license, callId: res.callId };
+  for (const p of res.data) origin.set(p, src);
   return res.data;
 }
 
@@ -220,7 +247,9 @@ async function enrichCompany(company: CompanyCandidate, ctx: DiscoveryContext): 
   const res = await runCapability("company.enrich", { company }, scopeOf(ctx));
   if (!res.ok) return company;
   const c = { ...company, ...res.data };
-  origin.set(c, sourceOf(company));
+  origin.set(c, origin.get(company)!);
+  const id = await upsertCompany(c, { provider: res.provider, license: res.license, callId: res.callId });
+  intelIds.set(c, id);
   return c;
 }
 
@@ -228,13 +257,14 @@ async function enrichPerson(person: PersonCandidate, company: CompanyCandidate, 
   const res = await runCapability("person.enrich", { person, company }, scopeOf(ctx));
   if (!res.ok) return person;
   const p = { ...person, ...res.data };
-  origin.set(p, sourceOf(person));
+  origin.set(p, origin.get(person)!);
   return p;
 }
 
 // Only a verifier can mark an email verified (docs/00: never claim verification).
-async function verifyEmail(email: string, ctx: DiscoveryContext): Promise<EmailStatus> {
+async function verifyEmail(email: string, personId: string | null, ctx: DiscoveryContext): Promise<EmailStatus> {
   const res = await runCapability("email.verify", { email }, scopeOf(ctx));
   if (!res.ok) return "found";
+  if (personId) await saveContact(personId, "work_email", email.toLowerCase(), { provider: res.provider, license: res.license, callId: res.callId }, res.data.status, res.provider);
   return res.data.status === "valid" ? "verified" : res.data.status === "invalid" ? "invalid" : "found";
 }

@@ -24,7 +24,7 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 | 3 | Provider registry (DB + admin page) | ✅ | providers editable in admin, prices/limits/licenses as config |
 | 4 | First production-grade provider | ⬜ | evaluated, licensed, live behind the router (D-003) |
 | 5 | Pipeline stages + new campaign states | ✅ | search → prospects end to end |
-| 6 | Dedup, provenance, freshness | ⬜ | identity resolution, `field_values`, TTL refresh |
+| 6 | Dedup, provenance, freshness | ✅ | identity resolution, `field_values`, TTL refresh |
 | 7 | Email find + verification | ⬜ | reuse → find → verify |
 | 8 | Queue + worker (pgmq + `/api/worker`, Cloudflare Cron in prod) | ✅ | idempotent jobs, retries, DLQ, budget guard |
 | 9 | Cost engine + usage ledger | ✅ | atomic reserve/consume, `provider_calls`, configurable quotas |
