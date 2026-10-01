@@ -4,6 +4,27 @@ The Intelligence Layer is the only way product code gets external data. It
 decides **which** provider to call, **whether** to call at all, records
 **what** came back, **from where**, **at what cost**, and **under which license**.
 
+## In the code (built in phases 1–3)
+
+| Piece | File |
+| --- | --- |
+| Capabilities and their input/output types | `Yolias/lib/intel/capabilities.ts` |
+| Adapter contract (`ProviderAdapter`, handlers return data + billable units) | `Yolias/lib/intel/adapter.ts` |
+| Adapters list (empty until phase 4) | `Yolias/lib/intel/adapters/index.ts` |
+| Routing (pure, unit-tested) + circuit breaker | `Yolias/lib/intel/routing.ts` |
+| Registry: syncs a disabled row per adapter, loads config, health, spend | `Yolias/lib/intel/registry.ts` |
+| Service: `runCapability()` → route, Vault credential, call, price, log, health, fallback | `Yolias/lib/intel/service.ts` |
+| HTTP: timeout, retry/backoff on 429/5xx, Retry-After | `Yolias/lib/intel/http.ts` |
+| ICP fingerprint, cache keys | `Yolias/lib/intel/fingerprint.ts` |
+| Prices → cost (LLM and per-unit) | `Yolias/lib/intel/pricing.ts` |
+| LLM cache + `llm_calls` logging | `Yolias/lib/intel/llm.ts` |
+| Admin: registry, credentials, settings, costs | `/admin/platform/providers`, `/admin/platform/costs` |
+
+A provider is used only when: an adapter exists in code, its row is enabled,
+it has a credential (if it needs one), its license allows storage, its
+circuit is closed and it is under its daily/monthly budget. Each skip has a
+reason (`SkipReason`), shown in the admin capability map.
+
 ## Capabilities
 
 Providers declare capabilities. Code asks for a capability, never for a provider.

@@ -30,3 +30,8 @@ export function ydb(): SupabaseClient<Database> {
 export function yoliasSiteUrl(): string {
   return (process.env.YOLIAS_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
 }
+
+/** The Yolias `intel` schema (providers, costs, shared data). Service role only. */
+export function yintel() {
+  return ydb().schema("intel");
+}

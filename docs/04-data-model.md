@@ -25,6 +25,15 @@ Two worlds, strictly separated:
 | `intel.search_cache` | ICP fingerprint → result set ids, created_at, expires_at |
 | `intel.llm_cache` | input hash + model + task → output, tokens, cost |
 | `intel.suppression_list` | people/emails/domains that must never be delivered |
+| `intel.llm_calls` | every LLM call (and cache hit): task, model, tokens, cost |
+| `intel.settings` | routing ladder, TTLs, circuit breaker, LLM prices (edited in the admin) |
+| `intel.possible_duplicates` | uncertain matches waiting for review |
+
+Built in `Yolias/supabase/migrations/20261002000000_intel_schema.sql`.
+Credentials: `intel.set_provider_credential` / `clear_provider_credential` /
+`provider_credential` (Vault, service role only). Aggregates:
+`intel.cost_summary`, `intel.provider_spend`. Hosted Supabase: add `intel`
+to the API's exposed schemas (locally it is in `config.toml`).
 
 ## Identity resolution
 
@@ -55,7 +64,7 @@ Values in config. Expired = refresh when needed, or show with its date. Never pr
 
 ## Public schema changes (workspace side)
 
-- `strategies`: add `icp_normalized jsonb`, `icp_fingerprint text`, `model`, `interpretation_cost_usd`, `constraints jsonb`, `metadata jsonb`.
+- `strategies`: ✅ `icp_fingerprint`, `icp_model`, `icp_prompt_version`, `interpretation_cost_usd`, `icp_cached`. Later: `constraints jsonb`, `metadata jsonb`.
 - `campaigns`: new states (see `05`), `fingerprint`, `target_count`, `delivered_count`, `estimated_cost_usd`, `actual_cost_usd`, `budget_usd`, `partial_reason`.
 - `campaign_companies`: campaign ↔ `intel.companies`, qualification result and reasons.
 - `prospects`: link to `intel.people`, **unique `(workspace_id, person_id)`** (no paying twice for the same person), match score + reasons, provenance snapshot, `possible_duplicate`.

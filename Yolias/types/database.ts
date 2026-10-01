@@ -85,6 +85,11 @@ export type StrategyRow = {
   status: StrategyStatus;
   error: string | null;
   pinned_at: string | null;
+  icp_fingerprint: string | null;
+  icp_model: string | null;
+  icp_prompt_version: string | null;
+  interpretation_cost_usd: number | null;
+  icp_cached: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -203,6 +208,112 @@ export type ContactMessageRow = {
   created_at: string;
 };
 
+
+// ───────────────────────── intel schema (service role only) ─────────────────────────
+
+export type IntelProviderRow = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  priority: number;
+  capabilities: string[];
+  pricing: Json;
+  rate_limit_per_min: number | null;
+  burst: number | null;
+  concurrency: number;
+  daily_budget_usd: number | null;
+  monthly_budget_usd: number | null;
+  fallback_to: string[];
+  license_scope: string | null;
+  storage_allowed: boolean;
+  retention_days: number | null;
+  display_allowed: boolean;
+  customer_facing_allowed: boolean;
+  redistribution_allowed: boolean;
+  derived_data_allowed: boolean;
+  attribution_required: boolean;
+  credential_secret_id: string | null;
+  credential_hint: string | null;
+  health: Json;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type IntelProviderCallRow = {
+  id: number;
+  provider: string;
+  capability: string;
+  operation: string;
+  workspace_id: string | null;
+  campaign_id: string | null;
+  request_hash: string | null;
+  ok: boolean;
+  http_status: number | null;
+  attempts: number;
+  latency_ms: number | null;
+  records_returned: number;
+  cost_usd: number;
+  cache_hit: boolean;
+  error: string | null;
+  created_at: string;
+};
+
+export type IntelLlmCallRow = {
+  id: number;
+  task: string;
+  model: string;
+  served_model: string | null;
+  prompt_version: string | null;
+  workspace_id: string | null;
+  campaign_id: string | null;
+  strategy_id: string | null;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  cost_usd: number;
+  cache_hit: boolean;
+  ok: boolean;
+  error: string | null;
+  latency_ms: number | null;
+  created_at: string;
+};
+
+export type IntelLlmCacheRow = {
+  key: string;
+  task: string;
+  model: string;
+  prompt_version: string;
+  output: Json;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  hits: number;
+  created_at: string;
+  last_hit_at: string | null;
+  expires_at: string | null;
+};
+
+export type IntelSettingRow = { key: string; value: Json; updated_by: string | null; updated_at: string };
+
+export type IntelSearchCacheRow = { fingerprint: string; company_ids: string[]; meta: Json; created_at: string; expires_at: string };
+
+export type IntelCoverageRow = {
+  provider: string;
+  capability: string;
+  country: string;
+  industry: string;
+  requests: number;
+  successes: number;
+  records: number;
+  measured_at: string;
+};
+
+export type IntelSuppressionRow = { id: string; kind: "email" | "domain" | "linkedin" | "person"; value: string; reason: string | null; created_by: string | null; created_at: string };
+
+type Rel = [];
+
 export interface Database {
   public: {
     Tables: {
@@ -225,6 +336,34 @@ export interface Database {
       admin_workspace_stats: {
         Args: { month_start: string };
         Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; last_activity_at: string | null }[];
+      };
+    };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
+  };
+  intel: {
+    Tables: {
+      settings: Table<IntelSettingRow, "key" | "value", Rel>;
+      providers: Table<IntelProviderRow, "id" | "name", Rel>;
+      provider_calls: Table<IntelProviderCallRow, "provider" | "capability" | "operation" | "ok", Rel>;
+      llm_calls: Table<IntelLlmCallRow, "task" | "model" | "ok", Rel>;
+      llm_cache: Table<IntelLlmCacheRow, "key" | "task" | "model" | "prompt_version" | "output", Rel>;
+      search_cache: Table<IntelSearchCacheRow, "fingerprint" | "expires_at", Rel>;
+      provider_coverage: Table<IntelCoverageRow, "provider" | "capability", Rel>;
+      suppression_list: Table<IntelSuppressionRow, "kind" | "value", Rel>;
+    };
+    Views: { [_ in never]: never };
+    Functions: {
+      set_provider_credential: { Args: { p_provider: string; p_secret: string }; Returns: undefined };
+      clear_provider_credential: { Args: { p_provider: string }; Returns: undefined };
+      provider_credential: { Args: { p_provider: string }; Returns: string | null };
+      provider_spend: {
+        Args: { p_day_start: string; p_month_start: string };
+        Returns: { provider: string; spent_today: number; spent_month: number; calls_today: number }[];
+      };
+      cost_summary: {
+        Args: { p_since: string };
+        Returns: { kind: "provider" | "llm"; key: string; calls: number; failures: number; cache_hits: number; cost_usd: number; records: number; avg_latency_ms: number | null }[];
       };
     };
     Enums: { [_ in never]: never };

@@ -7,7 +7,7 @@ import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/
 import { AttachmentError, readAttachments } from "@/lib/attachments";
 import { criteriaLine } from "@/lib/discovery/icp";
 import { logEvent, runDiscovery } from "@/lib/discovery/pipeline";
-import { sourceLabels } from "@/lib/discovery/registry";
+import { sourceLabels } from "@/lib/intel/registry";
 import { countryLabel } from "@/lib/format";
 import { dictionaries, fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
@@ -72,15 +72,17 @@ export async function retryStrategy(strategyId: string): Promise<StrategyResult>
 
 async function understandAndLaunch(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[]) {
   const supabase = await createClient();
-  let icp;
+  let understood;
   try {
-    icp = await understandStrategy(prompt, attachments, {
+    understood = await understandStrategy(prompt, attachments, {
       userName: session.profile.full_name,
       companyName: session.workspace.name,
       website: session.workspace.website,
       offering: session.workspace.offering,
       defaultCountry: countryLabel(session.profile.country, "en") || session.profile.country,
       language: session.profile.language,
+      workspaceId: session.workspace.id,
+      strategyId,
     });
   } catch (e) {
     // The error column keeps the dictionary key; the card translates it.
@@ -90,7 +92,12 @@ async function understandAndLaunch(session: Session, strategyId: string, prompt:
     return;
   }
 
-  await supabase.from("strategies").update({ status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name) }).eq("id", strategyId);
+  const icp = understood.icp;
+  await supabase.from("strategies").update({
+    status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
+    icp_fingerprint: understood.fingerprint, icp_model: understood.model, icp_prompt_version: understood.promptVersion,
+    interpretation_cost_usd: understood.costUsd, icp_cached: understood.cached,
+  }).eq("id", strategyId);
 
   const { data: campaign } = await supabase
     .from("campaigns")
@@ -111,7 +118,7 @@ async function understandAndLaunch(session: Session, strategyId: string, prompt:
   }
 
   await logEvent(session.workspace.id, campaign.id, "understand", icp.summary, "success");
-  const sources = sourceLabels();
+  const sources = await sourceLabels();
   const en = dictionaries.en;
   const titles = icp.job_titles.length ? ` · ${icp.job_titles.slice(0, 4).join(", ")}` : "";
   const unitKey = icp.target_unit === "companies" ? "unitCompanies" : "unitProspects";

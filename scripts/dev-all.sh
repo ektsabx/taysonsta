@@ -96,10 +96,13 @@ for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do
   fi
 done
 pids=()
-# Ctrl+C stops everything, including the next dev processes behind the pipes.
+# Ctrl+C stops everything this run started, including the next dev
+# processes behind the pipes. Only our own processes: a newer `npm run local`
+# that took over the ports must not be killed when this one exits.
+OWNED=""
 cleanup() {
   kill "${pids[@]}" 2>/dev/null
-  for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do port_pids "$p" | xargs kill 2>/dev/null; done
+  [ -n "$OWNED" ] && kill $OWNED 2>/dev/null
   wait 2>/dev/null
 }
 trap cleanup EXIT INT TERM
@@ -112,6 +115,7 @@ prefix() { sed -u "s/^/[$1] /"; }
 # 5) Self-test the routing through the front door before saying "ready".
 check() { curl -s --noproxy '*' -m 5 -H "Host: $1:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/__yolias-proxy" | grep -o '"app":"[a-z]*"' | cut -d'"' -f4; }
 for _ in $(seq 1 40); do port_busy $PROXY_PORT && break; sleep 0.5; done
+OWNED="$(port_pids $PROXY_PORT | tr '\n' ' ')"
 for _ in $(seq 1 20); do
   Y_APP="$(check localhost)"; A_APP="$(check admin.localhost)"
   [ "$Y_APP" = yolias ] && [ "$A_APP" = admin ] && break; sleep 0.5
@@ -124,6 +128,7 @@ for _ in $(seq 1 120); do
   code="$(curl -s --noproxy '*' -o /dev/null -m 10 -w '%{http_code}' -H "Host: admin.localhost:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/admin/login")"
   [ "$code" = 200 ] && break; sleep 1
 done
+OWNED="$(for p in $PROXY_PORT $YOLIAS_PORT $ADMIN_PORT; do port_pids "$p"; done | tr '\n' ' ')"
 say "Routing OK ✓  localhost → Yolias · admin.localhost → Yolias Admin"
 say "Ready →  Yolias: http://localhost:$PROXY_PORT   ·   Yolias Admin: http://admin.localhost:$PROXY_PORT"
 say "If a browser can't open admin.localhost, add this line to /etc/hosts: 127.0.0.1 admin.localhost"

@@ -1,10 +1,8 @@
 import type { EmailStatus, PipelineStage, Seniority } from "@/types/database";
-import type { IcpCriteria } from "@/lib/discovery/icp";
 
-// Contracts every data provider implements. The pipeline (pipeline.ts) only
-// talks to these interfaces; adding Apollo, People Data Labs, a web-research
-// agent, etc. later means writing one adapter and registering it in
-// registry.ts — no schema or UI changes.
+// Normalised company and person shapes every provider adapter maps to
+// (lib/intel/capabilities.ts). Providers plug in as adapters in
+// lib/intel/adapters — see docs/03-intelligence-layer.md.
 
 export interface CompanyCandidate {
   name: string;
@@ -47,31 +45,6 @@ export interface DiscoveryContext {
     level?: "info" | "success" | "warning" | "error",
     text?: { key?: string; vars?: Record<string, string | number> }
   ) => Promise<void>;
-}
-
-interface ProviderBase {
-  /** Stable id stored in companies.source / prospects.source. */
-  id: string;
-  label: string;
-  /** False when credentials are missing — the pipeline skips it. */
-  isConfigured(): boolean;
-}
-
-export interface CompanySource extends ProviderBase {
-  searchCompanies(icp: IcpCriteria, ctx: DiscoveryContext): Promise<CompanyCandidate[]>;
-}
-
-export interface PeopleSource extends ProviderBase {
-  findDecisionMakers(company: CompanyCandidate, icp: IcpCriteria, ctx: DiscoveryContext): Promise<PersonCandidate[]>;
-}
-
-export interface Enricher extends ProviderBase {
-  enrichCompany?(company: CompanyCandidate, ctx: DiscoveryContext): Promise<Partial<CompanyCandidate>>;
-  enrichPerson?(person: PersonCandidate, company: CompanyCandidate, ctx: DiscoveryContext): Promise<Partial<PersonCandidate>>;
-}
-
-export interface EmailVerifier extends ProviderBase {
-  verify(email: string): Promise<EmailStatus>;
 }
 
 export interface ScoredPerson extends PersonCandidate {

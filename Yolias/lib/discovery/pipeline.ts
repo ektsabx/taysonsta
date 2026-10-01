@@ -4,13 +4,17 @@ import type { EventLevel, PipelineStage } from "@/types/database";
 import { parseIcp, type IcpCriteria } from "@/lib/discovery/icp";
 import { classifySeniority, scoreMatch } from "@/lib/discovery/match";
 import { monthWindow, plans } from "@/lib/plans";
-import { companySources, configured, emailVerifiers, enrichers, peopleSources } from "@/lib/discovery/registry";
 import type { CompanyCandidate, DiscoveryContext, PersonCandidate } from "@/lib/discovery/types";
+import type { EmailStatus } from "@/types/database";
+import { hasProviderFor, sourceLabels } from "@/lib/intel/registry";
+import { runCapability, type CallScope } from "@/lib/intel/service";
 
 // Discovery pipeline: Search → Find Companies → Find Decision Makers →
 // Enrich & Verify → Qualify / Match → Prospects. Runs with the service role
 // (callers must have checked workspace membership) and records every step in
-// campaign_events so the UI can show AI activity / progress.
+// campaign_events so the UI can show AI activity / progress. Every external
+// call goes through the Intelligence Layer (lib/intel): capabilities, not
+// providers (docs/03). Scoring stays deterministic code (rule 24).
 
 // Events store an English message plus meta {key, vars} pointing at the
 // `events` dictionary, so the UI shows them in the reader's language.
@@ -63,8 +67,7 @@ export async function runDiscovery(campaignId: string): Promise<void> {
     log: (stage, message, level, text) => logEvent(campaign.workspace_id, campaignId, stage, message, level, text),
   };
 
-  const sources = configured(companySources);
-  if (sources.length === 0) {
+  if (!(await hasProviderFor("company.search"))) {
     await db.from("campaigns").update({ status: "awaiting_source" }).eq("id", campaignId);
     await ctx.log("companies", "No company data source is connected yet. Results will be collected once one is connected.", "warning", { key: "noCompanySource" });
     return;
@@ -72,7 +75,7 @@ export async function runDiscovery(campaignId: string): Promise<void> {
 
   await db.from("campaigns").update({ status: "running", started_at: new Date().toISOString() }).eq("id", campaignId);
   try {
-    const companies = await findCompanies(icp, ctx, sources);
+    const companies = await findCompanies(icp, ctx);
     let companiesFound = 0;
     let prospectsFound = 0;
 
@@ -92,7 +95,7 @@ export async function runDiscovery(campaignId: string): Promise<void> {
       for (const person of people) {
         if (prospectsFound >= remaining) break;
         const p = await enrichPerson(person, enriched, ctx);
-        const emailStatus = p.email ? await verifyEmail(p.email) : "unknown";
+        const emailStatus = p.email ? await verifyEmail(p.email, ctx) : "unknown";
         const match = scoreMatch(icp, enriched, p);
         await db.from("prospects").insert({
           workspace_id: ctx.workspaceId, campaign_id: campaignId, company_id: row.id, full_name: p.fullName, title: p.title,
@@ -125,54 +128,54 @@ export async function runDiscovery(campaignId: string): Promise<void> {
 // Provider id travels with each candidate so the row records where it came from.
 const origin = new WeakMap<object, string>();
 const sourceOf = (x: object) => origin.get(x) ?? "unknown";
+const scopeOf = (ctx: DiscoveryContext): CallScope => ({ workspaceId: ctx.workspaceId, campaignId: ctx.campaignId });
 
-async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext, sources: typeof companySources) {
+async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
+  const source = (await sourceLabels()).join(", ") || "Yolias";
+  await ctx.log("companies", `Searching ${source} for matching companies…`, "info", { key: "searching", vars: { source } });
+  const res = await runCapability("company.search", { icp, limit: ctx.limit, offering: ctx.offering }, scopeOf(ctx));
   const seen = new Map<string, CompanyCandidate>();
-  for (const source of sources) {
-    if (seen.size >= ctx.limit) break;
-    await ctx.log("companies", `Searching ${source.label} for matching companies…`, "info", { key: "searching", vars: { source: source.label } });
-    const found = await source.searchCompanies(icp, { ...ctx, limit: ctx.limit - seen.size });
-    for (const c of found) {
+  if (res.ok) {
+    for (const c of res.data) {
       const key = dedupeKey(c);
       if (seen.has(key)) continue;
-      origin.set(c, source.id);
+      origin.set(c, res.provider);
       seen.set(key, c);
     }
+  } else if (res.reason === "all_failed") {
+    throw new Error(`company search failed (${res.errors.map((e) => e.provider).join(", ")})`);
   }
   await ctx.log("companies", `Found ${seen.size} candidate companies.`, "success", { key: "foundCompanies", vars: { count: seen.size } });
   return [...seen.values()].slice(0, ctx.limit);
 }
 
 async function findPeople(company: CompanyCandidate, icp: IcpCriteria, ctx: DiscoveryContext) {
-  const out: PersonCandidate[] = [];
-  for (const source of configured(peopleSources)) {
-    const people = await source.findDecisionMakers(company, icp, ctx);
-    for (const p of people) origin.set(p, source.id);
-    out.push(...people);
-    if (out.length) break;
-  }
-  return out;
+  const res = await runCapability("person.search", { company, icp, limit: 5 }, scopeOf(ctx));
+  if (!res.ok) return [];
+  for (const p of res.data) origin.set(p, res.provider);
+  return res.data;
 }
 
+// Optional steps: skipped (no call, no cost) when no provider offers them.
 async function enrichCompany(company: CompanyCandidate, ctx: DiscoveryContext): Promise<CompanyCandidate> {
-  let c = company;
-  for (const e of configured(enrichers)) {
-    if (e.enrichCompany) c = { ...c, ...(await e.enrichCompany(c, ctx)) };
-  }
-  if (c !== company) origin.set(c, sourceOf(company));
+  const res = await runCapability("company.enrich", { company }, scopeOf(ctx));
+  if (!res.ok) return company;
+  const c = { ...company, ...res.data };
+  origin.set(c, sourceOf(company));
   return c;
 }
 
 async function enrichPerson(person: PersonCandidate, company: CompanyCandidate, ctx: DiscoveryContext): Promise<PersonCandidate> {
-  let p = person;
-  for (const e of configured(enrichers)) {
-    if (e.enrichPerson) p = { ...p, ...(await e.enrichPerson(p, company, ctx)) };
-  }
-  if (p !== person) origin.set(p, sourceOf(person));
+  const res = await runCapability("person.enrich", { person, company }, scopeOf(ctx));
+  if (!res.ok) return person;
+  const p = { ...person, ...res.data };
+  origin.set(p, sourceOf(person));
   return p;
 }
 
-async function verifyEmail(email: string) {
-  const verifier = configured(emailVerifiers)[0];
-  return verifier ? verifier.verify(email) : ("found" as const);
+// Only a verifier can mark an email verified (docs/00: never claim verification).
+async function verifyEmail(email: string, ctx: DiscoveryContext): Promise<EmailStatus> {
+  const res = await runCapability("email.verify", { email }, scopeOf(ctx));
+  if (!res.ok) return "found";
+  return res.data.status === "valid" ? "verified" : res.data.status === "invalid" ? "invalid" : "found";
 }

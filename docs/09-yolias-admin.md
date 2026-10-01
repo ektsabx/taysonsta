@@ -90,6 +90,9 @@ audited.
 | Workspaces | `/admin/platform/workspaces` | plan, members, searches, this month's prospect usage vs quota |
 | Workspace | `/admin/platform/workspaces/[id]` | details, members, invitations, searches, campaigns, invoices & subscription events |
 | Searches | `/admin/platform/searches` | every search, its understanding status and its campaign |
+| Providers | `/admin/platform/providers` | provider registry (status, capabilities, priority, credential hint, health), capability map, Intelligence Layer settings (routing ladder, TTLs, circuit breaker, LLM prices) |
+| Provider | `/admin/platform/providers/[id]` | edit enable/priority/limits/budgets/fallback/pricing/license, set or delete the Vault credential, latest calls |
+| Costs | `/admin/platform/costs` | LLM and provider cost this month, cost per prospect, by task/provider, latest LLM calls |
 
 Permissions: `platform.*` (super admin and admin: all; executive: read).
 

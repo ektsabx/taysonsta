@@ -63,10 +63,12 @@ write_env() {
 API_URL="$(envval NEXT_PUBLIC_SUPABASE_URL)"; ANON_KEY="$(envval NEXT_PUBLIC_SUPABASE_ANON_KEY)"; SERVICE_ROLE_KEY="$(envval SUPABASE_SERVICE_ROLE_KEY)"
 write_env
 
-# Auth reads the SMTP settings at start: restart the stack when they change.
+# Supabase reads config.toml (exposed schemas, SMTP…) only at start: restart
+# the stack when the config or the email settings changed since last run.
 mkdir -p supabase/.temp
-if [ "$(cat supabase/.temp/smtp-state 2>/dev/null)" != "$SMTP:$RESEND_FROM_EMAIL" ] && npx supabase status >/dev/null 2>&1; then
-  say "Email settings changed. Restarting the Yolias database services…"
+STATE="$SMTP:$RESEND_FROM_EMAIL:$(cksum < supabase/config.toml | cut -d' ' -f1)"
+if [ "$(cat supabase/.temp/config-state 2>/dev/null)" != "$STATE" ] && npx supabase status >/dev/null 2>&1; then
+  say "Database settings changed. Restarting the Yolias database services (data is kept)…"
   npx supabase stop >/dev/null 2>&1 || true
 fi
 
@@ -99,7 +101,7 @@ if [ -z "${API_URL:-}" ]; then say "Couldn't read Supabase keys."; exit 1; fi
 
 # Keep any extra variables (e.g. ANTHROPIC_API_KEY) already in .env.local.
 write_env
-echo "$SMTP:$RESEND_FROM_EMAIL" > supabase/.temp/smtp-state
+echo "$STATE" > supabase/.temp/config-state
 
 if [ "$SMTP" = true ]; then MAIL="sign-in emails: sent by Resend from $RESEND_FROM_EMAIL"; else MAIL="sign-in emails: http://127.0.0.1:54634 (no Resend key found)"; fi
 [ -n "${YOLIAS_PREPARE_ONLY:-}" ] && { say "Database ready · $MAIL"; exit 0; }

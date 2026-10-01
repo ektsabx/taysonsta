@@ -28,9 +28,10 @@ Admin http://admin.localhost:3200.
 | Search composer, text + voice | `components/app/StrategyComposer.tsx`, `useSpeechToText.ts`, `app/api/transcribe`, `lib/stt.ts` | working; server STT needs `STT_API_KEY` |
 | ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working (Anthropic SDK, structured output) |
 | Search pages | `app/(app)/search/[id]` (UI "Search", table `strategies`) | working |
-| Discovery contracts | `lib/discovery/types.ts` | defined |
-| Provider registry | `lib/discovery/registry.ts` | **empty**: campaigns stop at `awaiting_source` |
-| Pipeline | `lib/discovery/pipeline.ts` | runs inline; no queue yet |
+| Intelligence Layer | `lib/intel/*` | capabilities, routing, registry, service, Vault credentials, cost logging. Tested with unit tests + a live integration run |
+| Provider adapters | `lib/intel/adapters/index.ts` | **none yet**: campaigns stop at `awaiting_source` (phase 4, D-003) |
+| ICP understanding | `lib/ai/strategy.ts` | cached by input hash (`intel.llm_cache`), every call/hit logged with cost (`intel.llm_calls`), fingerprint saved on the search |
+| Pipeline | `lib/discovery/pipeline.ts` | uses `runCapability()` per step; runs inline; no queue yet |
 | Match scoring | `lib/discovery/match.ts` | deterministic code (correct per rules) |
 | Campaigns / Prospects / Analytics pages | `app/(app)/*` | UI working on real (empty) data |
 | Plans & billing | `lib/plans.ts`, `lib/billing.ts` | quotas are **constants**; payments in test mode only |
@@ -48,11 +49,11 @@ Runs at http://admin.localhost:3200.
 
 | Gap | Spec | Where |
 | --- | --- | --- |
-| No `intel` schema, no shared intelligence | `04` | — |
-| No provider live; registry is code, not config | `03` | `lib/discovery/registry.ts` |
+| Shared intelligence tables exist but the pipeline doesn't write to them yet | `04` | phase 6 |
+| No provider live | `03` | phase 4 |
 | Quotas hardcoded | `06` D-005 | `lib/plans.ts` |
 | No `usage_ledger`, no atomic reservation | `06` | — |
-| No cost logging for LLM/STT calls | `06` | `lib/ai/strategy.ts`, `lib/stt.ts` |
+| No cost logging for STT calls (LLM is logged) | `06` | `lib/stt.ts` |
 | No queue/worker; pipeline inline | `05` | `lib/discovery/pipeline.ts` |
 | Campaign states are the old set | `05` | init migration |
 | `prospects` has no unique `(workspace_id, person_id)` | `04` | init migration |

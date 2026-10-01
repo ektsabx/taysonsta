@@ -19,9 +19,9 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 | --- | --- | --- | --- |
 | 0 | Audit both codebases: reusable parts, DB overlap, auth, provider interfaces | ✅ | `13-audit.md` |
 | 0b | Admin integration: `admin.localhost:3200`, admin ↔ Yolias data access | ✅ | `npm run local`; `/admin/platform` pages; Resend for Yolias |
-| 1 | Provider abstraction + Intelligence Layer skeleton (`lib/intel`) | ⬜ | capabilities, router, adapters contract; discovery uses it |
-| 2 | `intel` schema | ⬜ | migrations + RLS/grants |
-| 3 | Provider registry (DB + admin page) | ⬜ | providers editable in admin, prices/limits/licenses as config |
+| 1 | Provider abstraction + Intelligence Layer skeleton (`lib/intel`) | ✅ | capabilities, router, adapters contract; discovery uses it |
+| 2 | `intel` schema | ✅ | migrations + RLS/grants |
+| 3 | Provider registry (DB + admin page) | ✅ | providers editable in admin, prices/limits/licenses as config |
 | 4 | First production-grade provider | ⬜ | evaluated, licensed, live behind the router (D-003) |
 | 5 | Pipeline stages + new campaign states | ⬜ | search → prospects end to end |
 | 6 | Dedup, provenance, freshness | ⬜ | identity resolution, `field_values`, TTL refresh |
