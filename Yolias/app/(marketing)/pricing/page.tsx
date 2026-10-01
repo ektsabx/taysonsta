@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n/server";
-import { plans } from "@/lib/plans";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { getSession } from "@/lib/session";
 import { PricingView } from "./PricingView";
 
@@ -12,5 +12,5 @@ export async function generateMetadata(): Promise<Metadata> {
 // (signed-in users). Journey: signup → magic link → checkout → onboarding → Yolias.
 export default async function PricingPage() {
   const session = await getSession();
-  return <PricingView signedIn={Boolean(session)} plans={plans} />;
+  return <PricingView signedIn={Boolean(session)} plans={await getPlanCatalog()} />;
 }

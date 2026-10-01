@@ -1,6 +1,7 @@
 import "server-only";
 import { ydb, type YTables } from "@/lib/yolias/db";
-import { monthStartUtc, yoliasPlans, type YoliasPlan } from "@/lib/yolias/plans";
+import { isYoliasPlan, monthStartUtc, type YoliasPlan } from "@/lib/yolias/plans";
+import { getPlanTerms } from "@/services/yolias/usage";
 
 // Read models for the Yolias Platform pages of Yolias Admin
 // (docs/09-yolias-admin.md §B). Real data only: every number here is a
@@ -10,7 +11,7 @@ const PAGE = 50;
 
 type Workspace = YTables<"workspaces">;
 
-export type WorkspaceStats = { members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; last_activity_at: string | null };
+export type WorkspaceStats = { members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; allowance: number; last_activity_at: string | null };
 
 /** Paid plan that is actually billed (live). Test-mode subscriptions are not revenue. */
 function isLivePaid(w: Pick<Workspace, "plan" | "subscription_status">) {
@@ -43,6 +44,7 @@ export async function platformOverview() {
     ydb().from("campaigns").select("status"),
     ydb().from("profiles").select("id, email, full_name, created_at, workspace_id").order("created_at", { ascending: false }).limit(8),
   ]);
+  const terms = await getPlanTerms();
 
   const plans = { free: 0, pro: 0, growth: 0 } as Record<YoliasPlan, number>;
   let livePaid = 0;
@@ -51,7 +53,7 @@ export async function platformOverview() {
   let mrrTest = 0;
   for (const w of wsRows.data ?? []) {
     plans[w.plan as YoliasPlan] = (plans[w.plan as YoliasPlan] ?? 0) + 1;
-    const price = yoliasPlans[w.plan as YoliasPlan]?.priceUsd ?? 0;
+    const price = terms[w.plan as YoliasPlan]?.priceUsd ?? 0;
     if (isLivePaid(w)) {
       livePaid++;
       mrrLive += price;
@@ -65,7 +67,7 @@ export async function platformOverview() {
 
   return {
     users, users30, workspaces, searches, searches30, prospects, prospectsMonth,
-    plans, livePaid, testPaid, mrrLive, mrrTest,
+    plans, terms, livePaid, testPaid, mrrLive, mrrTest,
     campaigns, campaignsTotal: (campRows.data ?? []).length,
     recentUsers: recent.data ?? [],
   };
@@ -123,7 +125,7 @@ export async function listWorkspaces(opts: { q?: string; plan?: string; page: nu
     const term = opts.q.replace(/[%_,()]/g, " ").trim();
     if (term) q = q.or(`name.ilike.%${term}%,website.ilike.%${term}%`);
   }
-  if (opts.plan && opts.plan in yoliasPlans) q = q.eq("plan", opts.plan as YoliasPlan);
+  if (isYoliasPlan(opts.plan)) q = q.eq("plan", opts.plan);
   const [{ data, count: total, error }, stats] = await Promise.all([
     q.order("created_at", { ascending: false }).range((opts.page - 1) * PAGE, opts.page * PAGE - 1),
     workspaceStats(),

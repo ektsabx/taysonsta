@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
-import { plans } from "@/lib/plans";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, monthlyUsage, teamMembers } from "@/services/workspace";
 
@@ -22,7 +22,7 @@ function maskIp(ip: string | null): string | null {
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
   const { profile, workspace } = session;
-  const plan = plans[workspace.plan];
+  const plan = (await getPlanCatalog())[workspace.plan];
   const h = await headers();
 
   const [recent, usage, team, invoices] = await Promise.all([
@@ -57,7 +57,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       name: workspace.name ?? "",
       plan: workspace.plan,
       priceUsd: plan.priceUsd,
-      prospects: plan.prospects,
+      // Plan quota + any grants this month (usage ledger).
+      prospects: usage.allowance,
       subscriptionStatus: workspace.subscription_status,
       periodEnd: workspace.current_period_end,
       billingPeriod: workspace.billing_period,

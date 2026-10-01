@@ -5,7 +5,8 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { allPlans, hasActivePlan, isBillingPeriod, isPlan, plans } from "@/lib/plans";
+import { allPlans, hasActivePlan, isBillingPeriod, isPlan } from "@/lib/plans";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Step 2 of the journey (after signup): choose and activate a plan.
 export default async function CheckoutPage({ searchParams }: PageProps<"/checkout">) {
   const session = await requireUser();
+  const plans = await getPlanCatalog();
   const t = await getDictionary();
   const { plan, period } = await searchParams;
   const active = hasActivePlan(session.workspace);

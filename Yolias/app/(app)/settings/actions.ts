@@ -57,7 +57,7 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
 export async function refreshUsage(): Promise<{ prospects: number; resetsAt: string; checkedAt: string }> {
   const session = await requireSession();
   const usage = await monthlyUsage(session.workspace.id);
-  return { ...usage, checkedAt: new Date().toISOString() };
+  return { prospects: usage.prospects, resetsAt: usage.resetsAt, checkedAt: new Date().toISOString() };
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.

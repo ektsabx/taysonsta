@@ -17,6 +17,14 @@ Current plans (`Yolias/lib/plans.ts`):
 per plan instead of raising prices. Quotas must therefore be configuration
 (DB/admin), not constants. Annual = 12 × monthly today.
 
+## In the code
+
+- Quotas + prices: `public.plan_quotas` (read by `Yolias/lib/plan-catalog.ts`; edited in `/admin/platform/plans`). `lib/plans.ts` constants are only a fallback.
+- Ledger: `public.usage_ledger` + SQL `usage_summary`, `reserve_usage`, `consume_usage`, `release_usage` (service role only; serialised per workspace with an advisory lock).
+- Pipeline: reserve at start, consume per delivered prospect, release the rest in `finally`.
+- Admin: per-workspace usage, ledger and grants/adjustments on the workspace page (audited).
+- Prospects delivered before the ledger were backfilled as `consume` rows.
+
 ## Usage ledger
 
 `usage_ledger` rows: `workspace_id`, `campaign_id`, `kind` (`reserve` /

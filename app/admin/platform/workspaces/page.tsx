@@ -6,7 +6,7 @@ import { BosTable } from "@/components/bos/BosTable";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { Tx } from "@/components/bos/I18n";
 import { formatDate } from "@/lib/bos/format";
-import { yoliasPlans, type YoliasPlan } from "@/lib/yolias/plans";
+import { yoliasPlanIds, yoliasPlanLabel } from "@/lib/yolias/plans";
 import { listWorkspaces } from "@/services/yolias/platform";
 import { NotConnected, connected, PlanBadge, Pager, qsFor, num } from "@/components/yolias/PlatformUi";
 
@@ -22,7 +22,7 @@ export default async function PlatformWorkspacesPage({ searchParams }: { searchP
     <>
       <PageHeader title="مساحات العمل" subtitle={<Tx vars={{ n: num(total) }}>{"{n} مساحة عمل"}</Tx>} />
       <FilterBar searchPlaceholder="بحث بالاسم أو الموقع" filters={[
-        { key: "plan", label: "الخطة", type: "select", options: (Object.keys(yoliasPlans) as YoliasPlan[]).map((p) => ({ value: p, label: yoliasPlans[p].label })) },
+        { key: "plan", label: "الخطة", type: "select", options: yoliasPlanIds.map((p) => ({ value: p, label: yoliasPlanLabel[p] })) },
       ]} />
       <Card flush>
         {rows.length ? (
@@ -31,7 +31,7 @@ export default async function PlatformWorkspacesPage({ searchParams }: { searchP
               <thead><tr><th><Tx>مساحة العمل</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>الأعضاء</Tx></th><th><Tx>عمليات البحث</Tx></th><th style={{ minWidth: 180 }}><Tx>الاستخدام هذا الشهر</Tx></th><th><Tx>تاريخ الإنشاء</Tx></th></tr></thead>
               <tbody>
                 {rows.map((w) => {
-                  const quota = yoliasPlans[w.plan as YoliasPlan]?.prospects ?? 0;
+                  const quota = w.stats?.allowance ?? 0;
                   const used = w.stats?.prospects_month ?? 0;
                   return (
                     <tr key={w.id}>

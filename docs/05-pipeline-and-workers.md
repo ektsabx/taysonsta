@@ -3,6 +3,25 @@
 A campaign is a **discovery job**. It runs in the background through these
 stages, each one a queued, idempotent job.
 
+## In the code
+
+| Piece | Where |
+| --- | --- |
+| States + helpers (`isActive`, `finalState`) | `Yolias/lib/discovery/states.ts` |
+| Job queue (pgmq `yolias_jobs`) + SQL wrappers, dead letters (`job_failures`), run log (`campaign_runs`) | `Yolias/supabase/migrations/20261004000000_campaign_states_jobs.sql` |
+| Enqueue | `Yolias/lib/jobs/queue.ts` (`campaign.discover`) |
+| Worker: time-boxed `tick()`, backoff 30s→30min, 5 attempts then dead letter + campaign failed | `Yolias/lib/jobs/worker.ts` |
+| Worker endpoint (Bearer `WORKER_SECRET`) | `Yolias/app/api/worker/route.ts` |
+| Local poller (what the Cron Trigger does in production) | `scripts/dev-worker.mjs`, started by `npm run local` |
+| Admin: queue metrics, runs, failed jobs + retry | `/admin/platform/jobs` |
+
+`runDiscovery` is idempotent: finished campaigns are skipped, one worker
+claims a campaign with a conditional update, a retry may take over a
+campaign left mid-run. A person the workspace already has (same LinkedIn
+or email) is never delivered or charged again. Today one job runs the whole
+pipeline and moves the campaign through the states; splitting it into one
+job per stage comes with the first provider, when real latencies are known.
+
 ## Stages
 
 ```text

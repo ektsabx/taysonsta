@@ -216,6 +216,8 @@ export const ar: Dictionary = {
     discovering: "جارٍ اكتشاف العملاء",
     stopped: "توقف الاكتشاف",
     awaitingSource: "الحملة جاهزة · بانتظار مصدر بيانات",
+    partial: "اكتمل الاكتشاف · نتائج أقل من المطلوب",
+    partialNone: "اكتمل الاكتشاف · لا توجد نتائج مطابقة",
     matchScore: "نسبة التطابق: {score}%",
     target: "الهدف: {count} {unit}",
     unitCompanies: "شركة",
@@ -288,6 +290,7 @@ export const ar: Dictionary = {
     status: {
       active: "● نشطة",
       completed: "مكتملة",
+      partial: "جزئية",
       awaiting: "بانتظار مصدر بيانات",
       paused: "متوقفة مؤقتًا",
       failed: "فشلت",

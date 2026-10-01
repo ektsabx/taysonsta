@@ -31,10 +31,10 @@ Admin http://admin.localhost:3200.
 | Intelligence Layer | `lib/intel/*` | capabilities, routing, registry, service, Vault credentials, cost logging. Tested with unit tests + a live integration run |
 | Provider adapters | `lib/intel/adapters/index.ts` | **none yet**: campaigns stop at `awaiting_source` (phase 4, D-003) |
 | ICP understanding | `lib/ai/strategy.ts` | cached by input hash (`intel.llm_cache`), every call/hit logged with cost (`intel.llm_calls`), fingerprint saved on the search |
-| Pipeline | `lib/discovery/pipeline.ts` | uses `runCapability()` per step; runs inline; no queue yet |
+| Pipeline | `lib/discovery/pipeline.ts` | background job via pgmq + worker; states, run log, retries, dead letters; reserve → consume → release |
 | Match scoring | `lib/discovery/match.ts` | deterministic code (correct per rules) |
 | Campaigns / Prospects / Analytics pages | `app/(app)/*` | UI working on real (empty) data |
-| Plans & billing | `lib/plans.ts`, `lib/billing.ts` | quotas are **constants**; payments in test mode only |
+| Plans & billing | `lib/plan-catalog.ts`, `lib/billing.ts` | quotas/prices from `plan_quotas` (admin-editable); payments in test mode only |
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
 | Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
 
@@ -51,16 +51,11 @@ Runs at http://admin.localhost:3200.
 | --- | --- | --- |
 | Shared intelligence tables exist but the pipeline doesn't write to them yet | `04` | phase 6 |
 | No provider live | `03` | phase 4 |
-| Quotas hardcoded | `06` D-005 | `lib/plans.ts` |
-| No `usage_ledger`, no atomic reservation | `06` | — |
 | No cost logging for STT calls (LLM is logged) | `06` | `lib/stt.ts` |
-| No queue/worker; pipeline inline | `05` | `lib/discovery/pipeline.ts` |
-| Campaign states are the old set | `05` | init migration |
 | `prospects` has no unique `(workspace_id, person_id)` | `04` | init migration |
 | Plan copy promises "direct phone/WhatsApp" per prospect; spec says mobile optional, no WhatsApp verification claims | `00` | `lib/plans.ts` comment, pricing/marketing copy |
 | `PersonCandidate.whatsapp` field | `00` | `lib/discovery/types.ts` |
-| Admin platform pages are read-only; no quota/plan editing yet | `09` | phase 9 |
-| Quotas duplicated in `Yolias/lib/plans.ts` and `lib/yolias/plans.ts` | `06` | move to DB in phase 9 |
+| Production worker trigger not configured (Cloudflare Cron → `/api/worker`) | `05` | at deploy |
 
 ## Pre-existing admin issues (not from Yolias work)
 

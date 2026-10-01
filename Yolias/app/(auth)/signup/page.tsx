@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatNumber } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { isBillingPeriod, isPlan, planName, plans, priceFor } from "@/lib/plans";
+import { isBillingPeriod, isPlan, planName, priceFor } from "@/lib/plans";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { MagicLinkForm } from "../MagicLinkForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const [t, locale, plans] = await Promise.all([getDictionary(), getLocale(), getPlanCatalog()]);
   const { plan, period: rawPeriod } = await searchParams;
   const picked = isPlan(plan) ? plan : undefined;
   const period = isBillingPeriod(rawPeriod) ? rawPeriod : "monthly";

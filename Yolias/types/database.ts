@@ -16,7 +16,11 @@ export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
-export type CampaignStatus = "awaiting_source" | "queued" | "running" | "completed" | "failed" | "paused";
+export type CampaignStatus =
+  | "created" | "queued" | "awaiting_source"
+  | "discovering_companies" | "matching_companies" | "discovering_people" | "enriching" | "verifying"
+  | "researching" | "scoring" | "delivering"
+  | "completed" | "partial" | "failed" | "paused";
 export type PipelineStage = "understand" | "plan" | "companies" | "people" | "enrich" | "verify" | "qualify" | "deliver";
 export type EventLevel = "info" | "success" | "warning" | "error";
 export type EmailStatus = "unknown" | "found" | "verified" | "invalid";
@@ -107,9 +111,25 @@ export type CampaignRow = {
   prospects_found: number;
   started_at: string | null;
   completed_at: string | null;
+  partial_reason: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type CampaignRunRow = {
+  id: number;
+  workspace_id: string;
+  campaign_id: string;
+  job: string;
+  attempt: number;
+  status: "running" | "succeeded" | "failed" | "skipped";
+  started_at: string;
+  finished_at: string | null;
+  error: string | null;
+  meta: Json;
+};
+
+export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
   id: number;
@@ -208,6 +228,23 @@ export type ContactMessageRow = {
   created_at: string;
 };
 
+
+export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; updated_by: string | null; updated_at: string };
+
+export type UsageLedgerKind = "reserve" | "consume" | "release" | "grant" | "adjust";
+export type UsageLedgerRow = {
+  id: number;
+  workspace_id: string;
+  campaign_id: string | null;
+  kind: UsageLedgerKind;
+  prospects: number;
+  period_start: string;
+  reason: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type UsageSummary = { period_start: string; quota: number; granted: number; allowance: number; consumed: number; reserved: number; available: number };
 
 // ───────────────────────── intel schema (service role only) ─────────────────────────
 
@@ -329,13 +366,27 @@ export interface Database {
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
       invoices: Table<InvoiceRow, "workspace_id" | "plan" | "billing_period" | "amount_usd" | "mode" | "period_start" | "period_end" | "bill_to_email">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount_usd" | "mode">;
+      plan_quotas: Table<PlanQuotaRow, "plan" | "price_usd" | "prospects_per_month">;
+      usage_ledger: Table<UsageLedgerRow, "workspace_id" | "kind" | "prospects" | "period_start">;
+      campaign_runs: Table<CampaignRunRow, "workspace_id" | "campaign_id" | "job">;
+      job_failures: Table<JobFailureRow, "msg_id" | "kind" | "payload" | "attempts">;
     };
     Views: { [_ in never]: never };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
+      usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
+      jobs_enqueue: { Args: { p_kind: string; p_payload: Json; p_delay: number }; Returns: number };
+      jobs_read: { Args: { p_n: number; p_vt: number }; Returns: { msg_id: number; read_ct: number; enqueued_at: string; kind: string; payload: Json }[] };
+      jobs_ack: { Args: { p_msg_id: number }; Returns: boolean };
+      jobs_retry_later: { Args: { p_msg_id: number; p_delay: number }; Returns: undefined };
+      jobs_dead: { Args: { p_msg_id: number; p_kind: string; p_payload: Json; p_attempts: number; p_error: string }; Returns: undefined };
+      jobs_metrics: { Args: Record<string, never>; Returns: { queue_length: number; oldest_age_sec: number | null; total_messages: number; dead: number }[] };
+      reserve_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
+      consume_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
+      release_usage: { Args: { p_ws: string; p_campaign: string; p_reason: string }; Returns: number };
       admin_workspace_stats: {
         Args: { month_start: string };
-        Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; last_activity_at: string | null }[];
+        Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; allowance: number; last_activity_at: string | null }[];
       };
     };
     Enums: { [_ in never]: never };

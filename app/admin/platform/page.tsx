@@ -5,7 +5,7 @@ import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
 import { yoliasSiteUrl } from "@/lib/yolias/db";
-import { yoliasPlans, type YoliasPlan } from "@/lib/yolias/plans";
+import { yoliasPlanIds, yoliasPlanLabel } from "@/lib/yolias/plans";
 import { platformOverview } from "@/services/yolias/platform";
 import { NotConnected, connected, num, usd, CampaignStatus } from "@/components/yolias/PlatformUi";
 
@@ -16,7 +16,7 @@ export default async function PlatformOverviewPage() {
   await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="منصة Yolias" /><NotConnected /></>);
   const o = await platformOverview();
-  const plans = Object.keys(yoliasPlans) as YoliasPlan[];
+  const plans = yoliasPlanIds;
   const totalWs = Math.max(1, o.workspaces);
   return (
     <>
@@ -42,8 +42,8 @@ export default async function PlatformOverviewPage() {
             <tbody>
               {plans.map((p) => (
                 <tr key={p}>
-                  <td>{yoliasPlans[p].label}<span className="cell-sub bos-num">{usd(yoliasPlans[p].priceUsd)}</span></td>
-                  <td className="bos-num">{num(yoliasPlans[p].prospects)}</td>
+                  <td>{yoliasPlanLabel[p]}<span className="cell-sub bos-num">{usd(o.terms[p].priceUsd)}</span></td>
+                  <td className="bos-num">{num(o.terms[p].prospects)}</td>
                   <td className="bos-num">{num(o.plans[p] ?? 0)}</td>
                   <td className="bos-num">{Math.round(((o.plans[p] ?? 0) / totalWs) * 100)}%</td>
                 </tr>

@@ -215,6 +215,8 @@ export const en = {
     discovering: "Discovering Customers",
     stopped: "Discovery Stopped",
     awaitingSource: "Campaign Ready · Awaiting Data Source",
+    partial: "Discovery Complete · Fewer Matches Than Asked",
+    partialNone: "Discovery Complete · No Matches Found",
     matchScore: "Match Score: {score}%",
     target: "Target: {count} {unit}",
     unitCompanies: "companies",
@@ -287,6 +289,7 @@ export const en = {
     status: {
       active: "● Active",
       completed: "Completed",
+      partial: "Partial",
       awaiting: "Awaiting data source",
       paused: "Paused",
       failed: "Failed",

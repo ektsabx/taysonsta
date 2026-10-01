@@ -88,10 +88,12 @@ audited.
 | Overview | `/admin/platform` | users, workspaces, paid plans live vs test, MRR live vs test, searches, prospects, plan mix, campaigns by status, newest users |
 | Users | `/admin/platform/users` | every Yolias user, workspace, role, plan, language/country, sign-up, last sign-in |
 | Workspaces | `/admin/platform/workspaces` | plan, members, searches, this month's prospect usage vs quota |
-| Workspace | `/admin/platform/workspaces/[id]` | details, members, invitations, searches, campaigns, invoices & subscription events |
+| Workspace | `/admin/platform/workspaces/[id]` | usage (quota, grants, used, reserved, available), ledger, grant/adjust form, details, members, invitations, searches, campaigns, invoices & subscription events |
 | Searches | `/admin/platform/searches` | every search, its understanding status and its campaign |
 | Providers | `/admin/platform/providers` | provider registry (status, capabilities, priority, credential hint, health), capability map, Intelligence Layer settings (routing ladder, TTLs, circuit breaker, LLM prices) |
 | Provider | `/admin/platform/providers/[id]` | edit enable/priority/limits/budgets/fallback/pricing/license, set or delete the Vault credential, latest calls |
+| Plans & quotas | `/admin/platform/plans` | prospects per plan (edit, audited); prices shown |
+| Jobs & queue | `/admin/platform/jobs` | queue length, oldest job, failed jobs (retry), latest runs |
 | Costs | `/admin/platform/costs` | LLM and provider cost this month, cost per prospect, by task/provider, latest LLM calls |
 
 Permissions: `platform.*` (super admin and admin: all; executive: read).

@@ -6,7 +6,8 @@ import { requireSession, type Session } from "@/lib/session";
 import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
 import { AttachmentError, readAttachments } from "@/lib/attachments";
 import { criteriaLine } from "@/lib/discovery/icp";
-import { logEvent, runDiscovery } from "@/lib/discovery/pipeline";
+import { logEvent } from "@/lib/discovery/pipeline";
+import { enqueue } from "@/lib/jobs/queue";
 import { sourceLabels } from "@/lib/intel/registry";
 import { countryLabel } from "@/lib/format";
 import { dictionaries, fmt } from "@/lib/i18n/config";
@@ -130,7 +131,10 @@ async function understandAndLaunch(session: Session, strategyId: string, prompt:
     "info",
     { key: "plan", vars: { count: icp.target_count, unitKey, titles, sources: sources.join(", ") } }
   );
-  await runDiscovery(campaign.id);
+  // Discovery runs in the background worker, never inside this request (docs/05).
+  if ((await enqueue("campaign.discover", { campaignId: campaign.id })) === null) {
+    await logEvent(session.workspace.id, campaign.id, "plan", "Couldn't queue the discovery job. Please retry.", "error", { key: "stopped", vars: { reason: "queue" } });
+  }
 }
 
 // "Save to Prospects": hands the campaign's discovered decision makers to the Prospects list.

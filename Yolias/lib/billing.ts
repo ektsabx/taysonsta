@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPaidPlan, plans, priceFor } from "@/lib/plans";
+import { isPaidPlan, priceFor } from "@/lib/plans";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { dictionaries } from "@/lib/i18n/config";
 import { sendEmail } from "@/lib/email/send";
 import { planEndingEmail, receiptEmail } from "@/lib/email/templates";
@@ -39,7 +40,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
     .eq("id", ws.id);
   if (error) return false;
 
-  const amount = paid ? priceFor(plans[plan].priceUsd, period) : 0;
+  const amount = paid ? priceFor((await getPlanCatalog())[plan].priceUsd, period) : 0;
   await db.from("subscription_events").insert({
     workspace_id: ws.id,
     plan,

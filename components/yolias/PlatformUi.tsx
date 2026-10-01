@@ -27,8 +27,17 @@ const searchStatus: Record<string, { label: string; tone: Tone }> = {
 const campaignStatus: Record<string, { label: string; tone: Tone }> = {
   awaiting_source: { label: "بانتظار مصدر بيانات", tone: "warning" },
   queued: { label: "في الطابور", tone: "info" },
-  running: { label: "قيد التشغيل", tone: "info" },
+  created: { label: "جديدة", tone: "neutral" },
+  discovering_companies: { label: "تبحث عن شركات", tone: "info" },
+  matching_companies: { label: "تطابق الشركات", tone: "info" },
+  discovering_people: { label: "تبحث عن صناع القرار", tone: "info" },
+  enriching: { label: "تُثري البيانات", tone: "info" },
+  verifying: { label: "تتحقق من البريد", tone: "info" },
+  researching: { label: "تبحث في المواقع", tone: "info" },
+  scoring: { label: "تحسب التطابق", tone: "info" },
+  delivering: { label: "تسلّم النتائج", tone: "info" },
   completed: { label: "مكتمل", tone: "success" },
+  partial: { label: "جزئي", tone: "warning" },
   failed: { label: "فشل", tone: "danger" },
   paused: { label: "متوقف", tone: "neutral" },
 };

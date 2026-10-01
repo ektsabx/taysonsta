@@ -1,15 +1,24 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { monthWindow } from "@/lib/plans";
 
+/**
+ * This month's prospects from the usage ledger (docs/06): `prospects` = used
+ * (delivered), `allowance` = plan quota + grants. Callers must have checked
+ * that the user belongs to the workspace (requireSession does).
+ */
 export async function monthlyUsage(workspaceId: string) {
-  const supabase = await createClient();
-  const { start, resets } = monthWindow();
-  // Usage = prospects delivered this month (the only thing plans count).
-  const { count } = await supabase
-    .from("prospects").select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspaceId).gte("created_at", start.toISOString());
-  return { prospects: count ?? 0, resetsAt: resets.toISOString() };
+  const { resets } = monthWindow();
+  const { data } = await createAdminClient().rpc("usage_summary", { p_ws: workspaceId });
+  const u = data?.[0];
+  return {
+    prospects: u?.consumed ?? 0,
+    allowance: u?.allowance ?? 0,
+    reserved: u?.reserved ?? 0,
+    available: u?.available ?? 0,
+    resetsAt: resets.toISOString(),
+  };
 }
 
 export async function teamMembers(workspaceId: string) {

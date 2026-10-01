@@ -6,19 +6,22 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
 import { listCampaigns } from "@/services/campaigns";
 import type { CampaignStatus } from "@/types/database";
+import { isActive } from "@/lib/discovery/states";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.campaigns} — Yolias` };
 }
 
-const statusView: Record<CampaignStatus, { key: "active" | "completed" | "awaiting" | "paused" | "failed"; cls: string }> = {
-  queued: { key: "active", cls: "status-active" },
-  running: { key: "active", cls: "status-active" },
-  completed: { key: "completed", cls: "status-muted" },
-  awaiting_source: { key: "awaiting", cls: "status-muted" },
-  paused: { key: "paused", cls: "status-muted" },
-  failed: { key: "failed", cls: "status-failed" },
-};
+type StatusKey = "active" | "completed" | "partial" | "awaiting" | "paused" | "failed";
+
+function statusView(s: CampaignStatus): { key: StatusKey; cls: string } {
+  if (isActive(s)) return { key: "active", cls: "status-active" };
+  if (s === "completed") return { key: "completed", cls: "status-muted" };
+  if (s === "partial") return { key: "partial", cls: "status-muted" };
+  if (s === "awaiting_source") return { key: "awaiting", cls: "status-muted" };
+  if (s === "paused") return { key: "paused", cls: "status-muted" };
+  return { key: "failed", cls: "status-failed" };
+}
 
 export default async function CampaignsPage() {
   const session = await requireSession();
@@ -32,7 +35,7 @@ export default async function CampaignsPage() {
       criteria: icp ? criteriaLine(icp, locale, t.icp) : "—",
       quota: c.quota,
       found: c.prospects_found,
-      status: { label: t.campaigns.status[statusView[c.status].key], cls: statusView[c.status].cls },
+      status: { label: t.campaigns.status[statusView(c.status).key], cls: statusView(c.status).cls },
       href: c.strategy_id ? `/search/${c.strategy_id}` : null,
     };
   });

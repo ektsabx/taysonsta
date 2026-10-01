@@ -5,22 +5,26 @@ import { PageHeader, Card, EmptyState, KpiCard, KeyValues, StatusBadge } from "@
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDate, formatDateTime } from "@/lib/bos/format";
-import { yoliasPlans, type YoliasPlan } from "@/lib/yolias/plans";
+import { yoliasPlanLabel, isYoliasPlan } from "@/lib/yolias/plans";
+import { workspaceUsage } from "@/services/yolias/usage";
+import { AdjustUsageForm } from "../../UsageForms";
+import { can } from "@/lib/bos/auth";
 import { getWorkspace } from "@/services/yolias/platform";
 import { NotConnected, connected, PlanBadge, SearchStatus, CampaignStatus, num, usd } from "@/components/yolias/PlatformUi";
 
 const roleLabel: Record<string, string> = { owner: "المالك", admin: "مسؤول", member: "عضو" };
+const ledgerLabel: Record<string, string> = { reserve: "حجز", consume: "استخدام", release: "إرجاع", grant: "منحة", adjust: "تعديل" };
 const subLabel: Record<string, string> = { activated: "تفعيل", changed: "تغيير الخطة", canceled: "إلغاء", resumed: "استئناف", ended: "انتهاء" };
 
 export default async function PlatformWorkspacePage({ params }: PageProps<"/admin/platform/workspaces/[id]">) {
-  await requirePermission("platform.read");
+  const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="مساحة العمل" /><NotConnected /></>);
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const d = await getWorkspace(id);
+  const [d, usage] = await Promise.all([getWorkspace(id), workspaceUsage(id)]);
   if (!d) notFound();
   const w = d.workspace;
-  const quota = yoliasPlans[w.plan as YoliasPlan]?.prospects ?? 0;
+  const u = usage.summary;
   return (
     <>
       <PageHeader
@@ -29,7 +33,7 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
         actions={<Link className="admin-btn small secondary" href="/admin/platform/workspaces"><Tx>كل مساحات العمل</Tx></Link>}
       />
       <div className="bos-kpis">
-        <KpiCard label="الاستخدام هذا الشهر" value={`${num(d.stats?.prospects_month ?? 0)} / ${num(quota)}`} />
+        <KpiCard label="الاستخدام هذا الشهر" value={`${num(u?.consumed ?? 0)} / ${num(u?.allowance ?? 0)}`} sub={<Tx vars={{ r: num(u?.reserved ?? 0), a: num(u?.available ?? 0) }}>{"{r} محجوز · {a} متاح"}</Tx>} />
         <KpiCard label="العملاء المحتملون (الإجمالي)" value={num(d.stats?.prospects_total ?? 0)} />
         <KpiCard label="عمليات البحث" value={num(d.stats?.searches ?? 0)} />
         <KpiCard label="الحملات" value={num(d.stats?.campaigns ?? 0)} />
@@ -46,6 +50,33 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
           { label: "تاريخ الإنشاء", value: formatDateTime(w.created_at) },
           { label: "معرّف مساحة العمل", value: <span dir="ltr" style={{ fontSize: 12 }}>{w.id}</span> },
         ]} />
+      </Card>
+
+      <Card title="سجل الاستخدام">
+        <KeyValues items={[
+          { label: "حصة الخطة", value: num(u?.quota ?? 0) },
+          { label: "منح وتعديلات هذا الشهر", value: num(u?.granted ?? 0) },
+          { label: "المستخدم", value: num(u?.consumed ?? 0) },
+          { label: "محجوز لحملات جارية", value: num(u?.reserved ?? 0) },
+          { label: "المتاح", value: num(u?.available ?? 0) },
+        ]} />
+        {usage.ledger.length ? (
+          <BosTable className="bos-table">
+            <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>الحركة</Tx></th><th><Tx>العدد</Tx></th><th><Tx>السبب</Tx></th><th><Tx>بواسطة</Tx></th></tr></thead>
+            <tbody>
+              {usage.ledger.map((l) => (
+                <tr key={l.id}>
+                  <td>{formatDateTime(l.created_at)}</td>
+                  <td><Tx>{ledgerLabel[l.kind] ?? l.kind}</Tx></td>
+                  <td className="bos-num">{num(l.prospects)}</td>
+                  <td>{l.reason ?? "—"}</td>
+                  <td dir="ltr">{l.created_by ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </BosTable>
+        ) : null}
+        {can(bos, "platform.manage", "all") ? <AdjustUsageForm workspaceId={w.id} /> : null}
       </Card>
 
       <Card title="الأعضاء">
@@ -90,7 +121,7 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
                 ...d.events.map((e) => ({ key: `e${e.id}`, at: e.created_at, what: <Tx>{subLabel[e.status] ?? e.status}</Tx>, plan: e.plan, amount: e.amount_usd, mode: e.mode })),
               ].sort((a, b) => b.at.localeCompare(a.at)).map((r) => (
                 <tr key={r.key}>
-                  <td>{formatDateTime(r.at)}</td><td>{r.what}</td><td>{yoliasPlans[r.plan as YoliasPlan]?.label ?? r.plan}</td>
+                  <td>{formatDateTime(r.at)}</td><td>{r.what}</td><td>{isYoliasPlan(r.plan) ? yoliasPlanLabel[r.plan] : r.plan}</td>
                   <td className="bos-num">{usd(Number(r.amount))}</td>
                   <td>{r.mode === "test" ? <StatusBadge tone="warning" label="وضع الاختبار" /> : <StatusBadge tone="success" label="فعلي" />}</td>
                 </tr>

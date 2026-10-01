@@ -1,5 +1,6 @@
 import { CheckCircle2, CircleAlert, Clock, Target, TrendingUp, UserRound } from "lucide-react";
 import { criteriaLine, parseIcp, sizeLabel } from "@/lib/discovery/icp";
+import { isActive } from "@/lib/discovery/states";
 import { countryLabel, formatNumber, initials, location } from "@/lib/format";
 import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -64,7 +65,9 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
   const hasResults = topCompany !== null && topProspects.length > 0;
   const status = hasResults && campaign.status === "completed"
     ? { cls: "", icon: <CheckCircle2 />, text: d.complete }
-    : campaign.status === "running" || campaign.status === "queued"
+    : campaign.status === "partial"
+      ? { cls: "", icon: <CheckCircle2 />, text: campaign.partial_reason === "no_matches" ? d.partialNone : d.partial }
+    : isActive(campaign.status)
       ? { cls: "pending", icon: <YoliasMark size={16} thinking />, text: d.discovering }
       : campaign.status === "failed"
         ? { cls: "failed", icon: <CircleAlert />, text: d.stopped }

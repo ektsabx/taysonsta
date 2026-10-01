@@ -7,7 +7,13 @@ import type { BillingPeriod, PaidPlan, Plan, WorkspaceRow } from "@/types/databa
 // prospects Yolias delivers per month. One prospect = one target decision
 // maker discovered with verified email, company data and direct
 // phone/WhatsApp. That is the only thing usage counts.
-export const plans: Record<Plan, { priceUsd: number; prospects: number }> = {
+export interface PlanTerms {
+  priceUsd: number;
+  prospects: number;
+}
+
+/** Fallback only — the live values come from the database (lib/plan-catalog.ts). */
+export const defaultPlans: Record<Plan, PlanTerms> = {
   free: { priceUsd: 0, prospects: 50 },
   pro: { priceUsd: 20, prospects: 1000 },
   growth: { priceUsd: 50, prospects: 3000 },
@@ -28,8 +34,8 @@ export function planLabel(plan: Plan, t: Dictionary): string {
 }
 
 /** "1,000 prospects / month" */
-export function planUsage(plan: Plan, t: Dictionary, locale: Locale): string {
-  return fmt(t.plans.prospectsPerMonth, { count: formatNumber(plans[plan].prospects, locale) });
+export function planUsage(prospects: number, t: Dictionary, locale: Locale): string {
+  return fmt(t.plans.prospectsPerMonth, { count: formatNumber(prospects, locale) });
 }
 
 /** A workspace has chosen a plan (paid, test, or — if offered later — free). */

@@ -39,7 +39,10 @@ RESEND_FROM_EMAIL="$(printf '%s' "${RESEND_FROM:-}" | sed -E 's/.*<([^>]+)>.*/\1
 if [ -n "${RESEND_API_KEY:-}" ] && [ -n "$RESEND_FROM_EMAIL" ]; then SMTP=true; else SMTP=false; fi
 
 # Variables this script owns; everything else in .env.local is kept.
-OWNED='^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL|BILLING_TEST_MODE|RESEND_API_KEY|RESEND_FROM|RESEND_FROM_EMAIL|YOLIAS_SMTP_ENABLED)='
+OWNED='^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL|BILLING_TEST_MODE|RESEND_API_KEY|RESEND_FROM|RESEND_FROM_EMAIL|YOLIAS_SMTP_ENABLED|WORKER_SECRET)='
+# Shared secret between the app's /api/worker and the worker that calls it.
+WORKER_SECRET="$(envval WORKER_SECRET)"
+[ -n "$WORKER_SECRET" ] || WORKER_SECRET="$(node -e 'console.log(require("crypto").randomBytes(24).toString("hex"))')"
 write_env() {
   local extra=""
   [ -f .env.local ] && extra="$(grep -vE "$OWNED" .env.local || true)"
@@ -55,6 +58,7 @@ write_env() {
     echo "RESEND_API_KEY=${RESEND_API_KEY:-}"
     echo "RESEND_FROM=${RESEND_FROM:-}"
     echo "RESEND_FROM_EMAIL=$RESEND_FROM_EMAIL"
+    echo "WORKER_SECRET=$WORKER_SECRET"
     if [ -n "$extra" ]; then echo "$extra"; fi
   } > .env.local.tmp
   mv .env.local.tmp .env.local
