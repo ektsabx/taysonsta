@@ -313,6 +313,7 @@ function UsageTab({ data }: { data: ShellData }) {
 
 function BillingTab({ data }: { data: ShellData }) {
   const { workspace } = data;
+  const canManage = data.role === "owner" || data.role === "admin";
   return (
     <div className="setting-group">
       <SettingRow label="Plan Name" desc="Active customer acquisition subscription.">
@@ -321,7 +322,16 @@ function BillingTab({ data }: { data: ShellData }) {
           <div style={{ fontSize: ".8rem", fontWeight: 700, marginTop: 4 }}>
             {workspace.priceUsd ? `$${workspace.priceUsd} / month` : "Free"}
           </div>
-          <div className="setting-hint">{formatNumber(workspace.prospectCredits)} discovery credits / month</div>
+          <div className="setting-hint">
+            {workspace.periodEnd
+              ? `Renews on ${formatDate(workspace.periodEnd)}${workspace.subscriptionStatus === "test" ? " · test mode" : ""}`
+              : `${formatNumber(workspace.prospectCredits)} discovery credits / month`}
+          </div>
+          {canManage && (
+            <a className="btn-secondary" style={{ fontSize: ".72rem", marginTop: 8 }} href="/pricing">
+              {workspace.plan === "free" ? "Choose a plan" : "Change plan"}
+            </a>
+          )}
         </div>
       </SettingRow>
 

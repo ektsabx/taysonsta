@@ -6,7 +6,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
-import { plans } from "@/lib/plans";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -81,14 +80,8 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const { email, role } = parsed.data;
 
+  // Every plan includes unlimited users.
   const admin = createAdminClient();
-  const [{ count: members }, { count: pending }] = await Promise.all([
-    admin.from("workspace_members").select("user_id", { count: "exact", head: true }).eq("workspace_id", session.workspace.id),
-    admin.from("workspace_invitations").select("id", { count: "exact", head: true }).eq("workspace_id", session.workspace.id).is("accepted_at", null),
-  ]);
-  if ((members ?? 0) + (pending ?? 0) >= plans[session.workspace.plan].seats) {
-    return { ok: false, error: `Your ${plans[session.workspace.plan].label} plan includes ${plans[session.workspace.plan].seats} seat(s).` };
-  }
 
   const { data: existing } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
   if (existing) return { ok: false, error: "This email already has a Yolias account." };

@@ -27,8 +27,8 @@ export default async function OnboardingPage() {
         <OnboardingForm
           isOwner={isOwner}
           defaults={{
-            full_name: profile.full_name ?? "",
-            company_name: workspace.name ?? "",
+            full_name: profile.full_name ?? session.signupMeta.full_name ?? "",
+            company_name: workspace.name ?? session.signupMeta.company ?? "",
             website: workspace.website ?? "",
             offering: workspace.offering ?? "",
           }}

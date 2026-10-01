@@ -11,7 +11,9 @@ type Table<Row, Required extends keyof Row, Rel = []> = {
 };
 
 export type WorkspaceRole = "owner" | "admin" | "member";
-export type Plan = "free" | "pro";
+export type Plan = "free" | "pro" | "growth" | "scale";
+export type PaidPlan = Exclude<Plan, "free">;
+export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
 export type CampaignStatus = "awaiting_source" | "queued" | "running" | "completed" | "failed" | "paused";
 export type PipelineStage = "understand" | "plan" | "companies" | "people" | "enrich" | "verify" | "qualify" | "deliver";
@@ -25,6 +27,8 @@ export type WorkspaceRow = {
   website: string | null;
   offering: string | null;
   plan: Plan;
+  subscription_status: SubscriptionStatus;
+  current_period_end: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -151,6 +155,17 @@ export type ProspectRow = {
   created_at: string;
 };
 
+export type SubscriptionEventRow = {
+  id: string;
+  workspace_id: string;
+  plan: PaidPlan;
+  status: "activated" | "changed" | "canceled";
+  amount_usd: number;
+  mode: "test" | "live";
+  created_by: string | null;
+  created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -163,6 +178,7 @@ export interface Database {
       campaign_events: Table<CampaignEventRow, "workspace_id" | "campaign_id" | "stage" | "message">;
       companies: Table<CompanyRow, "workspace_id" | "campaign_id" | "name" | "source">;
       prospects: Table<ProspectRow, "workspace_id" | "campaign_id" | "full_name" | "source">;
+      subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount_usd" | "mode">;
     };
     Views: { [_ in never]: never };
     Functions: {

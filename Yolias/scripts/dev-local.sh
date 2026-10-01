@@ -39,17 +39,22 @@ if ! npx supabase status >/dev/null 2>&1; then
   fi
 fi
 
+# Apply any database migrations added since the database was created.
+npx supabase migration up --local >/dev/null 2>&1 || npx supabase migration up --local
+
 eval "$(npx supabase status -o env 2>/dev/null | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
 if [ -z "${API_URL:-}" ]; then say "Couldn't read Supabase keys."; exit 1; fi
 
 # Keep any extra variables (e.g. ANTHROPIC_API_KEY) already in .env.local.
 EXTRA=""
-[ -f .env.local ] && EXTRA="$(grep -vE '^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL)=' .env.local || true)"
+[ -f .env.local ] && EXTRA="$(grep -vE '^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL|BILLING_TEST_MODE)=' .env.local || true)"
 {
   echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
   echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
   echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
   echo "NEXT_PUBLIC_SITE_URL=http://localhost:3200"
+  # Local only: plans activate without payment (no payment provider yet).
+  echo "BILLING_TEST_MODE=true"
   [ -n "$EXTRA" ] && echo "$EXTRA"
 } > .env.local
 

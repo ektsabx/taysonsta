@@ -20,7 +20,7 @@ const copy: Record<MagicLinkMode, { submit: string; alt: React.ReactNode }> = {
   },
 };
 
-export function MagicLinkForm({ mode, initialError }: { mode: MagicLinkMode; initialError?: string }) {
+export function MagicLinkForm({ mode, initialError, plan }: { mode: MagicLinkMode; initialError?: string; plan?: string }) {
   const [state, action, pending] = useActionState<MagicLinkState, FormData>(
     sendMagicLink.bind(null, mode),
     initialError ? { status: "error", message: initialError } : { status: "idle" }
@@ -36,6 +36,7 @@ export function MagicLinkForm({ mode, initialError }: { mode: MagicLinkMode; ini
         </p>
         <form action={action}>
           <input type="hidden" name="email" value={state.email} />
+          {plan && <input type="hidden" name="plan" value={plan} />}
           <button className="link-button" type="submit" disabled={pending}>{pending ? "Sending…" : "Resend link"}</button>
         </form>
       </div>
@@ -45,6 +46,7 @@ export function MagicLinkForm({ mode, initialError }: { mode: MagicLinkMode; ini
   return (
     <>
       <form className="auth-form" action={action}>
+        {plan && <input type="hidden" name="plan" value={plan} />}
         <div className="field">
           <label htmlFor="email">Work email</label>
           <input

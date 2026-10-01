@@ -49,6 +49,8 @@ After the first sign-in, `/onboarding` collects the user's name, company name, w
 | Campaigns | `/campaigns` | Search / discovery missions (not outreach) |
 | Prospects | `/prospects` | Saved discoveries, with filters and CSV export |
 | Recent Strategy | sidebar | History of strategies |
+| Pricing | `/pricing` (public) | Plans Pro $20 / Growth $50 / Scale $100, EN + AR. Picking a plan → signup → onboarding → checkout |
+| Checkout | `/checkout?plan=…` | No payment provider yet: plans activate only with `BILLING_TEST_MODE=true` (local), recorded as test subscriptions |
 | Settings | user menu → modal | General, Account, Usage, Team (working). Billing and Integration are marked "Coming soon". |
 
 Out of scope by design (for now): CRM, inbox, meetings, contacts, deals, pipeline, sequences, outreach, support and marketing automation.

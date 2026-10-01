@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSession } from "@/lib/session";
+import { getSession, pendingPlan } from "@/lib/session";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -50,5 +50,6 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     if (wsError) return { error: "Couldn't save your company details. Please try again.", fields };
   }
 
-  redirect("/");
+  const plan = await pendingPlan(session);
+  redirect(plan ? `/checkout?plan=${plan}` : "/");
 }

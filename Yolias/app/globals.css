@@ -105,7 +105,10 @@ html[data-theme="dark"] {
 html[data-text-size="compact"] { --scale: 0.94; }
 html[data-text-size="large"] { --scale: 1.08; }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* In the base layer so Tailwind utilities (marketing pages) can override it. */
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+}
 
 html, body {
   height: 100%;
@@ -179,13 +182,12 @@ a { color: inherit; text-decoration: none; }
 .brand-area { padding: 18px 14px 14px; }
 
 .brand-logo {
-  width: 124px;
   height: 32px;
   display: flex;
   align-items: center;
-  object-fit: contain;
-  object-position: left center;
+  gap: 9px;
 }
+.brand-logo img { display: block; }
 .brand-wordmark {
   font-family: var(--font-sans);
   font-size: 1.32rem;
@@ -194,7 +196,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink);
   line-height: 1;
 }
-.brand-wordmark b { color: var(--red); font-weight: 700; }
+.brand-wordmark.light { color: #ffffff; }
 
 .sidebar-action-wrap { padding: 0 14px 12px; }
 
@@ -1074,4 +1076,105 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
   .modal-sidebar-title { display: none; }
   .setting-row { flex-direction: column; align-items: stretch; }
   .setting-label-wrap { max-width: none; }
+}
+
+.selected-plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -8px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--red-line);
+  border-radius: 8px;
+  background: var(--red-soft);
+  font-size: .82rem;
+  color: var(--ink);
+}
+.selected-plan-label { display: block; font-size: .66rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--red); margin-bottom: 2px; }
+.selected-plan a { color: var(--red); font-weight: 700; font-size: .78rem; }
+.selected-plan a:hover { text-decoration: underline; }
+
+/* ================= CHECKOUT ================= */
+.checkout-page {
+  height: 100vh;
+  overflow-y: auto;
+  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+}
+.checkout-top {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.checkout-back { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+.checkout-back:hover { color: var(--ink); }
+.checkout-back svg { width: 14px; height: 14px; }
+.checkout-grid {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 40px;
+  align-items: start;
+}
+.checkout-eyebrow { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--red); }
+.checkout-title { font-family: var(--font-serif); font-size: clamp(1.9rem, 3vw, 2.5rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.1; margin-top: 8px; }
+.checkout-lead { color: var(--muted); font-size: .92rem; margin-top: 10px; }
+.checkout-plans { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
+.checkout-plan {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.checkout-plan:hover { border-color: var(--line-strong); }
+.checkout-plan.selected { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.checkout-radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line-strong); flex-shrink: 0; }
+.checkout-plan.selected .checkout-radio { border: 5px solid var(--red); }
+.checkout-plan-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.checkout-plan-name { display: flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; }
+.checkout-plan-sub { font-size: .76rem; color: var(--muted); }
+.checkout-plan-price { font-size: 1.05rem; font-weight: 700; }
+.checkout-plan-price small { font-size: .72rem; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.checkout-included { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
+.checkout-included-title { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--heading); margin-bottom: 12px; }
+.checkout-included ul { list-style: none; display: grid; gap: 10px; }
+.checkout-included li { display: flex; align-items: center; gap: 9px; font-size: .86rem; color: var(--text-4); }
+.checkout-included svg { width: 15px; height: 15px; color: var(--red); flex-shrink: 0; }
+.checkout-summary {
+  position: sticky;
+  top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  padding: 22px;
+  box-shadow: 0 4px 18px rgba(10,10,8,.04);
+}
+.checkout-summary-title { font-size: .95rem; font-weight: 700; margin-bottom: 14px; }
+.checkout-line { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-setting); font-size: .86rem; }
+.checkout-line small { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.checkout-line.muted { color: var(--muted); }
+.checkout-line.total { border-bottom: none; font-weight: 700; font-size: .95rem; }
+.checkout-payment { margin: 12px 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--box-bg); }
+.checkout-payment-title { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; }
+.checkout-payment-title svg { width: 15px; height: 15px; color: var(--muted); }
+.checkout-payment-note { font-size: .76rem; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.checkout-submit { width: 100%; height: 42px; font-size: .86rem; }
+.checkout-submit svg { width: 14px; height: 14px; }
+.checkout-fine { font-size: .72rem; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+@media (max-width: 860px) {
+  .checkout-grid { grid-template-columns: 1fr; gap: 28px; }
+  .checkout-summary { position: static; }
 }

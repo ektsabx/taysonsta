@@ -11,6 +11,8 @@ export interface Session {
   profile: ProfileRow;
   workspace: WorkspaceRow;
   role: WorkspaceRole;
+  /** Values given at signup (pricing form): full_name, company, plan_intent. */
+  signupMeta: { full_name?: string; company?: string; plan_intent?: string };
 }
 
 // Resolves the signed-in user, their profile and active workspace once per request.
@@ -36,6 +38,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     profile,
     workspace,
     role: member.role,
+    signupMeta: (user.user_metadata ?? {}) as Session["signupMeta"],
   };
 });
 
@@ -53,4 +56,14 @@ async function isSignedIn() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   return Boolean(data?.claims?.sub);
+}
+
+/** The paid plan the user picked before signing up, if they haven't subscribed yet. */
+export async function pendingPlan(session: Session): Promise<string | null> {
+  if (session.workspace.plan !== "free" || session.role === "member") return null;
+  const { cookies } = await import("next/headers");
+  const { isPaidPlan, PLAN_COOKIE } = await import("@/lib/plans");
+  const fromCookie = (await cookies()).get(PLAN_COOKIE)?.value;
+  const plan = fromCookie ?? session.signupMeta.plan_intent;
+  return isPaidPlan(plan) ? plan : null;
 }

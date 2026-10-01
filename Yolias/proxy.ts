@@ -5,7 +5,7 @@ import type { Database } from "@/types/database";
 // Refreshes the Supabase session cookie on every request and keeps signed-out
 // visitors on the auth pages. Onboarding and workspace checks happen in the
 // (app) layout, which has database access.
-const publicPaths = ["/login", "/signup", "/recover", "/auth/"];
+const publicPaths = ["/login", "/signup", "/recover", "/auth/", "/pricing"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -32,6 +32,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(p));
 
+  if (!signedIn && pathname === "/checkout") {
+    // Picked a plan while signed out: create the account first, keep the plan.
+    const url = request.nextUrl.clone();
+    url.pathname = "/signup";
+    return NextResponse.redirect(url);
+  }
   if (!signedIn && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

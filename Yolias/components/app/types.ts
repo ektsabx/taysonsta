@@ -1,4 +1,4 @@
-import type { Plan, ProfileRow, WorkspaceRole } from "@/types/database";
+import type { Plan, ProfileRow, SubscriptionStatus, WorkspaceRole } from "@/types/database";
 
 export interface ShellData {
   user: {
@@ -10,7 +10,17 @@ export interface ShellData {
     initials: string;
   };
   preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done">;
-  workspace: { name: string; plan: Plan; planLabel: string; priceUsd: number; prospectCredits: number; companyLookups: number; seats: number };
+  workspace: {
+    name: string;
+    plan: Plan;
+    planLabel: string;
+    planName: string;
+    priceUsd: number;
+    prospectCredits: number;
+    companyLookups: number;
+    subscriptionStatus: SubscriptionStatus;
+    periodEnd: string | null;
+  };
   role: WorkspaceRole;
   usage: { prospects: number; companies: number; resetsAt: string };
   team: {
