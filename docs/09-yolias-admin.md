@@ -74,10 +74,25 @@ Any metric without a data source is hidden or labelled "not connected".
 
 ## Access to Yolias data
 
-The admin and Yolias use different Supabase projects today. See D-010:
-admin server code reads/writes the Yolias database through a server-only
-client, guarded by `platform.*` permissions and audited.
+The admin and Yolias use different Supabase projects. Admin server code
+reads the Yolias database through `lib/yolias/db.ts` (server-only), guarded
+by the `platform.*` permissions (D-010). Read models live in
+`services/yolias/platform.ts`; aggregates come from the Yolias SQL function
+`admin_workspace_stats` (service role only). Writes (later phases) must be
+audited.
+
+## Built so far
+
+| Page | Path | Shows |
+| --- | --- | --- |
+| Overview | `/admin/platform` | users, workspaces, paid plans live vs test, MRR live vs test, searches, prospects, plan mix, campaigns by status, newest users |
+| Users | `/admin/platform/users` | every Yolias user, workspace, role, plan, language/country, sign-up, last sign-in |
+| Workspaces | `/admin/platform/workspaces` | plan, members, searches, this month's prospect usage vs quota |
+| Workspace | `/admin/platform/workspaces/[id]` | details, members, invitations, searches, campaigns, invoices & subscription events |
+| Searches | `/admin/platform/searches` | every search, its understanding status and its campaign |
+
+Permissions: `platform.*` (super admin and admin: all; executive: read).
 
 ## Local URL
 
-Target `http://admin.localhost:3200` (D-011). Today: `http://localhost:3000/admin`.
+`http://admin.localhost:3200` (`npm run local`, D-011).

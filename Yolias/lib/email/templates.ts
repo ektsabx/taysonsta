@@ -7,7 +7,7 @@
 //   They're written to supabase/templates/*.html by
 //   `npm run emails:build` with Go template placeholders, in both languages.
 // - Product emails (receipt, discovery ready, usage, plan ending) are rendered
-//   here with real values once an email provider is connected.
+//   here and sent through Resend by lib/email/send.ts.
 // Preview all of them at /dev/emails (development only).
 //
 // No "@/" imports: the build script runs this file directly with Node.

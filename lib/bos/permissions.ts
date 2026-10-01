@@ -22,6 +22,8 @@ export const permissionModules = [
   "kpis", "performance", "onboarding", "access", "devices", "apps", "chat", "meetings", "email", "notifications",
   "knowledge", "tickets", "reports", "automation", "settings", "users", "roles", "audit",
   "portal", "calendar", "search", "payroll", "recruitment", "hr_documents", "hr_requests", "branches", "integrations", "documents", "conversations", "messaging", "social", "content", "ads", "imports", "location", "cameras", "products",
+  // Yolias platform modules (docs/09-yolias-admin.md §B).
+  "platform",
 ] as const;
 
 export type PermissionModule = (typeof permissionModules)[number];

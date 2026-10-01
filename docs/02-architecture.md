@@ -72,27 +72,37 @@ The server action never calls paid providers inline.
 | Yolias Supabase | `Yolias/supabase` | workspaces, users, strategies, campaigns, prospects, billing, `intel.*`, usage, cost |
 | BOS Supabase | `supabase/` (root) | Taysonsta company operations: CRM, projects, finance, HR, support, ... |
 
-Today they are **separate projects** (local ports 5463x and 5442x). How
-Yolias Admin reads and manages Yolias data is an open decision; see D-010 in
-`12-decisions.md`. Recommended: the admin server reaches the Yolias database
-through a server-only client with dedicated credentials, behind BOS RBAC
-(`platform.*` permissions) and audit logging. No merging of the two schemas.
+They are **separate projects** (local ports 5463x and 5442x; in production
+both live in the Taysonsta Supabase account). The Admin reaches the Yolias
+database through a server-only client (`lib/yolias/db.ts`) behind the
+`platform.*` permissions (D-010). No merging of the two schemas
+(`13-audit.md` §4).
 
 ## Hosting
 
-Not hardcoded. Next apps run anywhere Next runs (the root app has
-OpenNext/Cloudflare config). The worker is a long-running Node process
-(Fly / Railway / Render are candidates). Decision pending: D-001.
+**Cloudflare** (D-001): both Next apps through OpenNext on Cloudflare
+Workers (the Admin already has `wrangler.jsonc`), the background worker as
+Cloudflare Workers (Cron Triggers / Queues). Deployment happens once the
+product is finished; until then everything runs locally.
 
 ## Local development
 
-| Service | Port |
-| --- | --- |
-| Yolias app | 3200 (`cd Yolias && npm run local`) |
-| Yolias Supabase | 5463x, Inbucket 54634 |
-| BOS / Admin app | 3000 today (`npm run dev` at root) |
-| BOS Supabase | 5442x |
+One command at the repo root:
 
-Target: `admin.localhost:3200` serves the admin. Browsers resolve
-`*.localhost` to 127.0.0.1, so no hosts file is needed; what's needed is
-routing by `Host` on port 3200. See D-011.
+```bash
+npm run local
+```
+
+| URL / service | What |
+| --- | --- |
+| http://localhost:3200 | Yolias (proxied to its Next server on :3201) |
+| http://admin.localhost:3200 | Yolias Admin (proxied to :3202) |
+| Yolias Supabase | 5463x, Inbucket (when no Resend key) 54634 |
+| Admin Supabase | 5442x (only when the root `.env.local` points to a local database) |
+
+`scripts/dev-all.sh` starts the databases, writes `Yolias/.env.local`
+(including the Taysonsta Resend key) and the Admin's `YOLIAS_*` variables,
+then runs both apps and `scripts/dev-proxy.mjs`. Browsers resolve
+`*.localhost` to 127.0.0.1, so no hosts-file change is needed. Each host
+keeps its own login cookies. `cd Yolias && npm run local` still runs Yolias
+alone on :3200.

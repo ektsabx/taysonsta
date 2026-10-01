@@ -45,7 +45,7 @@ provider rate limits, fallback, circuit breaker, and a **budget guard**
 ## Queue & worker
 
 - **pgmq** (Postgres queues) + **pg_cron** (sweeps: stuck jobs, TTL refresh, ledger expiry).
-- **Node worker**: long-running process reading pgmq, running jobs with per-provider concurrency. Hosting TBD (D-001).
+- **Worker on Cloudflare** (D-001, D-109): Workers triggered by Cron Triggers and/or Cloudflare Queues read jobs and run them with per-provider concurrency. Each job must fit the Workers time limits, which is another reason to keep jobs small and resumable.
 - The web app only enqueues. It never runs provider calls in a request.
 
 ## Failure handling

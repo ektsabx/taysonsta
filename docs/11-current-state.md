@@ -12,7 +12,12 @@ Last updated: 2026-10-01.
   supabase/       BOS database (local 5442x)
 /Yolias           Yolias customer app, Next.js 16 (local :3200, Supabase 5463x)
 /docs             this documentation
+/scripts          dev-all.sh (npm run local), dev-proxy.mjs (:3200 by host),
+                  taysonsta-resend.mjs (Resend key for Yolias)
 ```
+
+Run everything: `npm run local` at the root → Yolias http://localhost:3200,
+Admin http://admin.localhost:3200.
 
 ## Yolias (customer app)
 
@@ -29,12 +34,15 @@ Last updated: 2026-10-01.
 | Match scoring | `lib/discovery/match.ts` | deterministic code (correct per rules) |
 | Campaigns / Prospects / Analytics pages | `app/(app)/*` | UI working on real (empty) data |
 | Plans & billing | `lib/plans.ts`, `lib/billing.ts` | quotas are **constants**; payments in test mode only |
-| Settings, usage, invoices, emails | `components/app/SettingsModal.tsx`, `app/invoices` | working |
+| Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
+| Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
 
 ## Yolias Admin
 
-All BOS modules listed in `09-yolias-admin.md` §A exist and work, now with
-the Yolias look. No platform modules (§B) yet. Runs on :3000.
+All BOS modules listed in `09-yolias-admin.md` §A exist and work, with the
+Yolias look. Platform modules (§B) started: Overview, Users, Workspaces,
+Searches under `/admin/platform` (read-only), reading the Yolias database.
+Runs at http://admin.localhost:3200.
 
 ## Known gaps vs the specs
 
@@ -50,8 +58,8 @@ the Yolias look. No platform modules (§B) yet. Runs on :3000.
 | `prospects` has no unique `(workspace_id, person_id)` | `04` | init migration |
 | Plan copy promises "direct phone/WhatsApp" per prospect; spec says mobile optional, no WhatsApp verification claims | `00` | `lib/plans.ts` comment, pricing/marketing copy |
 | `PersonCandidate.whatsapp` field | `00` | `lib/discovery/types.ts` |
-| Admin cannot see Yolias data | `09` D-010 | — |
-| Admin not on `admin.localhost:3200` | `02` D-011 | — |
+| Admin platform pages are read-only; no quota/plan editing yet | `09` | phase 9 |
+| Quotas duplicated in `Yolias/lib/plans.ts` and `lib/yolias/plans.ts` | `06` | move to DB in phase 9 |
 
 ## Pre-existing admin issues (not from Yolias work)
 

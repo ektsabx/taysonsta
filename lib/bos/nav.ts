@@ -37,6 +37,19 @@ export const navigation: NavGroup[] = [
   { key: "assistant", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
   // docs/bos/35 A7: the catalogue is its own module, not a settings page.
   { key: "products", label: "المنتجات والخدمات", icon: "products", href: "/admin/products", perm: "products.read" },
+  // Yolias platform (docs/09-yolias-admin.md §B): the customer app's users,
+  // workspaces and searches, read from the Yolias database.
+  {
+    key: "platform",
+    label: "منصة Yolias",
+    icon: "platform",
+    items: [
+      { href: "/admin/platform", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform/users", label: "المستخدمون", perm: "platform.read" },
+      { href: "/admin/platform/workspaces", label: "مساحات العمل", perm: "platform.read" },
+      { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
+    ],
+  },
   {
     key: "sales",
     label: "المبيعات",

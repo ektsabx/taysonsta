@@ -14,7 +14,9 @@ for implementation.
 | Product | What it is | Code | Local URL |
 | --- | --- | --- | --- |
 | **Yolias** | Customer app. A Prospect Intelligence & Discovery Platform. | `Yolias/` | http://localhost:3200 |
-| **Yolias Admin** | Company Control Center + Platform Control Center + Intelligence Operations Center. Built on the former Taysonsta BOS / Taysonsta Pages. | repo root (`app/admin`, `lib/bos`) | http://admin.localhost:3200 (target), :3000 today |
+| **Yolias Admin** | Company Control Center + Platform Control Center + Intelligence Operations Center. Built on the former Taysonsta BOS / Taysonsta Pages. | repo root (`app/admin`, `lib/bos`) | http://admin.localhost:3200 |
+
+Run both: `npm run local` at the repo root.
 
 ## Files
 
@@ -33,6 +35,7 @@ for implementation.
 | 10 | [10-roadmap.md](10-roadmap.md) | Choosing what to build next; phase status |
 | 11 | [11-current-state.md](11-current-state.md) | What exists in the code today, known gaps |
 | 12 | [12-decisions.md](12-decisions.md) | Decisions taken and decisions still open |
+| 13 | [13-audit.md](13-audit.md) | Phase 0 audit: what to reuse from the Admin, DB overlap, auth |
 
 ## How to work with these docs
 

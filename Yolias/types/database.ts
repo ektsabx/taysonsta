@@ -222,6 +222,10 @@ export interface Database {
     Views: { [_ in never]: never };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
+      admin_workspace_stats: {
+        Args: { month_start: string };
+        Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; last_activity_at: string | null }[];
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

@@ -78,6 +78,12 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  platform: (
+    <>
+      <path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z" />
+      <path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5" />
+    </>
+  ),
   automation: <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />,
   files: <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12z" />,
   settings: (

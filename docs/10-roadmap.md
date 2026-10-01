@@ -17,8 +17,8 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 
 | # | Phase | Status | Exit criteria |
 | --- | --- | --- | --- |
-| 0 | Audit both codebases: reusable parts, DB overlap, auth, provider interfaces | ⬜ | audit notes in `11-current-state.md` |
-| 0b | Admin integration: `admin.localhost:3200`, admin ↔ Yolias data access | ⬜ | D-010, D-011 decided and wired |
+| 0 | Audit both codebases: reusable parts, DB overlap, auth, provider interfaces | ✅ | `13-audit.md` |
+| 0b | Admin integration: `admin.localhost:3200`, admin ↔ Yolias data access | ✅ | `npm run local`; `/admin/platform` pages; Resend for Yolias |
 | 1 | Provider abstraction + Intelligence Layer skeleton (`lib/intel`) | ⬜ | capabilities, router, adapters contract; discovery uses it |
 | 2 | `intel` schema | ⬜ | migrations + RLS/grants |
 | 3 | Provider registry (DB + admin page) | ⬜ | providers editable in admin, prices/limits/licenses as config |
@@ -35,5 +35,5 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 Admin platform modules (`09`) are built alongside the phase that creates
 their data (e.g. Providers with phase 3, Jobs with phase 8, Usage ledger with 9).
 
-Don't start a phase without the owner's go-ahead; infrastructure choices
-(D-001…D-004) gate phases 4 and 8.
+Don't start a phase without the owner's go-ahead. Hosting is decided
+(Cloudflare, D-001); the first provider (D-003) gates phase 4.

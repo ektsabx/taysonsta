@@ -73,6 +73,18 @@ enable_confirmations = true
 max_frequency = "30s"
 otp_expiry = 3600
 
+# Sign-in emails go through Resend (the Taysonsta account, D-111) when
+# scripts/dev-local.sh finds a key; otherwise Inbucket catches them. The
+# values come from Yolias/.env.local, which that script writes.
+[auth.email.smtp]
+enabled = "env(YOLIAS_SMTP_ENABLED)"
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "env(RESEND_FROM_EMAIL)"
+sender_name = "Yolias"
+
 [auth.email.template.magic_link]
 subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}رابط تسجيل الدخول إلى يولـياس{{ else }}Your Yolias sign-in link{{ end }}{{ else }}Your Yolias sign-in link{{ end }}"
 content_path = "./supabase/templates/magic_link.html"

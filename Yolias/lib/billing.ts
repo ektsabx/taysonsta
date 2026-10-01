@@ -1,6 +1,9 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPaidPlan, plans, priceFor } from "@/lib/plans";
+import { dictionaries } from "@/lib/i18n/config";
+import { sendEmail } from "@/lib/email/send";
+import { planEndingEmail, receiptEmail } from "@/lib/email/templates";
 import type { BillingPeriod, Plan, WorkspaceRow } from "@/types/database";
 
 /** No payment provider yet: paid plans can only be activated when this is on (local/dev). */
@@ -48,7 +51,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
   });
 
   if (paid && periodEnd) {
-    await db.from("invoices").insert({
+    const { data: invoice } = await db.from("invoices").insert({
       workspace_id: ws.id,
       plan,
       billing_period: period,
@@ -60,13 +63,33 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
       bill_to_name: payer.name,
       bill_to_email: payer.email,
       bill_to_company: ws.name,
-    });
+    }).select("id, number, created_at").single();
+    if (invoice) {
+      const to = await billingRecipient(payer.userId);
+      if (to) {
+        await sendEmail(payer.email, receiptEmail(to.locale, {
+          siteUrl: siteUrl(), invoiceId: invoice.id, invoiceNumber: invoice.number, planName: dictionaries[to.locale].plans[plan],
+          period, amountUsd: amount, date: invoice.created_at, periodEnd: periodEnd.toISOString(), test: true,
+        }));
+      }
+    }
   }
   return true;
 }
 
+/** The payer's email language, or null when they turned billing emails off. */
+async function billingRecipient(userId: string): Promise<{ locale: "en" | "ar" } | null> {
+  const { data } = await createAdminClient().from("profiles").select("language, notify_billing").eq("id", userId).maybeSingle();
+  if (data && !data.notify_billing) return null;
+  return { locale: data?.language === "ar" ? "ar" : "en" };
+}
+
+function siteUrl(): string {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
+}
+
 /** Cancel (keep the plan until the period ends) or resume a paid plan. */
-export async function setCancelAtPeriodEnd(ws: WorkspaceRow, cancel: boolean, userId: string): Promise<boolean> {
+export async function setCancelAtPeriodEnd(ws: WorkspaceRow, cancel: boolean, userId: string, email?: string): Promise<boolean> {
   if (!isPaidPlan(ws.plan)) return false;
   const db = createAdminClient();
   const { error } = await db.from("workspaces").update({ cancel_at_period_end: cancel }).eq("id", ws.id);
@@ -80,6 +103,12 @@ export async function setCancelAtPeriodEnd(ws: WorkspaceRow, cancel: boolean, us
     mode: "test",
     created_by: userId,
   });
+  if (cancel && email && ws.current_period_end) {
+    const to = await billingRecipient(userId);
+    if (to) {
+      await sendEmail(email, planEndingEmail(to.locale, { siteUrl: siteUrl(), planName: dictionaries[to.locale].plans[ws.plan], endsAt: ws.current_period_end }));
+    }
+  }
   return true;
 }
 

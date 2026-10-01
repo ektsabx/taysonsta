@@ -65,7 +65,7 @@ export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
   const session = await requireSession();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId);
+  const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId, session.email);
   if (!ok) return { ok: false, error: t.settings.errors.saveFailed };
   revalidatePath("/", "layout");
   return { ok: true };

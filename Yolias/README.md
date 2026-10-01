@@ -10,6 +10,14 @@ Same stack and conventions as Taysonsta BOS: Next.js 16 (App Router, `proxy.ts`)
 
 ## Run locally
 
+The whole platform (Yolias + Yolias Admin) from the repo root:
+
+```bash
+npm run local                   # Yolias → http://localhost:3200 · Admin → http://admin.localhost:3200
+```
+
+Yolias alone:
+
 ```bash
 cd Yolias
 npm install
@@ -24,6 +32,7 @@ npm run local                   # starts Yolias's local Supabase, writes .env.lo
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only: team invitations, workspace writes, account deletion |
 | `NEXT_PUBLIC_SITE_URL` | Public URL used in magic-link redirects |
 | `ANTHROPIC_API_KEY` | Yolias AI (strategy understanding) |
+| `RESEND_API_KEY`, `RESEND_FROM` | Email through the Taysonsta Resend account. `npm run local` fills them from the Taysonsta project |
 
 Checks: `npm run typecheck`, `npm run lint`, `npm run test:unit`, `npm run build`.
 
