@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Mic, Paperclip, Search, Sparkles, X } from "lucide-react";
+import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Mic, Paperclip, Search, Sparkles, Square, X } from "lucide-react";
+import { useSpeechToText } from "./useSpeechToText";
 import { createStrategy } from "@/app/(app)/actions";
 import { YoliasThinking } from "@/components/YoliasMark";
 import { fmt } from "@/lib/i18n/config";
@@ -12,18 +13,6 @@ const pillIcons = [Search, Sparkles, Building2];
 const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024;
 
-// Minimal Web Speech API typing (not in lib.dom for all browsers).
-interface SpeechRecognitionLike {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-  start(): void;
-  stop(): void;
-}
-type SpeechCtor = new () => SpeechRecognitionLike;
 
 export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: { initialPrompt?: string; speechLang?: string }) {
   const { t } = useI18n();
@@ -32,16 +21,18 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [recording, setRecording] = useState(false);
   const [pending, start] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const recRef = useRef<SpeechRecognitionLike | null>(null);
+  // Voice → Speech-to-Text → this text box → the same search parser as typing.
+  const stt = useSpeechToText({ lang: speechLang, onText: setPrompt });
+  const recording = stt.status === "listening";
+  const transcribing = stt.status === "transcribing";
+  const voiceError = stt.error ? c.voiceErrors[stt.error] : null;
 
   useEffect(() => {
     if (!initialPrompt) inputRef.current?.focus();
-    return () => recRef.current?.stop();
   }, [initialPrompt]);
 
   const addFiles = (list: FileList | null) => {
@@ -63,39 +54,11 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
   };
 
   const toggleRecording = () => {
-    if (recording) {
-      recRef.current?.stop();
-      return;
+    if (recording) stt.stop();
+    else {
+      setError(null);
+      stt.start(prompt);
     }
-    const w = window as unknown as { SpeechRecognition?: SpeechCtor; webkitSpeechRecognition?: SpeechCtor };
-    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-    if (!Ctor) {
-      setError(c.errors.voiceUnsupported);
-      return;
-    }
-    const rec = new Ctor();
-    rec.lang = speechLang;
-    rec.continuous = true;
-    rec.interimResults = false;
-    const base = prompt.trim();
-    let spoken = "";
-    rec.onresult = (e) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) spoken += `${e.results[i][0].transcript} `;
-      }
-      setPrompt([base, spoken.trim()].filter(Boolean).join(" "));
-    };
-    rec.onerror = (e) => {
-      if (e.error === "not-allowed") setError(c.errors.micBlocked);
-    };
-    rec.onend = () => {
-      setRecording(false);
-      recRef.current = null;
-    };
-    recRef.current = rec;
-    setError(null);
-    setRecording(true);
-    rec.start();
   };
 
   const submit = () => {
@@ -104,7 +67,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
       inputRef.current?.focus();
       return;
     }
-    recRef.current?.stop();
+    stt.stop();
     setError(null);
     const fd = new FormData();
     fd.set("prompt", prompt.trim());
@@ -116,7 +79,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         return;
       }
       setFiles([]);
-      router.push(`/strategies/${r.id}`);
+      router.push(`/search/${r.id}`);
     });
   };
 
@@ -129,7 +92,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         <textarea
           ref={inputRef}
           className="prompt-input"
-          placeholder={recording ? c.listening : c.placeholder}
+          placeholder={recording ? c.listening : transcribing ? c.transcribing : c.placeholder}
           rows={3}
           value={prompt}
           disabled={pending}
@@ -158,8 +121,8 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
 
         <div className="prompt-footer">
           <div className="prompt-attachments">
-            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title={c.record} onClick={toggleRecording} disabled={pending}>
-              <Mic />
+            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title={recording ? c.stopRecording : c.record} aria-label={recording ? c.stopRecording : c.record} aria-pressed={recording} onClick={toggleRecording} disabled={pending || transcribing}>
+              {transcribing ? <LoaderCircle className="spin" /> : recording ? <Square /> : <Mic />}
             </button>
             <button className="btn-attach" type="button" title={c.image} onClick={() => imageRef.current?.click()} disabled={pending}>
               <ImageIcon />
@@ -183,7 +146,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         </div>
       )}
 
-      {error && <p className="prompt-error" role="alert">{error}</p>}
+      {(error || voiceError) && <p className="prompt-error" role="alert">{error ?? voiceError}</p>}
 
       <div className="quick-actions-bar">
         {c.pills.map(({ label, prompt: p }, i) => {

@@ -108,7 +108,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
             <section className="nav-group">
               <h2 className="nav-heading">{t.nav.pinned}</h2>
               {pinned.map((st) => (
-                <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned active={pathname === `/strategies/${st.id}`} />
+                <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned active={pathname === `/search/${st.id}`} />
               ))}
             </section>
           )}
@@ -117,7 +117,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
             <h2 className="nav-heading">{t.nav.recentStrategy}</h2>
             {recent.length === 0 && <div className="nav-empty">{t.nav.recentEmpty}</div>}
             {recent.map((st) => (
-              <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned={false} active={pathname === `/strategies/${st.id}`} />
+              <StrategyNavItem key={st.id} id={st.id} title={st.title} pinned={false} active={pathname === `/search/${st.id}`} />
             ))}
           </section>
         </nav>

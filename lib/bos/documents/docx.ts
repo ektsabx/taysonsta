@@ -179,7 +179,7 @@ export function documentDocx(blocks: Block[], frame: DocFrame, logo: DocxLogo | 
     },
     {
       name: "docProps/core.xml",
-      data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${x(frame.title)}</dc:title><dc:creator>Taysonsta BOS</dc:creator><dc:language>${frame.lang}</dc:language><dcterms:created xsi:type="dcterms:W3CDTF">${x(createdIso)}</dcterms:created></cp:coreProperties>`,
+      data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${x(frame.title)}</dc:title><dc:creator>Yolias Admin</dc:creator><dc:language>${frame.lang}</dc:language><dcterms:created xsi:type="dcterms:W3CDTF">${x(createdIso)}</dcterms:created></cp:coreProperties>`,
     },
     {
       name: "word/_rels/document.xml.rels",

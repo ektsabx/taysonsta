@@ -14,8 +14,8 @@ export const collections: HelpCollection[] = [
     ar: { title: "البداية", description: "تسجيل الدخول واختيار الخطة وضبط اللغة." },
   } },
   { id: "using-yolias", icon: "sparkles", text: {
-    en: { title: "Using Yolias AI", description: "Strategies, campaign statuses and exporting results." },
-    ar: { title: "استخدام يولـياس AI", description: "الاستراتيجيات وحالات الحملات وتصدير النتائج." },
+    en: { title: "Using Yolias AI", description: "Searches, campaign statuses and exporting results." },
+    ar: { title: "استخدام يولـياس AI", description: "عمليات البحث وحالات الحملات وتصدير النتائج." },
   } },
   { id: "account", icon: "users", text: {
     en: { title: "Account & team", description: "Teammates, plan changes and deleting your account." },
@@ -126,18 +126,18 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Why a campaign says “Awaiting data source”",
-        summary: "Yolias understood your strategy, but no company data source is connected to collect results yet.",
+        summary: "Yolias understood your search, but no company data source is connected to collect results yet.",
         blocks: [
-          { p: "Every strategy goes through two halves. First Yolias AI turns your request into criteria and opens the campaign — that part is complete when you see the target criteria and the decision makers to find. Then the campaign searches connected data sources for matching companies and people." },
+          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and opens the campaign — that part is complete when you see the target criteria and the decision makers to find. Then the campaign searches connected data sources for matching companies and people." },
           { p: "**Awaiting data source** means the first half finished and the second is waiting for a source to be connected to your workspace. Nothing is lost: the campaign keeps its criteria and will collect results once a source is available." },
           { p: "See [Campaigns](/docs/campaigns) for every status a campaign can have." },
         ],
       },
       ar: {
         title: "لماذا تظهر الحملة «بانتظار مصدر بيانات»",
-        summary: "فهم يولـياس استراتيجيتك، لكن لا يوجد مصدر بيانات للشركات متصل بعد لجمع النتائج.",
+        summary: "فهم يولـياس بحثك، لكن لا يوجد مصدر بيانات للشركات متصل بعد لجمع النتائج.",
         blocks: [
-          { p: "تمر كل استراتيجية بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويفتح الحملة — وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم تبحث الحملة في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
+          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويفتح الحملة — وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم تبحث الحملة في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
           { p: "**بانتظار مصدر بيانات** يعني أن المرحلة الأولى اكتملت وأن الثانية تنتظر ربط مصدر بمساحة عملك. لا يضيع شيء: تحتفظ الحملة بمعاييرها وستجمع النتائج بمجرد توفر مصدر." },
           { p: "راجع [الحملات](/docs/campaigns) لمعرفة كل الحالات الممكنة للحملة." },
         ],
@@ -145,12 +145,12 @@ export const articles: HelpArticle[] = [
     },
   },
   {
-    slug: "strategy-needs-attention",
+    slug: "search-needs-attention",
     collection: "using-yolias",
     doc: {
       en: {
-        title: "When a strategy needs attention",
-        summary: "What the red “Strategy needs attention” card means and how to continue.",
+        title: "When a search needs attention",
+        summary: "What the red “Search needs attention” card means and how to continue.",
         blocks: [
           { p: "The card appears when Yolias AI could not turn a request into criteria — for example when the AI service was busy, or the request had nothing it could interpret." },
           { ol: [
@@ -158,12 +158,12 @@ export const articles: HelpArticle[] = [
             "Press **Try again**. Your request is saved, so you don’t need to retype it.",
             "If it keeps failing, edit the request above the card to be more specific — a market, an industry and the roles you want — and send it again.",
           ] },
-          { note: "Retrying re-reads the text only. If your original request relied on an attached file, attach it again in a new strategy." },
+          { note: "Retrying re-reads the text only. If your original request relied on an attached file, attach it again in a new search." },
         ],
       },
       ar: {
-        title: "عندما تحتاج الاستراتيجية انتباهك",
-        summary: "ماذا تعني بطاقة «الاستراتيجية تحتاج انتباهك» الحمراء وكيف تكمل.",
+        title: "عندما يحتاج البحث انتباهك",
+        summary: "ماذا تعني بطاقة «البحث يحتاج انتباهك» الحمراء وكيف تكمل.",
         blocks: [
           { p: "تظهر البطاقة عندما يتعذر على يولـياس AI تحويل الطلب إلى معايير — مثلًا عندما تكون خدمة الذكاء الاصطناعي مشغولة، أو لا يحتوي الطلب على ما يمكن فهمه." },
           { ol: [
@@ -171,7 +171,7 @@ export const articles: HelpArticle[] = [
             "اضغط **حاول مرة أخرى**. طلبك محفوظ ولا تحتاج لإعادة كتابته.",
             "إذا تكرر الفشل، عدّل الطلب أعلى البطاقة ليكون أوضح — سوق وقطاع والمناصب المطلوبة — ثم أرسله مجددًا.",
           ] },
-          { note: "إعادة المحاولة تقرأ النص فقط. إذا كان طلبك الأصلي يعتمد على ملف مرفق فأرفقه من جديد في استراتيجية جديدة." },
+          { note: "إعادة المحاولة تقرأ النص فقط. إذا كان طلبك الأصلي يعتمد على ملف مرفق فأرفقه من جديد في بحث جديد." },
         ],
       },
     },
@@ -185,7 +185,7 @@ export const articles: HelpArticle[] = [
         summary: "Download saved prospects, filtered the way you need them.",
         blocks: [
           { ol: [
-            "On a strategy with results, press **Save to Prospects** to add its decision makers to your list.",
+            "On a search with results, press **Save to Prospects** to add its decision makers to your list.",
             "Open **Prospects**. Use **Add Search Filter** to narrow by name or title, campaign, market or minimum match.",
             "Press **Export CSV**. The file contains exactly the rows your filters show.",
           ] },
@@ -197,7 +197,7 @@ export const articles: HelpArticle[] = [
         summary: "نزّل العملاء المحفوظين بالفلاتر التي تحتاجها.",
         blocks: [
           { ol: [
-            "في استراتيجية بها نتائج، اضغط **حفظ في العملاء المحتملين** لإضافة صنّاع القرار إلى قائمتك.",
+            "في بحث به نتائج، اضغط **حفظ في العملاء المحتملين** لإضافة صنّاع القرار إلى قائمتك.",
             "افتح **العملاء المحتملون**. استخدم **إضافة فلتر بحث** للتصفية حسب الاسم أو المسمى أو الحملة أو السوق أو أدنى نسبة تطابق.",
             "اضغط **تصدير CSV**. يحتوي الملف بالضبط على الصفوف التي تظهرها الفلاتر.",
           ] },
@@ -271,7 +271,7 @@ export const articles: HelpArticle[] = [
           { p: "Open your name in the sidebar → **Account** → **Delete account**, and confirm." },
           { ul: [
             "Your profile is removed and you are signed out.",
-            "If you are the only member, the workspace and all its strategies, campaigns, companies and prospects are deleted too.",
+            "If you are the only member, the workspace and all its searches, campaigns, companies and prospects are deleted too.",
             "If you own a workspace with other members, remove them first from **Team**; an owner can’t leave a team without a workspace.",
           ] },
           { note: "Deletion can’t be undone. Export anything you want to keep before you start." },
@@ -284,7 +284,7 @@ export const articles: HelpArticle[] = [
           { p: "اضغط على اسمك في الشريط الجانبي ← **الحساب** ← **حذف الحساب**، ثم أكّد." },
           { ul: [
             "يُحذف ملفك الشخصي ويتم تسجيل خروجك.",
-            "إذا كنت العضو الوحيد، تُحذف مساحة العمل وكل ما فيها من استراتيجيات وحملات وشركات وعملاء محتملين.",
+            "إذا كنت العضو الوحيد، تُحذف مساحة العمل وكل ما فيها من عمليات بحث وحملات وشركات وعملاء محتملين.",
             "إذا كنت تملك مساحة عمل بها أعضاء آخرون، فأزلهم أولًا من **الفريق**؛ فلا يمكن للمالك ترك فريق بلا مساحة عمل.",
           ] },
           { note: "لا يمكن التراجع عن الحذف. صدّر ما تريد الاحتفاظ به قبل البدء." },

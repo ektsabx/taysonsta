@@ -23,7 +23,7 @@ const money = (n: number) => `$${n.toFixed(2)}`;
 // Printable invoice (Claude/Stripe style). Visible to the workspace owner and
 // admins only (RLS on invoices). "Download PDF" uses the browser's print.
 export default async function InvoicePage({ params }: PageProps<"/invoices/[id]">) {
-  await requireSession();
+  const session = await requireSession();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const inv = await getInvoice(id);
@@ -31,7 +31,7 @@ export default async function InvoicePage({ params }: PageProps<"/invoices/[id]"
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const v = t.invoice;
   const amount = Number(inv.amount_usd);
-  const date = (iso: string) => formatDate(iso, locale);
+  const date = (iso: string) => formatDate(iso, locale, session.profile.timezone);
   const name = planName(inv.plan, t);
   const period = inv.billing_period === "annual" ? t.plans.billedAnnually : t.plans.billedMonthly;
 

@@ -36,8 +36,8 @@ export const home: Localized<{
       eyebrow: "WHAT YOU GET",
       title: "Built for the part before outreach.",
       tiles: [
-        { title: "Strategies in plain language", body: "No filter panels to configure. Yolias reads your request and only assumes what your business context already tells it." },
-        { title: "Campaigns as missions", body: "Every strategy becomes a campaign with a target, its criteria and a progress log, so you always know what Yolias is working on." },
+        { title: "Searches in plain language", body: "No filter panels to configure. Yolias reads your request and only assumes what your business context already tells it." },
+        { title: "Campaigns as missions", body: "Every search becomes a campaign with a target, its criteria and a progress log, so you always know what Yolias is working on." },
         { title: "Scores you can read", body: "Each prospect shows why it matched — market, industry, size, hiring, role — instead of an unexplained number." },
         { title: "Arabic and English, end to end", body: "The whole product works right-to-left and left-to-right, and Yolias answers in the language you choose." },
       ],
@@ -47,7 +47,7 @@ export const home: Localized<{
       small: "Discovery first — Yolias never sends messages on your behalf.",
     },
     cta: {
-      title: "Start with one strategy.",
+      title: "Start with one search.",
       body: "Pick a plan, describe your first customer profile and see the campaign Yolias builds from it.",
       primary: "Create account",
       secondary: "See pricing",
@@ -78,8 +78,8 @@ export const home: Localized<{
       eyebrow: "ما الذي تحصل عليه",
       title: "مصمم للمرحلة التي تسبق التواصل.",
       tiles: [
-        { title: "استراتيجيات بلغة طبيعية", body: "لا توجد لوحات فلاتر لضبطها. يقرأ يولـياس طلبك ولا يفترض إلا ما يخبره به سياق عملك." },
-        { title: "الحملات كمهام", body: "تتحول كل استراتيجية إلى حملة لها هدف ومعايير وسجل تقدّم، لتعرف دائمًا ما الذي يعمل عليه يولـياس." },
+        { title: "عمليات بحث بلغة طبيعية", body: "لا توجد لوحات فلاتر لضبطها. يقرأ يولـياس طلبك ولا يفترض إلا ما يخبره به سياق عملك." },
+        { title: "الحملات كمهام", body: "يتحول كل بحث إلى حملة لها هدف ومعايير وسجل تقدّم، لتعرف دائمًا ما الذي يعمل عليه يولـياس." },
         { title: "نسب تطابق مفهومة", body: "يوضّح كل عميل محتمل سبب تطابقه — السوق والقطاع والحجم والتوظيف والمنصب — بدل رقم بلا تفسير." },
         { title: "العربية والإنجليزية بالكامل", body: "يعمل المنتج كله من اليمين لليسار ومن اليسار لليمين، ويرد يولـياس باللغة التي تختارها." },
       ],
@@ -89,7 +89,7 @@ export const home: Localized<{
       small: "الاكتشاف أولًا — لا يرسل يولـياس أي رسائل نيابةً عنك.",
     },
     cta: {
-      title: "ابدأ باستراتيجية واحدة.",
+      title: "ابدأ ببحث واحد.",
       body: "اختر خطة، وصِف أول ملف لعملائك، وشاهد الحملة التي يبنيها يولـياس منه.",
       primary: "إنشاء حساب",
       secondary: "عرض الأسعار",
@@ -114,7 +114,7 @@ export const product: Localized<{
     secondary: "Read the docs",
     sections: [
       {
-        title: "Write a strategy",
+        title: "Start a search",
         body: "Start from the prompt box. Type, speak or attach a file — a CSV of accounts you like, a PDF brief, or a screenshot of a company you want more of.",
         points: ["Voice input in Arabic or English", "Up to three attachments per request", "Quick-start examples for common markets"],
       },
@@ -124,7 +124,7 @@ export const product: Localized<{
       },
       {
         title: "A campaign runs the mission",
-        body: "Each strategy opens a campaign with a target quota. Its activity log follows every stage, from planning to delivery, and the campaign status tells you where it stands.",
+        body: "Each search opens a campaign with a target quota. Its activity log follows every stage, from planning to delivery, and the campaign status tells you where it stands.",
       },
       {
         title: "Prospects with their evidence",
@@ -152,7 +152,7 @@ export const product: Localized<{
         { title: "Analytics", body: "Prospects found, companies discovered, decision makers and fit rate — by market, over 7, 30 or 90 days." },
         { title: "Export", body: "Filter saved prospects by campaign, market or match score and download them as CSV for your own tools." },
         { title: "Team", body: "Unlimited users on every plan, with owner, admin and member roles for each workspace." },
-        { title: "History", body: "Pin the strategies you return to, rename them, or remove the ones you no longer need." },
+        { title: "History", body: "Pin the searches you return to, rename them, or remove the ones you no longer need." },
       ],
     },
     cta: { title: "See it on your own market.", body: "The fastest way to understand Yolias is to give it a real target.", primary: "Create account" },
@@ -165,7 +165,7 @@ export const product: Localized<{
     secondary: "اقرأ التوثيق",
     sections: [
       {
-        title: "اكتب استراتيجية",
+        title: "ابدأ بحثًا",
         body: "ابدأ من مربع الكتابة. اكتب أو تحدّث أو أرفق ملفًا — قائمة CSV بحسابات تعجبك، أو ملف PDF، أو لقطة شاشة لشركة تريد أمثالها.",
         points: ["إدخال صوتي بالعربية أو الإنجليزية", "حتى ثلاثة مرفقات في كل طلب", "أمثلة جاهزة لأسواق شائعة"],
       },
@@ -175,7 +175,7 @@ export const product: Localized<{
       },
       {
         title: "حملة تنفّذ المهمة",
-        body: "تفتح كل استراتيجية حملة لها حصة مستهدفة. يتابع سجل النشاط كل مرحلة من التخطيط حتى التسليم، وتخبرك حالة الحملة أين وصلت.",
+        body: "يفتح كل بحث حملة لها حصة مستهدفة. يتابع سجل النشاط كل مرحلة من التخطيط حتى التسليم، وتخبرك حالة الحملة أين وصلت.",
       },
       {
         title: "عملاء محتملون مع أدلتهم",
@@ -203,7 +203,7 @@ export const product: Localized<{
         { title: "التحليلات", body: "العملاء المحتملون والشركات المكتشفة وصنّاع القرار ومعدل التطابق — حسب السوق، لآخر 7 أو 30 أو 90 يومًا." },
         { title: "التصدير", body: "فلتر العملاء المحفوظين حسب الحملة أو السوق أو نسبة التطابق، ونزّلهم كملف CSV لأدواتك." },
         { title: "الفريق", body: "مستخدمون غير محدودين في كل خطة، مع أدوار المالك والمسؤول والعضو لكل مساحة عمل." },
-        { title: "السجل", body: "ثبّت الاستراتيجيات التي تعود إليها، وأعد تسميتها، أو احذف ما لم تعد تحتاجه." },
+        { title: "السجل", body: "ثبّت عمليات البحث التي تعود إليها، وأعد تسميتها، أو احذف ما لم تعد تحتاجه." },
       ],
     },
     cta: { title: "جرّبه على سوقك أنت.", body: "أسرع طريقة لفهم يولـياس أن تعطيه هدفًا حقيقيًا.", primary: "إنشاء حساب" },

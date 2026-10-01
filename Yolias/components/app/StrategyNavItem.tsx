@@ -88,7 +88,7 @@ export function StrategyNavItem({ id, title, pinned, active }: Props) {
   return (
     <>
       <div className={`nav-item has-menu${active ? " active" : ""}${menuOpen ? " menu-open" : ""}`}>
-        <Link href={`/strategies/${id}`} className="nav-item-inner nav-item-link" title={title}>
+        <Link href={`/search/${id}`} className="nav-item-inner nav-item-link" title={title}>
           {pinned ? <Pin /> : <History />}
           <span>{title}</span>
         </Link>

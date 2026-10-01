@@ -1,0 +1,238 @@
+/* Yolias Admin — the Yolias design system applied to the BOS admin.
+   Loaded after admin.css and bos.css: it redefines the --bos-* tokens with
+   the Yolias palette (light + dark), the Yolias typefaces, and restyles the
+   chrome (sidebar, header, page titles, buttons, tables, forms) to match
+   Yolias/app/globals.css 1:1. Components keep using the same tokens. */
+
+/* ── Tokens: light (Yolias :root) ─────────────────────────────── */
+.admin-shell,
+.admin-shell[data-theme="light"],
+.admin-shell[data-theme="system"] {
+  --y-ink: #141413;
+  --y-muted: #747470;
+  --y-line: #e5e5e0;
+  --y-line-strong: #cfcfca;
+  --y-line-focus: #bebdb6;
+  --y-line-faint: #f0f0eb;
+  --y-soft: #f8f8f6;
+  --y-paper: #ffffff;
+  --y-sidebar: #fcfcfb;
+  --y-hover: #f3f3f0;
+  --y-heading: #8c8c87;
+  --y-text-2: #5d5d59;
+  --y-text-4: #3b3b38;
+  --y-icon: #969691;
+  --y-table-head: #fafaf8;
+  --y-red: #cf2525;
+  --y-red-hover: #b51d1d;
+  --y-red-soft: #fff6f5;
+  --y-red-line: #f1d8d6;
+  --y-avatar-bg: #171716;
+
+  --bos-fg-rgb: 20, 20, 19;
+  --bos-bg-rgb: 255, 255, 255;
+  --bos-bg: var(--y-paper);
+  --bos-sidebar: var(--y-sidebar);
+  --bos-input: var(--y-paper);
+  --bos-surface: var(--y-paper);
+  --bos-surface-2: var(--y-soft);
+  --bos-surface-3: var(--y-hover);
+  --bos-strong: var(--y-ink);
+  --bos-border: var(--y-line);
+  --bos-border-strong: var(--y-line-strong);
+  --bos-text: var(--y-ink);
+  --bos-muted: var(--y-muted);
+  --bos-faint: var(--y-heading);
+  --bos-accent: var(--y-red);
+  --bos-accent-hover: var(--y-red-hover);
+  --bos-on-accent: #ffffff;
+  --bos-secondary: #2563eb;
+  --bos-success: #10b981;
+  --bos-warning: #b45309;
+  --bos-danger: #dc2626;
+  --bos-info: #2563eb;
+  --bos-violet: #6d28d9;
+  --bos-radius: 8px;
+  --red: var(--y-red);
+  color-scheme: light;
+}
+
+/* ── Tokens: dark (Yolias html[data-theme="dark"]) ─────────────── */
+.admin-shell[data-theme="dark"] {
+  --y-ink: #f2f2ee;
+  --y-muted: #a3a39d;
+  --y-line: #2c2c2a;
+  --y-line-strong: #44443f;
+  --y-line-focus: #55554f;
+  --y-line-faint: #232321;
+  --y-soft: #1c1c1b;
+  --y-paper: #141413;
+  --y-sidebar: #191918;
+  --y-hover: #222220;
+  --y-heading: #85857f;
+  --y-text-2: #c4c4be;
+  --y-text-4: #dcdcd6;
+  --y-icon: #85857f;
+  --y-table-head: #1a1a19;
+  --y-red-soft: #2a1716;
+  --y-red-line: #5a2a27;
+  --y-avatar-bg: #2a2a28;
+  --bos-fg-rgb: 242, 242, 238;
+  --bos-bg-rgb: 20, 20, 19;
+  --bos-success: #34d399;
+  --bos-warning: #fbbf24;
+  --bos-danger: #f87171;
+  --bos-info: #60a5fa;
+  --bos-violet: #c4b5fd;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  .admin-shell[data-theme="system"] {
+    --y-ink: #f2f2ee;
+    --y-muted: #a3a39d;
+    --y-line: #2c2c2a;
+    --y-line-strong: #44443f;
+    --y-line-focus: #55554f;
+    --y-line-faint: #232321;
+    --y-soft: #1c1c1b;
+    --y-paper: #141413;
+    --y-sidebar: #191918;
+    --y-hover: #222220;
+    --y-heading: #85857f;
+    --y-text-2: #c4c4be;
+    --y-text-4: #dcdcd6;
+    --y-icon: #85857f;
+    --y-table-head: #1a1a19;
+    --y-red-soft: #2a1716;
+    --y-red-line: #5a2a27;
+    --y-avatar-bg: #2a2a28;
+    --bos-fg-rgb: 242, 242, 238;
+    --bos-bg-rgb: 20, 20, 19;
+    --bos-success: #34d399;
+    --bos-warning: #fbbf24;
+    --bos-danger: #f87171;
+    --bos-info: #60a5fa;
+    --bos-violet: #c4b5fd;
+    color-scheme: dark;
+  }
+}
+
+/* ── Typefaces: DM Sans + Source Serif 4, Noto Kufi Arabic in Arabic ── */
+.admin-shell {
+  --y-sans: "DM Sans", "Noto Kufi Arabic", system-ui, sans-serif;
+  --y-serif: "Source Serif 4", "Noto Kufi Arabic", Georgia, serif;
+  --font-main: var(--y-sans);
+  font-family: var(--y-sans);
+  background: var(--y-paper);
+  color: var(--y-ink);
+}
+.admin-shell[lang="ar"] {
+  --y-sans: "Noto Kufi Arabic", "DM Sans", system-ui, sans-serif;
+  --y-serif: "Noto Kufi Arabic", "DM Sans", sans-serif;
+}
+.admin-shell button, .admin-shell input, .admin-shell select, .admin-shell textarea { font-family: inherit; }
+
+/* ── Sidebar (Yolias .sidebar / .nav-item) ─────────────────────── */
+.admin-sidebar { width: 260px; background: var(--y-sidebar); border-inline-end: 1px solid var(--y-line); }
+.admin-sidebar.collapsed { width: 60px; }
+.admin-sidebar-brand { gap: 9px; padding: 18px 14px 14px; border-bottom: 0; }
+.admin-sidebar-brand img { display: block; flex-shrink: 0; }
+.admin-sidebar-brand-text { display: flex; align-items: center; gap: 8px; font-size: 1.32rem; font-weight: 700; letter-spacing: .06em; color: var(--y-ink); line-height: 1; }
+.admin-sidebar-brand-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: var(--y-red-soft); border: 1px solid var(--y-red-line); color: var(--y-red); font-size: .6rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.admin-shell[lang="ar"] .admin-sidebar-brand-badge { letter-spacing: 0; }
+.admin-sidebar-nav { padding: 4px 10px 14px; }
+.admin-sidebar-section-label { color: var(--y-heading); font-size: .65rem; letter-spacing: .08em; padding: 0 10px 5px; }
+.admin-sidebar-link,
+.bos-nav-group-btn {
+  min-height: 34px; gap: 9px; padding: 0 10px; margin: 1px 0;
+  border: 1px solid transparent; border-radius: 6px;
+  color: var(--y-text-2); font-size: .81rem; font-weight: 500;
+}
+.admin-sidebar-icon { width: 15px; height: 15px; color: var(--y-icon); }
+.admin-sidebar-link:hover, .bos-nav-group-btn:hover { background: var(--y-hover); color: var(--y-ink); }
+.admin-sidebar-link:hover .admin-sidebar-icon, .bos-nav-group-btn:hover .admin-sidebar-icon { color: var(--y-ink); }
+.admin-sidebar-link.active { border-color: var(--y-red-line); background: var(--y-red-soft); color: var(--y-red-hover); font-weight: 700; }
+.admin-sidebar-link.active .admin-sidebar-icon, .bos-nav-group-btn.active .admin-sidebar-icon { color: var(--y-red); }
+.bos-nav-group-btn.active { color: var(--y-ink); font-weight: 600; }
+.bos-nav-sub { padding-inline-start: 26px; }
+.bos-nav-sub a { padding: 6px 10px; border-radius: 6px; font-size: .78rem; font-weight: 500; color: var(--y-text-2); border: 1px solid transparent; }
+.bos-nav-sub a:hover { background: var(--y-hover); color: var(--y-ink); }
+.bos-nav-sub a.active { background: var(--y-red-soft); border-color: var(--y-red-line); color: var(--y-red-hover); font-weight: 700; }
+.bos-nav-sub a.open { color: var(--y-ink); font-weight: 600; }
+.bos-nav-sub3 { border-inline-start-color: var(--y-line); }
+.bos-nav-sub .bos-nav-sub3 a { font-size: .75rem; }
+
+/* ── Header ────────────────────────────────────────────────────── */
+.admin-topheader { background: color-mix(in srgb, var(--y-paper) 92%, transparent); border-bottom: 1px solid var(--y-line); padding: 12px 24px; }
+.admin-icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--y-line); background: var(--y-paper); color: var(--y-muted); }
+.admin-icon-btn:hover { border-color: var(--y-line-strong); background: var(--y-paper); color: var(--y-red); }
+.admin-search input { background: var(--y-soft); border: 1px solid var(--y-line); border-radius: 8px; color: var(--y-ink); font-size: .8rem; }
+.admin-search input:focus { border-color: var(--y-line-focus); background: var(--y-paper); }
+.admin-avatar, .bos-avatar { background: var(--y-avatar-bg); color: #fff; border: 1px solid color-mix(in srgb, var(--y-avatar-bg) 80%, #fff); }
+.admin-profile-panel, .bos-menu-panel { background: var(--y-paper); border: 1px solid var(--y-line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .1); }
+
+/* ── Page structure (Yolias .view-header / serif titles) ───────── */
+.admin-main { padding: 28px 34px 80px; }
+.bos-page-header { padding-bottom: 18px; border-bottom: 1px solid var(--y-line); margin-bottom: 22px; }
+.bos-page-header h1, .admin-title-row h1 { font-family: var(--y-serif); font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--y-ink); }
+.bos-page-header .bos-subtitle { color: var(--y-muted); font-size: .84rem; margin-top: 3px; }
+.admin-shell h2, .admin-shell h3 { font-weight: 700; }
+.bos-card-header h2, .bos-card-header h3, .bos-form-section h2, .admin-card h2 { font-size: .9rem; font-weight: 700; }
+
+/* ── Buttons (Yolias .btn-primary / .btn-secondary) ───────────── */
+.admin-btn { height: auto; min-height: 34px; padding: 7px 16px; border-radius: 7px; font-size: .8rem; font-weight: 600; background: var(--y-red); color: #fff; }
+.admin-btn:hover { background: var(--y-red-hover); }
+.admin-btn.secondary, .admin-btn.ghost { background: var(--y-paper); color: var(--y-ink); border: 1px solid var(--y-line); }
+.admin-btn.secondary:hover, .admin-btn.ghost:hover { background: var(--y-soft); border-color: var(--y-line-strong); color: var(--y-ink); }
+.admin-btn.danger { background: var(--y-paper); color: var(--bos-danger); border: 1px solid var(--bos-danger); }
+.admin-btn.danger:hover { background: var(--bos-danger); color: #fff; }
+.admin-btn.small { min-height: 30px; padding: 4px 11px; font-size: .76rem; border-radius: 6px; }
+.admin-btn:disabled { opacity: .55; }
+
+/* ── Cards, KPIs ───────────────────────────────────────────────── */
+.bos-card, .admin-card, .bos-form-section, .bos-table-wrap, .bos-kpi, .admin-stat-card, .bos-summary, .admin-kanban-col { border-color: var(--y-line); border-radius: 8px; background: var(--y-paper); }
+.bos-summary { background: var(--y-line); }
+.bos-summary-item { background: var(--y-paper); }
+.bos-kpi { padding: 18px; }
+.bos-kpi-label, .admin-stat-label { font-size: .75rem; font-weight: 600; color: var(--y-muted); }
+.bos-kpi-value, .admin-stat-value { font-family: var(--y-serif); font-size: 1.55rem; font-weight: 600; margin-top: 6px; letter-spacing: -.01em; }
+
+/* ── Tables (Yolias table.data-table) ──────────────────────────── */
+.bos-table, .admin-table { font-size: .82rem; }
+.bos-table th, .admin-table th { padding: 12px 18px; background: var(--y-table-head); border-bottom: 1px solid var(--y-line); color: var(--y-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.admin-shell[lang="ar"] .bos-table th, .admin-shell[lang="ar"] .admin-table th { letter-spacing: 0; }
+.bos-table td, .admin-table td { padding: 14px 18px; border-bottom: 1px solid var(--y-line-faint); color: var(--y-text-4); }
+.bos-table tbody tr:hover td, .admin-table tr:hover td { background: var(--y-soft); }
+.bos-table .cell-primary { font-weight: 600; color: var(--y-ink); }
+.bos-table .cell-sub { font-size: .72rem; color: var(--y-muted); }
+
+/* ── Forms (Yolias .form-input / .form-select) ─────────────────── */
+.bos-field input, .bos-field select, .bos-field textarea,
+.admin-field input, .admin-field select, .admin-field textarea,
+.bos-filterbar input, .bos-filterbar select, .admin-filters input, .admin-filters select {
+  border: 1px solid var(--y-line); border-radius: 6px; background: var(--y-paper); color: var(--y-ink); font-size: .82rem;
+}
+.bos-field input:focus, .bos-field select:focus, .bos-field textarea:focus,
+.admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus,
+.bos-filterbar input:focus, .bos-filterbar select:focus { border-color: var(--y-line-focus); }
+.bos-field label, .admin-field label { font-size: .78rem; font-weight: 600; color: var(--y-text-2); }
+
+/* ── Tabs, badges, links ───────────────────────────────────────── */
+.bos-tabs { border-bottom-color: var(--y-line); }
+.bos-tabs a { font-size: .82rem; color: var(--y-muted); }
+.bos-tabs a.active { color: var(--y-ink); border-bottom-color: var(--y-red); }
+.bos-badge { border-radius: 4px; font-size: .68rem; }
+.bos-link:hover { text-decoration-color: var(--y-red); }
+
+/* ── Login (Yolias auth page) ──────────────────────────────────── */
+.admin-login-shell { background: radial-gradient(circle at 92% 1%, rgba(207, 37, 37, .05), transparent 25rem), var(--y-paper); }
+.admin-login-card { max-width: 400px; background: transparent; border: 0; padding: 24px; }
+.admin-login-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 28px; }
+.admin-login-card h1 { font-family: var(--y-serif); font-size: 2rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; color: var(--y-ink); }
+.admin-login-lead { margin-bottom: 24px; color: var(--y-muted); font-size: .92rem; line-height: 1.55; }
+.admin-shell[lang="ar"] .admin-login-card h1 { letter-spacing: 0; }
+
+@media (max-width: 900px) {
+  .admin-main { padding: 20px 16px 64px; }
+  .admin-sidebar.collapsed { width: 260px; }
+}

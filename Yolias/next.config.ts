@@ -7,8 +7,17 @@ const nextConfig: NextConfig = {
   turbopack: { root: path.join(__dirname) },
   outputFileTracingRoot: path.join(__dirname),
   experimental: {
-    // Strategy requests can carry an ICP file or screenshot (max 4 MB each, see lib/attachments.ts).
+    // Search requests can carry an ICP file or screenshot (max 4 MB each, see lib/attachments.ts).
     serverActions: { bodySizeLimit: "9mb" },
+  },
+  // Searches used to live at /strategies/<id>; keep old links working.
+  async redirects() {
+    return [
+      { source: "/strategies/:id", destination: "/search/:id", permanent: true },
+      { source: "/docs/strategies", destination: "/docs/searches", permanent: true },
+      { source: "/help-center/strategy-needs-attention", destination: "/help-center/search-needs-attention", permanent: true },
+      { source: "/blog/writing-better-strategies", destination: "/blog/writing-better-searches", permanent: true },
+    ];
   },
   images: {
     remotePatterns: [

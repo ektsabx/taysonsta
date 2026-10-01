@@ -33,7 +33,7 @@ insert into roles (key, name, description, is_system, is_client_role, sort_order
   ('support', 'Support', 'Client support tickets.', true, false, 14),
   ('client', 'Client', 'Client portal user. Sees only their own account data.', true, true, 15);
 
-create function pg_temp.grant_perms(p_role text, p_modules text[], p_actions text[], p_scope permission_scope)
+create or replace function pg_temp.grant_perms(p_role text, p_modules text[], p_actions text[], p_scope permission_scope)
 returns void
 language sql
 as $$
@@ -171,13 +171,13 @@ select pg_temp.grant_perms('support', array['knowledge'], array['create','update
 -- Default notification subscriptions (§41, §77) — editable in Settings.
 -- ---------------------------------------------------------------------------
 
-create function pg_temp.sub_relation(p_event text, p_relation text, p_channels text[] default array['in_app'], p_configurable boolean default true)
+create or replace function pg_temp.sub_relation(p_event text, p_relation text, p_channels text[] default array['in_app'], p_configurable boolean default true)
 returns void language sql as $$
   insert into notification_subscriptions (event_type, subscriber_kind, relation, channels, user_configurable)
   values (p_event, 'relation', p_relation, p_channels, p_configurable);
 $$;
 
-create function pg_temp.sub_role(p_event text, p_role text, p_channels text[] default array['in_app'])
+create or replace function pg_temp.sub_role(p_event text, p_role text, p_channels text[] default array['in_app'])
 returns void language sql as $$
   insert into notification_subscriptions (event_type, subscriber_kind, role_id, channels)
   select p_event, 'role', id, p_channels from roles where key = p_role;

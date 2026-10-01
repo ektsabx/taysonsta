@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Globe } from "lucide-react";
-import { setLocale } from "@/lib/i18n/actions";
 import { useI18n } from "@/lib/i18n/client";
-import { locales, type Locale } from "@/lib/i18n/config";
+import { LOCALE_COOKIE, locales, type Locale } from "@/lib/i18n/config";
 
 // Language switcher (Claude-style): quiet trigger with globe + current
 // language, small popover with a check next to the active option.
@@ -32,7 +31,13 @@ export function LanguageMenu({ align = "end" }: { align?: "start" | "end" }) {
     setOpen(false);
     if (l === locale) return;
     start(async () => {
-      await setLocale(l);
+      const res = await fetch("/api/locale", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ locale: l }),
+      }).catch(() => null);
+      // The cookie is the source of truth; set it here too in case the request failed.
+      if (!res?.ok) document.cookie = `${LOCALE_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
       router.refresh();
     });
   };

@@ -38,7 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React loads. */}
+      <body suppressHydrationWarning>
         <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>
     </html>

@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
 import { THEME_COOKIE } from "@/lib/theme";
 import { setCancelAtPeriodEnd } from "@/lib/billing";
+import { COUNTRIES, TIMEZONES } from "@/lib/regions";
+import { monthlyUsage } from "@/services/workspace";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -19,8 +21,8 @@ const preferencesSchema = z
     theme: z.enum(["system", "light", "dark"]),
     text_size: z.enum(["compact", "normal", "large"]),
     language: z.enum(["en", "ar"]),
-    timezone: z.enum(["Asia/Riyadh", "Asia/Dubai", "Africa/Cairo", "Europe/London"]),
-    country: z.enum(["SA", "AE", "EG", "GB"]),
+    timezone: z.enum(TIMEZONES),
+    country: z.enum(COUNTRIES),
     notify_campaign_done: z.boolean(),
     notify_usage: z.boolean(),
     notify_billing: z.boolean(),
@@ -49,6 +51,13 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
   }
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+// Settings → Usage "refresh": recounts this month's prospects.
+export async function refreshUsage(): Promise<{ prospects: number; resetsAt: string; checkedAt: string }> {
+  const session = await requireSession();
+  const usage = await monthlyUsage(session.workspace.id);
+  return { ...usage, checkedAt: new Date().toISOString() };
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.

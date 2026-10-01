@@ -289,7 +289,7 @@ export function discoveryReadyEmail(locale: EmailLocale, d: DiscoveryReadyInput)
           ? `انتهى يولـياس من «${esc(d.strategyTitle)}» ووجد <strong>${d.prospects}</strong> صانع قرار في <strong>${d.companies}</strong> شركة، مع نسبة تطابق لكل واحد.`
           : `Yolias finished “${esc(d.strategyTitle)}” and found <strong>${d.prospects}</strong> decision makers at <strong>${d.companies}</strong> companies, each with a match score.`,
       ],
-      button: { label: ar ? "عرض النتائج" : "View results", href: `${d.siteUrl}/strategies/${d.strategyId}` },
+      button: { label: ar ? "عرض النتائج" : "View results", href: `${d.siteUrl}/search/${d.strategyId}` },
       footnote: ar
         ? `تصلك هذه الرسالة لأن إشعار «اكتمال الاكتشاف» مفعّل. <a href="${d.siteUrl}/" style="color:${C.ink}">إعدادات الإشعارات</a>`
         : `You’re receiving this because “Discovery completed” is on. <a href="${d.siteUrl}/" style="color:${C.ink}">Notification settings</a>`,
@@ -352,8 +352,8 @@ export function planEndingEmail(locale: EmailLocale, p: PlanEndingInput): Render
       heading: ar ? "تم إلغاء اشتراكك" : "Your plan has been canceled",
       body: [
         ar
-          ? `سيبقى <strong>${esc(p.planName)}</strong> فعالًا حتى ${dateText(p.endsAt, locale)}، ثم تنتقل مساحة العمل إلى الخطة المجانية. تبقى كل استراتيجياتك وعملاؤك المحتملون محفوظين.`
-          : `<strong>${esc(p.planName)}</strong> stays active until ${dateText(p.endsAt, locale)}. After that your workspace moves to Free. All your strategies and prospects stay saved.`,
+          ? `سيبقى <strong>${esc(p.planName)}</strong> فعالًا حتى ${dateText(p.endsAt, locale)}، ثم تنتقل مساحة العمل إلى الخطة المجانية. تبقى كل عمليات البحث الخاصة بك وعملاؤك المحتملون محفوظين.`
+          : `<strong>${esc(p.planName)}</strong> stays active until ${dateText(p.endsAt, locale)}. After that your workspace moves to Free. All your searches and prospects stay saved.`,
       ],
       button: { label: ar ? "استئناف الاشتراك" : "Resume plan", href: `${p.siteUrl}/` },
       footnote: ar ? "غيّرت رأيك؟ يمكنك الاستئناف من الإعدادات ← الفوترة." : "Changed your mind? Resume any time from Settings → Billing.",

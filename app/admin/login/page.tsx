@@ -29,7 +29,12 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: S
     <div className="admin-login-shell">
       <div className="admin-login-card">
         <div style={{ marginBottom: 14 }}><UiPreferenceSwitches locale={ui.locale} theme={ui.theme} compact /></div>
-        <h1>Taysonsta BOS</h1>
+        <div className="admin-login-brand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/brand/yolias-mark.png" alt="" width={26} height={28} />
+          <span className="admin-sidebar-brand-text">YOLIAS <span className="admin-sidebar-brand-badge">Admin</span></span>
+        </div>
+        <h1>Yolias Admin</h1>
         <LoginForm googleEnabled={security.google_sign_in} initialError={err} />
       </div>
     </div>

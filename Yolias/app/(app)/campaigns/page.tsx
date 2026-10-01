@@ -33,7 +33,7 @@ export default async function CampaignsPage() {
       quota: c.quota,
       found: c.prospects_found,
       status: { label: t.campaigns.status[statusView[c.status].key], cls: statusView[c.status].cls },
-      href: c.strategy_id ? `/strategies/${c.strategy_id}` : null,
+      href: c.strategy_id ? `/search/${c.strategy_id}` : null,
     };
   });
 

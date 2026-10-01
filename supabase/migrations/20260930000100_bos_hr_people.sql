@@ -341,7 +341,7 @@ insert into roles (key, name, description, is_system, is_client_role, sort_order
 values ('hr_staff', 'HR Staff', 'Employees, attendance, leave, documents and requests — no payroll or sensitive data.', true, false, 14)
 on conflict (key) do nothing;
 
-create function pg_temp.grant_perms(p_role text, p_modules text[], p_actions text[], p_scope permission_scope)
+create or replace function pg_temp.grant_perms(p_role text, p_modules text[], p_actions text[], p_scope permission_scope)
 returns void
 language sql
 as $$

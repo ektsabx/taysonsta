@@ -52,7 +52,7 @@ const companySchema = z.object({
   // Kept for stored data only: Arabic and English are both always available (docs/bos/35 A5).
   enabled_languages: z.array(z.enum(["ar", "en"])).min(1).default(["ar", "en"]),
   default_language: z.enum(["ar", "en"]).default("ar"),
-  default_theme: z.enum(["dark", "light", "system"]).default("dark"),
+  default_theme: z.enum(["dark", "light", "system"]).default("system"),
   date_format: z.enum(["dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "d MMM yyyy"]).default("d MMM yyyy"),
   time_format: z.enum(["24h", "12h"]).default("24h"),
   number_locale: z.enum(["en-US", "ar-EG", "ar-SA"]).default("en-US"),

@@ -33,7 +33,7 @@ export const docs: DocPage[] = [
           { p: "Yolias is an autonomous customer-discovery product for B2B teams. You describe the customers you want; Yolias turns that into structured criteria, runs a discovery campaign and returns matching companies and decision makers." },
           { h2: "The flow" },
           { table: { head: ["Step", "What happens", "Where you see it"], rows: [
-            ["Strategy", "You write a request in plain language", "Yolias AI"],
+            ["Search", "You write a request in plain language", "Yolias AI"],
             ["Customer profile", "Yolias extracts criteria and assumptions", "The result card under the prompt"],
             ["Campaign", "A discovery mission with a target and activity log", "Campaigns"],
             ["Prospects", "Matched decision makers you choose to keep", "Prospects"],
@@ -50,7 +50,7 @@ export const docs: DocPage[] = [
           { p: "يولـياس منتج لاكتشاف العملاء بشكل مستقل لفرق B2B. تصف العملاء الذين تريدهم، فيحوّل يولـياس الوصف إلى معايير منظمة، ويشغّل حملة اكتشاف، ويعيد الشركات وصنّاع القرار المطابقين." },
           { h2: "المسار" },
           { table: { head: ["المرحلة", "ما يحدث", "أين تراه"], rows: [
-            ["الاستراتيجية", "تكتب طلبك بلغة طبيعية", "يولـياس AI"],
+            ["البحث", "تكتب طلبك بلغة طبيعية", "يولـياس AI"],
             ["ملف العميل المثالي", "يستخرج يولـياس المعايير والافتراضات", "بطاقة النتيجة أسفل مربع الكتابة"],
             ["الحملة", "مهمة اكتشاف لها هدف وسجل نشاط", "الحملات"],
             ["العملاء المحتملون", "صنّاع القرار المطابقون الذين تختار الاحتفاظ بهم", "العملاء المحتملون"],
@@ -73,10 +73,10 @@ export const docs: DocPage[] = [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
             "**Choose a plan.** Start on Free, or pick Pro or Growth with a monthly or annual period.",
-            "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every strategy, so be specific about the problem you solve.",
-            "**Write your first strategy.** In Yolias AI, describe who you want to sell to and press Enter.",
+            "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every search, so be specific about the problem you solve.",
+            "**Run your first search.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
-          { p: "A good first strategy names a market, an industry or business type, a company size and the roles you want to reach. See [Strategies](/docs/strategies) for examples." },
+          { p: "A good first search names a market, an industry or business type, a company size and the roles you want to reach. See [Searches](/docs/searches) for examples." },
         ],
       },
       ar: {
@@ -86,23 +86,23 @@ export const docs: DocPage[] = [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
             "**اختر خطة.** ابدأ بالخطة المجانية، أو اختر برو أو النمو بفترة شهرية أو سنوية.",
-            "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل استراتيجية، فكن محددًا في وصف المشكلة التي تحلها.",
-            "**اكتب أول استراتيجية.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
+            "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل بحث، فكن محددًا في وصف المشكلة التي تحلها.",
+            "**ابدأ أول بحث.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },
-          { p: "الاستراتيجية الأولى الجيدة تحدد سوقًا وقطاعًا أو نوع نشاط وحجم شركة والمناصب التي تريد الوصول إليها. راجع [الاستراتيجيات](/docs/strategies) للأمثلة." },
+          { p: "البحث الأول الجيد يحدد سوقًا وقطاعًا أو نوع نشاط وحجم شركة والمناصب التي تريد الوصول إليها. راجع [عمليات البحث](/docs/searches) للأمثلة." },
         ],
       },
     },
   },
   {
-    slug: "strategies",
+    slug: "searches",
     group: "core",
     doc: {
       en: {
-        title: "Strategies",
+        title: "Searches",
         summary: "How to write requests Yolias understands, and what you can attach.",
         blocks: [
-          { p: "A strategy is one request in Yolias AI. Each strategy creates one campaign and appears in the sidebar history, where you can pin, rename or delete it." },
+          { p: "A search is one request in Yolias AI. Each search creates one campaign and appears in the sidebar history, where you can pin, rename or delete it." },
           { h2: "What to include" },
           { table: { head: ["Detail", "Example"], rows: [
             ["How many", "“Find 80 companies…”"],
@@ -118,15 +118,15 @@ export const docs: DocPage[] = [
             "**Voice** — press the microphone and speak; your words are added to the box. Works in Chrome and Edge.",
             "**Images** — PNG, JPEG, GIF or WebP, e.g. a screenshot of a company you want more of.",
             "**Files** — PDF, CSV, TXT, MD or TSV, e.g. an ICP brief or a list of current customers.",
-            "Up to three attachments per strategy, 4 MB each. Files are read to understand the request and are not stored.",
+            "Up to three attachments per search, 4 MB each. Files are read to understand the request and are not stored.",
           ] },
         ],
       },
       ar: {
-        title: "الاستراتيجيات",
+        title: "عمليات البحث",
         summary: "كيف تكتب طلبات يفهمها يولـياس، وما الذي يمكنك إرفاقه.",
         blocks: [
-          { p: "الاستراتيجية طلب واحد في يولـياس AI. تنشئ كل استراتيجية حملة واحدة وتظهر في سجل الشريط الجانبي، حيث يمكنك تثبيتها أو إعادة تسميتها أو حذفها." },
+          { p: "البحث طلب واحد في يولـياس AI. ينشئ كل بحث حملة واحدة ويظهر في سجل الشريط الجانبي، حيث يمكنك تثبيته أو إعادة تسميته أو حذفه." },
           { h2: "ما الذي تكتبه" },
           { table: { head: ["التفصيل", "مثال"], rows: [
             ["العدد", "«ابحث عن 80 شركة…»"],
@@ -142,7 +142,7 @@ export const docs: DocPage[] = [
             "**الصوت** — اضغط الميكروفون وتحدّث؛ تُضاف كلماتك إلى المربع. يعمل في Chrome و Edge.",
             "**الصور** — PNG أو JPEG أو GIF أو WebP، مثل لقطة شاشة لشركة تريد أمثالها.",
             "**الملفات** — PDF أو CSV أو TXT أو MD أو TSV، مثل وصف ICP أو قائمة عملائك الحاليين.",
-            "حتى ثلاثة مرفقات لكل استراتيجية، 4 ميجابايت لكل منها. تُقرأ الملفات لفهم الطلب ولا تُخزن.",
+            "حتى ثلاثة مرفقات لكل بحث، 4 ميجابايت لكل منها. تُقرأ الملفات لفهم الطلب ولا تُخزن.",
           ] },
         ],
       },
@@ -154,9 +154,9 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "Customer profile (ICP)",
-        summary: "The criteria Yolias extracts from a strategy, and how it fills gaps.",
+        summary: "The criteria Yolias extracts from a search, and how it fills gaps.",
         blocks: [
-          { p: "Yolias AI reads your strategy together with your onboarding context and produces an ideal customer profile. The campaign uses it as its criteria." },
+          { p: "Yolias AI reads your search together with your onboarding context and produces an ideal customer profile. The campaign uses it as its criteria." },
           { h2: "Fields" },
           { table: { head: ["Field", "Notes"], rows: [
             ["Campaign name & summary", "Written in your interface language"],
@@ -169,14 +169,14 @@ export const docs: DocPage[] = [
             ["Exclusions", "Companies or traits to leave out"],
             ["Assumptions", "Every default Yolias chose because the request didn’t say"],
           ] } },
-          { p: "If no titles are given, Yolias infers relevant decision makers from what you sell. To change any criterion, send a new strategy that states it explicitly." },
+          { p: "If no titles are given, Yolias infers relevant decision makers from what you sell. To change any criterion, start a new search that states it explicitly." },
         ],
       },
       ar: {
         title: "ملف العميل المثالي (ICP)",
-        summary: "المعايير التي يستخرجها يولـياس من الاستراتيجية، وكيف يكمل الناقص.",
+        summary: "المعايير التي يستخرجها يولـياس من البحث، وكيف يكمل الناقص.",
         blocks: [
-          { p: "يقرأ يولـياس AI استراتيجيتك مع سياق الإعداد الأولي وينتج ملف العميل المثالي. وتستخدمه الحملة معاييرَ لها." },
+          { p: "يقرأ يولـياس AI بحثك مع سياق الإعداد الأولي وينتج ملف العميل المثالي. وتستخدمه الحملة معاييرَ لها." },
           { h2: "الحقول" },
           { table: { head: ["الحقل", "ملاحظات"], rows: [
             ["اسم الحملة والملخص", "يُكتبان بلغة الواجهة"],
@@ -189,7 +189,7 @@ export const docs: DocPage[] = [
             ["الاستثناءات", "شركات أو صفات يجب استبعادها"],
             ["الافتراضات", "كل قيمة افتراضية اختارها يولـياس لأن الطلب لم يذكرها"],
           ] } },
-          { p: "إذا لم تُذكر مسميات، يستنتج يولـياس صنّاع القرار المناسبين مما تبيعه. لتغيير أي معيار أرسل استراتيجية جديدة تذكره صراحة." },
+          { p: "إذا لم تُذكر مسميات، يستنتج يولـياس صنّاع القرار المناسبين مما تبيعه. لتغيير أي معيار أرسل بحث جديد تذكره صراحة." },
         ],
       },
     },
@@ -202,7 +202,7 @@ export const docs: DocPage[] = [
         title: "Campaigns",
         summary: "Discovery missions: their stages, statuses and activity log.",
         blocks: [
-          { p: "A campaign is the mission created from a strategy: the criteria, a target quota, the results and a log of what Yolias did. Open **Campaigns** to see them all; selecting one opens its strategy." },
+          { p: "A campaign is the mission created from a search: the criteria, a target quota, the results and a log of what Yolias did. Open **Campaigns** to see them all; selecting one opens its search." },
           { h2: "Stages" },
           { ol: ["Understand the request", "Plan the mission", "Find companies", "Find decision makers", "Enrich & verify contact details", "Qualify, score and deliver"] },
           { h2: "Statuses" },
@@ -220,7 +220,7 @@ export const docs: DocPage[] = [
         title: "الحملات",
         summary: "مهام الاكتشاف: مراحلها وحالاتها وسجل نشاطها.",
         blocks: [
-          { p: "الحملة هي المهمة التي تُنشأ من الاستراتيجية: المعايير وحصة مستهدفة والنتائج وسجل لما فعله يولـياس. افتح **الحملات** لرؤيتها كلها؛ واختيار إحداها يفتح استراتيجيتها." },
+          { p: "الحملة هي المهمة التي تُنشأ من البحث: المعايير وحصة مستهدفة والنتائج وسجل لما فعله يولـياس. افتح **الحملات** لرؤيتها كلها؛ واختيار إحداها يفتح استراتيجيتها." },
           { h2: "المراحل" },
           { ol: ["فهم الطلب", "تخطيط المهمة", "العثور على الشركات", "العثور على صنّاع القرار", "إثراء بيانات التواصل والتحقق منها", "التأهيل والتقييم والتسليم"] },
           { h2: "الحالات" },
@@ -244,7 +244,7 @@ export const docs: DocPage[] = [
         title: "Prospects",
         summary: "What a prospect record contains, how the match score works, and the export format.",
         blocks: [
-          { p: "Prospects are the decision makers a campaign delivers. They join your **Prospects** list when you press **Save to Prospects** on the strategy." },
+          { p: "Prospects are the decision makers a campaign delivers. They join your **Prospects** list when you press **Save to Prospects** on the search." },
           { h2: "Match score" },
           { p: "The score (0–100%) compares a prospect and their company with the criteria you actually specified. Criteria you left open are skipped, so they never lower the score." },
           { table: { head: ["Criterion", "Weight"], rows: [
@@ -261,7 +261,7 @@ export const docs: DocPage[] = [
         title: "العملاء المحتملون",
         summary: "محتوى سجل العميل المحتمل، وطريقة حساب نسبة التطابق، وصيغة التصدير.",
         blocks: [
-          { p: "العملاء المحتملون هم صنّاع القرار الذين تسلّمهم الحملة. ينضمون إلى قائمة **العملاء المحتملون** عند الضغط على **حفظ في العملاء المحتملين** في الاستراتيجية." },
+          { p: "العملاء المحتملون هم صنّاع القرار الذين تسلّمهم الحملة. ينضمون إلى قائمة **العملاء المحتملون** عند الضغط على **حفظ في العملاء المحتملين** في البحث." },
           { h2: "نسبة التطابق" },
           { p: "تقارن النسبة (0–100%) العميل المحتمل وشركته بالمعايير التي حددتها فعلًا. المعايير التي تركتها مفتوحة لا تُحتسب، فلا تخفض النسبة أبدًا." },
           { table: { head: ["المعيار", "الوزن"], rows: [
@@ -319,7 +319,7 @@ export const docs: DocPage[] = [
         summary: "Who can do what inside a workspace.",
         blocks: [
           { table: { head: ["Action", "Owner", "Admin", "Member"], rows: [
-            ["Write strategies, view campaigns and prospects", "✓", "✓", "✓"],
+            ["Run searches, view campaigns and prospects", "✓", "✓", "✓"],
             ["Save and export prospects", "✓", "✓", "✓"],
             ["Invite and remove members", "✓", "✓", "—"],
             ["Choose or change the plan", "✓", "✓", "—"],
@@ -333,7 +333,7 @@ export const docs: DocPage[] = [
         summary: "من يستطيع فعل ماذا داخل مساحة العمل.",
         blocks: [
           { table: { head: ["الإجراء", "المالك", "المسؤول", "العضو"], rows: [
-            ["كتابة الاستراتيجيات وعرض الحملات والعملاء", "✓", "✓", "✓"],
+            ["إجراء عمليات البحث وعرض الحملات والعملاء", "✓", "✓", "✓"],
             ["حفظ العملاء المحتملين وتصديرهم", "✓", "✓", "✓"],
             ["دعوة الأعضاء وإزالتهم", "✓", "✓", "—"],
             ["اختيار الخطة أو تغييرها", "✓", "✓", "—"],

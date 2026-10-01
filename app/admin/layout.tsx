@@ -9,23 +9,30 @@ import { getSystemTime } from "@/lib/bos/system-time";
 import { currentBranchSelection } from "@/lib/bos/branch";
 import { getUiPrefs } from "@/lib/bos/i18n/server";
 import { I18nProvider } from "@/components/bos/I18n";
-import { getSetting } from "@/lib/bos/settings";
-import { brandFontHref, brandStyle } from "@/lib/bos/branding";
+import type { Metadata } from "next";
 import "./admin.css";
 import "./bos.css";
+import "./yolias.css";
+
+// Yolias Admin: the BOS runs on the Yolias design system (app/admin/yolias.css)
+// with a fixed identity, so company branding colours/fonts no longer apply here.
+export const metadata: Metadata = {
+  title: { default: "Yolias Admin", template: "%s — Yolias Admin" },
+  icons: { icon: "/assets/brand/yolias-mark.png", apple: "/assets/brand/yolias-mark.png" },
+};
+
+const YOLIAS_FONTS = "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Noto+Kufi+Arabic:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const [session, ui, company] = await Promise.all([getBosSession(), getUiPrefs(), getSetting("company")]);
-  const brand = brandStyle(company, ui.locale);
-  const fontHref = brandFontHref(company);
-  const fontLink = fontHref ? <link rel="stylesheet" href={fontHref} precedence="default" /> : null;
+  const [session, ui] = await Promise.all([getBosSession(), getUiPrefs()]);
+  const fontLink = <link rel="stylesheet" href={YOLIAS_FONTS} precedence="default" />;
 
   // Login, reset-password and forbidden pages render without the chrome.
   if (session.status !== "ok") {
     return (
       <I18nProvider locale={ui.locale}>
         {fontLink}
-        <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme} style={brand}>{children}</div>
+        <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme}>{children}</div>
       </I18nProvider>
     );
   }
@@ -43,7 +50,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <I18nProvider locale={ui.locale}>
     {fontLink}
-    <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme} style={brand}>
+    <div className="admin-shell" dir={ui.dir} lang={ui.locale} data-theme={ui.theme}>
       <AdminChrome
         name={bos.employee.full_name}
         ui={{ locale: ui.locale, theme: ui.theme }}

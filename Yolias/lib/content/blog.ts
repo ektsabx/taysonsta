@@ -30,7 +30,7 @@ export const posts: BlogPost[] = [
           { h2: "Built for the region" },
           { p: "Yolias works fully in Arabic and English. The interface mirrors right-to-left, requests can be written in either language, and the summaries Yolias writes follow the language you choose." },
           { h2: "Where to start" },
-          { p: "Choose a plan on [Pricing](/pricing), describe your business during onboarding, and write your first strategy. The [Quickstart](/docs/quickstart) walks through it." },
+          { p: "Choose a plan on [Pricing](/pricing), describe your business during onboarding, and run your first search. The [Quickstart](/docs/quickstart) walks through it." },
         ],
       },
       ar: {
@@ -45,21 +45,21 @@ export const posts: BlogPost[] = [
           { h2: "مصمم للمنطقة" },
           { p: "يعمل يولـياس بالكامل بالعربية والإنجليزية. تنعكس الواجهة من اليمين لليسار، ويمكن كتابة الطلبات بأي من اللغتين، وتتبع الملخصات التي يكتبها يولـياس اللغة التي تختارها." },
           { h2: "من أين تبدأ" },
-          { p: "اختر خطة من [الأسعار](/pricing)، وصِف عملك أثناء الإعداد الأولي، واكتب أول استراتيجية. يشرح [البدء السريع](/docs/quickstart) الخطوات." },
+          { p: "اختر خطة من [الأسعار](/pricing)، وصِف عملك أثناء الإعداد الأولي، وابدأ أول بحث. يشرح [البدء السريع](/docs/quickstart) الخطوات." },
         ],
       },
     },
   },
   {
-    slug: "writing-better-strategies",
+    slug: "writing-better-searches",
     date: "2026-10-01",
     category: { en: "Guides", ar: "أدلة" },
     doc: {
       en: {
-        title: "Three rewrites that make a strategy sharper",
+        title: "Three rewrites that make a search sharper",
         summary: "The same request, improved step by step — and why each change helps.",
         blocks: [
-          { p: "Yolias can work with a vague request, but every detail you add replaces an assumption with a decision. Here is one strategy, rewritten three times." },
+          { p: "Yolias can work with a vague request, but every detail you add replaces an assumption with a decision. Here is one search, rewritten three times." },
           { h2: "Start: “Find me fintech companies.”" },
           { p: "Yolias will open a campaign, but it has to assume almost everything: your default country, any size, a target of one hundred, and decision makers inferred from what you sell. The result card lists all of those as assumptions." },
           { h2: "Rewrite 1 — add the market and size" },
@@ -72,10 +72,10 @@ export const posts: BlogPost[] = [
         ],
       },
       ar: {
-        title: "ثلاث إعادات صياغة تجعل استراتيجيتك أدق",
+        title: "ثلاث إعادات صياغة تجعل بحثك أدق",
         summary: "الطلب نفسه يتحسن خطوة بخطوة — ولماذا يفيد كل تغيير.",
         blocks: [
-          { p: "يستطيع يولـياس العمل مع طلب عام، لكن كل تفصيل تضيفه يستبدل افتراضًا بقرار. إليك استراتيجية واحدة أُعيدت صياغتها ثلاث مرات." },
+          { p: "يستطيع يولـياس العمل مع طلب عام، لكن كل تفصيل تضيفه يستبدل افتراضًا بقرار. إليك بحثًا واحدًا أُعيدت صياغته ثلاث مرات." },
           { h2: "البداية: «ابحث لي عن شركات تقنية مالية.»" },
           { p: "سيفتح يولـياس حملة، لكنه سيفترض كل شيء تقريبًا: دولتك الافتراضية، وأي حجم، وهدف مئة شركة، وصنّاع قرار يستنتجهم مما تبيعه. وتعرض بطاقة النتيجة كل ذلك كافتراضات." },
           { h2: "الصياغة الأولى — أضف السوق والحجم" },

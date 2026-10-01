@@ -5,7 +5,7 @@
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", fontFamily: "system-ui, sans-serif", background: "#fff", color: "#141413" }}>
+      <body suppressHydrationWarning style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", fontFamily: "system-ui, sans-serif", background: "#fff", color: "#141413" }}>
         <main style={{ maxWidth: 460, padding: 24, textAlign: "center" }}>
           <div style={{ fontWeight: 700, letterSpacing: ".06em" }}>YOLIAS</div>
           <h1 style={{ fontSize: 24, margin: "28px 0 8px" }}>Something went wrong</h1>

@@ -7,7 +7,7 @@ import type { Database } from "@/types/database";
 // (app) layout, which has database access.
 // Pages that need a signed-in user. Everything else is public (website,
 // auth, legal, resources) and unknown paths fall through to the 404 page.
-const appPaths = ["/analytics", "/campaigns", "/prospects", "/strategies", "/checkout", "/onboarding", "/invoices"];
+const appPaths = ["/analytics", "/campaigns", "/prospects", "/search", "/checkout", "/onboarding", "/invoices"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -32,6 +32,16 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
   const { pathname } = request.nextUrl;
+  // Server actions check access themselves and must get an action response,
+  // never a redirect (a redirected action fails with "unexpected response").
+  if (request.headers.has("next-action")) {
+    if (!signedIn && pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/home";
+      return NextResponse.rewrite(url, { request });
+    }
+    return response;
+  }
   const isApp = appPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!signedIn && pathname === "/") {

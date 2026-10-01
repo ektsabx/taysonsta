@@ -2,16 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, CreditCard, Plug, Plus, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { formatDate, formatNumber } from "@/lib/format";
+import { countryLabel, formatDate, formatNumber } from "@/lib/format";
+import { COUNTRIES, TIMEZONES, timeZoneLabel } from "@/lib/regions";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./ConnectorIcons";
 import {
-  deleteAccount, inviteMember, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
+  deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import type { SettingsTab, ShellData } from "./types";
 
@@ -144,18 +145,12 @@ function GeneralTab({ data }: { data: ShellData }) {
       </SettingRow>
       <SettingRow label={g.timezone} desc={g.timezoneDesc}>
         <select className="form-select" value={prefs.timezone} onChange={(e) => change("timezone", e.target.value)}>
-          <option value="Asia/Riyadh">{g.tzRiyadh}</option>
-          <option value="Asia/Dubai">{g.tzDubai}</option>
-          <option value="Africa/Cairo">{g.tzCairo}</option>
-          <option value="Europe/London">{g.tzLondon}</option>
+          {TIMEZONES.map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
         </select>
       </SettingRow>
       <SettingRow label={g.country} desc={g.countryDesc}>
         <select className="form-select" value={prefs.country} onChange={(e) => change("country", e.target.value)}>
-          <option value="SA">{g.sa}</option>
-          <option value="AE">{g.ae}</option>
-          <option value="EG">{g.eg}</option>
-          <option value="GB">{g.gb}</option>
+          {COUNTRIES.map((c) => <option key={c} value={c}>{countryLabel(c, locale)}</option>)}
         </select>
       </SettingRow>
       {error && <p className="form-error">{error}</p>}
@@ -327,9 +322,27 @@ function NotificationsTab({ data }: { data: ShellData }) {
 function UsageTab({ data }: { data: ShellData }) {
   const { t, locale } = useI18n();
   const u = t.settings.usage;
-  const { usage, workspace } = data;
+  const { workspace } = data;
+  const [usage, setUsage] = useState(() => ({ ...data.usage, checkedAt: Date.now() }));
+  const [refreshing, startRefresh] = useTransition();
+  const [now, setNow] = useState(() => Date.now());
   const n = (v: number) => formatNumber(v, locale);
   const pct = Math.min(100, workspace.prospects ? (usage.prospects / workspace.prospects) * 100 : 0);
+
+  const refresh = () =>
+    startRefresh(async () => {
+      const r = await refreshUsage();
+      setUsage({ prospects: r.prospects, resetsAt: r.resetsAt, checkedAt: Date.parse(r.checkedAt) });
+      setNow(Date.parse(r.checkedAt));
+    });
+
+  // Fresh numbers whenever the tab opens, and "Last updated" keeps ticking.
+  useEffect(() => {
+    refresh();
+    const id = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   return (
     <div className="setting-group">
       <div className="usage-head">
@@ -350,11 +363,26 @@ function UsageTab({ data }: { data: ShellData }) {
         <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
           <span>{u.prospectsDesc}</span>
-          <span>{fmt(u.resets, { date: formatDate(usage.resetsAt, locale, "UTC") })}</span>
+          <span>{fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) })}</span>
         </div>
+      </div>
+
+      <div className="usage-updated">
+        <span>{fmt(u.lastUpdated, { when: relativeTime(usage.checkedAt, now, locale, u.justNow) })}</span>
+        <button type="button" className={`usage-refresh${refreshing ? " spinning" : ""}`} onClick={refresh} disabled={refreshing} aria-label={u.refresh} title={u.refresh}>
+          <RotateCw />
+        </button>
       </div>
     </div>
   );
+}
+
+// "less than a minute ago" / "5 minutes ago" in the interface language.
+function relativeTime(ms: number, now: number, locale: string, justNow: string): string {
+  const mins = Math.floor((now - ms) / 60_000);
+  if (mins < 1) return justNow;
+  const rtf = new Intl.RelativeTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en", { numeric: "auto" });
+  return mins < 60 ? rtf.format(-mins, "minute") : rtf.format(-Math.floor(mins / 60), "hour");
 }
 
 /* ─────────────── Billing ─────────────── */
@@ -386,7 +414,7 @@ function BillingTab({ data }: { data: ShellData }) {
   const renewLine = !paid
     ? fmt(b.freeLine, { count: formatNumber(workspace.prospects, locale) })
     : workspace.periodEnd
-      ? fmt(workspace.cancelAtPeriodEnd ? b.endsOn : b.renewsOn, { date: formatDate(workspace.periodEnd, locale) })
+      ? fmt(workspace.cancelAtPeriodEnd ? b.endsOn : b.renewsOn, { date: formatDate(workspace.periodEnd, locale, data.preferences.timezone) })
       : "";
 
   return (
@@ -431,7 +459,7 @@ function BillingTab({ data }: { data: ShellData }) {
                 <tbody>
                   {data.invoices.map((inv) => (
                     <tr key={inv.id}>
-                      <td>{formatDate(inv.date, locale)}</td>
+                      <td>{formatDate(inv.date, locale, data.preferences.timezone)}</td>
                       <td dir="ltr" className="text-start">{money(inv.amountUsd)}</td>
                       <td>
                         <span className={`status-pill ${inv.status}`}>{b.status[inv.status]}</span>
@@ -450,12 +478,12 @@ function BillingTab({ data }: { data: ShellData }) {
               <h4>{b.cancellation}</h4>
               {workspace.cancelAtPeriodEnd ? (
                 <div className="billing-row">
-                  <div className="billing-row-text">{fmt(b.canceledNote, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale) : "" })}</div>
+                  <div className="billing-row-text">{fmt(b.canceledNote, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale, data.preferences.timezone) : "" })}</div>
                   <button className="btn-secondary" type="button" disabled={pending} onClick={() => setCanceled(false)}>{b.resume}</button>
                 </div>
               ) : confirming ? (
                 <div className="billing-confirm">
-                  <p>{fmt(b.cancelConfirm, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale) : "" })}</p>
+                  <p>{fmt(b.cancelConfirm, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale, data.preferences.timezone) : "" })}</p>
                   <div>
                     <button className="btn-secondary" type="button" onClick={() => setConfirming(false)}>{b.keepPlan}</button>
                     <button className="btn-danger solid" type="button" disabled={pending} onClick={() => setCanceled(true)}>{b.cancelPlan}</button>

@@ -40,8 +40,9 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
     <>
       <aside className={`admin-sidebar${collapsed ? " collapsed" : ""}${mobileOpen ? " mobile-open" : ""}`} suppressHydrationWarning>
         <div className="admin-sidebar-brand">
-          <span className="admin-sidebar-brand-mark">T</span>
-          {!collapsed ? <span className="admin-sidebar-brand-text">Taysonsta BOS</span> : null}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/brand/yolias-mark.png" alt="" width={26} height={28} />
+          {!collapsed ? <span className="admin-sidebar-brand-text">YOLIAS <span className="admin-sidebar-brand-badge">Admin</span></span> : null}
         </div>
 
         <nav className="admin-sidebar-nav" style={{ gap: 2 }}>
