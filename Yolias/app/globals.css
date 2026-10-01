@@ -1313,3 +1313,148 @@ html[lang="ar"] .error-main h1 { letter-spacing: 0; }
 .error-main p { max-width: 480px; margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.65; }
 .error-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
 .error-actions .btn-primary, .error-actions .btn-secondary { height: 38px; padding: 0 16px; font-size: .84rem; }
+
+/* ================= YOLIAS THINKING (animated mark) ================= */
+.yolias-mark { display: inline-block; flex-shrink: 0; fill: var(--red); overflow: visible; }
+.yolias-mark polygon, .yolias-mark circle { transform-box: fill-box; transform-origin: center; }
+.yolias-mark.thinking { animation: mark-turn 2.4s cubic-bezier(.65, 0, .35, 1) infinite; }
+.yolias-mark.thinking polygon { animation: mark-segment 0.96s ease-in-out infinite; }
+.yolias-mark.thinking circle { animation: mark-core 1.2s ease-in-out infinite; }
+@keyframes mark-turn { 0%, 20% { transform: rotate(0deg); } 50%, 70% { transform: rotate(60deg); } 100% { transform: rotate(120deg); } }
+@keyframes mark-segment { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .28; transform: scale(.82); } }
+@keyframes mark-core { 0%, 100% { transform: scale(1); } 50% { transform: scale(.62); } }
+.yolias-thinking { display: flex; align-items: center; gap: 10px; padding: 6px 2px; font-size: .9rem; color: var(--muted); }
+.shimmer-text {
+  background: linear-gradient(90deg, var(--muted) 0%, var(--muted) 40%, var(--ink) 50%, var(--muted) 60%, var(--muted) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 2.2s linear infinite;
+}
+[dir="rtl"] .shimmer-text { animation-direction: reverse; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+.composer-thinking { width: 100%; max-width: 720px; margin: 18px auto 0; }
+.artifact-status .yolias-mark { width: 14px; height: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .yolias-mark.thinking, .yolias-mark.thinking polygon, .yolias-mark.thinking circle, .shimmer-text { animation: none; }
+}
+
+/* ================= EMAIL PREVIEW (dev only) ================= */
+.email-preview { display: grid; grid-template-columns: 220px 1fr; height: 100vh; background: var(--soft); }
+.email-preview aside { display: flex; flex-direction: column; gap: 2px; padding: 20px 12px; border-inline-end: 1px solid var(--line); background: var(--sidebar-bg); }
+.email-preview aside strong { padding: 0 10px 10px; font-size: .9rem; }
+.email-preview aside a { padding: 7px 10px; border-radius: 7px; font-size: .84rem; color: var(--text-2); text-transform: capitalize; }
+.email-preview aside a:hover { background: var(--hover); }
+.email-preview aside a.active { background: var(--hover); color: var(--ink); font-weight: 600; }
+.email-preview-langs { display: flex; gap: 4px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.email-preview main { display: flex; flex-direction: column; padding: 20px; gap: 12px; min-height: 0; }
+.email-preview-subject { font-size: .86rem; color: var(--muted); }
+.email-preview-subject b { color: var(--ink); }
+.email-preview iframe { flex: 1; width: 100%; max-width: 720px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+
+/* ================= INVOICE (printable) ================= */
+.invoice-page { height: 100vh; overflow-y: auto; padding: 24px 16px 64px; background: var(--soft); }
+.invoice-toolbar { display: flex; align-items: center; justify-content: space-between; max-width: 760px; margin: 0 auto 16px; }
+.invoice-back { display: inline-flex; align-items: center; gap: 6px; font-size: .84rem; font-weight: 600; color: var(--muted); }
+.invoice-back:hover { color: var(--ink); }
+.invoice-back svg, .invoice-print svg { width: 15px; height: 15px; }
+.invoice-print { gap: 6px; font-size: .8rem; }
+.invoice-sheet { position: relative; max-width: 760px; margin: 0 auto; padding: 56px 56px 40px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); }
+.invoice-test { position: absolute; top: 0; inset-inline: 0; padding: 6px; border-radius: 12px 12px 0 0; background: var(--red-soft); color: var(--red); font-size: .72rem; font-weight: 700; text-align: center; letter-spacing: .04em; }
+.invoice-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.invoice-head h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; }
+.invoice-meta { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin-top: 22px; font-size: .86rem; }
+.invoice-meta dt { color: var(--muted); }
+.invoice-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 36px; font-size: .86rem; line-height: 1.6; }
+.invoice-parties > div { display: flex; flex-direction: column; }
+.invoice-parties span { color: var(--text-2); }
+.invoice-label { color: var(--muted) !important; font-weight: 600; margin-bottom: 2px; }
+.invoice-amount { margin-top: 36px; font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; }
+.invoice-lines { width: 100%; margin-top: 28px; border-collapse: collapse; font-size: .86rem; }
+.invoice-lines th { padding: 0 0 8px; border-bottom: 1px solid var(--ink); color: var(--muted); font-size: .76rem; font-weight: 600; text-align: end; }
+.invoice-lines th:first-child, .invoice-lines td:first-child { text-align: start; }
+.invoice-lines td { padding: 14px 0; border-bottom: 1px solid var(--line); text-align: end; vertical-align: top; }
+.invoice-lines td small { display: block; margin-top: 2px; color: var(--muted); font-size: .76rem; }
+.invoice-totals { display: grid; grid-template-columns: 1fr auto; gap: 0 32px; width: min(100%, 320px); margin-inline-start: auto; margin-top: 12px; font-size: .86rem; }
+.invoice-totals dt, .invoice-totals dd { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.invoice-totals dd { text-align: end; }
+.invoice-totals .strong { font-weight: 700; }
+.invoice-foot { margin-top: 48px; color: var(--muted); font-size: .76rem; }
+@media (max-width: 640px) {
+  .invoice-sheet { padding: 40px 20px 28px; }
+  .invoice-parties { grid-template-columns: 1fr; }
+}
+@media print {
+  html, body { overflow: visible !important; height: auto !important; }
+  .invoice-page { height: auto; overflow: visible; padding: 0; background: #fff; }
+  .invoice-toolbar { display: none; }
+  .invoice-sheet { border: 0; border-radius: 0; padding: 0; max-width: none; --ink: #141413; --muted: #747470; --line: #e5e5e0; --paper: #fff; --text-2: #5d5d59; --red-soft: #fff6f5; }
+}
+
+/* ================= TOASTS ================= */
+.toast-region { position: fixed; bottom: 24px; inset-inline: 0; z-index: 400; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; max-width: min(440px, calc(100vw - 32px));
+  padding: 10px 10px 10px 14px; padding-inline: 14px 10px; border-radius: 10px;
+  background: #1f1f1e; color: #f5f5f2; font-size: .86rem; line-height: 1.4;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12);
+  pointer-events: auto; animation: toast-in .22s cubic-bezier(.2,.9,.3,1.2);
+}
+html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37; }
+.toast > svg { width: 17px; height: 17px; flex-shrink: 0; color: #4ade80; }
+.toast.error > svg { color: #f87171; }
+.toast span { flex: 1; }
+.toast button { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: #a8a8a2; cursor: pointer; }
+.toast button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.toast button svg { width: 14px; height: 14px; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* ================= SETTINGS: usage, billing, notifications, integrations (Claude-style) ================= */
+.setting-intro { font-size: .8rem; line-height: 1.55; color: var(--muted); margin-bottom: 6px; }
+.usage-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line-setting); }
+.usage-meter { padding-top: 18px; }
+.usage-meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.usage-meter-label { font-size: .84rem; font-weight: 600; }
+.usage-meter-value { font-size: .8rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.usage-meter .progress-track { height: 6px; margin-top: 10px; }
+.usage-meter-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 10px; font-size: .74rem; line-height: 1.45; color: var(--muted); }
+.usage-meter-foot span:last-child { flex-shrink: 0; }
+
+.billing { display: flex; flex-direction: column; }
+.billing-plan { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; }
+.billing-plan-icon { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); flex-shrink: 0; }
+.billing-plan-main { flex: 1; min-width: 0; }
+.billing-plan-name { display: flex; align-items: center; gap: 8px; font-size: .95rem; font-weight: 600; }
+.billing-plan-sub { margin-top: 2px; font-size: .78rem; line-height: 1.5; color: var(--muted); }
+.billing-section { padding: 18px 0; border-top: 1px solid var(--line-setting); }
+.billing-section h4 { font-size: .84rem; font-weight: 600; margin-bottom: 10px; }
+.billing-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.billing-row-text { font-size: .8rem; color: var(--text-2); line-height: 1.5; }
+.billing-card { display: flex; align-items: center; gap: 10px; font-size: .8rem; color: var(--text-2); }
+.billing-card svg { width: 18px; height: 18px; color: var(--muted); }
+.billing-empty { font-size: .8rem; color: var(--muted); }
+.billing-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.billing-table th { padding: 0 0 8px; text-align: start; font-size: .72rem; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line-setting); }
+.billing-table td { padding: 10px 0; border-bottom: 1px solid var(--line-setting); }
+.billing-table tr:last-child td { border-bottom: 0; }
+.billing-actions { text-align: end; }
+.billing-actions a { font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+.billing-actions a:hover { text-decoration-color: var(--ink); }
+.status-pill { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: .7rem; font-weight: 600; background: var(--green-soft); color: var(--green); }
+.status-pill.open { background: var(--blue-soft); color: var(--blue); }
+.status-pill.void { background: var(--hover); color: var(--muted); }
+.billing-test { margin-inline-start: 6px; font-size: .68rem; color: var(--muted); }
+.billing-confirm { padding: 14px; border: 1px solid var(--danger-line); border-radius: 10px; background: var(--danger-soft); }
+.billing-confirm p { font-size: .8rem; line-height: 1.55; color: var(--text-3); }
+.billing-confirm > div { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.btn-danger-ghost { padding: 7px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--danger-text); font-size: .76rem; font-weight: 600; cursor: pointer; }
+.btn-danger-ghost:hover { border-color: var(--danger-line); background: var(--danger-soft); }
+
+.connector-list { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.connector { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.connector + .connector { border-top: 1px solid var(--line-setting); }
+.connector-icon { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: #fff; flex-shrink: 0; }
+.connector-main { flex: 1; min-width: 0; }
+.connector-name { font-size: .86rem; font-weight: 600; }
+.connector-desc { margin-top: 2px; font-size: .76rem; line-height: 1.45; color: var(--muted); }
+.connector-note { margin-top: 12px; }
+.billing-row > button, .billing-row > a, .billing-plan > a, .usage-head > a { white-space: nowrap; flex-shrink: 0; }

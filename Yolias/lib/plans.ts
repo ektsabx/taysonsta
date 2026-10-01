@@ -1,32 +1,35 @@
-import type { Dictionary } from "@/lib/i18n/config";
+import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
+import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
-// Plans from the Yolias pricing page. Every plan has the same features and
-// unlimited users; they differ only in monthly discovery usage. The usage
-// numbers are the product's quotas — adjust them here.
-export const plans: Record<Plan, { label: string; name: string; priceUsd: number; prospectCredits: number; companyLookups: number }> = {
-  free: { label: "Free", name: "Yolias Free", priceUsd: 0, prospectCredits: 50, companyLookups: 20 },
-  pro: { label: "Pro", name: "Yolias Pro", priceUsd: 20, prospectCredits: 1000, companyLookups: 200 },
-  growth: { label: "Growth", name: "Yolias Growth", priceUsd: 50, prospectCredits: 3000, companyLookups: 600 },
-  scale: { label: "Scale", name: "Yolias Scale", priceUsd: 100, prospectCredits: 8000, companyLookups: 1500 },
+// Plans from the Yolias pricing page: Free, Pro and Growth. Every plan has
+// the same features and unlimited users; they differ only in how many
+// prospects Yolias delivers per month. One prospect = one target decision
+// maker discovered with verified email, company data and direct
+// phone/WhatsApp. That is the only thing usage counts.
+export const plans: Record<Plan, { priceUsd: number; prospects: number }> = {
+  free: { priceUsd: 0, prospects: 50 },
+  pro: { priceUsd: 20, prospects: 1000 },
+  growth: { priceUsd: 50, prospects: 3000 },
 };
 
-export const paidPlans: PaidPlan[] = ["pro", "growth", "scale"];
+export const allPlans: Plan[] = ["free", "pro", "growth"];
+export const paidPlans: PaidPlan[] = ["pro", "growth"];
 
-/** Localized "Yolias Growth" / "يولـياس للنمو". */
+/** Localized plan name: "Free" / "Yolias Pro" / "Yolias Growth". */
 export function planName(plan: Plan, t: Dictionary): string {
   return t.plans[plan];
 }
 
 /** Short badge label: "Growth" / "نمو". */
 export function planLabel(plan: Plan, t: Dictionary): string {
-  const key = { free: "labelFree", pro: "labelPro", growth: "labelGrowth", scale: "labelScale" } as const;
+  const key = { free: "labelFree", pro: "labelPro", growth: "labelGrowth" } as const;
   return t.plans[key[plan]];
 }
 
-export function planUsage(plan: PaidPlan, t: Dictionary): string {
-  const key = { pro: "usagePro", growth: "usageGrowth", scale: "usageScale" } as const;
-  return t.plans[key[plan]];
+/** "1,000 prospects / month" */
+export function planUsage(plan: Plan, t: Dictionary, locale: Locale): string {
+  return fmt(t.plans.prospectsPerMonth, { count: formatNumber(plans[plan].prospects, locale) });
 }
 
 /** A workspace has chosen a plan (paid, test, or — if offered later — free). */
@@ -36,6 +39,10 @@ export function hasActivePlan(ws: Pick<WorkspaceRow, "subscription_status">): bo
 
 export function isPaidPlan(v: unknown): v is PaidPlan {
   return typeof v === "string" && (paidPlans as string[]).includes(v);
+}
+
+export function isPlan(v: unknown): v is Plan {
+  return typeof v === "string" && (allPlans as string[]).includes(v);
 }
 
 /** Cookies remembering the plan and billing period picked on /pricing before signup. */

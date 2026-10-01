@@ -49,7 +49,7 @@ export default async function AboutPage() {
         <div className="site-width split">
           <h3>{c.makerTitle}</h3>
           <div>
-            <p className="text-[1.02rem] leading-8 text-neutral-700">{c.maker}</p>
+            <p className="text-[1.02rem] leading-8 text-[var(--text-2)]">{c.maker}</p>
             <a className="btn-ghost mt-5" href="https://taysonsta.com" target="_blank" rel="noopener noreferrer">{c.makerLink}<ArrowUpRight /></a>
           </div>
         </div>

@@ -4,6 +4,15 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useI18n } from "@/lib/i18n/client";
 
+// Official Yolias accounts.
+const socials = [
+  { label: "Facebook", href: "https://www.facebook.com/yoliasai", Icon: FacebookIcon },
+  { label: "Instagram", href: "https://www.instagram.com/yolias.ai", Icon: InstagramIcon },
+  { label: "TikTok", href: "https://www.tiktok.com/@yolias.ai", Icon: TiktokIcon },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/yolias.ai", Icon: LinkedinIcon },
+  { label: "X", href: "https://x.com/yolias.ai", Icon: XIcon },
+];
+
 // Footer shared by every public page (from the pricing design).
 export function SiteFooter() {
   const { t } = useI18n();
@@ -48,14 +57,9 @@ export function SiteFooter() {
             </Link>
             <p className="mt-4 max-w-[240px] text-sm leading-6 text-neutral-300">{s.tagline}</p>
             <div className="mt-4 flex items-center gap-4" aria-label={s.social}>
-              <a className="footer-link focus-ring rounded" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><InstagramIcon /></a>
-              <a className="footer-link focus-ring rounded" href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedinIcon /></a>
-              <a className="footer-link focus-ring rounded" href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.6 22H2.4l7.3-8.4L1.9 2h6.5l4.5 6.9L18.9 2Zm-1.1 18h1.7L7.4 3.9H5.6L17.8 20Z" />
-                </svg>
-              </a>
-              <a className="footer-link focus-ring rounded" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FacebookIcon /></a>
+              {socials.map(({ label, href, Icon }) => (
+                <a key={label} className="footer-link focus-ring rounded" href={href} target="_blank" rel="noopener noreferrer" aria-label={label}><Icon /></a>
+              ))}
             </div>
           </div>
           {columns.map((col) => (
@@ -103,6 +107,22 @@ function FacebookIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function TiktokIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .8.1V9.1a6.4 6.4 0 1 0 5.5 6.3V8.6a8 8 0 0 0 4.7 1.5V6.7a4.7 4.7 0 0 1-4.7-4.7Z" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.6 22H2.4l7.3-8.4L1.9 2h6.5l4.5 6.9L18.9 2Zm-1.1 18h1.7L7.4 3.9H5.6L17.8 20Z" />
     </svg>
   );
 }

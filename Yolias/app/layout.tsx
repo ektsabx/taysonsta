@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { isThemePref, THEME_COOKIE, themeScript } from "@/lib/theme";
 import { DM_Sans, Noto_Kufi_Arabic, Source_Serif_4 } from "next/font/google";
 import { getSession } from "@/lib/session";
 import { dirOf } from "@/lib/i18n/config";
@@ -15,12 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.meta.title, description: t.meta.description };
 }
 
-// Resolves "system" to light/dark before paint (no theme flash).
-const themeScript = `(function(){try{var d=document.documentElement;var p=d.getAttribute('data-theme-pref')||'system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [session, locale] = await Promise.all([getSession(), getLocale()]);
-  const theme = session?.profile.theme ?? "system";
+  const cookieTheme = (await cookies()).get(THEME_COOKIE)?.value;
+  // One theme for every page: profile → last choice on this browser → system.
+  const theme = session?.profile.theme ?? (isThemePref(cookieTheme) ? cookieTheme : "system");
   const textSize = session?.profile.text_size ?? "normal";
 
   return (

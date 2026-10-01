@@ -44,9 +44,9 @@ export default async function HomePage() {
                   <span className="btn-send"><ArrowUp /></span>
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e5e5e0] bg-[#fafaf9] p-4">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--soft)] p-4">
                 <div className="flex items-center gap-2 text-[.78rem] font-bold uppercase text-[#10b981]"><CheckCircle2 width={16} height={16} />{c.preview.status}</div>
-                <span className="text-[.76rem] font-semibold text-neutral-500">{c.preview.note}</span>
+                <span className="text-[.76rem] font-semibold text-[var(--muted)]">{c.preview.note}</span>
                 <div className="w-full">{c.preview.chips.map((ch, i) => <span key={ch} className={`chip${i === c.preview.chips.length - 1 ? " red" : ""}`}>{ch}</span>)}</div>
               </div>
             </div>

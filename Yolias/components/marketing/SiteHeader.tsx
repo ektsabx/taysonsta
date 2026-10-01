@@ -37,22 +37,20 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
         </div>
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageMenu />
-          {!signedIn && <Link className="nav-link focus-ring rounded" href="/login">{s.signIn}</Link>}
           <Link className="nav-cta focus-ring" href={cta}>{s.tryYolias}</Link>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
           <LanguageMenu />
-          <button className="focus-ring rounded border border-neutral-300 p-2 text-neutral-800" type="button" aria-label={s.menu} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <button className="focus-ring rounded border border-[var(--line)] p-2 text-[var(--ink)]" type="button" aria-label={s.menu} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
             <Menu width={20} height={20} />
           </button>
         </div>
       </nav>
-      <div className={`mobile-menu border-t border-neutral-200 bg-white lg:hidden${open ? " open" : ""}`}>
+      <div className={`mobile-menu border-t border-[var(--line)] bg-[var(--paper)] lg:hidden${open ? " open" : ""}`}>
         <div className="site-width flex flex-col gap-1 py-4">
           {links.map((l) => (
             <Link key={l.href} className="nav-link focus-ring rounded py-2" href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
           ))}
-          {!signedIn && <Link className="nav-link focus-ring rounded py-2" href="/login">{s.signIn}</Link>}
           <Link className="nav-cta focus-ring mt-2" href={cta}>{s.tryYolias}</Link>
         </div>
       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { History, MoreHorizontal, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import { deleteStrategy, pinStrategy, renameStrategy } from "@/app/(app)/actions";
+import { useToast } from "@/components/Toast";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -20,6 +21,7 @@ export function StrategyNavItem({ id, title, pinned, active }: Props) {
   const { t } = useI18n();
   const n = t.nav;
   const router = useRouter();
+  const toast = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -44,7 +46,8 @@ export function StrategyNavItem({ id, title, pinned, active }: Props) {
     const next = draft.trim();
     if (!next || next === title) return setDraft(title);
     start(async () => {
-      await renameStrategy(id, next);
+      const r = await renameStrategy(id, next);
+      toast(r.ok ? t.toast.renamed : t.toast.failed, r.ok ? "success" : "error");
       router.refresh();
     });
   };
@@ -52,8 +55,9 @@ export function StrategyNavItem({ id, title, pinned, active }: Props) {
   const remove = () => {
     setConfirming(false);
     start(async () => {
-      await deleteStrategy(id);
-      if (active) router.push("/");
+      const r = await deleteStrategy(id);
+      toast(r.ok ? t.toast.deleted : t.toast.failed, r.ok ? "success" : "error");
+      if (r.ok && active) router.push("/");
       router.refresh();
     });
   };
@@ -94,7 +98,7 @@ export function StrategyNavItem({ id, title, pinned, active }: Props) {
           </button>
           {menuOpen && (
             <div className="item-menu" role="menu">
-              <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuOpen(false); start(async () => { await pinStrategy(id, !pinned); router.refresh(); }); }}>
+              <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuOpen(false); start(async () => { const r = await pinStrategy(id, !pinned); toast(!r.ok ? t.toast.failed : pinned ? t.toast.unpinned : t.toast.pinned, r.ok ? "success" : "error"); router.refresh(); }); }}>
                 {pinned ? <PinOff /> : <Pin />}
                 <span>{pinned ? n.unpin : n.pin}</span>
               </button>

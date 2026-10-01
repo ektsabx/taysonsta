@@ -72,7 +72,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
-            "**Choose a plan.** Pick Pro, Growth or Scale and a monthly or annual period.",
+            "**Choose a plan.** Start on Free, or pick Pro or Growth with a monthly or annual period.",
             "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every strategy, so be specific about the problem you solve.",
             "**Write your first strategy.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
@@ -85,7 +85,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
-            "**اختر خطة.** اختر برو أو النمو أو التوسع وفترة شهرية أو سنوية.",
+            "**اختر خطة.** ابدأ بالخطة المجانية، أو اختر برو أو النمو بفترة شهرية أو سنوية.",
             "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل استراتيجية، فكن محددًا في وصف المشكلة التي تحلها.",
             "**اكتب أول استراتيجية.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },
@@ -352,12 +352,13 @@ export const docs: DocPage[] = [
         title: "Plans and usage",
         summary: "Monthly limits per plan and how they are counted.",
         blocks: [
-          { table: { head: ["Plan", "Monthly price", "Discovery credits", "Company lookups"], rows: [
-            ["Pro", "$20", "1,000", "200"], ["Growth", "$50", "3,000", "600"], ["Scale", "$100", "8,000", "1,500"],
+          { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
+            ["Free", "$0", "50"], ["Pro", "$20", "1,000"], ["Growth", "$50", "3,000"],
           ] } },
           { ul: [
-            "One discovery credit is used for each decision maker a campaign delivers.",
-            "One company lookup is used for each company added to a campaign.",
+            "Plans count prospects only. One prospect is one target decision maker delivered with verified email, company data and direct phone/WhatsApp.",
+            "Companies, searches and AI work are not counted.",
+            "When the month’s prospects are used up, discovery pauses until the reset or an upgrade.",
             "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
             "Annual billing costs twelve times the monthly price.",
           ] },
@@ -368,12 +369,13 @@ export const docs: DocPage[] = [
         title: "الخطط والاستخدام",
         summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
         blocks: [
-          { table: { head: ["الخطة", "السعر الشهري", "رصيد الاكتشاف", "عمليات البحث عن الشركات"], rows: [
-            ["برو", "$20", "1,000", "200"], ["النمو", "$50", "3,000", "600"], ["التوسع", "$100", "8,000", "1,500"],
+          { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
+            ["المجانية", "$0", "50"], ["برو", "$20", "1,000"], ["النمو", "$50", "3,000"],
           ] } },
           { ul: [
-            "يُستهلك رصيد اكتشاف واحد لكل صانع قرار تسلّمه الحملة.",
-            "تُستهلك عملية بحث واحدة لكل شركة تُضاف إلى حملة.",
+            "تُحسب الخطط بالعملاء المحتملين فقط. العميل المحتمل هو صانع قرار مستهدف واحد يُسلَّم مع بريد موثّق وبيانات الشركة وهاتف/واتساب مباشر.",
+            "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
+            "عند استخدام كل العملاء المحتملين للشهر، يتوقف الاكتشاف حتى التجديد أو الترقية.",
             "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",
             "الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري.",
           ] },

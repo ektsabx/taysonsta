@@ -8,22 +8,24 @@ import { formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor } from "@/lib/plans";
-import type { BillingPeriod } from "@/types/database";
+import type { BillingPeriod, Plan } from "@/types/database";
 
 type PricingCopy = Dictionary["pricing"];
-type PlanId = "pro" | "growth" | "scale";
+type PlanId = Plan;
 
 // Features that apply to Yolias today (customer discovery). Outreach, CRM and
 // support items from the original design were removed on purpose.
+const tiers: PlanId[] = ["free", "pro", "growth"];
+
 const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "automations", "analytics", "integrations", "unlimitedUsers"] as const;
 
 interface Props {
   signedIn: boolean;
-  /** Monthly quotas and price per plan (lib/plans.ts). */
-  usage: Record<PlanId, { credits: number; lookups: number; price: number }>;
+  /** Monthly price and prospects per plan (lib/plans.ts). */
+  plans: Record<PlanId, { priceUsd: number; prospects: number }>;
 }
 
-export function PricingView({ signedIn, usage }: Props) {
+export function PricingView({ signedIn, plans }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
@@ -31,15 +33,15 @@ export function PricingView({ signedIn, usage }: Props) {
 
   // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
   const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;
-  const card = (plan: PlanId, usageLabel: string, recommended?: string) => (
+  const card = (plan: PlanId, recommended?: string) => (
     <PlanCard
       t={t}
       name={planName(plan, dict)}
-      price={`$${n(priceFor(usage[plan].price, period))}`}
-      note={period === "annual" ? t.perYear : t.perMonth}
-      usage={usageLabel}
+      price={`$${n(priceFor(plans[plan].priceUsd, period))}`}
+      note={plan === "free" ? t.freeForever : period === "annual" ? t.perYear : t.perMonth}
+      usage={fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
       href={href(plan)}
-      cta={t.tryYolias}
+      cta={plan === "free" ? t.startFree : t.tryYolias}
       recommended={recommended}
     />
   );
@@ -63,31 +65,30 @@ export function PricingView({ signedIn, usage }: Props) {
         </div>
       </section>
 
-      <section className="bg-white py-16 lg:py-20">
+      <section className="bg-[var(--paper)] py-16 lg:py-20">
         <div className="site-width">
           <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
-            {card("pro", dict.plans.usagePro)}
-            {card("growth", dict.plans.usageGrowth, dict.plans.recommended)}
-            {card("scale", dict.plans.usageScale)}
+            {card("free")}
+            {card("pro")}
+            {card("growth", dict.plans.recommended)}
           </div>
+          <p className="prospect-note">{dict.plans.prospectDef}</p>
         </div>
       </section>
 
-      <section id="compare" className="border-t border-neutral-200 bg-[#f7f7f5] py-20 lg:py-28">
+      <section id="compare" className="border-t border-[var(--line)] bg-[var(--soft)] py-20 lg:py-28">
         <div className="site-width">
           <div className="max-w-2xl">
             <p className="eyebrow">{t.comparisonEyebrow}</p>
             <h2 className="display-font mt-4 text-[clamp(2.45rem,5vw,4.2rem)] font-semibold leading-[1.04] tracking-[-.05em]">{t.comparisonTitle}</h2>
-            <p className="mt-5 max-w-xl text-[1.03rem] leading-8 text-neutral-600">{t.comparisonCopy}</p>
+            <p className="mt-5 max-w-xl text-[1.03rem] leading-8 text-[var(--muted)]">{t.comparisonCopy}</p>
           </div>
           <div className="comparison-wrap mt-11">
             <table className="comparison-table">
               <thead>
                 <tr>
                   <th>{t.feature}</th>
-                  <th>{planName("pro", dict)}</th>
-                  <th>{planName("growth", dict)}</th>
-                  <th>{planName("scale", dict)}</th>
+                  {tiers.map((p) => <th key={p}>{planName(p, dict)}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -102,16 +103,12 @@ export function PricingView({ signedIn, usage }: Props) {
                 ))}
                 <tr className="section-row"><td colSpan={4}>{t.usageCapacity}</td></tr>
                 <tr>
-                  <td>{t.usageCredits}</td>
-                  <td>{n(usage.pro.credits)}</td>
-                  <td>{n(usage.growth.credits)}</td>
-                  <td>{n(usage.scale.credits)}</td>
+                  <td>{t.usageProspects}<small className="cell-note">{dict.plans.prospectDef}</small></td>
+                  {tiers.map((p) => <td key={p}>{n(plans[p].prospects)}</td>)}
                 </tr>
                 <tr>
-                  <td>{t.usageLookups}</td>
-                  <td>{n(usage.pro.lookups)}</td>
-                  <td>{n(usage.growth.lookups)}</td>
-                  <td>{n(usage.scale.lookups)}</td>
+                  <td>{t.price}</td>
+                  {tiers.map((p) => <td key={p} dir="ltr" className="text-start">${n(priceFor(plans[p].priceUsd, period))}</td>)}
                 </tr>
               </tbody>
             </table>
@@ -119,7 +116,7 @@ export function PricingView({ signedIn, usage }: Props) {
         </div>
       </section>
 
-      <section id="faq" className="bg-white py-20 lg:py-28">
+      <section id="faq" className="bg-[var(--paper)] py-20 lg:py-28">
         <div className="site-width max-w-[900px]">
           <div className="text-center">
             <p className="eyebrow">{t.faqEyebrow}</p>
@@ -157,9 +154,9 @@ function PlanCard({ t, name, price, note, usage, href, cta, recommended }: {
       <p className="price-note">{note}</p>
       <div className="plan-divider" />
       <ul className="plan-list">
+        <li><Check width={17} height={17} /><span><strong>{usage}</strong></span></li>
         <li><Check width={17} height={17} /><span>{t.sameFeatures}</span></li>
         <li><Check width={17} height={17} /><span>{t.unlimitedUsers}</span></li>
-        <li><Check width={17} height={17} /><span>{usage}</span></li>
       </ul>
       <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{cta}</Link>
     </article>
@@ -197,7 +194,7 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
   return (
     <div className="form-panel p-6 sm:p-8">
       <h3 className="text-2xl font-bold tracking-[-.035em]">{t.formTitle}</h3>
-      <p className="mt-2 text-sm leading-6 text-neutral-500">{t.formIntro}</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{t.formIntro}</p>
       <form
         className="mt-6 space-y-4"
         noValidate

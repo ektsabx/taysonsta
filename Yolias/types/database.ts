@@ -11,7 +11,7 @@ type Table<Row, Required extends keyof Row, Rel = []> = {
 };
 
 export type WorkspaceRole = "owner" | "admin" | "member";
-export type Plan = "free" | "pro" | "growth" | "scale";
+export type Plan = "free" | "pro" | "growth";
 export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
@@ -31,6 +31,7 @@ export type WorkspaceRow = {
   subscription_status: SubscriptionStatus;
   current_period_end: string | null;
   billing_period: BillingPeriod;
+  cancel_at_period_end: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -66,6 +67,9 @@ export type ProfileRow = {
   timezone: string;
   country: string;
   notify_campaign_done: boolean;
+  notify_usage: boolean;
+  notify_billing: boolean;
+  notify_product: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -161,12 +165,29 @@ export type ProspectRow = {
 export type SubscriptionEventRow = {
   id: string;
   workspace_id: string;
-  plan: PaidPlan;
-  status: "activated" | "changed" | "canceled";
+  plan: Plan;
+  status: "activated" | "changed" | "canceled" | "resumed" | "ended";
   amount_usd: number;
   mode: "test" | "live";
   billing_period: BillingPeriod;
   created_by: string | null;
+  created_at: string;
+};
+
+export type InvoiceRow = {
+  id: string;
+  workspace_id: string;
+  number: string;
+  plan: PaidPlan;
+  billing_period: BillingPeriod;
+  amount_usd: number;
+  status: "paid" | "open" | "void";
+  mode: "test" | "live";
+  period_start: string;
+  period_end: string;
+  bill_to_name: string | null;
+  bill_to_email: string;
+  bill_to_company: string | null;
   created_at: string;
 };
 
@@ -195,6 +216,7 @@ export interface Database {
       companies: Table<CompanyRow, "workspace_id" | "campaign_id" | "name" | "source">;
       prospects: Table<ProspectRow, "workspace_id" | "campaign_id" | "full_name" | "source">;
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
+      invoices: Table<InvoiceRow, "workspace_id" | "plan" | "billing_period" | "amount_usd" | "mode" | "period_start" | "period_end" | "bill_to_email">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount_usd" | "mode">;
     };
     Views: { [_ in never]: never };

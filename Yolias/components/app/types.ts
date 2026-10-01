@@ -9,19 +9,20 @@ export interface ShellData {
     avatarUrl: string | null;
     initials: string;
   };
-  preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done">;
+  preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product">;
   workspace: {
     name: string;
     plan: Plan;
     priceUsd: number;
-    prospectCredits: number;
-    companyLookups: number;
+    prospects: number;
     subscriptionStatus: SubscriptionStatus;
     periodEnd: string | null;
     billingPeriod: BillingPeriod;
+    cancelAtPeriodEnd: boolean;
   };
   role: WorkspaceRole;
-  usage: { prospects: number; companies: number; resetsAt: string };
+  usage: { prospects: number; resetsAt: string };
+  invoices: { id: string; number: string; date: string; amountUsd: number; status: "paid" | "open" | "void"; test: boolean }[];
   team: {
     members: { user_id: string; role: WorkspaceRole; name: string; email: string; avatarUrl: string | null; initials: string }[];
     invitations: { id: string; email: string; role: string }[];
@@ -30,6 +31,6 @@ export interface ShellData {
   device: { label: string; ip: string | null };
 }
 
-export type SettingsTab = "general" | "account" | "usage" | "billing" | "team" | "integration";
+export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";

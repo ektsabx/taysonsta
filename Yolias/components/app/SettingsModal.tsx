@@ -2,20 +2,23 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, CreditCard, Plug, Plus, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, CreditCard, Plug, Plus, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planLabel } from "@/lib/plans";
+import { planName } from "@/lib/plans";
+import { useToast } from "@/components/Toast";
+import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./ConnectorIcons";
 import {
-  deleteAccount, inviteMember, removeMember, revokeInvitation, setAvatar, signOut, updatePreferences, type ActionResult,
+  deleteAccount, inviteMember, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import type { SettingsTab, ShellData } from "./types";
 
 const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
   { tab: "account", icon: User },
+  { tab: "notifications", icon: Bell },
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
   { tab: "team", icon: Users },
@@ -61,6 +64,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
           <div className="modal-body-scroll">
             {tab === "general" && <GeneralTab data={data} />}
             {tab === "account" && <AccountTab data={data} />}
+            {tab === "notifications" && <NotificationsTab data={data} />}
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
@@ -153,12 +157,6 @@ function GeneralTab({ data }: { data: ShellData }) {
           <option value="EG">{g.eg}</option>
           <option value="GB">{g.gb}</option>
         </select>
-      </SettingRow>
-      <SettingRow label={g.notifications} desc={g.notificationsDesc}>
-        <label className="switch">
-          <input type="checkbox" checked={prefs.notify_campaign_done} onChange={(e) => change("notify_campaign_done", e.target.checked)} />
-          <span className="slider" />
-        </label>
       </SettingRow>
       {error && <p className="form-error">{error}</p>}
     </div>
@@ -289,6 +287,41 @@ function AccountTab({ data }: { data: ShellData }) {
   );
 }
 
+/* ─────────────── Notifications ─────────────── */
+
+function NotificationsTab({ data }: { data: ShellData }) {
+  const { t } = useI18n();
+  const nt = t.settings.notifications;
+  const [prefs, setPrefs] = useState(data.preferences);
+  const { error, run } = useSave();
+  const items = [
+    { key: "notify_campaign_done", label: nt.discovery, desc: nt.discoveryDesc },
+    { key: "notify_usage", label: nt.usage, desc: nt.usageDesc },
+    { key: "notify_billing", label: nt.billing, desc: nt.billingDesc },
+    { key: "notify_product", label: nt.product, desc: nt.productDesc },
+  ] as const;
+
+  const toggle = (key: (typeof items)[number]["key"], value: boolean) => {
+    setPrefs((p) => ({ ...p, [key]: value }));
+    run(() => updatePreferences({ [key]: value }));
+  };
+
+  return (
+    <div className="setting-group">
+      <p className="setting-intro">{fmt(nt.intro, { email: data.user.email })}</p>
+      {items.map((it) => (
+        <SettingRow key={it.key} label={it.label} desc={it.desc}>
+          <label className="switch">
+            <input type="checkbox" checked={prefs[it.key]} onChange={(e) => toggle(it.key, e.target.checked)} aria-label={it.label} />
+            <span className="slider" />
+          </label>
+        </SettingRow>
+      ))}
+      {error && <p className="form-error">{error}</p>}
+    </div>
+  );
+}
+
 /* ─────────────── Usage ─────────────── */
 
 function UsageTab({ data }: { data: ShellData }) {
@@ -296,30 +329,29 @@ function UsageTab({ data }: { data: ShellData }) {
   const u = t.settings.usage;
   const { usage, workspace } = data;
   const n = (v: number) => formatNumber(v, locale);
-  const pct = (used: number, total: number) => `${Math.min(100, total ? (used / total) * 100 : 0).toFixed(1)}%`;
+  const pct = Math.min(100, workspace.prospects ? (usage.prospects / workspace.prospects) * 100 : 0);
   return (
     <div className="setting-group">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-        <div className="setting-label">{u.quota}</div>
-        <span className="setting-hint">{fmt(u.resets, { date: formatDate(usage.resetsAt, locale, "UTC") })}</span>
+      <div className="usage-head">
+        <div>
+          <div className="setting-label">{u.title}</div>
+          <div className="setting-desc">{fmt(u.planLine, { plan: planName(workspace.plan, t) })}</div>
+        </div>
+        {workspace.plan !== "growth" && (data.role === "owner" || data.role === "admin") && (
+          <a className="btn-secondary" href="/checkout">{u.upgrade}</a>
+        )}
       </div>
 
-      <div className="usage-card">
-        <div className="usage-card-head">
-          <span>{u.credits}</span>
-          <span>{fmt(u.creditsValue, { used: n(usage.prospects), total: n(workspace.prospectCredits) })}</span>
+      <div className="usage-meter">
+        <div className="usage-meter-row">
+          <span className="usage-meter-label">{u.prospects}</span>
+          <span className="usage-meter-value">{fmt(u.value, { used: n(usage.prospects), total: n(workspace.prospects) })}</span>
         </div>
-        <div className="progress-track"><div className="progress-fill" style={{ width: pct(usage.prospects, workspace.prospectCredits) }} /></div>
-        <div className="setting-desc" style={{ marginTop: 8 }}>{u.creditsDesc}</div>
-      </div>
-
-      <div className="usage-card">
-        <div className="usage-card-head">
-          <span>{u.lookups}</span>
-          <span>{fmt(u.lookupsValue, { used: n(usage.companies), total: n(workspace.companyLookups) })}</span>
+        <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
+        <div className="usage-meter-foot">
+          <span>{u.prospectsDesc}</span>
+          <span>{fmt(u.resets, { date: formatDate(usage.resetsAt, locale, "UTC") })}</span>
         </div>
-        <div className="progress-track"><div className="progress-fill red" style={{ width: pct(usage.companies, workspace.companyLookups) }} /></div>
-        <div className="setting-desc" style={{ marginTop: 8 }}>{u.lookupsDesc}</div>
       </div>
     </div>
   );
@@ -330,64 +362,124 @@ function UsageTab({ data }: { data: ShellData }) {
 function BillingTab({ data }: { data: ShellData }) {
   const { t, locale } = useI18n();
   const b = t.settings.billing;
+  const toast = useToast();
+  const router = useRouter();
   const { workspace } = data;
   const canManage = data.role === "owner" || data.role === "admin";
+  const paid = workspace.plan !== "free";
+  const [confirming, setConfirming] = useState(false);
+  const { pending, error, run } = useSave();
+  const money = (v: number) => `$${v.toFixed(2)}`;
+  const price = workspace.billingPeriod === "annual" ? workspace.priceUsd * 12 : workspace.priceUsd;
+
+  const setCanceled = (cancel: boolean) =>
+    run(async () => {
+      const r = await setPlanCanceled(cancel);
+      if (r.ok) {
+        setConfirming(false);
+        toast(cancel ? b.canceledToast : b.resumedToast);
+        router.refresh();
+      }
+      return r;
+    });
+
+  const renewLine = !paid
+    ? fmt(b.freeLine, { count: formatNumber(workspace.prospects, locale) })
+    : workspace.periodEnd
+      ? fmt(workspace.cancelAtPeriodEnd ? b.endsOn : b.renewsOn, { date: formatDate(workspace.periodEnd, locale) })
+      : "";
+
   return (
-    <div className="setting-group">
-      <SettingRow label={b.plan} desc={b.planDesc}>
-        <div style={{ textAlign: "end" }}>
-          <span className="plan-badge" style={{ fontSize: ".75rem", padding: "3px 8px" }}>{fmt(b.planBadge, { plan: planLabel(workspace.plan, t) })}</span>
-          <div style={{ fontSize: ".8rem", fontWeight: 700, marginTop: 4 }}>
-            {workspace.priceUsd ? (
-              workspace.billingPeriod === "annual"
-                ? <><span dir="ltr">${workspace.priceUsd * 12}</span> {b.perYear}</>
-                : <><span dir="ltr">${workspace.priceUsd}</span> {t.common.perMonth}</>
-            ) : t.common.free}
+    <div className="billing">
+      <section className="billing-plan">
+        <div className="billing-plan-icon"><YoliasMarkStatic /></div>
+        <div className="billing-plan-main">
+          <div className="billing-plan-name">
+            {planName(workspace.plan, t)}
+            {workspace.subscriptionStatus === "test" && <span className="coming-soon">{b.testMode}</span>}
           </div>
-          <div className="setting-hint">
-            {workspace.periodEnd
-              ? `${fmt(b.renews, { date: formatDate(workspace.periodEnd, locale) })}${workspace.subscriptionStatus === "test" ? ` · ${b.testMode}` : ""}`
-              : fmt(b.creditsPerMonth, { count: formatNumber(workspace.prospectCredits, locale) })}
+          <div className="billing-plan-sub">
+            {paid && <>{workspace.billingPeriod === "annual" ? t.plans.annual : t.plans.monthly} · <span dir="ltr">{money(price)}</span>{workspace.billingPeriod === "annual" ? b.perYear : t.common.perMonth}<br /></>}
+            {renewLine}
           </div>
-          {canManage && (
-            <a className="btn-secondary" style={{ fontSize: ".72rem", marginTop: 8 }} href="/checkout">
-              {workspace.plan === "free" ? b.choosePlan : b.changePlan}
-            </a>
+        </div>
+        {canManage && <a className="btn-secondary" href="/checkout">{paid ? b.adjustPlan : b.upgrade}</a>}
+      </section>
+
+      {canManage && (
+        <>
+          <section className="billing-section">
+            <h4>{b.payment}</h4>
+            <div className="billing-row">
+              <div className="billing-card">
+                <CreditCard />
+                <span>{b.noCard}</span>
+              </div>
+              <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{b.update}</button>
+            </div>
+          </section>
+
+          <section className="billing-section">
+            <h4>{b.invoices}</h4>
+            {data.invoices.length === 0 ? (
+              <p className="billing-empty">{b.noInvoices}</p>
+            ) : (
+              <table className="billing-table">
+                <thead>
+                  <tr><th>{b.colDate}</th><th>{b.colTotal}</th><th>{b.colStatus}</th><th><span className="sr-only">{b.colActions}</span></th></tr>
+                </thead>
+                <tbody>
+                  {data.invoices.map((inv) => (
+                    <tr key={inv.id}>
+                      <td>{formatDate(inv.date, locale)}</td>
+                      <td dir="ltr" className="text-start">{money(inv.amountUsd)}</td>
+                      <td>
+                        <span className={`status-pill ${inv.status}`}>{b.status[inv.status]}</span>
+                        {inv.test && <span className="billing-test">{b.test}</span>}
+                      </td>
+                      <td className="billing-actions"><a href={`/invoices/${inv.id}`} target="_blank" rel="noopener">{b.view}</a></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
+
+          {paid && (
+            <section className="billing-section">
+              <h4>{b.cancellation}</h4>
+              {workspace.cancelAtPeriodEnd ? (
+                <div className="billing-row">
+                  <div className="billing-row-text">{fmt(b.canceledNote, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale) : "" })}</div>
+                  <button className="btn-secondary" type="button" disabled={pending} onClick={() => setCanceled(false)}>{b.resume}</button>
+                </div>
+              ) : confirming ? (
+                <div className="billing-confirm">
+                  <p>{fmt(b.cancelConfirm, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale) : "" })}</p>
+                  <div>
+                    <button className="btn-secondary" type="button" onClick={() => setConfirming(false)}>{b.keepPlan}</button>
+                    <button className="btn-danger solid" type="button" disabled={pending} onClick={() => setCanceled(true)}>{b.cancelPlan}</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="billing-row">
+                  <div className="billing-row-text">{b.cancelPlan}</div>
+                  <button className="btn-danger-ghost" type="button" onClick={() => setConfirming(true)}>{b.cancel}</button>
+                </div>
+              )}
+            </section>
           )}
-        </div>
-      </SettingRow>
-
-      <SettingRow label={b.card} desc={b.cardDesc}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: ".8rem", fontWeight: 600 }}>{b.noCard}</div>
-          <button className="btn-secondary" style={{ fontSize: ".75rem" }} type="button" disabled title={t.common.comingSoon}>{b.update}</button>
-          <span className="coming-soon">{t.common.comingSoon}</span>
-        </div>
-      </SettingRow>
-
-      <div className="setting-section">
-        <div className="setting-label">{b.invoices}</div>
-        <div className="setting-desc" style={{ marginBottom: 12 }}>{b.invoicesDesc}</div>
-        <div className="data-table-card" style={{ boxShadow: "none" }}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{b.colDate}</th>
-                <th>{b.colAmount}</th>
-                <th>{b.colStatus}</th>
-                <th style={{ textAlign: "end" }}>{b.colInvoice}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colSpan={4} className="empty-cell">{b.noInvoices}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+          {error && <p className="form-error">{error}</p>}
+        </>
+      )}
+      {!canManage && <p className="billing-empty">{b.adminsOnly}</p>}
     </div>
   );
+}
+
+function YoliasMarkStatic() {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/brand/logo-mark.png" alt="" width={20} height={21} />;
 }
 
 /* ─────────────── Team ─────────────── */
@@ -500,39 +592,34 @@ function TeamTab({ data }: { data: ShellData }) {
   );
 }
 
-/* ─────────────── Integration ─────────────── */
+/* ─────────────── Integrations ─────────────── */
 
 function IntegrationTab() {
   const { t } = useI18n();
   const it = t.settings.integration;
+  const connectors = [
+    { id: "sheets", name: "Google Sheets", desc: it.sheetsDesc, Icon: GoogleSheetsIcon },
+    { id: "hubspot", name: "HubSpot", desc: it.hubspotDesc, Icon: HubSpotIcon },
+    { id: "gmail", name: "Gmail", desc: it.gmailDesc, Icon: GmailIcon },
+    { id: "outlook", name: "Outlook", desc: it.outlookDesc, Icon: OutlookIcon },
+  ];
   return (
-    <>
-      <p style={{ fontSize: ".82rem", color: "var(--muted)", marginBottom: 18 }}>
-        {it.intro}
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div className="integration-card">
-          <div>
-            <strong>{it.crm}</strong>
-            <div className="cell-sub">{it.crmDesc}</div>
+    <div className="setting-group">
+      <p className="setting-intro">{it.intro}</p>
+      <div className="connector-list">
+        {connectors.map(({ id, name, desc, Icon }) => (
+          <div className="connector" key={id}>
+            <div className="connector-icon"><Icon /></div>
+            <div className="connector-main">
+              <div className="connector-name">{name}</div>
+              <div className="connector-desc">{desc}</div>
+            </div>
+            <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{it.connect}</button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="coming-soon">{t.common.comingSoon}</span>
-            <button className="btn-secondary" style={{ fontSize: ".72rem" }} type="button" disabled>{it.connect}</button>
-          </div>
-        </div>
-        <div className="integration-card">
-          <div>
-            <strong>{it.sheets}</strong>
-            <div className="cell-sub">{it.sheetsDesc}</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="coming-soon">{t.common.comingSoon}</span>
-            <button className="btn-primary" style={{ fontSize: ".72rem" }} type="button" disabled>{it.configure}</button>
-          </div>
-        </div>
+        ))}
       </div>
-    </>
+      <p className="setting-hint connector-note">{it.soon}</p>
+    </div>
   );
 }
 

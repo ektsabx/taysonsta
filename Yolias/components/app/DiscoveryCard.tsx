@@ -1,10 +1,11 @@
-import { CheckCircle2, CircleAlert, Clock, LoaderCircle, Target, TrendingUp, UserRound } from "lucide-react";
+import { CheckCircle2, CircleAlert, Clock, Target, TrendingUp, UserRound } from "lucide-react";
 import { criteriaLine, parseIcp, sizeLabel } from "@/lib/discovery/icp";
 import { countryLabel, formatNumber, initials, location } from "@/lib/format";
 import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { StrategyView } from "@/services/strategies";
 import type { Json } from "@/types/database";
+import { YoliasMark } from "@/components/YoliasMark";
 import { RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
 
@@ -53,7 +54,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
     return (
       <div className="agent-artifact-card">
         <div className="artifact-badge-top">
-          <div className="artifact-status pending"><LoaderCircle /><span>{d.understanding}</span></div>
+          <div className="artifact-status pending"><YoliasMark size={16} thinking /><span className="shimmer-text">{d.understanding}</span></div>
         </div>
       </div>
     );
@@ -64,7 +65,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
   const status = hasResults && campaign.status === "completed"
     ? { cls: "", icon: <CheckCircle2 />, text: d.complete }
     : campaign.status === "running" || campaign.status === "queued"
-      ? { cls: "pending", icon: <LoaderCircle />, text: d.discovering }
+      ? { cls: "pending", icon: <YoliasMark size={16} thinking />, text: d.discovering }
       : campaign.status === "failed"
         ? { cls: "failed", icon: <CircleAlert />, text: d.stopped }
         : campaign.status === "awaiting_source"

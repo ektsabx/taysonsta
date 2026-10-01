@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatNumber } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { isBillingPeriod, isPaidPlan, planName, plans, priceFor } from "@/lib/plans";
+import { isBillingPeriod, isPlan, planName, plans, priceFor } from "@/lib/plans";
 import { MagicLinkForm } from "../MagicLinkForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const { plan, period: rawPeriod } = await searchParams;
-  const picked = isPaidPlan(plan) ? plan : undefined;
+  const picked = isPlan(plan) ? plan : undefined;
   const period = isBillingPeriod(rawPeriod) ? rawPeriod : "monthly";
 
   return (
@@ -23,7 +23,7 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
         <div className="selected-plan">
           <div>
             <span className="selected-plan-label">{t.auth.selectedPlan}</span>
-            <strong>{planName(picked, t)}</strong> · <span dir="ltr">${formatNumber(priceFor(plans[picked].priceUsd, period), locale)}</span>{period === "annual" ? t.plans.perYear : t.plans.perMonth}
+            <strong>{planName(picked, t)}</strong> · {picked === "free" ? <><span dir="ltr">$0</span>{t.plans.perMonth}</> : <><span dir="ltr">${formatNumber(priceFor(plans[picked].priceUsd, period), locale)}</span>{period === "annual" ? t.plans.perYear : t.plans.perMonth}</>}
           </div>
           <Link href="/pricing">{t.auth.change}</Link>
         </div>

@@ -8,7 +8,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n/server";
+import { THEME_COOKIE } from "@/lib/theme";
+import { setCancelAtPeriodEnd } from "@/lib/billing";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -20,6 +22,9 @@ const preferencesSchema = z
     timezone: z.enum(["Asia/Riyadh", "Asia/Dubai", "Africa/Cairo", "Europe/London"]),
     country: z.enum(["SA", "AE", "EG", "GB"]),
     notify_campaign_done: z.boolean(),
+    notify_usage: z.boolean(),
+    notify_billing: z.boolean(),
+    notify_product: z.boolean(),
     full_name: z.string().trim().min(2).max(120),
   })
   .partial();
@@ -32,10 +37,27 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
   const supabase = await createClient();
   const { error } = await supabase.from("profiles").update(parsed.data).eq("id", session.userId);
   if (error) return { ok: false, error: t.saveFailed };
+  // Theme also applies to public and sign-in pages, even after signing out.
+  if (parsed.data.theme) {
+    (await cookies()).set(THEME_COOKIE, parsed.data.theme, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+  }
   // The language setting is also the interface language.
   if (parsed.data.language) {
+    // Sign-in emails follow the chosen language too.
+    await supabase.auth.updateUser({ data: { locale: parsed.data.language } });
     (await cookies()).set(LOCALE_COOKIE, parsed.data.language, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
   }
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+// Cancel keeps the paid plan until the end of the period, then Free.
+export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
+  const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId);
+  if (!ok) return { ok: false, error: t.settings.errors.saveFailed };
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -57,7 +79,8 @@ export async function setAvatar(path: string): Promise<ActionResult> {
 export async function signOut(scope: "local" | "global" = "local") {
   const supabase = await createClient();
   await supabase.auth.signOut({ scope });
-  redirect("/login");
+  // Signed-out visitors land on the public home page.
+  redirect("/");
 }
 
 export async function deleteAccount(): Promise<ActionResult> {
@@ -103,7 +126,11 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
   if (error) return { ok: false, error: t.inviteFailed };
 
   const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
-  const { error: mailError } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: site ? `${site}/auth/confirm` : undefined });
+  const { error: mailError } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: site ? `${site}/auth/confirm` : undefined,
+    // The invitation email is written in the inviter's language.
+    data: { locale: await getLocale() },
+  });
   if (mailError) {
     await admin.from("workspace_invitations").delete().eq("workspace_id", session.workspace.id).eq("email", email);
     return { ok: false, error: t.inviteEmailFailed };

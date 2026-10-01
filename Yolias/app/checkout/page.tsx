@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan, isBillingPeriod, isPaidPlan, paidPlans, plans } from "@/lib/plans";
+import { allPlans, hasActivePlan, isBillingPeriod, isPlan, plans } from "@/lib/plans";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 
@@ -20,8 +20,8 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const { plan, period } = await searchParams;
   const active = hasActivePlan(session.workspace);
   const current = active ? session.workspace.plan : null;
-  const picked = isPaidPlan(plan) ? plan : await pendingPlan(session);
-  const initial = picked ?? (current && current !== "free" ? current : "growth");
+  const picked = isPlan(plan) ? plan : await pendingPlan(session);
+  const initial = picked ?? current ?? "growth";
   const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (active ? session.workspace.billing_period : "monthly");
 
   return (
@@ -43,7 +43,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         email={session.email}
         workspaceName={session.workspace.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
-        options={paidPlans.map((p) => ({ id: p, ...plans[p] }))}
+        options={allPlans.map((p) => ({ id: p, ...plans[p] }))}
       />
     </div>
   );

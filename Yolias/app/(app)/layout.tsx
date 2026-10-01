@@ -1,11 +1,11 @@
 import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/app/AppShell";
 import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
-import { requireSession } from "@/lib/session";
+import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
 import { plans } from "@/lib/plans";
 import { recentStrategies } from "@/services/strategies";
-import { monthlyUsage, teamMembers } from "@/services/workspace";
+import { listInvoices, monthlyUsage, teamMembers } from "@/services/workspace";
 
 function deviceLabel(ua: string): string {
   const browser = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
@@ -25,10 +25,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const plan = plans[workspace.plan];
   const h = await headers();
 
-  const [recent, usage, team] = await Promise.all([
+  const [recent, usage, team, invoices] = await Promise.all([
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
+    canManageTeam(session) ? listInvoices(workspace.id) : Promise.resolve([]),
   ]);
 
   const name = profile.full_name || session.email;
@@ -48,19 +49,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       timezone: profile.timezone,
       country: profile.country,
       notify_campaign_done: profile.notify_campaign_done,
+      notify_usage: profile.notify_usage,
+      notify_billing: profile.notify_billing,
+      notify_product: profile.notify_product,
     },
     workspace: {
       name: workspace.name ?? "",
       plan: workspace.plan,
       priceUsd: plan.priceUsd,
-      prospectCredits: plan.prospectCredits,
-      companyLookups: plan.companyLookups,
+      prospects: plan.prospects,
       subscriptionStatus: workspace.subscription_status,
       periodEnd: workspace.current_period_end,
       billingPeriod: workspace.billing_period,
+      cancelAtPeriodEnd: workspace.cancel_at_period_end,
     },
     role: session.role,
     usage,
+    invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amountUsd: Number(i.amount_usd), status: i.status, test: i.mode === "test" })),
     team: {
       members: team.members.map((m) => ({
         user_id: m.user_id,

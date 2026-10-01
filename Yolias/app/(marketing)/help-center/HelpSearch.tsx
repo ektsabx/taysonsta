@@ -33,8 +33,8 @@ export function HelpSearch({ items }: { items: SearchItem[] }) {
         aria-label={t.help.searchPlaceholder}
       />
       {q && (
-        <div className="article-list mt-4 rounded-xl border border-[#dfdfdc] bg-white px-4 text-start">
-          {results.length === 0 && <p className="py-4 text-sm text-neutral-500">{fmt(t.help.noResults, { query })}</p>}
+        <div className="article-list mt-4 rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 text-start">
+          {results.length === 0 && <p className="py-4 text-sm text-[var(--muted)]">{fmt(t.help.noResults, { query })}</p>}
           {results.map((a) => (
             <Link key={a.slug} href={`/help-center/${a.slug}`} className="article-link">
               <div>

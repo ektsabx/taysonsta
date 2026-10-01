@@ -76,7 +76,7 @@ export const articles: HelpArticle[] = [
         title: "Choosing a plan and billing period",
         summary: "All plans have the same features; they differ in how much discovery you can run each month.",
         blocks: [
-          { p: "Pro, Growth and Scale include the same Yolias features and unlimited users. Pick the one whose monthly discovery credits and company lookups match the volume you expect — the [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get each month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
           { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is twelve times the monthly price, paid upfront, and your usage limits still reset every month." },
           { h2: "Not sure yet?" },
@@ -87,7 +87,7 @@ export const articles: HelpArticle[] = [
         title: "اختيار الخطة وفترة الفوترة",
         summary: "كل الخطط تشمل الميزات نفسها، وتختلف في حجم الاكتشاف الذي يمكنك تشغيله شهريًا.",
         blocks: [
-          { p: "تشمل خطط برو والنمو والتوسع ميزات يولـياس نفسها ومستخدمين غير محدودين. اختر الخطة التي يناسب رصيدها الشهري من الاكتشاف وعمليات البحث عن الشركات الحجم الذي تتوقعه — تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين شهريًا — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
           { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري وتُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
           { h2: "لم تقرر بعد؟" },
@@ -242,17 +242,19 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Changing your plan",
-        summary: "Move between Pro, Growth and Scale, or between monthly and annual billing.",
+        summary: "Move between Free, Pro and Growth, switch billing period, or cancel.",
         blocks: [
-          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Change plan**. Pick the plan and billing period and confirm." },
+          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan**. Pick the plan and billing period and confirm." },
+          { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period, then the workspace moves to Free with everything saved. You can resume before then." },
           { p: "Your new limits apply right away. Usage counters reset on the first day of each month, whatever the billing period." },
         ],
       },
       ar: {
         title: "تغيير خطتك",
-        summary: "انتقل بين برو والنمو والتوسع، أو بين الفوترة الشهرية والسنوية.",
+        summary: "انتقل بين المجانية وبرو والنمو، أو غيّر فترة الفوترة، أو ألغِ الاشتراك.",
         blocks: [
-          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تغيير الخطة**. اختر الخطة وفترة الفوترة وأكّد." },
+          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة**. اختر الخطة وفترة الفوترة وأكّد." },
+          { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، ثم تنتقل مساحة العمل إلى الخطة المجانية مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },
           { p: "تُطبق الحدود الجديدة فورًا. وتتجدد عدادات الاستخدام في أول يوم من كل شهر أيًا كانت فترة الفوترة." },
         ],
       },

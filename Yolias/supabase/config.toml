@@ -74,15 +74,15 @@ max_frequency = "30s"
 otp_expiry = 3600
 
 [auth.email.template.magic_link]
-subject = "Your Yolias sign-in link"
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}رابط تسجيل الدخول إلى يولـياس{{ else }}Your Yolias sign-in link{{ end }}{{ else }}Your Yolias sign-in link{{ end }}"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.confirmation]
-subject = "Confirm your Yolias account"
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}أكّد حسابك في يولـياس{{ else }}Confirm your Yolias account{{ end }}{{ else }}Confirm your Yolias account{{ end }}"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.invite]
-subject = "You've been invited to Yolias"
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}دعوة للانضمام إلى يولـياس{{ else }}You've been invited to Yolias{{ end }}{{ else }}You've been invited to Yolias{{ end }}"
 content_path = "./supabase/templates/invite.html"
 
 [auth.mfa.totp]

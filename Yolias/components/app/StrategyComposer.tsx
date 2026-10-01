@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Mic, Paperclip, Search, Sparkles, X } from "lucide-react";
 import { createStrategy } from "@/app/(app)/actions";
+import { YoliasThinking } from "@/components/YoliasMark";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -176,6 +177,12 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         </div>
       </div>
 
+      {pending && (
+        <div className="composer-thinking">
+          <ThinkingSteps steps={c.thinking} />
+        </div>
+      )}
+
       {error && <p className="prompt-error" role="alert">{error}</p>}
 
       <div className="quick-actions-bar">
@@ -200,4 +207,14 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
       </div>
     </div>
   );
+}
+
+// Cycles through what Yolias AI is doing while the strategy is understood.
+function ThinkingSteps({ steps }: { steps: readonly string[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setI((n) => Math.min(n + 1, steps.length - 1)), 2600);
+    return () => window.clearInterval(id);
+  }, [steps.length]);
+  return <YoliasThinking label={steps[i]} />;
 }

@@ -3,8 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
-import { getDictionary } from "@/lib/i18n/server";
+import { isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export type MagicLinkMode = "login" | "signup" | "recover";
 export type MagicLinkState = { status: "idle" } | { status: "sent"; email: string } | { status: "error"; message: string; email?: string };
@@ -31,14 +31,14 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
   // right after confirming their email.
   const plan = formData.get("plan");
   const period = formData.get("period");
-  if (isPaidPlan(plan)) {
+  if (isPlan(plan)) {
     const jar = await cookies();
     const opts = { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" as const, httpOnly: true };
     jar.set(PLAN_COOKIE, plan, opts);
     jar.set(PERIOD_COOKIE, isBillingPeriod(period) ? period : "monthly", opts);
   }
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
-  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPaidPlan(plan) ? plan : undefined };
+  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale() };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({

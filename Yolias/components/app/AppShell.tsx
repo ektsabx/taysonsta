@@ -13,6 +13,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { planLabel } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
 import { SettingsModal } from "./SettingsModal";
+import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 
@@ -70,6 +71,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const newStrategy = () => router.push(`/?new=${Date.now()}`);
 
   return (
+    <ToastProvider closeLabel={t.common.close}>
     <div className={`app-shell${closed ? " sidebar-closed" : ""}`}>
       <aside className="sidebar">
         <button className="sidebar-toggle sidebar-open-button" type="button" aria-label={t.nav.openSidebar} onClick={() => toggleSidebar(false)}>
@@ -182,5 +184,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
     </div>
+    </ToastProvider>
   );
 }

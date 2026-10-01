@@ -2,9 +2,10 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasActivePlan, isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
+import { hasActivePlan, isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
-import type { BillingPeriod, PaidPlan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
+import { settleSubscription } from "@/lib/billing";
+import type { BillingPeriod, Plan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
 
 export interface Session {
   userId: string;
@@ -38,7 +39,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     email: user.email ?? profile.email,
     emailConfirmed: Boolean(user.email_confirmed_at),
     profile,
-    workspace,
+    workspace: await settleSubscription(workspace),
     role: member.role,
     signupMeta: (user.user_metadata ?? {}) as Session["signupMeta"],
   };
@@ -79,11 +80,11 @@ async function isSignedIn() {
   return Boolean(data?.claims?.sub);
 }
 
-/** The paid plan the user picked on /pricing before signing up. */
-export async function pendingPlan(session: Session): Promise<PaidPlan | null> {
+/** The plan the user picked on /pricing before signing up. */
+export async function pendingPlan(session: Session): Promise<Plan | null> {
   const fromCookie = (await cookies()).get(PLAN_COOKIE)?.value;
   const plan = fromCookie ?? session.signupMeta.plan_intent;
-  return isPaidPlan(plan) ? plan : null;
+  return isPlan(plan) ? plan : null;
 }
 
 /** The billing period picked on /pricing before signing up. */

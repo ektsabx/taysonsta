@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { EventLevel, PipelineStage } from "@/types/database";
 import { parseIcp, type IcpCriteria } from "@/lib/discovery/icp";
 import { classifySeniority, scoreMatch } from "@/lib/discovery/match";
+import { monthWindow, plans } from "@/lib/plans";
 import { companySources, configured, emailVerifiers, enrichers, peopleSources } from "@/lib/discovery/registry";
 import type { CompanyCandidate, DiscoveryContext, PersonCandidate } from "@/lib/discovery/types";
 
@@ -36,12 +37,29 @@ export async function runDiscovery(campaignId: string): Promise<void> {
     await logEvent(campaign.workspace_id, campaignId, "plan", "Campaign criteria are invalid.", "error", { key: "invalidCriteria" });
     return;
   }
-  const { data: ws } = await db.from("workspaces").select("offering").eq("id", campaign.workspace_id).single();
+  const { data: ws } = await db.from("workspaces").select("offering, plan").eq("id", campaign.workspace_id).single();
+
+  // Plans are billed on prospects only: each decision maker delivered uses
+  // one from this month's allowance, and discovery stops when it runs out.
+  const { start } = monthWindow();
+  const { count: used } = await db
+    .from("prospects").select("id", { count: "exact", head: true })
+    .eq("workspace_id", campaign.workspace_id).gte("created_at", start.toISOString());
+  const allowance = plans[ws?.plan ?? "free"].prospects;
+  const remaining = Math.max(0, allowance - (used ?? 0));
+  if (remaining === 0) {
+    await db.from("campaigns").update({ status: "paused" }).eq("id", campaignId);
+    await logEvent(campaign.workspace_id, campaignId, "plan", "This month’s prospects are used up. Upgrade or wait for the reset.", "warning", {
+      key: "quotaReached",
+      vars: { total: allowance },
+    });
+    return;
+  }
   const ctx: DiscoveryContext = {
     workspaceId: campaign.workspace_id,
     campaignId,
     offering: ws?.offering ?? null,
-    limit: campaign.quota,
+    limit: Math.min(campaign.quota, remaining),
     log: (stage, message, level, text) => logEvent(campaign.workspace_id, campaignId, stage, message, level, text),
   };
 
@@ -72,6 +90,7 @@ export async function runDiscovery(campaignId: string): Promise<void> {
 
       const people = await findPeople(enriched, icp, ctx);
       for (const person of people) {
+        if (prospectsFound >= remaining) break;
         const p = await enrichPerson(person, enriched, ctx);
         const emailStatus = p.email ? await verifyEmail(p.email) : "unknown";
         const match = scoreMatch(icp, enriched, p);
@@ -85,6 +104,10 @@ export async function runDiscovery(campaignId: string): Promise<void> {
         prospectsFound++;
       }
       await db.from("campaigns").update({ companies_found: companiesFound, prospects_found: prospectsFound }).eq("id", campaignId);
+      if (prospectsFound >= remaining) {
+        await ctx.log("deliver", "This month’s prospects are used up.", "warning", { key: "quotaReached", vars: { total: allowance } });
+        break;
+      }
     }
 
     await db.from("campaigns").update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", campaignId);

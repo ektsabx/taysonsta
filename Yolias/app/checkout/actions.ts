@@ -3,45 +3,30 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireUser } from "@/lib/session";
-import { isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE, plans, priceFor } from "@/lib/plans";
-import { billingTestMode } from "@/lib/billing";
+import { isBillingPeriod, isPaidPlan, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
+import { billingTestMode, startPlan } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
 
 export type CheckoutResult = { ok: false; error: string };
 
-// Activates a plan. No payment provider is connected yet, so this only works
-// in billing test mode (local/dev) and is recorded as a test subscription —
-// it never pretends a real charge happened. Next step: onboarding (first
-// time) or back to Yolias.
+// Puts the workspace on the chosen plan. Free needs no payment. No payment
+// provider is connected yet, so paid plans only activate in billing test mode
+// (local/dev) and are recorded as test charges — never a pretend real charge.
+// Next step: onboarding (first time) or back to Yolias.
 export async function activatePlan(plan: string, period: string): Promise<CheckoutResult> {
   const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  if (!isPaidPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
-  if (!billingTestMode()) return { ok: false, error: t.checkout.errors.notConnected };
+  if (!isPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
+  if (isPaidPlan(plan) && !billingTestMode()) return { ok: false, error: t.checkout.errors.notConnected };
 
-  const db = createAdminClient();
-  const periodEnd = new Date();
-  periodEnd.setUTCMonth(periodEnd.getUTCMonth() + (period === "annual" ? 12 : 1));
-  const firstPlan = session.workspace.subscription_status === "none";
-
-  const { error } = await db
-    .from("workspaces")
-    .update({ plan, billing_period: period, subscription_status: "test", current_period_end: periodEnd.toISOString() })
-    .eq("id", session.workspace.id);
-  if (error) return { ok: false, error: t.checkout.errors.failed };
-
-  await db.from("subscription_events").insert({
-    workspace_id: session.workspace.id,
-    plan,
-    status: firstPlan ? "activated" : "changed",
-    amount_usd: priceFor(plans[plan].priceUsd, period),
-    billing_period: period,
-    mode: "test",
-    created_by: session.userId,
+  const ok = await startPlan(session.workspace, plan, period, {
+    userId: session.userId,
+    email: session.email,
+    name: session.profile.full_name,
   });
+  if (!ok) return { ok: false, error: t.checkout.errors.failed };
 
   const jar = await cookies();
   jar.delete(PLAN_COOKIE);
