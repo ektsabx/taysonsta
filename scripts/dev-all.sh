@@ -24,8 +24,32 @@ if ! docker info >/dev/null 2>&1; then
   fi
 fi
 
-[ -f .env.local ] || { say "Missing .env.local at the repo root (Taysonsta/Admin settings). Copy .env.example and fill it."; exit 1; }
 envval() { grep -E "^$1=" "$2" 2>/dev/null | tail -1 | cut -d= -f2- || true; }
+
+# Fresh clone: no root .env.local yet. Create one for a local Admin database
+# (with demo data) so everything runs. To use the real Taysonsta keys instead,
+# copy your existing .env.local into the repo root before running this.
+if [ ! -f .env.local ]; then
+  say "No .env.local at the repo root — setting up a local Admin database with demo data…"
+  npx supabase start -x "$EXCLUDE" || { say "Admin database failed to start."; exit 1; }
+  eval "$(npx supabase status -o env 2>/dev/null | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+  [ -n "${API_URL:-}" ] || { say "Couldn't read the Admin database keys."; exit 1; }
+  {
+    echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+    echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+    echo "BOS_SECRETS_KEY=$(node -e 'console.log(require("crypto").randomBytes(32).toString("base64"))')"
+  } > .env.local
+  npx supabase migration up --local >/dev/null 2>&1 || true
+  DB="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_taysonsta' | head -1)"
+  SEEDED="$( [ -n "$DB" ] && docker exec -i "$DB" psql -U postgres -d postgres -tAX -c "select count(*) from auth.users where email = 'admin@taysonsta.local'" 2>/dev/null || echo 0)"
+  if [ -n "$DB" ] && [ "${SEEDED:-0}" = 0 ]; then
+    for f in supabase/seed-bos.sql supabase/seed-bos-hr.sql; do
+      docker exec -i "$DB" psql -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 < "$f" >/dev/null || say "Demo data in $f didn't load fully (the app still runs)."
+    done
+  fi
+  say "Admin login: admin@taysonsta.local / Taysonsta!2026"
+fi
 
 # 1) Admin database: start the local one only if .env.local points to it.
 ADMIN_DB_URL="$(envval NEXT_PUBLIC_SUPABASE_URL .env.local)"
@@ -86,15 +110,18 @@ prefix() { sed -u "s/^/[$1] /"; }
 (PROXY_PORT=$PROXY_PORT YOLIAS_PORT=$YOLIAS_PORT ADMIN_PORT=$ADMIN_PORT exec node "$ROOT/scripts/dev-proxy.mjs" 2>&1 | prefix proxy) & pids+=($!)
 
 # 5) Self-test the routing through the front door before saying "ready".
-check() { curl -s -m 5 -H "Host: $1:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/__yolias-proxy" | grep -o '"app":"[a-z]*"' | cut -d'"' -f4; }
+check() { curl -s --noproxy '*' -m 5 -H "Host: $1:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/__yolias-proxy" | grep -o '"app":"[a-z]*"' | cut -d'"' -f4; }
 for _ in $(seq 1 40); do port_busy $PROXY_PORT && break; sleep 0.5; done
-Y_APP="$(check localhost)"; A_APP="$(check admin.localhost)"
+for _ in $(seq 1 20); do
+  Y_APP="$(check localhost)"; A_APP="$(check admin.localhost)"
+  [ "$Y_APP" = yolias ] && [ "$A_APP" = admin ] && break; sleep 0.5
+done
 if [ "$Y_APP" != yolias ] || [ "$A_APP" != admin ]; then
   say "Routing check failed (localhost → ${Y_APP:-nothing}, admin.localhost → ${A_APP:-nothing}). See the [proxy] lines above."
   exit 1
 fi
 for _ in $(seq 1 120); do
-  code="$(curl -s -o /dev/null -m 10 -w '%{http_code}' -H "Host: admin.localhost:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/admin/login")"
+  code="$(curl -s --noproxy '*' -o /dev/null -m 10 -w '%{http_code}' -H "Host: admin.localhost:$PROXY_PORT" "http://127.0.0.1:$PROXY_PORT/admin/login")"
   [ "$code" = 200 ] && break; sleep 1
 done
 say "Routing OK ✓  localhost → Yolias · admin.localhost → Yolias Admin"
