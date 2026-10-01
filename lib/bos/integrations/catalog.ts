@@ -24,7 +24,7 @@ export interface ProviderDef {
   fields: ProviderField[];
   capabilities: string[];
   testable: boolean;
-  webhook?: { kind: "svix" | "meta_hmac" | "hmac_sha256" | "twilio"; secretField: string };
+  webhook?: { kind: "svix" | "meta_hmac" | "hmac_sha256" | "twilio" | "telegram_secret"; secretField: string };
   phase: number;
   docs?: string;
 }
@@ -141,20 +141,26 @@ export const providers: ProviderDef[] = [
   },
   {
     key: "meta", name: "Meta (Facebook & Instagram)", category: "social", phase: 10, testable: true,
-    description: "صفحات فيسبوك وحسابات إنستجرام للأعمال: النشر والتحليلات (يتطلب مراجعة التطبيق لدى Meta).",
+    description: "صفحات فيسبوك وحسابات إنستجرام للأعمال: رسائل Messenger وInstagram Direct في صندوق الوارد، والنشر والتحليلات (يتطلب مراجعة التطبيق لدى Meta).",
     fields: [
       { key: "app_id", label: "App ID", required: true },
       { key: "app_secret", label: "App secret", secret: true, required: true },
       { key: "access_token", label: "Page / system user token", secret: true, required: true },
+      { key: "verify_token", label: "Verify token (للرسائل)", secret: true, hint: "نص تختاره وتضعه في إعدادات Webhook لدى Meta لاستقبال رسائل Messenger وInstagram" },
     ],
-    capabilities: ["social.publish", "social.insights", "ads.read"],
+    capabilities: ["social.publish", "social.insights", "ads.read", "messaging.inbox"],
+    webhook: { kind: "meta_hmac", secretField: "app_secret" },
     docs: "https://developers.facebook.com/docs/graph-api",
   },
   {
     key: "telegram", name: "Telegram Bot", category: "social", phase: 10, testable: true,
-    description: "النشر في قنوات تيليجرام عبر بوت تضيفه مشرفاً في القناة.",
-    fields: [{ key: "bot_token", label: "Bot token (من BotFather)", secret: true, required: true }],
-    capabilities: ["social.publish"],
+    description: "رسائل العملاء إلى البوت تصل صندوق الوارد ويُرد عليها من هنا، والنشر في القنوات عبر البوت.",
+    fields: [
+      { key: "bot_token", label: "Bot token (من BotFather)", secret: true, required: true },
+      { key: "webhook_secret", label: "Webhook secret", secret: true, hint: "يُولَّد تلقائياً عند تفعيل استقبال الرسائل من صفحة قنوات المراسلة" },
+    ],
+    capabilities: ["social.publish", "messaging.inbox"],
+    webhook: { kind: "telegram_secret", secretField: "webhook_secret" },
     docs: "https://core.telegram.org/bots/api",
   },
   {

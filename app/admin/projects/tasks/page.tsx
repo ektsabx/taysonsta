@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -40,7 +41,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
 
   return (
     <>
-      <PageHeader title="المهام" actions={can(bos, "tasks.create") ? <Link href="/admin/projects/tasks/new" className="admin-btn small"><Tx>+ مهمة</Tx></Link> : null} />
+      <PageHeader title="المهام" actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="tasks" />{can(bos, "tasks.create") ? <Link href="/admin/projects/tasks/new" className="admin-btn small"><Tx>+ مهمة</Tx></Link> : null}</span>} />
       <Tabs tabs={views.map((v) => ({ ...v, hidden: v.key === "team" && scope === "own" }))} active={view} baseHref="/admin/projects/tasks" param="view" />
       <FilterBar
         searchPlaceholder="بحث في المهام..."

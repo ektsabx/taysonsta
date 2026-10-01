@@ -79,7 +79,7 @@ export const importTypes: ImportType[] = [
       { key: "client", label: "الحساب (بريد أو اسم)", type: "ref", ref: "client", aliases: ["company", "account"] },
       { key: "notes", label: "ملاحظات", type: "text", max: 5000 },
     ],
-    resolve: async (v, refs) => (v.client ? ((v.client_id = await refs.client(String(v.client))) ? [] : [`الحساب غير موجود: ${v.client}`]) : []),
+    resolve: async (v, refs) => (v.client ? ((v.client_id = await refs.client(String(v.client))) ? [] : [`الحساب غير موجود: ${v.client} — استورد الحسابات أولاً أو صحّح الاسم/البريد`]) : []),
     find: async (v) => findBy("contacts", "email", v.email),
     create: async (bos, v) => {
       const { createContact } = await import("@/services/bos/contacts");
@@ -136,7 +136,7 @@ export const importTypes: ImportType[] = [
     ],
     resolve: async (v, refs) => {
       const e: string[] = [];
-      if (!(v.client_id = await refs.client(String(v.client)))) e.push(`الحساب غير موجود: ${v.client}`);
+      if (!(v.client_id = await refs.client(String(v.client)))) e.push(`الحساب غير موجود: ${v.client} — استورد الحسابات أولاً أو صحّح الاسم/البريد`);
       if (v.assigned && !(v.assigned_to = await refs.user(String(v.assigned)))) e.push(`المسؤول غير موجود: ${v.assigned}`);
       return e;
     },
@@ -166,7 +166,7 @@ export const importTypes: ImportType[] = [
       if (!v.manager) return [];
       const { data } = await db().from("employees").select("id").ilike("email", String(v.manager)).is("archived_at", null).maybeSingle();
       v.manager_id = data?.id ?? null;
-      return data ? [] : [`المدير غير موجود: ${v.manager}`];
+      return data ? [] : [`المدير غير موجود: ${v.manager} — استورد المديرين في ملف سابق أولاً`];
     },
     find: async (v, key) => (key === "employee_code" ? findBy("employees", "employee_code", v.employee_code) : findBy("employees", "email", v.email)),
     create: async (bos, v) => {
@@ -192,7 +192,7 @@ export const importTypes: ImportType[] = [
     ],
     resolve: async (v, refs) => {
       const e: string[] = [];
-      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project}`);
+      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project} — أنشئ المشروع أولاً`);
       if (v.assigned && !(v.assigned_to = await refs.user(String(v.assigned)))) e.push(`المسؤول غير موجود: ${v.assigned}`);
       return e;
     },
@@ -219,8 +219,8 @@ export const importTypes: ImportType[] = [
     resolve: async (v, refs) => {
       const e: string[] = [];
       if (!(v.category_id = await refs.byName("expense_categories", String(v.category)))) e.push(`التصنيف غير موجود: ${v.category}`);
-      if (v.vendor && !(v.vendor_id = await refs.byName("vendors", String(v.vendor)))) e.push(`المورد غير موجود: ${v.vendor}`);
-      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project}`);
+      if (v.vendor && !(v.vendor_id = await refs.byName("vendors", String(v.vendor)))) e.push(`المورد غير موجود: ${v.vendor} — استورد الموردين أولاً`);
+      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project} — أنشئ المشروع أولاً`);
       return e;
     },
     find: async () => null,
@@ -280,7 +280,7 @@ export const importTypes: ImportType[] = [
     toRow: (v) => ({ type: v.type, contact_name: v.contact_name, email: v.email, phone: v.phone, services: v.services, notes: v.notes }),
   },
   {
-    key: "products", label: "المنتجات والخدمات", perm: "settings.manage", table: "products", matchKeys: ["name", "sku"],
+    key: "products", label: "المنتجات والخدمات", perm: "products.create", table: "products", matchKeys: ["name", "sku"],
     fields: [
       { key: "name", label: "الاسم", type: "text", required: true, max: 200 },
       { key: "kind", label: "النوع", type: "enum", values: enumMap([["service", ["خدمة"]], ["product", ["منتج"]]]) },

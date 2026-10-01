@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requireBosUser, can } from "@/lib/bos/auth";
@@ -30,7 +31,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Sea
   const [result, { data: categories }] = await Promise.all([listExpenses(bos, scope, { ...params, page: pageOf(params) }), db().from("expense_categories").select("id, name").eq("is_active", true).order("name")]);
   return (
     <>
-      <PageHeader title="المصروفات" actions={can(bos, "expenses.create") ? <Link href="/admin/finance/expenses/new" className="admin-btn small"><Tx>+ مصروف</Tx></Link> : null} />
+      <PageHeader title="المصروفات" actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="expenses" />{can(bos, "expenses.create") ? <Link href="/admin/finance/expenses/new" className="admin-btn small"><Tx>+ مصروف</Tx></Link> : null}</span>} />
       <FilterBar
         searchPlaceholder="بحث في الوصف..."
         filters={[

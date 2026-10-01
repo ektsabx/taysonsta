@@ -30,7 +30,7 @@ export async function validateImportAction(jobId: string, input: { mapping: Reco
     const bos = await requireBosUserForAction();
     if (!uuid.test(jobId)) throw new ValidationError("قيمة غير صالحة.");
     const r = await validateImport(bos, jobId, { mapping: input.mapping ?? {}, matchKey: input.matchKey || null, mode: input.mode === "update_matches" ? "update_matches" : "create_only", expectedCount: Number.isInteger(input.expectedCount) ? input.expectedCount : null });
-    revalidatePath(`/admin/settings/import/${jobId}`);
+    revalidatePath(`/admin/imports/${jobId}`);
     return { ok: true, message: `صالح ${r.valid} · أخطاء ${r.errors} · موجود مسبقاً ${r.duplicates}` };
   });
 }
@@ -40,7 +40,7 @@ export async function executeImportAction(jobId: string, acknowledgeCountMismatc
     const bos = await requireBosUserForAction();
     if (!uuid.test(jobId)) throw new ValidationError("قيمة غير صالحة.");
     const r = await executeImport(bos, jobId, { acknowledgeCountMismatch });
-    revalidatePath(`/admin/settings/import/${jobId}`);
+    revalidatePath(`/admin/imports/${jobId}`);
     return { ok: true, message: `أُنشئ ${r.created} · حُدّث ${r.updated} · تُخطي ${r.skipped} · فشل ${r.failed}` };
   });
 }
@@ -50,7 +50,7 @@ export async function rollbackImportAction(jobId: string): Promise<ActionState> 
     const bos = await requireBosUserForAction();
     if (!uuid.test(jobId)) throw new ValidationError("قيمة غير صالحة.");
     const r = await rollbackImport(bos, jobId);
-    revalidatePath(`/admin/settings/import/${jobId}`);
+    revalidatePath(`/admin/imports/${jobId}`);
     return { ok: true, message: `حُذف ${r.removed} · أُرشف ${r.archived} · استُعيد ${r.restored}${r.kept ? ` · تعذر ${r.kept}` : ""}` };
   });
 }

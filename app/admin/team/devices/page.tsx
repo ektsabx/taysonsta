@@ -1,8 +1,9 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs, nowIso } from "@/lib/bos/clock";
 import Link from "next/link";
-import { requirePermission } from "@/lib/bos/auth";
+import { can, requirePermission } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { listDevices } from "@/services/bos/devices";
 import { PageHeader, Card, StatusBadge, EmptyState, KpiCard } from "@/components/bos/ui";
@@ -19,7 +20,7 @@ export default async function DevicesPage({ searchParams }: { searchParams: Sear
   const staleCheck = nowMs() - 90 * 86400_000;
   return (
     <>
-      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} actions={all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null} />
+      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "devices.export") ? <a className="admin-btn small ghost" href="/api/bos/export/assets"><Tx>تصدير CSV</Tx></a> : null}<ImportButton bos={bos} type="assets" />{all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null}</span>} />
       {all ? (
         <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 14 }}>
           <KpiCard label="مسلّمة" value={rows.filter((d) => d.status === "assigned").length} href="/admin/team/devices?status=assigned" />

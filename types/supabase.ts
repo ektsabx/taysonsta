@@ -675,11 +675,137 @@ export type Database = {
           },
         ]
       }
-      ai_agents: {
+      ai_agent_chunks: {
         Row: {
+          agent_id: string
+          content: string
+          id: number
+          idx: number
+          search: unknown
+          source_id: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          agent_id: string
+          content: string
+          id?: never
+          idx: number
+          search?: unknown
+          source_id: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          agent_id?: string
+          content?: string
+          id?: never
+          idx?: number
+          search?: unknown
+          source_id?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_chunks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_chunks_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agent_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agent_sources: {
+        Row: {
+          agent_id: string
+          answer: string | null
+          chars: number
+          chunks: number
           created_at: string
           created_by: string | null
+          error: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          indexed_at: string | null
+          kind: string
+          max_pages: number
+          question: string | null
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          agent_id: string
+          answer?: string | null
+          chars?: number
+          chunks?: number
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          indexed_at?: string | null
+          kind: string
+          max_pages?: number
+          question?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          agent_id?: string
+          answer?: string | null
+          chars?: number
+          chunks?: number
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          indexed_at?: string | null
+          kind?: string
+          max_pages?: number
+          question?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_sources_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          activation_rules: Json
+          avatar_url: string | null
+          channels: string[]
+          collect_fields: string[]
+          company_description: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
           fallback_message: string
+          handle_reopened: boolean
           handoff_keywords: string[]
           handoff_message: string
           id: string
@@ -689,18 +815,31 @@ export type Database = {
           language: string
           max_ai_turns: number
           min_confidence: number
+          mode: string
           monthly_cost_limit_usd: number
           name: string
           persona: string | null
           provider: string | null
+          purpose: string
+          routing_rules: Json
           sensitive_keywords: string[]
           tone: string
+          tools: string[]
           updated_at: string
+          use_kb: boolean
+          working_hours: Json
         }
         Insert: {
+          activation_rules?: Json
+          avatar_url?: string | null
+          channels?: string[]
+          collect_fields?: string[]
+          company_description?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           fallback_message?: string
+          handle_reopened?: boolean
           handoff_keywords?: string[]
           handoff_message?: string
           id?: string
@@ -710,18 +849,31 @@ export type Database = {
           language?: string
           max_ai_turns?: number
           min_confidence?: number
+          mode?: string
           monthly_cost_limit_usd?: number
           name: string
           persona?: string | null
           provider?: string | null
+          purpose?: string
+          routing_rules?: Json
           sensitive_keywords?: string[]
           tone?: string
+          tools?: string[]
           updated_at?: string
+          use_kb?: boolean
+          working_hours?: Json
         }
         Update: {
+          activation_rules?: Json
+          avatar_url?: string | null
+          channels?: string[]
+          collect_fields?: string[]
+          company_description?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           fallback_message?: string
+          handle_reopened?: boolean
           handoff_keywords?: string[]
           handoff_message?: string
           id?: string
@@ -731,13 +883,19 @@ export type Database = {
           language?: string
           max_ai_turns?: number
           min_confidence?: number
+          mode?: string
           monthly_cost_limit_usd?: number
           name?: string
           persona?: string | null
           provider?: string | null
+          purpose?: string
+          routing_rules?: Json
           sensitive_keywords?: string[]
           tone?: string
+          tools?: string[]
           updated_at?: string
+          use_kb?: boolean
+          working_hours?: Json
         }
         Relationships: []
       }
@@ -3817,6 +3975,7 @@ export type Database = {
           external_thread_id: string | null
           first_response_at: string | null
           handed_off_at: string | null
+          handoff_reason: string | null
           id: string
           last_agent_message_at: string | null
           last_customer_message_at: string | null
@@ -3853,6 +4012,7 @@ export type Database = {
           external_thread_id?: string | null
           first_response_at?: string | null
           handed_off_at?: string | null
+          handoff_reason?: string | null
           id?: string
           last_agent_message_at?: string | null
           last_customer_message_at?: string | null
@@ -3889,6 +4049,7 @@ export type Database = {
           external_thread_id?: string | null
           first_response_at?: string | null
           handed_off_at?: string | null
+          handoff_reason?: string | null
           id?: string
           last_agent_message_at?: string | null
           last_customer_message_at?: string | null
@@ -11794,8 +11955,10 @@ export type Database = {
           email: string | null
           first_channel: string | null
           id: string
+          instagram_id: string | null
           last_seen_at: string | null
           merged_into: string | null
+          messenger_id: string | null
           name: string
           normalized_email: string | null
           normalized_phone: string | null
@@ -11805,6 +11968,7 @@ export type Database = {
           priority: string
           source: string | null
           tags: string[]
+          telegram_id: string | null
           updated_at: string
           whatsapp: string | null
         }
@@ -11818,8 +11982,10 @@ export type Database = {
           email?: string | null
           first_channel?: string | null
           id?: string
+          instagram_id?: string | null
           last_seen_at?: string | null
           merged_into?: string | null
+          messenger_id?: string | null
           name: string
           normalized_email?: string | null
           normalized_phone?: string | null
@@ -11829,6 +11995,7 @@ export type Database = {
           priority?: string
           source?: string | null
           tags?: string[]
+          telegram_id?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
@@ -11842,8 +12009,10 @@ export type Database = {
           email?: string | null
           first_channel?: string | null
           id?: string
+          instagram_id?: string | null
           last_seen_at?: string | null
           merged_into?: string | null
+          messenger_id?: string | null
           name?: string
           normalized_email?: string | null
           normalized_phone?: string | null
@@ -11853,6 +12022,7 @@ export type Database = {
           priority?: string
           source?: string | null
           tags?: string[]
+          telegram_id?: string | null
           updated_at?: string
           whatsapp?: string | null
         }

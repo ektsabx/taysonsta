@@ -91,3 +91,12 @@ export async function signSvix(secret: string, id: string, timestamp: string, bo
 export async function signMeta(appSecret: string, body: string): Promise<string> {
   return `sha256=${hex(await hmac(enc.encode(appSecret), body))}`;
 }
+
+// Telegram sends the secret chosen in setWebhook in a header; compare in
+// constant time.
+export function verifyTelegramSecret(secret: string, header: string | null): boolean {
+  if (!header || header.length !== secret.length) return false;
+  let diff = 0;
+  for (let i = 0; i < secret.length; i++) diff |= secret.charCodeAt(i) ^ header.charCodeAt(i);
+  return diff === 0;
+}

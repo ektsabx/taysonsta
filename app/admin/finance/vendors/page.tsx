@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -31,7 +32,7 @@ export default async function VendorsPage({ searchParams }: { searchParams: Sear
   }
   return (
     <>
-      <PageHeader title="الموردون" actions={can(bos, "vendors.create") ? <ModalButtonVendor><VendorForm vendorId={null} /></ModalButtonVendor> : null} />
+      <PageHeader title="الموردون" actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "vendors.export") ? <a className="admin-btn small ghost" href="/api/bos/export/vendors"><Tx>تصدير CSV</Tx></a> : null}<ImportButton bos={bos} type="vendors" />{can(bos, "vendors.create") ? <ModalButtonVendor><VendorForm vendorId={null} /></ModalButtonVendor> : null}</span>} />
       <FilterBar searchPlaceholder="اسم المورد..." />
       <DataTable
         tableId="vendors"

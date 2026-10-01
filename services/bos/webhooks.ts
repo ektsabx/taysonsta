@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/bos/db";
 import { nowIso } from "@/lib/bos/clock";
 import { providerMap } from "@/lib/bos/integrations/catalog";
-import { verifyHmacBase64, verifyMetaSignature, verifySvix, verifyTwilio } from "@/lib/bos/integrations/webhook-signatures";
+import { verifyHmacBase64, verifyMetaSignature, verifySvix, verifyTelegramSecret, verifyTwilio } from "@/lib/bos/integrations/webhook-signatures";
 import { listConnections, resolveConnection } from "@/services/bos/integrations";
 
 // Inbound webhooks (docs/bos/30 §7, doc 31 Phase 4): verify the signature
@@ -60,6 +60,54 @@ registerWebhookHandler("whatsapp_cloud", async (payload) => {
     }
   }
   return handled ? "processed" : "ignored";
+});
+
+// Meta Messenger + Instagram Direct (docs/bos/39 §5): customer messages join
+// the unified inbox; replies go back through the Send API (channel-delivery).
+registerWebhookHandler("meta", async (payload) => {
+  const p = payload as { object?: string; entry?: { messaging?: { sender?: { id?: string }; recipient?: { id?: string }; message?: { mid?: string; text?: string; is_echo?: boolean; attachments?: { type?: string }[] } }[] }[] };
+  const channel = p?.object === "instagram" ? "instagram" : p?.object === "page" ? "messenger" : null;
+  if (!channel) return "ignored";
+  const { receiveInbound } = await import("@/services/bos/conversations");
+  let handled = false;
+  for (const e of p.entry ?? []) {
+    for (const m of e.messaging ?? []) {
+      const from = m.sender?.id;
+      const msg = m.message;
+      if (!from || !msg?.mid || msg.is_echo) continue; // echoes are our own replies
+      const body = msg.text ?? (msg.attachments?.length ? `[${msg.attachments.map((a) => a.type ?? "attachment").join(", ")}]` : "");
+      if (!body) continue;
+      await receiveInbound({
+        channel,
+        customer: channel === "messenger" ? { messenger_id: from, name: null } : { instagram_id: from, name: null },
+        body,
+        external_message_id: msg.mid,
+        external_thread_id: `${channel === "messenger" ? "fb" : "ig"}:${from}`,
+        threadOnly: true,
+      });
+      handled = true;
+    }
+  }
+  return handled ? "processed" : "ignored";
+});
+
+// Telegram bot: private chats with the bot become inbox conversations.
+registerWebhookHandler("telegram", async (payload) => {
+  const u = payload as { message?: { message_id?: number; text?: string; caption?: string; chat?: { id?: number; type?: string }; from?: { first_name?: string; last_name?: string; username?: string; is_bot?: boolean } } };
+  const m = u?.message;
+  if (!m?.chat?.id || m.chat.type !== "private" || m.from?.is_bot) return "ignored";
+  const body = m.text ?? m.caption ?? "[attachment]";
+  const name = [m.from?.first_name, m.from?.last_name].filter(Boolean).join(" ") || (m.from?.username ? `@${m.from.username}` : null);
+  const { receiveInbound } = await import("@/services/bos/conversations");
+  await receiveInbound({
+    channel: "telegram",
+    customer: { telegram_id: String(m.chat.id), name },
+    body: body.slice(0, 10_000),
+    external_message_id: `${m.chat.id}:${m.message_id}`,
+    external_thread_id: `tg:${m.chat.id}`,
+    threadOnly: true,
+  });
+  return "processed";
 });
 
 // Twilio SMS: inbound (From/Body) and status callbacks (MessageStatus).
@@ -123,6 +171,8 @@ export async function receiveWebhook(provider: string, headers: Headers, rawBody
           ? await verifyMetaSignature(secret, headers.get("x-hub-signature-256"), rawBody)
           : def.webhook.kind === "twilio"
             ? await verifyTwilio(secret, headers.get("x-twilio-signature"), url, payload as Record<string, string>)
+            : def.webhook.kind === "telegram_secret"
+              ? verifyTelegramSecret(secret, headers.get("x-telegram-bot-api-secret-token"))
             : await verifyHmacBase64(secret, headers.get("x-docusign-signature-1") ?? headers.get("x-signature"), rawBody);
     if (ok) {
       matched = c.id;

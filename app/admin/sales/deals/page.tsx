@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can, scopeUserIds } from "@/lib/bos/auth";
@@ -48,7 +49,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
       <PageHeader
         title="الصفقات"
        
-        actions={
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="deals" />{
           <>
             <Link href="/admin/sales/pipeline" className="admin-btn secondary small">
               <Tx>عرض Kanban</Tx>
@@ -59,7 +60,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
               </Link>
             ) : null}
           </>
-        }
+        }</span>}
       />
 
       <div className="bos-kpis">

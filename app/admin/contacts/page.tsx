@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -19,7 +20,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
         title="جهات الاتصال"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} جهة اتصال"}</Tx>}
        
-        actions={can(bos, "contacts.create") ? <ContactModalButton label="+ جهة اتصال" className="admin-btn small" /> : null}
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="contacts" />{can(bos, "contacts.create") ? <ContactModalButton label="+ جهة اتصال" className="admin-btn small" /> : null}</span>}
       />
       <FilterBar
         searchPlaceholder="بحث بالاسم أو البريد أو الهاتف أو المنصب..."

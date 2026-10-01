@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -38,7 +39,7 @@ export default async function ProductsPage() {
   const active = products.filter((p) => p.is_active && !p.archived_at);
   return (
     <>
-      <PageHeader title="المنتجات والخدمات" subtitle="ما تقدمه الشركة وأسعاره — يُستخدم في الصفقات والمقترحات والفواتير وقوالب المشاريع" />
+      <PageHeader title="المنتجات والخدمات" subtitle="ما تقدمه الشركة وأسعاره — يُستخدم في الصفقات والمقترحات والفواتير وقوالب المشاريع" actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "products.export") ? <a className="admin-btn small ghost" href="/api/bos/export/products"><Tx>تصدير CSV</Tx></a> : null}<ImportButton bos={bos} type="products" /></span>} />
       <div className="bos-kpis">
         <KpiCard label="نشطة" value={active.length} />
         <KpiCard label="خدمات" value={active.filter((p) => p.kind === "service").length} />

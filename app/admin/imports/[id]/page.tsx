@@ -9,6 +9,7 @@ import { getImport } from "@/services/bos/import-engine";
 import { PageHeader, Card, StatusBadge, KpiCard, EmptyState } from "@/components/bos/ui";
 import { ExecuteButton, MappingForm, RollbackButton } from "../ImportControls";
 import { jobStatus } from "../labels";
+import { importSections } from "@/lib/bos/import-sections";
 
 export default async function ImportJobPage({ params }: { params: Promise<{ id: string }> }) {
   const { bos } = await requirePermission("imports.create");
@@ -64,7 +65,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
         ) : <EmptyState title={job.validated_at ? "لا توجد أخطاء" : "تظهر بعد التحقق"} />}
       </Card>
       {job.executed_at ? <p className="bos-faint" style={{ fontSize: 12 }}><Tx>نُفّذ</Tx> {formatDateTime(job.executed_at)}{job.rolled_back_at ? <> · <Tx>تم التراجع</Tx> {formatDateTime(job.rolled_back_at)}</> : null}</p> : null}
-      <p><Link href="/admin/settings/import"><Tx>كل عمليات الاستيراد</Tx></Link></p>
+      {importSections[job.data_type] ? <p><Link href={importSections[job.data_type].href}><Tx vars={{ s: <Tx>{importSections[job.data_type].label}</Tx> }}>{"العودة إلى {s}"}</Tx></Link></p> : null}
     </>
   );
 }

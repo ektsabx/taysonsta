@@ -13,6 +13,7 @@ import { PageHeader, Card, StatusBadge, EmptyState, Tabs, KpiCard } from "@/comp
 import { formatDateTime } from "@/lib/bos/format";
 import { SettingsForm } from "../SettingsForm";
 import Link from "next/link";
+import { BrandLogo } from "@/components/bos/BrandLogo";
 import { AiPingButton, ConnectionButton, ProviderManage, type ConnView } from "./HubControls";
 import { connState } from "@/lib/bos/integrations/state";
 
@@ -37,8 +38,6 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
     if (states.includes("danger")) return "error" as const;
     return "pending" as const;
   };
-  // Identity colour per provider for the card mark (no third-party logos bundled).
-  const brandHue: Record<string, string> = { resend: "#111827", openai: "#10a37f", gemini: "#4285f4", anthropic: "#d97757", whatsapp_cloud: "#25d366", twilio: "#f22f46", google_maps: "#34a853", google_workspace: "#4285f4", meta: "#0866ff", telegram: "#27a7e7", linkedin: "#0a66c2", tiktok: "#111111", google_ads: "#fbbc04", docusign: "#4c00ff" };
   const stateMeta = { connected: { tone: "success", label: "متصل" }, error: { tone: "danger", label: "يحتاج إصلاح" }, pending: { tone: "warning", label: "محفوظ — لم يُتحقق" }, available: { tone: "neutral", label: "غير مربوط" } } as const;
   const counts = { connected: 0, error: 0, pending: 0, available: 0 };
   for (const p of providers) counts[provState(p.key, p.testable)]++;
@@ -104,7 +103,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
                 return (
                   <article key={p.key} className="bos-int-tile">
                     <div className="bos-int-tile-head">
-                      <span className="bos-int-mark" style={{ background: brandHue[p.key] ?? "var(--bos-secondary)" }} aria-hidden>{p.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || p.name.slice(0, 1)}</span>
+                      <BrandLogo brand={p.key === "support_email" ? "email" : p.key} name={p.name} />
                       <div style={{ minWidth: 0 }}>
                         <strong>{p.name}</strong>
                         <div className="bos-faint" style={{ fontSize: 11.5 }}><Tx>{categoryLabels[p.category]}</Tx></div>

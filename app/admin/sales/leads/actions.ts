@@ -16,7 +16,6 @@ import {
   updateLead,
   type LeadInput,
 } from "@/services/bos/leads";
-import { importLeads, type ImportRow } from "@/services/bos/lead-import";
 
 const score = zf.int(0, 25).default(0);
 
@@ -217,13 +216,3 @@ export async function convertLeadAction(leadId: string, _prev: ActionState, form
   }, "تعذر تحويل العميل المحتمل إلى صفقة.");
 }
 
-export async function importLeadsAction(rows: ImportRow[], duplicateMode: "skip" | "update"): Promise<ActionState<{ created: number; updated: number; skipped: number; errors: string[] }>> {
-  return handleAction("importLeads", async () => {
-    const { bos } = await authorize("leads.manage");
-    if (!Array.isArray(rows) || rows.length === 0) throw new ValidationError("الملف لا يحتوي على صفوف.");
-    if (rows.length > 2000) throw new ValidationError("الحد الأقصى 2000 صف في المرة الواحدة.");
-    const result = await importLeads(bos, rows, duplicateMode);
-    revalidatePath("/admin/sales/leads");
-    return { ok: true, data: result, message: `تم الاستيراد: ${result.created} جديد، ${result.updated} محدث، ${result.skipped} متخطى` };
-  }, "تعذر استيراد الملف.");
-}

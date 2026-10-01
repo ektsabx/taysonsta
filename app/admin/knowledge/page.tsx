@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -23,7 +24,7 @@ export default async function KnowledgePage({ searchParams }: { searchParams: Se
       <PageHeader
         title="قاعدة المعرفة"
        
-        actions={<>{can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new"><Tx>+ مقال</Tx></Link> : null}<Link className="admin-btn small ghost" href="/admin/knowledge/sops"><Tx>إجراءات التشغيل</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/playbooks"><Tx>أدلة المبيعات</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/docs"><Tx>التوثيق والسياسات</Tx></Link></>}
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="kb_articles" />{<>{can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new"><Tx>+ مقال</Tx></Link> : null}<Link className="admin-btn small ghost" href="/admin/knowledge/sops"><Tx>إجراءات التشغيل</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/playbooks"><Tx>أدلة المبيعات</Tx></Link><Link className="admin-btn small ghost" href="/admin/knowledge/docs"><Tx>التوثيق والسياسات</Tx></Link></>}</span>}
       />
       {required.filter((r) => !r.upToDate).length ? (
         <Card title="قراءة مطلوبة">

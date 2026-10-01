@@ -43,6 +43,10 @@ export interface CustomerInput {
   channel?: string | null;
   contact_id?: string | null;
   client_id?: string | null;
+  // Channel identities (docs/bos/39 §5).
+  messenger_id?: string | null;
+  instagram_id?: string | null;
+  telegram_id?: string | null;
 }
 
 const normEmail = (e?: string | null) => (e ?? "").trim().toLowerCase() || null;
@@ -55,7 +59,10 @@ export async function findOrCreateCustomer(input: CustomerInput, actorId: string
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError("بريد إلكتروني غير صالح", { email: "غير صالح" });
   const c = db();
   let existing: SupportCustomer | null = null;
-  if (email) existing = (await c.from("support_customers").select("*").eq("normalized_email", email).is("merged_into", null).limit(1).maybeSingle()).data;
+  for (const k of ["messenger_id", "instagram_id", "telegram_id"] as const) {
+    if (!existing && input[k]) existing = (await c.from("support_customers").select("*").eq(k, input[k]!).is("merged_into", null).limit(1).maybeSingle()).data;
+  }
+  if (!existing && email) existing = (await c.from("support_customers").select("*").eq("normalized_email", email).is("merged_into", null).limit(1).maybeSingle()).data;
   if (!existing && phone && phone.length >= 7) existing = (await c.from("support_customers").select("*").eq("normalized_phone", phone).is("merged_into", null).limit(1).maybeSingle()).data;
   if (existing) {
     const patch: Partial<SupportCustomer> = { last_seen_at: nowIso() };
@@ -64,6 +71,7 @@ export async function findOrCreateCustomer(input: CustomerInput, actorId: string
     if (!existing.whatsapp && input.whatsapp) patch.whatsapp = input.whatsapp;
     if (!existing.company && input.company) patch.company = input.company;
     if (!existing.country && input.country) patch.country = input.country;
+    for (const k of ["messenger_id", "instagram_id", "telegram_id"] as const) if (!existing[k] && input[k]) patch[k] = input[k]!;
     await c.from("support_customers").update(patch).eq("id", existing.id);
     return { ...existing, ...patch } as SupportCustomer;
   }
@@ -79,7 +87,7 @@ export async function findOrCreateCustomer(input: CustomerInput, actorId: string
   const name = (input.name ?? "").trim() || email || input.phone || input.whatsapp || "—";
   const { data, error } = await c
     .from("support_customers")
-    .insert({ name: name.slice(0, 200), email, phone: input.phone ?? null, whatsapp: input.whatsapp ?? null, company: input.company ?? null, country: input.country ?? null, source: input.source ?? input.channel ?? "manual", first_channel: input.channel ?? null, contact_id: contactId, client_id: clientId, last_seen_at: nowIso(), created_by: actorId })
+    .insert({ name: name.slice(0, 200), email, phone: input.phone ?? null, whatsapp: input.whatsapp ?? null, company: input.company ?? null, country: input.country ?? null, source: input.source ?? input.channel ?? "manual", first_channel: input.channel ?? null, messenger_id: input.messenger_id ?? null, instagram_id: input.instagram_id ?? null, telegram_id: input.telegram_id ?? null, contact_id: contactId, client_id: clientId, last_seen_at: nowIso(), created_by: actorId })
     .select("*")
     .single();
   if (error) throw error;
@@ -354,6 +362,20 @@ export async function receiveInbound(input: { channel: Channel; customer: Custom
     }
   }
   if (spam) return { conversation: conv, duplicate: false, isNew, spam: true };
+  // AI agents on this channel (docs/bos/39 §5) — after the webhook has answered.
+  if (conv.channel !== "web_widget") {
+    const convId = conv.id;
+    const run = async () => {
+      const { routeInboundToAi } = await import("@/services/bos/ai-agents");
+      await routeInboundToAi(convId, { isNew, reopened: reopen, text: body }).catch(async (e) => (await import("@/lib/bos/errors")).logServerError("ai:route", e));
+    };
+    try {
+      const { after } = await import("next/server");
+      after(run);
+    } catch {
+      await run(); // outside a request (tests, scripts)
+    }
+  }
   if (!isNew && !conv.ai_active) await emitEvent({ type: "conversation.customer_message", entityType: "conversation", entityId: conv.id, summary: `${customer.name}: ${body.slice(0, 120)}`, actorType: "client", payload: { title: conv.subject ?? customer.name, assignee_user_id: conv.assignee_id, channel: input.channel, customer_id: customer.id } });
   return { conversation: conv, duplicate: false, isNew };
 }
@@ -372,46 +394,19 @@ export async function replyToConversation(bos: BosUser, id: string, body: string
     return { delivery: "internal" as const };
   }
 
-  // Outbound per channel.
-  let status: ConversationMessage["delivery_status"] = "sent";
-  let error: string | null = null;
-  let externalId: string | null = null;
-  let outboundId: string | null = null;
-  if (conv.channel === "email") {
-    if (!customer.email) {
-      status = "failed";
-      error = "Customer has no email";
-    } else {
-      const { sendEmail } = await import("@/lib/bos/integrations/email");
-      const { resolveConnection } = await import("@/services/bos/integrations");
-      const inbound = await resolveConnection("support_email").catch(() => null);
-      const subject = `${conv.subject ? `Re: ${conv.subject}` : conv.number} [${conv.number}]`;
-      const res = await sendEmail({ to: [customer.email], subject, text, ...(inbound ? { replyTo: (inbound.connection.config as Record<string, string>).inbound_address } : {}) });
-      if (res.status === "sent") externalId = res.id;
-      else {
-        status = res.status === "skipped" ? "skipped" : "failed";
-        error = res.status === "skipped" ? res.reason : res.error;
-      }
-    }
-  } else if (conv.channel === "whatsapp" || conv.channel === "sms") {
-    // Through the messaging layer: consent, 24-hour window, provider, log.
-    const to = conv.channel === "whatsapp" ? customer.whatsapp ?? customer.phone : customer.phone ?? customer.whatsapp;
-    if (!to) throw new ValidationError("لا يوجد رقم هاتف لهذا العميل.");
-    const { sendAsSystem } = await import("@/services/bos/messaging");
-    const out = await sendAsSystem({ channel: conv.channel, to, text, entity_type: "conversation", entity_id: conv.id, client_id: conv.client_id }, bos.userId);
-    status = out.status === "queued" ? "queued" : out.status;
-    error = out.error;
-    externalId = out.provider_message_id;
-    outboundId = out.id;
-  } else if (conv.channel === "phone" || conv.channel === "manual") {
-    status = null; // a note of what was said; nothing to deliver
-  }
-  // web_widget / portal: stored and shown to the customer by their channel.
-
+  // Same channel the customer used (docs/bos/39 §5).
+  const { deliverToCustomer, linkOutbound } = await import("@/services/bos/channel-delivery");
+  const d = await deliverToCustomer(conv, customer, text, bos.userId);
+  const status = d.status;
+  const error = d.error;
+  const externalId = d.externalId;
+  const outboundId = d.outboundId;
   const msg = await addMessage(conv, { direction: "outbound", author_kind: "agent", author_user_id: bos.userId, body: text, external_id: externalId, delivery_status: status, delivery_error: error });
-  if (outboundId && msg) await db().from("outbound_messages").update({ conversation_message_id: msg.id }).eq("id", outboundId);
+  await linkOutbound(outboundId, msg?.id);
+  // A staff reply ends AI handling so the two never answer over each other.
+  if (conv.ai_active) await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "handoff:human" });
   const first = !conv.first_response_at;
-  await db().from("conversations").update({ last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(first ? { first_response_at: nowIso() } : {}), ...(conv.status === "open" || conv.status === "pending_internal" ? { status: "pending_customer" as const } : {}), ...(conv.assignee_id ? {} : { assignee_id: bos.userId }), unread_for_agent: 0, ...(conv.ai_active ? { ai_active: false, handed_off_at: nowIso() } : {}) }).eq("id", id);
+  await db().from("conversations").update({ last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(first ? { first_response_at: nowIso() } : {}), ...(conv.status === "open" || conv.status === "pending_internal" ? { status: "pending_customer" as const } : {}), ...(conv.assignee_id ? {} : { assignee_id: bos.userId }), unread_for_agent: 0, ...(conv.ai_active ? { ai_active: false, handed_off_at: nowIso(), handoff_reason: "human_reply" } : {}) }).eq("id", id);
   await audit({ actorId: bos.userId, action: "conversation.replied", entityType: "conversation", entityId: id, newValue: { message_id: msg?.id, channel: conv.channel, delivery: status } });
   return { delivery: status, error };
 }
@@ -477,6 +472,17 @@ export async function restoreConversationFromSpam(bos: BosUser, id: string) {
   await db().from("conversations").update({ spam_at: null, spam_by: null, spam_reason: null }).eq("id", id);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "spam:restored" });
   await audit({ actorId: bos.userId, action: "conversation.restored_from_spam", entityType: "conversation", entityId: id, oldValue: { spam_at: conv.spam_at, spam_reason: conv.spam_reason } });
+}
+
+// A staff member takes over from the AI agent: AI stops, context stays, the
+// conversation is assigned to them (docs/bos/39 §5).
+export async function takeOverConversation(bos: BosUser, id: string) {
+  const { conversation: conv } = await getConversation(bos, id);
+  if (!can(bos, "conversations.update")) throw new ForbiddenError();
+  if (!conv.ai_active && conv.assignee_id === bos.userId) return;
+  await db().from("conversations").update({ ai_active: false, handed_off_at: conv.ai_active ? nowIso() : conv.handed_off_at, handoff_reason: conv.ai_active ? "human_takeover" : conv.handoff_reason, assignee_id: bos.userId, status: conv.status === "pending_customer" ? conv.status : "open" }).eq("id", id);
+  await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "handoff:human" });
+  await audit({ actorId: bos.userId, action: "conversation.taken_over", entityType: "conversation", entityId: id, oldValue: { ai_active: conv.ai_active, assignee_id: conv.assignee_id } });
 }
 
 // Escalate: raise priority and alert the team leads (or admins).

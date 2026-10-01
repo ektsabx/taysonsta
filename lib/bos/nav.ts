@@ -246,7 +246,6 @@ export const navigation: NavGroup[] = [
           { href: "/admin/settings/integrations/ads", label: "الحسابات الإعلانية", perm: "ads.manage" },
         ],
       },
-      { href: "/admin/settings/import", label: "استيراد البيانات", perm: "imports.create" },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },
       { href: "/admin/settings/it", label: "التطبيقات الخارجية", perm: "apps.manage" },
       { href: "/admin/settings/cameras", label: "الكاميرات", perm: "cameras.read" },

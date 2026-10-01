@@ -3,6 +3,8 @@ import { BosTable } from "@/components/bos/BosTable";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ModalButton } from "@/components/bos/Dialog";
 import { Tx, useT } from "@/components/bos/I18n";
 import { createClient } from "@/lib/supabase/client";
 import type { ActionState } from "@/lib/bos/action";
@@ -26,13 +28,13 @@ export function NewImport({ types }: { types: O[] }) {
       if (error) return setErr("تعذر رفع الملف");
       const a = await analyzeImportAction(s.data.jobId);
       if (!a.ok) return setErr(a.error);
-      router.push(`/admin/settings/import/${s.data.jobId}`);
+      router.push(`/admin/imports/${s.data.jobId}`);
     });
   };
   return (
     <div className="bos-stack" style={{ gap: 8 }}>
       <div className="bos-form-grid">
-        <div className="bos-field"><label><Tx>نوع البيانات</Tx></label><select value={type} onChange={(e) => setType(e.target.value)}>{types.map((x) => <option key={x.value} value={x.value}>{t(x.label)}</option>)}</select></div>
+        {types.length > 1 ? <div className="bos-field"><label><Tx>نوع البيانات</Tx></label><select value={type} onChange={(e) => setType(e.target.value)}>{types.map((x) => <option key={x.value} value={x.value}>{t(x.label)}</option>)}</select></div> : null}
         <div className="bos-field"><label><Tx>الملف (CSV أو XLSX أو JSON، حتى 10MB)</Tx></label><input type="file" accept=".csv,.xlsx,.json" disabled={pending} onChange={(e) => onFile(e.target.files?.[0])} /></div>
       </div>
       {pending ? <p className="bos-faint"><Tx>جارٍ الرفع والقراءة…</Tx></p> : null}
@@ -96,4 +98,40 @@ export function ExecuteButton({ jobId, mismatch }: { jobId: string; mismatch: bo
 
 export function RollbackButton({ jobId }: { jobId: string }) {
   return <Run label="التراجع عن الاستيراد" className="admin-btn ghost" confirmText="سيُحذف ما أُنشئ ويُستعاد ما عُدّل. متابعة؟" run={() => rollbackImportAction(jobId)} />;
+}
+
+// Section import dialog (docs/bos/39 §4).
+export function ImportDialog({ type, label, after, recent }: { type: string; label: string; after: { key: string; label: string; href: string }[]; recent: { id: string; number: string; file_name: string; status: string; created_count: number; updated_count: number; failed_count: number; when: string }[] }) {
+  return (
+    <ModalButton label="استيراد" title={`استيراد — ${label}`} className="admin-btn small ghost">
+      {() => (
+        <div className="bos-stack" style={{ gap: 12 }}>
+          {after.length ? (
+            <p className="bos-hint" style={{ margin: 0 }}>
+              <Tx>ترتيب الاستيراد: تأكد أن هذه البيانات موجودة أولاً حتى لا تنكسر العلاقات —</Tx>{" "}
+              {after.map((a, i) => <span key={a.key}>{i ? "، " : ""}<Link className="bos-link" href={a.href}><Tx>{a.label}</Tx></Link></span>)}
+              <Tx>. الصفوف التي تشير إلى سجل غير موجود تظهر كأخطاء ولا تُكتب.</Tx>
+            </p>
+          ) : null}
+          <NewImport types={[{ value: type, label }]} />
+          <ul className="bos-steps-list" style={{ fontSize: 12.5 }}>
+            <li><Tx>ارفع الملف، ثم اربط الأعمدة بحقول النظام.</Tx></li>
+            <li><Tx>راجع الصفوف التي فيها أخطاء أو تكرار قبل التنفيذ — يمكنك تنزيل تقرير بها لتصحيحها.</Tx></li>
+            <li><Tx>لا يُحذف أي سجل موجود، ولا يُعدَّل إلا إذا اخترت «تحديث السجلات المطابقة» صراحة.</Tx></li>
+          </ul>
+          {recent.length ? (
+            <div>
+              <div className="bos-kv-label" style={{ marginBottom: 4 }}><Tx>آخر عمليات الاستيراد</Tx></div>
+              {recent.map((r) => (
+                <Link key={r.id} href={`/admin/imports/${r.id}`} className="cx-other">
+                  <span className="bos-ellipsis">{r.number} · {r.file_name}</span>
+                  <span className="bos-faint" style={{ fontSize: 11.5 }}>{r.status === "completed" || r.status === "rolled_back" ? `+${r.created_count} · ~${r.updated_count} · ✖${r.failed_count}` : ""} {r.when}</span>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </ModalButton>
+  );
 }

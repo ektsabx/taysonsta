@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
@@ -44,7 +45,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         title="الحسابات"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} حساب"}</Tx>}
        
-        actions={can(bos, "clients.create") ? <Link href="/admin/clients/new" className="admin-btn small"><Tx>+ حساب جديد</Tx></Link> : null}
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="clients" />{can(bos, "clients.create") ? <Link href="/admin/clients/new" className="admin-btn small"><Tx>+ حساب جديد</Tx></Link> : null}</span>}
       />
       <FilterBar
         searchPlaceholder="بحث بالاسم أو الشركة أو البريد أو الهاتف..."

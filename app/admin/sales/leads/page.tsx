@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs } from "@/lib/bos/clock";
 import Link from "next/link";
@@ -62,23 +63,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
         title="العملاء المحتملون"
         subtitle={scope === "all" ? "كل العملاء المحتملين" : scope === "team" ? "عملاء فريقك المحتملون" : "العملاء المحتملون المسندون إليك"}
        
-        actions={
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="leads" />{
           <>
             <Link href="/admin/sales/pipeline?entity=lead" className="admin-btn secondary small">
               <Tx>عرض المسار</Tx>
             </Link>
-            {can(bos, "leads.manage") ? (
-              <Link href="/admin/sales/leads/import" className="admin-btn secondary small">
-                <Tx>استيراد</Tx>
-              </Link>
-            ) : null}
             {canCreate ? (
               <Link href="/admin/sales/leads/new" className="admin-btn small">
                 <Tx>+ عميل محتمل</Tx>
               </Link>
             ) : null}
           </>
-        }
+        }</span>}
       />
 
       <FilterBar
@@ -133,11 +129,6 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
                     <Link href="/admin/sales/leads/new" className="admin-btn small">
                       <Tx>إضافة عميل محتمل</Tx>
                     </Link>
-                    {can(bos, "leads.manage") ? (
-                      <Link href="/admin/sales/leads/import" className="admin-btn small secondary">
-                        <Tx>استيراد عملاء</Tx>
-                      </Link>
-                    ) : null}
                   </>
                 ) : null
               }

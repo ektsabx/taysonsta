@@ -1,3 +1,4 @@
+import { ImportButton } from "@/components/bos/ImportButton";
 import { RelTime } from "@/components/bos/RelTime";
 import { Tx } from "@/components/bos/I18n";
 import Link from "next/link";
@@ -34,7 +35,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
         title="الموظفون"
         subtitle={<Tx vars={{ total: result.total }}>{"{total} موظف"}</Tx>}
        
-        actions={can(bos, "employees.create") ? <Link href="/admin/team/employees/new" className="admin-btn small"><Tx>+ موظف جديد</Tx></Link> : null}
+        actions={<span className="bos-row" style={{ gap: 6 }}><ImportButton bos={bos} type="employees" />{can(bos, "employees.create") ? <Link href="/admin/team/employees/new" className="admin-btn small"><Tx>+ موظف جديد</Tx></Link> : null}</span>}
       />
       <FilterBar
         searchPlaceholder="بحث بالاسم أو البريد أو المسمى أو الكود..."
