@@ -1,5 +1,4 @@
 import { BosTable } from "@/components/bos/BosTable";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
 import { can, requirePermission } from "@/lib/bos/auth";
@@ -7,17 +6,14 @@ import { db } from "@/lib/bos/db";
 import { NotFoundError } from "@/lib/bos/errors";
 import { formatDateTime } from "@/lib/bos/format";
 import { getItem, listStages } from "@/services/bos/content";
-import { listAccounts } from "@/services/bos/social";
 import { listActiveStaff, userNameMap } from "@/services/bos/shared";
-import { metricDefs, platforms, type MetricKey, type Platform } from "@/lib/bos/social/platforms";
 import { PageHeader, Card, StatusBadge, KeyValues } from "@/components/bos/ui";
 import { FileManager } from "@/components/bos/FileManager";
-import { AiPanel, ItemForm, SocialFromContent, StageControls, TaskList } from "../ContentControls";
+import { AiPanel, ItemForm, StageControls, TaskList } from "../ContentControls";
 import { typeLabels } from "../labels";
-import { postStatus } from "../../social/labels";
 
 // One content item (docs/bos/30 §13.1–13.3): stage + approval, tasks, files,
-// AI drafts, linked social posts with real metrics, change log.
+// AI drafts, change log.
 export default async function ContentItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { bos } = await requirePermission("content.read");
   const { id } = await params;
@@ -28,9 +24,9 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
     if (e instanceof NotFoundError) notFound();
     throw e;
   }
-  const { item, tasks, drafts, posts, totals, engagement } = data;
-  const [stages, staff, names, accounts, { data: history }, { count: ai }] = await Promise.all([
-    listStages(true), listActiveStaff(), userNameMap(), can(bos, "social.create") ? listAccounts({ activeOnly: true }) : Promise.resolve([]),
+  const { item, tasks, drafts } = data;
+  const [stages, staff, names, { data: history }, { count: ai }] = await Promise.all([
+    listStages(true), listActiveStaff(), userNameMap(),
     db().from("status_history").select("from_status, to_status, changed_by, reason, changed_at").eq("entity_type", "content_item").eq("entity_id", id).order("changed_at", { ascending: false }).limit(30),
     db().from("integration_connections").select("id", { count: "exact", head: true }).in("provider", ["anthropic", "openai", "gemini"]).eq("status", "active"),
   ]);
@@ -54,23 +50,6 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
       </Card>
       <div className="bos-grid-2" style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))" }}>
         <Card title="المهام"><TaskList itemId={item.id} tasks={tasks} staff={staffOpts} names={Object.fromEntries(names)} /></Card>
-        <Card title="الأداء (من المنشورات المرتبطة)">
-          {posts.length ? (
-            <>
-              <div className="bos-row" style={{ gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
-                {(Object.keys(metricDefs) as MetricKey[]).filter((k) => totals[k] != null).map((k) => <div key={k}><div className="bos-faint" style={{ fontSize: 11 }}><Tx>{metricDefs[k].label}</Tx></div><b className="bos-num">{totals[k]!.toLocaleString("en-US")}</b></div>)}
-                <div><div className="bos-faint" style={{ fontSize: 11 }}><Tx>معدل التفاعل</Tx></div><b>{engagement != null ? `${engagement}%` : <Tx>غير متاح</Tx>}</b></div>
-              </div>
-              {posts.map((p) => (
-                <div key={p.id} style={{ fontSize: 12.5, marginBottom: 4 }}>
-                  <Link href={`/admin/social/posts/${p.id}`}>{p.number}</Link> · <StatusBadge tone={postStatus[p.status]?.tone ?? "neutral"} label={postStatus[p.status]?.label ?? p.status} />
-                  {((p.social_post_targets ?? []) as unknown as { id: string; post_url: string | null; social_accounts: { platform: Platform } }[]).filter((t) => t.post_url).map((t) => <a key={t.id} href={t.post_url!} target="_blank" rel="noreferrer" style={{ marginInlineStart: 6 }}><Tx>{platforms[t.social_accounts.platform].label}</Tx> ↗</a>)}
-                </div>
-              ))}
-            </>
-          ) : <p className="bos-hint"><Tx>لا توجد منشورات مرتبطة بعد.</Tx></p>}
-          {can(bos, "social.create") && item.approved_at ? <div style={{ marginTop: 10 }}><div className="bos-faint" style={{ fontSize: 12, marginBottom: 4 }}><Tx>إنشاء منشور من هذا المحتوى (يمر بمراجعة التواصل الاجتماعي)</Tx></div><SocialFromContent itemId={item.id} accounts={accounts.map((a) => ({ value: a.id, label: `${platforms[a.platform as Platform]?.label ?? a.platform} · ${a.name}` }))} /></div> : null}
-        </Card>
       </div>
       {canEdit ? <Card title="الكتابة بالذكاء الاصطناعي"><AiPanel itemId={item.id} drafts={drafts} aiReady={!!ai} /></Card> : null}
       <Card title="الملفات"><FileManager entityType="content_item" entityId={item.id} canUpload={can(bos, "files.create") && canEdit} /></Card>

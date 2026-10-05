@@ -12,7 +12,7 @@ import { changeLeadStage } from "@/services/bos/leads";
 import { getPipeline } from "@/services/bos/shared";
 
 const activitySchema = z.object({
-  type: z.enum(["call", "email", "whatsapp", "linkedin", "meeting", "follow_up", "task", "note", "internal", "client_communication"]),
+  type: z.enum(["call", "email", "linkedin", "meeting", "follow_up", "task", "note", "internal", "client_communication"]),
   title: zf.required("العنوان", 300),
   description: zf.optionalText(10000),
   direction: z.preprocess((v) => (v === "" ? null : v), z.enum(["inbound", "outbound", "internal"]).nullable()),
@@ -21,7 +21,6 @@ const activitySchema = z.object({
   deal_id: zf.optionalUuid(),
   client_id: zf.optionalUuid(),
   contact_id: zf.optionalUuid(),
-  project_id: zf.optionalUuid(),
   assigned_to: zf.optionalUuid(),
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
   status: z.enum(["pending", "in_progress", "completed", "cancelled"]).default("pending"),
@@ -59,10 +58,9 @@ export async function createActivityAction(_prev: ActionState, formData: FormDat
       ["deal", v.deal_id],
       ["client", v.client_id],
       ["contact", v.contact_id],
-      ["project", v.project_id],
     ];
     for (const [type, id] of related) if (id) await assertCanAccess(bos, type, id, "read");
-    if (v.assigned_to && v.assigned_to !== bos.userId && !can(bos, "tasks.assign") && !can(bos, "leads.assign")) {
+    if (v.assigned_to && v.assigned_to !== bos.userId && !can(bos, "activities.assign") && !can(bos, "leads.assign")) {
       throw new ValidationError("لا يمكنك إسناد نشاط لموظف آخر.", { assigned_to: "غير مسموح" });
     }
     const input: ActivityInput = {
@@ -75,7 +73,6 @@ export async function createActivityAction(_prev: ActionState, formData: FormDat
       deal_id: v.deal_id,
       client_id: v.client_id,
       contact_id: v.contact_id,
-      project_id: v.project_id,
       assigned_to: v.assigned_to,
       priority: v.priority,
       status: v.status,
@@ -84,10 +81,10 @@ export async function createActivityAction(_prev: ActionState, formData: FormDat
       reminder_at: toIso(v.reminder_at),
     };
     const activity = await createActivity(bos, input);
-    if (activity.lead_id && activity.status === "completed" && ["call", "email", "whatsapp", "linkedin", "client_communication"].includes(activity.type)) {
+    if (activity.lead_id && activity.status === "completed" && ["call", "email", "linkedin", "client_communication"].includes(activity.type)) {
       await progressLeadFromCommunication(bos, activity.lead_id, activity.direction);
     }
-    for (const [type, id] of related) if (id) revalidatePath(`/admin/${type === "lead" ? "sales/leads" : type === "deal" ? "sales/deals" : type === "client" ? "clients" : type === "contact" ? "contacts" : "projects"}/${id}`);
+    for (const [type, id] of related) if (id) revalidatePath(`/admin/${type === "lead" ? "sales/leads" : type === "deal" ? "sales/deals" : type === "client" ? "clients" : "contacts"}/${id}`);
     revalidatePath("/admin/sales/activities");
     return { ok: true, message: activity.status === "completed" ? "تم تسجيل النشاط" : "تمت جدولة النشاط" };
   }, "تعذر حفظ النشاط.");
@@ -96,8 +93,8 @@ export async function createActivityAction(_prev: ActionState, formData: FormDat
 async function loadOwned(id: string) {
   const { bos } = await authorize("activities.update");
   if (!(await canAccessEntity(bos, "activity", id, "update"))) {
-    const { data } = await db().from("activities").select("lead_id, deal_id, project_id").eq("id", id).maybeSingle();
-    const parent = data?.lead_id ? ["lead", data.lead_id] : data?.deal_id ? ["deal", data.deal_id] : data?.project_id ? ["project", data.project_id] : null;
+    const { data } = await db().from("activities").select("lead_id, deal_id").eq("id", id).maybeSingle();
+    const parent = data?.lead_id ? ["lead", data.lead_id] : data?.deal_id ? ["deal", data.deal_id] : null;
     if (!parent || !(await canAccessEntity(bos, parent[0], parent[1], "update"))) {
       throw new ValidationError("ليس لديك صلاحية تعديل هذا النشاط.");
     }

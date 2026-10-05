@@ -67,14 +67,6 @@ async function resolveRelation(relation: string, event: ActivityEvent): Promise<
       }
       return [];
     }
-    case "pm": {
-      const pm = str(p.pm_id);
-      if (pm) return [pm];
-      const projectId = str(p.project_id) ?? (event.entity_type === "project" ? event.entity_id : null);
-      if (!projectId) return [];
-      const { data } = await client.from("projects").select("pm_id").eq("id", projectId).maybeSingle();
-      return data?.pm_id ? [data.pm_id] : [];
-    }
     case "bd": {
       const dealId = str(p.deal_id) ?? (event.entity_type === "deal" ? event.entity_id : null);
       if (!dealId) return [];
@@ -86,12 +78,6 @@ async function resolveRelation(relation: string, event: ActivityEvent): Promise<
       if (!clientId) return [];
       const { data } = await client.from("clients").select("account_manager_id").eq("id", clientId).maybeSingle();
       return data?.account_manager_id ? [data.account_manager_id] : [];
-    }
-    case "project_members": {
-      const projectId = str(p.project_id) ?? (event.entity_type === "project" ? event.entity_id : null);
-      if (!projectId) return [];
-      const { data } = await client.from("project_members").select("user_id").eq("project_id", projectId);
-      return (data ?? []).map((m) => m.user_id);
     }
     case "manager_of_actor":
       return managerOf(event.actor_user_id);
@@ -271,7 +257,7 @@ export async function dispatchNotifications(event: ActivityEvent, extraRecipient
   const onlyRelations = Array.isArray(payload.notify_relations) ? (payload.notify_relations as string[]) : null;
   // The record is needed for conditions and for the notification copy.
   const entity = (subs ?? []).length || extraRecipients.length ? await loadEntity(event) : null;
-  const { evaluateConditions } = await import("@/lib/bos/automation/conditions");
+  const { evaluateConditions } = await import("@/lib/bos/conditions");
 
   const recipientChannels = new Map<string, Set<string>>();
   const lockedRecipients = new Set<string>();
@@ -283,7 +269,7 @@ export async function dispatchNotifications(event: ActivityEvent, extraRecipient
   };
 
   for (const sub of subs ?? []) {
-    // Subscription conditions (docs/bos/30 §9.2), same evaluator as workflows.
+    // Subscription conditions (docs/bos/30 §9.2), evaluated in code.
     const conds = (Array.isArray(sub.conditions) ? sub.conditions : []) as unknown as Parameters<typeof evaluateConditions>[0];
     if (conds.length && !evaluateConditions(conds, "all", { payload, entity, summary: event.summary })) continue;
     let users: string[] = [];

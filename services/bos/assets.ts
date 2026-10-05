@@ -14,10 +14,10 @@ import { refreshEmployeeOnboardingSafe } from "@/services/bos/employees";
 // every step in asset_events and handovers in device_assignments (the same
 // records HR on/offboarding reads).
 
-type Kind = "purchased" | "available" | "assigned" | "returned" | "seat_assigned" | "seat_released" | "branch_transfer" | "maintenance_opened" | "maintenance_closed" | "retired" | "lost" | "stock_in" | "stock_out" | "note";
+type Kind = "purchased" | "available" | "assigned" | "returned" | "seat_assigned" | "seat_released" | "maintenance_opened" | "maintenance_closed" | "retired" | "lost" | "stock_in" | "stock_out" | "note";
 
-export async function logAssetEvent(deviceId: string, kind: Kind, actorId: string | null, extra: { detail?: string | null; employee_id?: string | null; from_branch_id?: string | null; to_branch_id?: string | null; quantity?: number | null; cost?: number | null } = {}) {
-  await db().from("asset_events").insert({ device_id: deviceId, kind, actor_user_id: actorId, detail: extra.detail?.slice(0, 500) ?? null, employee_id: extra.employee_id ?? null, from_branch_id: extra.from_branch_id ?? null, to_branch_id: extra.to_branch_id ?? null, quantity: extra.quantity ?? null, cost: extra.cost ?? null });
+export async function logAssetEvent(deviceId: string, kind: Kind, actorId: string | null, extra: { detail?: string | null; employee_id?: string | null; quantity?: number | null; cost?: number | null } = {}) {
+  await db().from("asset_events").insert({ device_id: deviceId, kind, actor_user_id: actorId, detail: extra.detail?.slice(0, 500) ?? null, employee_id: extra.employee_id ?? null, quantity: extra.quantity ?? null, cost: extra.cost ?? null });
 }
 
 function need(bos: BosUser, perm: "devices.update" | "devices.assign" | "devices.manage") {
@@ -115,18 +115,7 @@ export async function closeMaintenance(bos: BosUser, maintenanceId: string, inpu
   if (input.retire) await logAssetEvent(m.device_id, "retired", bos.userId, { detail: "بعد الصيانة" });
 }
 
-// ---------------------------------------------------------------- branch transfer / retire / lost
-
-export async function transferBranch(bos: BosUser, deviceId: string, branchId: string, note: string | null) {
-  need(bos, "devices.update");
-  const d = await load(deviceId);
-  if (d.branch_id === branchId) return;
-  const { data: b } = await db().from("branches").select("id, status").eq("id", branchId).maybeSingle();
-  if (!b || b.status !== "active") throw new ValidationError("الفرع غير متاح.");
-  await db().from("devices").update({ branch_id: branchId }).eq("id", deviceId);
-  await logAssetEvent(deviceId, "branch_transfer", bos.userId, { from_branch_id: d.branch_id, to_branch_id: branchId, detail: note });
-  await audit({ actorId: bos.userId, action: "asset.branch_transfer", entityType: "device", entityId: deviceId, oldValue: { branch_id: d.branch_id }, newValue: { branch_id: branchId } });
-}
+// ---------------------------------------------------------------- retire / lost
 
 export async function setEndOfLife(bos: BosUser, deviceId: string, status: "retired" | "lost", reason: string) {
   need(bos, "devices.update");
@@ -153,7 +142,7 @@ export async function assetDetail(id: string) {
 
 export async function assetReport(bos: BosUser) {
   if (!can(bos, "devices.read")) throw new ForbiddenError();
-  const { data } = await db().from("devices").select("id, asset_id, name, type, status, branch_id, purchase_value, currency, warranty_until, license_expiry, license_seats, quantity, min_quantity, next_maintenance_date").limit(5000);
+  const { data } = await db().from("devices").select("id, asset_id, name, type, status, purchase_value, currency, warranty_until, license_expiry, license_seats, quantity, min_quantity, next_maintenance_date").limit(5000);
   const { data: seats } = await db().from("device_assignments").select("device_id").is("returned_at", null);
   const used = new Map<string, number>();
   for (const s of seats ?? []) used.set(s.device_id, (used.get(s.device_id) ?? 0) + 1);

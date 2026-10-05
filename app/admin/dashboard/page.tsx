@@ -40,11 +40,6 @@ export default async function DashboardPage() {
                 <Tx>+ عميل محتمل</Tx>
               </Link>
             ) : null}
-            {bos.permissions.has("tasks.create") ? (
-              <Link href="/admin/projects/tasks/new" className="admin-btn small secondary">
-                <Tx>+ مهمة</Tx>
-              </Link>
-            ) : null}
             <Link href="/admin/profile/dashboard" className="admin-btn small ghost">
               <Tx>تخصيص</Tx>
             </Link>

@@ -3,11 +3,10 @@ import "server-only";
 import type { Json } from "@/types/database";
 import { db } from "@/lib/bos/db";
 import { dispatchNotifications, dispatchOverdueDigest, type ActivityEvent } from "@/lib/bos/notify";
-import { runAutomationsForEvent } from "@/lib/bos/automation/engine";
 import { logServerError } from "@/lib/bos/errors";
 
 // Standardized events (§78). One event → timeline + notifications +
-// automations + reports + audit trail (docs/bos/01 §5).
+// reports + audit trail (docs/bos/01 §5).
 
 export interface EmitInput {
   type: string;
@@ -17,7 +16,7 @@ export interface EmitInput {
   payload?: Record<string, unknown>;
   links?: { type: string; id: string | null | undefined }[];
   actorId?: string | null;
-  actorType?: "user" | "system" | "client" | "automation";
+  actorType?: "user" | "system" | "client";
   visibility?: "internal" | "client";
   dedupeKey?: string;
 }
@@ -62,11 +61,6 @@ async function runBuiltins(event: ActivityEvent): Promise<void> {
       await client.rpc("bos_complete_onboarding_item", { p_checklist: checklist.id, p_auto_key: key, p_actor: event.actor_user_id as string });
     }
   };
-  const dealOfProject = async (projectId: string | null | undefined) => {
-    if (!projectId) return null;
-    const { data } = await client.from("projects").select("deal_id").eq("id", projectId).maybeSingle();
-    return data?.deal_id ?? null;
-  };
 
   switch (event.event_type) {
     case "payment.completed":
@@ -76,13 +70,7 @@ async function runBuiltins(event: ActivityEvent): Promise<void> {
       await completeClientItem(p.deal_id as string, "contract_signed");
       break;
     case "meeting.scheduled":
-      if (p.project_id) await completeClientItem(await dealOfProject(p.project_id as string), "kickoff_scheduled");
-      break;
-    case "project.pm_assigned":
-      await completeClientItem(await dealOfProject(event.entity_id), "team_assigned");
-      break;
-    case "project.status_changed":
-      if (p.to && p.to !== "planning") await completeClientItem(await dealOfProject(event.entity_id), "project_started");
+      await completeClientItem(p.deal_id as string, "kickoff_scheduled");
       break;
     default:
       break;
@@ -92,7 +80,7 @@ async function runBuiltins(event: ActivityEvent): Promise<void> {
 let dispatching = false;
 
 export async function dispatchPendingEvents(limit = 200): Promise<number> {
-  // Re-entrancy guard: automations emit events while we dispatch; those are
+  // Re-entrancy guard: handlers emit events while we dispatch; those are
   // picked up by the loop below rather than by a nested dispatcher.
   if (dispatching) return 0;
   dispatching = true;
@@ -129,9 +117,6 @@ export async function dispatchPendingEvents(limit = 200): Promise<number> {
             await dispatchNotifications(event);
           }
           await runBuiltins(event);
-          await runAutomationsForEvent(event, async (input) => {
-            await insertEvent({ ...input, actorId: null, actorType: "automation" });
-          });
         } catch (error) {
           logServerError(`dispatch ${event.event_type}#${event.id}`, error);
         }

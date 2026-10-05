@@ -27,12 +27,11 @@ export interface DeviceValues {
   license_expiry?: string | null;
   license_account?: string | null;
   next_maintenance_date?: string | null;
-  branch_id?: string | null;
 }
 
 type O = { value: string; label: string };
 
-export function DeviceForm({ initial = {}, vendors = [], branches = [] }: { initial?: DeviceValues; vendors?: O[]; branches?: O[] }) {
+export function DeviceForm({ initial = {}, vendors = [] }: { initial?: DeviceValues; vendors?: O[] }) {
   return (
     <ActionForm action={saveDeviceAction.bind(null, initial.id ?? null)} successMessage="تم الحفظ">
       <div className="bos-form-grid">
@@ -51,7 +50,6 @@ export function DeviceForm({ initial = {}, vendors = [], branches = [] }: { init
         <TextField name="purchase_value" label="قيمة الشراء" type="number" step="0.01" min={0} defaultValue={initial.purchase_value != null ? String(initial.purchase_value) : ""} />
         <TextField name="currency" label="العملة" dir="ltr" placeholder="EGP" defaultValue={initial.currency ?? ""} />
         {vendors.length ? <SelectField name="vendor_id" label="المورد" placeholder="—" options={vendors} defaultValue={initial.vendor_id ?? ""} /> : null}
-        {branches.length ? <SelectField name="branch_id" label="الفرع" placeholder="—" options={branches} defaultValue={initial.branch_id ?? ""} /> : null}
         <TextField name="next_maintenance_date" label="الصيانة الدورية القادمة" type="date" defaultValue={initial.next_maintenance_date ?? ""} />
         <TextField name="quantity" label="الكمية (للمخزون)" type="number" min={0} defaultValue={String(initial.quantity ?? 1)} hint="لقطع الغيار والمخزون؛ الأجهزة = 1" />
         <TextField name="min_quantity" label="الحد الأدنى للمخزون" type="number" min={0} defaultValue={initial.min_quantity != null ? String(initial.min_quantity) : ""} />

@@ -94,19 +94,12 @@ export function MaintenancePanel({ id, open, vendors }: { id: string; open: { id
   );
 }
 
-export function BranchAndEol({ id, branches, currentBranch }: { id: string; branches: O[]; currentBranch: string | null }) {
+export function EndOfLife({ id }: { id: string }) {
   const t = useT();
   const { pending, msg, run } = useRun();
-  const [br, setBr] = useState("");
   const [reason, setReason] = useState("");
   return (
     <div className="bos-stack" style={{ gap: 6 }}>
-      {branches.length ? (
-        <div className="bos-row" style={{ gap: 6 }}>
-          <select value={br} onChange={(e) => setBr(e.target.value)} className="bos-select-small" aria-label={t("نقل إلى فرع")}><option value="">{t("نقل إلى فرع…")}</option>{branches.filter((b) => b.value !== currentBranch).map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}</select>
-          <button type="button" className="admin-btn small secondary" disabled={pending || !br} onClick={() => run(() => assetAction("branch", id, br))}><Tx>نقل</Tx></button>
-        </div>
-      ) : null}
       <div className="bos-row" style={{ gap: 6 }}>
         <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("السبب")} style={{ minWidth: 160 }} />
         <button type="button" className="admin-btn small ghost" disabled={pending || !reason.trim()} onClick={() => { if (window.confirm(t("استبعاد الأصل؟"))) run(() => assetAction("retire", id, reason)); }}><Tx>استبعاد</Tx></button>

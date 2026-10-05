@@ -5,11 +5,11 @@ import { db } from "@/lib/bos/db";
 
 export default async function NewDevicePage() {
   await requirePermission("devices.create", "all");
-  const [{ data: vendors }, { data: branches }] = await Promise.all([db().from("vendors").select("id, name").order("name"), db().from("branches").select("id, name").eq("status", "active").order("name")]);
+  const { data: vendors } = await db().from("vendors").select("id, name").order("name");
   return (
     <>
       <PageHeader title="أصل جديد" />
-      <Card><DeviceForm vendors={(vendors ?? []).map((v) => ({ value: v.id, label: v.name }))} branches={(branches ?? []).map((b) => ({ value: b.id, label: b.name }))} /></Card>
+      <Card><DeviceForm vendors={(vendors ?? []).map((v) => ({ value: v.id, label: v.name }))} /></Card>
     </>
   );
 }

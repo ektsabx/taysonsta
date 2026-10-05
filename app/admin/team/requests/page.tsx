@@ -18,7 +18,7 @@ import { listLeaveTypes } from "@/services/bos/leave";
 export default async function RequestsHubPage() {
   const { bos } = await requirePermission("hr_requests.read");
   const { today } = await getSystemTime();
-  const [claims, requests, loans, leave, overtime, types, leaveTypes, currencies, { data: categories }, { data: projects }] = await Promise.all([
+  const [claims, requests, loans, leave, overtime, types, leaveTypes, currencies, { data: categories }] = await Promise.all([
     listExpenseClaims({ userId: bos.userId }),
     listHrRequests({ userId: bos.userId }),
     listLoans({ userId: bos.userId }),
@@ -28,7 +28,6 @@ export default async function RequestsHubPage() {
     listLeaveTypes(),
     listCurrencies(),
     db().from("expense_categories").select("id, name").eq("is_active", true).order("name"),
-    db().from("projects").select("id, name").not("status", "in", "(completed,cancelled)").order("name").limit(200),
   ]);
   const { count: approvals } = await db().from("approvals").select("id", { count: "exact", head: true }).eq("status", "pending").eq("approver_user_id", bos.userId);
   const pending = (s: string) => s === "pending";
@@ -40,7 +39,7 @@ export default async function RequestsHubPage() {
           <LeaveRequestButton types={leaveTypes.map((t) => ({ value: t.id, label: t.name }))} />
           <Link className="admin-btn small" href="/admin/team/overtime"><Tx>طلب عمل إضافي</Tx></Link>
           <LoanButton employees={[]} fixedEmployeeId={bos.employee.id} currencies={currencies} defaultPeriod={today.slice(0, 7)} />
-          <ExpenseClaimButton employees={[]} fixedEmployeeId={bos.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} projects={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))} label="تقديم مصروف" />
+          <ExpenseClaimButton employees={[]} fixedEmployeeId={bos.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} label="تقديم مصروف" />
           <HrRequestButton employees={[]} fixedEmployeeId={bos.employee.id} types={types.map((t) => ({ value: t.id, label: t.name }))} label="طلب آخر (شهادة، خطاب، معدات…)" />
         </div>
       </Card>

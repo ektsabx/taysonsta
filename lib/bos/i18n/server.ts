@@ -19,7 +19,7 @@ export const getUiPrefs = cache(async (): Promise<{ locale: BosLocale; theme: Bo
   const cookieLocale = jar.get(BOS_LOCALE_COOKIE)?.value;
   const cookieTheme = jar.get(BOS_THEME_COOKIE)?.value;
   const locale: BosLocale = isBosLocale(pref?.language) ? pref.language : session.status !== "ok" && isBosLocale(cookieLocale) ? cookieLocale : company.default_language;
-  const theme: BosTheme = isBosTheme(pref?.theme) ? pref.theme : session.status !== "ok" && isBosTheme(cookieTheme) ? cookieTheme : company.default_theme;
+  const theme: BosTheme = isBosTheme(pref?.theme) ? pref.theme : session.status !== "ok" && isBosTheme(cookieTheme) ? cookieTheme : "system";
   return { locale, theme, dir: dirFor(locale) };
 });
 

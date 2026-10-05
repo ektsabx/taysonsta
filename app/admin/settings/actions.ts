@@ -12,10 +12,8 @@ import { ForbiddenError } from "@/lib/bos/errors";
 import { requireBosUserForAction } from "@/lib/bos/auth";
 import {
   addSubscription, archiveRole, cloneRole, deleteSubscription, removeConfigRow, saveConfigRow, savePipelineStages, saveRole,
-  saveSettingSection, setRoleAppRequirement, setRolePermission, setSubscriptionActive, setUserOverride, type StageInput,
+  saveSettingSection, setRolePermission, setSubscriptionActive, setUserOverride, type StageInput,
 } from "@/services/bos/settings-admin";
-
-const tablePermission: Record<string, PermissionKey> = { external_apps: "apps.manage" };
 
 // settings.manage (all) or the section's delegate permission (all).
 async function authorizeSection(section: string | undefined, fallback: PermissionKey = "settings.manage") {
@@ -61,7 +59,7 @@ export async function saveSettingAction(key: string, json: string): Promise<Acti
 export async function saveConfigRowAction(tableKey: string, id: string | null, json: string): Promise<ActionState> {
   return handleAction("saveConfigRow", async () => {
     if (!configTables[tableKey]) throw new ValidationError("جدول غير معروف.");
-    const { bos } = await authorizeSection(tableSection[tableKey], tablePermission[tableKey] ?? "settings.manage");
+    const { bos } = await authorizeSection(tableSection[tableKey]);
     await saveConfigRow(bos, tableKey, id, parse(json));
     refresh();
     return { ok: true, message: "تم الحفظ" };
@@ -71,7 +69,7 @@ export async function saveConfigRowAction(tableKey: string, id: string | null, j
 export async function removeConfigRowAction(tableKey: string, id: string): Promise<ActionState> {
   return handleAction("removeConfigRow", async () => {
     if (!configTables[tableKey]) throw new ValidationError("جدول غير معروف.");
-    const { bos } = await authorizeSection(tableSection[tableKey], tablePermission[tableKey] ?? "settings.manage");
+    const { bos } = await authorizeSection(tableSection[tableKey]);
     const mode = await removeConfigRow(bos, tableKey, id);
     refresh();
     return { ok: true, message: mode === "deleted" ? "تم الحذف" : "السجل مستخدم — تم تعطيله/أرشفته بدلاً من الحذف" };
@@ -156,15 +154,6 @@ export async function deleteSubscriptionAction(id: string): Promise<ActionState>
     const { bos } = await authorize("settings.manage", "all");
     await deleteSubscription(bos, id);
     revalidatePath("/admin/settings/notifications");
-    return { ok: true };
-  });
-}
-
-export async function setRoleAppRequirementAction(roleId: string, appId: string, required: boolean, level: string): Promise<ActionState> {
-  return handleAction("setRoleAppRequirement", async () => {
-    const { bos } = await authorize("apps.manage", "all");
-    await setRoleAppRequirement(bos, roleId, appId, required, level || null);
-    revalidatePath("/admin/settings/it");
     return { ok: true };
   });
 }

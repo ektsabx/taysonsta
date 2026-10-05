@@ -45,7 +45,6 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
   await step(results, "sla_breaches", () => rpcCount("bos_check_sla_breaches"));
   await step(results, "open_attendance_sessions", () => rpcCount("bos_detect_open_sessions"));
   await step(results, "absences_yesterday", () => rpcCount("bos_mark_absences", { p_date: addDays(today, -1) }));
-  await step(results, "project_health", () => rpcCount("bos_recompute_all_project_health"));
 
   // Follow-up / activity reminders (activity.reminder_due).
   await step(results, "activity_reminders", async () => {
@@ -61,13 +60,13 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
   await step(results, "meeting_reminders", async () => {
     const minutes = ((await getSetting("notifications")) as { meeting_reminder_minutes?: number }).meeting_reminder_minutes ?? 30;
     const until = new Date(now.getTime() + minutes * 60_000).toISOString();
-    const { data } = await c.from("meetings").select("id, title, start_at, organizer_id, project_id, client_id").eq("status", "scheduled").gte("start_at", now.toISOString()).lte("start_at", until).is("reminder_sent_at", null).limit(200);
+    const { data } = await c.from("meetings").select("id, title, start_at, organizer_id, client_id").eq("status", "scheduled").gte("start_at", now.toISOString()).lte("start_at", until).is("reminder_sent_at", null).limit(200);
     for (const m of data ?? []) {
       await c.from("meetings").update({ reminder_sent_at: now.toISOString() }).eq("id", m.id);
       const { data: att } = await c.from("meeting_attendees").select("user_id").eq("meeting_id", m.id).not("user_id", "is", null);
       const users = new Set([m.organizer_id, ...(att ?? []).map((a) => a.user_id)].filter(Boolean) as string[]);
       for (const u of users) {
-        await emitEvent({ type: "meeting.upcoming", entityType: "meeting", entityId: m.id, summary: `Meeting at ${new Date(m.start_at).toISOString().slice(11, 16)} UTC: ${m.title}`, actorType: "system", payload: { assignee_user_id: u, project_id: m.project_id, client_id: m.client_id }, dedupeKey: `meeting.upcoming:${m.id}:${u}` });
+        await emitEvent({ type: "meeting.upcoming", entityType: "meeting", entityId: m.id, summary: `Meeting at ${new Date(m.start_at).toISOString().slice(11, 16)} UTC: ${m.title}`, actorType: "system", payload: { assignee_user_id: u, client_id: m.client_id }, dedupeKey: `meeting.upcoming:${m.id}:${u}` });
       }
     }
     return (data ?? []).length;
@@ -103,12 +102,6 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
       n++;
     }
     return n;
-  });
-
-  // Access grants past expires_at → expired.
-  await step(results, "access_expiry", async () => {
-    const { expireGrants } = await import("@/services/bos/it-access");
-    return expireGrants();
   });
 
   // MFA required but not enabled 3 days after account creation.
@@ -175,16 +168,6 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
     return r.sent + r.failed + r.skipped;
   });
 
-  // Social: scheduled posts that are due + safe retries; metrics refresh (docs/bos/30 §12).
-  await step(results, "social_publish_due", async () => {
-    const { publishDue } = await import("@/services/bos/social");
-    return publishDue(20);
-  });
-  await step(results, "social_metrics", async () => {
-    const { syncSocialMetrics } = await import("@/services/bos/social");
-    return syncSocialMetrics(40);
-  });
-
   // Location points past the retention period (docs/bos/30 §28).
   await step(results, "location_retention", async () => {
     const { purgeLocations } = await import("@/services/bos/location");
@@ -213,12 +196,6 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
   await step(results, "ads_sync", async () => {
     const { syncDueAdAccounts } = await import("@/services/bos/ads");
     return syncDueAdAccounts(10);
-  });
-
-  // WhatsApp/SMS sends that failed with a retryable error (docs/bos/30 §11).
-  await step(results, "outbound_messages_retry", async () => {
-    const { processOutbound } = await import("@/services/bos/messaging");
-    return processOutbound(100);
   });
 
   // Approvals past their due date: reminder to the approver, escalation to

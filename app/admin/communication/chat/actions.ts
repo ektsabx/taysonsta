@@ -49,7 +49,7 @@ export async function startDirectAction(userId: string): Promise<ActionState> {
   });
 }
 
-export async function discussAction(entityType: "client" | "deal" | "task" | "lead" | "project", entityId: string): Promise<ActionState> {
+export async function discussAction(entityType: "client" | "deal" | "lead", entityId: string): Promise<ActionState> {
   return handleAction("discuss", async () => {
     const { bos } = await authorize("chat.create");
     const id = await getOrCreateEntityChannel(bos, entityType, entityId);

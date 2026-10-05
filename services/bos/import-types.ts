@@ -25,7 +25,7 @@ export interface ImportType {
   toRow: (v: Values) => Record<string, unknown>;     // mapped values → table columns for updates
 }
 
-export interface Refs { user: (email: string) => Promise<string | null>; client: (s: string) => Promise<string | null>; project: (s: string) => Promise<string | null>; byName: (table: string, name: string) => Promise<string | null> }
+export interface Refs { user: (email: string) => Promise<string | null>; client: (s: string) => Promise<string | null>; byName: (table: string, name: string) => Promise<string | null> }
 
 const str = (v: unknown) => (v == null ? null : String(v));
 const num = (v: unknown) => (v == null ? null : String(v));
@@ -117,7 +117,7 @@ export const importTypes: ImportType[] = [
     find: async (v, key) => (key === "name" ? findBy("leads", "name", v.name, (q) => (q as never as { is: (a: string, b: null) => unknown }).is("archived_at", null)) : findBy("leads", "email", v.email)),
     create: async (bos, v) => {
       const { createLead } = await import("@/services/bos/leads");
-      const l = await createLead(bos, { name: String(v.name), company_name: str(v.company_name), contact_name: str(v.contact_name), email: str(v.email), phone: str(v.phone), website: str(v.website), country: str(v.country), city: str(v.city), industry: str(v.industry), source_id: str(v.source_id), estimated_budget: num(v.estimated_budget), budget_currency: str(v.budget_currency), product_interest_id: null, business_stage: null, timeline: null, decision_maker: null, current_solution: null, problem: null, notes: str(v.notes), assigned_to: str(v.assigned_to), team_id: null, priority: "medium" as never, budget_score: 0, fit_score: 0, intent_score: 0, engagement_score: 0 }, { allowDuplicate: true, source: "import" });
+      const l = await createLead(bos, { name: String(v.name), company_name: str(v.company_name), contact_name: str(v.contact_name), email: str(v.email), phone: str(v.phone), website: str(v.website), country: str(v.country), city: str(v.city), industry: str(v.industry), source_id: str(v.source_id), estimated_budget: num(v.estimated_budget), budget_currency: str(v.budget_currency), business_stage: null, timeline: null, decision_maker: null, current_solution: null, problem: null, notes: str(v.notes), assigned_to: str(v.assigned_to), team_id: null, priority: "medium" as never, budget_score: 0, fit_score: 0, intent_score: 0, engagement_score: 0 }, { allowDuplicate: true, source: "import" });
       return (l as { id: string }).id;
     },
     updatable: ["company_name", "contact_name", "phone", "website", "country", "city", "industry", "notes"],
@@ -143,7 +143,7 @@ export const importTypes: ImportType[] = [
     find: async (v) => findBy("deals", "name", v.name, (q) => (q as never as { is: (a: string, b: null) => { eq: (a: string, b: unknown) => unknown } }).is("archived_at", null).eq("client_id", v.client_id)),
     create: async (bos, v) => {
       const { createDeal } = await import("@/services/bos/deals");
-      const d = await createDeal(bos, { name: String(v.name), client_id: String(v.client_id), contact_id: null, lead_id: null, source_id: null, value: String(v.value), currency: String(v.currency), probability: null, expected_close_date: str(v.expected_close_date), assigned_to: str(v.assigned_to) ?? bos.userId, scope: null, notes: str(v.notes), payment_terms: [], products: [] });
+      const d = await createDeal(bos, { name: String(v.name), client_id: String(v.client_id), contact_id: null, lead_id: null, source_id: null, value: String(v.value), currency: String(v.currency), probability: null, expected_close_date: str(v.expected_close_date), assigned_to: str(v.assigned_to) ?? bos.userId, scope: null, notes: str(v.notes), payment_terms: [] });
       return typeof d === "string" ? d : (d as { id: string }).id;
     },
     updatable: ["expected_close_date", "notes"],
@@ -180,32 +180,6 @@ export const importTypes: ImportType[] = [
     toRow: (v) => ({ phone: v.phone, position: v.position, country: v.country }),
   },
   {
-    key: "tasks", label: "المهام", perm: "tasks.create", table: "tasks", matchKeys: [],
-    fields: [
-      { key: "title", label: "العنوان", type: "text", required: true, max: 300, aliases: ["task", "name"] },
-      { key: "project", label: "المشروع (رقم أو اسم)", type: "ref", ref: "project" },
-      { key: "assigned", label: "بريد المسؤول", type: "ref", ref: "user", aliases: ["assignee", "owner"] },
-      { key: "due_date", label: "الاستحقاق", type: "date", aliases: ["due", "deadline"] },
-      { key: "priority", label: "الأولوية", type: "enum", values: enumMap([["low", ["منخفضة"]], ["medium", ["عادية", "متوسطة", "normal"]], ["high", ["عالية"]], ["urgent", ["عاجلة"]]]) },
-      { key: "estimated_hours", label: "الساعات المقدرة", type: "number", aliases: ["estimate"] },
-      { key: "description", label: "الوصف", type: "text", max: 10000 },
-    ],
-    resolve: async (v, refs) => {
-      const e: string[] = [];
-      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project} — أنشئ المشروع أولاً`);
-      if (v.assigned && !(v.assigned_to = await refs.user(String(v.assigned)))) e.push(`المسؤول غير موجود: ${v.assigned}`);
-      return e;
-    },
-    find: async () => null,
-    create: async (bos, v) => {
-      const { createTask } = await import("@/services/bos/delivery");
-      const t = await createTask(bos, { title: String(v.title), description: str(v.description), assigned_to: str(v.assigned_to), project_id: str(v.project_id), milestone_id: null, deal_id: null, client_id: null, lead_id: null, parent_task_id: null, priority: (v.priority as never) ?? "medium", due_date: str(v.due_date), start_date: null, estimated_minutes: v.estimated_hours != null ? Math.round(Number(v.estimated_hours) * 60) : null, is_required: false } as never);
-      return t.id;
-    },
-    updatable: [],
-    toRow: () => ({}),
-  },
-  {
     key: "expenses", label: "المصروفات (بانتظار الاعتماد)", perm: "expenses.create", table: "expenses", matchKeys: [],
     fields: [
       { key: "description", label: "الوصف", type: "text", required: true, max: 500 },
@@ -214,19 +188,17 @@ export const importTypes: ImportType[] = [
       { key: "expense_date", label: "التاريخ", type: "date", required: true, aliases: ["date"] },
       { key: "category", label: "التصنيف", type: "ref", ref: "expense_category", required: true },
       { key: "vendor", label: "المورد", type: "ref", ref: "vendor" },
-      { key: "project", label: "المشروع (رقم أو اسم)", type: "ref", ref: "project" },
     ],
     resolve: async (v, refs) => {
       const e: string[] = [];
       if (!(v.category_id = await refs.byName("expense_categories", String(v.category)))) e.push(`التصنيف غير موجود: ${v.category}`);
       if (v.vendor && !(v.vendor_id = await refs.byName("vendors", String(v.vendor)))) e.push(`المورد غير موجود: ${v.vendor} — استورد الموردين أولاً`);
-      if (v.project && !(v.project_id = await refs.project(String(v.project)))) e.push(`المشروع غير موجود: ${v.project} — أنشئ المشروع أولاً`);
       return e;
     },
     find: async () => null,
     // Imported expenses enter the normal approval flow (never auto-approved).
     create: async (bos, v) => {
-      const { data, error } = await db().from("expenses").insert({ description: String(v.description), amount: Number(v.amount), currency: String(v.currency), expense_date: String(v.expense_date), category_id: String(v.category_id), vendor_id: str(v.vendor_id), project_id: str(v.project_id), approval_status: "pending", created_by: bos.userId, source_type: "import" } as never).select("id").single();
+      const { data, error } = await db().from("expenses").insert({ description: String(v.description), amount: Number(v.amount), currency: String(v.currency), expense_date: String(v.expense_date), category_id: String(v.category_id), vendor_id: str(v.vendor_id), approval_status: "pending", created_by: bos.userId, source_type: "import" } as never).select("id").single();
       if (error) throw error;
       return (data as { id: string }).id;
     },
@@ -278,28 +250,6 @@ export const importTypes: ImportType[] = [
     },
     updatable: ["type", "contact_name", "email", "phone", "services", "notes"],
     toRow: (v) => ({ type: v.type, contact_name: v.contact_name, email: v.email, phone: v.phone, services: v.services, notes: v.notes }),
-  },
-  {
-    key: "products", label: "المنتجات والخدمات", perm: "products.create", table: "products", matchKeys: ["name", "sku"],
-    fields: [
-      { key: "name", label: "الاسم", type: "text", required: true, max: 200 },
-      { key: "kind", label: "النوع", type: "enum", values: enumMap([["service", ["خدمة"]], ["product", ["منتج"]]]) },
-      { key: "sku", label: "SKU", type: "text", max: 80 },
-      { key: "category", label: "الفئة", type: "text", max: 120 },
-      { key: "default_price", label: "السعر", type: "number", aliases: ["price"] },
-      { key: "currency", label: "العملة", type: "currency" },
-      { key: "pricing_model", label: "طريقة التسعير", type: "enum", values: enumMap([["fixed", ["ثابت"]], ["hourly", ["بالساعة"]], ["monthly", ["شهري"]], ["custom", ["مخصص"]]]) },
-      { key: "description", label: "الوصف", type: "text", max: 5000 },
-    ],
-    resolve: async (v) => (v.default_price != null && !v.currency ? ["حدد عملة السعر"] : []),
-    find: async (v, key) => (key === "sku" ? findBy("products", "sku", v.sku) : findBy("products", "name", v.name, (q) => (q as never as { is: (a: string, b: null) => unknown }).is("archived_at", null))),
-    create: async (_bos, v) => {
-      const { data, error } = await db().from("products").insert({ name: String(v.name), kind: (v.kind as never) ?? "service", sku: str(v.sku), category: str(v.category), default_price: v.default_price != null ? Number(v.default_price) : null, currency: str(v.currency), pricing_model: str(v.pricing_model) ?? "fixed", description: str(v.description) }).select("id").single();
-      if (error) throw error;
-      return data.id;
-    },
-    updatable: ["category", "default_price", "currency", "description"],
-    toRow: (v) => ({ category: v.category, default_price: v.default_price, currency: v.currency, description: v.description }),
   },
   {
     key: "kb_articles", label: "مقالات قاعدة المعرفة (كمسودات)", perm: "knowledge.create", table: "kb_articles", matchKeys: ["title"],

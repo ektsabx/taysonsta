@@ -1,6 +1,5 @@
 import { nowIso } from "@/lib/bos/clock";
 import "server-only";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { db, dec, type Tables } from "@/lib/bos/db";
 import { getTeamUserIds, type BosUser } from "@/lib/bos/auth";
 import type { Scope } from "@/lib/bos/permissions";
@@ -48,7 +47,6 @@ export async function listLeads(bos: BosUser, scope: Scope, f: LeadFilters) {
       "id, lead_number, name, company_name, contact_name, email, phone, country, industry, estimated_budget, budget_currency, total_score, priority, last_activity_at, next_activity_at, created_at, updated_at, assigned_to, converted_deal_id, archived_at, stage_id, pipeline_stages!inner(name, key, category), lead_sources(name)",
       { count: "exact" },
     );
-  query = withBranch(query, await branchFilter(bos));
 
   const owner = await scopeOwnerFilter(bos, scope);
   if (owner) query = query.or(owner);
@@ -85,7 +83,7 @@ export async function getLead(id: string) {
   const { data, error } = await db()
     .from("leads")
     .select(
-      "*, pipeline_stages!inner(id, name, key, category), lead_sources(name), products(name), clients!leads_client_id_fkey(id, name, company_name), contacts!leads_contact_id_fkey(id, full_name, email)",
+      "*, pipeline_stages!inner(id, name, key, category), lead_sources(name), clients!leads_client_id_fkey(id, name, company_name), contacts!leads_contact_id_fkey(id, full_name, email)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -115,7 +113,6 @@ export interface LeadInput {
   source_id: string | null;
   estimated_budget: string | null;
   budget_currency: string | null;
-  product_interest_id: string | null;
   business_stage: string | null;
   timeline: string | null;
   decision_maker: string | null;
@@ -314,7 +311,6 @@ export interface ConvertInput {
   value: string;
   currency: string;
   expectedCloseDate: string | null;
-  productId: string | null;
 }
 
 export async function convertLeadToDeal(bos: BosUser, leadId: string, input: ConvertInput): Promise<string> {
@@ -405,10 +401,6 @@ export async function convertLeadToDeal(bos: BosUser, leadId: string, input: Con
     .select("*")
     .single();
   if (dealError) throw dealError;
-
-  if (input.productId) {
-    await client.from("deal_products").insert({ deal_id: deal.id, product_id: input.productId, quantity: 1, unit_price: dec(input.value) });
-  }
 
   await client
     .from("leads")

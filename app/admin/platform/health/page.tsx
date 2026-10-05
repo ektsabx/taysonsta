@@ -37,7 +37,6 @@ export default async function HealthPage() {
               <tr><td>OpenAI</td><td><Yes on={h.configured.llm.openai} /></td></tr>
               <tr><td>Google Gemini</td><td><Yes on={h.configured.llm.gemini} /></td></tr>
               <tr><td>Resend (<Tx>البريد</Tx>)</td><td><Yes on={h.configured.email} /></td></tr>
-              <tr><td><Tx>تحويل الصوت إلى نص</Tx></td><td><Yes on={h.configured.stt} /></td></tr>
               <tr><td><Tx>الدفع</Tx></td><td><Yes on={!h.configured.billingTestMode} label={h.configured.billingTestMode ? "وضع الاختبار" : "حقيقي"} /></td></tr>
             </tbody>
           </BosTable>

@@ -225,10 +225,6 @@ function testRequest(r: ResolvedConnection): { url: string; init?: RequestInit }
       return { url: "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1", init: { headers: { "x-goog-api-key": s.api_key } } };
     case "anthropic":
       return { url: "https://api.anthropic.com/v1/models?limit=1", init: { headers: { "x-api-key": s.api_key, "anthropic-version": "2023-06-01" } } };
-    case "whatsapp_cloud":
-      return { url: `https://graph.facebook.com/v21.0/${encodeURIComponent(c.phone_number_id ?? "")}?fields=display_phone_number,verified_name`, init: { headers: { Authorization: `Bearer ${s.access_token}` } } };
-    case "twilio":
-      return { url: `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(c.account_sid ?? "")}.json`, init: { headers: { Authorization: `Basic ${btoa(`${c.account_sid}:${s.auth_token}`)}` } } };
     case "google_maps":
       return { url: `https://maps.googleapis.com/maps/api/geocode/json?address=Cairo&key=${encodeURIComponent(s.api_key ?? "")}` };
     case "telegram":

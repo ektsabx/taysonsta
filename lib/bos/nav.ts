@@ -35,8 +35,6 @@ export const navigation: NavGroup[] = [
   { key: "dashboard", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
   // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
   { key: "assistant", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
-  // docs/bos/35 A7: the catalogue is its own module, not a settings page.
-  { key: "products", label: "المنتجات والخدمات", icon: "products", href: "/admin/products", perm: "products.read" },
   // Yolias platform (docs/09-yolias-admin.md §B): the customer app's users,
   // workspaces and searches, read from the Yolias database.
   {
@@ -72,6 +70,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/sales/contracts", label: "العقود", perm: "contracts.read" },
       { href: "/admin/sales/pipeline", label: "مسار المبيعات", perm: ["deals.read", "leads.read"] },
       { href: "/admin/sales/radar", label: "رادار الصفقات", perm: "deals.read" },
+      { href: "/admin/approvals", label: "الموافقات", perm: "approvals.read" },
     ],
   },
   {
@@ -82,22 +81,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/clients", label: "الحسابات", perm: "clients.read" },
       { href: "/admin/contacts", label: "جهات الاتصال", perm: "contacts.read" },
       { href: "/admin/communications", label: "سجل التواصل", perm: "communications.read" },
-    ],
-  },
-  {
-    key: "projects",
-    label: "المشاريع",
-    icon: "projects",
-    items: [
-      { href: "/admin/projects", label: "كل المشاريع", perm: "projects.read" },
-      { href: "/admin/projects/my", label: "مشاريعي", perm: "projects.read" },
-      { href: "/admin/projects/tasks", label: "المهام", perm: "tasks.read" },
-      { href: "/admin/projects/time", label: "الساعات", perm: "timesheets.read" },
-      { href: "/admin/projects/milestones", label: "المراحل", perm: "milestones.read" },
-      { href: "/admin/projects/files", label: "ملفات المشاريع", perm: "projects.read" },
-      { href: "/admin/projects/change-requests", label: "طلبات التغيير", perm: "change_requests.read" },
-      { href: "/admin/projects/issues", label: "المشكلات", perm: "issues.read" },
-      { href: "/admin/approvals", label: "الموافقات", perm: "approvals.read" },
     ],
   },
   {
@@ -133,7 +116,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/team/performance", label: "الأداء", perm: "performance.read", children: hr("performance") },
       { href: "/admin/team/requests", label: "المصروفات والطلبات", perm: "hr_requests.read", children: hr("requests") },
       { href: "/admin/team/documents", label: "المستندات والعقود", perm: "hr_documents.read", children: hr("documents") },
-      { href: "/admin/team/access", label: "الأجهزة والصلاحيات", perm: ["access.read", "devices.read"], children: hr("it") },
+      { href: "/admin/team/devices", label: "الأجهزة", perm: "devices.read" },
       { href: "/admin/team/locations", label: "مشاركة الموقع", perm: ["attendance.create", "location.read"] },
     ],
   },
@@ -144,7 +127,6 @@ export const navigation: NavGroup[] = [
     items: [
       { href: "/admin/communication/inbox", label: "صندوق الوارد", perm: "notifications.read" },
       { href: "/admin/communication/chat", label: "المحادثات الداخلية", perm: "chat.read" },
-      { href: "/admin/communication/messaging", label: "واتساب و SMS", perm: "messaging.read" },
       { href: "/admin/communication/meetings", label: "الاجتماعات", perm: "meetings.read" },
       { href: "/admin/communication/notifications", label: "الإشعارات", perm: "notifications.read" },
       { href: "/admin/calendar", label: "التقويم", perm: "calendar.read" },
@@ -156,9 +138,6 @@ export const navigation: NavGroup[] = [
     icon: "marketing",
     // Master upgrade Phases 10–12 (docs/bos/30 §12–15).
     items: [
-      { href: "/admin/social", label: "التواصل الاجتماعي", perm: "social.read" },
-      { href: "/admin/social/calendar", label: "تقويم المحتوى", perm: "social.read" },
-      { href: "/admin/social/posts", label: "المنشورات", perm: "social.read" },
       {
         href: "/admin/content", label: "استوديو المحتوى", perm: "content.read",
         children: [
@@ -167,7 +146,6 @@ export const navigation: NavGroup[] = [
           { href: "/admin/content/stages", label: "مراحل العمل", perm: "content.manage" },
         ],
       },
-      { href: "/admin/content/insights", label: "أداء المحتوى", perm: "content.read" },
       {
         href: "/admin/ads", label: "الإعلانات", perm: "ads.read",
         children: [
@@ -212,24 +190,12 @@ export const navigation: NavGroup[] = [
       { href: "/admin/reports/sales", label: "المبيعات", perm: "reports.read" },
       { href: "/admin/reports/bd", label: "تطوير الأعمال", perm: "reports.read" },
       { href: "/admin/reports/revenue", label: "الإيرادات", perm: ["revenue.read", "revenue.view_sensitive"] },
-      { href: "/admin/reports/projects", label: "المشاريع", perm: "reports.read" },
       { href: "/admin/reports/finance", label: "المالية", perm: ["revenue.view_sensitive", "expenses.read"] },
       { href: "/admin/reports/team", label: "الفريق", perm: "reports.read" },
       { href: "/admin/reports/hr", label: "الموارد البشرية", perm: "reports.read" },
       { href: "/admin/reports/clients", label: "العملاء", perm: "reports.read" },
       { href: "/admin/reports/performance", label: "الأداء", perm: "reports.read" },
       { href: "/admin/reports/countries", label: "أداء الدول", perm: "reports.read" },
-      { href: "/admin/reports/products", label: "المنتجات والخدمات", perm: "reports.read" },
-    ],
-  },
-  {
-    key: "automation",
-    label: "الأتمتة",
-    icon: "automation",
-    items: [
-      { href: "/admin/automation/workflows", label: "مسارات العمل", perm: "automation.read" },
-      { href: "/admin/automation/rules", label: "القواعد", perm: "automation.read" },
-      { href: "/admin/automation/logs", label: "سجل الأحداث", perm: "automation.read" },
     ],
   },
   {
@@ -250,7 +216,6 @@ export const navigation: NavGroup[] = [
     icon: "settings",
     items: [
       { href: "/admin/settings/company", label: "الشركة", perm: ["settings.manage", "commissions.manage", "invoices.manage"] },
-      { href: "/admin/settings/branches", label: "الفروع", perm: ["settings.manage", "branches.manage"] },
       { href: "/admin/settings/users", label: "المستخدمون", perm: "users.read" },
       { href: "/admin/settings/roles", label: "الأدوار", perm: "roles.manage" },
       { href: "/admin/settings/permissions", label: "الأذونات", perm: "roles.manage" },
@@ -261,17 +226,14 @@ export const navigation: NavGroup[] = [
       // docs/bos/37 §5: everything that connects the system to an outside
       // service, site or platform is managed here.
       {
-        href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage", "messaging.manage", "social.manage", "ads.manage"], hrefPerm: "integrations.manage",
+        href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage", "ads.manage"], hrefPerm: "integrations.manage",
         children: [
           { href: "/admin/settings/integrations", label: "الخدمات والمفاتيح", perm: "integrations.manage", all: "integrations.manage" },
-          { href: "/admin/settings/integrations/widgets", label: "ويدجت الموقع", perm: ["conversations.manage", "messaging.manage"] },
-          { href: "/admin/settings/integrations/social", label: "الحسابات الاجتماعية", perm: "social.manage" },
+          { href: "/admin/settings/integrations/widgets", label: "ويدجت الموقع", perm: "conversations.manage" },
           { href: "/admin/settings/integrations/ads", label: "الحسابات الإعلانية", perm: "ads.manage" },
         ],
       },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },
-      { href: "/admin/settings/it", label: "التطبيقات الخارجية", perm: "apps.manage" },
-      { href: "/admin/settings/cameras", label: "الكاميرات", perm: "cameras.read" },
       { href: "/admin/settings/audit-logs", label: "سجل التدقيق", perm: "audit.read" },
     ],
   },

@@ -9,7 +9,6 @@ import { canSeeUser } from "@/services/bos/team-scope";
 import { listCurrencies, listDepartments, listRoles, listTeams } from "@/services/bos/shared";
 import { PageHeader } from "@/components/bos/ui";
 import { listEmployeeCategories } from "@/services/bos/hr/people";
-import { currentBranchSelection } from "@/lib/bos/branch";
 import { EmployeeForm } from "../../EmployeeForm";
 import { updateEmployeeAction } from "../../../actions";
 
@@ -52,7 +51,6 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
         hasLogin={!!emp.user_id}
         emailDomain={(company as { email_domain?: string }).email_domain ?? null}
         categories={categories.map((c) => ({ value: c.id, label: c.name }))}
-        branches={(await currentBranchSelection(bos)).branches.map((b) => ({ value: b.id, label: b.name }))}
       />
     </>
   );

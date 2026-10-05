@@ -17,7 +17,7 @@ import { ConversationFields, CxComposer, QuerySelect, ScrollToEnd, ThreadActions
 // conversation · customer panel. One implementation serves the inbox and the
 // spam folder (mode), on the existing conversations data and services.
 
-export const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", whatsapp: "واتساب", sms: "SMS", portal: "البوابة", phone: "مكالمة", manual: "أخرى" };
+export const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", messenger: "Messenger", instagram: "Instagram", telegram: "Telegram", manual: "أخرى" };
 export const statusLabels: Record<string, { label: string; tone: "info" | "warning" | "success" | "neutral" | "danger" }> = {
   open: { label: "مفتوحة", tone: "info" },
   pending_customer: { label: "بانتظار العميل", tone: "neutral" },
@@ -26,7 +26,7 @@ export const statusLabels: Record<string, { label: string; tone: "info" | "warni
   resolved: { label: "تم الحل", tone: "success" },
   closed: { label: "مغلقة", tone: "neutral" },
 };
-const channelGlyph: Record<string, string> = { web_widget: "◎", email: "✉", whatsapp: "✆", sms: "✉", portal: "▣", phone: "☏", manual: "✎" };
+const channelGlyph: Record<string, string> = { web_widget: "◎", email: "✉", messenger: "✉", instagram: "◎", telegram: "✈", manual: "✎" };
 const hues = [4, 24, 150, 200, 225, 265, 300, 330];
 const hue = (s: string) => hues[[...s].reduce((a, ch) => a + ch.charCodeAt(0), 0) % hues.length];
 const initials = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";

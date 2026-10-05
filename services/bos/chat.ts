@@ -5,7 +5,6 @@ import type { BosUser } from "@/lib/bos/auth";
 import { canAccessEntity } from "@/lib/bos/access";
 import { audit } from "@/lib/bos/audit";
 import { emitEvent } from "@/lib/bos/events";
-import { ensureProjectChannel } from "@/lib/bos/chat-core";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors";
 
 // Internal chat (§40): channels & DMs linked to business records, mentions,
@@ -15,16 +14,13 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors
 export type Channel = Tables<"channels">;
 export type Message = Tables<"messages">;
 
-export const channelKindLabels: Record<string, string> = { direct: "رسائل مباشرة", team: "الفرق", project: "المشاريع", entity: "سجلات مرتبطة" };
+export const channelKindLabels: Record<string, string> = { direct: "رسائل مباشرة", team: "الفرق", entity: "سجلات مرتبطة" };
 
 // Public team channels are open to all staff; everything else is members-only.
-export async function canReadChannel(bos: BosUser, channel: Pick<Channel, "id" | "kind" | "is_private" | "project_id" | "archived_at">) {
+export async function canReadChannel(bos: BosUser, channel: Pick<Channel, "id" | "kind" | "is_private" | "archived_at">) {
   if (!channel.is_private && channel.kind === "team") return true;
   const { data } = await db().from("channel_members").select("user_id").eq("channel_id", channel.id).eq("user_id", bos.userId).maybeSingle();
   if (data) return true;
-  // Project channels belong to the project team (members + PM are synced);
-  // project managers of the whole company (projects.manage) may also read.
-  if (channel.kind === "project") return bos.isSuperAdmin || !!bos.permissions.get("projects.manage");
   return bos.isSuperAdmin && channel.kind !== "direct";
 }
 
@@ -99,16 +95,10 @@ export async function createChannel(bos: BosUser, input: { name: string; descrip
   return data;
 }
 
-// "Discuss" on a client / deal / task / lead: one internal channel per record.
-export async function getOrCreateEntityChannel(bos: BosUser, entityType: "client" | "deal" | "task" | "lead" | "project", entityId: string) {
+// "Discuss" on a client / deal / lead: one internal channel per record.
+export async function getOrCreateEntityChannel(bos: BosUser, entityType: "client" | "deal" | "lead", entityId: string) {
   if (!(await canAccessEntity(bos, entityType, entityId))) throw new ForbiddenError();
-  if (entityType === "project") {
-    const id = await ensureProjectChannel(entityId, bos.userId);
-    if (!id) throw new NotFoundError();
-    await db().from("channel_members").upsert({ channel_id: id, user_id: bos.userId }, { onConflict: "channel_id,user_id", ignoreDuplicates: true });
-    return id;
-  }
-  const col = entityType === "client" ? "client_id" : entityType === "deal" ? "deal_id" : entityType === "task" ? "task_id" : null;
+  const col = entityType === "client" ? "client_id" : entityType === "deal" ? "deal_id" : null;
   let existing: { id: string } | null = null;
   if (col) {
     const { data } = await db().from("channels").select("id").eq("kind", "entity").eq(col, entityId).eq("client_visible", false).is("archived_at", null).maybeSingle();
@@ -136,7 +126,6 @@ async function entityLabel(type: string, id: string) {
   const c = db();
   if (type === "client") return (await c.from("clients").select("company_name, name").eq("id", id).single()).data?.company_name ?? "Client";
   if (type === "deal") return `Deal · ${(await c.from("deals").select("name").eq("id", id).single()).data?.name ?? ""}`;
-  if (type === "task") return `Task · ${(await c.from("tasks").select("title").eq("id", id).single()).data?.title ?? ""}`;
   if (type === "lead") return `Lead · ${(await c.from("leads").select("name").eq("id", id).single()).data?.name ?? ""}`;
   return type;
 }
@@ -144,14 +133,13 @@ async function entityLabel(type: string, id: string) {
 export async function addMembers(bos: BosUser, channelId: string, userIds: string[]) {
   const channel = await getChannel(bos, channelId);
   if (channel.kind === "direct") throw new ValidationError("لا يمكن إضافة أعضاء لمحادثة مباشرة.");
-  if (channel.kind === "project") throw new ValidationError("أعضاء قناة المشروع يتبعون فريق المشروع تلقائياً.");
   await db().from("channel_members").upsert(userIds.map((user_id) => ({ channel_id: channelId, user_id })), { onConflict: "channel_id,user_id", ignoreDuplicates: true });
   await audit({ actorId: bos.userId, action: "channel.members_added", entityType: "channel", entityId: channelId, newValue: { users: userIds } });
 }
 
 export async function leaveChannel(bos: BosUser, channelId: string) {
   const channel = await getChannel(bos, channelId);
-  if (channel.kind === "direct" || channel.kind === "project") throw new ValidationError("لا يمكن مغادرة هذا النوع من القنوات.");
+  if (channel.kind === "direct") throw new ValidationError("لا يمكن مغادرة هذا النوع من القنوات.");
   await db().from("channel_members").delete().eq("channel_id", channelId).eq("user_id", bos.userId);
 }
 

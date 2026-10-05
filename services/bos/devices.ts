@@ -44,12 +44,11 @@ export interface DeviceInput {
   mdm_provider: string | null;
   mdm_reference: string | null;
   notes: string | null;
-  // Phase 15: general assets (licences, stock, value, supplier, branch).
+  // Phase 15: general assets (licences, stock, value, supplier).
   name?: string | null;
   purchase_value?: number | null;
   currency?: string | null;
   vendor_id?: string | null;
-  branch_id?: string | null;
   next_maintenance_date?: string | null;
   quantity?: number;
   min_quantity?: number | null;

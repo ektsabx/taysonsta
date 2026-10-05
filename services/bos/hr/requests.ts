@@ -201,7 +201,6 @@ export interface ExpenseClaimInput {
   currency: string;
   expense_date: string;
   expense_kind: string | null;
-  project_id: string | null;
   client_id: string | null;
 }
 
@@ -211,18 +210,18 @@ export async function submitExpenseClaim(bos: BosUser, input: ExpenseClaimInput)
   if (!(parseMoney(input.amount) ?? BigInt(0))) throw new ValidationError("المبلغ مطلوب.", { amount: "مطلوب" });
   const { data, error } = await db()
     .from("expenses")
-    .insert({ category_id: input.category_id, description: input.description, amount: dec(input.amount) as unknown as number, currency: input.currency, expense_date: input.expense_date, project_id: input.project_id, client_id: input.client_id, employee_user_id: emp.user_id, reimbursable: true, reimbursement_status: "not_applicable", expense_kind: input.expense_kind, approval_status: "pending", created_by: bos.userId, source_type: "employee_claim" })
+    .insert({ category_id: input.category_id, description: input.description, amount: dec(input.amount) as unknown as number, currency: input.currency, expense_date: input.expense_date, client_id: input.client_id, employee_user_id: emp.user_id, reimbursable: true, reimbursement_status: "not_applicable", expense_kind: input.expense_kind, approval_status: "pending", created_by: bos.userId, source_type: "employee_claim" })
     .select("*")
     .single();
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "expense.claim_submitted", entityType: "expense", entityId: data.id, newValue: { amount: input.amount, currency: input.currency, description: input.description, employee_id: emp.id } });
   const steps = await approvalSteps("employee_expense", ["manager", "role:finance"]);
-  await requestApproval({ type: "expense", entityType: "expense", entityId: data.id, title: `${emp.full_name} — مصروف: ${input.description} (${input.amount} ${input.currency})`, requestedBy: emp.user_id, steps, links: [{ type: "employee", id: emp.id }, { type: "project", id: input.project_id }] });
+  await requestApproval({ type: "expense", entityType: "expense", entityId: data.id, title: `${emp.full_name} — مصروف: ${input.description} (${input.amount} ${input.currency})`, requestedBy: emp.user_id, steps, links: [{ type: "employee", id: emp.id }] });
   return data;
 }
 
 export async function listExpenseClaims(f: { userIds?: string[] | null; userId?: string; status?: string; reimbursement?: string }) {
-  let q = db().from("expenses").select("*, expense_categories(name), projects(id, name)").eq("reimbursable", true).is("archived_at", null).order("expense_date", { ascending: false }).limit(300);
+  let q = db().from("expenses").select("*, expense_categories(name)").eq("reimbursable", true).is("archived_at", null).order("expense_date", { ascending: false }).limit(300);
   if (f.userIds) q = q.in("employee_user_id", f.userIds.length ? f.userIds : ["00000000-0000-0000-0000-000000000000"]);
   if (f.userId) q = q.eq("employee_user_id", f.userId);
   if (f.status) q = q.eq("approval_status", f.status);

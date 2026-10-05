@@ -6,7 +6,6 @@ import { listCurrencies, listDepartments, listRoles, listTeams } from "@/service
 import { candidateDefaults } from "@/services/bos/employees";
 import { PageHeader } from "@/components/bos/ui";
 import { listEmployeeCategories } from "@/services/bos/hr/people";
-import { currentBranchSelection } from "@/lib/bos/branch";
 import { EmployeeForm } from "../EmployeeForm";
 import { createEmployeeAction } from "../../actions";
 
@@ -43,7 +42,6 @@ export default async function NewEmployeePage({ searchParams }: { searchParams: 
         canRoles={can(bos, "roles.assign") || can(bos, "employees.manage")}
         emailDomain={(company as { email_domain?: string }).email_domain ?? null}
         categories={categories.map((c) => ({ value: c.id, label: c.name }))}
-        branches={(await currentBranchSelection(bos)).branches.map((b) => ({ value: b.id, label: b.name }))}
         initial={a ? { full_name: `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim(), personal_email: (a.email as string) ?? null, phone: (a.phone as string) ?? null, country: (a.country as string) ?? null, career_application_id: sp.fromApplication } : {}}
       />
     </>

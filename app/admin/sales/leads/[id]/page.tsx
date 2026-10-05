@@ -11,7 +11,7 @@ import { db } from "@/lib/bos/db";
 import { getLead } from "@/services/bos/leads";
 import { listEntityActivities } from "@/services/bos/activities";
 import { listEntityMeetings } from "@/services/bos/meetings";
-import { getPipeline, listActiveStaff, listCurrencies, listProducts, userNameMap } from "@/services/bos/shared";
+import { getPipeline, listActiveStaff, listCurrencies, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Summary, Card, KeyValues, StatusBadge, Money, Tabs, EmptyState, UserChip } from "@/components/bos/ui";
 import { ActivityTimeline } from "@/components/bos/ActivityTimeline";
 import { Comments } from "@/components/bos/Comments";
@@ -50,7 +50,7 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
     throw error;
   }
 
-  const [{ stages }, staff, names, currencies, products] = await Promise.all([getPipeline("lead"), listActiveStaff(), userNameMap(), listCurrencies(), listProducts()]);
+  const [{ stages }, staff, names, currencies] = await Promise.all([getPipeline("lead"), listActiveStaff(), userNameMap(), listCurrencies()]);
   const stage = lead.pipeline_stages as unknown as { id: string; name: string; key: string; category: string };
   const canUpdate = can(bos, "leads.update") && (await canAccessEntity(bos, "lead", id, "update"));
   const staffOptions = staff.map((s) => ({ value: s.userId, label: s.name }));
@@ -95,7 +95,6 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
               <ConvertLeadButton
                 leadId={id}
                 currencies={currencies}
-                products={products.filter((p) => p.is_active).map((p) => ({ value: p.id, label: p.name }))}
                 initialClient={client ? { id: client.id, label: client.company_name ?? client.name } : null}
                 defaults={{
                   dealName: lead.company_name ? `${lead.company_name} — ${lead.name}` : lead.name,
@@ -151,7 +150,6 @@ export default async function LeadDetailPage({ params, searchParams }: { params:
             <Card title="التأهيل">
               <KeyValues
                 items={[
-                  { label: "المنتج/الخدمة", value: (lead.products as unknown as { name: string } | null)?.name },
                   { label: "مرحلة العمل", value: lead.business_stage },
                   { label: "الإطار الزمني", value: lead.timeline },
                   { label: "صاحب القرار", value: lead.decision_maker },

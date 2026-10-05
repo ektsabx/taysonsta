@@ -10,7 +10,7 @@ import { PageHeader, Card, StatusBadge, EmptyState, KeyValues } from "@/componen
 import { formatDateTime } from "@/lib/bos/format";
 import { CustomerEditButton, CustomerLinkControls, MergeCustomerButton } from "./CustomerControls";
 
-const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", whatsapp: "واتساب", sms: "SMS", portal: "البوابة", phone: "مكالمة", manual: "أخرى" };
+const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", messenger: "Messenger", instagram: "Instagram", telegram: "Telegram", manual: "أخرى" };
 
 // Customer profile (docs/bos/30 §10.3): details, conversations, tickets,
 // related deals when linked to an account, notes/tags, dedupe + merge.

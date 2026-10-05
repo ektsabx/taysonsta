@@ -3,7 +3,7 @@
 import { Tx } from "@/components/bos/I18n";
 
 import { ActionForm, Field, FormSection, MoneyField, SelectField, SubmitButton, TextField } from "@/components/bos/Form";
-import { EntitySelector, type EntityOption } from "@/components/bos/EntitySelector";
+import { EntitySelector } from "@/components/bos/EntitySelector";
 import { searchEntitiesAction } from "@/app/admin/_actions/common";
 import { createExpenseAction } from "../../actions";
 
@@ -12,13 +12,11 @@ export function ExpenseForm({
   categories,
   staff,
   today,
-  initialProject,
 }: {
   currencies: string[];
   categories: { value: string; label: string }[];
   staff: { value: string; label: string }[];
   today: string;
-  initialProject: EntityOption | null;
 }) {
   return (
     <ActionForm action={createExpenseAction}>
@@ -29,9 +27,6 @@ export function ExpenseForm({
         <TextField name="expense_date" label="التاريخ" type="date" required defaultValue={today} />
         <Field label="المورد" name="vendor_id">
           <EntitySelector name="vendor_id" search={(q) => searchEntitiesAction("vendor", q)} placeholder="اختياري" />
-        </Field>
-        <Field label="المشروع" name="project_id" span={2}>
-          <EntitySelector name="project_id" initial={initialProject} search={(q) => searchEntitiesAction("project", q)} placeholder="اربطه بمشروع لحساب الربحية" />
         </Field>
         <SelectField name="employee_user_id" label="الموظف (إن كان مصروف موظف)" options={staff} placeholder="—" />
       </FormSection>

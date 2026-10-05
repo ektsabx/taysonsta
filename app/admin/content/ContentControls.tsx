@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Tx, useT } from "@/components/bos/I18n";
 import { ActionForm, FormSection, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
 import type { ActionState } from "@/lib/bos/action";
-import { draftAction, explainAction, generateAction, removeStageAction, saveItemAction, saveStagesAction, socialPostAction, stageAction, taskAction } from "./actions";
+import { draftAction, generateAction, removeStageAction, saveItemAction, saveStagesAction, stageAction, taskAction } from "./actions";
 import { kindLabels, platformOptions, priorityLabels, typeLabels } from "./labels";
 
 type O = { value: string; label: string };
@@ -166,43 +166,6 @@ function DraftCard({ d, canAccept }: { d: { id: string; kind: string; output: st
         <button type="button" className="admin-btn small ghost" disabled={pending} onClick={() => run(() => draftAction(d.id, "discard"))}><Tx>تجاهل</Tx></button>
         <Msg msg={msg} />
       </div>
-    </div>
-  );
-}
-
-export function SocialFromContent({ itemId, accounts }: { itemId: string; accounts: O[] }) {
-  const { pending, msg, run } = useRun();
-  const [sel, setSel] = useState<string[]>([]);
-  if (!accounts.length) return <p className="bos-hint"><Tx>لا توجد حسابات تواصل اجتماعي متصلة.</Tx></p>;
-  return (
-    <div className="bos-stack" style={{ gap: 6 }}>
-      <div className="bos-row" style={{ gap: 10, flexWrap: "wrap" }}>{accounts.map((a) => <label key={a.value} className="bos-check"><input type="checkbox" checked={sel.includes(a.value)} onChange={(e) => setSel((s) => (e.target.checked ? [...s, a.value] : s.filter((x) => x !== a.value)))} /> {a.label}</label>)}</div>
-      <div><button type="button" className="admin-btn small secondary" disabled={pending || !sel.length} onClick={() => run(() => socialPostAction(itemId, sel))}><Tx>إنشاء مسودة منشور</Tx></button> <Msg msg={msg} /></div>
-    </div>
-  );
-}
-
-export function ExplainInsights({ from, to, aiReady }: { from: string; to: string; aiReady: boolean }) {
-  const t = useT();
-  const [lang, setLang] = useState<"ar" | "en">("ar");
-  const [res, setRes] = useState<{ facts: string[]; possible_explanations: string[]; missing_data: string[] } | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  return (
-    <div className="bos-stack" style={{ gap: 10 }}>
-      <div className="bos-row" style={{ gap: 6 }}>
-        <select value={lang} onChange={(e) => setLang(e.target.value as "ar" | "en")} className="bos-select-small" aria-label={t("اللغة")}><option value="ar">العربية</option><option value="en">English</option></select>
-        <button type="button" className="admin-btn small" disabled={pending || !aiReady} onClick={() => start(async () => { setErr(null); const r = await explainAction(from, to, lang); if (r.ok) setRes(r.data); else setErr(r.error); })}>{pending ? t("جارٍ التحليل…") : t("اشرح النتائج بالذكاء الاصطناعي")}</button>
-      </div>
-      {!aiReady ? <p className="bos-hint"><Tx>لا يوجد مزود ذكاء اصطناعي متصل.</Tx></p> : null}
-      {err ? <span className="bos-danger" style={{ fontSize: 12 }}>{t(err)}</span> : null}
-      {res ? (
-        <div className="bos-grid-3" style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-          <div><h4 style={{ margin: "0 0 6px" }}><Tx>حقائق من البيانات</Tx></h4><ul style={{ margin: 0, paddingInlineStart: 18 }}>{res.facts.map((f, i) => <li key={i}>{f}</li>)}</ul></div>
-          <div><h4 style={{ margin: "0 0 6px" }}><Tx>تفسيرات محتملة (فرضيات تحتاج اختباراً)</Tx></h4><ul style={{ margin: 0, paddingInlineStart: 18 }}>{res.possible_explanations.map((f, i) => <li key={i}>{f}</li>)}</ul></div>
-          <div><h4 style={{ margin: "0 0 6px" }}><Tx>بيانات ناقصة</Tx></h4><ul style={{ margin: 0, paddingInlineStart: 18 }}>{res.missing_data.map((f, i) => <li key={i}>{t(f)}</li>)}</ul></div>
-        </div>
-      ) : null}
     </div>
   );
 }

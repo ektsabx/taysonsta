@@ -3,7 +3,6 @@ import Link from "next/link";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { eventMap } from "@/lib/bos/event-types";
 import { listActiveStaff, listDepartments, listRoles, listTeams } from "@/services/bos/shared";
-import { listBranches } from "@/lib/bos/branch";
 import { ManualSendButton } from "./ManualSend";
 import { readParams, pageOf, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
@@ -29,12 +28,12 @@ export default async function NotificationsPage({ searchParams }: { searchParams
   ]);
   const typeOptions = [...new Set((types ?? []).map((t) => t.event_type))].sort().map((t) => ({ value: t, label: eventMap.get(t)?.label ?? (t === "notification.manual" ? "إشعار يدوي" : t) }));
   const canSend = can(bos, "notifications.manage");
-  const [staff, teams, departments, branches, roles] = canSend ? await Promise.all([listActiveStaff(), listTeams(), listDepartments(), listBranches(true), listRoles()]) : [[], [], [], [], []];
+  const [staff, teams, departments, roles] = canSend ? await Promise.all([listActiveStaff(), listTeams(), listDepartments(), listRoles()]) : [[], [], [], []];
   const pages = Math.max(1, Math.ceil((count ?? 0) / 30));
   const href = (p: number) => `/admin/communication/notifications?${new URLSearchParams({ ...Object.fromEntries(Object.entries(sp).filter(([, v]) => typeof v === "string") as [string, string][]), page: String(p) })}`;
   return (
     <>
-      <PageHeader title="الإشعارات" subtitle={<Tx vars={{ count: count ?? 0, v: view === "unread" ? "غير مقروء" : "إشعار" }}>{"{count} {v}"}</Tx>} actions={<>{canSend ? <ManualSendButton allowAll={bos.isSuperAdmin || can(bos, "notifications.manage", "all")} options={{ users: staff.map((x) => ({ value: x.userId, label: x.name })), team: teams.map((x) => ({ value: x.id, label: x.name })), department: departments.map((x) => ({ value: x.id, label: x.name })), branch: branches.map((x) => ({ value: x.id, label: x.name })), role: roles.filter((r) => !r.is_client_role).map((r) => ({ value: r.id, label: r.name })) }} /> : null}<MarkAllReadButton />{can(bos, "settings.manage", "all") ? <Link className="admin-btn small ghost" href="/admin/settings/notifications"><Tx>إعدادات الإشعارات</Tx></Link> : null}</>} />
+      <PageHeader title="الإشعارات" subtitle={<Tx vars={{ count: count ?? 0, v: view === "unread" ? "غير مقروء" : "إشعار" }}>{"{count} {v}"}</Tx>} actions={<>{canSend ? <ManualSendButton allowAll={bos.isSuperAdmin || can(bos, "notifications.manage", "all")} options={{ users: staff.map((x) => ({ value: x.userId, label: x.name })), team: teams.map((x) => ({ value: x.id, label: x.name })), department: departments.map((x) => ({ value: x.id, label: x.name })), role: roles.filter((r) => !r.is_client_role).map((r) => ({ value: r.id, label: r.name })) }} /> : null}<MarkAllReadButton />{can(bos, "settings.manage", "all") ? <Link className="admin-btn small ghost" href="/admin/settings/notifications"><Tx>إعدادات الإشعارات</Tx></Link> : null}</>} />
       <Tabs param="view" active={view} baseHref="/admin/communication/notifications" tabs={[{ key: "unread", label: "غير المقروءة" }, { key: "all", label: "الكل" }]} />
       <FilterBar filters={[{ key: "type", label: "النوع", type: "select", options: typeOptions }, { key: "from", label: "من", type: "date" }, { key: "to", label: "إلى", type: "date" }]} />
       <Card flush>

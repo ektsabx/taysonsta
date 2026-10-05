@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { canAccessEntity } from "@/lib/bos/access";
 import { NotFoundError } from "@/lib/bos/errors";
-import { getDeal, getDealProducts } from "@/services/bos/deals";
-import { listActiveStaff, listCurrencies, listLeadSources, listProducts } from "@/services/bos/shared";
+import { getDeal } from "@/services/bos/deals";
+import { listActiveStaff, listCurrencies, listLeadSources } from "@/services/bos/shared";
 import { PageHeader } from "@/components/bos/ui";
 import { DealForm, type TermRow } from "../../DealForm";
 import { updateDealAction } from "../../actions";
@@ -18,7 +18,7 @@ export default async function EditDealPage({ params }: { params: Promise<{ id: s
     throw e;
   });
   if (!deal) notFound();
-  const [sources, products, staff, currencies, lines] = await Promise.all([listLeadSources(), listProducts(), listActiveStaff(), listCurrencies(), getDealProducts(id)]);
+  const [sources, staff, currencies] = await Promise.all([listLeadSources(), listActiveStaff(), listCurrencies()]);
   const client = deal.clients as unknown as { id: string; name: string; company_name: string | null } | null;
   const contact = deal.contacts as unknown as { id: string; full_name: string } | null;
 
@@ -40,10 +40,8 @@ export default async function EditDealPage({ params }: { params: Promise<{ id: s
           scope: deal.scope,
           notes: deal.notes,
           payment_terms: (deal.payment_terms as unknown as TermRow[]).map((t) => ({ ...t, percent: String(t.percent), due_offset_days: Number(t.due_offset_days ?? 0), trigger: t.trigger ?? "on_date" })),
-          products: lines.map((l) => ({ product_id: l.product_id, quantity: String(l.quantity), unit_price: String(l.unit_price) })),
         }}
         sources={sources.map((s) => ({ value: s.id, label: s.name }))}
-        products={products.map((p) => ({ value: p.id, label: p.name, price: p.default_price ? String(p.default_price) : null, currency: p.currency }))}
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}
         currencies={currencies}
         canAssign={can(bos, "deals.assign")}

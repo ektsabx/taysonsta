@@ -133,7 +133,6 @@ export async function archiveContact(bos: BosUser, id: string, archived: boolean
   if (archived) {
     await db().from("contacts").update({ archived_at: nowIso() }).eq("id", id);
     if (contact.client_id) await db().from("clients").update({ primary_contact_id: null }).eq("id", contact.client_id).eq("primary_contact_id", id);
-    await db().from("client_portal_users").update({ status: "disabled" }).eq("contact_id", id);
   } else {
     const dupe = await findDuplicateContact(contact.email, id);
     if (dupe) throw new ValidationError("لا يمكن الاستعادة: يوجد جهة اتصال نشطة بنفس البريد.");

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Mic, Paperclip, Search, Sparkles, Square, X } from "lucide-react";
-import { useSpeechToText } from "./useSpeechToText";
+import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Paperclip, Search, Sparkles, X } from "lucide-react";
 import { createStrategy } from "@/app/(app)/actions";
 import { YoliasThinking } from "@/components/YoliasMark";
 import { fmt } from "@/lib/i18n/config";
@@ -14,7 +13,7 @@ const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024;
 
 
-export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: { initialPrompt?: string; speechLang?: string }) {
+export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: string }) {
   const { t } = useI18n();
   const c = t.composer;
   const router = useRouter();
@@ -25,11 +24,6 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  // Voice → Speech-to-Text → this text box → the same search parser as typing.
-  const stt = useSpeechToText({ lang: speechLang, onText: setPrompt });
-  const recording = stt.status === "listening";
-  const transcribing = stt.status === "transcribing";
-  const voiceError = stt.error ? c.voiceErrors[stt.error] : null;
 
   useEffect(() => {
     if (!initialPrompt) inputRef.current?.focus();
@@ -53,21 +47,12 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
     setFiles(next);
   };
 
-  const toggleRecording = () => {
-    if (recording) stt.stop();
-    else {
-      setError(null);
-      stt.start(prompt);
-    }
-  };
-
   const submit = () => {
     if (pending) return;
     if (!prompt.trim() && files.length === 0) {
       inputRef.current?.focus();
       return;
     }
-    stt.stop();
     setError(null);
     const fd = new FormData();
     fd.set("prompt", prompt.trim());
@@ -92,7 +77,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         <textarea
           ref={inputRef}
           className="prompt-input"
-          placeholder={recording ? c.listening : transcribing ? c.transcribing : c.placeholder}
+          placeholder={c.placeholder}
           rows={3}
           value={prompt}
           disabled={pending}
@@ -121,9 +106,6 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
 
         <div className="prompt-footer">
           <div className="prompt-attachments">
-            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title={recording ? c.stopRecording : c.record} aria-label={recording ? c.stopRecording : c.record} aria-pressed={recording} onClick={toggleRecording} disabled={pending || transcribing}>
-              {transcribing ? <LoaderCircle className="spin" /> : recording ? <Square /> : <Mic />}
-            </button>
             <button className="btn-attach" type="button" title={c.image} onClick={() => imageRef.current?.click()} disabled={pending}>
               <ImageIcon />
             </button>
@@ -146,7 +128,7 @@ export function StrategyComposer({ initialPrompt = "", speechLang = "en-US" }: {
         </div>
       )}
 
-      {(error || voiceError) && <p className="prompt-error" role="alert">{error ?? voiceError}</p>}
+      {error && <p className="prompt-error" role="alert">{error}</p>}
 
       <div className="quick-actions-bar">
         {c.pills.map(({ label, prompt: p }, i) => {

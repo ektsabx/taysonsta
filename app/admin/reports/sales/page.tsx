@@ -2,21 +2,22 @@ import { Tx } from "@/components/bos/I18n";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { runReport } from "@/services/bos/reports";
-import { listLeadSources, listProducts, listActiveStaff } from "@/services/bos/shared";
+import { listLeadSources, listActiveStaff } from "@/services/bos/shared";
 import { Card, KpiCard } from "@/components/bos/ui";
 import { BarChart, HBarList, LineChart } from "@/components/bos/Chart";
 import { ReportShell } from "../ReportShell";
-import { base, pct, safeReport } from "../helpers";
+import { moneyIn, pct, safeReport } from "../helpers";
 
 type Sales = { from: string; to: string; leads: number; qualified?: number; meetings?: number; proposals?: number; won: number; lost: number; revenue?: number; conversion?: number; trend: { month: string; leads: number; won: number; revenue: number }[]; by_source?: { source: string; leads: number; won?: number }[]; by_bd?: { name: string; won: number; revenue: number }[] };
 
 export default async function SalesReport({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("reports.read");
   const sp = await readParams(searchParams);
-  const [r, sources, products, staff] = await Promise.all([safeReport(() => runReport<Sales>(bos, "sales", sp)), listLeadSources(), listProducts(), listActiveStaff()]);
+  const base = moneyIn(sp);
+  const [r, sources, staff] = await Promise.all([safeReport(() => runReport<Sales>(bos, "sales", sp)), listLeadSources(), listActiveStaff()]);
   const money = can(bos, "revenue.view_sensitive");
   return (
-    <ReportShell name="sales" exportName="sales" canExport={can(bos, "reports.export")} sp={sp} filters={[{ key: "source_id", label: "المصدر", type: "select", options: sources.map((s) => ({ value: s.id, label: s.name })) }, { key: "product_id", label: "المنتج/الخدمة", type: "select", options: products.map((p) => ({ value: p.id, label: p.name })) }, { key: "country", label: "الدولة", type: "text" }, ...(bos.permissions.get("reports.read") !== "own" ? [{ key: "user_id", label: "الموظف", type: "select" as const, options: staff.map((s) => ({ value: s.userId, label: s.name })) }] : [])]}>
+    <ReportShell name="sales" exportName="sales" canExport={can(bos, "reports.export")} sp={sp} currency filters={[{ key: "source_id", label: "المصدر", type: "select", options: sources.map((s) => ({ value: s.id, label: s.name })) }, { key: "country", label: "الدولة", type: "text" }, ...(bos.permissions.get("reports.read") !== "own" ? [{ key: "user_id", label: "الموظف", type: "select" as const, options: staff.map((s) => ({ value: s.userId, label: s.name })) }] : [])]}>
       {!r.ok ? r.node : (() => {
         const d = r.data.data;
         const funnel = [

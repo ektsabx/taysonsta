@@ -790,7 +790,7 @@ export function InstallmentActions({ id }: { id: string }) {
 // Expense claims, other requests
 // ---------------------------------------------------------------------------
 
-export function ExpenseClaimButton({ employees, fixedEmployeeId, categories, currencies, projects, label = "+ مصروف" }: { employees: Opt[]; fixedEmployeeId?: string; categories: Opt[]; currencies: string[]; projects: Opt[]; label?: string }) {
+export function ExpenseClaimButton({ employees, fixedEmployeeId, categories, currencies, label = "+ مصروف" }: { employees: Opt[]; fixedEmployeeId?: string; categories: Opt[]; currencies: string[]; label?: string }) {
   const [createdId, setCreatedId] = useState<string | null>(null);
   return (
     <ModalButton label={label} title="تقديم مصروف للاسترداد" className="admin-btn small">
@@ -812,7 +812,6 @@ export function ExpenseClaimButton({ employees, fixedEmployeeId, categories, cur
               <TextField name="amount" label="المبلغ" required inputMode="decimal" />
               <SelectField name="currency" label="العملة" options={currencies.map((c) => ({ value: c, label: c }))} defaultValue="EGP" />
               <TextField name="expense_date" label="التاريخ" type="date" required />
-              <SelectField name="project_id" label="مشروع (اختياري)" placeholder="—" options={projects} />
             </>)}
             {actions(<SubmitButton label="إرسال" />)}
           </ActionForm>

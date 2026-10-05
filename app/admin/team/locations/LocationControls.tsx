@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Tx, useT } from "@/components/bos/I18n";
 import type { ActionState } from "@/lib/bos/action";
-import { branchGeoAction, consentAction, deleteMyLocationsAction, locationSettingsAction } from "./actions";
+import { consentAction, deleteMyLocationsAction, locationSettingsAction } from "./actions";
 
 function useRun() {
   const router = useRouter();
@@ -49,22 +49,5 @@ export function LocationSettings({ initial }: { initial: { enabled: boolean; pur
       <div className="bos-field" style={{ maxWidth: 240 }}><label><Tx>مدة الاحتفاظ (أيام)</Tx></label><input type="number" min={7} max={730} value={v.retention_days} onChange={(e) => setV({ ...v, retention_days: Number(e.target.value) })} /></div>
       <div className="bos-row" style={{ gap: 6, alignItems: "center" }}><button type="button" className="admin-btn" disabled={pending} onClick={() => run(() => locationSettingsAction(v))}>{t("حفظ")}</button><Msg msg={msg} /></div>
     </div>
-  );
-}
-
-export function BranchGeoRow({ id, name, lat, lng, fence }: { id: string; name: string; lat: number | null; lng: number | null; fence: number | null }) {
-  const t = useT();
-  const { pending, msg, run } = useRun();
-  const [a, setA] = useState(lat != null ? String(lat) : "");
-  const [b, setB] = useState(lng != null ? String(lng) : "");
-  const [c, setC] = useState(fence != null ? String(fence) : "");
-  return (
-    <tr>
-      <td>{name}</td>
-      <td><input value={a} onChange={(e) => setA(e.target.value)} placeholder="30.0444" dir="ltr" style={{ width: 110 }} aria-label={t("خط العرض")} /></td>
-      <td><input value={b} onChange={(e) => setB(e.target.value)} placeholder="31.2357" dir="ltr" style={{ width: 110 }} aria-label={t("خط الطول")} /></td>
-      <td><input value={c} onChange={(e) => setC(e.target.value)} placeholder="200" dir="ltr" style={{ width: 80 }} aria-label={t("النطاق (متر)")} /></td>
-      <td><button type="button" className="admin-btn small secondary" disabled={pending} onClick={() => run(() => branchGeoAction(id, a, b, c))}>{t("حفظ")}</button> <Msg msg={msg} /></td>
-    </tr>
   );
 }

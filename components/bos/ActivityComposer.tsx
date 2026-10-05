@@ -12,7 +12,6 @@ export interface RelatedIds {
   deal_id?: string | null;
   client_id?: string | null;
   contact_id?: string | null;
-  project_id?: string | null;
 }
 
 const types = [

@@ -4,7 +4,7 @@
 // `phase` = the upgrade phase whose features use the connection (the hub can
 // store and test credentials before that phase lands).
 
-export type ProviderCategory = "email" | "ai" | "messaging" | "google" | "social" | "ads" | "esign" | "payments" | "maps";
+export type ProviderCategory = "email" | "ai" | "google" | "social" | "ads" | "esign" | "payments" | "maps";
 
 export interface ProviderField {
   key: string;
@@ -24,7 +24,7 @@ export interface ProviderDef {
   fields: ProviderField[];
   capabilities: string[];
   testable: boolean;
-  webhook?: { kind: "svix" | "meta_hmac" | "hmac_sha256" | "twilio" | "telegram_secret"; secretField: string };
+  webhook?: { kind: "svix" | "meta_hmac" | "hmac_sha256" | "telegram_secret"; secretField: string };
   phase: number;
   docs?: string;
 }
@@ -32,7 +32,6 @@ export interface ProviderDef {
 export const categoryLabels: Record<ProviderCategory, string> = {
   email: "البريد الإلكتروني",
   ai: "الذكاء الاصطناعي",
-  messaging: "واتساب والرسائل النصية",
   google: "Google",
   social: "التواصل الاجتماعي",
   ads: "الإعلانات",
@@ -97,32 +96,6 @@ export const providers: ProviderDef[] = [
     docs: "https://docs.anthropic.com",
   },
   {
-    key: "whatsapp_cloud", name: "WhatsApp Business (Cloud API)", category: "messaging", phase: 9, testable: true,
-    description: "إرسال واستقبال رسائل واتساب عبر Meta Cloud API والقوالب المعتمدة.",
-    fields: [
-      { key: "access_token", label: "رمز الوصول الدائم", secret: true, required: true },
-      { key: "phone_number_id", label: "Phone number ID", required: true },
-      { key: "business_account_id", label: "WhatsApp Business Account ID", required: true },
-      { key: "app_secret", label: "App secret", secret: true, hint: "للتحقق من توقيع Webhooks (X-Hub-Signature-256)" },
-      { key: "verify_token", label: "Verify token", secret: true, hint: "نص تختاره وتضعه في إعدادات Webhook لدى Meta" },
-    ],
-    capabilities: ["messaging.whatsapp.send", "messaging.whatsapp.receive", "messaging.templates"],
-    webhook: { kind: "meta_hmac", secretField: "app_secret" },
-    docs: "https://developers.facebook.com/docs/whatsapp/cloud-api",
-  },
-  {
-    key: "twilio", name: "Twilio SMS", category: "messaging", phase: 9, testable: true,
-    description: "رسائل SMS (تنبيهات، رموز، تذكيرات).",
-    fields: [
-      { key: "account_sid", label: "Account SID", required: true },
-      { key: "auth_token", label: "Auth token", secret: true, required: true },
-      { key: "from", label: "رقم أو اسم المرسل", required: true },
-    ],
-    capabilities: ["messaging.sms.send", "messaging.sms.receive"],
-    webhook: { kind: "twilio", secretField: "auth_token" },
-    docs: "https://www.twilio.com/docs/sms",
-  },
-  {
     key: "google_maps", name: "Google Maps Platform", category: "maps", phase: 19, testable: true,
     description: "الخرائط والعناوين (Geocoding) — للمواقع المصرّح بها فقط.",
     fields: [{ key: "api_key", label: "مفتاح API", secret: true, required: true, hint: "قيّد المفتاح بنطاق موقعك وبالواجهات المستخدمة فقط" }],
@@ -141,46 +114,27 @@ export const providers: ProviderDef[] = [
   },
   {
     key: "meta", name: "Meta (Facebook & Instagram)", category: "social", phase: 10, testable: true,
-    description: "صفحات فيسبوك وحسابات إنستجرام للأعمال: رسائل Messenger وInstagram Direct في صندوق الوارد، والنشر والتحليلات (يتطلب مراجعة التطبيق لدى Meta).",
+    description: "صفحات فيسبوك وحسابات إنستجرام للأعمال: رسائل Messenger وInstagram Direct في صندوق الوارد، وقراءة الإعلانات (يتطلب مراجعة التطبيق لدى Meta).",
     fields: [
       { key: "app_id", label: "App ID", required: true },
       { key: "app_secret", label: "App secret", secret: true, required: true },
       { key: "access_token", label: "Page / system user token", secret: true, required: true },
       { key: "verify_token", label: "Verify token (للرسائل)", secret: true, hint: "نص تختاره وتضعه في إعدادات Webhook لدى Meta لاستقبال رسائل Messenger وInstagram" },
     ],
-    capabilities: ["social.publish", "social.insights", "ads.read", "messaging.inbox"],
+    capabilities: ["ads.read", "messaging.inbox"],
     webhook: { kind: "meta_hmac", secretField: "app_secret" },
     docs: "https://developers.facebook.com/docs/graph-api",
   },
   {
     key: "telegram", name: "Telegram Bot", category: "social", phase: 10, testable: true,
-    description: "رسائل العملاء إلى البوت تصل صندوق الوارد ويُرد عليها من هنا، والنشر في القنوات عبر البوت.",
+    description: "رسائل العملاء إلى البوت تصل صندوق الوارد ويُرد عليها من هنا.",
     fields: [
       { key: "bot_token", label: "Bot token (من BotFather)", secret: true, required: true },
       { key: "webhook_secret", label: "Webhook secret", secret: true, hint: "يُولَّد تلقائياً عند تفعيل استقبال الرسائل من صفحة قنوات المراسلة" },
     ],
-    capabilities: ["social.publish", "messaging.inbox"],
+    capabilities: ["messaging.inbox"],
     webhook: { kind: "telegram_secret", secretField: "webhook_secret" },
     docs: "https://core.telegram.org/bots/api",
-  },
-  {
-    key: "linkedin", name: "LinkedIn", category: "social", phase: 10, testable: false,
-    description: "صفحة الشركة: النشر والتحليلات (يتطلب صلاحيات Marketing Developer Platform).",
-    fields: [
-      { key: "client_id", label: "Client ID", required: true },
-      { key: "client_secret", label: "Client secret", secret: true, required: true },
-    ],
-    capabilities: ["social.publish", "social.insights", "ads.read"],
-    docs: "https://learn.microsoft.com/linkedin/",
-  },
-  {
-    key: "tiktok", name: "TikTok for Business", category: "social", phase: 10, testable: false,
-    description: "النشر والتحليلات والإعلانات (يتطلب موافقة TikTok على التطبيق).",
-    fields: [
-      { key: "app_id", label: "App ID", required: true },
-      { key: "app_secret", label: "App secret", secret: true, required: true },
-    ],
-    capabilities: ["social.publish", "ads.read"],
   },
   {
     key: "google_ads", name: "Google Ads", category: "ads", phase: 12, testable: false,

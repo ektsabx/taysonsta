@@ -120,7 +120,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Sea
        
         subtitle={
           metrics
-            ? `المسار ${formatMoney(metrics.pipelineValue, metrics.baseCurrency)} · الموزون ${formatMoney(metrics.weightedPipeline, metrics.baseCurrency)} · المكسوب هذا الشهر ${formatMoney(metrics.wonRevenue, metrics.baseCurrency)} · التحويل ${metrics.conversionRate}%`
+            ? `المسار ${formatMoney(metrics.pipelineValue, metrics.currency)} · الموزون ${formatMoney(metrics.weightedPipeline, metrics.currency)} · المكسوب هذا الشهر ${formatMoney(metrics.wonRevenue, metrics.currency)} · التحويل ${metrics.conversionRate}%`
             : "اسحب البطاقات بين المراحل — كل انتقال يُسجل في السجل الزمني"
         }
         actions={

@@ -12,13 +12,11 @@ const catalog: { key: string; description: string; allowed?: (b: Parameters<type
   { key: "bd", description: "نشاط تطوير الأعمال وجودة المتابعة لكل مسؤول." },
   { key: "revenue", description: "الإيرادات المفوترة والمحصّلة حسب الفترة والعميل والعملة.", allowed: (b) => can(b, "revenue.read") || can(b, "revenue.view_sensitive") },
   { key: "finance", description: "الإيرادات مقابل المصروفات وصافي الربح والتدفق.", allowed: (b) => can(b, "revenue.view_sensitive") || can(b, "expenses.read") },
-  { key: "projects", description: "حالة المشاريع والتأخير والساعات والربحية." },
   { key: "clients", description: "قيمة العملاء ونشاطهم والمستحقات." },
-  { key: "team", description: "حِمل العمل والإنتاجية والساعات لكل فريق." },
+  { key: "team", description: "الحضور وساعات العمل مقابل الجدول لكل فريق." },
   { key: "hr", description: "الحضور والإجازات والتوظيف ودوران الموظفين." },
   { key: "performance", description: "مؤشرات الأداء والأهداف والتقييمات." },
   { key: "countries", description: "الأداء حسب دولة العميل." },
-  { key: "products", description: "مبيعات وإيرادات كل منتج وخدمة." },
 ];
 
 export default async function ReportsIndex() {

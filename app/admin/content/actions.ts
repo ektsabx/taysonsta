@@ -7,8 +7,8 @@ import { authorize } from "@/lib/bos/auth";
 import { handleAction, parseForm, zf, type ActionState } from "@/lib/bos/action";
 import { ValidationError } from "@/lib/bos/errors";
 import {
-  acceptDraft, addTask, contentTypes, createItem, deleteTask, discardDraft, explainInsights, generateDraft, moveStage, removeStage, reviewItem,
-  saveStages, setTaskDone, socialPostFromItem, updateItem, aiKinds, type AcceptField, type AiKind, type InsightExplanation, type ItemInput,
+  acceptDraft, addTask, contentTypes, createItem, deleteTask, discardDraft, generateDraft, moveStage, removeStage, reviewItem,
+  saveStages, setTaskDone, updateItem, aiKinds, type AcceptField, type AiKind, type ItemInput,
 } from "@/services/bos/content";
 
 // Content Studio actions (docs/bos/30 §13).
@@ -109,27 +109,6 @@ export async function draftAction(id: string, op: "accept" | "discard", field?: 
     refresh();
     return { ok: true, message: r.reset ? "تم النسخ — عاد المحتوى للمراجعة" : "تم النسخ إلى المحتوى" };
   });
-}
-
-export async function socialPostAction(itemId: string, accountIds: string[]): Promise<ActionState> {
-  let postId: string | null = null;
-  const res = await handleAction("contentToSocial", async () => {
-    const { bos } = await authorize("social.create");
-    if (!uuid.test(itemId) || !accountIds.every((a) => uuid.test(a))) throw new ValidationError("قيمة غير صالحة.");
-    postId = await socialPostFromItem(bos, itemId, accountIds);
-    return { ok: true, message: "تم إنشاء مسودة منشور" };
-  });
-  if (postId) redirect(`/admin/social/posts/${postId}`);
-  return res;
-}
-
-export async function explainAction(from: string, to: string, language: "ar" | "en"): Promise<{ ok: true; data: InsightExplanation } | { ok: false; error: string }> {
-  try {
-    const { bos } = await authorize("content.read");
-    return { ok: true, data: await explainInsights(bos, { from, to, language }) };
-  } catch (e) {
-    return { ok: false, error: e instanceof ValidationError ? e.message : "تعذر التحليل." };
-  }
 }
 
 export async function saveStagesAction(_prev: ActionState, formData: FormData): Promise<ActionState> {

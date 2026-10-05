@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { canAccessEntity } from "@/lib/bos/access";
 import { getLead } from "@/services/bos/leads";
-import { listActiveStaff, listCurrencies, listLeadSources, listProducts, listTeams } from "@/services/bos/shared";
+import { listActiveStaff, listCurrencies, listLeadSources, listTeams } from "@/services/bos/shared";
 import { PageHeader } from "@/components/bos/ui";
 import { NotFoundError } from "@/lib/bos/errors";
 import { LeadForm } from "../../LeadForm";
@@ -18,7 +18,7 @@ export default async function EditLeadPage({ params }: { params: Promise<{ id: s
     throw error;
   });
   if (!lead) notFound();
-  const [sources, products, staff, teams, currencies] = await Promise.all([listLeadSources(), listProducts(), listActiveStaff(), listTeams(), listCurrencies()]);
+  const [sources, staff, teams, currencies] = await Promise.all([listLeadSources(), listActiveStaff(), listTeams(), listCurrencies()]);
 
   return (
     <>
@@ -30,7 +30,6 @@ export default async function EditLeadPage({ params }: { params: Promise<{ id: s
         action={updateLeadAction.bind(null, id)}
         initial={{ ...lead, estimated_budget: lead.estimated_budget ?? "" }}
         sources={sources.map((s) => ({ value: s.id, label: s.name }))}
-        products={products.map((p) => ({ value: p.id, label: p.name }))}
         staff={staff.map((s) => ({ value: s.userId, label: s.name }))}
         teams={teams.map((t) => ({ value: t.id, label: t.name }))}
         currencies={currencies}

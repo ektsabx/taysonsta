@@ -33,7 +33,6 @@ const leadSchema = z
     source_id: zf.optionalUuid(),
     estimated_budget: zf.optionalMoney(),
     budget_currency: z.preprocess((v) => (v === "" ? null : v), zf.currency().nullable()),
-    product_interest_id: zf.optionalUuid(),
     business_stage: zf.optionalText(100),
     timeline: zf.optionalText(200),
     decision_maker: zf.optionalText(200),
@@ -65,7 +64,6 @@ function toInput(v: z.infer<typeof leadSchema>): LeadInput {
     source_id: v.source_id,
     estimated_budget: v.estimated_budget ?? null,
     budget_currency: v.budget_currency ?? null,
-    product_interest_id: v.product_interest_id,
     business_stage: v.business_stage ?? null,
     timeline: v.timeline ?? null,
     decision_maker: v.decision_maker ?? null,
@@ -191,7 +189,6 @@ const convertSchema = z
     value: zf.money("قيمة الصفقة"),
     currency: zf.currency(),
     expectedCloseDate: zf.optionalDate(),
-    productId: zf.optionalUuid(),
   })
   .refine((v) => v.clientId || v.newClientEmail, { message: "اختر حساباً موجوداً أو أدخل بريد حساب جديد", path: ["clientId"] });
 
@@ -209,7 +206,6 @@ export async function convertLeadAction(leadId: string, _prev: ActionState, form
       value: v.value,
       currency: v.currency,
       expectedCloseDate: v.expectedCloseDate,
-      productId: v.productId,
     });
     revalidatePath(`/admin/sales/leads/${leadId}`);
     return { ok: true, data: { dealId }, message: "تم إنشاء الصفقة" };

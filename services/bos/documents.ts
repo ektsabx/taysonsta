@@ -35,9 +35,6 @@ export const docTypeLabels: Record<string, string> = {
   job_offer: "عرض عمل",
   employment_contract: "عقد عمل",
   nda_ip: "اتفاقية السرية والملكية الفكرية",
-  maintenance_agreement: "اتفاقية صيانة ودعم",
-  license_certificate: "شهادة ترخيص",
-  handover_certificate: "محضر تسليم واستلام",
   hr_document: "مستند موارد بشرية",
   report: "قالب تقرير",
 };
@@ -50,9 +47,6 @@ export const docTypeEntities: Record<string, string[]> = {
   job_offer: ["job_offer"],
   employment_contract: ["employee"],
   nda_ip: ["employee", "client"],
-  maintenance_agreement: ["project"],
-  license_certificate: ["project"],
-  handover_certificate: ["project"],
   hr_document: ["employee"],
 };
 
@@ -189,8 +183,6 @@ async function companyData() {
     tax_id: c.tax_id,
     commercial_registration: c.commercial_registration ?? "",
     _logo: c.logo_path,
-    _primary: c.brand_primary,
-    _accent: c.brand_accent,
   };
 }
 
@@ -201,7 +193,7 @@ function clientData(c: Pick<Tables<"clients">, "name" | "company_name" | "email"
 
 async function assertEntityAccess(bos: BosUser, docType: string, entityType: string, entityId: string) {
   if (!docTypeEntities[docType]?.includes(entityType)) throw new ValidationError("هذا القالب لا يُستخدم مع هذا النوع من السجلات.");
-  const need: Record<string, Parameters<typeof can>[1]> = { invoice: "invoices.read", contract: "contracts.read", deal: "deals.read", job_offer: "recruitment.read", project: "projects.read", client: "clients.read", employee: "employees.read" };
+  const need: Record<string, Parameters<typeof can>[1]> = { invoice: "invoices.read", contract: "contracts.read", deal: "deals.read", job_offer: "recruitment.read", client: "clients.read", employee: "employees.read" };
   if (!can(bos, need[entityType] ?? "documents.read")) throw new ForbiddenError();
   // Salary / legal data: HR sensitive access only.
   if (entityType === "employee" && ["employment_contract", "hr_document"].includes(docType) && !(bos.isSuperAdmin || can(bos, "payroll.read", "all") || can(bos, "employees.view_sensitive", "all"))) throw new ForbiddenError("يتطلب صلاحية بيانات الموظفين الحساسة.");
@@ -239,23 +231,21 @@ export async function resolveData(docType: string, entityType: string, entityId:
       contract = { number: d.deal_number, title: `${t("عقد تقديم خدمات")} — ${d.name}`, value: d.value, currency: d.currency, payment_terms: terms, client_id: d.client_id, start_date: null, end_date: null };
       dealId = d.id;
     }
-    const [{ data: client }, { data: deal }, { data: project }] = await Promise.all([
+    const [{ data: client }, { data: deal }] = await Promise.all([
       c.from("clients").select("name, company_name, email, phone, address, city, country, tax_id").eq("id", String(contract.client_id)).maybeSingle(),
       dealId ? c.from("deals").select("deal_number, name, scope").eq("id", dealId).maybeSingle() : Promise.resolve({ data: null }),
-      contract.project_id ? c.from("projects").select("project_number, name, scope").eq("id", String(contract.project_id)).maybeSingle() : Promise.resolve({ data: null }),
     ]);
-    const scope = (project?.scope as string | null) ?? (deal?.scope as string | null) ?? null;
+    const scope = (deal?.scope as string | null) ?? null;
     return {
       reference: String(contract.number ?? ""),
       title: String(contract.title ?? t("عقد")),
-      data: { ...base, contract, client: clientData(client), deal: deal ? { number: deal.deal_number, name: deal.name } : {}, project: project ? { number: project.project_number, name: project.name } : {}, scope: typeof scope === "string" ? scope : null },
+      data: { ...base, contract, client: clientData(client), deal: deal ? { number: deal.deal_number, name: deal.name } : {}, scope: typeof scope === "string" ? scope : null },
     };
   }
   if (entityType === "deal") {
     const { data: d } = await c.from("deals").select("*, clients(name, company_name, email, phone, address, city, country, tax_id)").eq("id", entityId).maybeSingle();
     if (!d) throw new NotFoundError();
-    const [{ data: lines }, { data: proposal }] = await Promise.all([
-      c.from("deal_products").select("description, quantity, unit_price, line_total, sort_order, products(name)").eq("deal_id", entityId).order("sort_order"),
+    const [{ data: proposal }] = await Promise.all([
       c.from("proposals").select("title, total_amount, currency, valid_until, terms, assumptions").eq("deal_id", entityId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     return {
@@ -265,7 +255,6 @@ export async function resolveData(docType: string, entityType: string, entityId:
         ...base,
         deal: { number: d.deal_number, name: d.name, value: d.value, currency: d.currency },
         client: clientData(d.clients as never),
-        lines: (lines ?? []).map((l) => ({ name: (l.products as unknown as { name: string } | null)?.name ?? l.description ?? "", description: l.description, quantity: l.quantity, unit_price: l.unit_price, line_total: l.line_total, currency: d.currency })),
         payment_terms: (d.payment_terms as unknown as { label: string; percent: number | string }[]) ?? [],
         proposal: proposal ?? {},
       },
@@ -327,16 +316,6 @@ export async function resolveData(docType: string, entityType: string, entityId:
     const client = clientData(cl);
     return { reference: null, title: `${t("اتفاقية السرية والملكية الفكرية")} — ${client.display_name}`, data: { ...base, client, party: { name: client.display_name, type: "client" } } };
   }
-  if (entityType === "project") {
-    const { data: p } = await c.from("projects").select("*, clients(name, company_name, email, phone, address, city, country, tax_id)").eq("id", entityId).maybeSingle();
-    if (!p) throw new NotFoundError();
-    const { data: ms } = await c.from("milestones").select("name, status, due_date, completed_at, sort_order").eq("project_id", entityId).order("sort_order");
-    return {
-      reference: p.project_number,
-      title: `${t(docTypeLabels[docType] ?? "مستند")} — ${p.name}`,
-      data: { ...base, project: { ...p, number: p.project_number }, client: clientData(p.clients as never), milestones: (ms ?? []).map((m) => ({ ...m, status_label: t(statusDef("milestone_status", m.status).label) })) },
-    };
-  }
   throw new ValidationError("نوع السجل غير مدعوم.");
 }
 
@@ -358,7 +337,7 @@ export async function renderWithVersion(version: Pick<TemplateVersion, "body" | 
   const markup = renderTemplate(version.body, withDoc, opts);
   const subject = version.subject ? renderTemplate(version.subject, withDoc, opts).replace(/\\(.)/g, "$1") : null;
   const company = data.company as Awaited<ReturnType<typeof companyData>>;
-  const style = cleanStyle({ ...(version.style as Partial<DocStyle>), primary: (version.style as Partial<DocStyle>)?.primary ?? company._primary });
+  const style = cleanStyle({ ...(version.style as Partial<DocStyle>), primary: (version.style as Partial<DocStyle>)?.primary });
   const frame: DocFrame = {
     dir: language === "ar" ? "rtl" : "ltr",
     lang: language,

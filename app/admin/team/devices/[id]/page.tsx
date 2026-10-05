@@ -11,9 +11,9 @@ import { AuditLogPanel } from "@/components/bos/AuditLogPanel";
 import { formatDate, formatDateTime } from "@/lib/bos/format";
 import { DeviceForm } from "../DeviceForm";
 import { assetDetail } from "@/services/bos/assets";
-import { BranchAndEol, MaintenancePanel, MarkAvailable, SeatPanel, StockPanel } from "../AssetControls";
+import { EndOfLife, MaintenancePanel, MarkAvailable, SeatPanel, StockPanel } from "../AssetControls";
 
-const eventLabels: Record<string, string> = { purchased: "تم الشراء/التسجيل", available: "أصبح متاحاً", assigned: "سُلّم", returned: "استُرجع", seat_assigned: "عُيّن مقعد", seat_released: "حُرّر مقعد", branch_transfer: "نُقل لفرع", maintenance_opened: "أُرسل للصيانة", maintenance_closed: "عاد من الصيانة", retired: "استُبعد", lost: "مفقود", stock_in: "إضافة للمخزون", stock_out: "صرف من المخزون", note: "ملاحظة" };
+const eventLabels: Record<string, string> = { purchased: "تم الشراء/التسجيل", available: "أصبح متاحاً", assigned: "سُلّم", returned: "استُرجع", seat_assigned: "عُيّن مقعد", seat_released: "حُرّر مقعد", maintenance_opened: "أُرسل للصيانة", maintenance_closed: "عاد من الصيانة", retired: "استُبعد", lost: "مفقود", stock_in: "إضافة للمخزون", stock_out: "صرف من المخزون", note: "ملاحظة" };
 import { AssignDeviceButton, ConfirmReceiptButton, ReturnDeviceButton, SecurityCheckForm } from "../../TeamControls";
 
 export default async function DevicePage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,16 +33,14 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
   const canManage = bos.permissions.get("devices.manage") === "all";
   const canEdit = bos.permissions.get("devices.update") === "all";
   const open = d.history.find((h) => !h.returned_at);
-  const [names, { data: emps }, detail, { data: vendors }, { data: branches }] = await Promise.all([
+  const [names, { data: emps }, detail, { data: vendors }] = await Promise.all([
     userNameMap(),
     canManage ? db().from("employees").select("id, full_name").is("archived_at", null).not("lifecycle_status", "in", "(suspended,offboarding,archived)").order("full_name") : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
     assetDetail(id),
     canEdit ? db().from("vendors").select("id, name").order("name") : Promise.resolve({ data: [] as { id: string; name: string }[] }),
-    canEdit ? db().from("branches").select("id, name").eq("status", "active").order("name") : Promise.resolve({ data: [] as { id: string; name: string }[] }),
   ]);
   const empOpts = (emps ?? []).map((e) => ({ value: e.id, label: e.full_name }));
   const vendorOpts = (vendors ?? []).map((v) => ({ value: v.id, label: v.name }));
-  const branchOpts = (branches ?? []).map((b) => ({ value: b.id, label: b.name }));
   const openMaint = detail.maintenance.find((m) => m.status === "open") ?? null;
   const isLicense = d.type === "software_license";
   const isStock = d.type === "spare_part";
@@ -87,8 +85,8 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
               {detail.maintenance.filter((m) => m.status === "closed").map((m) => <div key={m.id} className="bos-faint" style={{ fontSize: 12, marginTop: 4 }}>{formatDate(m.opened_at)} → {formatDate(m.closed_at)} · {m.description}{m.result ? ` — ${m.result}` : ""}{m.cost != null ? ` · ${Number(m.cost).toLocaleString("en-US")} ${m.currency ?? ""}` : ""}</div>)}
             </Card>
           ) : null}
-          {canEdit && !["retired", "lost"].includes(d.status) ? <Card title="الفرع والاستبعاد"><BranchAndEol id={id} branches={branchOpts} currentBranch={d.branch_id} /></Card> : null}
-          {canEdit ? <Card title="بيانات الأصل"><DeviceForm initial={d} vendors={vendorOpts} branches={branchOpts} /></Card> : (
+          {canEdit && !["retired", "lost"].includes(d.status) ? <Card title="الاستبعاد"><EndOfLife id={id} /></Card> : null}
+          {canEdit ? <Card title="بيانات الأصل"><DeviceForm initial={d} vendors={vendorOpts} /></Card> : (
             <Card title="بيانات الجهاز"><KeyValues items={[{ label: "الرقم التسلسلي", value: d.serial_number }, { label: "نظام التشغيل", value: d.os }, { label: "الشراء", value: formatDate(d.purchase_date) }, { label: "الضمان", value: formatDate(d.warranty_until) }, { label: "الحالة", value: <StatusBadge map="device_condition" value={d.condition} /> }]} /></Card>
           )}
         </div>

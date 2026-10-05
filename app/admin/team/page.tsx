@@ -6,7 +6,6 @@ import { requirePermission, can } from "@/lib/bos/auth";
 import { getSystemTime } from "@/lib/bos/system-time";
 import { peopleEmployeeIds, peopleScope } from "@/services/bos/team-scope";
 import { getHrOverview } from "@/services/bos/hr/dashboard";
-import { branchFilter } from "@/lib/bos/branch";
 import { daysUntil } from "@/services/bos/hr/documents";
 import { PageHeader, Card, KpiCard, EmptyState, StatusBadge, UserAvatar } from "@/components/bos/ui";
 import { formatDate, formatMinutes, formatTime } from "@/lib/bos/format";
@@ -24,7 +23,6 @@ export default async function HrOverviewPage() {
     canPayroll: bos.permissions.get("payroll.read") === "all",
     canDocuments: bos.permissions.get("hr_documents.read") === "all",
     canRecruitment: can(bos, "recruitment.read"),
-    branchIds: await branchFilter(bos),
   }, time.today);
   const r = o.requests;
   const totalRequests = r.leave + r.overtime + r.corrections + r.expenses + r.loans + r.bonuses + r.other;

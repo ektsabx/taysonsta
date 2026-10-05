@@ -31,7 +31,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
   }
   const account = contact.clients as unknown as { id: string; name: string; company_name: string | null; account_manager_id: string | null } | null;
   const c = db();
-  const [deals, meetings, approvals, contracts, portal, comms, names, staff, primary] = await Promise.all([
+  const [deals, meetings, approvals, contracts, comms, names, staff, primary] = await Promise.all([
     can(bos, "deals.read") ? c.from("deals").select("id, deal_number, name, value, currency, pipeline_stages(name)").eq("contact_id", id).order("created_at", { ascending: false }).then((r) => r.data ?? []) : Promise.resolve([]),
     c.from("meeting_attendees").select("meetings(id, title, start_at, status)").eq("contact_id", id).then(async (r) => {
       const attended = (r.data ?? []).map((x) => x.meetings as unknown as { id: string; title: string; start_at: string; status: string }).filter(Boolean);
@@ -41,14 +41,11 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
     }),
     c.from("approvals").select("id, title, approval_type, status, requested_at, decided_at, entity_type, entity_id").or(`approver_contact_id.eq.${id},decided_by_contact_id.eq.${id}`).order("requested_at", { ascending: false }).then((r) => r.data ?? []),
     can(bos, "contracts.read") ? c.from("contract_signatures").select("signed_at, contracts(id, contract_number, title, status)").eq("contact_id", id).then((r) => r.data ?? [], () => []) : Promise.resolve([]),
-    c.from("client_portal_users").select("status, invited_at, last_login_at").eq("contact_id", id).maybeSingle().then((r) => r.data),
     can(bos, "communications.read") ? listCommunications(bos, "all", { contact: id }) : Promise.resolve(null),
     userNameMap(),
     listActiveStaff(),
     account ? c.from("clients").select("primary_contact_id").eq("id", account.id).single().then((r) => r.data?.primary_contact_id === id) : Promise.resolve(false),
   ]);
-  const projectIds = [...new Set((deals as { id: string }[]).map((d) => d.id))];
-  const { data: projects } = projectIds.length && can(bos, "projects.read") ? await c.from("projects").select("id, name, project_number, status").in("deal_id", projectIds) : { data: [] };
   const staffOptions = staff.map((s) => ({ value: s.userId, label: s.name }));
 
   return (
@@ -79,7 +76,6 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
           { label: "البريد", value: contact.email ? <a className="bos-link" dir="ltr" href={`mailto:${contact.email}`}>{contact.email}</a> : "—" },
           { label: "الهاتف", value: contact.phone ? <a className="bos-link" dir="ltr" href={`tel:${contact.phone}`}>{contact.phone}</a> : "—" },
           { label: "واتساب", value: contact.whatsapp ? <a className="bos-link" dir="ltr" href={`https://wa.me/${contact.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"><Tx>{contact.whatsapp}</Tx></a> : "—" },
-          { label: "بوابة العميل", value: portal ? <StatusBadge tone={portal.status === "active" ? "success" : portal.status === "disabled" ? "neutral" : "warning"} label={portal.status === "active" ? "نشط" : portal.status === "disabled" ? "معطّل" : "مدعو"} /> : "—" },
         ]}
       />
       <div className="bos-grid main-side">
@@ -97,13 +93,6 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               </tbody></BosTable>
             ) : <EmptyState title="لا توجد صفقات مرتبطة" />}
           </Card>
-          {projects?.length ? (
-            <Card title="المشاريع">
-              {projects.map((p) => (
-                <div key={p.id} style={{ marginBottom: 6 }}><Link href={`/admin/projects/${p.id}`}>{p.name}</Link> <StatusBadge map="project_status" value={p.status} /></div>
-              ))}
-            </Card>
-          ) : null}
           {comms ? <Card title="التواصل"><CommunicationList items={comms.rows.slice(0, 30)} names={Object.fromEntries(names)} /></Card> : null}
           <Card title="السجل الزمني"><ActivityTimeline entityType="contact" entityId={id} limit={50} /></Card>
         </div>

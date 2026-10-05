@@ -17,7 +17,7 @@ import { userNameMap } from "@/services/bos/shared";
 // • Due dates from Settings (approval SLA), reminders + escalation (sweep).
 // • Delegation: an active delegation routes new approvals to the substitute
 //   and lets them decide open ones.
-// • Amount thresholds add steps (payload.amount_base, or amount+currency).
+// • Amount thresholds add steps (payload.amount + payload.currency, per currency).
 // Source modules keep their own records; they only receive the outcome.
 
 export type ApprovalType = DbEnum<"approval_type">;
@@ -103,14 +103,11 @@ async function dueAt(): Promise<string> {
   return new Date(nowMs() + wf.sla_hours * 3600_000).toISOString();
 }
 
-async function amountBase(payload: Record<string, unknown> | undefined): Promise<number | null> {
-  if (!payload) return null;
-  if (payload.amount_base !== undefined && payload.amount_base !== null && Number.isFinite(Number(payload.amount_base))) return Number(payload.amount_base);
-  if (payload.amount !== undefined && typeof payload.currency === "string") {
-    const { data } = await db().rpc("bos_to_base", { p_amount: Number(payload.amount), p_currency: payload.currency });
-    return data === null || data === undefined ? null : Number(data);
-  }
-  return null;
+// No currency conversion (D-120): the amount is compared in its own currency.
+function payloadAmount(payload: Record<string, unknown> | undefined): { amount: number; currency: string } | null {
+  if (!payload || payload.amount === undefined || payload.amount === null || typeof payload.currency !== "string") return null;
+  const amount = Number(payload.amount);
+  return Number.isFinite(amount) ? { amount, currency: payload.currency } : null;
 }
 
 export interface RequestApprovalInput {
@@ -177,8 +174,8 @@ export async function requestApproval(input: RequestApprovalInput): Promise<Appr
   const wf = await getSetting("approval_workflow");
   const rules = wf.thresholds.filter((t) => t.approval_type === input.type);
   if (rules.length) {
-    const amount = await amountBase(input.payload);
-    if (amount !== null) for (const r of rules.sort((a, b) => a.min_amount - b.min_amount)) if (amount >= r.min_amount) steps = [...steps, ...r.add_steps];
+    const money = payloadAmount(input.payload);
+    if (money) for (const r of rules.sort((a, b) => a.min_amount - b.min_amount)) if (r.currency === money.currency && money.amount >= r.min_amount) steps = [...steps, ...r.add_steps];
   }
 
   // A new version supersedes open approvals (pending or changes requested) of the same type for the entity.
@@ -246,7 +243,7 @@ export async function decideApproval(approvalId: string, decision: Decision, com
     throw new ForbiddenError("لست جهة الموافقة على هذا الطلب، أو تم اتخاذ القرار مسبقاً.");
   }
   // Self-approval is blocked for personal requests (leave, expenses, corrections, overtime, access).
-  const personal: ApprovalType[] = ["leave", "expense", "attendance_correction", "overtime", "access_request", "loan", "bonus", "hr_request", "salary_adjustment"];
+  const personal: ApprovalType[] = ["leave", "expense", "attendance_correction", "overtime", "loan", "bonus", "hr_request", "salary_adjustment"];
   if (actor.bos && approval.requested_by === actor.bos.userId && personal.includes(approval.approval_type) && !actor.bos.isSuperAdmin) {
     throw new ForbiddenError("لا يمكنك الموافقة على طلبك الشخصي.");
   }

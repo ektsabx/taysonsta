@@ -24,7 +24,7 @@ export default async function PerformancePage({ searchParams }: { searchParams: 
   const ids = staff.map((s) => s.userId);
   const [tasks, attendance, deals] = ids.length
     ? await Promise.all([
-        db().from("tasks").select("assigned_to").in("assigned_to", ids).eq("status", "completed").gte("completed_at", `${from}T00:00:00Z`).lte("completed_at", `${to}T23:59:59Z`),
+        db().from("activities").select("assigned_to").in("assigned_to", ids).eq("status", "completed").gte("completed_at", `${from}T00:00:00Z`).lte("completed_at", `${to}T23:59:59Z`),
         db().from("attendance_records").select("user_id, worked_minutes, late_minutes").in("user_id", ids).gte("work_date", from).lte("work_date", to),
         db().from("deals").select("assigned_to").in("assigned_to", ids).gte("won_at", `${from}T00:00:00Z`).lte("won_at", `${to}T23:59:59Z`),
       ])
@@ -51,7 +51,7 @@ export default async function PerformancePage({ searchParams }: { searchParams: 
       <Card flush>
         {rows.length ? (
           <BosTable className="bos-table responsive">
-            <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>مهام منجزة</Tx></th><th><Tx>صفقات مكسوبة</Tx></th><th><Tx>ساعات العمل</Tx></th><th><Tx>أيام تأخير</Tx></th><th><Tx>تحقيق المؤشرات حسب الفئة</Tx></th></tr></thead>
+            <thead><tr><th><Tx>الموظف</Tx></th><th><Tx>متابعات منجزة</Tx></th><th><Tx>صفقات مكسوبة</Tx></th><th><Tx>ساعات العمل</Tx></th><th><Tx>أيام تأخير</Tx></th><th><Tx>تحقيق المؤشرات حسب الفئة</Tx></th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.s.userId}>

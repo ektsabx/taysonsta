@@ -9,7 +9,6 @@ import { createEmployee, changeLifecycleStatus, updateEmployee, refreshEmployeeO
 import { listEmployeeChecklists, setEmployeeChecklistItem } from "@/services/bos/onboarding";
 import { requestLeave, cancelLeave } from "@/services/bos/leave";
 import { requestCorrection } from "@/services/bos/attendance";
-import { requestAccess, setAccessStatus, looksLikeSecret, saveCompanyAccount } from "@/services/bos/it-access";
 import { assignDevice, returnDevice, updateSecurityCheck } from "@/services/bos/devices";
 import { computeUserKpis } from "@/services/bos/kpis";
 import { decideApproval } from "@/services/bos/approvals";
@@ -32,15 +31,12 @@ test("employee create → onboarding checklist, validation and lifecycle gates",
   cleanup.push(async () => {
     const c = db();
     await c.from("onboarding_checklists").delete().eq("employee_id", emp.id);
-    await c.from("access_grants").delete().eq("employee_id", emp.id);
-    await c.from("access_requests").delete().eq("employee_id", emp.id);
-    await c.from("company_accounts").delete().eq("employee_id", emp.id);
     const { error } = await c.from("employees").delete().eq("id", emp.id);
     if (error) throw error;
   });
   assert.equal(emp.lifecycle_status, "pending_onboarding");
   const [checklist] = await listEmployeeChecklists(emp.id);
-  assert.equal(checklist.items.length, 45, "IT §15 checklist (32 items) + HR items (docs/bos/28 §23)");
+  assert.equal(checklist.items.length, 41, "onboarding checklist + HR items (docs/bos/28 §23), without IT access items");
   assert.equal(checklist.due_date, "2030-01-19");
 
   await refreshEmployeeOnboarding(emp.id, null);
@@ -133,39 +129,6 @@ test("attendance correction: approval applies change with audit old/new/reason",
   assert.ok(audit!.created_at, "when");
 });
 
-test("access: 2-step request (manager → admin), grant, level validation, secret warning", async () => {
-  const nour = await bosUserFor("nour@taysonsta.local");
-  const { data: figma } = await db().from("external_apps").select("id").eq("key", "figma").single();
-  const { data: before } = await db().from("access_grants").select("*").eq("employee_id", nour.employee.id).eq("app_id", figma!.id).maybeSingle();
-  await db().from("access_requests").update({ status: "cancelled" }).eq("employee_id", nour.employee.id).eq("app_id", figma!.id).eq("status", "pending");
-  const request = await requestAccess(nour, { employeeId: nour.employee.id, appId: figma!.id, level: "Admin", reason: "Own the design system library" });
-  cleanup.push(async () => {
-    await db().from("approvals").delete().eq("entity_id", request.id);
-    if (before) await db().from("access_grants").update({ status: before.status, access_level: before.access_level, request_id: before.request_id, source: before.source }).eq("id", before.id);
-    else await db().from("access_grants").delete().eq("employee_id", nour.employee.id).eq("app_id", figma!.id);
-    await db().from("access_requests").delete().eq("id", request.id);
-  });
-  let approval = await pendingApproval("access_request", request.id);
-  assert.equal(approval!.total_steps, 2);
-  const step1 = approval!.approver_user_id ? await bosUserFor((await db().from("employees").select("email").eq("user_id", approval!.approver_user_id).single()).data!.email as string) : await bosUserFor("hr@taysonsta.local");
-  await decideApproval(approval!.id, "approved", null, { bos: step1 });
-  approval = await pendingApproval("access_request", request.id);
-  assert.equal(approval!.step, 2, "second step created");
-  const admin = await bosUserFor("admin@taysonsta.local");
-  await decideApproval(approval!.id, "approved", null, { bos: admin });
-  const { data: grant } = await db().from("access_grants").select("*").eq("employee_id", nour.employee.id).eq("app_id", figma!.id).single();
-  assert.equal(grant!.status, "pending", "approved → pending provisioning");
-  await assert.rejects(setAccessStatus(admin, grant!.id, "active", { level: "Owner" }), ValidationError, "invalid level");
-  await setAccessStatus(admin, grant!.id, "active", { level: "Admin" });
-  const { data: active } = await db().from("access_grants").select("status, granted_by").eq("id", grant!.id).single();
-  assert.equal(active!.status, "active");
-  assert.equal(active!.granted_by, admin.userId);
-
-  assert.equal(looksLikeSecret("password: Hunter2!Hunter2"), true);
-  assert.equal(looksLikeSecret("Account owned by IT"), false);
-  await assert.rejects(saveCompanyAccount(admin, null, { employee_id: nour.employee.id, app_id: figma!.id, account_type: "app", provider: "Figma", identifier: uniq("nour"), status: "active", owner_user_id: null, recovery_owner_user_id: null, mfa_status: "enabled", mfa_method: null, last_reviewed_at: null, notes: "pass=Sup3r$ecretValue!" }), ValidationError, "secret in notes rejected");
-});
-
 test("devices: assign → history + onboarding auto item; compliance; return", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const c = db();
@@ -191,13 +154,10 @@ test("devices: assign → history + onboarding auto item; compliance; return", a
   assert.ok(hist?.[0]?.returned_at, "return recorded in history");
 });
 
-test("KPIs compute for BD and PM from the metric registry", async () => {
+test("KPIs compute for BD from the metric registry", async () => {
   const ahmed = await bosUserFor("ahmed@taysonsta.local");
-  const omar = await bosUserFor("omar@taysonsta.local");
   const bd = await computeUserKpis(ahmed.userId, new Date().toISOString().slice(0, 10), false);
-  const pm = await computeUserKpis(omar.userId, new Date().toISOString().slice(0, 10), false);
   assert.ok(bd.length >= 9, "BD role KPIs");
-  assert.ok(pm.length >= 6, "PM role KPIs");
   assert.ok(bd.every((k) => k.valid));
   assert.ok(bd.some((k) => k.actual != null));
 });

@@ -18,14 +18,13 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
   if (!(await canAccessEntity(bos, "meeting", id))) notFound();
   const { data: meeting, error } = await db()
     .from("meetings")
-    .select("*, clients(id, name), leads(id, name), deals(id, name), projects(id, name), contacts(id, full_name), tasks!meetings_follow_up_task_fk(id, title, status)")
+    .select("*, clients(id, name), leads(id, name), deals(id, name), contacts(id, full_name)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!meeting) notFound();
   const { data: attendees } = await db().from("meeting_attendees").select("*, contacts(full_name)").eq("meeting_id", id);
   const names = await userNameMap();
-  const followUp = meeting.tasks as unknown as { id: string; title: string; status: string } | null;
   const past = new Date(meeting.start_at).getTime() < nowMs();
   const canUpdate = can(bos, "meetings.update");
 
@@ -73,11 +72,6 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
                   <div className="bos-prose"><Tx>{meeting.next_action}</Tx></div>
                 </>
               ) : null}
-              {followUp ? (
-                <div style={{ marginTop: 10 }}>
-                  <Tx>مهمة المتابعة:</Tx> <Link className="bos-link" href={`/admin/projects/tasks/${followUp.id}`}><Tx>{followUp.title}</Tx></Link> <StatusBadge map="task_status" value={followUp.status} />
-                </div>
-              ) : null}
             </Card>
           ) : null}
           {meeting.notes ? (
@@ -96,7 +90,6 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
                 rel("الحساب", `/admin/clients/${meeting.client_id}`, (meeting.clients as unknown as { name: string } | null)?.name),
                 rel("العميل المحتمل", `/admin/sales/leads/${meeting.lead_id}`, (meeting.leads as unknown as { name: string } | null)?.name),
                 rel("الصفقة", `/admin/sales/deals/${meeting.deal_id}`, (meeting.deals as unknown as { name: string } | null)?.name),
-                rel("المشروع", `/admin/projects/${meeting.project_id}`, (meeting.projects as unknown as { name: string } | null)?.name),
                 rel("جهة الاتصال", `/admin/contacts/${meeting.contact_id}`, (meeting.contacts as unknown as { full_name: string } | null)?.full_name),
               ]}
             />

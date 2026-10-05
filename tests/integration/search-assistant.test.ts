@@ -74,7 +74,7 @@ test("assistant: permitted tools only, facts/forecasts/missing, link-only sugges
 
   // Follow-up in the same thread; history is sent back.
   const calls2: AiRequest[] = [];
-  const r2 = await ask(admin, { threadId: r.threadId, question: "والمشاريع المعرضة للخطر؟" }, { generate: stub({ tools: [{ name: "projects_at_risk" }] }, { answer: "ok", facts: [], forecasts: [], missing: [], suggestions: [] }, calls2) });
+  const r2 = await ask(admin, { threadId: r.threadId, question: "وأسباب التذاكر؟" }, { generate: stub({ tools: [{ name: "ticket_reasons" }] }, { answer: "ok", facts: [], forecasts: [], missing: [], suggestions: [] }, calls2) });
   assert.equal(r2.threadId, r.threadId);
   assert.match(calls2[0].prompt, /الفواتير المستحقة/, "history included");
   const t = await getThread(admin, r.threadId);
@@ -87,9 +87,9 @@ test("assistant: permitted tools only, facts/forecasts/missing, link-only sugges
   if (!dev.permissions.get("invoices.read")) assert.ok(!r3.results.some((x) => x.tool === "outstanding_invoices"));
 
   // No AI provider: same tools by keyword, data shown as is.
-  const r4 = await ask(admin, { threadId: null, question: "ما المهام المتأخرة؟" }, { generate: async () => ({ ok: false, error: "none", tried: [] }) });
+  const r4 = await ask(admin, { threadId: null, question: "ما الفواتير المستحقة؟" }, { generate: async () => ({ ok: false, error: "none", tried: [] }) });
   threads.push(r4.threadId);
   assert.equal(r4.answer.mode, "data");
-  assert.equal(r4.results[0].tool, "overdue_tasks", "best keyword match first");
+  assert.equal(r4.results[0].tool, "outstanding_invoices", "best keyword match first");
   assert.ok(r4.answer.missing.some((m) => /الذكاء الاصطناعي/.test(m)));
 });

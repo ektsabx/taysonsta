@@ -4,7 +4,6 @@ import { can, type BosUser } from "@/lib/bos/auth";
 import { audit } from "@/lib/bos/audit";
 import { emitEvent } from "@/lib/bos/events";
 import { getSetting } from "@/lib/bos/settings";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { nowIso } from "@/lib/bos/clock";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { dealScopeFilter } from "@/services/bos/deals";
@@ -45,16 +44,15 @@ export interface RadarFilter { owner?: string | null; stage?: string | null; cur
 export async function dealRadar(bos: BosUser, f: RadarFilter = {}) {
   if (!can(bos, "deals.read")) throw new ForbiddenError();
   const scope = bos.permissions.get("deals.read") as Scope;
-  return computeRadar({ ownerOr: await dealScopeFilter(bos, scope), branches: await branchFilter(bos) }, f);
+  return computeRadar({ ownerOr: await dealScopeFilter(bos, scope) }, f);
 }
 
 // The radar over every open deal the filter allows (no user: the sweep).
-async function computeRadar(access: { ownerOr: string | null; branches: string[] | null }, f: RadarFilter) {
+async function computeRadar(access: { ownerOr: string | null }, f: RadarFilter) {
   const cfg = await getSetting("deal_radar");
   const rc = { horizonDays: cfg.horizon_days, inactivityDays: cfg.inactivity_days, minProbability: cfg.min_probability };
   const c = db();
   let q = c.from("deals").select("id, deal_number, name, value, currency, probability, expected_close_date, assigned_to, client_id, updated_at, created_at, clients(name, company_name), pipeline_stages!inner(id, key, name, probability, category, sort_order)").is("archived_at", null).eq("pipeline_stages.category", "open").limit(1000);
-  q = withBranch(q, access.branches);
   if (access.ownerOr) q = q.or(access.ownerOr);
   if (f.owner) q = q.eq("assigned_to", f.owner);
   if (f.stage) q = q.eq("stage_id", f.stage);
@@ -159,7 +157,7 @@ export async function addFollowUp(bos: BosUser, dealId: string, input: { type: "
   if (!can(bos, "activities.create")) throw new ForbiddenError();
   if (!input.title.trim()) throw new ValidationError("العنوان مطلوب.", { title: "مطلوب" });
   if (Number.isNaN(Date.parse(input.due_at))) throw new ValidationError("موعد غير صالح.", { due_at: "غير صالح" });
-  return createActivity(bos, { type: input.type, title: input.title.trim(), description: null, direction: null, outcome: null, lead_id: null, deal_id: dealId, client_id: deal.client_id, contact_id: null, project_id: null, assigned_to: input.assigned_to ?? deal.assigned_to ?? bos.userId, priority: "medium", status: "pending", due_at: new Date(input.due_at).toISOString(), start_at: null, reminder_at: null });
+  return createActivity(bos, { type: input.type, title: input.title.trim(), description: null, direction: null, outcome: null, lead_id: null, deal_id: dealId, client_id: deal.client_id, contact_id: null, assigned_to: input.assigned_to ?? deal.assigned_to ?? bos.userId, priority: "medium", status: "pending", due_at: new Date(input.due_at).toISOString(), start_at: null, reminder_at: null });
 }
 
 export async function changeFollowUpDate(bos: BosUser, activityId: string, dueAt: string) {
@@ -228,7 +226,7 @@ export async function explainDeal(bos: BosUser, dealId: string, language: "ar" |
 // Daily sweep (doc 30 §20): deals that need attention alert their owner once
 // a day — near closing within 7 days, overdue, or needing a manager.
 export async function radarAlerts() {
-  const r = await computeRadar({ ownerOr: null, branches: null }, {});
+  const r = await computeRadar({ ownerOr: null }, {});
   const since = new Date(Date.now() - 20 * 3600_000).toISOString();
   let n = 0;
   for (const d of r.rows) {

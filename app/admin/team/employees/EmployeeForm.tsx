@@ -41,7 +41,6 @@ export interface EmployeeFormValues {
   experience_years?: string | number | null;
   profile_notes?: string | null;
   hourly_cost_source?: string | null;
-  branch_id?: string | null;
 }
 
 const probationOptions: Option[] = [
@@ -77,7 +76,6 @@ export function EmployeeForm({
   hasLogin,
   emailDomain,
   categories = [],
-  branches = [],
 }: {
   action: (s: ActionState, f: FormData) => Promise<ActionState>;
   initial?: EmployeeFormValues;
@@ -93,7 +91,6 @@ export function EmployeeForm({
   hasLogin?: boolean;
   emailDomain?: string | null;
   categories?: Option[];
-  branches?: Option[];
 }) {
   const [dept, setDept] = useState(initial.department_id ?? "");
   const [roleIds, setRoleIds] = useState<string[]>(initial.role_ids ?? []);
@@ -119,7 +116,6 @@ export function EmployeeForm({
           <TextField name="start_date" label="تاريخ البدء" type="date" defaultValue={initial.start_date ?? ""} />
           <SelectField name="employment_type" label="نوع التوظيف" options={employmentTypes} defaultValue={initial.employment_type ?? "full_time"} />
           <SelectField name="work_schedule_id" label="جدول العمل" placeholder="يرث (الفريق / القسم / الشركة)" options={schedules} defaultValue={initial.work_schedule_id ?? ""} hint="الورديات والتعيينات المؤقتة من صفحة الجداول" />
-          {branches.length ? <SelectField name="branch_id" label="الفرع" options={branches} defaultValue={initial.branch_id ?? branches[0]?.value ?? ""} /> : null}
           <TextField name="work_location" label="مكان العمل / الموقع" defaultValue={initial.work_location ?? ""} />
           {categories.length ? <SelectField name="category_id" label="تصنيف الموظف" placeholder="—" options={categories} defaultValue={initial.category_id ?? ""} /> : null}
           <SelectField name="probation_status" label="فترة الاختبار" options={probationOptions} defaultValue={initial.probation_status ?? "none"} />

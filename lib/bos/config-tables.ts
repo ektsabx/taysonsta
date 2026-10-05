@@ -2,7 +2,7 @@
 // (docs/bos/22). Client-safe: the server builds zod validation from these,
 // the client renders forms from them.
 
-export type FieldType = "text" | "textarea" | "number" | "money" | "boolean" | "date" | "time" | "select" | "user" | "role" | "department" | "product" | "currency" | "weekdays" | "json" | "list";
+export type FieldType = "text" | "textarea" | "number" | "money" | "boolean" | "date" | "time" | "select" | "user" | "role" | "department" | "currency" | "weekdays" | "json" | "list";
 
 export interface FieldSpec {
   key: string;
@@ -32,42 +32,17 @@ export const configTables: Record<string, TableSpec> = {
   departments: { table: "departments", title: "الأقسام", order: "name", softDelete: "archived_at", fields: [{ key: "name", label: "الاسم", type: "text", required: true, listed: true }, { key: "manager_user_id", label: "المدير", type: "user", listed: true }] },
   teams: { table: "teams", title: "الفرق", order: "name", softDelete: "archived_at", fields: [{ key: "name", label: "الاسم", type: "text", required: true, listed: true }, { key: "department_id", label: "القسم", type: "department", listed: true }, { key: "lead_user_id", label: "قائد الفريق", type: "user", listed: true }] },
   lead_sources: { table: "lead_sources", title: "مصادر العملاء المحتملين", order: "sort_order", softDelete: "is_active", fields: [{ key: "name", label: "الاسم", type: "text", required: true, listed: true }, { key: "sort_order", label: "الترتيب", type: "number", listed: true }, { key: "is_active", label: "نشط", type: "boolean", listed: true }] },
-  products: {
-    table: "products", title: "المنتجات والخدمات", order: "name", softDelete: "archived_at",
-    fields: [
-      { key: "kind", label: "النوع", type: "select", required: true, listed: true, options: [{ value: "service", label: "خدمة" }, { value: "product", label: "منتج" }] },
-      { key: "name", label: "الاسم", type: "text", required: true, listed: true },
-      { key: "category", label: "الفئة", type: "text", listed: true },
-      { key: "sku", label: "SKU", type: "text" },
-      { key: "default_price", label: "السعر الافتراضي", type: "money", listed: true },
-      { key: "currency", label: "العملة", type: "currency", listed: true },
-      { key: "pricing_model", label: "نموذج التسعير", type: "select", listed: true, options: [{ value: "fixed", label: "ثابت" }, { value: "hourly", label: "بالساعة" }, { value: "monthly", label: "شهري" }, { value: "custom", label: "مخصص" }] },
-      { key: "description", label: "الوصف", type: "textarea" },
-      { key: "is_active", label: "نشط", type: "boolean", listed: true },
-    ],
-  },
-  project_templates: {
-    table: "project_templates", title: "قوالب المشاريع (حسب الخدمة)", order: "name", softDelete: "is_active",
-    fields: [
-      { key: "name", label: "الاسم", type: "text", required: true, listed: true },
-      { key: "product_id", label: "الخدمة", type: "product", listed: true },
-      { key: "is_default", label: "افتراضي", type: "boolean", listed: true },
-      { key: "is_active", label: "نشط", type: "boolean", listed: true },
-      { key: "milestones", label: "المراحل والمهام (JSON)", type: "json", hint: '[{"name":"Discovery","tasks":[{"title":"Kickoff","estimated_hours":2}]}]' },
-    ],
-  },
   commission_rules: {
     table: "commission_rules", title: "قواعد العمولة", order: "priority", softDelete: "is_active",
     fields: [
       { key: "name", label: "الاسم", type: "text", required: true, listed: true },
-      { key: "trigger", label: "الاستحقاق عند", type: "select", required: true, listed: true, options: [{ value: "deal_won", label: "كسب الصفقة" }, { value: "contract_signed", label: "توقيع العقد" }, { value: "payment_collected", label: "تحصيل دفعة" }, { value: "full_payment", label: "السداد الكامل" }, { value: "milestone_payment", label: "دفعة مرحلة" }] },
+      { key: "trigger", label: "الاستحقاق عند", type: "select", required: true, listed: true, options: [{ value: "deal_won", label: "كسب الصفقة" }, { value: "contract_signed", label: "توقيع العقد" }, { value: "payment_collected", label: "تحصيل دفعة" }, { value: "full_payment", label: "السداد الكامل" }] },
       { key: "basis", label: "الأساس", type: "select", required: true, listed: true, options: [{ value: "percentage", label: "نسبة مئوية" }, { value: "fixed", label: "مبلغ ثابت" }] },
       { key: "rate", label: "النسبة %", type: "number", min: 0, max: 100, listed: true },
       { key: "fixed_amount", label: "المبلغ الثابت", type: "money" },
       { key: "currency", label: "العملة", type: "currency" },
       { key: "role_id", label: "الدور", type: "role", listed: true },
       { key: "user_id", label: "موظف محدد", type: "user" },
-      { key: "product_id", label: "منتج/خدمة", type: "product" },
       { key: "min_amount", label: "الحد الأدنى للصفقة", type: "money" },
       { key: "max_amount", label: "الحد الأعلى للصفقة", type: "money" },
       { key: "valid_from", label: "ساري من", type: "date" },
@@ -76,8 +51,6 @@ export const configTables: Record<string, TableSpec> = {
       { key: "is_active", label: "نشط", type: "boolean", listed: true },
     ],
   },
-  currencies: { table: "currencies", title: "العملات", pk: "code", order: "code", softDelete: "is_active", fields: [{ key: "code", label: "الرمز (ISO)", type: "text", required: true, pattern: "^[A-Z]{3}$", listed: true }, { key: "name", label: "الاسم", type: "text", required: true, listed: true }, { key: "symbol", label: "الرمز", type: "text", listed: true }, { key: "decimals", label: "الخانات العشرية", type: "number", min: 0, max: 3, listed: true }, { key: "is_active", label: "نشطة", type: "boolean", listed: true }] },
-  exchange_rates: { table: "exchange_rates", title: "أسعار الصرف", order: "effective_date", softDelete: null, fields: [{ key: "base", label: "من", type: "currency", required: true, listed: true }, { key: "quote", label: "إلى", type: "currency", required: true, listed: true }, { key: "rate", label: "السعر", type: "number", required: true, min: 0, listed: true }, { key: "effective_date", label: "ساري من", type: "date", required: true, listed: true }, { key: "source", label: "المصدر", type: "text", listed: true }] },
   work_schedules: {
     table: "work_schedules", title: "جداول العمل", order: "name", softDelete: null,
     fields: [
@@ -140,23 +113,4 @@ export const configTables: Record<string, TableSpec> = {
   },
   sla_policies: { table: "sla_policies", title: "سياسات SLA للدعم", order: "priority", softDelete: null, fields: [{ key: "priority", label: "الأولوية", type: "select", required: true, options: priority, listed: true }, { key: "first_response_minutes", label: "أول رد (دقائق)", type: "number", required: true, min: 1, listed: true }, { key: "resolution_minutes", label: "الحل (دقائق)", type: "number", required: true, min: 1, listed: true }] },
   expense_categories: { table: "expense_categories", title: "فئات المصروفات", order: "name", softDelete: "is_active", fields: [{ key: "name", label: "الاسم", type: "text", required: true, listed: true }, { key: "cost_type", label: "نوع التكلفة", type: "select", listed: true, options: [{ value: "employee", label: "موظف" }, { value: "freelancer", label: "مستقل" }, { value: "vendor", label: "مورد" }, { value: "infrastructure", label: "بنية تحتية" }, { value: "third_party", label: "طرف ثالث" }, { value: "other", label: "أخرى" }] }, { key: "is_active", label: "نشط", type: "boolean", listed: true }] },
-  external_apps: {
-    table: "external_apps", title: "التطبيقات الخارجية", order: "name", softDelete: "is_active",
-    fields: [
-      { key: "key", label: "المفتاح", type: "text", required: true, pattern: "^[a-z0-9_]+$", listed: true },
-      { key: "name", label: "الاسم", type: "text", required: true, listed: true },
-      { key: "category", label: "الفئة", type: "text", required: true, listed: true },
-      { key: "provider", label: "المزوّد", type: "text" },
-      { key: "url", label: "الرابط", type: "text" },
-      { key: "description", label: "الوصف", type: "textarea" },
-      { key: "owner_user_id", label: "المالك", type: "user" },
-      { key: "admin_user_id", label: "المسؤول (Admin)", type: "user", listed: true },
-      { key: "security_requirements", label: "متطلبات الأمان", type: "textarea" },
-      { key: "requires_mfa", label: "يتطلب 2FA", type: "boolean", listed: true },
-      { key: "is_sensitive", label: "حساس (موافقة أمنية)", type: "boolean", listed: true },
-      { key: "access_levels", label: "مستويات الوصول (مفصولة بفاصلة)", type: "text", hint: "Viewer, Editor, Admin" },
-      { key: "password_vault", label: "خزنة كلمات المرور (اسم فقط)", type: "text", hint: "لا تُدخل أسراراً — اسم الخزنة فقط" },
-      { key: "is_active", label: "نشط", type: "boolean", listed: true },
-    ],
-  },
 };

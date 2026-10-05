@@ -17,7 +17,7 @@ import { cancelLeave, requestLeave } from "@/services/bos/leave";
 import { hrEditSession, requestCorrection, requestOvertime, setOvertimeCompensation } from "@/services/bos/attendance";
 import { computeAllKpis, createKpi, saveManualKpiValue, setKpiAssignment, updateKpi, type KpiInput } from "@/services/bos/kpis";
 import { acknowledgeReview, saveReview } from "@/services/bos/performance";
-import { addGrant, requestAccess, saveCompanyAccount, setAccessStatus, setMfaStatus, syncBosMfaStatus, type AccessStatus } from "@/services/bos/it-access";
+import { setMfaStatus, syncBosMfaStatus } from "@/services/bos/mfa";
 import { assignDevice, confirmReceipt, returnDevice, saveDevice, updateSecurityCheck } from "@/services/bos/devices";
 
 function refreshTeam(employeeId?: string) {
@@ -72,7 +72,6 @@ const employeeSchema = z.object({
   experience_years: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.string().regex(/^\d{1,2}(\.\d)?$/, "رقم غير صالح").nullable()),
   profile_notes: zf.optionalText(3000),
   hourly_cost_source: z.enum(["manual", "salary"]).default("manual"),
-  branch_id: zf.optionalUuid(),
 });
 
 function toEmployeeInput(v: z.infer<typeof employeeSchema>): EmployeeInput {
@@ -104,7 +103,6 @@ function toEmployeeInput(v: z.infer<typeof employeeSchema>): EmployeeInput {
     experience_years: v.experience_years,
     profile_notes: v.profile_notes ?? null,
     hourly_cost_source: v.hourly_cost_source,
-    ...(v.branch_id ? { branch_id: v.branch_id } : {}),
   };
 }
 
@@ -439,58 +437,12 @@ export async function acknowledgeReviewAction(reviewId: string): Promise<ActionS
 }
 
 // ---------------------------------------------------------------------------
-// IT & access
+// Two-factor status
 // ---------------------------------------------------------------------------
-
-export async function setAccessStatusAction(employeeId: string, grantId: string, status: string, level?: string): Promise<ActionState> {
-  return handleAction("setAccessStatus", async () => {
-    const { bos } = await authorize("access.manage", "all");
-    await setAccessStatus(bos, grantId, status as AccessStatus, level === undefined ? {} : { level: level || null });
-    refreshTeam(employeeId);
-    return { ok: true, message: "تم تحديث حالة الوصول" };
-  });
-}
-
-const grantSchema = z.object({ employee_id: zf.uuid("الموظف"), app_id: zf.uuid("التطبيق"), access_level: zf.optionalText(50), is_required: zf.checkbox().optional() });
-
-export async function addGrantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("addGrant", async () => {
-    const { bos } = await authorize("access.manage", "all");
-    const v = parseForm(grantSchema, formData);
-    await addGrant(bos, v.employee_id, v.app_id, v.access_level ?? null, Boolean(v.is_required));
-    refreshTeam(v.employee_id);
-    return { ok: true, message: "تمت الإضافة" };
-  });
-}
-
-const accessRequestSchema = z.object({ employee_id: zf.uuid("الموظف"), app_id: zf.uuid("التطبيق"), access_level: zf.optionalText(50), reason: zf.required("السبب", 2000) });
-
-export async function requestAccessAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("requestAccess", async () => {
-    const { bos } = await authorize("access.create");
-    const v = parseForm(accessRequestSchema, formData);
-    const emp = await employeeUser(v.employee_id);
-    if (!(await canSeeEmployee(bos, "access.create", emp))) throw new ForbiddenError();
-    await requestAccess(bos, { employeeId: v.employee_id, appId: v.app_id, level: v.access_level ?? null, reason: v.reason });
-    refreshTeam(v.employee_id);
-    return { ok: true, message: "تم إرسال طلب الوصول للموافقة" };
-  }, "تعذر إرسال طلب الوصول.");
-}
-
-export async function regenerateChecklistAction(employeeId: string): Promise<ActionState> {
-  return handleAction("regenerateChecklist", async () => {
-    const { bos } = await authorize("access.manage", "all");
-    const { data, error } = await db().rpc("bos_generate_access_checklist", { p_employee: employeeId, p_actor: bos.userId });
-    if (error) throw error;
-    await refreshEmployeeOnboardingSafe(employeeId, bos.userId);
-    refreshTeam(employeeId);
-    return { ok: true, message: `تم تحديث قائمة الصلاحيات المطلوبة (${data ?? 0})` };
-  });
-}
 
 export async function setMfaStatusAction(employeeId: string, status: string): Promise<ActionState> {
   return handleAction("setMfaStatus", async () => {
-    const { bos } = await authorize("access.manage", "all");
+    const { bos } = await authorize("users.manage", "all");
     await setMfaStatus(bos, employeeId, status as "enabled");
     refreshTeam(employeeId);
     return { ok: true, message: "تم تحديث حالة 2FA" };
@@ -499,39 +451,13 @@ export async function setMfaStatusAction(employeeId: string, status: string): Pr
 
 export async function syncMfaAction(employeeId: string): Promise<ActionState> {
   return handleAction("syncMfa", async () => {
-    const { bos } = await authorize("access.read");
+    const { bos } = await authorize("employees.read");
     const emp = await employeeUser(employeeId);
-    if (emp.user_id !== bos.userId) await assertPeople(bos, "access.read", emp.user_id);
+    if (emp.user_id !== bos.userId) await assertPeople(bos, "employees.read", emp.user_id);
     const status = await syncBosMfaStatus(employeeId);
     refreshTeam(employeeId);
     return { ok: true, message: `حالة 2FA: ${status}` };
   });
-}
-
-const companyAccountSchema = z.object({
-  employee_id: zf.uuid("الموظف"),
-  app_id: zf.optionalUuid(),
-  account_type: z.enum(["email", "sso", "app", "other"]).default("app"),
-  provider: zf.required("المزوّد", 100),
-  identifier: zf.required("معرّف الحساب", 200),
-  status: z.enum(["not_started", "requested", "pending", "provisioned", "active", "rejected", "revoked", "expired"]).default("not_started"),
-  owner_user_id: zf.optionalUuid(),
-  recovery_owner_user_id: zf.optionalUuid(),
-  mfa_status: z.enum(["required", "not_configured", "pending", "enabled", "disabled", "recovery_required"]).default("required"),
-  mfa_method: zf.optionalText(100),
-  last_reviewed_at: zf.optionalDateTime(),
-  notes: zf.optionalText(2000),
-});
-
-export async function saveCompanyAccountAction(id: string | null, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("saveCompanyAccount", async () => {
-    const { bos } = await authorize("access.manage", "all");
-    const v = parseForm(companyAccountSchema, formData);
-    await saveCompanyAccount(bos, id, { ...v, mfa_method: v.mfa_method ?? null, notes: v.notes ?? null, last_reviewed_at: v.last_reviewed_at });
-    revalidatePath("/admin/team/accounts");
-    refreshTeam(v.employee_id);
-    return { ok: true, message: "تم حفظ الحساب" };
-  }, "تعذر حفظ الحساب.");
 }
 
 // ---------------------------------------------------------------------------
@@ -543,9 +469,8 @@ const deviceSchema = z.object({
   type: z.enum(["laptop", "desktop", "monitor", "mobile", "tablet", "headset", "office_equipment", "software_license", "loanable", "spare_part", "other"]),
   name: zf.optionalText(200),
   purchase_value: zf.optionalMoney(),
-  currency: z.preprocess((v) => (v === "" || v == null ? null : String(v).toUpperCase()), z.string().regex(/^[A-Z]{3}$/, "عملة غير صالحة").nullable()),
+  currency: z.preprocess((v) => (v === "" || v == null ? null : String(v).toUpperCase()), z.enum(["EGP", "USD"], { message: "العملة EGP أو USD فقط" }).nullable()),
   vendor_id: zf.optionalUuid(),
-  branch_id: zf.optionalUuid(),
   next_maintenance_date: zf.optionalDate(),
   quantity: z.preprocess((v) => (v === "" || v == null ? 1 : v), z.coerce.number().int().min(0).max(1000000)),
   min_quantity: z.preprocess((v) => (v === "" || v == null ? null : v), z.coerce.number().int().min(0).nullable()),

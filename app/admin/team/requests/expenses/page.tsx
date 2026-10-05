@@ -22,12 +22,11 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
   const sp = await readParams(searchParams);
   const all = bos.isSuperAdmin || bos.permissions.get("hr_requests.read") === "all" || bos.permissions.get("expenses.read") === "all";
   const managed = all ? [] : await managedUserIds(bos);
-  const [rows, currencies, names, { data: categories }, { data: projects }] = await Promise.all([
+  const [rows, currencies, names, { data: categories }] = await Promise.all([
     listExpenseClaims({ userIds: all ? null : [bos.userId, ...managed], status: sp.status, reimbursement: sp.reimbursement }),
     listCurrencies(),
     userNameMap(),
     db().from("expense_categories").select("id, name").eq("is_active", true).order("name"),
-    db().from("projects").select("id, name").not("status", "in", "(completed,cancelled)").order("name").limit(200),
   ]);
   const canReimburse = bos.isSuperAdmin || bos.permissions.get("expenses.approve") === "all" || bos.permissions.get("payroll.approve") === "all";
   const open = sp.open && (await canAccessEntity(bos, "expense", sp.open)) ? rows.find((r) => r.id === sp.open) ?? null : null;
@@ -39,7 +38,7 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
   return (
     <>
       <PageHeader title="المصروفات والاسترداد" subtitle="تظهر في المالية بعد الاعتماد"
-        actions={<ExpenseClaimButton employees={[]} fixedEmployeeId={bos.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} projects={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))} label="تقديم مصروف" />} />
+        actions={<ExpenseClaimButton employees={[]} fixedEmployeeId={bos.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} label="تقديم مصروف" />} />
       <div className="bos-row" style={{ gap: 16, flexWrap: "wrap", fontSize: 13, marginBottom: 10 }}>
         <span><Tx>بانتظار الموافقة:</Tx> <strong>{total(rows.filter((r) => r.approval_status === "pending"))}</strong></span>
         <span><Tx>بانتظار الاسترداد:</Tx> <strong>{total(rows.filter((r) => r.reimbursement_status === "pending"))}</strong></span>
@@ -59,7 +58,7 @@ export default async function ExpenseClaimsPage({ searchParams }: { searchParams
                 <tr key={e.id}>
                   <td>{e.employee_user_id ? <span className="bos-row" style={{ gap: 8 }}><UserAvatar name={names.get(e.employee_user_id)} userId={e.employee_user_id} />{names.get(e.employee_user_id) ?? "—"}</span> : "—"}</td>
                   <td>{formatDate(e.expense_date)}</td>
-                  <td className="cell-primary"><Tx>{e.description}</Tx><span className="cell-sub">{(e.expense_categories as { name: string } | null)?.name ?? ""}{(e.projects as { name: string } | null)?.name ? ` · ${(e.projects as { name: string }).name}` : ""}</span></td>
+                  <td className="cell-primary"><Tx>{e.description}</Tx><span className="cell-sub">{(e.expense_categories as { name: string } | null)?.name ?? ""}</span></td>
                   <td><Money value={e.amount} currency={e.currency} /></td>
                   <td><StatusBadge map="simple_approval" value={e.approval_status} /></td>
                   <td><StatusBadge map="reimbursement_status" value={e.reimbursement_status} />{e.reimbursed_at ? <span className="cell-sub">{e.reimbursement_method === "payroll" ? "مع الراتب" : "مباشر"} · {formatDate(e.reimbursed_at)}</span> : null}</td>

@@ -1,6 +1,5 @@
 import { nowIso } from "@/lib/bos/clock";
 import "server-only";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { db, type Tables } from "@/lib/bos/db";
 import type { BosUser } from "@/lib/bos/auth";
 import { myClientIds } from "@/lib/bos/access";
@@ -46,7 +45,6 @@ export async function listAccounts(bos: BosUser, scope: Scope, f: AccountFilters
   let query = db()
     .from("clients")
     .select("id, name, company_name, email, phone, country, city, industry, account_status, account_manager_id, crm_stage, created_at, updated_at, archived_at", { count: "exact" });
-  query = withBranch(query, await branchFilter(bos));
 
   const ids = await myClientIds(bos, scope);
   if (ids) query = query.in("id", ids.length ? ids : [NONE]);
@@ -70,24 +68,20 @@ export async function listAccounts(bos: BosUser, scope: Scope, f: AccountFilters
   const pageIds = rows.map((r) => r.id);
 
   // Per-row aggregates for just this page.
-  const [projects, payments, invoices, activities] = pageIds.length
+  const [payments, invoices, activities] = pageIds.length
     ? await Promise.all([
-        db().from("projects").select("client_id").in("client_id", pageIds).not("status", "in", "(completed,cancelled)"),
         db().from("payments").select("client_id, amount, refunded_amount, currency").in("client_id", pageIds).in("status", ["completed", "refunded"]),
         db().from("invoices").select("client_id, balance, currency").in("client_id", pageIds).in("status", ["sent", "partially_paid", "overdue"]),
         db().from("activities").select("client_id, created_at").in("client_id", pageIds).order("created_at", { ascending: false }).limit(1000),
       ])
-    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }];
 
-  const activeProjects = new Map<string, number>();
-  for (const p of (projects.data ?? []) as { client_id: string }[]) activeProjects.set(p.client_id, (activeProjects.get(p.client_id) ?? 0) + 1);
   const lastActivity = new Map<string, string>();
   for (const a of (activities.data ?? []) as { client_id: string; created_at: string }[]) if (!lastActivity.has(a.client_id)) lastActivity.set(a.client_id, a.created_at);
 
   return {
     rows: rows.map((r) => ({
       ...r,
-      activeProjects: activeProjects.get(r.id) ?? 0,
       lastActivityAt: lastActivity.get(r.id) ?? null,
       revenue: sumByCurrency(((payments.data ?? []) as { client_id: string; amount: number; refunded_amount: number; currency: string }[]).filter((p) => p.client_id === r.id).map((p) => ({ currency: p.currency, value: toDecimalString(addMoney(p.amount) - addMoney(p.refunded_amount), 3) }))),
       outstanding: sumByCurrency(((invoices.data ?? []) as { client_id: string; balance: number; currency: string }[]).filter((i) => i.client_id === r.id).map((i) => ({ currency: i.currency, value: i.balance }))),
@@ -109,30 +103,24 @@ export async function getAccount(id: string) {
 export async function getAccount360(id: string) {
   const account = await getAccount(id);
   const c = db();
-  const count = (table: "contacts" | "deals" | "projects" | "contracts" | "invoices" | "payments" | "meetings" | "tickets" | "change_requests" | "proposals") =>
+  const count = (table: "contacts" | "deals" | "contracts" | "invoices" | "payments" | "meetings" | "tickets" | "proposals") =>
     c.from(table).select("id", { count: "exact", head: true }).eq("client_id", id);
-  const [contacts, deals, openDeals, projects, activeProjects, contracts, invoices, payments, meetings, tickets, openTickets, crs, proposals, paymentRows, invoiceRows, lastActivity, primary, projectIds] = await Promise.all([
+  const [contacts, deals, openDeals, contracts, invoices, payments, meetings, tickets, openTickets, proposals, paymentRows, invoiceRows, lastActivity, primary] = await Promise.all([
     count("contacts").is("archived_at", null),
     count("deals").is("archived_at", null),
     c.from("deals").select("id, pipeline_stages!inner(category)", { count: "exact", head: true }).eq("client_id", id).is("archived_at", null).eq("pipeline_stages.category", "open"),
-    count("projects"),
-    count("projects").not("status", "in", "(completed,cancelled)"),
     count("contracts"),
     count("invoices"),
     count("payments"),
     count("meetings"),
     count("tickets"),
     count("tickets").not("status", "in", "(resolved,closed)"),
-    count("change_requests"),
     count("proposals"),
     c.from("payments").select("amount, refunded_amount, currency").eq("client_id", id).in("status", ["completed", "refunded"]),
     c.from("invoices").select("balance, currency, status, due_date").eq("client_id", id).in("status", ["sent", "partially_paid", "overdue"]),
     c.from("activities").select("created_at").eq("client_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     account.primary_contact_id ? c.from("contacts").select("id, full_name, email, phone, position").eq("id", account.primary_contact_id).maybeSingle() : Promise.resolve({ data: null }),
-    c.from("projects").select("id").eq("client_id", id),
   ]);
-  const pIds = (projectIds.data ?? []).map((p) => p.id);
-  const issues = pIds.length ? await c.from("issues").select("id", { count: "exact", head: true }).in("project_id", pIds).in("status", ["open", "in_progress"]) : { count: 0 };
 
   return {
     account,
@@ -145,19 +133,14 @@ export async function getAccount360(id: string) {
       contacts: contacts.count ?? 0,
       deals: deals.count ?? 0,
       openDeals: openDeals.count ?? 0,
-      projects: projects.count ?? 0,
-      activeProjects: activeProjects.count ?? 0,
       contracts: contracts.count ?? 0,
       invoices: invoices.count ?? 0,
       payments: payments.count ?? 0,
       meetings: meetings.count ?? 0,
       tickets: tickets.count ?? 0,
       openTickets: openTickets.count ?? 0,
-      changeRequests: crs.count ?? 0,
       proposals: proposals.count ?? 0,
-      openIssues: issues.count ?? 0,
     },
-    projectIds: pIds,
   };
 }
 
@@ -275,16 +258,9 @@ export async function assignAccountManager(bos: BosUser, ids: string[], userId: 
 export async function archiveAccount(bos: BosUser, id: string, archived: boolean) {
   const account = await getAccount(id);
   if (archived) {
-    const [{ count: openDeals }, { count: activeProjects }] = await Promise.all([
-      db().from("deals").select("id, pipeline_stages!inner(category)", { count: "exact", head: true }).eq("client_id", id).is("archived_at", null).eq("pipeline_stages.category", "open"),
-      db().from("projects").select("id", { count: "exact", head: true }).eq("client_id", id).not("status", "in", "(completed,cancelled)"),
-    ]);
-    if (openDeals || activeProjects) {
-      throw new ValidationError(`لا يمكن أرشفة الحساب: لديه ${openDeals ?? 0} صفقة مفتوحة و${activeProjects ?? 0} مشروع نشط.`);
-    }
+    const { count: openDeals } = await db().from("deals").select("id, pipeline_stages!inner(category)", { count: "exact", head: true }).eq("client_id", id).is("archived_at", null).eq("pipeline_stages.category", "open");
+    if (openDeals) throw new ValidationError(`لا يمكن أرشفة الحساب: لديه ${openDeals} صفقة مفتوحة.`);
     await db().from("clients").update({ archived_at: nowIso(), archived_by: bos.userId }).eq("id", id);
-    // Archived accounts lose portal access (§26 edge case).
-    await db().from("client_portal_users").update({ status: "disabled" }).eq("client_id", id);
   } else {
     const dupes = await findDuplicateAccounts(account.email, null, id);
     if (dupes.length) throw new ValidationError("لا يمكن الاستعادة: يوجد حساب نشط بنفس البريد. استخدم الدمج بدلاً من ذلك.");
@@ -302,11 +278,11 @@ export async function mergeAccounts(bos: BosUser, sourceId: string, targetId: st
   return data as Record<string, number>;
 }
 
-// Upsell candidates (§85): completed projects and accounts with no open deal.
+// Upsell candidates (§85): won deals of the account, and its upsell deals.
 export async function listUpsellOpportunities(clientId: string) {
-  const [{ data: completed }, { data: upsells }] = await Promise.all([
-    db().from("projects").select("id, name, project_number, completed_at, support_until, satisfaction_score, deal_id").eq("client_id", clientId).eq("status", "completed").order("completed_at", { ascending: false }),
-    db().from("deals").select("id, deal_number, name, value, currency, previous_project_id, created_at, pipeline_stages(name, category)").eq("client_id", clientId).eq("is_upsell", true).order("created_at", { ascending: false }),
+  const [{ data: won }, { data: upsells }] = await Promise.all([
+    db().from("deals").select("id, deal_number, name, value, currency, won_at").eq("client_id", clientId).not("won_at", "is", null).order("won_at", { ascending: false }),
+    db().from("deals").select("id, deal_number, name, value, currency, previous_deal_id, created_at, pipeline_stages(name, category)").eq("client_id", clientId).eq("is_upsell", true).order("created_at", { ascending: false }),
   ]);
-  return { completed: completed ?? [], upsells: upsells ?? [] };
+  return { won: won ?? [], upsells: upsells ?? [] };
 }

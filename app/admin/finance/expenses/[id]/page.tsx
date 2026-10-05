@@ -13,14 +13,13 @@ import { formatDate } from "@/lib/bos/format";
 export default async function ExpenseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const bos = await requireBosUser();
   const { id } = await params;
-  const { data: e, error } = await db().from("expenses").select("*, expense_categories(name, cost_type), vendors(id, name), projects(id, name)").eq("id", id).maybeSingle();
+  const { data: e, error } = await db().from("expenses").select("*, expense_categories(name, cost_type), vendors(id, name)").eq("id", id).maybeSingle();
   if (error) throw error;
   if (!e) notFound();
   const own = e.created_by === bos.userId || e.employee_user_id === bos.userId;
   if (!own && !(await canAccessEntity(bos, "expense", id))) notFound();
   const names = await userNameMap();
   const vendor = e.vendors as unknown as { id: string; name: string } | null;
-  const project = e.projects as unknown as { id: string; name: string } | null;
   return (
     <>
       <PageHeader title={e.description} subtitle={<StatusBadge map="simple_approval" value={e.approval_status} />} />
@@ -30,7 +29,6 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
           { label: "الفئة", value: (e.expense_categories as unknown as { name: string } | null)?.name },
           { label: "التاريخ", value: formatDate(e.expense_date) },
           { label: "المورد", value: vendor ? <Link href={`/admin/finance/vendors/${vendor.id}`}>{vendor.name}</Link> : "—" },
-          { label: "المشروع", value: project ? <Link href={`/admin/projects/${project.id}?tab=finance`}>{project.name}</Link> : "—" },
         ]}
       />
       <div className="bos-grid main-side">

@@ -10,7 +10,7 @@ import { canAccessEntity } from "@/lib/bos/access";
 import { NotFoundError } from "@/lib/bos/errors";
 import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
-import { getDeal, getDealProducts } from "@/services/bos/deals";
+import { getDeal } from "@/services/bos/deals";
 import { listEntityActivities } from "@/services/bos/activities";
 import { getPipeline, listActiveStaff, userNameMap } from "@/services/bos/shared";
 import { PageHeader, Summary, Card, KeyValues, StatusBadge, Money, Tabs, EmptyState, UserChip } from "@/components/bos/ui";
@@ -39,7 +39,7 @@ const tabs = [
   { key: "history", label: "سجل التدقيق" },
 ];
 
-const triggerLabels: Record<string, string> = { on_signing: "عند التوقيع", on_date: "بتاريخ", on_milestone: "عند مرحلة", on_completion: "عند التسليم" };
+const triggerLabels: Record<string, string> = { on_signing: "عند التوقيع", on_date: "بتاريخ", };
 
 export default async function DealDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SearchParams }) {
   const { bos } = await requirePermission("deals.read");
@@ -61,14 +61,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
   const stage = deal.pipeline_stages as unknown as { id: string; name: string; key: string; category: string };
   const lead = deal.leads as unknown as { id: string; name: string; lead_number: string } | null;
 
-  const [{ stages }, staff, names, products, projectRes] = await Promise.all([
-    getPipeline("deal"),
-    listActiveStaff(),
-    userNameMap(),
-    getDealProducts(id),
-    db().from("projects").select("id, name, project_number, status, progress").eq("deal_id", id).maybeSingle(),
-  ]);
-  const project = projectRes.data;
+  const [{ stages }, staff, names] = await Promise.all([getPipeline("deal"), listActiveStaff(), userNameMap()]);
   const canUpdate = can(bos, "deals.update") && (await canAccessEntity(bos, "deal", id, "update"));
   const staffOptions = staff.map((s) => ({ value: s.userId, label: s.name }));
   const terms = (deal.payment_terms as unknown as { label: string; percent: number | string; trigger?: string; due_offset_days?: number }[]) ?? [];
@@ -118,12 +111,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
               </Link>
             ) : null}
             {canUpdate && stage.category === "open" ? <MarkWonButton dealId={id} /> : null}
-            {project ? (
-              <Link href={`/admin/projects/${project.id}`} className="admin-btn small">
-                <Tx>المشروع</Tx>
-              </Link>
-            ) : null}
-            {can(bos, "deals.delete") && !project ? <ArchiveDealButton dealId={id} /> : null}
+            {can(bos, "deals.delete") && !deal.won_at ? <ArchiveDealButton dealId={id} /> : null}
           </>
         }
       />
@@ -146,33 +134,7 @@ export default async function DealDetailPage({ params, searchParams }: { params:
       {tab === "overview" ? (
         <div className="bos-grid main-side">
           <div>
-            <Card title="المنتجات والخدمات">
-              {products.length ? (
-                <BosTable className="bos-table responsive">
-                  <thead>
-                    <tr>
-                      <th><Tx>البند</Tx></th>
-                      <th><Tx>الكمية</Tx></th>
-                      <th><Tx>سعر الوحدة</Tx></th>
-                      <th><Tx>الإجمالي</Tx></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((p) => (
-                      <tr key={p.id}>
-                        <td className="cell-primary cell-primary-mobile" data-label="البند">{(p.products as unknown as { name: string } | null)?.name}</td>
-                        <td data-label="الكمية"><Tx>{p.quantity}</Tx></td>
-                        <td data-label="سعر الوحدة"><Money value={p.unit_price} currency={deal.currency} /></td>
-                        <td data-label="الإجمالي"><Money value={p.line_total} currency={deal.currency} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </BosTable>
-              ) : (
-                <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم تُحدد بنود.</Tx></div>
-              )}
-            </Card>
-            <Card title="النطاق المعتمد">{deal.scope ? <div className="bos-prose"><Tx>{deal.scope}</Tx></div> : <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم يُحدد النطاق بعد — يُنسخ للمشروع عند كسب الصفقة.</Tx></div>}</Card>
+            <Card title="النطاق المعتمد">{deal.scope ? <div className="bos-prose"><Tx>{deal.scope}</Tx></div> : <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لم يُحدد النطاق بعد.</Tx></div>}</Card>
             <Card title="شروط الدفع">
               {terms.length ? (
                 <BosTable className="bos-table responsive">
@@ -207,7 +169,6 @@ export default async function DealDetailPage({ params, searchParams }: { params:
                 items={[
                   { label: "العميل المحتمل", value: lead ? <Link className="bos-link" href={`/admin/sales/leads/${lead.id}`}><Tx>{lead.lead_number}</Tx></Link> : null },
                   { label: "المصدر", value: (deal.lead_sources as unknown as { name: string } | null)?.name },
-                  { label: "المشروع", value: project ? <Link className="bos-link" href={`/admin/projects/${project.id}`}>{project.project_number} · {project.progress}%</Link> : null },
                   { label: "آخر مقترح", value: proposals[0] ? <Link className="bos-link" href={`/admin/sales/proposals/${proposals[0].id}`}><Tx>{proposals[0].title}</Tx></Link> : null },
                   { label: "العقد", value: contracts[0] ? <Link className="bos-link" href={`/admin/sales/contracts/${contracts[0].id}`}>{contracts[0].contract_number} · <StatusBadge map="contract_status" value={contracts[0].status} /></Link> : null },
                   { label: "تاريخ الكسب", value: deal.won_at ? formatDateTime(deal.won_at) : null, hidden: !deal.won_at },

@@ -14,7 +14,6 @@ import { statusOptions } from "@/lib/bos/labels";
 const columns: DataColumn[] = [
   { key: "number", label: "الفاتورة", primary: true, alwaysVisible: true },
   { key: "client", label: "الحساب" },
-  { key: "project", label: "المشروع", defaultHidden: true },
   { key: "issue", label: "الإصدار" },
   { key: "due", label: "الاستحقاق" },
   { key: "total", label: "الإجمالي", align: "end" },
@@ -73,7 +72,6 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Sea
             cells: {
               number: <Link href={`/admin/finance/invoices/${i.id}`}>{i.invoice_number}</Link>,
               client: client ? <Link href={`/admin/clients/${i.client_id}`}>{client.company_name ?? client.name}</Link> : "—",
-              project: (i.projects as unknown as { name: string } | null)?.name ?? "—",
               issue: formatDate(i.issue_date),
               due: <span style={overdue || i.status === "overdue" ? { color: "var(--bos-danger)" } : undefined}>{formatDate(i.due_date)}</span>,
               total: <Money value={i.total} currency={i.currency} />,

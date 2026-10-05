@@ -7,14 +7,12 @@ begin;
 insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
   ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bd@test.local', '{"role":"staff"}', '{}', now(), now()),
-  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pm@test.local', '{"role":"staff"}', '{}', now(), now()),
   ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'fin@test.local', '{"role":"staff"}', '{}', now(), now());
 
 insert into employees (user_id, full_name, email, lifecycle_status, work_schedule_id)
 select id, split_part(email, '@', 1), email, 'active', (select id from work_schedules where is_default) from auth.users where email like '%@test.local';
 
 insert into user_roles (user_id, role_id) select '00000000-0000-0000-0000-0000000000b1', id from roles where key = 'business_development';
-insert into user_roles (user_id, role_id) select '00000000-0000-0000-0000-0000000000a1', id from roles where key = 'project_manager';
 insert into user_roles (user_id, role_id) select '00000000-0000-0000-0000-0000000000f1', id from roles where key = 'finance';
 
 -- Account, contact, deal ($25,000, 40/30/30) --------------------------------
@@ -23,8 +21,8 @@ declare
   v_client uuid;
   v_contact uuid;
   v_deal uuid;
-  v_project uuid;
-  v_project2 uuid;
+  v_ret uuid;
+  v_ret2 uuid;
   v_inv uuid;
   v_pay uuid;
   v_pay2 uuid;
@@ -43,18 +41,11 @@ begin
   where p.entity = 'deal' and p.is_default
   returning id into v_deal;
 
-  -- Deal Won twice ⇒ one project
-  v_project := bos_process_deal_won(v_deal, '00000000-0000-0000-0000-0000000000b1');
-  v_project2 := bos_process_deal_won(v_deal, '00000000-0000-0000-0000-0000000000b1');
-  assert v_project is not null, 'project created';
-  assert v_project = v_project2, 'deal won is idempotent';
-  select count(*) into v_n from projects where deal_id = v_deal;
-  assert v_n = 1, 'exactly one project per deal';
-
-  assert (select pm_id from projects where id = v_project) = '00000000-0000-0000-0000-0000000000a1', 'PM auto-assigned';
+  -- Deal Won twice ⇒ processed once (no projects: final spec D-121)
+  v_ret := bos_process_deal_won(v_deal, '00000000-0000-0000-0000-0000000000b1');
+  v_ret2 := bos_process_deal_won(v_deal, '00000000-0000-0000-0000-0000000000b1');
+  assert v_ret = v_deal and v_ret2 = v_deal, 'deal won returns the deal and is idempotent';
   assert (select account_status from clients where id = v_client) = 'active', 'account active';
-  assert (select count(*) from milestones where project_id = v_project) = 6, 'milestones from template';
-  assert (select count(*) from tasks where project_id = v_project) > 0, 'tasks from template';
 
   select count(*), sum(amount) into v_n, v_sum from payment_schedules where deal_id = v_deal;
   assert v_n = 3 and v_sum = 25000, 'schedule 3 rows summing to deal value';
@@ -71,11 +62,11 @@ begin
   assert (select status from commissions where deal_id = v_deal) = 'pending', 'commission pending until payment';
 
   assert (select count(*) from onboarding_checklists where deal_id = v_deal) = 1, 'client onboarding started';
-  assert (select count(*) from onboarding_items i join onboarding_checklists c on c.id = i.checklist_id where c.deal_id = v_deal and i.is_done) >= 2, 'auto items done';
+  assert (select count(*) from onboarding_items i join onboarding_checklists c on c.id = i.checklist_id where c.deal_id = v_deal and i.auto_key in ('project_created', 'team_assigned')) = 0, 'no project onboarding items';
 
   assert (select count(*) from activity_events where event_type = 'deal.won' and entity_id = v_deal) = 1, 'deal.won event once';
   assert exists (select 1 from activity_event_links l join activity_events e on e.id = l.event_id
-                 where e.event_type = 'project.created' and l.entity_type = 'client' and l.entity_id = v_client), 'project.created on client timeline';
+                 where e.event_type = 'deal.won' and l.entity_type = 'client' and l.entity_id = v_client), 'deal.won on client timeline';
   assert exists (select 1 from audit_logs where action = 'deal.won' and entity_id = v_deal), 'deal won audited';
 
   -- Client pays $10,000 (double submission with same idempotency key)
@@ -93,6 +84,13 @@ begin
 
   select status, eligible_amount into v_status, v_amount from commissions where deal_id = v_deal;
   assert v_status = 'eligible' and v_amount = 1000, 'commission eligible proportional to collected (10% × 10,000)';
+
+  -- A payment in another currency is refused (no conversion, D-120)
+  begin
+    perform bos_record_payment(jsonb_build_object('invoice_id', v_inv, 'amount', 5, 'currency', 'EGP'), '00000000-0000-0000-0000-0000000000f1');
+    assert false, 'cross-currency payment should fail';
+  exception when sqlstate '22023' then null;
+  end;
 
   -- Overpayment rejected
   begin

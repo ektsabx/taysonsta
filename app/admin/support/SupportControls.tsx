@@ -54,10 +54,6 @@ export function TicketForm({ action, clientInit, staff, canAssign }: { action: (
               <label><Tx>جهة الاتصال</Tx></label>
               <EntitySelector key={`c-${client.id}`} name="contact_id" search={(q) => searchEntitiesAction("contact", q, { client_id: client.id })} placeholder="اختياري" />
             </div>
-            <div className="bos-field">
-              <label><Tx>المشروع</Tx></label>
-              <EntitySelector key={`p-${client.id}`} name="project_id" search={(q) => searchEntitiesAction("project", q, { client_id: client.id })} placeholder="اختياري" />
-            </div>
           </>
         ) : null}
         <SelectField name="category" label="التصنيف" options={ticketCategories} defaultValue="general" />
@@ -98,15 +94,11 @@ export function AssignSelect({ id, current, staff }: { id: string; current: stri
   );
 }
 
-export function TicketMetaForm({ id, category, priority, projectInit, clientId }: { id: string; category: string; priority: string; projectInit: EntityOption | null; clientId: string }) {
+export function TicketMetaForm({ id, category, priority }: { id: string; category: string; priority: string }) {
   return (
     <ActionForm action={updateTicketAction.bind(null, id)} successMessage="تم الحفظ">
       <SelectField name="category" label="التصنيف" options={ticketCategories} defaultValue={category} />
       <SelectField name="priority" label="الأولوية" options={priorities} defaultValue={priority} hint="تغيير الأولوية يعيد حساب مواعيد SLA" />
-      <div className="bos-field">
-        <label><Tx>المشروع</Tx></label>
-        <EntitySelector name="project_id" search={(q) => searchEntitiesAction("project", q, clientId ? { client_id: clientId } : {})} initial={projectInit} placeholder="ربط بمشروع" />
-      </div>
       <SubmitButton label="حفظ" className="admin-btn small" />
     </ActionForm>
   );

@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { currencies } from "@/lib/bos/currency";
 import { db, type Tables } from "@/lib/bos/db";
 import type { BosUser } from "@/lib/bos/auth";
 import { can } from "@/lib/bos/auth";
@@ -36,10 +37,8 @@ export const userNameMap = cache(async (): Promise<Map<string, string>> => {
   return new Map((data ?? []).map((e) => [e.user_id!, e.full_name]));
 });
 
-export const listCurrencies = cache(async (): Promise<string[]> => {
-  const { data } = await db().from("currencies").select("code").eq("is_active", true).order("code");
-  return (data ?? []).map((c) => c.code);
-});
+// Only EGP and USD exist (final spec §54).
+export const listCurrencies = cache(async (): Promise<string[]> => [...currencies]);
 
 export const getPipeline = cache(async (entity: "lead" | "deal") => {
   const { data: pipeline } = await db().from("pipelines").select("*").eq("entity", entity).eq("is_default", true).single();
@@ -49,11 +48,6 @@ export const getPipeline = cache(async (entity: "lead" | "deal") => {
 
 export const listLeadSources = cache(async () => {
   const { data } = await db().from("lead_sources").select("*").order("sort_order");
-  return data ?? [];
-});
-
-export const listProducts = cache(async (): Promise<Tables<"products">[]> => {
-  const { data } = await db().from("products").select("*").is("archived_at", null).order("kind").order("name");
   return data ?? [];
 });
 
@@ -185,6 +179,6 @@ export async function listSavedViews(bos: BosUser, module: string) {
   return (data ?? []).map((v) => ({ id: v.id, name: v.name, query: String((v.filters as { query?: string })?.query ?? "") }));
 }
 
-export function canSeeSensitive(bos: BosUser, module: "revenue" | "projects" | "invoices" | "commissions" | "employees" | "deals" | "expenses") {
+export function canSeeSensitive(bos: BosUser, module: "revenue" | "invoices" | "commissions" | "employees" | "deals" | "expenses") {
   return can(bos, `${module}.view_sensitive`);
 }

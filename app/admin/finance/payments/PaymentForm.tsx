@@ -15,7 +15,6 @@ export interface OpenInvoice {
   balance: string;
   client_id: string;
   deal_id: string | null;
-  project_id: string | null;
 }
 
 // Record Payment (§18). The idempotency key is generated once per form so a
@@ -40,13 +39,11 @@ export function PaymentForm({
   const invoice = invoices.find((i) => i.id === invoiceId);
   const [currency, setCurrency] = useState(invoice?.currency ?? "USD");
   const [amount, setAmount] = useState(invoice?.balance ?? "");
-  const crossCurrency = invoice && currency !== invoice.currency;
 
   return (
     <ActionForm action={recordPaymentAction} guardUnsaved>
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       {invoice?.deal_id ? <input type="hidden" name="deal_id" value={invoice.deal_id} /> : null}
-      {invoice?.project_id ? <input type="hidden" name="project_id" value={invoice.project_id} /> : null}
       <FormSection title="الدفعة">
         <Field label="الحساب" name="client_id" required span={2}>
           <EntitySelector name="client_id" required initial={initialClient} onChange={(c) => { setClient(c); setInvoiceId(""); }} search={(q) => searchEntitiesAction("client", q)} />
@@ -77,11 +74,6 @@ export function PaymentForm({
             </select>
           </div>
         </Field>
-        {crossCurrency ? (
-          <TextField name="exchange_rate" label={`سعر الصرف (1 ${currency} = ؟ ${invoice.currency})`} inputMode="decimal" hint="اتركه فارغاً لاستخدام آخر سعر مسجل" />
-        ) : (
-          <input type="hidden" name="exchange_rate" value="" />
-        )}
         <SelectField name="method" label="طريقة الدفع" options={statusOptions("payment_method")} defaultValue="bank_transfer" />
         <TextField name="payment_date" label="تاريخ الدفع" type="date" required defaultValue={today} />
         <TextField name="reference" label="المرجع (رقم التحويل)" hint="يُمنع تكرار نفس المرجع على نفس الفاتورة" />

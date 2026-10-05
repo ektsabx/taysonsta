@@ -7,10 +7,10 @@ import { insertNotifications } from "@/lib/bos/notify";
 import { ForbiddenError, ValidationError } from "@/lib/bos/errors";
 
 // Manual notifications (docs/bos/30 §9.4): to people, a team, a department,
-// a branch, a role or everyone; logged with sender, recipients, content,
+// a role or everyone; logged with sender, recipients, content,
 // channels and time; duplicate and rate protection.
 
-export type ManualTarget = "users" | "team" | "department" | "branch" | "role" | "all";
+export type ManualTarget = "users" | "team" | "department" | "role" | "all";
 const ACTIVE = ["active", "onboarding", "on_leave", "offboarding", "pending_onboarding"] as const;
 
 export interface ManualInput {
@@ -34,7 +34,6 @@ export async function resolveRecipients(kind: ManualTarget, ids: string[]): Prom
   if (kind === "users") q = q.in("user_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
   else if (kind === "team") q = q.in("team_id", ids);
   else if (kind === "department") q = q.in("department_id", ids);
-  else if (kind === "branch") q = q.in("branch_id", ids);
   else if (kind === "role") {
     const { data } = await c.from("user_roles").select("user_id").in("role_id", ids);
     q = q.in("user_id", (data ?? []).map((r) => r.user_id).concat("00000000-0000-0000-0000-000000000000"));

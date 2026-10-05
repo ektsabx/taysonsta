@@ -6,7 +6,6 @@ import { db } from "@/lib/bos/db";
 import { getClockState, touchLastActivity } from "@/services/bos/attendance";
 import { AdminChrome } from "@/components/admin/AdminChrome";
 import { getSystemTime } from "@/lib/bos/system-time";
-import { currentBranchSelection } from "@/lib/bos/branch";
 import { getUiPrefs } from "@/lib/bos/i18n/server";
 import { I18nProvider } from "@/components/bos/I18n";
 import type { Metadata } from "next";
@@ -38,11 +37,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   const bos = session.bos;
-  const [{ count: unread }, clockState, systemTime, branchSel, rules] = await Promise.all([
+  const [{ count: unread }, clockState, systemTime, rules] = await Promise.all([
     db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
     can(bos, "attendance.create") ? getClockState(bos) : Promise.resolve(null),
     getSystemTime(),
-    currentBranchSelection(bos),
     pageRules(),
     touchLastActivity(bos),
   ]);
@@ -61,7 +59,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           .filter((g) => (g.href ? pageAllowed(rules, g.href, bos.roleKeys, bos.isSuperAdmin) : (g.items?.length ?? 0) > 0))}
         unreadNotifications={unread ?? 0}
         systemTime={{ ms: systemTime.ms, timezone: systemTime.timezone }}
-        branches={{ items: branchSel.branches.map((b) => ({ id: b.id, name: ui.locale === "en" && b.name_en ? b.name_en : b.name })), selected: branchSel.selected }}
         clock={
           clockState
             ? {

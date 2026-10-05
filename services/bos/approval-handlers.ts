@@ -6,7 +6,6 @@ import "server-only";
 import "@/services/bos/handlers/leave-approvals";
 import "@/services/bos/handlers/attendance-approvals";
 import "@/services/bos/handlers/finance-approvals";
-import "@/services/bos/handlers/delivery-approvals";
-import "@/services/bos/handlers/access-approvals";
+import "@/services/bos/handlers/design-approvals";
 import "@/services/bos/handlers/sales-approvals";
 import "@/services/bos/handlers/hr-approvals";

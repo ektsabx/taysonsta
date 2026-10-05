@@ -15,7 +15,6 @@ export interface MeetingInput {
   deal_id: string | null;
   client_id: string | null;
   contact_id: string | null;
-  project_id: string | null;
   start_at: string;
   duration_minutes: number;
   meeting_link: string | null;
@@ -26,20 +25,18 @@ export interface MeetingInput {
   attendee_emails: string[];
 }
 
-function links(m: Pick<Meeting, "lead_id" | "deal_id" | "client_id" | "contact_id" | "project_id">) {
+function links(m: Pick<Meeting, "lead_id" | "deal_id" | "client_id" | "contact_id">) {
   return [
     { type: "lead", id: m.lead_id },
     { type: "deal", id: m.deal_id },
     { type: "client", id: m.client_id },
     { type: "contact", id: m.contact_id },
-    { type: "project", id: m.project_id },
   ];
 }
 
 function primary(m: Meeting): { type: string; id: string } {
   if (m.lead_id) return { type: "lead", id: m.lead_id };
   if (m.deal_id) return { type: "deal", id: m.deal_id };
-  if (m.project_id) return { type: "project", id: m.project_id };
   if (m.client_id) return { type: "client", id: m.client_id };
   return { type: "meeting", id: m.id };
 }
@@ -48,10 +45,9 @@ export async function scheduleMeeting(bos: BosUser, input: MeetingInput) {
   const start = new Date(input.start_at);
   if (Number.isNaN(start.getTime())) throw new ValidationError("موعد غير صالح.", { start_at: "غير صالح" });
 
-  // Derive the account from linked lead/deal/project so the account 360 sees it.
+  // Derive the account from linked lead/deal so the account 360 sees it.
   let clientId = input.client_id;
   if (!clientId && input.deal_id) clientId = (await db().from("deals").select("client_id").eq("id", input.deal_id).maybeSingle()).data?.client_id ?? null;
-  if (!clientId && input.project_id) clientId = (await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle()).data?.client_id ?? null;
   if (!clientId && input.lead_id) clientId = (await db().from("leads").select("client_id").eq("id", input.lead_id).maybeSingle()).data?.client_id ?? null;
 
   const { data: meeting, error } = await db()
@@ -62,7 +58,6 @@ export async function scheduleMeeting(bos: BosUser, input: MeetingInput) {
       deal_id: input.deal_id,
       client_id: clientId,
       contact_id: input.contact_id,
-      project_id: input.project_id,
       organizer_id: bos.userId,
       start_at: start.toISOString(),
       duration_minutes: input.duration_minutes,
@@ -91,7 +86,7 @@ export async function scheduleMeeting(bos: BosUser, input: MeetingInput) {
     entityType: p.type,
     entityId: p.id,
     summary: `Meeting scheduled: ${meeting.title} (${start.toISOString().slice(0, 16).replace("T", " ")} UTC)`,
-    payload: { meeting_id: meeting.id, project_id: meeting.project_id, assignee_user_id: bos.userId, start_at: meeting.start_at },
+    payload: { meeting_id: meeting.id, deal_id: meeting.deal_id, assignee_user_id: bos.userId, start_at: meeting.start_at },
     links: [...links(meeting), { type: "meeting", id: meeting.id }].filter((l) => !(l.type === p.type && l.id === p.id)),
     actorId: bos.userId,
   });
@@ -122,7 +117,7 @@ export async function completeMeeting(bos: BosUser, id: string, outcome: string,
   await recordStatus("meeting", id, meeting.status, "completed", bos.userId);
 
   // Log as a completed meeting activity on the linked record.
-  if (meeting.lead_id || meeting.deal_id || meeting.client_id || meeting.project_id || meeting.contact_id) {
+  if (meeting.lead_id || meeting.deal_id || meeting.client_id || meeting.contact_id) {
     await db().from("activities").insert({
       type: "meeting",
       title: meeting.title,
@@ -133,7 +128,6 @@ export async function completeMeeting(bos: BosUser, id: string, outcome: string,
       deal_id: meeting.deal_id,
       client_id: meeting.client_id,
       contact_id: meeting.contact_id,
-      project_id: meeting.project_id,
       assigned_to: meeting.organizer_id,
       status: "completed",
       completed_at: nowIso(),
@@ -142,8 +136,6 @@ export async function completeMeeting(bos: BosUser, id: string, outcome: string,
   }
 
   const p = primary(meeting);
-  // meeting.completed drives the seeded "Meeting follow-up" workflow, which
-  // creates the follow-up task (§82).
   await emitEvent({
     type: "meeting.completed",
     entityType: "meeting",
@@ -158,7 +150,6 @@ export async function completeMeeting(bos: BosUser, id: string, outcome: string,
       lead_id: meeting.lead_id,
       deal_id: meeting.deal_id,
       client_id: meeting.client_id,
-      project_id: meeting.project_id,
     },
     links: [...links(meeting), { type: p.type, id: p.id }],
     actorId: bos.userId,
@@ -178,7 +169,7 @@ export async function cancelMeeting(bos: BosUser, id: string, status: "cancelled
 export async function listMeetings(bos: BosUser, scope: Scope, f: { view?: string; q?: string; page?: number }) {
   const pageSize = 30;
   const page = Math.max(1, f.page ?? 1);
-  let query = db().from("meetings").select("*, clients(name), leads(name), deals(name), projects(name)", { count: "exact" });
+  let query = db().from("meetings").select("*, clients(name), leads(name), deals(name)", { count: "exact" });
   if (scope !== "all") {
     const users = scope === "team" ? await getTeamUserIds(bos) : [bos.userId];
     const { data: attending } = await db().from("meeting_attendees").select("meeting_id").in("user_id", users);
@@ -196,7 +187,7 @@ export async function listMeetings(bos: BosUser, scope: Scope, f: { view?: strin
   return { rows: data ?? [], total: count ?? 0, page, pageSize };
 }
 
-export async function listEntityMeetings(filter: { lead_id?: string; deal_id?: string; client_id?: string; project_id?: string; contact_id?: string }) {
+export async function listEntityMeetings(filter: { lead_id?: string; deal_id?: string; client_id?: string; contact_id?: string }) {
   let query = db().from("meetings").select("*");
   for (const [k, v] of Object.entries(filter)) if (v) query = query.eq(k, v);
   const { data } = await query.order("start_at", { ascending: false }).limit(100);

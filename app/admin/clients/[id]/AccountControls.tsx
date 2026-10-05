@@ -7,7 +7,7 @@ import { ActionButton, ConfirmButton, ModalButton } from "@/components/bos/Dialo
 import { ActionForm, SubmitButton } from "@/components/bos/Form";
 import { EntitySelector } from "@/components/bos/EntitySelector";
 import { searchEntitiesAction } from "@/app/admin/_actions/common";
-import { invitePortalUserAction, setPortalUserStatusAction, archiveAccountAction, archiveContactAction, mergeAccountAction, setPrimaryContactAction, startOnboardingAction, toggleOnboardingItemAction } from "../actions";
+import { archiveAccountAction, archiveContactAction, mergeAccountAction, setPrimaryContactAction, startOnboardingAction, toggleOnboardingItemAction } from "../actions";
 
 export function ArchiveAccountButton({ id, archived }: { id: string; archived: boolean }) {
   return archived ? (
@@ -70,17 +70,5 @@ export function OnboardingItemToggle({ clientId, itemId, done, auto, disabled }:
         });
       }}
     />
-  );
-}
-
-export function InvitePortalButton({ clientId, contactId, label = "دعوة للبوابة" }: { clientId: string; contactId: string; label?: string }) {
-  return <ConfirmButton label={label} className="admin-btn small ghost" message="سيتم إنشاء حساب بوابة لجهة الاتصال وإرسال رابط تعيين كلمة المرور إلى بريدها." confirmLabel="إرسال الدعوة" action={() => invitePortalUserAction(clientId, contactId)} />;
-}
-
-export function PortalUserStatusButton({ clientId, portalUserId, status }: { clientId: string; portalUserId: string; status: string }) {
-  return status === "disabled" ? (
-    <ActionButton label="تفعيل" className="admin-btn small ghost" action={() => setPortalUserStatusAction(clientId, portalUserId, "active")} />
-  ) : (
-    <ConfirmButton label="تعطيل" className="admin-btn small ghost" message="تعطيل وصول هذا المستخدم للبوابة وإنهاء جلساته؟" action={() => setPortalUserStatusAction(clientId, portalUserId, "disabled")} />
   );
 }

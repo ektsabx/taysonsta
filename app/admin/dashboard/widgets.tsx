@@ -1,16 +1,14 @@
-import { BosTable } from "@/components/bos/BosTable";
 import { RelTime } from "@/components/bos/RelTime";
 import { Tx } from "@/components/bos/I18n";
 import { nowMs, nowIso } from "@/lib/bos/clock";
 import Link from "next/link";
 import { db } from "@/lib/bos/db";
 import { scopeUserIds, type BosUser } from "@/lib/bos/auth";
-import { myProjectIds, teamProjectIds } from "@/lib/bos/access";
-import { formatDate, formatDateTime, formatMinutes, todayIn, startOfMonth, addDays } from "@/lib/bos/format";
+import { formatDate, formatDateTime, formatMinutes, todayIn, startOfMonth } from "@/lib/bos/format";
 import { formatMoney } from "@/lib/bos/money";
-import { branchFilter } from "@/lib/bos/branch";
 import { entityHref } from "@/lib/bos/links";
-import { pipelineMetrics, getBaseCurrency } from "@/services/bos/metrics";
+import { pipelineMetrics } from "@/services/bos/metrics";
+import { defaultCurrency } from "@/lib/bos/company-currency";
 import { getClockState } from "@/services/bos/attendance";
 import { KpiCard, StatusBadge, EmptyState, ProgressBar, Money } from "@/components/bos/ui";
 import { ClockCard } from "@/components/bos/ClockWidget";
@@ -33,12 +31,6 @@ function Row({ href, title, meta, right }: { href?: string | null; title: React.
     </div>
   );
   return href ? <Link href={href}>{content}</Link> : content;
-}
-
-async function projectScopeIds(bos: BosUser): Promise<string[] | null> {
-  const scope = bos.permissions.get("projects.read");
-  if (scope === "all") return null;
-  return scope === "team" ? teamProjectIds(bos) : myProjectIds(bos);
 }
 
 function monthRange(tz: string) {
@@ -71,36 +63,30 @@ export async function AttendanceStatusWidget({ bos }: Props) {
 export async function MyTasksTodayWidget({ bos }: Props) {
   const today = todayIn(bos.employee.timezone);
   const { data } = await db()
-    .from("tasks")
-    .select("id, title, priority, status, due_date, project_id, projects(name)")
+    .from("activities")
+    .select("id, title, priority, status, due_at, lead_id, deal_id, client_id")
     .eq("assigned_to", bos.userId)
     .is("archived_at", null)
-    .in("status", ["pending", "in_progress", "blocked"])
-    .lte("due_date", today)
-    .gte("due_date", today)
-    .order("priority", { ascending: false })
+    .in("status", ["pending", "in_progress"])
+    .gte("due_at", `${today}T00:00:00Z`)
+    .lte("due_at", `${today}T23:59:59Z`)
+    .order("due_at")
     .limit(8);
-  if (!data?.length) return <EmptyState title="لا مهام مستحقة اليوم" actions={<Link href="/admin/projects/tasks?view=upcoming" className="admin-btn small ghost"><Tx>المهام القادمة</Tx></Link>} />;
+  if (!data?.length) return <EmptyState title="لا متابعات مستحقة اليوم" actions={<Link href="/admin/sales/activities?mine=1" className="admin-btn small ghost"><Tx>كل المتابعات</Tx></Link>} />;
   return (
     <List>
-      {data.map((t) => (
-        <Row key={t.id} href={`/admin/projects/tasks/${t.id}`} title={t.title} meta={(t.projects as unknown as { name: string } | null)?.name ?? "مهمة عامة"} right={<StatusBadge map="priority" value={t.priority} />} />
+      {data.map((a) => (
+        <Row key={a.id} href={a.lead_id ? `/admin/sales/leads/${a.lead_id}?tab=activities` : a.deal_id ? `/admin/sales/deals/${a.deal_id}?tab=activities` : a.client_id ? `/admin/clients/${a.client_id}` : "/admin/sales/activities"} title={a.title} meta={formatDateTime(a.due_at)} right={<StatusBadge map="activity_status" value={a.status} />} />
       ))}
     </List>
   );
 }
 
 export async function MyTasksOverdueWidget({ bos }: Props) {
-  const [{ count: tasks }, { count: followups }] = await Promise.all([
-    db().from("tasks").select("id", { count: "exact", head: true }).eq("assigned_to", bos.userId).eq("status", "overdue").is("archived_at", null),
-    db().from("activities").select("id", { count: "exact", head: true }).eq("assigned_to", bos.userId).eq("status", "overdue").is("archived_at", null),
-  ]);
-  const total = (tasks ?? 0) + (followups ?? 0);
+  const { count: followups } = await db().from("activities").select("id", { count: "exact", head: true }).eq("assigned_to", bos.userId).eq("status", "overdue").is("archived_at", null);
   return (
     <div className="bos-stack">
-      <KpiCard label="مهام متأخرة" value={tasks ?? 0} href="/admin/projects/tasks?view=overdue" />
       <KpiCard label="متابعات متأخرة" value={followups ?? 0} href="/admin/sales/activities?status=overdue&mine=1" />
-      {total > 0 ? <div className="bos-form-error" style={{ fontSize: 12.5 }}>🔴 {total} follow-ups overdue</div> : null}
     </div>
   );
 }
@@ -197,26 +183,6 @@ export async function DealRadarWidget({ bos }: Props) {
   );
 }
 
-export async function MyProjectsWidget({ bos }: Props) {
-  const ids = await myProjectIds(bos);
-  if (!ids.length) return <EmptyState title="لست عضواً في أي مشروع نشط" />;
-  const { data } = await db()
-    .from("projects")
-    .select("id, name, status, health, progress, deadline")
-    .in("id", ids)
-    .not("status", "in", "(completed,cancelled)")
-    .order("deadline", { ascending: true, nullsFirst: false })
-    .limit(6);
-  if (!data?.length) return <EmptyState title="لا مشاريع نشطة" />;
-  return (
-    <List>
-      {data.map((p) => (
-        <Row key={p.id} href={`/admin/projects/${p.id}`} title={p.name} meta={<span className="bos-row" style={{ gap: 6 }}><StatusBadge map="project_status" value={p.status} /><StatusBadge map="project_health" value={p.health} /> {formatDate(p.deadline)}</span>} right={<div style={{ width: 90 }}><ProgressBar value={p.progress} /></div>} />
-      ))}
-    </List>
-  );
-}
-
 export async function NotificationsWidget({ bos }: Props) {
   const { data } = await db().from("notifications").select("id, title, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(6);
   if (!data?.length) return <EmptyState title="لا إشعارات" />;
@@ -241,7 +207,7 @@ export async function PersonalKpisWidget({ bos }: Props) {
   const { data: kpis } = await query.limit(8);
   if (!kpis?.length) return <EmptyState title="لا مؤشرات أداء مسندة" description="يحددها مديرك أو الموارد البشرية من صفحة مؤشرات الأداء." />;
   const { from, to } = monthRange(bos.employee.timezone);
-  const base = await getBaseCurrency();
+  const base = await defaultCurrency();
   const rows = await Promise.all(
     kpis.map(async (k) => {
       const { data: actual } = await db().rpc("bos_kpi_actual", { p_source: k.data_source, p_user: bos.userId, p_start: from, p_end: to });
@@ -293,7 +259,7 @@ export async function RecentActivityWidget({ bos }: Props) {
 export async function BdFunnelWidget({ bos }: Props) {
   const users = await scopeUserIds(bos, bos.permissions.get("leads.read") ?? "own");
   const { from, to } = monthRange(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_sales", { f: { from, to, ...(users ? { user_ids: users } : {}), ...(await branchArg(bos)) } });
+  const { data } = await db().rpc("bos_report_sales", { f: { from, to, ...(users ? { user_ids: users } : {}), currency: await defaultCurrency() } });
   const r = (data ?? {}) as Record<string, number>;
   const { data: statusRows } = await db()
     .from("status_history")
@@ -311,7 +277,7 @@ export async function BdFunnelWidget({ bos }: Props) {
   const outreachQuery = db()
     .from("activities")
     .select("id", { count: "exact", head: true })
-    .in("type", ["call", "email", "whatsapp", "linkedin"])
+    .in("type", ["call", "email", "linkedin"])
     .neq("direction", "inbound")
     .gte("created_at", `${from}T00:00:00Z`);
   const { count: outreach } = users ? await outreachQuery.in("created_by", users) : await outreachQuery;
@@ -343,15 +309,15 @@ export async function BdPipelineWidget({ bos }: Props) {
   return (
     <div>
       <div className="bos-kpis" style={{ marginBottom: 0 }}>
-        <KpiCard label="قيمة المسار (Pipeline)" value={formatMoney(m.pipelineValue, m.baseCurrency)} sub={<Tx vars={{ openCount: m.openCount }}>{"{openCount} صفقة مفتوحة"}</Tx>} href="/admin/sales/pipeline" />
-        <KpiCard label="المسار الموزون" value={formatMoney(m.weightedPipeline, m.baseCurrency)} sub="القيمة × الاحتمالية" />
-        <KpiCard label="الإيراد المتوقع هذا الشهر" value={formatMoney(m.expectedRevenue, m.baseCurrency)} />
-        <KpiCard label="الإيراد المكسوب (Won)" value={formatMoney(m.wonRevenue, m.baseCurrency)} sub={<Tx vars={{ wonCount: m.wonCount }}>{"{wonCount} صفقة"}</Tx>} />
-        <KpiCard label="المفقود" value={formatMoney(m.lostRevenue, m.baseCurrency)} sub={<Tx vars={{ lostCount: m.lostCount }}>{"{lostCount} صفقة"}</Tx>} />
-        <KpiCard label="العمولة" value={formatMoney(earned, m.baseCurrency)} sub={<Tx vars={{ v: formatMoney(pending, m.baseCurrency) }}>{"قيد الانتظار {v}"}</Tx>} href="/admin/finance/commissions" />
+        <KpiCard label="قيمة المسار (Pipeline)" value={formatMoney(m.pipelineValue, m.currency)} sub={<Tx vars={{ openCount: m.openCount }}>{"{openCount} صفقة مفتوحة"}</Tx>} href="/admin/sales/pipeline" />
+        <KpiCard label="المسار الموزون" value={formatMoney(m.weightedPipeline, m.currency)} sub="القيمة × الاحتمالية" />
+        <KpiCard label="الإيراد المتوقع هذا الشهر" value={formatMoney(m.expectedRevenue, m.currency)} />
+        <KpiCard label="الإيراد المكسوب (Won)" value={formatMoney(m.wonRevenue, m.currency)} sub={<Tx vars={{ wonCount: m.wonCount }}>{"{wonCount} صفقة"}</Tx>} />
+        <KpiCard label="المفقود" value={formatMoney(m.lostRevenue, m.currency)} sub={<Tx vars={{ lostCount: m.lostCount }}>{"{lostCount} صفقة"}</Tx>} />
+        <KpiCard label="العمولة" value={formatMoney(earned, m.currency)} sub={<Tx vars={{ v: formatMoney(pending, m.currency) }}>{"قيد الانتظار {v}"}</Tx>} href="/admin/finance/commissions" />
         <KpiCard label="معدل التحويل" value={`${m.conversionRate}%`} sub={<Tx vars={{ qualifiedCount: m.qualifiedCount }}>{"مكسوبة ÷ مؤهلة ({qualifiedCount})"}</Tx>} />
       </div>
-      {m.missingRates ? <div className="bos-hint"><Tx vars={{ missingRates: m.missingRates }}>{"{missingRates} صفقة بعملة بدون سعر صرف مسجل — أضف السعر من الإعدادات."}</Tx></div> : null}
+      {m.otherCurrencyCount ? <div className="bos-hint"><Tx vars={{ n: m.otherCurrencyCount, currency: m.currency }}>{"الإجماليات بعملة {currency} فقط؛ {n} صفقة بالعملة الأخرى غير محسوبة."}</Tx></div> : null}
     </div>
   );
 }
@@ -386,66 +352,7 @@ export async function FollowupsDueWidget({ bos }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// PM dashboard
-// ---------------------------------------------------------------------------
-
-export async function PmProjectsWidget({ bos }: Props) {
-  const ids = await projectScopeIds(bos);
-  let query = db().from("projects").select("id, status, health").is("archived_at", null).not("status", "in", "(completed,cancelled)");
-  if (ids) query = ids.length ? query.in("id", ids) : query.eq("id", "00000000-0000-0000-0000-000000000000");
-  const { data } = await query;
-  const projects = data ?? [];
-  const today = todayIn(bos.employee.timezone);
-  let tasksQuery = db().from("tasks").select("id, status, due_date").is("archived_at", null).in("status", ["pending", "in_progress", "blocked", "overdue"]);
-  if (ids) tasksQuery = ids.length ? tasksQuery.in("project_id", ids) : tasksQuery.eq("project_id", "00000000-0000-0000-0000-000000000000");
-  const { data: tasks } = await tasksQuery;
-  const { data: feedback } = await db()
-    .from("activity_events")
-    .select("id")
-    .in("event_type", ["milestone.approved", "milestone.rejected", "project.final_rejected", "chat.client_message", "change_request.created"])
-    .gte("occurred_at", new Date(nowMs() - 7 * 86400000).toISOString());
-  return (
-    <div className="bos-kpis" style={{ marginBottom: 0 }}>
-      <KpiCard label="مشاريع نشطة" value={projects.length} href="/admin/projects?status=active" />
-      <KpiCard label="معرضة للخطر" value={projects.filter((p) => p.health === "at_risk").length} href="/admin/projects?health=at_risk" />
-      <KpiCard label="متأخرة" value={projects.filter((p) => p.health === "delayed").length} href="/admin/projects?health=delayed" />
-      <KpiCard label="مهام اليوم" value={(tasks ?? []).filter((t) => t.due_date === today).length} href="/admin/projects/tasks?view=today" />
-      <KpiCard label="مهام متأخرة" value={(tasks ?? []).filter((t) => t.status === "overdue").length} href="/admin/projects/tasks?view=overdue" />
-      <KpiCard label="ملاحظات العملاء (7 أيام)" value={feedback?.length ?? 0} />
-    </div>
-  );
-}
-
-export async function PmMilestonesWidget({ bos }: Props) {
-  const ids = await projectScopeIds(bos);
-  const today = todayIn(bos.employee.timezone);
-  let query = db()
-    .from("milestones")
-    .select("id, name, due_date, status, progress, project_id, projects!inner(name)")
-    .neq("status", "completed")
-    .lte("due_date", addDays(today, 14))
-    .order("due_date")
-    .limit(8);
-  if (ids) query = ids.length ? query.in("project_id", ids) : query.eq("project_id", "00000000-0000-0000-0000-000000000000");
-  const { data } = await query;
-  if (!data?.length) return <EmptyState title="لا مراحل مستحقة خلال أسبوعين" />;
-  return (
-    <List>
-      {data.map((m) => (
-        <Row
-          key={m.id}
-          href={`/admin/projects/${m.project_id}?tab=milestones`}
-          title={`${m.name} — ${(m.projects as unknown as { name: string }).name}`}
-          meta={`${formatDate(m.due_date)}${m.due_date && m.due_date < today ? " · متأخرة" : ""}`}
-          right={<div style={{ width: 80 }}><ProgressBar value={m.progress} /></div>}
-        />
-      ))}
-    </List>
-  );
-}
-
-export async function PmApprovalsWidget({ bos }: Props) {
+export async function ApprovalsWidget({ bos }: Props) {
   const { data: roles } = await db().from("user_roles").select("role_id").eq("user_id", bos.userId);
   const roleIds = (roles ?? []).map((r) => r.role_id);
   let query = db().from("approvals").select("id, title, approval_type, requested_at, entity_type, entity_id, approver_contact_id").eq("status", "pending").order("requested_at").limit(8);
@@ -461,48 +368,15 @@ export async function PmApprovalsWidget({ bos }: Props) {
   );
 }
 
-export async function PmIssuesWidget({ bos }: Props) {
-  const ids = await projectScopeIds(bos);
-  let query = db().from("issues").select("id, title, severity, project_id, projects!inner(name)").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(8);
-  if (ids) query = ids.length ? query.in("project_id", ids) : query.eq("project_id", "00000000-0000-0000-0000-000000000000");
-  const { data } = await query;
-  if (!data?.length) return <EmptyState title="لا مشكلات مفتوحة" />;
-  return (
-    <List>
-      {data.map((i) => (
-        <Row key={i.id} href={`/admin/projects/issues/${i.id}`} title={i.title} meta={(i.projects as unknown as { name: string }).name} right={<StatusBadge map="severity" value={i.severity} />} />
-      ))}
-    </List>
-  );
-}
-
-export async function PmUtilizationWidget({ bos }: Props) {
-  const ids = await projectScopeIds(bos);
-  let membersQuery = db().from("project_members").select("user_id");
-  if (ids) membersQuery = ids.length ? membersQuery.in("project_id", ids) : membersQuery.eq("project_id", "00000000-0000-0000-0000-000000000000");
-  const { data: members } = await membersQuery;
-  const userIds = [...new Set((members ?? []).map((m) => m.user_id))];
-  if (!userIds.length) return <EmptyState title="لا أعضاء فريق في مشاريعك" />;
-  const { from, to } = monthRange(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_team", { f: { from, to, user_ids: userIds, ...(await branchArg(bos)) } });
-  const rows = (data ?? []) as { name: string; logged_hours: number; capacity_hours: number }[];
-  return (
-    <HBarList
-      items={rows.map((r) => ({ label: r.name, value: r.capacity_hours ? Math.round((r.logged_hours / r.capacity_hours) * 100) : 0, sub: `${r.logged_hours}/${r.capacity_hours}h` }))}
-      format={(v) => `${v}%`}
-    />
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Finance dashboard
 // ---------------------------------------------------------------------------
 
 export async function FinRevenueWidget({ bos }: Props) {
   const { from, to } = monthRange(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_revenue", { f: { from, to, ...(await branchArg(bos)) } });
+  const { data } = await db().rpc("bos_report_revenue", { f: { from, to, currency: await defaultCurrency() } });
   const r = (data ?? {}) as Record<string, number | string>;
-  const base = String(r.base_currency ?? "USD");
+  const base = String(r.currency ?? "USD");
   const { count: overdue } = await db().from("invoices").select("id", { count: "exact", head: true }).eq("status", "overdue");
   return (
     <div className="bos-kpis" style={{ marginBottom: 0 }}>
@@ -516,21 +390,21 @@ export async function FinRevenueWidget({ bos }: Props) {
 
 export async function FinExpensesWidget({ bos }: Props) {
   const { from, to } = monthRange(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_revenue", { f: { from, to, ...(await branchArg(bos)) } });
-  const r = (data ?? {}) as { expenses?: number; base_currency?: string; expenses_by_category?: { category: string; amount: number }[] };
+  const { data } = await db().rpc("bos_report_revenue", { f: { from, to, currency: await defaultCurrency() } });
+  const r = (data ?? {}) as { expenses?: number; currency?: string; expenses_by_category?: { category: string; amount: number }[] };
   const { count: pending } = await db().from("expenses").select("id", { count: "exact", head: true }).eq("approval_status", "pending");
   return (
     <div className="bos-stack">
-      <KpiCard label="المصروفات المعتمدة" value={formatMoney(r.expenses ?? 0, r.base_currency ?? "USD")} sub={<Tx vars={{ pending: pending ?? 0 }}>{"{pending} بانتظار الموافقة"}</Tx>} href="/admin/finance/expenses" />
+      <KpiCard label="المصروفات المعتمدة" value={formatMoney(r.expenses ?? 0, r.currency ?? "USD")} sub={<Tx vars={{ pending: pending ?? 0 }}>{"{pending} بانتظار الموافقة"}</Tx>} href="/admin/finance/expenses" />
       {r.expenses_by_category?.length ? <HBarList items={r.expenses_by_category.map((c) => ({ label: c.category, value: Number(c.amount) }))} /> : null}
     </div>
   );
 }
 
-export async function FinCommissionsWidget({ bos }: Props) {
-  const { data } = await db().rpc("bos_report_revenue", { f: await branchArg(bos) });
-  const c = ((data ?? {}) as { commissions?: Record<string, number>; base_currency?: string });
-  const base = c.base_currency ?? "USD";
+export async function FinCommissionsWidget() {
+  const { data } = await db().rpc("bos_report_revenue", { f: { currency: await defaultCurrency() } });
+  const c = ((data ?? {}) as { commissions?: Record<string, number>; currency?: string });
+  const base = c.currency ?? "USD";
   return (
     <div className="bos-kpis" style={{ marginBottom: 0, gridTemplateColumns: "repeat(2, minmax(0,1fr))" }}>
       <KpiCard label="قيد الانتظار" value={formatMoney(c.commissions?.pending ?? 0, base)} />
@@ -543,7 +417,7 @@ export async function FinCommissionsWidget({ bos }: Props) {
 
 export async function FinCashflowWidget({ bos }: Props) {
   const to = todayIn(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_revenue", { f: { from: startOfMonth(to), to, ...(await branchArg(bos)) } });
+  const { data } = await db().rpc("bos_report_revenue", { f: { from: startOfMonth(to), to, currency: await defaultCurrency() } });
   const trend = ((data ?? {}) as { trend?: { month: string; invoiced: number; collected: number; expenses: number }[] }).trend ?? [];
   return (
     <LineChart
@@ -557,39 +431,6 @@ export async function FinCashflowWidget({ bos }: Props) {
   );
 }
 
-export async function FinProfitabilityWidget({ bos }: Props) {
-  const { data } = await db().rpc("bos_report_projects", { f: await branchArg(bos) });
-  const projects = ((data ?? {}) as { projects?: { id: string; name: string; currency: string; revenue: number; cost: number; profit: number; margin: number | null; status: string }[] }).projects ?? [];
-  const active = projects.filter((p) => p.status !== "cancelled").slice(0, 8);
-  if (!active.length) return <EmptyState title="لا مشاريع بعد" />;
-  return (
-    <div className="bos-table-scroll">
-      <BosTable className="bos-table responsive">
-        <thead>
-          <tr>
-            <th><Tx>المشروع</Tx></th>
-            <th><Tx>الإيراد</Tx></th>
-            <th><Tx>التكلفة</Tx></th>
-            <th><Tx>الربح</Tx></th>
-            <th><Tx>الهامش</Tx></th>
-          </tr>
-        </thead>
-        <tbody>
-          {active.map((p) => (
-            <tr key={p.id}>
-              <td data-label="المشروع" className="cell-primary cell-primary-mobile"><Link href={`/admin/projects/${p.id}?tab=finance`}>{p.name}</Link></td>
-              <td data-label="الإيراد"><Money value={p.revenue} currency={p.currency} /></td>
-              <td data-label="التكلفة"><Money value={p.cost} currency={p.currency} /></td>
-              <td data-label="الربح"><Money value={p.profit} currency={p.currency} /></td>
-              <td data-label="الهامش">{p.margin === null ? "—" : `${p.margin}%`}</td>
-            </tr>
-          ))}
-        </tbody>
-      </BosTable>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Executive dashboard (§86)
 // ---------------------------------------------------------------------------
@@ -597,18 +438,16 @@ export async function FinProfitabilityWidget({ bos }: Props) {
 export async function ExecOverviewWidget({ bos }: Props) {
   const today = todayIn(bos.employee.timezone);
   const yearStart = `${today.slice(0, 4)}-01-01`;
-  const [month, year, sales, projects, clients] = await Promise.all([
-    db().rpc("bos_report_revenue", { f: { from: startOfMonth(today), to: today, ...(await branchArg(bos)) } }),
-    db().rpc("bos_report_revenue", { f: { from: yearStart, to: today, ...(await branchArg(bos)) } }),
+  const [month, year, sales, clients] = await Promise.all([
+    db().rpc("bos_report_revenue", { f: { from: startOfMonth(today), to: today, currency: await defaultCurrency() } }),
+    db().rpc("bos_report_revenue", { f: { from: yearStart, to: today, currency: await defaultCurrency() } }),
     pipelineMetrics({ userIds: null, from: yearStart, to: today }),
-    db().rpc("bos_report_projects", { f: await branchArg(bos) }),
-    db().rpc("bos_report_clients", { f: { from: startOfMonth(today), to: today, ...(await branchArg(bos)) } }),
+    db().rpc("bos_report_clients", { f: { from: startOfMonth(today), to: today, currency: await defaultCurrency() } }),
   ]);
   const m = (month.data ?? {}) as Record<string, number>;
   const y = (year.data ?? {}) as Record<string, number>;
-  const p = (projects.data ?? {}) as Record<string, number>;
   const c = (clients.data ?? {}) as Record<string, number>;
-  const base = sales.baseCurrency;
+  const base = sales.currency;
   const grossProfit = Number(y.collected ?? 0) - Number(y.expenses ?? 0);
   return (
     <div className="bos-kpis" style={{ marginBottom: 0 }}>
@@ -620,7 +459,6 @@ export async function ExecOverviewWidget({ bos }: Props) {
       <KpiCard label="المستحق" value={formatMoney(y.outstanding ?? 0, base)} sub={<Tx vars={{ v: formatMoney(y.overdue ?? 0, base) }}>{"متأخر {v}"}</Tx>} href="/admin/finance/invoices?status=open" />
       <KpiCard label="المصروفات هذا العام" value={formatMoney(y.expenses ?? 0, base)} />
       <KpiCard label="إجمالي الربح (محصّل − مصروفات)" value={formatMoney(grossProfit, base)} />
-      <KpiCard label="مشاريع نشطة" value={p.active ?? 0} sub={<Tx vars={{ delayed: p.delayed ?? 0 }}>{"متأخرة {delayed}"}</Tx>} href="/admin/projects" />
       <KpiCard label="عملاء نشطون" value={c.active_clients ?? 0} sub={<Tx vars={{ new_clients: c.new_clients ?? 0 }}>{"جدد هذا الشهر {new_clients}"}</Tx>} href="/admin/clients" />
     </div>
   );
@@ -629,18 +467,16 @@ export async function ExecOverviewWidget({ bos }: Props) {
 export async function ExecSalesWidget({ bos }: Props) {
   const today = todayIn(bos.employee.timezone);
   const from = `${today.slice(0, 4)}-01-01`;
-  const [bd, countries, products] = await Promise.all([
-    db().rpc("bos_report_bd", { f: { from, to: today, ...(await branchArg(bos)) } }),
-    db().rpc("bos_report_countries", { f: { from, to: today, ...(await branchArg(bos)) } }),
-    db().rpc("bos_report_products", { f: { from, to: today, ...(await branchArg(bos)) } }),
+  const [bd, countries] = await Promise.all([
+    db().rpc("bos_report_bd", { f: { from, to: today, currency: await defaultCurrency() } }),
+    db().rpc("bos_report_countries", { f: { from, to: today, currency: await defaultCurrency() } }),
   ]);
-  const base = await getBaseCurrency();
+  const base = await defaultCurrency();
   const bdRows = ((bd.data ?? []) as { name: string; won_value: number }[]).filter((r) => r.won_value > 0).sort((a, b) => b.won_value - a.won_value).slice(0, 6);
   const countryRows = ((countries.data ?? []) as { country: string; won_revenue: number }[]).filter((r) => r.won_revenue > 0).slice(0, 6);
-  const productRows = ((products.data ?? []) as { name: string; revenue: number }[]).filter((r) => r.revenue > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
   const fmt = (v: number) => formatMoney(v, base);
   return (
-    <div className="bos-grid cols-3">
+    <div className="bos-grid cols-2">
       <div>
         <div className="bos-faint" style={{ fontSize: 12, marginBottom: 8 }}><Tx>من حقق الإيراد (BD)</Tx></div>
         {bdRows.length ? <HBarList items={bdRows.map((r) => ({ label: r.name, value: Number(r.won_value) }))} format={fmt} /> : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا صفقات مكسوبة بعد</Tx></div>}
@@ -649,60 +485,38 @@ export async function ExecSalesWidget({ bos }: Props) {
         <div className="bos-faint" style={{ fontSize: 12, marginBottom: 8 }}><Tx>حسب الدولة</Tx></div>
         {countryRows.length ? <HBarList items={countryRows.map((r) => ({ label: r.country, value: Number(r.won_revenue) }))} format={fmt} /> : <div className="bos-faint" style={{ fontSize: 12.5 }}>—</div>}
       </div>
-      <div>
-        <div className="bos-faint" style={{ fontSize: 12, marginBottom: 8 }}><Tx>حسب المنتج/الخدمة</Tx></div>
-        {productRows.length ? <HBarList items={productRows.map((r) => ({ label: r.name, value: Number(r.revenue) }))} format={fmt} /> : <div className="bos-faint" style={{ fontSize: 12.5 }}>—</div>}
-      </div>
-    </div>
-  );
-}
-
-export async function ExecDeliveryWidget({ bos }: Props) {
-  const { data } = await db().rpc("bos_report_projects", { f: await branchArg(bos) });
-  const r = (data ?? {}) as { active?: number; delayed?: number; at_risk?: number; projects?: { id: string; name: string; health: string; over_budget: boolean; status: string }[] };
-  const flagged = (r.projects ?? []).filter((p) => !["completed", "cancelled"].includes(p.status) && (p.health !== "healthy" || p.over_budget)).slice(0, 6);
-  return (
-    <div className="bos-stack">
-      <div className="bos-kpis" style={{ marginBottom: 0, gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
-        <KpiCard label="نشطة" value={r.active ?? 0} />
-        <KpiCard label="متأخرة" value={r.delayed ?? 0} />
-        <KpiCard label="معرضة للخطر" value={r.at_risk ?? 0} />
-      </div>
-      {flagged.map((p) => (
-        <Row key={p.id} href={`/admin/projects/${p.id}`} title={p.name} right={<span className="bos-row" style={{ gap: 4 }}><StatusBadge map="project_health" value={p.health} />{p.over_budget ? <StatusBadge tone="danger" label="تجاوز الميزانية" /> : null}</span>} />
-      ))}
     </div>
   );
 }
 
 export async function ExecTeamWidget({ bos }: Props) {
   const to = todayIn(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_team", { f: { from: startOfMonth(to), to, ...(await branchArg(bos)) } });
-  const rows = ((data ?? []) as { name: string; logged_hours: number; capacity_hours: number; open_tasks: number; overdue_tasks: number }[]).map((r) => ({
+  const { data } = await db().rpc("bos_report_team", { f: { from: startOfMonth(to), to } });
+  // Attendance-based load: worked hours against scheduled capacity.
+  const rows = ((data ?? []) as { name: string; worked_hours: number; capacity_hours: number; late_days: number }[]).map((r) => ({
     ...r,
-    utilization: r.capacity_hours ? Math.round((r.logged_hours / r.capacity_hours) * 100) : 0,
+    utilization: r.capacity_hours ? Math.round((r.worked_hours / r.capacity_hours) * 100) : 0,
   }));
-  const overloaded = rows.filter((r) => r.utilization > 100 || r.overdue_tasks >= 5).slice(0, 5);
-  const capacity = rows.filter((r) => r.utilization < 60 && r.open_tasks < 5).slice(0, 5);
+  const overloaded = rows.filter((r) => r.utilization > 110).slice(0, 5);
+  const capacity = rows.filter((r) => r.capacity_hours > 0 && r.utilization < 60).slice(0, 5);
   const avg = rows.length ? Math.round(rows.reduce((s, r) => s + r.utilization, 0) / rows.length) : 0;
   return (
     <div className="bos-stack">
-      <KpiCard label="متوسط الاستغلال هذا الشهر" value={`${avg}%`} href="/admin/reports/team" />
+      <KpiCard label="متوسط ساعات العمل من الجدول هذا الشهر" value={`${avg}%`} href="/admin/reports/team" />
       <div className="bos-faint" style={{ fontSize: 12 }}><Tx>مثقلون بالعمل</Tx></div>
-      {overloaded.length ? overloaded.map((r) => <Row key={r.name} title={r.name} meta={<Tx vars={{ utilization: r.utilization, overdue_tasks: r.overdue_tasks }}>{"{utilization}% · {overdue_tasks} متأخرة"}</Tx>} />) : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا أحد</Tx></div>}
+      {overloaded.length ? overloaded.map((r) => <Row key={r.name} title={r.name} meta={<Tx vars={{ utilization: r.utilization }}>{"{utilization}%"}</Tx>} />) : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا أحد</Tx></div>}
       <div className="bos-faint" style={{ fontSize: 12 }}><Tx>لديهم طاقة متاحة</Tx></div>
-      {capacity.length ? capacity.map((r) => <Row key={r.name} title={r.name} meta={<Tx vars={{ utilization: r.utilization, open_tasks: r.open_tasks }}>{"{utilization}% · {open_tasks} مهام مفتوحة"}</Tx>} />) : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا أحد</Tx></div>}
+      {capacity.length ? capacity.map((r) => <Row key={r.name} title={r.name} meta={<Tx vars={{ utilization: r.utilization }}>{"{utilization}%"}</Tx>} />) : <div className="bos-faint" style={{ fontSize: 12.5 }}><Tx>لا أحد</Tx></div>}
     </div>
   );
 }
 
 export async function ExecClientsWidget({ bos }: Props) {
   const to = todayIn(bos.employee.timezone);
-  const { data } = await db().rpc("bos_report_clients", { f: { from: startOfMonth(to), to, ...(await branchArg(bos)) } });
-  const r = (data ?? {}) as { clients?: { id: string; name: string; revenue: number; active_projects: number; open_upsell_value: number }[] };
-  const base = await getBaseCurrency();
+  const { data } = await db().rpc("bos_report_clients", { f: { from: startOfMonth(to), to, currency: await defaultCurrency() } });
+  const r = (data ?? {}) as { clients?: { id: string; name: string; revenue: number; open_upsell_value: number }[] };
+  const base = await defaultCurrency();
   const top = (r.clients ?? []).slice(0, 5);
-  const withProjects = (r.clients ?? []).filter((c) => c.active_projects > 0).slice(0, 5);
   const upsell = (r.clients ?? []).filter((c) => c.open_upsell_value > 0).slice(0, 5);
   const col = (title: string, list: typeof top, value: (c: (typeof top)[number]) => string) => (
     <div>
@@ -711,9 +525,8 @@ export async function ExecClientsWidget({ bos }: Props) {
     </div>
   );
   return (
-    <div className="bos-grid cols-3">
+    <div className="bos-grid cols-2">
       {col("أكبر الحسابات", top, (c) => formatMoney(c.revenue, base))}
-      {col("لديهم مشاريع نشطة", withProjects, (c) => String(c.active_projects))}
       {col("فرص بيع إضافي", upsell, (c) => formatMoney(c.open_upsell_value, base))}
     </div>
   );
@@ -731,32 +544,19 @@ export const widgetComponents: Record<string, (props: Props) => Promise<React.Re
   my_leads: MyLeadsWidget,
   my_deals: MyDealsWidget,
   deal_radar: DealRadarWidget,
-  my_projects: MyProjectsWidget,
   notifications: NotificationsWidget,
   personal_kpis: PersonalKpisWidget,
   recent_activity: RecentActivityWidget,
   bd_funnel: BdFunnelWidget,
   bd_pipeline: BdPipelineWidget,
   followups_due: FollowupsDueWidget,
-  pm_projects: PmProjectsWidget,
-  pm_milestones: PmMilestonesWidget,
-  pm_approvals: PmApprovalsWidget,
-  pm_issues: PmIssuesWidget,
-  pm_utilization: PmUtilizationWidget,
+  approvals: ApprovalsWidget,
   fin_revenue: FinRevenueWidget,
   fin_expenses: FinExpensesWidget,
   fin_commissions: FinCommissionsWidget as (props: Props) => Promise<React.ReactElement>,
   fin_cashflow: FinCashflowWidget,
-  fin_profitability: FinProfitabilityWidget as (props: Props) => Promise<React.ReactElement>,
   exec_overview: ExecOverviewWidget,
   exec_sales: ExecSalesWidget,
-  exec_delivery: ExecDeliveryWidget as (props: Props) => Promise<React.ReactElement>,
   exec_team: ExecTeamWidget,
   exec_clients: ExecClientsWidget,
 };
-
-// Reports inside widgets follow the header branch selector (docs/bos/30 §3.2).
-async function branchArg(bos: BosUser): Promise<{ branch_ids?: string[] }> {
-  const ids = await branchFilter(bos);
-  return ids ? { branch_ids: ids } : {};
-}

@@ -8,11 +8,9 @@ import { globalSearchAction } from "@/app/admin/_actions/common";
 import { NotificationCenter } from "@/components/bos/NotificationCenter";
 import { HeaderClock, type ClockProps } from "@/components/bos/ClockWidget";
 import { SystemClock } from "@/components/bos/SystemClock";
-import { BranchSelector } from "@/components/bos/BranchSelector";
 import { useT, Tx } from "@/components/bos/I18n";
 import { HeaderUiMenus } from "@/components/bos/UiPreferences";
 import { PageGuideButton } from "@/components/bos/PageGuide";
-import { ModuleSettingsLink } from "@/components/bos/ModuleSettingsLink";
 import type { BosLocale, BosTheme } from "@/lib/bos/i18n/core";
 import { SearchIcon, LogoutIcon, ChevronsLeftIcon, MenuIcon } from "./AdminIcons";
 
@@ -29,8 +27,6 @@ interface AdminHeaderProps {
   unreadNotifications: number;
   clock: ClockProps | null;
   systemTime: { ms: number; timezone: string };
-  branches: { items: { id: string; name: string }[]; selected: string | null };
-  settingsHrefs: string[];
 }
 
 // Global search across leads, contacts, clients, deals, projects, tasks,
@@ -165,7 +161,7 @@ function GlobalSearch() {
   );
 }
 
-export function AdminHeader({ name, ui, email, roleNames, collapsed, onToggleCollapsed, onToggleMobile, unreadNotifications, clock, systemTime, branches, settingsHrefs }: AdminHeaderProps) {
+export function AdminHeader({ name, ui, email, roleNames, collapsed, onToggleCollapsed, onToggleMobile, unreadNotifications, clock, systemTime }: AdminHeaderProps) {
   const t = useT();
   const [profileOpen, setProfileOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -185,11 +181,9 @@ export function AdminHeader({ name, ui, email, roleNames, collapsed, onToggleCol
       </div>
 
       <div className="bos-header-right">
-        <BranchSelector branches={branches.items} selected={branches.selected} allLabel={t("كل الفروع")} />
         <SystemClock serverNowMs={systemTime.ms} timezone={systemTime.timezone} />
         {clock ? <HeaderClock {...clock} /> : null}
         <PageGuideButton />
-        <ModuleSettingsLink allowed={settingsHrefs} />
         <HeaderUiMenus locale={ui.locale} theme={ui.theme} />
         <NotificationCenter initialUnread={unreadNotifications} />
         <div

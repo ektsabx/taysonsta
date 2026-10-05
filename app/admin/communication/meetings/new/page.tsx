@@ -13,7 +13,7 @@ export default async function NewMeetingPage({ searchParams }: { searchParams: S
       <PageHeader title="جدولة اجتماع" />
       <section className="bos-form-section">
         <MeetingFields
-          related={{ lead_id: sp.leadId, deal_id: sp.dealId, client_id: sp.clientId, project_id: sp.projectId, contact_id: sp.contactId }}
+          related={{ lead_id: sp.leadId, deal_id: sp.dealId, client_id: sp.clientId, contact_id: sp.contactId }}
           staff={staff.map((s) => ({ value: s.userId, label: s.name }))}
           redirectToMeeting
         />

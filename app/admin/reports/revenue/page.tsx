@@ -7,17 +7,18 @@ import { runReport } from "@/services/bos/reports";
 import { Card, KpiCard, Money } from "@/components/bos/ui";
 import { BarChart, HBarList } from "@/components/bos/Chart";
 import { ReportShell } from "../ReportShell";
-import { base, safeReport } from "../helpers";
+import { moneyIn, safeReport } from "../helpers";
 
-export type RevenueData = { from: string; to: string; base_currency: string; revenue: number; collected: number; outstanding: number; overdue: number; expenses: number; by_currency: { currency: string; invoiced: number | null; outstanding: number | null }[]; aging: Record<string, number>; trend: { month: string; invoiced: number; collected: number; expenses: number }[]; by_client: { client: string; collected: number }[]; expenses_by_category: { category: string; amount: number }[]; commissions: Record<string, number> };
+export type RevenueData = { from: string; to: string; currency: string; revenue: number; collected: number; outstanding: number; overdue: number; expenses: number; by_currency: { currency: string; invoiced: number | null; outstanding: number | null }[]; aging: Record<string, number>; trend: { month: string; invoiced: number; collected: number; expenses: number }[]; by_client: { client: string; collected: number }[]; expenses_by_category: { category: string; amount: number }[]; commissions: Record<string, number> };
 
 export default async function RevenueReport({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("reports.read");
   if (!can(bos, "revenue.read") && !can(bos, "revenue.view_sensitive")) redirect("/admin/forbidden");
   const sp = await readParams(searchParams);
+  const base = moneyIn(sp);
   const r = await safeReport(() => runReport<RevenueData>(bos, "revenue", sp));
   return (
-    <ReportShell name="revenue" exportName="revenue" canExport={can(bos, "reports.export")} sp={sp}>
+    <ReportShell name="revenue" exportName="revenue" canExport={can(bos, "reports.export")} sp={sp} currency>
       {!r.ok ? r.node : (() => {
         const d = r.data.data;
         return (

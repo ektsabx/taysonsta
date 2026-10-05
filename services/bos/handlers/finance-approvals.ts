@@ -26,8 +26,7 @@ onApprovalDecided("expense", async (approval, decision, actor, comment) => {
     entityType: "expense",
     entityId: expense.id,
     summary: `Expense ${decision}: ${expense.description} (${expense.amount} ${expense.currency})`,
-    payload: { creator_user_id: expense.created_by, project_id: expense.project_id },
-    links: [{ type: "project", id: expense.project_id }],
+    payload: { creator_user_id: expense.created_by },
     actorId: actor.userId,
   });
   if (expense.employee_user_id && expense.reimbursable) {

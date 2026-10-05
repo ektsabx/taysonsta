@@ -5,17 +5,18 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { runReport } from "@/services/bos/reports";
 import { Card, EmptyState } from "@/components/bos/ui";
 import { ReportShell } from "../ReportShell";
-import { base, num, safeReport } from "../helpers";
+import { moneyIn, num, safeReport } from "../helpers";
 
 type Row = { user_id: string; name: string; leads: number; qualified: number; outreach: number; meetings: number; proposals: number; pipeline: number; weighted_pipeline: number; won: number; won_value: number; commission: number };
 
 export default async function BdReport({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("reports.read");
   const sp = await readParams(searchParams);
+  const base = moneyIn(sp);
   const r = await safeReport(() => runReport<Row[]>(bos, "bd", sp));
   const money = can(bos, "revenue.view_sensitive");
   return (
-    <ReportShell name="bd" exportName="bd" canExport={can(bos, "reports.export")} sp={sp}>
+    <ReportShell name="bd" exportName="bd" canExport={can(bos, "reports.export")} sp={sp} currency>
       {!r.ok ? r.node : (
         <Card flush>
           {r.data.data.length ? (

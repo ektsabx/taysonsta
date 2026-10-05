@@ -6,7 +6,7 @@ import { StatusBadge, EmptyState, ProgressBar } from "@/components/bos/ui";
 import { formatDate, formatDateTime, formatMinutes, formatTime } from "@/lib/bos/format";
 import { sectionLabels } from "@/services/bos/onboarding";
 import { ChecklistTaskEditor } from "./HrControls";
-import { AccessStatusSelect, ChecklistToggle, CancelLeaveButton } from "./TeamControls";
+import { ChecklistToggle, CancelLeaveButton } from "./TeamControls";
 
 type ChecklistItem = { id: string; section: string; label: string; auto_key: string | null; responsible: string | null; required: boolean; is_done: boolean; done_by: string | null; done_at: string | null; status?: string; assignee_user_id?: string | null; due_date?: string | null; notes?: string | null };
 
@@ -82,61 +82,6 @@ export function ChecklistView({
           </BosTable>
         </div>
       ))}
-    </div>
-  );
-}
-
-type Grant = { id: string; status: string; access_level: string | null; is_required: boolean; needs_review: boolean; vault: string | null; expires_at: string | null; granted_at: string | null; external_apps: unknown };
-
-export function AccessProfileView({ employeeId, grants, canManage }: { employeeId: string; grants: Grant[]; canManage: boolean }) {
-  if (!grants.length) return <EmptyState title="لا يوجد ملف صلاحيات بعد" description="يُولَّد تلقائياً من أدوار الموظف عند إنشاء حساب الدخول." />;
-  const groups: { key: string; label: string; filter: (g: Grant) => boolean }[] = [
-    { key: "missing", label: "مطلوبة وغير مفعّلة", filter: (g) => g.is_required && g.status !== "active" && !["revoked", "expired"].includes(g.status) },
-    { key: "granted", label: "مفعّلة", filter: (g) => ["active", "provisioned"].includes(g.status) },
-    { key: "pending", label: "قيد الطلب", filter: (g) => ["requested", "pending"].includes(g.status) && !g.is_required },
-    { key: "revoked", label: "مسحوبة / مرفوضة", filter: (g) => ["revoked", "rejected"].includes(g.status) },
-    { key: "expired", label: "منتهية", filter: (g) => g.status === "expired" },
-    { key: "other", label: "أخرى (غير مطلوبة)", filter: (g) => !g.is_required && g.status === "not_started" },
-  ];
-  const shown = new Set<string>();
-  return (
-    <div className="bos-stack" style={{ gap: 14 }}>
-      {groups.map((grp) => {
-        const rows = grants.filter((g) => !shown.has(g.id) && grp.filter(g));
-        rows.forEach((g) => shown.add(g.id));
-        if (!rows.length) return null;
-        return (
-          <div key={grp.key}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}><Tx>{grp.label}</Tx> <span className="bos-faint">({rows.length})</span></div>
-            <BosTable className="bos-table responsive">
-              <tbody>
-                {rows.map((g) => {
-                  const app = g.external_apps as { name: string; category: string; access_levels: string[]; requires_mfa: boolean; is_sensitive: boolean };
-                  return (
-                    <tr key={g.id}>
-                      <td className="cell-primary" data-label="التطبيق">
-                        {app.name}
-                        <span className="cell-sub">
-                          {app.category}
-                          {g.is_required ? " · مطلوب" : ""}
-                          {app.is_sensitive ? " · حساس" : ""}
-                          {app.requires_mfa ? " · يتطلب 2FA" : ""}
-                          {g.vault ? ` · خزنة: ${g.vault}` : ""}
-                        </span>
-                        {g.needs_review ? <span className="bos-badge tone-warning plain"><Tx>يحتاج مراجعة</Tx></span> : null}
-                      </td>
-                      <td data-label="الحالة">
-                        {canManage ? <AccessStatusSelect employeeId={employeeId} grantId={g.id} status={g.status} level={g.access_level} levels={app.access_levels} /> : <><StatusBadge map="access_status" value={g.status} />{g.access_level ? <span className="cell-sub"><Tx>{g.access_level}</Tx></span> : null}</>}
-                      </td>
-                      <td data-label="منذ" className="bos-faint" style={{ fontSize: 12 }}>{g.granted_at ? formatDate(g.granted_at) : ""}{g.expires_at ? ` · ينتهي ${formatDate(g.expires_at)}` : ""}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </BosTable>
-          </div>
-        );
-      })}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { nowIso } from "@/lib/bos/clock";
 import "server-only";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import type { Json } from "@/types/database";
 import { db, dec, type Tables } from "@/lib/bos/db";
 import { getTeamUserIds, type BosUser } from "@/lib/bos/auth";
@@ -17,7 +16,7 @@ export type Deal = Tables<"deals">;
 export interface PaymentTerm {
   label: string;
   percent: string;
-  trigger: "on_signing" | "on_date" | "on_milestone" | "on_completion";
+  trigger: "on_signing" | "on_date";
   due_offset_days: number;
 }
 
@@ -69,7 +68,6 @@ export async function listDeals(bos: BosUser, scope: Scope, f: DealFilters) {
     .from("deals")
     .select("id, deal_number, name, value, currency, probability, expected_close_date, payment_status, assigned_to, is_upsell, won_at, lost_at, created_at, updated_at, client_id, clients(name, company_name, country), contacts(full_name), pipeline_stages!inner(id, name, key, category)", { count: "exact" })
     .is("archived_at", null);
-  query = withBranch(query, await branchFilter(bos));
 
   const owner = await dealScopeFilter(bos, scope);
   if (owner) query = query.or(owner);
@@ -118,9 +116,7 @@ export interface DealInput {
   scope: string | null;
   notes: string | null;
   payment_terms: PaymentTerm[];
-  products: { product_id: string; quantity: string; unit_price: string; description?: string | null }[];
   is_upsell?: boolean;
-  previous_project_id?: string | null;
   previous_deal_id?: string | null;
 }
 
@@ -129,17 +125,6 @@ async function assertContactBelongs(clientId: string, contactId: string | null) 
   const { data } = await db().from("contacts").select("client_id").eq("id", contactId).maybeSingle();
   if (!data) throw new ValidationError("جهة الاتصال غير موجودة.", { contact_id: "غير موجودة" });
   if (data.client_id && data.client_id !== clientId) throw new ValidationError("جهة الاتصال تابعة لحساب آخر.", { contact_id: "تابعة لحساب آخر" });
-}
-
-async function replaceProducts(dealId: string, products: DealInput["products"]) {
-  await db().from("deal_products").delete().eq("deal_id", dealId);
-  const rows = products
-    .filter((p) => p.product_id)
-    .map((p, i) => ({ deal_id: dealId, product_id: p.product_id, quantity: dec(p.quantity || "1"), unit_price: dec(p.unit_price || "0"), description: p.description ?? null, sort_order: i }));
-  if (rows.length) {
-    const { error } = await db().from("deal_products").insert(rows);
-    if (error) throw error;
-  }
 }
 
 export async function createDeal(bos: BosUser, input: DealInput) {
@@ -171,14 +156,12 @@ export async function createDeal(bos: BosUser, input: DealInput) {
       notes: input.notes,
       payment_terms: input.payment_terms as unknown as Json,
       is_upsell: input.is_upsell ?? false,
-      previous_project_id: input.previous_project_id ?? null,
       previous_deal_id: input.previous_deal_id ?? null,
       created_by: bos.userId,
     })
     .select("*")
     .single();
   if (error) throw error;
-  await replaceProducts(data.id, input.products);
 
   await recordStatus("deal", data.id, null, first.key, bos.userId);
   await audit({ actorId: bos.userId, action: "deal.created", entityType: "deal", entityId: data.id, newValue: { name: data.name, value: data.value, currency: data.currency, client_id: data.client_id, assigned_to: data.assigned_to } });
@@ -188,7 +171,7 @@ export async function createDeal(bos: BosUser, input: DealInput) {
     entityId: data.id,
     summary: `Deal created: ${data.name} (${data.value} ${data.currency})${data.is_upsell ? " — upsell" : ""}`,
     payload: { deal_id: data.id, value: data.value, currency: data.currency, owner_user_id: data.assigned_to, client_id: data.client_id, is_upsell: data.is_upsell },
-    links: [{ type: "client", id: data.client_id }, { type: "lead", id: data.lead_id }, { type: "contact", id: data.contact_id }, { type: "project", id: data.previous_project_id }],
+    links: [{ type: "client", id: data.client_id }, { type: "lead", id: data.lead_id }, { type: "contact", id: data.contact_id }],
     actorId: bos.userId,
   });
   return data;
@@ -202,8 +185,8 @@ export async function updateDeal(bos: BosUser, id: string, input: DealInput) {
   if (!before) throw new NotFoundError();
   await assertContactBelongs(input.client_id, input.contact_id);
   if (before.won_processed_at && (String(before.value) !== String(Number(input.value)) || before.currency !== input.currency)) {
-    // Value/currency changes after Won don't silently change the project
-    // budget; Finance is notified to use a change request (docs/bos/06).
+    // Value/currency changes after Won don't silently change invoices or
+    // schedules; Finance is notified (docs/bos/06).
     await emitEvent({
       type: "deal.value_changed_after_won",
       entityType: "deal",
@@ -230,7 +213,6 @@ export async function updateDeal(bos: BosUser, id: string, input: DealInput) {
   };
   const { data, error } = await db().from("deals").update(patch).eq("id", id).select("*").single();
   if (error) throw error;
-  await replaceProducts(id, input.products);
 
   const diff = diffFields(before as unknown as Record<string, unknown>, { ...patch, value: input.value } as unknown as Record<string, unknown>, audited as string[]);
   if (diff.changed) {
@@ -285,18 +267,17 @@ export async function changeDealStage(bos: BosUser, id: string, stageId: string,
   }
 }
 
-// Deal Won runs atomically in Postgres (bos_process_deal_won): project,
-// schedule, invoice, tasks, commission, onboarding — idempotent.
-export async function markDealWon(bos: BosUser, id: string): Promise<string | null> {
+// Deal Won runs atomically in Postgres (bos_process_deal_won): account,
+// schedule, first invoice, commission, onboarding — idempotent.
+export async function markDealWon(bos: BosUser, id: string): Promise<void> {
   const { data: settings } = await db().from("bos_settings").select("value").eq("key", "sales").maybeSingle();
   const requiresApproval = Boolean((settings?.value as { deal_won_requires_approval?: boolean } | null)?.deal_won_requires_approval);
   if (requiresApproval && !bos.permissions.get("deals.approve")) {
     throw new ValidationError("كسب الصفقة يتطلب موافقة مدير المبيعات حسب إعدادات الشركة.");
   }
-  const { data, error } = await db().rpc("bos_process_deal_won", { p_deal_id: id, p_actor: bos.userId });
+  const { error } = await db().rpc("bos_process_deal_won", { p_deal_id: id, p_actor: bos.userId });
   if (error) throw error;
   await dispatchPendingEvents();
-  return (data as string | null) ?? null;
 }
 
 export async function markDealLost(bos: BosUser, id: string, reason: string) {
@@ -340,7 +321,6 @@ export async function reopenDeal(bos: BosUser, id: string, stageId: string, reas
   if (current.category === "won") {
     const { count } = await db().from("payments").select("id", { count: "exact", head: true }).eq("deal_id", id).in("status", ["completed", "processing"]);
     if ((count ?? 0) > 0) throw new ValidationError("لا يمكن إعادة فتح صفقة تم تحصيل دفعات لها.");
-    await db().from("projects").update({ status: "on_hold", previous_status: "planning" }).eq("deal_id", id).not("status", "in", "(completed,cancelled)");
   }
   const { stages } = await getPipeline("deal");
   const target = stages.find((s) => s.id === stageId && s.category === "open");
@@ -352,13 +332,9 @@ export async function reopenDeal(bos: BosUser, id: string, stageId: string, reas
 }
 
 export async function archiveDeal(bos: BosUser, id: string) {
-  const { data: project } = await db().from("projects").select("id").eq("deal_id", id).not("status", "in", "(completed,cancelled)").maybeSingle();
-  if (project) throw new ValidationError("لا يمكن أرشفة صفقة لديها مشروع نشط.");
+  const { data: deal } = await db().from("deals").select("won_at").eq("id", id).maybeSingle();
+  if (deal?.won_at) throw new ValidationError("لا يمكن أرشفة صفقة مكسوبة.");
   await db().from("deals").update({ archived_at: nowIso(), archived_by: bos.userId }).eq("id", id);
   await audit({ actorId: bos.userId, action: "deal.archived", entityType: "deal", entityId: id });
 }
 
-export async function getDealProducts(dealId: string) {
-  const { data } = await db().from("deal_products").select("*, products(name, kind)").eq("deal_id", dealId).order("sort_order");
-  return data ?? [];
-}

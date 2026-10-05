@@ -35,7 +35,7 @@ export default async function ChannelPage({ params, searchParams }: { params: Pr
   const memberIds = new Set((members ?? []).map((m) => m.user_id));
   const people = staff.map((s) => ({ id: s.userId, name: s.name }));
   const others = staff.filter((s) => s.userId !== bos.userId).map((s) => ({ value: s.userId, label: s.name }));
-  const linked = channel.project_id ? { href: `/admin/projects/${channel.project_id}`, label: "المشروع" } : channel.deal_id ? { href: `/admin/sales/deals/${channel.deal_id}`, label: "الصفقة" } : channel.client_id && channel.kind === "entity" ? { href: `/admin/clients/${channel.client_id}`, label: "الحساب" } : channel.task_id ? { href: `/admin/projects/tasks/${channel.task_id}`, label: "المهمة" } : null;
+  const linked = channel.deal_id ? { href: `/admin/sales/deals/${channel.deal_id}`, label: "الصفقة" } : channel.client_id && channel.kind === "entity" ? { href: `/admin/clients/${channel.client_id}`, label: "الحساب" } : null;
   return (
     <>
       <PageHeader

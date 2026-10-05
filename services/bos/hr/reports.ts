@@ -133,17 +133,11 @@ export const hrReports: Record<string, HrReportDef> = {
   working_hours: {
     group: "attendance",
     title: "ساعات العمل",
-    columns: [{ key: "employee", label: "الموظف" }, { key: "department", label: "القسم" }, { key: "expected", label: "المتوقع", kind: "minutes" }, { key: "worked", label: "الفعلي", kind: "minutes" }, { key: "difference", label: "الفرق", kind: "minutes" }, { key: "project_time", label: "وقت المشاريع", kind: "minutes" }],
+    columns: [{ key: "employee", label: "الموظف" }, { key: "department", label: "القسم" }, { key: "expected", label: "المتوقع", kind: "minutes" }, { key: "worked", label: "الفعلي", kind: "minutes" }, { key: "difference", label: "الفرق", kind: "minutes" }],
     allowed: canPeople,
     async run(bos, f) {
       const monthly = await hrReports.attendance_monthly.run(bos, f);
-      const emps = await scopedEmployees(bos, f);
-      const ids = emps.map((e) => e.user_id).filter(Boolean) as string[];
-      const { data: te } = ids.length ? await db().from("time_entries").select("user_id, duration_minutes").in("user_id", ids).gte("started_at", `${f.from}T00:00:00Z`).lte("started_at", `${f.to}T23:59:59Z`) : { data: [] };
-      return monthly.map((m) => {
-        const e = emps.find((x) => x.full_name === m.employee);
-        return { employee: m.employee, department: m.department, expected: m.expected, worked: m.worked, difference: Number(m.worked) - Number(m.expected), project_time: (te ?? []).filter((t) => t.user_id === e?.user_id).reduce((s, t) => s + (t.duration_minutes ?? 0), 0) };
-      });
+      return monthly.map((m) => ({ employee: m.employee, department: m.department, expected: m.expected, worked: m.worked, difference: Number(m.worked) - Number(m.expected) }));
     },
   },
 

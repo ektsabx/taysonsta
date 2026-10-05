@@ -71,8 +71,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
         <>
           <div className="bos-int-grid" style={{ marginBottom: 14 }}>
             {[
-              { href: "/admin/settings/integrations/widgets", title: "ويدجت الموقع", desc: "نافذة محادثة الدعم وزر واتساب لموقعك — أكواد التضمين والنطاقات المسموحة.", show: can(bos, "conversations.manage", "all") || can(bos, "messaging.manage") },
-              { href: "/admin/settings/integrations/social", title: "الحسابات الاجتماعية", desc: "صفحات وحسابات النشر المربوطة بالمنصات الاجتماعية.", show: can(bos, "social.manage") },
+              { href: "/admin/settings/integrations/widgets", title: "ويدجت الموقع", desc: "نافذة محادثة الدعم لموقعك — أكواد التضمين والنطاقات المسموحة.", show: can(bos, "conversations.manage", "all") },
               { href: "/admin/settings/integrations/ads", title: "الحسابات الإعلانية", desc: "حسابات Meta وGoogle Ads للقراءة، وحسابات الاستيراد من CSV.", show: can(bos, "ads.manage") },
             ].filter((x) => x.show).map((x) => (
               <Link key={x.href} href={x.href} className="bos-int-tile bos-report-tile">

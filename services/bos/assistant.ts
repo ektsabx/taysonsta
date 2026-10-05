@@ -1,7 +1,6 @@
 import "server-only";
 import { db } from "@/lib/bos/db";
 import { can, scopeUserIds, type BosUser } from "@/lib/bos/auth";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { nowIso } from "@/lib/bos/clock";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { aiGenerate, parseAiJson, type AiRequest, type AiResult } from "@/services/bos/ai";
@@ -34,20 +33,9 @@ async function scoped(bos: BosUser, perm: PermissionKey) {
 
 // ---------------------------------------------------------------- tools
 
-async function overdueTasks(bos: BosUser): Promise<ToolResult> {
-  const users = await scoped(bos, "tasks.read");
-  let q = db().from("tasks").select("id, title, due_date, assigned_to, status, projects(name)").is("archived_at", null).lt("due_date", today()).not("status", "in", "(completed,cancelled)").order("due_date").limit(30);
-  if (users) q = q.in("assigned_to", users);
-  const { data } = await q;
-  const { data: emps } = await db().from("employees").select("user_id, full_name").in("user_id", [...new Set((data ?? []).map((t) => t.assigned_to).filter(Boolean))] as string[]);
-  const name = new Map((emps ?? []).map((e) => [e.user_id, e.full_name]));
-  return { tool: "overdue_tasks", title: "المهام المتأخرة", source: "المهام", updatedAt: nowIso(), rows: (data ?? []).map((t) => ({ label: t.title, detail: `${(t.projects as { name: string } | null)?.name ?? "—"} · ${t.assigned_to ? name.get(t.assigned_to) ?? "—" : "بلا مسؤول"}`, value: t.due_date, href: `/admin/projects/tasks/${t.id}` })), facts: [`${(data ?? []).length} مهمة متأخرة${(data ?? []).length === 30 ? " (أول 30)" : ""}`], missing: [] };
-}
-
 async function outstandingInvoices(bos: BosUser): Promise<ToolResult> {
   const sensitive = can(bos, "invoices.view_sensitive");
   let q = db().from("invoices").select("id, invoice_number, balance, currency, due_date, status, created_by, clients(name, company_name)").in("status", ["sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(40);
-  q = withBranch(q, await branchFilter(bos));
   if (bos.permissions.get("invoices.read") !== "all") {
     const users = await scoped(bos, "invoices.read");
     if (users) q = q.in("created_by", users);
@@ -62,18 +50,6 @@ async function outstandingInvoices(bos: BosUser): Promise<ToolResult> {
     facts: [`${(data ?? []).length} فاتورة غير مسددة، منها ${overdue} متأخرة`, ...(sensitive ? [...totals.entries()].map(([c, v]) => `الرصيد المستحق ${money(v, c)}`) : [])],
     missing: sensitive ? [] : ["المبالغ مخفية لعدم وجود صلاحية عرض البيانات المالية الحساسة"],
   };
-}
-
-async function projectsAtRisk(bos: BosUser): Promise<ToolResult> {
-  let q = db().from("projects").select("id, name, health, progress, deadline, pm_id, status").is("archived_at", null).in("health", ["at_risk", "delayed"]).not("status", "in", "(completed,cancelled)").limit(30);
-  q = withBranch(q, await branchFilter(bos));
-  if (bos.permissions.get("projects.read") !== "all") {
-    const { data: mine } = await db().from("project_members").select("project_id").eq("user_id", bos.userId);
-    const ids = (mine ?? []).map((m) => m.project_id);
-    q = q.or(`pm_id.eq.${bos.userId}${ids.length ? `,id.in.(${ids.join(",")})` : ""}`);
-  }
-  const { data } = await q;
-  return { tool: "projects_at_risk", title: "مشاريع معرّضة للخطر", source: "المشاريع (مؤشر الصحة)", updatedAt: nowIso(), rows: (data ?? []).map((p) => ({ label: p.name, detail: p.health === "delayed" ? "متأخر" : "معرّض للخطر", value: `${p.progress ?? 0}% · ${p.deadline ?? "—"}`, href: `/admin/projects/${p.id}` })), facts: [`${(data ?? []).length} مشروع معرّض للخطر أو متأخر`], missing: [] };
 }
 
 async function dealsFollowup(bos: BosUser): Promise<ToolResult> {
@@ -108,14 +84,6 @@ async function ticketReasons(bos: BosUser): Promise<ToolResult> {
   return { tool: "ticket_reasons", title: "أسباب التذاكر (30 يوماً)", source: "التذاكر", updatedAt: nowIso(), rows: [...m.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: k, value: String(v), href: "/admin/support/tickets" })), facts: [`${(data ?? []).length} تذكرة خلال 30 يوماً، ${open} مفتوحة`], missing: [] };
 }
 
-async function contentPerformance(bos: BosUser): Promise<ToolResult> {
-  const { socialAnalytics } = await import("@/services/bos/social");
-  const a = await socialAnalytics(bos, { from: days(30), to: nowIso() });
-  const withEng = a.posts.filter((p) => p.engagement != null);
-  const rows = [...withEng.slice(0, 5), ...withEng.slice(-3).reverse()].filter((v, i, arr) => arr.indexOf(v) === i);
-  return { tool: "content_performance", title: "أداء المحتوى (30 يوماً)", source: "تحليلات التواصل الاجتماعي", updatedAt: a.posts.map((p) => p.lastSync).filter(Boolean).sort().pop() ?? nowIso(), rows: rows.map((p) => ({ label: p.title, detail: `${p.platform} · ${p.sources.join("+") || "—"}`, value: `${p.engagement}%`, href: `/admin/social/posts/${p.postId}` })), facts: [`${a.posts.length} منشور منشور في 30 يوماً، ${withEng.length} منها بأرقام تفاعل`], missing: a.posts.length > withEng.length ? [`${a.posts.length - withEng.length} منشور بدون أرقام وصول/تفاعل`] : [] };
-}
-
 async function adsSpend(bos: BosUser): Promise<ToolResult> {
   const { adsReport } = await import("@/services/bos/ads");
   const d = (n: number) => days(n).slice(0, 10);
@@ -146,9 +114,7 @@ async function todayProblems(bos: BosUser): Promise<ToolResult> {
   const allowed = allowedTools(bos);
   const rows: ToolRow[] = [];
   const facts: string[] = [];
-  if (allowed.includes("overdue_tasks")) { const r = await overdueTasks(bos); rows.push({ label: "مهام متأخرة", value: String(r.rows.length), href: "/admin/projects/tasks" }); }
   if (allowed.includes("outstanding_invoices")) { const r = await outstandingInvoices(bos); rows.push({ label: "فواتير متأخرة", value: String(r.rows.filter((x) => (x.value ?? "").slice(-10) < today()).length), href: "/admin/finance/invoices?status=overdue" }); }
-  if (allowed.includes("projects_at_risk")) { const r = await projectsAtRisk(bos); rows.push({ label: "مشاريع معرّضة للخطر", value: String(r.rows.length), href: "/admin/projects" }); }
   if (allowed.includes("deals_followup")) { const r = await dealsFollowup(bos); rows.push({ label: "صفقات تحتاج متابعة", value: String(r.rows.length), href: "/admin/sales/radar" }); }
   if (can(bos, "tickets.read")) {
     let q = db().from("tickets").select("id", { count: "exact", head: true }).not("status", "in", "(resolved,closed)").lt("resolution_due_at", nowIso());
@@ -157,7 +123,7 @@ async function todayProblems(bos: BosUser): Promise<ToolResult> {
     if (!error) rows.push({ label: "تذاكر تجاوزت SLA", value: String(count ?? 0), href: "/admin/support/tickets" });
   }
   for (const r of rows) facts.push(`${r.label}: ${r.value}`);
-  return { tool: "today_problems", title: "أهم المشاكل اليوم", source: "المهام، الفواتير، المشاريع، رادار الصفقات، التذاكر", updatedAt: nowIso(), rows, facts, missing: [] };
+  return { tool: "today_problems", title: "أهم المشاكل اليوم", source: "الفواتير، رادار الصفقات، التذاكر", updatedAt: nowIso(), rows, facts, missing: [] };
 }
 
 export async function runTool(bos: BosUser, name: ToolName, query = ""): Promise<ToolResult> {
@@ -166,13 +132,10 @@ export async function runTool(bos: BosUser, name: ToolName, query = ""): Promise
   if (def.perm && !can(bos, def.perm as PermissionKey)) throw new ForbiddenError();
   switch (name) {
     case "today_problems": return todayProblems(bos);
-    case "overdue_tasks": return overdueTasks(bos);
     case "outstanding_invoices": return outstandingInvoices(bos);
-    case "projects_at_risk": return projectsAtRisk(bos);
     case "deals_followup": return dealsFollowup(bos);
     case "sales_performance": return salesPerformance(bos);
     case "ticket_reasons": return ticketReasons(bos);
-    case "content_performance": return contentPerformance(bos);
     case "ads_spend": return adsSpend(bos);
     case "search_records": return searchRecords(bos, query);
     case "knowledge": return knowledge(bos, query);

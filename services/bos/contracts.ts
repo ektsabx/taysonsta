@@ -23,11 +23,10 @@ export interface ContractInput {
   required_signers: number;
 }
 
-function links(c: Pick<Contract, "client_id" | "deal_id" | "project_id">) {
+function links(c: Pick<Contract, "client_id" | "deal_id">) {
   return [
     { type: "client", id: c.client_id },
     { type: "deal", id: c.deal_id },
-    { type: "project", id: c.project_id },
   ];
 }
 
@@ -35,16 +34,14 @@ export async function createContract(bos: BosUser, input: ContractInput) {
   if (input.end_date && input.start_date && input.end_date < input.start_date) {
     throw new ValidationError("تاريخ النهاية يجب أن يكون بعد البداية.", { end_date: "غير صالح" });
   }
-  let projectId: string | null = null;
   if (input.deal_id) {
     const { data: deal } = await db().from("deals").select("client_id").eq("id", input.deal_id).maybeSingle();
     if (!deal) throw new ValidationError("الصفقة غير موجودة.");
     if (deal.client_id !== input.client_id) throw new ValidationError("الصفقة تابعة لحساب آخر.");
-    projectId = (await db().from("projects").select("id").eq("deal_id", input.deal_id).maybeSingle()).data?.id ?? null;
   }
   const { data, error } = await db()
     .from("contracts")
-    .insert({ ...input, value: dec(input.value), project_id: projectId, created_by: bos.userId })
+    .insert({ ...input, value: dec(input.value), created_by: bos.userId })
     .select("*")
     .single();
   if (error) throw error;
@@ -162,7 +159,7 @@ export async function recordSignature(actor: { userId: string | null; actorType:
     entityType: "contract",
     entityId: id,
     summary: fullySigned ? `Contract ${c.contract_number} signed` : `Contract ${c.contract_number} signed by ${input.signer_name} (${count}/${c.required_signers})`,
-    payload: { deal_id: c.deal_id, client_id: c.client_id, project_id: c.project_id },
+    payload: { deal_id: c.deal_id, client_id: c.client_id },
     links: links(c),
     actorId: actor.userId,
     actorType: actor.actorType,

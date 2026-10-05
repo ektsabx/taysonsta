@@ -60,12 +60,11 @@ async function linkProposalToStage(actorId: string | null, proposal: { deal_id: 
   }
 }
 
-// Create a proposal pre-filled from the deal: client, title, pricing lines,
+// Create a proposal pre-filled from the deal: client, title, price,
 // payment schedule and scope — no re-entry of existing data (§3).
 export async function createProposalFromDeal(bos: BosUser, dealId: string, title?: string, subtitle?: string): Promise<string> {
   const { data: deal } = await db().from("deals").select("*, clients(name, company_name)").eq("id", dealId).maybeSingle();
   if (!deal) throw new NotFoundError("الصفقة غير موجودة.");
-  const { data: lines } = await db().from("deal_products").select("quantity, unit_price, line_total, products(name)").eq("deal_id", dealId).order("sort_order");
   const terms = (deal.payment_terms as unknown as { label: string; percent: string | number }[]) ?? [];
   const total = String(deal.value);
   const schedule = terms.length ? computeSchedule(total, terms.map((t) => ({ label: t.label, percent: String(t.percent) })), deal.currency) : [];
@@ -83,7 +82,7 @@ export async function createProposalFromDeal(bos: BosUser, dealId: string, title
         goal: "",
         priceLabel: formatMoney(total, deal.currency),
         timelineLabel: "",
-        scope: (lines ?? []).map((l) => `${(l.products as unknown as { name: string } | null)?.name ?? ""}${Number(l.quantity) !== 1 ? ` × ${l.quantity}` : ""}`),
+        scope: [],
         deliverables: [],
         excludes: [],
         roadmap: [],

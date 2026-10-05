@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { changeLeadStageAction, bulkAssignLeadsAction, convertLeadAction, archiveLeadAction } from "../actions";
 import { searchEntitiesAction } from "@/app/admin/_actions/common";
 import { Modal, ConfirmButton } from "@/components/bos/Dialog";
-import { ActionForm, Field, MoneyField, SelectField, SubmitButton, TextField } from "@/components/bos/Form";
+import { ActionForm, Field, MoneyField, SubmitButton, TextField } from "@/components/bos/Form";
 import { EntitySelector, type EntityOption } from "@/components/bos/EntitySelector";
 
 interface Stage {
@@ -120,13 +120,11 @@ export function ConvertLeadButton({
   leadId,
   defaults,
   currencies,
-  products,
   initialClient,
 }: {
   leadId: string;
   defaults: { dealName: string; value: string; currency: string; newClientName: string; newClientEmail: string };
   currencies: string[];
-  products: { value: string; label: string }[];
   initialClient: EntityOption | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -168,7 +166,6 @@ export function ConvertLeadButton({
             <TextField name="dealName" label="اسم الصفقة" required defaultValue={defaults.dealName} span={2} />
             <MoneyField name="value" currencyName="currency" label="قيمة الصفقة" required currencies={currencies} defaultValue={defaults.value} defaultCurrency={defaults.currency} />
             <TextField name="expectedCloseDate" label="تاريخ الإغلاق المتوقع" type="date" />
-            <SelectField name="productId" label="المنتج/الخدمة" options={products} placeholder="—" />
           </div>
           <div className="bos-form-actions">
             <SubmitButton label="إنشاء الصفقة" />

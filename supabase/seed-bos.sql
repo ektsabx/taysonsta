@@ -68,28 +68,6 @@ update employees set manager_id = (select id from employees where email = 'omar@
 update employees set manager_id = (select id from employees where email = 'exec@taysonsta.local')
  where email in ('sales.manager@taysonsta.local', 'omar@taysonsta.local', 'finance@taysonsta.local', 'hr@taysonsta.local', 'support@taysonsta.local');
 
-update bos_settings set value = value || jsonb_build_object('senior_pm_user_ids', jsonb_build_array((select id from auth.users where email = 'omar@taysonsta.local')))
- where key = 'delivery';
-
--- Exchange rates to USD (base currency)
-insert into exchange_rates (base, quote, rate, effective_date, source) values
-  ('SAR', 'USD', 0.26667, current_date - 180, 'seed'),
-  ('AED', 'USD', 0.27229, current_date - 180, 'seed'),
-  ('EGP', 'USD', 0.02050, current_date - 180, 'seed'),
-  ('EUR', 'USD', 1.08000, current_date - 180, 'seed'),
-  ('KWD', 'USD', 3.26000, current_date - 180, 'seed'),
-  ('QAR', 'USD', 0.27473, current_date - 180, 'seed')
-on conflict do nothing;
-
--- Products & services
-insert into products (kind, name, default_price, currency, category) values
-  ('service', 'Digital Product Build (MVP)', 25000, 'USD', 'Build'),
-  ('service', 'E-commerce Store', 12000, 'USD', 'Build'),
-  ('service', 'Growth & Marketing Retainer', 3000, 'USD', 'Growth'),
-  ('service', 'UX/UI Design Sprint', 6000, 'USD', 'Design'),
-  ('product', 'Booking SaaS License', 1200, 'USD', 'SaaS')
-on conflict do nothing;
-
 -- ---------------------------------------------------------------------------
 -- Accounts, contacts, leads, deals
 -- ---------------------------------------------------------------------------
@@ -104,14 +82,10 @@ declare
   v_src_linkedin uuid := (select id from lead_sources where name = 'LinkedIn');
   v_src_ref uuid := (select id from lead_sources where name = 'Referral');
   v_src_web uuid := (select id from lead_sources where name = 'Website');
-  v_mvp uuid := (select id from products where name = 'Digital Product Build (MVP)');
-  v_shop uuid := (select id from products where name = 'E-commerce Store');
-  v_growth uuid := (select id from products where name = 'Growth & Marketing Retainer');
   v_client uuid;
   v_contact uuid;
   v_lead uuid;
   v_deal uuid;
-  v_project uuid;
   v_inv uuid;
   r record;
   i integer := 0;
@@ -120,14 +94,14 @@ declare
 begin
   -- Leads across every stage of the lead pipeline (for funnels and reports)
   for r in select * from (values
-    ('Fatima Al-Otaibi', 'Otaibi Fashion', 'fatima@otaibi-fashion.test', 'Saudi Arabia', 'Fashion', 'new', v_ahmed, 18000, 'SAR', 10, 12, 8, 5),
-    ('Khaled Mansour', 'Mansour Logistics', 'khaled@mansour-log.test', 'UAE', 'Logistics', 'contacted', v_ahmed, 30000, 'AED', 15, 15, 10, 8),
+    ('Fatima Al-Otaibi', 'Otaibi Fashion', 'fatima@otaibi-fashion.test', 'Saudi Arabia', 'Fashion', 'new', v_ahmed, 4800, 'USD', 10, 12, 8, 5),
+    ('Khaled Mansour', 'Mansour Logistics', 'khaled@mansour-log.test', 'UAE', 'Logistics', 'contacted', v_ahmed, 8200, 'USD', 15, 15, 10, 8),
     ('Rania Farouk', 'Farouk Clinics', 'rania@faroukclinics.test', 'Egypt', 'Healthcare', 'replied', v_sara, 400000, 'EGP', 12, 18, 14, 12),
-    ('Abdullah Al-Sabah', 'Sabah Foods', 'abdullah@sabahfoods.test', 'Kuwait', 'F&B', 'qualified', v_ahmed, 9000, 'KWD', 20, 20, 18, 15),
-    ('Markus Weber', 'Weber GmbH', 'markus@weber.test', 'Germany', 'Manufacturing', 'meeting', v_sara, 40000, 'EUR', 22, 20, 20, 18),
-    ('Hessa Al-Thani', 'Thani Beauty', 'hessa@thanibeauty.test', 'Qatar', 'Beauty', 'proposal', v_ahmed, 60000, 'QAR', 22, 22, 22, 20),
+    ('Abdullah Al-Sabah', 'Sabah Foods', 'abdullah@sabahfoods.test', 'Kuwait', 'F&B', 'qualified', v_ahmed, 29000, 'USD', 20, 20, 18, 15),
+    ('Markus Weber', 'Weber GmbH', 'markus@weber.test', 'Germany', 'Manufacturing', 'meeting', v_sara, 43000, 'USD', 22, 20, 20, 18),
+    ('Hessa Al-Thani', 'Thani Beauty', 'hessa@thanibeauty.test', 'Qatar', 'Beauty', 'proposal', v_ahmed, 16500, 'USD', 22, 22, 22, 20),
     ('Youssef Nabil', 'Nabil Academy', 'youssef@nabilacademy.test', 'Egypt', 'Education', 'negotiation', v_sara, 15000, 'USD', 24, 22, 23, 21),
-    ('Omar Saleh', 'Saleh Motors', 'omar@salehmotors.test', 'Saudi Arabia', 'Automotive', 'lost', v_ahmed, 50000, 'SAR', 8, 10, 5, 3),
+    ('Omar Saleh', 'Saleh Motors', 'omar@salehmotors.test', 'Saudi Arabia', 'Automotive', 'lost', v_ahmed, 13300, 'USD', 8, 10, 5, 3),
     ('Mariam Adel', 'Adel Interiors', 'mariam@adelinteriors.test', 'Egypt', 'Interior design', 'new', null, 8000, 'USD', 5, 10, 6, 2),
     ('Salem Al-Mazrouei', 'Mazrouei Holdings', 'salem@mazrouei.test', 'UAE', 'Investment', 'qualified', v_sara, 25000, 'USD', 23, 20, 20, 19)
   ) as t(name, company, email, country, industry, stage, owner, budget, cur, b, f, it, e)
@@ -135,15 +109,14 @@ begin
     i := i + 1;
     insert into leads (name, company_name, contact_name, email, country, industry, source_id, estimated_budget, budget_currency,
                        assigned_to, stage_id, budget_score, fit_score, intent_score, engagement_score, priority, created_by, created_at,
-                       lost_reason, product_interest_id)
+                       lost_reason)
     values (r.company, r.company, r.name, r.email, r.country, r.industry,
             case i % 3 when 0 then v_src_web when 1 then v_src_linkedin else v_src_ref end,
             r.budget, r.cur, r.owner,
             (select id from pipeline_stages where pipeline_id = v_lead_pipeline and key = r.stage),
             r.b, r.f, r.it, r.e, case when r.b + r.f + r.it + r.e > 70 then 'high'::priority_level else 'medium'::priority_level end,
             coalesce(r.owner, v_ahmed), now() - make_interval(days => 40 - i * 3),
-            case when r.stage = 'lost' then 'Budget moved to next year' end,
-            case when i % 2 = 0 then v_mvp else v_shop end)
+            case when r.stage = 'lost' then 'Budget moved to next year' end)
     returning id into v_lead;
 
     -- status history + events that walk the lead through its stages
@@ -166,9 +139,9 @@ begin
     end if;
   end loop;
 
-  -- ===== Account 1: Nabil Academy — full lifecycle: won, paid deposit, project in progress =====
+  -- ===== Account 1: Nabil Academy — full lifecycle: won, deposit paid =====
   insert into clients (name, company_name, email, phone, country, industry, account_manager_id, account_status, created_by, crm_stage)
-  values ('Youssef Nabil', 'Nabil Academy', 'accounts@nabilacademy.test', '+20100000001', 'Egypt', 'Education', v_am, 'active', v_sara, 'project')
+  values ('Youssef Nabil', 'Nabil Academy', 'accounts@nabilacademy.test', '+20100000001', 'Egypt', 'Education', v_am, 'active', v_sara, 'invoice')
   returning id into v_client;
   insert into contacts (client_id, full_name, position, email, phone, whatsapp, is_decision_maker, created_by)
   values (v_client, 'Youssef Nabil', 'Founder', 'youssef.contact@nabilacademy.test', '+20100000001', '+20100000001', true, v_sara)
@@ -180,28 +153,19 @@ begin
                      assigned_to, payment_terms, scope, created_by, created_at)
   values ('Nabil Academy — Learning Platform MVP', v_client, v_contact, (select id from leads where email = 'youssef@nabilacademy.test'), v_src_ref,
           v_deal_pipeline, (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'contract'), 25000, 'USD', 80, current_date + 5,
-          v_sara, '[{"label":"Deposit","percent":40,"trigger":"on_signing"},{"label":"Design approval","percent":30,"trigger":"on_milestone","due_offset_days":15},{"label":"Launch","percent":30,"trigger":"on_completion","due_offset_days":45}]',
+          v_sara, '[{"label":"Deposit","percent":40,"trigger":"on_signing"},{"label":"Second installment","percent":30,"trigger":"on_date","due_offset_days":15},{"label":"Final installment","percent":30,"trigger":"on_date","due_offset_days":45}]',
           'Online learning platform: course catalogue, payments, student dashboard, admin panel.', v_sara, now() - interval '20 days')
   returning id into v_deal;
-  insert into deal_products (deal_id, product_id, quantity, unit_price) values (v_deal, v_mvp, 1, 25000);
   update leads set converted_deal_id = v_deal, converted_at = now() - interval '20 days' where email = 'youssef@nabilacademy.test';
 
   insert into contracts (title, client_id, deal_id, value, currency, start_date, end_date, status, sent_at, signed_at, created_by)
   values ('MVP Development Agreement', v_client, v_deal, 25000, 'USD', current_date - 10, current_date + 60, 'signed', now() - interval '12 days', now() - interval '10 days', v_sara);
 
-  v_project := bos_process_deal_won(v_deal, v_sara);
+  perform bos_process_deal_won(v_deal, v_sara);
   select id into v_inv from invoices where deal_id = v_deal order by created_at limit 1;
   update invoices set status = 'sent', sent_at = now() - interval '9 days' where id = v_inv;
   perform bos_record_payment(jsonb_build_object('invoice_id', v_inv, 'amount', 10000, 'currency', 'USD', 'method', 'bank_transfer',
                               'reference', 'NBL-TRX-001', 'idempotency_key', 'seed-nabil-1', 'payment_date', current_date - 8), v_fin);
-  update projects set status = 'design' where id = v_project;
-  perform bos_status('project', v_project, 'planning', 'design', (select id from auth.users where email = 'omar@taysonsta.local'), null);
-  update tasks set status = 'completed', completed_at = now() - interval '5 days'
-   where project_id = v_project and milestone_id = (select id from milestones where project_id = v_project and sort_order = 1);
-  update milestones set status = 'completed', completed_at = now() - interval '5 days', progress = 100 where project_id = v_project and sort_order = 1;
-  update milestones set status = 'in_progress' where project_id = v_project and sort_order = 2;
-  update tasks set status = 'in_progress' where project_id = v_project and milestone_id = (select id from milestones where project_id = v_project and sort_order = 2) and sort_order = 1;
-
   -- ===== Account 2: Thani Beauty — open deal at proposal stage =====
   insert into clients (name, company_name, email, country, industry, account_status, created_by, crm_stage)
   values ('Hessa Al-Thani', 'Thani Beauty', 'hello@thanibeauty.test', 'Qatar', 'Beauty', 'prospect', v_ahmed, 'proposal_sent')
@@ -211,9 +175,8 @@ begin
   update clients set primary_contact_id = v_contact where id = v_client;
   insert into deals (name, client_id, contact_id, pipeline_id, stage_id, value, currency, probability, expected_close_date, assigned_to, payment_terms, created_by)
   values ('Thani Beauty — E-commerce Store', v_client, v_contact, v_deal_pipeline, (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'proposal'),
-          60000, 'QAR', 40, current_date + 20, v_ahmed, '[{"label":"Deposit","percent":50},{"label":"Launch","percent":50}]', v_ahmed)
+          16500, 'USD', 40, current_date + 20, v_ahmed, '[{"label":"Deposit","percent":50},{"label":"Launch","percent":50}]', v_ahmed)
   returning id into v_deal;
-  insert into deal_products (deal_id, product_id, quantity, unit_price) values (v_deal, v_shop, 1, 60000);
 
   -- ===== Account 3: Weber GmbH — discovery =====
   insert into clients (name, company_name, email, country, industry, account_status, created_by, crm_stage)
@@ -221,69 +184,55 @@ begin
   returning id into v_client;
   insert into deals (name, client_id, pipeline_id, stage_id, value, currency, probability, expected_close_date, assigned_to, payment_terms, created_by)
   values ('Weber — Dealer Portal', v_client, v_deal_pipeline, (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'discovery'),
-          40000, 'EUR', 20, current_date + 45, v_sara, '[{"label":"Deposit","percent":40},{"label":"Delivery","percent":60}]', v_sara);
+          43000, 'USD', 20, current_date + 45, v_sara, '[{"label":"Deposit","percent":40},{"label":"Delivery","percent":60}]', v_sara);
 
-  -- ===== Account 4: Mansour Logistics — completed earlier project, upsell opportunity =====
+  -- ===== Account 4: Mansour Logistics — fully paid earlier deal, upsell opportunity =====
   insert into clients (name, company_name, email, country, industry, account_manager_id, account_status, created_by, crm_stage)
-  values ('Khaled Mansour', 'Mansour Logistics', 'ops@mansour-log.test', 'UAE', 'Logistics', v_am, 'active', v_ahmed, 'project')
+  values ('Khaled Mansour', 'Mansour Logistics', 'ops@mansour-log.test', 'UAE', 'Logistics', v_am, 'active', v_ahmed, 'invoice')
   returning id into v_client;
   insert into contacts (client_id, full_name, position, email, is_decision_maker, created_by)
   values (v_client, 'Khaled Mansour', 'COO', 'khaled.contact@mansour-log.test', true, v_ahmed) returning id into v_contact;
   update clients set primary_contact_id = v_contact where id = v_client;
   insert into deals (name, client_id, contact_id, pipeline_id, stage_id, value, currency, probability, assigned_to, payment_terms, created_by, created_at)
   values ('Mansour — Fleet Tracking App', v_client, v_contact, v_deal_pipeline, (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'contract'),
-          44000, 'AED', 80, v_ahmed, '[{"label":"Full payment","percent":100,"trigger":"on_signing"}]', v_ahmed, now() - interval '90 days')
+          12000, 'USD', 80, v_ahmed, '[{"label":"Full payment","percent":100,"trigger":"on_signing"}]', v_ahmed, now() - interval '90 days')
   returning id into v_deal;
-  v_project := bos_process_deal_won(v_deal, v_ahmed);
+  perform bos_process_deal_won(v_deal, v_ahmed);
   select id into v_inv from invoices where deal_id = v_deal limit 1;
   update invoices set status = 'sent', sent_at = now() - interval '85 days' where id = v_inv;
-  perform bos_record_payment(jsonb_build_object('invoice_id', v_inv, 'amount', 44000, 'currency', 'AED', 'method', 'bank_transfer',
+  perform bos_record_payment(jsonb_build_object('invoice_id', v_inv, 'amount', 12000, 'currency', 'USD', 'method', 'bank_transfer',
                               'reference', 'MNS-001', 'idempotency_key', 'seed-mansour-1', 'payment_date', current_date - 80), v_fin);
-  update tasks set status = 'completed', completed_at = now() - interval '30 days' where project_id = v_project;
-  update milestones set status = 'completed', completed_at = now() - interval '30 days', progress = 100, approval_status = case when requires_client_approval then 'approved' else approval_status end where project_id = v_project;
-  update projects set status = 'completed', completed_at = now() - interval '28 days', progress = 100, satisfaction_score = 9, support_until = current_date + 2 where id = v_project;
-  perform bos_status('project', v_project, 'launch', 'completed', (select id from auth.users where email = 'omar@taysonsta.local'), null);
-  insert into deals (name, client_id, contact_id, pipeline_id, stage_id, value, currency, probability, expected_close_date, assigned_to, is_upsell, previous_project_id, previous_deal_id, payment_terms, created_by)
+  insert into deals (name, client_id, contact_id, pipeline_id, stage_id, value, currency, probability, expected_close_date, assigned_to, is_upsell, previous_deal_id, payment_terms, created_by)
   values ('Mansour — Driver App (upsell)', v_client, v_contact, v_deal_pipeline, (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'qualified'),
-          22000, 'AED', 10, current_date + 60, v_am, true, v_project, v_deal, '[{"label":"Deposit","percent":50},{"label":"Launch","percent":50}]', v_am);
+          6000, 'USD', 10, current_date + 60, v_am, true, v_deal, '[{"label":"Deposit","percent":50},{"label":"Launch","percent":50}]', v_am);
 
   -- Lost deal
   insert into deals (name, client_id, pipeline_id, stage_id, value, currency, probability, assigned_to, lost_at, lost_reason, created_by)
   values ('Saleh Motors — Showroom Site', (select id from clients where company_name = 'Weber GmbH'), v_deal_pipeline,
-          (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'lost'), 50000, 'SAR', 0, v_ahmed, now() - interval '12 days', 'Chose a cheaper local agency', v_ahmed);
+          (select id from pipeline_stages where pipeline_id = v_deal_pipeline and key = 'lost'), 13300, 'USD', 0, v_ahmed, now() - interval '12 days', 'Chose a cheaper local agency', v_ahmed);
 end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Expenses, vendors, time entries, tickets
+-- Expenses, vendors, tickets
 -- ---------------------------------------------------------------------------
 insert into vendors (name, type, email, services) values
   ('CloudHost Co', 'Hosting', 'billing@cloudhost.test', 'Servers, CDN'),
   ('Freelance Studio', 'Freelancer', 'hi@freelancestudio.test', 'Illustrations')
 on conflict do nothing;
 
-insert into expenses (category_id, description, amount, currency, expense_date, vendor_id, project_id, approval_status, created_by, approved_by, approved_at)
+insert into expenses (category_id, description, amount, currency, expense_date, vendor_id, approval_status, created_by, approved_by, approved_at)
 select (select id from expense_categories where name = 'Hosting'), 'Staging server — Nabil Academy', 120, 'USD', current_date - 6,
-       (select id from vendors where name = 'CloudHost Co'), p.id, 'approved', (select id from auth.users where email = 'omar@taysonsta.local'),
-       (select id from auth.users where email = 'finance@taysonsta.local'), now() - interval '5 days'
-from projects p where p.name like 'Nabil Academy%';
-insert into expenses (category_id, description, amount, currency, expense_date, vendor_id, project_id, approval_status, created_by)
+       (select id from vendors where name = 'CloudHost Co'), 'approved', (select id from auth.users where email = 'omar@taysonsta.local'),
+       (select id from auth.users where email = 'finance@taysonsta.local'), now() - interval '5 days';
+insert into expenses (category_id, description, amount, currency, expense_date, vendor_id, approval_status, created_by)
 select (select id from expense_categories where name = 'Freelancers'), 'Course illustrations', 850, 'USD', current_date - 2,
-       (select id from vendors where name = 'Freelance Studio'), p.id, 'pending', (select id from auth.users where email = 'omar@taysonsta.local')
-from projects p where p.name like 'Nabil Academy%';
+       (select id from vendors where name = 'Freelance Studio'), 'pending', (select id from auth.users where email = 'omar@taysonsta.local');
 
-insert into time_entries (user_id, project_id, task_id, started_at, ended_at, description, source)
-select u.id, t.project_id, t.id, now() - make_interval(days => d, hours => 6), now() - make_interval(days => d, hours => 2), 'Work on ' || t.title, 'manual'
-from tasks t
-join projects p on p.id = t.project_id and p.name like 'Nabil Academy%'
-join auth.users u on u.id = t.assigned_to
-cross join generate_series(1, 3) as d
-where t.status in ('completed', 'in_progress');
-
-insert into tickets (client_id, contact_id, project_id, category, priority, subject, description, source, created_by_user_id)
-select p.client_id, c.primary_contact_id, p.id, 'bug', 'high', 'Tracking map not refreshing', 'Driver positions stop updating after ~10 minutes on Android.', 'internal',
+insert into tickets (client_id, contact_id, category, priority, subject, description, source, created_by_user_id)
+select c.id, c.primary_contact_id, 'bug', 'high', 'Tracking map not refreshing', 'Driver positions stop updating after ~10 minutes on Android.', 'internal',
        (select id from auth.users where email = 'support@taysonsta.local')
-from projects p join clients c on c.id = p.client_id where p.name like 'Mansour%' and p.status = 'completed';
+from clients c where c.company_name = 'Mansour Logistics';
 
 -- ---------------------------------------------------------------------------
 -- Attendance: last 10 work days for everyone (real clock-in/out maths)
@@ -332,28 +281,7 @@ update kb_articles set status = 'published', published_at = now(),
        content = 'Welcome to Taysonsta. This page introduces our mission, services and ways of working. (Replace with the official company introduction.)'
  where slug = 'company-introduction';
 
--- Change request awaiting assessment + an open project issue on the active project
-insert into change_requests (project_id, client_id, title, description, reason, requested_by_user_id, additional_cost, currency, additional_days)
-select p.id, p.client_id, 'Add Arabic/English language switcher', 'Client asked for a bilingual site with a language toggle in the header.', 'New market expansion',
-       (select id from auth.users where email = 'am@taysonsta.local'), 0, p.currency, 0
-from projects p where p.name like 'Nabil Academy%';
-
-insert into issues (project_id, title, description, severity, assigned_to, reported_by)
-select p.id, 'Waiting on client brand assets', 'Logo source files and brand guidelines not received yet; blocks the design milestone.', 'high',
-       (select id from auth.users where email = 'omar@taysonsta.local'), (select id from auth.users where email = 'nour@taysonsta.local')
-from projects p where p.name like 'Nabil Academy%';
-
--- IT & access: role-based access checklists for every staff member, BOS/email active
-select bos_generate_access_checklist(e.id, null) from employees e where e.user_id is not null;
-update access_grants g set status = 'active', granted_at = now() - interval '60 days'
-  from external_apps a where a.id = g.app_id and a.key in ('bos','company_email','google_calendar','google_meet','slack');
 update employees set mfa_status = 'enabled' where email in ('admin@taysonsta.local','exec@taysonsta.local','finance@taysonsta.local','hr@taysonsta.local');
-
-insert into company_accounts (employee_id, app_id, account_type, provider, identifier, status, mfa_status, mfa_method, owner_user_id, recovery_owner_user_id, last_reviewed_at)
-select e.id, (select id from external_apps where key = 'company_email'), 'email', 'Google Workspace', replace(e.email, '@taysonsta.local', '@taysonsta.com'),
-       'active', case when e.mfa_status = 'enabled' then 'enabled'::mfa_status else 'required'::mfa_status end, case when e.mfa_status = 'enabled' then 'Authenticator App' end,
-       (select id from auth.users where email = 'admin@taysonsta.local'), (select id from auth.users where email = 'hr@taysonsta.local'), now() - interval '20 days'
-from employees e where e.user_id is not null;
 
 -- Devices
 insert into devices (asset_id, type, model, serial_number, os, purchase_date, warranty_until, condition, os_updated, encryption_enabled, screen_lock_enabled, antivirus_enabled, company_account_configured, last_security_check_at) values
@@ -378,36 +306,18 @@ select 'Mariam Designer', 'mariam@taysonsta.local', 'UI Designer', e.department_
        (select id from employees where email = 'omar@taysonsta.local'), current_date + 3, 'full_time', 'pending_onboarding',
        (select id from work_schedules where is_default), 'Egypt', 'Africa/Cairo'
 from employees e where e.email = 'nour@taysonsta.local';
-select bos_start_onboarding('employee', 'employee_onboarding', null, null, null, (select id from employees where email = 'mariam@taysonsta.local'), current_date + 17);
-
--- Access request pending (Nour → GitHub viewer)
-insert into access_requests (employee_id, requested_by, app_id, access_level, reason)
-select e.id, e.user_id, (select id from external_apps where key = 'github'), 'Viewer', 'Need to review design tokens in the frontend repo'
-from employees e where e.email = 'nour@taysonsta.local';
+select bos_start_onboarding('employee', 'employee_onboarding', null, null, (select id from employees where email = 'mariam@taysonsta.local'), current_date + 17);
 
 -- Overtime request and a correction request (pending with manager)
 insert into overtime_requests (user_id, work_date, minutes, reason)
 select id, current_date - 3, 90, 'Client launch support' from auth.users where email = 'youssef.dev@taysonsta.local';
 
--- Approvals for the seeded requests (manager of the requester, else HR role)
-insert into approvals (approval_type, entity_type, entity_id, title, step, total_steps, requested_by, approver_user_id, approver_role_id, payload)
-select 'access_request', 'access_request', r.id, 'Nour Designer — GitHub (Viewer)', 1, 2, e.user_id,
-       m.user_id, case when m.user_id is null then (select id from roles where key = 'hr') end,
-       '{"steps":["manager","role:admin"]}'::jsonb
-from access_requests r join employees e on e.id = r.employee_id left join employees m on m.id = e.manager_id
-where r.status = 'pending';
+-- Approval for the seeded overtime request (manager of the requester, else HR role)
 insert into approvals (approval_type, entity_type, entity_id, title, requested_by, approver_user_id, approver_role_id, payload)
 select 'overtime', 'overtime_request', o.id, 'Youssef Developer — overtime ' || o.work_date || ' (1.5h)', o.user_id,
        m.user_id, case when m.user_id is null then (select id from roles where key = 'hr') end, '{"steps":["manager"]}'::jsonb
 from overtime_requests o join employees e on e.user_id = o.user_id left join employees m on m.id = e.manager_id
 where o.status = 'pending';
-update access_grants g set status = 'requested', request_id = r.id
-  from access_requests r where r.employee_id = g.employee_id and r.app_id = g.app_id and r.status = 'pending';
-insert into access_grants (employee_id, app_id, access_level, status, source, request_id, vault)
-select r.employee_id, r.app_id, r.access_level, 'requested', 'request', r.id, a.password_vault
-from access_requests r join external_apps a on a.id = r.app_id
-where r.status = 'pending' and not exists (select 1 from access_grants g where g.employee_id = r.employee_id and g.app_id = r.app_id);
-
 -- Knowledge: publish SOP skeletons and policies (onboarding required reading)
 update kb_articles set status = 'published', published_at = now()
  where kind = 'sop' or slug in ('company-policies', 'security-guidelines', 'communication-guidelines');
@@ -415,7 +325,7 @@ update kb_articles set content = E'## Working hours\nCore hours follow your work
  where slug = 'company-policies' and content = '';
 update kb_articles set content = E'## Accounts\n- Enable 2FA on the BOS and every company account.\n- Never share passwords; use the company password manager.\n\n## Devices\nKeep disk encryption and screen lock enabled.'
  where slug = 'security-guidelines' and content = '';
-update kb_articles set content = E'## Channels\nUse project channels for project work and DMs for quick questions. Mention people with `@name`.\n\n## Clients\nClient-visible messages are marked explicitly; internal notes never reach the portal.'
+update kb_articles set content = E'## Channels\nUse team channels for team work and DMs for quick questions. Mention people with `@name`.\n\n## Clients\nClient-visible messages are marked explicitly; internal notes never reach the client.'
  where slug = 'communication-guidelines' and content = '';
 insert into kb_article_versions (article_id, version, title, content)
 select id, version, title, content from kb_articles a
@@ -437,7 +347,7 @@ insert into messages (channel_id, author_user_id, body, created_at)
 select c.id, (select id from auth.users where email = 'exec@taysonsta.local'), 'Welcome to the Taysonsta BOS! Please complete your onboarding checklist and enable 2FA.', now() - interval '2 days'
 from channels c where c.name = 'General' and c.kind = 'team';
 insert into messages (channel_id, author_user_id, body, created_at)
-select c.id, (select id from auth.users where email = 'sales.manager@taysonsta.local'), '@Ahmed please follow up with Nabil Academy about the change request today.', now() - interval '3 hours'
+select c.id, (select id from auth.users where email = 'sales.manager@taysonsta.local'), '@Ahmed please follow up with Nabil Academy about the second installment today.', now() - interval '3 hours'
 from channels c where c.name = 'Sales' and c.kind = 'team';
 insert into message_mentions (message_id, user_id)
 select m.id, (select id from auth.users where email = 'ahmed@taysonsta.local') from messages m where m.body like '@Ahmed please follow up%';
@@ -456,50 +366,28 @@ from channels c join channel_members m1 on m1.channel_id = c.id join auth.users 
 where c.kind = 'direct';
 
 -- Support: tickets (one overdue SLA)
-insert into tickets (client_id, contact_id, project_id, category, priority, subject, description, assigned_to, status, source, created_by_user_id, created_at)
-select p.client_id, (select id from contacts where client_id = p.client_id order by created_at limit 1), p.id, 'technical', 'high',
+insert into tickets (client_id, contact_id, category, priority, subject, description, assigned_to, status, source, created_by_user_id, created_at)
+select c.id, (select id from contacts where client_id = c.id order by created_at limit 1), 'technical', 'high',
        'Contact form not sending emails', 'Since yesterday the contact form on the landing page shows success but no email arrives.',
        (select id from auth.users where email = 'support@taysonsta.local'), 'open', 'internal', (select id from auth.users where email = 'support@taysonsta.local'), now() - interval '6 hours'
-from projects p where p.status = 'completed' limit 1;
+from clients c where c.company_name = 'Mansour Logistics';
 insert into tickets (client_id, contact_id, category, priority, subject, description, status, source, created_at)
 select c.id, (select id from contacts where client_id = c.id order by created_at limit 1), 'billing', 'medium',
-       'Question about the second invoice', 'Can you confirm the due date of the milestone invoice?', 'waiting_for_client', 'portal', now() - interval '2 days'
+       'Question about the second invoice', 'Can you confirm the due date of the second invoice?', 'waiting_for_client', 'email', now() - interval '2 days'
 from clients c where c.company_name = 'Nabil Academy';
 insert into comments (entity_type, entity_id, body, is_internal, author_user_id)
-select 'ticket', t.id, 'Hi, the milestone invoice is due 7 days after the design approval.', false, (select id from auth.users where email = 'finance@taysonsta.local')
+select 'ticket', t.id, 'Hi, the second invoice is due 15 days after signing.', false, (select id from auth.users where email = 'finance@taysonsta.local')
 from tickets t where t.subject = 'Question about the second invoice';
 update tickets set first_responded_at = now() - interval '1 day' where subject = 'Question about the second invoice';
 insert into comments (entity_type, entity_id, body, is_internal, author_user_id)
 select 'ticket', t.id, 'Checked SMTP logs — provider rejects the sender domain. Needs DNS fix.', true, (select id from auth.users where email = 'support@taysonsta.local')
 from tickets t where t.subject = 'Contact form not sending emails';
 
--- Client portal users (LOCAL demo only; password Taysonsta!2026):
---   nabil.client@example.test → Nabil Academy, mansour.client@example.test → Mansour Logistics
-insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
-select gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', x.email,
-       crypt('Taysonsta!2026', gen_salt('bf')), now(), '{"provider":"email","providers":["email"],"role":"client"}'::jsonb,
-       jsonb_build_object('full_name', x.name), now(), now(), '', '', '', ''
-from (values ('nabil.client@example.test', 'Nabil Client'), ('mansour.client@example.test', 'Mansour Client')) x(email, name)
-where not exists (select 1 from auth.users u where u.email = x.email);
-insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
-select gen_random_uuid(), u.id, u.id::text, jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true), 'email', now(), now(), now()
-from auth.users u where u.email in ('nabil.client@example.test', 'mansour.client@example.test')
-  and not exists (select 1 from auth.identities i where i.user_id = u.id and i.provider = 'email');
-insert into contacts (client_id, full_name, email, position, is_decision_maker)
-select c.id, x.name, x.email, 'Owner', true
-from (values ('Nabil Academy', 'Nabil Client', 'nabil.client@example.test'), ('Mansour Logistics', 'Mansour Client', 'mansour.client@example.test')) x(company, name, email)
-join clients c on c.company_name = x.company
-where not exists (select 1 from contacts ct where lower(ct.email) = x.email);
-insert into client_portal_users (user_id, client_id, contact_id, status, invited_by)
-select u.id, ct.client_id, ct.id, 'active', (select id from auth.users where email = 'admin@taysonsta.local')
-from auth.users u join contacts ct on lower(ct.email) = u.email
-where u.email in ('nabil.client@example.test', 'mansour.client@example.test')
-on conflict (user_id) do nothing;
--- A client-visible file and a pending client approval for Nabil Academy's project
-insert into approvals (approval_type, entity_type, entity_id, title, requested_by, approver_contact_id, client_visible, payload)
-select 'design', 'project', p.id, 'Homepage design approval', p.pm_id, ct.id, true, '{"steps":[]}'::jsonb
-from projects p join contacts ct on ct.client_id = p.client_id and lower(ct.email) = 'nabil.client@example.test'
-where p.name like 'Nabil Academy%'
-  and not exists (select 1 from approvals a where a.entity_id = p.id and a.title = 'Homepage design approval');
+-- A pending design approval on Nabil Academy's won deal
+insert into approvals (approval_type, entity_type, entity_id, title, requested_by, approver_user_id, payload)
+select 'design', 'deal', d.id, 'Homepage design approval', (select id from auth.users where email = 'omar@taysonsta.local'),
+       (select id from auth.users where email = 'am@taysonsta.local'), '{"steps":[]}'::jsonb
+from deals d where d.name like 'Nabil Academy%'
+  and not exists (select 1 from approvals a where a.entity_id = d.id and a.title = 'Homepage design approval');
 
 commit;

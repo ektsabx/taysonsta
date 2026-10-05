@@ -31,7 +31,6 @@ const widgetSchema = z.object({
   hours_days: z.array(z.coerce.number().int().min(0).max(6)).optional(),
   ai_agent_id: zf.optionalUuid(),
   team_id: zf.optionalUuid(),
-  branch_id: zf.optionalUuid(),
 });
 
 export async function saveWidgetAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -42,7 +41,7 @@ export async function saveWidgetAction(_prev: ActionState, formData: FormData): 
       name: v.name, is_active: v.is_active, allowed_domains: normalizeDomains(v.allowed_domains ?? ""), title: v.title, welcome_message: v.welcome_message, offline_message: v.offline_message,
       primary_color: v.primary_color, position: v.position, bottom_offset: v.bottom_offset, language: v.language, require_email: v.require_email,
       working_hours: v.hours_enabled ? { tz: v.hours_tz ?? "Africa/Cairo", start: v.hours_start ?? "", end: v.hours_end ?? "", days: v.hours_days ?? [] } : {},
-      ai_agent_id: v.ai_agent_id, team_id: v.team_id, branch_id: v.branch_id,
+      ai_agent_id: v.ai_agent_id, team_id: v.team_id,
     });
     revalidatePath("/admin/settings/integrations/widgets");
     return { ok: true, message: "تم حفظ الويدجت" };

@@ -14,7 +14,6 @@ const priority = z.enum(["low", "medium", "high", "urgent"]).default("medium");
 const ticketSchema = z.object({
   client_id: zf.uuid("الحساب"),
   contact_id: zf.optionalUuid(),
-  project_id: zf.optionalUuid(),
   category: zf.required("التصنيف", 50),
   priority,
   subject: zf.required("الموضوع", 300),
@@ -27,7 +26,7 @@ export async function createTicketAction(_prev: ActionState, formData: FormData)
     const { bos } = await authorize("tickets.create");
     const v = parseForm(ticketSchema, formData);
     await assertCanAccess(bos, "client", v.client_id);
-    const t = await createTicket({ bos }, { ...v, contact_id: v.contact_id, project_id: v.project_id, assigned_to: v.assigned_to });
+    const t = await createTicket({ bos }, { ...v, contact_id: v.contact_id, assigned_to: v.assigned_to });
     revalidatePath("/admin/support/tickets");
     redirect(`/admin/support/tickets/${t.id}`);
   }, "تعذر إنشاء التذكرة.");
@@ -37,8 +36,8 @@ export async function updateTicketAction(id: string, _prev: ActionState, formDat
   return handleAction("updateTicket", async () => {
     const { bos } = await authorize("tickets.update");
     await assertCanAccess(bos, "ticket", id, "update");
-    const v = parseForm(z.object({ category: zf.required("التصنيف", 50), priority, project_id: zf.optionalUuid() }), formData);
-    await updateTicket(bos, id, { category: v.category, priority: v.priority, project_id: v.project_id });
+    const v = parseForm(z.object({ category: zf.required("التصنيف", 50), priority }), formData);
+    await updateTicket(bos, id, { category: v.category, priority: v.priority });
     revalidatePath(`/admin/support/tickets/${id}`);
     return { ok: true, message: "تم الحفظ" };
   });

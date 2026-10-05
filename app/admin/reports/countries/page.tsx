@@ -6,17 +6,18 @@ import { runReport } from "@/services/bos/reports";
 import { Card, EmptyState } from "@/components/bos/ui";
 import { HBarList } from "@/components/bos/Chart";
 import { ReportShell } from "../ReportShell";
-import { base, pct, safeReport } from "../helpers";
+import { moneyIn, pct, safeReport } from "../helpers";
 
 type Row = { country: string; leads: number; qualified: number; deals: number; won: number; won_revenue: number; conversion: number; avg_deal_value: number };
 
 export default async function CountriesReport({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("reports.read");
   const sp = await readParams(searchParams);
+  const base = moneyIn(sp);
   const r = await safeReport(() => runReport<Row[]>(bos, "countries", sp));
   const money = can(bos, "revenue.view_sensitive");
   return (
-    <ReportShell name="countries" exportName="countries" canExport={can(bos, "reports.export")} sp={sp}>
+    <ReportShell name="countries" exportName="countries" canExport={can(bos, "reports.export")} sp={sp} currency>
       {!r.ok ? r.node : (
         <div className="bos-grid main-side">
           <Card flush>

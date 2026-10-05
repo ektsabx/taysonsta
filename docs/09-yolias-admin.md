@@ -18,19 +18,23 @@ architecture: dense tables, filters, detail pages. Not a copy of the customer UI
 
 From `lib/bos/nav.ts`:
 
-Dashboard · AI Assistant · Products & Services · Sales (leads, deals,
-activities, proposals, contracts, pipeline, deal radar) · Clients (accounts,
-contacts, communications log) · Projects (tasks, time, milestones, files,
-change requests, issues, approvals) · Finance (invoices, payments, revenue,
-expenses, commissions, vendors, payroll) · Team / HR (employees, attendance,
-schedules, leave, payroll, recruitment, performance, requests, documents,
-devices & access, locations) · Communication (inbox, chat, WhatsApp & SMS,
-meetings, notifications, calendar) · Marketing (social, content studio, ads)
-· Knowledge · Support (inbox, tickets, AI agents) · Reports · Automation ·
-Files & Documents (templates, e-signatures) · Careers & Booking (website
-admin) · Imports · Settings (company, branches, users, roles, permissions,
-pipeline, HR, notifications, dashboards, integrations hub, security, apps,
-cameras, audit logs).
+Dashboard · AI Assistant · Sales (leads, deals, activities, proposals,
+contracts, pipeline, deal radar) · Clients (accounts, contacts,
+communications log, onboarding, upsell) · Finance (invoices, payments,
+revenue, expenses, commissions, vendors, payroll) · Team / HR (employees,
+attendance, schedules, leave, payroll, recruitment, performance, requests,
+documents, devices & assets, locations) · Communication (inbox, chat,
+meetings, notifications, calendar) · Marketing (content studio, ads) ·
+Knowledge · Support (inbox, tickets, AI agents) · Reports · Files &
+Documents (templates, e-signatures) · Careers & Booking (website admin) ·
+Imports · Settings (company, users, roles, permissions, pipeline, HR,
+notifications, dashboards, integrations hub, security, audit logs).
+
+Removed by the final product spec (D-119), not to be re-added: Products &
+Services, Projects (tasks, time, milestones, change requests, issues),
+WhatsApp & SMS, social accounts, automation, branches, IT & external apps,
+cameras, client portal, multiple currencies (D-120), colour/font/theme
+customization.
 
 Don't remove or break any of these while adding platform modules.
 

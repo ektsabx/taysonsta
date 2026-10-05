@@ -9,26 +9,21 @@ import { useRouter } from "next/navigation";
 import { ActionButton, ConfirmButton, ModalButton } from "@/components/bos/Dialog";
 import { ActionForm, CheckboxField, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
 import {
-  addGrantAction,
   assignDeviceAction,
   cancelLeaveAction,
   changeLifecycleAction,
   confirmReceiptAction,
   createLoginAction,
   hrEditSessionAction,
-  regenerateChecklistAction,
   refreshOnboardingAction,
-  requestAccessAction,
   requestCorrectionAction,
   requestLeaveAction,
   requestOvertimeAction,
   returnDeviceAction,
-  saveCompanyAccountAction,
   saveManualKpiValueAction,
   saveReviewAction,
   acknowledgeReviewAction,
   securityCheckAction,
-  setAccessStatusAction,
   setKpiAssignmentAction,
   setLoginDisabledAction,
   setMfaStatusAction,
@@ -151,90 +146,8 @@ export function RefreshOnboardingButton({ employeeId }: { employeeId: string }) 
 }
 
 // ---------------------------------------------------------------------------
-// Access profile
+// Two-factor status
 // ---------------------------------------------------------------------------
-
-const accessNext: Record<string, string[]> = {
-  not_started: ["requested", "pending", "provisioned", "active", "rejected", "revoked"],
-  requested: ["pending", "provisioned", "active", "rejected", "revoked"],
-  pending: ["provisioned", "active", "rejected", "revoked"],
-  provisioned: ["active", "rejected", "revoked"],
-  active: ["expired", "revoked"],
-  rejected: ["requested", "not_started"],
-  revoked: ["requested", "not_started"],
-  expired: ["requested", "active", "revoked"],
-};
-const accessLabels: Record<string, string> = { not_started: "لم يبدأ", requested: "مطلوب", pending: "قيد التنفيذ", provisioned: "تم التجهيز", active: "نشط", rejected: "مرفوض", revoked: "مسحوب", expired: "منتهي" };
-
-export function AccessStatusSelect({ employeeId, grantId, status, level, levels }: { employeeId: string; grantId: string; status: string; level: string | null; levels: string[] }) {
-  const t = useT();
-  const [pending, start] = useTransition();
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    start(async () => {
-      setError(null);
-      const r = await fn();
-      if (!r.ok) setError((r as { error: string }).error);
-      router.refresh();
-    });
-  return (
-    <span className="bos-row" style={{ gap: 6, flexWrap: "wrap" }}>
-      <select aria-label={t("الحالة")} value={status} disabled={pending} onChange={(e) => run(() => setAccessStatusAction(employeeId, grantId, e.target.value))}>
-        <Opt value={status}>{accessLabels[status] ?? status}</Opt>
-        {(accessNext[status] ?? []).map((s) => <Opt key={s} value={s}>{accessLabels[s] ?? s}</Opt>)}
-      </select>
-      {levels.length ? (
-        <select aria-label={t("مستوى الوصول")} value={level ?? ""} disabled={pending} onChange={(e) => run(() => setAccessStatusAction(employeeId, grantId, status, e.target.value))}>
-          <Opt value="">— المستوى —</Opt>
-          {levels.map((l) => <option key={l} value={l}>{l}</option>)}
-        </select>
-      ) : null}
-      {error ? <span className="bos-field-error" style={{ fontSize: 11.5 }}><Tx>{error}</Tx></span> : null}
-    </span>
-  );
-}
-
-export function AddGrantButton({ employeeId, apps }: { employeeId: string; apps: { id: string; name: string; access_levels: string[] }[] }) {
-  const [app, setApp] = useState("");
-  const levels = apps.find((a) => a.id === app)?.access_levels ?? [];
-  return (
-    <ModalButton label="+ تطبيق" title="إضافة تطبيق لملف الصلاحيات" className="admin-btn small secondary">
-      {(close) => (
-        <ActionForm action={addGrantAction} onSuccess={close}>
-          <input type="hidden" name="employee_id" value={employeeId} />
-          <SelectField name="app_id" label="التطبيق" required placeholder="اختر..." options={apps.map((a) => ({ value: a.id, label: a.name }))} value={app} onChange={(e) => setApp(e.target.value)} />
-          {levels.length ? <SelectField name="access_level" label="مستوى الوصول" placeholder="—" options={levels.map((l) => ({ value: l, label: l }))} /> : null}
-          <CheckboxField name="is_required" label="مطلوب لهذا الموظف" />
-          <div className="bos-form-actions"><SubmitButton label="إضافة" /></div>
-        </ActionForm>
-      )}
-    </ModalButton>
-  );
-}
-
-export function RequestAccessButton({ employeeId, apps, label = "طلب وصول" }: { employeeId: string; apps: { id: string; name: string; access_levels: string[]; is_sensitive: boolean }[]; label?: string }) {
-  const [app, setApp] = useState("");
-  const selected = apps.find((a) => a.id === app);
-  return (
-    <ModalButton label={label} title="طلب وصول إضافي" className="admin-btn small secondary">
-      {(close) => (
-        <ActionForm action={requestAccessAction} onSuccess={close}>
-          <input type="hidden" name="employee_id" value={employeeId} />
-          <SelectField name="app_id" label="التطبيق" required placeholder="اختر..." options={apps.map((a) => ({ value: a.id, label: `${a.name}${a.is_sensitive ? " (حساس)" : ""}` }))} value={app} onChange={(e) => setApp(e.target.value)} />
-          {selected?.access_levels.length ? <SelectField name="access_level" label="مستوى الصلاحية المطلوب" placeholder="—" options={selected.access_levels.map((l) => ({ value: l, label: l }))} /> : null}
-          <TextAreaField name="reason" label="السبب" required rows={3} />
-          <p className="bos-faint" style={{ fontSize: 12 }}><Tx>{selected?.is_sensitive ? "تطبيق حساس: موافقة المدير ثم موافقة الأمان/الإدارة." : "موافقة المدير ثم موافقة الإدارة/IT."}</Tx></p>
-          <div className="bos-form-actions"><SubmitButton label="إرسال الطلب" /></div>
-        </ActionForm>
-      )}
-    </ModalButton>
-  );
-}
-
-export function RegenerateAccessButton({ employeeId }: { employeeId: string }) {
-  return <ActionButton label="إعادة توليد القائمة من الأدوار" className="admin-btn small ghost" action={() => regenerateChecklistAction(employeeId)} />;
-}
 
 const mfaOptions: Opt[] = [
   { value: "required", label: "مطلوب" },
@@ -258,49 +171,6 @@ export function MfaControls({ employeeId, status, canManage }: { employeeId: str
       ) : null}
       <ActionButton label="مزامنة من حساب الدخول" className="admin-btn small ghost" action={() => syncMfaAction(employeeId)} />
     </span>
-  );
-}
-
-export interface CompanyAccountValues {
-  id?: string;
-  employee_id?: string;
-  app_id?: string | null;
-  account_type?: string;
-  provider?: string;
-  identifier?: string;
-  status?: string;
-  owner_user_id?: string | null;
-  recovery_owner_user_id?: string | null;
-  mfa_status?: string;
-  mfa_method?: string | null;
-  last_reviewed_at?: string | null;
-  notes?: string | null;
-}
-
-export function CompanyAccountButton({ initial = {}, employees, apps, staff, label = "+ حساب" }: { initial?: CompanyAccountValues; employees: Opt[]; apps: Opt[]; staff: Opt[]; label?: string }) {
-  return (
-    <ModalButton label={label} title={initial.id ? "تعديل حساب الشركة" : "حساب شركة جديد"} className={initial.id ? "admin-btn small ghost" : "admin-btn small secondary"} wide>
-      {(close) => (
-        <ActionForm action={saveCompanyAccountAction.bind(null, initial.id ?? null)} onSuccess={close}>
-          <div className="bos-alert warning"><Tx>لا تُدخل كلمات مرور أو رموز استرداد أو أسرار هنا أبداً — مدير كلمات المرور هو المكان الوحيد لها.</Tx></div>
-          <div className="bos-form-grid">
-            {initial.employee_id && employees.length <= 1 ? <input type="hidden" name="employee_id" value={initial.employee_id} /> : <SelectField name="employee_id" label="الموظف" required placeholder="اختر..." options={employees} defaultValue={initial.employee_id ?? ""} />}
-            <SelectField name="account_type" label="نوع الحساب" options={[{ value: "email", label: "بريد" }, { value: "sso", label: "SSO" }, { value: "app", label: "تطبيق" }, { value: "other", label: "أخرى" }]} defaultValue={initial.account_type ?? "app"} />
-            <SelectField name="app_id" label="التطبيق" placeholder="—" options={apps} defaultValue={initial.app_id ?? ""} />
-            <TextField name="provider" label="المزوّد" required defaultValue={initial.provider ?? ""} />
-            <TextField name="identifier" label="معرّف الحساب (بريد/اسم مستخدم)" required dir="ltr" defaultValue={initial.identifier ?? ""} />
-            <SelectField name="status" label="الحالة" options={Object.entries(accessLabels).map(([value, l]) => ({ value, label: l }))} defaultValue={initial.status ?? "not_started"} />
-            <SelectField name="owner_user_id" label="المالك" placeholder="—" options={staff} defaultValue={initial.owner_user_id ?? ""} />
-            <SelectField name="recovery_owner_user_id" label="مسؤول الاسترداد" placeholder="—" options={staff} defaultValue={initial.recovery_owner_user_id ?? ""} />
-            <SelectField name="mfa_status" label="حالة 2FA" options={mfaOptions} defaultValue={initial.mfa_status ?? "required"} />
-            <TextField name="mfa_method" label="طريقة 2FA" placeholder="Authenticator App" defaultValue={initial.mfa_method ?? ""} />
-            <TextField name="last_reviewed_at" label="آخر مراجعة" type="date" defaultValue={initial.last_reviewed_at?.slice(0, 10) ?? ""} />
-            <TextAreaField name="notes" label="ملاحظات" defaultValue={initial.notes ?? ""} rows={2} />
-          </div>
-          <div className="bos-form-actions"><SubmitButton label="حفظ" /></div>
-        </ActionForm>
-      )}
-    </ModalButton>
   );
 }
 

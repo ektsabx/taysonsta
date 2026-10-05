@@ -65,7 +65,7 @@ export async function findOrCreateCustomer(input: CustomerInput, actorId: string
   if (!existing && email) existing = (await c.from("support_customers").select("*").eq("normalized_email", email).is("merged_into", null).limit(1).maybeSingle()).data;
   if (!existing && phone && phone.length >= 7) existing = (await c.from("support_customers").select("*").eq("normalized_phone", phone).is("merged_into", null).limit(1).maybeSingle()).data;
   if (existing) {
-    const patch: Partial<SupportCustomer> = { last_seen_at: nowIso() };
+    const patch: Partial<Pick<SupportCustomer, "last_seen_at" | "email" | "phone" | "whatsapp" | "company" | "country" | "messenger_id" | "instagram_id" | "telegram_id">> = { last_seen_at: nowIso() };
     if (!existing.email && email) patch.email = email;
     if (!existing.phone && input.phone) patch.phone = input.phone;
     if (!existing.whatsapp && input.whatsapp) patch.whatsapp = input.whatsapp;
@@ -304,14 +304,14 @@ export async function createConversation(bos: BosUser, input: NewConversationInp
 // Options a channel can set when it opens a conversation (Phase 8 widget:
 // its team, the AI agent answering first — then nobody is assigned until
 // the agent hands off).
-export interface OpenOptions { team_id?: string | null; widget_id?: string | null; ai_agent_id?: string | null; ai_active?: boolean; branch_id?: string | null }
+export interface OpenOptions { team_id?: string | null; widget_id?: string | null; ai_agent_id?: string | null; ai_active?: boolean }
 
 async function openConversation(o: { customer: SupportCustomer; channel: Channel; subject: string | null; priority: Conversation["priority"]; team_id: string | null; assignee_id: string | null; external_thread_id?: string | null; actorId: string | null; extra?: OpenOptions }) {
   const teamId = o.team_id ?? o.extra?.team_id ?? (await defaultTeamId());
   const assignee = o.assignee_id ?? (teamId && !o.extra?.ai_active ? await pickAgent(teamId) : null);
   const { data: conv, error } = await db()
     .from("conversations")
-    .insert({ customer_id: o.customer.id, channel: o.channel, subject: o.subject?.trim().slice(0, 300) || null, priority: o.priority, team_id: teamId, assignee_id: assignee, client_id: o.customer.client_id, external_thread_id: o.external_thread_id ?? null, created_by: o.actorId, unread_for_agent: 1, widget_id: o.extra?.widget_id ?? null, ai_agent_id: o.extra?.ai_active ? o.extra.ai_agent_id ?? null : null, ai_active: !!o.extra?.ai_active, branch_id: o.extra?.branch_id ?? null })
+    .insert({ customer_id: o.customer.id, channel: o.channel, subject: o.subject?.trim().slice(0, 300) || null, priority: o.priority, team_id: teamId, assignee_id: assignee, client_id: o.customer.client_id, external_thread_id: o.external_thread_id ?? null, created_by: o.actorId, unread_for_agent: 1, widget_id: o.extra?.widget_id ?? null, ai_agent_id: o.extra?.ai_active ? o.extra.ai_agent_id ?? null : null, ai_active: !!o.extra?.ai_active })
     .select("*")
     .single();
   if (error) throw error;
@@ -395,14 +395,12 @@ export async function replyToConversation(bos: BosUser, id: string, body: string
   }
 
   // Same channel the customer used (docs/bos/39 §5).
-  const { deliverToCustomer, linkOutbound } = await import("@/services/bos/channel-delivery");
+  const { deliverToCustomer } = await import("@/services/bos/channel-delivery");
   const d = await deliverToCustomer(conv, customer, text, bos.userId);
   const status = d.status;
   const error = d.error;
   const externalId = d.externalId;
-  const outboundId = d.outboundId;
   const msg = await addMessage(conv, { direction: "outbound", author_kind: "agent", author_user_id: bos.userId, body: text, external_id: externalId, delivery_status: status, delivery_error: error });
-  await linkOutbound(outboundId, msg?.id);
   // A staff reply ends AI handling so the two never answer over each other.
   if (conv.ai_active) await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "handoff:human" });
   const first = !conv.first_response_at;
@@ -521,7 +519,6 @@ export async function createTicketFromConversation(bos: BosUser, id: string, inp
   const ticket = await createTicket({ bos }, {
     client_id: customer.client_id,
     contact_id: customer.contact_id,
-    project_id: null,
     category: input.category ?? "support",
     priority: priorityMap[input.priority ?? conv.priority] ?? "medium",
     subject: (input.subject ?? conv.subject ?? `${conv.number} — ${customer.name}`).slice(0, 300),

@@ -1,23 +1,17 @@
 import "server-only";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { db } from "@/lib/bos/db";
 import { getTeamUserIds, type BosUser } from "@/lib/bos/auth";
-import { myProjectIds, teamProjectIds } from "@/lib/bos/access";
 import type { Scope } from "@/lib/bos/permissions";
 
 // Scope for finance records: `all` for Finance/Executive; otherwise records
-// of the deals I own (BD) or the projects I run (PM).
+// of the deals I own (BD).
 async function relatedFilter(bos: BosUser, scope: Scope): Promise<string | null> {
   if (scope === "all") return null;
   const users = scope === "team" ? await getTeamUserIds(bos) : [bos.userId];
-  const [{ data: deals }, projects] = await Promise.all([
-    db().from("deals").select("id").in("assigned_to", users),
-    scope === "team" ? teamProjectIds(bos) : myProjectIds(bos),
-  ]);
+  const { data: deals } = await db().from("deals").select("id").in("assigned_to", users);
   const parts = [`created_by.in.(${users.join(",")})`];
   const dealIds = (deals ?? []).map((d) => d.id);
   if (dealIds.length) parts.push(`deal_id.in.(${dealIds.join(",")})`);
-  if (projects.length) parts.push(`project_id.in.(${projects.join(",")})`);
   return parts.join(",");
 }
 
@@ -25,7 +19,6 @@ export interface InvoiceFilters {
   q?: string;
   status?: string;
   client?: string;
-  project?: string;
   currency?: string;
   from?: string;
   to?: string;
@@ -37,14 +30,12 @@ export async function listInvoices(bos: BosUser, scope: Scope, f: InvoiceFilters
   const page = Math.max(1, f.page ?? 1);
   let q = db()
     .from("invoices")
-    .select("id, invoice_number, status, currency, total, amount_paid, amount_refunded, balance, issue_date, due_date, client_id, project_id, deal_id, clients(name, company_name), projects(name)", { count: "exact" });
-  q = withBranch(q, await branchFilter(bos));
+    .select("id, invoice_number, status, currency, total, amount_paid, amount_refunded, balance, issue_date, due_date, client_id, deal_id, clients(name, company_name)", { count: "exact" });
   const filter = await relatedFilter(bos, scope);
   if (filter) q = q.or(filter);
   if (f.status === "open") q = q.in("status", ["sent", "partially_paid", "overdue"]);
   else if (f.status) q = q.eq("status", f.status as "draft");
   if (f.client) q = q.eq("client_id", f.client);
-  if (f.project) q = q.eq("project_id", f.project);
   if (f.currency) q = q.eq("currency", f.currency);
   if (f.from) q = q.gte("issue_date", f.from);
   if (f.to) q = q.lte("issue_date", f.to);
@@ -76,7 +67,6 @@ export async function listPayments(bos: BosUser, scope: Scope, f: { q?: string; 
   let q = db()
     .from("payments")
     .select("id, payment_number, amount, currency, method, status, payment_date, reference, refunded_amount, client_id, invoice_id, deal_id, clients(name, company_name), invoices(invoice_number)", { count: "exact" });
-  q = withBranch(q, await branchFilter(bos));
   const filter = await relatedFilter(bos, scope);
   if (filter) q = q.or(filter);
   if (f.status) q = q.eq("status", f.status as "completed");
@@ -106,22 +96,19 @@ export async function listCommissions(bos: BosUser, scope: Scope, f: { status?: 
   return { rows: data ?? [], total: count ?? 0, page, pageSize };
 }
 
-export async function listExpenses(bos: BosUser, scope: Scope, f: { q?: string; status?: string; category?: string; project?: string; from?: string; to?: string; page?: number }) {
+export async function listExpenses(bos: BosUser, scope: Scope, f: { q?: string; status?: string; category?: string; from?: string; to?: string; page?: number }) {
   const pageSize = 25;
   const page = Math.max(1, f.page ?? 1);
   let q = db()
     .from("expenses")
-    .select("*, expense_categories(name, cost_type), vendors(name), projects(name)", { count: "exact" })
+    .select("*, expense_categories(name, cost_type), vendors(name)", { count: "exact" })
     .is("archived_at", null);
-  q = withBranch(q, await branchFilter(bos));
   if (scope !== "all") {
     const users = scope === "team" ? await getTeamUserIds(bos) : [bos.userId];
-    const projects = scope === "team" ? await teamProjectIds(bos) : await myProjectIds(bos);
-    q = projects.length ? q.or(`created_by.in.(${users.join(",")}),employee_user_id.in.(${users.join(",")}),project_id.in.(${projects.join(",")})`) : q.or(`created_by.in.(${users.join(",")}),employee_user_id.in.(${users.join(",")})`);
+    q = q.or(`created_by.in.(${users.join(",")}),employee_user_id.in.(${users.join(",")})`);
   }
   if (f.status) q = q.eq("approval_status", f.status);
   if (f.category) q = q.eq("category_id", f.category);
-  if (f.project) q = q.eq("project_id", f.project);
   if (f.from) q = q.gte("expense_date", f.from);
   if (f.to) q = q.lte("expense_date", f.to);
   if (f.q) q = q.ilike("description", `%${f.q.replace(/[%_]/g, " ")}%`);

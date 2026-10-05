@@ -6,18 +6,16 @@ import { runReport } from "@/services/bos/reports";
 import { exporters } from "@/services/bos/exporters";
 import { ValidationError } from "@/lib/bos/errors";
 
-test("revenue report equals hand-computed collected/invoiced (base currency)", async () => {
+test("revenue report equals hand-computed collected in the chosen currency (no conversion)", async () => {
   const exec = await bosUserFor("exec@taysonsta.local");
   const from = "2022-01-01";
   const to = new Date().toISOString().slice(0, 10);
-  const { data } = await runReport<{ collected: number; revenue: number }>(exec, "revenue", { from, to });
-  const { data: pays } = await db().from("payments").select("amount, refunded_amount, currency, payment_date").in("status", ["completed", "refunded"]).gte("payment_date", from).lte("payment_date", to);
-  let expected = 0;
-  for (const p of pays ?? []) {
-    const { data: v } = await db().rpc("bos_to_base", { p_amount: Number(p.amount) - Number(p.refunded_amount), p_currency: p.currency, p_date: p.payment_date } as never);
-    expected += Number(v);
+  for (const currency of ["USD", "EGP"] as const) {
+    const { data } = await runReport<{ collected: number; revenue: number }>(exec, "revenue", { from, to, currency });
+    const { data: pays } = await db().from("payments").select("amount, refunded_amount").eq("currency", currency).in("status", ["completed", "refunded"]).gte("payment_date", from).lte("payment_date", to);
+    const expected = (pays ?? []).reduce((sum, p) => sum + Number(p.amount) - Number(p.refunded_amount), 0);
+    assert.equal(Number(data.collected).toFixed(2), expected.toFixed(2));
   }
-  assert.equal(Number(data.collected).toFixed(2), expected.toFixed(2));
 });
 
 test("scope: sales manager sees team only; own-scope user can't pick others", async () => {

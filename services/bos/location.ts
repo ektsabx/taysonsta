@@ -6,7 +6,7 @@ import { getSetting } from "@/lib/bos/settings";
 import { nowIso } from "@/lib/bos/clock";
 import { ForbiddenError, ValidationError } from "@/lib/bos/errors";
 import { resolveConnection, providerFetch } from "@/services/bos/integrations";
-import { haversineMeters, validCoords } from "@/lib/bos/location/geo";
+import { validCoords } from "@/lib/bos/location/geo";
 import type { Scope } from "@/lib/bos/permissions";
 
 // Employee location (docs/bos/30 §28, doc 31 Phase 19). Transparent and
@@ -42,7 +42,7 @@ export async function deleteMyLocations(bos: BosUser) {
   return count ?? 0;
 }
 
-export async function recordLocation(bos: BosUser, input: { event: "clock_in" | "clock_out" | "task_checkin"; latitude: number; longitude: number; accuracy: number | null; taskId?: string | null }) {
+export async function recordLocation(bos: BosUser, input: { event: "clock_in" | "clock_out" | "task_checkin"; latitude: number; longitude: number; accuracy: number | null }) {
   const st = await locationStatus(bos);
   if (!st.enabled || !st.consented) return { recorded: false as const, reason: "not_consented" };
   if (input.event === "task_checkin" && (!st.allowTasks || st.consent?.scope !== "attendance_tasks")) return { recorded: false as const, reason: "task_checkins_off" };
@@ -51,13 +51,10 @@ export async function recordLocation(bos: BosUser, input: { event: "clock_in" | 
   const c = db();
   const { data: recent } = await c.from("employee_locations").select("id").eq("employee_id", bos.employee.id).eq("event", input.event).gte("captured_at", new Date(Date.now() - 2 * 60_000).toISOString()).limit(1).maybeSingle();
   if (recent) return { recorded: false as const, reason: "duplicate" };
-  const { data: emp } = await c.from("employees").select("branch_id").eq("id", bos.employee.id).single();
-  const { data: br } = emp?.branch_id ? await c.from("branches").select("latitude, longitude").eq("id", emp.branch_id).maybeSingle() : { data: null };
-  const distance = br?.latitude != null && br?.longitude != null ? haversineMeters({ lat: input.latitude, lng: input.longitude }, { lat: Number(br.latitude), lng: Number(br.longitude) }) : null;
   const { data: att } = input.event !== "task_checkin" ? await c.from("attendance_records").select("id").eq("user_id", bos.userId).order("work_date", { ascending: false }).limit(1).maybeSingle() : { data: null };
-  const { error } = await c.from("employee_locations").insert({ employee_id: bos.employee.id, event: input.event, latitude: input.latitude, longitude: input.longitude, accuracy_m: accuracy, attendance_record_id: att?.id ?? null, task_id: input.taskId ?? null, branch_id: emp?.branch_id ?? null, distance_to_branch_m: distance });
+  const { error } = await c.from("employee_locations").insert({ employee_id: bos.employee.id, event: input.event, latitude: input.latitude, longitude: input.longitude, accuracy_m: accuracy, attendance_record_id: att?.id ?? null });
   if (error) throw error;
-  return { recorded: true as const, distance };
+  return { recorded: true as const };
 }
 
 async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
@@ -68,18 +65,17 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
   return r.ok && b?.status === "OK" ? b.results?.[0]?.formatted_address ?? null : null;
 }
 
-export interface LocationFilter { employeeId?: string | null; branchId?: string | null; from: string; to: string }
+export interface LocationFilter { employeeId?: string | null; from: string; to: string }
 
 // Timeline for authorised viewers; the employee always sees their own.
 export async function viewLocations(bos: BosUser, f: LocationFilter) {
   const own = f.employeeId === bos.employee.id;
   if (!own && !can(bos, "location.read")) throw new ForbiddenError();
   const c = db();
-  let q = c.from("employee_locations").select("id, employee_id, event, latitude, longitude, accuracy_m, captured_at, branch_id, distance_to_branch_m, address, task_id, employees(full_name, user_id)").gte("captured_at", `${f.from}T00:00:00Z`).lte("captured_at", `${f.to}T23:59:59Z`).order("captured_at", { ascending: false }).limit(500);
+  let q = c.from("employee_locations").select("id, employee_id, event, latitude, longitude, accuracy_m, captured_at, address, employees(full_name, user_id)").gte("captured_at", `${f.from}T00:00:00Z`).lte("captured_at", `${f.to}T23:59:59Z`).order("captured_at", { ascending: false }).limit(500);
   if (own) q = q.eq("employee_id", bos.employee.id);
   else {
     if (f.employeeId) q = q.eq("employee_id", f.employeeId);
-    if (f.branchId) q = q.eq("branch_id", f.branchId);
     const users = await scopeUserIds(bos, (bos.permissions.get("location.read") ?? "own") as Scope);
     if (users) {
       const { data: emps } = await c.from("employees").select("id").in("user_id", users);
@@ -92,7 +88,7 @@ export async function viewLocations(bos: BosUser, f: LocationFilter) {
     const addr = await reverseGeocode(Number(p.latitude), Number(p.longitude)).catch(() => null);
     if (addr) { p.address = addr; await c.from("employee_locations").update({ address: addr }).eq("id", p.id); }
   }
-  if (!own) await c.from("location_access_log").insert({ viewer_user_id: bos.userId, employee_id: f.employeeId ?? null, action: "view_timeline", period: `${f.from}→${f.to}${f.branchId ? ` branch:${f.branchId}` : ""}` });
+  if (!own) await c.from("location_access_log").insert({ viewer_user_id: bos.userId, employee_id: f.employeeId ?? null, action: "view_timeline", period: `${f.from}→${f.to}` });
   return data ?? [];
 }
 

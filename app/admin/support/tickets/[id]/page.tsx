@@ -35,13 +35,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const cName = new Map((contactNames ?? []).map((c) => [c.id, c.full_name]));
   const client = t.clients as unknown as { id: string; name: string; company_name: string | null };
   const contact = t.contacts as unknown as { id: string; full_name: string; email: string | null } | null;
-  const project = t.projects as unknown as { id: string; name: string; support_until: string | null } | null;
   const catLabel = ticketCategories.find((c) => c.value === t.category)?.label ?? t.category;
   return (
     <>
       <PageHeader
         title={t.subject}
-        subtitle={<span className="bos-row" style={{ gap: 8 }}><span>{t.ticket_number}</span><StatusBadge map="ticket_status" value={t.status} /><StatusBadge map="priority" value={t.priority} />{t.source === "portal" ? <StatusBadge tone="accent" label="من البوابة" /> : null}</span>}
+        subtitle={<span className="bos-row" style={{ gap: 8 }}><span>{t.ticket_number}</span><StatusBadge map="ticket_status" value={t.status} /><StatusBadge map="priority" value={t.priority} /></span>}
        
         actions={
           canUpdate ? (
@@ -56,7 +55,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         items={[
           { label: "العميل", value: <Link href={`/admin/clients/${client.id}?tab=tickets`}>{client.company_name ?? client.name}</Link> },
           { label: "جهة الاتصال", value: contact ? <Link href={`/admin/contacts/${contact.id}`}>{contact.full_name}</Link> : "—" },
-          { label: "المشروع", value: project ? <Link href={`/admin/projects/${project.id}`}>{project.name}</Link> : "—" },
           { label: "التصنيف", value: catLabel },
           { label: "المسؤول", value: can(bos, "tickets.assign") ? <AssignSelect id={id} current={t.assigned_to} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} /> : t.assigned_to ? names.get(t.assigned_to) : "—" },
           { label: "SLA", value: <SlaIndicator t={t} /> },
@@ -85,7 +83,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           {canUpdate ? <Card title="إضافة رد"><ReplyForm id={id} disabled={t.status === "closed"} /></Card> : null}
         </div>
         <div>
-          {canUpdate ? <Card title="بيانات التذكرة"><TicketMetaForm id={id} category={t.category} priority={t.priority} clientId={t.client_id ?? ""} projectInit={project ? { id: project.id, label: project.name } : null} /></Card> : null}
+          {canUpdate ? <Card title="بيانات التذكرة"><TicketMetaForm id={id} category={t.category} priority={t.priority} /></Card> : null}
           <Card title="المرفقات"><FileManager entityType="ticket" entityId={id} canUpload={can(bos, "files.create")} allowClientVisible /></Card>
           <Card title="السجل"><ActivityTimeline entityType="ticket" entityId={id} limit={40} /></Card>
         </div>

@@ -20,7 +20,7 @@ async function handle(request: NextRequest) {
   let actor: string | null = null;
   if (!secretOk(request)) {
     const session = await getBosSession();
-    if (session.status !== "ok" || !can(session.bos, "automation.manage")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.status !== "ok" || !can(session.bos, "settings.manage", "all")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     actor = session.bos.userId;
   }
   const started = nowMs();

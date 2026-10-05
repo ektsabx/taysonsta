@@ -42,7 +42,6 @@ async function heartbeat() {
   const configured = {
     llm: { anthropic: Boolean(process.env.ANTHROPIC_API_KEY), openai: Boolean(process.env.OPENAI_API_KEY), gemini: Boolean(process.env.GEMINI_API_KEY) },
     email: Boolean(process.env.RESEND_API_KEY),
-    stt: Boolean(process.env.STT_API_KEY),
     billingTestMode: process.env.BILLING_TEST_MODE === "true",
   };
   await createAdminClient().from("worker_state").upsert({ key: "heartbeat", value: { at: new Date().toISOString(), configured }, updated_at: new Date().toISOString() });

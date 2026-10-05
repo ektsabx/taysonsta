@@ -14,8 +14,7 @@ import { parseAdsCsv } from "@/lib/bos/ads/csv";
 // Advertising analytics (docs/bos/30 §14–15, doc 31 Phase 12). Read-only:
 // accounts, campaigns, ad sets and ads are synced (or imported from CSV)
 // with daily numbers; nothing is ever written back to an ad platform.
-// Currencies are never mixed; conversion to the base currency is explicit
-// and uses the dated rate from Settings → exchange rates.
+// Currencies are never mixed and never converted (final spec §54).
 
 export type AdAccount = Tables<"ad_accounts">;
 
@@ -146,15 +145,11 @@ export async function syncAdAccount(accountId: string, range?: { since: string; 
       const { data } = await c.from("ad_sets").upsert({ campaign_id: cid, external_id: st.externalId, name: st.name, status: st.status, daily_budget: st.dailyBudget, updated_at: nowIso() }, { onConflict: "campaign_id,external_id" }).select("id").single();
       if (data) setIds.set(st.externalId, data.id);
     }
-    // Link an ad to our organic post only when its creative promotes that exact post.
-    const storyIds = s.ads.map((a) => a.creativePostId).filter(Boolean) as string[];
-    const { data: targets } = storyIds.length ? await c.from("social_post_targets").select("id, external_post_id").in("external_post_id", storyIds) : { data: [] as { id: string; external_post_id: string | null }[] };
-    const byStory = new Map((targets ?? []).map((t) => [t.external_post_id!, t.id]));
     const adIds = new Map<string, string>();
     for (const ad of s.ads) {
       const cid = campaignIds.get(ad.campaignExternalId);
       if (!cid) continue;
-      const { data } = await c.from("ads").upsert({ campaign_id: cid, ad_set_id: ad.adSetExternalId ? setIds.get(ad.adSetExternalId) ?? null : null, external_id: ad.externalId, name: ad.name, status: ad.status, creative_id: ad.creativeId, creative_post_id: ad.creativePostId, social_target_id: ad.creativePostId ? byStory.get(ad.creativePostId) ?? null : null, updated_at: nowIso() }, { onConflict: "campaign_id,external_id" }).select("id").single();
+      const { data } = await c.from("ads").upsert({ campaign_id: cid, ad_set_id: ad.adSetExternalId ? setIds.get(ad.adSetExternalId) ?? null : null, external_id: ad.externalId, name: ad.name, status: ad.status, creative_id: ad.creativeId, creative_post_id: ad.creativePostId, updated_at: nowIso() }, { onConflict: "campaign_id,external_id" }).select("id").single();
       if (data) adIds.set(ad.externalId, data.id);
     }
     const ins = await metaInsights(conn, account.external_id!, since, until, settings.meta_conversion_types);
@@ -211,13 +206,7 @@ export async function syncDueAdAccounts(limit = 10) {
 // Reports
 // ---------------------------------------------------------------------------
 
-export interface AdsFilter { from: string; to: string; platform?: string | null; account_id?: string | null; campaign_id?: string | null; by?: "day" | "week" | "month"; convert?: boolean }
-
-async function rateTo(base: string, cur: string, onDate: string): Promise<{ rate: number; date: string } | null> {
-  if (cur === base) return { rate: 1, date: onDate };
-  const { data } = await db().from("exchange_rates").select("rate, effective_date").eq("base", cur).eq("quote", base).lte("effective_date", onDate).order("effective_date", { ascending: false }).limit(1).maybeSingle();
-  return data ? { rate: Number(data.rate), date: data.effective_date } : null;
-}
+export interface AdsFilter { from: string; to: string; platform?: string | null; account_id?: string | null; campaign_id?: string | null; by?: "day" | "week" | "month" }
 
 export async function adsReport(bos: BosUser, f: AdsFilter) {
   need(bos, "ads.read");
@@ -227,29 +216,19 @@ export async function adsReport(bos: BosUser, f: AdsFilter) {
   if (f.account_id) acc = acc.eq("id", f.account_id);
   const { data: accounts } = await acc;
   const accIds = (accounts ?? []).map((a) => a.id);
-  if (!accIds.length) return { accounts: [], byCurrency: [], campaigns: [], trend: [], conversion: null, single: f.from === f.to };
+  if (!accIds.length) return { accounts: [], byCurrency: [], campaigns: [], trend: [], single: f.from === f.to };
   let q = c.from("ad_insights_daily").select("object_id, account_id, day, currency, spend, impressions, reach, clicks, conversions, conversion_value").eq("level", "campaign").in("account_id", accIds).gte("day", f.from).lte("day", f.to).limit(20000);
   if (f.campaign_id) q = q.eq("object_id", f.campaign_id);
   const [{ data: rows }, { data: camps }] = await Promise.all([q, c.from("ad_campaigns").select("id, name, status, account_id, daily_budget, objective").in("account_id", accIds)]);
   const campMap = new Map((camps ?? []).map((x) => [x.id, x]));
   const single = f.from === f.to;
 
-  // Optional explicit conversion to the company base currency.
-  const base = (await getSetting("company")).base_currency;
-  const rates = new Map<string, { rate: number; date: string } | null>();
-  if (f.convert) for (const cur of new Set((rows ?? []).map((r) => r.currency))) rates.set(cur, await rateTo(base, cur, f.to));
-  const conv = (cur: string) => (f.convert ? rates.get(cur) ?? null : { rate: 1, date: "" });
-  const keyCur = (cur: string) => (f.convert && conv(cur) ? base : cur);
-
   const byCurrency = new Map<string, AdTotals & { reach: number | null }>();
   const byCampaign = new Map<string, AdTotals & { reach: number | null; currency: string }>();
   const trend = new Map<string, Map<string, AdTotals>>();
   for (const r of rows ?? []) {
-    const rt = conv(r.currency);
-    if (f.convert && !rt) continue; // shown separately as "no rate"
-    const m = rt!.rate;
-    const t = { spend: Number(r.spend) * m, impressions: Number(r.impressions), clicks: Number(r.clicks), conversions: r.conversions == null ? null : Number(r.conversions), conversionValue: r.conversion_value == null ? null : Number(r.conversion_value) * m };
-    const cur = keyCur(r.currency);
+    const t = { spend: Number(r.spend), impressions: Number(r.impressions), clicks: Number(r.clicks), conversions: r.conversions == null ? null : Number(r.conversions), conversionValue: r.conversion_value == null ? null : Number(r.conversion_value) };
+    const cur = r.currency;
     // Reach is unique people: not additive across days or campaigns → only per campaign for a single day.
     byCurrency.set(cur, { ...addTotals(byCurrency.get(cur) ?? emptyTotals(), t), reach: null });
     const cc = byCampaign.get(r.object_id);
@@ -259,20 +238,18 @@ export async function adsReport(bos: BosUser, f: AdsFilter) {
     tm.set(b, addTotals(tm.get(b) ?? emptyTotals(), t));
     trend.set(cur, tm);
   }
-  const noRate = f.convert ? [...rates.entries()].filter(([, v]) => !v).map(([k]) => k) : [];
   return {
     single,
     accounts: accounts ?? [],
     byCurrency: [...byCurrency.entries()].map(([currency, t]) => ({ currency, ...derive(t), reach: t.reach })),
     campaigns: [...byCampaign.entries()].map(([id, t]) => ({ id, name: campMap.get(id)?.name ?? "—", status: campMap.get(id)?.status ?? null, objective: campMap.get(id)?.objective ?? null, account: (accounts ?? []).find((a) => a.id === campMap.get(id)?.account_id)?.name ?? "—", platform: (accounts ?? []).find((a) => a.id === campMap.get(id)?.account_id)?.platform ?? "", currency: t.currency, ...derive(t), reach: t.reach })).sort((a, b) => b.spend - a.spend),
     trend: [...trend.entries()].map(([currency, m]) => ({ currency, points: [...m.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([period, t]) => ({ period, ...derive(t) })) })),
-    conversion: f.convert ? { base, rates: [...rates.entries()].filter(([, v]) => v).map(([cur, v]) => ({ currency: cur, rate: v!.rate, date: v!.date })), noRate } : null,
   };
 }
 
 export async function exportAdsCsv(bos: BosUser, f: AdsFilter) {
   need(bos, "ads.export");
-  const r = await adsReport(bos, { ...f, convert: false });
+  const r = await adsReport(bos, f);
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"` : s;
@@ -281,42 +258,6 @@ export async function exportAdsCsv(bos: BosUser, f: AdsFilter) {
   const lines = [head.join(","), ...r.campaigns.map((c) => [c.platform, c.account, c.name, c.status, c.currency, c.spend, c.impressions, c.clicks, c.ctr, c.cpc, c.cpm, c.conversions, c.cpa, c.conversionValue, c.roas].map(esc).join(","))];
   await audit({ actorId: bos.userId, action: "ads.exported", entityType: "ad_account", entityId: null, newValue: { from: f.from, to: f.to, rows: r.campaigns.length } });
   return lines.join("\n");
-}
-
-// Organic (social) and paid (ads) side by side — never added together.
-export async function organicVsPaid(bos: BosUser, from: string, to: string) {
-  need(bos, "ads.read");
-  const c = db();
-  const { data: org } = await c.from("social_post_targets").select("id, social_post_metrics(metric, value)").eq("status", "published").gte("published_at", `${from}T00:00:00Z`).lte("published_at", `${to}T23:59:59Z`).limit(3000);
-  const organic = { posts: (org ?? []).length, impressions: 0, views: 0, likes: 0, comments: 0, shares: 0, clicks: 0, hasImpressions: false, hasClicks: false };
-  for (const t of org ?? []) for (const m of (t.social_post_metrics ?? []) as { metric: string; value: number }[]) {
-    const v = Number(m.value);
-    if (m.metric === "impressions") { organic.impressions += v; organic.hasImpressions = true; }
-    else if (m.metric === "views") organic.views += v;
-    else if (m.metric === "likes") organic.likes += v;
-    else if (m.metric === "comments") organic.comments += v;
-    else if (m.metric === "shares") organic.shares += v;
-    else if (m.metric === "clicks") { organic.clicks += v; organic.hasClicks = true; }
-  }
-  const paid = await adsReport(bos, { from, to });
-  // Ads whose creative is one of our organic posts (a real relation).
-  const { data: linked } = await c.from("ads").select("id, name, social_target_id, campaign_id, social_post_targets(post_url, social_posts(id, title), social_post_metrics(metric, value))").not("social_target_id", "is", null).limit(100);
-  const adIds = (linked ?? []).map((a) => a.id);
-  const { data: adIns } = adIds.length ? await c.from("ad_insights_daily").select("object_id, currency, spend, impressions, clicks").eq("level", "ad").in("object_id", adIds).gte("day", from).lte("day", to) : { data: [] as { object_id: string; currency: string; spend: number; impressions: number; clicks: number }[] };
-  const paidByAd = new Map<string, { currency: string; spend: number; impressions: number; clicks: number }>();
-  for (const r of adIns ?? []) {
-    const cur = paidByAd.get(r.object_id) ?? { currency: r.currency, spend: 0, impressions: 0, clicks: 0 };
-    paidByAd.set(r.object_id, { currency: r.currency, spend: Math.round((cur.spend + Number(r.spend)) * 100) / 100, impressions: cur.impressions + Number(r.impressions), clicks: cur.clicks + Number(r.clicks) });
-  }
-  return {
-    organic,
-    paid: paid.byCurrency,
-    linked: (linked ?? []).map((a) => {
-      const t = a.social_post_targets as unknown as { post_url: string | null; social_posts: { id: string; title: string }; social_post_metrics: { metric: string; value: number }[] } | null;
-      const om = Object.fromEntries((t?.social_post_metrics ?? []).map((m) => [m.metric, Number(m.value)]));
-      return { adId: a.id, adName: a.name, postId: t?.social_posts.id ?? null, postTitle: t?.social_posts.title ?? "—", postUrl: t?.post_url ?? null, organic: om, paid: paidByAd.get(a.id) ?? null };
-    }),
-  };
 }
 
 // ---------------------------------------------------------------------------

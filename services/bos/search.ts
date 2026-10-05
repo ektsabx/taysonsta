@@ -6,7 +6,7 @@ import { entityHref, entityTypeLabels } from "@/lib/bos/links";
 import type { PermissionKey } from "@/lib/bos/permissions";
 
 const moduleOf: Record<string, string> = {
-  lead: "leads", contact: "contacts", client: "clients", deal: "deals", project: "projects", task: "tasks",
+  lead: "leads", contact: "contacts", client: "clients", deal: "deals",
   file: "files", ticket: "tickets", kb_article: "knowledge",
   // Phase 17 (docs/bos/30 §26)
   employee: "employees", invoice: "invoices", expense: "expenses", meeting: "meetings", document: "documents", conversation: "conversations",
@@ -59,7 +59,7 @@ export async function globalSearch(bos: BosUser, q: string, perType = 6, onlyTyp
   return hits;
 }
 
-export type SearchableType = "client" | "contact" | "deal" | "project" | "lead" | "user" | "product" | "vendor" | "ticket" | "task";
+export type SearchableType = "client" | "contact" | "deal" | "lead" | "user" | "vendor" | "ticket";
 
 function like(q: string) {
   return `%${q.replace(/[%_,()]/g, " ").trim()}%`;
@@ -100,20 +100,6 @@ export async function searchEntityOptions(bos: BosUser, type: SearchableType, q:
       }
       return out;
     }
-    case "project": {
-      if (!bos.permissions.has("projects.read")) return [];
-      let query = client.from("projects").select("id, name, project_number, client_id").is("archived_at", null).order("created_at", { ascending: false }).limit(limit * 2);
-      if (filter?.client_id) query = query.eq("client_id", filter.client_id);
-      if (q) query = query.or(`name.ilike.${pattern},project_number.ilike.${pattern}`);
-      const { data } = await query;
-      const out = [];
-      for (const p of data ?? []) {
-        if (bos.permissions.get("projects.read") !== "all" && !(await canAccessEntity(bos, "project", p.id))) continue;
-        out.push({ id: p.id, label: p.name, sub: p.project_number });
-        if (out.length >= limit) break;
-      }
-      return out;
-    }
     case "lead": {
       if (!bos.permissions.has("leads.read")) return [];
       let query = client.from("leads").select("id, name, company_name, lead_number").is("archived_at", null).order("created_at", { ascending: false }).limit(limit * 2);
@@ -139,12 +125,6 @@ export async function searchEntityOptions(bos: BosUser, type: SearchableType, q:
       const { data } = await query;
       return (data ?? []).map((e) => ({ id: e.user_id!, label: e.full_name, sub: e.position ?? e.email }));
     }
-    case "product": {
-      let query = client.from("products").select("id, name, kind, default_price, currency").is("archived_at", null).eq("is_active", true).order("name").limit(limit);
-      if (q) query = query.ilike("name", pattern);
-      const { data } = await query;
-      return (data ?? []).map((p) => ({ id: p.id, label: p.name, sub: `${p.kind === "service" ? "خدمة" : "منتج"}${p.default_price ? ` · ${p.default_price} ${p.currency ?? ""}` : ""}` }));
-    }
     case "vendor": {
       if (!bos.permissions.has("vendors.read") && !bos.permissions.has("expenses.create")) return [];
       let query = client.from("vendors").select("id, name, type").is("archived_at", null).order("name").limit(limit);
@@ -162,20 +142,6 @@ export async function searchEntityOptions(bos: BosUser, type: SearchableType, q:
       for (const t of data ?? []) {
         if (bos.permissions.get("tickets.read") !== "all" && !(await canAccessEntity(bos, "ticket", t.id))) continue;
         out.push({ id: t.id, label: t.subject, sub: t.ticket_number });
-        if (out.length >= limit) break;
-      }
-      return out;
-    }
-    case "task": {
-      if (!bos.permissions.has("tasks.read")) return [];
-      let query = client.from("tasks").select("id, title, project_id").is("archived_at", null).order("created_at", { ascending: false }).limit(limit * 2);
-      if (filter?.project_id) query = query.eq("project_id", filter.project_id);
-      if (q) query = query.ilike("title", pattern);
-      const { data } = await query;
-      const out = [];
-      for (const t of data ?? []) {
-        if (bos.permissions.get("tasks.read") !== "all" && !(await canAccessEntity(bos, "task", t.id))) continue;
-        out.push({ id: t.id, label: t.title, sub: null });
         if (out.length >= limit) break;
       }
       return out;

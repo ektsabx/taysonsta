@@ -85,11 +85,10 @@ function fieldSchema(f: FieldSpec): z.ZodTypeAny {
     case "user":
     case "role":
     case "department":
-    case "product":
       s = z.preprocess(empty, z.string().uuid().nullable());
       break;
     case "currency":
-      s = z.preprocess(empty, z.string().regex(/^[A-Z]{3}$/, "عملة غير صالحة").nullable());
+      s = z.preprocess(empty, z.enum(["EGP", "USD"], { message: "العملة EGP أو USD فقط" }).nullable());
       break;
     case "list":
       s = z.preprocess((v) => (Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,،\n]/).map((x) => x.trim()).filter(Boolean) : []), z.array(z.string().max(200)).nullable());
@@ -108,7 +107,7 @@ function fieldSchema(f: FieldSpec): z.ZodTypeAny {
 export async function listConfigRows(key: string) {
   const spec = configTables[key];
   if (!spec) throw new NotFoundError();
-  const { data, error } = await db().from(spec.table as "departments").select("*").order(spec.order as "name", { ascending: spec.table === "exchange_rates" ? false : true }).limit(1000);
+  const { data, error } = await db().from(spec.table as "departments").select("*").order(spec.order as "name", { ascending: true }).limit(1000);
   if (error) throw error;
   return (data ?? []) as unknown as Record<string, unknown>[];
 }
@@ -125,14 +124,6 @@ export async function saveConfigRow(bos: BosUser, key: string, id: string | null
     throw new ValidationError("بعض الحقول تحتاج إلى مراجعة.", fieldErrors);
   }
   const row: Record<string, unknown> = { ...parsed.data };
-  if (key === "external_apps" && typeof row.access_levels === "string") row.access_levels = (row.access_levels as string).split(",").map((s) => s.trim()).filter(Boolean);
-  if (key === "external_apps" && row.access_levels == null) row.access_levels = [];
-  if (key === "external_apps" && typeof row.url === "string" && row.url && !/^https?:\/\//.test(row.url as string)) throw new ValidationError("رابط غير صالح.", { url: "http(s)://" });
-  if (key === "exchange_rates") {
-    if (Number(row.rate) <= 0) throw new ValidationError("السعر يجب أن يكون أكبر من صفر.", { rate: "> 0" });
-    if (row.base === row.quote) throw new ValidationError("العملتان متطابقتان.", { quote: "مختلفة" });
-    row.created_by = bos.userId;
-  }
   if (key === "work_schedules") {
     if (String(row.end_time) <= String(row.start_time)) throw new ValidationError("وقت النهاية يجب أن يكون بعد البداية.", { end_time: "بعد البداية" });
     try {
@@ -147,7 +138,6 @@ export async function saveConfigRow(bos: BosUser, key: string, id: string | null
     if (row.basis === "fixed" && (row.fixed_amount == null || !row.currency)) throw new ValidationError("أدخل المبلغ والعملة.", { fixed_amount: "مطلوب" });
     if (!id) row.created_by = bos.userId;
   }
-  if (key === "project_templates" && row.is_default && row.product_id) await db().from("project_templates").update({ is_default: false }).eq("product_id", row.product_id as string);
   const pk = spec.pk ?? "id";
   let before: unknown = null;
   let rowId = id;
@@ -348,15 +338,6 @@ export async function deleteSubscription(bos: BosUser, id: string) {
   const { data } = await db().from("notification_subscriptions").select("*").eq("id", id).single();
   await db().from("notification_subscriptions").delete().eq("id", id);
   await audit({ actorId: bos.userId, action: "notification_subscription.deleted", entityType: "notification_subscription", entityId: id, oldValue: data });
-}
-
-export async function setRoleAppRequirement(bos: BosUser, roleId: string, appId: string, required: boolean, level: string | null) {
-  if (required) {
-    const { data: app } = await db().from("external_apps").select("access_levels").eq("id", appId).single();
-    if (level && app?.access_levels.length && !app.access_levels.includes(level)) throw new ValidationError("مستوى وصول غير صالح.");
-    await db().from("role_app_requirements").upsert({ role_id: roleId, app_id: appId, is_required: true, default_access_level: level }, { onConflict: "role_id,app_id" });
-  } else await db().from("role_app_requirements").delete().eq("role_id", roleId).eq("app_id", appId);
-  await audit({ actorId: bos.userId, action: "it.role_requirement_changed", entityType: "role", entityId: roleId, newValue: { app_id: appId, required, level } });
 }
 
 export const _json = (v: unknown) => v as Json;

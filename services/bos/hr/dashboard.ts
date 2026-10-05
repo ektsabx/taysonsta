@@ -13,7 +13,6 @@ export interface HrOverviewScope {
   canPayroll: boolean;
   canDocuments: boolean;
   canRecruitment: boolean;
-  branchIds?: string[] | null;
 }
 
 export async function getHrOverview(bos: BosUser, scope: HrOverviewScope, today: string) {
@@ -22,7 +21,7 @@ export async function getHrOverview(bos: BosUser, scope: HrOverviewScope, today:
   const inEmps = <T extends { in: (col: string, vals: string[]) => T }>(q: T, col: string) => (scope.employeeIds ? q.in(col, scope.employeeIds.length ? scope.employeeIds : ["00000000-0000-0000-0000-000000000000"]) : q);
 
   // Today: statuses already resolve leave / holiday / day off for people without a record.
-  const todayRows = await getToday(scope.userIds, { branchIds: scope.branchIds ?? null });
+  const todayRows = await getToday(scope.userIds, {});
   const count = (pred: (s: string) => boolean) => todayRows.filter((r) => pred(r.status)).length;
   const today_ = {
     employees: todayRows.length,

@@ -19,7 +19,6 @@ export interface LeadFormValues {
   source_id?: string | null;
   estimated_budget?: string | number | null;
   budget_currency?: string | null;
-  product_interest_id?: string | null;
   business_stage?: string | null;
   timeline?: string | null;
   decision_maker?: string | null;
@@ -62,7 +61,6 @@ export function LeadForm({
   action,
   initial = {},
   sources,
-  products,
   staff,
   teams,
   currencies,
@@ -73,7 +71,6 @@ export function LeadForm({
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   initial?: LeadFormValues;
   sources: Option[];
-  products: Option[];
   staff: Option[];
   teams: Option[];
   currencies: string[];
@@ -111,7 +108,6 @@ export function LeadForm({
       <FormSection title="التأهيل">
         <SelectField name="source_id" label="مصدر العميل" options={sources} placeholder="—" defaultValue={initial.source_id ?? ""} />
         <MoneyField name="estimated_budget" currencyName="budget_currency" label="الميزانية التقديرية" currencies={currencies} defaultValue={initial.estimated_budget ?? ""} defaultCurrency={initial.budget_currency ?? "USD"} />
-        <SelectField name="product_interest_id" label="المنتج/الخدمة المطلوبة" options={products} placeholder="—" defaultValue={initial.product_interest_id ?? ""} />
         <SelectField name="business_stage" label="مرحلة العمل" options={businessStages} placeholder="—" defaultValue={initial.business_stage ?? ""} />
         <TextField name="timeline" label="الإطار الزمني" defaultValue={initial.timeline ?? ""} placeholder="مثال: خلال 3 أشهر" />
         <TextField name="decision_maker" label="صاحب القرار" defaultValue={initial.decision_maker ?? ""} />

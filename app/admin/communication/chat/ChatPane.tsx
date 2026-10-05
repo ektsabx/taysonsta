@@ -16,11 +16,9 @@ type Person = { id: string; name: string };
 const linkRoutes: Record<string, (id: string) => string> = {
   client: (id) => `/admin/clients/${id}`,
   deal: (id) => `/admin/sales/deals/${id}`,
-  project: (id) => `/admin/projects/${id}`,
-  task: (id) => `/admin/projects/tasks/${id}`,
   lead: (id) => `/admin/sales/leads/${id}`,
 };
-const linkLabels: Record<string, string> = { client: "حساب", deal: "صفقة", project: "مشروع", task: "مهمة", lead: "عميل محتمل" };
+const linkLabels: Record<string, string> = { client: "حساب", deal: "صفقة", lead: "عميل محتمل" };
 
 function time(iso: string) {
   const d = new Date(iso);

@@ -8,7 +8,7 @@ import { peopleEmployeeIds } from "@/services/bos/team-scope";
 import { PageHeader, Card, EmptyState, KpiCard, ProgressBar, StatusBadge } from "@/components/bos/ui";
 import { formatDate } from "@/lib/bos/format";
 
-const filters: Record<string, string> = { new: "موظفون جدد", in_progress: "قيد التهيئة", completed: "مكتملة", overdue: "متأخرة", missing_access: "صلاحيات ناقصة", missing_documents: "مستندات/قراءة ناقصة", missing_training: "تدريب ناقص", pending_manager: "إجراءات المدير" };
+const filters: Record<string, string> = { new: "موظفون جدد", in_progress: "قيد التهيئة", completed: "مكتملة", overdue: "متأخرة", missing_documents: "مستندات/قراءة ناقصة", missing_training: "تدريب ناقص", pending_manager: "إجراءات المدير" };
 
 // Onboarding Dashboard (IT §16).
 export default async function OnboardingDashboardPage({ searchParams }: { searchParams: SearchParams }) {
@@ -23,7 +23,6 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
     : f === "in_progress" ? r.status === "in_progress"
     : f === "completed" ? r.status === "completed"
     : f === "overdue" ? r.overdue
-    : f === "missing_access" ? r.status === "in_progress" && r.missingAccess > 0
     : f === "missing_documents" ? r.status === "in_progress" && r.missingDocuments > 0
     : f === "missing_training" ? r.status === "in_progress" && r.missingTraining > 0
     : f === "pending_manager" ? r.status === "in_progress" && r.pendingManager > 0
@@ -38,7 +37,6 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
         {card("in_progress", cards.inProgress)}
         {card("completed", cards.completed)}
         {card("overdue", cards.overdue)}
-        {card("missing_access", cards.missingAccess)}
         {card("missing_documents", cards.missingDocuments)}
         {card("missing_training", cards.missingTraining)}
         {card("pending_manager", cards.pendingManager)}
@@ -56,7 +54,6 @@ export default async function OnboardingDashboardPage({ searchParams }: { search
                   <td style={{ fontSize: 12 }}>{r.sections.map((s) => <span key={s.section} style={{ marginInlineEnd: 8, whiteSpace: "nowrap" }}>{s.complete ? "✓" : "○"} {sectionLabels[s.section] ?? s.section}</span>)}</td>
                   <td style={r.overdue ? { color: "var(--bos-danger)" } : undefined}>{formatDate(r.dueDate)}{r.overdue ? " (متأخرة)" : ""}</td>
                   <td style={{ fontSize: 12 }}>
-                    {r.missingAccess ? <div><Tx vars={{ missingAccess: r.missingAccess }}>{"صلاحيات: {missingAccess}"}</Tx></div> : null}
                     {r.missingDocuments ? <div><Tx vars={{ missingDocuments: r.missingDocuments }}>{"قراءة: {missingDocuments}"}</Tx></div> : null}
                     {r.missingTraining ? <div><Tx vars={{ missingTraining: r.missingTraining }}>{"تدريب: {missingTraining}"}</Tx></div> : null}
                     {r.pendingManager ? <div><Tx vars={{ pendingManager: r.pendingManager }}>{"المدير: {pendingManager}"}</Tx></div> : null}

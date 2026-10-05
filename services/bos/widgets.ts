@@ -32,7 +32,6 @@ export interface WidgetInput {
   working_hours: WorkingHours;
   ai_agent_id: string | null;
   team_id: string | null;
-  branch_id: string | null;
 }
 
 function assertManage(bos: BosUser) {
@@ -178,7 +177,7 @@ export async function postVisitorMessage(w: Widget, s: WidgetSession, m: Visitor
     subject: s.conversation_id ? null : body.slice(0, 80),
     body,
     external_thread_id: `ws:${s.id}`,
-    open: { team_id: w.team_id, widget_id: w.id, ai_agent_id: agent?.id ?? null, ai_active: !!agent?.is_active, branch_id: w.branch_id },
+    open: { team_id: w.team_id, widget_id: w.id, ai_agent_id: agent?.id ?? null, ai_active: !!agent?.is_active },
   });
   if (!res) throw new ValidationError("الرسالة فارغة.");
   await c.from("widget_sessions").update({ customer_id: customerId, conversation_id: res.conversation.id, last_seen_at: nowIso() }).eq("id", s.id);

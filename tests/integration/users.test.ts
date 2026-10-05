@@ -26,8 +26,6 @@ test("invitation lifecycle: created with the login, resent, revoked (login remov
     const { data: e } = await c.from("employees").select("user_id").eq("id", emp.id).maybeSingle();
     await c.from("user_invitations").delete().eq("employee_id", emp.id);
     await c.from("onboarding_checklists").delete().eq("employee_id", emp.id);
-    await c.from("access_grants").delete().eq("employee_id", emp.id);
-    await c.from("access_requests").delete().eq("employee_id", emp.id);
     const d = await c.from("employees").delete().eq("id", emp.id);
     if (d.error) throw d.error;
     if (e?.user_id) await c.auth.admin.deleteUser(e.user_id);

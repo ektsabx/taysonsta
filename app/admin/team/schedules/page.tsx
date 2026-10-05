@@ -11,7 +11,6 @@ import { PageHeader, Card, EmptyState, UserAvatar } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { addDays, formatDate } from "@/lib/bos/format";
 import { ShiftsButton } from "../HrControls";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 
 // Weekly roster (docs/bos/28 §12–13): resolved schedule per person per day,
 // with shifts, holidays, custom days off and approved leave.
@@ -25,7 +24,6 @@ export default async function RosterPage({ searchParams }: { searchParams: Searc
   const { users } = await peopleScope(bos, "attendance.read");
   let q = db().from("employees").select("id, user_id, full_name, team_id, department_id, country, photo_updated_at, position").is("archived_at", null).in("lifecycle_status", ["active", "on_leave", "onboarding", "pending_onboarding", "offboarding"]).order("full_name");
   if (users) q = q.in("user_id", users.length ? users : ["00000000-0000-0000-0000-000000000000"]);
-  q = withBranch(q, await branchFilter(bos));
   if (sp.department) q = q.eq("department_id", sp.department);
   if (sp.team) q = q.eq("team_id", sp.team);
   const [{ data: emps }, schedules, departments, teams] = await Promise.all([q, listSchedules(false), listDepartments(), listTeams()]);

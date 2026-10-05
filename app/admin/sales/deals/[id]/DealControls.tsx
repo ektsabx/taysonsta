@@ -79,13 +79,11 @@ export function DealStageControl({ dealId, currentStageId, stages, canReopen }: 
         <p style={{ fontSize: 13.5, lineHeight: 1.8 }}><Tx>سيقوم النظام تلقائياً وفي عملية واحدة بـ:</Tx></p>
         <ul style={{ fontSize: 13, lineHeight: 1.9, paddingInlineStart: 18 }}>
           <li><Tx>تفعيل الحساب وربط جهة الاتصال</Tx></li>
-          <li><Tx>إنشاء المشروع بنفس النطاق والقيمة والعملة</Tx></li>
-          <li><Tx>تعيين مدير المشروع والفريق وإنشاء المراحل والمهام</Tx></li>
           <li><Tx>إنشاء جدول الدفعات والفاتورة الأولى</Tx></li>
           <li><Tx>حساب أهلية العمولة وبدء تهيئة العميل</Tx></li>
-          <li><Tx>إشعار المالية ومدير المشروع ومسؤول التطوير</Tx></li>
+          <li><Tx>إشعار المالية ومسؤول التطوير</Tx></li>
         </ul>
-        <p className="bos-faint" style={{ fontSize: 12 }}><Tx>العملية آمنة للتكرار: لن يتم إنشاء مشروع أو فاتورة مكررة.</Tx></p>
+        <p className="bos-faint" style={{ fontSize: 12 }}><Tx>العملية آمنة للتكرار: لن يتم إنشاء فاتورة مكررة.</Tx></p>
         {error ? <div className="bos-form-error"><Tx>{error}</Tx></div> : null}
       </Modal>
 
@@ -128,7 +126,7 @@ export function MarkWonButton({ dealId }: { dealId: string }) {
         label="تم الكسب (Won)"
         className="admin-btn small success"
         title="تأكيد كسب الصفقة"
-        message="سيتم إنشاء المشروع وجدول الدفعات والفاتورة الأولى والعمولة وبدء تهيئة العميل تلقائياً. العملية لا تنشئ سجلات مكررة."
+        message="سيتم إنشاء جدول الدفعات والفاتورة الأولى والعمولة وبدء تهيئة العميل تلقائياً. العملية لا تنشئ سجلات مكررة."
         confirmLabel="تأكيد"
         action={async () => {
           const r = await markDealWonAction(dealId);

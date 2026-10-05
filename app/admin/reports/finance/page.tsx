@@ -6,7 +6,7 @@ import { runReport } from "@/services/bos/reports";
 import { Card, KpiCard } from "@/components/bos/ui";
 import { BarChart, HBarList } from "@/components/bos/Chart";
 import { ReportShell } from "../ReportShell";
-import { base, safeReport } from "../helpers";
+import { moneyIn, safeReport } from "../helpers";
 import type { RevenueData } from "../revenue/page";
 
 // Revenue vs expenses, gross profit, expenses by category, commissions, cash flow.
@@ -14,9 +14,10 @@ export default async function FinanceReport({ searchParams }: { searchParams: Se
   const { bos } = await requirePermission("reports.read");
   if (!can(bos, "revenue.view_sensitive") && !can(bos, "expenses.read")) redirect("/admin/forbidden");
   const sp = await readParams(searchParams);
+  const base = moneyIn(sp);
   const r = await safeReport(() => runReport<RevenueData>(bos, "revenue", sp));
   return (
-    <ReportShell name="finance" exportName="revenue" canExport={can(bos, "reports.export")} sp={sp}>
+    <ReportShell name="finance" exportName="revenue" canExport={can(bos, "reports.export")} sp={sp} currency>
       {!r.ok ? r.node : (() => {
         const d = r.data.data;
         const gross = Number(d.collected) - Number(d.expenses);

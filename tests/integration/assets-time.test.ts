@@ -1,16 +1,12 @@
-// Master upgrade Phase 15 (docs/bos/30 §21–22; doc 31): assets & inventory on
-// the single device register (licence seats, stock, maintenance, branch
-// transfer, end of life, event log, report) and time approvals + reports
-// (pending hours don't count, no self-approval, task actuals follow approval).
+// Master upgrade Phase 15 (docs/bos/30 §21; doc 31): assets & inventory on
+// the single device register (licence seats, stock, maintenance, end of life,
+// event log, report).
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { db } from "@/lib/bos/db";
 import { bosUserFor, uniq } from "@/tests/integration/helpers";
-import { getSetting, saveSetting } from "@/lib/bos/settings";
 import { assignDevice, saveDevice, type DeviceInput } from "@/services/bos/devices";
-import { assetReport, assignSeat, closeMaintenance, moveStock, openMaintenance, releaseSeat, setEndOfLife, transferBranch } from "@/services/bos/assets";
-import { logTime } from "@/services/bos/delivery";
-import { reviewTime, timeReport } from "@/services/bos/time-reports";
+import { assetReport, assignSeat, closeMaintenance, moveStock, openMaintenance, releaseSeat, setEndOfLife } from "@/services/bos/assets";
 import { ForbiddenError, ValidationError } from "@/lib/bos/errors";
 
 const cleanup: (() => PromiseLike<unknown>)[] = [];
@@ -75,7 +71,7 @@ test("stock: movements with guard, never negative, low-stock alert; access", asy
   assert.equal((await db().from("devices").select("quantity").eq("id", id).single()).data!.quantity, 10);
 });
 
-test("maintenance, branch transfer and retirement for hardware", async () => {
+test("maintenance and retirement for hardware", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const id = await saveDevice(admin, null, base({ type: "laptop", model: "ThinkPad" }));
   devices.push(id);
@@ -85,48 +81,8 @@ test("maintenance, branch transfer and retirement for hardware", async () => {
   const { data: m } = await db().from("asset_maintenance").select("id").eq("device_id", id).eq("status", "open").single();
   await closeMaintenance(admin, m!.id, { result: "Fixed", cost: 60, retire: false });
   assert.equal((await db().from("devices").select("status").eq("id", id).single()).data!.status, "in_stock");
-  const { data: br } = await db().from("branches").select("id").eq("status", "active").limit(1).single();
-  await db().from("devices").update({ branch_id: null }).eq("id", id);
-  await transferBranch(admin, id, br!.id, "moved");
   await assignDevice(admin, id, NOUR, "good");
   await assert.rejects(setEndOfLife(admin, id, "retired", "old"), ValidationError, "return first");
   const { data: ev } = await db().from("asset_events").select("kind").eq("device_id", id).order("occurred_at");
-  assert.deepEqual((ev ?? []).map((e) => e.kind).filter((k) => k !== "note"), ["purchased", "maintenance_opened", "maintenance_closed", "branch_transfer", "assigned"]);
-});
-
-test("time approval: pending hours don't count, no self-approval, task actuals follow approval", async () => {
-  const [admin, dev] = await Promise.all([bosUserFor("admin@taysonsta.local"), bosUserFor("youssef.dev@taysonsta.local")]);
-  const before = await getSetting("time_tracking");
-  await saveSetting("time_tracking", { approval: "manual" }, admin.userId);
-  cleanup.push(() => saveSetting("time_tracking", before, admin.userId));
-  const { data: task } = await db().from("tasks").select("id, project_id, actual_minutes").is("archived_at", null).not("project_id", "is", null).limit(1).single();
-  const day = new Date(Date.now() - 3 * 86400_000).toISOString().slice(0, 10);
-  const start = `${day}T07:00:00.000Z`;
-  const end = `${day}T09:30:00.000Z`;
-  await logTime(dev, { user_id: dev.userId, project_id: task!.project_id, task_id: task!.id, started_at: start, ended_at: end, description: uniq("approval test"), billable: true });
-  const { data: e } = await db().from("time_entries").select("id, approval_status").eq("user_id", dev.userId).eq("started_at", start).single();
-  cleanup.push(() => db().from("time_entries").delete().eq("id", e!.id));
-  assert.equal(e!.approval_status, "pending");
-  assert.equal((await db().from("tasks").select("actual_minutes").eq("id", task!.id).single()).data!.actual_minutes, task!.actual_minutes, "pending hours not in task actual");
-
-  const r1 = await timeReport(admin, { from: day, to: day, user_id: dev.userId });
-  assert.equal(r1.total.pending, 150);
-  assert.ok(r1.pending.some((p) => p.id === e!.id));
-  const counted1 = r1.total.minutes;
-
-  await assert.rejects(reviewTime(dev, [e!.id], "approved", null), ForbiddenError, "developers can't approve");
-  await assert.rejects(reviewTime(admin, [e!.id], "rejected", " "), ValidationError, "reason required");
-  assert.equal(await reviewTime(admin, [e!.id], "approved", null), 1);
-  const r2 = await timeReport(admin, { from: day, to: day, user_id: dev.userId });
-  assert.equal(r2.total.minutes, counted1 + 150);
-  assert.equal(r2.total.billable - r1.total.billable, 150);
-  assert.equal((await db().from("tasks").select("actual_minutes").eq("id", task!.id).single()).data!.actual_minutes, (task!.actual_minutes ?? 0) + 150, "approved hours reach the task");
-  const proj = r2.projects.find((p) => p.id === task!.project_id)!;
-  assert.ok(proj.minutes >= 150);
-
-  // Admin's own manual entry is pending too — and they can't approve it themselves.
-  await logTime(admin, { user_id: admin.userId, project_id: task!.project_id, task_id: null, started_at: `${day}T10:00:00.000Z`, ended_at: `${day}T10:30:00.000Z`, description: null, billable: false });
-  const { data: own } = await db().from("time_entries").select("id").eq("user_id", admin.userId).eq("started_at", `${day}T10:00:00.000Z`).single();
-  cleanup.push(() => db().from("time_entries").delete().eq("id", own!.id));
-  await assert.rejects(reviewTime(admin, [own!.id], "approved", null), ValidationError, "no self-approval");
+  assert.deepEqual((ev ?? []).map((e) => e.kind).filter((k) => k !== "note"), ["purchased", "maintenance_opened", "maintenance_closed", "assigned"]);
 });

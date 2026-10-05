@@ -4,7 +4,8 @@ import { db } from "@/lib/bos/db";
 import { listCurrencies } from "@/services/bos/shared";
 import { getSetting } from "@/lib/bos/settings";
 import { addDays, todayIn } from "@/lib/bos/format";
-import { defaultCurrencyFor } from "@/lib/bos/branch";
+import { defaultCurrency } from "@/lib/bos/company-currency";
+import { currencyForCountry, isCurrency } from "@/lib/bos/currency";
 import { PageHeader } from "@/components/bos/ui";
 import { InvoiceForm } from "../InvoiceForm";
 import { createInvoiceAction } from "../../actions";
@@ -16,22 +17,13 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: S
   const today = todayIn(bos.employee.timezone);
 
   let initialClient = null;
-  let initialProject = null;
   let initialDeal = null;
-  let currency = await defaultCurrencyFor(bos);
-  if (sp.projectId) {
-    const { data } = await db().from("projects").select("id, name, project_number, currency, client_id, deal_id, clients(name, company_name)").eq("id", sp.projectId).maybeSingle();
-    if (data) {
-      const c = data.clients as unknown as { name: string; company_name: string | null };
-      initialClient = { id: data.client_id, label: c.company_name ?? c.name };
-      initialProject = { id: data.id, label: data.name, sub: data.project_number };
-      currency = data.currency;
-    }
-  } else if (sp.clientId) {
-    const { data } = await db().from("clients").select("id, name, company_name, default_currency").eq("id", sp.clientId).maybeSingle();
+  let currency = await defaultCurrency();
+  if (sp.clientId) {
+    const { data } = await db().from("clients").select("id, name, company_name, default_currency, country").eq("id", sp.clientId).maybeSingle();
     if (data) {
       initialClient = { id: data.id, label: data.company_name ?? data.name };
-      currency = data.default_currency ?? currency;
+      currency = isCurrency(data.default_currency) ? data.default_currency : currencyForCountry(data.country);
     }
   }
   if (sp.dealId) {
@@ -42,7 +34,7 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: S
         const c = data.clients as unknown as { name: string; company_name: string | null };
         initialClient = { id: data.client_id, label: c.company_name ?? c.name };
       }
-      currency = data.currency;
+      if (isCurrency(data.currency)) currency = data.currency;
     }
   }
 
@@ -53,7 +45,6 @@ export default async function NewInvoicePage({ searchParams }: { searchParams: S
         action={createInvoiceAction}
         currencies={currencies}
         initialClient={initialClient}
-        initialProject={initialProject}
         initialDeal={initialDeal}
         initial={{ currency, issue_date: today, due_date: addDays(today, finance.default_payment_due_days) }}
         submitLabel="إنشاء الفاتورة (مسودة)"

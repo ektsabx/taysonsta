@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, LoaderCircle, Mic, Square } from "lucide-react";
-import { useSpeechToText } from "./useSpeechToText";
+import { ArrowUp, LoaderCircle } from "lucide-react";
 import { YoliasMark, YoliasThinking } from "@/components/YoliasMark";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -17,7 +16,7 @@ type AgentError = "notConfigured" | "failed" | "forbidden" | "rateLimited";
 
 // The saved Yolias AI conversation of one search (D-115), under its result
 // card. Each turn is saved on the server; history is read from there.
-export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { strategyId: string; initial: ThreadTurn[]; speechLang?: string }) {
+export function AgentThread({ strategyId, initial }: { strategyId: string; initial: ThreadTurn[] }) {
   const { t } = useI18n();
   const a = t.agent;
   const router = useRouter();
@@ -27,9 +26,6 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
   const [error, setError] = useState<AgentError | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const stt = useSpeechToText({ lang: speechLang, onText: setText });
-  const recording = stt.status === "listening";
-  const transcribing = stt.status === "transcribing";
 
   useEffect(() => {
     if (pending || turns.length > initial.length) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -38,7 +34,6 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
   const send = async () => {
     const value = text.trim();
     if (!value || pending) return;
-    stt.stop();
     setError(null);
     setPending(true);
     setTurns((cur) => [...cur, { id: -Date.now(), role: "user", content: value }]);
@@ -75,7 +70,6 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
       )}
       {pending && <div className="agent-turn assistant"><YoliasThinking label={a.thinking} /></div>}
       {error && <p className="prompt-error" role="alert">{a.errors[error]}</p>}
-      {stt.error && <p className="prompt-error" role="alert">{t.composer.voiceErrors[stt.error]}</p>}
 
       <div className="prompt-container agent-composer">
         <textarea
@@ -83,7 +77,7 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
           className="prompt-input"
           rows={2}
           dir="auto"
-          placeholder={recording ? t.composer.listening : transcribing ? t.composer.transcribing : turns.length ? a.placeholderMore : a.placeholder}
+          placeholder={turns.length ? a.placeholderMore : a.placeholder}
           value={text}
           maxLength={4000}
           onChange={(e) => setText(e.target.value)}
@@ -96,9 +90,6 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
         />
         <div className="prompt-footer">
           <div className="prompt-attachments">
-            <button className={`btn-attach${recording ? " recording-active" : ""}`} type="button" title={recording ? t.composer.stopRecording : t.composer.record} aria-label={recording ? t.composer.stopRecording : t.composer.record} aria-pressed={recording} onClick={() => (recording ? stt.stop() : stt.start(text))} disabled={pending || transcribing}>
-              {transcribing ? <LoaderCircle className="spin" /> : recording ? <Square /> : <Mic />}
-            </button>
             <span className="artifact-note">{a.hint}</span>
           </div>
           <button className="btn-send" type="button" aria-label={a.send} onClick={() => void send()} disabled={pending || !text.trim()}>

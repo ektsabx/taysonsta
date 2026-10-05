@@ -10,7 +10,7 @@ import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 export type Activity = Tables<"activities">;
 export type ActivityType = Activity["type"];
 
-export const communicationTypes: ActivityType[] = ["call", "email", "whatsapp", "linkedin", "meeting", "client_communication", "note"];
+export const communicationTypes: ActivityType[] = ["call", "email", "linkedin", "meeting", "client_communication", "note"];
 
 export interface ActivityInput {
   type: ActivityType;
@@ -22,7 +22,6 @@ export interface ActivityInput {
   deal_id: string | null;
   client_id: string | null;
   contact_id: string | null;
-  project_id: string | null;
   assigned_to: string | null;
   priority: Activity["priority"];
   status: Activity["status"];
@@ -31,10 +30,9 @@ export interface ActivityInput {
   reminder_at: string | null;
 }
 
-function primaryEntity(a: Pick<Activity, "lead_id" | "deal_id" | "client_id" | "contact_id" | "project_id">): { type: string; id: string } {
+function primaryEntity(a: Pick<Activity, "lead_id" | "deal_id" | "client_id" | "contact_id">): { type: string; id: string } {
   if (a.lead_id) return { type: "lead", id: a.lead_id };
   if (a.deal_id) return { type: "deal", id: a.deal_id };
-  if (a.project_id) return { type: "project", id: a.project_id };
   if (a.client_id) return { type: "client", id: a.client_id };
   return { type: "contact", id: a.contact_id! };
 }
@@ -42,7 +40,6 @@ function primaryEntity(a: Pick<Activity, "lead_id" | "deal_id" | "client_id" | "
 const typeVerb: Partial<Record<ActivityType, string>> = {
   call: "Call",
   email: "Email",
-  whatsapp: "WhatsApp message",
   linkedin: "LinkedIn message",
   meeting: "Meeting",
   follow_up: "Follow-up",
@@ -53,8 +50,8 @@ const typeVerb: Partial<Record<ActivityType, string>> = {
 };
 
 export async function createActivity(bos: BosUser, input: ActivityInput) {
-  if (!input.lead_id && !input.deal_id && !input.client_id && !input.contact_id && !input.project_id) {
-    throw new ValidationError("يجب ربط النشاط بسجل (عميل محتمل، صفقة، حساب، جهة اتصال أو مشروع).");
+  if (!input.lead_id && !input.deal_id && !input.client_id && !input.contact_id) {
+    throw new ValidationError("يجب ربط النشاط بسجل (عميل محتمل، صفقة، حساب أو جهة اتصال).");
   }
   if (input.due_at && input.start_at && new Date(input.due_at) < new Date(input.start_at)) {
     throw new ValidationError("تاريخ الاستحقاق يجب أن يكون بعد تاريخ البدء.", { due_at: "غير صالح" });
@@ -72,10 +69,6 @@ export async function createActivity(bos: BosUser, input: ActivityInput) {
   }
   if (!clientId && input.lead_id) {
     const { data } = await db().from("leads").select("client_id").eq("id", input.lead_id).maybeSingle();
-    clientId = data?.client_id ?? null;
-  }
-  if (!clientId && input.project_id) {
-    const { data } = await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle();
     clientId = data?.client_id ?? null;
   }
 
@@ -107,7 +100,6 @@ export async function createActivity(bos: BosUser, input: ActivityInput) {
       { type: "deal", id: data.deal_id },
       { type: "client", id: data.client_id },
       { type: "contact", id: data.contact_id },
-      { type: "project", id: data.project_id },
     ].filter((l) => !(l.type === entity.type && l.id === entity.id)),
     actorId: bos.userId,
   });
@@ -178,7 +170,7 @@ export async function listActivities(bos: BosUser, scope: Scope, f: ActivityFilt
   const page = Math.max(1, f.page ?? 1);
   let query = db()
     .from("activities")
-    .select("*, leads(name), deals(name), clients(name), contacts(full_name), projects(name)", { count: "exact" })
+    .select("*, leads(name), deals(name), clients(name), contacts(full_name)", { count: "exact" })
     .is("archived_at", null);
 
   if (scope !== "all" || f.mine === "1") {
@@ -192,7 +184,6 @@ export async function listActivities(bos: BosUser, scope: Scope, f: ActivityFilt
   if (f.related === "lead") query = query.not("lead_id", "is", null);
   if (f.related === "deal") query = query.not("deal_id", "is", null);
   if (f.related === "client") query = query.not("client_id", "is", null);
-  if (f.related === "project") query = query.not("project_id", "is", null);
   if (f.from) query = query.gte("created_at", `${f.from}T00:00:00Z`);
   if (f.to) query = query.lte("created_at", `${f.to}T23:59:59Z`);
 
@@ -204,7 +195,7 @@ export async function listActivities(bos: BosUser, scope: Scope, f: ActivityFilt
   return { rows: data ?? [], total: count ?? 0, page, pageSize };
 }
 
-export async function listEntityActivities(filter: { lead_id?: string; deal_id?: string; client_id?: string; contact_id?: string; project_id?: string }, onlyCommunications = false) {
+export async function listEntityActivities(filter: { lead_id?: string; deal_id?: string; client_id?: string; contact_id?: string }, onlyCommunications = false) {
   let query = db().from("activities").select("*").is("archived_at", null);
   for (const [k, v] of Object.entries(filter)) if (v) query = query.eq(k, v);
   if (onlyCommunications) query = query.in("type", communicationTypes);

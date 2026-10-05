@@ -17,17 +17,15 @@ export async function getPerformanceProfile(userId: string, from: string, to: st
   const fromTs = `${from}T00:00:00Z`;
   const toTs = `${to}T23:59:59Z`;
   const count = (p: PromiseLike<{ count: number | null }>) => Promise.resolve(p).then((r) => r.count ?? 0);
-  const [tasksDone, tasksOverdue, activities, meetings, leads, dealsWon, wonRows, projects, attendance, time, reviews, kpis] = await Promise.all([
-    count(c.from("tasks").select("id", { count: "exact", head: true }).eq("assigned_to", userId).eq("status", "completed").gte("completed_at", fromTs).lte("completed_at", toTs)),
-    count(c.from("tasks").select("id", { count: "exact", head: true }).eq("assigned_to", userId).not("status", "in", "(completed,cancelled)").lt("due_date", to)),
+  const [followupsDone, followupsOverdue, activities, meetings, leads, dealsWon, wonRows, attendance, reviews, kpis] = await Promise.all([
+    count(c.from("activities").select("id", { count: "exact", head: true }).eq("assigned_to", userId).eq("status", "completed").gte("completed_at", fromTs).lte("completed_at", toTs)),
+    count(c.from("activities").select("id", { count: "exact", head: true }).eq("assigned_to", userId).eq("status", "overdue").is("archived_at", null)),
     count(c.from("activities").select("id", { count: "exact", head: true }).or(`created_by.eq.${userId},assigned_to.eq.${userId}`).gte("created_at", fromTs).lte("created_at", toTs)),
     count(c.from("meetings").select("id", { count: "exact", head: true }).eq("organizer_id", userId).gte("start_at", fromTs).lte("start_at", toTs)),
     count(c.from("leads").select("id", { count: "exact", head: true }).eq("assigned_to", userId).gte("created_at", fromTs).lte("created_at", toTs)),
     count(c.from("deals").select("id", { count: "exact", head: true }).eq("assigned_to", userId).gte("won_at", fromTs).lte("won_at", toTs)),
     c.from("deals").select("value, currency").eq("assigned_to", userId).gte("won_at", fromTs).lte("won_at", toTs).then((r) => r.data ?? []),
-    count(c.from("projects").select("id", { count: "exact", head: true }).eq("pm_id", userId).not("status", "in", "(cancelled)")),
     c.from("attendance_records").select("status, worked_minutes, overtime_minutes, late_minutes, expected_minutes").eq("user_id", userId).gte("work_date", from).lte("work_date", to).then((r) => r.data ?? []),
-    c.from("time_entries").select("duration_minutes").eq("user_id", userId).gte("started_at", fromTs).lte("started_at", toTs).then((r) => (r.data ?? []).reduce((s, x) => s + (x.duration_minutes ?? 0), 0)),
     c.from("performance_reviews").select("*").eq("user_id", userId).order("period_end", { ascending: false }).limit(10).then((r) => r.data ?? []),
     computeUserKpis(userId, to, false),
   ]);
@@ -45,7 +43,7 @@ export async function getPerformanceProfile(userId: string, from: string, to: st
   const weightedScore = weighted.length ? Math.round(weighted.reduce((s, k) => s + Math.min(k.attainment as number, 150) * Number(k.kpi.weight), 0) / weighted.reduce((s, k) => s + Number(k.kpi.weight), 0)) : null;
 
   return {
-    work: { tasksDone, tasksOverdue, activities, meetings, leads, dealsWon, revenue: [...revenue.entries()].map(([currency, amount]) => ({ currency, amount: amount.toFixed(2) })), projects, loggedMinutes: time },
+    work: { followupsDone, followupsOverdue, activities, meetings, leads, dealsWon, revenue: [...revenue.entries()].map(([currency, amount]) => ({ currency, amount: amount.toFixed(2) })) },
     attendance: summarize(attendance),
     kpiCategories: [...categories.values()],
     weightedScore,

@@ -11,7 +11,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: S
   const sp = await readParams(searchParams);
   const [currencies, { data: open }] = await Promise.all([
     listCurrencies(),
-    db().from("invoices").select("id, invoice_number, currency, balance, client_id, deal_id, project_id").in("status", ["draft", "sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(500),
+    db().from("invoices").select("id, invoice_number, currency, balance, client_id, deal_id").in("status", ["draft", "sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(500),
   ]);
   let initialClient = null;
   if (sp.clientId) {
@@ -26,7 +26,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: S
         today={todayIn(bos.employee.timezone)}
         initialClient={initialClient}
         preselectedInvoiceId={sp.invoiceId}
-        openInvoices={(open ?? []).map((i) => ({ id: i.id, number: i.invoice_number, currency: i.currency, balance: String(i.balance), client_id: i.client_id, deal_id: i.deal_id, project_id: i.project_id }))}
+        openInvoices={(open ?? []).map((i) => ({ id: i.id, number: i.invoice_number, currency: i.currency, balance: String(i.balance), client_id: i.client_id, deal_id: i.deal_id }))}
       />
     </>
   );

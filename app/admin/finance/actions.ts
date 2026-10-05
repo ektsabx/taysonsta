@@ -26,14 +26,12 @@ import {
 
 const itemSchema = z.object({
   description: z.string().trim().min(1, "وصف البند مطلوب").max(500),
-  product_id: z.string().uuid().nullable().optional().default(null),
   quantity: z.string().regex(/^\d+(\.\d{1,2})?$/, "كمية غير صالحة"),
   unit_price: z.string().regex(/^\d+(\.\d{1,3})?$/, "سعر غير صالح"),
 });
 
 const invoiceSchema = z.object({
   client_id: zf.uuid("الحساب"),
-  project_id: zf.optionalUuid(),
   deal_id: zf.optionalUuid(),
   currency: zf.currency(),
   issue_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صالح"),
@@ -54,7 +52,6 @@ const invoiceSchema = z.object({
 function toInvoiceInput(v: z.infer<typeof invoiceSchema>): InvoiceInput {
   return {
     client_id: v.client_id,
-    project_id: v.project_id,
     deal_id: v.deal_id,
     currency: v.currency,
     issue_date: v.issue_date,
@@ -63,7 +60,7 @@ function toInvoiceInput(v: z.infer<typeof invoiceSchema>): InvoiceInput {
     tax_rate: v.tax_rate,
     payment_terms: v.payment_terms ?? null,
     notes: v.notes ?? null,
-    items: v.items_json.map((i) => ({ ...i, product_id: i.product_id ?? null })),
+    items: v.items_json,
   };
 }
 
@@ -128,10 +125,8 @@ const paymentSchema = z.object({
   client_id: zf.uuid("الحساب"),
   invoice_id: zf.optionalUuid(),
   deal_id: zf.optionalUuid(),
-  project_id: zf.optionalUuid(),
   amount: zf.money("المبلغ"),
   currency: zf.currency(),
-  exchange_rate: z.preprocess((v) => (v === "" ? null : v), z.string().regex(/^\d+(\.\d{1,8})?$/, "سعر صرف غير صالح").nullable()),
   method: z.enum(["bank_transfer", "card", "cash", "paypal", "stripe", "wise", "instapay", "vodafone_cash", "other"]),
   payment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   reference: zf.optionalText(200),
@@ -215,10 +210,9 @@ const ruleSchema = z.object({
   rate: z.preprocess((v) => (v === "" ? null : v), z.string().regex(/^\d{1,3}(\.\d{1,4})?$/).refine((v) => Number(v) <= 100, "0–100").nullable()),
   fixed_amount: zf.optionalMoney(),
   currency: z.preprocess((v) => (v === "" ? null : v), zf.currency().nullable()),
-  product_id: zf.optionalUuid(),
   user_id: zf.optionalUuid(),
   role_id: zf.optionalUuid(),
-  trigger: z.enum(["deal_won", "contract_signed", "payment_collected", "full_payment", "milestone_payment"]),
+  trigger: z.enum(["deal_won", "contract_signed", "payment_collected", "full_payment"]),
   min_amount: zf.optionalMoney(),
   max_amount: zf.optionalMoney(),
   valid_from: zf.optionalDate(),
@@ -242,7 +236,6 @@ const expenseSchema = z.object({
   currency: zf.currency(),
   expense_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   vendor_id: zf.optionalUuid(),
-  project_id: zf.optionalUuid(),
   client_id: zf.optionalUuid(),
   employee_user_id: zf.optionalUuid(),
 });
@@ -252,7 +245,6 @@ export async function createExpenseAction(_prev: ActionState, formData: FormData
   const result = await handleAction("createExpense", async () => {
     const { bos } = await authorize("expenses.create");
     const v = parseForm(expenseSchema, formData);
-    if (v.project_id) await assertCanAccess(bos, "project", v.project_id, "read");
     const expense = await createExpense(bos, { ...v, receipt_file_id: null });
     id = expense.id;
     refreshFinance();

@@ -1,6 +1,6 @@
 // UI & system review (docs/bos/35 B7): employment data is changed by HR
 // only (server-side, not just hidden in the UI); passwords are reset through
-// an admin-sent recovery link; tasks are internal unless marked for clients.
+// an admin-sent recovery link.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { db } from "@/lib/bos/db";
@@ -33,11 +33,4 @@ test("admins send a password recovery link; the action is audited", async () => 
   const { data: rows } = await db().from("audit_logs").select("id").eq("action", "user.password_reset_sent").eq("entity_id", dev.employee.id).gte("created_at", started);
   assert.equal(rows?.length, 1);
   cleanup.push(() => db().from("audit_logs").delete().in("id", rows!.map((r) => r.id)));
-});
-
-test("tasks are internal by default", async () => {
-  const { data: col } = await db().from("tasks").select("client_visible").limit(20);
-  assert.ok((col ?? []).length > 0);
-  const { count } = await db().from("tasks").select("id", { count: "exact", head: true }).eq("client_visible", true).is("archived_at", null);
-  assert.equal(count, 0, "existing tasks were not exposed by the migration");
 });

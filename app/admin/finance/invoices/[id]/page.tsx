@@ -37,7 +37,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
 
   const { data: inv, error } = await db()
     .from("invoices")
-    .select("*, clients(id, name, company_name, email), projects(id, name, project_number), deals(id, name, deal_number), payment_schedules!invoices_schedule_id_fkey(label, percent)")
+    .select("*, clients(id, name, company_name, email), deals(id, name, deal_number), payment_schedules!invoices_schedule_id_fkey(label, percent)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -48,7 +48,6 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
     listCurrencies(),
   ]);
   const client = inv.clients as unknown as { id: string; name: string; company_name: string | null } | null;
-  const project = inv.projects as unknown as { id: string; name: string; project_number: string } | null;
   const deal = inv.deals as unknown as { id: string; name: string; deal_number: string } | null;
   const schedule = inv.payment_schedules as unknown as { label: string; percent: number } | null;
   const canUpdate = can(bos, "invoices.update") && (await canAccessEntity(bos, "invoice", id, "update"));
@@ -79,7 +78,6 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
         items={[
           { label: "الحساب", value: client ? <Link href={`/admin/clients/${client.id}`}>{client.company_name ?? client.name}</Link> : "—" },
           { label: "الصفقة", value: deal ? <Link href={`/admin/sales/deals/${deal.id}`}>{deal.deal_number}</Link> : "—" },
-          { label: "المشروع", value: project ? <Link href={`/admin/projects/${project.id}`}>{project.project_number}</Link> : "—" },
           { label: "الإجمالي", value: <Money value={inv.total} currency={inv.currency} /> },
           { label: "المدفوع", value: <Money value={netPaid} currency={inv.currency} /> },
           { label: "المتبقي", value: <Money value={inv.balance} currency={inv.currency} /> },
@@ -179,7 +177,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
           today={todayIn(bos.employee.timezone)}
           initialClient={client ? { id: client.id, label: client.company_name ?? client.name } : null}
           preselectedInvoiceId={id}
-          openInvoices={[{ id, number: inv.invoice_number, currency: inv.currency, balance: String(inv.balance), client_id: inv.client_id, deal_id: inv.deal_id, project_id: inv.project_id }]}
+          openInvoices={[{ id, number: inv.invoice_number, currency: inv.currency, balance: String(inv.balance), client_id: inv.client_id, deal_id: inv.deal_id }]}
         />
       ) : null}
 
@@ -189,7 +187,6 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
           currencies={currencies}
           initialClient={client ? { id: client.id, label: client.company_name ?? client.name } : null}
           initialDeal={deal ? { id: deal.id, label: deal.name, sub: deal.deal_number } : null}
-          initialProject={project ? { id: project.id, label: project.name, sub: project.project_number } : null}
           initial={{
             currency: inv.currency,
             issue_date: inv.issue_date,
@@ -198,7 +195,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
             tax_rate: String(inv.tax_rate),
             payment_terms: inv.payment_terms,
             notes: inv.notes,
-            items: (items ?? []).map((it) => ({ description: it.description, product_id: it.product_id, quantity: String(it.quantity), unit_price: String(it.unit_price) })),
+            items: (items ?? []).map((it) => ({ description: it.description, quantity: String(it.quantity), unit_price: String(it.unit_price) })),
           }}
         />
       ) : null}

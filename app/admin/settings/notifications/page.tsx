@@ -14,8 +14,8 @@ import { SettingsForm } from "../SettingsForm";
 import { AddSubscriptionForm, SubscriptionRowControls } from "../SettingsControls";
 import { ConditionsButton, RetryDeliveryButton, TemplateEditButton } from "./NotificationControls";
 
-const relations = ["assignee", "owner", "creator", "pm", "bd", "account_manager", "manager_of_actor", "manager_of_assignee", "project_members", "approver", "escalation", "employee", "previous_assignee"];
-const relationLabels: Record<string, string> = { assignee: "المسؤول", owner: "المالك", creator: "المُنشئ", pm: "مدير المشروع", bd: "تطوير الأعمال", account_manager: "مدير الحساب", manager_of_actor: "مدير الفاعل", manager_of_assignee: "مدير المسؤول", project_members: "أعضاء المشروع", approver: "الموافِق", escalation: "التصعيد (مدير الموافِق)", employee: "الموظف", previous_assignee: "المسؤول السابق" };
+const relations = ["assignee", "owner", "creator", "bd", "account_manager", "manager_of_actor", "manager_of_assignee", "approver", "escalation", "employee", "previous_assignee"];
+const relationLabels: Record<string, string> = { assignee: "المسؤول", owner: "المالك", creator: "المُنشئ", bd: "تطوير الأعمال", account_manager: "مدير الحساب", manager_of_actor: "مدير الفاعل", manager_of_assignee: "مدير المسؤول", approver: "الموافِق", escalation: "التصعيد (مدير الموافِق)", employee: "الموظف", previous_assignee: "المسؤول السابق" };
 const channelLabels: Record<string, string> = { in_app: "داخلي", email: "بريد", push: "Push", whatsapp: "واتساب", sms: "SMS" };
 const deliveryTone = { sent: "success", queued: "info", failed: "danger", skipped: "neutral" } as const;
 
@@ -164,7 +164,7 @@ async function ApprovalWorkflow() {
         { path: "sla_hours", label: "مهلة القرار (ساعات)", type: "number", min: 1 },
         { path: "remind_every_hours", label: "التذكير كل (ساعات)", type: "number", min: 1 },
         { path: "escalate_after_hours", label: "التصعيد لمدير الموافِق بعد (ساعات، 0 = بدون)", type: "number", min: 0 },
-        { path: "thresholds", label: "خطوات إضافية حسب المبلغ (بالعملة الأساسية)", type: "json", hint: '[{"approval_type":"expense","min_amount":10000,"add_steps":["role:executive"]}]' },
+        { path: "thresholds", label: "خطوات إضافية حسب المبلغ (لكل عملة)", type: "json", hint: '[{"approval_type":"expense","currency":"EGP","min_amount":10000,"add_steps":["role:executive"]}]' },
       ]} />
     </Card>
   );

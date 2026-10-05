@@ -1,9 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { attainment, periodRange } from "@/lib/bos/kpi-metrics";
-import { looksLikeSecret } from "@/services/bos/it-access";
 import { lifecycleTransitions } from "@/services/bos/employees";
-import { accessTransitions } from "@/services/bos/it-access";
 
 test("periodRange: weekly (Sun start), monthly, quarterly, yearly", () => {
   assert.deepEqual(periodRange("weekly", "2026-09-30"), { start: "2026-09-27", end: "2026-10-03" });
@@ -19,21 +17,12 @@ test("attainment respects direction", () => {
   assert.equal(attainment(null, 3, "higher_better"), null);
 });
 
-test("secret heuristic", () => {
-  assert.ok(looksLikeSecret("password=abc"));
-  assert.ok(looksLikeSecret("كلمة السر 1234"));
-  assert.ok(looksLikeSecret("token Xy9!kLm2#pQr8"));
-  assert.ok(!looksLikeSecret("Recovery owner is the IT lead"));
-});
-
-test("lifecycle and access transition maps follow the IT addendum", () => {
+test("lifecycle transitions follow the HR rules", () => {
   assert.deepEqual(lifecycleTransitions.archived, []);
   // docs/bos/28 §42: Offboarding → Terminated → Archived.
   assert.deepEqual(lifecycleTransitions.offboarding, ["terminated"]);
   assert.deepEqual(lifecycleTransitions.terminated, ["archived"]);
   assert.ok(!lifecycleTransitions.pending_onboarding.includes("active"), "must pass through onboarding");
-  assert.ok(accessTransitions.active.includes("revoked") && accessTransitions.active.includes("expired"));
-  assert.ok(!accessTransitions.revoked.includes("active"), "revoked must be re-requested");
 });
 
 import { renderMarkdown, slugify } from "@/lib/bos/markdown";

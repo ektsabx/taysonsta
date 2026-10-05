@@ -52,13 +52,12 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Sea
           const client = m.clients as unknown as { name: string } | null;
           const lead = m.leads as unknown as { name: string } | null;
           const deal = m.deals as unknown as { name: string } | null;
-          const project = m.projects as unknown as { name: string } | null;
           return {
             id: m.id,
             cells: {
               title: <Link href={`/admin/communication/meetings/${m.id}`}><Tx>{m.title}</Tx></Link>,
               when: `${formatDateTime(m.start_at)} · ${m.duration_minutes}د`,
-              related: deal?.name ?? lead?.name ?? project?.name ?? client?.name ?? "—",
+              related: deal?.name ?? lead?.name ?? client?.name ?? "—",
               organizer: m.organizer_id ? names.get(m.organizer_id) ?? "—" : "—",
               status: <StatusBadge map="meeting_status" value={m.status} />,
               link: m.meeting_link && m.status === "scheduled" ? <a className="admin-btn small ghost" href={m.meeting_link} target="_blank" rel="noreferrer"><Tx>انضمام</Tx></a> : null,

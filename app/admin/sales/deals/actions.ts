@@ -13,15 +13,8 @@ import { archiveDeal, changeDealStage, createDeal, markDealLost, markDealWon, up
 const termSchema = z.object({
   label: z.string().trim().min(1).max(120),
   percent: z.string().regex(/^\d+(\.\d{1,2})?$/),
-  trigger: z.enum(["on_signing", "on_date", "on_milestone", "on_completion"]).default("on_date"),
+  trigger: z.enum(["on_signing", "on_date"]).default("on_date"),
   due_offset_days: z.coerce.number().int().min(0).max(3650).default(0),
-});
-
-const productSchema = z.object({
-  product_id: z.string().uuid(),
-  quantity: z.string().regex(/^\d+(\.\d{1,2})?$/).default("1"),
-  unit_price: z.string().regex(/^\d+(\.\d{1,3})?$/).default("0"),
-  description: z.string().max(500).nullable().optional(),
 });
 
 const jsonArray = <T extends z.ZodTypeAny>(schema: T) =>
@@ -48,9 +41,7 @@ const dealSchema = z.object({
   scope: zf.optionalText(20000),
   notes: zf.optionalText(10000),
   payment_terms_json: jsonArray(termSchema),
-  products_json: jsonArray(productSchema),
   is_upsell: zf.checkbox().optional(),
-  previous_project_id: zf.optionalUuid().optional(),
   previous_deal_id: zf.optionalUuid().optional(),
 });
 
@@ -69,9 +60,7 @@ function toInput(v: z.infer<typeof dealSchema>): DealInput {
     scope: v.scope ?? null,
     notes: v.notes ?? null,
     payment_terms: v.payment_terms_json,
-    products: v.products_json,
     is_upsell: v.is_upsell ?? false,
-    previous_project_id: v.previous_project_id ?? null,
     previous_deal_id: v.previous_deal_id ?? null,
   };
 }
@@ -123,15 +112,14 @@ export async function changeDealStageAction(id: string, stageId: string, reason?
   });
 }
 
-export async function markDealWonAction(id: string): Promise<ActionState<{ projectId: string | null }>> {
+export async function markDealWonAction(id: string): Promise<ActionState> {
   return handleAction("markDealWon", async () => {
     const { bos } = await authorize("deals.update");
     await assertCanAccess(bos, "deal", id, "update");
-    const projectId = await markDealWon(bos, id);
+    await markDealWon(bos, id);
     revalidatePath(`/admin/sales/deals/${id}`);
     revalidatePath("/admin/sales/pipeline");
-    revalidatePath("/admin/projects");
-    return { ok: true, data: { projectId }, message: "تم كسب الصفقة وإنشاء المشروع وجدول الدفعات والفاتورة الأولى" };
+    return { ok: true, message: "تم كسب الصفقة وإنشاء جدول الدفعات والفاتورة الأولى" };
   }, "تعذر تسجيل كسب الصفقة.");
 }
 

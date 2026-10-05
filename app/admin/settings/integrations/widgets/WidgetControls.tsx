@@ -10,12 +10,12 @@ type O = { value: string; label: string };
 export interface WidgetValues {
   id: string; name: string; is_active: boolean; allowed_domains: string[]; title: string; welcome_message: string; offline_message: string;
   primary_color: string; position: string; bottom_offset: number; language: string; require_email: boolean;
-  working_hours: { tz?: string; start?: string; end?: string; days?: number[] }; ai_agent_id: string | null; team_id: string | null; branch_id: string | null;
+  working_hours: { tz?: string; start?: string; end?: string; days?: number[] }; ai_agent_id: string | null; team_id: string | null;
 }
 
 const days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
-export function WidgetButton({ widget, agents, teams, branches }: { widget?: WidgetValues; agents: O[]; teams: O[]; branches: O[] }) {
+export function WidgetButton({ widget, agents, teams }: { widget?: WidgetValues; agents: O[]; teams: O[] }) {
   const h = widget?.working_hours ?? {};
   const [hours, setHours] = useState(!!h.start);
   return (
@@ -36,7 +36,6 @@ export function WidgetButton({ widget, agents, teams, branches }: { widget?: Wid
               <SelectField name="language" label="لغة الويدجت" defaultValue={widget?.language ?? "ar"} options={[{ value: "ar", label: "العربية" }, { value: "en", label: "English" }]} />
               <SelectField name="ai_agent_id" label="وكيل الذكاء الاصطناعي" placeholder="بدون — موظفون فقط" options={agents} defaultValue={widget?.ai_agent_id ?? ""} />
               <SelectField name="team_id" label="فريق الدعم" placeholder="الفريق الافتراضي" options={teams} defaultValue={widget?.team_id ?? ""} />
-              {branches.length ? <SelectField name="branch_id" label="الفرع" placeholder="—" options={branches} defaultValue={widget?.branch_id ?? ""} /> : null}
               <CheckboxField name="require_email" label="طلب البريد الإلكتروني قبل المحادثة" defaultChecked={widget?.require_email ?? true} />
               <CheckboxField name="is_active" label="مفعّل" defaultChecked={widget?.is_active ?? true} />
             </div>

@@ -19,7 +19,6 @@ const meetingSchema = z.object({
   deal_id: zf.optionalUuid(),
   client_id: zf.optionalUuid(),
   contact_id: zf.optionalUuid(),
-  project_id: zf.optionalUuid(),
   start_at: z.string().min(10, "الموعد مطلوب"),
   duration_minutes: zf.int(5, 600).default(30),
   meeting_link: zf.optionalUrl(),
@@ -37,7 +36,7 @@ export async function scheduleMeetingAction(_prev: ActionState, formData: FormDa
   const result = await handleAction("scheduleMeeting", async () => {
     const { bos } = await authorize("meetings.create");
     const v = parseForm(meetingSchema, formData);
-    for (const [type, id] of [["lead", v.lead_id], ["deal", v.deal_id], ["client", v.client_id], ["project", v.project_id]] as const) {
+    for (const [type, id] of [["lead", v.lead_id], ["deal", v.deal_id], ["client", v.client_id] ] as const) {
       if (id) await assertCanAccess(bos, type, id, "read");
     }
     const meeting = await scheduleMeeting(bos, {
@@ -46,7 +45,6 @@ export async function scheduleMeetingAction(_prev: ActionState, formData: FormDa
       deal_id: v.deal_id,
       client_id: v.client_id,
       contact_id: v.contact_id,
-      project_id: v.project_id,
       start_at: new Date(v.start_at).toISOString(),
       duration_minutes: v.duration_minutes,
       meeting_link: v.meeting_link ?? null,

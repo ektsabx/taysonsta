@@ -20,8 +20,7 @@ export type CrmStage =
   | "proposal_accepted"
   | "proposal_rejected"
   | "contract"
-  | "invoice"
-  | "project";
+  | "invoice";
 export type ProposalStatus = "draft" | "ready" | "published" | "viewed" | "accepted" | "rejected" | "expired";
 
 // Generated from the migrated schema: `supabase gen types typescript --local > types/supabase.ts`.

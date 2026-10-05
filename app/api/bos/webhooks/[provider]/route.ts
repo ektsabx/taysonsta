@@ -11,11 +11,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!/^[a-z0-9_]{2,40}$/.test(provider)) return new NextResponse("not found", { status: 404 });
   try {
     const raw = await request.text();
-    // Twilio signs the public URL it called; behind a proxy use the forwarded host.
-    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
-    const url = host ? `${proto}://${host}${request.nextUrl.pathname}${request.nextUrl.search}` : request.url;
-    const r = await receiveWebhook(provider, request.headers, raw, url);
+    const r = await receiveWebhook(provider, request.headers, raw);
     return new NextResponse(r.body, { status: r.status });
   } catch (e) {
     logServerError(`webhook:${provider}`, e);

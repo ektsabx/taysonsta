@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { ActionButton, ModalButton } from "@/components/bos/Dialog";
 import {
   addSubscriptionAction, archiveRoleAction, cloneRoleAction, deleteSubscriptionAction, saveRoleAction, savePipelineStagesAction,
-  setRoleAppRequirementAction, setRolePermissionAction, setUserOverrideAction, testIntegrationAction, toggleSubscriptionAction,
+  setRolePermissionAction, setUserOverrideAction, testIntegrationAction, toggleSubscriptionAction,
 } from "./actions";
 
 type Opt = { value: string; label: string };
@@ -167,16 +167,3 @@ export function TestIntegrationButton({ name }: { name: string }) {
   return <ActionButton label="اختبار الاتصال" className="admin-btn small ghost" action={() => testIntegrationAction(name)} />;
 }
 
-export function RequirementCell({ roleId, appId, required, level, levels }: { roleId: string; appId: string; required: boolean; level: string | null; levels: string[] }) {
-  const t = useT();
-  const [on, setOn] = useState(required);
-  const [lv, setLv] = useState(level ?? "");
-  const [pending, start] = useTransition();
-  const save = (r: boolean, l: string) => start(async () => { const res = await setRoleAppRequirementAction(roleId, appId, r, l); if (!res.ok) alert(res.error); });
-  return (
-    <span className="bos-row" style={{ gap: 4 }}>
-      <input type="checkbox" checked={on} disabled={pending} aria-label={t("مطلوب")} onChange={(e) => { setOn(e.target.checked); save(e.target.checked, lv); }} />
-      {on && levels.length ? <select value={lv} disabled={pending} onChange={(e) => { setLv(e.target.value); save(true, e.target.value); }} style={{ fontSize: 11 }}><option value="">—</option>{levels.map((l) => <option key={l} value={l}>{l}</option>)}</select> : null}
-    </span>
-  );
-}

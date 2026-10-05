@@ -13,7 +13,6 @@ import { formatTime } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
 import { db } from "@/lib/bos/db";
 import { listEmployeeCategories } from "@/services/bos/hr/people";
-import { currentBranchSelection } from "@/lib/bos/branch";
 
 export default async function EmployeesPage({ searchParams }: { searchParams: SearchParams }) {
   const { bos, scope } = await requirePermission("employees.read");
@@ -26,7 +25,6 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
     db().from("employees").select("id, full_name").is("archived_at", null).in("lifecycle_status", ["active", "on_leave", "onboarding"]).order("full_name"),
     db().from("employees").select("work_location").not("work_location", "is", null),
   ]);
-  const { branches } = await currentBranchSelection(bos);
   const managerOptions = (managers ?? []).map((m) => ({ value: m.id, label: m.full_name }));
   const locationOptions = [...new Set((locations ?? []).map((l) => l.work_location as string))].sort().map((l) => ({ value: l, label: l }));
   return (
@@ -43,7 +41,6 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
           { key: "department", label: "القسم", type: "select", options: departments.map((d) => ({ value: d.id, label: d.name })) },
           { key: "team", label: "الفريق", type: "select", options: teams.map((t) => ({ value: t.id, label: t.name })) },
           { key: "manager", label: "المدير", type: "select", options: managerOptions },
-          ...(branches.length > 1 ? [{ key: "branch", label: "الفرع", type: "select" as const, options: branches.map((b) => ({ value: b.id, label: b.name })) }] : []),
           ...(locationOptions.length ? [{ key: "location", label: "الفرع", type: "select" as const, options: locationOptions }] : []),
           ...(categories.length ? [{ key: "category", label: "التصنيف", type: "select" as const, options: categories.map((c) => ({ value: c.id, label: c.name })) }] : []),
           { key: "status", label: "الحالة", type: "select", options: statusOptions("employee_lifecycle_status") },

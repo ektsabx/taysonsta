@@ -27,11 +27,10 @@ interface AdminChromeProps {
   unreadNotifications: number;
   clock: ClockProps | null;
   systemTime: { ms: number; timezone: string };
-  branches: { items: { id: string; name: string }[]; selected: string | null };
   children: ReactNode;
 }
 
-export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNotifications, clock, systemTime, branches, children }: AdminChromeProps) {
+export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNotifications, clock, systemTime, children }: AdminChromeProps) {
   const [collapsed, setCollapsed] = useState(readStoredCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -62,8 +61,6 @@ export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNoti
           unreadNotifications={unreadNotifications}
           clock={clock}
           systemTime={systemTime}
-          branches={branches}
-          settingsHrefs={navigation.find((g) => g.key === "settings")?.items?.map((i) => i.href) ?? []}
         />
         <main className="admin-main">{children}</main>
       </div>

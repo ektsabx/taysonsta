@@ -10,7 +10,6 @@ import { ValidationError } from "@/lib/bos/errors";
 import { archiveAccount, assignAccountManager, createAccount, mergeAccounts, updateAccount, type AccountInput } from "@/services/bos/accounts";
 import { archiveContact, createContact, setPrimaryContact, updateContact, type ContactInput } from "@/services/bos/contacts";
 import { setOnboardingItem, startClientOnboarding } from "@/services/bos/onboarding";
-import { invitePortalUser, setPortalUserStatus } from "@/services/bos/portal-admin";
 
 const accountSchema = z.object({
   name: zf.required("اسم العميل", 200),
@@ -224,32 +223,5 @@ export async function toggleOnboardingItemAction(clientId: string, itemId: strin
     await setOnboardingItem(bos, itemId, done);
     revalidateAccount(clientId);
     return { ok: true };
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Client portal access (docs/bos/18)
-// ---------------------------------------------------------------------------
-
-export async function invitePortalUserAction(clientId: string, contactId: string): Promise<ActionState> {
-  return handleAction("invitePortalUser", async () => {
-    const { bos } = await authorize("portal.manage");
-    await assertCanAccess(bos, "client", clientId);
-    const { headers } = await import("next/headers");
-    const h = await headers();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
-    await invitePortalUser(bos, contactId, origin);
-    revalidateAccount(clientId);
-    return { ok: true, message: "تم إرسال دعوة البوابة" };
-  }, "تعذر إرسال الدعوة.");
-}
-
-export async function setPortalUserStatusAction(clientId: string, portalUserId: string, status: "active" | "disabled"): Promise<ActionState> {
-  return handleAction("setPortalUserStatus", async () => {
-    const { bos } = await authorize("portal.manage");
-    await assertCanAccess(bos, "client", clientId);
-    await setPortalUserStatus(bos, portalUserId, status);
-    revalidateAccount(clientId);
-    return { ok: true, message: status === "disabled" ? "تم تعطيل الوصول" : "تم تفعيل الوصول" };
   });
 }

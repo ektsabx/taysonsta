@@ -1,7 +1,7 @@
 # 11 — Current State
 
 Snapshot of what exists in the code. Update with every change.
-Last updated: 2026-10-01.
+Last updated: 2026-10-05.
 
 ## Repository
 
@@ -25,7 +25,7 @@ Admin http://admin.localhost:3200.
 | --- | --- | --- |
 | Auth (magic link) | `app/(auth)`, `app/auth/confirm` | working |
 | Workspaces, members, invitations | `supabase/migrations/20261001000000_yolias_init.sql` | working, RLS |
-| Search composer, text + voice | `components/app/StrategyComposer.tsx`, `useSpeechToText.ts`, `app/api/transcribe`, `lib/stt.ts` | working; server STT needs `STT_API_KEY` |
+| Search composer (text only; voice removed by the final spec, D-119) | `components/app/StrategyComposer.tsx` | working |
 | ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working; structured output through `lib/ai/llm` (Anthropic / OpenAI / Gemini with fallback, D-118) |
 | Search pages | `app/(app)/search/[id]` (UI "Search", table `strategies`) | working |
 | Intelligence Layer | `lib/intel/*` | capabilities, routing, registry, service, Vault credentials, cost logging. Tested with unit tests + a live integration run |
@@ -37,17 +37,22 @@ Admin http://admin.localhost:3200.
 | Plans & billing | `lib/plan-catalog.ts`, `lib/billing.ts` | quotas/prices from `plan_quotas` (admin-editable); payments in test mode only |
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
 | Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. Conversation UI under each search result (`components/app/AgentThread.tsx`), saved in `agent_messages` (user turns via RLS, assistant turns server-only; D-115). Test: `npm run test:agent` |
-| Voice STT cost | `lib/stt.ts` | every server STT call logged in `intel.llm_calls` (task `stt`); token usage priced from `llm_prices`, otherwise logged as unpriced |
 | Email | `lib/email/*`, `supabase/config.toml` | full catalogue by category with per-category senders, logged and queued (`email_log`, worker), wired to auth, billing, usage ledger, campaign end and admin. See `05` "Emails". Payment-failure family waits on D-007 |
 | Two-factor authentication | Settings → Account, `/two-factor` | TOTP via Supabase MFA; sign-in requires the code once enabled; Supabase emails the enabled/disabled notices |
 | Email change | Settings → Account | Supabase double confirmation + notice to the old address |
 
 ## Yolias Admin
 
-All BOS modules listed in `09-yolias-admin.md` §A exist and work, with the
-Yolias look. Platform modules (§B) started: Overview, Users, Workspaces,
+The BOS modules kept by the final spec (`14-final-spec-plan.md`, D-119)
+exist and work, with the Yolias look. Removed entirely: client portal,
+products & services, branches, cameras, social accounts, automation,
+projects / tasks / time tracking, IT & external apps, WhatsApp/SMS
+messaging, colour/font/theme customization. Money is EGP or USD only, never
+converted (D-120). Platform modules (§B) started: Overview, Users, Workspaces,
 Searches under `/admin/platform` (read-only), reading the Yolias database.
 Runs at http://admin.localhost:3200.
+The demo seed (`npm run seed:bos`) follows the new schema: USD/EGP only,
+no projects, products, portal users or IT access records.
 
 ## Known gaps vs the specs
 
@@ -65,7 +70,7 @@ Runs at http://admin.localhost:3200.
 Fixed on 2026-10-05: the CSV export links (`ExportLink`), unused code, the
 untranslated import-page strings, and the integration tests that relied on
 fixed database ids. `npm test` at the root is fully green (types, 77 unit,
-DB, 110 integration); lint has 0 errors (4 intentional warnings: external
+DB, 110 integration); after the final-spec removals (Phase 1): types 0 errors, 62 unit, 3 DB, 86 integration; lint has 0 errors (4 intentional warnings: external
 images and a font).
 
 ## Checks

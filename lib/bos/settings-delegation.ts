@@ -1,16 +1,14 @@
 import type { PermissionKey } from "@/lib/bos/permissions";
 
 // Settings sections delegated to non-admin roles (docs/bos/22 "Users"):
-// HR → attendance, Finance → commission/currencies, Sales Manager →
+// HR → attendance, Finance → commission, Sales Manager →
 // pipeline (when granted leads.manage). settings.manage always works.
 export const sectionDelegates: Record<string, PermissionKey> = {
   attendance: "attendance.manage",
   hr: "attendance.manage",
   payroll: "payroll.manage",
   commission: "commissions.manage",
-  pricing: "invoices.manage",
   pipeline: "leads.manage",
-  products: "products.manage",
 };
 
 export const tableSection: Record<string, string> = {
@@ -18,9 +16,7 @@ export const tableSection: Record<string, string> = {
   employee_categories: "hr", document_types: "hr", hr_request_types: "hr", departments: "hr", teams: "hr",
   salary_components: "payroll",
   commission_rules: "commission",
-  currencies: "pricing", exchange_rates: "pricing",
   lead_sources: "pipeline",
-  products: "products", project_templates: "products",
 };
 
 export const settingKeySection: Record<string, string> = {

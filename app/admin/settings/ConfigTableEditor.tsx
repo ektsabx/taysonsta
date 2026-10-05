@@ -10,7 +10,7 @@ import { Modal } from "@/components/bos/Dialog";
 import { removeConfigRowAction, saveConfigRowAction } from "./actions";
 
 type Opt = { value: string; label: string };
-export interface Lookups { users: Opt[]; roles: Opt[]; departments: Opt[]; products: Opt[]; currencies: string[] }
+export interface Lookups { users: Opt[]; roles: Opt[]; departments: Opt[]; currencies: string[] }
 
 const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -22,7 +22,6 @@ function display(f: FieldSpec, v: unknown, lk: Lookups) {
     case "user": return find(lk.users);
     case "role": return find(lk.roles);
     case "department": return find(lk.departments);
-    case "product": return find(lk.products);
     case "select": return f.options?.find((o) => o.value === v)?.label ?? String(v);
     case "weekdays": return (v as number[]).map((d) => days[d]).join("، ");
     case "time": return String(v).slice(0, 5);
@@ -46,7 +45,6 @@ function Input({ f, value, set, lk }: { f: FieldSpec; value: unknown; set: (v: u
     case "user": return sel(lk.users);
     case "role": return sel(lk.roles);
     case "department": return sel(lk.departments);
-    case "product": return sel(lk.products);
     case "currency": return sel(lk.currencies.map((c) => ({ value: c, label: c })));
     case "list": return <input dir="ltr" value={Array.isArray(value) ? value.join(", ") : String(value ?? "")} onChange={(e) => set(e.target.value.split(",").map((x) => x.trim()).filter(Boolean))} />;
     case "weekdays": {

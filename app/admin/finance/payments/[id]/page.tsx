@@ -16,14 +16,13 @@ export default async function PaymentDetailPage({ params }: { params: Promise<{ 
   const { bos } = await requirePermission("payments.read");
   const { id } = await params;
   if (!(await canAccessEntity(bos, "payment", id))) notFound();
-  const { data: p, error } = await db().from("payments").select("*, clients(id, name, company_name), invoices(id, invoice_number, currency), deals(id, deal_number), projects(id, project_number)").eq("id", id).maybeSingle();
+  const { data: p, error } = await db().from("payments").select("*, clients(id, name, company_name), invoices(id, invoice_number, currency), deals(id, deal_number)").eq("id", id).maybeSingle();
   if (error) throw error;
   if (!p) notFound();
   const names = await userNameMap();
   const client = p.clients as unknown as { id: string; name: string; company_name: string | null } | null;
   const inv = p.invoices as unknown as { id: string; invoice_number: string; currency: string } | null;
   const deal = p.deals as unknown as { id: string; deal_number: string } | null;
-  const project = p.projects as unknown as { id: string; project_number: string } | null;
   const refundable = Number(p.amount) - Number(p.refunded_amount);
 
   return (
@@ -51,9 +50,7 @@ export default async function PaymentDetailPage({ params }: { params: Promise<{ 
               items={[
                 { label: "المرجع", value: p.reference },
                 { label: "المبلغ بعملة الفاتورة", value: p.invoice_amount && inv ? <Money value={p.invoice_amount} currency={inv.currency} /> : null },
-                { label: "سعر الصرف", value: p.exchange_rate ? String(p.exchange_rate) : null },
                 { label: "الصفقة", value: deal ? <Link className="bos-link" href={`/admin/sales/deals/${deal.id}`}>{deal.deal_number}</Link> : null },
-                { label: "المشروع", value: project ? <Link className="bos-link" href={`/admin/projects/${project.id}`}>{project.project_number}</Link> : null },
                 { label: "سجّلها", value: p.created_by ? names.get(p.created_by) : null },
                 { label: "وقت التسجيل", value: formatDateTime(p.created_at) },
                 { label: "سبب الاسترداد", value: p.refund_reason, hidden: !p.refund_reason },

@@ -48,9 +48,6 @@ test("every document type renders from a real record, in Arabic and English, wit
     ["employment_contract", "employee", await firstId("employees")],
     ["nda_ip", "employee", await firstId("employees")],
     ["nda_ip", "client", await firstId("clients")],
-    ["maintenance_agreement", "project", await firstId("projects")],
-    ["license_certificate", "project", await firstId("projects")],
-    ["handover_certificate", "project", await firstId("projects")],
     ["salary_certificate", "employee", await firstId("employees")],
     ["experience_certificate", "employee", await firstId("employees")],
   ];

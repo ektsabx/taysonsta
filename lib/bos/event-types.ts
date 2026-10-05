@@ -27,7 +27,7 @@ export const eventCatalog: EventType[] = [
     ["deal.updated", "تحديث صفقة"],
     ["deal.stage_changed", "تغيير مرحلة صفقة", ["to", "from"]],
     ["deal.proposal_sent", "إرسال مقترح للصفقة"],
-    ["deal.won", "صفقة مكسوبة", ["value", "value_base", "currency", "project_id", "client_id", "entity.is_upsell"]],
+    ["deal.won", "صفقة مكسوبة", ["value", "currency", "client_id", "entity.is_upsell"]],
     ["deal.lost", "صفقة خاسرة", ["reason"]],
   ]),
   ...e("المقترحات والعقود", [
@@ -36,7 +36,7 @@ export const eventCatalog: EventType[] = [
   ]),
   ...e("المالية", [
     ["invoice.created", "إنشاء فاتورة"], ["invoice.sent", "إرسال فاتورة"], ["invoice.overdue", "فاتورة متأخرة", ["entity.balance", "entity.currency", "client_id"]], ["invoice.paid", "سداد فاتورة"],
-    ["payment.created", "تسجيل دفعة"], ["payment.completed", "اكتمال دفعة", ["amount", "currency", "deal_id", "project_id"]], ["payment.failed", "فشل دفعة"], ["payment.refunded", "استرداد دفعة"],
+    ["payment.created", "تسجيل دفعة"], ["payment.completed", "اكتمال دفعة", ["amount", "currency", "deal_id"]], ["payment.failed", "فشل دفعة"], ["payment.refunded", "استرداد دفعة"],
     ["commission.created", "إنشاء عمولة"], ["commission.eligible", "استحقاق عمولة"], ["commission.approved", "اعتماد عمولة"], ["commission.paid", "صرف عمولة"],
   ]),
   ...e("المشاريع والمهام", [
@@ -53,7 +53,7 @@ export const eventCatalog: EventType[] = [
   ]),
   ...e("الموافقات", [["approval.requested", "طلب موافقة", ["approval_type"]], ["approval.decided", "قرار موافقة", ["decision", "approval_type"]]]),
   ...e("الدعم", [
-    ["ticket.created", "تذكرة جديدة", ["priority", "client_id", "project_id"]], ["ticket.assigned", "تعيين تذكرة"], ["ticket.replied", "رد على تذكرة"], ["ticket.client_replied", "رد العميل"], ["ticket.status_changed", "تغيير حالة تذكرة", ["to"]], ["ticket.sla_breached", "تجاوز SLA", ["priority"]],
+    ["ticket.created", "تذكرة جديدة", ["priority", "client_id"]], ["ticket.assigned", "تعيين تذكرة"], ["ticket.replied", "رد على تذكرة"], ["ticket.client_replied", "رد العميل"], ["ticket.status_changed", "تغيير حالة تذكرة", ["to"]], ["ticket.sla_breached", "تجاوز SLA", ["priority"]],
   ]),
   ...e("العملاء", [["client.created", "إنشاء حساب"], ["client.assigned", "تعيين مدير حساب"], ["onboarding.started", "بدء تهيئة"], ["onboarding.completed", "اكتمال تهيئة"], ["onboarding.overdue", "تهيئة متأخرة"]]),
   ...e("الفريق والحضور", [
@@ -62,18 +62,17 @@ export const eventCatalog: EventType[] = [
     ["leave.requested", "طلب إجازة"], ["leave.approved", "قبول إجازة"], ["leave.rejected", "رفض إجازة"], ["overtime.requested", "طلب عمل إضافي"], ["overtime.decided", "قرار عمل إضافي"],
     ["employee.created", "إنشاء موظف"], ["employee.lifecycle_changed", "تغيير حالة موظف", ["from", "to"]], ["review.submitted", "مراجعة أداء"],
   ]),
-  ...e("IT والصلاحيات", [
-    ["access.requested", "طلب وصول"], ["access.granted", "منح وصول"], ["access.revoked", "سحب وصول"], ["access.expired", "انتهاء وصول"],
+  ...e("الأجهزة والأمان", [
     ["device.assigned", "تسليم جهاز"], ["device.returned", "استرجاع جهاز"], ["device.security_check_due", "فحص أمان مستحق"], ["security.mfa_required", "2FA مطلوب"],
   ]),
   ...e("المعرفة", [["kb.article_published", "نشر مقال", ["kind"]], ["kb.policy_updated", "تحديث سياسة"]]),
   // Events emitted by the modules that were missing from the catalogue, plus
   // Master-upgrade Phase 6 events (docs/bos/30 §9, §18, §20).
   ...e("الموافقات", [["approval.changes_requested", "طلب تعديلات على طلب موافقة", ["approval_type"]], ["approval.resubmitted", "إعادة تقديم طلب موافقة", ["approval_type"]], ["approval.overdue", "موافقة متأخرة", ["approval_type", "hours_overdue"]]]),
-  ...e("المقترحات والعقود", [["proposal.created", "إنشاء مقترح"], ["proposal.submitted", "تقديم مقترح للمراجعة"], ["proposal.expiring", "مقترح قارب على الانتهاء"], ["contract.created", "إنشاء عقد"], ["contract.viewed", "مشاهدة عقد"], ["contract.document_uploaded", "رفع مستند عقد"], ["contract.cancelled", "إلغاء عقد"], ["contract.ended", "انتهاء عقد"], ["change_request.applied", "تطبيق طلب تغيير"]]),
+  ...e("المقترحات والعقود", [["proposal.created", "إنشاء مقترح"], ["proposal.submitted", "تقديم مقترح للمراجعة"], ["proposal.expiring", "مقترح قارب على الانتهاء"], ["contract.created", "إنشاء عقد"], ["contract.viewed", "مشاهدة عقد"], ["contract.document_uploaded", "رفع مستند عقد"], ["contract.cancelled", "إلغاء عقد"], ["contract.ended", "انتهاء عقد"]]),
   ...e("الصفقات", [["deal.reopened", "إعادة فتح صفقة"], ["deal.value_changed_after_won", "تغيير قيمة صفقة بعد الكسب"]]),
   ...e("المالية", [["invoice.cancelled", "إلغاء فاتورة"], ["commission.adjustment_required", "تعديل عمولة مطلوب"]]),
-  ...e("المشاريع والمهام", [["project.member_added", "إضافة عضو للمشروع"], ["project.member_removed_with_tasks", "إزالة عضو لديه مهام"], ["project.pm_assignment_required", "مطلوب تعيين مدير مشروع"], ["project.cancelled_with_unpaid_invoices", "إلغاء مشروع بفواتير غير مسددة"], ["project.satisfaction_recorded", "تسجيل رضا العميل"], ["milestone.created", "إنشاء مرحلة"], ["issue.created", "مشكلة جديدة"], ["issue.assigned", "تعيين مشكلة"], ["issue.status_changed", "تغيير حالة مشكلة"], ["time.logged", "تسجيل وقت"], ["comment.added", "تعليق جديد"]]),
+  ...e("التعليقات", [["comment.added", "تعليق جديد"]]),
   ...e("الأنشطة والتواصل", [["meeting.invited", "دعوة اجتماع"], ["file.shared", "مشاركة ملف"]]),
   ...e("العملاء", [["client.merged", "دمج حسابين"]]),
   ...e("الفريق والحضور", [["employee.manager_changed", "تغيير المدير المباشر"], ["employee.promoted", "ترقية موظف"], ["employee.probation_ending", "قرب انتهاء فترة الاختبار"], ["employee.reports_need_reassignment", "مرؤوسون يحتاجون مديراً"], ["compensation.changed", "تغيير الراتب"], ["offboarding.started", "بدء إنهاء الخدمة"], ["offboarding.completed", "اكتمال إنهاء الخدمة"], ["user.invited", "دعوة موظف للنظام"]]),
@@ -86,7 +85,7 @@ export const eventCatalog: EventType[] = [
     ["performance.feedback_requested", "طلب تقييم 360"], ["performance.goal_assigned", "هدف جديد"], ["kpi.period_computed", "حساب المؤشرات"],
   ]),
   ...e("الدعم", [["conversation.created", "محادثة دعم جديدة", ["channel", "customer_id"]], ["conversation.customer_message", "رسالة جديدة من عميل", ["channel"]], ["conversation.assigned", "إسناد محادثة", ["assignee_user_id"]], ["conversation.escalated", "تصعيد محادثة", ["priority"]], ["conversation.resolved", "حل محادثة"]]),
-  ...e("النظام والتكاملات", [["automation.failed", "فشل مسار عمل"], ["integration.failed", "فشل تكامل"], ["security.settings_changed", "تغيير إعدادات الأمان"], ["security.alert", "تنبيه أمني"], ["document.issued", "إصدار مستند"]]),
+  ...e("النظام والتكاملات", [["integration.failed", "فشل تكامل"], ["security.settings_changed", "تغيير إعدادات الأمان"], ["security.alert", "تنبيه أمني"], ["document.issued", "إصدار مستند"]]),
 ];
 
 export const eventMap = new Map(eventCatalog.map((ev) => [ev.key, ev]));

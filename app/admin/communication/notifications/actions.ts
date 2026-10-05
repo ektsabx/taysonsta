@@ -7,7 +7,7 @@ import { handleAction, parseForm, zf, type ActionState } from "@/lib/bos/action"
 import { sendManualNotification } from "@/services/bos/manual-notifications";
 
 const schema = z.object({
-  target_kind: z.enum(["users", "team", "department", "branch", "role", "all"]),
+  target_kind: z.enum(["users", "team", "department", "role", "all"]),
   target_ids: z.array(z.string().uuid()).default([]),
   channels: z.array(z.enum(["in_app", "email"])).default(["in_app"]),
   priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),

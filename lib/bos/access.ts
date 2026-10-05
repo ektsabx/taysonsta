@@ -4,39 +4,19 @@ import { db } from "@/lib/bos/db";
 import { getTeamUserIds, type BosUser } from "@/lib/bos/auth";
 import type { PermissionKey, Scope } from "@/lib/bos/permissions";
 import { managedEmployeeIds, managedUserIds } from "@/services/bos/team-scope";
-import { allowedBranchIds, branchTables, canSeeBranch } from "@/lib/bos/branch";
 
 // Record-level access (§62): module permission + scope evaluated against the
 // record's ownership columns. Used by detail pages and by every generic
 // feature that hangs off an entity (timeline, comments, files, approvals).
 
-export const myProjectIds = cache(async (bos: BosUser): Promise<string[]> => {
-  const [{ data: pm }, { data: member }] = await Promise.all([
-    db().from("projects").select("id").eq("pm_id", bos.userId),
-    db().from("project_members").select("project_id").eq("user_id", bos.userId),
-  ]);
-  return [...new Set([...(pm ?? []).map((p) => p.id), ...(member ?? []).map((m) => m.project_id)])];
-});
-
-export const teamProjectIds = cache(async (bos: BosUser): Promise<string[]> => {
-  const team = await getTeamUserIds(bos);
-  const [{ data: pm }, { data: member }] = await Promise.all([
-    db().from("projects").select("id").in("pm_id", team),
-    db().from("project_members").select("project_id").in("user_id", team),
-  ]);
-  return [...new Set([...(pm ?? []).map((p) => p.id), ...(member ?? []).map((m) => m.project_id)])];
-});
-
-// Accounts I am related to: account manager, or via my deals/projects/leads.
+// Accounts I am related to: account manager, or via my deals/leads.
 export const myClientIds = cache(async (bos: BosUser, scope: Scope): Promise<string[] | null> => {
   if (scope === "all") return null;
   const users = scope === "team" ? await getTeamUserIds(bos) : [bos.userId];
-  const projects = scope === "team" ? await teamProjectIds(bos) : await myProjectIds(bos);
-  const [am, deals, leads, proj, created] = await Promise.all([
+  const [am, deals, leads, created] = await Promise.all([
     db().from("clients").select("id").in("account_manager_id", users),
     db().from("deals").select("client_id").in("assigned_to", users),
     db().from("leads").select("client_id").in("assigned_to", users).not("client_id", "is", null),
-    projects.length ? db().from("projects").select("client_id").in("id", projects) : Promise.resolve({ data: [] as { client_id: string }[] }),
     db().from("clients").select("id").in("created_by", users),
   ]);
   return [
@@ -44,7 +24,6 @@ export const myClientIds = cache(async (bos: BosUser, scope: Scope): Promise<str
       ...(am.data ?? []).map((r) => r.id),
       ...(deals.data ?? []).map((r) => r.client_id),
       ...(leads.data ?? []).map((r) => r.client_id as string),
-      ...(proj.data ?? []).map((r) => r.client_id),
       ...(created.data ?? []).map((r) => r.id),
     ]),
   ];
@@ -58,9 +37,8 @@ async function ownerIn(bos: BosUser, scope: Scope, owners: (string | null | unde
 
 const entityPermission: Record<string, string> = {
   content_item: "content",
-  lead: "leads", deal: "deals", client: "clients", contact: "contacts", project: "projects", task: "tasks",
-  milestone: "milestones", ticket: "tickets", invoice: "invoices",
-  payment: "payments", contract: "contracts", proposal: "proposals", change_request: "change_requests", issue: "issues",
+  lead: "leads", deal: "deals", client: "clients", contact: "contacts", ticket: "tickets", invoice: "invoices",
+  payment: "payments", contract: "contracts", proposal: "proposals",
   meeting: "meetings", employee: "employees", expense: "expenses", vendor: "vendors", kb_article: "knowledge",
   device: "devices", activity: "activities", commission: "commissions", approval: "approvals",
 };
@@ -69,12 +47,11 @@ const entityPermission: Record<string, string> = {
 async function canAccessChannel(bos: BosUser, channelId: string): Promise<boolean> {
   if (!bos.permissions.get("chat.read")) return false;
   const client = db();
-  const { data: ch } = await client.from("channels").select("id, kind, is_private, project_id").eq("id", channelId).maybeSingle();
+  const { data: ch } = await client.from("channels").select("id, kind, is_private").eq("id", channelId).maybeSingle();
   if (!ch) return false;
   if (ch.kind === "team" && !ch.is_private) return true;
   const { data: m } = await client.from("channel_members").select("user_id").eq("channel_id", channelId).eq("user_id", bos.userId).maybeSingle();
   if (m) return true;
-  if (ch.kind === "project") return bos.isSuperAdmin || !!bos.permissions.get("projects.manage");
   return bos.isSuperAdmin && ch.kind !== "direct";
 }
 
@@ -163,15 +140,6 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
     const { data } = await db().from("expenses").select("created_by, employee_user_id").eq("id", entityId).maybeSingle();
     if (data && (data.created_by === bos.userId || data.employee_user_id === bos.userId)) return true;
   }
-  // Branch scope (docs/bos/30 §3.2): records of branches the user may not
-  // reach are denied before module scopes apply; own employee record stays visible.
-  if (branchTables[entityType] && !(entityType === "employee" && entityId === bos.employee.id)) {
-    const allowed = await allowedBranchIds(bos);
-    if (allowed) {
-      const { data } = await db().from(branchTables[entityType] as "leads").select("branch_id").eq("id", entityId).maybeSingle();
-      if (data && !canSeeBranch(allowed, (data as { branch_id: string | null }).branch_id)) return false;
-    }
-  }
   if (entityType === "channel") return canAccessChannel(bos, entityId);
   if (entityType === "message") {
     const { data } = await db().from("messages").select("channel_id").eq("id", entityId).maybeSingle();
@@ -218,49 +186,21 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
       const clients = await myClientIds(bos, scope);
       return !!data.client_id && (clients === null || clients.includes(data.client_id));
     }
-    case "project": {
-      const ids = scope === "team" ? await teamProjectIds(bos) : await myProjectIds(bos);
-      if (ids.includes(entityId)) return true;
-      if (bos.roleKeys.includes("account_manager") || bos.roleKeys.includes("finance")) {
-        const { data } = await client.from("projects").select("client_id").eq("id", entityId).maybeSingle();
-        const clients = await myClientIds(bos, scope);
-        return !!data && (clients === null || clients.includes(data.client_id));
-      }
-      return false;
-    }
-    case "milestone":
-    case "change_request":
-    case "issue": {
-      const table = entityType === "milestone" ? "milestones" : entityType === "change_request" ? "change_requests" : "issues";
-      const { data } = await client.from(table).select("project_id").eq("id", entityId).maybeSingle();
-      return !!data && canAccessEntity(bos, "project", data.project_id as string, action);
-    }
-    case "task": {
-      const { data } = await client.from("tasks").select("assigned_to, created_by, project_id").eq("id", entityId).maybeSingle();
-      if (!data) return false;
-      if (await ownerIn(bos, scope, [data.assigned_to, data.created_by])) return true;
-      if (data.project_id) {
-        const ids = scope === "team" ? await teamProjectIds(bos) : await myProjectIds(bos);
-        return ids.includes(data.project_id);
-      }
-      return false;
-    }
     case "activity": {
       const { data } = await client.from("activities").select("assigned_to, created_by").eq("id", entityId).maybeSingle();
       return !!data && ownerIn(bos, scope, [data.assigned_to, data.created_by]);
     }
     case "meeting": {
-      const { data } = await client.from("meetings").select("organizer_id, created_by, project_id").eq("id", entityId).maybeSingle();
+      const { data } = await client.from("meetings").select("organizer_id, created_by").eq("id", entityId).maybeSingle();
       if (!data) return false;
       if (await ownerIn(bos, scope, [data.organizer_id, data.created_by])) return true;
       const { data: att } = await client.from("meeting_attendees").select("id").eq("meeting_id", entityId).eq("user_id", bos.userId).maybeSingle();
       return !!att;
     }
     case "ticket": {
-      const { data } = await client.from("tickets").select("assigned_to, created_by_user_id, project_id, client_id").eq("id", entityId).maybeSingle();
+      const { data } = await client.from("tickets").select("assigned_to, created_by_user_id, client_id").eq("id", entityId).maybeSingle();
       if (!data) return false;
       if (await ownerIn(bos, scope, [data.assigned_to, data.created_by_user_id])) return true;
-      if (data.project_id && (await myProjectIds(bos)).includes(data.project_id)) return true;
       const clients = await myClientIds(bos, scope);
       return !!data.client_id && !!clients?.includes(data.client_id);
     }
@@ -268,12 +208,11 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
     case "payment":
     case "contract": {
       const table = entityType === "invoice" ? "invoices" : entityType === "payment" ? "payments" : "contracts";
-      const { data } = await client.from(table).select("client_id, project_id, deal_id, created_by").eq("id", entityId).maybeSingle();
+      const { data } = await client.from(table).select("client_id, deal_id, created_by").eq("id", entityId).maybeSingle();
       if (!data) return false;
-      const row = data as { client_id: string; project_id: string | null; deal_id: string | null; created_by: string | null };
+      const row = data as { client_id: string; deal_id: string | null; created_by: string | null };
       if (await ownerIn(bos, scope, [row.created_by])) return true;
       if (row.deal_id && (await canAccessEntity(bos, "deal", row.deal_id))) return true;
-      if (row.project_id && (await myProjectIds(bos)).includes(row.project_id)) return true;
       return false;
     }
     case "proposal": {

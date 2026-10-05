@@ -17,7 +17,7 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
   const sp = await readParams(searchParams);
   const view = sp.view ?? "users";
   const canManage = can(bos, "users.manage");
-  const { data: emps } = await db().from("employees").select("id, user_id, full_name, email, lifecycle_status, mfa_status, last_activity_at, branches!employees_branch_id_fkey(name)").order("full_name");
+  const { data: emps } = await db().from("employees").select("id, user_id, full_name, email, lifecycle_status, mfa_status, last_activity_at").order("full_name");
   const userIds = (emps ?? []).map((e) => e.user_id).filter(Boolean) as string[];
   const [{ data: ur }, { data: logins }, invitations] = await Promise.all([
     userIds.length ? db().from("user_roles").select("user_id, roles(name)").in("user_id", userIds) : Promise.resolve({ data: [] }),
@@ -69,7 +69,7 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
       ) : (
         <Card flush>
           <BosTable className="bos-table responsive">
-            <thead><tr><th><Tx>المستخدم</Tx></th><th><Tx>الأدوار</Tx></th><th><Tx>الفرع</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الدخول</Tx></th><th>2FA</th><th><Tx>آخر دخول</Tx></th><th /></tr></thead>
+            <thead><tr><th><Tx>المستخدم</Tx></th><th><Tx>الأدوار</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>الدخول</Tx></th><th>2FA</th><th><Tx>آخر دخول</Tx></th><th /></tr></thead>
             <tbody>
               {withLogin.map((e) => {
                 const a = authInfo.get(e.user_id as string);
@@ -78,7 +78,6 @@ export default async function UsersSettingsPage({ searchParams }: { searchParams
                   <tr key={e.id}>
                     <td className="cell-primary"><Link href={`/admin/team/employees/${e.id}`}>{e.full_name}</Link><span className="cell-sub" dir="ltr">{e.email}</span></td>
                     <td>{rolesOf(e.user_id as string) || <span className="bos-faint"><Tx>بدون دور</Tx></span>}</td>
-                    <td><Tx>{(e.branches as unknown as { name: string } | null)?.name ?? "—"}</Tx></td>
                     <td><StatusBadge map="employee_lifecycle_status" value={e.lifecycle_status} /></td>
                     <td>{banned ? <StatusBadge tone="danger" label="معطّل" /> : a?.last_sign_in_at ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="warning" label="دعوة معلقة" />}</td>
                     <td><StatusBadge map="mfa_status" value={e.mfa_status} /></td>

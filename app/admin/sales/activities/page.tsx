@@ -47,7 +47,7 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: S
           { key: "mine", label: "النطاق", type: "select", options: [{ value: "1", label: "أنشطتي فقط" }] },
           { key: "type", label: "النوع", type: "select", options: statusOptions("activity_type") },
           { key: "status", label: "الحالة", type: "select", options: statusOptions("activity_status") },
-          { key: "related", label: "مرتبط بـ", type: "select", options: [{ value: "lead", label: "عميل محتمل" }, { value: "deal", label: "صفقة" }, { value: "client", label: "حساب" }, { value: "project", label: "مشروع" }] },
+          { key: "related", label: "مرتبط بـ", type: "select", options: [{ value: "lead", label: "عميل محتمل" }, { value: "deal", label: "صفقة" }, { value: "client", label: "حساب" }] },
           ...(scope === "all" || scope === "team" ? [{ key: "assigned", label: "المسؤول", type: "select" as const, options: staff.map((s) => ({ value: s.userId, label: s.name })) }] : []),
           { key: "from", label: "من", type: "date" },
           { key: "to", label: "إلى", type: "date" },
@@ -59,18 +59,15 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: S
         total={result.total}
         page={result.page}
         pageSize={result.pageSize}
-        empty={<EmptyState title="لا توجد أنشطة" description="سجّل الأنشطة من صفحات العملاء المحتملين والصفقات والحسابات والمشاريع." />}
+        empty={<EmptyState title="لا توجد أنشطة" description="سجّل الأنشطة من صفحات العملاء المحتملين والصفقات والحسابات." />}
         rows={result.rows.map((a) => {
           const lead = a.leads as unknown as { name: string } | null;
           const deal = a.deals as unknown as { name: string } | null;
           const client = a.clients as unknown as { name: string } | null;
-          const project = a.projects as unknown as { name: string } | null;
           const related = a.lead_id ? (
             <Link href={`/admin/sales/leads/${a.lead_id}?tab=activities`}><Tx vars={{ name: lead?.name }}>{"عميل محتمل: {name}"}</Tx></Link>
           ) : a.deal_id ? (
             <Link href={`/admin/sales/deals/${a.deal_id}?tab=activities`}><Tx vars={{ name: deal?.name }}>{"صفقة: {name}"}</Tx></Link>
-          ) : a.project_id ? (
-            <Link href={`/admin/projects/${a.project_id}`}><Tx vars={{ name: project?.name }}>{"مشروع: {name}"}</Tx></Link>
           ) : a.client_id ? (
             <Link href={`/admin/clients/${a.client_id}`}><Tx vars={{ name: client?.name }}>{"حساب: {name}"}</Tx></Link>
           ) : (

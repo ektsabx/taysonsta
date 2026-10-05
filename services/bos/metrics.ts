@@ -1,13 +1,15 @@
 import "server-only";
 import { db } from "@/lib/bos/db";
 import { addMoney, parseMoney, percentOf, toDecimalString } from "@/lib/bos/money";
+import type { Currency } from "@/lib/bos/currency";
+import { defaultCurrency } from "@/lib/bos/company-currency";
 
-// Pipeline metrics (§11) computed from real deals. Amounts are converted to
-// the company base currency with dated exchange rates; deals without a rate
-// are reported separately instead of being silently dropped or mis-summed.
+// Pipeline metrics (§11) computed from real deals. One currency at a time
+// (EGP or USD, final spec §54): there is no conversion, so deals in the other
+// currency are counted separately instead of being mis-summed.
 
 export interface PipelineMetrics {
-  baseCurrency: string;
+  currency: Currency;
   openCount: number;
   pipelineValue: string;
   weightedPipeline: string;
@@ -18,36 +20,11 @@ export interface PipelineMetrics {
   lostRevenue: string;
   qualifiedCount: number;
   conversionRate: number;
-  missingRates: number;
+  otherCurrencyCount: number;
 }
 
-async function ratesToBase(currencies: string[], base: string): Promise<Map<string, string | null>> {
-  const out = new Map<string, string | null>();
-  for (const c of new Set(currencies)) {
-    if (c === base) {
-      out.set(c, "1");
-      continue;
-    }
-    const { data } = await db().rpc("bos_fx_rate", { p_from: c, p_to: base });
-    out.set(c, data === null || data === undefined ? null : String(data));
-  }
-  return out;
-}
-
-export async function getBaseCurrency(): Promise<string> {
-  const { data } = await db().from("bos_settings").select("value").eq("key", "company").maybeSingle();
-  return String((data?.value as { base_currency?: string } | null)?.base_currency ?? "USD");
-}
-
-function convert(value: unknown, rate: string | null): bigint | null {
-  if (rate === null) return null;
-  const v = parseMoney(value) ?? BigInt(0);
-  const r = parseMoney(rate) ?? BigInt(0);
-  return (v * r) / BigInt(1000);
-}
-
-export async function pipelineMetrics(opts: { userIds: string[] | null; from: string; to: string; clientId?: string }): Promise<PipelineMetrics> {
-  const base = await getBaseCurrency();
+export async function pipelineMetrics(opts: { userIds: string[] | null; from: string; to: string; clientId?: string; currency?: Currency }): Promise<PipelineMetrics> {
+  const base = opts.currency ?? (await defaultCurrency());
   let query = db()
     .from("deals")
     .select("id, value, currency, probability, expected_close_date, won_at, lost_at, created_at, pipeline_stages!inner(category)")
@@ -56,7 +33,6 @@ export async function pipelineMetrics(opts: { userIds: string[] | null; from: st
   if (opts.clientId) query = query.eq("client_id", opts.clientId);
   const { data } = await query;
   const deals = (data ?? []).map((d) => ({ ...d, category: (d.pipeline_stages as unknown as { category: string }).category }));
-  const rates = await ratesToBase(deals.map((d) => d.currency), base);
 
   let pipeline = BigInt(0);
   let weighted = BigInt(0);
@@ -74,12 +50,11 @@ export async function pipelineMetrics(opts: { userIds: string[] | null; from: st
   const inRange = (iso: string | null) => !!iso && new Date(iso).getTime() >= from && new Date(iso).getTime() <= to;
 
   for (const d of deals) {
-    const rate = rates.get(d.currency) ?? null;
-    const valueBase = convert(d.value, rate);
-    if (valueBase === null) {
+    if (d.currency !== base) {
       missing++;
       continue;
     }
+    const valueBase = parseMoney(d.value) ?? BigInt(0);
     if (inRange(d.created_at)) {
       createdInRange++;
       if (d.won_at) wonOfCreated++;
@@ -102,7 +77,7 @@ export async function pipelineMetrics(opts: { userIds: string[] | null; from: st
   }
 
   return {
-    baseCurrency: base,
+    currency: base,
     openCount,
     pipelineValue: toDecimalString(pipeline, 2),
     weightedPipeline: toDecimalString(weighted, 2),
@@ -113,7 +88,7 @@ export async function pipelineMetrics(opts: { userIds: string[] | null; from: st
     lostRevenue: toDecimalString(lost, 2),
     qualifiedCount: createdInRange,
     conversionRate: createdInRange ? Math.round((wonOfCreated / createdInRange) * 10000) / 100 : 0,
-    missingRates: missing,
+    otherCurrencyCount: missing,
   };
 }
 

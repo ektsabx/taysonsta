@@ -9,7 +9,7 @@ import { PageHeader, Card, EmptyState, Tabs, StatusBadge } from "@/components/bo
 import { FilterBar } from "@/components/bos/FilterBar";
 import { addDays, formatDate, formatTime, todayIn } from "@/lib/bos/format";
 
-const typeClass: Record<CalendarItem["type"], string> = { meeting: "info", task: "accent", follow_up: "warning", milestone: "success", deadline: "danger", leave: "accent", attendance: "neutral", holiday: "neutral" };
+const typeClass: Record<CalendarItem["type"], string> = { meeting: "info", follow_up: "warning", leave: "accent", attendance: "neutral", holiday: "neutral" };
 
 function localDate(item: CalendarItem, tz: string) {
   return item.allDay ? item.start.slice(0, 10) : new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(item.start));
@@ -36,10 +36,9 @@ export default async function CalendarPage({ searchParams }: { searchParams: Sea
     to = addDays(`${addDays(from, 32).slice(0, 7)}-01`, -1);
   }
   const types = sp.types ? sp.types.split(",") : [];
-  const [items, manages, { data: projects }, { data: clients }] = await Promise.all([
-    getCalendarItems(bos, from, to, { scope: sp.scope, project: sp.project, client: sp.client, types }),
+  const [items, manages, { data: clients }] = await Promise.all([
+    getCalendarItems(bos, from, to, { scope: sp.scope, client: sp.client, types }),
     isPeopleManager(bos),
-    db().from("projects").select("id, name").not("status", "in", "(completed,cancelled)").order("name").limit(200),
     db().from("clients").select("id, name, company_name").is("archived_at", null).order("name").limit(300),
   ]);
   const byDay = new Map<string, CalendarItem[]>();
@@ -120,9 +119,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Sea
       <Tabs param="view" active={view} baseHref={qs({}).replace(/([?&])view=[^&]*&?/, "$1")} tabs={[{ key: "month", label: "شهر" }, { key: "week", label: "أسبوع" }, { key: "agenda", label: "أجندة" }]} />
       <FilterBar
         filters={[
-          { key: "scope", label: "النطاق", type: "select", options: [{ value: "mine", label: "أنا" }, ...(manages || bos.permissions.get("projects.read") === "team" || bos.permissions.get("projects.read") === "all" ? [{ value: "team", label: "الفريق" }] : [])] },
+          { key: "scope", label: "النطاق", type: "select", options: [{ value: "mine", label: "أنا" }, ...(manages || bos.permissions.get("activities.read") === "team" || bos.permissions.get("activities.read") === "all" ? [{ value: "team", label: "الفريق" }] : [])] },
           { key: "types", label: "النوع", type: "select", options: Object.entries(calendarTypeLabels).map(([value, label]) => ({ value, label })) },
-          { key: "project", label: "المشروع", type: "select", options: (projects ?? []).map((p) => ({ value: p.id, label: p.name })) },
           { key: "client", label: "العميل", type: "select", options: (clients ?? []).map((c) => ({ value: c.id, label: c.company_name ?? c.name })) },
         ]}
       />

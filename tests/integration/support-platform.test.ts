@@ -95,7 +95,7 @@ test("inbound email threads by [CV-…], is idempotent, reopens resolved convers
 
 test("manual conversation, assignment, ticket from conversation, escalation, access", async () => {
   const [support, sara, admin] = await Promise.all([bosUserFor("support@taysonsta.local"), bosUserFor("sara@taysonsta.local"), bosUserFor("admin@taysonsta.local")]);
-  const conv = await createConversation(support, { customer: { name: "Phone caller", phone: `+2010${Math.floor(Math.random() * 1e8)}` }, channel: "phone", subject: "Invoice question", body: "Caller asks about invoice INV-1", priority: "normal" });
+  const conv = await createConversation(support, { customer: { name: "Phone caller", phone: `+2010${Math.floor(Math.random() * 1e8)}` }, channel: "manual", subject: "Invoice question", body: "Caller asks about invoice INV-1", priority: "normal" });
   trackCustomer(conv.customer_id);
   await assert.rejects(getConversation(sara, conv.id), ForbiddenError, "no conversations permission");
 

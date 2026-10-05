@@ -26,7 +26,6 @@ test("setting section save is validated and audited (old/new)", async () => {
 
 test("config rows: validation, create/update, used rows are deactivated not deleted", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
-  await assert.rejects(saveConfigRow(admin, "exchange_rates", null, { base: "USD", quote: "USD", rate: "1", effective_date: "2026-01-01" }), ValidationError);
   await assert.rejects(saveConfigRow(admin, "work_schedules", null, { name: "Bad", work_days: [0], start_time: "18:00", end_time: "10:00", timezone: "Africa/Cairo" }), ValidationError);
   const id = await saveConfigRow(admin, "lead_sources", null, { name: uniq("Src"), sort_order: 99, is_active: true });
   assert.equal(await removeConfigRow(admin, "lead_sources", id!), "deleted", "unused → deleted");

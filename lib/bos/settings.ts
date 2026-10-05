@@ -8,9 +8,6 @@ import { db } from "@/lib/bos/db";
 // schema with defaults so a missing/partial row never breaks the app.
 
 const optionalText = (max = 500) => z.string().trim().max(max).default("");
-export const brandFontsAr = ["IBM Plex Sans Arabic", "Cairo", "Tajawal", "Almarai", "Noto Sans Arabic", "Readex Pro"] as const;
-export const brandFontsEn = ["Inter", "Roboto", "Poppins", "Manrope", "IBM Plex Sans"] as const;
-const hexColor = z.string().regex(/^#([0-9a-fA-F]{6})$/, "لون غير صالح (#RRGGBB)");
 const socialSchema = z.object({
   facebook: optionalText(), instagram: optionalText(), linkedin: optionalText(), x: optionalText(), youtube: optionalText(),
   tiktok: optionalText(), snapchat: optionalText(), threads: optionalText(), telegram: optionalText(), whatsapp: optionalText(),
@@ -26,16 +23,6 @@ const companySchema = z.object({
   description: optionalText(2000),
   logo_path: z.string().nullable().default(null),
   icon_path: z.string().nullable().default(null),
-  brand_primary: hexColor.default("#e51f26"),
-  // Secondary colour (docs/bos/35 B3).
-  brand_accent: hexColor.default("#60a5fa"),
-  // Status colours; "" keeps the theme default (tuned for light/dark contrast).
-  brand_success: z.union([hexColor, z.literal("")]).default(""),
-  brand_warning: z.union([hexColor, z.literal("")]).default(""),
-  brand_danger: z.union([hexColor, z.literal("")]).default(""),
-  brand_info: z.union([hexColor, z.literal("")]).default(""),
-  brand_font_ar: z.enum(brandFontsAr).default("IBM Plex Sans Arabic"),
-  brand_font_en: z.enum(brandFontsEn).default("Inter"),
   website: optionalText(),
   address: z.string().default(""),
   country: optionalText(100),
@@ -46,13 +33,11 @@ const companySchema = z.object({
   contact_email: z.string().default(""),
   contact_phone: z.string().default(""),
   tax_id: z.string().default(""),
-  base_currency: z.string().length(3).default("USD"),
   timezone: z.string().default("Africa/Cairo"),
   email_domain: z.string().default("taysonsta.com"),
   // Kept for stored data only: Arabic and English are both always available (docs/bos/35 A5).
   enabled_languages: z.array(z.enum(["ar", "en"])).min(1).default(["ar", "en"]),
   default_language: z.enum(["ar", "en"]).default("ar"),
-  default_theme: z.enum(["dark", "light", "system"]).default("system"),
   date_format: z.enum(["dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "d MMM yyyy"]).default("d MMM yyyy"),
   time_format: z.enum(["24h", "12h"]).default("24h"),
   number_locale: z.enum(["en-US", "ar-EG", "ar-SA"]).default("en-US"),
@@ -67,23 +52,10 @@ const salesSchema = z.object({
   deal_won_requires_approval: z.boolean().default(false),
 });
 
-const deliverySchema = z.object({
-  pm_assignment: z.enum(["round_robin", "least_loaded", "specific", "manual"]).default("round_robin"),
-  pm_user_id: z.string().uuid().nullable().default(null),
-  senior_pm_user_ids: z.array(z.string().uuid()).default([]),
-  support_period_days: z.coerce.number().int().min(0).max(3650).default(30),
-});
-
-const projectCompletionSchema = z.object({
-  allow_complete_with_pending_payment: z.boolean().default(false),
-  allow_complete_with_pending_approvals: z.boolean().default(false),
-});
-
 const financeSchema = z.object({
   auto_send_first_invoice: z.boolean().default(false),
   allow_overpayment: z.boolean().default(false),
   default_payment_due_days: z.coerce.number().int().min(0).max(365).default(7),
-  profitability_revenue_basis: z.enum(["collected", "invoiced"]).default("collected"),
 });
 
 const attendancePolicySchema = z.object({
@@ -118,14 +90,15 @@ const stepsSchema = (steps: string[]) => z.object({ steps: z.array(z.string()).m
 // progressive on monthly taxable pay after the exemption; configure them per
 // country law.
 // Unified approvals (docs/bos/30 §18): decision SLA, reminders, escalation
-// to the approver's manager, and amount thresholds that add steps (the
-// source passes the amount in base currency as payload.amount_base).
+// to the approver's manager, and amount thresholds that add steps. A
+// threshold is per currency (EGP or USD, D-120): no conversion, so a rule
+// only matches payloads in its own currency.
 const approvalWorkflowSchema = z.object({
   sla_hours: z.coerce.number().int().min(1).max(720).default(48),
   remind_every_hours: z.coerce.number().int().min(1).max(168).default(24),
   escalate_after_hours: z.coerce.number().int().min(0).max(1440).default(96),
   thresholds: z
-    .array(z.object({ approval_type: z.string().min(1), min_amount: z.coerce.number().min(0), add_steps: z.array(z.string().min(1)).min(1) }))
+    .array(z.object({ approval_type: z.string().min(1), currency: z.enum(["EGP", "USD"]).default("USD"), min_amount: z.coerce.number().min(0), add_steps: z.array(z.string().min(1)).min(1) }))
     .default([]),
 });
 
@@ -149,10 +122,6 @@ const locationSchema = z.object({
   purpose_version: z.coerce.number().int().min(1).default(1),
   retention_days: z.coerce.number().int().min(7).max(730).default(90),
   allow_task_checkins: z.coerce.boolean().default(false),
-});
-
-const timeTrackingSchema = z.object({
-  approval: z.enum(["none", "manual", "all"]).default("none"),
 });
 
 const dealRadarSchema = z.object({
@@ -248,7 +217,6 @@ const integrationsSchema = z.object({
   calendar: integrationToggle.default({ enabled: false }),
   payment: integrationToggle.default({ enabled: false }),
   esign: integrationToggle.default({ enabled: false }),
-  whatsapp: integrationToggle.default({ enabled: false }),
   scheduler: integrationToggle.default({ enabled: false }),
   push: integrationToggle.default({ enabled: false }),
   webhooks: z
@@ -270,8 +238,6 @@ const approvalPoliciesSchema = z.object({
   attendance_correction: approverSchema.default({ required: true, approver: "manager" }),
   overtime: approverSchema.default({ required: true, approver: "manager" }),
   invoice: approverSchema.default({ required: false, approver: "role:finance" }),
-  access_request: z.object({ steps: z.array(z.string()).min(1) }).default({ steps: ["manager", "role:admin"] }),
-  access_request_sensitive: z.object({ steps: z.array(z.string()).min(1) }).default({ steps: ["manager", "role:super_admin"] }),
   // HR & Workforce (docs/bos/28 §14–19, §22, §25)
   payroll: stepsSchema(["role:finance"]),
   loan: stepsSchema(["manager", "role:hr", "role:finance"]),
@@ -285,8 +251,6 @@ const approvalPoliciesSchema = z.object({
 export const settingSchemas = {
   company: companySchema,
   sales: salesSchema,
-  delivery: deliverySchema,
-  project_completion: projectCompletionSchema,
   finance: financeSchema,
   attendance_policy: attendancePolicySchema,
   contracts: contractsSchema,
@@ -301,7 +265,6 @@ export const settingSchemas = {
   approval_workflow: approvalWorkflowSchema,
   ads: adsSchema,
   deal_radar: dealRadarSchema,
-  time_tracking: timeTrackingSchema,
   location: locationSchema,
 } as const;
 

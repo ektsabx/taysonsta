@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/bos/db";
 import { nowIso } from "@/lib/bos/clock";
 import { providerMap } from "@/lib/bos/integrations/catalog";
-import { verifyHmacBase64, verifyMetaSignature, verifySvix, verifyTelegramSecret, verifyTwilio } from "@/lib/bos/integrations/webhook-signatures";
+import { verifyHmacBase64, verifyMetaSignature, verifySvix, verifyTelegramSecret } from "@/lib/bos/integrations/webhook-signatures";
 import { listConnections, resolveConnection } from "@/services/bos/integrations";
 
 // Inbound webhooks (docs/bos/30 §7, doc 31 Phase 4): verify the signature
@@ -34,32 +34,6 @@ registerWebhookHandler("support_email", async (payload) => {
   const { receiveInbound } = await import("@/services/bos/conversations");
   await receiveInbound({ channel: "email", customer: { email: from.email, name: from.name ?? null }, subject: p.subject ?? null, body: p.text!, external_message_id: p.message_id ?? null });
   return "processed";
-});
-
-// WhatsApp Cloud API (docs/bos/30 §11): inbound messages join the inbox;
-// sent/delivered/read/failed statuses update the outbound log.
-registerWebhookHandler("whatsapp_cloud", async (payload) => {
-  const p = payload as { entry?: { changes?: { value?: { contacts?: { wa_id?: string; profile?: { name?: string } }[]; messages?: { from?: string; id?: string; type?: string; text?: { body?: string }; button?: { text?: string }; interactive?: { button_reply?: { title?: string }; list_reply?: { title?: string } } }[]; statuses?: { id?: string; status?: string; errors?: { title?: string; message?: string }[] }[] } }[] }[] };
-  const { receiveMessage, applyStatus } = await import("@/services/bos/messaging");
-  let handled = false;
-  for (const e of p?.entry ?? []) {
-    for (const ch of e.changes ?? []) {
-      const v = ch.value ?? {};
-      for (const m of v.messages ?? []) {
-        if (!m.from || !m.id) continue;
-        const name = v.contacts?.find((x) => x.wa_id === m.from)?.profile?.name ?? null;
-        const body = m.text?.body ?? m.button?.text ?? m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? `[${m.type ?? "message"}]`;
-        await receiveMessage("whatsapp", { from: m.from, name, body, providerId: m.id });
-        handled = true;
-      }
-      for (const st of v.statuses ?? []) {
-        if (!st.id || !["sent", "delivered", "read", "failed"].includes(st.status ?? "")) continue;
-        await applyStatus("whatsapp", st.id, st.status as "sent", st.errors?.[0] ? `${st.errors[0].title ?? ""} ${st.errors[0].message ?? ""}`.trim() : null);
-        handled = true;
-      }
-    }
-  }
-  return handled ? "processed" : "ignored";
 });
 
 // Meta Messenger + Instagram Direct (docs/bos/39 §5): customer messages join
@@ -110,23 +84,6 @@ registerWebhookHandler("telegram", async (payload) => {
   return "processed";
 });
 
-// Twilio SMS: inbound (From/Body) and status callbacks (MessageStatus).
-registerWebhookHandler("twilio", async (payload) => {
-  const p = payload as Record<string, string>;
-  const { receiveMessage, applyStatus } = await import("@/services/bos/messaging");
-  if (p.MessageSid && p.MessageStatus && !p.Body) {
-    const map: Record<string, "sent" | "delivered" | "read" | "failed"> = { sent: "sent", delivered: "delivered", read: "read", failed: "failed", undelivered: "failed" };
-    const st = map[p.MessageStatus];
-    if (!st) return "ignored";
-    await applyStatus("sms", p.MessageSid, st, p.ErrorCode ? `Twilio error ${p.ErrorCode}` : null);
-    return "processed";
-  }
-  if (p.MessageSid && p.From && (p.Body ?? "").trim()) {
-    return receiveMessage("sms", { from: p.From, body: p.Body, providerId: p.MessageSid });
-  }
-  return "ignored";
-});
-
 // DocuSign Connect (docs/bos/30 §19): envelope / recipient status → signature requests.
 registerWebhookHandler("docusign", async (payload) => {
   const { handleDocusignWebhook } = await import("@/services/bos/esign");
@@ -140,9 +97,7 @@ async function sha256Hex(text: string) {
 
 export interface InboundResult { status: number; body: string }
 
-// Form-encoded bodies (Twilio) become a flat object; JSON otherwise.
-function parseBody(rawBody: string, form: boolean): unknown {
-  if (form) return Object.fromEntries(new URLSearchParams(rawBody));
+function parseBody(rawBody: string): unknown {
   try {
     return JSON.parse(rawBody);
   } catch {
@@ -150,12 +105,11 @@ function parseBody(rawBody: string, form: boolean): unknown {
   }
 }
 
-export async function receiveWebhook(provider: string, headers: Headers, rawBody: string, url: string | null = null): Promise<InboundResult> {
+export async function receiveWebhook(provider: string, headers: Headers, rawBody: string): Promise<InboundResult> {
   const def = providerMap.get(provider);
   if (!def?.webhook) return { status: 404, body: "unknown provider" };
   if (rawBody.length > 1_000_000) return { status: 413, body: "too large" };
-  const form = def.webhook.kind === "twilio";
-  let payload: unknown = parseBody(rawBody, form);
+  let payload: unknown = parseBody(rawBody);
 
   // Verify against each active connection of the provider (multi-account).
   let matched: string | null = null;
@@ -169,9 +123,7 @@ export async function receiveWebhook(provider: string, headers: Headers, rawBody
         ? await verifySvix(secret, { id: headers.get("svix-id"), timestamp: headers.get("svix-timestamp"), signature: headers.get("svix-signature") }, rawBody)
         : def.webhook.kind === "meta_hmac"
           ? await verifyMetaSignature(secret, headers.get("x-hub-signature-256"), rawBody)
-          : def.webhook.kind === "twilio"
-            ? await verifyTwilio(secret, headers.get("x-twilio-signature"), url, payload as Record<string, string>)
-            : def.webhook.kind === "telegram_secret"
+          : def.webhook.kind === "telegram_secret"
               ? verifyTelegramSecret(secret, headers.get("x-telegram-bot-api-secret-token"))
             : await verifyHmacBase64(secret, headers.get("x-docusign-signature-1") ?? headers.get("x-signature"), rawBody);
     if (ok) {
@@ -181,7 +133,7 @@ export async function receiveWebhook(provider: string, headers: Headers, rawBody
   }
 
   payload = payload ?? {};
-  const eventId = headers.get("svix-id") ?? headers.get("i-twilio-idempotency-token") ?? headers.get("x-request-id") ?? (await sha256Hex(rawBody));
+  const eventId = headers.get("svix-id") ?? headers.get("x-request-id") ?? (await sha256Hex(rawBody));
   const eventType = (payload as { type?: string; event?: string; object?: string })?.type ?? (payload as { event?: string })?.event ?? (payload as { object?: string })?.object ?? null;
 
   if (!matched) {

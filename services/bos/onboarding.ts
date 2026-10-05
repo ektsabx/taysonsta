@@ -13,7 +13,7 @@ import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 export async function listClientOnboarding(clientId: string) {
   const { data: lists } = await db()
     .from("onboarding_checklists")
-    .select("*, deals(id, deal_number, name), projects(id, name, project_number)")
+    .select("*, deals(id, deal_number, name)")
     .eq("subject", "client")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
@@ -29,17 +29,16 @@ export async function listClientOnboarding(clientId: string) {
 export async function startClientOnboarding(bos: BosUser, dealId: string) {
   const { data: deal } = await db().from("deals").select("id, client_id, name").eq("id", dealId).maybeSingle();
   if (!deal) throw new NotFoundError();
-  const { data: project } = await db().from("projects").select("id").eq("deal_id", dealId).maybeSingle();
-  const { data, error } = await db().rpc("bos_start_onboarding", { p_subject: "client", p_template_key: "client_onboarding", p_client: deal.client_id, p_deal: dealId, p_project: (project?.id ?? null) as unknown as string, p_employee: null as unknown as string });
+  const { data, error } = await db().rpc("bos_start_onboarding", { p_subject: "client", p_template_key: "client_onboarding", p_client: deal.client_id, p_deal: dealId, p_employee: null as unknown as string });
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "onboarding.started", entityType: "client", entityId: deal.client_id, newValue: { deal_id: dealId, checklist_id: data } });
   return data as string;
 }
 
 export async function setOnboardingItem(bos: BosUser, itemId: string, done: boolean) {
-  const { data: item } = await db().from("onboarding_items").select("*, onboarding_checklists(id, subject, status, client_id, deal_id, project_id, employee_id)").eq("id", itemId).maybeSingle();
+  const { data: item } = await db().from("onboarding_items").select("*, onboarding_checklists(id, subject, status, client_id, deal_id, employee_id)").eq("id", itemId).maybeSingle();
   if (!item) throw new NotFoundError();
-  const cl = item.onboarding_checklists as unknown as { id: string; subject: string; status: string; client_id: string | null; deal_id: string | null; project_id: string | null; employee_id: string | null };
+  const cl = item.onboarding_checklists as unknown as { id: string; subject: string; status: string; client_id: string | null; deal_id: string | null; employee_id: string | null };
   if (cl.status === "cancelled") throw new ValidationError("قائمة التهيئة ملغاة.");
   if (item.auto_key && !done) throw new ValidationError("هذا البند يكتمل تلقائياً من النظام ولا يمكن إلغاؤه يدوياً.");
   await db().from("onboarding_items").update(done ? { is_done: true, done_by: bos.userId, done_at: nowIso() } : { is_done: false, done_by: null, done_at: null }).eq("id", itemId);
@@ -50,7 +49,7 @@ export async function setOnboardingItem(bos: BosUser, itemId: string, done: bool
   if (!remaining?.length && cl.status === "in_progress") {
     await db().from("onboarding_checklists").update({ status: "completed", completed_at: nowIso() }).eq("id", cl.id);
     if (cl.subject === "client" && cl.client_id) {
-      await emitEvent({ type: "onboarding.completed", entityType: "client", entityId: cl.client_id, summary: "Client onboarding completed", actorId: bos.userId, payload: { checklist_id: cl.id, deal_id: cl.deal_id, project_id: cl.project_id }, links: [{ type: "deal", id: cl.deal_id }, { type: "project", id: cl.project_id }], dedupeKey: `onboarding.completed:${cl.id}` });
+      await emitEvent({ type: "onboarding.completed", entityType: "client", entityId: cl.client_id, summary: "Client onboarding completed", actorId: bos.userId, payload: { checklist_id: cl.id, deal_id: cl.deal_id }, links: [{ type: "deal", id: cl.deal_id }], dedupeKey: `onboarding.completed:${cl.id}` });
     }
   } else if (remaining?.length && cl.status === "completed") {
     await db().from("onboarding_checklists").update({ status: "in_progress", completed_at: null }).eq("id", cl.id);
@@ -260,18 +259,13 @@ export async function getOnboardingDashboard(employeeIds: string[] | null) {
   if (employeeIds) q = q.in("employee_id", employeeIds.length ? employeeIds : ["00000000-0000-0000-0000-000000000000"]);
   const { data: lists } = await q;
   const ids = (lists ?? []).map((l) => l.id);
-  const empIds = (lists ?? []).map((l) => l.employee_id as string);
-  const [{ data: items }, { data: grants }] = await Promise.all([
-    ids.length ? c.from("onboarding_items").select("*").in("checklist_id", ids) : Promise.resolve({ data: [] as ItemRow[] }),
-    empIds.length ? c.from("access_grants").select("employee_id, status, is_required").in("employee_id", empIds) : Promise.resolve({ data: [] as { employee_id: string; status: string; is_required: boolean }[] }),
-  ]);
+  const { data: items } = ids.length ? await c.from("onboarding_items").select("*").in("checklist_id", ids) : { data: [] as ItemRow[] };
   const today = nowIso().slice(0, 10);
   const since = new Date(nowMs() - 30 * 86400_000).toISOString();
   const rows = (lists ?? []).map((l) => {
     const its = ((items ?? []) as ItemRow[]).filter((i) => i.checklist_id === l.id);
     const req = its.filter((i) => i.required);
     const emp = l.employees as unknown as { id: string; full_name: string; position: string | null; start_date: string | null; lifecycle_status: string; manager_id: string | null; created_at: string; departments: { name: string } | null };
-    const missingAccess = ((grants ?? []) as { employee_id: string; status: string; is_required: boolean }[]).filter((g) => g.employee_id === emp.id && g.is_required && g.status !== "active").length;
     const pendingOf = (section: string) => its.filter((i) => i.section === section && i.required && !i.is_done).length;
     return {
       checklistId: l.id,
@@ -281,7 +275,6 @@ export async function getOnboardingDashboard(employeeIds: string[] | null) {
       employee: emp,
       percent: req.length ? Math.round((req.filter((i) => i.is_done).length / req.length) * 100) : 100,
       sections: sectionProgress(its),
-      missingAccess,
       missingDocuments: pendingOf("Knowledge"),
       missingTraining: pendingOf("Training"),
       pendingManager: pendingOf("Management") + its.filter((i) => i.auto_key === "confirm:manager" && !i.is_done).length,
@@ -296,7 +289,6 @@ export async function getOnboardingDashboard(employeeIds: string[] | null) {
       inProgress: inProgress.length,
       completed: rows.filter((r) => r.status === "completed").length,
       overdue: rows.filter((r) => r.overdue).length,
-      missingAccess: inProgress.filter((r) => r.missingAccess > 0).length,
       missingDocuments: inProgress.filter((r) => r.missingDocuments > 0).length,
       missingTraining: inProgress.filter((r) => r.missingTraining > 0).length,
       pendingManager: inProgress.filter((r) => r.pendingManager > 0).length,

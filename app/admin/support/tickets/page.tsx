@@ -49,7 +49,6 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
         columns={[
           { key: "subject", label: "التذكرة", primary: true, alwaysVisible: true },
           { key: "client", label: "العميل" },
-          { key: "project", label: "المشروع", defaultHidden: true },
           { key: "category", label: "التصنيف", defaultHidden: true },
           { key: "priority", label: "الأولوية" },
           { key: "assignee", label: "المسؤول" },
@@ -68,13 +67,11 @@ export default async function TicketsPage({ searchParams }: { searchParams: Sear
         rows={result.rows.map((t) => {
           const c = t.clients as unknown as { id: string; name: string; company_name: string | null } | null;
           const ct = t.contacts as unknown as { full_name: string } | null;
-          const p = t.projects as unknown as { id: string; name: string } | null;
           return {
             id: t.id,
             cells: {
-              subject: <Link href={`/admin/support/tickets/${t.id}`}><Tx>{t.subject}</Tx><span className="cell-sub">{t.ticket_number}{t.source === "portal" ? " · من البوابة" : ""}</span></Link>,
+              subject: <Link href={`/admin/support/tickets/${t.id}`}><Tx>{t.subject}</Tx><span className="cell-sub">{t.ticket_number}</span></Link>,
               client: c ? <Link href={`/admin/clients/${c.id}?tab=tickets`}>{c.company_name ?? c.name}{ct ? <span className="cell-sub">{ct.full_name}</span> : null}</Link> : "—",
-              project: p ? <Link href={`/admin/projects/${p.id}`}>{p.name}</Link> : "—",
               category: catLabel.get(t.category) ?? t.category,
               priority: <StatusBadge map="priority" value={t.priority} />,
               assignee: t.assigned_to ? names.get(t.assigned_to) ?? "—" : <span className="bos-faint"><Tx>غير معيّن</Tx></span>,

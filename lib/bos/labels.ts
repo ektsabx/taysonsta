@@ -40,7 +40,6 @@ export const statusMaps: Record<string, StatusMap> = {
   activity_type: {
     call: { label: "مكالمة", tone: "neutral" },
     email: { label: "بريد", tone: "neutral" },
-    whatsapp: { label: "واتساب", tone: "neutral" },
     linkedin: { label: "لينكدإن", tone: "neutral" },
     meeting: { label: "اجتماع", tone: "neutral" },
     follow_up: { label: "متابعة", tone: "neutral" },
@@ -122,7 +121,6 @@ export const statusMaps: Record<string, StatusMap> = {
     contract_signed: { label: "عند توقيع العقد", tone: "neutral" },
     payment_collected: { label: "عند تحصيل الدفعات (نسبي)", tone: "neutral" },
     full_payment: { label: "عند السداد الكامل", tone: "neutral" },
-    milestone_payment: { label: "عند دفعة مرحلة", tone: "neutral" },
   },
   schedule_status: {
     scheduled: { label: "مجدولة", tone: "neutral" },

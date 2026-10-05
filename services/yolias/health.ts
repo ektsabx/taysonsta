@@ -8,7 +8,7 @@ import { monthStartUtc } from "@/lib/yolias/plans";
 
 export interface Heartbeat {
   at: string;
-  configured: { llm: { anthropic: boolean; openai: boolean; gemini: boolean }; email: boolean; stt: boolean; billingTestMode: boolean };
+  configured: { llm: { anthropic: boolean; openai: boolean; gemini: boolean }; email: boolean; billingTestMode: boolean };
 }
 
 export async function platformHealth() {

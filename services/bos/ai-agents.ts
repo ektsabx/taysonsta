@@ -25,7 +25,7 @@ import type { AiProvider } from "@/lib/bos/integrations/catalog";
 export type AiAgent = Tables<"ai_agents">;
 export type Generate = (req: AiRequest) => Promise<AiResult>;
 
-export const agentChannels = ["web_widget", "whatsapp", "messenger", "instagram", "telegram", "email", "sms"] as const;
+export const agentChannels = ["web_widget", "messenger", "instagram", "telegram", "email"] as const;
 export const agentTools = [
   { key: "crm_lookup", label: "بيانات العميل من CRM", description: "اسم العميل وحسابه وشركته — لهذا العميل فقط." },
   { key: "invoice_status", label: "حالة الفواتير", description: "أرقام فواتير العميل وحالتها ومواعيد استحقاقها (قراءة فقط)." },
@@ -244,15 +244,13 @@ export const reasonText: Record<Extract<AgentDecision, { kind: "handoff" }>["rea
 };
 
 async function sendAiMessage(conv: Conversation, text: string, extra: { ai_sources?: unknown } = {}) {
-  let delivery: { status: "queued" | "sent" | "delivered" | "read" | "failed" | "skipped" | null; error: string | null; externalId: string | null; outboundId: string | null } = { status: "sent", error: null, externalId: null, outboundId: null };
-  if (conv.channel !== "web_widget" && conv.channel !== "portal") {
+  let delivery: { status: "queued" | "sent" | "delivered" | "read" | "failed" | "skipped" | null; error: string | null; externalId: string | null } = { status: "sent", error: null, externalId: null };
+  if (conv.channel !== "web_widget") {
     const { data: customer } = await db().from("support_customers").select("*").eq("id", conv.customer_id).single();
     const { deliverToCustomer } = await import("@/services/bos/channel-delivery");
     delivery = await deliverToCustomer(conv, customer!, text, null);
   }
   const msg = await addMessage(conv, { direction: "outbound", author_kind: "ai", body: text, delivery_status: delivery.status, delivery_error: delivery.error, external_id: delivery.externalId, ...extra });
-  const { linkOutbound } = await import("@/services/bos/channel-delivery");
-  await linkOutbound(delivery.outboundId, msg?.id);
   return msg;
 }
 
@@ -302,7 +300,7 @@ async function handOff(conv: Conversation, agent: AiAgent | null, reason: Extrac
     try {
       const { data: cust } = await c.from("support_customers").select("name, client_id, contact_id").eq("id", conv.customer_id).single();
       const { createTicket } = await import("@/services/bos/support");
-      const t = await createTicket({}, { client_id: cust?.client_id ?? conv.client_id, contact_id: cust?.contact_id ?? null, project_id: null, category: "support", priority: "medium", subject: (conv.subject ?? `${conv.number} — ${cust?.name ?? ""}`).slice(0, 300), description: summary, assigned_to: assignee, conversation_id: conv.id, support_customer_id: conv.customer_id, team_id: teamId } as never, "internal");
+      const t = await createTicket({}, { client_id: cust?.client_id ?? conv.client_id, contact_id: cust?.contact_id ?? null, category: "support", priority: "medium", subject: (conv.subject ?? `${conv.number} — ${cust?.name ?? ""}`).slice(0, 300), description: summary, assigned_to: assignee, conversation_id: conv.id, support_customer_id: conv.customer_id, team_id: teamId } as never, "internal");
       await c.from("conversations").update({ ticket_id: t.id }).eq("id", conv.id);
       await addMessage(conv, { direction: "system", author_kind: "system", body: `ticket:${t.ticket_number}` });
     } catch (e) {

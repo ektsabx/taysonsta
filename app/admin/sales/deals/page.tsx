@@ -5,6 +5,7 @@ import { requirePermission, can, scopeUserIds } from "@/lib/bos/auth";
 import { readParams, pageOf, type SearchParams } from "@/lib/bos/params";
 import { listDeals } from "@/services/bos/deals";
 import { pipelineMetrics } from "@/services/bos/metrics";
+import { isCurrency } from "@/lib/bos/currency";
 import { getPipeline, listActiveStaff, listCurrencies, listSavedViews, userNameMap } from "@/services/bos/shared";
 import { PageHeader, StatusBadge, EmptyState, Money, KpiCard } from "@/components/bos/ui";
 import { DataTable, type DataColumn } from "@/components/bos/DataTable";
@@ -40,9 +41,9 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
     listCurrencies(),
     listSavedViews(bos, "deals"),
     listDeals(bos, scope, { ...params, sort: params.sort ? sortMap[params.sort] : undefined, page: pageOf(params) }),
-    pipelineMetrics({ userIds: await scopeUserIds(bos, scope), from: params.closeFrom ?? startOfMonth(today), to: params.closeTo ?? today }),
+    pipelineMetrics({ userIds: await scopeUserIds(bos, scope), from: params.closeFrom ?? startOfMonth(today), to: params.closeTo ?? today, currency: isCurrency(params.currency) ? params.currency : undefined }),
   ]);
-  const base = metrics.baseCurrency;
+  const base = metrics.currency;
 
   return (
     <>
@@ -71,7 +72,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
         <KpiCard label="المفقود (الفترة)" value={formatMoney(metrics.lostRevenue, base)} sub={<Tx vars={{ lostCount: metrics.lostCount }}>{"{lostCount} صفقة"}</Tx>} />
         <KpiCard label="معدل التحويل" value={`${metrics.conversionRate}%`} sub="مكسوبة ÷ مؤهلة" />
       </div>
-      {metrics.missingRates ? <div className="bos-hint" style={{ marginTop: -8, marginBottom: 10 }}><Tx vars={{ missingRates: metrics.missingRates }}>{"{missingRates} صفقة بعملة بلا سعر صرف مستبعدة من الإجماليات."}</Tx></div> : null}
+      {metrics.otherCurrencyCount ? <div className="bos-hint" style={{ marginTop: -8, marginBottom: 10 }}><Tx vars={{ n: metrics.otherCurrencyCount, currency: metrics.currency }}>{"الإجماليات بعملة {currency} فقط؛ {n} صفقة بالعملة الأخرى غير محسوبة."}</Tx></div> : null}
 
       <FilterBar
         searchPlaceholder="بحث باسم الصفقة أو رقمها..."

@@ -708,7 +708,6 @@ const claimSchema = z.object({
   currency: zf.currency(),
   expense_date: date(),
   expense_kind: zf.optionalText(60),
-  project_id: zf.optionalUuid(),
   client_id: zf.optionalUuid(),
 });
 

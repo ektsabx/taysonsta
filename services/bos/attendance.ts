@@ -88,12 +88,11 @@ export async function touchLastActivity(bos: BosUser): Promise<void> {
 
 type AttendanceRecord = Tables<"attendance_records">;
 
-async function employeesInScope(users: string[] | null, f: { department?: string; team?: string; branchIds?: string[] | null } = {}) {
+async function employeesInScope(users: string[] | null, f: { department?: string; team?: string } = {}) {
   let q = db().from("employees").select("id, user_id, full_name, position, timezone, department_id, team_id, work_schedule_id, last_activity_at, lifecycle_status, departments(name)").not("user_id", "is", null).is("archived_at", null).in("lifecycle_status", ["active", "onboarding", "on_leave", "pending_onboarding", "offboarding"]).order("full_name");
   if (users) q = q.in("user_id", users.length ? users : ["00000000-0000-0000-0000-000000000000"]);
   if (f.department) q = q.eq("department_id", f.department);
   if (f.team) q = q.eq("team_id", f.team);
-  if (f.branchIds) q = q.in("branch_id", f.branchIds.length ? f.branchIds : ["00000000-0000-0000-0000-000000000000"]);
   const { data } = await q;
   return data ?? [];
 }
@@ -112,7 +111,7 @@ export interface DayInfo {
 
 // Today per employee (docs/bos/28 §11): record + scheduled start/end; people
 // without a record are "leave", "holiday", "day_off" or "not_clocked_in".
-export async function getToday(users: string[] | null, f: { department?: string; team?: string; status?: string; branchIds?: string[] | null }) {
+export async function getToday(users: string[] | null, f: { department?: string; team?: string; status?: string }) {
   const emps = await employeesInScope(users, f);
   const userIds = emps.map((e) => e.user_id as string);
   const dates = [...new Set(emps.map((e) => todayIn(e.timezone)))];
@@ -152,23 +151,11 @@ export function summarize(records: Pick<AttendanceRecord, "status" | "worked_min
   };
 }
 
-export async function getTeamGrid(users: string[] | null, from: string, to: string, f: { department?: string; team?: string; branchIds?: string[] | null } = {}) {
+export async function getTeamGrid(users: string[] | null, from: string, to: string, f: { department?: string; team?: string } = {}) {
   const emps = await employeesInScope(users, f);
   const ids = emps.map((e) => e.user_id as string);
   const { data } = ids.length ? await db().from("attendance_records").select("user_id, work_date, status, worked_minutes, late_minutes, overtime_minutes, requires_review").in("user_id", ids).gte("work_date", from).lte("work_date", to) : { data: [] };
   return { employees: emps, records: data ?? [] };
-}
-
-export async function getTimesheets(users: string[] | null, from: string, to: string, userFilter?: string) {
-  const target = userFilter ? [userFilter] : users;
-  let s = db().from("attendance_sessions").select("id, user_id, clock_in_at, clock_out_at, source, auto_closed, attendance_records!inner(work_date)").gte("attendance_records.work_date", from).lte("attendance_records.work_date", to).order("clock_in_at", { ascending: false }).limit(2000);
-  let t = db().from("time_entries").select("id, user_id, started_at, ended_at, duration_minutes, description, billable, source, projects(id, name), tasks(id, title)").gte("started_at", `${from}T00:00:00Z`).lte("started_at", `${to}T23:59:59Z`).order("started_at", { ascending: false }).limit(2000);
-  if (target) {
-    s = s.in("user_id", target.length ? target : ["00000000-0000-0000-0000-000000000000"]);
-    t = t.in("user_id", target.length ? target : ["00000000-0000-0000-0000-000000000000"]);
-  }
-  const [{ data: sessions }, { data: entries }] = await Promise.all([s, t]);
-  return { sessions: sessions ?? [], entries: entries ?? [] };
 }
 
 export async function getAttendanceReport(users: string[] | null, from: string, to: string, groupBy: "employee" | "department" | "day") {

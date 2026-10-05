@@ -323,14 +323,13 @@ async function BonusesLoansTab({ ctx }: { ctx: HrTabContext }) {
 }
 
 async function ExpensesTab({ ctx }: { ctx: HrTabContext }) {
-  const [claims, { data: categories }, currencies, { data: projects }] = await Promise.all([
+  const [claims, { data: categories }, currencies] = await Promise.all([
     listExpenseClaims({ userId: ctx.employee.user_id as string }),
     db().from("expense_categories").select("id, name").eq("is_active", true).order("name"),
     listCurrencies(),
-    db().from("projects").select("id, name").not("status", "in", "(completed,cancelled)").order("name").limit(200),
   ]);
   return (
-    <Card title="المصروفات والاسترداد" actions={ctx.isSelf || all(ctx.bos, "hr_requests.create") ? <ExpenseClaimButton employees={[]} fixedEmployeeId={ctx.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} projects={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))} /> : null}>
+    <Card title="المصروفات والاسترداد" actions={ctx.isSelf || all(ctx.bos, "hr_requests.create") ? <ExpenseClaimButton employees={[]} fixedEmployeeId={ctx.employee.id} categories={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))} currencies={currencies} /> : null}>
       {claims.length ? (
         <BosTable className="bos-table responsive">
           <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>الوصف</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الموافقة</Tx></th><th><Tx>الاسترداد</Tx></th><th><Tx>الإيصال</Tx></th></tr></thead>
@@ -338,7 +337,7 @@ async function ExpensesTab({ ctx }: { ctx: HrTabContext }) {
             {claims.map((e) => (
               <tr key={e.id}>
                 <td>{formatDate(e.expense_date)}</td>
-                <td><Tx>{e.description}</Tx><span className="cell-sub">{(e.expense_categories as { name: string } | null)?.name ?? ""}{(e.projects as { name: string } | null)?.name ? ` · ${(e.projects as { name: string }).name}` : ""}</span></td>
+                <td><Tx>{e.description}</Tx><span className="cell-sub">{(e.expense_categories as { name: string } | null)?.name ?? ""}</span></td>
                 <td><Money value={e.amount} currency={e.currency} /></td>
                 <td><StatusBadge map="simple_approval" value={e.approval_status} /></td>
                 <td><StatusBadge map="reimbursement_status" value={e.reimbursement_status} />{e.reimbursement_method ? <span className="cell-sub"><Tx>{e.reimbursement_method === "payroll" ? "مع الراتب" : "مباشر"}</Tx></span> : null}</td>

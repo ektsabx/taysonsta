@@ -36,12 +36,6 @@ export async function processDeliveries(limit = 100): Promise<{ sent: number; fa
     const n = d.notifications as unknown as { user_id: string; title: string; body: string | null; link: string | null; priority: string } | null;
     if (!n) continue;
 
-    if (d.channel === "whatsapp" || d.channel === "sms") {
-      const r = await deliverByMessage(d.id, d.channel, n);
-      await db().from("notification_deliveries").update({ status: r.status, attempts: d.attempts + 1, last_error: r.error, next_attempt_at: null, recipient: r.to, provider_message_id: r.providerId, ...(r.status === "sent" ? { sent_at: nowIso() } : {}) }).eq("id", d.id);
-      result[r.status]++;
-      continue;
-    }
     if (d.channel !== "email") {
       await db().from("notification_deliveries").update({ status: "skipped", last_error: "Push provider not configured", next_attempt_at: null }).eq("id", d.id);
       result.skipped++;
@@ -75,33 +69,6 @@ export async function processDeliveries(limit = 100): Promise<{ sent: number; fa
     }
   }
   return result;
-}
-
-// WhatsApp/SMS notification to the employee's phone (docs/bos/30 §9.3, §11).
-// SMS: plain text. WhatsApp: business-initiated messages need an approved
-// template — the system uses the template named "bos_notification"
-// ({{1}} = title, {{2}} = details) when the 24-hour window is closed.
-// Retries of provider errors are handled by the outbound log.
-async function deliverByMessage(deliveryId: string, channel: "whatsapp" | "sms", n: { user_id: string; title: string; body: string | null; link: string | null }): Promise<{ status: "sent" | "failed" | "skipped"; error: string | null; to: string | null; providerId: string | null }> {
-  const { data: emp } = await db().from("employees").select("id, phone").eq("user_id", n.user_id).maybeSingle();
-  const { normalizePhone, sendAsSystem, whatsappWindowOpen } = await import("@/services/bos/messaging");
-  const to = normalizePhone(emp?.phone);
-  if (!to) return { status: "skipped", error: "No phone number on the employee profile", to: null, providerId: null };
-  const url = n.link ? (n.link.startsWith("http") ? n.link : `${siteUrl}${n.link}`) : null;
-  const details = [n.body, url].filter(Boolean).join(" — ") || "—";
-  try {
-    let templateId: string | null = null;
-    if (channel === "whatsapp" && !(await whatsappWindowOpen(to))) {
-      const { data: tpl } = await db().from("message_templates").select("id").eq("channel", "whatsapp").eq("name", "bos_notification").eq("provider_status", "approved").eq("is_active", true).limit(1).maybeSingle();
-      if (!tpl) return { status: "skipped", error: "WhatsApp needs an approved template named bos_notification", to, providerId: null };
-      templateId = tpl.id;
-    }
-    const out = await sendAsSystem({ channel, to, text: templateId ? null : `${n.title}\n${details}`.slice(0, 1500), template_id: templateId, variables: templateId ? [n.title.slice(0, 200), details.slice(0, 800)] : [], entity_type: "notification", employee_id: emp!.id, notification_delivery_id: deliveryId, dedupe_key: `nd:${deliveryId}` }, null);
-    const status = out.status === "skipped" ? "skipped" : out.status === "failed" ? "failed" : "sent";
-    return { status, error: out.error, to, providerId: out.provider_message_id };
-  } catch (e) {
-    return { status: "skipped", error: e instanceof Error ? e.message.slice(0, 300) : "error", to, providerId: null };
-  }
 }
 
 export async function retryDelivery(bos: BosUser, id: string) {

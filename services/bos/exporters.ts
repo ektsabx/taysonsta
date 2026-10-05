@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/bos/db";
 import { nowMs } from "@/lib/bos/clock";
 import { scopeUserIds, type BosUser } from "@/lib/bos/auth";
-import { myClientIds, myProjectIds, teamProjectIds } from "@/lib/bos/access";
+import { myClientIds } from "@/lib/bos/access";
 import type { Scope } from "@/lib/bos/permissions";
 import { userNameMap } from "@/services/bos/shared";
 
@@ -17,12 +17,6 @@ const MAX = 10000;
 async function ownerUsers(bos: BosUser, perm: string) {
   const scope = bos.permissions.get(perm as never) as Scope | undefined;
   return scope ? scopeUserIds(bos, scope) : [bos.userId];
-}
-
-async function projectIdsFor(bos: BosUser): Promise<string[] | null> {
-  const scope = bos.permissions.get("projects.read");
-  if (scope === "all") return null;
-  return scope === "team" ? teamProjectIds(bos) : myProjectIds(bos);
 }
 
 export const exporters: Record<string, Exporter> = {
@@ -47,13 +41,6 @@ export const exporters: Record<string, Exporter> = {
       return { header: ["asset_id", "name", "type", "model", "serial_number", "purchase_date", "warranty_until", "purchase_value", "currency", "quantity", "license_seats", "location", "notes", "status"], rows: (data ?? []).map((d) => [d.asset_id, d.name, d.type, d.model, d.serial_number, d.purchase_date, d.warranty_until, d.purchase_value, d.currency, d.quantity, d.license_seats, d.location, d.notes, d.status]) };
     },
   },
-  products: {
-    permission: "products.export",
-    async run() {
-      const { data } = await db().from("products").select("name, kind, sku, category, default_price, currency, pricing_model, description, is_active").is("archived_at", null).order("name").limit(MAX);
-      return { header: ["name", "kind", "sku", "category", "default_price", "currency", "pricing_model", "description", "active"], rows: (data ?? []).map((p) => [p.name, p.kind, p.sku, p.category, p.default_price, p.currency, p.pricing_model, p.description, p.is_active ? "yes" : "no"]) };
-    },
-  },
   deals: {
     permission: "deals.export",
     async run(bos, f) {
@@ -72,12 +59,12 @@ export const exporters: Record<string, Exporter> = {
   invoices: {
     permission: "invoices.export",
     async run(_bos, f) {
-      let q = db().from("invoices").select("invoice_number, issue_date, due_date, status, currency, subtotal, discount_amount, tax_amount, total, amount_paid, amount_refunded, balance, clients(name), projects(name)").limit(MAX).order("issue_date", { ascending: false });
+      let q = db().from("invoices").select("invoice_number, issue_date, due_date, status, currency, subtotal, discount_amount, tax_amount, total, amount_paid, amount_refunded, balance, clients(name)").limit(MAX).order("issue_date", { ascending: false });
       if (f.status) q = q.eq("status", f.status as never);
       const { data } = await q;
       return {
-        header: ["Invoice #", "Issue date", "Due date", "Status", "Client", "Project", "Currency", "Subtotal", "Discount", "Tax", "Total", "Paid", "Refunded", "Balance"],
-        rows: (data ?? []).map((i) => [i.invoice_number, i.issue_date, i.due_date, i.status, (i.clients as unknown as { name: string } | null)?.name, (i.projects as unknown as { name: string } | null)?.name, i.currency, i.subtotal, i.discount_amount, i.tax_amount, i.total, i.amount_paid, i.amount_refunded, i.balance]),
+        header: ["Invoice #", "Issue date", "Due date", "Status", "Client", "Currency", "Subtotal", "Discount", "Tax", "Total", "Paid", "Refunded", "Balance"],
+        rows: (data ?? []).map((i) => [i.invoice_number, i.issue_date, i.due_date, i.status, (i.clients as unknown as { name: string } | null)?.name, i.currency, i.subtotal, i.discount_amount, i.tax_amount, i.total, i.amount_paid, i.amount_refunded, i.balance]),
       };
     },
   },
@@ -94,10 +81,10 @@ export const exporters: Record<string, Exporter> = {
   expenses: {
     permission: "expenses.export",
     async run() {
-      const { data } = await db().from("expenses").select("expense_date, description, amount, currency, approval_status, expense_categories(name), vendors(name), projects(name)").is("archived_at", null).limit(MAX).order("expense_date", { ascending: false });
+      const { data } = await db().from("expenses").select("expense_date, description, amount, currency, approval_status, expense_categories(name), vendors(name)").is("archived_at", null).limit(MAX).order("expense_date", { ascending: false });
       return {
-        header: ["Date", "Description", "Category", "Vendor", "Project", "Amount", "Currency", "Approval"],
-        rows: (data ?? []).map((e) => [e.expense_date, e.description, (e.expense_categories as unknown as { name: string } | null)?.name, (e.vendors as unknown as { name: string } | null)?.name, (e.projects as unknown as { name: string } | null)?.name, e.amount, e.currency, e.approval_status]),
+        header: ["Date", "Description", "Category", "Vendor", "Amount", "Currency", "Approval"],
+        rows: (data ?? []).map((e) => [e.expense_date, e.description, (e.expense_categories as unknown as { name: string } | null)?.name, (e.vendors as unknown as { name: string } | null)?.name, e.amount, e.currency, e.approval_status]),
       };
     },
   },
@@ -145,34 +132,6 @@ export const exporters: Record<string, Exporter> = {
       };
     },
   },
-  projects: {
-    permission: "projects.export",
-    async run(bos) {
-      const ids = await projectIdsFor(bos);
-      let q = db().from("projects").select("project_number, name, status, health, progress, start_date, deadline, completed_at, pm_id, clients(name)").is("archived_at", null).limit(MAX);
-      if (ids) q = ids.length ? q.in("id", ids) : q.eq("id", "00000000-0000-0000-0000-000000000000");
-      const { data } = await q;
-      const names = await userNameMap();
-      return {
-        header: ["Project #", "Project", "Client", "PM", "Status", "Health", "Progress", "Start", "Deadline", "Completed"],
-        rows: (data ?? []).map((p) => [p.project_number, p.name, (p.clients as unknown as { name: string } | null)?.name, p.pm_id ? names.get(p.pm_id) : "", p.status, p.health, p.progress, p.start_date, p.deadline, p.completed_at]),
-      };
-    },
-  },
-  tasks: {
-    permission: "tasks.export",
-    async run(bos) {
-      const users = await ownerUsers(bos, "tasks.read");
-      let q = db().from("tasks").select("title, status, priority, due_date, estimated_minutes, actual_minutes, assigned_to, projects(name)").is("archived_at", null).limit(MAX);
-      if (users) q = q.in("assigned_to", users);
-      const { data } = await q;
-      const names = await userNameMap();
-      return {
-        header: ["Task", "Project", "Assignee", "Status", "Priority", "Due", "Estimated (min)", "Actual (min)"],
-        rows: (data ?? []).map((t) => [t.title, (t.projects as unknown as { name: string } | null)?.name, t.assigned_to ? names.get(t.assigned_to) : "", t.status, t.priority, t.due_date, t.estimated_minutes, t.actual_minutes]),
-      };
-    },
-  },
   attendance: {
     permission: "attendance.export",
     async run(bos, f) {
@@ -186,22 +145,6 @@ export const exporters: Record<string, Exporter> = {
       return {
         header: ["Employee", "Date", "Status", "Clock in", "Clock out", "Worked (min)", "Expected (min)", "Overtime (min)", "Late (min)", "Break (min)", "Needs review"],
         rows: (data ?? []).map((r) => [names.get(r.user_id), r.work_date, r.status, r.first_clock_in, r.last_clock_out, r.worked_minutes, r.expected_minutes, r.overtime_minutes, r.late_minutes, r.break_minutes, r.requires_review]),
-      };
-    },
-  },
-  timesheets: {
-    permission: "timesheets.export",
-    async run(bos, f) {
-      const users = await ownerUsers(bos, "timesheets.read");
-      let q = db().from("time_entries").select("user_id, started_at, ended_at, duration_minutes, description, billable, projects(name), tasks(title)").order("started_at", { ascending: false }).limit(MAX);
-      if (users) q = q.in("user_id", users);
-      if (f.from) q = q.gte("started_at", `${f.from}T00:00:00Z`);
-      if (f.to) q = q.lte("started_at", `${f.to}T23:59:59Z`);
-      const { data } = await q;
-      const names = await userNameMap();
-      return {
-        header: ["Employee", "Start", "End", "Minutes", "Project", "Task", "Description", "Billable"],
-        rows: (data ?? []).map((t) => [names.get(t.user_id), t.started_at, t.ended_at, t.duration_minutes, (t.projects as unknown as { name: string } | null)?.name, (t.tasks as unknown as { title: string } | null)?.title, t.description, t.billable]),
       };
     },
   },
@@ -234,16 +177,14 @@ export const exporters: Record<string, Exporter> = {
       const tables: Record<string, { header: string[]; pick: (d: unknown) => Record<string, unknown>[]; keys: string[] }> = {
         bd: { header: ["BD", "Leads", "Qualified", "Outreach", "Meetings", "Proposals", "Pipeline", "Weighted", "Won", "Won value", "Commission"], keys: ["name", "leads", "qualified", "outreach", "meetings", "proposals", "pipeline", "weighted_pipeline", "won", "won_value", "commission"], pick: (d) => d as Record<string, unknown>[] },
         countries: { header: ["Country", "Leads", "Qualified", "Deals", "Won", "Won revenue", "Conversion %", "Avg deal"], keys: ["country", "leads", "qualified", "deals", "won", "won_revenue", "conversion", "avg_deal_value"], pick: (d) => d as Record<string, unknown>[] },
-        products: { header: ["Product/Service", "Kind", "Leads", "Deals", "Won", "Revenue", "Conversion %", "Avg deal", "Profit"], keys: ["name", "kind", "leads", "deals", "won", "revenue", "conversion", "avg_deal_value", "profit"], pick: (d) => d as Record<string, unknown>[] },
-        team: { header: ["Employee", "Department", "Present days", "Late days", "Absent days", "Leave days", "Worked h", "Capacity h", "Logged h", "Overtime min", "Open tasks", "Overdue tasks"], keys: ["name", "department", "present_days", "late_days", "absent_days", "leave_days", "worked_hours", "capacity_hours", "logged_hours", "overtime_minutes", "open_tasks", "overdue_tasks"], pick: (d) => d as Record<string, unknown>[] },
-        projects: { header: ["Project", "Status", "Health", "Progress", "Budget", "Currency", "Revenue", "Cost", "Profit", "Margin %", "Hours", "Planned h", "Deadline"], keys: ["name", "status", "health", "progress", "budget", "currency", "revenue", "cost", "profit", "margin", "hours", "planned_hours", "deadline"], pick: (d) => ((d as { projects?: Record<string, unknown>[] }).projects ?? []) },
-        clients: { header: ["Client", "Country", "Projects", "Active projects", "Revenue", "Upsells", "Open upsell value"], keys: ["name", "country", "projects", "active_projects", "revenue", "upsells", "open_upsell_value"], pick: (d) => ((d as { clients?: Record<string, unknown>[] }).clients ?? []) },
+        team: { header: ["Employee", "Department", "Present days", "Late days", "Absent days", "Leave days", "Worked h", "Capacity h", "Overtime min"], keys: ["name", "department", "present_days", "late_days", "absent_days", "leave_days", "worked_hours", "capacity_hours", "overtime_minutes"], pick: (d) => d as Record<string, unknown>[] },
+        clients: { header: ["Client", "Country", "Revenue", "Upsells", "Open upsell value"], keys: ["name", "country", "revenue", "upsells", "open_upsell_value"], pick: (d) => ((d as { clients?: Record<string, unknown>[] }).clients ?? []) },
         sales: { header: ["Month", "Leads", "Won", "Revenue"], keys: ["month", "leads", "won", "revenue"], pick: (d) => ((d as { trend?: Record<string, unknown>[] }).trend ?? []) },
         revenue: { header: ["Month", "Invoiced", "Collected", "Expenses"], keys: ["month", "invoiced", "collected", "expenses"], pick: (d) => ((d as { trend?: Record<string, unknown>[] }).trend ?? []) },
       };
       const t = tables[name];
       if (!t) return { header: ["error"], rows: [["unknown report"]] };
-      const sensitive = ["revenue", "cost", "profit", "margin", "won_value", "won_revenue", "commission", "pipeline", "weighted_pipeline", "avg_deal_value", "open_upsell_value", "budget", "invoiced", "collected", "expenses"];
+      const sensitive = ["revenue", "cost", "profit", "margin", "won_value", "won_revenue", "commission", "pipeline", "weighted_pipeline", "avg_deal_value", "open_upsell_value", "invoiced", "collected", "expenses"];
       const canMoney = bos.permissions.has("revenue.view_sensitive" as never);
       const { data } = await runReport(bos, name as "sales", f);
       const keys = t.keys.map((k) => (sensitive.includes(k) && !canMoney ? null : k));

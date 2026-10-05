@@ -88,5 +88,5 @@ export const zf = {
     z.preprocess((v) => (v === "" || v === undefined ? null : v), z.string().min(10, "تاريخ غير صالح").nullable()),
   int: (min: number, max: number) => z.coerce.number().int().min(min).max(max),
   checkbox: () => z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()),
-  currency: () => z.string().regex(/^[A-Z]{3}$/, "عملة غير صالحة"),
+  currency: () => z.enum(["EGP", "USD"], { message: "العملة EGP أو USD فقط" }),
 };

@@ -150,7 +150,7 @@ export function CxComposer({ id, channel, customer, disabled }: { id: string; ch
     if (!body.trim()) return;
     run(() => replyAction(id, body, internal), () => setBody(""));
   };
-  const hint = internal ? "لا تُرسل للعميل — يراها الفريق فقط" : channel === "email" ? "يُرسل بالبريد للعميل" : channel === "phone" || channel === "manual" ? "يُحفظ كملاحظة لما قيل للعميل" : "يظهر للعميل في قناته";
+  const hint = internal ? "لا تُرسل للعميل — يراها الفريق فقط" : channel === "email" ? "يُرسل بالبريد للعميل" : channel === "manual" ? "يُحفظ كملاحظة لما قيل للعميل" : "يظهر للعميل في قناته";
   return (
     <div className={`cx-composer${internal ? " note" : ""}`}>
       <div className="cx-composer-tabs" role="tablist">

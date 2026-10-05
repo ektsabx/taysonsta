@@ -8,7 +8,7 @@ type Item = Awaited<ReturnType<typeof listChannels>>[number];
 
 export async function ChannelList({ channels, active }: { channels: Item[]; active?: string }) {
   const t = await getT();
-  const groups = ["direct", "team", "project", "entity"] as const;
+  const groups = ["direct", "team", "entity"] as const;
   return (
     <nav className="bos-channel-list" aria-label={t("القنوات")}>
       {groups.map((g) => {

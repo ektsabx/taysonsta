@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { db } from "@/lib/bos/db";
 import { bosUserFor, uniq } from "@/tests/integration/helpers";
 import { saveConnection } from "@/services/bos/integrations";
-import { adsReport, connectGoogleAds, createImportAccount, evaluateAlerts, exportAdsCsv, importCsv, importMetaAdAccounts, organicVsPaid, saveAlertRule, syncAdAccount } from "@/services/bos/ads";
+import { adsReport, connectGoogleAds, createImportAccount, evaluateAlerts, exportAdsCsv, importCsv, importMetaAdAccounts, saveAlertRule, syncAdAccount } from "@/services/bos/ads";
 import { ForbiddenError, ValidationError } from "@/lib/bos/errors";
 
 const realFetch = globalThis.fetch;
@@ -66,11 +66,10 @@ before(async () => {
     await c.from("ad_alert_rules").delete().like("name", `%${tag}%`);
     await c.from("integration_logs").delete().in("connection_id", conns);
     await c.from("integration_connections").delete().in("id", conns);
-    await c.from("exchange_rates").delete().eq("source", `test-${tag}`);
   });
 });
 
-test("Meta: import accounts, sync structure + paged insights, conversion types, organic link, read-only", async () => {
+test("Meta: import accounts, sync structure + paged insights, conversion types, read-only", async () => {
   const [admin, designer] = await Promise.all([bosUserFor("admin@taysonsta.local"), bosUserFor("nour@taysonsta.local")]);
   await assert.rejects(importMetaAdAccounts(designer), ForbiddenError);
   assert.equal(await importMetaAdAccounts(admin), 1);
@@ -78,18 +77,11 @@ test("Meta: import accounts, sync structure + paged insights, conversion types, 
   accounts.push(acc!.id);
   assert.equal(acc!.currency, "EGP");
 
-  // Our organic post whose id equals the ad's promoted story → linked.
-  const { data: sa } = await db().from("social_accounts").insert({ platform: "facebook", mode: "manual", status: "manual", name: `fb ${tag}` }).select("id").single();
-  const { data: sp } = await db().from("social_posts").insert({ title: `boost ${tag}`, status: "published" }).select("id").single();
-  const { data: st } = await db().from("social_post_targets").insert({ post_id: sp!.id, account_id: sa!.id, status: "published", external_post_id: STORY, published_at: `${day1}T10:00:00Z` }).select("id").single();
-  cleanup.push(async () => { await db().from("social_posts").delete().eq("id", sp!.id); await db().from("social_accounts").delete().eq("id", sa!.id); });
-
   const n = await syncAdAccount(acc!.id, { since: day1, until: day2 });
   assert.ok(n > 0);
   assert.equal(writes.length, 0, "no write calls to the ad platform");
-  const { data: ads } = await db().from("ads").select("external_id, social_target_id").in("external_id", [`A1_${tag}`, `A2_${tag}`]);
-  assert.equal(ads!.find((a) => a.external_id === `A1_${tag}`)!.social_target_id, st!.id);
-  assert.equal(ads!.find((a) => a.external_id === `A2_${tag}`)!.social_target_id, null);
+  const { data: ads } = await db().from("ads").select("external_id, creative_post_id").in("external_id", [`A1_${tag}`, `A2_${tag}`]);
+  assert.equal(ads!.find((a) => a.external_id === `A1_${tag}`)!.creative_post_id, STORY, "promoted post id kept as-is");
   const { data: camp } = await db().from("ad_campaigns").select("id, daily_budget").eq("external_id", `C1_${tag}`).single();
   assert.equal(Number(camp!.daily_budget), 500, "budget from minor units");
   const { data: d1 } = await db().from("ad_insights_daily").select("*").eq("level", "campaign").eq("object_id", camp!.id).eq("day", day1).single();
@@ -110,14 +102,9 @@ test("Meta: import accounts, sync structure + paged insights, conversion types, 
   assert.equal(r.single, false);
   const one = await adsReport(admin, { from: day1, to: day1, account_id: acc!.id, by: "day" });
   assert.equal(one.single, true);
-
-  const ovp = await organicVsPaid(admin, day1, day2);
-  const link = ovp.linked.find((l) => l.postId === sp!.id)!;
-  assert.equal(link.paid!.spend, 1800, "paid numbers for the boosted post only");
-  assert.ok(!("total" in ovp), "organic and paid are never summed");
 });
 
-test("Google Ads via OAuth + GAQL; currencies never mixed; explicit conversion with dated rates", async () => {
+test("Google Ads via OAuth + GAQL; currencies never mixed or converted", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const gid = await connectGoogleAds(admin);
   accounts.push(gid);
@@ -129,12 +116,6 @@ test("Google Ads via OAuth + GAQL; currencies never mixed; explicit conversion w
   assert.ok(curs.includes("USD") && curs.includes("EGP"), "totals per currency");
   const usd = mixed.byCurrency.find((x) => x.currency === "USD")!;
   assert.ok(usd.spend >= 35.5);
-
-  await db().from("exchange_rates").insert({ base: "EGP", quote: "USD", rate: 0.02, effective_date: "2026-09-01", source: `test-${tag}` });
-  const conv = await adsReport(admin, { from: day1, to: day1, convert: true });
-  assert.equal(conv.byCurrency.length, 1, "one currency after explicit conversion");
-  assert.equal(conv.byCurrency[0].currency, "USD");
-  assert.ok(conv.conversion!.rates.some((x) => x.currency === "EGP" && x.rate === 0.02 && x.date === "2026-09-01"), "rate + date disclosed");
 });
 
 test("CSV import, alerts once per day and never on missing data, export escaping, access", async () => {

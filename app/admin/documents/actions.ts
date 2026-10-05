@@ -42,7 +42,7 @@ export async function saveTemplateVersionAction(_prev: ActionState, formData: Fo
 const createSchema = versionSchema.extend({
   key: z.string().trim().regex(/^[a-z0-9_]{3,60}$/, "المفتاح حروف إنجليزية صغيرة وأرقام و _ فقط"),
   name: zf.required("الاسم", 150),
-  doc_type: z.enum(["proposal", "client_contract", "invoice", "email", "job_offer", "employment_contract", "nda_ip", "maintenance_agreement", "license_certificate", "handover_certificate", "hr_document", "report"]),
+  doc_type: z.enum(["proposal", "client_contract", "invoice", "email", "job_offer", "employment_contract", "nda_ip", "hr_document", "report"]),
   language: z.enum(["ar", "en"]),
   module: zf.text(40).default("general"),
   description: zf.optionalText(500),

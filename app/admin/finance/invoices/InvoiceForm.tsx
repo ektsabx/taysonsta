@@ -11,7 +11,6 @@ import { parseMoney, toDecimalString, percentOf } from "@/lib/bos/money";
 
 export interface InvoiceItemRow {
   description: string;
-  product_id: string | null;
   quantity: string;
   unit_price: string;
 }
@@ -21,7 +20,6 @@ export function InvoiceForm({
   currencies,
   initial,
   initialClient,
-  initialProject,
   initialDeal,
   submitLabel = "حفظ",
 }: {
@@ -29,14 +27,13 @@ export function InvoiceForm({
   currencies: string[];
   initial: { currency?: string; issue_date?: string; due_date?: string; discount_amount?: string; tax_rate?: string; payment_terms?: string | null; notes?: string | null; items?: InvoiceItemRow[] };
   initialClient: EntityOption | null;
-  initialProject?: EntityOption | null;
   initialDeal?: EntityOption | null;
   submitLabel?: string;
 }) {
   const t = useT();
   const [client, setClient] = useState<EntityOption | null>(initialClient);
   const [currency, setCurrency] = useState(initial.currency ?? "USD");
-  const [items, setItems] = useState<InvoiceItemRow[]>(initial.items?.length ? initial.items : [{ description: "", product_id: null, quantity: "1", unit_price: "" }]);
+  const [items, setItems] = useState<InvoiceItemRow[]>(initial.items?.length ? initial.items : [{ description: "", quantity: "1", unit_price: "" }]);
   const [discount, setDiscount] = useState(initial.discount_amount ?? "0");
   const [tax, setTax] = useState(initial.tax_rate ?? "0");
 
@@ -59,9 +56,6 @@ export function InvoiceForm({
         </Field>
         <Field label="الصفقة" name="deal_id">
           {client ? <EntitySelector key={`d-${client.id}`} name="deal_id" initial={initialDeal} search={(q) => searchEntitiesAction("deal", q, { client_id: client.id })} /> : <input disabled placeholder={t("اختر الحساب")} />}
-        </Field>
-        <Field label="المشروع" name="project_id">
-          {client ? <EntitySelector key={`p-${client.id}`} name="project_id" initial={initialProject} search={(q) => searchEntitiesAction("project", q, { client_id: client.id })} /> : <input disabled placeholder={t("اختر الحساب")} />}
         </Field>
         <Field label="العملة" name="currency" required>
           <select name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
@@ -89,7 +83,7 @@ export function InvoiceForm({
               </button>
             </div>
           ))}
-          <button type="button" className="admin-btn small ghost" onClick={() => setItems([...items, { description: "", product_id: null, quantity: "1", unit_price: "" }])}>
+          <button type="button" className="admin-btn small ghost" onClick={() => setItems([...items, { description: "", quantity: "1", unit_price: "" }])}>
             <Tx>+ بند</Tx>
           </button>
         </div>

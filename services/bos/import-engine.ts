@@ -93,11 +93,6 @@ function refResolvers(): Refs {
       const { data } = await db().from("clients").select("id").or(`company_name.ilike.${v.replace(/[,()]/g, " ")},name.ilike.${v.replace(/[,()]/g, " ")}`).is("archived_at", null).limit(2);
       return data?.length === 1 ? data[0].id : null; // ambiguous names are not guessed
     }),
-    project: (s) => memo(`p:${s.toLowerCase()}`, async () => {
-      const v = s.trim().replace(/[,()]/g, " ");
-      const { data } = await db().from("projects").select("id").or(`project_number.ilike.${v},name.ilike.${v}`).is("archived_at", null).limit(2);
-      return data?.length === 1 ? data[0].id : null;
-    }),
     byName: (table, name) => memo(`${table}:${name.toLowerCase()}`, async () => {
       const { data } = await db().from(table as "vendors").select("id").ilike("name", name.trim()).limit(2);
       return data?.length === 1 ? data[0].id : null;

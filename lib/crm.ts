@@ -12,7 +12,6 @@ export const crmStages: CrmStage[] = [
   "proposal_rejected",
   "contract",
   "invoice",
-  "project",
 ];
 
 export const crmStageLabels: Record<CrmStage, string> = {
@@ -27,5 +26,4 @@ export const crmStageLabels: Record<CrmStage, string> = {
   proposal_rejected: "تم رفض المقترح",
   contract: "عقد",
   invoice: "فاتورة",
-  project: "مشروع",
 };

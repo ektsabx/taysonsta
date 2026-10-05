@@ -113,9 +113,8 @@ export const docs: DocPage[] = [
             ["People", "“…and reach founders or heads of sales.”"],
           ] } },
           { p: "Write in Arabic or English, or mix both. Press **Enter** to send and **Shift + Enter** for a new line. Requests can be up to 4,000 characters." },
-          { h2: "Voice and files" },
+          { h2: "Files and images" },
           { ul: [
-            "**Voice** — press the microphone and speak; your words are added to the box. Works in Chrome and Edge.",
             "**Images** — PNG, JPEG, GIF or WebP, e.g. a screenshot of a company you want more of.",
             "**Files** — PDF, CSV, TXT, MD or TSV, e.g. an ICP brief or a list of current customers.",
             "Up to three attachments per search, 4 MB each. Files are read to understand the request and are not stored.",
@@ -137,9 +136,8 @@ export const docs: DocPage[] = [
             ["الأشخاص", "«…وأريد الوصول إلى المؤسسين أو رؤساء المبيعات.»"],
           ] } },
           { p: "اكتب بالعربية أو الإنجليزية أو امزج بينهما. اضغط **Enter** للإرسال و**Shift + Enter** لسطر جديد. الحد الأقصى للطلب 4,000 حرف." },
-          { h2: "الصوت والملفات" },
+          { h2: "الملفات والصور" },
           { ul: [
-            "**الصوت** — اضغط الميكروفون وتحدّث؛ تُضاف كلماتك إلى المربع. يعمل في Chrome و Edge.",
             "**الصور** — PNG أو JPEG أو GIF أو WebP، مثل لقطة شاشة لشركة تريد أمثالها.",
             "**الملفات** — PDF أو CSV أو TXT أو MD أو TSV، مثل وصف ICP أو قائمة عملائك الحاليين.",
             "حتى ثلاثة مرفقات لكل بحث، 4 ميجابايت لكل منها. تُقرأ الملفات لفهم الطلب ولا تُخزن.",

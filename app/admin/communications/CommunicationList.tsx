@@ -38,7 +38,6 @@ export function CommunicationList({
         if (i.contactId && labels.contacts?.[i.contactId]) related.push({ label: labels.contacts[i.contactId], href: `/admin/contacts/${i.contactId}` });
         if (i.dealId) related.push({ label: "الصفقة", href: `/admin/sales/deals/${i.dealId}` });
         if (i.leadId) related.push({ label: "العميل المحتمل", href: `/admin/sales/leads/${i.leadId}` });
-        if (i.projectId) related.push({ label: "المشروع", href: `/admin/projects/${i.projectId}` });
         return (
           <li key={`${i.source}-${i.id}`} className="bos-comm-item">
             <span className={`bos-comm-icon ${i.direction ?? ""}`} aria-hidden><Tx>{icons[i.kind] ?? "•"}</Tx></span>

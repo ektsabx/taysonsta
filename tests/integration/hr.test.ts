@@ -41,9 +41,6 @@ async function removeEmployee(id: string) {
   const { data: docs } = await c.from("employee_documents").select("id").eq("employee_id", id);
   for (const d of docs ?? []) await c.from("files").delete().eq("entity_id", d.id);
   await c.from("onboarding_checklists").delete().eq("employee_id", id);
-  await c.from("access_grants").delete().eq("employee_id", id);
-  await c.from("access_requests").delete().eq("employee_id", id);
-  await c.from("company_accounts").delete().eq("employee_id", id);
   const { error } = await c.from("employees").delete().eq("id", id);
   if (error) throw error;
 }
@@ -307,7 +304,7 @@ test("employee expense: manager → finance → reimbursement; other HR request;
   const finance = await bosUserFor("finance@taysonsta.local");
   const c = db();
   const { data: cat } = await c.from("expense_categories").select("id").eq("is_active", true).limit(1).single();
-  const claim = await submitExpenseClaim(sara, { employee_id: sara.employee.id, category_id: cat!.id, description: uniq("Taxi"), amount: "350", currency: "EGP", expense_date: "2031-01-10", expense_kind: "transportation", project_id: null, client_id: null });
+  const claim = await submitExpenseClaim(sara, { employee_id: sara.employee.id, category_id: cat!.id, description: uniq("Taxi"), amount: "350", currency: "EGP", expense_date: "2031-01-10", expense_kind: "transportation", client_id: null });
   cleanup.push(async () => { await c.from("approvals").delete().eq("entity_id", claim.id); await c.from("expenses").delete().eq("id", claim.id); });
   const { count: steps } = await c.from("approvals").select("id", { count: "exact", head: true }).eq("entity_id", claim.id);
   assert.equal(steps, 1, "step 1 (manager) first");

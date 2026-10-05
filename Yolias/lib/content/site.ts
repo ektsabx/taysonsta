@@ -27,7 +27,7 @@ export const home: Localized<{
       eyebrow: "HOW IT WORKS",
       title: "From one sentence to a list you can act on.",
       steps: [
-        { title: "Describe the customer", body: "Write it the way you would brief a colleague, in Arabic or English. Add a voice note, a screenshot or an ICP document if that is easier." },
+        { title: "Describe the customer", body: "Write it the way you would brief a colleague, in Arabic or English. Add a screenshot or an ICP document if that is easier." },
         { title: "Yolias builds the mission", body: "It extracts market, industry, size, signals and job titles, fills sensible defaults, and opens a discovery campaign you can follow." },
         { title: "Review your prospects", body: "Matched companies and decision makers arrive with a match score and the contact channels found. Keep the ones you want and export them." },
       ],
@@ -69,7 +69,7 @@ export const home: Localized<{
       eyebrow: "كيف يعمل",
       title: "من جملة واحدة إلى قائمة يمكنك العمل عليها.",
       steps: [
-        { title: "صِف العميل", body: "اكتبه كما تشرح المهمة لزميل، بالعربية أو الإنجليزية. أضف ملاحظة صوتية أو لقطة شاشة أو مستند ICP إن كان ذلك أسهل." },
+        { title: "صِف العميل", body: "اكتبه كما تشرح المهمة لزميل، بالعربية أو الإنجليزية. أضف لقطة شاشة أو مستند ICP إن كان ذلك أسهل." },
         { title: "يبني يولـياس المهمة", body: "يستخرج السوق والقطاع والحجم والمؤشرات والمسميات الوظيفية، ويكمل الناقص بافتراضات منطقية، ثم يفتح حملة اكتشاف يمكنك متابعتها." },
         { title: "راجع عملاءك المحتملين", body: "تصلك الشركات وصنّاع القرار المطابقون مع نسبة التطابق وقنوات التواصل التي عُثر عليها. احتفظ بمن تريد وصدّرهم." },
       ],
@@ -116,7 +116,7 @@ export const product: Localized<{
       {
         title: "Start a search",
         body: "Start from the prompt box. Type, speak or attach a file — a CSV of accounts you like, a PDF brief, or a screenshot of a company you want more of.",
-        points: ["Voice input in Arabic or English", "Up to three attachments per request", "Quick-start examples for common markets"],
+        points: ["Arabic or English, typed naturally", "Up to three attachments per request", "Quick-start examples for common markets"],
       },
       {
         title: "Yolias reads the ICP",
@@ -167,7 +167,7 @@ export const product: Localized<{
       {
         title: "ابدأ بحثًا",
         body: "ابدأ من مربع الكتابة. اكتب أو تحدّث أو أرفق ملفًا — قائمة CSV بحسابات تعجبك، أو ملف PDF، أو لقطة شاشة لشركة تريد أمثالها.",
-        points: ["إدخال صوتي بالعربية أو الإنجليزية", "حتى ثلاثة مرفقات في كل طلب", "أمثلة جاهزة لأسواق شائعة"],
+        points: ["اكتب بالعربية أو الإنجليزية بشكل طبيعي", "حتى ثلاثة مرفقات في كل طلب", "أمثلة جاهزة لأسواق شائعة"],
       },
       {
         title: "يقرأ يولـياس ملف العميل المثالي",

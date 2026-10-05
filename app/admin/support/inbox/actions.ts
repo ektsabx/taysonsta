@@ -79,7 +79,7 @@ export async function ticketFromConversationAction(id: string): Promise<ActionSt
 }
 
 const newSchema = z.object({
-  channel: z.enum(["email", "phone", "manual", "whatsapp", "sms"]),
+  channel: z.enum(["email", "manual"]),
   name: zf.optionalText(200),
   email: zf.optionalEmail(),
   phone: zf.optionalText(40),

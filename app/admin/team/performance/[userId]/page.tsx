@@ -39,15 +39,13 @@ export default async function PerformanceProfilePage({ params, searchParams }: {
       <Card title="العمل">
         <Summary
           items={[
-            { label: "مهام منجزة", value: p.work.tasksDone },
-            { label: "مهام متأخرة", value: p.work.tasksOverdue },
+            { label: "متابعات منجزة", value: p.work.followupsDone },
+            { label: "متابعات متأخرة", value: p.work.followupsOverdue },
             { label: "أنشطة", value: p.work.activities },
             { label: "اجتماعات", value: p.work.meetings },
             { label: "عملاء محتملون", value: p.work.leads },
             { label: "صفقات مكسوبة", value: p.work.dealsWon },
             { label: "الإيراد", value: p.work.revenue.length ? p.work.revenue.map((r) => <div key={r.currency}><Money value={r.amount} currency={r.currency} /></div>) : "—" },
-            { label: "مشاريع يديرها", value: p.work.projects },
-            { label: "وقت مسجل على المشاريع", value: formatMinutes(p.work.loggedMinutes) },
           ]}
         />
       </Card>

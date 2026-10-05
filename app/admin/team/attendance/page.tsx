@@ -13,7 +13,6 @@ import { FilterBar } from "@/components/bos/FilterBar";
 import { LiveTimer } from "@/components/bos/LiveTimer";
 import { formatMinutes, formatTime } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
-import { branchFilter } from "@/lib/bos/branch";
 
 // Attendance → Today (§33).
 export default async function AttendanceTodayPage({ searchParams }: { searchParams: SearchParams }) {
@@ -21,7 +20,7 @@ export default async function AttendanceTodayPage({ searchParams }: { searchPara
   const { bos } = await requirePermission("attendance.read");
   const params = await readParams(searchParams);
   const { users } = await peopleScope(bos, "attendance.read");
-  const [rows, departments, teams] = await Promise.all([getToday(users, { ...params, branchIds: await branchFilter(bos) }), listDepartments(), listTeams()]);
+  const [rows, departments, teams] = await Promise.all([getToday(users, params), listDepartments(), listTeams()]);
   const count = (s: string | string[]) => rows.filter((r) => (Array.isArray(s) ? s.includes(r.status) : r.status === s)).length;
   return (
     <>

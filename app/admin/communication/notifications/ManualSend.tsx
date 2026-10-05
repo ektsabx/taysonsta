@@ -9,14 +9,13 @@ import { sendManualNotificationAction } from "./actions";
 type O = { value: string; label: string };
 
 // Manual notification (docs/bos/30 §9.4) to people / team / department /
-// branch / role / everyone, in-app and optionally by email.
-export function ManualSendButton({ options, allowAll }: { options: Record<"users" | "team" | "department" | "branch" | "role", O[]>; allowAll: boolean }) {
-  const [kind, setKind] = useState<"users" | "team" | "department" | "branch" | "role" | "all">("users");
+// role / everyone, in-app and optionally by email.
+export function ManualSendButton({ options, allowAll }: { options: Record<"users" | "team" | "department" | "role", O[]>; allowAll: boolean }) {
+  const [kind, setKind] = useState<"users" | "team" | "department" | "role" | "all">("users");
   const kinds = [
     { value: "users", label: "أشخاص محددون" },
     { value: "team", label: "فريق" },
     { value: "department", label: "قسم" },
-    { value: "branch", label: "فرع" },
     { value: "role", label: "دور" },
     ...(allowAll ? [{ value: "all", label: "كل الموظفين" }] : []),
   ];

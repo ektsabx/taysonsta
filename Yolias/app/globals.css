@@ -525,17 +525,6 @@ a { color: inherit; text-decoration: none; }
   transition: all .16s ease;
 }
 .btn-attach:hover { background: var(--hover-2); color: var(--ink); border-color: var(--line); }
-.btn-attach.recording-active {
-  background: var(--red-soft);
-  color: var(--red);
-  border-color: var(--red-line);
-  animation: recordPulse 1.2s infinite ease-in-out;
-}
-@keyframes recordPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
-}
 .btn-attach svg { width: 16px; height: 16px; stroke-width: 1.8; }
 
 .btn-send {

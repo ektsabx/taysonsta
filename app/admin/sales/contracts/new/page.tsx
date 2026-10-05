@@ -3,7 +3,7 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { listCurrencies } from "@/services/bos/shared";
 import { formatMoney } from "@/lib/bos/money";
-import { defaultCurrencyFor } from "@/lib/bos/branch";
+import { defaultCurrency } from "@/lib/bos/company-currency";
 import { PageHeader } from "@/components/bos/ui";
 import { ContractForm } from "../ContractForm";
 import { createContractAction } from "../actions";
@@ -11,12 +11,12 @@ import { createContractAction } from "../actions";
 // New contract pre-filled from the deal (and accepted proposal): account,
 // value, currency and payment terms — no re-entry (§3).
 export default async function NewContractPage({ searchParams }: { searchParams: SearchParams }) {
-  const { bos } = await requirePermission("contracts.create");
+  await requirePermission("contracts.create");
   const sp = await readParams(searchParams);
   const currencies = await listCurrencies();
   let initialClient = null;
   let initialDeal = null;
-  let initial: { title?: string; value?: string; currency?: string; payment_terms?: string | null } = { currency: await defaultCurrencyFor(bos) };
+  let initial: { title?: string; value?: string; currency?: string; payment_terms?: string | null } = { currency: await defaultCurrency() };
 
   if (sp.dealId) {
     const { data: deal } = await db().from("deals").select("id, name, deal_number, value, currency, client_id, payment_terms, clients(id, name, company_name)").eq("id", sp.dealId).maybeSingle();

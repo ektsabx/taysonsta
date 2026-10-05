@@ -10,11 +10,10 @@ import { requestApproval } from "@/services/bos/approvals";
 
 export type Invoice = Tables<"invoices">;
 
-function invoiceLinks(i: Pick<Invoice, "client_id" | "deal_id" | "project_id">) {
+function invoiceLinks(i: Pick<Invoice, "client_id" | "deal_id">) {
   return [
     { type: "client", id: i.client_id },
     { type: "deal", id: i.deal_id },
-    { type: "project", id: i.project_id },
   ];
 }
 
@@ -24,14 +23,12 @@ function invoiceLinks(i: Pick<Invoice, "client_id" | "deal_id" | "project_id">) 
 
 export interface InvoiceItemInput {
   description: string;
-  product_id: string | null;
   quantity: string;
   unit_price: string;
 }
 
 export interface InvoiceInput {
   client_id: string;
-  project_id: string | null;
   deal_id: string | null;
   currency: string;
   issue_date: string;
@@ -48,10 +45,6 @@ async function assertInvoiceLinks(input: InvoiceInput) {
     const { data } = await db().from("deals").select("client_id").eq("id", input.deal_id).maybeSingle();
     if (!data || data.client_id !== input.client_id) throw new ValidationError("الصفقة لا تتبع هذا الحساب.", { deal_id: "غير متطابقة" });
   }
-  if (input.project_id) {
-    const { data } = await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle();
-    if (!data || data.client_id !== input.client_id) throw new ValidationError("المشروع لا يتبع هذا الحساب.", { project_id: "غير متطابق" });
-  }
   if (!input.items.length) throw new ValidationError("أضف بنداً واحداً على الأقل.", { items: "مطلوب" });
   if (input.due_date < input.issue_date) throw new ValidationError("تاريخ الاستحقاق يجب أن يكون بعد تاريخ الإصدار.", { due_date: "غير صالح" });
 }
@@ -60,7 +53,7 @@ async function replaceItems(invoiceId: string, items: InvoiceItemInput[]) {
   await db().from("invoice_items").delete().eq("invoice_id", invoiceId);
   const { error } = await db()
     .from("invoice_items")
-    .insert(items.map((it, i) => ({ invoice_id: invoiceId, description: it.description, product_id: it.product_id, quantity: dec(it.quantity), unit_price: dec(it.unit_price), sort_order: i })));
+    .insert(items.map((it, i) => ({ invoice_id: invoiceId, description: it.description, quantity: dec(it.quantity), unit_price: dec(it.unit_price), sort_order: i })));
   if (error) throw error;
 }
 
@@ -70,7 +63,6 @@ export async function createInvoice(bos: BosUser, input: InvoiceInput) {
     .from("invoices")
     .insert({
       client_id: input.client_id,
-      project_id: input.project_id,
       deal_id: input.deal_id,
       currency: input.currency,
       issue_date: input.issue_date,
@@ -98,7 +90,7 @@ export async function createInvoice(bos: BosUser, input: InvoiceInput) {
     entityType: "invoice",
     entityId: data.id,
     summary: `Invoice ${fresh!.invoice_number} created: ${fresh!.total} ${fresh!.currency}`,
-    payload: { invoice_id: data.id, client_id: data.client_id, deal_id: data.deal_id, project_id: data.project_id, total: fresh!.total },
+    payload: { invoice_id: data.id, client_id: data.client_id, deal_id: data.deal_id, total: fresh!.total },
     links: invoiceLinks(data),
     actorId: bos.userId,
   });
@@ -115,7 +107,7 @@ export async function updateInvoice(bos: BosUser, id: string, input: InvoiceInpu
   await db().from("invoices").update({ discount_amount: 0 }).eq("id", id);
   await db()
     .from("invoices")
-    .update({ project_id: input.project_id, deal_id: input.deal_id, currency: input.currency, issue_date: input.issue_date, due_date: input.due_date, tax_rate: dec(input.tax_rate || "0"), payment_terms: input.payment_terms, notes: input.notes })
+    .update({ deal_id: input.deal_id, currency: input.currency, issue_date: input.issue_date, due_date: input.due_date, tax_rate: dec(input.tax_rate || "0"), payment_terms: input.payment_terms, notes: input.notes })
     .eq("id", id);
   await replaceItems(id, input.items);
   if (input.discount_amount && Number(input.discount_amount) > 0) {
@@ -186,10 +178,8 @@ export interface PaymentInput {
   client_id: string;
   invoice_id: string | null;
   deal_id: string | null;
-  project_id: string | null;
   amount: string;
   currency: string;
-  exchange_rate: string | null;
   method: string;
   payment_date: string;
   reference: string | null;
@@ -204,10 +194,8 @@ export async function recordPayment(bos: BosUser, input: PaymentInput): Promise<
       client_id: input.client_id,
       invoice_id: input.invoice_id,
       deal_id: input.deal_id,
-      project_id: input.project_id,
       amount: input.amount,
       currency: input.currency,
-      exchange_rate: input.exchange_rate,
       method: input.method,
       payment_date: input.payment_date,
       reference: input.reference,
@@ -273,10 +261,9 @@ export interface CommissionRuleInput {
   rate: string | null;
   fixed_amount: string | null;
   currency: string | null;
-  product_id: string | null;
   user_id: string | null;
   role_id: string | null;
-  trigger: "deal_won" | "contract_signed" | "payment_collected" | "full_payment" | "milestone_payment";
+  trigger: "deal_won" | "contract_signed" | "payment_collected" | "full_payment";
   min_amount: string | null;
   max_amount: string | null;
   valid_from: string | null;
@@ -325,7 +312,6 @@ export interface ExpenseInput {
   currency: string;
   expense_date: string;
   vendor_id: string | null;
-  project_id: string | null;
   client_id: string | null;
   employee_user_id: string | null;
   receipt_file_id: string | null;
@@ -334,8 +320,7 @@ export interface ExpenseInput {
 export async function createExpense(bos: BosUser, input: ExpenseInput) {
   const policies = await getSetting("approval_policies");
   const needsApproval = policies.expense.required;
-  let clientId = input.client_id;
-  if (!clientId && input.project_id) clientId = (await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle()).data?.client_id ?? null;
+  const clientId = input.client_id;
   const { data, error } = await db()
     .from("expenses")
     .insert({
@@ -359,7 +344,6 @@ export async function createExpense(bos: BosUser, input: ExpenseInput) {
       title: `Expense: ${data.description} (${data.amount} ${data.currency})`,
       requestedBy: bos.userId,
       steps: [policies.expense.approver],
-      links: [{ type: "project", id: data.project_id }],
     });
   }
   return data;

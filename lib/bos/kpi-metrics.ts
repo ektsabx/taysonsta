@@ -20,15 +20,7 @@ export const kpiMetrics: KpiMetric[] = [
   { key: "deals.conversion_rate", label: "معدل التحويل", unit: "percent", calculation: "ratio", direction: "higher_better" },
   { key: "payments.collected_value", label: "التحصيل", unit: "currency", calculation: "sum", direction: "higher_better" },
   { key: "commissions.amount", label: "العمولات", unit: "currency", calculation: "sum", direction: "higher_better" },
-  { key: "projects.on_time_ratio", label: "المشاريع في موعدها", unit: "percent", calculation: "ratio", direction: "higher_better" },
-  { key: "milestones.completion_ratio", label: "إنجاز المراحل", unit: "percent", calculation: "ratio", direction: "higher_better" },
-  { key: "tasks.completion_ratio", label: "إنجاز المهام", unit: "percent", calculation: "ratio", direction: "higher_better" },
-  { key: "tasks.completed_count", label: "المهام المنجزة", unit: "count", calculation: "count", direction: "higher_better" },
-  { key: "projects.budget_variance", label: "انحراف الميزانية", unit: "percent", calculation: "ratio", direction: "lower_better" },
-  { key: "projects.satisfaction_avg", label: "رضا العملاء", unit: "score", calculation: "avg", direction: "higher_better" },
-  { key: "issues.open_count", label: "المشكلات المفتوحة", unit: "count", calculation: "count", direction: "lower_better" },
   { key: "attendance.on_time_ratio", label: "الالتزام بالحضور", unit: "percent", calculation: "ratio", direction: "higher_better" },
-  { key: "time.logged_hours", label: "الساعات المسجلة", unit: "hours", calculation: "sum", direction: "higher_better" },
   { key: "manual", label: "إدخال يدوي", unit: "count", calculation: "manual", direction: "higher_better" },
 ];
 

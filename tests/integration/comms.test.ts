@@ -79,7 +79,7 @@ test("knowledge: versions, role restriction hidden everywhere, required reading 
   // Required reading → onboarding item (Mariam has no login; use a real employee's checklist).
   const { data: policy } = await db().from("kb_articles").select("id").eq("slug", "security-guidelines").single();
   const { data: emp } = await db().from("employees").select("id").eq("user_id", dev.userId).single();
-  const { data: clId } = await db().rpc("bos_start_onboarding", { p_subject: "employee", p_template_key: "employee_onboarding", p_client: null as unknown as string, p_deal: null as unknown as string, p_project: null as unknown as string, p_employee: emp!.id, p_due: null as unknown as string });
+  const { data: clId } = await db().rpc("bos_start_onboarding", { p_subject: "employee", p_template_key: "employee_onboarding", p_client: null as unknown as string, p_deal: null as unknown as string, p_employee: emp!.id, p_due: null as unknown as string });
   cleanup.push(async () => {
     await db().from("onboarding_checklists").delete().eq("id", clId as string);
     await db().from("kb_article_reads").delete().eq("article_id", policy!.id).eq("user_id", dev.userId);
@@ -89,15 +89,14 @@ test("knowledge: versions, role restriction hidden everywhere, required reading 
   assert.equal(item?.is_done, true, "read:<slug> onboarding item completed");
 });
 
-test("calendar aggregates meetings, tasks, milestones and leave with scope", async () => {
+test("calendar aggregates meetings, follow-ups and leave with scope", async () => {
   const omar = await bosUserFor("omar@taysonsta.local");
   const today = new Date().toISOString().slice(0, 10);
   const from = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
   const to = new Date(Date.now() + 120 * 86400_000).toISOString().slice(0, 10);
   const mine = await getCalendarItems(omar, from, to, {});
-  assert.ok(mine.some((i) => i.type === "milestone" || i.type === "deadline"), "PM sees project milestones/deadlines");
-  const onlyTasks = await getCalendarItems(omar, from, to, { types: ["task"] });
-  assert.ok(onlyTasks.every((i) => i.type === "task"), "type filter");
+  const onlyMeetings = await getCalendarItems(omar, from, to, { types: ["meeting"] });
+  assert.ok(onlyMeetings.every((i) => i.type === "meeting"), "type filter");
   const team = await getCalendarItems(omar, from, to, { scope: "team" });
   assert.ok(team.length >= mine.filter((i) => i.type !== "attendance").length, "team ⊇ mine");
   assert.ok(today);

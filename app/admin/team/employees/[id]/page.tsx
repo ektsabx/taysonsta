@@ -13,10 +13,9 @@ import { readParams, type SearchParams } from "@/lib/bos/params";
 import { db } from "@/lib/bos/db";
 import { getEmployee, lifecycleTransitions } from "@/services/bos/employees";
 import { canSeeUser } from "@/services/bos/team-scope";
-import { getAttendanceRange, getTimesheets, summarize } from "@/services/bos/attendance";
+import { getAttendanceRange, summarize } from "@/services/bos/attendance";
 import { getBalances, listLeaveRequests, listLeaveTypes } from "@/services/bos/leave";
 import { computeUserKpis } from "@/services/bos/kpis";
-import { getAccessProfile, listApps } from "@/services/bos/it-access";
 import { listEmployeeChecklists } from "@/services/bos/onboarding";
 import { userNameMap } from "@/services/bos/shared";
 import { PageHeader, Summary, Card, KeyValues, StatusBadge, Money, Tabs, EmptyState, UserAvatar, ProgressBar } from "@/components/bos/ui";
@@ -24,13 +23,11 @@ import { ActivityTimeline } from "@/components/bos/ActivityTimeline";
 import { AuditLogPanel } from "@/components/bos/AuditLogPanel";
 import { formatDate, formatDateTime, formatMinutes, todayIn, addDays, startOfMonth } from "@/lib/bos/format";
 import { kpiUnitLabels, kpiPeriodLabels } from "@/lib/bos/kpi-metrics";
-import { AccessProfileView, AttendanceTable, ChecklistView, LeaveTable } from "../../TeamViews";
+import { AttendanceTable, ChecklistView, LeaveTable } from "../../TeamViews";
 import { EmployeeHrTab, hrTabVisibility } from "./HrTabs";
 import { PhotoUploader } from "../../HrControls";
 import { managedEmployeeIds } from "@/services/bos/team-scope";
 import {
-  AddGrantButton,
-  CompanyAccountButton,
   ConfirmReceiptButton,
   CorrectionButton,
   HrEditButton,
@@ -40,8 +37,6 @@ import {
   ManualKpiButton,
   MfaControls,
   RefreshOnboardingButton,
-  RegenerateAccessButton,
-  RequestAccessButton,
 } from "../../TeamControls";
 
 export default async function EmployeePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SearchParams }) {
@@ -61,13 +56,13 @@ export default async function EmployeePage({ params, searchParams }: { params: P
   if (readScope !== "all" && !isSelf && !(emp.user_id && (await canSeeUser(bos, "employees.read", emp.user_id)))) notFound();
   const sees = async (key: Parameters<typeof canSeeUser>[1]) => isSelf ? can(bos, key) : !!emp.user_id && can(bos, key) && (bos.permissions.get(key) === "all" || (await canSeeUser(bos, key, emp.user_id)));
 
-  const [seeAttendance, seeLeave, seeKpis, seePerf, seeAccess, seeDevices, seeOnboarding, seeTime, seeCommission, seeTasks] = await Promise.all([
-    sees("attendance.read"), sees("leave.read"), sees("kpis.read"), sees("performance.read"), sees("access.read"), sees("devices.read"), sees("onboarding.read"), sees("timesheets.read"), sees("commissions.read"), sees("tasks.read"),
+  const [seeAttendance, seeLeave, seeKpis, seePerf, seeDevices, seeOnboarding, seeCommission] = await Promise.all([
+    sees("attendance.read"), sees("leave.read"), sees("kpis.read"), sees("performance.read"), sees("devices.read"), sees("onboarding.read"), sees("commissions.read"),
   ]);
   const canSensitive = can(bos, "employees.view_sensitive");
   const canUpdate = can(bos, "employees.update") && (bos.permissions.get("employees.update") === "all" || (!!emp.user_id && (await canSeeUser(bos, "employees.update", emp.user_id))));
   const canLifecycle = bos.permissions.get("employees.update") === "all";
-  const canManageAccess = bos.permissions.get("access.manage") === "all";
+  const canManageMfa = bos.permissions.get("users.manage") === "all";
   const isManager = (await managedEmployeeIds(bos)).includes(emp.id);
   const hrVis = hrTabVisibility({ bos, employee: emp, isSelf, isManager });
   const canPhoto = isSelf || canUpdate;
@@ -86,14 +81,11 @@ export default async function EmployeePage({ params, searchParams }: { params: P
     { key: "documents", label: "المستندات", hidden: !hrVis.documents },
     { key: "contracts", label: "العقود", hidden: !hrVis.contracts },
     { key: "goals", label: "الأهداف و360", hidden: !hrVis.goals },
-    { key: "tasks", label: "المهام", hidden: !seeTasks || !emp.user_id },
     { key: "attendance", label: "الحضور", hidden: !seeAttendance || !emp.user_id },
-    { key: "timesheets", label: "سجلات الوقت", hidden: !seeTime || !emp.user_id },
     { key: "kpis", label: "المؤشرات والأهداف", hidden: !seeKpis || !emp.user_id },
     { key: "performance", label: "الأداء", hidden: !seePerf || !emp.user_id },
     { key: "commission", label: "العمولات", hidden: !seeCommission || !emp.user_id },
     { key: "leave", label: "الإجازات", hidden: !seeLeave || !emp.user_id },
-    { key: "access", label: "الصلاحيات", hidden: !seeAccess },
     { key: "devices", label: "الأجهزة", hidden: !seeDevices },
     { key: "onboarding", label: "التهيئة", hidden: !seeOnboarding },
     { key: "timeline", label: "السجل الزمني" },
@@ -113,17 +105,13 @@ export default async function EmployeePage({ params, searchParams }: { params: P
 
   // Tab data (loaded only for the active tab).
   const c = db();
-  const [tasks, attendance, timesheets, kpis, commissions, leave, balances, leaveTypes, access, apps, devices, checklists, reviews] = await Promise.all([
-    tab === "tasks" ? c.from("tasks").select("id, title, status, priority, due_date, projects(id, name)").eq("assigned_to", uid).not("status", "in", "(completed,cancelled)").order("due_date", { nullsFirst: false }).limit(100).then((r) => r.data ?? []) : Promise.resolve([]),
+  const [attendance, kpis, commissions, leave, balances, leaveTypes, devices, checklists, reviews] = await Promise.all([
     tab === "attendance" || tab === "profile" ? getAttendanceRange(uid, tab === "profile" ? addDays(today, -6) : from, tab === "profile" ? today : to) : Promise.resolve([]),
-    tab === "timesheets" ? getTimesheets([uid], from, to) : Promise.resolve(null),
     tab === "kpis" ? computeUserKpis(uid, today, false) : Promise.resolve([]),
     tab === "commission" ? c.from("commissions").select("id, amount, currency, status, created_at, deals(id, name, deal_number), commission_rules(name)").eq("user_id", uid).order("created_at", { ascending: false }).limit(100).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "leave" ? listLeaveRequests(bos, "all", { view: "all", user: uid }) : Promise.resolve([]),
     tab === "leave" ? getBalances(uid, Number(today.slice(0, 4))) : Promise.resolve([]),
     tab === "leave" ? listLeaveTypes() : Promise.resolve([]),
-    tab === "access" ? getAccessProfile(id) : Promise.resolve(null),
-    tab === "access" ? listApps(false) : Promise.resolve([]),
     tab === "devices" ? c.from("devices").select("*, device_assignments(id, employee_id, assigned_at, confirmed_by_employee_at, returned_at)").eq("assigned_employee_id", id).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "onboarding" ? listEmployeeChecklists(id) : Promise.resolve([]),
     tab === "performance" ? c.from("performance_reviews").select("*").eq("user_id", uid).order("period_end", { ascending: false }).then((r) => r.data ?? []) : Promise.resolve([]),
@@ -160,12 +148,11 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         items={[
           { label: "القسم", value: (emp.departments as { name: string } | null)?.name ?? "—" },
           { label: "الفريق", value: (emp.teams as { name: string } | null)?.name ?? "—" },
-          { label: "الفرع", value: (emp as { branches?: { name: string } | null }).branches?.name ?? "—" },
           { label: "مكان العمل", value: emp.work_location ?? "—" },
           { label: "تاريخ التعيين", value: formatDate(emp.start_date) },
           { label: "المدير", value: emp.manager ? <Link href={`/admin/team/employees/${emp.manager.id}`}>{emp.manager.full_name}</Link> : "—" },
           { label: "البريد الرسمي", value: emp.email ? <span dir="ltr">{emp.email}</span> : "—" },
-          { label: "2FA", value: <StatusBadge map="mfa_status" value={emp.mfa_status} /> },
+          { label: "2FA", value: <span className="bos-row" style={{ gap: 8 }}><StatusBadge map="mfa_status" value={emp.mfa_status} />{canManageMfa || isSelf ? <MfaControls employeeId={id} status={emp.mfa_status} canManage={canManageMfa} /> : null}</span> },
           { label: "آخر نشاط في النظام", value: emp.last_activity_at ? <span title={t("آخر إجراء مسجل في النظام — ليس دليلاً على العمل المتواصل")}><RelTime value={emp.last_activity_at} /></span> : "—" },
         ]}
       />
@@ -222,25 +209,6 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         </div>
       ) : null}
 
-      {tab === "tasks" ? (
-        <Card title="المهام المفتوحة">
-          {tasks.length ? (
-            <BosTable className="bos-table responsive">
-              <tbody>
-                {(tasks as { id: string; title: string; status: string; priority: string; due_date: string | null; projects: unknown }[]).map((t) => (
-                  <tr key={t.id}>
-                    <td className="cell-primary"><Link href={`/admin/projects/tasks/${t.id}`}><Tx>{t.title}</Tx></Link><span className="cell-sub">{(t.projects as { name: string } | null)?.name ?? ""}</span></td>
-                    <td><StatusBadge map="task_status" value={t.status} /></td>
-                    <td><StatusBadge map="priority" value={t.priority} /></td>
-                    <td style={t.due_date && t.due_date < today ? { color: "var(--bos-danger)" } : undefined}>{formatDate(t.due_date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </BosTable>
-          ) : <EmptyState title="لا توجد مهام مفتوحة" />}
-        </Card>
-      ) : null}
-
       {tab === "attendance" ? (
         <>
           <form className="bos-row" style={{ gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
@@ -273,34 +241,6 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                 );
               }}
             />
-          </Card>
-        </>
-      ) : null}
-
-      {tab === "timesheets" && timesheets ? (
-        <>
-          <form className="bos-row" style={{ gap: 8, marginBottom: 10 }}>
-            <input type="hidden" name="tab" value="timesheets" />
-            <DateRangeInputs defaultFrom={from} defaultTo={to} submitOnApply />
-            <button className="admin-btn small secondary" type="submit"><Tx>عرض</Tx></button>
-          </form>
-          <Summary items={[{ label: "جلسات العمل", value: formatMinutes(timesheets.sessions.reduce((s, x) => s + (x.clock_out_at ? Math.round((new Date(x.clock_out_at).getTime() - new Date(x.clock_in_at).getTime()) / 60000) : 0), 0)) }, { label: "وقت المشاريع", value: formatMinutes(timesheets.entries.reduce((s, x) => s + (x.duration_minutes ?? 0), 0)) }, { label: "قابل للفوترة", value: formatMinutes(timesheets.entries.filter((x) => x.billable).reduce((s, x) => s + (x.duration_minutes ?? 0), 0)) }]} />
-          <Card title="الوقت على المشاريع والمهام">
-            {timesheets.entries.length ? (
-              <BosTable className="bos-table responsive">
-                <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>المشروع / المهمة</Tx></th><th><Tx>المدة</Tx></th><th><Tx>الوصف</Tx></th></tr></thead>
-                <tbody>
-                  {timesheets.entries.map((t) => (
-                    <tr key={t.id}>
-                      <td>{formatDateTime(t.started_at, emp.timezone)}</td>
-                      <td>{(t.projects as { name: string } | null)?.name ?? "—"}{(t.tasks as { title: string } | null)?.title ? <span className="cell-sub">{(t.tasks as { title: string }).title}</span> : null}</td>
-                      <td>{t.duration_minutes ? formatMinutes(t.duration_minutes) : <span className="bos-faint"><Tx>جارٍ</Tx></span>}{t.billable ? "" : <span className="cell-sub"><Tx>غير قابل للفوترة</Tx></span>}</td>
-                      <td><Tx>{t.description ?? "—"}</Tx></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </BosTable>
-            ) : <EmptyState title="لا يوجد وقت مسجل" />}
           </Card>
         </>
       ) : null}
@@ -375,65 +315,6 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         </>
       ) : null}
 
-      {tab === "access" && access ? (
-        <>
-          <Card
-            title="ملف الصلاحيات"
-            actions={
-              <span className="bos-row" style={{ gap: 6, flexWrap: "wrap" }}>
-                {canManageAccess ? <AddGrantButton employeeId={id} apps={apps.filter((a) => !access.grants.some((g) => g.app_id === a.id)).map((a) => ({ id: a.id, name: a.name, access_levels: a.access_levels }))} /> : null}
-                {canManageAccess && emp.user_id ? <RegenerateAccessButton employeeId={id} /> : null}
-                {(isSelf || can(bos, "access.create")) && !["suspended", "offboarding", "archived"].includes(emp.lifecycle_status) ? <RequestAccessButton employeeId={id} apps={apps.map((a) => ({ id: a.id, name: a.name, access_levels: a.access_levels, is_sensitive: a.is_sensitive }))} /> : null}
-              </span>
-            }
-          >
-            <KeyValues
-              items={[
-                { label: "الدور", value: emp.roles.map((r) => r.name).join("، ") || "—" },
-                { label: "القسم", value: (emp.departments as { name: string } | null)?.name ?? "—" },
-                { label: "المدير", value: emp.manager?.full_name ?? "—" },
-                { label: "البريد الرسمي", value: emp.email ? <span dir="ltr">{emp.email}</span> : "—" },
-                { label: "2FA", value: <span className="bos-row" style={{ gap: 8 }}><StatusBadge map="mfa_status" value={emp.mfa_status} />{canManageAccess || isSelf ? <MfaControls employeeId={id} status={emp.mfa_status} canManage={canManageAccess} /> : null}</span> },
-              ]}
-            />
-            <div className="bos-row" style={{ gap: 12, flexWrap: "wrap", margin: "10px 0", fontSize: 12.5 }}>
-              <span><Tx vars={{ required_count: access.groups.required.length }}>{"مطلوب: {required_count}"}</Tx></span>
-              <span style={{ color: "var(--bos-success)" }}><Tx vars={{ granted_count: access.groups.granted.length }}>{"مفعّل: {granted_count}"}</Tx></span>
-              <span style={{ color: "var(--bos-danger)" }}><Tx vars={{ missing_count: access.groups.missing.length }}>{"ناقص: {missing_count}"}</Tx></span>
-              <span style={{ color: "var(--bos-warning)" }}><Tx vars={{ pending_count: access.groups.pending.length }}>{"قيد الطلب: {pending_count}"}</Tx></span>
-              <span><Tx vars={{ revoked_count: access.groups.revoked.length }}>{"مسحوب: {revoked_count}"}</Tx></span>
-              <span><Tx vars={{ expired_count: access.groups.expired.length }}>{"منتهي: {expired_count}"}</Tx></span>
-              {access.groups.review.length ? <span style={{ color: "var(--bos-warning)" }}><Tx vars={{ review_count: access.groups.review.length }}>{"يحتاج مراجعة: {review_count}"}</Tx></span> : null}
-            </div>
-            <AccessProfileView employeeId={id} grants={access.grants} canManage={canManageAccess} />
-          </Card>
-          <Card title="حسابات الشركة" actions={canManageAccess ? <CompanyAccountButton initial={{ employee_id: id }} employees={[{ value: id, label: emp.full_name }]} apps={apps.map((a) => ({ value: a.id, label: a.name }))} staff={[...names.entries()].map(([value, label]) => ({ value, label }))} /> : null}>
-            {access.accounts.length ? (
-              <BosTable className="bos-table responsive">
-                <tbody>
-                  {access.accounts.map((a) => (
-                    <tr key={a.id}>
-                      <td className="cell-primary"><span dir="ltr">{a.identifier}</span><span className="cell-sub">{a.provider} · {a.account_type}</span></td>
-                      <td><StatusBadge map="access_status" value={a.status} /></td>
-                      <td><StatusBadge map="mfa_status" value={a.mfa_status} /></td>
-                      <td className="bos-faint" style={{ fontSize: 12 }}>{a.last_reviewed_at ? `مراجعة ${formatDate(a.last_reviewed_at)}` : "لم تُراجع"}</td>
-                      <td>{canManageAccess ? <CompanyAccountButton label="تعديل" initial={{ ...a }} employees={[{ value: id, label: emp.full_name }]} apps={apps.map((x) => ({ value: x.id, label: x.name }))} staff={[...names.entries()].map(([value, label]) => ({ value, label }))} /> : null}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </BosTable>
-            ) : <EmptyState title="لا توجد حسابات مسجلة" />}
-          </Card>
-          <Card title="طلبات الوصول">
-            {access.requests.length ? access.requests.map((r) => (
-              <div key={r.id} style={{ fontSize: 13, marginBottom: 6 }}>
-                {(r.external_apps as { name: string } | null)?.name}{r.access_level ? ` (${r.access_level})` : ""} — <StatusBadge map="simple_approval" value={r.status} /> <span className="bos-faint" style={{ fontSize: 12 }}>{formatDate(r.created_at)} · {r.reason}</span>
-              </div>
-            )) : <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا توجد طلبات.</Tx></div>}
-          </Card>
-        </>
-      ) : null}
-
       {tab === "devices" ? (
         <>
           <Card title="الأجهزة المسلّمة">
@@ -470,7 +351,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
         checklists.length ? (
           checklists.map((cl) => (
             <Card key={cl.id} title={cl.template_key === "employee_offboarding" ? "إنهاء الخدمة (مستنتج — بانتظار تأكيد المواصفات)" : "التهيئة"} actions={<span className="bos-row" style={{ gap: 6 }}><RefreshOnboardingButton employeeId={id} /><Link className="bos-link" href={`/admin/team/onboarding/${id}`}><Tx>صفحة التهيئة</Tx></Link></span>}>
-              <ChecklistView employeeId={id} checklist={cl} names={names} canManage={can(bos, "onboarding.update") || can(bos, "onboarding.manage")} links={{ device_assigned: { href: "/admin/team/devices", label: "الأجهزة" }, company_email: { href: `/admin/team/employees/${id}?tab=access`, label: "حسابات الشركة" }, kpis_assigned: { href: "/admin/team/kpis", label: "المؤشرات" } }} />
+              <ChecklistView employeeId={id} checklist={cl} names={names} canManage={can(bos, "onboarding.update") || can(bos, "onboarding.manage")} links={{ device_assigned: { href: "/admin/team/devices", label: "الأجهزة" }, kpis_assigned: { href: "/admin/team/kpis", label: "المؤشرات" } }} />
             </Card>
           ))
         ) : <EmptyState title="لا توجد قائمة تهيئة" />

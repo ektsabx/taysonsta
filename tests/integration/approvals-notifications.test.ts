@@ -105,14 +105,16 @@ test("due dates: overdue reminder once per interval, escalation to the approver'
   const [admin, sara, fin] = await Promise.all([bosUserFor("admin@taysonsta.local"), bosUserFor("sara@taysonsta.local"), bosUserFor("finance@taysonsta.local")]);
   const before = await getSetting("approval_workflow");
   cleanup.push(() => saveSetting("approval_workflow", before, admin.userId));
-  await saveSetting("approval_workflow", { ...before, escalate_after_hours: 1, thresholds: [{ approval_type: "design", min_amount: 1000, add_steps: [`user:${fin.userId}`] }] }, admin.userId);
+  await saveSetting("approval_workflow", { ...before, escalate_after_hours: 1, thresholds: [{ approval_type: "design", currency: "USD", min_amount: 1000, add_steps: [`user:${fin.userId}`] }] }, admin.userId);
 
   const id = entity();
-  const small = await requestApproval({ type: "design", entityType: "test_entity", entityId: id, title: uniq("Small"), requestedBy: admin.userId, steps: [`user:${sara.userId}`], payload: { amount_base: 500 } });
+  const small = await requestApproval({ type: "design", entityType: "test_entity", entityId: id, title: uniq("Small"), requestedBy: admin.userId, steps: [`user:${sara.userId}`], payload: { amount: 500, currency: "USD" } });
   assert.equal(small.total_steps, 1);
   const id2 = entity();
-  const big = await requestApproval({ type: "design", entityType: "test_entity", entityId: id2, title: uniq("Big"), requestedBy: admin.userId, steps: [`user:${sara.userId}`], payload: { amount_base: 5000 } });
+  const big = await requestApproval({ type: "design", entityType: "test_entity", entityId: id2, title: uniq("Big"), requestedBy: admin.userId, steps: [`user:${sara.userId}`], payload: { amount: 5000, currency: "USD" } });
   assert.equal(big.total_steps, 2, "threshold added a step");
+  const egp = await requestApproval({ type: "design", entityType: "test_entity", entityId: entity(), title: uniq("Egp"), requestedBy: admin.userId, steps: [`user:${sara.userId}`], payload: { amount: 5000, currency: "EGP" } });
+  assert.equal(egp.total_steps, 1, "a USD threshold never matches an EGP amount (no conversion)");
 
   await db().from("approvals").update({ due_at: new Date(Date.now() - 3 * 3600_000).toISOString() }).eq("id", small.id);
   const n1 = await remindOverdueApprovals();
@@ -169,7 +171,7 @@ test("delivery queue: channels without a provider are skipped with a reason; ret
   const c = db();
   const ent = entity();
   const { data: n } = await c.from("notifications").insert({ user_id: sara.userId, event_type: "security.alert", title: uniq("Delivery"), entity_type: "test_entity", entity_id: ent }).select("id").single();
-  const { data: d } = await c.from("notification_deliveries").insert([{ notification_id: n!.id, channel: "whatsapp" }, { notification_id: n!.id, channel: "push" }]).select("id, channel");
+  const { data: d } = await c.from("notification_deliveries").insert([{ notification_id: n!.id, channel: "push" }]).select("id, channel");
   await processDeliveries(500);
   const { data: after } = await c.from("notification_deliveries").select("channel, status, last_error").in("id", d!.map((x) => x.id));
   for (const row of after!) {

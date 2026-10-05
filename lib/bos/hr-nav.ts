@@ -15,7 +15,6 @@ export const hrSections = {
     { key: "me", href: "/admin/team/attendance/me", label: "حضوري", perm: "attendance.create" },
     { key: "employees", href: "/admin/team/attendance/employees", label: "الموظفون", perm: ["attendance.read", "attendance.manage"] },
     { key: "corrections", href: "/admin/team/attendance/corrections", label: "التصحيحات", perm: "attendance.read" },
-    { key: "timesheets", href: "/admin/team/timesheets", label: "سجلات الوقت", perm: "timesheets.read" },
     { key: "overtime", href: "/admin/team/overtime", label: "العمل الإضافي", perm: "overtime.read" },
     { key: "reports", href: "/admin/team/attendance/reports", label: "التقارير", perm: ["attendance.read", "attendance.manage"] },
   ],
@@ -61,11 +60,6 @@ export const hrSections = {
   documents: [
     { key: "documents", href: "/admin/team/documents", label: "مستندات الموظفين", perm: "hr_documents.read" },
     { key: "contracts", href: "/admin/team/documents/contracts", label: "عقود الموظفين", perm: "hr_documents.read" },
-  ],
-  it: [
-    { key: "access", href: "/admin/team/access", label: "الصلاحيات والأدوات", perm: "access.read" },
-    { key: "accounts", href: "/admin/team/accounts", label: "حسابات الشركة", perm: "access.manage" },
-    { key: "devices", href: "/admin/team/devices", label: "الأجهزة", perm: "devices.read" },
   ],
 } satisfies Record<string, HrNavItem[]>;
 

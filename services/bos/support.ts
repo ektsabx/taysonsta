@@ -1,9 +1,8 @@
 import { nowIso, nowMs } from "@/lib/bos/clock";
 import "server-only";
-import { branchFilter, withBranch } from "@/lib/bos/branch";
 import { db, type DbEnum, type Tables } from "@/lib/bos/db";
 import { scopeUserIds, type BosUser } from "@/lib/bos/auth";
-import { myClientIds, myProjectIds } from "@/lib/bos/access";
+import { myClientIds } from "@/lib/bos/access";
 import type { Scope } from "@/lib/bos/permissions";
 import { audit, recordStatus } from "@/lib/bos/audit";
 import { emitEvent } from "@/lib/bos/events";
@@ -28,14 +27,13 @@ export const ticketTransitions: Record<TicketStatus, TicketStatus[]> = {
 // Tickets
 // ---------------------------------------------------------------------------
 
-export async function listTickets(bos: BosUser, scope: Scope, f: { q?: string; status?: string; priority?: string; assigned?: string; client?: string; project?: string; category?: string; sla?: string; page?: number }) {
+export async function listTickets(bos: BosUser, scope: Scope, f: { q?: string; status?: string; priority?: string; assigned?: string; client?: string; category?: string; sla?: string; page?: number }) {
   const page = Math.max(1, f.page ?? 1);
-  let q = db().from("tickets").select("*, clients(id, name, company_name), contacts!tickets_contact_id_fkey(full_name), projects(id, name)", { count: "exact" });
-  q = withBranch(q, await branchFilter(bos));
+  let q = db().from("tickets").select("*, clients(id, name, company_name), contacts!tickets_contact_id_fkey(full_name)", { count: "exact" });
   if (scope !== "all") {
     const users = (await scopeUserIds(bos, scope)) ?? [bos.userId];
-    const [projects, clients] = await Promise.all([myProjectIds(bos), myClientIds(bos, scope)]);
-    q = q.or([`assigned_to.in.(${users.join(",")})`, `created_by_user_id.in.(${users.join(",")})`, ...(projects.length ? [`project_id.in.(${projects.join(",")})`] : []), ...(clients?.length ? [`client_id.in.(${clients.join(",")})`] : [])].join(","));
+    const clients = await myClientIds(bos, scope);
+    q = q.or([`assigned_to.in.(${users.join(",")})`, `created_by_user_id.in.(${users.join(",")})`, ...(clients?.length ? [`client_id.in.(${clients.join(",")})`] : [])].join(","));
   }
   if (f.status === "open_all") q = q.not("status", "in", "(resolved,closed)");
   else if (f.status) q = q.eq("status", f.status as TicketStatus);
@@ -44,7 +42,6 @@ export async function listTickets(bos: BosUser, scope: Scope, f: { q?: string; s
   else if (f.assigned === "none") q = q.is("assigned_to", null);
   else if (f.assigned) q = q.eq("assigned_to", f.assigned);
   if (f.client) q = q.eq("client_id", f.client);
-  if (f.project) q = q.eq("project_id", f.project);
   if (f.category) q = q.eq("category", f.category);
   if (f.sla === "breached") q = q.not("sla_breached_at", "is", null);
   if (f.sla === "at_risk") q = q.is("sla_breached_at", null).not("status", "in", "(resolved,closed)").lt("resolution_due_at", new Date(nowMs() + 4 * 3600_000).toISOString());
@@ -55,7 +52,7 @@ export async function listTickets(bos: BosUser, scope: Scope, f: { q?: string; s
 }
 
 export async function getTicket(id: string) {
-  const { data } = await db().from("tickets").select("*, clients(id, name, company_name, account_manager_id), contacts!tickets_contact_id_fkey(id, full_name, email), projects(id, name, pm_id, support_until)").eq("id", id).maybeSingle();
+  const { data } = await db().from("tickets").select("*, clients(id, name, company_name, account_manager_id), contacts!tickets_contact_id_fkey(id, full_name, email)").eq("id", id).maybeSingle();
   if (!data) throw new NotFoundError();
   return data;
 }
@@ -67,7 +64,6 @@ export interface TicketInput {
   support_customer_id?: string | null;
   team_id?: string | null;
   contact_id: string | null;
-  project_id: string | null;
   category: string;
   priority: Ticket["priority"];
   subject: string;
@@ -81,20 +77,10 @@ async function validateTicket(input: TicketInput) {
     const { data } = await db().from("contacts").select("client_id").eq("id", input.contact_id).maybeSingle();
     if (!data || data.client_id !== input.client_id) throw new ValidationError("جهة الاتصال لا تتبع هذا الحساب.", { contact_id: "حساب مختلف" });
   }
-  if (input.project_id) {
-    const { data } = await db().from("projects").select("client_id").eq("id", input.project_id).maybeSingle();
-    if (!data || data.client_id !== input.client_id) throw new ValidationError("المشروع لا يتبع هذا الحساب.", { project_id: "حساب مختلف" });
-  }
 }
 
-// Auto-assignment: project PM during the support period, else round-robin
-// over active support agents (§48 automation).
-async function autoAssignee(input: TicketInput): Promise<string | null> {
-  if (input.project_id) {
-    const { data: p } = await db().from("projects").select("pm_id, support_until, status").eq("id", input.project_id).maybeSingle();
-    const today = nowIso().slice(0, 10);
-    if (p?.pm_id && p.status === "completed" && p.support_until && p.support_until >= today) return p.pm_id;
-  }
+// Auto-assignment: round-robin over active support agents (§48 automation).
+async function autoAssignee(): Promise<string | null> {
   const agents = await staffWithRole("support");
   if (!agents.length) return null;
   const { data: open } = await db().from("tickets").select("assigned_to").in("assigned_to", agents.map((a) => a.userId)).not("status", "in", "(resolved,closed)");
@@ -103,9 +89,9 @@ async function autoAssignee(input: TicketInput): Promise<string | null> {
   return [...load.entries()].sort((a, b) => a[1] - b[1])[0][0];
 }
 
-export async function createTicket(actor: { bos?: BosUser; contactId?: string }, input: TicketInput, source: "portal" | "internal" | "email" = "internal") {
+export async function createTicket(actor: { bos?: BosUser; contactId?: string }, input: TicketInput, source: "internal" | "email" = "internal") {
   await validateTicket(input);
-  const assignee = input.assigned_to ?? (await autoAssignee(input));
+  const assignee = input.assigned_to ?? (await autoAssignee());
   const { data, error } = await db()
     .from("tickets")
     .insert({ ...input, assigned_to: assignee, source, created_by_user_id: actor.bos?.userId ?? null, created_by_contact_id: actor.contactId ?? null })
@@ -115,19 +101,15 @@ export async function createTicket(actor: { bos?: BosUser; contactId?: string },
   const actorId = actor.bos?.userId ?? null;
   await recordStatus("ticket", data.id, null, "open", actorId);
   await audit({ actorId, actorType: actor.contactId ? "client" : "user", action: "ticket.created", entityType: "ticket", entityId: data.id, newValue: { ...input, assigned_to: assignee, source } });
-  await emitEvent({ type: "ticket.created", entityType: "ticket", entityId: data.id, summary: `Ticket ${data.ticket_number}: ${data.subject}`, actorId, actorType: actor.contactId ? "client" : "user", payload: { client_id: data.client_id, project_id: data.project_id, priority: data.priority, assignee_user_id: assignee }, links: [{ type: "client", id: data.client_id }, { type: "project", id: data.project_id }] });
+  await emitEvent({ type: "ticket.created", entityType: "ticket", entityId: data.id, summary: `Ticket ${data.ticket_number}: ${data.subject}`, actorId, actorType: actor.contactId ? "client" : "user", payload: { client_id: data.client_id, priority: data.priority, assignee_user_id: assignee }, links: [{ type: "client", id: data.client_id }] });
   if (assignee) await emitEvent({ type: "ticket.assigned", entityType: "ticket", entityId: data.id, summary: `Ticket assigned: ${data.ticket_number} ${data.subject}`, actorId, payload: { assignee_user_id: assignee, client_id: data.client_id } });
   return data;
 }
 
-export async function updateTicket(bos: BosUser, id: string, patch: Partial<Pick<TicketInput, "category" | "priority" | "project_id" | "subject" | "description">>) {
+export async function updateTicket(bos: BosUser, id: string, patch: Partial<Pick<TicketInput, "category" | "priority" | "subject" | "description">>) {
   const before = await getTicket(id);
-  if (patch.project_id) {
-    const { data } = await db().from("projects").select("client_id").eq("id", patch.project_id).maybeSingle();
-    if (!data || data.client_id !== before.client_id) throw new ValidationError("المشروع لا يتبع هذا الحساب.");
-  }
   await db().from("tickets").update(patch).eq("id", id);
-  await audit({ actorId: bos.userId, action: "ticket.updated", entityType: "ticket", entityId: id, oldValue: { category: before.category, priority: before.priority, project_id: before.project_id }, newValue: patch });
+  await audit({ actorId: bos.userId, action: "ticket.updated", entityType: "ticket", entityId: id, oldValue: { category: before.category, priority: before.priority }, newValue: patch });
 }
 
 export async function assignTicket(bos: BosUser, id: string, userId: string | null) {
@@ -153,7 +135,7 @@ export async function changeTicketStatus(actor: { bos?: BosUser; contactId?: str
   await emitEvent({ type: "ticket.status_changed", entityType: "ticket", entityId: id, summary: `${t.ticket_number}: ${t.status} → ${to}`, actorId, actorType: actor.contactId ? "client" : "user", visibility: "client", payload: { from: t.status, to, client_id: t.client_id, assignee_user_id: t.assigned_to } });
 }
 
-// Public replies are visible in the portal; internal notes never are. The
+// Public replies go to the client; internal notes never do. The
 // first public staff reply stamps first_responded_at (SLA).
 export async function replyToTicket(actor: { bos?: BosUser; contactId?: string }, id: string, body: string, isInternal: boolean) {
   const t = await getTicket(id);

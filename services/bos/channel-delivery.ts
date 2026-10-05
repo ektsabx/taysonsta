@@ -1,5 +1,4 @@
 import "server-only";
-import { db } from "@/lib/bos/db";
 import type { Tables } from "@/lib/bos/db";
 
 // Reply on the customer's own channel (docs/bos/39 §5): one function used by
@@ -10,12 +9,12 @@ import type { Tables } from "@/lib/bos/db";
 type Conversation = Tables<"conversations">;
 type Customer = Tables<"support_customers">;
 export type DeliveryStatus = "queued" | "sent" | "delivered" | "read" | "failed" | "skipped" | null;
-export interface Delivery { status: DeliveryStatus; error: string | null; externalId: string | null; outboundId: string | null }
+export interface Delivery { status: DeliveryStatus; error: string | null; externalId: string | null }
 
 const META_GRAPH = "https://graph.facebook.com/v21.0";
 
 export async function deliverToCustomer(conv: Conversation, customer: Customer, text: string, actorId: string | null): Promise<Delivery> {
-  const out: Delivery = { status: "sent", error: null, externalId: null, outboundId: null };
+  const out: Delivery = { status: "sent", error: null, externalId: null };
   switch (conv.channel) {
     case "email": {
       if (!customer.email) return { ...out, status: "failed", error: "Customer has no email" };
@@ -26,15 +25,6 @@ export async function deliverToCustomer(conv: Conversation, customer: Customer, 
       const res = await sendEmail({ to: [customer.email], subject, text, ...(inbound ? { replyTo: (inbound.connection.config as Record<string, string>).inbound_address } : {}) });
       if (res.status === "sent") return { ...out, externalId: res.id };
       return { ...out, status: res.status === "skipped" ? "skipped" : "failed", error: res.status === "skipped" ? res.reason : res.error };
-    }
-    case "whatsapp":
-    case "sms": {
-      // Messaging layer: consent, 24-hour window, provider, delivery log.
-      const to = conv.channel === "whatsapp" ? customer.whatsapp ?? customer.phone : customer.phone ?? customer.whatsapp;
-      if (!to) return { ...out, status: "failed", error: "Customer has no phone number" };
-      const { sendAsSystem } = await import("@/services/bos/messaging");
-      const r = await sendAsSystem({ channel: conv.channel, to, text, entity_type: "conversation", entity_id: conv.id, client_id: conv.client_id }, actorId);
-      return { status: r.status as DeliveryStatus, error: r.error, externalId: r.provider_message_id, outboundId: r.id };
     }
     case "messenger":
     case "instagram": {
@@ -64,15 +54,9 @@ export async function deliverToCustomer(conv: Conversation, customer: Customer, 
       const b = r.body as { ok?: boolean; result?: { message_id?: number }; description?: string } | null;
       return r.ok && b?.ok ? { ...out, externalId: b.result?.message_id ? String(b.result.message_id) : null } : { ...out, status: "failed", error: b?.description ?? r.error ?? `HTTP ${r.status}` };
     }
-    case "phone":
     case "manual":
       return { ...out, status: null }; // a record of what was said; nothing to deliver
     default:
-      return out; // web_widget / portal: stored and shown to the customer in their channel
+      return out; // web_widget: stored and shown to the customer in the widget
   }
-}
-
-// After an outbound message row exists, link it to the messaging log entry.
-export async function linkOutbound(outboundId: string | null, messageId: string | null | undefined) {
-  if (outboundId && messageId) await db().from("outbound_messages").update({ conversation_message_id: messageId }).eq("id", outboundId);
 }
