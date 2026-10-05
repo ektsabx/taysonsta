@@ -6,7 +6,7 @@ import type { Json } from "@/types/database";
 // worker (/api/worker) runs them. Every job must be idempotent: it can run
 // again after a crash or timeout.
 
-export type JobKind = "campaign.discover" | "email.send" | "email.workspace" | "email.announce" | "billing.sweep";
+export type JobKind = "campaign.discover" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep";
 
 export interface JobPayloads {
   "campaign.discover": { campaignId: string };
@@ -14,6 +14,8 @@ export interface JobPayloads {
   "email.send": { logId: number };
   /** An email to a workspace's owners/admins, queued by Yolias Admin (e.g. prospects added). */
   "email.workspace": { kind: "prospects_added"; workspaceId: string; data: { added: number; reason: string | null }; dedupe?: string };
+  /** A security email to one user, queued by Yolias Admin (suspend / restore). */
+  "email.user": { userId: string; event: "account_suspended" | "account_restored" };
   /** Fan-out of a product update announcement written in Yolias Admin. */
   "email.announce": { announcementId: string };
   /** Renewal reminders, ending reminders and test-mode renewals. */

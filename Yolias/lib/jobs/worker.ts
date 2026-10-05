@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { runDiscovery } from "@/lib/discovery/pipeline";
 import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
+import { securityAlert } from "@/lib/email/events";
 import { billingSweep } from "@/lib/billing";
 import type { JobKind, JobPayloads } from "@/lib/jobs/queue";
 import type { Json } from "@/types/database";
@@ -24,6 +25,7 @@ const handlers: { [K in JobKind]: Handler<K> } = {
     const { data: u } = await createAdminClient().rpc("usage_summary", { p_ws: p.workspaceId });
     await notify("prospects_added", await workspaceRecipients(p.workspaceId), { ...p.data, allowance: u?.[0]?.allowance ?? 0 }, { workspaceId: p.workspaceId, dedupe: p.dedupe });
   },
+  "email.user": (p) => securityAlert(p.userId, p.event),
   "email.announce": (p) => sendAnnouncement(p.announcementId),
   "billing.sweep": async () => {
     await billingSweep();
@@ -31,6 +33,20 @@ const handlers: { [K in JobKind]: Handler<K> } = {
 };
 
 const SWEEP_EVERY_MS = 60 * 60_000;
+
+/**
+ * For Yolias Admin → Platform health: when the worker last ran and which
+ * services are configured in this deployment (yes/no only — never a key).
+ */
+async function heartbeat() {
+  const configured = {
+    llm: { anthropic: Boolean(process.env.ANTHROPIC_API_KEY), openai: Boolean(process.env.OPENAI_API_KEY), gemini: Boolean(process.env.GEMINI_API_KEY) },
+    email: Boolean(process.env.RESEND_API_KEY),
+    stt: Boolean(process.env.STT_API_KEY),
+    billingTestMode: process.env.BILLING_TEST_MODE === "true",
+  };
+  await createAdminClient().from("worker_state").upsert({ key: "heartbeat", value: { at: new Date().toISOString(), configured }, updated_at: new Date().toISOString() });
+}
 
 /** Queues the billing sweep at most once an hour (the worker is called every few seconds). */
 async function scheduleSweep() {
@@ -63,6 +79,7 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   const started = Date.now();
   const result: TickResult = { taken: 0, succeeded: 0, retried: 0, dead: 0 };
   await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
+  await heartbeat().catch(() => {});
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

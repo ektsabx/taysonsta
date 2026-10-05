@@ -95,6 +95,11 @@ audited.
 | Plans & quotas | `/admin/platform/plans` | prospects per plan (edit, audited); prices shown |
 | Jobs & queue | `/admin/platform/jobs` | queue length, oldest job, failed jobs (retry), latest runs |
 | Yolias AI | `/admin/platform/agent` | last 30 days: conversations, messages, tool calls by tool and outcome (denied, not connected…), agent LLM cost, audit log of the latest 50 tool calls. Counts only, no conversation text |
+| Users (suspend) | `/admin/platform/users` | status column; suspend (with a reason) / restore — Supabase Auth ban, audited, the user gets a security email |
+| Companies & people | `/admin/platform/data/companies` (+`[id]`) | shared companies with freshness against the TTL and license; per company every field's source, license, confidence, fetch and expiry time; people with contacts and verification |
+| Emails | `/admin/platform/emails` | send log by category and status; product update announcements (draft → send) |
+| Profitability | `/admin/platform/profitability` | this month: live revenue vs platform cost per plan and workspace, cost per delivered prospect; test revenue shown apart |
+| Platform health | `/admin/platform/health` | database latency, worker heartbeat, queue, failed jobs/runs, LLM error rate and emails in 24 h, configured services (yes/no from the worker), provider circuit breakers |
 | Costs | `/admin/platform/costs` | LLM and provider cost this month, cost per prospect, by task/provider, latest LLM calls |
 
 Permissions: `platform.*` (super admin and admin: all; executive: read).

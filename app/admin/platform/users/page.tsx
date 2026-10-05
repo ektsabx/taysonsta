@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requirePermission } from "@/lib/bos/auth";
+import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, pageOf, type SearchParams } from "@/lib/bos/params";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { BosTable } from "@/components/bos/BosTable";
@@ -8,13 +8,15 @@ import { Tx } from "@/components/bos/I18n";
 import { formatDate, formatDateTime } from "@/lib/bos/format";
 import { listUsers } from "@/services/yolias/platform";
 import { NotConnected, connected, PlanBadge, Pager, qsFor, num } from "@/components/yolias/PlatformUi";
+import { SuspendForm } from "./UserForms";
 
 const roleLabel: Record<string, string> = { owner: "المالك", admin: "مسؤول", member: "عضو" };
 
-// Yolias users (docs/09-yolias-admin.md §B "Users"). Read-only in this phase.
+// Yolias users (docs/09-yolias-admin.md §B "Users"): status, suspend / restore (audited).
 export default async function PlatformUsersPage({ searchParams }: { searchParams: SearchParams }) {
-  await requirePermission("platform.read");
+  const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="المستخدمون" /><NotConnected /></>);
+  const manage = can(bos, "platform.manage", "all");
   const sp = await readParams(searchParams);
   const page = pageOf(sp);
   const { rows, total, pages } = await listUsers({ q: sp.q, page });
@@ -26,7 +28,7 @@ export default async function PlatformUsersPage({ searchParams }: { searchParams
         {rows.length ? (
           <div className="bos-table-scroll">
             <BosTable className="bos-table responsive">
-              <thead><tr><th><Tx>الاسم</Tx></th><th><Tx>البريد الإلكتروني</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>الدور</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>اللغة / الدولة</Tx></th><th><Tx>تاريخ التسجيل</Tx></th><th><Tx>آخر دخول</Tx></th></tr></thead>
+              <thead><tr><th><Tx>الاسم</Tx></th><th><Tx>البريد الإلكتروني</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>الدور</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>اللغة / الدولة</Tx></th><th><Tx>تاريخ التسجيل</Tx></th><th><Tx>آخر دخول</Tx></th><th><Tx>الحالة</Tx></th>{manage ? <th /> : null}</tr></thead>
               <tbody>
                 {rows.map((u) => (
                   <tr key={u.id}>
@@ -44,6 +46,8 @@ export default async function PlatformUsersPage({ searchParams }: { searchParams
                     <td dir="ltr">{u.language.toUpperCase()} · {u.country}</td>
                     <td style={{ whiteSpace: "nowrap" }}>{formatDate(u.created_at)}</td>
                     <td style={{ whiteSpace: "nowrap" }}>{u.last_sign_in_at ? formatDateTime(u.last_sign_in_at) : "—"}</td>
+                    <td>{u.suspended ? <StatusBadge tone="danger" label="موقوف" /> : <StatusBadge tone="success" label="نشط" />}</td>
+                    {manage ? <td><SuspendForm id={u.id} suspended={u.suspended} /></td> : null}
                   </tr>
                 ))}
               </tbody>

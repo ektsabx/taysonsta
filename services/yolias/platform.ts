@@ -81,12 +81,15 @@ export async function workspaceStats(): Promise<Map<string, WorkspaceStats>> {
 }
 
 /** Auth details (last sign-in, confirmed) that live in auth.users, not profiles. */
-async function authUsers(): Promise<Map<string, { last_sign_in_at: string | null; confirmed: boolean }>> {
-  const out = new Map<string, { last_sign_in_at: string | null; confirmed: boolean }>();
+async function authUsers(): Promise<Map<string, { last_sign_in_at: string | null; confirmed: boolean; suspended: boolean }>> {
+  const out = new Map<string, { last_sign_in_at: string | null; confirmed: boolean; suspended: boolean }>();
   for (let page = 1; page < 50; page++) {
     const { data, error } = await ydb().auth.admin.listUsers({ page, perPage: 1000 });
     if (error) break;
-    for (const u of data.users) out.set(u.id, { last_sign_in_at: u.last_sign_in_at ?? null, confirmed: Boolean(u.email_confirmed_at) });
+    for (const u of data.users) {
+      const banned = (u as { banned_until?: string | null }).banned_until;
+      out.set(u.id, { last_sign_in_at: u.last_sign_in_at ?? null, confirmed: Boolean(u.email_confirmed_at), suspended: Boolean(banned && new Date(banned) > new Date()) });
+    }
     if (data.users.length < 1000) break;
   }
   return out;
@@ -115,7 +118,7 @@ export async function listUsers(opts: { q?: string; page: number }) {
       ...r,
       workspace: r.workspace_id ? wsById.get(r.workspace_id) ?? null : null,
       role: (roles ?? []).find((m) => m.user_id === r.id && m.workspace_id === r.workspace_id)?.role ?? null,
-      ...(auth.get(r.id) ?? { last_sign_in_at: null, confirmed: false }),
+      ...(auth.get(r.id) ?? { last_sign_in_at: null, confirmed: false, suspended: false }),
     })),
   };
 }
