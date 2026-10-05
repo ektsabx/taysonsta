@@ -67,4 +67,7 @@ Runs at http://admin.localhost:3200.
 
 - Yolias: `cd Yolias && npm run typecheck && npm run lint && npm run test:unit && npm run build`
 - Agent tools against the local DB (no LLM key needed): `cd Yolias && npm run test:agent`
+- Emails / LLM fallback (local stand-ins, nothing sent): `cd Yolias && npm run test:emails`, `npm run test:llm`
+- Search-understanding eval, Arabic dialects + English (needs a provider key): `cd Yolias && npm run eval:icp`
+- End-to-end in a browser, both apps (with `npm run local` running): `npm run e2e` at the root (first time: `npx playwright install chromium`)
 - Admin: `npm run lint`, `npm test` at the root.

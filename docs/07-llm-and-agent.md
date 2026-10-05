@@ -21,7 +21,7 @@ validation, quota, usage, routing, matching.
 - Smallest model that passes the eval set; models are config, no lock-in.
 - Structured outputs (zod schemas) for every extraction.
 - Input hygiene: strip HTML, truncate, send only needed fields.
-- Bilingual eval set (Arabic dialects + English) run on every model or prompt change.
+- Bilingual eval set (Arabic dialects + English) run on every model or prompt change: `Yolias/tests/evals/icp-cases.json` (18 cases: Egyptian, Gulf, Levantine, MSA, mixed, English), `npm run eval:icp` scores each configured provider separately and fails below 90 %.
 
 ## Providers and fallback (D-118)
 

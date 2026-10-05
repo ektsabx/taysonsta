@@ -71,21 +71,7 @@ export class StrategyAiError extends Error {
 export async function understandStrategy(prompt: string, attachments: StrategyAttachment[], ctx: StrategyContext): Promise<UnderstoodStrategy> {
   const log = { promptVersion: ICP_PROMPT_VERSION, workspaceId: ctx.workspaceId, strategyId: ctx.strategyId };
 
-  const business = [
-    ctx.companyName && `Company: ${ctx.companyName}`,
-    ctx.website && `Website: ${ctx.website}`,
-    ctx.offering && `What we sell: ${ctx.offering}`,
-    `Default country: ${ctx.defaultCountry}`,
-  ].filter(Boolean).join("\n");
-
-  const parts: InputPart[] = attachments.map((a): InputPart =>
-    a.kind === "image" ? { kind: "image", mediaType: a.mediaType, base64: a.data }
-      : a.kind === "pdf" ? { kind: "pdf", name: a.name, base64: a.data }
-        : { kind: "document", name: a.name, text: a.data });
-  const userText = `<my_business>\n${business}\n</my_business>\n\n<request>\n${prompt}\n</request>`;
-  parts.push({ kind: "text", text: userText });
-
-  const system = SYSTEM.replace("{LANGUAGE}", ctx.language === "ar" ? "Arabic" : "English");
+  const { system, parts, userText } = icpRequest(prompt, attachments, ctx);
   // The cached answer doesn't depend on which provider produced it.
   const key = attachments.length === 0 ? cacheKey(TASK, "any-provider", ICP_PROMPT_VERSION, system, userText.normalize("NFKC").trim()) : null;
   if (key) {
@@ -99,10 +85,7 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
   if (!(await routesFor(TASK)).length) throw new StrategyAiError("aiNotConfigured");
 
   try {
-    const r = await runStructured(TASK, { system, parts, schema: icpJsonSchema, schemaName: "icp", maxTokens: 16000 }, (d) => {
-      const parsed = IcpSchema.safeParse(d);
-      return parsed.success ? normalize(parsed.data) : null;
-    }, log);
+    const r = await runStructured(TASK, { system, parts, schema: icpJsonSchema, schemaName: "icp", maxTokens: 16000 }, validateIcp, log);
     if (key) await writeLlmCache({ key, task: TASK, model: r.servedModel, promptVersion: ICP_PROMPT_VERSION, output: r.data, usage: r.usage, costUsd: r.costUsd }).catch(() => {});
     return { icp: r.data, fingerprint: fingerprintIcp(r.data), model: r.servedModel, promptVersion: ICP_PROMPT_VERSION, costUsd: r.costUsd, cached: false };
   } catch (e) {
@@ -113,6 +96,29 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
     }
     throw e;
   }
+}
+
+/** The exact request Yolias sends to understand a search (also used by the eval set). */
+export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "defaultCountry" | "language">) {
+  const business = [
+    ctx.companyName && `Company: ${ctx.companyName}`,
+    ctx.website && `Website: ${ctx.website}`,
+    ctx.offering && `What we sell: ${ctx.offering}`,
+    `Default country: ${ctx.defaultCountry}`,
+  ].filter(Boolean).join("\n");
+  const parts: InputPart[] = attachments.map((a): InputPart =>
+    a.kind === "image" ? { kind: "image", mediaType: a.mediaType, base64: a.data }
+      : a.kind === "pdf" ? { kind: "pdf", name: a.name, base64: a.data }
+        : { kind: "document", name: a.name, text: a.data });
+  const userText = `<my_business>\n${business}\n</my_business>\n\n<request>\n${prompt}\n</request>`;
+  parts.push({ kind: "text", text: userText });
+  const system = SYSTEM.replace("{LANGUAGE}", ctx.language === "ar" ? "Arabic" : "English");
+  return { system, parts, userText, schema: icpJsonSchema };
+}
+
+export function validateIcp(d: unknown): IcpCriteria | null {
+  const parsed = IcpSchema.safeParse(d);
+  return parsed.success ? normalize(parsed.data) : null;
 }
 
 const icpJsonSchema = (() => {

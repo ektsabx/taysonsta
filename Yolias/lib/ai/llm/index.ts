@@ -73,8 +73,9 @@ export interface StructuredOutcome<T> {
  * Structured extraction with fallback. `validate` returns the typed value or
  * null; null counts as a bad output and the next provider is tried.
  */
-export async function runStructured<T>(task: string, req: StructuredRequest, validate: (data: unknown) => T | null, log: Omit<LlmLog, "task">): Promise<StructuredOutcome<T>> {
-  const routes = await routesFor(task);
+export async function runStructured<T>(task: string, req: StructuredRequest, validate: (data: unknown) => T | null, log: Omit<LlmLog, "task">, only?: LlmRoute[]): Promise<StructuredOutcome<T>> {
+  // `only`: a fixed route list (evals); still limited to providers with a key.
+  const routes = only ? only.filter((r) => adapters[r.provider].configured()) : await routesFor(task);
   if (!routes.length) throw new LlmNotConfiguredError(task);
   let last: LlmProviderError | null = null;
   let costUsd = 0;

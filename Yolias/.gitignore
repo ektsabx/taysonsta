@@ -10,3 +10,4 @@ build/
 next-env.d.ts
 supabase/.temp/
 supabase/.branches/
+tests/evals/results/

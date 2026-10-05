@@ -91,3 +91,16 @@ test("http: retries only 429/5xx and honours Retry-After", () => {
   assert.equal(retryDelayMs(1, null), 500);
   assert.equal(retryDelayMs(3, null), 2000);
 });
+
+test("ICP eval scoring checks only what the request states", async () => {
+  const { scoreIcp } = await import("../../lib/ai/icp-eval.ts");
+  const icp = {
+    campaign_name: "x", summary: "x", target_count: 50, target_unit: "prospects", countries: ["EG"], cities: ["Cairo"], industries: ["Software"],
+    keywords: ["SaaS"], employees_min: 50, employees_max: 200, job_titles: ["HR Manager"], seniorities: ["manager"], hiring: null,
+    hiring_roles: [], funding_stages: [], technologies: [], exclusions: [], assumptions: [],
+  } as const;
+  const ok = scoreIcp(icp as never, { countries: ["EG"], target: [50, "prospects"], titlesAny: ["hr"], industryAny: ["saas"], employees: [50, 200] });
+  assert.ok(ok.every((c) => c.ok));
+  const bad = scoreIcp(icp as never, { countries: ["SA"], seniorityAny: ["founder"], hiring: true });
+  assert.deepEqual(bad.map((c) => c.ok), [false, false, false]);
+});
