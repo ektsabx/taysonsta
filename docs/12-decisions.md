@@ -26,6 +26,7 @@ the status and add a dated note.
 | D-114 | 2026-10-01 | LLM and provider prices live in `intel.settings` / `intel.providers.pricing`; a model or capability without a price is logged as "unpriced" (cost null), never as free. Since 2026-10-05 `cost_usd` is nullable in `llm_calls` / `provider_calls` (null = unpriced) and the admin shows an "Unpriced" count. |
 | D-112 | 2026-10-01 | Yolias may use the Taysonsta Supabase account and keys where it needs them (owner's permission). |
 | D-115 | 2026-10-05 | Yolias AI chat lives on the **existing search page** (`/search/[id]`): a conversation under the result card, no new page or layout. Conversations are **saved**, one per search (`public.agent_messages`). |
+| D-117 | 2026-10-05 | Emails by category with their own sender (account, subscription, billing, usage, updates, security), all logged and queued. Usage emails speak in **Prospects**, never credits (rule 26): "credits purchased" and "auto-reload" don't apply. No public API keys exist, so no API-key emails. Yolias has no passwords (magic link), so no "password changed". 2FA (TOTP) is now a real feature. |
 | D-116 | 2026-10-05 | Agent tools run with the user's own Supabase client (RLS) plus an in-code role → permission table (`lib/agent/authz.ts`); today every member role has every agent permission, matching the app. The browser sends only text turns; tool calls/results are never accepted from the client. |
 
 ## Open (owner decides)

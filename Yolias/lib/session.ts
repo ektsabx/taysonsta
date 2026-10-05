@@ -24,6 +24,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
   if (!user) return null;
+  // Two-factor users must finish the code step before anything else works.
+  if (await needsSecondFactor(supabase)) return null;
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (!profile?.workspace_id) return null;
@@ -48,7 +50,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
 /** Signed in with a workspace — no plan/onboarding checks (checkout, onboarding). */
 export async function requireUser(): Promise<Session> {
   const session = await getSession();
-  if (!session) redirect((await isSignedIn()) ? "/auth/signout" : "/login");
+  if (!session) redirect((await mfaPending()) ? "/two-factor" : (await isSignedIn()) ? "/auth/signout" : "/login");
   return session;
 }
 
@@ -73,6 +75,18 @@ export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
 }
 
 export const canManageTeam = (s: Session) => s.role === "owner" || s.role === "admin";
+
+type Client = Awaited<ReturnType<typeof createClient>>;
+
+/** Signed in with the link but the account has 2FA and the code isn't entered yet. */
+export async function needsSecondFactor(supabase: Client): Promise<boolean> {
+  const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  return Boolean(data && data.nextLevel === "aal2" && data.currentLevel !== "aal2");
+}
+
+export async function mfaPending(): Promise<boolean> {
+  return needsSecondFactor(await createClient());
+}
 
 async function isSignedIn() {
   const supabase = await createClient();

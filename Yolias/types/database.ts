@@ -138,6 +138,20 @@ export type AgentMessageRow = {
   id: number; workspace_id: string; strategy_id: string; user_id: string | null; role: "user" | "assistant";
   content: string; meta: Json; created_at: string;
 };
+export type EmailCategory = "account" | "subscription" | "billing" | "usage" | "updates" | "security";
+export type EmailLogRow = {
+  id: number; kind: string; category: EmailCategory; to_email: string; user_id: string | null; workspace_id: string | null;
+  locale: "en" | "ar"; data: Json; dedupe_key: string | null; status: "queued" | "sent" | "skipped" | "failed";
+  provider_id: string | null; error: string | null; attempts: number; created_at: string; sent_at: string | null;
+};
+export type KnownDeviceRow = { user_id: string; device_hash: string; label: string; first_seen: string; last_seen: string };
+export type SignInRequestRow = { id: number; email: string; created_at: string };
+export type AnnouncementRow = {
+  id: string; type: "new_feature" | "feature_available" | "feature_updated" | "important_changes" | "plan_changes" | "pricing_change" | "service_update";
+  title_en: string; body_en: string; title_ar: string; body_ar: string; cta_label_en: string | null; cta_label_ar: string | null; cta_url: string | null;
+  audience: "opted_in" | "all"; status: "draft" | "sending" | "sent"; recipients: number; created_by: string | null; created_at: string; sent_at: string | null;
+};
+export type WorkerStateRow = { key: string; value: Json; updated_at: string };
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
@@ -202,7 +216,7 @@ export type SubscriptionEventRow = {
   id: string;
   workspace_id: string;
   plan: Plan;
-  status: "activated" | "changed" | "canceled" | "resumed" | "ended";
+  status: "activated" | "changed" | "canceled" | "resumed" | "ended" | "renewed";
   amount_usd: number;
   mode: "test" | "live";
   billing_period: BillingPeriod;
@@ -400,6 +414,11 @@ export interface Database {
       job_failures: Table<JobFailureRow, "msg_id" | "kind" | "payload" | "attempts">;
       agent_tool_calls: Table<AgentToolCallRow, "workspace_id" | "tool" | "ok" | "outcome">;
       agent_messages: Table<AgentMessageRow, "workspace_id" | "strategy_id" | "role" | "content">;
+      email_log: Table<EmailLogRow, "kind" | "category" | "to_email">;
+      known_devices: Table<KnownDeviceRow, "user_id" | "device_hash" | "label">;
+      sign_in_requests: Table<SignInRequestRow, "email">;
+      announcements: Table<AnnouncementRow, "type" | "title_en" | "body_en" | "title_ar" | "body_ar">;
+      worker_state: Table<WorkerStateRow, "key">;
     };
     Views: { [_ in never]: never };
     Functions: {

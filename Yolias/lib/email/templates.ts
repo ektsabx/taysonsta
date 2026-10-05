@@ -120,7 +120,7 @@ export function layout(i: LayoutInput): string {
 
 /* ───────────────────────── Auth emails (Supabase) ───────────────────────── */
 
-export type AuthTemplate = "magic_link" | "confirmation" | "invite";
+export type AuthTemplate = "magic_link" | "confirmation" | "invite" | "email_change";
 
 const authCopy: Record<AuthTemplate, Record<EmailLocale, { subject: string; heading: string; body: string; button: string; footnote: string; preheader: string }>> = {
   magic_link: {
@@ -177,12 +177,31 @@ const authCopy: Record<AuthTemplate, Record<EmailLocale, { subject: string; head
       footnote: "إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.",
     },
   },
+  email_change: {
+    en: {
+      subject: "Confirm your new Yolias email",
+      preheader: "Confirm this address to finish changing your Yolias email.",
+      heading: "Confirm your new email address",
+      body: "You asked to change the email of your Yolias account to this address. Confirm it to finish. The link expires in 1 hour.",
+      button: "Confirm new email",
+      footnote: "If you didn’t ask for this, ignore this email — nothing changes.",
+    },
+    ar: {
+      subject: "أكّد بريدك الجديد في يولـياس",
+      preheader: "أكّد هذا العنوان لإكمال تغيير بريدك في يولـياس.",
+      heading: "أكّد بريدك الإلكتروني الجديد",
+      body: "طلبت تغيير البريد الإلكتروني لحسابك في يولـياس إلى هذا العنوان. أكّده لإكمال التغيير. تنتهي صلاحية الرابط خلال ساعة.",
+      button: "تأكيد البريد الجديد",
+      footnote: "إذا لم تطلب ذلك، تجاهل هذه الرسالة — لن يتغير شيء.",
+    },
+  },
 };
 
 const authLink: Record<AuthTemplate, string> = {
   magic_link: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email",
   confirmation: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email",
   invite: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite",
+  email_change: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change",
 };
 
 export function authEmail(name: AuthTemplate, locale: EmailLocale, siteUrl = "{{ .SiteURL }}", href = authLink[name]): RenderedEmail {
@@ -202,6 +221,64 @@ export function supabaseAuthTemplate(name: AuthTemplate): string {
 /** Subjects can't switch language in Supabase config, so they carry both. */
 export function supabaseAuthSubject(name: AuthTemplate): string {
   return `${authCopy[name].en.subject} · ${authCopy[name].ar.subject}`;
+}
+
+/** Sent by Supabase to the old address after an email change (no link to click). */
+export function emailChangedNotice(locale: EmailLocale, siteUrl = "{{ .SiteURL }}", oldEmail = "{{ .OldEmail }}", newEmail = "{{ .Email }}"): RenderedEmail {
+  const ar = locale === "ar";
+  return {
+    subject: ar ? "تم تغيير بريدك في يولـياس" : "Your Yolias email address was changed",
+    html: layout({
+      locale, siteUrl,
+      preheader: ar ? "تنبيه أمني: تم تغيير البريد الإلكتروني لحسابك." : "Security notice: your account email was changed.",
+      heading: ar ? "تم تغيير بريدك الإلكتروني" : "Your email address was changed",
+      body: [ar
+        ? `تم تغيير البريد الإلكتروني لحسابك في يولـياس من <strong dir="ltr">${oldEmail}</strong> إلى <strong dir="ltr">${newEmail}</strong>. ستصل رسائل تسجيل الدخول إلى العنوان الجديد.`
+        : `The email of your Yolias account was changed from <strong dir="ltr">${oldEmail}</strong> to <strong dir="ltr">${newEmail}</strong>. Sign-in links now go to the new address.`],
+      footnote: ar
+        ? `إذا لم تقم بهذا التغيير، <a href="${siteUrl}/contact?topic=support" style="color:${C.ink}">تواصل معنا فورًا</a>.`
+        : `If you didn’t make this change, <a href="${siteUrl}/contact?topic=support" style="color:${C.ink}">contact us right away</a>.`,
+    }),
+  };
+}
+
+export type SecurityNotice = "mfa_factor_enrolled" | "mfa_factor_unenrolled";
+
+const noticeCopy: Record<SecurityNotice, Record<EmailLocale, { subject: string; heading: string; body: string }>> = {
+  mfa_factor_enrolled: {
+    en: { subject: "Two-factor authentication enabled", heading: "Two-factor authentication is on", body: "Two-factor authentication was turned on for your Yolias account. From now on, signing in needs a code from your authenticator app." },
+    ar: { subject: "تم تفعيل المصادقة الثنائية", heading: "المصادقة الثنائية مفعّلة", body: "تم تفعيل المصادقة الثنائية لحسابك في يولـياس. من الآن يحتاج تسجيل الدخول إلى رمز من تطبيق المصادقة." },
+  },
+  mfa_factor_unenrolled: {
+    en: { subject: "Two-factor authentication disabled", heading: "Two-factor authentication is off", body: "Two-factor authentication was turned off for your Yolias account. Signing in now needs only the link sent to your email." },
+    ar: { subject: "تم إيقاف المصادقة الثنائية", heading: "المصادقة الثنائية متوقفة", body: "تم إيقاف المصادقة الثنائية لحسابك في يولـياس. يحتاج تسجيل الدخول الآن فقط إلى الرابط المرسل إلى بريدك." },
+  },
+};
+
+export function securityNoticeEmail(name: SecurityNotice, locale: EmailLocale, siteUrl = "{{ .SiteURL }}"): RenderedEmail {
+  const c = noticeCopy[name][locale];
+  const ar = locale === "ar";
+  return {
+    subject: c.subject,
+    html: layout({
+      locale, siteUrl, preheader: c.body, heading: c.heading, body: [esc(c.body)],
+      footnote: ar
+        ? `إذا لم تقم بهذا التغيير، <a href="${siteUrl}/contact?topic=support" style="color:${C.ink}">تواصل معنا فورًا</a>.`
+        : `If you didn’t make this change, <a href="${siteUrl}/contact?topic=support" style="color:${C.ink}">contact us right away</a>.`,
+    }),
+  };
+}
+
+export function supabaseSecurityNoticeTemplate(name: SecurityNotice): string {
+  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${securityNoticeEmail(name, "ar").html}{{ else }}${securityNoticeEmail(name, "en").html}{{ end }}{{ else }}${securityNoticeEmail(name, "en").html}{{ end }}\n`;
+}
+
+export function supabaseNoticeSubject(name: SecurityNotice): string {
+  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${noticeCopy[name].ar.subject}{{ else }}${noticeCopy[name].en.subject}{{ end }}{{ else }}${noticeCopy[name].en.subject}{{ end }}`;
+}
+
+export function supabaseEmailChangedTemplate(): string {
+  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${emailChangedNotice("ar").html}{{ else }}${emailChangedNotice("en").html}{{ end }}{{ else }}${emailChangedNotice("en").html}{{ end }}\n`;
 }
 
 /* ───────────────────────── Product emails ───────────────────────── */
@@ -238,7 +315,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
   const ar = locale === "ar";
   const periodText = r.period === "annual" ? (ar ? "سنوي" : "Annual") : ar ? "شهري" : "Monthly";
   return {
-    subject: ar ? `إيصالك من يولـياس #${r.invoiceNumber}` : `Your Yolias receipt #${r.invoiceNumber}`,
+    subject: ar ? `تم الدفع بنجاح — إيصالك من يولـياس #${r.invoiceNumber}` : `Payment successful — your Yolias receipt #${r.invoiceNumber}`,
     html: layout({
       locale,
       siteUrl: r.siteUrl,
@@ -277,6 +354,24 @@ export interface DiscoveryReadyInput {
 
 export function discoveryReadyEmail(locale: EmailLocale, d: DiscoveryReadyInput): RenderedEmail {
   const ar = locale === "ar";
+  if (d.prospects === 0) {
+    return {
+      subject: ar ? `انتهى البحث: ${d.strategyTitle}` : `Your search finished: ${d.strategyTitle}`,
+      html: layout({
+        locale,
+        siteUrl: d.siteUrl,
+        preheader: ar ? "لم نجد صنّاع قرار مطابقين هذه المرة." : "No matching decision makers this time.",
+        heading: ar ? "انتهى البحث دون نتائج مطابقة" : "Your search finished without matches",
+        body: [ar
+          ? `انتهى يولـياس من «${esc(d.strategyTitle)}» ولم يجد صنّاع قرار يطابقون معاييرك. لم يُحتسب أي عميل محتمل من رصيدك. جرّب توسيع السوق أو حجم الشركات أو المسميات.`
+          : `Yolias finished “${esc(d.strategyTitle)}” and found no decision makers matching your criteria. No prospects were used. Try a wider market, company size or titles.`],
+        button: { label: ar ? "تعديل البحث" : "Refine the search", href: `${d.siteUrl}/search/${d.strategyId}` },
+        footnote: ar
+          ? `تصلك هذه الرسالة لأن إشعار «اكتمال الاكتشاف» مفعّل. <a href="${d.siteUrl}/" style="color:${C.ink}">إعدادات الإشعارات</a>`
+          : `You’re receiving this because “Discovery completed” is on. <a href="${d.siteUrl}/" style="color:${C.ink}">Notification settings</a>`,
+      }),
+    };
+  }
   return {
     subject: ar ? `نتائج الاكتشاف جاهزة: ${d.strategyTitle}` : `Your discovery is ready: ${d.strategyTitle}`,
     html: layout({

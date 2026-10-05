@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { signInRequested } from "@/lib/email/events";
 
 export type MagicLinkMode = "login" | "signup" | "recover";
 export type MagicLinkState = { status: "idle" } | { status: "sent"; email: string } | { status: "error"; message: string; email?: string };
@@ -39,6 +40,9 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
   }
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale() };
+
+  // Many link requests for one account in an hour ⇒ a security email (lib/email/events.ts).
+  if (mode !== "signup") await signInRequested(email);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({

@@ -97,9 +97,30 @@ content_path = "./supabase/templates/confirmation.html"
 subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}دعوة للانضمام إلى يولـياس{{ else }}You've been invited to Yolias{{ end }}{{ else }}You've been invited to Yolias{{ end }}"
 content_path = "./supabase/templates/invite.html"
 
+[auth.email.template.email_change]
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}أكّد بريدك الجديد في يولـياس{{ else }}Confirm your new Yolias email{{ end }}{{ else }}Confirm your new Yolias email{{ end }}"
+content_path = "./supabase/templates/email_change.html"
+
+# Security notice to the old address after an email change.
+[auth.email.notification.email_changed]
+enabled = true
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم تغيير بريدك في يولـياس{{ else }}Your Yolias email address was changed{{ end }}{{ else }}Your Yolias email address was changed{{ end }}"
+content_path = "./supabase/templates/email_changed_notification.html"
+
+[auth.email.notification.mfa_factor_enrolled]
+enabled = true
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم تفعيل المصادقة الثنائية{{ else }}Two-factor authentication enabled{{ end }}{{ else }}Two-factor authentication enabled{{ end }}"
+content_path = "./supabase/templates/mfa_factor_enrolled_notification.html"
+
+[auth.email.notification.mfa_factor_unenrolled]
+enabled = true
+subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم إيقاف المصادقة الثنائية{{ else }}Two-factor authentication disabled{{ end }}{{ else }}Two-factor authentication disabled{{ end }}"
+content_path = "./supabase/templates/mfa_factor_unenrolled_notification.html"
+
+# Two-factor authentication with an authenticator app (Settings → Account).
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 [edge_runtime]
 enabled = false

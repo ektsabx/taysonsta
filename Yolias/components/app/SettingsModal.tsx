@@ -12,7 +12,7 @@ import { planName } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./ConnectorIcons";
 import {
-  deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
+  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import type { SettingsTab, ShellData } from "./types";
 
@@ -169,6 +169,20 @@ function AccountTab({ data }: { data: ShellData }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const { error, run, pending } = useSave();
   const [localError, setLocalError] = useState<string | null>(null);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailNote, setEmailNote] = useState<string | null>(null);
+
+  const requestEmailChange = () =>
+    run(async () => {
+      const r = await changeEmail({ email: newEmail });
+      if (r.ok) {
+        setEditingEmail(false);
+        setNewEmail("");
+        setEmailNote(a.emailChangeSent);
+      }
+      return r;
+    });
 
   const saveName = () => {
     if (name.trim() && name.trim() !== data.user.name) run(() => updatePreferences({ full_name: name }));
@@ -239,18 +253,23 @@ function AccountTab({ data }: { data: ShellData }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input type="email" dir="ltr" className="form-input" value={data.user.email} style={{ width: 190 }} readOnly />
           {data.user.emailConfirmed && <span className="setting-ok">{a.verified}</span>}
+          {!editingEmail && (
+            <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" onClick={() => { setEditingEmail(true); setEmailNote(null); }}>
+              {a.changeEmail}
+            </button>
+          )}
         </div>
       </SettingRow>
+      {editingEmail && (
+        <div className="setting-section" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <input type="email" dir="ltr" className="form-input" placeholder={a.newEmail} aria-label={a.newEmail} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} style={{ width: 240 }} />
+          <button className="btn-primary" style={{ fontSize: ".76rem" }} type="button" disabled={pending || !newEmail.trim()} onClick={requestEmailChange}>{a.sendChange}</button>
+          <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" onClick={() => { setEditingEmail(false); setNewEmail(""); }}>{a.cancel}</button>
+        </div>
+      )}
+      {emailNote && <p className="setting-desc" role="status" style={{ marginTop: 6 }}>{emailNote}</p>}
 
-      <SettingRow label={a.twoFactor} desc={a.twoFactorDesc}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span className="coming-soon">{t.common.comingSoon}</span>
-          <label className="switch">
-            <input type="checkbox" disabled checked={false} readOnly />
-            <span className="slider" />
-          </label>
-        </div>
-      </SettingRow>
+      <TwoFactorSetting />
 
       <div className="setting-section">
         <div className="setting-label">{a.devices}</div>
@@ -279,6 +298,88 @@ function AccountTab({ data }: { data: ShellData }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/* Two-factor authentication (TOTP, Supabase MFA). Supabase emails the
+   "enabled" / "disabled" security notices itself. */
+function TwoFactorSetting() {
+  const { t } = useI18n();
+  const a = t.settings.account;
+  const [factorId, setFactorId] = useState<string | null>(null);
+  const [enroll, setEnroll] = useState<{ id: string; qr: string; secret: string } | null>(null);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void createClient().auth.mfa.listFactors().then(({ data }) => setFactorId(data?.totp.find((f) => f.status === "verified")?.id ?? null));
+  }, []);
+
+  const start = async () => {
+    setBusy(true);
+    setError(null);
+    const supabase = createClient();
+    // Drop a half-finished enrollment first, so a new one can start.
+    const { data: list } = await supabase.auth.mfa.listFactors();
+    for (const f of list?.all.filter((f) => f.status === "unverified") ?? []) await supabase.auth.mfa.unenroll({ factorId: f.id });
+    const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Yolias ${Date.now()}` });
+    setBusy(false);
+    if (err || !data) return setError(a.twoFactorFailed);
+    setEnroll({ id: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
+  };
+
+  const confirm = async () => {
+    if (!enroll) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await createClient().auth.mfa.challengeAndVerify({ factorId: enroll.id, code: code.trim() });
+    setBusy(false);
+    if (err) return setError(a.twoFactorInvalid);
+    setFactorId(enroll.id);
+    setEnroll(null);
+    setCode("");
+  };
+
+  const disable = async () => {
+    if (!factorId || !window.confirm(a.twoFactorDisableConfirm)) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await createClient().auth.mfa.unenroll({ factorId });
+    setBusy(false);
+    if (err) return setError(a.twoFactorFailed);
+    setFactorId(null);
+  };
+
+  return (
+    <>
+      <SettingRow label={a.twoFactor} desc={a.twoFactorDesc}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {factorId ? (
+            <>
+              <span className="setting-ok">{a.twoFactorOn}</span>
+              <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" onClick={disable} disabled={busy}>{a.twoFactorDisable}</button>
+            </>
+          ) : !enroll ? (
+            <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" onClick={start} disabled={busy}>{a.twoFactorEnable}</button>
+          ) : null}
+        </div>
+      </SettingRow>
+      {enroll && (
+        <div className="setting-section">
+          <p className="setting-desc" style={{ marginBottom: 10 }}>{a.twoFactorScan}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={enroll.qr} alt="" width={168} height={168} style={{ background: "#fff", borderRadius: 8, padding: 6 }} />
+          <p className="setting-desc" style={{ marginTop: 8 }}>{a.twoFactorSecret} <code dir="ltr" style={{ userSelect: "all" }}>{enroll.secret}</code></p>
+          <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+            <input className="form-input" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={6} style={{ width: 120 }}
+              value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} aria-label={a.twoFactor} />
+            <button className="btn-primary" style={{ fontSize: ".76rem" }} type="button" onClick={confirm} disabled={busy || code.length !== 6}>{a.twoFactorVerify}</button>
+          </div>
+        </div>
+      )}
+      {error && <p className="form-error">{error}</p>}
+    </>
   );
 }
 

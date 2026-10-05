@@ -1,6 +1,9 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runDiscovery } from "@/lib/discovery/pipeline";
+import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
+import { sendAnnouncement } from "@/lib/email/announce";
+import { billingSweep } from "@/lib/billing";
 import type { JobKind, JobPayloads } from "@/lib/jobs/queue";
 import type { Json } from "@/types/database";
 
@@ -16,7 +19,32 @@ type Handler<K extends JobKind> = (payload: JobPayloads[K], attempt: number) => 
 
 const handlers: { [K in JobKind]: Handler<K> } = {
   "campaign.discover": (p, attempt) => runDiscovery(p.campaignId, { attempt }),
+  "email.send": (p) => deliverEmail(p.logId),
+  "email.workspace": async (p) => {
+    const { data: u } = await createAdminClient().rpc("usage_summary", { p_ws: p.workspaceId });
+    await notify("prospects_added", await workspaceRecipients(p.workspaceId), { ...p.data, allowance: u?.[0]?.allowance ?? 0 }, { workspaceId: p.workspaceId, dedupe: p.dedupe });
+  },
+  "email.announce": (p) => sendAnnouncement(p.announcementId),
+  "billing.sweep": async () => {
+    await billingSweep();
+  },
 };
+
+const SWEEP_EVERY_MS = 60 * 60_000;
+
+/** Queues the billing sweep at most once an hour (the worker is called every few seconds). */
+async function scheduleSweep() {
+  const db = createAdminClient();
+  const since = new Date(Date.now() - SWEEP_EVERY_MS).toISOString();
+  const { data } = await db.from("worker_state").upsert({ key: "billing.sweep", value: {}, updated_at: new Date().toISOString() }, { onConflict: "key", ignoreDuplicates: true }).select("key");
+  if (data?.length) {
+    await db.rpc("jobs_enqueue", { p_kind: "billing.sweep", p_payload: {}, p_delay: 0 });
+    return;
+  }
+  // Conditional bump: only one caller wins per hour.
+  const { data: won } = await db.from("worker_state").update({ updated_at: new Date().toISOString() }).eq("key", "billing.sweep").lt("updated_at", since).select("key");
+  if (won?.length) await db.rpc("jobs_enqueue", { p_kind: "billing.sweep", p_payload: {}, p_delay: 0 });
+}
 
 /** 30s, 60s, 120s, 240s… capped at 30 minutes. */
 export function backoffSeconds(attempt: number): number {
@@ -34,6 +62,7 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   const db = createAdminClient();
   const started = Date.now();
   const result: TickResult = { taken: 0, succeeded: 0, retried: 0, dead: 0 };
+  await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

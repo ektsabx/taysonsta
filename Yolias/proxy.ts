@@ -63,6 +63,23 @@ export async function proxy(request: NextRequest) {
   }
   const isApp = appPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+  // Accounts with two-factor authentication finish the code step first.
+  if (signedIn && (isApp || pathname === "/")) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/two-factor";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
+  if (!signedIn && pathname === "/two-factor") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   if (!signedIn && pathname === "/") {
     // Visitors see the public home page at "/"; signed-in users get Yolias AI.
     const url = request.nextUrl.clone();

@@ -38,7 +38,9 @@ Admin http://admin.localhost:3200.
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
 | Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. Conversation UI under each search result (`components/app/AgentThread.tsx`), saved in `agent_messages` (user turns via RLS, assistant turns server-only; D-115). Test: `npm run test:agent` |
 | Voice STT cost | `lib/stt.ts` | every server STT call logged in `intel.llm_calls` (task `stt`); token usage priced from `llm_prices`, otherwise logged as unpriced |
-| Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
+| Email | `lib/email/*`, `supabase/config.toml` | full catalogue by category with per-category senders, logged and queued (`email_log`, worker), wired to auth, billing, usage ledger, campaign end and admin. See `05` "Emails". Payment-failure family waits on D-007 |
+| Two-factor authentication | Settings → Account, `/two-factor` | TOTP via Supabase MFA; sign-in requires the code once enabled; Supabase emails the enabled/disabled notices |
+| Email change | Settings → Account | Supabase double confirmation + notice to the old address |
 
 ## Yolias Admin
 

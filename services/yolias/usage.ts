@@ -55,4 +55,9 @@ export async function adjustUsage(bos: BosUser, workspaceId: string, prospects: 
   });
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "yolias.usage.adjust", entityType: "yolias_workspace", entityId: workspaceId, newValue: { prospects, period }, reason: why });
+  // "Prospects added" email to the workspace's owners/admins, sent by the Yolias
+  // worker. The admin's reason is internal and isn't included.
+  if (prospects > 0) {
+    await ydb().rpc("jobs_enqueue", { p_kind: "email.workspace", p_payload: { kind: "prospects_added", workspaceId, data: { added: prospects, reason: null } }, p_delay: 0 });
+  }
 }

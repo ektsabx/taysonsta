@@ -1,4 +1,5 @@
 import "server-only";
+import { campaignFinished, usageAlerts } from "@/lib/email/events";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CampaignStatus, EventLevel, Json, PipelineStage } from "@/types/database";
 import { finalState, runningStates } from "@/lib/discovery/states";
@@ -88,6 +89,7 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
     await db.from("campaigns").update({ status: "paused" }).eq("id", campaignId);
     await log("plan", "This month’s prospects are used up. Upgrade or wait for the reset.", "warning", { key: "quotaReached", vars: { total: summary?.[0]?.allowance ?? 0 } });
     await finishRun("skipped", { reason: "quota" });
+    await usageAlerts(campaign.workspace_id);
     return;
   }
   const ctx: DiscoveryContext = { workspaceId: campaign.workspace_id, campaignId, offering: ws?.offering ?? null, limit: reserved, log };
@@ -105,6 +107,9 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   } finally {
     await db.rpc("release_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_reason: "campaign ended" });
   }
+  // Emails after the ledger is settled: "results ready" and usage alerts (80 % / 100 %).
+  await campaignFinished(campaignId);
+  await usageAlerts(campaign.workspace_id);
 }
 
 async function discover(db: ReturnType<typeof createAdminClient>, campaignId: string, icp: IcpCriteria, ctx: DiscoveryContext, remaining: number, target: number) {

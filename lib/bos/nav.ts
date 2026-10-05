@@ -52,6 +52,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/data", label: "البيانات المشتركة", perm: "platform.read" },
       { href: "/admin/platform/providers", label: "المزودون", perm: "platform.read" },
       { href: "/admin/platform/agent", label: "Yolias AI", perm: "platform.read" },
+      { href: "/admin/platform/emails", label: "رسائل البريد", perm: "platform.read" },
       { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },
     ],

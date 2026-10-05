@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/session";
+import { welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
@@ -53,5 +54,6 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     if (wsError) return { error: t.companyFailed, fields };
   }
 
+  await welcome(session.userId, parsed.data.full_name);
   redirect("/");
 }

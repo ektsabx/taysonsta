@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
 import { THEME_COOKIE } from "@/lib/theme";
 import { setCancelAtPeriodEnd } from "@/lib/billing";
+import { securityAlert } from "@/lib/email/events";
+import { notify } from "@/lib/email/notify";
 import { COUNTRIES, TIMEZONES } from "@/lib/regions";
 import { monthlyUsage } from "@/services/workspace";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -65,7 +67,7 @@ export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
   const session = await requireSession();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId, session.email);
+  const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId);
   if (!ok) return { ok: false, error: t.settings.errors.saveFailed };
   revalidatePath("/", "layout");
   return { ok: true };
@@ -87,7 +89,9 @@ export async function setAvatar(path: string): Promise<ActionResult> {
 
 export async function signOut(scope: "local" | "global" = "local") {
   const supabase = await createClient();
+  const { data } = scope === "global" ? await supabase.auth.getUser() : { data: { user: null } };
   await supabase.auth.signOut({ scope });
+  if (data.user) await securityAlert(data.user.id, "signed_out_everywhere");
   // Signed-out visitors land on the public home page.
   redirect("/");
 }
@@ -101,10 +105,13 @@ export async function deleteAccount(): Promise<ActionResult> {
   if (session.role === "owner" && !soleMember) {
     return { ok: false, error: t.ownerWithTeam };
   }
+  // The confirmation goes out after the account is gone, so capture the recipient now.
+  const recipient = { userId: null, email: session.email, locale: session.profile.language === "ar" ? ("ar" as const) : ("en" as const), prefs: {} };
   // Removing the workspace cascades to its strategies, campaigns, companies and prospects.
   if (soleMember) await admin.from("workspaces").delete().eq("id", session.workspace.id);
   const { error } = await admin.auth.admin.deleteUser(session.userId);
   if (error) return { ok: false, error: t.deleteFailed };
+  await notify("account_deleted", [recipient], { email: session.email });
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/signup");
@@ -173,5 +180,23 @@ export async function removeMember(userId: string): Promise<ActionResult> {
     await admin.from("profiles").update({ workspace_id: ws.id, onboarded_at: null }).eq("id", userId);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+const emailChangeSchema = z.object({ email: z.string().trim().toLowerCase().email() });
+
+// Settings → Account: change the sign-in email. Supabase sends a confirmation
+// link to both addresses (double_confirm_changes) and, once done, a notice to
+// the old one (auth.email.notification.email_changed).
+export async function changeEmail(input: z.input<typeof emailChangeSchema>): Promise<ActionResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).settings.errors;
+  const parsed = emailChangeSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t.invalidEmail };
+  if (parsed.data.email === session.email.toLowerCase()) return { ok: false, error: t.sameEmail };
+  const supabase = await createClient();
+  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
+  const { error } = await supabase.auth.updateUser({ email: parsed.data.email }, { emailRedirectTo: `${site}/auth/confirm` });
+  if (error) return { ok: false, error: error.status === 429 ? t.rateLimited : /already/i.test(error.message) ? t.emailTaken : t.saveFailed };
   return { ok: true };
 }
