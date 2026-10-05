@@ -202,7 +202,7 @@ export const en = {
       startFailed: "Couldn’t start the search. Please try again.",
       notFound: "Search not found.",
       campaignFailed: "Couldn’t create the campaign.",
-      aiNotConfigured: "Yolias AI is not configured yet (missing ANTHROPIC_API_KEY).",
+      aiNotConfigured: "Yolias AI is not configured yet: add an AI provider key (Anthropic, OpenAI or Gemini).",
       aiRefused: "Yolias AI couldn’t process this request. Try rephrasing it.",
       aiIncomplete: "Yolias AI returned an incomplete answer. Please try again.",
       aiBusy: "Yolias AI is busy right now. Please try again in a moment.",

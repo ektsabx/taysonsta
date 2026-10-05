@@ -23,7 +23,34 @@ validation, quota, usage, routing, matching.
 - Input hygiene: strip HTML, truncate, send only needed fields.
 - Bilingual eval set (Arabic dialects + English) run on every model or prompt change.
 
-Today: ICP parsing uses the Anthropic SDK with structured parsing (`Yolias/lib/ai/strategy.ts`).
+## Providers and fallback (D-118)
+
+`Yolias/lib/ai/llm/` talks to **Anthropic (Claude), OpenAI and Google Gemini**
+behind one contract: structured extraction (`runStructured`) and tool-using
+chat (`runChat`). The order per task is configuration — `intel.settings`
+`llm_routing`, edited in Yolias Admin → Providers:
+
+```json
+{ "default": [ { "provider": "anthropic", "model": "claude-opus-5-5" },
+               { "provider": "openai", "model": "<model id>" },
+               { "provider": "gemini", "model": "<model id>" } ],
+  "agent": [ … ], "icp.parse": [ … ] }
+```
+
+- A provider is used only when its key is set: `ANTHROPIC_API_KEY`,
+  `OPENAI_API_KEY`, `GEMINI_API_KEY` (server env, never the browser).
+- On a failure — network, rate limit, outage, refusal, invalid output — the
+  next provider is tried. Every attempt is logged in `intel.llm_calls` with
+  its cost; prices per model live in `llm_prices` (unpriced if missing).
+- The agent never switches provider after a tool with side effects ran in
+  that turn (e.g. a campaign was started), so nothing happens twice.
+- Model ids for OpenAI and Gemini are chosen by the owner in the admin; no
+  third-party model is hard-coded.
+- Claude: official SDK (structured outputs, tool runner, prompt caching,
+  server-side refusal fallback). OpenAI: Chat Completions (`response_format`
+  json_schema, function tools). Gemini: `generateContent`
+  (`responseJsonSchema`, `functionDeclarations`, thought signatures kept).
+- Test: `cd Yolias && npm run test:llm` (local stand-ins for the three APIs).
 
 ## ICP record
 

@@ -43,6 +43,11 @@ export const settingSchemas = {
     z.string().min(1),
     z.object({ input: nonNeg, output: nonNeg, cache_read_multiplier: nonNeg.optional(), cache_write_multiplier: nonNeg.optional() }),
   ),
+  // Same shape as Yolias/lib/ai/llm (RoutingSchema): provider order per task, "default" required.
+  llm_routing: z.record(
+    z.string().min(1).max(40),
+    z.array(z.object({ provider: z.enum(["anthropic", "openai", "gemini"]), model: z.string().trim().min(1).max(100) })).min(1).max(6),
+  ).refine((r) => Array.isArray(r.default), "default مطلوب"),
 } as const;
 
 export type SettingKey = keyof typeof settingSchemas;
@@ -53,6 +58,7 @@ export const settingLabel: Record<SettingKey, { title: string; hint: string }> =
   ttl_days: { title: "مدة صلاحية البيانات (أيام)", hint: "بعدها تُحدّث البيانات أو تُعرض بتاريخها." },
   circuit_breaker: { title: "قاطع الدائرة", hint: "عدد الأخطاء المتتالية قبل إيقاف المزود مؤقتاً، ومدة الإيقاف بالثواني." },
   llm_prices: { title: "أسعار النماذج اللغوية", hint: "دولار لكل مليون رمز. راجعها على صفحة أسعار المزود قبل الاعتماد عليها." },
+  llm_routing: { title: "توجيه النماذج اللغوية", hint: "ترتيب المزودين لكل مهمة (default، icp.parse، agent). إذا فشل الأول يُجرَّب التالي. يعمل المزود فقط إذا كان مفتاحه مضبوطاً في Yolias. أضف سعر كل نموذج في «أسعار النماذج اللغوية»." },
 };
 
 export const pricingSchema = z.partialRecord(

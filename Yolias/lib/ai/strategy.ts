@@ -1,10 +1,10 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { aiConfigured, anthropic, YOLIAS_MODEL } from "@/lib/ai/anthropic";
+import { z } from "zod";
+import { LlmNotConfiguredError, LlmProviderError, routesFor, runStructured } from "@/lib/ai/llm";
+import type { InputPart } from "@/lib/ai/llm/types";
 import { IcpSchema, parseIcp, type IcpCriteria } from "@/lib/discovery/icp";
 import { cacheKey, fingerprintIcp } from "@/lib/intel/fingerprint";
-import { priceCall, readLlmCache, recordLlmCall, writeLlmCache } from "@/lib/intel/llm";
+import { readLlmCache, recordLlmCall, writeLlmCache } from "@/lib/intel/llm";
 
 // Yolias AI — step 1 of every strategy: understand who the user wants to sell
 // to and turn it into structured ICP criteria. The workspace's onboarding
@@ -69,8 +69,7 @@ export class StrategyAiError extends Error {
 // no new call (requests with attachments are always sent). Every call — and
 // every cache hit — is logged with its cost in intel.llm_calls.
 export async function understandStrategy(prompt: string, attachments: StrategyAttachment[], ctx: StrategyContext): Promise<UnderstoodStrategy> {
-  const base = { model: YOLIAS_MODEL, promptVersion: ICP_PROMPT_VERSION };
-  const log = { task: TASK, model: YOLIAS_MODEL, promptVersion: ICP_PROMPT_VERSION, workspaceId: ctx.workspaceId, strategyId: ctx.strategyId };
+  const log = { promptVersion: ICP_PROMPT_VERSION, workspaceId: ctx.workspaceId, strategyId: ctx.strategyId };
 
   const business = [
     ctx.companyName && `Company: ${ctx.companyName}`,
@@ -79,64 +78,48 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
     `Default country: ${ctx.defaultCountry}`,
   ].filter(Boolean).join("\n");
 
-  const content: Anthropic.Beta.BetaContentBlockParam[] = [];
-  for (const a of attachments) {
-    if (a.kind === "image") {
-      content.push({ type: "image", source: { type: "base64", media_type: a.mediaType as "image/png", data: a.data } });
-    } else if (a.kind === "pdf") {
-      content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: a.data }, title: a.name });
-    } else {
-      content.push({ type: "document", source: { type: "text", media_type: "text/plain", data: a.data }, title: a.name });
-    }
-  }
+  const parts: InputPart[] = attachments.map((a): InputPart =>
+    a.kind === "image" ? { kind: "image", mediaType: a.mediaType, base64: a.data }
+      : a.kind === "pdf" ? { kind: "pdf", name: a.name, base64: a.data }
+        : { kind: "document", name: a.name, text: a.data });
   const userText = `<my_business>\n${business}\n</my_business>\n\n<request>\n${prompt}\n</request>`;
-  content.push({ type: "text", text: userText });
+  parts.push({ kind: "text", text: userText });
 
   const system = SYSTEM.replace("{LANGUAGE}", ctx.language === "ar" ? "Arabic" : "English");
-  const key = attachments.length === 0 ? cacheKey(TASK, YOLIAS_MODEL, ICP_PROMPT_VERSION, system, userText.normalize("NFKC").trim()) : null;
+  // The cached answer doesn't depend on which provider produced it.
+  const key = attachments.length === 0 ? cacheKey(TASK, "any-provider", ICP_PROMPT_VERSION, system, userText.normalize("NFKC").trim()) : null;
   if (key) {
     const hit = await readLlmCache<IcpCriteria>(key).catch(() => null);
     const icp = hit ? parseIcp(hit.output) : null;
     if (icp) {
-      await recordLlmCall({ ...log, cacheHit: true, ok: true, costUsd: 0 }).catch(() => {});
-      return { ...base, icp, fingerprint: fingerprintIcp(icp), costUsd: 0, cached: true };
+      await recordLlmCall({ ...log, task: TASK, model: "cache", cacheHit: true, ok: true, costUsd: 0 }).catch(() => {});
+      return { icp, fingerprint: fingerprintIcp(icp), model: "cache", promptVersion: ICP_PROMPT_VERSION, costUsd: 0, cached: true };
     }
   }
-  if (!aiConfigured()) throw new StrategyAiError("aiNotConfigured");
+  if (!(await routesFor(TASK)).length) throw new StrategyAiError("aiNotConfigured");
 
-  const started = Date.now();
   try {
-    const response = await anthropic().beta.messages.parse({
-      model: YOLIAS_MODEL,
-      max_tokens: 16000,
-      // Extraction task: low effort keeps it fast and cheap.
-      output_config: { effort: "low", format: betaZodOutputFormat(IcpSchema) },
-      // Server-side refusal fallback: if the model declines, the API retries on a fallback model.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      system,
-      messages: [{ role: "user", content }],
-    });
-    const usage = response.usage;
-    const costUsd = await priceCall(YOLIAS_MODEL, usage).catch(() => null);
-    const served = { ...log, servedModel: response.model, usage, costUsd, latencyMs: Date.now() - started };
-    if (response.stop_reason === "refusal" || !response.parsed_output) {
-      await recordLlmCall({ ...served, ok: false, error: response.stop_reason ?? "no output" }).catch(() => {});
-      throw new StrategyAiError(response.stop_reason === "refusal" ? "aiRefused" : "aiIncomplete");
-    }
-    const icp = normalize(response.parsed_output);
-    await recordLlmCall({ ...served, ok: true }).catch(() => {});
-    if (key) await writeLlmCache({ key, task: TASK, model: YOLIAS_MODEL, promptVersion: ICP_PROMPT_VERSION, output: icp, usage, costUsd }).catch(() => {});
-    return { ...base, icp, fingerprint: fingerprintIcp(icp), costUsd, cached: false };
+    const r = await runStructured(TASK, { system, parts, schema: icpJsonSchema, schemaName: "icp", maxTokens: 16000 }, (d) => {
+      const parsed = IcpSchema.safeParse(d);
+      return parsed.success ? normalize(parsed.data) : null;
+    }, log);
+    if (key) await writeLlmCache({ key, task: TASK, model: r.servedModel, promptVersion: ICP_PROMPT_VERSION, output: r.data, usage: r.usage, costUsd: r.costUsd }).catch(() => {});
+    return { icp: r.data, fingerprint: fingerprintIcp(r.data), model: r.servedModel, promptVersion: ICP_PROMPT_VERSION, costUsd: r.costUsd, cached: false };
   } catch (e) {
-    if (e instanceof StrategyAiError) throw e;
-    await recordLlmCall({ ...log, ok: false, error: e instanceof Error ? e.message.slice(0, 300) : "failed", latencyMs: Date.now() - started }).catch(() => {});
-    if (e instanceof Anthropic.RateLimitError) throw new StrategyAiError("aiBusy");
-    if (e instanceof Anthropic.AuthenticationError) throw new StrategyAiError("aiAuth");
-    if (e instanceof Anthropic.APIError) throw new StrategyAiError("aiFailed");
+    if (e instanceof LlmNotConfiguredError) throw new StrategyAiError("aiNotConfigured");
+    if (e instanceof LlmProviderError) {
+      const code: Record<LlmProviderError["kind"], StrategyAiErrorCode> = { auth: "aiAuth", rate_limited: "aiBusy", unavailable: "aiFailed", bad_output: "aiIncomplete", refused: "aiRefused", bad_request: "aiFailed" };
+      throw new StrategyAiError(code[e.kind]);
+    }
     throw e;
   }
 }
+
+const icpJsonSchema = (() => {
+  const { $schema: _drop, ...rest } = z.toJSONSchema(IcpSchema, { io: "output" }) as Record<string, unknown>;
+  void _drop;
+  return rest;
+})();
 
 function normalize(icp: IcpCriteria): IcpCriteria {
   const count = Number.isFinite(icp.target_count) ? Math.round(icp.target_count) : 100;

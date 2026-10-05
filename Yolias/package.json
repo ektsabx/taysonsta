@@ -13,6 +13,7 @@
     "test:unit": "node --experimental-strip-types --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
     "test:agent": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-tools.mts",
     "test:emails": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-emails.mts",
+    "test:llm": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-llm-fallback.mts",
     "test": "npm run typecheck && npm run test:unit",
     "emails:build": "node --experimental-strip-types --no-warnings=MODULE_TYPELESS_PACKAGE_JSON scripts/build-email-templates.mts"
   },

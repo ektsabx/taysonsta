@@ -203,7 +203,7 @@ export const ar: Dictionary = {
       startFailed: "تعذّر بدء البحث. حاول مرة أخرى.",
       notFound: "البحث غير موجود.",
       campaignFailed: "تعذّر إنشاء الحملة.",
-      aiNotConfigured: "يولـياس AI غير مُعدّ بعد (مفتاح ANTHROPIC_API_KEY مفقود).",
+      aiNotConfigured: "يولـياس AI غير مُعدّ بعد: أضف مفتاح مزود ذكاء اصطناعي (Anthropic أو OpenAI أو Gemini).",
       aiRefused: "تعذّر على يولـياس AI معالجة هذا الطلب. جرّب صياغته بشكل مختلف.",
       aiIncomplete: "أعاد يولـياس AI إجابة غير مكتملة. حاول مرة أخرى.",
       aiBusy: "يولـياس AI مشغول حاليًا. حاول بعد قليل.",

@@ -26,7 +26,7 @@ Admin http://admin.localhost:3200.
 | Auth (magic link) | `app/(auth)`, `app/auth/confirm` | working |
 | Workspaces, members, invitations | `supabase/migrations/20261001000000_yolias_init.sql` | working, RLS |
 | Search composer, text + voice | `components/app/StrategyComposer.tsx`, `useSpeechToText.ts`, `app/api/transcribe`, `lib/stt.ts` | working; server STT needs `STT_API_KEY` |
-| ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working (Anthropic SDK, structured output) |
+| ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working; structured output through `lib/ai/llm` (Anthropic / OpenAI / Gemini with fallback, D-118) |
 | Search pages | `app/(app)/search/[id]` (UI "Search", table `strategies`) | working |
 | Intelligence Layer | `lib/intel/*` | capabilities, routing, registry, service, Vault credentials, cost logging. Tested with unit tests + a live integration run |
 | Provider adapters | `lib/intel/adapters/index.ts` | **none yet**: campaigns stop at `awaiting_source` (phase 4, D-003) |
