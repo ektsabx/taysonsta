@@ -60,8 +60,11 @@ Runs at http://admin.localhost:3200.
 
 ## Pre-existing admin issues (not from Yolias work)
 
-- Lint errors in `app/admin/finance/vendors`, `app/admin/products`, `app/admin/team/devices`.
-- i18n unit test fails on untranslated import-page strings.
+Fixed on 2026-10-05: the CSV export links (`ExportLink`), unused code, the
+untranslated import-page strings, and the integration tests that relied on
+fixed database ids. `npm test` at the root is fully green (types, 77 unit,
+DB, 110 integration); lint has 0 errors (4 intentional warnings: external
+images and a font).
 
 ## Checks
 

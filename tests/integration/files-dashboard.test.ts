@@ -14,7 +14,8 @@ test("file access follows parent record; shares grant access; purge rules", asyn
   const ahmed = await bosUserFor("ahmed@taysonsta.local");
   const sara = await bosUserFor("sara@taysonsta.local");
   const admin = await bosUserFor("admin@taysonsta.local");
-  const { data: lead } = await db().from("leads").select("id").eq("assigned_to", sara.userId).limit(1).single();
+  // A lead of Sara's that Ahmed didn't create (creators can always see their leads).
+  const { data: lead } = await db().from("leads").select("id").eq("assigned_to", sara.userId).neq("created_by", ahmed.userId).limit(1).single();
   const { data: file } = await db().from("files").insert({ storage_path: `test/${uniq("f")}.txt`, name: "sara-lead.txt", entity_type: "lead", entity_id: lead!.id, uploaded_by: sara.userId, is_finalized: true }).select("*").single();
   cleanup.push(() => db().from("files").delete().eq("id", file!.id));
   assert.equal(await canReadFile(sara, file!), true);

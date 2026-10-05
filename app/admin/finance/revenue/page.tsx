@@ -8,7 +8,7 @@ import { PageHeader, Card, KpiCard, Money } from "@/components/bos/ui";
 import { FilterBar } from "@/components/bos/FilterBar";
 import { BarChart, HBarList } from "@/components/bos/Chart";
 import { formatMoney } from "@/lib/bos/money";
-import { todayIn, startOfMonth } from "@/lib/bos/format";
+import { todayIn } from "@/lib/bos/format";
 
 // Revenue overview (§55 Revenue report): invoiced, collected, outstanding,
 // overdue, monthly trend, aging, by client and by currency — all from SQL.

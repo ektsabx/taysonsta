@@ -1,7 +1,7 @@
 import { nowIso, nowMs } from "@/lib/bos/clock";
 import "server-only";
 import { branchFilter, withBranch } from "@/lib/bos/branch";
-import { db, dec, type DbEnum, type Tables } from "@/lib/bos/db";
+import { db, type DbEnum, type Tables } from "@/lib/bos/db";
 import { scopeUserIds, type BosUser } from "@/lib/bos/auth";
 import { myClientIds, myProjectIds } from "@/lib/bos/access";
 import type { Scope } from "@/lib/bos/permissions";

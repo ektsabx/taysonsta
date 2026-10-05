@@ -45,7 +45,6 @@ export async function timeReport(bos: BosUser, f: TimeFilter) {
   if (f.billable === "0") q = q.eq("billable", false);
   const { data } = await q;
   const rows = data ?? [];
-  const counted = (r: (typeof rows)[number]) => r.approval_status === "approved" || r.approval_status === "not_required";
   type Agg = { minutes: number; billable: number; nonBillable: number; pending: number; rejected: number; cost: Map<string, number> };
   const empty = (): Agg => ({ minutes: 0, billable: 0, nonBillable: 0, pending: 0, rejected: 0, cost: new Map() });
   const add = (a: Agg, r: (typeof rows)[number]) => {

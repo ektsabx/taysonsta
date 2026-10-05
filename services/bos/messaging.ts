@@ -279,7 +279,7 @@ export async function saveTemplate(bos: BosUser, id: string | null, input: Templ
   if (input.channel === "whatsapp" && !/^[a-z0-9_]{1,512}$/.test(input.name)) throw new ValidationError("اسم قالب واتساب: حروف إنجليزية صغيرة وأرقام و _ فقط (كما في Meta).", { name: "غير صالح" });
   if (!/^[a-z]{2}(_[A-Z]{2})?$/.test(input.language)) throw new ValidationError("رمز اللغة مثل ar أو en_US.", { language: "غير صالح" });
   const nums = [...input.body.matchAll(/\{\{(\d+)\}\}/g)].map((m) => Number(m[1]));
-  if (nums.some((n, i) => n < 1 || n > 20) || new Set(nums).size !== Math.max(0, ...nums)) throw new ValidationError("المتغيرات يجب أن تكون {{1}}، {{2}}… بالتسلسل.");
+  if (nums.some((n) => n < 1 || n > 20) || new Set(nums).size !== Math.max(0, ...nums)) throw new ValidationError("المتغيرات يجب أن تكون {{1}}، {{2}}… بالتسلسل.");
   const row = { ...input, name: input.name.trim(), body: input.body.trim(), variables: input.variables.slice(0, 20) };
   if (id) {
     const { data: before } = await db().from("message_templates").select("provider_status, body").eq("id", id).maybeSingle();

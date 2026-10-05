@@ -8,6 +8,7 @@ import { listConfigRows } from "@/services/bos/settings-admin";
 import { PageHeader, Card, KpiCard, Money } from "@/components/bos/ui";
 import { ConfigTableEditor } from "../settings/ConfigTableEditor";
 import { settingsLookups } from "../settings/lookups";
+import { ExportLink } from "@/components/bos/ExportLink";
 
 // Products & services (docs/bos/35 A7): what the company sells, prices,
 // descriptions and status. Proposals, deals, invoices and project templates
@@ -39,7 +40,7 @@ export default async function ProductsPage() {
   const active = products.filter((p) => p.is_active && !p.archived_at);
   return (
     <>
-      <PageHeader title="المنتجات والخدمات" subtitle="ما تقدمه الشركة وأسعاره — يُستخدم في الصفقات والمقترحات والفواتير وقوالب المشاريع" actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "products.export") ? <a className="admin-btn small ghost" href="/api/bos/export/products"><Tx>تصدير CSV</Tx></a> : null}<ImportButton bos={bos} type="products" /></span>} />
+      <PageHeader title="المنتجات والخدمات" subtitle="ما تقدمه الشركة وأسعاره — يُستخدم في الصفقات والمقترحات والفواتير وقوالب المشاريع" actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "products.export") ? <ExportLink href="/api/bos/export/products"><Tx>تصدير CSV</Tx></ExportLink> : null}<ImportButton bos={bos} type="products" /></span>} />
       <div className="bos-kpis">
         <KpiCard label="نشطة" value={active.length} />
         <KpiCard label="خدمات" value={active.filter((p) => p.kind === "service").length} />

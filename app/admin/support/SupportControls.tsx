@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionState } from "@/lib/bos/action";
 import { ActionButton, ConfirmButton, ModalButton } from "@/components/bos/Dialog";
-import { ActionForm, MoneyField, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
+import { ActionForm, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
 import { EntitySelector, type EntityOption } from "@/components/bos/EntitySelector";
 import { searchEntitiesAction } from "@/app/admin/_actions/common";
 import {

@@ -125,7 +125,6 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
   const { data: supportPlans } = tab === "overview" ? await c.from("support_plans").select("*").eq("client_id", id).order("starts_on", { ascending: false }) : { data: [] as Record<string, unknown>[] };
   const portalByContact = new Map(portalUsers.map((u) => [u.contact_id, u]));
   const canPortal = can(bos, "portal.manage");
-  const accountOption = { id, label: title, sub: account.email };
   const wonDealsWithoutOnboarding = tab === "onboarding" ? ((await c.from("deals").select("id, deal_number, name, pipeline_stages!inner(category)").eq("client_id", id).eq("pipeline_stages.category", "won")).data ?? []).filter((d) => !onboarding.some((o) => o.deal_id === d.id)) : [];
 
   return (

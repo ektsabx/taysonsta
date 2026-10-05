@@ -25,9 +25,15 @@ cleanup.push(async () => {
 });
 
 const base = (o: Partial<DeviceInput>): DeviceInput => ({ asset_id: uniq("AST"), type: "laptop", model: null, serial_number: null, os: null, purchase_date: null, warranty_until: null, condition: "good", location: null, mdm_provider: null, mdm_reference: null, notes: null, ...o });
-const NOUR = "2cb9b4aa-9af8-49f5-9eb0-05bd38a04cd9";
-const DEV = "453c5e9e-4530-41a1-a6da-df1f176001ce";
-const OMAR = "ff208b21-31f0-482f-9305-2ece6a8cfa03";
+// Seed employees by name (ids differ between databases).
+async function employeeId(fullName: string): Promise<string> {
+  const { data } = await db().from("employees").select("id").eq("full_name", fullName).is("archived_at", null).limit(1).single();
+  if (!data) throw new Error(`seed employee missing: ${fullName}`);
+  return data.id;
+}
+const NOUR = await employeeId("Nour Designer");
+const DEV = await employeeId("Youssef Developer");
+const OMAR = await employeeId("Omar Project Manager");
 
 test("software licence seats: limit, no duplicates, release; logged as events", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");

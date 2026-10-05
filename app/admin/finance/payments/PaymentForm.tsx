@@ -1,6 +1,5 @@
 "use client";
 
-import { Tx } from "@/components/bos/I18n";
 
 import { useMemo, useState } from "react";
 import { ActionForm, Field, FormSection, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";

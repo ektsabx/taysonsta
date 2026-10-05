@@ -3,7 +3,6 @@ import { nowMs } from "@/lib/bos/clock";
 import { Suspense } from "react";
 import Link from "next/link";
 import { requirePermission, type BosUser } from "@/lib/bos/auth";
-import { db } from "@/lib/bos/db";
 import { type WidgetDef } from "@/lib/bos/widgets";
 import { resolveWidgets } from "@/services/bos/dashboard-layout";
 import { widgetComponents } from "./widgets";

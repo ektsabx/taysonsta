@@ -1,7 +1,7 @@
 import { nowIso } from "@/lib/bos/clock";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/types/database";
-import type { Database, ProposalStatus } from "@/types/database";
+import type { Database } from "@/types/database";
 import { parseProposalContent, validateProposalForPublish, type ProposalContent } from "@/types/proposal";
 import { snapshotCaseStudiesAdmin } from "@/services/case-studies-admin";
 import { getProposalAccessAdmin } from "@/services/proposal-access";

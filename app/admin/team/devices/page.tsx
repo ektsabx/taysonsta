@@ -10,6 +10,7 @@ import { PageHeader, Card, StatusBadge, EmptyState, KpiCard } from "@/components
 import { FilterBar } from "@/components/bos/FilterBar";
 import { formatDate } from "@/lib/bos/format";
 import { statusOptions } from "@/lib/bos/labels";
+import { ExportLink } from "@/components/bos/ExportLink";
 
 // Device inventory (IT §12–13).
 export default async function DevicesPage({ searchParams }: { searchParams: SearchParams }) {
@@ -20,7 +21,7 @@ export default async function DevicesPage({ searchParams }: { searchParams: Sear
   const staleCheck = nowMs() - 90 * 86400_000;
   return (
     <>
-      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "devices.export") ? <a className="admin-btn small ghost" href="/api/bos/export/assets"><Tx>تصدير CSV</Tx></a> : null}<ImportButton bos={bos} type="assets" />{all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null}</span>} />
+      <PageHeader title="الأجهزة" subtitle={all ? `${rows.length} جهاز` : "أجهزتي"} actions={<span className="bos-row" style={{ gap: 6 }}>{can(bos, "devices.export") ? <ExportLink href="/api/bos/export/assets"><Tx>تصدير CSV</Tx></ExportLink> : null}<ImportButton bos={bos} type="assets" />{all ? <span className="bos-row" style={{ gap: 6 }}><Link className="admin-btn small secondary" href="/admin/team/devices/report"><Tx>تقرير الأصول</Tx></Link>{bos.permissions.get("devices.create") === "all" ? <Link className="admin-btn small" href="/admin/team/devices/new"><Tx>+ أصل</Tx></Link> : null}</span> : null}</span>} />
       {all ? (
         <div className="bos-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 14 }}>
           <KpiCard label="مسلّمة" value={rows.filter((d) => d.status === "assigned").length} href="/admin/team/devices?status=assigned" />
