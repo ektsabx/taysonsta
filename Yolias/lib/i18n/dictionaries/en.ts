@@ -234,6 +234,19 @@ export const en = {
     saveToProspects: "Save to Prospects",
     savedToProspects: "Saved to Prospects",
   },
+  agent: {
+    title: "Yolias AI conversation",
+    placeholder: "Ask Yolias AI about this search: refine it, explain results or check progress…",
+    placeholderMore: "Reply to Yolias AI…",
+    hint: "Saved with this search",
+    send: "Send",
+    thinking: "Yolias AI is checking your data…",
+    errors: {
+      notConfigured: "Yolias AI isn’t connected yet. Your message is saved.",
+      failed: "Yolias AI couldn’t answer. Your message is saved; send again to retry.",
+      forbidden: "Your workspace needs an active plan to use Yolias AI.",
+    },
+  },
   events: {
     plan: "Mission: {count} {unit} · {criteria}{titles}. Sources: {sources}.",
     noSources: "none connected",

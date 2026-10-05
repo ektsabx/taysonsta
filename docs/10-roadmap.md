@@ -28,12 +28,15 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 | 7 | Email find + verification | ⬜ | reuse → find → verify |
 | 8 | Queue + worker (pgmq + `/api/worker`, Cloudflare Cron in prod) | ✅ | idempotent jobs, retries, DLQ, budget guard |
 | 9 | Cost engine + usage ledger | ✅ | atomic reserve/consume, `provider_calls`, configurable quotas |
-| 10 | Agent tools | ✅ (backend) | typed, authorized, audited tools in Yolias AI; `/api/agent`. Chat UI waits on D-115 |
+| 10 | Agent tools | ✅ | typed, authorized, audited tools in Yolias AI; saved conversation on the search page (D-115) |
 | 11 | Analytics (customer + admin) | ✅ | SQL aggregates, real metrics only |
 | 12 | More providers | ⬜ | routing + fallback across ≥2 per key capability |
 
 Admin platform modules (`09`) are built alongside the phase that creates
 their data (e.g. Providers with phase 3, Jobs with phase 8, Usage ledger with 9).
+
+Phases 4, 7 and 12 and the deploy are **deferred to the end** with all open
+decisions (owner, 2026-10-05; see `12-decisions.md`).
 
 Don't start a phase without the owner's go-ahead. Hosting is decided
 (Cloudflare, D-001); the first provider (D-003) gates phase 4.

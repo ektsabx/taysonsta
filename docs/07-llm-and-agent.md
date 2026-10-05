@@ -72,8 +72,11 @@ Built (`Yolias/lib/agent/`):
 - `run.ts`: Claude tool runner (`toolRunner` + `betaTool`), max 8 iterations,
   cached system prompt, server-side fallback. Each model call is logged in
   `intel.llm_calls` (task `agent`) with its cost.
-- `app/api/agent`: signed-in only; the body is text turns only.
-- Chat UI: not built, waits on D-115.
+- `app/api/agent`: signed-in, active plan only. Body = `{ strategyId, text }`;
+  history is read from `agent_messages`, never from the browser.
+- UI (D-115): `components/app/AgentThread.tsx` under the result card on
+  `/search/[id]`; one saved conversation per search. Users can insert only
+  their own `user` turns (RLS); `assistant` turns are written by the server.
 
 ## Conversation behaviour
 

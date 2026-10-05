@@ -235,6 +235,19 @@ export const ar: Dictionary = {
     saveToProspects: "حفظ في العملاء المحتملين",
     savedToProspects: "تم الحفظ في العملاء المحتملين",
   },
+  agent: {
+    title: "محادثة Yolias AI",
+    placeholder: "اسأل Yolias AI عن هذا البحث: عدّله، اشرح النتائج أو تابع التقدّم…",
+    placeholderMore: "ردّ على Yolias AI…",
+    hint: "محفوظة مع هذا البحث",
+    send: "إرسال",
+    thinking: "يراجع Yolias AI بياناتك…",
+    errors: {
+      notConfigured: "Yolias AI غير متصل بعد. تم حفظ رسالتك.",
+      failed: "تعذّر على Yolias AI الرد. تم حفظ رسالتك؛ أرسل مرة أخرى للمحاولة.",
+      forbidden: "تحتاج مساحة العمل إلى خطة فعّالة لاستخدام Yolias AI.",
+    },
+  },
   events: {
     plan: "المهمة: {count} {unit} · {criteria}{titles}. المصادر: {sources}.",
     noSources: "لا يوجد مصدر متصل",

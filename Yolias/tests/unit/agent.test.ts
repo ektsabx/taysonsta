@@ -25,3 +25,14 @@ test("agent audit input is trimmed", () => {
   assert.equal(out.request.length, 501);
   assert.equal(out.list.length, 50);
 });
+
+test("saved turns become valid API messages", async () => {
+  const { toMessages } = await import("../../lib/agent/messages.ts");
+  const out = toMessages([
+    { role: "assistant", text: "orphan" },
+    { role: "user", text: "a" },
+    { role: "user", text: "b" },
+    { role: "assistant", text: "c" },
+  ]);
+  assert.deepEqual(out, [{ role: "user", content: "a\n\nb" }, { role: "assistant", content: "c" }]);
+});

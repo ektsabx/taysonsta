@@ -1335,6 +1335,17 @@ html[lang="ar"] .error-main h1 { letter-spacing: 0; }
 [dir="rtl"] .shimmer-text { animation-direction: reverse; }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
 .composer-thinking { width: 100%; max-width: 720px; margin: 18px auto 0; }
+
+/* Yolias AI conversation under a search result (D-115) */
+.agent-thread { width: 100%; max-width: 740px; margin-top: 24px; display: flex; flex-direction: column; gap: 14px; }
+.agent-turns { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.agent-turn { display: flex; gap: 10px; align-items: flex-start; text-align: start; }
+.agent-turn.user { justify-content: flex-end; }
+.agent-turn.user .agent-turn-text { max-width: 85%; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.agent-turn.assistant .yolias-mark { flex-shrink: 0; margin-top: 2px; }
+.agent-turn-text { font-size: .9rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.agent-composer .prompt-input { min-height: 44px; }
+.agent-composer .artifact-note { margin-inline-start: 6px; }
 .artifact-status .yolias-mark { width: 14px; height: 14px; }
 @media (prefers-reduced-motion: reduce) {
   .yolias-mark.thinking, .yolias-mark.thinking polygon, .yolias-mark.thinking circle, .shimmer-text { animation: none; }

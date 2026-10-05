@@ -36,7 +36,7 @@ Admin http://admin.localhost:3200.
 | Campaigns / Prospects / Analytics pages | `app/(app)/*` | UI working on real (empty) data |
 | Plans & billing | `lib/plan-catalog.ts`, `lib/billing.ts` | quotas/prices from `plan_quotas` (admin-editable); payments in test mode only |
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
-| Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. No chat UI yet (D-115). Test: `npm run test:agent` |
+| Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. Conversation UI under each search result (`components/app/AgentThread.tsx`), saved in `agent_messages` (user turns via RLS, assistant turns server-only; D-115). Test: `npm run test:agent` |
 | Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
 
 ## Yolias Admin

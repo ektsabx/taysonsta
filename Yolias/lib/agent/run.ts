@@ -1,16 +1,17 @@
 import "server-only";
 import { z } from "zod";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
-import type { BetaMessageParam, BetaTextBlockParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
+import type { BetaTextBlockParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { anthropic, YOLIAS_MODEL } from "@/lib/ai/anthropic";
 import { priceCall, recordLlmCall } from "@/lib/intel/llm";
 import { agentTools, executeTool, type AgentContext } from "@/lib/agent/tools";
+import { toMessages, type AgentTurn } from "@/lib/agent/messages";
 
 // Yolias AI agent loop (docs/07): Claude + the tools in tools.ts through the
 // SDK tool runner. Every model call is logged with its cost (rule 28); every
 // tool call is authorized and audited inside executeTool (rules 33, 35).
 
-export const AGENT_PROMPT_VERSION = "agent-2026-10-05";
+export const AGENT_PROMPT_VERSION = "agent-2026-10-05b";
 const MAX_ITERATIONS = 8;
 
 const SYSTEM = `You are Yolias AI, the assistant inside Yolias, a B2B prospect discovery product.
@@ -25,13 +26,9 @@ Rules:
 - Before createCampaign, restate the search in one line and ask the user to confirm, unless they already clearly asked you to start it. Starting a campaign uses their monthly prospects.
 - To change a search ("make it Saudi"), read it with getStrategy, then start a new campaign with the edited request after confirming.
 - You can't send emails or messages, scrape websites, or do anything outside these tools.
-- If a tool returns "denied", tell the user they don't have permission; don't retry.`;
+- If a tool returns "denied", tell the user they don't have permission; don't retry.
+- Write plain text: short paragraphs or simple "-" lists. No markdown headings, tables or bold. Keep it brief.`;
 
-export const AgentTurnSchema = z.object({
-  role: z.enum(["user", "assistant"]),
-  text: z.string().trim().min(1).max(4000),
-});
-export type AgentTurn = z.infer<typeof AgentTurnSchema>;
 
 export class AgentNotConfiguredError extends Error {}
 
@@ -57,14 +54,20 @@ function runnableTools(ctx: AgentContext) {
  * Runs one assistant turn. The browser sends only plain text turns: tool
  * calls and results never come from the client, they are re-derived here.
  */
-export async function runAgent(ctx: AgentContext, history: AgentTurn[]): Promise<{ reply: string; costUsd: number; iterations: number }> {
+export async function runAgent(
+  ctx: AgentContext,
+  history: AgentTurn[],
+  focus?: { strategyId: string; campaignId: string | null },
+): Promise<{ reply: string; costUsd: number; iterations: number }> {
   if (!process.env.ANTHROPIC_API_KEY) throw new AgentNotConfiguredError("ANTHROPIC_API_KEY is not set");
   const ws = ctx.session.workspace;
   const context: BetaTextBlockParam = {
     type: "text",
-    text: `Workspace: ${ws.name}. Plan: ${ws.plan}. User: ${ctx.session.profile.full_name ?? ctx.session.email}. Preferred language: ${ctx.session.profile.language}. Today: ${new Date().toISOString().slice(0, 10)}.`,
+    text: `Workspace: ${ws.name}. Plan: ${ws.plan}. User: ${ctx.session.profile.full_name ?? ctx.session.email}. Preferred language: ${ctx.session.profile.language}. Today: ${new Date().toISOString().slice(0, 10)}.${
+      focus ? ` This conversation is about search ${focus.strategyId}${focus.campaignId ? ` (campaign ${focus.campaignId})` : ""}; "this search" means it.` : ""
+    }`,
   };
-  const messages: BetaMessageParam[] = history.map((t) => ({ role: t.role, content: t.text }));
+  const messages = toMessages(history);
 
   const runner = anthropic().beta.messages.toolRunner({
     model: YOLIAS_MODEL,

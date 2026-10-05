@@ -134,6 +134,10 @@ export type AgentToolCallRow = {
   id: number; workspace_id: string; user_id: string | null; conversation_id: string | null; tool: string; input: Json;
   ok: boolean; outcome: AgentToolOutcome; error: string | null; latency_ms: number | null; created_at: string;
 };
+export type AgentMessageRow = {
+  id: number; workspace_id: string; strategy_id: string; user_id: string | null; role: "user" | "assistant";
+  content: string; meta: Json; created_at: string;
+};
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
@@ -395,6 +399,7 @@ export interface Database {
       campaign_runs: Table<CampaignRunRow, "workspace_id" | "campaign_id" | "job">;
       job_failures: Table<JobFailureRow, "msg_id" | "kind" | "payload" | "attempts">;
       agent_tool_calls: Table<AgentToolCallRow, "workspace_id" | "tool" | "ok" | "outcome">;
+      agent_messages: Table<AgentMessageRow, "workspace_id" | "strategy_id" | "role" | "content">;
     };
     Views: { [_ in never]: never };
     Functions: {
