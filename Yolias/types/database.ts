@@ -301,7 +301,7 @@ export type IntelProviderCallRow = {
   attempts: number;
   latency_ms: number | null;
   records_returned: number;
-  cost_usd: number;
+  cost_usd: number | null;
   cache_hit: boolean;
   error: string | null;
   created_at: string;
@@ -320,7 +320,7 @@ export type IntelLlmCallRow = {
   output_tokens: number;
   cache_read_tokens: number;
   cache_write_tokens: number;
-  cost_usd: number;
+  cost_usd: number | null;
   cache_hit: boolean;
   ok: boolean;
   error: string | null;
@@ -455,7 +455,7 @@ export interface Database {
       };
       cost_summary: {
         Args: { p_since: string };
-        Returns: { kind: "provider" | "llm"; key: string; calls: number; failures: number; cache_hits: number; cost_usd: number; records: number; avg_latency_ms: number | null }[];
+        Returns: { kind: "provider" | "llm"; key: string; calls: number; failures: number; cache_hits: number; cost_usd: number; records: number; avg_latency_ms: number | null; unpriced: number }[];
       };
     };
     Enums: { [_ in never]: never };

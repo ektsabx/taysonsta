@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/session";
 import { sttConfigured, transcribe } from "@/lib/stt";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
   const lang = form?.get("lang");
 
   try {
-    const text = await transcribe(audio, lang === "ar" || lang === "en" ? lang : undefined);
+    const session = await getSession();
+    const text = await transcribe(audio, lang === "ar" || lang === "en" ? lang : undefined, session?.workspace.id);
     if (!text) return NextResponse.json({ error: "noSpeech" }, { status: 422 });
     return NextResponse.json({ text });
   } catch (e) {

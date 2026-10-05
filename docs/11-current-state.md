@@ -37,6 +37,7 @@ Admin http://admin.localhost:3200.
 | Plans & billing | `lib/plan-catalog.ts`, `lib/billing.ts` | quotas/prices from `plan_quotas` (admin-editable); payments in test mode only |
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
 | Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. Conversation UI under each search result (`components/app/AgentThread.tsx`), saved in `agent_messages` (user turns via RLS, assistant turns server-only; D-115). Test: `npm run test:agent` |
+| Voice STT cost | `lib/stt.ts` | every server STT call logged in `intel.llm_calls` (task `stt`); token usage priced from `llm_prices`, otherwise logged as unpriced |
 | Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
 
 ## Yolias Admin
@@ -51,7 +52,6 @@ Runs at http://admin.localhost:3200.
 | Gap | Spec | Where |
 | --- | --- | --- |
 | No provider live | `03` | phase 4 |
-| No cost logging for STT calls (LLM is logged) | `06` | `lib/stt.ts` |
 | Plan copy promises "direct phone/WhatsApp" per prospect; spec says mobile optional, no WhatsApp verification claims | `00` | `lib/plans.ts` comment, pricing/marketing copy |
 | `PersonCandidate.whatsapp` field | `00` | `lib/discovery/types.ts` |
 | Production worker trigger not configured (Cloudflare Cron → `/api/worker`) | `05` | at deploy |

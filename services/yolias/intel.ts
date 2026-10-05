@@ -120,7 +120,7 @@ export async function costOverview(since = monthStartUtc()) {
     yintel().from("provider_calls").select("id, provider, capability, ok, http_status, attempts, latency_ms, records_returned, cost_usd, error, created_at").order("created_at", { ascending: false }).limit(20),
   ]);
   if (error) throw error;
-  const list = (rows ?? []).map((r) => ({ ...r, cost_usd: Number(r.cost_usd), calls: Number(r.calls), failures: Number(r.failures), cache_hits: Number(r.cache_hits), records: Number(r.records) }));
+  const list = (rows ?? []).map((r) => ({ ...r, cost_usd: Number(r.cost_usd), calls: Number(r.calls), failures: Number(r.failures), cache_hits: Number(r.cache_hits), records: Number(r.records), unpriced: Number(r.unpriced ?? 0) }));
   const total = (kind: "llm" | "provider") => list.filter((r) => r.kind === kind).reduce((s, r) => s + r.cost_usd, 0);
   const llm = total("llm");
   const provider = total("provider");
@@ -134,6 +134,7 @@ export async function costOverview(since = monthStartUtc()) {
     costPerProspect: delivered ? (llm + provider) / delivered : null,
     llmCalls: list.filter((r) => r.kind === "llm").reduce((s, r) => s + r.calls, 0),
     llmCacheHits: list.filter((r) => r.kind === "llm").reduce((s, r) => s + r.cache_hits, 0),
+    unpriced: list.reduce((s, r) => s + r.unpriced, 0),
     rows: list,
     recentLlm: recentLlm ?? [],
     recentCalls: recentCalls ?? [],

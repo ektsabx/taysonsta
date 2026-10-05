@@ -56,7 +56,7 @@ export default async function ProviderPage({ params }: PageProps<"/admin/platfor
                   <td><Tx>{capabilityLabel[c.capability] ?? c.capability}</Tx></td>
                   <td>{c.ok ? <StatusBadge tone="success" label="نجح" /> : <StatusBadge tone="danger" label={c.error ?? "فشل"} />}</td>
                   <td className="bos-num">{c.records_returned}</td>
-                  <td className="bos-num">{usd(Number(c.cost_usd))}</td>
+                  <td className="bos-num">{c.cost_usd == null ? <StatusBadge tone="warning" label="غير مسعّر" /> : usd(Number(c.cost_usd))}</td>
                   <td className="bos-num">{c.latency_ms ?? "—"} ms</td>
                 </tr>
               ))}

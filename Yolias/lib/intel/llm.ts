@@ -45,7 +45,8 @@ export async function recordLlmCall(c: LlmCallLog) {
     workspace_id: c.workspaceId ?? null, campaign_id: c.campaignId ?? null, strategy_id: c.strategyId ?? null,
     input_tokens: c.usage?.input_tokens ?? 0, output_tokens: c.usage?.output_tokens ?? 0,
     cache_read_tokens: c.usage?.cache_read_input_tokens ?? 0, cache_write_tokens: c.usage?.cache_creation_input_tokens ?? 0,
-    cost_usd: c.costUsd ?? 0, cache_hit: c.cacheHit ?? false, ok: c.ok, error: c.error ?? null, latency_ms: c.latencyMs ?? null,
+    // Unknown price ⇒ null ("unpriced", D-114); a cache hit really costs nothing.
+    cost_usd: c.costUsd ?? (c.cacheHit ? 0 : null), cache_hit: c.cacheHit ?? false, ok: c.ok, error: c.error ?? null, latency_ms: c.latencyMs ?? null,
   });
 }
 

@@ -70,7 +70,7 @@ export async function runCapability<C extends Capability>(capability: C, input: 
         provider: row.id, capability, operation: capability, workspace_id: scope.workspaceId, campaign_id: scope.campaignId,
         request_hash: cacheKey(capability, JSON.stringify(input)), ok: true, http_status: httpStatus, attempts: Math.max(attempts, 1),
         latency_ms: Date.now() - started, records_returned: Array.isArray(result.data) ? result.data.length : result.data ? 1 : 0,
-        cost_usd: cost ?? 0,
+        cost_usd: cost, // null = unpriced (D-114)
       }).select("id").single();
       await db.from("providers").update({ health: asJson(nextHealth(row.health as object, true, null, breaker)) }).eq("id", row.id);
       const license: SourceLicense = {

@@ -7,6 +7,8 @@ import { costOverview } from "@/services/yolias/intel";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
 
 const usd4 = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+// Unknown price is shown as unpriced, never as $0 (D-114).
+const cost = (v: number | string | null) => (v == null ? <StatusBadge tone="warning" label="غير مسعّر" /> : usd4(Number(v)));
 
 // Platform costs (docs/06 "Cost engine", docs/09 §B "LLM usage & costs",
 // "Platform costs", "Cost per prospect"). Since the start of the month.
@@ -18,7 +20,7 @@ export default async function CostsPage() {
     <>
       <PageHeader title="التكاليف" subtitle="تكلفة المنصة هذا الشهر: النماذج اللغوية ومزودو البيانات — كل طلب مسجّل بتكلفته" />
       <div className="bos-kpis">
-        <KpiCard label="إجمالي التكلفة" value={usd4(c.total)} />
+        <KpiCard label="إجمالي التكلفة" value={usd4(c.total)} sub={c.unpriced ? <Tx vars={{ n: num(c.unpriced) }}>{"+ {n} طلب غير مسعّر"}</Tx> : undefined} />
         <KpiCard label="النماذج اللغوية" value={usd4(c.llm)} sub={<Tx vars={{ n: num(c.llmCalls), h: num(c.llmCacheHits) }}>{"{n} طلب · {h} من الذاكرة المؤقتة"}</Tx>} />
         <KpiCard label="مزودو البيانات" value={usd4(c.provider)} />
         <KpiCard label="تكلفة العميل المحتمل" value={c.costPerProspect == null ? "—" : usd4(c.costPerProspect)} sub={<Tx vars={{ n: num(c.prospects) }}>{"{n} عميل محتمل مسلَّم"}</Tx>} />
@@ -27,7 +29,7 @@ export default async function CostsPage() {
       <Card title="حسب المهمة والمزود">
         {c.rows.length ? (
           <BosTable className="bos-table">
-            <thead><tr><th><Tx>النوع</Tx></th><th><Tx>المهمة / المزود</Tx></th><th><Tx>الطلبات</Tx></th><th><Tx>الفشل</Tx></th><th><Tx>من الذاكرة المؤقتة</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>متوسط الزمن</Tx></th></tr></thead>
+            <thead><tr><th><Tx>النوع</Tx></th><th><Tx>المهمة / المزود</Tx></th><th><Tx>الطلبات</Tx></th><th><Tx>الفشل</Tx></th><th><Tx>من الذاكرة المؤقتة</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>غير مسعّر</Tx></th><th><Tx>متوسط الزمن</Tx></th></tr></thead>
             <tbody>
               {c.rows.sort((a, b) => b.cost_usd - a.cost_usd).map((r) => (
                 <tr key={`${r.kind}:${r.key}`}>
@@ -37,6 +39,7 @@ export default async function CostsPage() {
                   <td className="bos-num">{num(r.failures)}</td>
                   <td className="bos-num">{num(r.cache_hits)}</td>
                   <td className="bos-num">{usd4(r.cost_usd)}</td>
+                  <td className="bos-num">{num(r.unpriced)}</td>
                   <td className="bos-num">{r.avg_latency_ms == null ? "—" : `${r.avg_latency_ms} ms`}</td>
                 </tr>
               ))}
@@ -56,7 +59,7 @@ export default async function CostsPage() {
                   <td dir="ltr">{r.task}</td>
                   <td dir="ltr">{r.served_model && r.served_model !== r.model ? `${r.model} → ${r.served_model}` : r.model}</td>
                   <td className="bos-num">{r.cache_hit ? "—" : `${num(r.input_tokens)} / ${num(r.output_tokens)}`}</td>
-                  <td className="bos-num">{usd4(Number(r.cost_usd))}</td>
+                  <td className="bos-num">{cost(r.cost_usd)}</td>
                   <td>{!r.ok ? <StatusBadge tone="danger" label={r.error ?? "فشل"} /> : r.cache_hit ? <StatusBadge tone="info" label="من الذاكرة المؤقتة" /> : <StatusBadge tone="success" label="نجح" />}</td>
                 </tr>
               ))}
