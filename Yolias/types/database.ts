@@ -407,6 +407,7 @@ export interface Database {
       usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
       workspace_analytics: { Args: { p_ws: string; p_since: string }; Returns: Json };
       admin_platform_metrics: { Args: { p_since: string }; Returns: Json };
+      admin_agent_metrics: { Args: { p_since: string }; Returns: Json };
       jobs_enqueue: { Args: { p_kind: string; p_payload: Json; p_delay: number }; Returns: number };
       jobs_read: { Args: { p_n: number; p_vt: number }; Returns: { msg_id: number; read_ct: number; enqueued_at: string; kind: string; payload: Json }[] };
       jobs_ack: { Args: { p_msg_id: number }; Returns: boolean };

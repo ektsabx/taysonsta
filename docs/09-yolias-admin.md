@@ -94,6 +94,7 @@ audited.
 | Provider | `/admin/platform/providers/[id]` | edit enable/priority/limits/budgets/fallback/pricing/license, set or delete the Vault credential, latest calls |
 | Plans & quotas | `/admin/platform/plans` | prospects per plan (edit, audited); prices shown |
 | Jobs & queue | `/admin/platform/jobs` | queue length, oldest job, failed jobs (retry), latest runs |
+| Yolias AI | `/admin/platform/agent` | last 30 days: conversations, messages, tool calls by tool and outcome (denied, not connected…), agent LLM cost, audit log of the latest 50 tool calls. Counts only, no conversation text |
 | Costs | `/admin/platform/costs` | LLM and provider cost this month, cost per prospect, by task/provider, latest LLM calls |
 
 Permissions: `platform.*` (super admin and admin: all; executive: read).
