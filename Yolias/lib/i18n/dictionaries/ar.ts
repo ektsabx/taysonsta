@@ -253,6 +253,7 @@ export const ar: Dictionary = {
       notConfigured: "Yolias AI غير متصل بعد. تم حفظ رسالتك.",
       failed: "تعذّر على Yolias AI الرد. تم حفظ رسالتك؛ أرسل مرة أخرى للمحاولة.",
       forbidden: "تحتاج مساحة العمل إلى خطة فعّالة لاستخدام Yolias AI.",
+      rateLimited: "ترسل رسائل بسرعة كبيرة. انتظر قليلًا ثم حاول مجددًا.",
     },
   },
   events: {

@@ -125,6 +125,8 @@ const ENDING_NOTICE_DAYS = 3;
 export async function billingSweep(now = new Date()): Promise<{ reminders: number; ending: number; renewed: number }> {
   const db = createAdminClient();
   const out = { reminders: 0, ending: 0, renewed: 0 };
+  // Housekeeping: sign-in link requests only matter for an hour.
+  await db.from("sign_in_requests").delete().lt("created_at", new Date(now.getTime() - DAY).toISOString());
   const { data: subs } = await db.from("workspaces").select("*").in("plan", ["pro", "growth"]).in("subscription_status", ["test", "active"]).not("current_period_end", "is", null);
   const catalog = await getPlanCatalog();
   for (const ws of subs ?? []) {

@@ -13,7 +13,7 @@ export interface ThreadTurn {
   content: string;
 }
 
-type AgentError = "notConfigured" | "failed" | "forbidden";
+type AgentError = "notConfigured" | "failed" | "forbidden" | "rateLimited";
 
 // The saved Yolias AI conversation of one search (D-115), under its result
 // card. Each turn is saved on the server; history is read from there.
@@ -47,7 +47,7 @@ export function AgentThread({ strategyId, initial, speechLang = "en-US" }: { str
       const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ strategyId, text: value }) });
       const body = (await res.json().catch(() => ({}))) as { reply?: ThreadTurn; error?: string };
       if (!res.ok || !body.reply) {
-        setError(body.error === "notConfigured" || body.error === "forbidden" ? body.error : "failed");
+        setError(body.error === "notConfigured" || body.error === "forbidden" || body.error === "rateLimited" ? body.error : "failed");
         return;
       }
       setTurns((cur) => [...cur, body.reply!]);

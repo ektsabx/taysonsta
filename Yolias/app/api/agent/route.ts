@@ -13,6 +13,9 @@ const BodySchema = z.object({
   text: z.string().trim().min(1).max(4000),
 });
 const HISTORY_TURNS = 40;
+// Per user: protects against runaway LLM cost (rule 25). Counted from saved turns.
+const PER_MINUTE = 8;
+const PER_DAY = 300;
 
 // Yolias AI agent: one turn of the conversation saved on a search (D-115).
 // History comes from the database, never from the browser. Authorization for
@@ -28,6 +31,13 @@ export async function POST(request: NextRequest) {
   const ws = session.workspace.id;
   const { data: strategy } = await db.from("strategies").select("id, workspace_id").eq("id", body.data.strategyId).maybeSingle();
   if (!strategy || strategy.workspace_id !== ws) return NextResponse.json({ error: "notFound" }, { status: 404 });
+
+  const since = (ms: number) => new Date(Date.now() - ms).toISOString();
+  const [{ count: lastMinute }, { count: lastDay }] = await Promise.all([
+    db.from("agent_messages").select("id", { count: "exact", head: true }).eq("user_id", session.userId).eq("role", "user").gte("created_at", since(60_000)),
+    db.from("agent_messages").select("id", { count: "exact", head: true }).eq("user_id", session.userId).eq("role", "user").gte("created_at", since(86_400_000)),
+  ]);
+  if ((lastMinute ?? 0) >= PER_MINUTE || (lastDay ?? 0) >= PER_DAY) return NextResponse.json({ error: "rateLimited" }, { status: 429 });
 
   // The user's turn is saved first (user's client, RLS), so it's never lost.
   const { error: saveError } = await db.from("agent_messages").insert({ workspace_id: ws, strategy_id: strategy.id, user_id: session.userId, role: "user", content: body.data.text });

@@ -57,6 +57,8 @@ Runs at http://admin.localhost:3200.
 | Plan copy promises "direct phone/WhatsApp" per prospect; spec says mobile optional, no WhatsApp verification claims | `00` | `lib/plans.ts` comment, pricing/marketing copy |
 | `PersonCandidate.whatsapp` field | `00` | `lib/discovery/types.ts` |
 | Production worker trigger not configured (Cloudflare Cron → `/api/worker`) | `05` | at deploy |
+| No real LLM / Resend calls verified from this environment (no keys here); adapters tested against local stand-ins of each API | `07` | first run with real keys: `npm run eval:icp`, send a test email |
+| Payment-failure / refund / pause emails have templates but no trigger until a payment provider exists | `05` | D-007 |
 
 ## Pre-existing admin issues (not from Yolias work)
 

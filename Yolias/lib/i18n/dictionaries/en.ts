@@ -252,6 +252,7 @@ export const en = {
       notConfigured: "Yolias AI isn’t connected yet. Your message is saved.",
       failed: "Yolias AI couldn’t answer. Your message is saved; send again to retry.",
       forbidden: "Your workspace needs an active plan to use Yolias AI.",
+      rateLimited: "You’re sending messages too fast. Wait a moment and try again.",
     },
   },
   events: {

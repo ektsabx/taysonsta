@@ -12,6 +12,25 @@
 - **Licensing:** enforced by the Intelligence Layer at storage, display, export and cross-workspace reuse.
 - **PII:** minimise stored raw provider payloads; respect `retention_limit`.
 
+## Built (2026-10-05)
+
+- **Two-factor authentication** (TOTP, Supabase MFA). Enforced three times:
+  the proxy sends an aal1 session to `/two-factor`, `getSession()` returns
+  nothing until the code is entered, and restrictive RLS policies
+  (`public.mfa_ok()`) block customer tables for an aal1 session of a user
+  with a verified factor — even when calling the database API directly.
+- **Agent:** tools authorized in code and audited (`agent_tool_calls`); the
+  browser sends only text; assistant turns are written by the server only;
+  rate limit 8 messages / minute and 300 / day per user.
+- **Suspend user** (Yolias Admin): Supabase Auth ban + audit + security
+  email. Existing access tokens expire within the hour.
+- **Security emails:** new device sign-in, repeated sign-in link requests,
+  email changed, 2FA on/off, signed out everywhere, suspended/restored.
+- **Secrets:** LLM, email and STT keys only in server env; provider data
+  keys in Vault; the worker heartbeat reports only yes/no per service.
+- **Emails** are logged without secrets; announcement links must be https and
+  admin text is escaped.
+
 ## BYOK (later)
 
 Workspaces may bring their own provider keys on higher plans, stored in
