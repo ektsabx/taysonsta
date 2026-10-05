@@ -36,6 +36,8 @@ Run both: `npm run local` at the repo root.
 | 11 | [11-current-state.md](11-current-state.md) | What exists in the code today, known gaps |
 | 12 | [12-decisions.md](12-decisions.md) | Decisions taken and decisions still open |
 | 13 | [13-audit.md](13-audit.md) | Phase 0 audit: what to reuse from the Admin, DB overlap, auth |
+| 14 | [14-final-spec-plan.md](14-final-spec-plan.md) | The final specification split into 10 phases, and their status |
+| 15 | [15-handoff-ar.md](15-handoff-ar.md) | Handoff (Arabic): every change on this branch, how to clone, run and continue in VS Code |
 
 ## How to work with these docs
 
