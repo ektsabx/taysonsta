@@ -2,15 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession, type Session } from "@/lib/session";
-import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
+import { requireSession } from "@/lib/session";
+import type { StrategyAttachment } from "@/lib/ai/strategy";
 import { AttachmentError, readAttachments } from "@/lib/attachments";
-import { criteriaLine } from "@/lib/discovery/icp";
-import { logEvent } from "@/lib/discovery/pipeline";
-import { enqueue } from "@/lib/jobs/queue";
-import { sourceLabels } from "@/lib/intel/registry";
-import { countryLabel } from "@/lib/format";
-import { dictionaries, fmt } from "@/lib/i18n/config";
+import { titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
+import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Json } from "@/types/database";
 
@@ -71,72 +67,6 @@ export async function retryStrategy(strategyId: string): Promise<StrategyResult>
   return { ok: true, id: strategy.id };
 }
 
-async function understandAndLaunch(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[]) {
-  const supabase = await createClient();
-  let understood;
-  try {
-    understood = await understandStrategy(prompt, attachments, {
-      userName: session.profile.full_name,
-      companyName: session.workspace.name,
-      website: session.workspace.website,
-      offering: session.workspace.offering,
-      defaultCountry: countryLabel(session.profile.country, "en") || session.profile.country,
-      language: session.profile.language,
-      workspaceId: session.workspace.id,
-      strategyId,
-    });
-  } catch (e) {
-    // The error column keeps the dictionary key; the card translates it.
-    const code = e instanceof StrategyAiError ? e.code : "aiFailed";
-    if (!(e instanceof StrategyAiError)) console.error("understandStrategy failed", e);
-    await supabase.from("strategies").update({ status: "failed", error: code }).eq("id", strategyId);
-    return;
-  }
-
-  const icp = understood.icp;
-  await supabase.from("strategies").update({
-    status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
-    icp_fingerprint: understood.fingerprint, icp_model: understood.model, icp_prompt_version: understood.promptVersion,
-    interpretation_cost_usd: understood.costUsd, icp_cached: understood.cached,
-  }).eq("id", strategyId);
-
-  const { data: campaign } = await supabase
-    .from("campaigns")
-    .insert({
-      workspace_id: session.workspace.id,
-      strategy_id: strategyId,
-      created_by: session.userId,
-      name: icp.campaign_name,
-      criteria: icp as unknown as Json,
-      quota: icp.target_count,
-      status: "queued",
-    })
-    .select("id")
-    .single();
-  if (!campaign) {
-    await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
-    return;
-  }
-
-  await logEvent(session.workspace.id, campaign.id, "understand", icp.summary, "success");
-  const sources = await sourceLabels();
-  const en = dictionaries.en;
-  const titles = icp.job_titles.length ? ` · ${icp.job_titles.slice(0, 4).join(", ")}` : "";
-  const unitKey = icp.target_unit === "companies" ? "unitCompanies" : "unitProspects";
-  await logEvent(
-    session.workspace.id,
-    campaign.id,
-    "plan",
-    fmt(en.events.plan, { count: icp.target_count, unit: en.discovery[unitKey], criteria: criteriaLine(icp), titles, sources: sources.join(", ") || en.events.noSources }),
-    "info",
-    { key: "plan", vars: { count: icp.target_count, unitKey, titles, sources: sources.join(", ") } }
-  );
-  // Discovery runs in the background worker, never inside this request (docs/05).
-  if ((await enqueue("campaign.discover", { campaignId: campaign.id })) === null) {
-    await logEvent(session.workspace.id, campaign.id, "plan", "Couldn't queue the discovery job. Please retry.", "error", { key: "stopped", vars: { reason: "queue" } });
-  }
-}
-
 // "Save to Prospects": hands the campaign's discovered decision makers to the Prospects list.
 export async function saveToProspects(campaignId: string): Promise<{ ok: boolean; saved: number }> {
   const session = await requireSession();
@@ -180,9 +110,4 @@ export async function deleteStrategy(id: string): Promise<{ ok: boolean }> {
   const { error } = await supabase.from("strategies").delete().eq("id", id);
   revalidatePath("/", "layout");
   return { ok: !error };
-}
-
-function titleFrom(text: string) {
-  const s = text.replace(/\s+/g, " ").trim();
-  return s.length > 60 ? `${s.slice(0, 57)}…` : s;
 }

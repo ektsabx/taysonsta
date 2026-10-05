@@ -57,6 +57,24 @@ Every tool is: typed (zod input/output), **authorized in code**
 (user → workspace → role → permission → resource → action), workspace-scoped,
 usage-accounted, audited. The system prompt is not a security boundary.
 
+Built (`Yolias/lib/agent/`):
+
+- `authz.ts`: role → permission table and `authorize()` (inactive workspace,
+  missing permission, foreign resource ⇒ denied).
+- `tools.ts`: the tools above. They run with the user's Supabase client, so
+  RLS still applies; each checks the resource's workspace itself too.
+  `executeTool()` validates, authorizes, runs and writes one row to
+  `public.agent_tool_calls` (outcome `ok | denied | invalid | not_found |
+  not_connected | error`). `createCampaign` reuses the search-box flow
+  (`lib/discovery/launch.ts`), so quota is reserved by the worker as usual.
+  `enrichProspect` / `researchCompany` return `not_connected` until a
+  provider for that capability exists (phases 4/7).
+- `run.ts`: Claude tool runner (`toolRunner` + `betaTool`), max 8 iterations,
+  cached system prompt, server-side fallback. Each model call is logged in
+  `intel.llm_calls` (task `agent`) with its cost.
+- `app/api/agent`: signed-in only; the body is text turns only.
+- Chat UI: not built, waits on D-115.
+
 ## Conversation behaviour
 
 - Keeps context across turns: "make it Saudi" edits the current search.

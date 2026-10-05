@@ -129,6 +129,11 @@ export type CampaignRunRow = {
   meta: Json;
 };
 
+export type AgentToolOutcome = "ok" | "denied" | "invalid" | "not_found" | "not_connected" | "error";
+export type AgentToolCallRow = {
+  id: number; workspace_id: string; user_id: string | null; conversation_id: string | null; tool: string; input: Json;
+  ok: boolean; outcome: AgentToolOutcome; error: string | null; latency_ms: number | null; created_at: string;
+};
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
@@ -389,6 +394,7 @@ export interface Database {
       usage_ledger: Table<UsageLedgerRow, "workspace_id" | "kind" | "prospects" | "period_start">;
       campaign_runs: Table<CampaignRunRow, "workspace_id" | "campaign_id" | "job">;
       job_failures: Table<JobFailureRow, "msg_id" | "kind" | "payload" | "attempts">;
+      agent_tool_calls: Table<AgentToolCallRow, "workspace_id" | "tool" | "ok" | "outcome">;
     };
     Views: { [_ in never]: never };
     Functions: {

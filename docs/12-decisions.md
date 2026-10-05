@@ -25,6 +25,7 @@ the status and add a dated note.
 | D-113 | 2026-10-01 | Unknown license = most restrictive: routing skips a provider until the admin sets "storage allowed" for it. |
 | D-114 | 2026-10-01 | LLM and provider prices live in `intel.settings` / `intel.providers.pricing`; a model or capability without a price is logged as "unpriced" (cost null), never as free. |
 | D-112 | 2026-10-01 | Yolias may use the Taysonsta Supabase account and keys where it needs them (owner's permission). |
+| D-116 | 2026-10-05 | Agent tools run with the user's own Supabase client (RLS) plus an in-code role → permission table (`lib/agent/authz.ts`); today every member role has every agent permission, matching the app. The browser sends only text turns; tool calls/results are never accepted from the client. |
 
 ## Open (owner decides)
 
@@ -38,4 +39,5 @@ the status and add a dated note.
 | D-007 | Payment provider for live billing | billing is test mode only today |
 | D-008 | LLM model mix per task | default: smallest model passing the bilingual eval; ICP on Opus-class today |
 | D-009 | Whether phone/mobile is offered on all plans or higher plans only | affects cost per prospect |
+| D-115 | Yolias AI chat UI (rule 6: UI changes need a decision) | where the agent lives: a chat panel on the search page, a separate "Ask Yolias" page, or follow-up questions under each search result. Also: keep conversations (new table) or not. Backend `/api/agent` is ready either way |
 | D-012 | Fix the "direct phone/WhatsApp" promise in plan/marketing copy to match D-105 | copy change only; needs owner OK on wording |

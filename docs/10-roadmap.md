@@ -28,7 +28,7 @@ Status: ✅ done · 🟡 in progress · ⬜ not started. Update on every change.
 | 7 | Email find + verification | ⬜ | reuse → find → verify |
 | 8 | Queue + worker (pgmq + `/api/worker`, Cloudflare Cron in prod) | ✅ | idempotent jobs, retries, DLQ, budget guard |
 | 9 | Cost engine + usage ledger | ✅ | atomic reserve/consume, `provider_calls`, configurable quotas |
-| 10 | Agent tools | ⬜ | typed, authorized, audited tools in Yolias AI |
+| 10 | Agent tools | ✅ (backend) | typed, authorized, audited tools in Yolias AI; `/api/agent`. Chat UI waits on D-115 |
 | 11 | Analytics (customer + admin) | ✅ | SQL aggregates, real metrics only |
 | 12 | More providers | ⬜ | routing + fallback across ≥2 per key capability |
 

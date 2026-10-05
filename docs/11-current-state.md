@@ -36,6 +36,7 @@ Admin http://admin.localhost:3200.
 | Campaigns / Prospects / Analytics pages | `app/(app)/*` | UI working on real (empty) data |
 | Plans & billing | `lib/plan-catalog.ts`, `lib/billing.ts` | quotas/prices from `plan_quotas` (admin-editable); payments in test mode only |
 | Settings, usage, invoices | `components/app/SettingsModal.tsx`, `app/invoices` | working |
+| Yolias AI agent (backend) | `lib/agent/*`, `app/api/agent` | 10 tools (zod-typed, authorized in code, workspace-scoped, RLS client, audited in `agent_tool_calls`); Claude tool runner with cost logging per call. `enrichProspect` / `researchCompany` answer "not connected" until providers exist. No chat UI yet (D-115). Test: `npm run test:agent` |
 | Email | `lib/email/send.ts`, `supabase/config.toml` `[auth.email.smtp]` | Taysonsta Resend account: sign-in via SMTP, receipts + plan-ending via API. Usage and discovery-ready emails wait for real usage/campaigns |
 
 ## Yolias Admin
@@ -51,7 +52,6 @@ Runs at http://admin.localhost:3200.
 | --- | --- | --- |
 | No provider live | `03` | phase 4 |
 | No cost logging for STT calls (LLM is logged) | `06` | `lib/stt.ts` |
-| `prospects` has no unique `(workspace_id, person_id)` | `04` | init migration |
 | Plan copy promises "direct phone/WhatsApp" per prospect; spec says mobile optional, no WhatsApp verification claims | `00` | `lib/plans.ts` comment, pricing/marketing copy |
 | `PersonCandidate.whatsapp` field | `00` | `lib/discovery/types.ts` |
 | Production worker trigger not configured (Cloudflare Cron → `/api/worker`) | `05` | at deploy |
@@ -64,4 +64,5 @@ Runs at http://admin.localhost:3200.
 ## Checks
 
 - Yolias: `cd Yolias && npm run typecheck && npm run lint && npm run test:unit && npm run build`
+- Agent tools against the local DB (no LLM key needed): `cd Yolias && npm run test:agent`
 - Admin: `npm run lint`, `npm test` at the root.
