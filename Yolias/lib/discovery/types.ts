@@ -26,6 +26,10 @@ export interface CompanyCandidate {
   rating?: number | null;
   reviewsCount?: number | null;
   placeRef?: string | null;           // maps place id
+  /** Media and profile links when the provider has them (D-147). */
+  logoUrl?: string | null;
+  linkedinUrl?: string | null;
+  foundedYear?: number | null;
   mapsUrl?: string | null;
   /** The provider's own confidence in the record (0–1), when it gives one. */
   confidence?: number | null;
@@ -42,6 +46,8 @@ export interface PersonCandidate {
   country: string | null;
   sourceRef: string | null;
   confidence?: number | null;
+  /** Profile photo (https) when the provider has one (D-147). */
+  photoUrl?: string | null;
   raw?: unknown;
 }
 
@@ -69,6 +75,8 @@ export interface DiscoveryContext {
   runId?: number | null;
   /** Candidates earlier runs already saw: later runs of a continuous campaign ask the source for the next ones. */
   offset?: number;
+  /** Results delivered under an already-charged one (decision makers of a delivered company): not charged again (D-146). */
+  free?: boolean;
   log: (
     stage: PipelineStage,
     message: string,

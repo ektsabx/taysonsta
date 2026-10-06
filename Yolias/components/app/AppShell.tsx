@@ -6,10 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, Send, UserSearch, Users } from "lucide-react";
+  Plug, Plus, SlidersHorizontal, Sparkles, User, Send, UserSearch, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
 import { planLabel } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
 import { SettingsModal } from "./SettingsModal";
@@ -17,6 +18,7 @@ import { SupportLink } from "@/components/SupportLink";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
+import { OPEN_SETTINGS_EVENT } from "./open-settings";
 
 const mainNav = [
   { href: "/", key: "yoliasAi", icon: Sparkles },
@@ -67,6 +69,20 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
     setMenuOpen(false);
     setSettingsTab(tab);
   };
+
+  // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
+  useEffect(() => {
+    const onOpen = (e: Event) => setSettingsTab((e as CustomEvent<SettingsTab>).detail);
+    window.addEventListener(OPEN_SETTINGS_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, onOpen);
+  }, []);
+
+  // Running out of prospects (like a usage limit): a banner from 80%, red at 100%.
+  const [nearDismissed, setNearDismissed] = useState(false);
+  const allowance = data.workspace.prospects;
+  const usedPct = allowance ? Math.floor((data.usage.prospects / allowance) * 100) : 0;
+  const limit = allowance && usedPct >= 100 ? "out" : allowance && usedPct >= 80 && !nearDismissed ? "near" : null;
+  const canBuy = data.role === "owner" || data.role === "admin";
 
   const pinned = data.recent.filter((st) => st.pinned);
   const recent = data.recent.filter((st) => !st.pinned);
@@ -189,6 +205,14 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
           <div className="past-due-banner" role="status">
             <span>{t.invoicePay.pastDue}</span>
             {pastDue.id && <Link href={`/invoices/${pastDue.id}`}>{t.invoicePay.pay}</Link>}
+          </div>
+        )}
+        {!pastDue && limit && (
+          <div className={`usage-limit-banner ${limit}`} role="status">
+            <span>{limit === "out" ? t.buyMore.bannerOut : fmt(t.buyMore.bannerNear, { pct: usedPct })}</span>
+            {canBuy && <button type="button" onClick={() => openSettings("usage")}>{t.buyMore.cta}</button>}
+            {canBuy && data.workspace.plan !== "growth" && <Link href="/checkout">{t.buyMore.upgrade}</Link>}
+            {limit === "near" && <button type="button" className="usage-limit-dismiss" aria-label={t.buyMore.dismiss} onClick={() => setNearDismissed(true)}><X /></button>}
           </div>
         )}
         {children}

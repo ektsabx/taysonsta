@@ -25,7 +25,8 @@ export interface ShellData {
     cancelAtPeriodEnd: boolean;
   };
   role: WorkspaceRole;
-  usage: { prospects: number; resetsAt: string | null };
+  /** Used and extra (bought this month) prospects; the allowance is workspace.prospects. */
+  usage: { prospects: number; resetsAt: string | null; extra: number };
   invoices: { id: string; number: string; date: string; amount: number; currency: Currency; status: "paid" | "open" | "void"; test: boolean }[];
   /** Buy More Prospects: active packs priced in the workspace currency. */
   packs: { id: string; prospects: number; price: number }[];

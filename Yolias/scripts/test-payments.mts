@@ -91,11 +91,13 @@ try {
   const sub = pays![0];
   assert.equal(sub.status, "pending"); assert.equal(Number(sub.amount), 9.99); assert.equal(sub.currency, "USD");
   assert.equal((intentions.at(-1) as { amount: number }).amount, 999);
+  assert.equal((intentions.at(-1) as { currency: string }).currency, "USD", "USD sent; Paymob converts (D-142)");
   assert.deepEqual((intentions.at(-1) as { payment_methods: number[] }).payment_methods, [222]);
 
   // 2) Bad signature / wrong amount change nothing.
   assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999), "wrong-secret")).status, 401);
   assert.equal((await callback(txn(sub.id, sub.provider_ref!, 100))).status, 200);
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999, { currency: "SAR" }))).status, 200);
   assert.equal((await payment(sub.id)).status, "pending");
   assert.equal((await ws(wsId)).subscription_status, "none");
 
@@ -159,7 +161,10 @@ try {
   r = await startCheckout(await ws(wsId), buyer, { kind: "subscription", plan: "pro", period: "monthly", invoiceId: open!.id });
   assert.ok(r.ok);
   const { data: renewal } = await db.from("payments").select("*").eq("invoice_id", open!.id).single();
-  await callback(txn(renewal!.id, renewal!.provider_ref!, 999));
+  // Paymob converted the card charge to EGP: settled, and the EGP amount is recorded.
+  await callback(txn(renewal!.id, renewal!.provider_ref!, 49_950, { currency: "EGP" }));
+  const rp = await payment(renewal!.id);
+  assert.equal(rp.status, "succeeded"); assert.equal(Number(rp.charge_amount), 499.5); assert.equal(rp.charge_currency, "EGP"); assert.equal(Number(rp.fx_rate), 50);
   const renewed = await ws(wsId);
   assert.equal(renewed.subscription_status, "active");
   assert.equal(new Date(renewed.current_period_end!).getTime(), new Date(open!.period_end).getTime());

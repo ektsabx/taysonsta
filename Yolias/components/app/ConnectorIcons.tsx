@@ -39,3 +39,12 @@ export function OutlookIcon() {
     </svg>
   );
 }
+
+export function LinkedInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <rect width="24" height="24" rx="4" fill="#0A66C2" />
+      <path fill="#fff" d="M7.1 9.6h2.5V18H7.1zM8.35 5.6a1.45 1.45 0 1 1 0 2.9 1.45 1.45 0 0 1 0-2.9zM11.2 9.6h2.4v1.15h.04c.33-.63 1.15-1.3 2.37-1.3 2.54 0 3 1.67 3 3.84V18h-2.5v-4.2c0-1-.02-2.29-1.4-2.29-1.4 0-1.6 1.09-1.6 2.22V18h-2.5z" />
+    </svg>
+  );
+}

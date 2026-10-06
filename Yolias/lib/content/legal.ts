@@ -4,8 +4,8 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-01";
-export const legalSlugs = ["privacy", "terms", "cookies", "security"] as const;
+export const LEGAL_UPDATED = "2026-10-06";
+export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
 export const legal: Record<LegalSlug, Localized<Doc>> = {
@@ -137,7 +137,9 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "Plans differ by monthly usage limits; every plan includes unlimited users.",
           "You can pay monthly or annually. The annual price is twelve times the monthly price and is charged upfront.",
           "Subscriptions renew at the end of each period until canceled. Prices exclude applicable taxes.",
-          "Usage beyond your plan’s limits is not available until the next period or an upgrade.",
+          "Usage beyond your plan’s limits is not available until the next period, an upgrade or a purchase of extra prospects. Extra prospects don’t expire.",
+          "Prices are in US dollars. Card payments are processed by our payment provider, which may charge your card in Egyptian pounds at its own rate.",
+          "Refunds follow the [Refund Policy](/legal/refunds).",
         ] },
         { h2: "Acceptable use" },
         { p: "You will not use Yolias to:" },
@@ -182,7 +184,9 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "تختلف الخطط في حدود الاستخدام الشهرية، وتشمل كل خطة مستخدمين غير محدودين.",
           "يمكنك الدفع شهريًا أو سنويًا. السعر السنوي يساوي اثني عشر ضعف السعر الشهري ويُدفع مقدمًا.",
           "يتجدد الاشتراك في نهاية كل فترة حتى إلغائه. الأسعار لا تشمل الضرائب المطبقة.",
-          "لا يتوفر استخدام يتجاوز حدود خطتك حتى الفترة التالية أو الترقية.",
+          "لا يتوفر استخدام يتجاوز حدود خطتك حتى الفترة التالية أو الترقية أو شراء عملاء محتملين إضافيين. العملاء المحتملون الإضافيون لا تنتهي صلاحيتهم.",
+          "الأسعار بالدولار الأمريكي. تُعالج المدفوعات بالبطاقة عبر مزوّد الدفع، وقد يخصمها من بطاقتك بالجنيه المصري بسعره.",
+          "تخضع المبالغ المستردة لـ[سياسة الاسترداد](/legal/refunds).",
         ] },
         { h2: "الاستخدام المقبول" },
         { p: "لن تستخدم يولـياس من أجل:" },
@@ -208,6 +212,70 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { p: "سننشر الشروط المحدّثة هنا بتاريخ جديد ونبلغ المستخدمين المسجّلين بالتغييرات الجوهرية. واستمرارك في استخدام يولـياس بعد ذلك يعني قبولك لها." },
         { h2: "التواصل" },
         { p: "للأسئلة حول هذه الشروط: [صفحة التواصل](/contact)." },
+      ],
+    },
+  },
+  refunds: {
+    en: {
+      title: "Refund Policy",
+      summary: "When you can get your money back for a Yolias plan or extra prospects, and how.",
+      blocks: [
+        { h2: "Summary" },
+        { p: "You can cancel any time from Settings → Billing; your plan stays active until the end of the period you paid for. If something went wrong with a payment, or you paid and didn’t use what you bought, ask us within 7 days and we will refund it." },
+        { h2: "Subscriptions" },
+        { ul: [
+          "First payment or renewal: a full refund if you ask within 7 days of the payment and no prospects were delivered in that period.",
+          "If prospects were delivered in that period, the payment is not refundable, but you can cancel so the plan doesn’t renew.",
+          "Annual plans: within 7 days of the payment under the same condition; after that, the plan stays active until the end of the year.",
+          "Renewals are never charged automatically: a renewal is paid only when you pay its invoice.",
+        ] },
+        { h2: "Extra prospects" },
+        { ul: [
+          "A pack is refundable within 7 days of the purchase if none of its prospects were used.",
+          "Prospects that were used are not refundable. Extra prospects don’t expire, so there is no refund for unused time.",
+        ] },
+        { h2: "Always refunded" },
+        { ul: [
+          "Duplicate charges, or a charge for something you didn’t receive because of an error on our side.",
+          "A charge made after you canceled, for the period after the cancellation.",
+        ] },
+        { h2: "How to ask" },
+        { p: "Send a request through the [Contact page](/contact?topic=sales) from the workspace’s owner or admin email, with the invoice number. We answer within 3 business days." },
+        { h2: "How refunds are paid" },
+        { p: "Refunds go back to the card used for the payment through our payment provider, usually within 5–14 business days depending on your bank. Prices are in US dollars; if your card was charged in Egyptian pounds, the refund is the amount charged, and your bank’s exchange rate may make it differ slightly. A refunded payment’s invoice is voided, and the plan or prospects it paid for are removed." },
+        { h2: "Changes" },
+        { p: "We may update this policy; the date at the top shows the latest version. Payments made before a change follow the policy in force when they were made." },
+      ],
+    },
+    ar: {
+      title: "سياسة الاسترداد",
+      summary: "متى يمكنك استرداد ما دفعته مقابل خطة يولـياس أو العملاء المحتملين الإضافيين، وكيف.",
+      blocks: [
+        { h2: "باختصار" },
+        { p: "يمكنك الإلغاء في أي وقت من الإعدادات ← الفوترة، وتبقى خطتك فعّالة حتى نهاية الفترة المدفوعة. إذا حدثت مشكلة في الدفع، أو دفعت ولم تستخدم ما اشتريته، اطلب الاسترداد خلال 7 أيام وسنعيد المبلغ." },
+        { h2: "الاشتراكات" },
+        { ul: [
+          "الدفعة الأولى أو التجديد: استرداد كامل إذا طلبته خلال 7 أيام من الدفع ولم يُسلَّم أي عميل محتمل في تلك الفترة.",
+          "إذا سُلِّم عملاء محتملون في تلك الفترة فلا يُسترد المبلغ، ويمكنك الإلغاء حتى لا تتجدد الخطة.",
+          "الخطط السنوية: خلال 7 أيام من الدفع بالشرط نفسه، وبعد ذلك تبقى الخطة فعّالة حتى نهاية السنة.",
+          "لا يُخصم التجديد تلقائيًا أبدًا: يُدفع التجديد فقط عندما تدفع فاتورته.",
+        ] },
+        { h2: "العملاء المحتملون الإضافيون" },
+        { ul: [
+          "تُسترد الباقة خلال 7 أيام من الشراء إذا لم يُستخدم أي عميل محتمل منها.",
+          "العملاء المحتملون المستخدمون لا يُستردون. والعملاء الإضافيون لا تنتهي صلاحيتهم، فلا يوجد استرداد مقابل وقت غير مستخدم.",
+        ] },
+        { h2: "يُسترد دائمًا" },
+        { ul: [
+          "الخصم المكرر، أو الخصم مقابل شيء لم تحصل عليه بسبب خطأ من جانبنا.",
+          "أي خصم تم بعد إلغائك، عن الفترة التي تلي الإلغاء.",
+        ] },
+        { h2: "كيف تطلب الاسترداد" },
+        { p: "أرسل طلبك عبر [صفحة التواصل](/contact?topic=sales) من بريد مالك مساحة العمل أو المسؤول، مع رقم الفاتورة. نرد خلال 3 أيام عمل." },
+        { h2: "كيف يُعاد المبلغ" },
+        { p: "يُعاد المبلغ إلى البطاقة المستخدمة في الدفع عبر مزوّد الدفع، عادةً خلال 5–14 يوم عمل حسب البنك. الأسعار بالدولار الأمريكي؛ وإذا خُصم المبلغ من بطاقتك بالجنيه المصري، يُعاد المبلغ المخصوم نفسه، وقد يختلف قليلاً بسبب سعر صرف البنك. تُلغى فاتورة الدفعة المستردة، وتُزال الخطة أو العملاء المحتملون الذين دُفعت مقابلها." },
+        { h2: "التغييرات" },
+        { p: "قد نحدّث هذه السياسة، ويوضح التاريخ في أعلى الصفحة آخر إصدار. تخضع المدفوعات السابقة لأي تغيير للسياسة السارية وقت الدفع." },
       ],
     },
   },

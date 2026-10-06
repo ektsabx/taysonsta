@@ -42,6 +42,7 @@ export function SiteFooter() {
       links: [
         { href: "/legal/privacy", label: s.privacy },
         { href: "/legal/terms", label: s.terms },
+        { href: "/legal/refunds", label: s.refunds },
         { href: "/legal/cookies", label: s.cookies },
         { href: "/legal/security", label: s.security },
       ],

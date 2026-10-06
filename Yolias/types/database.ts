@@ -16,6 +16,8 @@ export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
 /** One USD price for every country (D-131). */
 export type Currency = "USD";
+/** Currency a provider actually charges in (prices are always USD). */
+export type ChargeCurrency = "USD" | "EGP";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
 export type CampaignStatus =
@@ -259,6 +261,9 @@ export type CompanyRow = {
   people_found: number;
   run_id: number | null;
   created_at: string;
+  logo_url: string | null;
+  linkedin_url: string | null;
+  founded_year: number | null;
 } & IntelligenceColumns;
 
 export type JobRow = {
@@ -309,6 +314,7 @@ export type ProspectRow = {
   source_ref: string | null;
   raw: Json | null;
   created_at: string;
+  photo_url: string | null;
 };
 
 export type SubscriptionEventRow = {
@@ -372,6 +378,10 @@ export type PaymentRow = {
   prospects: number | null;
   amount: number;
   currency: Currency;
+  /** What the provider charged (EGP for Paymob Egypt, D-142) and the USD→EGP rate used. */
+  charge_amount: number | null;
+  charge_currency: ChargeCurrency | null;
+  fx_rate: number | null;
   provider: string;
   mode: "test" | "live";
   status: PaymentStatus;

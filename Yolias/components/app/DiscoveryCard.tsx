@@ -1,13 +1,16 @@
 import { CheckCircle2, CircleAlert, Clock, Target, TrendingUp, UserRound } from "lucide-react";
 import { criteriaLine, parseIcp, sizeLabel } from "@/lib/discovery/icp";
 import { isActive } from "@/lib/discovery/states";
-import { countryLabel, formatNumber, initials, location } from "@/lib/format";
+import { countryLabel, formatNumber, location } from "@/lib/format";
 import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { StrategyView } from "@/services/strategies";
 import type { Json } from "@/types/database";
 import { YoliasMark } from "@/components/YoliasMark";
-import { RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { CompanyLogo, PersonAvatar } from "./Media";
+import { BuyMoreProspectsButton, RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
 import { ContactCell } from "./EntityTable";
 import { maskEmail, maskPhone } from "@/services/prospects";
@@ -76,7 +79,10 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
         ? { cls: "failed", icon: <CircleAlert />, text: d.stopped }
         : campaign.status === "awaiting_source"
           ? { cls: "pending", icon: <Clock />, text: d.awaitingSource }
-          : { cls: "", icon: <CheckCircle2 />, text: d.complete };
+          : campaign.status === "paused"
+            ? { cls: campaign.partial_reason === "quota" ? "failed" : "pending", icon: campaign.partial_reason === "quota" ? <CircleAlert /> : <Clock />, text: campaign.partial_reason === "quota" ? d.pausedQuota : d.paused }
+            : { cls: "", icon: <CheckCircle2 />, text: d.complete };
+  const outOfProspects = campaign.status === "paused" && campaign.partial_reason === "quota";
 
   const topScore = people ? topProspects[0]?.match_score : topResults[0]?.match_score;
   const unit = icp.target_unit === "companies" ? d.unitCompanies : d.unitProspects;
@@ -106,6 +112,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
               <div className="artifact-box-title">{campaign.search_type === "local_businesses" ? d.topPlaces : d.topCompanies}</div>
               {topResults.map((c) => (
                 <div className="contact-item-row" key={c.id}>
+                  <CompanyLogo name={c.name} logoUrl={c.logo_url} domain={c.domain} size={30} />
                   <div style={{ flex: 1 }}>
                     <div className="contact-name">{c.name}</div>
                     <div className="contact-role">{[c.kind === "local_business" ? c.category : c.industry, location(c.city, c.country, locale)].filter(Boolean).join(" · ")}</div>
@@ -118,7 +125,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
         ) : hasResults && topCompany ? (
           <div className="artifact-box">
             <div className="artifact-box-title">{d.matchedAccount}</div>
-            <div className="company-title">{topCompany.name}</div>
+            <div className="company-title-row"><CompanyLogo name={topCompany.name} logoUrl={topCompany.logo_url} domain={topCompany.domain} size={34} /><div className="company-title">{topCompany.name}</div></div>
             <div className="company-sub">
               {[topCompany.industry, location(topCompany.city, topCompany.country, locale)].filter(Boolean).join(" · ")}
             </div>
@@ -155,9 +162,9 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
         {hasResults && !people ? null : hasResults ? (
           <div className="artifact-box">
             <div className="artifact-box-title">{d.verifiedMakers}</div>
-            {topProspects.map((p, i) => (
+            {topProspects.map((p) => (
               <div className="contact-item-row" key={p.id}>
-                <div className={`contact-avatar${i > 0 ? " alt" : ""}`}>{initials(p.full_name)}</div>
+                <PersonAvatar name={p.full_name} photoUrl={p.photo_url} size={30} />
                 <div style={{ flex: 1 }}>
                   <div className="contact-name">{p.full_name}</div>
                   <div className="contact-role">{p.title}</div>
@@ -189,8 +196,14 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
               ? eventText(lastEvent.message, lastEvent.meta, t, locale, criteria)
               : fmt(d.created, { name: campaign.name })}
         </span>
+        {hasResults && <Link className="artifact-results-link" href={`/search/${strategy.id}/results`}>{t.results.viewAll} <ArrowRight className="flip-rtl" /></Link>}
         <SaveToProspectsButton campaignId={campaign.id} alreadySaved={hasResults && savedCount >= campaign.prospects_found} disabled={!hasResults} />
       </div>
+      {outOfProspects && (
+        <div className="artifact-buy-more">
+          <BuyMoreProspectsButton />
+        </div>
+      )}
     </div>
   );
 }

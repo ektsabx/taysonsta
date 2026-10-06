@@ -7,6 +7,7 @@ import { dictionaries, fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
+import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
 
 // Provider-agnostic billing (final spec phase 3). Flow:
@@ -18,6 +19,10 @@ import type { CheckoutRequest, PaymentOutcome } from "./types";
 //   3. Fulfilment: start/renew the plan or grant the prospect pack, with a
 //      paid invoice in the payment's currency.
 // Provider secrets come from Vault (public.payment_secret), service role only.
+// Money (D-142): prices, invoices and the checkout amount are USD; Paymob
+// (card integration) converts to the card's EGP charge by itself. When its
+// callback reports the converted currency, the payment records what was
+// actually charged (charge_amount / charge_currency / fx_rate).
 
 type Db = ReturnType<typeof createAdminClient>;
 
@@ -29,7 +34,7 @@ export interface PaymobRuntime extends PaymobConfig {
 export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRuntime | null> {
   const { data: row } = await db.from("payment_providers").select("*").eq("id", "paymob").maybeSingle();
   if (!row?.enabled) return null;
-  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: Partial<Record<Currency, number[]>> };
+  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: Partial<Record<"USD" | "EGP", number[]>> };
   const [{ data: secretKey }, { data: hmacSecret }] = await Promise.all([
     db.rpc("payment_secret", { p_provider: "paymob", p_name: "secret_key" }),
     db.rpc("payment_secret", { p_provider: "paymob", p_name: "hmac_secret" }),
@@ -41,7 +46,8 @@ export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRu
     publicKey: cfg.public_key,
     secretKey,
     hmacSecret,
-    integrations: cfg.integrations ?? {},
+    // The card integration ids (Admin hub → Paymob). The amount is sent in USD; Paymob converts it.
+    integrations: { USD: cfg.integrations?.USD?.length ? cfg.integrations.USD : (cfg.integrations?.EGP ?? []) },
   };
 }
 
@@ -150,9 +156,21 @@ export async function settlePayment(provider: "paymob", o: PaymentOutcome): Prom
   }
   if (!payment) return null;
   // Never trust a callback that doesn't match what we asked for.
-  if (o.amountMinor !== toMinor(Number(payment.amount)) || o.currency.toUpperCase() !== payment.currency) {
-    console.error("[payments] amount/currency mismatch", payment.id);
+  // Same currency: the amount must be exactly what we asked for. Paymob may
+  // report the card's converted currency (EGP) instead; that callback is
+  // still signed for our order, so the charged amount is recorded as is.
+  const currencyNow = o.currency.toUpperCase();
+  if (currencyNow === payment.currency) {
+    if (o.amountMinor !== toMinor(Number(payment.amount))) {
+      console.error("[payments] amount mismatch", payment.id);
+      return payment;
+    }
+  } else if (currencyNow !== "EGP" || !(o.amountMinor > 0)) {
+    console.error("[payments] currency mismatch", payment.id);
     return payment;
+  } else if (!payment.charge_amount) {
+    const charged = o.amountMinor / 100;
+    await db.from("payments").update({ charge_amount: charged, charge_currency: "EGP", fx_rate: Math.round((charged / Number(payment.amount)) * 10_000) / 10_000 }).eq("id", payment.id);
   }
 
   if (o.status === "refunded") {
@@ -214,6 +232,7 @@ export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, cha
   }).select("id, number, created_at").single();
   if (charge.paymentId && invoice) await db.from("payments").update({ invoice_id: invoice.id }).eq("id", charge.paymentId);
 
+  await resumeQuotaPaused(db, ws.id);
   const { data: usage } = await db.rpc("usage_summary", { p_ws: ws.id });
   const allowance = usage?.[0]?.allowance ?? 0;
   const label = (l: "en" | "ar") => fmt(dictionaries[l].buyMore.packName, { count: formatNumber(prospects, l) });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PersonAvatar } from "@/components/app/Media";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ChannelBadges } from "@/components/app/ChannelBadges";
@@ -35,9 +36,14 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
     <div className="page-view">
       <header className="view-header">
         <div className="view-title-group">
-          <Link href="/prospects" className="detail-back"><ArrowLeft className="flip-rtl" /> {d.back}</Link>
-          <h2>{p.full_name}</h2>
-          <p>{[p.title, p.company?.name].filter(Boolean).join(" · ")}</p>
+          <Link href={p.company ? `/prospects/company/${p.company.id}` : "/prospects"} className="detail-back"><ArrowLeft className="flip-rtl" /> {d.back}</Link>
+          <div className="person-hero">
+            <PersonAvatar name={p.full_name} photoUrl={p.photo_url} size={56} />
+            <div>
+              <h2>{p.full_name}</h2>
+              <p>{[p.title, p.company?.name].filter(Boolean).join(" · ")}</p>
+            </div>
+          </div>
         </div>
       </header>
       <div className="view-content-padding detail-layout">

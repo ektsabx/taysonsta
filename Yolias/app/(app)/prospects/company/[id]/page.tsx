@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { FindPeopleButton } from "@/components/app/FindPeopleButton";
+import { ArrowLeft, Building2, CalendarDays, ExternalLink, FileText, Globe, MapPin, Phone, Star, Tag, Users } from "lucide-react";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { PeopleStatus } from "@/components/app/EntityTable";
+import { CompanyLogo } from "@/components/app/Media";
+import { PeopleGrid } from "@/components/app/PeopleGrid";
+import { CollectButton, SaveCompanyButton } from "@/components/app/ResultActions";
+import { LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { formatDate, formatNumber, location } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { gridPerson, sizeBand } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { getCompany } from "@/services/prospects";
+import { myMailboxes } from "@/services/outreach";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/company/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -17,8 +22,12 @@ export async function generateMetadata({ params }: PageProps<"/prospects/company
   return { title: c ? `${c.company.name} — Yolias` : "Yolias" };
 }
 
-// A company or local business: its facts, decision makers (with "find
-// decision makers"), open roles, and the data intelligence behind it.
+const href = (u: string) => (u.startsWith("http") ? u : `https://${u}`);
+const bare = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+// A company or local business (D-147, owner's reference): logo, brief,
+// company information, its decision makers as cards (reveal, select, start
+// outreach), open roles and the data intelligence behind it.
 export default async function CompanyPage({ params }: PageProps<"/prospects/company/[id]">) {
   const session = await requireSession();
   const { id } = await params;
@@ -26,65 +35,98 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const data = await getCompany(id);
   if (!data || data.company.workspace_id !== session.workspace.id) notFound();
   const { company: c, people, jobs } = data;
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
-  const pr = t.prospects;
-  const d = pr.detail;
+  const [t, locale, boxes] = await Promise.all([getDictionary(), getLocale(), myMailboxes(session.userId)]);
+  const r = t.results;
+  const d = t.prospects.detail;
   const local = c.kind === "local_business";
   const n = (v: number) => formatNumber(v, locale);
-  const missing = (v: unknown) => (v == null || v === "" ? <span className="cell-sub">{d.notProvided}</span> : null);
+  const place = location(c.city, c.country, locale);
+  const size = c.employee_count != null ? fmt(r.employees, { count: sizeBand(c.employee_count) ?? n(c.employee_count) }) : null;
+  const site = c.website ?? (c.domain ? c.domain : null);
+  const meta = [local ? c.category : c.industry, place, size].filter(Boolean);
+  const back = c.campaign?.strategy_id ? `/search/${c.campaign.strategy_id}/results` : `/prospects?tab=${local ? "local" : "companies"}`;
+
+  const info: { icon: React.ReactNode; label: string; value: React.ReactNode; ltr?: boolean }[] = local
+    ? [
+      { icon: <Tag />, label: r.category, value: c.category },
+      { icon: <MapPin />, label: r.address, value: c.address ?? place },
+      { icon: <Phone />, label: r.phone, value: c.phone && <span dir="ltr">{c.phone}</span> },
+      { icon: <Globe />, label: r.website, ltr: true, value: site && <a className="entity-link" href={href(site)} target="_blank" rel="noreferrer">{bare(site)} <ExternalLink /></a> },
+      { icon: <Star />, label: r.rating, value: c.rating != null ? `${c.rating} ★${c.reviews_count != null ? ` (${n(c.reviews_count)})` : ""}` : null },
+      { icon: <MapPin />, label: t.prospects.csv.mapsUrl, value: c.maps_url && <a className="entity-link" href={c.maps_url} target="_blank" rel="noreferrer">{t.prospects.csv.mapsUrl} <ExternalLink /></a> },
+    ]
+    : [
+      { icon: <Building2 />, label: r.industry, value: c.industry },
+      { icon: <MapPin />, label: r.location, value: place },
+      { icon: <Globe />, label: r.website, ltr: true, value: site && <a className="entity-link" href={href(site)} target="_blank" rel="noreferrer">{bare(site)} <ExternalLink /></a> },
+      { icon: <LinkedInIcon />, label: r.linkedin, ltr: true, value: c.linkedin_url && <a className="entity-link" href={c.linkedin_url} target="_blank" rel="noreferrer">{bare(c.linkedin_url)} <ExternalLink /></a> },
+      { icon: <Users />, label: r.size, value: size },
+      { icon: <CalendarDays />, label: r.founded, value: c.founded_year },
+    ];
 
   return (
     <div className="page-view">
-      <header className="view-header">
-        <div className="view-title-group">
-          <Link href={`/prospects?tab=${local ? "local" : "companies"}`} className="detail-back"><ArrowLeft className="flip-rtl" /> {d.back}</Link>
-          <h2>{c.name}</h2>
-          <p>{[local ? c.category : c.industry, location(c.city, c.country, locale)].filter(Boolean).join(" · ")}</p>
-        </div>
-        <div className="view-actions">
-          <FindPeopleButton id={c.id} tab={local ? "local" : "companies"} disabled={c.people_status === "running" || c.people_status === "done"} />
-        </div>
-      </header>
-      <div className="view-content-padding detail-layout">
-        <section className="detail-card">
-          <h3>{d.overview}</h3>
-          <dl className="detail-grid">
-            {local ? (
-              <>
-                <dt>{pr.csv.category}</dt><dd>{c.category ?? missing(c.category)}</dd>
-                <dt>{pr.csv.address}</dt><dd>{c.address ?? missing(c.address)}</dd>
-                <dt>{pr.csv.phone}</dt><dd dir="ltr">{c.phone ?? missing(c.phone)}</dd>
-                <dt>{pr.csv.domain}</dt><dd dir="ltr">{c.website ? <a className="entity-link" href={c.website.startsWith("http") ? c.website : `https://${c.website}`} target="_blank" rel="noreferrer">{c.website}</a> : missing(c.website)}</dd>
-                <dt>{pr.csv.rating}</dt><dd>{c.rating != null ? `${c.rating} ★${c.reviews_count != null ? ` (${n(c.reviews_count)})` : ""}` : missing(c.rating)}</dd>
-                {c.maps_url && <><dt>{pr.csv.mapsUrl}</dt><dd><a className="entity-link" href={c.maps_url} target="_blank" rel="noreferrer">{pr.csv.mapsUrl}</a></dd></>}
-              </>
-            ) : (
-              <>
-                <dt>{pr.csv.domain}</dt><dd dir="ltr">{c.domain ? <a className="entity-link" href={`https://${c.domain}`} target="_blank" rel="noreferrer">{c.domain}</a> : missing(c.domain)}</dd>
-                <dt>{pr.csv.industry}</dt><dd>{c.industry ?? missing(c.industry)}</dd>
-                <dt>{pr.csv.employees}</dt><dd>{c.employee_count != null ? fmt(pr.employees, { count: n(c.employee_count) }) : missing(c.employee_count)}</dd>
-                <dt>{pr.colLocation}</dt><dd>{location(c.city, c.country, locale) || missing(null)}</dd>
-                {c.description && <><dt>{d.about}</dt><dd>{c.description}</dd></>}
-              </>
-            )}
-            {c.campaign && <><dt>{d.fromSearch}</dt><dd>{c.campaign.strategy_id ? <Link className="entity-link" href={`/search/${c.campaign.strategy_id}`}>{c.campaign.name}</Link> : c.campaign.name}</dd></>}
-          </dl>
+      <div className="view-content-padding result-page">
+        <Link href={back} className="detail-back"><ArrowLeft className="flip-rtl" /> {r.back}</Link>
+
+        <section className="result-card company-hero">
+          <CompanyLogo name={c.name} logoUrl={c.logo_url} domain={c.domain} size={72} />
+          <div className="company-hero-main">
+            <h1>{c.name}</h1>
+            {meta.length > 0 && <p>{meta.join(" · ")}</p>}
+          </div>
+          <div className="company-hero-actions">
+            {site && <a className="btn-secondary" href={href(site)} target="_blank" rel="noreferrer">{r.visitWebsite} <ExternalLink /></a>}
+            {c.linkedin_url && <a className="btn-primary" href={c.linkedin_url} target="_blank" rel="noreferrer"><LinkedInIcon /> {r.openLinkedIn}</a>}
+            <SaveCompanyButton id={c.id} saved={Boolean(c.saved_at)} />
+          </div>
         </section>
 
-        <section className="detail-card">
-          <h3>{d.people} <PeopleStatus status={c.people_status} found={c.people_found} requested={Boolean(c.people_requested_at)} /></h3>
-          {people.length === 0 ? <p className="cell-sub">{d.noPeople}</p> : (
-            <ul className="detail-list">
-              {people.map((p) => (
-                <li key={p.id}><Link className="entity-link" href={`/prospects/person/${p.id}`}><strong>{p.full_name}</strong></Link> <span className="cell-sub">{p.title ?? ""}{p.match_score != null ? ` · ${p.match_score}%` : ""}</span></li>
+        <div className="company-columns">
+          <section className="result-card">
+            <h2 className="result-card-title"><FileText /> {r.brief}</h2>
+            <p className="company-brief">{c.description || <span className="cell-sub">{r.noBrief}</span>}</p>
+            {c.campaign && <p className="cell-sub company-from">{d.fromSearch}: {c.campaign.strategy_id ? <Link className="entity-link" href={`/search/${c.campaign.strategy_id}`}>{c.campaign.name}</Link> : c.campaign.name}</p>}
+          </section>
+          <section className="result-card">
+            <h2 className="result-card-title"><FileText /> {r.info}</h2>
+            <dl className="info-tiles">
+              {info.map((x) => (
+                <div key={x.label} className="info-tile">
+                  <span className="info-tile-icon">{x.icon}</span>
+                  <div>
+                    <dt>{x.label}</dt>
+                    <dd className={x.ltr && x.value ? "ltr-value" : undefined} dir={x.ltr && x.value ? "ltr" : undefined}>{x.value ?? <span className="cell-sub">{d.notProvided}</span>}</dd>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </dl>
+          </section>
+        </div>
+
+        <section id="decision-makers" className="dm-section">
+          <div className="dm-head">
+            <div>
+              <h2>{r.decisionMakers} <span className="count-chip">{fmt(r.found, { count: n(people.length) })}</span></h2>
+              <p className="cell-sub">{fmt(r.dmLead, { company: c.name })} {c.people_status && <PeopleStatus status={c.people_status} found={c.people_found} requested={Boolean(c.people_requested_at)} />}</p>
+            </div>
+          </div>
+          {people.length > 0 ? (
+            <PeopleGrid people={people.map((p) => gridPerson(p, { id: c.id, name: c.name }, locale))} mailboxes={boxes.filter((b) => b.status === "connected").map((b) => ({ id: b.id, email: b.email }))} />
+          ) : (
+            <div className="result-card dm-empty">
+              <div>
+                <strong>{r.notCollected}</strong>
+                <p className="cell-sub">{c.people_status === "done" ? d.noPeople : r.notCollectedSub}</p>
+              </div>
+              {c.people_status !== "done" && <CollectButton id={c.id} running={c.people_status === "running" || c.people_status === "queued" || (Boolean(c.people_requested_at) && !c.people_status)} />}
+            </div>
           )}
         </section>
 
         {jobs.length > 0 && (
-          <section className="detail-card">
-            <h3>{d.jobs}</h3>
+          <section className="result-card">
+            <h2 className="result-card-title">{d.jobs}</h2>
             <ul className="detail-list">
               {jobs.map((j) => (
                 <li key={j.id}>{j.url ? <a className="entity-link" href={j.url} target="_blank" rel="noreferrer">{j.title}</a> : j.title} <span className="cell-sub">{[j.department, location(j.city, j.country, locale), j.posted_at ? formatDate(j.posted_at, locale, session.profile.timezone) : null].filter(Boolean).join(" · ")}</span></li>

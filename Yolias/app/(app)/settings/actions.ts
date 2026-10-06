@@ -56,10 +56,10 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
 }
 
 // Settings → Usage "refresh": recounts this month's prospects.
-export async function refreshUsage(): Promise<{ prospects: number; resetsAt: string | null; checkedAt: string }> {
+export async function refreshUsage(): Promise<{ prospects: number; allowance: number; extra: number; resetsAt: string | null; checkedAt: string }> {
   const session = await requireSession();
   const usage = await monthlyUsage(session.workspace.id);
-  return { prospects: usage.prospects, resetsAt: usage.resetsAt, checkedAt: new Date().toISOString() };
+  return { prospects: usage.prospects, allowance: usage.allowance, extra: usage.extra, resetsAt: usage.resetsAt, checkedAt: new Date().toISOString() };
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.

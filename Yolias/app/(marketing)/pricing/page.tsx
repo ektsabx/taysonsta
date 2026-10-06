@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n/server";
 import { currencyFor, getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
-import { requestCountry } from "@/lib/geo-server";
 import { getSession } from "@/lib/session";
 import { PricingView } from "./PricingView";
 

@@ -27,6 +27,7 @@ export async function monthlyUsage(workspaceId: string) {
       allowance: gift + (u?.granted ?? 0),
       reserved: u?.reserved ?? 0,
       available: u?.available ?? 0,
+      extra: u?.granted ?? 0,
       resetsAt: null as string | null,
     };
   }
@@ -35,6 +36,7 @@ export async function monthlyUsage(workspaceId: string) {
     allowance: u?.allowance ?? 0,
     reserved: u?.reserved ?? 0,
     available: u?.available ?? 0,
+    extra: u?.granted ?? 0,
     resetsAt: resets.toISOString() as string | null,
   };
 }

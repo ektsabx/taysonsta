@@ -26,6 +26,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const current = active ? session.workspace.plan : null;
   const picked = isPlan(plan) ? plan : await pendingPlan(session);
   const initial = picked ?? current ?? "growth";
+  const online = Boolean(await providerFor(currency));
   const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (active ? session.workspace.billing_period : "monthly");
 
   return (
@@ -44,7 +45,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
-        online={Boolean(await providerFor(currency))}
+        online={online}
         email={session.email}
         workspaceName={session.workspace.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}

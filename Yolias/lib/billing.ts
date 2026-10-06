@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPaidPlan, planPrice, priceFor } from "@/lib/plans";
+import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { requestCountry } from "@/lib/geo-server";
 import { planCanceled, planEnded, planStarted } from "@/lib/email/events";
@@ -103,6 +104,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
     }).select("id, number, created_at").single();
     invoice = data;
   }
+  if (paid) await resumeQuotaPaused(db, ws.id);
   // Receipt + welcome / activated / upgraded / downgraded (lib/email/events.ts).
   await planStarted(ws, plan, period, { amount, currency, test: mode === "test" }, periodEnd?.toISOString() ?? null, invoice, payer.userId);
   return invoice?.id ?? null;

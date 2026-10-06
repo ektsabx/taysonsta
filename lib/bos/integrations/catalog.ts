@@ -113,14 +113,14 @@ export const providers: ProviderDef[] = [
   },
   {
     key: "paymob", name: "Paymob", category: "payments", phase: 0, testable: false,
-    description: "بوابة الدفع لاشتراكات يولياس وباقات العملاء المحتملين الإضافية (بالدولار). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return.",
+    description: "بوابة الدفع لاشتراكات يولياس وباقات العملاء المحتملين الإضافية (السعر بالدولار، والخصم من البطاقة بالجنيه). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return.",
     fields: [
       { key: "mode", label: "الوضع", required: true, options: [{ value: "test", label: "تجريبي (مفاتيح Paymob التجريبية)" }, { value: "live", label: "حقيقي" }] },
       { key: "base_url", label: "رابط Paymob", required: true, placeholder: "https://accept.paymob.com", hint: "حسب منطقة الحساب: مصر https://accept.paymob.com" },
       { key: "public_key", label: "المفتاح العام (Public key)", required: true },
       { key: "secret_key", label: "المفتاح السري (Secret key)", secret: true, required: true },
       { key: "hmac_secret", label: "سر HMAC", secret: true, required: true },
-      { key: "integrations_usd", label: "أرقام التكامل للدولار (USD)", required: true, hint: "Integration IDs لطرق الدفع بالدولار، مفصولة بفواصل — اطلب من Paymob تفعيل الدفع بالدولار على الحساب." },
+      { key: "integrations_usd", label: "رقم تكامل البطاقة (Integration ID)", required: true, hint: "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. تُرسل الأسعار بالدولار ويحوّلها Paymob إلى الجنيه." },
     ],
     capabilities: ["payments.checkout"],
     docs: "https://developers.paymob.com",

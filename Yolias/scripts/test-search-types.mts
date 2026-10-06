@@ -109,7 +109,8 @@ try {
   assert.equal(await consumed(), 6);
   assert.equal((await db.from("jobs").select("id", { count: "exact", head: true }).eq("campaign_id", comps.id)).count, 0, "no job search unless hiring is asked");
 
-  // Decision-maker matching on a delivered company: people saved straight to Prospects, billed, idempotent.
+  // Decision-maker matching on a delivered company: people saved straight to Prospects, idempotent,
+  // and not billed again — the company was the one result (D-146).
   const target = cs![0];
   const before = await consumed();
   await findDecisionMakers(wsId!, [target.id]);
@@ -119,7 +120,7 @@ try {
   const { data: after } = await db.from("companies").select("people_status, people_found").eq("id", target.id).single();
   assert.equal(after!.people_status, "done");
   assert.equal(after!.people_found, fresh.length);
-  assert.equal(await consumed(), before + fresh.length);
+  assert.equal(await consumed(), before, "decision makers of a charged company are free");
 
   // Lookalikes: the seeds reach the provider; missing data is reported, never invented.
   const look = await run("company_lookalikes", { lookalike_seeds: ["tabby.ai", "Tamara"] });

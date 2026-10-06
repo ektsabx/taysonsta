@@ -424,7 +424,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       heading: full ? (ar ? "استخدمت العملاء المحتملين المجانيين" : "You’ve used your free prospects") : ar ? "اقتربت من نهاية العملاء المحتملين المجانيين" : "You’re close to the end of your free prospects",
       body: [
         full
-          ? ar ? "توقف يولـياس عن إضافة عملاء محتملين جدد. اختر خطة لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan to keep discovering."
+          ? ar ? "توقف يولـياس عن إضافة عملاء محتملين جدد. اختر خطة أو اشترِ عملاء محتملين إضافيين من الإعدادات ← الاستخدام لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan, or buy more prospects in Settings → Usage, to keep discovering."
           : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين. اختر خطة في أي وقت لتحصل على عملاء محتملين كل شهر.` : `You’ve used ${pct}% of your free prospects. Pick a plan any time to get prospects every month.`,
       ],
       extra: bar,
@@ -438,8 +438,8 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       body: [
         full
           ? ar
-            ? `توقف يولـياس عن إضافة عملاء محتملين جدد حتى ${dateText(u.resetsAt, locale)}. يمكنك الترقية للمتابعة الآن.`
-            : `Yolias has paused adding new prospects until ${dateText(u.resetsAt, locale)}. Upgrade to keep discovering now.`
+            ? `توقف يولـياس عن إضافة عملاء محتملين جدد حتى ${dateText(u.resetsAt, locale)}. يمكنك شراء عملاء محتملين إضافيين من الإعدادات ← الاستخدام أو الترقية للمتابعة الآن.`
+            : `Yolias has paused adding new prospects until ${dateText(u.resetsAt, locale)}. Buy more prospects in Settings → Usage, or upgrade, to keep discovering now.`
           : ar
             ? `استخدمت ${pct}% من العملاء المحتملين المتاحين في خطتك هذا الشهر. يتجدد الرصيد في ${dateText(u.resetsAt, locale)}.`
             : `You’ve used ${pct}% of the prospects included in your plan this month. It resets on ${dateText(u.resetsAt, locale)}.`,

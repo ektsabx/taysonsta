@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Currency } from "@/types/database";
+import type { ChargeCurrency } from "@/types/database";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
 
 // Paymob adapter, pure parts (unit-tested). Verified against Paymob's docs
@@ -13,8 +13,8 @@ export interface PaymobConfig {
   publicKey: string;
   secretKey: string;
   hmacSecret: string;
-  /** Integration ids (payment methods) per currency. */
-  integrations: Partial<Record<Currency, number[]>>;
+  /** Integration ids (payment methods) per currency — the card integration, sent USD amounts (D-142). */
+  integrations: Partial<Record<ChargeCurrency, number[]>>;
 }
 
 /** POST /v1/intention/ body. Amounts are in minor units (cents / piasters). */

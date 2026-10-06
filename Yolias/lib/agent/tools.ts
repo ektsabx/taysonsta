@@ -263,7 +263,7 @@ export const agentTools = [
   }),
   define({
     name: "findDecisionMakers",
-    description: "Find the decision makers at saved companies / local businesses (background job). Each person found uses one prospect. Confirm with the user first.",
+    description: "Find the decision makers at saved companies / local businesses (background job). They come with the company (already counted as a prospect), so they use no extra prospects.",
     permission: "prospect.find",
     input: z.object({ companyIds: z.array(uuid).min(1).max(50) }),
     async run(ctx, input) {

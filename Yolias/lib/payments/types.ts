@@ -1,4 +1,4 @@
-import type { Currency } from "@/types/database";
+import type { ChargeCurrency } from "@/types/database";
 
 // Provider-agnostic payment contracts (final spec phase 3). Product code
 // talks to lib/payments; each provider is an adapter behind it (Paymob now,
@@ -8,7 +8,8 @@ export interface CheckoutRequest {
   /** Our payments.id — the provider echoes it back as the merchant reference. */
   paymentId: string;
   amount: number;
-  currency: Currency;
+  /** The currency the provider charges in (EGP for Paymob Egypt). */
+  currency: ChargeCurrency;
   description: string;
   customer: { email: string; name: string | null; phone?: string | null; country?: string | null };
   /** Where the provider sends the customer back. */

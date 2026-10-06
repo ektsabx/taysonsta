@@ -468,16 +468,16 @@ function UsageTab({ data }: { data: ShellData }) {
   const { t, locale } = useI18n();
   const u = t.settings.usage;
   const { workspace } = data;
-  const [usage, setUsage] = useState(() => ({ ...data.usage, checkedAt: Date.now() }));
+  const [usage, setUsage] = useState(() => ({ ...data.usage, allowance: workspace.prospects, checkedAt: Date.now() }));
   const [refreshing, startRefresh] = useTransition();
   const [now, setNow] = useState(() => Date.now());
   const n = (v: number) => formatNumber(v, locale);
-  const pct = Math.min(100, workspace.prospects ? (usage.prospects / workspace.prospects) * 100 : 0);
+  const pct = Math.min(100, usage.allowance ? (usage.prospects / usage.allowance) * 100 : 0);
 
   const refresh = () =>
     startRefresh(async () => {
       const r = await refreshUsage();
-      setUsage({ prospects: r.prospects, resetsAt: r.resetsAt, checkedAt: Date.parse(r.checkedAt) });
+      setUsage({ prospects: r.prospects, allowance: r.allowance, extra: r.extra, resetsAt: r.resetsAt, checkedAt: Date.parse(r.checkedAt) });
       setNow(Date.parse(r.checkedAt));
     });
 
@@ -493,7 +493,7 @@ function UsageTab({ data }: { data: ShellData }) {
       <div className="usage-head">
         <div>
           <div className="setting-label">{u.title}</div>
-          <div className="setting-desc">{fmt(u.planLine, { plan: planName(workspace.plan, t) })}</div>
+          <div className="setting-desc">{fmt(workspace.plan === "free" ? u.planLineFree : u.planLine, { plan: planName(workspace.plan, t) })}</div>
         </div>
         {workspace.plan !== "growth" && (data.role === "owner" || data.role === "admin") && (
           <a className="btn-secondary" href="/checkout">{u.upgrade}</a>
@@ -503,16 +503,17 @@ function UsageTab({ data }: { data: ShellData }) {
       <div className="usage-meter">
         <div className="usage-meter-row">
           <span className="usage-meter-label">{u.prospects}</span>
-          <span className="usage-meter-value">{fmt(u.value, { used: n(usage.prospects), total: n(workspace.prospects) })}</span>
+          <span className="usage-meter-value">{fmt(u.value, { used: n(usage.prospects), total: n(usage.allowance) })}</span>
         </div>
-        <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
+        <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : pct >= 80 ? " amber" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
           <span>{u.prospectsDesc}</span>
           <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : u.oneTime}</span>
         </div>
+        {usage.extra > 0 && <div className="usage-extra">{fmt(t.buyMore.extraBalance, { count: n(usage.extra) })}</div>}
       </div>
 
-      <BuyMore data={data} />
+      <BuyMore data={data} pct={pct} onBought={refresh} />
 
       <div className="usage-updated">
         <span>{fmt(u.lastUpdated, { when: relativeTime(usage.checkedAt, now, locale, u.justNow) })}</span>
@@ -534,7 +535,7 @@ function relativeTime(ms: number, now: number, locale: string, justNow: string):
 
 /* ─────────────── Buy More Prospects ─────────────── */
 
-function BuyMore({ data }: { data: ShellData }) {
+function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBought: () => void }) {
   const { t, locale } = useI18n();
   const bm = t.buyMore;
   const toast = useToast();
@@ -553,20 +554,32 @@ function BuyMore({ data }: { data: ShellData }) {
     if (!r) return; // redirected to the payment page
     if (!r.ok) return setError(r.error);
     toast(`${fmt(bm.added, { count: formatNumber(r.added, locale) })} ${bm.testMode}`);
+    onBought();
     router.refresh();
   };
 
+  // Like a usage limit: a callout when it's close or reached, packs right under it.
+  const state = pct >= 100 ? "out" : pct >= 80 ? "near" : null;
   return (
     <section className="buy-more">
+      {state && (
+        <div className={`buy-more-callout ${state}`} role="status">
+          <strong>{state === "out" ? bm.outTitle : fmt(bm.nearTitle, { pct: Math.floor(pct) })}</strong>
+          <span>{state === "out" ? bm.outBody : bm.nearBody}</span>
+        </div>
+      )}
       <div className="setting-label">{bm.title}</div>
       <div className="setting-desc">{bm.lead}</div>
       {canManage ? (
         <ul className="buy-more-packs">
           {data.packs.map((p) => (
             <li key={p.id}>
-              <span>{fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}</span>
+              <span className="buy-more-name">
+                {fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}
+                <small><bdi dir="ltr">{`$${(p.price / p.prospects).toFixed(3).replace(/0$/, "")}`}</bdi> {bm.each}</small>
+              </span>
               <span dir="ltr" className="buy-more-price">{formatMoney(p.price, data.workspace.currency)}</span>
-              <button className="btn-secondary" type="button" disabled={busy !== null} onClick={() => buy(p.id)}>{busy === p.id ? bm.buying : bm.buy}</button>
+              <button className={state ? "btn-primary" : "btn-secondary"} type="button" disabled={busy !== null} onClick={() => buy(p.id)}>{busy === p.id ? bm.buying : bm.buy}</button>
             </li>
           ))}
         </ul>

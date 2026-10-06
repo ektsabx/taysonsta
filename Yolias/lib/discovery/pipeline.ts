@@ -106,8 +106,9 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   const reserved = Number(reservedRaw ?? 0);
   if (reserved === 0) {
     const { data: summary } = await db.rpc("usage_summary", { p_ws: campaign.workspace_id });
-    await db.from("campaigns").update({ status: left ? "paused" : "completed" }).eq("id", campaignId);
-    await log("plan", "This month’s prospects are used up. Upgrade or wait for the reset.", "warning", { key: "quotaReached", vars: { total: summary?.[0]?.allowance ?? 0 } });
+    // "quota": resumed by itself when prospects are bought or the plan is upgraded (resumeQuotaPaused).
+    await db.from("campaigns").update({ status: left ? "paused" : "completed", partial_reason: left ? "quota" : null }).eq("id", campaignId);
+    await log("plan", "Prospects are used up. Buy more prospects or upgrade; the campaign continues by itself.", "warning", { key: "quotaReached", vars: { total: summary?.[0]?.allowance ?? 0 } });
     await finishRun("skipped", { reason: "quota" });
     await usageAlerts(campaign.workspace_id);
     return;
@@ -189,6 +190,7 @@ function stageSetter(db: Db, campaignId: string) {
 
 /** Delivered ⇒ one prospect used. Never deliver beyond what was reserved. */
 async function consumeOne(db: Db, ctx: DiscoveryContext): Promise<boolean> {
+  if (ctx.free) return true;
   const { data: used } = await db.rpc("consume_usage", { p_ws: ctx.workspaceId, p_campaign: ctx.campaignId, p_n: 1 });
   return Number(used ?? 0) >= 1;
 }
@@ -202,6 +204,14 @@ function companyFields(c: CompanyCandidate) {
     category: c.category ?? null, address: c.address ?? null, phone: c.phone ?? null, website: c.website ?? null,
     rating: c.rating ?? null, reviews_count: c.reviewsCount ?? null,
   };
+}
+
+const httpsOnly = (u: string | null | undefined) => (u && /^https:\/\//i.test(u) ? u.slice(0, 1000) : null);
+const year = (y: number | null | undefined) => (y && Number.isInteger(y) && y >= 1800 && y <= 2100 ? y : null);
+
+/** Logo, LinkedIn page and founding year (kept outside the provenance fields). */
+function companyMedia(c: CompanyCandidate) {
+  return { logo_url: httpsOnly(c.logoUrl), linkedin_url: httpsOnly(c.linkedinUrl), founded_year: year(c.foundedYear) };
 }
 
 function intelligence(kind: EntityKind, row: Record<string, unknown>, source: string, confidence: number | null) {
@@ -223,6 +233,7 @@ async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, 
     hiring_roles: c.hiringRoles, signals: c.signals, source: sourceOf(c), source_ref: c.sourceRef,
     category: fields.category, address: fields.address, phone: fields.phone, website: fields.website,
     rating: fields.rating, reviews_count: fields.reviews_count, place_ref: c.placeRef ?? null, maps_url: c.mapsUrl ?? null,
+    ...companyMedia(c),
     intel_company_id: intelIds.get(c) ?? null,
     delivered_at: delivered ? new Date().toISOString() : null,
     run_id: ctx.runId ?? null,
@@ -295,7 +306,7 @@ async function deliverPerson(
     seniority: classifySeniority(p.title), email_status: emailStatus,
     match_score: match.score, match_reasons: match.reasons, source: sourceOf(p), source_ref: p.sourceRef,
     ...intelligence("person", fields, sourceOf(p), clampConfidence(p.confidence)),
-    raw: (p.raw ?? null) as never, person_id: personId, saved_at: savedAt, run_id: ctx.runId ?? null,
+    raw: (p.raw ?? null) as never, person_id: personId, saved_at: savedAt, run_id: ctx.runId ?? null, photo_url: httpsOnly(p.photoUrl),
   }).select("id").single();
   if (insertError || !inserted) return "skipped";
   if (!(await consumeOne(db, ctx))) {
@@ -333,15 +344,11 @@ export async function findDecisionMakers(workspaceId: string, companyIds: string
       await db.from("companies").update({ people_status: "failed" }).eq("id", row.id);
       continue;
     }
-    const { data: reservedRaw } = await db.rpc("reserve_usage", { p_ws: workspaceId, p_campaign: row.campaign_id, p_n: PEOPLE_PER_COMPANY });
-    const reserved = Number(reservedRaw ?? 0);
-    if (!reserved) {
-      await db.from("companies").update({ people_status: "no_quota" }).eq("id", row.id);
-      await usageAlerts(workspaceId);
-      continue;
-    }
+    // The company was charged when it was delivered (one result = one prospect,
+    // D-146): its decision makers come with it and aren't charged again.
+    const reserved = PEOPLE_PER_COMPANY;
     const log = (stage: PipelineStage, message: string, level?: EventLevel, text?: EventText) => logEvent(workspaceId, row.campaign_id, stage, message, level, text);
-    const ctx: DiscoveryContext = { workspaceId, campaignId: row.campaign_id, offering: null, limit: reserved, log };
+    const ctx: DiscoveryContext = { workspaceId, campaignId: row.campaign_id, offering: null, limit: reserved, log, free: true };
     const company = candidateFromRow(row);
     let found = 0;
     try {
@@ -356,11 +363,8 @@ export async function findDecisionMakers(workspaceId: string, companyIds: string
     } catch (e) {
       await db.from("companies").update({ people_status: "failed" }).eq("id", row.id);
       throw e;
-    } finally {
-      await db.rpc("release_usage", { p_ws: workspaceId, p_campaign: row.campaign_id, p_reason: "decision makers found" });
     }
   }
-  await usageAlerts(workspaceId);
 }
 
 function candidateFromRow(row: CompanyRow): CompanyCandidate {

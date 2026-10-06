@@ -2,7 +2,7 @@ import "server-only";
 import { monthlyUsage } from "@/services/workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPlanCatalog } from "@/lib/plan-catalog";
-import { isPaidPlan, monthWindow } from "@/lib/plans";
+import { isPaidPlan } from "@/lib/plans";
 import { dictionaries } from "@/lib/i18n/config";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import type { BillingPeriod, Currency, Plan, WorkspaceRow } from "@/types/database";

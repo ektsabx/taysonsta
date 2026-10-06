@@ -73,3 +73,14 @@ export async function stop(db: Db, id: string): Promise<ControlResult> {
   await db.from("campaigns").update({ status: reached ? "completed" : "partial", partial_reason: reached ? null : "stopped", stopped_at: now, completed_at: now, next_run_at: null }).eq("id", id);
   return { ok: true };
 }
+
+/**
+ * Campaigns paused because the prospects ran out continue by themselves once
+ * more are available (a pack bought, a bigger plan). Service role.
+ */
+export async function resumeQuotaPaused(db: Db, workspaceId: string): Promise<number> {
+  const { data } = await db.from("campaigns").update({ status: "queued", partial_reason: null })
+    .eq("workspace_id", workspaceId).eq("status", "paused").eq("partial_reason", "quota").select("id");
+  for (const c of data ?? []) await enqueue("campaign.discover", { campaignId: c.id });
+  return data?.length ?? 0;
+}
