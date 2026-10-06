@@ -163,8 +163,9 @@ export function CxComposer({ id, channel, customer, disabled }: { id: string; ch
           value={body}
           disabled={disabled || pending}
           onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }}
-          placeholder={internal ? t("اكتب ملاحظة داخلية...") : t("اكتب ردك إلى {name}... (Ctrl+Enter للإرسال)", { name: customer })}
+          // Enter sends, Shift+Enter adds a line (same as every chat in Yolias).
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
+          placeholder={internal ? t("اكتب ملاحظة داخلية...") : t("اكتب ردك إلى {name}... (Shift+Enter لسطر جديد)", { name: customer })}
           rows={3}
           dir="auto"
           aria-label={internal ? t("ملاحظة داخلية") : t("الرد")}

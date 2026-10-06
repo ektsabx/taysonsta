@@ -42,7 +42,7 @@ export function PricingView({ signedIn, plans, currency }: Props) {
       name={planName(plan, dict)}
       price={price(plan)}
       note={plan === "free" ? t.freeForever : period === "annual" ? t.perYear : t.perMonth}
-      usage={fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
+      usage={fmt(plan === "free" ? dict.plans.prospectsOnce : dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
       href={href(plan)}
       cta={plan === "free" ? t.startFree : t.tryYolias}
       recommended={recommended}
@@ -76,7 +76,6 @@ export function PricingView({ signedIn, plans, currency }: Props) {
             {card("growth", dict.plans.recommended)}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
-          <p className="prospect-note">{dict.plans.prospectDef}</p>
         </div>
       </section>
 
@@ -107,7 +106,7 @@ export function PricingView({ signedIn, plans, currency }: Props) {
                 ))}
                 <tr className="section-row"><td colSpan={4}>{t.usageCapacity}</td></tr>
                 <tr>
-                  <td>{t.usageProspects}<small className="cell-note">{dict.plans.prospectDef}</small></td>
+                  <td>{t.usageProspects}</td>
                   {tiers.map((p) => <td key={p}>{n(plans[p].prospects)}</td>)}
                 </tr>
                 <tr>

@@ -65,6 +65,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
     workspace: {
       name: workspace.name ?? "",
+      website: workspace.website,
+      offering: workspace.offering,
       plan: workspace.plan,
       price: planPrice(plan, workspace.billing_currency) ?? plan.priceUsd,
       currency: planPrice(plan, workspace.billing_currency) == null ? "USD" : workspace.billing_currency,

@@ -1614,3 +1614,19 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .usage-refresh:hover { background: var(--hover); color: var(--ink); }
 .usage-refresh svg { width: 14px; height: 14px; }
 .usage-refresh.spinning svg { animation: spin .8s linear infinite; }
+
+/* Settings → Organization Profile (D-139) */
+.setting-row-stack { flex-direction: column; align-items: stretch; gap: 10px; }
+.setting-row-stack textarea { width: 100%; resize: vertical; min-height: 96px; }
+.setting-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 14px; }
+
+/* Human-in-the-loop approval card under a Yolias AI reply (D-141) */
+.approval-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.approval-card:not(.decided) { border-color: var(--red); box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 10%, transparent); }
+.approval-head { display: flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 700; color: var(--ink); }
+.approval-head svg { width: 16px; height: 16px; color: var(--red); }
+.approval-card.decided .approval-head svg { color: var(--muted); }
+.approval-card.approved .approval-head svg { color: var(--green, #16a34a); }
+.approval-summary { font-size: .88rem; line-height: 1.55; color: var(--ink); }
+.approval-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.approval-actions svg { width: 14px; height: 14px; }

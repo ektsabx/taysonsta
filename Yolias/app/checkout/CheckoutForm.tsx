@@ -87,7 +87,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
                   {o.id === "growth" && <span className="plan-badge">{t.plans.recommended}</span>}
                   {o.id === currentPlan && (o.id === "free" || currentPeriod === period) && <span className="coming-soon">{c.currentPlan}</span>}
                 </span>
-                <span className="checkout-plan-sub">{planUsage(o.prospects, t, locale)}</span>
+                <span className="checkout-plan-sub">{planUsage(o.prospects, t, locale, o.id)}</span>
               </span>
               <span className="checkout-plan-price"><span dir="ltr">{formatMoney(price(o), currency)}</span><small>{per(o)}</small></span>
             </button>

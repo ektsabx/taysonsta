@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { getBosSession, can, pageRules } from "@/lib/bos/auth";
 import { pageAllowed } from "@/lib/bos/page-access";
 import { navigationFor } from "@/lib/bos/nav";
 import { db } from "@/lib/bos/db";
 import { getClockState, touchLastActivity } from "@/services/bos/attendance";
 import { AdminChrome } from "@/components/admin/AdminChrome";
+import { COLLAPSE_COOKIE } from "@/lib/admin/sidebar";
 import { getSystemTime } from "@/lib/bos/system-time";
 import { getUiPrefs } from "@/lib/bos/i18n/server";
 import { I18nProvider } from "@/components/bos/I18n";
@@ -37,6 +39,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   const bos = session.bos;
+  const collapsed = (await cookies()).get(COLLAPSE_COOKIE)?.value === "1";
   const [{ count: unread }, clockState, systemTime, rules] = await Promise.all([
     db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
     can(bos, "attendance.create") ? getClockState(bos) : Promise.resolve(null),
@@ -58,6 +61,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           .map((g) => ({ ...g, items: g.items?.filter((i) => pageAllowed(rules, i.href, bos.roleKeys, bos.isSuperAdmin)).map((i) => ({ ...i, children: i.children?.filter((c) => pageAllowed(rules, c.href, bos.roleKeys, bos.isSuperAdmin)) })) }))
           .filter((g) => (g.href ? pageAllowed(rules, g.href, bos.roleKeys, bos.isSuperAdmin) : (g.items?.length ?? 0) > 0))}
         unreadNotifications={unread ?? 0}
+        initialCollapsed={collapsed}
         systemTime={{ ms: systemTime.ms, timezone: systemTime.timezone }}
         clock={
           clockState

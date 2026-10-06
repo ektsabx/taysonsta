@@ -4,14 +4,14 @@ import type { WorkspaceRole } from "@/types/database";
 // permission → resource → action. The system prompt is never the boundary.
 
 export type AgentPermission =
-  | "read" | "campaign.create" | "campaign.manage" | "prospect.save" | "prospect.find" | "prospect.enrich" | "company.research" | "outreach.prepare" | "billing.read";
+  | "read" | "campaign.create" | "campaign.manage" | "prospect.save" | "prospect.find" | "prospect.enrich" | "company.research" | "outreach.prepare" | "billing.read" | "memory.write";
 
 /**
  * Who may do what. Mirrors the app: every member can search, run campaigns,
  * save and work with results; billing is for the owner and admins (like the
  * Billing settings). Change it here, never in the prompt.
  */
-const memberPermissions: AgentPermission[] = ["read", "campaign.create", "campaign.manage", "prospect.save", "prospect.find", "prospect.enrich", "company.research", "outreach.prepare"];
+const memberPermissions: AgentPermission[] = ["read", "campaign.create", "campaign.manage", "prospect.save", "prospect.find", "prospect.enrich", "company.research", "outreach.prepare", "memory.write"];
 export const rolePermissions: Record<WorkspaceRole, readonly AgentPermission[]> = {
   owner: [...memberPermissions, "billing.read"],
   admin: [...memberPermissions, "billing.read"],

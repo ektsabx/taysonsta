@@ -1,22 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { COLLAPSE_COOKIE } from "@/lib/admin/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import type { NavGroup } from "@/lib/bos/nav";
 import type { ClockProps } from "@/components/bos/ClockWidget";
 import type { BosLocale, BosTheme } from "@/lib/bos/i18n/core";
 
-const COLLAPSE_KEY = "admin-sidebar-collapsed";
-
-function readStoredCollapsed(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(COLLAPSE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
 
 interface AdminChromeProps {
   name: string;
@@ -27,21 +18,18 @@ interface AdminChromeProps {
   unreadNotifications: number;
   clock: ClockProps | null;
   systemTime: { ms: number; timezone: string };
+  initialCollapsed: boolean;
   children: ReactNode;
 }
 
-export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNotifications, clock, systemTime, children }: AdminChromeProps) {
-  const [collapsed, setCollapsed] = useState(readStoredCollapsed);
+export function AdminChrome({ name, ui, email, roleNames, navigation, unreadNotifications, clock, systemTime, initialCollapsed, children }: AdminChromeProps) {
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function toggleCollapsed() {
     setCollapsed((prev) => {
       const next = !prev;
-      try {
-        window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      } catch {
-        // ignore storage access issues
-      }
+      document.cookie = `${COLLAPSE_COOKIE}=${next ? "1" : "0"}; path=/admin; max-age=31536000; samesite=lax`;
       return next;
     });
   }

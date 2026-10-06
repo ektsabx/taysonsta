@@ -16,7 +16,7 @@ export interface PlanTerms {
 export const defaultPlans: Record<Plan, PlanTerms> = {
   free: { priceUsd: 0, prospects: 50 },
   pro: { priceUsd: 20, prospects: 1000 },
-  growth: { priceUsd: 50, prospects: 3000 },
+  growth: { priceUsd: 100, prospects: 3000 },
 };
 
 /** Monthly price of a plan (one USD price for every country, D-131). */
@@ -40,8 +40,9 @@ export function planLabel(plan: Plan, t: Dictionary): string {
 }
 
 /** "1,000 prospects / month" */
-export function planUsage(prospects: number, t: Dictionary, locale: Locale): string {
-  return fmt(t.plans.prospectsPerMonth, { count: formatNumber(prospects, locale) });
+export function planUsage(prospects: number, t: Dictionary, locale: Locale, plan?: Plan): string {
+  // Free: a one-time gift at signup, not monthly (D-138).
+  return fmt(plan === "free" ? t.plans.prospectsOnce : t.plans.prospectsPerMonth, { count: formatNumber(prospects, locale) });
 }
 
 /** A workspace has chosen a plan (paid, test, or — if offered later — free). */

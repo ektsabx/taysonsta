@@ -13,6 +13,8 @@ export type ConversationTurn = Pick<AgentMessageRow, "id" | "role" | "content" |
   rating?: -1 | 1 | null;
   /** Campaigns Yolias AI started in this turn (shown as cards in the thread). */
   campaigns?: string[];
+  /** Approval requests created in this turn (Approve / Reject cards, D-141). */
+  approvals?: string[];
 };
 
 /** Turns of a conversation, oldest first, with the reader's feedback. */
@@ -20,9 +22,11 @@ export async function conversationTurns(conversationId: string, db?: SupabaseCli
   const supabase = db ?? (await createClient());
   const { data } = await supabase.from("agent_messages").select("id, role, content, created_at, meta")
     .eq("conversation_id", conversationId).order("id", { ascending: false }).limit(limit);
+  const strs = (v: unknown) => (Array.isArray(v) ? v.filter((c): c is string => typeof c === "string") : []);
   const turns = (data ?? []).reverse().map(({ meta, ...t }) => {
-    const campaigns = (meta as { campaigns?: unknown } | null)?.campaigns;
-    return Array.isArray(campaigns) && campaigns.length ? { ...t, campaigns: campaigns.filter((c): c is string => typeof c === "string") } : t;
+    const m = (meta ?? {}) as { campaigns?: unknown; approvals?: unknown };
+    const campaigns = strs(m.campaigns), approvals = strs(m.approvals);
+    return { ...t, ...(campaigns.length ? { campaigns } : {}), ...(approvals.length ? { approvals } : {}) };
   });
   const ids = turns.filter((t) => t.role === "assistant").map((t) => t.id);
   if (!ids.length) return turns;
@@ -57,4 +61,13 @@ export async function conversationFor(strategyId: string): Promise<ConversationT
   const db = await createClient();
   const { data: c } = await db.from("conversations").select("id").eq("scope", "campaign").eq("strategy_id", strategyId).maybeSingle();
   return c ? conversationTurns(c.id, db) : [];
+}
+
+/** Approval requests (D-141) for the cards under replies; a pending one past its time shows as expired. */
+export async function approvalCards(ids: string[]) {
+  if (!ids.length) return [];
+  const db = await createClient();
+  const { data } = await db.from("agent_pending_actions").select("id, summary, status, expires_at").in("id", ids);
+  const now = Date.now();
+  return (data ?? []).map((r) => ({ id: r.id, summary: r.summary, status: r.status === "pending" && Date.parse(r.expires_at) < now ? ("expired" as const) : r.status }));
 }

@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { AgentThread } from "@/components/app/AgentThread";
 import { DiscoveryCard } from "@/components/app/DiscoveryCard";
 import { YoliasMark } from "@/components/YoliasMark";
+import { ApprovalCard } from "@/components/app/ApprovalCard";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { planLabel } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
 import { getStrategyView } from "@/services/strategies";
-import { conversationFor } from "@/services/conversations";
+import { approvalCards, conversationFor } from "@/services/conversations";
 
 export async function generateMetadata({ params }: PageProps<"/search/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -23,11 +24,20 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
   if (!view || view.strategy.workspace_id !== session.workspace.id) notFound();
   const [turns, t] = await Promise.all([conversationFor(view.strategy.id), getDictionary()]);
   // Campaigns Yolias AI started in this conversation show as cards under the reply that started them.
+  // Approval requests (D-141) show as Approve / Reject cards under the reply.
   const cards: Record<number, React.ReactNode> = {};
+  const approvalIds = turns.flatMap((x) => x.approvals ?? []);
+  const approvals = await approvalCards(approvalIds);
   for (const turn of turns) {
-    if (!turn.campaigns?.length) continue;
-    const views = (await Promise.all(turn.campaigns.map((c) => getStrategyView(view.strategy.id, c)))).filter((v) => v?.campaign);
-    if (views.length) cards[turn.id] = <div className="thread-cards">{views.map((v) => <DiscoveryCard key={v!.campaign!.id} view={v!} />)}</div>;
+    if (!turn.campaigns?.length && !turn.approvals?.length) continue;
+    const views = (await Promise.all((turn.campaigns ?? []).map((c) => getStrategyView(view.strategy.id, c)))).filter((v) => v?.campaign);
+    const reqs = approvals.filter((r) => turn.approvals?.includes(r.id));
+    cards[turn.id] = (
+      <div className="thread-cards">
+        {reqs.map((r) => <ApprovalCard key={r.id} id={r.id} summary={r.summary} status={r.status} />)}
+        {views.map((v) => <DiscoveryCard key={v!.campaign!.id} view={v!} />)}
+      </div>
+    );
   }
 
   return (

@@ -1,5 +1,6 @@
 import "server-only";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
+import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { findDecisionMakers, runDiscovery } from "@/lib/discovery/pipeline";
 import { draftOutreach, sendOutreach } from "@/lib/outreach";
@@ -114,6 +115,7 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
   await scheduleCampaigns().catch((e) => console.error("[jobs] campaign scheduling failed", e));
   await heartbeat().catch(() => {});
+  await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

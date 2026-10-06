@@ -155,7 +155,7 @@ export type CampaignRunRow = {
   delivered: number;
 };
 
-export type AgentToolOutcome = "ok" | "denied" | "invalid" | "not_found" | "not_connected" | "error";
+export type AgentToolOutcome = "ok" | "denied" | "invalid" | "not_found" | "not_connected" | "error" | "awaiting_approval" | "disabled";
 export type AgentToolCallRow = {
   id: number; workspace_id: string; user_id: string | null; conversation_id: string | null; tool: string; input: Json;
   ok: boolean; outcome: AgentToolOutcome; error: string | null; latency_ms: number | null; created_at: string;
@@ -205,6 +205,12 @@ export type AnnouncementRow = {
 };
 export type WorkerStateRow = { key: string; value: Json; updated_at: string };
 export type SiteSettingRow = { key: string; value: Json; updated_at: string };
+export type AgentPolicyRow = { id: string; version: number; status: "draft" | "published" | "archived"; config: Json; note: string | null; created_by: string | null; created_at: string; published_by: string | null; published_at: string | null };
+export type AgentAnswerCacheRow = { key: string; policy_version: number; language: "ar" | "en"; question: string; answer: string; hits: number; created_at: string; last_hit_at: string | null; expires_at: string };
+export type AgentMemoryRow = { id: string; workspace_id: string; content: string; created_by: string | null; created_at: string };
+export type AgentPendingActionRow = { id: string; workspace_id: string; conversation_id: string | null; requested_by: string | null; tool: string; input: Json; summary: string; status: "pending" | "approved" | "rejected" | "expired" | "failed"; result: Json | null; decided_by: string | null; decided_at: string | null; created_at: string; expires_at: string };
+export type AgentEvalCaseRow = { id: string; name: string; prompt: string; must_include: string[]; must_not_include: string[]; active: boolean; created_by: string | null; created_at: string };
+export type AgentEvalRunRow = { id: string; policy_version: number; status: "queued" | "running" | "done" | "failed"; passed: number; total: number; cost_usd: number; results: Json; error: string | null; created_by: string | null; created_at: string; finished_at: string | null };
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
@@ -561,6 +567,12 @@ export interface Database {
       announcements: Table<AnnouncementRow, "type" | "title_en" | "body_en" | "title_ar" | "body_ar">;
       worker_state: Table<WorkerStateRow, "key">;
       site_settings: Table<SiteSettingRow, "key">;
+      agent_policies: Table<AgentPolicyRow, "version" | "status">;
+      agent_answer_cache: Table<AgentAnswerCacheRow, "key" | "policy_version" | "language" | "question" | "answer" | "expires_at">;
+      agent_memories: Table<AgentMemoryRow, "workspace_id" | "content">;
+      agent_pending_actions: Table<AgentPendingActionRow, "workspace_id" | "tool" | "input" | "summary">;
+      agent_eval_cases: Table<AgentEvalCaseRow, "name" | "prompt">;
+      agent_eval_runs: Table<AgentEvalRunRow, "policy_version">;
     };
     Views: { [_ in never]: never };
     Functions: {

@@ -433,10 +433,10 @@ export const docs: DocPage[] = [
         summary: "Monthly limits per plan and how they are counted.",
         blocks: [
           { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
-            ["Free", "$0", "50"], ["Pro", "$20", "1,000"], ["Growth", "$50", "3,000"],
+            ["Free", "$0", "50 (once at signup)"], ["Pro", "$20", "1,000"], ["Growth", "$100", "3,000"],
           ] } },
           { ul: [
-            "Plans count prospects only. One prospect is one target decision maker delivered with a verified email and company data, plus a phone number when available.",
+            "Plans count prospects only. Free gives its prospects once, at signup; Pro and Growth renew every month.",
             "Companies, searches and AI work are not counted.",
             "When the month’s prospects are used up, discovery pauses until the reset or an upgrade.",
             "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
@@ -450,10 +450,10 @@ export const docs: DocPage[] = [
         summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
         blocks: [
           { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
-            ["المجانية", "$0", "50"], ["برو", "$20", "1,000"], ["النمو", "$50", "3,000"],
+            ["المجانية", "$0", "50 (مرة واحدة عند التسجيل)"], ["برو", "$20", "1,000"], ["النمو", "$100", "3,000"],
           ] } },
           { ul: [
-            "تُحسب الخطط بالعملاء المحتملين فقط. العميل المحتمل هو صانع قرار مستهدف واحد يُسلَّم مع بريد موثّق وبيانات الشركة، ورقم هاتف عند توفره.",
+            "تُحسب الخطط بالعملاء المحتملين فقط. الخطة المجانية تمنح العملاء المحتملين مرة واحدة عند التسجيل، وبرو والنمو تتجدد كل شهر.",
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
             "عند استخدام كل العملاء المحتملين للشهر، يتوقف الاكتشاف حتى التجديد أو الترقية.",
             "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",

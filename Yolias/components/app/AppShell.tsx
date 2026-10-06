@@ -13,6 +13,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { planLabel } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
 import { SettingsModal } from "./SettingsModal";
+import { SupportLink } from "@/components/SupportLink";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
@@ -152,12 +153,11 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
                     <span>{t.nav.helpCenter}</span>
                     <ArrowUpRight className="menu-chevron" />
                   </Link>
-                  {/* Opens the support chatbot once it is connected. */}
-                  <button className="menu-item" role="menuitem" type="button" disabled>
+                  {/* Opens the support chat widget (D-140). */}
+                  <SupportLink className="menu-item" role="menuitem" onOpen={() => setMenuOpen(false)}>
                     <MessageCircle />
                     <span>{t.nav.getSupport}</span>
-                    <span className="coming-soon">{t.common.comingSoon}</span>
-                  </button>
+                  </SupportLink>
                 </div>
               )}
             </div>

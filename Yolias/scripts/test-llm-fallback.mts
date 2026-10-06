@@ -107,7 +107,10 @@ try {
     }
   }
   assert.ok(session, "an active workspace exists");
-  const agentCtx = { session, db: admin, conversationId: null } as never;
+  // Fallback is tested here, not approvals (D-141): createCampaign runs at once.
+  const { normalizePolicy } = await import("@/lib/agent/policy-schema.ts");
+  const policy = normalizePolicy({ tools: { createCampaign: { enabled: true, approval: false, roles: ["owner", "admin", "member"] } } });
+  const agentCtx = { session, db: admin, conversationId: null, policy } as never;
   let step = 0;
   openaiHandler = (body) => {
     step++;

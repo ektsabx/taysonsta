@@ -13,6 +13,7 @@ import { hasActivePlan } from "@/lib/plans";
 import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
 import type { AgentToolOutcome, Database, Json } from "@/types/database";
+import { AGENT_TOOLS, type AgentPolicy } from "@/lib/agent/policy-schema";
 
 // Yolias AI agent tools (docs/07 "Tools", final spec phase 7: tools for every
 // area). Each one is typed (zod), authorized in code, scoped to the caller's
@@ -31,6 +32,14 @@ export interface AgentContext {
   strategyId?: string | null;
   /** Campaigns started during this turn (shown as cards in the thread). */
   launched?: string[];
+  /** The published agent policy (D-141): tools on/off, roles, approvals, research limits, memory. */
+  policy?: AgentPolicy;
+  /** Set when the user approved a pending action: run it now instead of asking again. */
+  approved?: boolean;
+  /** Approval requests created during this turn (shown under the reply). */
+  pending?: string[];
+  /** Per-turn counters, shared by reference across tool calls (research limit). */
+  counters?: { research: number };
   /** Adds what a provider or LLM call inside the tool cost (null = unpriced). Set by executeTool. */
   spend?: (usd: number | null) => void;
 }
@@ -277,14 +286,22 @@ export const agentTools = [
       const { data: c } = await ctx.db.from("companies").select("id, workspace_id, campaign_id, name, domain, website, city, country").eq("id", input.companyId).maybeSingle();
       if (!c || c.workspace_id !== ws) return fail("not_found", "No such company in this workspace.");
       if (!(await hasProviderFor("web.search"))) return fail("not_connected", "No web research provider is connected.");
+      // Research strategy from the policy (D-141): searches per turn, depth, source governance.
+      const rp = ctx.policy?.research;
+      if (rp) {
+        const n = ctx.counters ? ++ctx.counters.research : 1;
+        if (!rp.enabled || n > rp.maxSearchesPerTurn) return fail("denied", "The research limit for this message is reached.");
+      }
+      const depth = { quick: { sources: 3, read: 0 }, standard: { sources: 6, read: 3 }, deep: { sources: 10, read: 5 } }[rp?.depth ?? "standard"];
       const scope = { workspaceId: ws, campaignId: c.campaign_id };
-      const found = await runCapability("web.search", { query: [c.name, c.domain ?? c.website, c.city].filter(Boolean).join(" "), limit: 6, country: c.country }, scope);
+      const found = await runCapability("web.search", { query: [c.name, c.domain ?? c.website, c.city].filter(Boolean).join(" "), limit: depth.sources + 4, country: c.country }, scope);
       if (found.ok) ctx.spend?.(found.costUsd);
-      if (!found.ok || !found.data.length) return ok({ summary: null, sources: [], note: "No public sources found." });
-      const sources = found.data.slice(0, 6).map((s) => ({ ...s, text: null as string | null }));
+      const governed = found.ok ? governSources(found.data, rp) : [];
+      if (!governed.length) return ok({ summary: null, sources: [], note: "No public sources found." });
+      const sources = governed.slice(0, depth.sources).map((s) => ({ ...s, text: null as string | null }));
       // Read the top pages when a provider can extract them (skipped otherwise).
-      if (await hasProviderFor("web.extract")) {
-        for (const s of sources.slice(0, 3)) {
+      if (depth.read && (await hasProviderFor("web.extract"))) {
+        for (const s of sources.slice(0, depth.read)) {
           const page = await runCapability("web.extract", { url: s.url }, scope);
           if (page.ok) {
             ctx.spend?.(page.costUsd);
@@ -417,6 +434,38 @@ export const agentTools = [
     },
   }),
 
+  // ───────────── Long-term memory (D-141) ─────────────
+  define({
+    name: "rememberFact",
+    description: "Save a lasting fact about this workspace's business or preferences (what they sell, who they target, how they like results) so it's used in every future conversation of the workspace. Never contact details or anything sensitive.",
+    permission: "memory.write",
+    input: z.object({ fact: z.string().trim().min(3).max(500) }),
+    async run(ctx, input) {
+      const ws = ctx.session.workspace.id;
+      const max = ctx.policy?.memory.maxItems ?? 30;
+      if (ctx.policy && (!ctx.policy.memory.enabled || max === 0)) return fail("denied", "Memory is switched off.");
+      const { data, error } = await ctx.db.from("agent_memories").insert({ workspace_id: ws, content: input.fact, created_by: ctx.session.userId }).select("id").single();
+      if (error || !data) throw error ?? new Error("memory insert failed");
+      // Keep only the newest facts.
+      const { data: all } = await ctx.db.from("agent_memories").select("id").eq("workspace_id", ws).order("created_at", { ascending: false });
+      const extra = (all ?? []).slice(max).map((m) => m.id);
+      if (extra.length) await ctx.db.from("agent_memories").delete().in("id", extra);
+      return ok({ saved: true, id: data.id });
+    },
+  }),
+  define({
+    name: "forgetFact",
+    description: "Delete a saved fact about this workspace (by its id from the saved facts list).",
+    permission: "memory.write",
+    input: z.object({ memoryId: uuid }),
+    async run(ctx, input) {
+      const { data } = await ctx.db.from("agent_memories").select("id, workspace_id").eq("id", input.memoryId).maybeSingle();
+      if (!data || data.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such saved fact.");
+      await ctx.db.from("agent_memories").delete().eq("id", data.id);
+      return ok({ forgotten: true });
+    },
+  }),
+
   // ───────────── Usage, analytics, billing ─────────────
   define({
     name: "getAnalytics",
@@ -470,12 +519,41 @@ async function logCall(ctx: AgentContext, tool: string, input: unknown, outcome:
 }
 
 /** Validates, authorizes, runs and audits one tool call (with what it cost). Never throws. */
+/** Source governance (D-141): blocked domains out, allowed-only when a list is set, preferred first. */
+function governSources<T extends { url: string }>(list: T[], rp: AgentPolicy["research"] | undefined): T[] {
+  if (!rp) return list;
+  const host = (u: string) => { try { return new URL(u).hostname.toLowerCase().replace(/^www\./, ""); } catch { return ""; } };
+  const match = (h: string, d: string) => (d.startsWith("*.") ? h.endsWith(d.slice(1)) : h === d.replace(/^www\./, "") || h.endsWith(`.${d.replace(/^www\./, "")}`));
+  const any = (h: string, ds: string[]) => ds.some((d) => match(h, d));
+  const kept = list.filter((s) => {
+    const h = host(s.url);
+    if (!h || any(h, rp.blockedDomains)) return false;
+    return !rp.allowedDomains.length || any(h, rp.allowedDomains);
+  });
+  return [...kept.filter((s) => any(host(s.url), rp.preferredDomains)), ...kept.filter((s) => !any(host(s.url), rp.preferredDomains))];
+}
+
+/** One line for the approval card: what will happen. */
+function approvalSummary(name: string, input: Record<string, unknown>, lang: "ar" | "en"): string {
+  const label = AGENT_TOOLS.find((t) => t.name === name)?.label[lang] ?? name;
+  const detail = [input.request, input.action, input.instruction, input.want].find((v) => typeof v === "string" && v) as string | undefined;
+  const count = Array.isArray(input.companyIds) ? input.companyIds.length : null;
+  return [label, detail ? `«${detail.slice(0, 200)}»` : null, count ? (lang === "ar" ? `${count} شركة` : `${count} companies`) : null].filter(Boolean).join(" — ");
+}
+
 export async function executeTool(ctx: AgentContext, name: string, rawInput: unknown): Promise<ToolResult> {
   const started = Date.now();
   const tool = agentTools.find((t) => t.name === name) as AgentTool | undefined;
   if (!tool) {
     await logCall(ctx, name, rawInput, "invalid", "unknown tool", started);
     return fail("invalid", "Unknown tool.");
+  }
+  // The owner's policy can switch a tool off or limit it to some roles —
+  // never grant more than authz.ts below (D-141).
+  const tp = ctx.policy?.tools[name];
+  if (tp && (!tp.enabled || !tp.roles.includes(ctx.session.role))) {
+    await logCall(ctx, name, rawInput, "disabled", tp.enabled ? "role not allowed by policy" : "disabled by policy", started);
+    return fail("disabled", "That isn't available here.");
   }
   const auth = authorize(actorOf(ctx.session), tool.permission);
   if (!auth.ok) {
@@ -487,6 +565,18 @@ export async function executeTool(ctx: AgentContext, name: string, rawInput: unk
     const msg = parsed.error.issues.map((i) => `${i.path.join(".") || "input"}: ${i.message}`).join("; ");
     await logCall(ctx, name, rawInput, "invalid", msg, started);
     return fail("invalid", msg);
+  }
+  // Human-in-the-loop: the action waits for the user's Approve in the chat.
+  if (tp?.approval && !ctx.approved) {
+    const lang = ctx.session.profile.language === "ar" ? "ar" : "en";
+    const { data: pa, error } = await createAdminClient().from("agent_pending_actions").insert({
+      workspace_id: ctx.session.workspace.id, conversation_id: ctx.conversationId, requested_by: ctx.session.userId,
+      tool: name, input: parsed.data as Json, summary: approvalSummary(name, parsed.data as Record<string, unknown>, lang),
+    }).select("id").single();
+    if (error || !pa) throw error ?? new Error("approval request failed");
+    ctx.pending?.push(pa.id);
+    await logCall(ctx, name, parsed.data, "awaiting_approval", null, started);
+    return fail("awaiting_approval", "Waiting for the user's approval. An Approve / Reject card is shown under your reply; tell the user in one line what will happen.");
   }
   const meter = { usd: 0, priced: 0, unpriced: 0 };
   const metered: AgentContext = { ...ctx, spend: (usd) => (usd == null ? meter.unpriced++ : ((meter.usd += usd), meter.priced++)) };

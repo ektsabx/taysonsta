@@ -37,7 +37,7 @@ export const ar: Dictionary = {
     labelPro: "برو",
     labelGrowth: "نمو",
     prospectsPerMonth: "{count} عميل محتمل شهريًا",
-    prospectDef: "عميل محتمل واحد = صانع قرار مستهدف واحد يتم اكتشافه مع بريد موثّق وبيانات الشركة، ورقم هاتف عند توفره.",
+    prospectsOnce: "{count} عميل محتمل مرة واحدة عند التسجيل",
     recommended: "موصى بها",
     monthly: "شهري",
     annual: "سنوي",
@@ -250,6 +250,12 @@ export const ar: Dictionary = {
     savedToProspects: "تم الحفظ في العملاء المحتملين",
   },
   agent: {
+    approval: {
+      title: "بانتظار موافقتك", approve: "موافقة", reject: "رفض",
+      approved: "تمت الموافقة", rejected: "مرفوض", expired: "انتهت صلاحيته", failed: "لم ينجح",
+      doneNote: "تم: {action}.", failedNote: "تعذّر التنفيذ: {action} — {reason}", rejectedNote: "تم الإلغاء: {action}.",
+      notFound: "هذا الطلب لم يعد موجودًا.", notYours: "يقرر صاحب الطلب أو المالك أو المسؤول فقط.", decided: "تم اتخاذ قرار في هذا الطلب بالفعل.", expiredError: "انتهت صلاحية هذا الطلب. اطلبه من Yolias AI مرة أخرى.",
+    },
     title: "محادثة Yolias AI",
     placeholder: "اسأل Yolias AI عن هذا البحث: عدّله، اشرح النتائج أو تابع التقدّم…",
     placeholderMore: "ردّ على Yolias AI…",
@@ -266,6 +272,7 @@ export const ar: Dictionary = {
     thinkingShort: "يفكّر…",
     working: "يعمل…",
     tools: {
+      rememberFact: "يحفظ المعلومة في الذاكرة…", forgetFact: "يحدّث الذاكرة…",
       searchProspects: "يبحث في عملائك المحتملين…", filterProspects: "يصفّي عملاءك المحتملين…", getProspect: "يقرأ بيانات العميل المحتمل…",
       revealContact: "يُظهر بيانات التواصل…", saveResults: "يحفظ النتائج في العملاء المحتملين…", enrichProspect: "يبحث عن بيانات التواصل…",
       listCompanies: "يراجع الشركات…", getCompany: "يقرأ بيانات الشركة…", listJobs: "يراجع الوظائف المعلنة…",
@@ -481,10 +488,10 @@ export const ar: Dictionary = {
   settings: {
     title: "الإعدادات",
     tabs: {
-      general: "عام", account: "الحساب", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة", team: "الفريق", integration: "التكاملات",
+      general: "عام", account: "الحساب", organization: "المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة", team: "الفريق", integration: "التكاملات",
     },
     titles: {
-      general: "عام", account: "الحساب", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة والفواتير", team: "أعضاء الفريق", integration: "التكاملات",
+      general: "عام", account: "الحساب", organization: "ملف المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة والفواتير", team: "أعضاء الفريق", integration: "التكاملات",
     },
     general: {
       theme: "المظهر", themeDesc: "اختر شكل يولـياس على شاشتك.",
@@ -494,6 +501,12 @@ export const ar: Dictionary = {
       languages: "اللغة", languagesDesc: "لغة الواجهة، واللغة التي يكتب بها يولـياس AI.",
       timezone: "المنطقة الزمنية", timezoneDesc: "تُستخدم في كل تاريخ ووقت يعرضه يولـياس.",
       country: "الدولة", countryDesc: "سوقك الأساسي. يستخدمه يولـياس AI عندما لا يحدد البحث دولة.",
+    },
+    organization: {
+      name: "اسم الشركة", nameDesc: "شركتك كما يراها Yolias AI وفريقك.",
+      website: "الموقع الإلكتروني", websiteDesc: "يقرؤه Yolias AI ليفهم ما تبيعه.",
+      offering: "ما الذي تبيعه", offeringDesc: "جملة أو اثنتان. يستخدمها Yolias AI لفهم كل بحث.",
+      save: "حفظ", saved: "تم الحفظ", onlyAdmins: "يمكن للمالك والمسؤولين فقط تعديل ملف المؤسسة.",
     },
     account: {
       avatar: "الصورة الشخصية", avatarDesc: "صورة ملفك الشخصي.", change: "تغيير", uploading: "جارٍ الرفع…",
@@ -526,12 +539,13 @@ export const ar: Dictionary = {
       prospects: "العملاء المحتملون", value: "{used} / {total}",
       prospectsDesc: "عميل محتمل واحد لكل صانع قرار مستهدف يتم اكتشافه مع بريد موثّق وبيانات الشركة، ورقم هاتف عند توفره.",
       resets: "يتجدد {date}",
+      oneTime: "مرة واحدة عند التسجيل — لا يتجدد",
       lastUpdated: "آخر تحديث: {when}", justNow: "منذ أقل من دقيقة", refresh: "تحديث الاستخدام",
     },
     billing: {
       perYear: "/سنويًا", testMode: "وضع تجريبي",
       adjustPlan: "تعديل الخطة", upgrade: "ترقية",
-      freeLine: "{count} عميل محتمل شهريًا · بدون دفع",
+      freeLine: "{count} عميل محتمل مرة واحدة عند التسجيل · بدون دفع",
       renewsOn: "يتجدد اشتراكك تلقائيًا في {date}.", endsOn: "تنتهي خطتك في {date}.",
       payment: "الدفع", noCard: "لا توجد وسيلة دفع مسجّلة", update: "تحديث",
       invoices: "الفواتير", noInvoices: "لا توجد فواتير بعد.",
@@ -701,7 +715,7 @@ export const ar: Dictionary = {
       ["ما الفرق بين الخطط؟", "تتضمن كل الخطط ميزات يولـياس الأساسية نفسها. الفرق الرئيسي هو مقدار الاستخدام المتضمن في كل خطة."],
       ["هل يمكنني ترقية خطتي؟", "نعم. يمكنك الترقية متى احتاج عملك إلى استخدام أكثر."],
       ["هل تشمل الأسعار المعروضة الضرائب؟", "لا. الأسعار المعروضة لا تشمل الضريبة المطبقة."],
-      ["ما هو العميل المحتمل؟", "صانع قرار مستهدف واحد يكتشفه يولـياس لك، مع بريد موثّق وبيانات الشركة، ورقم هاتف عند توفره. تُحسب الخطط بالعملاء المحتملين فقط."],
+      ["ما هو العميل المحتمل؟", "نتيجة يسلّمها لك يولـياس: صانع قرار أو شركة تطابق بحثك. تُحسب الخطط بالعملاء المحتملين فقط."],
       ["ماذا يحدث عندما أصل إلى الحد؟", "يوقف يولـياس الاكتشاف الجديد حتى يتجدد رصيدك الشهري. يمكنك الترقية في أي وقت للمتابعة."],
     ],
     finalEyebrow: "يولـياس", finalTitle: "هل أنت مستعد لإدارة أعمالك بالذكاء الاصطناعي؟",

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { SupportLink } from "@/components/SupportLink";
 import { useI18n } from "@/lib/i18n/client";
 
 // Official Yolias accounts.
@@ -67,7 +68,9 @@ export function SiteFooter() {
               <p className="text-sm font-bold text-white">{col.title}</p>
               <div className="mt-4 flex flex-col gap-3">
                 {col.links.map((l) =>
-                  "external" in l ? (
+                  l.href === "/contact?topic=support" ? (
+                    <SupportLink key={l.href} className="footer-link focus-ring w-fit rounded">{l.label}</SupportLink>
+                  ) : "external" in l ? (
                     <a key={l.href} className="footer-link focus-ring w-fit rounded" href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
                   ) : (
                     <Link key={l.href} className="footer-link focus-ring w-fit rounded" href={l.href}>{l.label}</Link>

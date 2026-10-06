@@ -1,4 +1,5 @@
 import "server-only";
+import { monthlyUsage } from "@/services/workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPlanCatalog } from "@/lib/plan-catalog";
 import { isPaidPlan, monthWindow } from "@/lib/plans";
@@ -30,14 +31,14 @@ export async function campaignFinished(campaignId: string) {
  * once per workspace per month.
  */
 export async function usageAlerts(workspaceId: string) {
-  const { data } = await createAdminClient().rpc("usage_summary", { p_ws: workspaceId });
-  const u = data?.[0];
-  if (!u || u.allowance <= 0) return;
-  const used = u.consumed;
+  const u = await monthlyUsage(workspaceId);
+  if (u.allowance <= 0) return;
+  const used = u.prospects;
   const level = used >= u.allowance ? "usage_limit" : used >= u.allowance * 0.8 ? "usage_low" : null;
   if (!level) return;
-  const payload = { used, total: u.allowance, resetsAt: monthWindow().resets.toISOString() };
-  await notify(level, await workspaceRecipients(workspaceId), payload, { workspaceId, dedupe: `${workspaceId}:${u.period_start}` });
+  // Free is one-time (D-138): no reset date, and each alert fires once ever.
+  const payload = { used, total: u.allowance, resetsAt: u.resetsAt };
+  await notify(level, await workspaceRecipients(workspaceId), payload, { workspaceId, dedupe: u.resetsAt ? `${workspaceId}:${u.resetsAt.slice(0, 7)}` : `${workspaceId}:free` });
 }
 
 /* ───────────────────────── Subscription ───────────────────────── */

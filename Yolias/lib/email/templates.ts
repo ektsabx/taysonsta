@@ -401,7 +401,8 @@ export interface UsageAlertInput {
   siteUrl: string;
   used: number;
   total: number;
-  resetsAt: string;
+  /** null = the Free plan's one-time prospects (D-138): nothing resets. */
+  resetsAt: string | null;
 }
 
 export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): RenderedEmail {
@@ -411,10 +412,25 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
   const bar = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.line};border-radius:999px"><tr><td style="width:${pct}%;background:${full ? C.red : C.ink};height:8px;border-radius:999px;font-size:0;line-height:0">&nbsp;</td><td style="font-size:0;line-height:0">&nbsp;</td></tr></table>
     <div style="font-family:${ar ? FONT_AR : FONT_EN};font-size:13px;color:${C.muted};padding-top:8px">${ar ? `${u.used} / ${u.total} عميل محتمل` : `${u.used} / ${u.total} prospects`}</div>`;
   return {
-    subject: full
+    subject: !u.resetsAt
+      ? full ? (ar ? "استخدمت كل العملاء المحتملين المجانيين" : "You’ve used all your free prospects") : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين` : `You’ve used ${pct}% of your free prospects`
+      : full
       ? ar ? "استخدمت كل العملاء المحتملين لهذا الشهر" : "You’ve used all of this month’s prospects"
       : ar ? `استخدمت ${pct}% من العملاء المحتملين لهذا الشهر` : `You’ve used ${pct}% of this month’s prospects`,
-    html: layout({
+    html: !u.resetsAt ? layout({
+      locale,
+      siteUrl: u.siteUrl,
+      preheader: ar ? "العملاء المحتملون في الخطة المجانية هدية مرة واحدة عند التسجيل." : "Free plan prospects are a one-time gift at signup.",
+      heading: full ? (ar ? "استخدمت العملاء المحتملين المجانيين" : "You’ve used your free prospects") : ar ? "اقتربت من نهاية العملاء المحتملين المجانيين" : "You’re close to the end of your free prospects",
+      body: [
+        full
+          ? ar ? "توقف يولـياس عن إضافة عملاء محتملين جدد. اختر خطة لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan to keep discovering."
+          : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين. اختر خطة في أي وقت لتحصل على عملاء محتملين كل شهر.` : `You’ve used ${pct}% of your free prospects. Pick a plan any time to get prospects every month.`,
+      ],
+      extra: bar,
+      button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
+      footnote: ar ? "الخطة المجانية تمنحك العملاء المحتملين مرة واحدة عند التسجيل، ولا تتجدد شهريًا." : "The Free plan gives you prospects once at signup; they don't renew monthly.",
+    }) : layout({
       locale,
       siteUrl: u.siteUrl,
       preheader: ar ? `يتجدد الرصيد في ${dateText(u.resetsAt, locale)}.` : `Your allowance resets on ${dateText(u.resetsAt, locale)}.`,
@@ -430,7 +446,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "عميل محتمل واحد = صانع قرار واحد ببريد موثّق وبيانات شركة، ورقم هاتف عند توفره." : "1 prospect = one decision maker with a verified email and company data, plus a phone number when available.",
+      footnote: ar ? "يُحسب الاستخدام بالعملاء المحتملين الذين تم تسليمهم فقط." : "Only delivered prospects count toward your usage.",
     }),
   };
 }

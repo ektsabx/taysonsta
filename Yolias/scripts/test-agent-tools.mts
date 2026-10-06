@@ -45,6 +45,7 @@ async function seed(ws: string, name: string) {
 
 const a = await seed(A, "Alpha"), b = await seed(B, "Beta");
 const ctxA = await sessionFor(A);
+const ctxB = () => sessionFor(B);
 try {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let r: any = await executeTool(ctxA, "searchProspects", { query: "Person" });
@@ -78,6 +79,36 @@ try {
   const { data: log } = await admin.from("agent_tool_calls").select("tool, outcome").eq("workspace_id", A).order("id");
   console.log("audit:", log!.map((l) => `${l.tool}:${l.outcome}`).join(" "));
   assert.equal(log!.length, 16);
+
+  // ── Control center (D-141) ──
+  const { agentTools } = await import("@/lib/agent/tools.ts");
+  const { AGENT_TOOL_NAMES, normalizePolicy } = await import("@/lib/agent/policy-schema.ts");
+  assert.deepEqual([...agentTools.map((t) => t.name)].sort(), [...AGENT_TOOL_NAMES].sort(), "the policy lists every tool");
+  // A tool switched off in the policy is refused in code, whatever the model asks.
+  const off = normalizePolicy({ tools: { getUsage: { enabled: false, approval: false, roles: ["owner", "admin", "member"] } } });
+  r = await executeTool({ ...ctxA, policy: off } as AgentContext, "getUsage", {}); assert.equal(r.outcome, "disabled");
+  // Roles can only narrow access.
+  const ownerOnly = normalizePolicy({ tools: { getAnalytics: { enabled: true, approval: false, roles: ["admin"] } } });
+  r = await executeTool({ ...ctxA, policy: ownerOnly } as AgentContext, "getAnalytics", { days: 30 }); assert.equal(r.outcome, "disabled", "owner not in the allowed roles");
+  // Human-in-the-loop: the action waits; approving runs it once.
+  const { data: conv } = await admin.from("conversations").insert({ workspace_id: A, scope: "user", user_id: (await admin.from("workspace_members").select("user_id").eq("workspace_id", A).single()).data!.user_id }).select("id").single();
+  const pending: string[] = [];
+  const policy = normalizePolicy({ tools: { saveResults: { enabled: true, approval: true, roles: ["owner", "admin", "member"] } } });
+  r = await executeTool({ ...ctxA, policy, pending, conversationId: conv!.id } as AgentContext, "saveResults", { campaignId: a.campaign });
+  assert.equal(r.outcome, "awaiting_approval"); assert.equal(pending.length, 1);
+  const { data: pa } = await ctxA.db.from("agent_pending_actions").select("status, tool, summary").eq("id", pending[0]).single();
+  assert.equal(pa!.status, "pending"); assert.equal(pa!.tool, "saveResults"); assert.ok(pa!.summary.length > 3);
+  assert.equal((await ctxB().then((x) => x.db.from("agent_pending_actions").select("id").eq("id", pending[0]))).data!.length, 0, "another workspace can't see it");
+  r = await executeTool({ ...ctxA, policy, approved: true } as AgentContext, "saveResults", { campaignId: a.campaign }); assert.equal(r.ok, true, "approved → runs");
+  // Long-term memory: saved with the member's client, scoped to the workspace, capped.
+  const capped = normalizePolicy({ memory: { enabled: true, maxItems: 2 } });
+  for (const fact of ["We sell to banks", "Prefers Saudi companies", "Avoid agencies"]) {
+    r = await executeTool({ ...ctxA, policy: capped } as AgentContext, "rememberFact", { fact }); assert.equal(r.ok, true);
+  }
+  const { data: mem } = await ctxA.db.from("agent_memories").select("id, content").eq("workspace_id", A);
+  assert.equal(mem!.length, 2, "only the newest facts are kept");
+  r = await executeTool({ ...ctxA, policy: capped } as AgentContext, "forgetFact", { memoryId: mem![0].id }); assert.equal(r.ok, true);
+  r = await executeTool(await ctxB(), "forgetFact", { memoryId: mem![1].id }); assert.equal(r.outcome, "not_found", "another workspace can't touch it");
   console.log("ALL PASS");
 } finally {
   for (const ws of [A, B]) await admin.from("workspaces").delete().eq("id", ws);

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, Building2, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { COUNTRIES, TIMEZONES, timeZoneLabel } from "@/lib/regions";
@@ -12,7 +12,7 @@ import { planName } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./ConnectorIcons";
 import {
-  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
+  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { buyProspectPack } from "@/app/checkout/actions";
 import type { SettingsTab, ShellData } from "./types";
@@ -21,6 +21,7 @@ import type { Currency } from "@/types/database";
 const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
   { tab: "account", icon: User },
+  { tab: "organization", icon: Building2 },
   { tab: "notifications", icon: Bell },
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
@@ -67,6 +68,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
           <div className="modal-body-scroll">
             {tab === "general" && <GeneralTab data={data} />}
             {tab === "account" && <AccountTab data={data} />}
+            {tab === "organization" && <OrganizationTab data={data} />}
             {tab === "notifications" && <NotificationsTab data={data} />}
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
@@ -161,6 +163,46 @@ function GeneralTab({ data }: { data: ShellData }) {
 }
 
 /* ─────────────── Account ─────────────── */
+
+// The company details from onboarding (D-139). Owners and admins edit them.
+function OrganizationTab({ data }: { data: ShellData }) {
+  const { t } = useI18n();
+  const o = t.settings.organization;
+  const manage = data.role === "owner" || data.role === "admin";
+  const [form, setForm] = useState({ name: data.workspace.name, website: data.workspace.website ?? "", offering: data.workspace.offering ?? "" });
+  const [saved, setSaved] = useState(false);
+  const { error, run, pending } = useSave();
+  const save = () => run(async () => {
+    const r = await updateOrganization(form);
+    setSaved(r.ok);
+    return r;
+  });
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { setSaved(false); setForm({ ...form, [k]: e.target.value }); };
+  return (
+    <div className="setting-group">
+      <SettingRow label={o.name} desc={o.nameDesc}>
+        <input className="form-input" value={form.name} maxLength={160} disabled={!manage} onChange={set("name")} />
+      </SettingRow>
+      <SettingRow label={o.website} desc={o.websiteDesc}>
+        <input className="form-input" dir="ltr" value={form.website} maxLength={200} disabled={!manage} onChange={set("website")} />
+      </SettingRow>
+      <div className="setting-row setting-row-stack">
+        <div className="setting-label-wrap">
+          <div className="setting-label">{o.offering}</div>
+          <div className="setting-desc">{o.offeringDesc}</div>
+        </div>
+        <textarea className="form-input" rows={4} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />
+      </div>
+      {manage ? (
+        <div className="setting-actions">
+          {error && <p className="form-error" role="alert">{error}</p>}
+          {saved && !error && <span className="setting-desc">{o.saved}</span>}
+          <button className="btn-primary" type="button" disabled={pending} onClick={save}>{o.save}</button>
+        </div>
+      ) : <p className="setting-desc">{o.onlyAdmins}</p>}
+    </div>
+  );
+}
 
 function AccountTab({ data }: { data: ShellData }) {
   const { t } = useI18n();
@@ -466,7 +508,7 @@ function UsageTab({ data }: { data: ShellData }) {
         <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
           <span>{u.prospectsDesc}</span>
-          <span>{fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) })}</span>
+          <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : u.oneTime}</span>
         </div>
       </div>
 

@@ -59,3 +59,12 @@ against a stand-in of its official API; it shows "not connected" until set.
 | Hub → Yolias sync: Gemini key copied to Vault and used by Yolias AI (`gemini-3.8-flash`); Paymob moved into the hub | ✓ |
 
 Test scripts never use the owner's real keys: each one injects its own (or none) with `setIntegrationsForTests`, and `test:payments` restores the real Paymob secrets it touches.
+
+## Re-run after D-138 … D-141 (2026-10-06)
+
+| Check | Result |
+| --- | --- |
+| Yolias typecheck · lint · build | ✓ |
+| Yolias unit (40, incl. agent policy / guardrail / cache) · test:agent (incl. disabled tools, roles, approvals, memory) · test:agent-control (eval runner, cache) · test:llm · test:emails · test:payments · test:search-types · test:campaigns · test:ai · test:outreach | ✓ all pass |
+| Admin `npm test` (types, unit 63, DB, integration 87 incl. policy draft → publish → rollback) · lint · build | ✓ |
+| Browser: widget Intercom-style opened from "Contact Support" (AR + EN), message reaches the Admin inbox; control center tabs render | ✓ |

@@ -116,7 +116,7 @@ export const articles: HelpArticle[] = [
         title: "Choosing a plan and billing period",
         summary: "All plans have the same features; they differ in how much discovery you can run each month.",
         blocks: [
-          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get each month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get: Free gives them once at signup, Pro and Growth every month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
           { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is twelve times the monthly price, paid upfront, and your usage limits still reset every month." },
           { h2: "Not sure yet?" },
@@ -127,7 +127,7 @@ export const articles: HelpArticle[] = [
         title: "اختيار الخطة وفترة الفوترة",
         summary: "كل الخطط تشمل الميزات نفسها، وتختلف في حجم الاكتشاف الذي يمكنك تشغيله شهريًا.",
         blocks: [
-          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين شهريًا — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين: المجانية مرة واحدة عند التسجيل، وبرو والنمو كل شهر — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
           { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري وتُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
           { h2: "لم تقرر بعد؟" },

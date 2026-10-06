@@ -43,6 +43,13 @@ export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
   const [turns, setTurns] = useState<ThreadTurn[]>(initial);
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
+  // The server adds turns too (e.g. the result of an approved action): take
+  // its list after a refresh, unless a reply is streaming right now.
+  const [prevInitial, setPrevInitial] = useState(initial);
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
+    if (!pending && initial.length >= turns.filter((x) => x.id > 0).length) setTurns(initial);
+  }
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<AgentError | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);

@@ -12,6 +12,8 @@ export interface ShellData {
   preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product">;
   workspace: {
     name: string;
+    website: string | null;
+    offering: string | null;
     plan: Plan;
     /** Monthly plan price in the workspace's billing currency. */
     price: number;
@@ -23,7 +25,7 @@ export interface ShellData {
     cancelAtPeriodEnd: boolean;
   };
   role: WorkspaceRole;
-  usage: { prospects: number; resetsAt: string };
+  usage: { prospects: number; resetsAt: string | null };
   invoices: { id: string; number: string; date: string; amount: number; currency: Currency; status: "paid" | "open" | "void"; test: boolean }[];
   /** Buy More Prospects: active packs priced in the workspace currency. */
   packs: { id: string; prospects: number; price: number }[];
@@ -42,6 +44,6 @@ export interface ShellData {
   device: { label: string; ip: string | null };
 }
 
-export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";
+export type SettingsTab = "general" | "account" | "organization" | "notifications" | "usage" | "billing" | "team" | "integration";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";

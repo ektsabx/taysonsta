@@ -36,7 +36,7 @@ export const en = {
     labelPro: "Pro",
     labelGrowth: "Growth",
     prospectsPerMonth: "{count} prospects / month",
-    prospectDef: "1 prospect = one target decision maker discovered with a verified email and company data, plus a phone number when available.",
+    prospectsOnce: "{count} prospects, once at signup",
     recommended: "Recommended",
     monthly: "Monthly",
     annual: "Annual",
@@ -249,6 +249,12 @@ export const en = {
     savedToProspects: "Saved to Prospects",
   },
   agent: {
+    approval: {
+      title: "Waiting for your approval", approve: "Approve", reject: "Reject",
+      approved: "Approved", rejected: "Rejected", expired: "Expired", failed: "Didn't work",
+      doneNote: "Done: {action}.", failedNote: "Couldn't do it: {action} — {reason}", rejectedNote: "Canceled: {action}.",
+      notFound: "That request no longer exists.", notYours: "Only the person who asked, or an owner or admin, can decide.", decided: "This request was already decided.", expiredError: "This request has expired. Ask Yolias AI again.",
+    },
     title: "Yolias AI conversation",
     placeholder: "Ask Yolias AI about this search: refine it, explain results or check progress…",
     placeholderMore: "Reply to Yolias AI…",
@@ -265,6 +271,7 @@ export const en = {
     thinkingShort: "Thinking…",
     working: "Working…",
     tools: {
+      rememberFact: "Saving to memory…", forgetFact: "Updating memory…",
       searchProspects: "Searching your prospects…", filterProspects: "Filtering your prospects…", getProspect: "Reading the prospect…",
       revealContact: "Revealing contact details…", saveResults: "Saving results to Prospects…", enrichProspect: "Looking up contact details…",
       listCompanies: "Looking through companies…", getCompany: "Reading the company…", listJobs: "Checking job postings…",
@@ -479,10 +486,10 @@ export const en = {
   settings: {
     title: "Settings",
     tabs: {
-      general: "General", account: "Account", notifications: "Notifications", usage: "Usage", billing: "Billing", team: "Team", integration: "Integrations",
+      general: "General", account: "Account", organization: "Organization", notifications: "Notifications", usage: "Usage", billing: "Billing", team: "Team", integration: "Integrations",
     },
     titles: {
-      general: "General", account: "Account", notifications: "Notifications", usage: "Usage", billing: "Billing & Invoices", team: "Team Members", integration: "Integrations",
+      general: "General", account: "Account", organization: "Organization Profile", notifications: "Notifications", usage: "Usage", billing: "Billing & Invoices", team: "Team Members", integration: "Integrations",
     },
     general: {
       theme: "Theme", themeDesc: "Select how Yolias looks on your screen.",
@@ -492,6 +499,12 @@ export const en = {
       languages: "Languages", languagesDesc: "Interface language, and the language Yolias AI writes in.",
       timezone: "Time zone", timezoneDesc: "Used for every date and time Yolias shows you.",
       country: "Country", countryDesc: "Your home market. Yolias AI uses it when a search doesn’t name a country.",
+    },
+    organization: {
+      name: "Company name", nameDesc: "Your company, as Yolias AI and your team see it.",
+      website: "Website", websiteDesc: "Yolias AI reads it to understand what you sell.",
+      offering: "What you sell", offeringDesc: "A sentence or two. Yolias AI uses it to understand every search.",
+      save: "Save", saved: "Saved", onlyAdmins: "Only owners and admins can change the organization profile.",
     },
     account: {
       avatar: "Avatar", avatarDesc: "Your profile avatar.", change: "Change", uploading: "Uploading…",
@@ -524,12 +537,13 @@ export const en = {
       prospects: "Prospects", value: "{used} / {total}",
       prospectsDesc: "1 prospect per target decision maker discovered with a verified email and company data, plus a phone number when available.",
       resets: "Resets {date}",
+      oneTime: "One-time at signup — doesn't renew",
       lastUpdated: "Last updated: {when}", justNow: "less than a minute ago", refresh: "Refresh usage",
     },
     billing: {
       perYear: "/year", testMode: "Test mode",
       adjustPlan: "Adjust plan", upgrade: "Upgrade",
-      freeLine: "{count} prospects / month · no payment needed",
+      freeLine: "{count} prospects once at signup · no payment needed",
       renewsOn: "Your subscription will auto-renew on {date}.", endsOn: "Your plan ends on {date}.",
       payment: "Payment", noCard: "No payment method on file", update: "Update",
       invoices: "Invoices", noInvoices: "No invoices yet.",
@@ -699,7 +713,7 @@ export const en = {
       ["What’s the difference between the plans?", "All plans include the same core Yolias features. The main difference is the amount of usage included in each plan."],
       ["Can I upgrade my plan?", "Yes. You can upgrade whenever your business needs more usage."],
       ["Are taxes included in the displayed prices?", "No. Prices shown don’t include applicable tax."],
-      ["What is a prospect?", "One target decision maker Yolias discovered for you, with a verified email and company data, plus a phone number when one is available. Plans are counted in prospects only."],
+      ["What is a prospect?", "A result Yolias delivers to you: a decision maker or a company that matches your search. Plans are counted in prospects only."],
       ["What happens when I reach my limit?", "Yolias pauses new discovery until your monthly allowance resets. You can upgrade at any time to keep going."],
     ] as [string, string][],
     finalEyebrow: "YOLIAS", finalTitle: "Ready to run your business with AI?",

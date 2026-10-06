@@ -4,20 +4,38 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { monthWindow } from "@/lib/plans";
 
 /**
- * This month's prospects from the usage ledger (docs/06): `prospects` = used
- * (delivered), `allowance` = plan quota + grants. Callers must have checked
- * that the user belongs to the workspace (requireSession does).
+ * Prospects from the usage ledger (docs/06): `prospects` = used (delivered),
+ * `allowance` = plan quota + grants. Paid plans count this month; Free is a
+ * one-time gift at signup (D-138), so it counts everything since signup and
+ * never resets (`resetsAt` null). Callers must have checked that the user
+ * belongs to the workspace (requireSession does).
  */
 export async function monthlyUsage(workspaceId: string) {
   const { resets } = monthWindow();
-  const { data } = await createAdminClient().rpc("usage_summary", { p_ws: workspaceId });
+  const admin = createAdminClient();
+  const [{ data }, { data: ws }] = await Promise.all([
+    admin.rpc("usage_summary", { p_ws: workspaceId }),
+    admin.from("workspaces").select("plan").eq("id", workspaceId).maybeSingle(),
+  ]);
   const u = data?.[0];
+  if (ws?.plan === "free") {
+    const { data: free } = await admin.from("plan_quotas").select("prospects_per_month").eq("plan", "free").maybeSingle();
+    const gift = free?.prospects_per_month ?? 0;
+    const before = Math.max(gift - (u?.quota ?? 0), 0);
+    return {
+      prospects: before + (u?.consumed ?? 0),
+      allowance: gift + (u?.granted ?? 0),
+      reserved: u?.reserved ?? 0,
+      available: u?.available ?? 0,
+      resetsAt: null as string | null,
+    };
+  }
   return {
     prospects: u?.consumed ?? 0,
     allowance: u?.allowance ?? 0,
     reserved: u?.reserved ?? 0,
     available: u?.available ?? 0,
-    resetsAt: resets.toISOString(),
+    resetsAt: resets.toISOString() as string | null,
   };
 }
 

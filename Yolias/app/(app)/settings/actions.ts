@@ -56,7 +56,7 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
 }
 
 // Settings → Usage "refresh": recounts this month's prospects.
-export async function refreshUsage(): Promise<{ prospects: number; resetsAt: string; checkedAt: string }> {
+export async function refreshUsage(): Promise<{ prospects: number; resetsAt: string | null; checkedAt: string }> {
   const session = await requireSession();
   const usage = await monthlyUsage(session.workspace.id);
   return { prospects: usage.prospects, resetsAt: usage.resetsAt, checkedAt: new Date().toISOString() };
@@ -198,5 +198,30 @@ export async function changeEmail(input: z.input<typeof emailChangeSchema>): Pro
   const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
   const { error } = await supabase.auth.updateUser({ email: parsed.data.email }, { emailRedirectTo: `${site}/auth/confirm` });
   if (error) return { ok: false, error: error.status === 429 ? t.rateLimited : /already/i.test(error.message) ? t.emailTaken : t.saveFailed };
+  return { ok: true };
+}
+
+const organizationSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  website: z.string().trim().transform((v) => v.replace(/^https?:\/\//i, "").replace(/\/+$/, "")).pipe(z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i)),
+  offering: z.string().trim().min(10).max(2000),
+});
+
+// Settings → Organization: the company details from onboarding (name,
+// website, what you sell). Yolias AI uses them to understand searches.
+// Owners and admins only; workspace rows are written by the server.
+export async function updateOrganization(input: z.input<typeof organizationSchema>): Promise<ActionResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
+  const parsed = organizationSchema.safeParse(input);
+  if (!parsed.success) {
+    const field = parsed.error.issues[0].path[0];
+    const e = t.onboarding.errors;
+    return { ok: false, error: field === "website" ? e.website : field === "offering" ? e.offering : e.company };
+  }
+  const { error } = await createAdminClient().from("workspaces").update(parsed.data).eq("id", session.workspace.id);
+  if (error) return { ok: false, error: t.settings.errors.saveFailed };
+  revalidatePath("/", "layout");
   return { ok: true };
 }
