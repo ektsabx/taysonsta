@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaJSONSchemaOutputFormat, betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import type { BetaContentBlockParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { anthropic } from "@/lib/ai/anthropic";
+import { integrationSecret } from "@/lib/integrations";
 import { LlmProviderError, type ChatRequest, type ChatResult, type ChatStep, type InputPart, type LlmAdapter, type StructuredRequest, type StructuredResult } from "./types";
 
 // Claude through the official SDK: structured outputs for extraction, the
@@ -30,7 +31,7 @@ function blocks(parts: InputPart[]): BetaContentBlockParam[] {
 }
 
 export const anthropicAdapter: LlmAdapter = {
-  configured: () => Boolean(process.env.ANTHROPIC_API_KEY),
+  configured: () => Boolean(integrationSecret("anthropic", "api_key")),
 
   async structured(model: string, req: StructuredRequest): Promise<StructuredResult> {
     try {

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { AgentThread } from "@/components/app/AgentThread";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { CampaignControls } from "@/components/app/CampaignControls";
 import { campaignStatus } from "@/lib/discovery/campaign-view";
 import { criteriaLine, parseIcp } from "@/lib/discovery/icp";
@@ -11,7 +10,6 @@ import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
 import { getCampaignDashboard } from "@/services/campaigns";
-import { conversationFor } from "@/services/conversations";
 import type { Json } from "@/types/database";
 
 export async function generateMetadata({ params }: PageProps<"/campaigns/[id]">): Promise<Metadata> {
@@ -20,7 +18,7 @@ export async function generateMetadata({ params }: PageProps<"/campaigns/[id]">)
   return { title: d ? `${d.campaign.name} — Yolias` : "Yolias" };
 }
 
-const views = ["overview", "results", "runs", "activity", "chat"] as const;
+const views = ["overview", "results", "runs", "activity"] as const;
 type View = (typeof views)[number];
 
 function eventText(message: string, meta: Json | null, t: Dictionary): string {
@@ -66,7 +64,10 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
             {icp ? ` · ${criteriaLine(icp, locale, t.icp)}` : ""}
           </p>
         </div>
-        <CampaignControls id={c.id} status={c.status} goal={c.quota} deadline={c.deadline} continuous={c.continuous} everyHours={c.run_every_hours} />
+        <div className="view-actions">
+          {c.strategy_id && <Link className="btn-secondary" href={`/search/${c.strategy_id}`}><Sparkles /> {cc.openChat}</Link>}
+          <CampaignControls id={c.id} status={c.status} goal={c.quota} deadline={c.deadline} continuous={c.continuous} everyHours={c.run_every_hours} />
+        </div>
       </header>
 
       <nav className="entity-tabs" aria-label={c.name}>
@@ -168,9 +169,6 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
           </section>
         )}
 
-        {view === "chat" && (c.strategy_id
-          ? <div className="campaign-chat"><AgentThread strategyId={c.strategy_id} initial={await conversationFor(c.strategy_id)} /></div>
-          : <p className="cell-sub">{cc.chatEmpty}</p>)}
       </div>
     </div>
   );

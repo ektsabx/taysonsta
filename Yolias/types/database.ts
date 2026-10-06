@@ -14,7 +14,8 @@ export type WorkspaceRole = "owner" | "admin" | "member";
 export type Plan = "free" | "pro" | "growth";
 export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
-export type Currency = "USD" | "EGP";
+/** One USD price for every country (D-131). */
+export type Currency = "USD";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
 export type CampaignStatus =
@@ -378,9 +379,9 @@ export type PaymentRow = {
 };
 export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
 export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
-export type ProspectPackRow = { id: string; prospects: number; price_usd: number; price_egp: number | null; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
+export type ProspectPackRow = { id: string; prospects: number; price_usd: number; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
 
-export type PlanQuotaRow = { plan: Plan; price_usd: number; price_egp: number | null; prospects_per_month: number; updated_by: string | null; updated_at: string };
+export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; updated_by: string | null; updated_at: string };
 
 export type UsageLedgerKind = "reserve" | "consume" | "release" | "grant" | "adjust";
 export type UsageLedgerRow = {
@@ -574,6 +575,9 @@ export interface Database {
       set_payment_secret: { Args: { p_provider: string; p_name: string; p_secret: string }; Returns: undefined };
       clear_payment_secret: { Args: { p_provider: string; p_name: string }; Returns: undefined };
       payment_secret: { Args: { p_provider: string; p_name: string }; Returns: string | null };
+      set_integration_keys: { Args: { p_provider: string; p_config: Record<string, string>; p_secrets: Record<string, string>; p_by: string | null }; Returns: undefined };
+      clear_integration_keys: { Args: { p_provider: string }; Returns: undefined };
+      integration_values: { Args: Record<string, never>; Returns: { provider: string; config: Record<string, string>; secrets: Record<string, string> }[] };
       admin_profitability: { Args: { p_since: string }; Returns: { workspace_id: string; name: string; plan: Plan; currency: Currency; revenue_live: number; revenue_test: number; llm_cost: number; provider_cost: number; unpriced_calls: number; prospects: number }[] };
       jobs_enqueue: { Args: { p_kind: string; p_payload: Json; p_delay: number }; Returns: number };
       jobs_read: { Args: { p_n: number; p_vt: number }; Returns: { msg_id: number; read_ct: number; enqueued_at: string; kind: string; payload: Json }[] };

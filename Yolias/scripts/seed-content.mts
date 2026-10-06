@@ -1,6 +1,7 @@
 // Copies the website content shipped in code (Help Center, Docs, Blog,
 // legal) into content_entries as published rows, so Yolias Admin can edit
-// all of it. Idempotent: rows that already exist are never overwritten.
+// all of it. Idempotent: rows edited in Yolias Admin are never overwritten;
+// rows still exactly as seeded follow the code's latest version.
 //   npm run content:seed
 import { createClient } from "@supabase/supabase-js";
 import { articles } from "@/lib/content/help.ts";
@@ -20,4 +21,15 @@ const rows = [
 
 const { data, error } = await db.from("content_entries").upsert(rows, { onConflict: "kind,slug", ignoreDuplicates: true }).select("id");
 if (error) throw error;
-console.log(`content: ${data?.length ?? 0} new of ${rows.length}`);
+// jsonb doesn't keep key order: compare with keys sorted.
+const canon = (v: unknown): string => JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1))) : x));
+let refreshed = 0;
+const { data: seeded } = await db.from("content_entries").select("kind, slug, doc, meta").eq("updated_by", "seed");
+for (const r of rows) {
+  const cur = seeded?.find((x) => x.kind === r.kind && x.slug === r.slug);
+  if (!cur || (canon(cur.doc) === canon(r.doc) && canon(cur.meta) === canon(r.meta))) continue;
+  const { error: e } = await db.from("content_entries").update({ doc: r.doc, meta: r.meta }).eq("kind", r.kind).eq("slug", r.slug).eq("updated_by", "seed");
+  if (e) throw e;
+  refreshed++;
+}
+console.log(`content: ${data?.length ?? 0} new, ${refreshed} refreshed of ${rows.length}`);

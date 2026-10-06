@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Tx, useT } from "@/components/bos/I18n";
 import { ModalButton, ConfirmButton } from "@/components/bos/Dialog";
-import { ActionForm, TextField, SubmitButton } from "@/components/bos/Form";
+import { ActionForm, SelectField, TextField, SubmitButton } from "@/components/bos/Form";
 import type { ProviderDef } from "@/lib/bos/integrations/catalog";
 import { connState } from "@/lib/bos/integrations/state";
 import { aiPingAction, connectionOpAction, saveConnectionAction } from "./actions";
@@ -46,6 +46,8 @@ export function ConnectionButton({ def, conn, label }: { def: ProviderDef; conn?
                   placeholder={conn?.secret_hint[f.key] ? t("محفوظ {hint} — اتركه فارغاً للإبقاء", { hint: conn.secret_hint[f.key] }) : f.placeholder}
                   hint={f.hint}
                 />
+              ) : f.options ? (
+                <SelectField key={f.key} name={`f_${f.key}`} label={f.label} required={f.required} defaultValue={conn?.config[f.key] ?? f.options[0].value} options={f.options} hint={f.hint} />
               ) : (
                 <TextField key={f.key} name={`f_${f.key}`} label={f.label} dir="ltr" required={f.required} defaultValue={conn?.config[f.key] ?? ""} placeholder={f.placeholder} hint={f.hint} />
               ),

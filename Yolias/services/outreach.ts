@@ -16,8 +16,9 @@ export async function myMailboxes(userId: string): Promise<MailboxView[]> {
 }
 
 /** Which mail providers this deployment can connect (OAuth client configured). */
-export function providersAvailable(): Record<MailProvider, boolean> {
-  return { gmail: Boolean(mailers.gmail.app()), outlook: Boolean(mailers.outlook.app()) };
+export async function providersAvailable(): Promise<Record<MailProvider, boolean>> {
+  const [gmail, outlook] = await Promise.all([mailers.gmail.app(), mailers.outlook.app()]);
+  return { gmail: Boolean(gmail), outlook: Boolean(outlook) };
 }
 
 export const outreachTabs = ["draft", "approved", "sent", "failed", "canceled"] as const;

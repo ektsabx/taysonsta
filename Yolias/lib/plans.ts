@@ -9,31 +9,20 @@ import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/ty
 // available). That is the only thing usage counts.
 export interface PlanTerms {
   priceUsd: number;
-  /** EGP price set in Yolias Admin; null = not priced in EGP yet. */
-  priceEgp: number | null;
   prospects: number;
 }
 
 /** Fallback only — the live values come from the database (lib/plan-catalog.ts). */
 export const defaultPlans: Record<Plan, PlanTerms> = {
-  free: { priceUsd: 0, priceEgp: 0, prospects: 50 },
-  pro: { priceUsd: 20, priceEgp: null, prospects: 1000 },
-  growth: { priceUsd: 50, priceEgp: null, prospects: 3000 },
+  free: { priceUsd: 0, prospects: 50 },
+  pro: { priceUsd: 20, prospects: 1000 },
+  growth: { priceUsd: 50, prospects: 3000 },
 };
 
-/** Monthly price of a plan in a currency (null = not priced in it). */
+/** Monthly price of a plan (one USD price for every country, D-131). */
 export function planPrice(terms: PlanTerms, currency: Currency): number | null {
-  return currency === "EGP" ? terms.priceEgp : terms.priceUsd;
-}
-
-/**
- * Currency shown and charged for a country: Egypt → EGP, else USD (D-120,
- * never converted). Until every paid plan has an EGP price, Egypt is shown
- * USD rather than an invented EGP amount.
- */
-export function pricingCurrency(wanted: Currency, catalog: Record<Plan, PlanTerms>): Currency {
-  if (wanted === "EGP" && paidPlans.every((p) => catalog[p].priceEgp != null)) return "EGP";
-  return "USD";
+  void currency;
+  return terms.priceUsd;
 }
 
 export const allPlans: Plan[] = ["free", "pro", "growth"];

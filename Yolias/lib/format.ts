@@ -33,14 +33,14 @@ export function location(city: string | null | undefined, country: string | null
 }
 
 /**
- * "$20" / "EGP 1,000" in both languages (shown inside dir="ltr", as in the
- * design). Amounts stay in their own currency, never converted (D-120).
+ * "$20" in both languages (shown inside dir="ltr", as in the design). One
+ * USD price for every country (D-131).
  */
-export function formatMoney(amount: number, currency: "USD" | "EGP", cents = false): string {
+export function formatMoney(amount: number, currency: "USD", cents = false): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    currencyDisplay: currency === "USD" ? "narrowSymbol" : "code",
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: cents ? 2 : 0,
     maximumFractionDigits: cents ? 2 : Number.isInteger(amount) ? 0 : 2,
   }).format(amount);

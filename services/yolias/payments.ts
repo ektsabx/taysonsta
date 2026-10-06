@@ -4,10 +4,10 @@ import { audit } from "@/lib/bos/audit";
 import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { ydb } from "@/lib/yolias/db";
 
-// Yolias payment settings from the Admin (final spec phase 3): the Paymob
-// provider (non-secret config in public.payment_providers, secrets in Vault
-// through public.set_payment_secret), Buy More Prospects packs, and the
-// payments log. platform.manage only for writes; every change is audited.
+// Yolias payments in the Admin (final spec phase 3): the Paymob status (its
+// keys are entered in Settings → Integrations and copied to Yolias, D-132),
+// Buy More Prospects packs, and the payments log. platform.manage only for
+// writes; every change is audited.
 
 export type PaymentSecretName = "secret_key" | "hmac_secret";
 export const paymentSecretNames: PaymentSecretName[] = ["secret_key", "hmac_secret"];
@@ -17,7 +17,7 @@ export interface PaymobSettings {
   mode: "test" | "live";
   baseUrl: string;
   publicKey: string;
-  integrations: { EGP: number[]; USD: number[] };
+  integrations: { USD: number[] };
   secrets: Record<PaymentSecretName, { set: boolean; hint: string | null; updatedAt: string | null }>;
   updatedBy: string | null;
   updatedAt: string | null;
@@ -30,7 +30,7 @@ export async function getPaymobSettings(): Promise<PaymobSettings> {
   ]);
   if (error) throw error;
   if (!row) throw new NotFoundError();
-  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: { EGP?: number[]; USD?: number[] } };
+  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: { USD?: number[] } };
   const s = Object.fromEntries(paymentSecretNames.map((n) => {
     const hit = secrets?.find((x) => x.name === n);
     return [n, { set: Boolean(hit), hint: hit?.hint ?? null, updatedAt: hit?.updated_at ?? null }];
@@ -40,59 +40,11 @@ export async function getPaymobSettings(): Promise<PaymobSettings> {
     mode: row.mode,
     baseUrl: cfg.base_url ?? "https://accept.paymob.com",
     publicKey: cfg.public_key ?? "",
-    integrations: { EGP: cfg.integrations?.EGP ?? [], USD: cfg.integrations?.USD ?? [] },
+    integrations: { USD: cfg.integrations?.USD ?? [] },
     secrets: s,
     updatedBy: row.updated_by,
     updatedAt: row.updated_at,
   };
-}
-
-const ids = (v: string) => {
-  const parts = v.split(/[\s,]+/).map((x) => x.trim()).filter(Boolean);
-  if (parts.some((x) => !/^\d{1,12}$/.test(x))) throw new ValidationError("أرقام التكامل غير صالحة.", { integrations: "أرقام مفصولة بفواصل" });
-  return parts.map(Number);
-};
-
-export async function updatePaymob(bos: BosUser, input: { enabled: boolean; mode: "test" | "live"; baseUrl: string; publicKey: string; egp: string; usd: string }): Promise<void> {
-  const base = input.baseUrl.trim().replace(/\/+$/, "");
-  if (!/^https:\/\/[a-z0-9.-]+\.paymob\.com$/i.test(base)) throw new ValidationError("الرابط غير صالح.", { base_url: "رابط Paymob لمنطقة الحساب، مثل https://accept.paymob.com" });
-  const publicKey = input.publicKey.trim();
-  if (publicKey && !/^[A-Za-z0-9_-]{8,200}$/.test(publicKey)) throw new ValidationError("المفتاح العام غير صالح.", { public_key: "كما يظهر في لوحة Paymob" });
-  const integrations = { EGP: ids(input.egp), USD: ids(input.usd) };
-  const before = await getPaymobSettings();
-  if (input.enabled && (!publicKey || !before.secrets.secret_key.set || !before.secrets.hmac_secret.set || integrations.EGP.length + integrations.USD.length === 0)) {
-    throw new ValidationError("أكمل الإعداد قبل التفعيل.", { enabled: "يلزم المفتاح العام والمفتاح السري وسر HMAC ورقم تكامل واحد على الأقل" });
-  }
-  const { error } = await ydb().from("payment_providers").update({
-    enabled: input.enabled,
-    mode: input.mode,
-    config: { base_url: base, public_key: publicKey, integrations },
-    updated_by: bos.email,
-    updated_at: new Date().toISOString(),
-  }).eq("id", "paymob");
-  if (error) throw error;
-  await audit({
-    actorId: bos.userId, action: "yolias.payments.provider_update", entityType: "yolias_payment_provider", entityId: null,
-    oldValue: { enabled: before.enabled, mode: before.mode, integrations: before.integrations }, newValue: { enabled: input.enabled, mode: input.mode, integrations }, metadata: { provider: "paymob" },
-  });
-}
-
-export async function setPaymentSecret(bos: BosUser, name: string, secret: string): Promise<void> {
-  if (!(paymentSecretNames as string[]).includes(name)) throw new ValidationError("مفتاح غير معروف.");
-  const value = secret.trim();
-  if (value.length < 8 || value.length > 4000) throw new ValidationError("المفتاح غير صالح.", { secret: "8 أحرف على الأقل" });
-  const { error } = await ydb().rpc("set_payment_secret", { p_provider: "paymob", p_name: name, p_secret: value });
-  if (error) throw error;
-  await audit({ actorId: bos.userId, action: "yolias.payments.secret_set", entityType: "yolias_payment_provider", entityId: null, metadata: { provider: "paymob", name } });
-}
-
-export async function clearPaymentSecret(bos: BosUser, name: string): Promise<void> {
-  if (!(paymentSecretNames as string[]).includes(name)) throw new ValidationError("مفتاح غير معروف.");
-  // A provider can't stay enabled without its secrets.
-  await ydb().from("payment_providers").update({ enabled: false, updated_by: bos.email, updated_at: new Date().toISOString() }).eq("id", "paymob");
-  const { error } = await ydb().rpc("clear_payment_secret", { p_provider: "paymob", p_name: name });
-  if (error) throw error;
-  await audit({ actorId: bos.userId, action: "yolias.payments.secret_cleared", entityType: "yolias_payment_provider", entityId: null, metadata: { provider: "paymob", name } });
 }
 
 /* ───────────────────────── Prospect packs ───────────────────────── */
@@ -103,21 +55,17 @@ export async function listPacks() {
   return data ?? [];
 }
 
-const money = (v: number | null, field: string, required: boolean) => {
-  if (v == null) {
-    if (required) throw new ValidationError("السعر مطلوب.", { [field]: "مطلوب" });
-    return null;
-  }
+const money = (v: number | null, field: string) => {
+  if (v == null) throw new ValidationError("السعر مطلوب.", { [field]: "مطلوب" });
   if (!Number.isFinite(v) || v <= 0 || v > 1_000_000 || Math.round(v * 100) !== v * 100) throw new ValidationError("السعر غير صالح.", { [field]: "رقم أكبر من 0 بحد أقصى منزلتين عشريتين" });
   return v;
 };
 
-export async function savePack(bos: BosUser, input: { id?: string | null; prospects: number; priceUsd: number | null; priceEgp: number | null; active: boolean; sort: number }): Promise<void> {
+export async function savePack(bos: BosUser, input: { id?: string | null; prospects: number; priceUsd: number | null; active: boolean; sort: number }): Promise<void> {
   if (!Number.isInteger(input.prospects) || input.prospects <= 0 || input.prospects > 1_000_000) throw new ValidationError("العدد غير صالح.", { prospects: "عدد صحيح موجب" });
   const row = {
     prospects: input.prospects,
-    price_usd: money(input.priceUsd, "price_usd", true)!,
-    price_egp: money(input.priceEgp, "price_egp", false),
+    price_usd: money(input.priceUsd, "price_usd"),
     active: input.active,
     sort: Number.isInteger(input.sort) ? input.sort : 0,
     updated_by: bos.email,

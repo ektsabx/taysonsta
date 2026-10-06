@@ -58,9 +58,9 @@ test("outcomes: succeeded, failed, pending, refunded", () => {
 
 test("intention body: minor units, integrations for the currency, our payment id", () => {
   const body = intentionBody({
-    paymentId: "pay-1", amount: 999, currency: "EGP", description: "Yolias Pro — Monthly",
+    paymentId: "pay-1", amount: 999, currency: "USD", description: "Yolias Pro — Monthly",
     customer: { email: "a@b.co", name: "Sara Ali Hassan", country: "EG" }, returnUrl: "https://x/return", notifyUrl: "https://x/hook",
-  }, { integrations: { EGP: [4097558, 4097559], USD: [] } });
+  }, { integrations: { USD: [4097558, 4097559] } });
   assert.equal(body.amount, 99900);
   assert.equal(body.items[0].amount, 99900);
   assert.deepEqual(body.payment_methods, [4097558, 4097559]);

@@ -12,6 +12,8 @@ import { runDiscovery } from "@/lib/discovery/pipeline.ts";
 import { scheduleCampaigns } from "@/lib/jobs/worker.ts";
 import type { IcpCriteria } from "@/lib/discovery/icp.ts";
 import type { Database } from "@/types/database.ts";
+// Never the owner's real keys from Yolias Admin → Integrations (D-132): no LLM keys in this test.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({});
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!, svc = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const db = createClient<Database>(url, svc, { auth: { persistSession: false } });

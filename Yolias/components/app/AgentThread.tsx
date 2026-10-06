@@ -1,13 +1,13 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Check, Copy, LoaderCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { YoliasMark, YoliasThinking } from "@/components/YoliasMark";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { rateReply } from "@/app/(app)/chat/actions";
+import { rateReply } from "@/app/(app)/actions";
 
 export interface ThreadTurn {
   id: number;
@@ -20,23 +20,21 @@ export interface ThreadTurn {
 type AgentError = "notConfigured" | "failed" | "forbidden" | "rateLimited" | "notFound";
 
 interface Props {
-  /** The search whose conversation this is… */
-  strategyId?: string;
-  /** …or a personal / workspace conversation. */
-  conversationId?: string;
+  /** The search (sidebar "Recent") whose conversation this is. */
+  strategyId: string;
   initial: ThreadTurn[];
+  /** The first exchange: the request and Yolias's search card, as list items. */
+  lead?: ReactNode;
   /** Plan badge + Upgrade in the composer. */
   plan?: { label: string; canUpgrade: boolean };
-  hint?: string;
-  /** Big empty state with suggestions (the Chats page). */
-  greeting?: boolean;
 }
 
-// Yolias AI conversation, Claude-style (final spec phase 7): the thread, live
-// thinking / tool states while Yolias works, actions on each reply (copy,
-// like, dislike, time), and the composer with the plan badge and Upgrade.
+// Yolias AI conversation, Claude-style (final spec phase 7): one thread per
+// search — the request, Yolias's search card, then every follow-up in the
+// same thread — with live thinking / tool states while Yolias works, actions
+// on each reply (copy, like, dislike, time), and one composer at the bottom.
 // Every turn is saved on the server; history is read from there.
-export function AgentThread({ strategyId, conversationId, initial, plan, hint, greeting }: Props) {
+export function AgentThread({ strategyId, initial, lead, plan }: Props) {
   const { t, locale } = useI18n();
   const a = t.agent;
   const router = useRouter();
@@ -62,7 +60,7 @@ export function AgentThread({ strategyId, conversationId, initial, plan, hint, g
     setTurns((cur) => [...cur, { id: tempId, role: "user", content: value, created_at: new Date().toISOString() }]);
     setText("");
     try {
-      const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(strategyId ? { strategyId, text: value } : { conversationId, text: value }) });
+      const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ strategyId, text: value }) });
       if (!res.ok || !res.body) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         setError((["notConfigured", "forbidden", "rateLimited", "notFound"] as string[]).includes(body.error ?? "") ? (body.error as AgentError) : "failed");
@@ -112,19 +110,10 @@ export function AgentThread({ strategyId, conversationId, initial, plan, hint, g
   const fullTime = (iso?: string) => (iso ? new Intl.DateTimeFormat(intl, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso)) : "");
 
   return (
-    <section className={`agent-thread${greeting ? " chat-page-thread" : ""}`} aria-label={a.title}>
-      {greeting && turns.length === 0 && (
-        <div className="chat-greeting">
-          <YoliasMark size={34} />
-          <h2>{a.greeting}</h2>
-          <p>{a.greetingLead}</p>
-          <div className="chat-suggestions">
-            {a.suggestions.map((s) => <button key={s} type="button" className="suggestion-chip" onClick={() => void send(s)}>{s}</button>)}
-          </div>
-        </div>
-      )}
-      {turns.length > 0 && (
+    <section className="agent-thread" aria-label={a.title}>
+      {(lead || turns.length > 0) && (
         <ol className="agent-turns">
+          {lead}
           {turns.map((m) => (
             <li key={m.id} className={`agent-turn ${m.role}`}>
               {m.role === "assistant" && <YoliasMark size={18} />}
@@ -153,7 +142,7 @@ export function AgentThread({ strategyId, conversationId, initial, plan, hint, g
           className="prompt-input"
           rows={2}
           dir="auto"
-          placeholder={turns.length ? a.placeholderMore : strategyId ? a.placeholder : a.greetingLead}
+          placeholder={turns.length ? a.placeholderMore : a.placeholder}
           value={text}
           maxLength={4000}
           onChange={(e) => setText(e.target.value)}
@@ -168,7 +157,7 @@ export function AgentThread({ strategyId, conversationId, initial, plan, hint, g
           <div className="prompt-attachments">
             {plan && <span className="plan-badge composer-plan">{fmt(a.plan, { plan: plan.label })}</span>}
             {plan?.canUpgrade && <Link className="composer-upgrade" href="/checkout">{a.upgrade}</Link>}
-            <span className="artifact-note">{hint ?? a.hint}</span>
+            <span className="artifact-note">{a.hint}</span>
           </div>
           <button className="btn-send" type="button" aria-label={a.send} onClick={() => void send()} disabled={pending || !text.trim()}>
             {pending ? <LoaderCircle className="spin" /> : <ArrowUp />}

@@ -11,12 +11,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.ts";
 
 const PORTS = { anthropic: 4953, google: 4954 };
-process.env.ANTHROPIC_API_KEY = "test-anthropic";
 process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${PORTS.anthropic}`;
-delete process.env.OPENAI_API_KEY;
-delete process.env.GEMINI_API_KEY;
-process.env.GOOGLE_CLIENT_ID = "test-client";
-process.env.GOOGLE_CLIENT_SECRET = "test-secret";
 process.env.GOOGLE_TOKEN_URL = `http://127.0.0.1:${PORTS.google}`;
 process.env.GMAIL_API_URL = `http://127.0.0.1:${PORTS.google}`;
 
@@ -57,6 +52,8 @@ const servers = [
   }).listen(PORTS.google),
 ];
 
+// Keys normally come from Yolias Admin → Integrations (D-132); the test injects its own.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({ anthropic: { api_key: "test-anthropic" }, google_oauth: { client_id: "test-client", client_secret: "test-secret" } });
 const { draftOutreach, sendOutreach } = await import("@/lib/outreach/index.ts");
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!, anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, svc = process.env.SUPABASE_SERVICE_ROLE_KEY!;

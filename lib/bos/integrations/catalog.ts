@@ -27,6 +27,8 @@ export interface ProviderDef {
   webhook?: { kind: "svix" | "meta_hmac" | "hmac_sha256" | "telegram_secret"; secretField: string };
   phase: number;
   docs?: string;
+  /** What Yolias (the customer app) uses this connection for; its default active account is copied to Yolias (D-132). */
+  yolias?: string;
 }
 
 export const categoryLabels: Record<ProviderCategory, string> = {
@@ -74,16 +76,18 @@ export const providers: ProviderDef[] = [
     ],
     capabilities: ["ai.text", "ai.json", "ai.embeddings"],
     docs: "https://platform.openai.com/docs",
+    yolias: "Yolias AI والبحث (حسب توزيع النماذج في المنصة ← النماذج اللغوية).",
   },
   {
     key: "gemini", name: "Google Gemini", category: "ai", phase: 4, testable: true,
     description: "نماذج Gemini للنصوص والصور.",
     fields: [
       { key: "api_key", label: "مفتاح API", secret: true, required: true },
-      { key: "model", label: "النموذج الافتراضي", required: true, placeholder: "gemini-2.5-flash" },
+      { key: "model", label: "النموذج الافتراضي", required: true, placeholder: "gemini-3.8-flash" },
     ],
     capabilities: ["ai.text", "ai.json", "ai.embeddings"],
     docs: "https://ai.google.dev/gemini-api/docs",
+    yolias: "Yolias AI والبحث على الويب (حسب توزيع النماذج في المنصة ← النماذج اللغوية).",
   },
   {
     key: "anthropic", name: "Anthropic Claude", category: "ai", phase: 4, testable: true,
@@ -94,6 +98,33 @@ export const providers: ProviderDef[] = [
     ],
     capabilities: ["ai.text", "ai.json"],
     docs: "https://docs.anthropic.com",
+    yolias: "Yolias AI والتفكير وكتابة الرسائل (حسب توزيع النماذج في المنصة ← النماذج اللغوية).",
+  },
+  {
+    key: "yolias_google", name: "Google OAuth — Yolias (Gmail)", category: "google", phase: 0, testable: false,
+    description: "يربط به عملاء يولياس بريد Gmail الخاص بهم لإرسال الرسائل بعد موافقتهم. في Google Cloud: فعّل Gmail API، وأضف صلاحية gmail.send، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/gmail/callback. (الدخول بحساب Google يُضبط في Supabase Auth.)",
+    fields: [
+      { key: "client_id", label: "OAuth client ID", required: true },
+      { key: "client_secret", label: "OAuth client secret", secret: true, required: true },
+    ],
+    capabilities: ["mail.send"],
+    docs: "https://developers.google.com/workspace/gmail/api/guides/sending",
+    yolias: "ربط Gmail وإرسال رسائل التواصل.",
+  },
+  {
+    key: "paymob", name: "Paymob", category: "payments", phase: 0, testable: false,
+    description: "بوابة الدفع لاشتراكات يولياس وباقات العملاء المحتملين الإضافية (بالدولار). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return.",
+    fields: [
+      { key: "mode", label: "الوضع", required: true, options: [{ value: "test", label: "تجريبي (مفاتيح Paymob التجريبية)" }, { value: "live", label: "حقيقي" }] },
+      { key: "base_url", label: "رابط Paymob", required: true, placeholder: "https://accept.paymob.com", hint: "حسب منطقة الحساب: مصر https://accept.paymob.com" },
+      { key: "public_key", label: "المفتاح العام (Public key)", required: true },
+      { key: "secret_key", label: "المفتاح السري (Secret key)", secret: true, required: true },
+      { key: "hmac_secret", label: "سر HMAC", secret: true, required: true },
+      { key: "integrations_usd", label: "أرقام التكامل للدولار (USD)", required: true, hint: "Integration IDs لطرق الدفع بالدولار، مفصولة بفواصل — اطلب من Paymob تفعيل الدفع بالدولار على الحساب." },
+    ],
+    capabilities: ["payments.checkout"],
+    docs: "https://developers.paymob.com",
+    yolias: "الدفع أونلاين للاشتراكات والباقات.",
   },
   {
     key: "google_maps", name: "Google Maps Platform", category: "maps", phase: 19, testable: true,

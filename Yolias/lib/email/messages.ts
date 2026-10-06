@@ -16,7 +16,7 @@ const FONT_AR = "'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif";
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-const money = (amount: number, currency?: "USD" | "EGP") => `<span dir="ltr">${price(amount, currency)}</span>`;
+const money = (amount: number, currency?: "USD") => `<span dir="ltr">${price(amount, currency)}</span>`;
 function day(iso: string, l: EmailLocale) {
   return new Intl.DateTimeFormat(l === "ar" ? "ar-u-nu-latn" : "en-US", { year: "numeric", month: "long", day: "numeric" }).format(new Date(iso));
 }
@@ -64,7 +64,7 @@ interface PlanData extends Base {
   planName: string;
   period: "monthly" | "annual";
   amount: number;
-  currency?: "USD" | "EGP";
+  currency?: "USD";
   periodEnd: string;
   test: boolean;
 }
@@ -77,21 +77,21 @@ interface InvoiceData extends Base {
   invoiceNumber: string;
   planName: string;
   amount: number;
-  currency?: "USD" | "EGP";
+  currency?: "USD";
   dueAt: string | null;
   test: boolean;
 }
 interface PaymentProblemData extends Base {
   planName: string;
   amount: number;
-  currency?: "USD" | "EGP";
+  currency?: "USD";
   reason: string | null;
   retryAt: string | null;
 }
 interface RefundData extends Base {
   invoiceNumber: string;
   amount: number;
-  currency?: "USD" | "EGP";
+  currency?: "USD";
   reason: string | null;
 }
 interface SignInData extends Base {

@@ -8,6 +8,8 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { createClient } from "@supabase/supabase-js";
+// Never the owner's real keys from Yolias Admin → Integrations (D-132): no LLM keys in this test.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({});
 
 const captured: { from: string; to: string[]; subject: string }[] = [];
 const server = http.createServer((req, res) => {

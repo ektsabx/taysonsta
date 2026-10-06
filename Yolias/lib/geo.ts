@@ -1,10 +1,8 @@
 import type { Locale } from "@/lib/i18n/config";
-import type { Currency } from "@/types/database";
 
 // Final spec phase 2: the visitor's country picks the first interface
-// language (Arabic-speaking countries → Arabic) and the billing currency
-// (D-131: one USD price for every country, Egypt included; the EGP columns
-// stay unused unless the owner brings local pricing back).
+// language (Arabic-speaking countries → Arabic). Prices are one USD price
+// for every country (D-131).
 
 /** Members of the Arab League (ISO 3166-1 alpha-2). */
 const ARABIC_COUNTRIES = new Set([
@@ -21,11 +19,6 @@ export function normalizeCountry(v: string | null | undefined): string | null {
 export function localeForCountry(country: string | null): Locale | null {
   if (!country) return null;
   return ARABIC_COUNTRIES.has(country) ? "ar" : "en";
-}
-
-export function currencyForCountry(country: string | null): Currency {
-  void country;
-  return "USD";
 }
 
 /** Region of the first Accept-Language tag with one ("ar-EG,ar;q=0.9" → "EG"). */

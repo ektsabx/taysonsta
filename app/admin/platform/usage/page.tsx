@@ -21,7 +21,7 @@ export default async function UsagePage() {
       <div className="bos-kpis">
         <KpiCard label="المستخدم" value={num(u.consumed)} sub={<Tx vars={{ n: num(u.allowance) }}>{"من {n}"}</Tx>} />
         <KpiCard label="نسبة الاستخدام" value={u.allowance ? pct(u.consumed / u.allowance) : "—"} />
-        <KpiCard label="باقات إضافية مباعة" value={num(u.packs.prospects)} sub={`USD ${num(u.packs.live.USD ?? 0)} · EGP ${num(u.packs.live.EGP ?? 0)}`} href="/admin/platform/payments" />
+        <KpiCard label="باقات إضافية مباعة" value={num(u.packs.prospects)} sub={`USD ${num(u.packs.live)}`} href="/admin/platform/payments" />
       </div>
       <Card title="حسب الخطة">
         {u.byPlan.length ? (

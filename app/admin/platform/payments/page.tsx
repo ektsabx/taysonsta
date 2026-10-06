@@ -7,7 +7,8 @@ import type { Tone } from "@/lib/bos/labels";
 import { yoliasPlanLabel } from "@/lib/yolias/plans";
 import { getPaymobSettings, listPacks, paymentTotals, recentPayments } from "@/services/yolias/payments";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
-import { PackForm, PaymentSecretForm, PaymobForm } from "./PaymentForms";
+import Link from "next/link";
+import { PackForm } from "./PaymentForms";
 
 const statusTone: Record<string, { label: string; tone: Tone }> = {
   pending: { label: "قيد الانتظار", tone: "info" },
@@ -17,9 +18,9 @@ const statusTone: Record<string, { label: string; tone: Tone }> = {
 };
 const money = (v: number, c: string) => `${c} ${num(Math.round(v * 100) / 100)}`;
 
-// Payments (final spec phase 3): the payment provider (Paymob, secrets in
-// Vault), Buy More Prospects packs, and every payment with its status.
-// Amounts stay in their own currency (USD / EGP), never converted.
+// Payments (final spec phase 3): the Paymob status (its keys are entered in
+// Settings → Integrations, D-132), Buy More Prospects packs, and every
+// payment with its status. One USD price for every country (D-131).
 export default async function PaymentsPage() {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="المدفوعات" /><NotConnected /></>);
@@ -29,12 +30,9 @@ export default async function PaymentsPage() {
 
   return (
     <>
-      <PageHeader title="المدفوعات" subtitle="مزود الدفع، باقات العملاء المحتملين الإضافية، وكل عملية دفع. مصر بالجنيه وباقي الدول بالدولار، بدون تحويل." />
+      <PageHeader title="المدفوعات" subtitle="مزود الدفع، باقات العملاء المحتملين الإضافية، وكل عملية دفع. سعر واحد بالدولار لكل الدول." />
       <div className="bos-kpis">
-        {(["EGP", "USD"] as const).map((c) => {
-          const live = totals[`${c}:live`];
-          return <KpiCard key={c} label={`مدفوعات ناجحة · ${c} · آخر 30 يوماً`} value={live ? money(live.amount, c) : "—"} sub={live ? <Tx vars={{ n: live.succeeded, f: live.failed }}>{"{n} ناجحة · {f} فاشلة"}</Tx> : undefined} />;
-        })}
+        <KpiCard label="مدفوعات ناجحة · آخر 30 يوماً" value={totals["USD:live"] ? money(totals["USD:live"].amount, "USD") : "—"} sub={totals["USD:live"] ? <Tx vars={{ n: totals["USD:live"].succeeded, f: totals["USD:live"].failed }}>{"{n} ناجحة · {f} فاشلة"}</Tx> : undefined} />
       </div>
 
       <Card title="Paymob">
@@ -45,29 +43,24 @@ export default async function PaymentsPage() {
           { label: "سر HMAC", value: s.secrets.hmac_secret.set ? <span dir="ltr">•••• {s.secrets.hmac_secret.hint}</span> : <Tx>غير محدد</Tx> },
           { label: "رابط الإشعارات (Transaction processed callback)", value: <span dir="ltr">{site ? `${site}/api/payments/paymob` : "—"}</span> },
           { label: "رابط العودة (Transaction response callback)", value: <span dir="ltr">{site ? `${site}/api/payments/paymob/return` : "—"}</span> },
+          { label: "أرقام التكامل (USD)", value: s.integrations.USD.length ? <span dir="ltr">{s.integrations.USD.join(", ")}</span> : <Tx>غير محدد</Tx> },
           { label: "آخر تعديل", value: s.updatedBy ? `${s.updatedBy} · ${formatDateTime(s.updatedAt)}` : "—" },
         ]} />
-        {manage && (
-          <>
-            <PaymobForm s={{ enabled: s.enabled, mode: s.mode, baseUrl: s.baseUrl, publicKey: s.publicKey, egp: s.integrations.EGP.join(", "), usd: s.integrations.USD.join(", ") }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginTop: 16 }}>
-              <PaymentSecretForm name="secret_key" label="المفتاح السري (Secret key)" isSet={s.secrets.secret_key.set} />
-              <PaymentSecretForm name="hmac_secret" label="سر HMAC" isSet={s.secrets.hmac_secret.set} />
-            </div>
-          </>
-        )}
+        <p className="bos-faint" style={{ fontSize: 12.5, marginTop: 12 }}>
+          <Tx>مفاتيح Paymob تُضاف وتُعدّل من مكان واحد: الإعدادات ← مركز التكاملات.</Tx>{" "}
+          <Link className="bos-link" href="/admin/settings/integrations?tab=connections&cat=payments"><Tx>فتح مركز التكاملات</Tx></Link>
+        </p>
       </Card>
 
       <Card title="باقات العملاء المحتملين الإضافية">
         {packs.length ? (
           <BosTable className="bos-table">
-            <thead><tr><th><Tx>العملاء المحتملون</Tx></th><th><Tx>السعر (USD)</Tx></th><th><Tx>السعر (EGP)</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر تعديل</Tx></th></tr></thead>
+            <thead><tr><th><Tx>العملاء المحتملون</Tx></th><th><Tx>السعر (USD)</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر تعديل</Tx></th></tr></thead>
             <tbody>
               {packs.map((p) => (
                 <tr key={p.id}>
                   <td className="bos-num">{num(p.prospects)}</td>
                   <td className="bos-num">{money(Number(p.price_usd), "USD")}</td>
-                  <td className="bos-num">{p.price_egp == null ? "—" : money(Number(p.price_egp), "EGP")}</td>
                   <td>{p.active ? <StatusBadge tone="success" label="معروضة" /> : <StatusBadge tone="neutral" label="مخفية" />}</td>
                   <td>{p.updated_by ? `${p.updated_by} · ${formatDateTime(p.updated_at)}` : formatDateTime(p.created_at)}</td>
                 </tr>
@@ -77,7 +70,7 @@ export default async function PaymentsPage() {
         ) : <EmptyState title="لا توجد باقات" description="أضف باقة ليظهر زر شراء عملاء محتملين إضافيين للعملاء." />}
         {manage && (
           <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
-            {packs.map((p) => <details key={p.id}><summary><Tx vars={{ n: num(p.prospects) }}>{"تعديل باقة {n}"}</Tx></summary><PackForm p={{ ...p, price_usd: Number(p.price_usd), price_egp: p.price_egp == null ? null : Number(p.price_egp) }} /></details>)}
+            {packs.map((p) => <details key={p.id}><summary><Tx vars={{ n: num(p.prospects) }}>{"تعديل باقة {n}"}</Tx></summary><PackForm p={{ ...p, price_usd: Number(p.price_usd) }} /></details>)}
             <PackForm />
           </div>
         )}

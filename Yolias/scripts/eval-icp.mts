@@ -22,7 +22,7 @@ const set = JSON.parse(readFileSync(new URL("../tests/evals/icp-cases.json", imp
 const one = arg("route");
 const routes: LlmRoute[] = one ? [{ provider: one.split(":")[0] as LlmRoute["provider"], model: one.split(":").slice(1).join(":") }] : await routesFor("default");
 if (!routes.length) {
-  console.log("No LLM provider is configured (ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY). Nothing evaluated.");
+  console.log("No LLM provider is configured (add a key in Yolias Admin → Settings → Integrations). Nothing evaluated.");
   process.exit(2);
 }
 

@@ -78,13 +78,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     role: session.role,
     usage,
     invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
-    packs: packs.flatMap((p) => {
-      const price = currency === "EGP" ? p.price_egp : p.price_usd;
-      return price == null ? [] : [{ id: p.id, prospects: p.prospects, price: Number(price) }];
-    }),
+    packs: packs.map((p) => ({ id: p.id, prospects: p.prospects, price: Number(p.price_usd) })),
     billing: { online, testMode: billingTestMode() },
     mailboxes: mailboxes.map((m) => ({ provider: m.provider, email: m.email, status: m.status })),
-    mailProviders: providersAvailable(),
+    mailProviders: await providersAvailable(),
     unread,
     team: {
       members: team.members.map((m) => ({

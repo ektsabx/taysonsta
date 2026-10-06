@@ -144,10 +144,10 @@ export async function usageOverview() {
     if (r.allowance && r.consumed >= r.allowance) p.atLimit++;
     byPlan.set(r.plan, p);
   }
-  const packTotals = { prospects: 0, live: { USD: 0, EGP: 0 } as Record<string, number>, test: 0 };
+  const packTotals = { prospects: 0, live: 0, test: 0 };
   for (const p of packs ?? []) {
     packTotals.prospects += p.prospects ?? 0;
-    if (p.mode === "live") packTotals.live[p.currency] = (packTotals.live[p.currency] ?? 0) + Number(p.amount);
+    if (p.mode === "live") packTotals.live += Number(p.amount);
     else packTotals.test++;
   }
   return {

@@ -98,9 +98,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   } else {
     const { data: pack } = await db.from("prospect_packs").select("*").eq("id", target.packId).eq("active", true).maybeSingle();
     if (!pack) return { ok: false, error: "not_found" };
-    const price = currency === "EGP" ? pack.price_egp : pack.price_usd;
-    if (price == null) return { ok: false, error: "not_priced" };
-    row = { kind: "prospect_pack", pack_id: pack.id, prospects: pack.prospects, amount: Number(price) };
+    row = { kind: "prospect_pack", pack_id: pack.id, prospects: pack.prospects, amount: Number(pack.price_usd) };
     description = fmt(t.buyMore.packName, { count: formatNumber(pack.prospects) });
   }
 

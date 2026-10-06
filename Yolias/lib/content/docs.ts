@@ -32,12 +32,13 @@ export const docs: DocPage[] = [
         blocks: [
           { p: "These are real screenshots of Yolias with example data. The numbers on each picture match the list under it." },
           { h2: "1. Describe who you want to sell to" },
-          { figure: { src: "/docs/shots/en-search.png", alt: "A search and its result card", caption: "A search: what you asked for, and what Yolias found.", marks: [
-            { x: 55, y: 30, label: "Your request, in your own words (Arabic or English)." },
-            { x: 42, y: 57, label: "The campaign's status and the best match score." },
-            { x: 31, y: 68, label: "The best matching company." },
-            { x: 74, y: 70, label: "Its decision makers. Contact details stay masked until you reveal them." },
-            { x: 81, y: 88, label: "Save the results to Prospects." },
+          { figure: { src: "/docs/shots/en-search.png", alt: "A search in Yolias AI", caption: "A search is one conversation: your request, what Yolias found, and every follow-up in the same thread.", marks: [
+            { x: 76, y: 10, label: "Your request, in your own words (Arabic or English)." },
+            { x: 50, y: 17, label: "The search's status and the best match score." },
+            { x: 38, y: 28, label: "Who Yolias understood you want." },
+            { x: 72, y: 37, label: "The best matches. Contact details stay masked until you reveal them." },
+            { x: 77, y: 56, label: "Save the results to Prospects." },
+            { x: 59, y: 89, label: "Ask Yolias AI about this search, right here in the same conversation." },
           ] } },
           { h2: "2. Work your results in Prospects" },
           { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Prospects: one tab per kind of result.", marks: [
@@ -58,7 +59,7 @@ export const docs: DocPage[] = [
             { x: 25, y: 70, label: "What each day delivered." },
           ] } },
           { h2: "5. Ask Yolias AI" },
-          { figure: { src: "/docs/shots/en-chat.png", alt: "A new chat with Yolias AI", caption: "Chats: private or shared with your workspace. Yolias AI answers from your real data and shows what it's doing while it works." } },
+          { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or prepare outreach — the reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
           { h2: "6. Reach out from your own mailbox" },
           { figure: { src: "/docs/shots/en-outreach.png", alt: "The Outreach page", caption: "Outreach: connect Gmail or Outlook, then review each email Yolias prepared before it's sent from your mailbox." } },
         ],
@@ -69,12 +70,13 @@ export const docs: DocPage[] = [
         blocks: [
           { p: "هذه صور حقيقية من يولـياس ببيانات مثال. الأرقام على كل صورة تطابق القائمة تحتها." },
           { h2: "1. صِف من تريد أن تبيع له" },
-          { figure: { src: "/docs/shots/ar-search.png", alt: "بحث وبطاقة نتيجته", caption: "البحث: ما طلبته وما وجده يولـياس.", marks: [
-            { x: 55, y: 30, label: "طلبك بكلماتك (بالعربية أو الإنجليزية)." },
-            { x: 42, y: 57, label: "حالة الحملة وأعلى نسبة تطابق." },
-            { x: 31, y: 68, label: "الشركة الأكثر تطابقًا." },
-            { x: 74, y: 70, label: "صناع القرار فيها. بيانات التواصل مخفية حتى تُظهرها." },
-            { x: 81, y: 88, label: "احفظ النتائج في العملاء المحتملين." },
+          { figure: { src: "/docs/shots/ar-search.png", alt: "بحث في Yolias AI", caption: "البحث محادثة واحدة: طلبك، وما وجده يولـياس، وكل سؤال بعده في نفس المحادثة.", marks: [
+            { x: 24, y: 10, label: "طلبك بكلماتك (بالعربية أو الإنجليزية)." },
+            { x: 53, y: 17, label: "حالة البحث وأعلى نسبة تطابق." },
+            { x: 52, y: 28, label: "من فهم يولـياس أنك تريده." },
+            { x: 28, y: 37, label: "أفضل النتائج. بيانات التواصل مخفية حتى تُظهرها." },
+            { x: 25, y: 56, label: "احفظ النتائج في العملاء المحتملين." },
+            { x: 41, y: 89, label: "اسأل Yolias AI عن هذا البحث هنا في نفس المحادثة." },
           ] } },
           { h2: "2. اعمل على نتائجك في العملاء المحتملين" },
           { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "العملاء المحتملون: تبويب لكل نوع من النتائج.", marks: [
@@ -95,7 +97,7 @@ export const docs: DocPage[] = [
             { x: 25, y: 70, label: "ما تم تسليمه كل يوم." },
           ] } },
           { h2: "5. اسأل Yolias AI" },
-          { figure: { src: "/docs/shots/ar-chat.png", alt: "محادثة جديدة مع Yolias AI", caption: "المحادثات: خاصة أو مشتركة مع مساحة العمل. يجيب Yolias AI من بياناتك الحقيقية ويُظهر ما يفعله أثناء العمل." } },
+          { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو تجهيز رسائل التواصل — ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
           { h2: "6. تواصل من بريدك أنت" },
           { figure: { src: "/docs/shots/ar-outreach.png", alt: "صفحة التواصل", caption: "التواصل: اربط Gmail أو Outlook، وراجع كل رسالة جهّزها يولـياس قبل إرسالها من بريدك." } },
         ],

@@ -34,11 +34,8 @@ const s2 = serve("gemini", 4932, () => geminiHandler);
 let anthropicHandler: Handler = () => ({ status: 529, json: { type: "error", error: { type: "overloaded_error", message: "Overloaded" } } });
 const s3 = serve("anthropic", 4933, () => anthropicHandler);
 
-process.env.ANTHROPIC_API_KEY = "test-anthropic";
 process.env.ANTHROPIC_BASE_URL = "http://127.0.0.1:4933";
-process.env.OPENAI_API_KEY = "test-openai";
 process.env.OPENAI_API_URL = "http://127.0.0.1:4931/v1";
-process.env.GEMINI_API_KEY = "test-gemini";
 process.env.GEMINI_API_URL = "http://127.0.0.1:4932/v1beta";
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
@@ -46,6 +43,8 @@ const intel = admin.schema("intel" as never) as unknown as ReturnType<typeof adm
 const { data: before } = await intel.from("settings").select("value").eq("key", "llm_routing").maybeSingle();
 await intel.from("settings").upsert({ key: "llm_routing", value: { default: [{ provider: "anthropic", model: "claude-opus-5-5" }, { provider: "openai", model: "gpt-test" }, { provider: "gemini", model: "gemini-test" }] } });
 
+// Keys normally come from Yolias Admin → Integrations (D-132); the test injects its own.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({ anthropic: { api_key: "test-anthropic" }, openai: { api_key: "test-openai" }, gemini: { api_key: "test-gemini" } });
 const { understandStrategy } = await import("@/lib/ai/strategy.ts");
 const { runAgent } = await import("@/lib/agent/run.ts");
 

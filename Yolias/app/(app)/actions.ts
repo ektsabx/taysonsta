@@ -112,3 +112,14 @@ export async function deleteStrategy(id: string): Promise<{ ok: boolean }> {
   revalidatePath("/", "layout");
   return { ok: !error };
 }
+
+/** Like (1), dislike (-1) or clear (null) a Yolias AI reply (with the member's own client, RLS). */
+export async function rateReply(messageId: number, rating: 1 | -1 | null): Promise<{ ok: boolean }> {
+  const session = await requireSession();
+  if (!Number.isInteger(messageId) || messageId <= 0) return { ok: false };
+  const db = await createClient();
+  const { error } = rating === null
+    ? await db.from("agent_feedback").delete().eq("message_id", messageId).eq("user_id", session.userId)
+    : await db.from("agent_feedback").upsert({ message_id: messageId, user_id: session.userId, rating }, { onConflict: "message_id,user_id" });
+  return { ok: !error };
+}

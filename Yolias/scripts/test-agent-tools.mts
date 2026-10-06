@@ -5,13 +5,25 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { executeTool, type AgentContext } from "@/lib/agent/tools.ts";
+// Never the owner's real keys from Yolias Admin → Integrations (D-132): no LLM keys in this test.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({});
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!, anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, svc = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const admin = createClient(url, svc, { auth: { persistSession: false } });
-// Two workspaces with an active plan (create them by signing up locally if missing).
-const { data: active } = await admin.from("workspaces").select("id").in("subscription_status", ["active", "test"]).limit(2);
-if (!active || active.length < 2) throw new Error("Need two workspaces with an active plan in the local database.");
-const [A, B] = active.map((w) => w.id);
+// Two fresh workspaces with an active plan (removed at the end), so the
+// local demo data never changes the counts.
+const tag = Date.now().toString(36);
+const users: string[] = [];
+async function workspace(name: string) {
+  const { data, error } = await admin.auth.admin.createUser({ email: `agent-${name}-${tag}@yolias.local`, email_confirm: true });
+  if (error) throw error;
+  users.push(data.user.id);
+  await admin.from("profiles").update({ full_name: `${name} Tester`, onboarded_at: new Date().toISOString() }).eq("id", data.user.id);
+  const ws = (await admin.from("profiles").select("workspace_id").eq("id", data.user.id).single()).data!.workspace_id!;
+  await admin.from("workspaces").update({ name: `${name} Co`, plan: "pro", subscription_status: "test" }).eq("id", ws);
+  return ws;
+}
+const A = await workspace("alpha"), B = await workspace("beta");
 
 async function sessionFor(ws: string) {
   const { data: m } = await admin.from("workspace_members").select("user_id, role").eq("workspace_id", ws).single();
@@ -62,7 +74,6 @@ try {
   assert.equal(log!.length, 15);
   console.log("ALL PASS");
 } finally {
-  await admin.from("agent_tool_calls").delete().eq("workspace_id", A);
-  await admin.from("strategies").delete().eq("workspace_id", A).ilike("prompt", "Heads of sales%");
-  for (const s of [a, b]) await admin.from("campaigns").delete().eq("id", s.campaign);
+  for (const ws of [A, B]) await admin.from("workspaces").delete().eq("id", ws);
+  for (const u of users) await admin.auth.admin.deleteUser(u);
 }

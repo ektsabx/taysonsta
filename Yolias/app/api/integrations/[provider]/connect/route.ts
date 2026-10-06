@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/api/i
   if (!session) return NextResponse.redirect(new URL("/login", request.url));
   if (!isMailProvider(provider)) return NextResponse.redirect(new URL("/outreach?mailbox=unknown", request.url));
   const mailer = mailers[provider];
-  const app = mailer.app();
+  const app = await mailer.app();
   if (!app) return NextResponse.redirect(new URL("/outreach?mailbox=not_configured", request.url));
   const state = randomBytes(24).toString("base64url");
   const res = NextResponse.redirect(mailer.authorizeUrl(app, callbackUrl(request, provider), state));

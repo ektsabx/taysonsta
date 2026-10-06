@@ -6,6 +6,7 @@ import { nowIso } from "@/lib/bos/clock";
 import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { decryptSecrets, encryptSecrets, redact, secretHint, secretsConfigured, SecretsKeyMissingError } from "@/lib/bos/secrets";
 import { providerMap, type ProviderDef } from "@/lib/bos/integrations/catalog";
+import { checkForYolias, syncToYolias, usedByYolias } from "@/services/yolias/integrations";
 
 // Integration Hub (docs/bos/30 §7, doc 31 Phase 4): connections with
 // encrypted credentials, connection tests, a single outbound call helper
@@ -68,6 +69,7 @@ export async function saveConnection(bos: BosUser, id: string | null, input: Con
     }
   }
   if (Object.keys(errors).length) throw new ValidationError("بعض الحقول تحتاج إلى مراجعة.", errors);
+  checkForYolias(input.provider, config);
 
   const hint: Record<string, string> = {};
   for (const [k, v] of Object.entries(secrets)) hint[k] = secretHint(v);
@@ -77,12 +79,14 @@ export async function saveConnection(bos: BosUser, id: string | null, input: Con
     const { error } = await db().from("integration_connections").update(row).eq("id", id);
     if (error) throw error;
     await audit({ actorId: bos.userId, action: "integration.updated", entityType: "integration", entityId: id, oldValue: { label: before?.label, config: before?.config, secrets: Object.keys(existingSecrets) }, newValue: { label, config, secrets: Object.keys(secrets) } });
+    await pushToYolias(input.provider, bos);
     return id;
   }
   const { count } = await db().from("integration_connections").select("id", { count: "exact", head: true }).eq("provider", input.provider).neq("status", "disabled");
   const { data, error } = await db().from("integration_connections").insert({ ...row, is_default: !count, created_by: bos.userId }).select("id").single();
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "integration.created", entityType: "integration", entityId: data.id, newValue: { provider: input.provider, label, config, secrets: Object.keys(secrets) } });
+  await pushToYolias(input.provider, bos);
   return data.id;
 }
 
@@ -93,6 +97,7 @@ export async function setDefaultConnection(bos: BosUser, id: string) {
   await db().from("integration_connections").update({ is_default: false }).eq("provider", data.provider).eq("is_default", true);
   await db().from("integration_connections").update({ is_default: true }).eq("id", id);
   await audit({ actorId: bos.userId, action: "integration.default_changed", entityType: "integration", entityId: id });
+  await pushToYolias(data.provider, bos);
 }
 
 export async function setConnectionStatus(bos: BosUser, id: string, active: boolean) {
@@ -100,6 +105,7 @@ export async function setConnectionStatus(bos: BosUser, id: string, active: bool
   if (!data) throw new NotFoundError();
   await db().from("integration_connections").update({ status: active ? "active" : "disabled", ...(active ? {} : { is_default: false }) }).eq("id", id);
   await audit({ actorId: bos.userId, action: active ? "integration.enabled" : "integration.disabled", entityType: "integration", entityId: id });
+  await pushToYolias(data.provider, bos);
 }
 
 export async function deleteConnection(bos: BosUser, id: string) {
@@ -108,6 +114,15 @@ export async function deleteConnection(bos: BosUser, id: string) {
   const { error } = await db().from("integration_connections").delete().eq("id", id);
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "integration.deleted", entityType: "integration", entityId: id, oldValue: data });
+  await pushToYolias(data.provider, bos);
+}
+
+/** Copies a provider's default active account to Yolias when Yolias uses it (D-132). */
+export async function pushToYolias(provider: string, bos: BosUser | null) {
+  if (!usedByYolias(provider)) return;
+  const conn = await resolveConnection(provider);
+  if (conn) await audit({ actorId: bos?.userId ?? null, action: "integration.synced_to_yolias", entityType: "integration", entityId: conn.connection.id, newValue: { provider } });
+  await syncToYolias(provider, conn, bos);
 }
 
 // Active connection for a provider (the default one, or a specific id).

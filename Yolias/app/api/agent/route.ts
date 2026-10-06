@@ -10,12 +10,10 @@ import { campaignConversation, conversationTurns } from "@/services/conversation
 import type { ConversationRow, Json } from "@/types/database";
 
 const BodySchema = z.object({
-  /** A conversation the member can read (personal, workspace or campaign)… */
-  conversationId: z.string().uuid().optional(),
-  /** …or a search, whose campaign conversation is used (created on first use). */
-  strategyId: z.string().uuid().optional(),
+  /** The search (sidebar "Recent") whose conversation is used — created on first use. Every chat is a search's chat. */
+  strategyId: z.string().uuid(),
   text: z.string().trim().min(1).max(4000),
-}).refine((b) => Boolean(b.conversationId) !== Boolean(b.strategyId), "one of conversationId / strategyId");
+});
 const HISTORY_TURNS = 40;
 // Per user: protects against runaway LLM cost (rule 25). Counted from saved turns.
 const PER_MINUTE = 8;
@@ -35,23 +33,12 @@ export async function POST(request: NextRequest) {
 
   const db = await createClient();
   const ws = session.workspace.id;
-  let conversation: ConversationRow | null = null;
-  let focus: AgentFocus;
-  if (body.data.strategyId) {
-    const { data: strategy } = await db.from("strategies").select("id, workspace_id, title").eq("id", body.data.strategyId).maybeSingle();
-    if (!strategy || strategy.workspace_id !== ws) return NextResponse.json({ error: "notFound" }, { status: 404 });
-    conversation = await campaignConversation(strategy);
-  } else {
-    const { data } = await db.from("conversations").select("*").eq("id", body.data.conversationId!).maybeSingle();
-    conversation = data;
-  }
+  const { data: strategy } = await db.from("strategies").select("id, workspace_id, title").eq("id", body.data.strategyId).maybeSingle();
+  if (!strategy || strategy.workspace_id !== ws) return NextResponse.json({ error: "notFound" }, { status: 404 });
+  const conversation: ConversationRow | null = await campaignConversation(strategy);
   if (!conversation || conversation.workspace_id !== ws || conversation.archived_at) return NextResponse.json({ error: "notFound" }, { status: 404 });
-  if (conversation.scope === "campaign") {
-    const { data: campaign } = await db.from("campaigns").select("id").eq("strategy_id", conversation.strategy_id!).maybeSingle();
-    focus = { scope: "campaign", strategyId: conversation.strategy_id!, campaignId: campaign?.id ?? null };
-  } else {
-    focus = { scope: conversation.scope };
-  }
+  const { data: campaign } = await db.from("campaigns").select("id").eq("strategy_id", strategy.id).maybeSingle();
+  const focus: AgentFocus = { scope: "campaign", strategyId: strategy.id, campaignId: campaign?.id ?? null };
 
   const since = (ms: number) => new Date(Date.now() - ms).toISOString();
   const [{ count: lastMinute }, { count: lastDay }] = await Promise.all([
@@ -69,7 +56,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
   const admin = createAdminClient();
-  // A new personal / workspace conversation is named after its first message.
   await admin.from("conversations").update(conversation.title ? { updated_at: new Date().toISOString() } : { title: titleFrom(body.data.text) }).eq("id", conversation.id);
 
   const history = await conversationTurns(conversation.id, db, HISTORY_TURNS);

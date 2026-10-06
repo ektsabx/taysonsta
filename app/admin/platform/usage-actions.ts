@@ -11,9 +11,8 @@ import { adjustUsage, setPlanQuota } from "@/services/yolias/usage";
 export async function setPlanQuotaAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return handleAction("yolias.setPlanQuota", async () => {
     const { bos } = await authorize("platform.manage", "all");
-    const egp = String(formData.get("price_egp") ?? "").trim();
     const usd = String(formData.get("price_usd") ?? "").trim();
-    await setPlanQuota(bos, String(formData.get("plan") ?? ""), Number(formData.get("prospects")), usd === "" ? undefined : Number(usd), egp === "" ? null : Number(egp));
+    await setPlanQuota(bos, String(formData.get("plan") ?? ""), Number(formData.get("prospects")), usd === "" ? undefined : Number(usd));
     revalidatePath("/admin/platform", "layout");
     return { ok: true };
   });

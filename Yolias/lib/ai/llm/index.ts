@@ -3,6 +3,7 @@ import { z } from "zod";
 import { YOLIAS_MODEL } from "@/lib/ai/anthropic";
 import { getSetting } from "@/lib/intel/db";
 import { priceCall, recordLlmCall } from "@/lib/intel/llm";
+import { loadIntegrations } from "@/lib/integrations";
 import { anthropicAdapter } from "./anthropic";
 import { geminiAdapter } from "./gemini";
 import { openaiAdapter } from "./openai";
@@ -12,8 +13,8 @@ import { LlmProviderError, type ChatRequest, type ChatResult, type LlmAdapter, t
 // task is configuration (intel.settings "llm_routing", edited in Yolias
 // Admin): e.g. {"default": [{"provider":"anthropic","model":"…"},
 // {"provider":"openai","model":"…"}, {"provider":"gemini","model":"…"}]}.
-// A provider is used only when its key is set (ANTHROPIC_API_KEY,
-// OPENAI_API_KEY, GEMINI_API_KEY). If a call fails (network, rate limit,
+// A provider is used only when its key is set in Yolias Admin → Settings →
+// Integrations (lib/integrations.ts, D-132). If a call fails (network, rate limit,
 // outage, refusal, invalid output), the next one is tried. Every attempt is
 // logged in intel.llm_calls with its cost (rule 28); a model without a price
 // in "llm_prices" is logged as unpriced (D-114).
@@ -33,6 +34,7 @@ export class LlmNotConfiguredError extends Error {}
 
 /** Configured routes for a task, in order, keeping only providers with a key. */
 export async function routesFor(task: string): Promise<LlmRoute[]> {
+  await loadIntegrations();
   const raw = await getSetting<unknown>("llm_routing", DEFAULT_ROUTING).catch(() => DEFAULT_ROUTING);
   const parsed = RoutingSchema.safeParse(raw);
   const routing = parsed.success ? parsed.data : DEFAULT_ROUTING;
@@ -40,7 +42,8 @@ export async function routesFor(task: string): Promise<LlmRoute[]> {
   return list.filter((r) => adapters[r.provider].configured());
 }
 
-export function anyLlmConfigured(): boolean {
+export async function anyLlmConfigured(): Promise<boolean> {
+  await loadIntegrations();
   return Object.values(adapters).some((a) => a.configured());
 }
 
@@ -79,6 +82,7 @@ export interface StructuredOutcome<T> {
  */
 export async function runStructured<T>(task: string, req: StructuredRequest, validate: (data: unknown) => T | null, log: Omit<LlmLog, "task">, only?: LlmRoute[]): Promise<StructuredOutcome<T>> {
   // `only`: a fixed route list (evals); still limited to providers with a key.
+  if (only) await loadIntegrations();
   const routes = only ? only.filter((r) => adapters[r.provider].configured()) : await routesFor(task);
   if (!routes.length) throw new LlmNotConfiguredError(task);
   let last: LlmProviderError | null = null;

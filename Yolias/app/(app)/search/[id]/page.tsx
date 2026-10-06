@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AgentThread } from "@/components/app/AgentThread";
 import { DiscoveryCard } from "@/components/app/DiscoveryCard";
-import { StrategyComposer } from "@/components/app/StrategyComposer";
+import { YoliasMark } from "@/components/YoliasMark";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { planLabel } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
@@ -26,10 +26,26 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
   return (
     <div className="page-view">
       <header style={{ height: 44, flexShrink: 0 }} />
-      <div className="chat-view">
-        <StrategyComposer key={view.strategy.id} initialPrompt={view.strategy.prompt} />
-        <DiscoveryCard view={view} />
-        <AgentThread key={`thread-${view.strategy.id}`} strategyId={view.strategy.id} initial={turns} plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== "growth" && canManageTeam(session) }} />
+      <div className="chat-view search-chat">
+        {/* One conversation (owner decision): the request, Yolias's search card,
+            then every follow-up in the same thread with one composer below. */}
+        <AgentThread
+          key={`thread-${view.strategy.id}`}
+          strategyId={view.strategy.id}
+          initial={turns}
+          plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== "growth" && canManageTeam(session) }}
+          lead={
+            <>
+              <li className="agent-turn user">
+                <div className="agent-turn-body"><div className="agent-turn-text" dir="auto">{view.strategy.prompt}</div></div>
+              </li>
+              <li className="agent-turn assistant">
+                <YoliasMark size={18} />
+                <div className="agent-turn-body search-card-turn"><DiscoveryCard view={view} /></div>
+              </li>
+            </>
+          }
+        />
       </div>
     </div>
   );

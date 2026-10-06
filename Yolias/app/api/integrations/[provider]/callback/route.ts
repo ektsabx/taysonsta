@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/api/i
   if (!cState || cProvider !== provider || cUser !== session.userId || !same(cState, q.get("state") ?? "")) return back("state");
   if (q.get("error") || !q.get("code")) return back("denied");
   const mailer = mailers[provider];
-  const app = mailer.app();
+  const app = await mailer.app();
   if (!app) return back("not_configured");
   try {
     const t = await mailer.exchange(app, q.get("code")!, callbackUrl(request, provider));

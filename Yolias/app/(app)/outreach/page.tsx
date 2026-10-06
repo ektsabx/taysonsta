@@ -25,7 +25,7 @@ export default async function OutreachPage({ searchParams }: PageProps<"/outreac
     myMailboxes(session.userId), outreachCounts(session.workspace.id), listOutreach(session.workspace.id, tab), getDictionary(), getLocale(),
   ]);
   const o = t.outreach;
-  const available = providersAvailable();
+  const available = await providersAvailable();
   const result = typeof sp.mailbox === "string" && sp.mailbox in o.mailboxResult ? o.mailboxResult[sp.mailbox as keyof typeof o.mailboxResult] : null;
 
   return (

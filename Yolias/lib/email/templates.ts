@@ -283,9 +283,9 @@ export function supabaseEmailChangedTemplate(): string {
 
 /* ───────────────────────── Product emails ───────────────────────── */
 
-/** "$20.00" / "EGP 1,000.00" — every amount in its own currency (D-120). */
-export function price(amount: number, currency: "USD" | "EGP" = "USD"): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, currencyDisplay: currency === "USD" ? "narrowSymbol" : "code", minimumFractionDigits: 2 }).format(amount);
+/** "$20.00" (one USD price, D-131). */
+export function price(amount: number, currency: "USD" = "USD"): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, currencyDisplay: "narrowSymbol", minimumFractionDigits: 2 }).format(amount);
 }
 const money = price;
 
@@ -310,7 +310,7 @@ export interface ReceiptInput {
   planName: string;
   period: "monthly" | "annual";
   amount: number;
-  currency?: "USD" | "EGP";
+  currency?: "USD";
   date: string;
   periodEnd: string;
   test: boolean;

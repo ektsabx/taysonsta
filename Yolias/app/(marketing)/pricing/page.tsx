@@ -14,7 +14,6 @@ export async function generateMetadata(): Promise<Metadata> {
 // (signed-in users). Journey: signup → magic link → checkout → onboarding → Yolias.
 export default async function PricingPage() {
   const session = await getSession();
-  // A workspace already on a plan keeps its billing currency; visitors get their country's.
-  const [plans, currency] = await Promise.all([getPlanCatalog(), session ? workspaceCurrency(session.workspace) : currencyFor(await requestCountry())]);
+  const [plans, currency] = await Promise.all([getPlanCatalog(), session ? workspaceCurrency(session.workspace) : currencyFor()]);
   return <PricingView signedIn={Boolean(session)} plans={plans} currency={currency} />;
 }

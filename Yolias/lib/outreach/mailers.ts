@@ -1,3 +1,4 @@
+import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import type { MailProvider } from "@/types/database";
 
 // Mail providers for outreach (final spec phase 8). A member connects their
@@ -5,6 +6,7 @@ import type { MailProvider } from "@/types/database";
 // sends one approved message at a time through the provider's API. Verified
 // against the official docs: Gmail users.messages.send (base64url RFC 2822,
 // scope gmail.send) and Microsoft Graph POST /me/sendMail (Mail.Send, 202).
+// The OAuth clients come from Yolias Admin → Settings → Integrations (D-132).
 // Base URLs can be overridden for local tests.
 
 export interface OAuthApp {
@@ -24,8 +26,8 @@ const env = (k: string, d: string) => (process.env[k] ?? d).replace(/\/$/, "");
 
 export interface Mailer {
   id: MailProvider;
-  /** OAuth client from the environment, or null when this provider isn't set up. */
-  app(): OAuthApp | null;
+  /** OAuth client from Yolias Admin → Integrations, or null when this provider isn't set up. */
+  app(): Promise<OAuthApp | null>;
   authorizeUrl(app: OAuthApp, redirectUri: string, state: string): string;
   /** Code → tokens + the mailbox address. */
   exchange(app: OAuthApp, code: string, redirectUri: string): Promise<{ refreshToken: string; accessToken: string; email: string }>;
@@ -39,6 +41,12 @@ export class MailerError extends Error {
     super(message);
     this.kind = kind;
   }
+}
+
+async function oauthApp(provider: "google_oauth" | "microsoft_oauth"): Promise<OAuthApp | null> {
+  await loadIntegrations();
+  const clientId = integrationSecret(provider, "client_id"), clientSecret = integrationSecret(provider, "client_secret");
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 
 async function tokenCall(url: string, params: Record<string, string>) {
@@ -80,10 +88,7 @@ export function rfc2822(mail: MailToSend): string {
 
 export const gmail: Mailer = {
   id: "gmail",
-  app() {
-    const clientId = process.env.GOOGLE_CLIENT_ID, clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    return clientId && clientSecret ? { clientId, clientSecret } : null;
-  },
+  app: () => oauthApp("google_oauth"),
   authorizeUrl(app, redirectUri, state) {
     const u = new URL(`${env("GOOGLE_OAUTH_URL", "https://accounts.google.com")}/o/oauth2/v2/auth`);
     u.search = new URLSearchParams({
@@ -124,10 +129,7 @@ export const gmail: Mailer = {
 
 export const outlook: Mailer = {
   id: "outlook",
-  app() {
-    const clientId = process.env.MICROSOFT_CLIENT_ID, clientSecret = process.env.MICROSOFT_CLIENT_SECRET;
-    return clientId && clientSecret ? { clientId, clientSecret } : null;
-  },
+  app: () => oauthApp("microsoft_oauth"),
   authorizeUrl(app, redirectUri, state) {
     const u = new URL(`${env("MS_LOGIN_URL", "https://login.microsoftonline.com")}/common/oauth2/v2.0/authorize`);
     u.search = new URLSearchParams({

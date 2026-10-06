@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, MessagesSquare, Send, UserSearch, Users } from "lucide-react";
+  Plug, Plus, SlidersHorizontal, Sparkles, User, Send, UserSearch, Users } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -22,7 +22,6 @@ const mainNav = [
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
   { href: "/campaigns", key: "campaigns", icon: Layers },
   { href: "/prospects", key: "prospects", icon: UserSearch },
-  { href: "/chat", key: "chats", icon: MessagesSquare },
   { href: "/outreach", key: "outreach", icon: Send },
 ] as const;
 

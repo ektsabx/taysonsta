@@ -13,11 +13,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.ts";
 
 const PORTS = { gemini: 4942, anthropic: 4943 };
-process.env.GEMINI_API_KEY = "test-gemini";
 process.env.GEMINI_API_URL = `http://127.0.0.1:${PORTS.gemini}/v1beta`;
-process.env.ANTHROPIC_API_KEY = "test-anthropic";
 process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${PORTS.anthropic}`;
-delete process.env.OPENAI_API_KEY;
 
 const llmSeen: string[] = [];
 const serve = (api: "gemini" | "anthropic", port: number) => http.createServer((req, res) => {
@@ -39,6 +36,8 @@ const serve = (api: "gemini" | "anthropic", port: number) => http.createServer((
 }).listen(port);
 const servers = [serve("gemini", PORTS.gemini), serve("anthropic", PORTS.anthropic)];
 
+// Keys normally come from Yolias Admin → Integrations (D-132); the test injects its own.
+(await import("@/lib/integrations.ts")).setIntegrationsForTests({ gemini: { api_key: "test-gemini" }, anthropic: { api_key: "test-anthropic" } });
 const { adapters } = await import("@/lib/intel/adapters/index.ts");
 const { syncRegistry } = await import("@/lib/intel/registry.ts");
 const { executeTool } = await import("@/lib/agent/tools.ts");

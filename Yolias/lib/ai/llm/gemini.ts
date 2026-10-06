@@ -1,3 +1,4 @@
+import { integrationSecret } from "@/lib/integrations";
 import { errorKind, LlmProviderError, type ChatRequest, type ChatResult, type ChatStep, type InputPart, type LlmAdapter, type StructuredRequest, type StructuredResult } from "./types.ts";
 
 // Google Gemini API (generateContent) over plain fetch. Field names follow the
@@ -6,7 +7,7 @@ import { errorKind, LlmProviderError, type ChatRequest, type ChatResult, type Ch
 // {responseMimeType, responseJsonSchema, maxOutputTokens}, functionCall /
 // functionResponse parts, usageMetadata. The model's own parts (including any
 // thoughtSignature) are sent back unchanged in multi-step tool use.
-//   GEMINI_API_KEY  required to enable it
+//   key             Yolias Admin → Settings → Integrations (lib/integrations.ts)
 //   GEMINI_API_URL  optional (default https://generativelanguage.googleapis.com/v1beta)
 
 const base = () => (process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta").replace(/\/$/, "");
@@ -32,7 +33,7 @@ async function call(model: string, body: Record<string, unknown>): Promise<Gener
   try {
     res = await fetch(`${base()}/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
-      headers: { "x-goog-api-key": process.env.GEMINI_API_KEY ?? "", "Content-Type": "application/json" },
+      headers: { "x-goog-api-key": integrationSecret("gemini", "api_key") ?? "", "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000),
     });
@@ -65,7 +66,7 @@ function parts(input: InputPart[]): Part[] {
 }
 
 export const geminiAdapter: LlmAdapter = {
-  configured: () => Boolean(process.env.GEMINI_API_KEY),
+  configured: () => Boolean(integrationSecret("gemini", "api_key")),
 
   async structured(model: string, req: StructuredRequest): Promise<StructuredResult> {
     const g = await call(model, {

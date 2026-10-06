@@ -18,7 +18,7 @@ import { AiPingButton, ConnectionButton, ProviderManage, type ConnView } from ".
 import { connState } from "@/lib/bos/integrations/state";
 
 // Integration Hub (docs/bos/30 §7, doc 31 Phase 4): every provider in one
-// place — encrypted credentials, several accounts per provider, default
+// place, Yolias's keys included (D-132) — encrypted credentials, several accounts per provider, default
 // account, connection tests, AI settings and usage, call and webhook logs.
 export default async function IntegrationsPage({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("integrations.manage", "all");
@@ -102,13 +102,14 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
                 return (
                   <article key={p.key} className="bos-int-tile">
                     <div className="bos-int-tile-head">
-                      <BrandLogo brand={p.key === "support_email" ? "email" : p.key} name={p.name} />
+                      <BrandLogo brand={p.key === "support_email" ? "email" : p.key === "yolias_google" ? "google_workspace" : p.key} name={p.name} />
                       <div style={{ minWidth: 0 }}>
                         <strong>{p.name}</strong>
                         <div className="bos-faint" style={{ fontSize: 11.5 }}><Tx>{categoryLabels[p.category]}</Tx></div>
                       </div>
                     </div>
                     <p className="bos-int-desc"><Tx>{p.description}</Tx></p>
+                    {p.yolias ? <p className="bos-int-desc" style={{ marginTop: -4 }}><StatusBadge tone="info" label="يستخدمه يولياس" /> <Tx>{p.yolias}</Tx></p> : null}
                     <div className="bos-int-tile-foot">
                       <span className="bos-int-state"><span className={`bos-int-dot tone-${stateMeta[st].tone}`} /><Tx>{stateMeta[st].label}</Tx>{list.length > 1 ? <> · <Tx vars={{ n: list.length }}>{"{n} حساب"}</Tx></> : null}</span>
                       {list.length ? <ProviderManage def={p} conns={list} keyOk={keyOk} fmt={fmt} /> : keyOk ? <ConnectionButton def={p} label="ربط" /> : null}

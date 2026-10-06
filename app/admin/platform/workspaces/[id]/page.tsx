@@ -122,7 +122,7 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
               ].sort((a, b) => b.at.localeCompare(a.at)).map((r) => (
                 <tr key={r.key}>
                   <td>{formatDateTime(r.at)}</td><td>{r.what}</td><td>{isYoliasPlan(r.plan) ? yoliasPlanLabel[r.plan] : r.plan === "pack" ? <Tx>باقة عملاء محتملين</Tx> : r.plan}</td>
-                  <td className="bos-num">{r.currency === "EGP" ? `EGP ${num(Number(r.amount))}` : usd(Number(r.amount))}</td>
+                  <td className="bos-num">{usd(Number(r.amount))}</td>
                   <td>{r.mode === "test" ? <StatusBadge tone="warning" label="وضع الاختبار" /> : <StatusBadge tone="success" label="فعلي" />}</td>
                 </tr>
               ))}

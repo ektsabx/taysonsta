@@ -1,4 +1,5 @@
 import "server-only";
+import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { findDecisionMakers, runDiscovery } from "@/lib/discovery/pipeline";
 import { draftOutreach, sendOutreach } from "@/lib/outreach";
@@ -47,8 +48,9 @@ const SWEEP_EVERY_MS = 60 * 60_000;
  * services are configured in this deployment (yes/no only — never a key).
  */
 async function heartbeat() {
+  await loadIntegrations();
   const configured = {
-    llm: { anthropic: Boolean(process.env.ANTHROPIC_API_KEY), openai: Boolean(process.env.OPENAI_API_KEY), gemini: Boolean(process.env.GEMINI_API_KEY) },
+    llm: { anthropic: Boolean(integrationSecret("anthropic", "api_key")), openai: Boolean(integrationSecret("openai", "api_key")), gemini: Boolean(integrationSecret("gemini", "api_key")) },
     email: Boolean(process.env.RESEND_API_KEY),
     billingTestMode: process.env.BILLING_TEST_MODE === "true",
   };

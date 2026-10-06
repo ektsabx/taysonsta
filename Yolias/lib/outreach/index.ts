@@ -111,7 +111,7 @@ export async function sendOutreach(messageId: string): Promise<OutreachMessageRo
   const { data: box } = m.mailbox_id ? await db.from("mailboxes").select("*").eq("id", m.mailbox_id).maybeSingle() : { data: null };
   if (!box || box.status !== "connected" || box.workspace_id !== m.workspace_id || box.user_id !== m.approved_by) return failWith("mailbox_not_connected");
   const mailer = mailers[box.provider];
-  const app = mailer.app();
+  const app = await mailer.app();
   if (!app) return failWith("provider_not_configured");
 
   // Daily limit per mailbox, counted atomically (a conditional update).

@@ -53,26 +53,3 @@ export async function conversationFor(strategyId: string): Promise<ConversationT
   const { data: c } = await db.from("conversations").select("id").eq("scope", "campaign").eq("strategy_id", strategyId).maybeSingle();
   return c ? conversationTurns(c.id, db) : [];
 }
-
-export interface ConversationListItem {
-  id: string;
-  scope: ConversationRow["scope"];
-  title: string;
-  updated_at: string;
-  strategy_id: string | null;
-  mine: boolean;
-}
-
-/** Conversations the member can see: theirs, the workspace's, and the campaigns'. */
-export async function listConversations(workspaceId: string, userId: string, limit = 60): Promise<ConversationListItem[]> {
-  const db = await createClient();
-  const { data } = await db.from("conversations").select("id, scope, title, updated_at, strategy_id, user_id")
-    .eq("workspace_id", workspaceId).is("archived_at", null).order("updated_at", { ascending: false }).limit(limit);
-  return (data ?? []).map((c) => ({ id: c.id, scope: c.scope, title: c.title, updated_at: c.updated_at, strategy_id: c.strategy_id, mine: c.user_id === userId }));
-}
-
-export async function getConversation(id: string): Promise<ConversationRow | null> {
-  const db = await createClient();
-  const { data } = await db.from("conversations").select("*").eq("id", id).maybeSingle();
-  return data;
-}

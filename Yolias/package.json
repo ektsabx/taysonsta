@@ -10,7 +10,7 @@
     "start": "next start --port 3200",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:unit": "node --experimental-strip-types --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
+    "test:unit": "node --experimental-strip-types --conditions=react-server --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
     "test:agent": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-tools.mts",
     "test:emails": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-emails.mts",
     "test:llm": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-llm-fallback.mts",

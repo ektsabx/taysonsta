@@ -47,3 +47,15 @@ Real charges (Paymob keys), real Google / Microsoft OAuth (client ids),
 real LLM answers (keys), real data providers (D-003 / D-004), Resend
 delivery, Microsoft Clarity (project id). Each one is wired and tested
 against a stand-in of its official API; it shows "not connected" until set.
+
+## Re-run after D-131 / D-132 / D-133 (2026-10-06)
+
+| Check | Result |
+| --- | --- |
+| Yolias typecheck · lint · build | ✓ |
+| Yolias unit (35) · test:agent · test:llm · test:emails · test:payments · test:search-types · test:campaigns · test:ai · test:outreach | ✓ all pass |
+| Admin `npm test` (types, unit 63, DB, integration 86) · lint · build | ✓ |
+| Browser: search page as one conversation (EN + AR), campaign "Open in Yolias AI", `/chat` gone (404) | ✓ |
+| Hub → Yolias sync: Gemini key copied to Vault and used by Yolias AI (`gemini-3.8-flash`); Paymob moved into the hub | ✓ |
+
+Test scripts never use the owner's real keys: each one injects its own (or none) with `setIntegrationsForTests`, and `test:payments` restores the real Paymob secrets it touches.

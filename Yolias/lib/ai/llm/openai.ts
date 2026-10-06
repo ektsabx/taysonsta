@@ -1,9 +1,10 @@
+import { integrationSecret } from "@/lib/integrations";
 import { errorKind, LlmProviderError, type ChatRequest, type ChatResult, type ChatStep, type InputPart, type LlmAdapter, type StructuredRequest, type StructuredResult } from "./types.ts";
 
 // OpenAI Chat Completions over plain fetch (no SDK dependency). Request and
 // response fields follow the official API reference (structured outputs via
 // response_format json_schema; function tools; tool role messages).
-//   OPENAI_API_KEY  required to enable it
+//   key             Yolias Admin → Settings → Integrations (lib/integrations.ts)
 //   OPENAI_API_URL  optional (default https://api.openai.com/v1; any compatible endpoint)
 
 const base = () => (process.env.OPENAI_API_URL || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -24,7 +25,7 @@ async function call(body: Record<string, unknown>): Promise<Completion> {
   try {
     res = await fetch(`${base()}/chat/completions`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${integrationSecret("openai", "api_key")}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000),
     });
@@ -54,7 +55,7 @@ function content(parts: InputPart[]): unknown[] {
 }
 
 export const openaiAdapter: LlmAdapter = {
-  configured: () => Boolean(process.env.OPENAI_API_KEY),
+  configured: () => Boolean(integrationSecret("openai", "api_key")),
 
   async structured(model: string, req: StructuredRequest): Promise<StructuredResult> {
     const c = await call({
