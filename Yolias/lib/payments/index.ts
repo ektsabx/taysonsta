@@ -7,6 +7,7 @@ import { dictionaries, fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
+import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
 
@@ -19,10 +20,10 @@ import type { CheckoutRequest, PaymentOutcome } from "./types";
 //   3. Fulfilment: start/renew the plan or grant the prospect pack, with a
 //      paid invoice in the payment's currency.
 // Provider secrets come from Vault (public.payment_secret), service role only.
-// Money (D-142): prices, invoices and the checkout amount are USD; Paymob
-// (card integration) converts to the card's EGP charge by itself. When its
-// callback reports the converted currency, the payment records what was
-// actually charged (charge_amount / charge_currency / fx_rate).
+// Money (D-142): prices and invoices are USD. Paymob's Egyptian card
+// integration only accepts EGP, so the checkout converts the USD price at
+// the day's rate (fx.ts) and the payment keeps both amounts
+// (charge_amount / charge_currency / fx_rate). The site shows USD only.
 
 type Db = ReturnType<typeof createAdminClient>;
 
@@ -46,15 +47,16 @@ export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRu
     publicKey: cfg.public_key,
     secretKey,
     hmacSecret,
-    // The card integration ids (Admin hub → Paymob). The amount is sent in USD; Paymob converts it.
-    integrations: { USD: cfg.integrations?.USD?.length ? cfg.integrations.USD : (cfg.integrations?.EGP ?? []) },
+    // The card integration ids (Admin hub → Paymob). The integration charges EGP.
+    integrations: { EGP: cfg.integrations?.EGP?.length ? cfg.integrations.EGP : (cfg.integrations?.USD ?? []) },
   };
 }
 
-/** A provider that can charge this currency right now (Paymob today). */
+/** A provider that can take this workspace's (USD) prices right now: Paymob, charging EGP cards. */
 export async function providerFor(currency: Currency): Promise<PaymobRuntime | null> {
+  void currency; // every price is USD (D-131); Paymob charges its EGP equivalent
   const paymob = await loadPaymob();
-  return paymob && (paymob.integrations[currency]?.length ?? 0) > 0 ? paymob : null;
+  return paymob && (paymob.integrations.EGP?.length ?? 0) > 0 ? paymob : null;
 }
 
 export async function paymentsConnected(ws: WorkspaceRow): Promise<boolean> {
@@ -108,15 +110,19 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     description = fmt(t.buyMore.packName, { count: formatNumber(pack.prospects) });
   }
 
+  const rate = await usdToEgp(db);
+  if (!rate) return { ok: false, error: "not_priced" };
+  const charge = toEgp(row.amount, rate);
   const { data: payment, error } = await db.from("payments").insert({
     ...row, workspace_id: ws.id, currency, provider: "paymob", mode: provider.mode, created_by: buyer.userId,
+    charge_amount: charge, charge_currency: "EGP", fx_rate: rate,
   }).select("*").single();
   if (error || !payment) return { ok: false, error: "failed" };
 
   const req: CheckoutRequest = {
     paymentId: payment.id,
-    amount: Number(payment.amount),
-    currency,
+    amount: charge,
+    currency: "EGP",
     description,
     customer: { email: buyer.email, name: buyer.name, country: buyer.country },
     returnUrl: `${siteUrl()}/api/payments/paymob/return`,
@@ -156,21 +162,11 @@ export async function settlePayment(provider: "paymob", o: PaymentOutcome): Prom
   }
   if (!payment) return null;
   // Never trust a callback that doesn't match what we asked for.
-  // Same currency: the amount must be exactly what we asked for. Paymob may
-  // report the card's converted currency (EGP) instead; that callback is
-  // still signed for our order, so the charged amount is recorded as is.
-  const currencyNow = o.currency.toUpperCase();
-  if (currencyNow === payment.currency) {
-    if (o.amountMinor !== toMinor(Number(payment.amount))) {
-      console.error("[payments] amount mismatch", payment.id);
-      return payment;
-    }
-  } else if (currencyNow !== "EGP" || !(o.amountMinor > 0)) {
-    console.error("[payments] currency mismatch", payment.id);
+  // Never trust a callback that doesn't match what we asked Paymob to charge.
+  const charged = { amount: Number(payment.charge_amount ?? payment.amount), currency: payment.charge_currency ?? payment.currency };
+  if (o.amountMinor !== toMinor(charged.amount) || o.currency.toUpperCase() !== charged.currency) {
+    console.error("[payments] amount/currency mismatch", payment.id);
     return payment;
-  } else if (!payment.charge_amount) {
-    const charged = o.amountMinor / 100;
-    await db.from("payments").update({ charge_amount: charged, charge_currency: "EGP", fx_rate: Math.round((charged / Number(payment.amount)) * 10_000) / 10_000 }).eq("id", payment.id);
   }
 
   if (o.status === "refunded") {

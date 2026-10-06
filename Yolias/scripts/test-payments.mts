@@ -44,6 +44,7 @@ const port = (server.address() as AddressInfo).port;
 const { data: before } = await db.from("payment_providers").select("*").eq("id", "paymob").single();
 const { data: quotas } = await db.from("plan_quotas").select("plan, price_usd");
 // The owner's real Paymob secrets are restored after the test, never wiped.
+const { data: fxBefore } = await db.from("site_settings").select("value").eq("key", "yolias_fx_usd_egp").maybeSingle();
 const savedSecrets = { secret_key: (await db.rpc("payment_secret", { p_provider: "paymob", p_name: "secret_key" })).data as string | null, hmac_secret: (await db.rpc("payment_secret", { p_provider: "paymob", p_name: "hmac_secret" })).data as string | null };
 const email = `payments-test-${Date.now()}@yolias.local`;
 let userId: string | null = null;
@@ -53,7 +54,7 @@ function txn(paymentId: string, order: string, amountCents: number, over: Record
   return {
     id: Math.floor(Math.random() * 1e9), pending: false, amount_cents: amountCents, success: true, is_auth: false, is_capture: false,
     is_standalone_payment: true, is_voided: false, is_refunded: false, is_3d_secure: true, integration_id: 222, has_parent_transaction: false,
-    created_at: new Date().toISOString(), currency: "USD", error_occured: false, owner: 1,
+    created_at: new Date().toISOString(), currency: "EGP", error_occured: false, owner: 1,
     order: { id: Number(order), merchant_order_id: paymentId }, source_data: { pan: "2346", type: "card", sub_type: "MasterCard" }, data: { message: "Approved" },
     ...over,
   };
@@ -71,6 +72,8 @@ try {
   await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: "secret_key", p_secret: "local-secret-key" });
   await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: "hmac_secret", p_secret: HMAC });
   await db.from("plan_quotas").update({ price_usd: 9.99 }).eq("plan", "pro");
+  // USD prices, EGP card charge at a fixed test rate of 50 (D-142).
+  await db.from("site_settings").upsert({ key: "yolias_fx_usd_egp", value: { fixed: 50 } });
   await db.from("plan_quotas").update({ price_usd: 24.99 }).eq("plan", "growth");
 
   // A new workspace (Egypt pays the same USD price, D-131).
@@ -90,19 +93,20 @@ try {
   assert.equal(pays!.length, 1);
   const sub = pays![0];
   assert.equal(sub.status, "pending"); assert.equal(Number(sub.amount), 9.99); assert.equal(sub.currency, "USD");
-  assert.equal((intentions.at(-1) as { amount: number }).amount, 999);
-  assert.equal((intentions.at(-1) as { currency: string }).currency, "USD", "USD sent; Paymob converts (D-142)");
+  assert.equal(Number(sub.charge_amount), 500); assert.equal(sub.charge_currency, "EGP"); assert.equal(Number(sub.fx_rate), 50);
+  assert.equal((intentions.at(-1) as { amount: number }).amount, 50000);
+  assert.equal((intentions.at(-1) as { currency: string }).currency, "EGP", "the EGP card integration is charged in EGP (D-142)");
   assert.deepEqual((intentions.at(-1) as { payment_methods: number[] }).payment_methods, [222]);
 
   // 2) Bad signature / wrong amount change nothing.
-  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999), "wrong-secret")).status, 401);
-  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 100))).status, 200);
-  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999, { currency: "SAR" }))).status, 200);
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 50000), "wrong-secret")).status, 401);
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999))).status, 200, "the USD amount is not what was charged");
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 50000, { currency: "USD" }))).status, 200);
   assert.equal((await payment(sub.id)).status, "pending");
   assert.equal((await ws(wsId)).subscription_status, "none");
 
   // 3) Signed success → plan starts, USD invoice, replay is a no-op.
-  const ok = txn(sub.id, sub.provider_ref!, 999);
+  const ok = txn(sub.id, sub.provider_ref!, 50000);
   assert.equal((await callback(ok)).status, 200);
   assert.equal((await callback(ok)).status, 200);
   const paid = await payment(sub.id);
@@ -118,7 +122,7 @@ try {
   ({ data: pays } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("plan", "growth"));
   const bad = pays![0];
   assert.equal(Number(bad.amount), 24.99 * 12);
-  await callback(txn(bad.id, bad.provider_ref!, Math.round(24.99 * 12 * 100), { success: false, data: { message: "Do not honour" } }));
+  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(24.99 * 12 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
   assert.equal((await payment(bad.id)).status, "failed");
   assert.equal((await payment(bad.id)).failure_reason, "Do not honour");
   assert.equal((await ws(wsId)).plan, "pro");
@@ -132,7 +136,7 @@ try {
   const pk = pays![0];
   assert.equal(Number(pk.amount), 2.5);
   // Settled through the signed redirect this time.
-  const t = txn(pk.id, pk.provider_ref!, 250);
+  const t = txn(pk.id, pk.provider_ref!, 12500);
   const q = new URLSearchParams(Object.fromEntries(Object.entries({ ...t, order: t.order.id, merchant_order_id: pk.id, "source_data.pan": "2346", "source_data.type": "card", "source_data.sub_type": "MasterCard" }).filter(([, v]) => typeof v !== "object").map(([k, v]) => [k, String(v)])));
   q.set("hmac", signPaymob(hmacStringFromTransaction(t), HMAC));
   const back = await fetch(`${app}/api/payments/paymob/return?${q}`, { redirect: "manual" });
@@ -145,7 +149,7 @@ try {
   const { data: pi } = await db.from("invoices").select("*").eq("id", packInvoice).single();
   assert.equal(pi!.kind, "prospect_pack"); assert.equal(pi!.prospects, 100); assert.equal(pi!.currency, "USD");
 
-  await callback(txn(pk.id, pk.provider_ref!, 250, { is_refunded: true }));
+  await callback(txn(pk.id, pk.provider_ref!, 12500, { is_refunded: true }));
   assert.equal((await payment(pk.id)).status, "refunded");
   assert.equal((await db.from("invoices").select("status").eq("id", packInvoice).single()).data!.status, "void");
 
@@ -161,10 +165,7 @@ try {
   r = await startCheckout(await ws(wsId), buyer, { kind: "subscription", plan: "pro", period: "monthly", invoiceId: open!.id });
   assert.ok(r.ok);
   const { data: renewal } = await db.from("payments").select("*").eq("invoice_id", open!.id).single();
-  // Paymob converted the card charge to EGP: settled, and the EGP amount is recorded.
-  await callback(txn(renewal!.id, renewal!.provider_ref!, 49_950, { currency: "EGP" }));
-  const rp = await payment(renewal!.id);
-  assert.equal(rp.status, "succeeded"); assert.equal(Number(rp.charge_amount), 499.5); assert.equal(rp.charge_currency, "EGP"); assert.equal(Number(rp.fx_rate), 50);
+  await callback(txn(renewal!.id, renewal!.provider_ref!, 50000));
   const renewed = await ws(wsId);
   assert.equal(renewed.subscription_status, "active");
   assert.equal(new Date(renewed.current_period_end!).getTime(), new Date(open!.period_end).getTime());
@@ -186,6 +187,8 @@ try {
     await db.auth.admin.deleteUser(userId);
   }
   if (packId) await db.from("prospect_packs").delete().eq("id", packId);
+  if (fxBefore) await db.from("site_settings").upsert({ key: "yolias_fx_usd_egp", value: fxBefore.value });
+  else await db.from("site_settings").delete().eq("key", "yolias_fx_usd_egp");
   await db.from("payment_providers").update({ enabled: before!.enabled, mode: before!.mode, config: before!.config }).eq("id", "paymob");
   for (const [name, value] of Object.entries(savedSecrets)) {
     if (value) await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: name, p_secret: value });

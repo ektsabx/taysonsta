@@ -28,27 +28,41 @@ async function loginLink() {
 }
 
 if (process.argv.includes("--login")) {
-console.log(`\nSign in as ${EMAIL} (open in the browser, one use):\n${await loginLink()}\n`);
+  console.log(`\nSign in as ${EMAIL} (open in the browser, one use):\n${await loginLink()}\n`);
   process.exit(0);
 }
 
 // ── A fresh account (signup trigger creates the profile + workspace) ──
-const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
-const old = list.users.find((u) => u.email === EMAIL);
-if (old) {
-  const { data: p } = await db.from("profiles").select("workspace_id").eq("id", old.id).maybeSingle();
-  if (p?.workspace_id) await db.from("workspaces").delete().eq("id", p.workspace_id);
-  await db.auth.admin.deleteUser(old.id);
+// --into <email>: add the same searches and conversations to an existing
+// local account (its plan and data are kept). Otherwise test@yolias.local is
+// re-created on the Free plan so the prospects run out.
+const intoAt = process.argv.indexOf("--into");
+const INTO = intoAt > 0 ? process.argv[intoAt + 1]?.toLowerCase() : null;
+let userId: string;
+let ws: string;
+if (INTO) {
+  const { data: prof } = await db.from("profiles").select("id, workspace_id").eq("email", INTO).maybeSingle();
+  if (!prof?.workspace_id) throw new Error(`No local account ${INTO}`);
+  userId = prof.id;
+  ws = prof.workspace_id;
+} else {
+  const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
+  const old = list.users.find((u) => u.email === EMAIL);
+  if (old) {
+    const { data: p } = await db.from("profiles").select("workspace_id").eq("id", old.id).maybeSingle();
+    if (p?.workspace_id) await db.from("workspaces").delete().eq("id", p.workspace_id);
+    await db.auth.admin.deleteUser(old.id);
+  }
+  const { data: created, error: createError } = await db.auth.admin.createUser({ email: EMAIL, email_confirm: true, user_metadata: { full_name: "Mona Adel" } });
+  if (createError) throw createError;
+  userId = created.user.id;
+  ws = (await db.from("profiles").select("workspace_id").eq("id", userId).single()).data!.workspace_id!;
+  await db.from("profiles").update({ full_name: "Mona Adel", onboarded_at: new Date().toISOString(), language: "ar", country: "EG", timezone: "Africa/Cairo" }).eq("id", userId);
+  await db.from("workspaces").update({
+    name: "Nile CRM", website: "https://nilecrm.example", offering: "A simple CRM for small sales teams in Egypt and the Gulf",
+    plan: "free", subscription_status: "active", billing_country: "EG",
+  }).eq("id", ws);
 }
-const { data: created, error: createError } = await db.auth.admin.createUser({ email: EMAIL, email_confirm: true, user_metadata: { full_name: "Mona Adel" } });
-if (createError) throw createError;
-const userId = created.user.id;
-const ws = (await db.from("profiles").select("workspace_id").eq("id", userId).single()).data!.workspace_id!;
-await db.from("profiles").update({ full_name: "Mona Adel", onboarded_at: new Date().toISOString(), language: "ar", country: "EG", timezone: "Africa/Cairo" }).eq("id", userId);
-await db.from("workspaces").update({
-  name: "Nile CRM", website: "https://nilecrm.example", offering: "A simple CRM for small sales teams in Egypt and the Gulf",
-  plan: "free", subscription_status: "active", billing_country: "EG",
-}).eq("id", ws);
 
 // ── Searches, run by the real pipeline with the stand-in provider ──
 const uninstall = await installDemoAdapter(url, key);
@@ -139,8 +153,11 @@ await say(1, "assistant", `من الأكبر للأصغر:\n${(cos ?? []).map((c
 // 6) The paused search: why it stopped.
 const last = made.length - 1;
 const { data: usage } = await db.rpc("usage_summary", { p_ws: ws });
-await say(last, "user", "ليه الحملة دي واقفة؟");
-await say(last, "assistant", `الحملة متوقفة لأن رصيد العملاء المحتملين في الخطة المجانية خلص (${usage?.[0]?.consumed ?? 0} من ${usage?.[0]?.allowance ?? 0}). مفيش أي حاجة اتخصمت على الحملة دي.\n\nتقدر تشتري عملاء محتملين إضافيين من الإعدادات ← الاستخدام ← شراء عملاء محتملين إضافيين، أو تعمل ترقية لخطة Pro. أول ما الرصيد يتوفر الحملة هتكمل لوحدها.`, { toolCalls: 1 });
+const { data: lastCampaign } = await db.from("campaigns").select("status, partial_reason").eq("id", made[last].campaignId).single();
+if (lastCampaign?.status === "paused" && lastCampaign.partial_reason === "quota") {
+  await say(last, "user", "ليه الحملة دي واقفة؟");
+  await say(last, "assistant", `الحملة متوقفة لأن رصيد العملاء المحتملين في الخطة المجانية خلص (${usage?.[0]?.consumed ?? 0} من ${usage?.[0]?.allowance ?? 0}). مفيش أي حاجة اتخصمت على الحملة دي.\n\nتقدر تشتري عملاء محتملين إضافيين من الإعدادات ← الاستخدام ← شراء عملاء محتملين إضافيين، أو تعمل ترقية لخطة Pro. أول ما الرصيد يتوفر الحملة هتكمل لوحدها.`, { toolCalls: 1 });
+}
 
 // Outreach progress example (statuses set directly; nothing is sent).
 const { data: three } = await db.from("prospects").select("id, email, campaign_id, full_name").eq("workspace_id", ws).not("email", "is", null).neq("email_status", "invalid").limit(3);
@@ -157,6 +174,7 @@ for (const [k, p] of (three ?? []).entries()) {
 for (const m of made) await db.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", m.conversationId);
 
 const u = usage?.[0];
-console.log(`\nUsage: ${u?.consumed ?? 0} used of ${u?.allowance ?? 0} (Free, one-time) · available ${u?.available ?? 0}`);
+console.log(`\nUsage: ${u?.consumed ?? 0} used of ${u?.allowance ?? 0} · available ${u?.available ?? 0}`);
 console.log(`Results page: ${SITE}/search/${made[0].strategyId}/results · Outreach progress: ${SITE}/outreach/progress?ids=${progressIds.join(",")}`);
-console.log(`\nSign in as ${EMAIL} (open in the browser, one use; npm run seed:full-demo -- --login for a new one):\n${await loginLink()}\n`);
+if (!INTO) console.log(`\nSign in as ${EMAIL} (open in the browser, one use; npm run seed:full-demo -- --login for a new one):\n${await loginLink()}\n`);
+else console.log(`\nAdded to ${INTO} — open http://localhost:3200 as usual.`);

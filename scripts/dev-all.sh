@@ -67,14 +67,24 @@ fi
 YOLIAS_PREPARE_ONLY=1 YOLIAS_SITE_URL="http://localhost:$PROXY_PORT" bash Yolias/scripts/dev-local.sh || exit 1
 
 # 3) Let the Admin reach Yolias data (server-only; docs/12-decisions.md D-010).
+# After `npm run deploy:production` the local Admin manages the published
+# Yolias (D-148): .env.yolias-production.local (git-ignored) holds its URL,
+# service key and site. Delete that file to go back to the local Yolias.
 Y_URL="$(envval NEXT_PUBLIC_SUPABASE_URL Yolias/.env.local)"
 Y_KEY="$(envval SUPABASE_SERVICE_ROLE_KEY Yolias/.env.local)"
+Y_SITE="http://localhost:$PROXY_PORT"
+if [ -f .env.yolias-production.local ]; then
+  Y_URL="$(envval YOLIAS_SUPABASE_URL .env.yolias-production.local)"
+  Y_KEY="$(envval YOLIAS_SUPABASE_SERVICE_ROLE_KEY .env.yolias-production.local)"
+  Y_SITE="$(envval YOLIAS_SITE_URL .env.yolias-production.local)"
+  say "Admin manages the published Yolias ($Y_SITE)."
+fi
 grep -vE '^(YOLIAS_SUPABASE_URL|YOLIAS_SUPABASE_SERVICE_ROLE_KEY|YOLIAS_SITE_URL|ADMIN_URL)=' .env.local > .env.local.tmp
 {
   cat .env.local.tmp
   echo "YOLIAS_SUPABASE_URL=$Y_URL"
   echo "YOLIAS_SUPABASE_SERVICE_ROLE_KEY=$Y_KEY"
-  echo "YOLIAS_SITE_URL=http://localhost:$PROXY_PORT"
+  echo "YOLIAS_SITE_URL=$Y_SITE"
   # Where Yolias's server reaches the Admin (support widget proxy).
   echo "ADMIN_URL=http://127.0.0.1:$ADMIN_PORT"
 } > .env.local && rm .env.local.tmp

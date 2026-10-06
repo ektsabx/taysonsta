@@ -4528,6 +4528,7 @@ const en: Record<string, string> = {
  "رفع ملفات": "Upload files",
  "رفع → ربط الأعمدة → تحقق → تأكيد → تنفيذ آمن، مع تقرير أخطاء وإمكانية التراجع": "Upload → map columns → validate → confirm → safe run, with an error report and rollback",
  "رفعه": "Uploaded by",
+ "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. الأسعار بالدولار، ويحوّلها يولياس إلى الجنيه بسعر اليوم عند الدفع.": "The card payment (EGP) Integration ID from your Paymob dashboard; separate several with commas. Prices are in USD; Yolias converts them to EGP at the day's rate at checkout.",
  "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. تُرسل الأسعار بالدولار ويحوّلها Paymob إلى الجنيه.": "The card payment (EGP) Integration ID from your Paymob dashboard; separate several with commas. Prices are sent in USD and Paymob converts them to EGP.",
  "رقم أكبر من 0 بحد أقصى منزلتين عشريتين": "A number above 0 with at most two decimals",
  "رقم أو اسم المرسل": "Sender number or name",

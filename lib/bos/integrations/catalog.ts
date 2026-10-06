@@ -120,7 +120,7 @@ export const providers: ProviderDef[] = [
       { key: "public_key", label: "المفتاح العام (Public key)", required: true },
       { key: "secret_key", label: "المفتاح السري (Secret key)", secret: true, required: true },
       { key: "hmac_secret", label: "سر HMAC", secret: true, required: true },
-      { key: "integrations_usd", label: "رقم تكامل البطاقة (Integration ID)", required: true, hint: "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. تُرسل الأسعار بالدولار ويحوّلها Paymob إلى الجنيه." },
+      { key: "integrations_usd", label: "رقم تكامل البطاقة (Integration ID)", required: true, hint: "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. الأسعار بالدولار، ويحوّلها يولياس إلى الجنيه بسعر اليوم عند الدفع." },
     ],
     capabilities: ["payments.checkout"],
     docs: "https://developers.paymob.com",

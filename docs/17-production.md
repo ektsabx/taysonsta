@@ -73,3 +73,29 @@ cd .. && npm run cf:deploy:admin         # yol.yolias.com
 - تشغيل الـ Worker المبني محليًا على workerd:
   - صفحات يولياس، و`/api/worker`، وبروكسي الويدجت كلهم شغالين، و`yolias.com` بيحوّل على `www`.
   - الأدمن: `/` بيحوّل على `/admin`، والصفحات العامة 404، و`robots` و`noindex` شغالين.
+
+## النشر على مشروع Taysonsta (D-148) — الطريقة الحالية
+
+يولياس بيتنشر على مشروع Supabase الحالي `iudasrzqjnsutvanjrvn`، والأدمن بيفضل على جهازك.
+
+```bash
+cd ~/Desktop/taysonsta/Yolias
+# 1) الداتابيز: كل migration مش موجودة في المشروع
+for f in supabase/migrations/*.sql; do npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f "$f" || break; done
+#    (قبل كده شوف اللي اتطبق: select version from supabase_migrations.schema_migrations)
+# 2) المفاتيح العامة في Yolias/.env.production.local (من Supabase ← Settings ← API)
+# 3) النشر
+npm run cf:deploy
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
+npx wrangler secret put NEXT_PUBLIC_SUPABASE_ANON_KEY
+npx wrangler secret put WORKER_SECRET
+```
+
+4) الأدمن المحلي يدير يولياس المنشور: اعمل `.env.yolias-production.local` في جذر المشروع فيه
+`YOLIAS_SUPABASE_URL` و `YOLIAS_SUPABASE_SERVICE_ROLE_KEY` و `YOLIAS_SITE_URL=https://www.yolias.com`،
+وشغّل `npm run local`، وبعدين:
+`node --import ./tests/integration/register.mjs scripts/integrations-to-yolias.ts` عشان مفاتيح Gemini وPaymob وGoogle تتنسخ للإنتاج.
+
+5) Supabase: Redirect URL `https://www.yolias.com/auth/confirm`، و Exposed schemas: `intel`، و SMTP خاص.
+
