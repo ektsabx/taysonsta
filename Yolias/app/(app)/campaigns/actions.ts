@@ -22,10 +22,6 @@ async function run(id: string, fn: (db: Awaited<ReturnType<typeof createClient>>
   return { ok: true };
 }
 
-export async function updateCampaignSettings(id: string, input: { goal: number; deadline: string | null; continuous: boolean; everyHours: number }): Promise<CampaignResult> {
-  return run(id, (db) => control.updateSettings(db, id, input));
-}
-
 export async function pauseCampaign(id: string): Promise<CampaignResult> {
   return run(id, (db) => control.pause(db, id));
 }

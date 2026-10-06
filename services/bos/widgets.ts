@@ -1,4 +1,5 @@
 import "server-only";
+import { ydb, yoliasConfigured } from "@/lib/yolias/db";
 import { db, type Tables } from "@/lib/bos/db";
 import { can, type BosUser } from "@/lib/bos/auth";
 import { audit } from "@/lib/bos/audit";
@@ -20,6 +21,8 @@ export type WidgetSession = Tables<"widget_sessions">;
 export interface WidgetInput {
   name: string;
   is_active: boolean;
+  /** Shown on the Yolias website (at most one widget). */
+  on_yolias: boolean;
   allowed_domains: string[];
   title: string;
   welcome_message: string;
@@ -74,15 +77,19 @@ export async function saveWidget(bos: BosUser, id: string | null, input: WidgetI
   assertManage(bos);
   validate(input);
   const row = { ...input, name: input.name.trim(), working_hours: input.working_hours as never };
+  // Only one widget is shown on the Yolias website.
+  if (row.on_yolias) await db().from("support_widgets").update({ on_yolias: false }).eq("on_yolias", true).neq("id", id ?? "00000000-0000-0000-0000-000000000000");
   if (id) {
     const { error } = await db().from("support_widgets").update(row).eq("id", id);
     if (error) throw error;
-    await audit({ actorId: bos.userId, action: "widget.updated", entityType: "support_widget", entityId: id, newValue: { name: row.name, is_active: row.is_active, allowed_domains: row.allowed_domains, ai_agent_id: row.ai_agent_id } });
+    await audit({ actorId: bos.userId, action: "widget.updated", entityType: "support_widget", entityId: id, newValue: { name: row.name, is_active: row.is_active, on_yolias: row.on_yolias, allowed_domains: row.allowed_domains, ai_agent_id: row.ai_agent_id } });
+    await syncYoliasWidget();
     return id;
   }
   const { data, error } = await db().from("support_widgets").insert({ ...row, created_by: bos.userId }).select("id").single();
   if (error) throw error;
-  await audit({ actorId: bos.userId, action: "widget.created", entityType: "support_widget", entityId: data.id, newValue: { name: row.name } });
+  await audit({ actorId: bos.userId, action: "widget.created", entityType: "support_widget", entityId: data.id, newValue: { name: row.name, on_yolias: row.on_yolias } });
+  await syncYoliasWidget();
   return data.id;
 }
 
@@ -93,7 +100,24 @@ export async function rotateWidgetKey(bos: BosUser, id: string) {
   await db().from("support_widgets").update({ public_key: key }).eq("id", id);
   await db().from("widget_sessions").delete().eq("widget_id", id);
   await audit({ actorId: bos.userId, action: "widget.key_rotated", entityType: "support_widget", entityId: id });
+  await syncYoliasWidget();
   return key;
+}
+
+/**
+ * Tells Yolias which widget its website shows (D-134): the active widget
+ * marked "on Yolias", and where Yolias's server reaches this Admin
+ * (ADMIN_URL). Yolias serves it from its own domain through a proxy, so the
+ * Admin domain never appears on the website. Nothing marked → removed.
+ */
+export async function syncYoliasWidget() {
+  if (!yoliasConfigured()) return;
+  const { data: w } = await db().from("support_widgets").select("public_key").eq("on_yolias", true).eq("is_active", true).maybeSingle();
+  const origin = (process.env.ADMIN_URL ?? "").replace(/\/+$/, "");
+  const { error } = w && origin
+    ? await ydb().from("site_settings").upsert({ key: "support_widget", value: { key: w.public_key, origin }, updated_at: new Date().toISOString() })
+    : await ydb().from("site_settings").delete().eq("key", "support_widget");
+  if (error) throw new ValidationError(`حُفظ الويدجت لكن تعذّر تحديثه في موقع يولياس: ${error.message}`);
 }
 
 // ---------------------------------------------------------------------------

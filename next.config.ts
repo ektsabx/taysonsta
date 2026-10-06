@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
+  // Yolias Admin on yol.yolias.com stays out of search engines (D-135).
+  async headers() {
+    return process.env.ADMIN_NOINDEX === "true" ? [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }] : [];
+  },
   async redirects() {
     return [
       { source: "/booking-call", destination: "/booking-mvp", permanent: true },

@@ -101,7 +101,7 @@ export const providers: ProviderDef[] = [
     yolias: "Yolias AI والتفكير وكتابة الرسائل (حسب توزيع النماذج في المنصة ← النماذج اللغوية).",
   },
   {
-    key: "yolias_google", name: "Google OAuth — Yolias (Gmail)", category: "google", phase: 0, testable: false,
+    key: "yolias_google", name: "Google OAuth — Yolias (Gmail)", category: "google", phase: 0, testable: true,
     description: "يربط به عملاء يولياس بريد Gmail الخاص بهم لإرسال الرسائل بعد موافقتهم. في Google Cloud: فعّل Gmail API، وأضف صلاحية gmail.send، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/gmail/callback. (الدخول بحساب Google يُضبط في Supabase Auth.)",
     fields: [
       { key: "client_id", label: "OAuth client ID", required: true },
@@ -134,7 +134,7 @@ export const providers: ProviderDef[] = [
     docs: "https://developers.google.com/maps",
   },
   {
-    key: "google_workspace", name: "Google Workspace (OAuth)", category: "google", phase: 5, testable: false,
+    key: "google_workspace", name: "Google Workspace (OAuth)", category: "google", phase: 5, testable: true,
     description: "التقويم والمستندات عبر OAuth لحساب الشركة. الدخول عبر Google للموظفين يُفعّل من الأمان.",
     fields: [
       { key: "client_id", label: "OAuth client ID", required: true },

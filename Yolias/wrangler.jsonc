@@ -1,0 +1,34 @@
+// Yolias (customer app) on Cloudflare Workers via OpenNext (D-001, D-135).
+//   www.yolias.com  — the site and the app (yolias.com redirects here)
+// Secrets are never in this file: set them with `npx wrangler secret put NAME`
+// (list in docs/17-production.md). Deploy: `npm run cf:deploy`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yolias",
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-09-04",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "yolias"
+    }
+  ],
+  "routes": [
+    { "pattern": "www.yolias.com", "custom_domain": true },
+    { "pattern": "yolias.com", "custom_domain": true }
+  ],
+  // Background jobs: the queue worker (/api/worker) every minute (docs/05).
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://www.yolias.com",
+    "BILLING_TEST_MODE": "false"
+  },
+  "observability": { "enabled": true }
+}

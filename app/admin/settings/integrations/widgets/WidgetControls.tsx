@@ -8,7 +8,7 @@ import { rotateWidgetKeyAction, saveWidgetAction } from "./actions";
 
 type O = { value: string; label: string };
 export interface WidgetValues {
-  id: string; name: string; is_active: boolean; allowed_domains: string[]; title: string; welcome_message: string; offline_message: string;
+  id: string; name: string; is_active: boolean; on_yolias: boolean; allowed_domains: string[]; title: string; welcome_message: string; offline_message: string;
   primary_color: string; position: string; bottom_offset: number; language: string; require_email: boolean;
   working_hours: { tz?: string; start?: string; end?: string; days?: number[] }; ai_agent_id: string | null; team_id: string | null;
 }
@@ -38,6 +38,7 @@ export function WidgetButton({ widget, agents, teams }: { widget?: WidgetValues;
               <SelectField name="team_id" label="فريق الدعم" placeholder="الفريق الافتراضي" options={teams} defaultValue={widget?.team_id ?? ""} />
               <CheckboxField name="require_email" label="طلب البريد الإلكتروني قبل المحادثة" defaultChecked={widget?.require_email ?? true} />
               <CheckboxField name="is_active" label="مفعّل" defaultChecked={widget?.is_active ?? true} />
+              <CheckboxField name="on_yolias" label="اعرضه على موقع يولياس" defaultChecked={widget?.on_yolias ?? false} hint="يظهر على كل صفحات yolias.com من نفس الدومين (دومين الأدمن لا يظهر). أضف نطاقات الموقع في النطاقات المسموح بها." />
             </div>
           </FormSection>
           <FormSection title="ساعات العمل">

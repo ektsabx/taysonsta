@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { runCapability } from "@/lib/intel/service";
-import { titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
+import { launchInSearch, titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
 import * as control from "@/lib/discovery/campaign-control";
 import { enqueue } from "@/lib/jobs/queue";
 import { extractCompanyFacts, researchSummary } from "@/lib/ai/orchestrator";
@@ -27,6 +27,10 @@ export interface AgentContext {
   db: SupabaseClient<Database>;
   /** The conversation (public.conversations) this turn belongs to. */
   conversationId: string | null;
+  /** The search this conversation belongs to: campaigns started here join it (D-133). */
+  strategyId?: string | null;
+  /** Campaigns started during this turn (shown as cards in the thread). */
+  launched?: string[];
   /** Adds what a provider or LLM call inside the tool cost (null = unpriced). Set by executeTool. */
   spend?: (usd: number | null) => void;
 }
@@ -381,7 +385,7 @@ export const agentTools = [
     async run(ctx, input) {
       const { data } = await ctx.db.from("strategies").select("id, workspace_id, title, prompt, icp, status, error, created_at").eq("id", input.strategyId).maybeSingle();
       if (!data || data.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such search in this workspace.");
-      const { data: campaign } = await ctx.db.from("campaigns").select("id, status, search_type").eq("strategy_id", data.id).maybeSingle();
+      const { data: campaign } = await ctx.db.from("campaigns").select("id, status, search_type").eq("strategy_id", data.id).order("created_at").limit(1).maybeSingle();
       return ok({ strategy: data, campaign });
     },
   }),
@@ -392,6 +396,14 @@ export const agentTools = [
     input: z.object({ request: z.string().trim().min(3).max(4000) }),
     async run(ctx, input) {
       const { session, db } = ctx;
+      // Inside a search's conversation the campaign joins that search and
+      // shows in the same thread — no new search (D-133).
+      if (ctx.strategyId) {
+        const r = await launchInSearch(session, ctx.strategyId, input.request, db);
+        if (r.campaignId) ctx.launched?.push(r.campaignId);
+        const { data: campaign } = r.campaignId ? await db.from("campaigns").select("id, status, quota, search_type").eq("id", r.campaignId).maybeSingle() : { data: null };
+        return ok({ strategyId: ctx.strategyId, error: r.error, campaign });
+      }
       const { data: strategy, error } = await db.from("strategies").insert({
         workspace_id: session.workspace.id, created_by: session.userId, title: titleFrom(input.request), prompt: input.request, attachments: [] as Json,
       }).select("id").single();
@@ -399,7 +411,7 @@ export const agentTools = [
       await understandAndLaunch(session, strategy.id, input.request, [], db);
       const [{ data: after }, { data: campaign }] = await Promise.all([
         db.from("strategies").select("status, error").eq("id", strategy.id).single(),
-        db.from("campaigns").select("id, status, quota, search_type").eq("strategy_id", strategy.id).maybeSingle(),
+        db.from("campaigns").select("id, status, quota, search_type").eq("strategy_id", strategy.id).order("created_at").limit(1).maybeSingle(),
       ]);
       return ok({ strategyId: strategy.id, strategyStatus: after?.status, error: after?.error ?? null, campaign });
     },

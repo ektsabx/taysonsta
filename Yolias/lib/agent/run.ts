@@ -10,7 +10,7 @@ import { toMessages, type AgentTurn } from "@/lib/agent/messages";
 // tools in tools.ts. Every model call is logged with its cost (rule 28);
 // every tool call is authorized and audited inside executeTool (rules 33, 35).
 
-export const AGENT_PROMPT_VERSION = "agent-2026-10-06";
+export const AGENT_PROMPT_VERSION = "agent-2026-10-06b";
 const MAX_ITERATIONS = 8;
 
 const SYSTEM = `You are Yolias AI, the assistant inside Yolias, a B2B prospect discovery product.
@@ -28,6 +28,7 @@ Rules:
 - Customers see Prospects, never credits. Usage comes from getUsage only.
 - Before createCampaign, restate the search in one line and ask the user to confirm, unless they already clearly asked you to start it. Starting a campaign uses their monthly prospects.
 - To change a search ("make it Saudi"), read it with getStrategy, then start a new campaign with the edited request after confirming.
+- A campaign you start appears as a card in this same conversation. If its status is "awaiting_source", say plainly: no data source is connected yet for that kind of search, nothing was charged (no prospects used), and it will run by itself once a source is connected. Don't present it as done or as a failure.
 - You can't send emails or messages, scrape websites, or do anything outside these tools.
 - If a tool returns "denied", tell the user they don't have permission; don't retry.
 - Write plain text: short paragraphs or simple "-" lists. No markdown headings, tables or bold. Keep it brief.`;

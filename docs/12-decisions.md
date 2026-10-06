@@ -76,3 +76,15 @@ Owner decision: every key is entered only in Yolias Admin → Settings → Integ
 
 ## D-133 — Yolias AI is one conversation per search (2026-10-06)
 Owner decision: a search is the conversation — the request, Yolias's search card as the reply, then every follow-up in the same thread with one composer at the bottom. The separate Chats section (private / shared chats) and the campaign dashboard's chat tab are removed; conversations are the sidebar's Recent searches, and a campaign links to its search ("Open in Yolias AI"). `/api/agent` takes a `strategyId` only. The conversation tables keep their scopes, unused by the app.
+
+## D-134 — Support widget on the Yolias website, served from Yolias's domain (2026-10-06)
+One Admin widget can be marked "Show on the Yolias website" (`support_widgets.on_yolias`). Admin writes `{ key, origin: ADMIN_URL }` to Yolias `public.site_settings`; Yolias loads `/support-widget/<key>/embed.js` on every page and proxies only that widget's four endpoints to the Admin's public widget API (Origin and visitor IP forwarded; Admin still checks allowed domains and rate limits). The embed script now takes its API base from its own `src`, so the Admin domain never appears on the website. Replies happen in the Admin inbox.
+
+## D-135 — Production on Cloudflare (2026-10-06)
+Yolias → worker `yolias` on `www.yolias.com` (apex redirects to www), cron every minute → `/api/worker`. Admin → `wrangler --env admin`, worker `yolias-admin` on `yol.yolias.com` only, cron every 5 min → `/api/bos/cron`, `ADMIN_NOINDEX`: robots disallow, `X-Robots-Tag: noindex`, public website pages 404 and `/` → `/admin`. The existing `taysonsta.net` config is untouched. Next.js 16.3.8 (OpenNext Cloudflare requires ≥ 16.3.8). Yolias images unoptimized (no Images binding). Steps: `docs/17-production.md`.
+
+## D-136 — No Google-Search-grounded discovery (2026-10-06)
+Turning Gemini "Grounding with Google Search" results into saved prospects/companies is not allowed by the Gemini API terms ("it is a violation of these terms to use Grounding with Google Search to extract or collect one or more of these components for another purpose"; no caching/analysis of Grounded Results except chat history), and would break rule 19. A search whose capability has no connected data provider waits in "awaiting_source", charges nothing, and Yolias AI says so plainly. Data providers remain the owner's pending decision.
+
+## D-137 — Campaigns started in a conversation stay in it (2026-10-06)
+`campaigns.strategy_id` is no longer unique: a campaign Yolias AI starts inside a search's conversation joins that search (its card shows under the reply that started it, `agent_messages.meta.campaigns`); the search's own campaign is the first one. The campaign settings form was removed from Campaigns (goal/deadline/schedule are changed by asking Yolias AI); pause / resume / run now / stop stay. gemini-3.8-flash priced from Google's pricing page.

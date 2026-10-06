@@ -12,6 +12,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers } });
   }
 
+  // yol.yolias.com serves Yolias Admin only (D-135): the old public website
+  // pages don't exist there, and "/" goes to the Admin sign-in.
+  if (process.env.ADMIN_NOINDEX === "true") {
+    if (pathname === "/") return NextResponse.redirect(new URL("/admin", request.url));
+    return new NextResponse("Not found", { status: 404, headers: { "content-type": "text/plain", "x-robots-tag": "noindex, nofollow" } });
+  }
+
   const pathnameHasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
   );

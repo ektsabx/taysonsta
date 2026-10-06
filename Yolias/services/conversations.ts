@@ -11,14 +11,19 @@ import type { AgentMessageRow, ConversationRow, Database } from "@/types/databas
 export type ConversationTurn = Pick<AgentMessageRow, "id" | "role" | "content" | "created_at"> & {
   /** The reader's own like (1) / dislike (-1) on an assistant turn. */
   rating?: -1 | 1 | null;
+  /** Campaigns Yolias AI started in this turn (shown as cards in the thread). */
+  campaigns?: string[];
 };
 
 /** Turns of a conversation, oldest first, with the reader's feedback. */
 export async function conversationTurns(conversationId: string, db?: SupabaseClient<Database>, limit = 200): Promise<ConversationTurn[]> {
   const supabase = db ?? (await createClient());
-  const { data } = await supabase.from("agent_messages").select("id, role, content, created_at")
+  const { data } = await supabase.from("agent_messages").select("id, role, content, created_at, meta")
     .eq("conversation_id", conversationId).order("id", { ascending: false }).limit(limit);
-  const turns = (data ?? []).reverse();
+  const turns = (data ?? []).reverse().map(({ meta, ...t }) => {
+    const campaigns = (meta as { campaigns?: unknown } | null)?.campaigns;
+    return Array.isArray(campaigns) && campaigns.length ? { ...t, campaigns: campaigns.filter((c): c is string => typeof c === "string") } : t;
+  });
   const ids = turns.filter((t) => t.role === "assistant").map((t) => t.id);
   if (!ids.length) return turns;
   const { data: fb } = await supabase.from("agent_feedback").select("message_id, rating").in("message_id", ids);
@@ -35,7 +40,7 @@ export async function campaignConversation(strategy: { id: string; workspace_id:
   const admin = createAdminClient();
   const { data: existing } = await admin.from("conversations").select("*").eq("scope", "campaign").eq("strategy_id", strategy.id).maybeSingle();
   if (existing) return existing;
-  const { data: campaign } = await admin.from("campaigns").select("id").eq("strategy_id", strategy.id).maybeSingle();
+  const { data: campaign } = await admin.from("campaigns").select("id").eq("strategy_id", strategy.id).order("created_at").limit(1).maybeSingle();
   const { data, error } = await admin.from("conversations")
     .insert({ workspace_id: strategy.workspace_id, scope: "campaign", strategy_id: strategy.id, campaign_id: campaign?.id ?? null, title: strategy.title })
     .select("*").single();

@@ -69,12 +69,14 @@ YOLIAS_PREPARE_ONLY=1 YOLIAS_SITE_URL="http://localhost:$PROXY_PORT" bash Yolias
 # 3) Let the Admin reach Yolias data (server-only; docs/12-decisions.md D-010).
 Y_URL="$(envval NEXT_PUBLIC_SUPABASE_URL Yolias/.env.local)"
 Y_KEY="$(envval SUPABASE_SERVICE_ROLE_KEY Yolias/.env.local)"
-grep -vE '^(YOLIAS_SUPABASE_URL|YOLIAS_SUPABASE_SERVICE_ROLE_KEY|YOLIAS_SITE_URL)=' .env.local > .env.local.tmp
+grep -vE '^(YOLIAS_SUPABASE_URL|YOLIAS_SUPABASE_SERVICE_ROLE_KEY|YOLIAS_SITE_URL|ADMIN_URL)=' .env.local > .env.local.tmp
 {
   cat .env.local.tmp
   echo "YOLIAS_SUPABASE_URL=$Y_URL"
   echo "YOLIAS_SUPABASE_SERVICE_ROLE_KEY=$Y_KEY"
   echo "YOLIAS_SITE_URL=http://localhost:$PROXY_PORT"
+  # Where Yolias's server reaches the Admin (support widget proxy).
+  echo "ADMIN_URL=http://127.0.0.1:$ADMIN_PORT"
 } > .env.local && rm .env.local.tmp
 
 # 4) Servers. Free the ports first: an old `next dev` on :3200 (e.g. Yolias

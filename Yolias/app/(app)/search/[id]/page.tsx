@@ -22,6 +22,13 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
   const view = await getStrategyView(id);
   if (!view || view.strategy.workspace_id !== session.workspace.id) notFound();
   const [turns, t] = await Promise.all([conversationFor(view.strategy.id), getDictionary()]);
+  // Campaigns Yolias AI started in this conversation show as cards under the reply that started them.
+  const cards: Record<number, React.ReactNode> = {};
+  for (const turn of turns) {
+    if (!turn.campaigns?.length) continue;
+    const views = (await Promise.all(turn.campaigns.map((c) => getStrategyView(view.strategy.id, c)))).filter((v) => v?.campaign);
+    if (views.length) cards[turn.id] = <div className="thread-cards">{views.map((v) => <DiscoveryCard key={v!.campaign!.id} view={v!} />)}</div>;
+  }
 
   return (
     <div className="page-view">
@@ -33,6 +40,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
           key={`thread-${view.strategy.id}`}
           strategyId={view.strategy.id}
           initial={turns}
+          cards={cards}
           plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== "growth" && canManageTeam(session) }}
           lead={
             <>

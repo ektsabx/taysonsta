@@ -244,6 +244,11 @@ function testRequest(r: ResolvedConnection): { url: string; init?: RequestInit }
       return { url: `https://maps.googleapis.com/maps/api/geocode/json?address=Cairo&key=${encodeURIComponent(s.api_key ?? "")}` };
     case "telegram":
       return { url: `https://api.telegram.org/bot${s.bot_token ?? ""}/getMe` };
+    case "yolias_google":
+    case "google_workspace":
+      // A made-up code: Google answers invalid_grant when the client id and
+      // secret are right, invalid_client when they're wrong. Nothing is granted.
+      return { url: "https://oauth2.googleapis.com/token", init: { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "authorization_code", code: "connection-test", redirect_uri: "https://localhost/connection-test", client_id: c.client_id ?? "", client_secret: s.client_secret ?? "" }).toString() } };
     case "meta":
       return { url: "https://graph.facebook.com/v21.0/me?fields=id,name", init: { headers: { Authorization: `Bearer ${s.access_token}` } } };
     default:
@@ -270,6 +275,11 @@ export async function testConnection(bos: BosUser | null, id: string): Promise<{
   // Google Maps reports key problems in a 200 body.
   let ok = res.ok;
   let error = res.error;
+  if (r.def.key === "yolias_google" || r.def.key === "google_workspace") {
+    const code = (res.body as { error?: string } | null)?.error;
+    ok = code === "invalid_grant";
+    error = ok ? null : code === "invalid_client" || code === "unauthorized_client" ? "Client ID أو Client secret غير صحيح" : (res.error ?? "خطأ غير معروف");
+  }
   if (ok && r.def.key === "google_maps") {
     const st = (res.body as { status?: string; error_message?: string } | null)?.status;
     if (st && st !== "OK" && st !== "ZERO_RESULTS") {

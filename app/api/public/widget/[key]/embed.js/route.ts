@@ -2,12 +2,14 @@ import type { NextRequest } from "next/server";
 
 // Embeddable support widget (docs/bos/30 §10.5):
 //   <script src="https://<bos-host>/api/public/widget/<KEY>/embed.js" async></script>
+// The API base is taken from the script's own address, so a site can serve
+// the widget from its own domain through a proxy (Yolias does, D-134).
 // Vanilla JS inside a Shadow DOM (no styles leak either way). All text is
 // inserted with textContent — never as HTML. The API only answers pages on
 // the widget's allowed domains, so a copied key is useless elsewhere.
 
 const script = (api: string) => `(()=>{if(window.__bosWidget)return;window.__bosWidget=1;
-const API=${JSON.stringify(api)};const TK="bos_widget_"+API.split("/").slice(-1)[0];
+const CS=document.currentScript;const API=(CS&&CS.src&&CS.src.replace(/\\/embed\\.js(?:\\?.*)?$/,""))||${JSON.stringify(api)};const TK="bos_widget_"+API.split("/").slice(-1)[0];
 const L={ar:{send:"إرسال",ph:"اكتب رسالتك…",name:"الاسم",email:"البريد الإلكتروني",start:"ابدأ المحادثة",ai:"مساعد ذكي",agent:"فريق الدعم",close:"إغلاق",err:"تعذر الإرسال، حاول مرة أخرى.",off:"غير متاح الآن",typing:"يكتب…",open:"افتح الدعم"},en:{send:"Send",ph:"Type your message…",name:"Name",email:"Email",start:"Start chat",ai:"AI assistant",agent:"Support team",close:"Close",err:"Couldn't send, please try again.",off:"Offline now",typing:"Typing…",open:"Open support"}};
 let cfg,t,token=null,since=null,timer=null,seen=new Set(),started=false;
 try{token=localStorage.getItem(TK)}catch(e){}

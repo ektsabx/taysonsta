@@ -19,9 +19,39 @@ type Db = SupabaseClient<Database>;
 
 export async function understandAndLaunch(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[], db?: Db) {
   const supabase = db ?? (await createClient());
-  let understood;
+  const r = await understand(session, strategyId, prompt, attachments);
+  if (!r.ok) {
+    // The error column keeps the dictionary key; the card translates it.
+    await supabase.from("strategies").update({ status: "failed", error: r.code }).eq("id", strategyId);
+    return;
+  }
+  const { understood } = r;
+  const icp = understood.icp;
+  await supabase.from("strategies").update({
+    status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
+    icp_fingerprint: understood.fingerprint, icp_model: understood.model, icp_prompt_version: understood.promptVersion,
+    interpretation_cost_usd: understood.costUsd, icp_cached: understood.cached,
+  }).eq("id", strategyId);
+  if (!(await startCampaign(session, supabase, strategyId, icp))) {
+    await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
+  }
+}
+
+/**
+ * A campaign Yolias AI starts from inside a search's conversation: it joins
+ * that search (shown as a card in the same thread) and leaves the search's
+ * own request and criteria unchanged (D-133).
+ */
+export async function launchInSearch(session: Session, strategyId: string, prompt: string, db: Db): Promise<{ campaignId: string | null; error: string | null }> {
+  const r = await understand(session, strategyId, prompt, []);
+  if (!r.ok) return { campaignId: null, error: r.code };
+  const campaignId = await startCampaign(session, db, strategyId, r.understood.icp);
+  return campaignId ? { campaignId, error: null } : { campaignId: null, error: "campaignFailed" };
+}
+
+async function understand(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[]) {
   try {
-    understood = await understandStrategy(prompt, attachments, {
+    const understood = await understandStrategy(prompt, attachments, {
       userName: session.profile.full_name,
       companyName: session.workspace.name,
       website: session.workspace.website,
@@ -31,21 +61,17 @@ export async function understandAndLaunch(session: Session, strategyId: string, 
       workspaceId: session.workspace.id,
       strategyId,
     });
+    return { ok: true as const, understood };
   } catch (e) {
-    // The error column keeps the dictionary key; the card translates it.
-    const code = e instanceof StrategyAiError ? e.code : "aiFailed";
     if (!(e instanceof StrategyAiError)) console.error("understandStrategy failed", e);
-    await supabase.from("strategies").update({ status: "failed", error: code }).eq("id", strategyId);
-    return;
+    return { ok: false as const, code: e instanceof StrategyAiError ? e.code : "aiFailed" };
   }
+}
 
-  const icp = understood.icp;
-  await supabase.from("strategies").update({
-    status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
-    icp_fingerprint: understood.fingerprint, icp_model: understood.model, icp_prompt_version: understood.promptVersion,
-    interpretation_cost_usd: understood.costUsd, icp_cached: understood.cached,
-  }).eq("id", strategyId);
+type Icp = Awaited<ReturnType<typeof understandStrategy>>["icp"];
 
+/** Campaign row + plan events + the queued discovery job. Returns the campaign id, or null if it couldn't be created. */
+async function startCampaign(session: Session, supabase: Db, strategyId: string, icp: Icp): Promise<string | null> {
   const { data: campaign } = await supabase
     .from("campaigns")
     .insert({
@@ -60,10 +86,7 @@ export async function understandAndLaunch(session: Session, strategyId: string, 
     })
     .select("id")
     .single();
-  if (!campaign) {
-    await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
-    return;
-  }
+  if (!campaign) return null;
 
   await logEvent(session.workspace.id, campaign.id, "understand", icp.summary, "success");
   const sources = await sourceLabels();
@@ -82,6 +105,7 @@ export async function understandAndLaunch(session: Session, strategyId: string, 
   if ((await enqueue("campaign.discover", { campaignId: campaign.id })) === null) {
     await logEvent(session.workspace.id, campaign.id, "plan", "Couldn't queue the discovery job. Please retry.", "error", { key: "stopped", vars: { reason: "queue" } });
   }
+  return campaign.id;
 }
 
 export function titleFrom(text: string) {

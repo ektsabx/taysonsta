@@ -9711,6 +9711,7 @@ export type Database = {
           language: string
           name: string
           offline_message: string
+          on_yolias: boolean
           position: string
           primary_color: string
           public_key: string
@@ -9732,6 +9733,7 @@ export type Database = {
           language?: string
           name: string
           offline_message?: string
+          on_yolias?: boolean
           position?: string
           primary_color?: string
           public_key?: string
@@ -9753,6 +9755,7 @@ export type Database = {
           language?: string
           name?: string
           offline_message?: string
+          on_yolias?: boolean
           position?: string
           primary_color?: string
           public_key?: string

@@ -25,6 +25,8 @@ interface Props {
   initial: ThreadTurn[];
   /** The first exchange: the request and Yolias's search card, as list items. */
   lead?: ReactNode;
+  /** Cards of campaigns Yolias AI started, by the reply that started them. */
+  cards?: Record<number, ReactNode>;
   /** Plan badge + Upgrade in the composer. */
   plan?: { label: string; canUpgrade: boolean };
 }
@@ -34,7 +36,7 @@ interface Props {
 // same thread — with live thinking / tool states while Yolias works, actions
 // on each reply (copy, like, dislike, time), and one composer at the bottom.
 // Every turn is saved on the server; history is read from there.
-export function AgentThread({ strategyId, initial, lead, plan }: Props) {
+export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
   const { t, locale } = useI18n();
   const a = t.agent;
   const router = useRouter();
@@ -119,6 +121,7 @@ export function AgentThread({ strategyId, initial, lead, plan }: Props) {
               {m.role === "assistant" && <YoliasMark size={18} />}
               <div className="agent-turn-body">
                 <div className="agent-turn-text" dir="auto"><Rich text={m.content} /></div>
+                {m.role === "assistant" && cards?.[m.id]}
                 {m.role === "assistant" ? (
                   <ReplyActions turn={m} time={time(m.created_at)} title={fullTime(m.created_at)} />
                 ) : (

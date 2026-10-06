@@ -1,4 +1,4 @@
-import { integrationSecret, loadIntegrations } from "@/lib/integrations";
+import { integrationConfig, integrationSecret, loadIntegrations } from "@/lib/integrations";
 import type { MailProvider } from "@/types/database";
 
 // Mail providers for outreach (final spec phase 8). A member connects their
@@ -45,7 +45,8 @@ export class MailerError extends Error {
 
 async function oauthApp(provider: "google_oauth" | "microsoft_oauth"): Promise<OAuthApp | null> {
   await loadIntegrations();
-  const clientId = integrationSecret(provider, "client_id"), clientSecret = integrationSecret(provider, "client_secret");
+  // The client id is a plain setting in the hub, the secret is encrypted.
+  const clientId = integrationConfig(provider, "client_id") ?? integrationSecret(provider, "client_id"), clientSecret = integrationSecret(provider, "client_secret");
   return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 

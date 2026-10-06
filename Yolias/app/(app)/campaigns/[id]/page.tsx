@@ -66,7 +66,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
         </div>
         <div className="view-actions">
           {c.strategy_id && <Link className="btn-secondary" href={`/search/${c.strategy_id}`}><Sparkles /> {cc.openChat}</Link>}
-          <CampaignControls id={c.id} status={c.status} goal={c.quota} deadline={c.deadline} continuous={c.continuous} everyHours={c.run_every_hours} />
+          <CampaignControls id={c.id} status={c.status} />
         </div>
       </header>
 

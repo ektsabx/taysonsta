@@ -25,13 +25,15 @@ export interface StrategyView {
   savedCount: number;
 }
 
-// Everything the Yolias AI result card needs for one strategy.
-export async function getStrategyView(id: string): Promise<StrategyView | null> {
+// Everything the Yolias AI result card needs for one strategy: its own
+// (first) campaign, or one Yolias AI started later in its conversation.
+export async function getStrategyView(id: string, campaignId?: string): Promise<StrategyView | null> {
   const supabase = await createClient();
   const { data: strategy } = await supabase.from("strategies").select("*").eq("id", id).maybeSingle();
   if (!strategy) return null;
 
-  const { data: campaign } = await supabase.from("campaigns").select("*").eq("strategy_id", id).maybeSingle();
+  const q = supabase.from("campaigns").select("*").eq("strategy_id", id);
+  const { data: campaign } = await (campaignId ? q.eq("id", campaignId) : q.order("created_at").limit(1)).maybeSingle();
   if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], topResults: [], lastEvent: null, savedCount: 0 };
   if (campaign.search_type !== "people") {
     const [{ data: results }, { data: lastEvent }, { count: savedCount }] = await Promise.all([

@@ -60,7 +60,7 @@ before(async () => {
   });
   agentId = await saveAgent(admin, null, { name: uniq("Agent"), persona: null, tone: "concise", language: "auto", instructions: null, kb_category_ids: [], provider: null, max_ai_turns: 3, min_confidence: 0.6, handoff_keywords: ["human"], sensitive_keywords: ["refund"], handoff_message: "Transferring you.", fallback_message: "Not sure — a colleague will help.", monthly_cost_limit_usd: 0, is_active: true });
   cleanup.push(() => db().from("ai_agents").delete().eq("id", agentId));
-  const wid = await saveWidget(admin, null, { name: uniq("Widget"), is_active: true, allowed_domains: ["shop.example.com"], title: "Help", welcome_message: "Hi", offline_message: "Offline", primary_color: "#112233", position: "right", bottom_offset: 20, language: "en", require_email: true, working_hours: {}, ai_agent_id: agentId, team_id: null });
+  const wid = await saveWidget(admin, null, { name: uniq("Widget"), is_active: true, on_yolias: false, allowed_domains: ["shop.example.com"], title: "Help", welcome_message: "Hi", offline_message: "Offline", primary_color: "#112233", position: "right", bottom_offset: 20, language: "en", require_email: true, working_hours: {}, ai_agent_id: agentId, team_id: null });
   cleanup.push(() => db().from("support_widgets").delete().eq("id", wid));
   await trackSessionCleanup(wid);
   const { data: w } = await db().from("support_widgets").select("*").eq("id", wid).single();

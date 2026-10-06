@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   if (!strategy || strategy.workspace_id !== ws) return NextResponse.json({ error: "notFound" }, { status: 404 });
   const conversation: ConversationRow | null = await campaignConversation(strategy);
   if (!conversation || conversation.workspace_id !== ws || conversation.archived_at) return NextResponse.json({ error: "notFound" }, { status: 404 });
-  const { data: campaign } = await db.from("campaigns").select("id").eq("strategy_id", strategy.id).maybeSingle();
+  const { data: campaign } = await db.from("campaigns").select("id").eq("strategy_id", strategy.id).order("created_at").limit(1).maybeSingle();
   const focus: AgentFocus = { scope: "campaign", strategyId: strategy.id, campaignId: campaign?.id ?? null };
 
   const since = (ms: number) => new Date(Date.now() - ms).toISOString();
@@ -65,8 +65,9 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const send = (o: AgentEvent | { type: "done"; reply: unknown; user: unknown } | { type: "error"; error: string }) => controller.enqueue(encoder.encode(`${JSON.stringify(o)}\n`));
       try {
+        const launched: string[] = [];
         const { reply, iterations, costUsd, provider, model } = await runAgent(
-          { session, db, conversationId: conv.id },
+          { session, db, conversationId: conv.id, strategyId: strategy.id, launched },
           history.map((m) => ({ role: m.role, text: m.content })),
           focus,
           send,
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         }
         // Assistant turns are written by server code only (no insert policy for them).
         const { data: saved } = await admin.from("agent_messages")
-          .insert({ workspace_id: ws, conversation_id: conv.id, strategy_id: conv.strategy_id, user_id: null, role: "assistant", content: reply.slice(0, 20000), meta: { iterations, costUsd, provider, model } as Json })
+          .insert({ workspace_id: ws, conversation_id: conv.id, strategy_id: conv.strategy_id, user_id: null, role: "assistant", content: reply.slice(0, 20000), meta: { iterations, costUsd, provider, model, ...(launched.length ? { campaigns: launched } : {}) } as Json })
           .select("id, role, content, created_at").single();
         send({ type: "done", user: userTurn, reply: saved ?? { id: Date.now(), role: "assistant", content: reply, created_at: new Date().toISOString() } });
       } catch (e) {

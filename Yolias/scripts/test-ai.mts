@@ -160,9 +160,14 @@ try {
   assert.deepEqual(llmSeen, ["gemini", "anthropic"], "research on Gemini, extraction on the small Claude model");
   const { data: call } = await admin.from("agent_tool_calls").select("cost_usd, unpriced_calls").eq("workspace_id", wsId).eq("tool", "researchCompany").single();
   // 1 search ($0.01) + 2 extracts ($0.002 each) + the small Claude model at its configured price
-  // (300 in / 40 out tokens = $0.0005); the Gemini route has no price here → counted as unpriced (D-114).
-  assert.equal(Number(call!.cost_usd), 0.0145);
-  assert.equal(call!.unpriced_calls, 1);
+  // (300 in / 40 out tokens = $0.0005), plus the Gemini research call (500 in / 60 out) at its
+  // configured price — or counted as unpriced when it has none (D-114).
+  const { data: prices } = await intel.from("settings").select("value").eq("key", "llm_prices").maybeSingle();
+  const route = ((await intel.from("settings").select("value").eq("key", "llm_routing").maybeSingle()).data?.value as { research?: { model: string }[] } | null)?.research?.[0]?.model ?? "";
+  const gp = (prices?.value as Record<string, { input: number; output: number }> | null)?.[route];
+  const expected = 0.0145 + (gp ? (500 * gp.input + 60 * gp.output) / 1e6 : 0);
+  assert.ok(Math.abs(Number(call!.cost_usd) - expected) < 1e-6, `cost ${call!.cost_usd} vs ${expected}`);
+  assert.equal(call!.unpriced_calls, gp ? 0 : 1);
   const { count: llmCalls } = await intel.from("llm_calls").select("id", { count: "exact", head: true }).eq("conversation_id", shared!.id);
   assert.equal(llmCalls, 2, "LLM calls are attributed to the conversation");
 

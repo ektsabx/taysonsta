@@ -204,6 +204,7 @@ export type AnnouncementRow = {
   audience: "opted_in" | "all"; status: "draft" | "sending" | "sent"; recipients: number; created_by: string | null; created_at: string; sent_at: string | null;
 };
 export type WorkerStateRow = { key: string; value: Json; updated_at: string };
+export type SiteSettingRow = { key: string; value: Json; updated_at: string };
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
 
 export type CampaignEventRow = {
@@ -559,6 +560,7 @@ export interface Database {
       sign_in_requests: Table<SignInRequestRow, "email">;
       announcements: Table<AnnouncementRow, "type" | "title_en" | "body_en" | "title_ar" | "body_ar">;
       worker_state: Table<WorkerStateRow, "key">;
+      site_settings: Table<SiteSettingRow, "key">;
     };
     Views: { [_ in never]: never };
     Functions: {

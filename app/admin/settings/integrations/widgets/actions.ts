@@ -15,6 +15,7 @@ const widgetSchema = z.object({
   id: zf.optionalUuid(),
   name: zf.required("الاسم", 120),
   is_active: zf.checkbox(),
+  on_yolias: zf.checkbox(),
   allowed_domains: zf.optionalText(3000),
   title: zf.required("العنوان", 80),
   welcome_message: zf.required("رسالة الترحيب", 500),
@@ -38,7 +39,7 @@ export async function saveWidgetAction(_prev: ActionState, formData: FormData): 
     const { bos } = await authorize("conversations.manage", "all");
     const v = parseForm(widgetSchema, formData);
     await saveWidget(bos, v.id ?? null, {
-      name: v.name, is_active: v.is_active, allowed_domains: normalizeDomains(v.allowed_domains ?? ""), title: v.title, welcome_message: v.welcome_message, offline_message: v.offline_message,
+      name: v.name, is_active: v.is_active, on_yolias: v.on_yolias, allowed_domains: normalizeDomains(v.allowed_domains ?? ""), title: v.title, welcome_message: v.welcome_message, offline_message: v.offline_message,
       primary_color: v.primary_color, position: v.position, bottom_offset: v.bottom_offset, language: v.language, require_email: v.require_email,
       working_hours: v.hours_enabled ? { tz: v.hours_tz ?? "Africa/Cairo", start: v.hours_start ?? "", end: v.hours_end ?? "", days: v.hours_days ?? [] } : {},
       ai_agent_id: v.ai_agent_id, team_id: v.team_id,

@@ -1,7 +1,12 @@
+// Yolias Admin (former Taysonsta BOS) on Cloudflare Workers via OpenNext.
+//   default env  → worker "taysonsta" on taysonsta.net (unchanged)
+//   --env admin  → worker "yolias-admin" on yol.yolias.com only (D-135):
+//                  no link from the public site, noindex everywhere.
+// Secrets: `npx wrangler secret put NAME --env admin` (docs/17-production.md).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "taysonsta",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
   "compatibility_date": "2026-09-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -23,5 +28,29 @@
       "pattern": "www.taysonsta.net",
       "custom_domain": true
     }
-  ]
+  ],
+  "env": {
+    "admin": {
+      "name": "yolias-admin",
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "yolias-admin"
+        }
+      ],
+      "routes": [
+        { "pattern": "yol.yolias.com", "custom_domain": true }
+      ],
+      // Scheduled sweep (automations, reminders, SLAs) every 5 minutes.
+      "triggers": {
+        "crons": ["*/5 * * * *"]
+      },
+      "vars": {
+        "ADMIN_URL": "https://yol.yolias.com",
+        "YOLIAS_SITE_URL": "https://www.yolias.com",
+        "ADMIN_NOINDEX": "true"
+      },
+      "observability": { "enabled": true }
+    }
+  }
 }

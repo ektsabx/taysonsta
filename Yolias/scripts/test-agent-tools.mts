@@ -69,9 +69,15 @@ try {
   // createCampaign without an Anthropic key: the search is saved and marked failed honestly.
   r = await executeTool(ctxA, "createCampaign", { request: "Heads of sales at fintechs in Riyadh" }); assert.equal(r.ok, true);
   console.log("createCampaign →", JSON.stringify(r.data));
+  // Inside a search's conversation: no new search is created (D-133).
+  const before = (await admin.from("strategies").select("id", { count: "exact", head: true }).eq("workspace_id", A)).count;
+  const launched: string[] = [];
+  r = await executeTool({ ...ctxA, strategyId: r.data.strategyId, launched } as AgentContext, "createCampaign", { request: "Founders of SaaS companies in Cairo" });
+  assert.equal(r.ok, true); assert.equal(r.data.error, "aiNotConfigured"); assert.equal(launched.length, 0);
+  assert.equal((await admin.from("strategies").select("id", { count: "exact", head: true }).eq("workspace_id", A)).count, before, "no new search from inside a conversation");
   const { data: log } = await admin.from("agent_tool_calls").select("tool, outcome").eq("workspace_id", A).order("id");
   console.log("audit:", log!.map((l) => `${l.tool}:${l.outcome}`).join(" "));
-  assert.equal(log!.length, 15);
+  assert.equal(log!.length, 16);
   console.log("ALL PASS");
 } finally {
   for (const ws of [A, B]) await admin.from("workspaces").delete().eq("id", ws);
