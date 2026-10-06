@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { docs } from "@/lib/content/docs";
+import { docPages } from "@/lib/content/store";
 
-export default function DocsIndex() {
-  redirect(`/docs/${docs[0].slug}`);
+export default async function DocsIndex() {
+  const docs = await docPages();
+  redirect(`/docs/${docs[0]?.slug ?? "introduction"}`);
 }

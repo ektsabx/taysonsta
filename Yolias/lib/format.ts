@@ -31,3 +31,17 @@ export function countryLabel(code: string | null | undefined, locale: Locale = "
 export function location(city: string | null | undefined, country: string | null | undefined, locale: Locale = "en"): string {
   return [city, countryLabel(country, locale, true)].filter(Boolean).join(locale === "ar" ? "، " : ", ");
 }
+
+/**
+ * "$20" / "EGP 1,000" in both languages (shown inside dir="ltr", as in the
+ * design). Amounts stay in their own currency, never converted (D-120).
+ */
+export function formatMoney(amount: number, currency: "USD" | "EGP", cents = false): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    currencyDisplay: currency === "USD" ? "narrowSymbol" : "code",
+    minimumFractionDigits: cents ? 2 : 0,
+    maximumFractionDigits: cents ? 2 : Number.isInteger(amount) ? 0 : 2,
+  }).format(amount);
+}

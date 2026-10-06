@@ -9,6 +9,8 @@ import type { Json } from "@/types/database";
 import { YoliasMark } from "@/components/YoliasMark";
 import { RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
+import { ContactCell } from "./EntityTable";
+import { maskEmail, maskPhone } from "@/services/prospects";
 
 // Renders a campaign event in the reader's language when it carries a
 // dictionary key (meta.key), otherwise its stored text.
@@ -31,7 +33,7 @@ function eventText(message: string, meta: Json | null, t: Dictionary, locale: Lo
 export async function DiscoveryCard({ view }: { view: StrategyView }) {
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const d = t.discovery;
-  const { strategy, campaign, topCompany, topProspects, lastEvent, savedCount } = view;
+  const { strategy, campaign, topCompany, topProspects, topResults, lastEvent, savedCount } = view;
 
   if (strategy.status === "failed") {
     const key = strategy.error as keyof Dictionary["strategy"]["errors"] | null;
@@ -62,7 +64,8 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
   }
 
   const criteria = criteriaLine(icp, locale, t.icp);
-  const hasResults = topCompany !== null && topProspects.length > 0;
+  const people = campaign.search_type === "people";
+  const hasResults = people ? topCompany !== null && topProspects.length > 0 : topResults.length > 0;
   const status = hasResults && campaign.status === "completed"
     ? { cls: "", icon: <CheckCircle2 />, text: d.complete }
     : campaign.status === "partial"
@@ -75,7 +78,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
           ? { cls: "pending", icon: <Clock />, text: d.awaitingSource }
           : { cls: "", icon: <CheckCircle2 />, text: d.complete };
 
-  const topScore = topProspects[0]?.match_score;
+  const topScore = people ? topProspects[0]?.match_score : topResults[0]?.match_score;
   const unit = icp.target_unit === "companies" ? d.unitCompanies : d.unitProspects;
 
   return (
@@ -91,7 +94,28 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
       </div>
 
       <div className="artifact-grid">
-        {hasResults ? (
+        {hasResults && !people ? (
+          <>
+            <div className="artifact-box">
+              <div className="artifact-box-title">{d.targetCriteria}</div>
+              <div className="company-title">{campaign.name}</div>
+              <div className="company-sub">{criteria}</div>
+              <div className="company-detail">{t.searchTypes[campaign.search_type]}{icp.lookalike_seeds.length ? ` · ${icp.lookalike_seeds.join(", ")}` : ""}</div>
+            </div>
+            <div className="artifact-box">
+              <div className="artifact-box-title">{campaign.search_type === "local_businesses" ? d.topPlaces : d.topCompanies}</div>
+              {topResults.map((c) => (
+                <div className="contact-item-row" key={c.id}>
+                  <div style={{ flex: 1 }}>
+                    <div className="contact-name">{c.name}</div>
+                    <div className="contact-role">{[c.kind === "local_business" ? c.category : c.industry, location(c.city, c.country, locale)].filter(Boolean).join(" · ")}</div>
+                  </div>
+                  {c.match_score != null && <span className="match-good">{c.match_score}%</span>}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : hasResults && topCompany ? (
           <div className="artifact-box">
             <div className="artifact-box-title">{d.matchedAccount}</div>
             <div className="company-title">{topCompany.name}</div>
@@ -128,7 +152,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
           </div>
         )}
 
-        {hasResults ? (
+        {hasResults && !people ? null : hasResults ? (
           <div className="artifact-box">
             <div className="artifact-box-title">{d.verifiedMakers}</div>
             {topProspects.map((p, i) => (
@@ -138,7 +162,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
                   <div className="contact-name">{p.full_name}</div>
                   <div className="contact-role">{p.title}</div>
                 </div>
-                <ChannelBadges prospect={p} directWhatsApp />
+                {p.revealed_at ? <ChannelBadges prospect={p} /> : <ContactCell id={p.id} masked={{ email: p.email && p.email_status !== "invalid" ? maskEmail(p.email) : null, phone: p.phone ? maskPhone(p.phone) : null, verified: p.email_status === "verified" }} linkedin={p.linkedin_url} />}
               </div>
             ))}
           </div>

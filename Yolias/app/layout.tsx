@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { dirOf } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
+import { Clarity } from "@/components/Clarity";
 import "./globals.css";
 
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React loads. */}
       <body suppressHydrationWarning>
         <I18nProvider locale={locale}>{children}</I18nProvider>
+        <Clarity />
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { getPlanCatalog } from "@/lib/plan-catalog";
 import { isPaidPlan, monthWindow } from "@/lib/plans";
 import { dictionaries } from "@/lib/i18n/config";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
-import type { BillingPeriod, Plan, WorkspaceRow } from "@/types/database";
+import type { BillingPeriod, Currency, Plan, WorkspaceRow } from "@/types/database";
 
 // Email triggers: one function per real event. Callers never await email
 // success; every function here swallows its own errors (notify does too).
@@ -43,28 +43,28 @@ export async function usageAlerts(workspaceId: string) {
 /* ───────────────────────── Subscription ───────────────────────── */
 
 /** After startPlan(): welcome, re-activation, upgrade or downgrade (+ receipt for paid plans). */
-export async function planStarted(before: WorkspaceRow, plan: Plan, period: BillingPeriod, amountUsd: number, periodEnd: string | null, invoice: { id: string; number: string; created_at: string } | null, payerId: string) {
+export async function planStarted(before: WorkspaceRow, plan: Plan, period: BillingPeriod, charge: { amount: number; currency: Currency; test: boolean }, periodEnd: string | null, invoice: { id: string; number: string; created_at: string } | null, payerId: string) {
   try {
     const catalog = await getPlanCatalog();
     const admins = await workspaceRecipients(before.id);
     const ws = before.id;
-    const test = true; // no payment provider yet (D-007)
+    const { amount, currency, test } = charge;
     if (invoice && periodEnd) {
       await notify("receipt", await userRecipient(payerId), (l) => ({
-        invoiceId: invoice.id, invoiceNumber: invoice.number, planName: planName(plan)(l), period, amountUsd, date: invoice.created_at, periodEnd, test,
+        invoiceId: invoice.id, invoiceNumber: invoice.number, planName: planName(plan)(l), period, amount, currency, date: invoice.created_at, periodEnd, test,
       }), { workspaceId: ws, dedupe: invoice.id });
     }
     const wasPaid = isPaidPlan(before.plan) && before.subscription_status !== "none";
     if (!isPaidPlan(plan)) {
       if (wasPaid) {
         await notify("plan_downgraded", admins, (l) => ({
-          planName: planName(plan)(l), fromPlanName: planName(before.plan)(l), period, amountUsd: 0, periodEnd: new Date().toISOString(), test, prospectsPerMonth: catalog[plan].prospects,
+          planName: planName(plan)(l), fromPlanName: planName(before.plan)(l), period, amount: 0, periodEnd: new Date().toISOString(), test, prospectsPerMonth: catalog[plan].prospects,
         }), { workspaceId: ws });
       }
       return;
     }
     if (!periodEnd) return;
-    const base = (l: "en" | "ar") => ({ planName: planName(plan)(l), period, amountUsd, periodEnd, test });
+    const base = (l: "en" | "ar") => ({ planName: planName(plan)(l), period, amount, currency, periodEnd, test });
     if (!wasPaid) {
       const { count } = await createAdminClient().from("subscription_events").select("id", { count: "exact", head: true })
         .eq("workspace_id", ws).in("plan", ["pro", "growth"]).in("status", ["activated", "changed"]);
@@ -88,7 +88,7 @@ export async function planCanceled(ws: WorkspaceRow, cancel: boolean) {
     await notify("subscription_canceled", await workspaceRecipients(ws.id), (l) => ({ planName: planName(ws.plan)(l), endsAt }), { workspaceId: ws.id });
   } else {
     await notify("subscription_activated", await workspaceRecipients(ws.id), (l) => ({
-      planName: planName(ws.plan)(l), period: ws.billing_period, amountUsd: 0, periodEnd: endsAt, test: true,
+      planName: planName(ws.plan)(l), period: ws.billing_period, amount: 0, periodEnd: endsAt, test: ws.subscription_status === "test",
     }), { workspaceId: ws.id });
   }
 }
@@ -97,7 +97,7 @@ export async function planCanceled(ws: WorkspaceRow, cancel: boolean) {
 export async function planEnded(ws: WorkspaceRow) {
   const catalog = await getPlanCatalog();
   await notify("plan_downgraded", await workspaceRecipients(ws.id), (l) => ({
-    planName: planName("free")(l), fromPlanName: planName(ws.plan)(l), period: "monthly" as const, amountUsd: 0, periodEnd: new Date().toISOString(), test: true, prospectsPerMonth: catalog.free.prospects,
+    planName: planName("free")(l), fromPlanName: planName(ws.plan)(l), period: "monthly" as const, amount: 0, periodEnd: new Date().toISOString(), test: true, prospectsPerMonth: catalog.free.prospects,
   }), { workspaceId: ws.id, dedupe: `${ws.id}:ended:${ws.current_period_end}` });
 }
 

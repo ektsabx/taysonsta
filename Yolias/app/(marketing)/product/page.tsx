@@ -7,7 +7,9 @@ import { getSession } from "@/lib/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${locale === "ar" ? "يولـياس AI" : "Yolias AI"} — ${product[locale].title}` };
+  // "Yolias AI — <title>" stays within ~65 characters; the lead is the description.
+  const title = product[locale].title.replace(/[.。]$/, "");
+  return { title: `${title} — Yolias`, description: product[locale].lead };
 }
 
 const moreIcons = [BarChart3, Download, Users, History];

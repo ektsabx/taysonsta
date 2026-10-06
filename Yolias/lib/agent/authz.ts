@@ -3,16 +3,19 @@ import type { WorkspaceRole } from "@/types/database";
 // Agent authorization, enforced in code (rule 33): user → workspace → role →
 // permission → resource → action. The system prompt is never the boundary.
 
-export type AgentPermission = "read" | "campaign.create" | "prospect.enrich" | "company.research";
+export type AgentPermission =
+  | "read" | "campaign.create" | "campaign.manage" | "prospect.save" | "prospect.find" | "prospect.enrich" | "company.research" | "outreach.prepare" | "billing.read";
 
 /**
- * Who may do what. Mirrors the app today: every member can search, start
- * campaigns and read results. Change it here, never in the prompt.
+ * Who may do what. Mirrors the app: every member can search, run campaigns,
+ * save and work with results; billing is for the owner and admins (like the
+ * Billing settings). Change it here, never in the prompt.
  */
+const memberPermissions: AgentPermission[] = ["read", "campaign.create", "campaign.manage", "prospect.save", "prospect.find", "prospect.enrich", "company.research", "outreach.prepare"];
 export const rolePermissions: Record<WorkspaceRole, readonly AgentPermission[]> = {
-  owner: ["read", "campaign.create", "prospect.enrich", "company.research"],
-  admin: ["read", "campaign.create", "prospect.enrich", "company.research"],
-  member: ["read", "campaign.create", "prospect.enrich", "company.research"],
+  owner: [...memberPermissions, "billing.read"],
+  admin: [...memberPermissions, "billing.read"],
+  member: memberPermissions,
 };
 
 export interface AgentActor {

@@ -1,4 +1,4 @@
-import type { BillingPeriod, Plan, ProfileRow, SubscriptionStatus, WorkspaceRole } from "@/types/database";
+import type { BillingPeriod, Plan, ProfileRow, SubscriptionStatus, WorkspaceRole, Currency } from "@/types/database";
 
 export interface ShellData {
   user: {
@@ -13,7 +13,9 @@ export interface ShellData {
   workspace: {
     name: string;
     plan: Plan;
-    priceUsd: number;
+    /** Monthly plan price in the workspace's billing currency. */
+    price: number;
+    currency: Currency;
     prospects: number;
     subscriptionStatus: SubscriptionStatus;
     periodEnd: string | null;
@@ -22,7 +24,16 @@ export interface ShellData {
   };
   role: WorkspaceRole;
   usage: { prospects: number; resetsAt: string };
-  invoices: { id: string; number: string; date: string; amountUsd: number; status: "paid" | "open" | "void"; test: boolean }[];
+  invoices: { id: string; number: string; date: string; amount: number; currency: Currency; status: "paid" | "open" | "void"; test: boolean }[];
+  /** Buy More Prospects: active packs priced in the workspace currency. */
+  packs: { id: string; prospects: number; price: number }[];
+  /** A payment provider is connected for the workspace currency / billing test mode is on. */
+  billing: { online: boolean; testMode: boolean };
+  /** The member's connected mailboxes and which mail providers can be connected (outreach). */
+  mailboxes: { provider: "gmail" | "outlook"; email: string; status: string }[];
+  mailProviders: { gmail: boolean; outlook: boolean };
+  /** Unread in-app notifications. */
+  unread: number;
   team: {
     members: { user_id: string; role: WorkspaceRole; name: string; email: string; avatarUrl: string | null; initials: string }[];
     invitations: { id: string; email: string; role: string }[];

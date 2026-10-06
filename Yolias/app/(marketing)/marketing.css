@@ -325,3 +325,12 @@ html[lang="ar"] .mk .post-card h2 { letter-spacing: 0; line-height: 1.5; }
 /* Dark theme: hero/period-toggle on soft, form panel on the dark band. */
 html[data-theme="dark"] .mk .period-toggle button.active { background: #2a2a28; }
 html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--line); }
+
+/* Annotated screenshots in Docs / Help Center */
+.prose-figure { margin: 28px 0; }
+.prose-figure-frame { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--soft); box-shadow: 0 10px 30px rgba(20, 20, 19, .08); }
+.prose-figure-frame img { display: block; width: 100%; height: auto; }
+.prose-mark { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255, 255, 255, .9); }
+[dir="rtl"] .prose-mark { transform: translate(50%, -50%); }
+.prose-figure figcaption { margin-top: 10px; font-size: .88rem; color: var(--muted); }
+.prose-figure figcaption ol { margin-top: 6px; padding-inline-start: 20px; list-style: decimal; }

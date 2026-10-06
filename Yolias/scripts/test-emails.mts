@@ -49,9 +49,10 @@ let announcementId: string | null = null;
 try {
   const payer = { userId, email, name: "Email Test" };
   // Subscription: first paid plan ⇒ receipt + welcome; then upgrade.
-  assert.equal(await startPlan(await ws(), "pro", "monthly", payer), true);
+  const test = (amount: number) => ({ mode: "test" as const, amount, currency: "USD" as const });
+  assert.equal(typeof await startPlan(await ws(), "pro", "monthly", payer, test(20)), "string");
   assert.deepEqual(await kinds(), ["receipt", "plan_welcome"]);
-  assert.equal(await startPlan(await ws(), "growth", "monthly", payer), true);
+  assert.equal(typeof await startPlan(await ws(), "growth", "monthly", payer, test(50)), "string");
   assert.deepEqual((await kinds()).slice(2), ["receipt", "plan_upgraded"]);
   // Cancel ⇒ canceled; resume ⇒ activated.
   await setCancelAtPeriodEnd(await ws(), true, userId);
@@ -143,6 +144,23 @@ try {
 
   console.log(`${mine.length + 1} emails delivered:`);
   for (const c of captured.filter((c) => c.to[0] === email)) console.log(` · ${c.from.padEnd(38)} ${c.subject}`);
+  // In-app notifications follow the same events (not the welcome / account mails), deduplicated.
+  const { data: notes } = await admin.from("notifications").select("kind, title, link").eq("user_id", userId);
+  const noteKinds = new Set((notes ?? []).map((n) => n.kind));
+  for (const k of ["plan_welcome", "receipt", "plan_upgraded", "usage_limit", "discovery_ready", "security_alert"]) assert.ok(noteKinds.has(k), `in-app ${k}`);
+  assert.ok(!noteKinds.has("welcome"), "welcome stays email-only");
+  assert.ok((notes ?? []).every((n) => n.title.length > 0));
+  assert.ok((notes ?? []).some((n) => n.link?.startsWith("/invoices/")), "a receipt opens its invoice");
+  // Admin switch: an event turned off sends neither email nor notice.
+  await admin.from("email_settings").upsert({ kind: "prospects_added", email_enabled: false, in_app_enabled: false });
+  await new Promise((r) => setTimeout(r, 31_000)); // the switch cache lives 30 s
+  const before = (await kinds()).length;
+  await notify("prospects_added", [{ userId, email, locale: "en", prefs: {} }], { added: 5, allowance: 55, reason: null });
+  assert.equal((await kinds()).length, before);
+  assert.equal((await admin.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("kind", "prospects_added")).count, 0);
+  await admin.from("email_settings").delete().eq("kind", "prospects_added");
+  console.log("✓ in-app notifications + admin switches");
+
   console.log("ALL PASS");
 } finally {
   await admin.from("email_log").delete().eq("to_email", email);

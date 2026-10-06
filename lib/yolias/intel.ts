@@ -3,7 +3,7 @@ import { z } from "zod";
 // Admin-side copy of the capability list (Yolias/lib/intel/capabilities.ts);
 // keep both in sync. Labels are Arabic source text, translated by <Tx>.
 export const intelCapabilities = [
-  "company.search", "company.enrich", "company.lookup_local", "person.search", "person.enrich", "email.find",
+  "company.search", "company.enrich", "company.lookup_local", "company.lookalikes", "place.search", "job.search", "person.search", "person.enrich", "email.find",
   "email.verify", "phone.find", "web.search", "web.extract", "tech.detect", "signals.hiring",
 ] as const;
 
@@ -11,6 +11,9 @@ export const capabilityLabel: Record<string, string> = {
   "company.search": "بحث الشركات",
   "company.enrich": "إثراء بيانات الشركة",
   "company.lookup_local": "البحث المحلي عن الشركات (خرائط)",
+  "company.lookalikes": "شركات مشابهة",
+  "place.search": "بحث الأنشطة المحلية (خرائط)",
+  "job.search": "بحث الوظائف المعلنة",
   "person.search": "بحث صناع القرار",
   "person.enrich": "إثراء بيانات الشخص",
   "email.find": "إيجاد البريد",

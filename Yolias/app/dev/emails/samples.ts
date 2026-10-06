@@ -22,7 +22,7 @@ function sample(name: (typeof productNames)[number], l: EmailLocale): Omit<Email
   const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate())).toISOString();
   const pro = ar ? "يولـياس برو" : "Yolias Pro";
   const growth = ar ? "يولـياس للنمو" : "Yolias Growth";
-  const plan = { planName: pro, period: "monthly" as const, amountUsd: 20, periodEnd: next, test: true };
+  const plan = { planName: pro, period: "monthly" as const, amount: 20, periodEnd: next, test: true };
   const data: { [K in (typeof productNames)[number]]: Omit<EmailData[K], "siteUrl"> } = {
     welcome: { name: ar ? "سارة" : "Sara" },
     new_sign_in: { at: now.toISOString(), device: "Safari · iOS", ip: "197.32.10.4" },
@@ -35,17 +35,17 @@ function sample(name: (typeof productNames)[number], l: EmailLocale): Omit<Email
     subscription_renewed: { ...plan, invoiceId: "sample", invoiceNumber: "YL-001002" },
     subscription_canceled: { planName: growth, endsAt: next },
     subscription_ending: { planName: growth, endsAt: next },
-    plan_upgraded: { ...plan, planName: growth, fromPlanName: pro, amountUsd: 50, prospectsPerMonth: 3000 },
+    plan_upgraded: { ...plan, planName: growth, fromPlanName: pro, amount: 50, prospectsPerMonth: 3000 },
     plan_downgraded: { ...plan, fromPlanName: growth, prospectsPerMonth: 1000 },
     subscription_paused: { planName: pro, reason: ar ? "تعذّر تحصيل الدفعة" : "the payment couldn’t be collected" },
     access_restored: { planName: pro },
-    receipt: { invoiceId: "sample", invoiceNumber: "YL-001001", planName: pro, period: "monthly", amountUsd: 20, date: now.toISOString(), periodEnd: next, test: true },
-    invoice_ready: { invoiceId: "sample", invoiceNumber: "YL-001003", planName: pro, amountUsd: 20, dueAt: next, test: true },
-    payment_failed: { planName: pro, amountUsd: 20, reason: ar ? "تم رفض البطاقة" : "card declined", retryAt: next },
+    receipt: { invoiceId: "sample", invoiceNumber: "YL-001001", planName: pro, period: "monthly", amount: 20, date: now.toISOString(), periodEnd: next, test: true },
+    invoice_ready: { invoiceId: "sample", invoiceNumber: "YL-001003", planName: pro, amount: 20, dueAt: next, test: true },
+    payment_failed: { planName: pro, amount: 20, reason: ar ? "تم رفض البطاقة" : "card declined", retryAt: next },
     payment_method_attention: { reason: ar ? "تنتهي صلاحية بطاقتك هذا الشهر" : "Your card expires this month" },
-    payment_overdue: { planName: pro, amountUsd: 20, reason: null, retryAt: null, daysOverdue: 7 },
-    refund_processed: { invoiceNumber: "YL-001001", amountUsd: 20, reason: null },
-    refund_issued: { invoiceNumber: "YL-001001", amountUsd: 20, reason: null },
+    payment_overdue: { planName: pro, amount: 20, reason: null, retryAt: null, daysOverdue: 7 },
+    refund_processed: { invoiceNumber: "YL-001001", amount: 20, reason: null },
+    refund_issued: { invoiceNumber: "YL-001001", amount: 20, reason: null },
     prospects_added: { added: 200, allowance: 1200, reason: null },
     usage_low: { used: 820, total: 1000, resetsAt: next },
     usage_limit: { used: 1000, total: 1000, resetsAt: next },

@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { runDiscovery } from "@/lib/discovery/pipeline";
+import { findDecisionMakers, runDiscovery } from "@/lib/discovery/pipeline";
+import { draftOutreach, sendOutreach } from "@/lib/outreach";
 import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
@@ -20,6 +21,13 @@ type Handler<K extends JobKind> = (payload: JobPayloads[K], attempt: number) => 
 
 const handlers: { [K in JobKind]: Handler<K> } = {
   "campaign.discover": (p, attempt) => runDiscovery(p.campaignId, { attempt }),
+  "company.people": (p) => findDecisionMakers(p.workspaceId, p.companyIds),
+  "outreach.prepare": async (p) => {
+    for (const prospectId of p.prospectIds) await draftOutreach({ workspaceId: p.workspaceId, userId: p.userId, prospectId, instruction: p.instruction, language: p.language });
+  },
+  "outreach.send": async (p) => {
+    await sendOutreach(p.messageId);
+  },
   "email.send": (p) => deliverEmail(p.logId),
   "email.workspace": async (p) => {
     const { data: u } = await createAdminClient().rpc("usage_summary", { p_ws: p.workspaceId });
@@ -61,6 +69,30 @@ async function scheduleSweep() {
   if (won?.length) await db.rpc("jobs_enqueue", { p_kind: "billing.sweep", p_payload: {}, p_delay: 0 });
 }
 
+/**
+ * Continuous campaigns (final spec phase 6): queue every scheduled campaign
+ * whose next run is due — each claimed once by moving it to "queued" — and
+ * close the ones whose deadline passed while they waited.
+ */
+export async function scheduleCampaigns(now = new Date()): Promise<number> {
+  const db = createAdminClient();
+  const at = now.toISOString();
+  const { data: late } = await db.from("campaigns").select("id, quota, prospects_found").eq("status", "scheduled").lt("deadline", at);
+  for (const c of late ?? []) {
+    const done = c.prospects_found >= c.quota;
+    await db.from("campaigns").update({ status: done ? "completed" : "partial", partial_reason: done ? null : "deadline", completed_at: at, next_run_at: null }).eq("id", c.id).eq("status", "scheduled");
+  }
+  const { data: due } = await db.from("campaigns").select("id").eq("status", "scheduled").lte("next_run_at", at).limit(50);
+  let queued = 0;
+  for (const c of due ?? []) {
+    const { data: claimed } = await db.from("campaigns").update({ status: "queued" }).eq("id", c.id).eq("status", "scheduled").select("id").maybeSingle();
+    if (!claimed) continue;
+    await db.rpc("jobs_enqueue", { p_kind: "campaign.discover", p_payload: { campaignId: c.id }, p_delay: 0 });
+    queued++;
+  }
+  return queued;
+}
+
 /** 30s, 60s, 120s, 240s… capped at 30 minutes. */
 export function backoffSeconds(attempt: number): number {
   return Math.min(30 * 2 ** Math.max(attempt - 1, 0), 1800);
@@ -78,6 +110,7 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   const started = Date.now();
   const result: TickResult = { taken: 0, succeeded: 0, retried: 0, dead: 0 };
   await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
+  await scheduleCampaigns().catch((e) => console.error("[jobs] campaign scheduling failed", e));
   await heartbeat().catch(() => {});
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });

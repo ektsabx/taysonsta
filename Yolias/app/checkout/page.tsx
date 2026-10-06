@@ -5,10 +5,11 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { allPlans, hasActivePlan, isBillingPeriod, isPlan } from "@/lib/plans";
-import { getPlanCatalog } from "@/lib/plan-catalog";
+import { allPlans, hasActivePlan, isBillingPeriod, isPlan, planPrice } from "@/lib/plans";
+import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
+import { providerFor } from "@/lib/payments";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).checkout.eyebrow} — Yolias` };
@@ -21,6 +22,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const t = await getDictionary();
   const { plan, period } = await searchParams;
   const active = hasActivePlan(session.workspace);
+  const currency = await workspaceCurrency(session.workspace);
   const current = active ? session.workspace.plan : null;
   const picked = isPlan(plan) ? plan : await pendingPlan(session);
   const initial = picked ?? current ?? "growth";
@@ -42,11 +44,14 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
+        online={Boolean(await providerFor(currency))}
         email={session.email}
         workspaceName={session.workspace.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
-        options={allPlans.map((p) => ({ id: p, ...plans[p] }))}
+        options={allPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, prospects: plans[p].prospects }))}
+        currency={currency}
       />
     </div>
   );
 }
+

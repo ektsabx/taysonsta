@@ -50,6 +50,7 @@ export interface LlmLog {
   workspaceId?: string | null;
   campaignId?: string | null;
   strategyId?: string | null;
+  conversationId?: string | null;
 }
 
 async function logStep(log: LlmLog, route: LlmRoute, servedModel: string | null, usage: LlmUsageCount | null, ok: boolean, error: string | null, latencyMs: number) {
@@ -57,7 +58,8 @@ async function logStep(log: LlmLog, route: LlmRoute, servedModel: string | null,
   await recordLlmCall({
     ...log, model: route.model, servedModel: servedModel ?? route.model, usage, costUsd: usage ? priced : null, ok, error, latencyMs,
   }).catch(() => {});
-  return priced ?? 0;
+  // null = unpriced (D-114): counted separately by the callers, never as free.
+  return usage ? priced : 0;
 }
 
 export interface StructuredOutcome<T> {
@@ -66,6 +68,8 @@ export interface StructuredOutcome<T> {
   servedModel: string;
   usage: LlmUsageCount;
   costUsd: number;
+  /** Calls whose model has no price configured (cost unknown, not zero). */
+  unpricedCalls: number;
   attempts: number;
 }
 
@@ -79,14 +83,17 @@ export async function runStructured<T>(task: string, req: StructuredRequest, val
   if (!routes.length) throw new LlmNotConfiguredError(task);
   let last: LlmProviderError | null = null;
   let costUsd = 0;
+  let unpricedCalls = 0;
   for (const [i, route] of routes.entries()) {
     const started = Date.now();
     try {
       const r = await adapters[route.provider].structured(route.model, req);
       const value = r.refused ? null : validate(r.data);
       const error = r.refused ? "refusal" : value === null ? "invalid output" : null;
-      costUsd += await logStep({ ...log, task }, route, r.servedModel, r.usage, !error, error, Date.now() - started);
-      if (value !== null) return { data: value, route, servedModel: r.servedModel, usage: r.usage, costUsd, attempts: i + 1 };
+      const step = await logStep({ ...log, task }, route, r.servedModel, r.usage, !error, error, Date.now() - started);
+      if (step === null) unpricedCalls++;
+      else costUsd += step;
+      if (value !== null) return { data: value, route, servedModel: r.servedModel, usage: r.usage, costUsd, unpricedCalls, attempts: i + 1 };
       last = new LlmProviderError(`${route.provider}: ${error}`, r.refused ? "refused" : "bad_output");
     } catch (e) {
       last = e instanceof LlmProviderError ? e : new LlmProviderError(e instanceof Error ? e.message : "failed", "unavailable");
@@ -99,6 +106,8 @@ export async function runStructured<T>(task: string, req: StructuredRequest, val
 export interface ChatOutcome extends ChatResult {
   route: LlmRoute;
   costUsd: number;
+  /** Model calls whose price isn't configured (cost unknown, not zero). */
+  unpricedCalls: number;
 }
 
 /**
@@ -115,12 +124,17 @@ export async function runChat(task: string, req: ChatRequest, log: Omit<LlmLog, 
     try {
       const r = await adapters[route.provider].chat(route.model, req);
       let costUsd = 0;
-      for (const s of r.steps) costUsd += await logStep({ ...log, task }, route, s.servedModel, s.usage, !s.refused, s.refused ? "refusal" : null, s.latencyMs);
+      let unpricedCalls = 0;
+      for (const s of r.steps) {
+        const step = await logStep({ ...log, task }, route, s.servedModel, s.usage, !s.refused, s.refused ? "refusal" : null, s.latencyMs);
+        if (step === null) unpricedCalls++;
+        else costUsd += step;
+      }
       if (!r.reply) {
         last = new LlmProviderError(`${route.provider}: no reply`, "bad_output");
         continue;
       }
-      return { ...r, route, costUsd };
+      return { ...r, route, costUsd, unpricedCalls };
     } catch (e) {
       last = e instanceof LlmProviderError ? e : new LlmProviderError(e instanceof Error ? e.message : "failed", "unavailable");
       for (const s of last.steps) await logStep({ ...log, task }, route, s.servedModel, s.usage, !s.refused, s.refused ? "refusal" : null, s.latencyMs);

@@ -67,20 +67,21 @@ export async function retryStrategy(strategyId: string): Promise<StrategyResult>
   return { ok: true, id: strategy.id };
 }
 
-// "Save to Prospects": hands the campaign's discovered decision makers to the Prospects list.
+// "Save to Prospects": hands the search's results to the Prospects list —
+// decision makers, or the companies / local businesses a company search
+// delivered (not the companies kept only as context of a people search).
 export async function saveToProspects(campaignId: string): Promise<{ ok: boolean; saved: number }> {
   const session = await requireSession();
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("prospects")
-    .update({ saved_at: new Date().toISOString() })
-    .eq("workspace_id", session.workspace.id)
-    .eq("campaign_id", campaignId)
-    .is("saved_at", null)
-    .select("id");
+  const now = new Date().toISOString();
+  const [{ data }, { data: companies }] = await Promise.all([
+    supabase.from("prospects").update({ saved_at: now }).eq("workspace_id", session.workspace.id).eq("campaign_id", campaignId).is("saved_at", null).select("id"),
+    supabase.from("companies").update({ saved_at: now }).eq("workspace_id", session.workspace.id).eq("campaign_id", campaignId).is("saved_at", null).not("delivered_at", "is", null).select("id"),
+  ]);
+  const saved = (data?.length ?? 0) + (companies?.length ?? 0);
   revalidatePath("/prospects");
   revalidatePath("/analytics");
-  return { ok: true, saved: data?.length ?? 0 };
+  return { ok: true, saved };
 }
 
 // Sidebar history actions (pin / rename / delete), like Claude and ChatGPT.

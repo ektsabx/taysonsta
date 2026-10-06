@@ -1,7 +1,9 @@
 "use client";
 
+import { Tx } from "@/components/bos/I18n";
+
 import { ActionForm, FormSection, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
-import { createAnnouncementAction, sendAnnouncementAction } from "./actions";
+import { createAnnouncementAction, sendAnnouncementAction, setEmailEventAction } from "./actions";
 
 const types = [
   { value: "new_feature", label: "ميزة جديدة (Introducing …)" },
@@ -40,6 +42,19 @@ export function SendAnnouncementButton({ id }: { id: string }) {
     <ActionForm action={sendAnnouncementAction} successMessage="تمت جدولة الإرسال" guardUnsaved={false} className="">
       <input type="hidden" name="id" value={id} />
       <SubmitButton label="إرسال" pendingLabel="..." className="admin-btn small" />
+    </ActionForm>
+  );
+}
+
+/** Email + in-app switches of one event (saved on change). */
+export function EmailEventForm({ kind, email, inApp, hasInApp }: { kind: string; email: boolean; inApp: boolean; hasInApp: boolean }) {
+  return (
+    <ActionForm action={setEmailEventAction} successMessage="تم الحفظ">
+      <input type="hidden" name="kind" value={kind} />
+      <span style={{ display: "inline-flex", gap: 14, alignItems: "center" }}>
+        <label style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><input type="checkbox" name="email" defaultChecked={email} onChange={(e) => e.currentTarget.form?.requestSubmit()} /><Tx>بريد</Tx></label>
+        {hasInApp ? <label style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><input type="checkbox" name="in_app" defaultChecked={inApp} onChange={(e) => e.currentTarget.form?.requestSubmit()} /><Tx>داخل التطبيق</Tx></label> : <input type="hidden" name="in_app" value="on" />}
+      </span>
     </ActionForm>
   );
 }

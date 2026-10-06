@@ -6,9 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users,
-} from "lucide-react";
+  Plug, Plus, SlidersHorizontal, Sparkles, User, MessagesSquare, Send, UserSearch, Users } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
 import { planLabel } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
@@ -22,6 +22,8 @@ const mainNav = [
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
   { href: "/campaigns", key: "campaigns", icon: Layers },
   { href: "/prospects", key: "prospects", icon: UserSearch },
+  { href: "/chat", key: "chats", icon: MessagesSquare },
+  { href: "/outreach", key: "outreach", icon: Send },
 ] as const;
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
@@ -34,6 +36,8 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
 
 export function AppShell({ data, initialClosed, children }: { data: ShellData; initialClosed: boolean; children: React.ReactNode }) {
   const { t } = useI18n();
+  // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
+  const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
   const pathname = usePathname();
   const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
@@ -83,6 +87,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
         <div className="brand-area">
           <BrandLogo />
+          <NotificationBell unread={data.unread} />
         </div>
 
         <div className="sidebar-action-wrap">
@@ -95,7 +100,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${pathname === href ? " active" : ""}`}>
+              <Link key={href} href={href} className={`nav-item${pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>
@@ -180,7 +185,15 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         </div>
       </aside>
 
-      <main className="main-area">{children}</main>
+      <main className="main-area">
+        {pastDue && (
+          <div className="past-due-banner" role="status">
+            <span>{t.invoicePay.pastDue}</span>
+            {pastDue.id && <Link href={`/invoices/${pastDue.id}`}>{t.invoicePay.pay}</Link>}
+          </div>
+        )}
+        {children}
+      </main>
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
     </div>

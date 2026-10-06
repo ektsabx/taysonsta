@@ -3,14 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Prose } from "@/components/marketing/Prose";
-import { articles, collections } from "@/lib/content/help";
+import { articles as shippedArticles, collections } from "@/lib/content/help";
+import { helpArticles } from "@/lib/content/store";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+  return shippedArticles.map((a) => ({ slug: a.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/help-center/[slug]">): Promise<Metadata> {
+  const articles = await helpArticles();
   const { slug } = await params;
   const article = articles.find((a) => a.slug === slug);
   if (!article) return {};
@@ -19,6 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/help-center/[slug
 }
 
 export default async function HelpArticlePage({ params }: PageProps<"/help-center/[slug]">) {
+  const articles = await helpArticles();
   const { slug } = await params;
   const article = articles.find((a) => a.slug === slug);
   if (!article) notFound();

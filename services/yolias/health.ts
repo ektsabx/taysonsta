@@ -47,20 +47,36 @@ export async function platformHealth() {
 export async function profitability(since = monthStartUtc()) {
   const { data, error } = await ydb().rpc("admin_profitability", { p_since: since.toISOString() });
   if (error) throw error;
+  // Revenue is in the workspace's currency (USD / EGP, D-120); platform costs
+  // are logged in USD. Nothing is converted, so a margin exists only for USD.
   const rows = (data ?? []).map((r) => {
     const cost = Number(r.llm_cost) + Number(r.provider_cost);
     const live = Number(r.revenue_live);
-    return { ...r, revenue_live: live, revenue_test: Number(r.revenue_test), cost, margin: live - cost, prospects: Number(r.prospects), unpriced_calls: Number(r.unpriced_calls), costPerProspect: Number(r.prospects) ? cost / Number(r.prospects) : null };
+    const currency = (r.currency ?? "USD") as "USD" | "EGP";
+    return { ...r, currency, revenue_live: live, revenue_test: Number(r.revenue_test), cost, margin: currency === "USD" ? live - cost : null, prospects: Number(r.prospects), unpriced_calls: Number(r.unpriced_calls), costPerProspect: Number(r.prospects) ? cost / Number(r.prospects) : null };
   });
-  const byPlan = new Map<string, { plan: string; workspaces: number; revenue_live: number; revenue_test: number; cost: number; prospects: number }>();
+  const byPlan = new Map<string, { plan: string; currency: "USD" | "EGP"; workspaces: number; revenue_live: number; revenue_test: number; cost: number; prospects: number }>();
   for (const r of rows) {
-    const p = byPlan.get(r.plan) ?? { plan: r.plan, workspaces: 0, revenue_live: 0, revenue_test: 0, cost: 0, prospects: 0 };
+    const key = `${r.plan}:${r.currency}`;
+    const p = byPlan.get(key) ?? { plan: r.plan, currency: r.currency, workspaces: 0, revenue_live: 0, revenue_test: 0, cost: 0, prospects: 0 };
     p.workspaces++;
     p.revenue_live += r.revenue_live;
     p.revenue_test += r.revenue_test;
     p.cost += r.cost;
     p.prospects += r.prospects;
-    byPlan.set(r.plan, p);
+    byPlan.set(key, p);
   }
-  return { since: since.toISOString(), rows: rows.sort((a, b) => b.cost - a.cost), byPlan: [...byPlan.values()] };
+  const totals = { cost: 0, prospects: 0, unpriced: 0, marginUsd: 0, live: { USD: 0, EGP: 0 }, test: { USD: 0, EGP: 0 }, paying: { USD: 0, EGP: 0 }, arpa: { USD: null as number | null, EGP: null as number | null } };
+  for (const r of rows) {
+    totals.cost += r.cost;
+    totals.prospects += r.prospects;
+    totals.unpriced += r.unpriced_calls;
+    totals.live[r.currency] += r.revenue_live;
+    totals.test[r.currency] += r.revenue_test;
+    if (r.margin != null) totals.marginUsd += r.margin;
+    if (r.revenue_live > 0) totals.paying[r.currency]++;
+  }
+  // ARPA: real revenue per paying workspace, per currency (never mixed, D-120).
+  for (const c of ["USD", "EGP"] as const) totals.arpa[c] = totals.paying[c] ? totals.live[c] / totals.paying[c] : null;
+  return { since: since.toISOString(), rows: rows.sort((a, b) => b.cost - a.cost), byPlan: [...byPlan.values()], totals };
 }

@@ -236,3 +236,9 @@
   .admin-main { padding: 20px 16px 64px; }
   .admin-sidebar.collapsed { width: 260px; }
 }
+
+/* LLM management (Admin → Platform → LLM) */
+.llm-input { width: 100%; min-width: 80px; background: var(--bos-input); border: 1px solid rgba(var(--bos-fg-rgb), 0.12); border-radius: 8px; padding: 7px 10px; color: var(--bos-strong); font-size: 13px; font-family: inherit; }
+.llm-task { display: grid; gap: 8px; padding: 12px; border: 1px solid rgba(var(--bos-fg-rgb), 0.08); border-radius: 10px; }
+.llm-route-row { display: grid; grid-template-columns: 24px 140px 1fr auto auto; gap: 8px; align-items: center; }
+.content-langs { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }

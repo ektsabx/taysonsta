@@ -40,8 +40,9 @@ export async function upsertCompany(c: CompanyCandidate, src: Source): Promise<s
   const db = intel();
   const domain = registrableDomain(c.domain);
   const providerKey = c.sourceRef ? `${src.provider}:${c.sourceRef}` : null;
+  const place = c.placeRef ? c.placeRef.trim() : null;
   let id: string | null = null;
-  for (const [kind, value] of [["domain", domain], ["provider", providerKey]] as const) {
+  for (const [kind, value] of [["domain", domain], ["place_id", place], ["provider", providerKey]] as const) {
     if (!value) continue;
     const { data } = await db.from("company_identifiers").select("company_id").eq("kind", kind).eq("value", value).maybeSingle();
     if (data) {
@@ -69,9 +70,11 @@ export async function upsertCompany(c: CompanyCandidate, src: Source): Promise<s
     if (src.license.redistributable && cur && !cur.redistributable) patch.redistributable = true;
     await db.from("companies").update(patch).eq("id", id);
   }
-  const ids = [domain && { kind: "domain", value: domain }, providerKey && { kind: "provider", value: providerKey }].filter(Boolean) as { kind: string; value: string }[];
+  const ids = [domain && { kind: "domain", value: domain }, place && { kind: "place_id", value: place }, providerKey && { kind: "provider", value: providerKey }].filter(Boolean) as { kind: string; value: string }[];
   if (ids.length) await db.from("company_identifiers").upsert(ids.map((i) => ({ ...i, company_id: id! })), { onConflict: "kind,value", ignoreDuplicates: true });
-  await provenance("company", id, presentFields(fields, Object.keys(fields)), src, (await ttl()).company_firmographics);
+  // Local-business facts have no column of their own in intel.companies; they live as field values.
+  const local = { category: c.category, address: c.address, phone: c.phone, website: c.website, rating: c.rating, reviews_count: c.reviewsCount, maps_url: c.mapsUrl };
+  await provenance("company", id, presentFields({ ...fields, ...local }, [...Object.keys(fields), ...Object.keys(local)]), src, (await ttl()).company_firmographics);
   return id;
 }
 
@@ -146,8 +149,10 @@ export async function saveContact(personId: string, kind: "work_email" | "phone"
 // ───────────────────────── Suppression ─────────────────────────
 
 /** Never deliver someone on the suppression list (rule 34): by email, email domain, LinkedIn or person id. */
-export async function isSuppressed(p: { email?: string | null; linkedinUrl?: string | null; personId?: string | null }): Promise<boolean> {
+export async function isSuppressed(p: { email?: string | null; linkedinUrl?: string | null; personId?: string | null; domain?: string | null }): Promise<boolean> {
   const checks: { kind: string; value: string }[] = [];
+  const company = registrableDomain(p.domain ?? null);
+  if (company) checks.push({ kind: "domain", value: company });
   const email = normalizeEmail(p.email);
   if (email) {
     const host = email.split("@")[1];

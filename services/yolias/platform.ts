@@ -149,8 +149,8 @@ export async function getWorkspace(id: string) {
     ydb().from("workspace_members").select("user_id, role, created_at").eq("workspace_id", id).order("created_at"),
     ydb().from("strategies").select("id, title, status, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
     ydb().from("campaigns").select("id, name, status, quota, companies_found, prospects_found, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
-    ydb().from("invoices").select("id, number, plan, billing_period, amount_usd, status, mode, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
-    ydb().from("subscription_events").select("id, plan, status, amount_usd, mode, billing_period, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
+    ydb().from("invoices").select("id, number, kind, plan, billing_period, prospects, amount, currency, status, mode, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
+    ydb().from("subscription_events").select("id, plan, status, amount, currency, mode, billing_period, created_at").eq("workspace_id", id).order("created_at", { ascending: false }).limit(20),
     workspaceStats(),
     ydb().from("workspace_invitations").select("id, email, role, created_at").eq("workspace_id", id).is("accepted_at", null),
   ]);

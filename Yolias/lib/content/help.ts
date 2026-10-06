@@ -31,6 +31,46 @@ export interface HelpArticle {
 
 export const articles: HelpArticle[] = [
   {
+    slug: "prospects-workspace",
+    collection: "using-yolias",
+    doc: {
+      en: {
+        title: "Working with Prospects",
+        summary: "Tabs, filters, selecting across pages, revealing contacts, exporting and finding decision makers.",
+        blocks: [
+          { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Example data.", marks: [
+            { x: 30, y: 14, label: "Tabs: People, Companies, Local Businesses, Jobs." },
+            { x: 25, y: 38, label: "Tick rows, or tick the header and then “Select all matching” to act on every page." },
+            { x: 93, y: 6, label: "Export CSV." },
+          ] } },
+          { h2: "Reveal contact details" },
+          { p: "Emails and phones show masked (for example s•••@company.com) until you click **Reveal** — on one person or for a selection. Revealing doesn't use extra prospects: the person was counted when Yolias delivered them." },
+          { h2: "Find decision makers at a company" },
+          { p: "On the Companies or Local Businesses tab, select companies and choose **Find decision makers**. Each person Yolias finds uses one prospect and is saved straight to People." },
+          { h2: "Export" },
+          { p: "**Export CSV** downloads the tab as filtered; **Export selected** downloads only the rows you picked. Exported contacts count as revealed." },
+        ],
+      },
+      ar: {
+        title: "العمل في العملاء المحتملين",
+        summary: "التبويبات والتصفية والتحديد عبر الصفحات وإظهار بيانات التواصل والتصدير وإيجاد صناع القرار.",
+        blocks: [
+          { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "بيانات مثال.", marks: [
+            { x: 30, y: 14, label: "التبويبات: الأشخاص والشركات والأنشطة المحلية والوظائف." },
+            { x: 25, y: 38, label: "حدّد الصفوف، أو حدّد العنوان ثم «تحديد كل المطابقة» للعمل على كل الصفحات." },
+            { x: 93, y: 6, label: "تصدير CSV." },
+          ] } },
+          { h2: "إظهار بيانات التواصل" },
+          { p: "يظهر البريد والهاتف مخفيين (مثل s•••@company.com) حتى تضغط **إظهار** — لشخص واحد أو لمجموعة محددة. الإظهار لا يستهلك عملاء محتملين إضافيين: تم احتساب الشخص عند تسليمه." },
+          { h2: "إيجاد صناع القرار في شركة" },
+          { p: "في تبويب الشركات أو الأنشطة المحلية حدّد الشركات واختر **إيجاد صناع القرار**. كل شخص يجده يولـياس يستهلك عميلًا محتملًا واحدًا ويُحفظ مباشرة في الأشخاص." },
+          { h2: "التصدير" },
+          { p: "**تصدير CSV** ينزّل التبويب كما هو مصفّى، و**تصدير المحدد** ينزّل الصفوف التي اخترتها فقط. بيانات التواصل المصدّرة تُحتسب كمُظهرة." },
+        ],
+      },
+    },
+  },
+  {
     slug: "signing-in",
     collection: "getting-started",
     doc: {
@@ -294,7 +334,7 @@ export const articles: HelpArticle[] = [
   },
 ];
 
-export const helpHero: Localized<{ title: string; collectionsTitle: string; popularTitle: string }> = {
-  en: { title: "How can we help?", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
-  ar: { title: "كيف يمكننا مساعدتك؟", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
+export const helpHero: Localized<{ title: string; lead: string; collectionsTitle: string; popularTitle: string }> = {
+  en: { title: "How can we help?", lead: "Short answers about signing in, plans, searches, campaigns, prospects and your team.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
+  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن تسجيل الدخول والخطط وعمليات البحث والحملات والعملاء المحتملين وفريقك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
 };

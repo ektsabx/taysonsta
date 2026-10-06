@@ -5,7 +5,8 @@ import { about } from "@/lib/content/site";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).site.about} — Yolias` };
+  const locale = await getLocale();
+  return { title: `${(await getDictionary()).site.about} — Yolias`, description: about[locale].lead };
 }
 
 export default async function AboutPage() {

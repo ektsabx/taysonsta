@@ -283,7 +283,11 @@ export function supabaseEmailChangedTemplate(): string {
 
 /* ───────────────────────── Product emails ───────────────────────── */
 
-const money = (usd: number) => `$${usd.toFixed(2)}`;
+/** "$20.00" / "EGP 1,000.00" — every amount in its own currency (D-120). */
+export function price(amount: number, currency: "USD" | "EGP" = "USD"): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, currencyDisplay: currency === "USD" ? "narrowSymbol" : "code", minimumFractionDigits: 2 }).format(amount);
+}
+const money = price;
 
 function dateText(iso: string, locale: EmailLocale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { year: "numeric", month: "long", day: "numeric" }).format(new Date(iso));
@@ -305,7 +309,8 @@ export interface ReceiptInput {
   invoiceNumber: string;
   planName: string;
   period: "monthly" | "annual";
-  amountUsd: number;
+  amount: number;
+  currency?: "USD" | "EGP";
   date: string;
   periodEnd: string;
   test: boolean;
@@ -319,7 +324,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
     html: layout({
       locale,
       siteUrl: r.siteUrl,
-      preheader: ar ? `تم دفع ${money(r.amountUsd)} لاشتراك ${r.planName}.` : `${money(r.amountUsd)} paid for ${r.planName}.`,
+      preheader: ar ? `تم دفع ${money(r.amount, r.currency)} لاشتراك ${r.planName}.` : `${money(r.amount, r.currency)} paid for ${r.planName}.`,
       heading: ar ? "شكرًا لك، تم استلام الدفعة" : "Thanks for your payment",
       body: [
         ar
@@ -334,7 +339,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
           [ar ? "التاريخ" : "Date", dateText(r.date, locale)],
           [ar ? "الخطة" : "Plan", `${esc(r.planName)} · ${periodText}`],
         ],
-        [ar ? "المبلغ المدفوع" : "Amount paid", `<span dir="ltr">${money(r.amountUsd)}</span>`],
+        [ar ? "المبلغ المدفوع" : "Amount paid", `<span dir="ltr">${money(r.amount, r.currency)}</span>`],
       ),
       button: { label: ar ? "عرض الفاتورة" : "View invoice", href: `${r.siteUrl}/invoices/${r.invoiceId}` },
       footnote: ar
@@ -425,7 +430,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "عميل محتمل واحد = صانع قرار واحد ببريد موثّق وبيانات شركة وهاتف/واتساب مباشر." : "1 prospect = one decision maker with verified email, company data and direct phone/WhatsApp.",
+      footnote: ar ? "عميل محتمل واحد = صانع قرار واحد ببريد موثّق وبيانات شركة، ورقم هاتف عند توفره." : "1 prospect = one decision maker with a verified email and company data, plus a phone number when available.",
     }),
   };
 }

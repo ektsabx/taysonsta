@@ -16,20 +16,21 @@ export default async function PlansPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="الخطط والحصص" subtitle="حصة العملاء المحتملين لكل خطة. التغيير يسري فوراً على كل مساحات العمل في الخطة، بما فيها صفحة الأسعار." />
+      <PageHeader title="الخطط والحصص" subtitle="الأسعار وحصة العملاء المحتملين لكل خطة. مصر بالجنيه وباقي الدول بالدولار، بدون تحويل. التغيير يسري فوراً على كل مساحات العمل في الخطة، بما فيها صفحة الأسعار." />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         {yoliasPlanIds.map((p) => (
           <Card key={p} title={yoliasPlanLabel[p]}>
             <KeyValues items={[
               { label: "السعر الشهري", value: usd(terms[p].priceUsd) },
+              { label: "السعر الشهري (مصر)", value: terms[p].priceEgp == null ? "غير محدد" : `EGP ${num(terms[p].priceEgp!)}` },
               { label: "العملاء المحتملون شهرياً", value: num(terms[p].prospects) },
               { label: "آخر تعديل", value: terms[p].updatedBy ? `${terms[p].updatedBy} · ${formatDateTime(terms[p].updatedAt)}` : "—" },
             ]} />
-            {manage ? <PlanQuotaForm plan={p} prospects={terms[p].prospects} /> : null}
+            {manage ? <PlanQuotaForm plan={p} prospects={terms[p].prospects} priceUsd={terms[p].priceUsd} priceEgp={terms[p].priceEgp} /> : null}
           </Card>
         ))}
       </div>
-      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>الأسعار تُعدّل مع مزود الدفع عند ربطه؛ هنا تُعدّل الحصص فقط.</Tx></p>
+      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>تغيير السعر يسري على الاشتراكات الجديدة والتجديدات القادمة.</Tx></p>
     </>
   );
 }

@@ -19,6 +19,8 @@ export interface StrategyView {
   campaign: CampaignRow | null;
   topCompany: CompanyRow | null;
   topProspects: ProspectRow[];
+  /** Company / local business searches: the best delivered results. */
+  topResults: CompanyRow[];
   lastEvent: CampaignEventRow | null;
   savedCount: number;
 }
@@ -30,7 +32,16 @@ export async function getStrategyView(id: string): Promise<StrategyView | null> 
   if (!strategy) return null;
 
   const { data: campaign } = await supabase.from("campaigns").select("*").eq("strategy_id", id).maybeSingle();
-  if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], lastEvent: null, savedCount: 0 };
+  if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], topResults: [], lastEvent: null, savedCount: 0 };
+  if (campaign.search_type !== "people") {
+    const [{ data: results }, { data: lastEvent }, { count: savedCount }] = await Promise.all([
+      supabase.from("companies").select("*").eq("campaign_id", campaign.id).not("delivered_at", "is", null)
+        .order("match_score", { ascending: false, nullsFirst: false }).limit(4),
+      supabase.from("campaign_events").select("*").eq("campaign_id", campaign.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("companies").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("delivered_at", "is", null).not("saved_at", "is", null),
+    ]);
+    return { strategy, campaign, topCompany: null, topProspects: [], topResults: results ?? [], lastEvent, savedCount: savedCount ?? 0 };
+  }
 
   const [{ data: best }, { data: lastEvent }, { count: savedCount }] = await Promise.all([
     supabase.from("prospects").select("company_id").eq("campaign_id", campaign.id).not("company_id", "is", null)
@@ -51,5 +62,5 @@ export async function getStrategyView(id: string): Promise<StrategyView | null> 
     topProspects = people ?? [];
   }
 
-  return { strategy, campaign, topCompany, topProspects, lastEvent, savedCount: savedCount ?? 0 };
+  return { strategy, campaign, topCompany, topProspects, topResults: [], lastEvent, savedCount: savedCount ?? 0 };
 }

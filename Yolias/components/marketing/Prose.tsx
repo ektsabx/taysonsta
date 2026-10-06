@@ -35,6 +35,24 @@ export function Prose({ blocks }: { blocks: Block[] }) {
         if ("ul" in b) return <ul key={i}>{b.ul.map((x, j) => <li key={j}><Rich text={x} /></li>)}</ul>;
         if ("ol" in b) return <ol key={i}>{b.ol.map((x, j) => <li key={j}><Rich text={x} /></li>)}</ol>;
         if ("note" in b) return <div key={i} className="prose-note"><Info /><p><Rich text={b.note} /></p></div>;
+        if ("figure" in b) {
+          const f = b.figure;
+          return (
+            <figure key={i} className="prose-figure">
+              <div className="prose-figure-frame">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={f.src} alt={f.alt} loading="lazy" />
+                {f.marks?.map((m, j) => <span key={j} className="prose-mark" style={{ insetInlineStart: `${m.x}%`, top: `${m.y}%` }} aria-hidden="true">{j + 1}</span>)}
+              </div>
+              {(f.caption || f.marks?.length) && (
+                <figcaption>
+                  {f.caption && <Rich text={f.caption} />}
+                  {f.marks?.length ? <ol>{f.marks.map((m, j) => <li key={j}><Rich text={m.label} /></li>)}</ol> : null}
+                </figcaption>
+              )}
+            </figure>
+          );
+        }
         return (
           <div key={i} className="prose-table">
             <table>

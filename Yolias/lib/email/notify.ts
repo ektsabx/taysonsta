@@ -57,6 +57,50 @@ export async function workspaceRecipients(workspaceId: string, roles: WorkspaceR
 
 type Payload<K extends EmailKind> = Omit<EmailData[K], "siteUrl">;
 
+// Events that also appear in the in-app notifications (bell). Account
+// housekeeping mails (welcome, deleted, sign-in links) stay email-only.
+const IN_APP = new Set<EmailKind>([
+  "discovery_ready", "usage_low", "usage_limit", "prospects_added", "plan_welcome", "subscription_activated", "subscription_renewed",
+  "subscription_ending", "subscription_canceled", "plan_upgraded", "plan_downgraded", "receipt", "payment_failed", "invoice_ready",
+  "refund_processed", "refund_issued", "payment_overdue", "announcement", "security_alert", "suspicious_sign_in", "new_sign_in",
+] as EmailKind[]);
+
+/** Where a notice opens in the app. */
+function linkFor(kind: EmailKind, data: Record<string, unknown>): string | null {
+  if (typeof data.invoiceId === "string" && data.invoiceId !== "sample") return `/invoices/${data.invoiceId}`;
+  if (typeof data.strategyId === "string") return `/search/${data.strategyId}`;
+  if (kind.startsWith("usage_") || kind === "prospects_added") return "/prospects";
+  if (kind.startsWith("plan_") || kind.startsWith("subscription_") || kind.startsWith("payment_")) return "/checkout";
+  if (kind === "announcement" && typeof data.ctaUrl === "string" && data.ctaUrl.startsWith("/")) return data.ctaUrl;
+  return null;
+}
+
+/** Admin switches per event (email_settings); no row = on. Cached briefly. */
+let settingsCache: { at: number; map: Map<string, { email: boolean; inApp: boolean }> } | null = null;
+async function eventSwitch(kind: EmailKind): Promise<{ email: boolean; inApp: boolean }> {
+  if (!settingsCache || Date.now() - settingsCache.at > 30_000) {
+    const { data } = await createAdminClient().from("email_settings").select("kind, email_enabled, in_app_enabled");
+    settingsCache = { at: Date.now(), map: new Map((data ?? []).map((r) => [r.kind, { email: r.email_enabled, inApp: r.in_app_enabled }])) };
+  }
+  return settingsCache.map.get(kind) ?? { email: true, inApp: true };
+}
+
+/** One in-app notice in the recipient's language (title = the email's subject). Never throws. */
+async function notifyInApp<K extends EmailKind>(kind: K, r: Recipient, payload: Payload<K>, opts: { workspaceId?: string | null; dedupe?: string }) {
+  if (!r.userId) return;
+  try {
+    const { subject } = renderEmail(kind, r.locale, { ...(payload as object), siteUrl: siteUrl() } as EmailData[K]);
+    const row = {
+      user_id: r.userId, workspace_id: opts.workspaceId ?? null, kind, title: subject.slice(0, 300),
+      link: linkFor(kind, payload as unknown as Record<string, unknown>), dedupe_key: opts.dedupe ? `${kind}:${opts.dedupe}:${r.userId}` : null,
+    };
+    const db = createAdminClient();
+    await (opts.dedupe ? db.from("notifications").upsert(row, { onConflict: "dedupe_key", ignoreDuplicates: true }) : db.from("notifications").insert(row));
+  } catch (e) {
+    console.error(`[notify] in-app ${kind} failed`, e);
+  }
+}
+
 /**
  * Queues `kind` for each recipient who hasn't turned it off. `dedupe` makes
  * it once-only per recipient (e.g. `${workspaceId}:${month}`). Returns how
@@ -65,8 +109,12 @@ type Payload<K extends EmailKind> = Omit<EmailData[K], "siteUrl">;
  */
 export async function notify<K extends EmailKind>(kind: K, to: Recipient[], data: Payload<K> | ((locale: "en" | "ar") => Payload<K>), opts: { workspaceId?: string | null; dedupe?: string; ignorePrefs?: boolean } = {}): Promise<number> {
   const { category, pref } = emailMeta(kind);
+  const on = await eventSwitch(kind).catch(() => ({ email: true, inApp: true }));
   let queued = 0;
   for (const r of to) {
+    // In-app notices don't follow the email preferences: they're the quiet channel.
+    if (on.inApp && IN_APP.has(kind)) await notifyInApp(kind, r, typeof data === "function" ? data(r.locale) : data, opts);
+    if (!on.email) continue;
     if (pref && !opts.ignorePrefs && r.prefs[pref] === false) continue;
     try {
       const row = {

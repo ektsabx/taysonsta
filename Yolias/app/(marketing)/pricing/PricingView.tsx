@@ -4,11 +4,11 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Plus } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
-import { formatNumber } from "@/lib/format";
+import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planName, priceFor } from "@/lib/plans";
-import type { BillingPeriod, Plan } from "@/types/database";
+import { planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
+import type { BillingPeriod, Currency, Plan } from "@/types/database";
 
 type PricingCopy = Dictionary["pricing"];
 type PlanId = Plan;
@@ -17,19 +17,22 @@ type PlanId = Plan;
 // support items from the original design were removed on purpose.
 const tiers: PlanId[] = ["free", "pro", "growth"];
 
-const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "automations", "analytics", "integrations", "unlimitedUsers"] as const;
+const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "analytics", "integrations", "unlimitedUsers"] as const;
 
 interface Props {
   signedIn: boolean;
-  /** Monthly price and prospects per plan (lib/plans.ts). */
-  plans: Record<PlanId, { priceUsd: number; prospects: number }>;
+  /** Monthly prices and prospects per plan (lib/plan-catalog.ts). */
+  plans: Record<PlanId, PlanTerms>;
+  /** Egypt → EGP, every other country → USD (lib/plans.ts pricingCurrency). */
+  currency: Currency;
 }
 
-export function PricingView({ signedIn, plans }: Props) {
+export function PricingView({ signedIn, plans, currency }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const n = (v: number) => formatNumber(v, locale);
+  const price = (plan: PlanId) => formatMoney(priceFor(planPrice(plans[plan], currency) ?? 0, period), currency);
 
   // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
   const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;
@@ -37,7 +40,7 @@ export function PricingView({ signedIn, plans }: Props) {
     <PlanCard
       t={t}
       name={planName(plan, dict)}
-      price={`$${n(priceFor(plans[plan].priceUsd, period))}`}
+      price={price(plan)}
       note={plan === "free" ? t.freeForever : period === "annual" ? t.perYear : t.perMonth}
       usage={fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
       href={href(plan)}
@@ -72,6 +75,7 @@ export function PricingView({ signedIn, plans }: Props) {
             {card("pro")}
             {card("growth", dict.plans.recommended)}
           </div>
+          <p className="prospect-note">{t.noCommitment}</p>
           <p className="prospect-note">{dict.plans.prospectDef}</p>
         </div>
       </section>
@@ -108,7 +112,7 @@ export function PricingView({ signedIn, plans }: Props) {
                 </tr>
                 <tr>
                   <td>{t.price}</td>
-                  {tiers.map((p) => <td key={p} dir="ltr" className="text-start">${n(priceFor(plans[p].priceUsd, period))}</td>)}
+                  {tiers.map((p) => <td key={p} dir="ltr" className="text-start">{price(p)}</td>)}
                 </tr>
               </tbody>
             </table>

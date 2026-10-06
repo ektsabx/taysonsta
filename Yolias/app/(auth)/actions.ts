@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
@@ -20,7 +21,31 @@ async function siteUrl() {
   return `${proto}://${host}`;
 }
 
-// Magic link only: Supabase emails a one-time sign-in link — no password, no
+async function rememberPlan(formData: FormData) {
+  const plan = formData.get("plan");
+  const period = formData.get("period");
+  if (!isPlan(plan)) return;
+  const jar = await cookies();
+  const opts = { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" as const, httpOnly: true };
+  jar.set(PLAN_COOKIE, plan, opts);
+  jar.set(PERIOD_COOKIE, isBillingPeriod(period) ? period : "monthly", opts);
+}
+
+// Sign in or sign up with Google (Supabase OAuth, PKCE). Google returns to
+// /auth/confirm?code=…, which finishes the session; new accounts then follow
+// the same journey (checkout → onboarding). A plan picked on /pricing is kept.
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  await rememberPlan(formData);
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${await siteUrl()}/auth/confirm`, queryParams: { prompt: "select_account" } },
+  });
+  if (error || !data.url) redirect(`/login?error=google_failed`);
+  redirect(data.url);
+}
+
+// Email: magic link. Supabase emails a one-time sign-in link — no password, no
 // numeric code. Login and recovery never create accounts; signup does.
 export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
   const t = (await getDictionary()).auth.errors;
@@ -30,14 +55,8 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
 
   // A plan picked on /pricing is remembered so the user lands on checkout
   // right after confirming their email.
+  await rememberPlan(formData);
   const plan = formData.get("plan");
-  const period = formData.get("period");
-  if (isPlan(plan)) {
-    const jar = await cookies();
-    const opts = { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" as const, httpOnly: true };
-    jar.set(PLAN_COOKIE, plan, opts);
-    jar.set(PERIOD_COOKIE, isBillingPeriod(period) ? period : "monthly", opts);
-  }
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale() };
 

@@ -3,9 +3,14 @@ import { AppShell } from "@/components/app/AppShell";
 import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
-import { getPlanCatalog } from "@/lib/plan-catalog";
+import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
+import { billingTestMode } from "@/lib/billing";
+import { myMailboxes, providersAvailable } from "@/services/outreach";
+import { unreadNotifications } from "@/services/workspace";
+import { providerFor } from "@/lib/payments";
+import { planPrice } from "@/lib/plans";
 import { recentStrategies } from "@/services/strategies";
-import { listInvoices, monthlyUsage, teamMembers } from "@/services/workspace";
+import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
 
 function deviceLabel(ua: string): string {
   const browser = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
@@ -25,11 +30,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const plan = (await getPlanCatalog())[workspace.plan];
   const h = await headers();
 
-  const [recent, usage, team, invoices] = await Promise.all([
+  const currency = await workspaceCurrency(workspace);
+  const [recent, usage, team, invoices, packs, online, mailboxes, unread] = await Promise.all([
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
     canManageTeam(session) ? listInvoices(workspace.id) : Promise.resolve([]),
+    listPacks(),
+    providerFor(currency).then(Boolean),
+    myMailboxes(session.userId),
+    unreadNotifications(session.userId),
   ]);
 
   const name = profile.full_name || session.email;
@@ -56,7 +66,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     workspace: {
       name: workspace.name ?? "",
       plan: workspace.plan,
-      priceUsd: plan.priceUsd,
+      price: planPrice(plan, workspace.billing_currency) ?? plan.priceUsd,
+      currency: planPrice(plan, workspace.billing_currency) == null ? "USD" : workspace.billing_currency,
       // Plan quota + any grants this month (usage ledger).
       prospects: usage.allowance,
       subscriptionStatus: workspace.subscription_status,
@@ -66,7 +77,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
     role: session.role,
     usage,
-    invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amountUsd: Number(i.amount_usd), status: i.status, test: i.mode === "test" })),
+    invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
+    packs: packs.flatMap((p) => {
+      const price = currency === "EGP" ? p.price_egp : p.price_usd;
+      return price == null ? [] : [{ id: p.id, prospects: p.prospects, price: Number(price) }];
+    }),
+    billing: { online, testMode: billingTestMode() },
+    mailboxes: mailboxes.map((m) => ({ provider: m.provider, email: m.email, status: m.status })),
+    mailProviders: providersAvailable(),
+    unread,
     team: {
       members: team.members.map((m) => ({
         user_id: m.user_id,

@@ -140,3 +140,25 @@ export async function costOverview(since = monthStartUtc()) {
     recentCalls: recentCalls ?? [],
   };
 }
+
+/** LLM calls of the last N days per task and model (Admin → LLM management). */
+export async function llmUsage(days = 30) {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const { data, error } = await yintel().from("llm_calls").select("task, model, served_model, cost_usd, cache_hit, ok, latency_ms").gte("created_at", since).limit(20_000);
+  if (error) throw error;
+  const rows = new Map<string, { task: string; model: string; calls: number; failures: number; cacheHits: number; cost: number; unpriced: number; latency: number[] }>();
+  for (const c of data ?? []) {
+    const model = c.served_model ?? c.model;
+    const k = `${c.task}|${model}`;
+    const r = rows.get(k) ?? { task: c.task, model, calls: 0, failures: 0, cacheHits: 0, cost: 0, unpriced: 0, latency: [] };
+    r.calls++;
+    if (!c.ok) r.failures++;
+    if (c.cache_hit) r.cacheHits++;
+    if (c.cost_usd == null && !c.cache_hit) r.unpriced++;
+    else r.cost += Number(c.cost_usd ?? 0);
+    if (c.latency_ms != null) r.latency.push(c.latency_ms);
+    rows.set(k, r);
+  }
+  return [...rows.values()].map(({ latency, ...r }) => ({ ...r, avgMs: latency.length ? Math.round(latency.reduce((a, b) => a + b, 0) / latency.length) : null }))
+    .sort((a, b) => a.task.localeCompare(b.task) || b.calls - a.calls);
+}

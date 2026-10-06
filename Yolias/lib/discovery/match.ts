@@ -47,13 +47,16 @@ export function scoreMatch(icp: IcpCriteria, company: CompanyCandidate, person: 
     check(20, !!company.country && icp.countries.map((c) => c.toUpperCase()).includes(company.country.toUpperCase()), "Market");
   }
   if (icp.industries.length || icp.keywords.length) {
-    const text = [company.industry, company.description, company.name].filter(Boolean).join(" ");
+    const text = [company.industry, company.category, company.description, company.name].filter(Boolean).join(" ");
     check(25, overlaps(text, [...icp.industries, ...icp.keywords]), "Industry");
   }
   if (icp.employees_min != null || icp.employees_max != null) {
     const n = company.employeeCount;
     const ok = n != null && (icp.employees_min == null || n >= icp.employees_min) && (icp.employees_max == null || n <= icp.employees_max);
     check(20, ok, "Company size");
+  }
+  if (icp.cities.length && company.kind === "local_business") {
+    check(20, !!company.city && overlaps(company.city, icp.cities), "City");
   }
   if (icp.hiring) check(10, (company.hiringRoles ?? 0) > 0, "Hiring");
   if (icp.funding_stages.length) check(5, !!company.fundingStage && overlaps(company.fundingStage, icp.funding_stages), "Funding");

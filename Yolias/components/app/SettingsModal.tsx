@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, Bell, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { countryLabel, formatDate, formatNumber } from "@/lib/format";
+import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { COUNTRIES, TIMEZONES, timeZoneLabel } from "@/lib/regions";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
@@ -14,7 +14,9 @@ import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./Connect
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
+import { buyProspectPack } from "@/app/checkout/actions";
 import type { SettingsTab, ShellData } from "./types";
+import type { Currency } from "@/types/database";
 
 const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -69,7 +71,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
-            {tab === "integration" && <IntegrationTab />}
+            {tab === "integration" && <IntegrationTab data={data} />}
           </div>
         </div>
       </div>
@@ -468,6 +470,8 @@ function UsageTab({ data }: { data: ShellData }) {
         </div>
       </div>
 
+      <BuyMore data={data} />
+
       <div className="usage-updated">
         <span>{fmt(u.lastUpdated, { when: relativeTime(usage.checkedAt, now, locale, u.justNow) })}</span>
         <button type="button" className={`usage-refresh${refreshing ? " spinning" : ""}`} onClick={refresh} disabled={refreshing} aria-label={u.refresh} title={u.refresh}>
@@ -486,6 +490,50 @@ function relativeTime(ms: number, now: number, locale: string, justNow: string):
   return mins < 60 ? rtf.format(-mins, "minute") : rtf.format(-Math.floor(mins / 60), "hour");
 }
 
+/* ─────────────── Buy More Prospects ─────────────── */
+
+function BuyMore({ data }: { data: ShellData }) {
+  const { t, locale } = useI18n();
+  const bm = t.buyMore;
+  const toast = useToast();
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const canManage = data.role === "owner" || data.role === "admin";
+  const available = data.billing.online || data.billing.testMode;
+  if (!available || data.packs.length === 0) return null;
+
+  const buy = async (id: string) => {
+    setBusy(id);
+    setError(null);
+    const r = await buyProspectPack(id);
+    setBusy(null);
+    if (!r) return; // redirected to the payment page
+    if (!r.ok) return setError(r.error);
+    toast(`${fmt(bm.added, { count: formatNumber(r.added, locale) })} ${bm.testMode}`);
+    router.refresh();
+  };
+
+  return (
+    <section className="buy-more">
+      <div className="setting-label">{bm.title}</div>
+      <div className="setting-desc">{bm.lead}</div>
+      {canManage ? (
+        <ul className="buy-more-packs">
+          {data.packs.map((p) => (
+            <li key={p.id}>
+              <span>{fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}</span>
+              <span dir="ltr" className="buy-more-price">{formatMoney(p.price, data.workspace.currency)}</span>
+              <button className="btn-secondary" type="button" disabled={busy !== null} onClick={() => buy(p.id)}>{busy === p.id ? bm.buying : bm.buy}</button>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="billing-empty">{bm.onlyAdmins}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
+    </section>
+  );
+}
+
 /* ─────────────── Billing ─────────────── */
 
 function BillingTab({ data }: { data: ShellData }) {
@@ -498,8 +546,8 @@ function BillingTab({ data }: { data: ShellData }) {
   const paid = workspace.plan !== "free";
   const [confirming, setConfirming] = useState(false);
   const { pending, error, run } = useSave();
-  const money = (v: number) => `$${v.toFixed(2)}`;
-  const price = workspace.billingPeriod === "annual" ? workspace.priceUsd * 12 : workspace.priceUsd;
+  const money = (v: number, currency: Currency = "USD") => formatMoney(v, currency, true);
+  const price = workspace.billingPeriod === "annual" ? workspace.price * 12 : workspace.price;
 
   const setCanceled = (cancel: boolean) =>
     run(async () => {
@@ -528,7 +576,7 @@ function BillingTab({ data }: { data: ShellData }) {
             {workspace.subscriptionStatus === "test" && <span className="coming-soon">{b.testMode}</span>}
           </div>
           <div className="billing-plan-sub">
-            {paid && <>{workspace.billingPeriod === "annual" ? t.plans.annual : t.plans.monthly} · <span dir="ltr">{money(price)}</span>{workspace.billingPeriod === "annual" ? b.perYear : t.common.perMonth}<br /></>}
+            {paid && <>{workspace.billingPeriod === "annual" ? t.plans.annual : t.plans.monthly} · <span dir="ltr">{money(price, workspace.currency)}</span>{workspace.billingPeriod === "annual" ? b.perYear : t.common.perMonth}<br /></>}
             {renewLine}
           </div>
         </div>
@@ -542,9 +590,8 @@ function BillingTab({ data }: { data: ShellData }) {
             <div className="billing-row">
               <div className="billing-card">
                 <CreditCard />
-                <span>{b.noCard}</span>
+                <span>{data.billing.online ? t.checkout.paymentSecure : b.noCard}</span>
               </div>
-              <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{b.update}</button>
             </div>
           </section>
 
@@ -561,7 +608,7 @@ function BillingTab({ data }: { data: ShellData }) {
                   {data.invoices.map((inv) => (
                     <tr key={inv.id}>
                       <td>{formatDate(inv.date, locale, data.preferences.timezone)}</td>
-                      <td dir="ltr" className="text-start">{money(inv.amountUsd)}</td>
+                      <td dir="ltr" className="text-start">{money(inv.amount, inv.currency)}</td>
                       <td>
                         <span className={`status-pill ${inv.status}`}>{b.status[inv.status]}</span>
                         {inv.test && <span className="billing-test">{b.test}</span>}
@@ -723,7 +770,7 @@ function TeamTab({ data }: { data: ShellData }) {
 
 /* ─────────────── Integrations ─────────────── */
 
-function IntegrationTab() {
+function IntegrationTab({ data }: { data: ShellData }) {
   const { t } = useI18n();
   const it = t.settings.integration;
   const connectors = [
@@ -736,16 +783,23 @@ function IntegrationTab() {
     <div className="setting-group">
       <p className="setting-intro">{it.intro}</p>
       <div className="connector-list">
-        {connectors.map(({ id, name, desc, Icon }) => (
-          <div className="connector" key={id}>
-            <div className="connector-icon"><Icon /></div>
-            <div className="connector-main">
-              <div className="connector-name">{name}</div>
-              <div className="connector-desc">{desc}</div>
+        {connectors.map(({ id, name, desc, Icon }) => {
+          // Gmail / Outlook are real (outreach, final spec phase 8); the others are still coming.
+          const mail = id === "gmail" || id === "outlook" ? id : null;
+          const box = mail ? data.mailboxes.find((m) => m.provider === mail) : undefined;
+          return (
+            <div className="connector" key={id}>
+              <div className="connector-icon"><Icon /></div>
+              <div className="connector-main">
+                <div className="connector-name">{name}</div>
+                <div className="connector-desc">{box?.status === "connected" ? <span dir="ltr">{fmt(t.outreach.connectedAs, { email: box.email })}</span> : desc}</div>
+              </div>
+              {mail && data.mailProviders[mail]
+                ? <a className="btn-secondary" href={box?.status === "connected" ? "/outreach" : `/api/integrations/${mail}/connect`}>{box?.status === "connected" ? t.outreach.title : it.connect}</a>
+                : <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{it.connect}</button>}
             </div>
-            <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{it.connect}</button>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <p className="setting-hint connector-note">{it.soon}</p>
     </div>

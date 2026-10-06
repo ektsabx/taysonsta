@@ -7,7 +7,7 @@ import type { Database } from "@/types/database";
 // (app) layout, which has database access.
 // Pages that need a signed-in user. Everything else is public (website,
 // auth, legal, resources) and unknown paths fall through to the 404 page.
-const appPaths = ["/analytics", "/campaigns", "/prospects", "/search", "/checkout", "/onboarding", "/invoices"];
+const appPaths = ["/analytics", "/campaigns", "/prospects", "/search", "/checkout", "/onboarding", "/invoices", "/billing", "/chat", "/outreach"];
 
 // admin.* belongs to Yolias Admin. If such a request reaches Yolias, the
 // local front door (scripts/dev-proxy.mjs) isn't the one serving :3200 —

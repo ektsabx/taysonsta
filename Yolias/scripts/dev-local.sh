@@ -38,8 +38,12 @@ fi
 RESEND_FROM_EMAIL="$(printf '%s' "${RESEND_FROM:-}" | sed -E 's/.*<([^>]+)>.*/\1/')"
 if [ -n "${RESEND_API_KEY:-}" ] && [ -n "$RESEND_FROM_EMAIL" ]; then SMTP=true; else SMTP=false; fi
 
+# Google sign-in: on when the owner puts the OAuth client in .env.local
+# (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, read by config.toml).
+if [ -n "$(envval GOOGLE_CLIENT_ID)" ] && [ -n "$(envval GOOGLE_CLIENT_SECRET)" ]; then GOOGLE=true; else GOOGLE=false; fi
+
 # Variables this script owns; everything else in .env.local is kept.
-OWNED='^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL|BILLING_TEST_MODE|RESEND_API_KEY|RESEND_FROM|RESEND_FROM_EMAIL|YOLIAS_SMTP_ENABLED|WORKER_SECRET)='
+OWNED='^(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY|NEXT_PUBLIC_SITE_URL|BILLING_TEST_MODE|RESEND_API_KEY|RESEND_FROM|RESEND_FROM_EMAIL|YOLIAS_SMTP_ENABLED|YOLIAS_GOOGLE_ENABLED|WORKER_SECRET)='
 # Shared secret between the app's /api/worker and the worker that calls it.
 WORKER_SECRET="$(envval WORKER_SECRET)"
 [ -n "$WORKER_SECRET" ] || WORKER_SECRET="$(node -e 'console.log(require("crypto").randomBytes(24).toString("hex"))')"
@@ -55,6 +59,7 @@ write_env() {
     echo "BILLING_TEST_MODE=true"
     # Read by supabase/config.toml ([auth.email.smtp]) and lib/email/send.ts.
     echo "YOLIAS_SMTP_ENABLED=$SMTP"
+    echo "YOLIAS_GOOGLE_ENABLED=$GOOGLE"
     echo "RESEND_API_KEY=${RESEND_API_KEY:-}"
     echo "RESEND_FROM=${RESEND_FROM:-}"
     echo "RESEND_FROM_EMAIL=$RESEND_FROM_EMAIL"
@@ -70,7 +75,7 @@ write_env
 # Supabase reads config.toml (exposed schemas, SMTP…) only at start: restart
 # the stack when the config or the email settings changed since last run.
 mkdir -p supabase/.temp
-STATE="$SMTP:$RESEND_FROM_EMAIL:$(cksum < supabase/config.toml | cut -d' ' -f1)"
+STATE="$SMTP:$GOOGLE:$RESEND_FROM_EMAIL:$(cksum < supabase/config.toml | cut -d' ' -f1)"
 if [ "$(cat supabase/.temp/config-state 2>/dev/null)" != "$STATE" ] && npx supabase status >/dev/null 2>&1; then
   say "Database settings changed. Restarting the Yolias database services (data is kept)…"
   npx supabase stop >/dev/null 2>&1 || true
@@ -99,6 +104,8 @@ fi
 
 # Apply any database migrations added since the database was created.
 npx supabase migration up --local >/dev/null 2>&1 || npx supabase migration up --local
+# Website content into the CMS table (only rows that aren't there yet).
+npm run --silent content:seed >/dev/null 2>&1 || true
 
 eval "$(npx supabase status -o env 2>/dev/null | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
 if [ -z "${API_URL:-}" ]; then say "Couldn't read Supabase keys."; exit 1; fi

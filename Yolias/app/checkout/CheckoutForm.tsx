@@ -3,16 +3,17 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, CreditCard, Lock } from "lucide-react";
-import { formatNumber } from "@/lib/format";
+import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName, planUsage, priceFor } from "@/lib/plans";
-import type { BillingPeriod, Plan } from "@/types/database";
+import type { BillingPeriod, Currency, Plan } from "@/types/database";
 import { activatePlan } from "./actions";
 
 interface Option {
   id: Plan;
-  priceUsd: number;
+  /** Monthly price in `currency`. */
+  price: number;
   prospects: number;
 }
 
@@ -23,13 +24,16 @@ interface Props {
   initialPeriod: BillingPeriod;
   canManage: boolean;
   testMode: boolean;
+  /** A payment provider is connected for this currency (lib/payments). */
+  online: boolean;
   email: string;
   workspaceName: string;
   continueHref: string;
   options: Option[];
+  currency: Currency;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, email, workspaceName, continueHref, options }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, online, email, workspaceName, continueHref, options, currency }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<Plan>(initialPlan);
@@ -40,9 +44,9 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
   const name = planName(selected, t);
   const isFree = selected === "free";
   const isCurrent = currentPlan === selected && (isFree || currentPeriod === period);
-  const price = (o: Option) => priceFor(o.priceUsd, period);
-  const per = (o: Option) => (period === "annual" && o.priceUsd ? t.plans.perYear : t.plans.perMonth);
-  const money = (n: number) => `$${n.toFixed(2)}`;
+  const price = (o: Option) => priceFor(o.price, period);
+  const per = (o: Option) => (period === "annual" && o.price ? t.plans.perYear : t.plans.perMonth);
+  const money = (n: number) => formatMoney(n, currency, true);
 
   const subscribe = () =>
     start(async () => {
@@ -85,7 +89,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
                 </span>
                 <span className="checkout-plan-sub">{planUsage(o.prospects, t, locale)}</span>
               </span>
-              <span className="checkout-plan-price"><span dir="ltr">${price(o)}</span><small>{per(o)}</small></span>
+              <span className="checkout-plan-price"><span dir="ltr">{formatMoney(price(o), currency)}</span><small>{per(o)}</small></span>
             </button>
           ))}
         </div>
@@ -96,6 +100,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
             <li><Check /> {c.sameFeatures}</li>
             <li><Check /> {c.unlimitedUsers}</li>
             <li><Check /> {fmt(c.credits, { count: formatNumber(plan.prospects, locale) })}</li>
+            <li><Check /> {t.pricing.noCommitment}</li>
           </ul>
         </div>
       </section>
@@ -116,8 +121,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
         {!isFree && <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard /> {c.paymentMethod}</div>
           <p className="checkout-payment-note">
-            {c.paymentNote}
-            {testMode && ` ${c.testModeNote}`}
+            {online ? c.paymentSecure : <>{c.paymentNote}{testMode && ` ${c.testModeNote}`}</>}
           </p>
         </div>}
 
@@ -128,6 +132,10 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
         ) : isFree ? (
           <button className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending}>
             {pending ? c.activating : c.startFree}
+          </button>
+        ) : online ? (
+          <button className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending}>
+            <Lock /> {pending ? c.redirecting : c.pay}
           </button>
         ) : testMode ? (
           <button className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending}>

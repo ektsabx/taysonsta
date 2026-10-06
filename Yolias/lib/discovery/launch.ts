@@ -54,6 +54,7 @@ export async function understandAndLaunch(session: Session, strategyId: string, 
       created_by: session.userId,
       name: icp.campaign_name,
       criteria: icp as unknown as Json,
+      search_type: icp.search_type,
       quota: icp.target_count,
       status: "queued",
     })

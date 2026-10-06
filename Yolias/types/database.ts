@@ -14,15 +14,29 @@ export type WorkspaceRole = "owner" | "admin" | "member";
 export type Plan = "free" | "pro" | "growth";
 export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
+export type Currency = "USD" | "EGP";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
 export type StrategyStatus = "understanding" | "ready" | "failed";
 export type CampaignStatus =
-  | "created" | "queued" | "awaiting_source"
+  | "created" | "queued" | "awaiting_source" | "scheduled"
   | "discovering_companies" | "matching_companies" | "discovering_people" | "enriching" | "verifying"
   | "researching" | "scoring" | "delivering"
   | "completed" | "partial" | "failed" | "paused";
 export type PipelineStage = "understand" | "plan" | "companies" | "people" | "enrich" | "verify" | "qualify" | "deliver";
 export type EventLevel = "info" | "success" | "warning" | "error";
+export type SearchType = "people" | "companies" | "local_businesses" | "company_lookalikes";
+export type CompanyKind = "company" | "local_business";
+/** Where one field of a result came from (standard intelligence fields, final spec §37). */
+export type FieldProvenance = { field: string; source: string; at: string; confidence: number | null };
+/** Standard intelligence fields every result row carries. */
+export type IntelligenceColumns = {
+  match_score: number | null;
+  match_reasons: Json;
+  confidence: number | null;
+  provenance: Json;
+  missing_fields: string[];
+  last_updated: string;
+};
 export type EmailStatus = "unknown" | "found" | "verified" | "invalid";
 export type Seniority = "founder" | "c_level" | "vp" | "director" | "head" | "manager" | "other";
 
@@ -36,6 +50,8 @@ export type WorkspaceRow = {
   current_period_end: string | null;
   billing_period: BillingPeriod;
   cancel_at_period_end: boolean;
+  billing_currency: Currency;
+  billing_country: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -105,7 +121,15 @@ export type CampaignRow = {
   created_by: string | null;
   name: string;
   criteria: Json;
+  search_type: SearchType;
+  /** The goal: how many results the campaign should deliver. */
   quota: number;
+  continuous: boolean;
+  run_every_hours: 24 | 168;
+  deadline: string | null;
+  next_run_at: string | null;
+  runs_count: number;
+  stopped_at: string | null;
   status: CampaignStatus;
   companies_found: number;
   prospects_found: number;
@@ -127,17 +151,44 @@ export type CampaignRunRow = {
   finished_at: string | null;
   error: string | null;
   meta: Json;
+  delivered: number;
 };
 
 export type AgentToolOutcome = "ok" | "denied" | "invalid" | "not_found" | "not_connected" | "error";
 export type AgentToolCallRow = {
   id: number; workspace_id: string; user_id: string | null; conversation_id: string | null; tool: string; input: Json;
   ok: boolean; outcome: AgentToolOutcome; error: string | null; latency_ms: number | null; created_at: string;
+  cost_usd: number | null; unpriced_calls: number;
 };
 export type AgentMessageRow = {
-  id: number; workspace_id: string; strategy_id: string; user_id: string | null; role: "user" | "assistant";
+  id: number; workspace_id: string; conversation_id: string; strategy_id: string | null; user_id: string | null; role: "user" | "assistant";
   content: string; meta: Json; created_at: string;
 };
+export type ConversationScope = "user" | "workspace" | "campaign";
+export type ConversationRow = {
+  id: string; workspace_id: string; user_id: string | null; scope: ConversationScope; strategy_id: string | null; campaign_id: string | null;
+  title: string; archived_at: string | null; created_at: string; updated_at: string;
+};
+export type MailProvider = "gmail" | "outlook";
+export type MailboxRow = {
+  id: string; workspace_id: string; user_id: string; provider: MailProvider; email: string; status: "connected" | "error" | "disconnected";
+  token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
+};
+export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled";
+export type OutreachMessageRow = {
+  id: string; workspace_id: string; prospect_id: string; campaign_id: string | null; created_by: string | null; channel: "email";
+  to_email: string | null; subject: string; body: string; language: "en" | "ar"; instruction: string | null; status: OutreachStatus;
+  mailbox_id: string | null; provider_message_id: string | null; error: string | null; model: string | null; cost_usd: number | null;
+  approved_by: string | null; approved_at: string | null; sent_at: string | null; created_at: string; updated_at: string;
+};
+export type ContentKind = "help" | "docs" | "blog" | "legal";
+export type ContentEntryRow = {
+  id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "published" | "hidden"; sort: number;
+  updated_by: string | null; published_at: string | null; created_at: string; updated_at: string;
+};
+export type NotificationRow = { id: number; user_id: string; workspace_id: string | null; kind: string; title: string; body: string | null; link: string | null; dedupe_key: string | null; read_at: string | null; created_at: string };
+export type EmailSettingRow = { kind: string; email_enabled: boolean; in_app_enabled: boolean; updated_by: string | null; updated_at: string };
+export type AgentFeedbackRow = { message_id: number; user_id: string; rating: -1 | 1; created_at: string };
 export type EmailCategory = "account" | "subscription" | "billing" | "usage" | "updates" | "security";
 export type EmailLogRow = {
   id: number; kind: string; category: EmailCategory; to_email: string; user_id: string | null; workspace_id: string | null;
@@ -184,8 +235,42 @@ export type CompanyRow = {
   source_ref: string | null;
   raw: Json | null;
   intel_company_id: string | null;
+  kind: CompanyKind;
+  category: string | null;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  rating: number | null;
+  reviews_count: number | null;
+  place_ref: string | null;
+  maps_url: string | null;
+  saved_at: string | null;
+  delivered_at: string | null;
+  people_status: "queued" | "running" | "done" | "no_source" | "no_quota" | "failed" | null;
+  people_requested_at: string | null;
+  people_found: number;
+  run_id: number | null;
   created_at: string;
-};
+} & IntelligenceColumns;
+
+export type JobRow = {
+  id: string;
+  workspace_id: string;
+  campaign_id: string;
+  company_id: string | null;
+  title: string;
+  department: string | null;
+  seniority: string | null;
+  city: string | null;
+  country: string | null;
+  url: string | null;
+  posted_at: string | null;
+  source: string;
+  source_ref: string | null;
+  raw: Json | null;
+  run_id: number | null;
+  created_at: string;
+} & IntelligenceColumns;
 
 export type ProspectRow = {
   id: string;
@@ -198,13 +283,19 @@ export type ProspectRow = {
   email: string | null;
   email_status: EmailStatus;
   phone: string | null;
-  whatsapp: string | null;
   linkedin_url: string | null;
   city: string | null;
   country: string | null;
   match_score: number | null;
   match_reasons: Json;
+  confidence: number | null;
+  provenance: Json;
+  missing_fields: string[];
+  last_updated: string;
   saved_at: string | null;
+  revealed_at: string | null;
+  revealed_by: string | null;
+  run_id: number | null;
   person_id: string | null;
   source: string;
   source_ref: string | null;
@@ -216,8 +307,9 @@ export type SubscriptionEventRow = {
   id: string;
   workspace_id: string;
   plan: Plan;
-  status: "activated" | "changed" | "canceled" | "resumed" | "ended" | "renewed";
-  amount_usd: number;
+  status: "activated" | "changed" | "canceled" | "resumed" | "ended" | "renewed" | "past_due";
+  amount: number;
+  currency: Currency;
   mode: "test" | "live";
   billing_period: BillingPeriod;
   created_by: string | null;
@@ -228,9 +320,15 @@ export type InvoiceRow = {
   id: string;
   workspace_id: string;
   number: string;
-  plan: PaidPlan;
-  billing_period: BillingPeriod;
-  amount_usd: number;
+  kind: "subscription" | "prospect_pack";
+  /** Subscription invoices only. */
+  plan: PaidPlan | null;
+  billing_period: BillingPeriod | null;
+  /** Prospect-pack invoices only. */
+  prospects: number | null;
+  amount: number;
+  currency: Currency;
+  payment_id: string | null;
   status: "paid" | "open" | "void";
   mode: "test" | "live";
   period_start: string;
@@ -254,7 +352,35 @@ export type ContactMessageRow = {
 };
 
 
-export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; updated_by: string | null; updated_at: string };
+export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
+export type PaymentKind = "subscription" | "prospect_pack";
+export type PaymentRow = {
+  id: string;
+  workspace_id: string;
+  kind: PaymentKind;
+  plan: PaidPlan | null;
+  billing_period: BillingPeriod | null;
+  pack_id: string | null;
+  prospects: number | null;
+  amount: number;
+  currency: Currency;
+  provider: string;
+  mode: "test" | "live";
+  status: PaymentStatus;
+  provider_ref: string | null;
+  provider_txn: string | null;
+  failure_reason: string | null;
+  invoice_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  paid_at: string | null;
+  updated_at: string;
+};
+export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
+export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
+export type ProspectPackRow = { id: string; prospects: number; price_usd: number; price_egp: number | null; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
+
+export type PlanQuotaRow = { plan: Plan; price_usd: number; price_egp: number | null; prospects_per_month: number; updated_by: string | null; updated_at: string };
 
 export type UsageLedgerKind = "reserve" | "consume" | "release" | "grant" | "adjust";
 export type UsageLedgerRow = {
@@ -328,6 +454,7 @@ export type IntelLlmCallRow = {
   served_model: string | null;
   prompt_version: string | null;
   workspace_id: string | null;
+  conversation_id: string | null;
   campaign_id: string | null;
   strategy_id: string | null;
   input_tokens: number;
@@ -405,15 +532,27 @@ export interface Database {
       campaign_events: Table<CampaignEventRow, "workspace_id" | "campaign_id" | "stage" | "message">;
       companies: Table<CompanyRow, "workspace_id" | "campaign_id" | "name" | "source">;
       prospects: Table<ProspectRow, "workspace_id" | "campaign_id" | "full_name" | "source">;
+      jobs: Table<JobRow, "workspace_id" | "campaign_id" | "title" | "source">;
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
-      invoices: Table<InvoiceRow, "workspace_id" | "plan" | "billing_period" | "amount_usd" | "mode" | "period_start" | "period_end" | "bill_to_email">;
-      subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount_usd" | "mode">;
+      invoices: Table<InvoiceRow, "workspace_id" | "amount" | "currency" | "mode" | "period_start" | "period_end" | "bill_to_email">;
+      subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount" | "currency" | "mode">;
+      payments: Table<PaymentRow, "workspace_id" | "kind" | "amount" | "currency" | "provider" | "mode">;
+      payment_providers: Table<PaymentProviderRow, "id">;
+      payment_provider_secrets: Table<PaymentProviderSecretRow, "provider" | "name" | "secret_id">;
+      prospect_packs: Table<ProspectPackRow, "prospects" | "price_usd">;
       plan_quotas: Table<PlanQuotaRow, "plan" | "price_usd" | "prospects_per_month">;
       usage_ledger: Table<UsageLedgerRow, "workspace_id" | "kind" | "prospects" | "period_start">;
       campaign_runs: Table<CampaignRunRow, "workspace_id" | "campaign_id" | "job">;
       job_failures: Table<JobFailureRow, "msg_id" | "kind" | "payload" | "attempts">;
       agent_tool_calls: Table<AgentToolCallRow, "workspace_id" | "tool" | "ok" | "outcome">;
-      agent_messages: Table<AgentMessageRow, "workspace_id" | "strategy_id" | "role" | "content">;
+      agent_messages: Table<AgentMessageRow, "workspace_id" | "conversation_id" | "role" | "content">;
+      conversations: Table<ConversationRow, "workspace_id" | "scope">;
+      agent_feedback: Table<AgentFeedbackRow, "message_id" | "user_id" | "rating">;
+      notifications: Table<NotificationRow, "user_id" | "kind" | "title">;
+      email_settings: Table<EmailSettingRow, "kind">;
+      content_entries: Table<ContentEntryRow, "kind" | "slug" | "doc">;
+      mailboxes: Table<MailboxRow, "workspace_id" | "user_id" | "provider" | "email">;
+      outreach_messages: Table<OutreachMessageRow, "workspace_id" | "prospect_id">;
       email_log: Table<EmailLogRow, "kind" | "category" | "to_email">;
       known_devices: Table<KnownDeviceRow, "user_id" | "device_hash" | "label">;
       sign_in_requests: Table<SignInRequestRow, "email">;
@@ -424,10 +563,18 @@ export interface Database {
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
       usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
+      campaign_usage: { Args: { p_campaign: string }; Returns: { consumed: number; reserved: number }[] };
+      can_read_conversation: { Args: { p_id: string }; Returns: boolean };
+      set_mailbox_token: { Args: { p_mailbox: string; p_token: string }; Returns: undefined };
+      mailbox_token: { Args: { p_mailbox: string }; Returns: string | null };
+      clear_mailbox_token: { Args: { p_mailbox: string }; Returns: undefined };
       workspace_analytics: { Args: { p_ws: string; p_since: string }; Returns: Json };
       admin_platform_metrics: { Args: { p_since: string }; Returns: Json };
       admin_agent_metrics: { Args: { p_since: string }; Returns: Json };
-      admin_profitability: { Args: { p_since: string }; Returns: { workspace_id: string; name: string; plan: Plan; revenue_live: number; revenue_test: number; llm_cost: number; provider_cost: number; unpriced_calls: number; prospects: number }[] };
+      set_payment_secret: { Args: { p_provider: string; p_name: string; p_secret: string }; Returns: undefined };
+      clear_payment_secret: { Args: { p_provider: string; p_name: string }; Returns: undefined };
+      payment_secret: { Args: { p_provider: string; p_name: string }; Returns: string | null };
+      admin_profitability: { Args: { p_since: string }; Returns: { workspace_id: string; name: string; plan: Plan; currency: Currency; revenue_live: number; revenue_test: number; llm_cost: number; provider_cost: number; unpriced_calls: number; prospects: number }[] };
       jobs_enqueue: { Args: { p_kind: string; p_payload: Json; p_delay: number }; Returns: number };
       jobs_read: { Args: { p_n: number; p_vt: number }; Returns: { msg_id: number; read_ct: number; enqueued_at: string; kind: string; payload: Json }[] };
       jobs_ack: { Args: { p_msg_id: number }; Returns: boolean };

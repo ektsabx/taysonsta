@@ -117,12 +117,12 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
             <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>الحدث</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الوضع</Tx></th></tr></thead>
             <tbody>
               {[
-                ...d.invoices.map((i) => ({ key: `i${i.id}`, at: i.created_at, what: <span dir="ltr">{i.number}</span>, plan: i.plan, amount: i.amount_usd, mode: i.mode })),
-                ...d.events.map((e) => ({ key: `e${e.id}`, at: e.created_at, what: <Tx>{subLabel[e.status] ?? e.status}</Tx>, plan: e.plan, amount: e.amount_usd, mode: e.mode })),
+                ...d.invoices.map((i) => ({ key: `i${i.id}`, at: i.created_at, what: <span dir="ltr">{i.number}</span>, plan: i.plan ?? (i.kind === "prospect_pack" ? "pack" : ""), amount: i.amount, currency: i.currency, mode: i.mode })),
+                ...d.events.map((e) => ({ key: `e${e.id}`, at: e.created_at, what: <Tx>{subLabel[e.status] ?? e.status}</Tx>, plan: e.plan, amount: e.amount, currency: e.currency, mode: e.mode })),
               ].sort((a, b) => b.at.localeCompare(a.at)).map((r) => (
                 <tr key={r.key}>
-                  <td>{formatDateTime(r.at)}</td><td>{r.what}</td><td>{isYoliasPlan(r.plan) ? yoliasPlanLabel[r.plan] : r.plan}</td>
-                  <td className="bos-num">{usd(Number(r.amount))}</td>
+                  <td>{formatDateTime(r.at)}</td><td>{r.what}</td><td>{isYoliasPlan(r.plan) ? yoliasPlanLabel[r.plan] : r.plan === "pack" ? <Tx>باقة عملاء محتملين</Tx> : r.plan}</td>
+                  <td className="bos-num">{r.currency === "EGP" ? `EGP ${num(Number(r.amount))}` : usd(Number(r.amount))}</td>
                   <td>{r.mode === "test" ? <StatusBadge tone="warning" label="وضع الاختبار" /> : <StatusBadge tone="success" label="فعلي" />}</td>
                 </tr>
               ))}

@@ -31,7 +31,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-01";
+export const ICP_PROMPT_VERSION = "icp-2026-10-06";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -50,6 +50,7 @@ Rules:
 - Extract only what the user asked for. Where the request is silent, choose a sensible default for a B2B discovery mission and record it in "assumptions".
 - Use the user's own business (what they sell) to infer which decision-maker job titles are relevant when they don't name any.
 - countries are ISO 3166-1 alpha-2 codes. If no market is given, use the user's default country and say so in "assumptions".
+- search_type: "people" when the user wants decision makers/contacts (the default); "companies" when they want a list of companies; "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
 - target_count is the number the user asked for (default 100). target_unit says whether it counts companies or people.
 - campaign_name is short and specific, in the form "<Market> <Segment> — <Decision makers>".
 - Attached files or images may describe the ICP; use them.

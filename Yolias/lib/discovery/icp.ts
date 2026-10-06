@@ -8,7 +8,15 @@ import type { Locale } from "@/lib/i18n/config";
 
 export const seniorities = ["founder", "c_level", "vp", "director", "head", "manager", "other"] as const;
 
+/** What a search returns (final spec §11–14): its own entity and output schema (lib/entities). */
+export const searchTypes = ["people", "companies", "local_businesses", "company_lookalikes"] as const;
+export type SearchTypeId = (typeof searchTypes)[number];
+
 export const IcpSchema = z.object({
+  search_type: z.enum(searchTypes).describe(
+    'people = decision makers inside matching companies (default); companies = the companies themselves; local_businesses = shops, clinics, restaurants and other places on a map in a city; company_lookalikes = companies similar to the ones the user names',
+  ),
+  lookalike_seeds: z.array(z.string()).describe("For company_lookalikes: the companies (names or websites) to find lookalikes of; otherwise empty"),
   campaign_name: z.string().describe('Short mission name, e.g. "Saudi SaaS Companies — Founders"'),
   summary: z.string().describe("One sentence restating who the user wants to sell to"),
   target_count: z.number().int().describe("How many companies or prospects were asked for; 100 if not stated"),
@@ -61,6 +69,8 @@ export function criteriaLine(icp: IcpCriteria, locale: Locale = "en", labels: Ic
 }
 
 export function parseIcp(value: unknown): IcpCriteria | null {
-  const r = IcpSchema.safeParse(value);
+  // Searches saved before search types existed were all people searches.
+  const v = value && typeof value === "object" ? { search_type: "people", lookalike_seeds: [], ...(value as object) } : value;
+  const r = IcpSchema.safeParse(v);
   return r.success ? r.data : null;
 }

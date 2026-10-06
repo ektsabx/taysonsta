@@ -43,8 +43,22 @@ export async function listInvoices(workspaceId: string) {
   return data ?? [];
 }
 
+/** Buy More Prospects packs on sale (public read, RLS: active only). */
+export async function listPacks() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("prospect_packs").select("id, prospects, price_usd, price_egp").eq("active", true).order("sort").order("prospects");
+  return data ?? [];
+}
+
 export async function getInvoice(id: string) {
   const supabase = await createClient();
   const { data } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
   return data;
+}
+
+/** Unread in-app notifications of the member (RLS). */
+export async function unreadNotifications(userId: string): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null);
+  return count ?? 0;
 }

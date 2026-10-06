@@ -1,5 +1,5 @@
 import type { IcpCriteria } from "@/lib/discovery/icp";
-import type { CompanyCandidate, PersonCandidate } from "@/lib/discovery/types";
+import type { CompanyCandidate, JobCandidate, PersonCandidate } from "@/lib/discovery/types";
 
 // What providers can do (docs/03-intelligence-layer.md "Capabilities").
 // Product code asks for a capability, never for a provider by name (rule 13).
@@ -8,6 +8,9 @@ export const capabilities = [
   "company.search",
   "company.enrich",
   "company.lookup_local",
+  "company.lookalikes",
+  "place.search",
+  "job.search",
   "person.search",
   "person.enrich",
   "email.find",
@@ -35,9 +38,13 @@ export interface WebResult {
 
 /** Input and output of every capability. Adapters implement only what they really offer. */
 export interface CapabilityIO {
-  "company.search": { input: { icp: IcpCriteria; limit: number; offering: string | null }; output: CompanyCandidate[] };
+  "company.search": { input: { icp: IcpCriteria; limit: number; offering: string | null; offset?: number }; output: CompanyCandidate[] };
   "company.enrich": { input: { company: CompanyCandidate }; output: Partial<CompanyCandidate> };
   "company.lookup_local": { input: { name: string; city: string | null; country: string | null }; output: Partial<CompanyCandidate> | null };
+  "company.lookalikes": { input: { seeds: string[]; icp: IcpCriteria; limit: number; offset?: number }; output: CompanyCandidate[] };
+  /** Local businesses (places on a map) matching the search; kind = "local_business". */
+  "place.search": { input: { icp: IcpCriteria; limit: number; offset?: number }; output: CompanyCandidate[] };
+  "job.search": { input: { icp: IcpCriteria; company: CompanyCandidate | null; limit: number }; output: JobCandidate[] };
   "person.search": { input: { company: CompanyCandidate; icp: IcpCriteria; limit: number }; output: PersonCandidate[] };
   "person.enrich": { input: { person: PersonCandidate; company: CompanyCandidate }; output: Partial<PersonCandidate> };
   "email.find": { input: { person: PersonCandidate; company: CompanyCandidate }; output: { email: string; confidence: number | null } | null };

@@ -7,7 +7,7 @@
 // as soon as its feature lands (payments: D-007). See lib/email/catalog.ts
 // for who receives each one and what triggers it.
 
-import { layout, type EmailLocale, type RenderedEmail } from "./templates.ts";
+import { layout, price, type EmailLocale, type RenderedEmail } from "./templates.ts";
 
 const C = { ink: "#141413", muted: "#6b6b66", line: "#e8e8e3", red: "#cf2525" };
 const FONT_EN = "'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
@@ -16,7 +16,7 @@ const FONT_AR = "'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif";
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-const money = (usd: number) => `<span dir="ltr">$${usd.toFixed(2)}</span>`;
+const money = (amount: number, currency?: "USD" | "EGP") => `<span dir="ltr">${price(amount, currency)}</span>`;
 function day(iso: string, l: EmailLocale) {
   return new Intl.DateTimeFormat(l === "ar" ? "ar-u-nu-latn" : "en-US", { year: "numeric", month: "long", day: "numeric" }).format(new Date(iso));
 }
@@ -63,7 +63,8 @@ interface Base {
 interface PlanData extends Base {
   planName: string;
   period: "monthly" | "annual";
-  amountUsd: number;
+  amount: number;
+  currency?: "USD" | "EGP";
   periodEnd: string;
   test: boolean;
 }
@@ -75,19 +76,22 @@ interface InvoiceData extends Base {
   invoiceId: string;
   invoiceNumber: string;
   planName: string;
-  amountUsd: number;
+  amount: number;
+  currency?: "USD" | "EGP";
   dueAt: string | null;
   test: boolean;
 }
 interface PaymentProblemData extends Base {
   planName: string;
-  amountUsd: number;
+  amount: number;
+  currency?: "USD" | "EGP";
   reason: string | null;
   retryAt: string | null;
 }
 interface RefundData extends Base {
   invoiceNumber: string;
-  amountUsd: number;
+  amount: number;
+  currency?: "USD" | "EGP";
   reason: string | null;
 }
 interface SignInData extends Base {
@@ -237,8 +241,8 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     preheader: T(l, "No action needed if you’d like to continue.", "لا تحتاج لفعل أي شيء إذا أردت الاستمرار."),
     heading: T(l, "Your subscription will renew soon", "سيتجدد اشتراكك قريبًا"),
     body: [
-      T(l, `<strong>${esc(d.planName)}</strong> renews on ${day(d.periodEnd, l)} for ${money(d.amountUsd)}. Your prospects allowance starts fresh with it.`,
-        `يتجدد <strong>${esc(d.planName)}</strong> في ${day(d.periodEnd, l)} بمبلغ ${money(d.amountUsd)}، ويبدأ معه رصيد العملاء المحتملين من جديد.`),
+      T(l, `<strong>${esc(d.planName)}</strong> renews on ${day(d.periodEnd, l)} for ${money(d.amount, d.currency)}. Your prospects allowance starts fresh with it.`,
+        `يتجدد <strong>${esc(d.planName)}</strong> في ${day(d.periodEnd, l)} بمبلغ ${money(d.amount, d.currency)}، ويبدأ معه رصيد العملاء المحتملين من جديد.`),
       ...(d.test ? [testNote(l)] : []),
     ],
     button: { label: T(l, "Manage billing", "إدارة الفوترة"), href: `${d.siteUrl}/` },
@@ -249,7 +253,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     preheader: T(l, `Next renewal: ${day(d.periodEnd, l)}.`, `التجديد القادم: ${day(d.periodEnd, l)}.`),
     heading: T(l, "Your subscription has renewed", "تم تجديد اشتراكك"),
     body: [T(l, `Thanks for staying with Yolias. <strong>${esc(d.planName)}</strong> continues until ${day(d.periodEnd, l)}.`, `شكرًا لبقائك مع يولـياس. يستمر <strong>${esc(d.planName)}</strong> حتى ${day(d.periodEnd, l)}.`), ...(d.test ? [testNote(l)] : [])],
-    extra: table(l, [[T(l, "Invoice", "الفاتورة"), `<span dir="ltr">${esc(d.invoiceNumber)}</span>`], [T(l, "Amount", "المبلغ"), money(d.amountUsd)]]),
+    extra: table(l, [[T(l, "Invoice", "الفاتورة"), `<span dir="ltr">${esc(d.invoiceNumber)}</span>`], [T(l, "Amount", "المبلغ"), money(d.amount, d.currency)]]),
     button: { label: T(l, "View invoice", "عرض الفاتورة"), href: `${d.siteUrl}/invoices/${d.invoiceId}` },
     footnote: billingNote(l, d.siteUrl),
   }),
@@ -268,7 +272,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     heading: T(l, "Your plan has been upgraded", "تمت ترقية خطتك"),
     body: [T(l, `You moved from ${esc(d.fromPlanName)} to <strong>${esc(d.planName)}</strong>. Your workspace now gets <strong>${d.prospectsPerMonth}</strong> prospects a month.`,
       `انتقلت من ${esc(d.fromPlanName)} إلى <strong>${esc(d.planName)}</strong>. تحصل مساحة عملك الآن على <strong>${d.prospectsPerMonth}</strong> عميل محتمل شهريًا.`), ...(d.test ? [testNote(l)] : [])],
-    extra: table(l, [[T(l, "Amount", "المبلغ"), money(d.amountUsd)], [T(l, "Renews on", "يتجدد في"), day(d.periodEnd, l)]]),
+    extra: table(l, [[T(l, "Amount", "المبلغ"), money(d.amount, d.currency)], [T(l, "Renews on", "يتجدد في"), day(d.periodEnd, l)]]),
     button: { label: T(l, "Open Yolias", "افتح يولـياس"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),
@@ -301,10 +305,10 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   /* Payments & billing */
   payment_failed: (l, d) => ({
     subject: T(l, "Your Yolias payment failed", "فشلت عملية الدفع في يولـياس"),
-    preheader: T(l, `We couldn’t charge ${"$" + d.amountUsd.toFixed(2)} for ${d.planName}.`, `لم نتمكن من تحصيل ${"$" + d.amountUsd.toFixed(2)} لاشتراك ${d.planName}.`),
+    preheader: T(l, `We couldn’t charge ${price(d.amount, d.currency)} for ${d.planName}.`, `لم نتمكن من تحصيل ${price(d.amount, d.currency)} لاشتراك ${d.planName}.`),
     heading: T(l, "Payment failed", "فشل الدفع"),
     body: [
-      T(l, `We couldn’t charge ${money(d.amountUsd)} for <strong>${esc(d.planName)}</strong>${d.reason ? ` (${esc(d.reason)})` : ""}.`, `لم نتمكن من تحصيل ${money(d.amountUsd)} لاشتراك <strong>${esc(d.planName)}</strong>${d.reason ? ` (${esc(d.reason)})` : ""}.`),
+      T(l, `We couldn’t charge ${money(d.amount, d.currency)} for <strong>${esc(d.planName)}</strong>${d.reason ? ` (${esc(d.reason)})` : ""}.`, `لم نتمكن من تحصيل ${money(d.amount, d.currency)} لاشتراك <strong>${esc(d.planName)}</strong>${d.reason ? ` (${esc(d.reason)})` : ""}.`),
       d.retryAt ? T(l, `We’ll try again on ${day(d.retryAt, l)}. Update your payment method to avoid an interruption.`, `سنحاول مرة أخرى في ${day(d.retryAt, l)}. حدّث وسيلة الدفع لتجنب أي انقطاع.`)
         : T(l, "Update your payment method to keep your plan.", "حدّث وسيلة الدفع للاحتفاظ بخطتك."),
     ],
@@ -321,12 +325,12 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
   invoice_ready: (l, d) => ({
     subject: T(l, `Your Yolias invoice ${d.invoiceNumber} is ready`, `فاتورتك ${d.invoiceNumber} من يولـياس جاهزة`),
-    preheader: T(l, `${"$" + d.amountUsd.toFixed(2)} for ${d.planName}.`, `${"$" + d.amountUsd.toFixed(2)} لاشتراك ${d.planName}.`),
+    preheader: T(l, `${price(d.amount, d.currency)} for ${d.planName}.`, `${price(d.amount, d.currency)} لاشتراك ${d.planName}.`),
     heading: T(l, "Your invoice is ready", "فاتورتك جاهزة"),
     body: [T(l, `Your invoice for <strong>${esc(d.planName)}</strong> is ready to view and download.`, `فاتورة اشتراك <strong>${esc(d.planName)}</strong> جاهزة للعرض والتنزيل.`), ...(d.test ? [testNote(l)] : [])],
     extra: table(l, [
       [T(l, "Invoice", "الفاتورة"), `<span dir="ltr">${esc(d.invoiceNumber)}</span>`],
-      [T(l, "Amount", "المبلغ"), money(d.amountUsd)],
+      [T(l, "Amount", "المبلغ"), money(d.amount, d.currency)],
       ...(d.dueAt ? ([[T(l, "Due", "تاريخ الاستحقاق"), day(d.dueAt, l)]] as [string, string][]) : []),
     ]),
     button: { label: T(l, "View invoice", "عرض الفاتورة"), href: `${d.siteUrl}/invoices/${d.invoiceId}` },
@@ -334,26 +338,26 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
   refund_processed: (l, d) => ({
     subject: T(l, "Your Yolias refund is being processed", "جارٍ معالجة استرداد مبلغك من يولـياس"),
-    preheader: T(l, `${"$" + d.amountUsd.toFixed(2)} for invoice ${d.invoiceNumber}.`, `${"$" + d.amountUsd.toFixed(2)} للفاتورة ${d.invoiceNumber}.`),
+    preheader: T(l, `${price(d.amount, d.currency)} for invoice ${d.invoiceNumber}.`, `${price(d.amount, d.currency)} للفاتورة ${d.invoiceNumber}.`),
     heading: T(l, "Refund processed", "تمت معالجة الاسترداد"),
-    body: [T(l, `We’ve processed a refund of ${money(d.amountUsd)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span>${d.reason ? ` (${esc(d.reason)})` : ""}. Your bank usually shows it within 5–10 business days.`,
-      `قمنا بمعالجة استرداد ${money(d.amountUsd)} للفاتورة <span dir="ltr">${esc(d.invoiceNumber)}</span>${d.reason ? ` (${esc(d.reason)})` : ""}. يظهر عادةً في حسابك البنكي خلال 5–10 أيام عمل.`)],
+    body: [T(l, `We’ve processed a refund of ${money(d.amount, d.currency)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span>${d.reason ? ` (${esc(d.reason)})` : ""}. Your bank usually shows it within 5–10 business days.`,
+      `قمنا بمعالجة استرداد ${money(d.amount, d.currency)} للفاتورة <span dir="ltr">${esc(d.invoiceNumber)}</span>${d.reason ? ` (${esc(d.reason)})` : ""}. يظهر عادةً في حسابك البنكي خلال 5–10 أيام عمل.`)],
     footnote: billingNote(l, d.siteUrl),
   }),
   refund_issued: (l, d) => ({
     subject: T(l, "Your Yolias refund has been issued", "تم إصدار استرداد مبلغك من يولـياس"),
-    preheader: T(l, `${"$" + d.amountUsd.toFixed(2)} is on its way back to you.`, `${"$" + d.amountUsd.toFixed(2)} في طريقها إليك.`),
+    preheader: T(l, `${price(d.amount, d.currency)} is on its way back to you.`, `${price(d.amount, d.currency)} في طريقها إليك.`),
     heading: T(l, "Refund issued", "تم إصدار الاسترداد"),
-    body: [T(l, `A refund of ${money(d.amountUsd)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span> was sent to your original payment method.`,
-      `تم إرسال استرداد ${money(d.amountUsd)} للفاتورة <span dir="ltr">${esc(d.invoiceNumber)}</span> إلى وسيلة الدفع الأصلية.`)],
+    body: [T(l, `A refund of ${money(d.amount, d.currency)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span> was sent to your original payment method.`,
+      `تم إرسال استرداد ${money(d.amount, d.currency)} للفاتورة <span dir="ltr">${esc(d.invoiceNumber)}</span> إلى وسيلة الدفع الأصلية.`)],
     footnote: billingNote(l, d.siteUrl),
   }),
   payment_overdue: (l, d) => ({
     subject: T(l, "Your Yolias payment is overdue", "دفعتك في يولـياس متأخرة"),
     preheader: T(l, `${d.daysOverdue} days overdue for ${d.planName}.`, `متأخرة ${d.daysOverdue} يومًا لاشتراك ${d.planName}.`),
     heading: T(l, "Payment overdue", "دفعة متأخرة"),
-    body: [T(l, `Your payment of ${money(d.amountUsd)} for <strong>${esc(d.planName)}</strong> is ${d.daysOverdue} days overdue. Please pay or update your payment method to avoid your plan being paused.`,
-      `دفعتك بقيمة ${money(d.amountUsd)} لاشتراك <strong>${esc(d.planName)}</strong> متأخرة ${d.daysOverdue} يومًا. يرجى الدفع أو تحديث وسيلة الدفع لتجنب إيقاف خطتك.`)],
+    body: [T(l, `Your payment of ${money(d.amount, d.currency)} for <strong>${esc(d.planName)}</strong> is ${d.daysOverdue} days overdue. Please pay or update your payment method to avoid your plan being paused.`,
+      `دفعتك بقيمة ${money(d.amount, d.currency)} لاشتراك <strong>${esc(d.planName)}</strong> متأخرة ${d.daysOverdue} يومًا. يرجى الدفع أو تحديث وسيلة الدفع لتجنب إيقاف خطتك.`)],
     button: { label: T(l, "Pay now", "ادفع الآن"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),

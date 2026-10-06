@@ -3,17 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Prose } from "@/components/marketing/Prose";
-import { posts } from "@/lib/content/blog";
+import { posts as shippedPosts } from "@/lib/content/blog";
+import { blogPosts } from "@/lib/content/store";
 import { readingMinutes } from "@/lib/content/types";
 import { formatDate } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
+  return shippedPosts.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
+  const posts = await blogPosts();
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
   if (!post) return {};
@@ -22,6 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
 }
 
 export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">) {
+  const posts = await blogPosts();
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();

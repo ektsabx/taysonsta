@@ -3,14 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
 import { Toc } from "@/components/marketing/Toc";
-import { docGroups, docs } from "@/lib/content/docs";
+import { docGroups, docs as shippedDocs } from "@/lib/content/docs";
+import { docPages } from "@/lib/content/store";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export function generateStaticParams() {
-  return docs.map((d) => ({ slug: d.slug }));
+  return shippedDocs.map((d) => ({ slug: d.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): Promise<Metadata> {
+  const docs = await docPages();
   const { slug } = await params;
   const page = docs.find((d) => d.slug === slug);
   if (!page) return {};
@@ -20,6 +22,7 @@ export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): P
 
 // Documentation (Claude-docs layout): sections nav · content · on this page.
 export default async function DocPage({ params }: PageProps<"/docs/[slug]">) {
+  const docs = await docPages();
   const { slug } = await params;
   const index = docs.findIndex((d) => d.slug === slug);
   if (index < 0) notFound();

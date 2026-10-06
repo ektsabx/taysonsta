@@ -31,6 +31,7 @@ export interface LlmCallLog {
   workspaceId?: string | null;
   campaignId?: string | null;
   strategyId?: string | null;
+  conversationId?: string | null;
   usage?: LlmUsage | null;
   costUsd?: number | null;
   cacheHit?: boolean;
@@ -42,7 +43,7 @@ export interface LlmCallLog {
 export async function recordLlmCall(c: LlmCallLog) {
   await intel().from("llm_calls").insert({
     task: c.task, model: c.model, served_model: c.servedModel ?? null, prompt_version: c.promptVersion ?? null,
-    workspace_id: c.workspaceId ?? null, campaign_id: c.campaignId ?? null, strategy_id: c.strategyId ?? null,
+    workspace_id: c.workspaceId ?? null, campaign_id: c.campaignId ?? null, strategy_id: c.strategyId ?? null, conversation_id: c.conversationId ?? null,
     input_tokens: c.usage?.input_tokens ?? 0, output_tokens: c.usage?.output_tokens ?? 0,
     cache_read_tokens: c.usage?.cache_read_input_tokens ?? 0, cache_write_tokens: c.usage?.cache_creation_input_tokens ?? 0,
     // Unknown price ⇒ null ("unpriced", D-114); a cache hit really costs nothing.

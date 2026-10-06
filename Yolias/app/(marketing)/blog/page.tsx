@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { blogHero, posts } from "@/lib/content/blog";
+import { blogHero } from "@/lib/content/blog";
+import { blogPosts } from "@/lib/content/store";
 import { readingMinutes } from "@/lib/content/types";
 import { formatDate } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
@@ -12,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BlogPage() {
+  const posts = await blogPosts();
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const hero = blogHero[locale];
   return (

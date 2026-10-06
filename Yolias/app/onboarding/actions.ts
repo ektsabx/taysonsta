@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/session";
 import { welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { requestCountry } from "@/lib/geo-server";
+import { isCountry } from "@/lib/regions";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -37,11 +39,13 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
   const company = isOwner ? ownerSchema.parse(fields) : null;
 
+  // Home market = the visitor's country when Settings offers it.
+  const country = await requestCountry();
   const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
     // Keep the language picked before signup (pricing/auth) as the account language.
-    .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString() })
+    .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString(), ...(isCountry(country) ? { country } : {}) })
     .eq("id", session.userId);
   if (error) return { error: t.saveFailed, fields };
 

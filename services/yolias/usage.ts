@@ -10,26 +10,35 @@ import { isYoliasPlan, yoliasPlanIds, type YoliasPlan } from "@/lib/yolias/plans
 // adjustments change one workspace's allowance for the current month. Every
 // change is audited.
 
-export type PlanTerms = { plan: YoliasPlan; priceUsd: number; prospects: number; updatedAt: string | null; updatedBy: string | null };
+export type PlanTerms = { plan: YoliasPlan; priceUsd: number; priceEgp: number | null; prospects: number; updatedAt: string | null; updatedBy: string | null };
 
 export async function getPlanTerms(): Promise<Record<YoliasPlan, PlanTerms>> {
   const { data, error } = await ydb().from("plan_quotas").select("*");
   if (error) throw error;
   const out = {} as Record<YoliasPlan, PlanTerms>;
-  for (const p of yoliasPlanIds) out[p] = { plan: p, priceUsd: 0, prospects: 0, updatedAt: null, updatedBy: null };
+  for (const p of yoliasPlanIds) out[p] = { plan: p, priceUsd: 0, priceEgp: null, prospects: 0, updatedAt: null, updatedBy: null };
   for (const r of data ?? []) {
-    if (isYoliasPlan(r.plan)) out[r.plan] = { plan: r.plan, priceUsd: Number(r.price_usd), prospects: r.prospects_per_month, updatedAt: r.updated_at, updatedBy: r.updated_by };
+    if (isYoliasPlan(r.plan)) out[r.plan] = { plan: r.plan, priceUsd: Number(r.price_usd), priceEgp: r.price_egp == null ? null : Number(r.price_egp), prospects: r.prospects_per_month, updatedAt: r.updated_at, updatedBy: r.updated_by };
   }
   return out;
 }
 
-export async function setPlanQuota(bos: BosUser, plan: string, prospects: number): Promise<void> {
+/**
+ * Prospects per month and monthly prices of a plan. Prices are per currency
+ * (USD everywhere, EGP for Egypt), never converted (D-120); an empty EGP
+ * price means Egypt still sees USD. Free stays at 0.
+ */
+export async function setPlanQuota(bos: BosUser, plan: string, prospects: number, priceUsd?: number, priceEgp?: number | null): Promise<void> {
   if (!isYoliasPlan(plan)) throw new ValidationError("خطة غير معروفة.");
   if (!Number.isInteger(prospects) || prospects < 0 || prospects > 1_000_000) throw new ValidationError("الحصة غير صالحة.", { prospects: "عدد صحيح من 0 إلى 1,000,000" });
+  const validPrice = (v: number) => Number.isFinite(v) && v >= 0 && v <= 1_000_000 && Math.round(v * 100) === v * 100;
+  if (priceUsd !== undefined && (!validPrice(priceUsd) || (plan === "free" && priceUsd !== 0))) throw new ValidationError("السعر غير صالح.", { price_usd: plan === "free" ? "الخطة المجانية سعرها 0" : "رقم من 0 بحد أقصى منزلتين عشريتين" });
+  if (priceEgp != null && (!validPrice(priceEgp) || (plan === "free" && priceEgp !== 0))) throw new ValidationError("السعر غير صالح.", { price_egp: plan === "free" ? "الخطة المجانية سعرها 0" : "رقم من 0 بحد أقصى منزلتين عشريتين" });
   const before = (await getPlanTerms())[plan];
-  const { error } = await ydb().from("plan_quotas").update({ prospects_per_month: prospects, updated_by: bos.email, updated_at: new Date().toISOString() }).eq("plan", plan);
+  const prices = { ...(priceUsd !== undefined ? { price_usd: priceUsd } : {}), ...(priceEgp !== undefined ? { price_egp: priceEgp } : {}) };
+  const { error } = await ydb().from("plan_quotas").update({ prospects_per_month: prospects, ...prices, updated_by: bos.email, updated_at: new Date().toISOString() }).eq("plan", plan);
   if (error) throw error;
-  await audit({ actorId: bos.userId, action: "yolias.plan_quota.update", entityType: "yolias_plan", entityId: null, oldValue: { prospects: before.prospects }, newValue: { prospects }, metadata: { plan } });
+  await audit({ actorId: bos.userId, action: "yolias.plan_quota.update", entityType: "yolias_plan", entityId: null, oldValue: { prospects: before.prospects, priceUsd: before.priceUsd, priceEgp: before.priceEgp }, newValue: { prospects, ...prices }, metadata: { plan } });
 }
 
 export async function workspaceUsage(workspaceId: string) {

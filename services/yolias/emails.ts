@@ -78,3 +78,60 @@ export async function sendAnnouncement(bos: BosUser, id: string): Promise<void> 
   }
   await audit({ actorId: bos.userId, action: "yolias.announcement.send", entityType: "yolias_announcement", entityId: null, metadata: { id, audience: a.audience, type: a.type } });
 }
+
+// ───────────────────────── Email events (final spec phase 9) ─────────────────────────
+// Mirrors Yolias/lib/email/catalog.ts (kind → category) and the in-app list
+// in Yolias/lib/email/notify.ts — keep in sync when an event is added.
+
+export const emailEvents: { kind: string; category: string; label: string; inApp: boolean }[] = [
+  { kind: "welcome", category: "account", label: "ترحيب بعد التسجيل", inApp: false },
+  { kind: "account_deleted", category: "account", label: "تأكيد حذف الحساب", inApp: false },
+  { kind: "new_sign_in", category: "security", label: "تسجيل دخول من جهاز جديد", inApp: true },
+  { kind: "suspicious_sign_in", category: "security", label: "نشاط دخول مريب", inApp: true },
+  { kind: "security_alert", category: "security", label: "تنبيه أمني", inApp: true },
+  { kind: "plan_welcome", category: "subscription", label: "ترحيب بالخطة المدفوعة", inApp: true },
+  { kind: "subscription_activated", category: "subscription", label: "تفعيل الاشتراك", inApp: true },
+  { kind: "renewal_upcoming", category: "subscription", label: "تذكير قبل التجديد", inApp: false },
+  { kind: "subscription_renewed", category: "subscription", label: "تم التجديد", inApp: true },
+  { kind: "subscription_canceled", category: "subscription", label: "إلغاء الاشتراك", inApp: true },
+  { kind: "subscription_ending", category: "subscription", label: "الاشتراك على وشك الانتهاء", inApp: true },
+  { kind: "plan_upgraded", category: "subscription", label: "ترقية الخطة", inApp: true },
+  { kind: "plan_downgraded", category: "subscription", label: "تخفيض الخطة", inApp: true },
+  { kind: "receipt", category: "billing", label: "إيصال الدفع", inApp: true },
+  { kind: "payment_failed", category: "billing", label: "فشل الدفع", inApp: true },
+  { kind: "invoice_ready", category: "billing", label: "فاتورة مستحقة", inApp: true },
+  { kind: "refund_processed", category: "billing", label: "تمت معالجة الاسترداد", inApp: true },
+  { kind: "refund_issued", category: "billing", label: "تم إرسال الاسترداد", inApp: true },
+  { kind: "payment_overdue", category: "billing", label: "دفعة متأخرة", inApp: true },
+  { kind: "prospects_added", category: "usage", label: "إضافة عملاء محتملين", inApp: true },
+  { kind: "usage_low", category: "usage", label: "الرصيد قارب على النفاد", inApp: true },
+  { kind: "usage_limit", category: "usage", label: "نفد الرصيد", inApp: true },
+  { kind: "discovery_ready", category: "usage", label: "نتائج البحث جاهزة", inApp: true },
+  { kind: "announcement", category: "updates", label: "إعلان تحديثات المنتج", inApp: true },
+];
+
+export async function emailEventStats(days = 30) {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const [{ data: logs }, { data: settings }] = await Promise.all([
+    ydb().from("email_log").select("kind, status").gte("created_at", since).limit(50_000),
+    ydb().from("email_settings").select("kind, email_enabled, in_app_enabled, updated_by, updated_at"),
+  ]);
+  const counts = new Map<string, { sent: number; failed: number; skipped: number }>();
+  for (const l of logs ?? []) {
+    const c = counts.get(l.kind) ?? { sent: 0, failed: 0, skipped: 0 };
+    if (l.status === "sent") c.sent++;
+    else if (l.status === "failed") c.failed++;
+    else if (l.status === "skipped") c.skipped++;
+    counts.set(l.kind, c);
+  }
+  const sw = new Map((settings ?? []).map((s) => [s.kind, s]));
+  return emailEvents.map((e) => ({ ...e, ...(counts.get(e.kind) ?? { sent: 0, failed: 0, skipped: 0 }), email: sw.get(e.kind)?.email_enabled ?? true, notice: sw.get(e.kind)?.in_app_enabled ?? true }));
+}
+
+/** Turns one event's email and/or in-app notice on or off (Yolias reads it within 30 s). */
+export async function setEmailEvent(bos: BosUser, kind: string, email: boolean, inApp: boolean): Promise<void> {
+  if (!emailEvents.some((e) => e.kind === kind)) throw new ValidationError("حدث غير معروف.");
+  const { error } = await ydb().from("email_settings").upsert({ kind, email_enabled: email, in_app_enabled: inApp, updated_by: bos.email, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  await audit({ actorId: bos.userId, action: "yolias.email_event.update", entityType: "yolias_email_event", entityId: null, newValue: { email, inApp }, metadata: { kind } });
+}

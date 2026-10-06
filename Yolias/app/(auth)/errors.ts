@@ -3,6 +3,7 @@ import type { Dictionary } from "@/lib/i18n/config";
 const keys = {
   link_invalid: "linkInvalid",
   link_missing: "linkMissing",
+  google_failed: "googleFailed",
   account_unavailable: "accountUnavailable",
 } as const;
 

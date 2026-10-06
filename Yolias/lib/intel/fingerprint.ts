@@ -9,7 +9,13 @@ import type { IcpCriteria } from "@/lib/discovery/icp";
 const list = (xs: string[]) => [...new Set(xs.map((x) => x.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ")).filter(Boolean))].sort();
 
 export function normalizeIcp(icp: IcpCriteria) {
+  // Different search types never share results. People searches keep the
+  // fingerprint they had before search types existed.
+  const type = icp.search_type && icp.search_type !== "people"
+    ? { search_type: icp.search_type, lookalike_seeds: list(icp.lookalike_seeds ?? []) }
+    : {};
   return {
+    ...type,
     countries: list(icp.countries).map((c) => c.toUpperCase()),
     cities: list(icp.cities),
     industries: list(icp.industries),

@@ -6,7 +6,7 @@ import { ContactForm } from "./ContactForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${contactPage[locale].title} — Yolias` };
+  return { title: `${contactPage[locale].title} — Yolias`, description: contactPage[locale].lead };
 }
 
 const topics = ["sales", "support", "partnerships", "press", "other"];

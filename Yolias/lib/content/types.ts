@@ -9,7 +9,9 @@ export type Block =
   | { ul: string[] }
   | { ol: string[] }
   | { note: string }
-  | { table: { head: string[]; rows: string[][] } };
+  | { table: { head: string[]; rows: string[][] } }
+  /** A real screenshot with numbered markers (x / y in % of the image) explained in the caption. */
+  | { figure: { src: string; alt: string; caption?: string; marks?: { x: number; y: number; label: string }[] } };
 
 export interface Doc {
   title: string;

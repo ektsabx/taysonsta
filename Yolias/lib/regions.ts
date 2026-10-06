@@ -44,3 +44,7 @@ export function timeZoneLabel(tz: string, locale: Locale, now = new Date()): str
 export function isTimeZone(v: unknown): v is TimeZone {
   return typeof v === "string" && (TIMEZONES as readonly string[]).includes(v);
 }
+
+export function isCountry(v: unknown): v is Country {
+  return typeof v === "string" && (COUNTRIES as readonly string[]).includes(v);
+}

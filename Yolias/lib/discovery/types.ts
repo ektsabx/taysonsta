@@ -17,6 +17,18 @@ export interface CompanyCandidate {
   hiringRoles: number | null;
   signals: string[];                  // e.g. "Hiring 12+ roles in GCC"
   sourceRef: string | null;           // provider's own id
+  /** Local businesses (places on a map); companies leave these empty. */
+  kind?: "company" | "local_business";
+  category?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  rating?: number | null;
+  reviewsCount?: number | null;
+  placeRef?: string | null;           // maps place id
+  mapsUrl?: string | null;
+  /** The provider's own confidence in the record (0–1), when it gives one. */
+  confidence?: number | null;
   raw?: unknown;
 }
 
@@ -25,11 +37,25 @@ export interface PersonCandidate {
   title: string | null;
   email: string | null;
   phone: string | null;
-  whatsapp: string | null;
   linkedinUrl: string | null;
   city: string | null;
   country: string | null;
   sourceRef: string | null;
+  confidence?: number | null;
+  raw?: unknown;
+}
+
+/** A job posting (hiring signal) for a company. */
+export interface JobCandidate {
+  title: string;
+  department: string | null;
+  city: string | null;
+  country: string | null;
+  url: string | null;
+  postedAt: string | null;            // ISO
+  company: { name: string; domain: string | null };
+  sourceRef: string | null;
+  confidence?: number | null;
   raw?: unknown;
 }
 
@@ -39,6 +65,10 @@ export interface DiscoveryContext {
   /** What the user's company sells (onboarding) — lets providers rank relevance. */
   offering: string | null;
   limit: number;
+  /** The campaign_runs row of this run (run lineage on every result). */
+  runId?: number | null;
+  /** Candidates earlier runs already saw: later runs of a continuous campaign ask the source for the next ones. */
+  offset?: number;
   log: (
     stage: PipelineStage,
     message: string,

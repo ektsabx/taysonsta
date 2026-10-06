@@ -5,6 +5,8 @@ import { criteriaLine, parseIcp, sizeLabel, type IcpCriteria } from "../../lib/d
 import type { CompanyCandidate, PersonCandidate } from "../../lib/discovery/types.ts";
 
 const icp: IcpCriteria = {
+  search_type: "people",
+  lookalike_seeds: [],
   campaign_name: "UAE Fintech — Founders",
   summary: "Fintech companies in the UAE with 50–200 employees",
   target_count: 100,
@@ -31,7 +33,7 @@ const company = (over: Partial<CompanyCandidate> = {}): CompanyCandidate => ({
 });
 
 const person = (title: string): PersonCandidate => ({
-  fullName: "Test Person", title, email: null, phone: null, whatsapp: null, linkedinUrl: null, city: null, country: null, sourceRef: null,
+  fullName: "Test Person", title, email: null, phone: null, linkedinUrl: null, city: null, country: null, sourceRef: null,
 });
 
 test("classifySeniority recognises common titles", () => {

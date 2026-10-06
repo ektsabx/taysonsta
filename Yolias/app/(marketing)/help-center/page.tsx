@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Rocket, Sparkles, Users } from "lucide-react";
-import { articles, collections, helpHero } from "@/lib/content/help";
+import { collections, helpHero } from "@/lib/content/help";
+import { helpArticles } from "@/lib/content/store";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { HelpSearch } from "./HelpSearch";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).site.helpCenter} — Yolias` };
+  const locale = await getLocale();
+  return { title: `${(await getDictionary()).site.helpCenter} — Yolias`, description: helpHero[locale].lead };
 }
 
 const icons = { rocket: Rocket, sparkles: Sparkles, users: Users };
 
 export default async function HelpCenterPage() {
+  const articles = await helpArticles();
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const hero = helpHero[locale];
 

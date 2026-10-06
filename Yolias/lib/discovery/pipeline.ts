@@ -1,12 +1,14 @@
 import "server-only";
 import { campaignFinished, usageAlerts } from "@/lib/email/events";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { CampaignStatus, EventLevel, Json, PipelineStage } from "@/types/database";
+import type { CampaignStatus, CompanyKind, CompanyRow, EventLevel, Json, PipelineStage, SearchType } from "@/types/database";
 import { finalState, runningStates } from "@/lib/discovery/states";
 import { parseIcp, type IcpCriteria } from "@/lib/discovery/icp";
 import { classifySeniority, scoreMatch } from "@/lib/discovery/match";
-import type { CompanyCandidate, DiscoveryContext, PersonCandidate } from "@/lib/discovery/types";
+import type { CompanyCandidate, DiscoveryContext, JobCandidate, PersonCandidate } from "@/lib/discovery/types";
 import type { EmailStatus } from "@/types/database";
+import { clampConfidence, missingFields, provenanceFields, provenanceFor, searchTypeSpecs, type EntityKind } from "@/lib/entities";
+import type { Capability } from "@/lib/intel/capabilities";
 import { hasProviderFor, sourceLabels } from "@/lib/intel/registry";
 import { runCapability, type CallScope } from "@/lib/intel/service";
 import { cacheCompanies, cachedCompanies, isSuppressed, saveContact, upsertCompany, upsertPerson, type Source } from "@/lib/intel/shared";
@@ -18,6 +20,12 @@ import { fingerprintIcp } from "@/lib/intel/fingerprint";
 // campaign_events so the UI can show AI activity / progress. Every external
 // call goes through the Intelligence Layer (lib/intel): capabilities, not
 // providers (docs/03). Scoring stays deterministic code (rule 24).
+//
+// Search types (final spec phase 4, lib/entities): people deliver decision
+// makers; companies and company lookalikes deliver companies; local
+// businesses deliver places. One delivered result of the search's entity is
+// one prospect of usage. Every result carries the standard intelligence
+// fields (provenance, confidence, last updated, match, missing data).
 
 // Events store an English message plus meta {key, vars} pointing at the
 // `events` dictionary, so the UI shows them in the reader's language.
@@ -32,7 +40,8 @@ export async function logEvent(workspaceId: string, campaignId: string, stage: P
     .insert({ workspace_id: workspaceId, campaign_id: campaignId, stage, message, level, meta: text.key ? (text as never) : null });
 }
 
-const dedupeKey = (c: CompanyCandidate) => (c.domain ? c.domain.toLowerCase().replace(/^www\./, "") : c.name.toLowerCase().trim());
+const dedupeKey = (c: CompanyCandidate) =>
+  c.placeRef ? `place:${c.placeRef}` : c.domain ? c.domain.toLowerCase().replace(/^www\./, "") : c.name.toLowerCase().trim();
 
 export interface RunOptions {
   /** Delivery attempt of the background job (1 = first try). */
@@ -40,6 +49,12 @@ export interface RunOptions {
 }
 
 const finished: CampaignStatus[] = ["completed", "partial", "failed"];
+
+const waitingFor: Partial<Record<Capability, EventText & { message: string }>> = {
+  "company.search": { key: "noCompanySource", message: "No company data source is connected yet. Results will be collected once one is connected." },
+  "place.search": { key: "noPlaceSource", message: "No local business (maps) source is connected yet. Results will be collected once one is connected." },
+  "company.lookalikes": { key: "noLookalikeSource", message: "No lookalike-companies source is connected yet. Results will be collected once one is connected." },
+};
 
 // Runs one campaign. Called by the background worker (lib/jobs/worker.ts),
 // never inside a web request. Idempotent: a finished campaign is skipped,
@@ -55,47 +70,58 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
     await logEvent(campaign.workspace_id, campaignId, "plan", "Campaign criteria are invalid.", "error", { key: "invalidCriteria" });
     return;
   }
+  const searchType: SearchType = campaign.search_type ?? icp.search_type;
+  const spec = searchTypeSpecs[searchType];
   const { data: ws } = await db.from("workspaces").select("offering").eq("id", campaign.workspace_id).single();
   const log = (stage: PipelineStage, message: string, level?: EventLevel, text?: EventText) => logEvent(campaign.workspace_id, campaignId, stage, message, level, text);
 
-  // Nothing to run without a company source: no reservation, no cost.
-  if (!(await hasProviderFor("company.search"))) {
+  // Nothing to run without a source for this search type: no reservation, no cost.
+  if (!(await hasProviderFor(spec.source))) {
     if (campaign.status !== "awaiting_source") {
       await db.from("campaigns").update({ status: "awaiting_source" }).eq("id", campaignId);
-      await log("companies", "No company data source is connected yet. Results will be collected once one is connected.", "warning", { key: "noCompanySource" });
+      const w = waitingFor[spec.source]!;
+      await log("companies", w.message, "warning", { key: w.key });
     }
     return;
   }
 
   // Claim it: only one worker moves a campaign out of a waiting state. A retry
   // may also take over a campaign left mid-run by a crashed attempt.
-  const claimable: CampaignStatus[] = ["created", "queued", "awaiting_source", "paused", ...(attempt > 1 ? runningStates : [])];
+  const claimable: CampaignStatus[] = ["created", "queued", "awaiting_source", "scheduled", ...(attempt > 1 ? runningStates : [])];
   const { data: claimed } = await db.from("campaigns")
-    .update({ status: "discovering_companies", started_at: new Date().toISOString(), partial_reason: null })
+    .update({ status: "discovering_companies", started_at: campaign.started_at ?? new Date().toISOString(), partial_reason: null, next_run_at: null, runs_count: campaign.runs_count + (attempt > 1 ? 0 : 1) })
     .eq("id", campaignId).in("status", claimable).select("id").maybeSingle();
   if (!claimed) return;
 
   const { data: run } = await db.from("campaign_runs").insert({ workspace_id: campaign.workspace_id, campaign_id: campaignId, job: "campaign.discover", attempt }).select("id").single();
   const finishRun = (status: "succeeded" | "failed" | "skipped", meta: Record<string, unknown> = {}, error: string | null = null) =>
-    run ? db.from("campaign_runs").update({ status, finished_at: new Date().toISOString(), meta: meta as Json, error }).eq("id", run.id) : Promise.resolve();
+    run ? db.from("campaign_runs").update({ status, finished_at: new Date().toISOString(), meta: meta as Json, error, delivered: Number(meta.prospects ?? 0) }).eq("id", run.id) : Promise.resolve();
 
   // Plans are billed on prospects only (docs/06): reserve this campaign's
   // share of the month's allowance atomically, consume one per delivered
-  // prospect, release the rest at the end (rule 27).
-  const { data: reservedRaw } = await db.rpc("reserve_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_n: campaign.quota });
+  // result, release the rest at the end (rule 27).
+  // A continuous campaign reserves only what's left of its goal.
+  const left = Math.max(campaign.quota - campaign.prospects_found, 0);
+  const { data: reservedRaw } = left ? await db.rpc("reserve_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_n: left }) : { data: 0 };
   const reserved = Number(reservedRaw ?? 0);
   if (reserved === 0) {
     const { data: summary } = await db.rpc("usage_summary", { p_ws: campaign.workspace_id });
-    await db.from("campaigns").update({ status: "paused" }).eq("id", campaignId);
+    await db.from("campaigns").update({ status: left ? "paused" : "completed" }).eq("id", campaignId);
     await log("plan", "This month’s prospects are used up. Upgrade or wait for the reset.", "warning", { key: "quotaReached", vars: { total: summary?.[0]?.allowance ?? 0 } });
     await finishRun("skipped", { reason: "quota" });
     await usageAlerts(campaign.workspace_id);
     return;
   }
-  const ctx: DiscoveryContext = { workspaceId: campaign.workspace_id, campaignId, offering: ws?.offering ?? null, limit: reserved, log };
+  const offset = await candidatesSeen(db, campaignId);
+  const ctx: DiscoveryContext = { workspaceId: campaign.workspace_id, campaignId, offering: ws?.offering ?? null, limit: reserved, log, runId: run?.id ?? null, offset };
+  const totals = { companies: campaign.companies_found, prospects: campaign.prospects_found };
 
+  let final = false;
   try {
-    const outcome = await discover(db, campaignId, icp, ctx, reserved, campaign.quota);
+    const outcome = spec.entity === "person"
+      ? await discoverPeople(db, campaignId, icp, ctx, reserved, totals)
+      : await discoverCompanies(db, campaignId, icp, searchType, ctx, reserved, totals);
+    final = await settleRun(db, campaignId, outcome.prospects + totals.prospects, ctx);
     await finishRun("succeeded", outcome);
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown error";
@@ -107,83 +133,296 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   } finally {
     await db.rpc("release_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_reason: "campaign ended" });
   }
-  // Emails after the ledger is settled: "results ready" and usage alerts (80 % / 100 %).
-  await campaignFinished(campaignId);
+  // Emails after the ledger is settled: "results ready" (once, when the campaign ends) and usage alerts (80 % / 100 %).
+  if (final) await campaignFinished(campaignId);
   await usageAlerts(campaign.workspace_id);
 }
 
-async function discover(db: ReturnType<typeof createAdminClient>, campaignId: string, icp: IcpCriteria, ctx: DiscoveryContext, remaining: number, target: number) {
+/** Candidates the source already returned in earlier runs (asked for the next ones now). */
+async function candidatesSeen(db: Db, campaignId: string): Promise<number> {
+  const { data } = await db.from("campaign_runs").select("meta").eq("campaign_id", campaignId).eq("status", "succeeded");
+  return (data ?? []).reduce((n, r) => n + Number((r.meta as { candidates?: number } | null)?.candidates ?? 0), 0);
+}
+
+/**
+ * After a run: the goal reached → completed; a continuous campaign with time
+ * left → scheduled for its next run; otherwise completed / partial. Never
+ * overrides a pause or stop a member made while the run was going. Returns
+ * whether the campaign has ended.
+ */
+async function settleRun(db: Db, campaignId: string, total: number, ctx: DiscoveryContext): Promise<boolean> {
+  const { data: c } = await db.from("campaigns").select("quota, continuous, run_every_hours, deadline, status").eq("id", campaignId).single();
+  if (!c || !(runningStates as readonly string[]).includes(c.status)) return false;
+  const now = Date.now();
+  const timeLeft = !c.deadline || new Date(c.deadline).getTime() > now;
+  if (c.continuous && total < c.quota && timeLeft) {
+    const next = new Date(now + c.run_every_hours * 3_600_000);
+    const at = c.deadline && new Date(c.deadline) < next ? null : next.toISOString();
+    if (at) {
+      await db.from("campaigns").update({ status: "scheduled", next_run_at: at }).eq("id", campaignId).in("status", runningStates);
+      await ctx.log("deliver", `Run complete: ${total} of ${c.quota} so far. Next run scheduled.`, "info", { key: "runScheduled", vars: { total, goal: c.quota } });
+      return false;
+    }
+  }
+  const outcome = finalState(total, c.quota);
+  const reason = outcome.status === "partial" && c.continuous && !timeLeft ? "deadline" : outcome.partialReason;
+  await db.from("campaigns").update({ status: outcome.status, partial_reason: reason, completed_at: new Date().toISOString(), next_run_at: null }).eq("id", campaignId).in("status", runningStates);
+  return true;
+}
+
+/** A member paused or stopped the campaign while it was running. */
+async function interrupted(db: Db, campaignId: string): Promise<boolean> {
+  const { data } = await db.from("campaigns").select("status").eq("id", campaignId).single();
+  return !data || !(runningStates as readonly string[]).includes(data.status);
+}
+
+type Db = ReturnType<typeof createAdminClient>;
+
+function stageSetter(db: Db, campaignId: string) {
   let stage: CampaignStatus = "discovering_companies";
-  const setStage = async (next: CampaignStatus) => {
+  return async (next: CampaignStatus) => {
     if (next === stage) return;
     stage = next;
     await db.from("campaigns").update({ status: next }).eq("id", campaignId);
   };
+}
 
-  const companies = await findCompanies(icp, ctx);
+/** Delivered ⇒ one prospect used. Never deliver beyond what was reserved. */
+async function consumeOne(db: Db, ctx: DiscoveryContext): Promise<boolean> {
+  const { data: used } = await db.rpc("consume_usage", { p_ws: ctx.workspaceId, p_campaign: ctx.campaignId, p_n: 1 });
+  return Number(used ?? 0) >= 1;
+}
+
+// ───────────────────────── Standard intelligence fields ─────────────────────────
+
+function companyFields(c: CompanyCandidate) {
+  return {
+    name: c.name, domain: c.domain, industry: c.industry, description: c.description, city: c.city, country: c.country,
+    employee_count: c.employeeCount, funding_stage: c.fundingStage, hiring_roles: c.hiringRoles,
+    category: c.category ?? null, address: c.address ?? null, phone: c.phone ?? null, website: c.website ?? null,
+    rating: c.rating ?? null, reviews_count: c.reviewsCount ?? null,
+  };
+}
+
+function intelligence(kind: EntityKind, row: Record<string, unknown>, source: string, confidence: number | null) {
+  const at = new Date().toISOString();
+  return {
+    confidence,
+    provenance: provenanceFor(row, provenanceFields[kind], source, at, confidence) as unknown as Json,
+    missing_fields: missingFields(kind, row),
+    last_updated: at,
+  };
+}
+
+async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, c: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
+  const fields = companyFields(c);
+  return db.from("companies").insert({
+    workspace_id: ctx.workspaceId, campaign_id: campaignId, kind, name: c.name, domain: c.domain,
+    industry: c.industry, description: c.description, city: c.city, country: c.country,
+    employee_count: c.employeeCount, funding_stage: c.fundingStage, funding_total_usd: c.fundingTotalUsd,
+    hiring_roles: c.hiringRoles, signals: c.signals, source: sourceOf(c), source_ref: c.sourceRef,
+    category: fields.category, address: fields.address, phone: fields.phone, website: fields.website,
+    rating: fields.rating, reviews_count: fields.reviews_count, place_ref: c.placeRef ?? null, maps_url: c.mapsUrl ?? null,
+    intel_company_id: intelIds.get(c) ?? null,
+    delivered_at: delivered ? new Date().toISOString() : null,
+    run_id: ctx.runId ?? null,
+    match_score: match?.score ?? null, match_reasons: match?.reasons ?? [],
+    ...intelligence(kind === "local_business" ? "local_business" : "company", fields, sourceOf(c), clampConfidence(c.confidence)),
+    raw: (c.raw ?? null) as never,
+  }).select("id").single();
+}
+
+// ───────────────────────── People searches ─────────────────────────
+
+async function discoverPeople(db: Db, campaignId: string, icp: IcpCriteria, ctx: DiscoveryContext, remaining: number, totals: { companies: number; prospects: number }) {
+  const setStage = stageSetter(db, campaignId);
+  const companies = await findCompanies(icp, ctx, "company.search");
+  const candidates = companies.length;
   await setStage("matching_companies");
   let companiesFound = 0;
   let prospectsFound = 0;
 
   for (const company of companies) {
+    if (await interrupted(db, campaignId)) break;
     const enriched = await enrichCompany(company, ctx);
-    const { data: row, error } = await db.from("companies").insert({
-      workspace_id: ctx.workspaceId, campaign_id: campaignId, name: enriched.name, domain: enriched.domain,
-      industry: enriched.industry, description: enriched.description, city: enriched.city, country: enriched.country,
-      employee_count: enriched.employeeCount, funding_stage: enriched.fundingStage, funding_total_usd: enriched.fundingTotalUsd,
-      hiring_roles: enriched.hiringRoles, signals: enriched.signals, source: sourceOf(enriched), source_ref: enriched.sourceRef,
-      raw: (enriched.raw ?? null) as never,
-    }).select("id").single();
+    const { data: row, error } = await insertCompany(db, campaignId, ctx, enriched, "company", scoreMatch(icp, enriched, null));
     if (error || !row) continue;
     companiesFound++;
+    await findJobs(db, campaignId, icp, enriched, row.id, ctx);
 
     await setStage("discovering_people");
     const people = await findPeople(enriched, icp, ctx);
     for (const person of people) {
       if (prospectsFound >= remaining) break;
-      await setStage("enriching");
-      const p = await enrichPerson(person, enriched, ctx);
-      const companyIntelId = intelIds.get(enriched) ?? intelIds.get(company) ?? null;
-      const personId = companyIntelId ? await upsertPerson(p, companyIntelId, origin.get(p) ?? SHARED) : null;
-      // Never deliver suppressed people (rule 34); the workspace never pays twice for the same person (docs/04).
-      if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedinUrl, personId })) continue;
-      if (await alreadyDelivered(db, ctx.workspaceId, p, personId)) continue;
-      await setStage("verifying");
-      const emailStatus = p.email ? await verifyEmail(p.email, personId, ctx) : "unknown";
-      await setStage("scoring");
-      const match = scoreMatch(icp, enriched, p);
-      await setStage("delivering");
-      const { data: inserted, error: insertError } = await db.from("prospects").insert({
-        workspace_id: ctx.workspaceId, campaign_id: campaignId, company_id: row.id, full_name: p.fullName, title: p.title,
-        seniority: classifySeniority(p.title), email: p.email, email_status: emailStatus, phone: p.phone, whatsapp: p.whatsapp,
-        linkedin_url: p.linkedinUrl, city: p.city ?? enriched.city, country: p.country ?? enriched.country,
-        match_score: match.score, match_reasons: match.reasons, source: sourceOf(p), source_ref: p.sourceRef,
-        raw: (p.raw ?? null) as never, person_id: personId,
-      }).select("id").single();
-      if (insertError || !inserted) continue;
-      // Delivered ⇒ one prospect used. Never deliver beyond what was reserved.
-      const { data: used } = await db.rpc("consume_usage", { p_ws: ctx.workspaceId, p_campaign: campaignId, p_n: 1 });
-      if (Number(used ?? 0) < 1) {
-        await db.from("prospects").delete().eq("id", inserted.id);
-        break;
-      }
-      prospectsFound++;
+      const r = await deliverPerson(db, campaignId, row.id, enriched, intelIds.get(enriched) ?? intelIds.get(company) ?? null, person, icp, ctx, setStage);
+      if (r === "stop") break;
+      if (r === "delivered") prospectsFound++;
     }
-    await db.from("campaigns").update({ companies_found: companiesFound, prospects_found: prospectsFound }).eq("id", campaignId);
+    await db.from("campaigns").update({ companies_found: totals.companies + companiesFound, prospects_found: totals.prospects + prospectsFound }).eq("id", campaignId);
     if (prospectsFound >= remaining) break;
   }
 
-  // Fewer than asked is "partial", with the reason shown to the user (docs/00: no fake completeness).
-  const outcome = finalState(prospectsFound, Math.min(target, remaining));
-  await db.from("campaigns").update({ status: outcome.status, partial_reason: outcome.partialReason, completed_at: new Date().toISOString() }).eq("id", campaignId);
   await ctx.log("deliver", `Discovery complete: ${companiesFound} companies, ${prospectsFound} decision makers.`, "success", {
     key: "complete",
     vars: { companies: companiesFound, prospects: prospectsFound },
   });
-  return { companies: companiesFound, prospects: prospectsFound, status: outcome.status };
+  return { companies: companiesFound, prospects: prospectsFound, candidates };
 }
 
-async function alreadyDelivered(db: ReturnType<typeof createAdminClient>, workspaceId: string, p: PersonCandidate, personId: string | null): Promise<boolean> {
+/**
+ * One decision maker: enrich → shared intel → suppression / already paid →
+ * verify → score → insert → consume one prospect. "stop" when the
+ * reservation is used up.
+ */
+async function deliverPerson(
+  db: Db, campaignId: string, companyRowId: string, company: CompanyCandidate, companyIntelId: string | null, person: PersonCandidate,
+  icp: IcpCriteria, ctx: DiscoveryContext, setStage: (s: CampaignStatus) => Promise<void>, savedAt: string | null = null,
+): Promise<"delivered" | "skipped" | "stop"> {
+  await setStage("enriching");
+  const p = await enrichPerson(person, company, ctx);
+  const personId = companyIntelId ? await upsertPerson(p, companyIntelId, origin.get(p) ?? SHARED) : null;
+  // Never deliver suppressed people (rule 34); the workspace never pays twice for the same person (docs/04).
+  if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedinUrl, personId })) return "skipped";
+  if (await alreadyDelivered(db, ctx.workspaceId, p, personId)) return "skipped";
+  await setStage("verifying");
+  const emailStatus = p.email ? await verifyEmail(p.email, personId, ctx) : "unknown";
+  await setStage("scoring");
+  const match = scoreMatch(icp, company, p);
+  await setStage("delivering");
+  const fields = { full_name: p.fullName, title: p.title, email: p.email, phone: p.phone, linkedin_url: p.linkedinUrl, city: p.city ?? company.city, country: p.country ?? company.country };
+  const { data: inserted, error: insertError } = await db.from("prospects").insert({
+    workspace_id: ctx.workspaceId, campaign_id: campaignId, company_id: companyRowId, ...fields,
+    seniority: classifySeniority(p.title), email_status: emailStatus,
+    match_score: match.score, match_reasons: match.reasons, source: sourceOf(p), source_ref: p.sourceRef,
+    ...intelligence("person", fields, sourceOf(p), clampConfidence(p.confidence)),
+    raw: (p.raw ?? null) as never, person_id: personId, saved_at: savedAt, run_id: ctx.runId ?? null,
+  }).select("id").single();
+  if (insertError || !inserted) return "skipped";
+  if (!(await consumeOne(db, ctx))) {
+    await db.from("prospects").delete().eq("id", inserted.id);
+    return "stop";
+  }
+  return "delivered";
+}
+
+// ───────────────────────── Decision-maker matching ─────────────────────────
+
+const PEOPLE_PER_COMPANY = 5;
+
+/**
+ * "Find decision makers" for saved companies / local businesses (final spec
+ * phase 5): the people who match the search's titles, delivered straight to
+ * Prospects. Background job "company.people"; idempotent per company (a
+ * company already done or running is skipped). Each person found is one
+ * prospect of usage, reserved before the work and released after it.
+ */
+export async function findDecisionMakers(workspaceId: string, companyIds: string[]): Promise<void> {
+  const db = createAdminClient();
+  const { data: rows } = await db.from("companies").select("*").eq("workspace_id", workspaceId).in("id", companyIds);
+  for (const row of rows ?? []) {
+    if (row.people_status === "done" || row.people_status === "running") continue;
+    if (!(await hasProviderFor("person.search"))) {
+      await db.from("companies").update({ people_status: "no_source" }).eq("id", row.id);
+      continue;
+    }
+    const { data: claimed } = await db.from("companies").update({ people_status: "running" }).eq("id", row.id).or("people_status.is.null,people_status.in.(queued,no_source,no_quota,failed)").select("id").maybeSingle();
+    if (!claimed) continue;
+    const { data: campaign } = await db.from("campaigns").select("criteria, search_type").eq("id", row.campaign_id).single();
+    const icp = parseIcp(campaign?.criteria);
+    if (!icp) {
+      await db.from("companies").update({ people_status: "failed" }).eq("id", row.id);
+      continue;
+    }
+    const { data: reservedRaw } = await db.rpc("reserve_usage", { p_ws: workspaceId, p_campaign: row.campaign_id, p_n: PEOPLE_PER_COMPANY });
+    const reserved = Number(reservedRaw ?? 0);
+    if (!reserved) {
+      await db.from("companies").update({ people_status: "no_quota" }).eq("id", row.id);
+      await usageAlerts(workspaceId);
+      continue;
+    }
+    const log = (stage: PipelineStage, message: string, level?: EventLevel, text?: EventText) => logEvent(workspaceId, row.campaign_id, stage, message, level, text);
+    const ctx: DiscoveryContext = { workspaceId, campaignId: row.campaign_id, offering: null, limit: reserved, log };
+    const company = candidateFromRow(row);
+    let found = 0;
+    try {
+      const people = await findPeople(company, icp, ctx);
+      for (const person of people) {
+        if (found >= reserved) break;
+        const r = await deliverPerson(db, row.campaign_id, row.id, company, row.intel_company_id, person, icp, ctx, async () => {}, new Date().toISOString());
+        if (r === "stop") break;
+        if (r === "delivered") found++;
+      }
+      await db.from("companies").update({ people_status: "done", people_found: row.people_found + found }).eq("id", row.id);
+    } catch (e) {
+      await db.from("companies").update({ people_status: "failed" }).eq("id", row.id);
+      throw e;
+    } finally {
+      await db.rpc("release_usage", { p_ws: workspaceId, p_campaign: row.campaign_id, p_reason: "decision makers found" });
+    }
+  }
+  await usageAlerts(workspaceId);
+}
+
+function candidateFromRow(row: CompanyRow): CompanyCandidate {
+  const c: CompanyCandidate = {
+    name: row.name, domain: row.domain, industry: row.industry, description: row.description, city: row.city, country: row.country,
+    employeeCount: row.employee_count, fundingStage: row.funding_stage, fundingTotalUsd: row.funding_total_usd, hiringRoles: row.hiring_roles,
+    signals: Array.isArray(row.signals) ? (row.signals as string[]) : [], sourceRef: row.source_ref, kind: row.kind, category: row.category,
+    address: row.address, phone: row.phone, website: row.website, rating: row.rating, reviewsCount: row.reviews_count, placeRef: row.place_ref, mapsUrl: row.maps_url,
+  };
+  origin.set(c, { ...SHARED, provider: row.source });
+  return c;
+}
+
+// ───────────────────────── Company, lookalike and local business searches ─────────────────────────
+
+async function discoverCompanies(db: Db, campaignId: string, icp: IcpCriteria, searchType: SearchType, ctx: DiscoveryContext, remaining: number, totals: { companies: number; prospects: number }) {
+  const setStage = stageSetter(db, campaignId);
+  const local = searchType === "local_businesses";
+  const kind: CompanyKind = local ? "local_business" : "company";
+  const candidates = await findCompanies(icp, ctx, searchTypeSpecs[searchType].source);
+  await setStage("matching_companies");
+  let delivered = 0;
+
+  for (const candidate of candidates) {
+    if (delivered >= remaining || (await interrupted(db, campaignId))) break;
+    const c = local ? candidate : await enrichCompany(candidate, ctx);
+    if (await isSuppressed({ domain: c.domain ?? c.website })) continue;
+    if (await companyAlreadyDelivered(db, ctx.workspaceId, kind, c)) continue;
+    await setStage("scoring");
+    const match = scoreMatch(icp, { ...c, kind }, null);
+    await setStage("delivering");
+    const { data: row, error } = await insertCompany(db, campaignId, ctx, c, kind, match, true);
+    if (error || !row) continue;
+    if (!(await consumeOne(db, ctx))) {
+      await db.from("companies").delete().eq("id", row.id);
+      break;
+    }
+    delivered++;
+    if (!local) await findJobs(db, campaignId, icp, c, row.id, ctx);
+    await db.from("campaigns").update({ companies_found: totals.companies + delivered, prospects_found: totals.prospects + delivered }).eq("id", campaignId);
+  }
+
+  await ctx.log("deliver", `Discovery complete: ${delivered} ${local ? "local businesses" : "companies"} delivered.`, "success", {
+    key: local ? "completePlaces" : "completeCompanies",
+    vars: { count: delivered },
+  });
+  return { companies: delivered, prospects: delivered, candidates: candidates.length };
+}
+
+async function companyAlreadyDelivered(db: Db, workspaceId: string, kind: CompanyKind, c: CompanyCandidate): Promise<boolean> {
+  const checks: [string, string][] = [];
+  if (c.placeRef) checks.push(["place_ref", c.placeRef]);
+  if (c.domain) checks.push(["domain", c.domain.toLowerCase()]);
+  for (const [col, value] of checks) {
+    const { count } = await db.from("companies").select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId).eq("kind", kind).not("delivered_at", "is", null).eq(col as "domain", value);
+    if (count) return true;
+  }
+  return false;
+}
+
+async function alreadyDelivered(db: Db, workspaceId: string, p: PersonCandidate, personId: string | null): Promise<boolean> {
   const checks: [string, string][] = [];
   if (personId) checks.push(["person_id", personId]);
   if (p.linkedinUrl) checks.push(["linkedin_url", p.linkedinUrl]);
@@ -203,12 +442,16 @@ const scopeOf = (ctx: DiscoveryContext): CallScope => ({ workspaceId: ctx.worksp
 const intelIds = new WeakMap<object, string>();
 
 // Ladder step 1 (rule 15): reuse fresh, licensed results for the same audience
-// before paying a provider; otherwise search and store what we find.
-async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
+// (and search type — it's in the fingerprint) before paying a provider;
+// otherwise search and store what we find.
+async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext, capability: "company.search" | "place.search" | "company.lookalikes") {
+  const places = capability === "place.search";
   const fingerprint = fingerprintIcp(icp);
-  const cached = await cachedCompanies(fingerprint, ctx.workspaceId);
+  const offset = ctx.offset ?? 0;
+  // The cache holds the first page of results; later runs of a continuous campaign need the next ones.
+  const cached = offset ? null : await cachedCompanies(fingerprint, ctx.workspaceId);
   if (cached) {
-    await ctx.log("companies", `Reusing ${cached.length} companies already found for this audience.`, "info", { key: "foundCompanies", vars: { count: cached.length } });
+    await ctx.log("companies", `Reusing ${cached.length} results already found for this audience.`, "info", { key: places ? "foundPlaces" : "foundCompanies", vars: { count: cached.length } });
     for (const c of cached) {
       origin.set(c, SHARED);
       intelIds.set(c, c.intelId);
@@ -217,12 +460,17 @@ async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
   }
 
   const source = (await sourceLabels()).join(", ") || "Yolias";
-  await ctx.log("companies", `Searching ${source} for matching companies…`, "info", { key: "searching", vars: { source } });
-  const res = await runCapability("company.search", { icp, limit: ctx.limit, offering: ctx.offering }, scopeOf(ctx));
+  await ctx.log("companies", places ? `Searching ${source} for matching local businesses…` : `Searching ${source} for matching companies…`, "info", { key: places ? "searchingPlaces" : "searching", vars: { source } });
+  const res = capability === "company.lookalikes"
+    ? await runCapability("company.lookalikes", { seeds: icp.lookalike_seeds, icp, limit: ctx.limit, offset }, scopeOf(ctx))
+    : capability === "place.search"
+      ? await runCapability("place.search", { icp, limit: ctx.limit, offset }, scopeOf(ctx))
+      : await runCapability("company.search", { icp, limit: ctx.limit, offering: ctx.offering, offset }, scopeOf(ctx));
   const seen = new Map<string, CompanyCandidate>();
   if (res.ok) {
     const src: Source = { provider: res.provider, license: res.license, callId: res.callId };
-    for (const c of res.data) {
+    for (const raw of res.data) {
+      const c: CompanyCandidate = places ? { ...raw, kind: "local_business" } : raw;
       const key = dedupeKey(c);
       if (seen.has(key)) continue;
       origin.set(c, src);
@@ -231,11 +479,11 @@ async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext) {
       seen.set(key, c);
     }
     const ids = [...seen.values()].map((c) => intelIds.get(c)).filter(Boolean) as string[];
-    await cacheCompanies(fingerprint, ctx.workspaceId, ids, res.license.redistributable, res.provider);
+    if (!offset) await cacheCompanies(fingerprint, ctx.workspaceId, ids, res.license.redistributable, res.provider);
   } else if (res.reason === "all_failed") {
-    throw new Error(`company search failed (${res.errors.map((e) => e.provider).join(", ")})`);
+    throw new Error(`${capability} failed (${res.errors.map((e) => e.provider).join(", ")})`);
   }
-  await ctx.log("companies", `Found ${seen.size} candidate companies.`, "success", { key: "foundCompanies", vars: { count: seen.size } });
+  await ctx.log("companies", places ? `Found ${seen.size} candidate businesses.` : `Found ${seen.size} candidate companies.`, "success", { key: places ? "foundPlaces" : "foundCompanies", vars: { count: seen.size } });
   return [...seen.values()].slice(0, ctx.limit);
 }
 
@@ -245,6 +493,30 @@ async function findPeople(company: CompanyCandidate, icp: IcpCriteria, ctx: Disc
   const src: Source = { provider: res.provider, license: res.license, callId: res.callId };
   for (const p of res.data) origin.set(p, src);
   return res.data;
+}
+
+/**
+ * Hiring signals: job postings for a company, only when the search asks for
+ * hiring companies and a provider offers job search (no call otherwise).
+ * Jobs enrich the result; they are not billed.
+ */
+async function findJobs(db: Db, campaignId: string, icp: IcpCriteria, company: CompanyCandidate, companyRowId: string, ctx: DiscoveryContext) {
+  if (!icp.hiring) return;
+  const res = await runCapability("job.search", { icp, company, limit: 10 }, scopeOf(ctx));
+  if (!res.ok || !res.data.length) return;
+  const rows = res.data.map((j: JobCandidate) => {
+    const fields = { title: j.title, department: j.department, city: j.city, country: j.country, url: j.url, posted_at: j.postedAt };
+    const roleHit = icp.hiring_roles.length ? icp.hiring_roles.some((r) => j.title.toLowerCase().includes(r.toLowerCase())) : true;
+    return {
+      workspace_id: ctx.workspaceId, campaign_id: campaignId, company_id: companyRowId, ...fields, run_id: ctx.runId ?? null,
+      seniority: classifySeniority(j.title), source: res.provider, source_ref: j.sourceRef,
+      match_score: roleHit ? 100 : 0, match_reasons: roleHit ? ["Hiring role"] : [],
+      ...intelligence("job", fields, res.provider, clampConfidence(j.confidence)),
+      raw: (j.raw ?? null) as never,
+    };
+  });
+  await db.from("jobs").upsert(rows, { onConflict: "campaign_id,url", ignoreDuplicates: true });
+  await db.from("companies").update({ hiring_roles: rows.length }).eq("id", companyRowId);
 }
 
 // Optional steps: skipped (no call, no cost) when no provider offers them.

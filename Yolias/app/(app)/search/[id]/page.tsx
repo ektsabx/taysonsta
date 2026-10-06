@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { AgentThread } from "@/components/app/AgentThread";
 import { DiscoveryCard } from "@/components/app/DiscoveryCard";
 import { StrategyComposer } from "@/components/app/StrategyComposer";
-import { requireSession } from "@/lib/session";
+import { canManageTeam, requireSession } from "@/lib/session";
+import { planLabel } from "@/lib/plans";
+import { getDictionary } from "@/lib/i18n/server";
 import { getStrategyView } from "@/services/strategies";
 import { conversationFor } from "@/services/conversations";
 
@@ -19,7 +21,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const view = await getStrategyView(id);
   if (!view || view.strategy.workspace_id !== session.workspace.id) notFound();
-  const turns = await conversationFor(view.strategy.id);
+  const [turns, t] = await Promise.all([conversationFor(view.strategy.id), getDictionary()]);
 
   return (
     <div className="page-view">
@@ -27,7 +29,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
       <div className="chat-view">
         <StrategyComposer key={view.strategy.id} initialPrompt={view.strategy.prompt} />
         <DiscoveryCard view={view} />
-        <AgentThread key={`thread-${view.strategy.id}`} strategyId={view.strategy.id} initial={turns} />
+        <AgentThread key={`thread-${view.strategy.id}`} strategyId={view.strategy.id} initial={turns} plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== "growth" && canManageTeam(session) }} />
       </div>
     </div>
   );

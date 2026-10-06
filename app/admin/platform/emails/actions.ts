@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { authorize } from "@/lib/bos/auth";
 import { handleAction, type ActionState } from "@/lib/bos/action";
-import { createAnnouncement, sendAnnouncement } from "@/services/yolias/emails";
+import { createAnnouncement, sendAnnouncement, setEmailEvent } from "@/services/yolias/emails";
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
 
@@ -24,6 +24,15 @@ export async function sendAnnouncementAction(_prev: ActionState, fd: FormData): 
     const { bos } = await authorize("platform.manage", "all");
     const id = str(fd, "id");
     if (/^[0-9a-f-]{36}$/.test(id)) await sendAnnouncement(bos, id);
+    revalidatePath("/admin/platform/emails");
+    return { ok: true };
+  });
+}
+
+export async function setEmailEventAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return handleAction("yolias.setEmailEvent", async () => {
+    const { bos } = await authorize("platform.manage", "all");
+    await setEmailEvent(bos, str(fd, "kind"), fd.get("email") === "on", fd.get("in_app") === "on");
     revalidatePath("/admin/platform/emails");
     return { ok: true };
   });

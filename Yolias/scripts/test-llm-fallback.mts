@@ -50,7 +50,7 @@ const { understandStrategy } = await import("@/lib/ai/strategy.ts");
 const { runAgent } = await import("@/lib/agent/run.ts");
 
 const icp = {
-  campaign_name: "Riyadh Fintech — Heads of Sales", summary: "Fintechs in Riyadh", countries: ["SA"], cities: ["Riyadh"], industries: ["Fintech"],
+  search_type: "people", lookalike_seeds: [], campaign_name: "Riyadh Fintech — Heads of Sales", summary: "Fintechs in Riyadh", countries: ["SA"], cities: ["Riyadh"], industries: ["Fintech"],
   keywords: [], employees_min: 11, employees_max: 200, job_titles: ["Head of Sales"], seniorities: ["head"], target_count: 50, target_unit: "prospects",
   hiring: null, hiring_roles: [], funding_stages: [], technologies: [], exclusions: [], assumptions: [],
 };
@@ -134,13 +134,13 @@ try {
     return { status: 200, json: { id: "msg_b", type: "message", role: "assistant", model: "claude-opus-5-5", stop_reason: "end_turn", stop_sequence: null,
       content: [{ type: "text", text: "Claude here: usage checked." }], usage: { input_tokens: 150, output_tokens: 10 } } };
   };
-  const a0 = await runAgent(agentCtx, [{ role: "user", text: "Usage?" }]);
+  const a0 = await runAgent(agentCtx, [{ role: "user", text: "Usage?" }], { scope: "user" });
   assert.equal(a0.provider, "anthropic");
   assert.match(a0.reply, /Claude here/);
   console.log("✓ Agent on Claude: tool_use → reply");
   anthropicHandler = () => ({ status: 529, json: { type: "error", error: { type: "overloaded_error", message: "Overloaded" } } });
 
-  const a1 = await runAgent(agentCtx, [{ role: "user", text: "How many prospects do I have left?" }]);
+  const a1 = await runAgent(agentCtx, [{ role: "user", text: "How many prospects do I have left?" }], { scope: "user" });
   assert.equal(a1.provider, "openai");
   assert.match(a1.reply, /prospects left/);
   console.log("✓ Agent on OpenAI: tool call → reply");
@@ -163,7 +163,7 @@ try {
     assert.equal(fr.response.result.ok, true);
     return { status: 200, json: { modelVersion: "gemini-test-001", candidates: [{ content: { role: "model", parts: [{ text: "Here are your latest campaigns." }] }, finishReason: "STOP" }], usageMetadata: { promptTokenCount: 90, candidatesTokenCount: 9 } } };
   };
-  const a2 = await runAgent(agentCtx, [{ role: "user", text: "Show my campaigns" }]);
+  const a2 = await runAgent(agentCtx, [{ role: "user", text: "Show my campaigns" }], { scope: "user" });
   assert.equal(a2.provider, "gemini");
   console.log("✓ Agent: OpenAI 500 → Gemini function call → reply");
 
@@ -182,7 +182,7 @@ try {
     if (step === 1) return { status: 200, json: { model: "gpt-test-1", choices: [{ finish_reason: "tool_calls", message: { content: null, tool_calls: [{ id: "call_2", type: "function", function: { name: "createCampaign", arguments: JSON.stringify({ request: "Heads of sales at fintechs in Riyadh (fallback test)" }) } }] } }], usage: { prompt_tokens: 50, completion_tokens: 10 } } };
     return { status: 500, json: {} };
   };
-  await assert.rejects(runAgent(agentCtx, [{ role: "user", text: "Start it" }]));
+  await assert.rejects(runAgent(agentCtx, [{ role: "user", text: "Start it" }], { scope: "user" }));
   assert.equal(geminiCalled, false, "Gemini not asked after a campaign was started");
   console.log("✓ No provider switch after a tool changed something");
   console.log("ALL PASS");

@@ -14,6 +14,13 @@
     "test:agent": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-tools.mts",
     "test:emails": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-emails.mts",
     "test:llm": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-llm-fallback.mts",
+    "test:payments": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-payments.mts",
+    "test:search-types": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-search-types.mts",
+    "seed:demo-results": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/seed-demo-results.mts",
+    "test:campaigns": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-campaigns.mts",
+    "test:ai": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-ai.mts",
+    "test:outreach": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-outreach.mts",
+    "content:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-content.mts",
     "eval:icp": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/eval-icp.mts",
     "test": "npm run typecheck && npm run test:unit",
     "emails:build": "node --experimental-strip-types --no-warnings=MODULE_TYPELESS_PACKAGE_JSON scripts/build-email-templates.mts"

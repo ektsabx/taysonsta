@@ -58,7 +58,7 @@ test("health: failures open the circuit, a success closes it", () => {
 });
 
 const icp: IcpCriteria = {
-  campaign_name: "UAE Fintech", summary: "s", target_count: 100, target_unit: "prospects", countries: ["AE", "SA"], cities: [" Dubai "],
+  search_type: "people", lookalike_seeds: [], campaign_name: "UAE Fintech", summary: "s", target_count: 100, target_unit: "prospects", countries: ["AE", "SA"], cities: [" Dubai "],
   industries: ["Fintech", "SaaS"], keywords: [], employees_min: 50, employees_max: 200, job_titles: ["CEO", "CTO"], seniorities: ["c_level"],
   hiring: null, hiring_roles: [], funding_stages: [], technologies: [], exclusions: [], assumptions: ["a"],
 };
@@ -95,7 +95,7 @@ test("http: retries only 429/5xx and honours Retry-After", () => {
 test("ICP eval scoring checks only what the request states", async () => {
   const { scoreIcp } = await import("../../lib/ai/icp-eval.ts");
   const icp = {
-    campaign_name: "x", summary: "x", target_count: 50, target_unit: "prospects", countries: ["EG"], cities: ["Cairo"], industries: ["Software"],
+    search_type: "people", lookalike_seeds: [], campaign_name: "x", summary: "x", target_count: 50, target_unit: "prospects", countries: ["EG"], cities: ["Cairo"], industries: ["Software"],
     keywords: ["SaaS"], employees_min: 50, employees_max: 200, job_titles: ["HR Manager"], seniorities: ["manager"], hiring: null,
     hiring_roles: [], funding_stages: [], technologies: [], exclusions: [], assumptions: [],
   } as const;
@@ -103,4 +103,14 @@ test("ICP eval scoring checks only what the request states", async () => {
   assert.ok(ok.every((c) => c.ok));
   const bad = scoreIcp(icp as never, { countries: ["SA"], seniorityAny: ["founder"], hiring: true });
   assert.deepEqual(bad.map((c) => c.ok), [false, false, false]);
+});
+
+test("search types never share a fingerprint; people keeps its old one", () => {
+  const base = { ...icp } as IcpCriteria;
+  const legacy = { ...base } as Partial<IcpCriteria>;
+  delete legacy.search_type;
+  delete legacy.lookalike_seeds;
+  assert.equal(fingerprintIcp(base), fingerprintIcp(legacy as IcpCriteria));
+  assert.notEqual(fingerprintIcp(base), fingerprintIcp({ ...base, search_type: "companies" }));
+  assert.notEqual(fingerprintIcp({ ...base, search_type: "company_lookalikes", lookalike_seeds: ["a.com"] }), fingerprintIcp({ ...base, search_type: "company_lookalikes", lookalike_seeds: ["b.com"] }));
 });

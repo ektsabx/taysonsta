@@ -59,6 +59,15 @@ enable_signup = true
 enable_anonymous_sign_ins = false
 enable_manual_linking = false
 
+# Google sign-in / sign-up (final spec phase 2). Switched on by
+# scripts/dev-local.sh when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are in
+# .env.local. Google Cloud → OAuth client → authorized redirect URI:
+# http://127.0.0.1:54631/auth/v1/callback (local) / <project>.supabase.co/auth/v1/callback.
+[auth.external.google]
+enabled = "env(YOLIAS_GOOGLE_ENABLED)"
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
 [auth.rate_limit]
 email_sent = 30
 sign_in_sign_ups = 30

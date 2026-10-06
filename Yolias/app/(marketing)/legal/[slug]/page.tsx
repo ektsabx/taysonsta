@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
 import { Toc } from "@/components/marketing/Toc";
-import { legal, legalSlugs, LEGAL_UPDATED, type LegalSlug } from "@/lib/content/legal";
+import { legalSlugs, LEGAL_UPDATED, type LegalSlug } from "@/lib/content/legal";
+import { legalDocs } from "@/lib/content/store";
 import { formatDate } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -15,6 +16,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): Promise<Metadata> {
+  const legal = await legalDocs();
   const { slug } = await params;
   if (!isLegal(slug)) return {};
   const doc = legal[slug][await getLocale()];
@@ -22,6 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): 
 }
 
 export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) {
+  const legal = await legalDocs();
   const { slug } = await params;
   if (!isLegal(slug)) notFound();
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
