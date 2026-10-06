@@ -8,6 +8,8 @@ import { default as handler } from "./.open-next/worker.js";
 interface Env {
   WORKER_SECRET?: string;
   NEXT_PUBLIC_SITE_URL?: string;
+  /** This worker itself (wrangler.jsonc "services"): a real request through the full app stack. */
+  WORKER_SELF_REFERENCE?: { fetch(req: Request): Promise<Response> };
 }
 
 const worker = {
@@ -17,7 +19,10 @@ const worker = {
     if (!env.WORKER_SECRET) return;
     const url = `${(env.NEXT_PUBLIC_SITE_URL ?? "https://www.yolias.com").replace(/\/$/, "")}/api/worker`;
     const req = new Request(url, { method: "POST", headers: { authorization: `Bearer ${env.WORKER_SECRET}` } });
-    ctx.waitUntil(handler.fetch(req, env, ctx));
+    // Through the service binding: the cron's ctx isn't a fetch ctx, so calling
+    // the app's handler directly can fail before it reaches /api/worker.
+    const run = env.WORKER_SELF_REFERENCE ? env.WORKER_SELF_REFERENCE.fetch(req) : handler.fetch(req, env, ctx);
+    ctx.waitUntil(run.then(async (res: Response) => { if (!res.ok) console.error("[cron] /api/worker", res.status, await res.text()); }).catch((e: unknown) => console.error("[cron]", e)));
   },
 };
 
