@@ -420,7 +420,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
     html: !u.resetsAt ? layout({
       locale,
       siteUrl: u.siteUrl,
-      preheader: ar ? "العملاء المحتملون في الخطة المجانية هدية مرة واحدة عند التسجيل." : "Free plan prospects are a one-time gift at signup.",
+      preheader: ar ? "تشمل الخطة المجانية عملاء محتملين للبداية." : "The Free plan includes prospects to get you started.",
       heading: full ? (ar ? "استخدمت العملاء المحتملين المجانيين" : "You’ve used your free prospects") : ar ? "اقتربت من نهاية العملاء المحتملين المجانيين" : "You’re close to the end of your free prospects",
       body: [
         full
@@ -429,7 +429,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "الخطة المجانية تمنحك العملاء المحتملين مرة واحدة عند التسجيل، ولا تتجدد شهريًا." : "The Free plan gives you prospects once at signup; they don't renew monthly.",
+      footnote: ar ? "برو والنمو يشملان رصيداً جديداً من العملاء المحتملين كل شهر." : "Pro and Growth include a new prospect allowance every month.",
     }) : layout({
       locale,
       siteUrl: u.siteUrl,

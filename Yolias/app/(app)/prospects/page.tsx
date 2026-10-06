@@ -10,7 +10,7 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
 import { listCampaigns } from "@/services/campaigns";
-import { filterQuery, listEntities, maskEmail, maskPhone, PAGE_SIZE, parseFilters, prospectTabs, tabCounts } from "@/services/prospects";
+import { filterQuery, listEntities, maskEmail, maskPhone, PAGE_SIZE, parseFilters, visibleTabs, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.prospects} — Yolias` };
@@ -101,7 +101,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       </header>
 
       <nav className="entity-tabs" aria-label={pr.title}>
-        {prospectTabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <Link key={tab} href={`/prospects${tab === "people" ? "" : `?tab=${tab}`}`} className={tab === filters.tab ? "active" : ""} aria-current={tab === filters.tab ? "page" : undefined}>
             {pr.tabs[tab]} <span className="entity-tab-count">{n(counts[tab])}</span>
           </Link>

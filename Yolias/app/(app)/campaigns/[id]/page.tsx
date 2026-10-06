@@ -117,7 +117,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
 
         {view === "results" && (
           <div className="kpi-row">
-            {([["people", results.people, ""], ["companies", results.companies, "tab=companies&"], ["local", results.local, "tab=local&"], ["jobs", results.jobs, "tab=jobs&"]] as const).map(([k, count, tab]) => (
+            {([["people", results.people, ""], ["companies", results.companies, "tab=companies&"], ["local", results.local, "tab=local&"]] as const).map(([k, count, tab]) => (
               <Link key={k} className="kpi-card kpi-link" href={`/prospects?${tab}campaign=${c.id}`}>
                 <span className="kpi-label">{t.prospects.tabs[k]}</span>
                 <strong className="kpi-value">{n(count)}</strong>

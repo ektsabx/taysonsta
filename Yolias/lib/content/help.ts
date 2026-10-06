@@ -39,7 +39,7 @@ export const articles: HelpArticle[] = [
         summary: "Tabs, filters, selecting across pages, revealing contacts, exporting and finding decision makers.",
         blocks: [
           { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Example data.", marks: [
-            { x: 30, y: 14, label: "Tabs: People, Companies, Local Businesses, Jobs." },
+            { x: 30, y: 14, label: "Tabs: People, Companies, Local Businesses." },
             { x: 25, y: 38, label: "Tick rows, or tick the header and then “Select all matching” to act on every page." },
             { x: 93, y: 6, label: "Export CSV." },
           ] } },
@@ -56,7 +56,7 @@ export const articles: HelpArticle[] = [
         summary: "التبويبات والتصفية والتحديد عبر الصفحات وإظهار بيانات التواصل والتصدير وإيجاد صناع القرار.",
         blocks: [
           { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "بيانات مثال.", marks: [
-            { x: 30, y: 14, label: "التبويبات: الأشخاص والشركات والأنشطة المحلية والوظائف." },
+            { x: 30, y: 14, label: "التبويبات: الأشخاص والشركات والأنشطة المحلية." },
             { x: 25, y: 38, label: "حدّد الصفوف، أو حدّد العنوان ثم «تحديد كل المطابقة» للعمل على كل الصفحات." },
             { x: 93, y: 6, label: "تصدير CSV." },
           ] } },
@@ -116,7 +116,7 @@ export const articles: HelpArticle[] = [
         title: "Choosing a plan and billing period",
         summary: "All plans have the same features; they differ in how much discovery you can run each month.",
         blocks: [
-          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get: Free gives them once at signup, Pro and Growth every month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get: Free includes a starting allowance, Pro and Growth a new one every month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
           { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is twelve times the monthly price, paid upfront, and your usage limits still reset every month." },
           { h2: "Not sure yet?" },
@@ -127,7 +127,7 @@ export const articles: HelpArticle[] = [
         title: "اختيار الخطة وفترة الفوترة",
         summary: "كل الخطط تشمل الميزات نفسها، وتختلف في حجم الاكتشاف الذي يمكنك تشغيله شهريًا.",
         blocks: [
-          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين: المجانية مرة واحدة عند التسجيل، وبرو والنمو كل شهر — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين: المجانية تشمل رصيداً للبداية، وبرو والنمو رصيداً جديداً كل شهر — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
           { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري وتُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
           { h2: "لم تقرر بعد؟" },

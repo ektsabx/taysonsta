@@ -8,6 +8,8 @@ import type { CompanyRow, JobRow, ProspectRow } from "@/types/database";
 
 export const prospectTabs = ["people", "companies", "local", "jobs"] as const;
 export type ProspectTab = (typeof prospectTabs)[number];
+/** Tabs shown to customers: Yolias doesn't search for jobs (owner decision D-149); hiring stays an internal signal. */
+export const visibleTabs = ["people", "companies", "local"] as const;
 export const sorts = ["match", "newest", "name"] as const;
 export type ProspectSort = (typeof sorts)[number];
 export const PAGE_SIZE = 50;
@@ -39,7 +41,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string).trim() : "");
   const min = Number(one("min"));
   const page = Number(one("page"));
-  const tab = (prospectTabs as readonly string[]).includes(one("tab")) ? (one("tab") as ProspectTab) : "people";
+  const tab = (visibleTabs as readonly string[]).includes(one("tab")) ? (one("tab") as ProspectTab) : "people";
   const sort = (sorts as readonly string[]).includes(one("sort")) ? (one("sort") as ProspectSort) : "match";
   return {
     tab,

@@ -40,7 +40,7 @@ interface Props {
 
 // Decision makers as cards (D-147, owner's reference): photo, title, place,
 // LinkedIn, whether an email / phone is available, reveal, select → start
-// outreach to the selection from a side panel.
+// outreach to the selection from a popup.
 export function PeopleGrid({ people, mailboxes, showCompany = false }: Props) {
   const { t } = useI18n();
   const r = t.results;

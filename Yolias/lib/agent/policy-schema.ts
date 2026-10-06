@@ -110,7 +110,8 @@ export type ToolPolicy = z.infer<typeof ToolPolicySchema>;
 
 const ALL: ToolPolicy["roles"] = ["owner", "admin", "member"];
 const toolDefaults = Object.fromEntries(AGENT_TOOLS.map((t) => [t.name, {
-  enabled: true,
+  // Yolias doesn't search for jobs (D-149): hiring is only a signal on companies.
+  enabled: t.name !== "listJobs",
   // Actions that use prospects or change a campaign wait for the user's OK.
   approval: ["createCampaign", "findDecisionMakers", "enrichProspect"].includes(t.name),
   roles: t.name === "getBilling" ? (["owner", "admin"] as ToolPolicy["roles"]) : ALL,

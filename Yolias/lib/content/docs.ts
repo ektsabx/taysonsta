@@ -42,7 +42,7 @@ export const docs: DocPage[] = [
           ] } },
           { h2: "2. Work your results in Prospects" },
           { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Prospects: one tab per kind of result.", marks: [
-            { x: 30, y: 14, label: "People, Companies, Local Businesses and Jobs, with counts." },
+            { x: 30, y: 14, label: "People, Companies and Local Businesses, with counts." },
             { x: 36, y: 24, label: "Search, filter by campaign, market and match, and sort." },
             { x: 25, y: 38, label: "Select rows — or every matching row across pages — to export, reveal contacts or prepare emails." },
             { x: 67, y: 45, label: "Email, phone and LinkedIn when they were found." },
@@ -80,7 +80,7 @@ export const docs: DocPage[] = [
           ] } },
           { h2: "2. اعمل على نتائجك في العملاء المحتملين" },
           { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "العملاء المحتملون: تبويب لكل نوع من النتائج.", marks: [
-            { x: 30, y: 14, label: "الأشخاص والشركات والأنشطة المحلية والوظائف مع أعدادها." },
+            { x: 30, y: 14, label: "الأشخاص والشركات والأنشطة المحلية مع أعدادها." },
             { x: 36, y: 24, label: "ابحث وصفِّ حسب الحملة والسوق والتطابق ورتّب." },
             { x: 25, y: 38, label: "حدّد الصفوف — أو كل الصفوف المطابقة في كل الصفحات — للتصدير أو إظهار بيانات التواصل أو تجهيز الرسائل." },
             { x: 67, y: 45, label: "البريد والهاتف ولينكدإن عند العثور عليها." },
@@ -433,10 +433,10 @@ export const docs: DocPage[] = [
         summary: "Monthly limits per plan and how they are counted.",
         blocks: [
           { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
-            ["Free", "$0", "50 (once at signup)"], ["Pro", "$20", "1,000"], ["Growth", "$100", "3,000"],
+            ["Free", "$0", "50 (to get started)"], ["Pro", "$20", "1,000"], ["Growth", "$100", "3,000"],
           ] } },
           { ul: [
-            "Plans count prospects only. Free gives its prospects once, at signup; Pro and Growth renew every month.",
+            "Plans count prospects only. Free includes prospects to get started; Pro and Growth include a new allowance every month.",
             "Companies, searches and AI work are not counted.",
             "When the month’s prospects are used up, discovery pauses until the reset or an upgrade.",
             "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
@@ -450,10 +450,10 @@ export const docs: DocPage[] = [
         summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
         blocks: [
           { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
-            ["المجانية", "$0", "50 (مرة واحدة عند التسجيل)"], ["برو", "$20", "1,000"], ["النمو", "$100", "3,000"],
+            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$20", "1,000"], ["النمو", "$100", "3,000"],
           ] } },
           { ul: [
-            "تُحسب الخطط بالعملاء المحتملين فقط. الخطة المجانية تمنح العملاء المحتملين مرة واحدة عند التسجيل، وبرو والنمو تتجدد كل شهر.",
+            "تُحسب الخطط بالعملاء المحتملين فقط. الخطة المجانية تشمل عملاء محتملين للبداية، وبرو والنمو تشملان رصيداً جديداً كل شهر.",
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
             "عند استخدام كل العملاء المحتملين للشهر، يتوقف الاكتشاف حتى التجديد أو الترقية.",
             "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",

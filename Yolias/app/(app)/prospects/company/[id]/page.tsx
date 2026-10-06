@@ -8,7 +8,7 @@ import { CompanyLogo } from "@/components/app/Media";
 import { PeopleGrid } from "@/components/app/PeopleGrid";
 import { CollectButton, SaveCompanyButton } from "@/components/app/ResultActions";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
-import { formatDate, formatNumber, location } from "@/lib/format";
+import { formatNumber, location } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { gridPerson, sizeBand } from "@/lib/results";
@@ -34,7 +34,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await getCompany(id);
   if (!data || data.company.workspace_id !== session.workspace.id) notFound();
-  const { company: c, people, jobs } = data;
+  const { company: c, people } = data;
   const [t, locale, boxes] = await Promise.all([getDictionary(), getLocale(), myMailboxes(session.userId)]);
   const r = t.results;
   const d = t.prospects.detail;
@@ -124,16 +124,6 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
           )}
         </section>
 
-        {jobs.length > 0 && (
-          <section className="result-card">
-            <h2 className="result-card-title">{d.jobs}</h2>
-            <ul className="detail-list">
-              {jobs.map((j) => (
-                <li key={j.id}>{j.url ? <a className="entity-link" href={j.url} target="_blank" rel="noreferrer">{j.title}</a> : j.title} <span className="cell-sub">{[j.department, location(j.city, j.country, locale), j.posted_at ? formatDate(j.posted_at, locale, session.profile.timezone) : null].filter(Boolean).join(" · ")}</span></li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         <IntelligencePanel t={t} locale={locale} timeZone={session.profile.timezone} row={c} />
       </div>
