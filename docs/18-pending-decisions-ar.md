@@ -9,7 +9,7 @@
 |---|---|---|
 | 1 | **Supabase (اتقفل: مشروع Taysonsta الحالي، والأدمن محلي، D-148)** | قرار. فيه 5 جداول بنفس الاسم في التطبيقين (`conversations`, `invoices`, `notifications`, `payments`, `site_settings`)، والتطبيقين بيستخدموا `auth.users` نفسها، فأي موظف في الأدمن هيتعمله مساحة عمل في يولياس. **اقتراحي:** مشروعين في نفس الحساب. ولو مشروع واحد: لازم ننقل يولياس لـ schema لوحده، ودي إعادة هيكلة كبيرة. |
 | 2 | **روابط Gmail في Google Cloud** | تضيف `http://localhost:3200/api/integrations/gmail/callback` و `https://www.yolias.com/api/integrations/gmail/callback` في Authorized redirect URIs، وإيميلك في Test users. قبل الإطلاق: نشر التطبيق في Google ومراجعة صلاحية `gmail.send`. **من غير بريد متصل، زرار «بدء التواصل» بيفضل مقفول.** |
-| 3 | **النشر على الإنتاج (اتمنع من عندي)** | الـ sandbox رفض إني أنفذ أي حاجة على الإنتاج بنفسي (الداتابيز وCloudflare). الخطوات جاهزة في `docs/17-production.md` ← «النشر على مشروع Taysonsta». شغّلها إنت، أو اسمح لي بصلاحية الإنتاج. |
+| 3 | **النشر (اتعمل 2026-10-06)** | داتابيز يولياس على مشروع Taysonsta، والموقع على www.yolias.com، والأدمن المحلي مربوط بيه. |
 | 4 | **ربط Resend** (إيميلات النظام) | المفتاح في مركز التكاملات، وتوثيق الدومين (SPF و DKIM). |
 | 5 | **إعدادات Supabase للإنتاج** | Authentication ← URL Configuration: ضيف `https://www.yolias.com/auth/confirm` في Redirect URLs. وفي Settings ← API ← Exposed schemas ضيف `intel`. وفي Authentication ← SMTP: لازم SMTP خاص، لأن Supabase من غيره بيبعت إيميلات الدخول لأعضاء المشروع بس مش للعملاء (الإيميلات هتفضل طالعة من Supabase). |
 | 6 | **PostHog** | نستخدمه؟ ولو آه: المفتاح والمنطقة. |
