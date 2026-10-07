@@ -433,7 +433,7 @@ export const docs: DocPage[] = [
         summary: "Monthly limits per plan and how they are counted.",
         blocks: [
           { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
-            ["Free", "$0", "50 (to get started)"], ["Pro", "$50", "1,000"], ["Growth", "$100", "3,000"],
+            ["Free", "$0", "50 (to get started)"], ["Pro", "$50", "1,000"], ["Growth", "$100", "2,000"],
           ] } },
           { ul: [
             "Plans count prospects only. Free includes prospects to get started; Pro and Growth include a new allowance every month.",
@@ -450,7 +450,7 @@ export const docs: DocPage[] = [
         summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
         blocks: [
           { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
-            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$50", "1,000"], ["النمو", "$100", "3,000"],
+            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$50", "1,000"], ["النمو", "$100", "2,000"],
           ] } },
           { ul: [
             "تُحسب الخطط بالعملاء المحتملين فقط. الخطة المجانية تشمل عملاء محتملين للبداية، وبرو والنمو تشملان رصيداً جديداً كل شهر.",

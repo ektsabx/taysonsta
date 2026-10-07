@@ -31,7 +31,7 @@ adapters.push({
       return {
         data: [offset, offset + 1].map((i) => ({
           name: `Paged Co ${i} ${tag}`, domain: `paged${i}-${tag}.yolias-test.example`, industry: "SaaS", description: null, city: "Riyadh", country: "SA",
-          employeeCount: 50, fundingStage: null, fundingTotalUsd: null, hiringRoles: null, signals: [], sourceRef: `p${i}-${tag}`,
+          employeeCount: 50, fundingStage: null, fundingTotalUsd: null, hiringRoles: null, signals: [], sourceRef: `p${i}-${tag}`, phone: "+966 11 222 2222",
         })),
         units: 1,
       };

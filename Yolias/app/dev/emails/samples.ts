@@ -35,7 +35,7 @@ function sample(name: (typeof productNames)[number], l: EmailLocale): Omit<Email
     subscription_renewed: { ...plan, invoiceId: "sample", invoiceNumber: "YL-001002" },
     subscription_canceled: { planName: growth, endsAt: next },
     subscription_ending: { planName: growth, endsAt: next },
-    plan_upgraded: { ...plan, planName: growth, fromPlanName: pro, amount: 50, prospectsPerMonth: 3000 },
+    plan_upgraded: { ...plan, planName: growth, fromPlanName: pro, amount: 50, prospectsPerMonth: 2000 },
     plan_downgraded: { ...plan, fromPlanName: growth, prospectsPerMonth: 1000 },
     subscription_paused: { planName: pro, reason: ar ? "تعذّر تحصيل الدفعة" : "the payment couldn’t be collected" },
     access_restored: { planName: pro },

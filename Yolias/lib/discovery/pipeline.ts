@@ -263,8 +263,18 @@ function intelligence(kind: EntityKind, row: Record<string, unknown>, source: st
   };
 }
 
-async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, candidate: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
-  const c = await withSocials(candidate);
+/**
+ * A result counts as one prospect only when it is a business we can identify
+ * (website, domain or map place) and reach (email, phone or WhatsApp); social
+ * profiles alone are not enough (owner decision 2026-10-07, D-164).
+ */
+function qualifies(c: CompanyCandidate): boolean {
+  const identified = Boolean(c.website || c.domain || c.placeRef);
+  const reachable = Boolean(c.email || c.phone || whatsappNumber(c.whatsapp));
+  return identified && reachable;
+}
+
+async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, c: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
   const fields = companyFields(c);
   return db.from("companies").insert({
     workspace_id: ctx.workspaceId, campaign_id: campaignId, kind, name: c.name, domain: c.domain,
@@ -292,33 +302,44 @@ async function discoverPeople(db: Db, campaignId: string, icp: IcpCriteria, ctx:
   const candidates = companies.length;
   await setStage("matching_companies");
   let companiesFound = 0;
-  let prospectsFound = 0;
+  let peopleFound = 0;
 
+  // One prospect = one qualifying company (D-164): the company is charged when
+  // it is delivered and its decision makers come with it, free.
+  const free: DiscoveryContext = { ...ctx, free: true };
   for (const company of companies) {
-    if (await interrupted(db, campaignId)) break;
-    const enriched = await enrichCompany(company, ctx);
-    const { data: row, error } = await insertCompany(db, campaignId, ctx, enriched, "company", scoreMatch(icp, enriched, null));
+    if (companiesFound >= remaining || (await interrupted(db, campaignId))) break;
+    const enriched = await withSocials(await enrichCompany(company, ctx));
+    if (!qualifies(enriched)) continue;
+    if (await isSuppressed({ domain: enriched.domain ?? enriched.website, email: enriched.email })) continue;
+    if (await companyAlreadyDelivered(db, ctx.workspaceId, "company", enriched)) continue;
+    const { data: row, error } = await insertCompany(db, campaignId, ctx, enriched, "company", scoreMatch(icp, enriched, null), true);
     if (error || !row) continue;
+    if (!(await consumeOne(db, ctx))) {
+      await db.from("companies").delete().eq("id", row.id);
+      break;
+    }
     companiesFound++;
     await findJobs(db, campaignId, icp, enriched, row.id, ctx);
 
     await setStage("discovering_people");
     const people = await findPeople(enriched, icp, ctx);
+    let found = 0;
     for (const person of people) {
-      if (prospectsFound >= remaining) break;
-      const r = await deliverPerson(db, campaignId, row.id, enriched, intelIds.get(enriched) ?? intelIds.get(company) ?? null, person, icp, ctx, setStage);
-      if (r === "stop") break;
-      if (r === "delivered") prospectsFound++;
+      if (found >= PEOPLE_PER_COMPANY) break;
+      const r = await deliverPerson(db, campaignId, row.id, enriched, intelIds.get(enriched) ?? intelIds.get(company) ?? null, person, icp, free, setStage);
+      if (r === "delivered") found++;
     }
-    await db.from("campaigns").update({ companies_found: totals.companies + companiesFound, prospects_found: totals.prospects + prospectsFound }).eq("id", campaignId);
-    if (prospectsFound >= remaining) break;
+    peopleFound += found;
+    if (found) await db.from("companies").update({ people_status: "done", people_found: found }).eq("id", row.id);
+    await db.from("campaigns").update({ companies_found: totals.companies + companiesFound, prospects_found: totals.prospects + companiesFound }).eq("id", campaignId);
   }
 
-  await ctx.log("deliver", `Discovery complete: ${companiesFound} companies, ${prospectsFound} decision makers.`, "success", {
+  await ctx.log("deliver", `Discovery complete: ${companiesFound} companies, ${peopleFound} decision makers.`, "success", {
     key: "complete",
-    vars: { companies: companiesFound, prospects: prospectsFound },
+    vars: { companies: companiesFound, prospects: peopleFound },
   });
-  return { companies: companiesFound, prospects: prospectsFound, candidates };
+  return { companies: companiesFound, prospects: companiesFound, candidates };
 }
 
 /**
@@ -431,8 +452,9 @@ async function discoverCompanies(db: Db, campaignId: string, icp: IcpCriteria, s
 
   for (const candidate of candidates) {
     if (delivered >= remaining || (await interrupted(db, campaignId))) break;
-    const c = local ? candidate : await enrichCompany(candidate, ctx);
-    if (await isSuppressed({ domain: c.domain ?? c.website })) continue;
+    const c = await withSocials(local ? candidate : await enrichCompany(candidate, ctx));
+    if (!qualifies(c)) continue;
+    if (await isSuppressed({ domain: c.domain ?? c.website, email: c.email })) continue;
     if (await companyAlreadyDelivered(db, ctx.workspaceId, kind, c)) continue;
     await setStage("scoring");
     const match = scoreMatch(icp, { ...c, kind }, null);

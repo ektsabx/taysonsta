@@ -591,7 +591,7 @@ export const en = {
     usage: {
       title: "Plan usage", planLine: "{plan} · prospects delivered this month", planLineFree: "{plan} · prospects delivered", upgrade: "Upgrade",
       prospects: "Prospects", value: "{used} / {total}",
-      prospectsDesc: "Each result Yolias delivers (a person, a company or a place) uses one prospect. A company’s decision makers come with it.",
+      prospectsDesc: "Each company or local business Yolias delivers uses one prospect, however much data comes with it. Its decision makers come with it, free.",
       resets: "Resets {date}",
       oneTime: "Included with the Free plan",
       lastUpdated: "Last updated: {when}", justNow: "less than a minute ago", refresh: "Refresh usage",

@@ -25,15 +25,15 @@ const seen: { lookalikeSeeds?: string[] } = {};
 
 const company = (i: number, extra: Partial<CompanyCandidate> = {}): CompanyCandidate => ({
   name: `Test Co ${i} ${tag}`, domain: `co${i}-${tag}.yolias-test.example`, industry: "Fintech", description: "Payments", city: "Riyadh", country: "SA",
-  employeeCount: 80, fundingStage: null, fundingTotalUsd: null, hiringRoles: null, signals: [], sourceRef: `c${i}-${tag}`, confidence: 0.9, ...extra,
+  employeeCount: 80, fundingStage: null, fundingTotalUsd: null, hiringRoles: null, signals: [], sourceRef: `c${i}-${tag}`, confidence: 0.9, phone: "+966 11 111 1111", ...extra,
 });
 const stub: ProviderAdapter = {
   id: ID, name: "Test stub (test process only)", needsCredential: false,
   handlers: {
-    "company.search": async ({ limit }) => ({ data: [1, 2, 3, 4].slice(0, limit).map((i) => company(i)), units: 1 }),
+    "company.search": async ({ icp }) => ({ data: (icp.keywords.includes("payments") ? [4, 1, 2, 3] : [1, 2, 3, 4]).map((i) => company(i)), units: 1 }),
     "company.lookalikes": async ({ seeds }) => {
       seen.lookalikeSeeds = seeds;
-      return { data: [company(10), company(11, { domain: null, employeeCount: null })], units: 1 };
+      return { data: [company(10), company(11, { domain: null, employeeCount: null, website: `https://co11-${tag}.yolias-test.example` })], units: 1 };
     },
     "place.search": async () => ({
       data: [
@@ -85,7 +85,7 @@ try {
   }
   const consumed = async () => (await db.rpc("usage_summary", { p_ws: wsId! })).data![0].consumed;
 
-  // People: decision makers inside companies; companies stored as context (not billed).
+  // People: one prospect per qualifying company (D-164); its decision makers come free.
   const people = await run("people", { hiring: true });
   assert.equal(people.status, "completed");
   const { data: ps } = await db.from("prospects").select("*").eq("campaign_id", people.id);
@@ -98,15 +98,16 @@ try {
   assert.ok(p.last_updated);
   const { data: jobs } = await db.from("jobs").select("*").eq("campaign_id", people.id);
   assert.equal(jobs!.length, 3, "one job per company (hiring search)");
-  assert.equal(await consumed(), 3);
+  assert.equal(await consumed(), 3, "three companies charged, their people free");
 
-  // Companies: companies are the results and the billable unit.
-  const comps = await run("companies");
+  // Companies: companies are the results and the billable unit; the three
+  // already delivered by the people search are not charged again.
+  const comps = await run("companies", { keywords: ["payments"] });
   const { data: cs } = await db.from("companies").select("*").eq("campaign_id", comps.id);
-  assert.equal(comps.status, "completed");
-  assert.equal(cs!.length, 3);
+  assert.equal(comps.status, "partial", "only one new company left for a goal of three");
+  assert.equal(cs!.length, 1);
   assert.ok(cs!.every((c) => c.kind === "company" && c.match_score != null && Number(c.confidence) === 0.9));
-  assert.equal(await consumed(), 6);
+  assert.equal(await consumed(), 4);
   assert.equal((await db.from("jobs").select("id", { count: "exact", head: true }).eq("campaign_id", comps.id)).count, 0, "no job search unless hiring is asked");
 
   // Decision-maker matching on a delivered company: people saved straight to Prospects, idempotent,
@@ -130,18 +131,19 @@ try {
   assert.equal(look.status, "partial");
   assert.ok(ls![1].missing_fields.includes("domain") && ls![1].missing_fields.includes("employee_count"));
 
-  // Local businesses: places with their own fields.
+  // Local businesses: places with their own fields; a place with no way to reach it is neither delivered nor charged.
+  const usedBefore = await consumed();
   const local = await run("local_businesses");
   const { data: lb } = await db.from("companies").select("*").eq("campaign_id", local.id).order("name");
-  assert.equal(lb!.length, 2);
+  assert.equal(lb!.length, 1);
+  assert.equal(await consumed(), usedBefore + 1);
   assert.ok(lb!.every((c) => c.kind === "local_business"));
   assert.equal(lb![0].category, "Dental clinic"); assert.equal(Number(lb![0].rating), 4.6); assert.equal(lb![0].reviews_count, 120);
-  assert.ok(lb![1].missing_fields.includes("phone") && lb![1].missing_fields.includes("address"));
   assert.ok((lb![0].match_reasons as string[]).includes("City"));
 
   // Paying twice for the same company is avoided across campaigns.
   const again = await run("companies");
-  assert.equal((await db.from("companies").select("id", { count: "exact", head: true }).eq("campaign_id", again.id)).count, 1, "only the company not delivered before");
+  assert.equal((await db.from("companies").select("id", { count: "exact", head: true }).eq("campaign_id", again.id)).count, 0, "every company was delivered before");
 
   console.log("✓ search types: people, companies, lookalikes, local businesses; intelligence fields; usage; jobs; no double delivery");
 } finally {

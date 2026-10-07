@@ -46,7 +46,7 @@ export const articles: HelpArticle[] = [
           { h2: "Reveal contact details" },
           { p: "Emails and phones show masked (for example s•••@company.com) until you click **Reveal** — on one person or for a selection. Revealing doesn't use extra prospects: the person was counted when Yolias delivered them." },
           { h2: "Find decision makers at a company" },
-          { p: "On the Companies or Local Businesses tab, select companies and choose **Find decision makers**. Each person Yolias finds uses one prospect and is saved straight to People." },
+          { p: "On the Companies or Local Businesses tab, select companies and choose **Find decision makers**. They come with the company at no extra prospects and are saved straight to People." },
           { h2: "Export" },
           { p: "**Export CSV** downloads the tab as filtered; **Export selected** downloads only the rows you picked. Exported contacts count as revealed." },
         ],
