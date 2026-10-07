@@ -709,6 +709,7 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
 table.data-table tr.row-link { cursor: pointer; }
 table.data-table tr.row-link:hover td { background: var(--soft); }
 .cell-sub { font-size: .72rem; color: var(--muted); }
+td > .cell-sub { display: block; margin-top: 2px; }
 .empty-cell { text-align: center; padding: 36px 18px !important; color: var(--muted) !important; }
 
 .status-active { color: var(--green); font-weight: 700; }
@@ -1942,4 +1943,10 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 @media (max-width: 760px) {
   .analytics-grid { grid-template-columns: 1fr; }
   .metric-tiles.six, .funnel, .dist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Phones: filters stack full width; wide tables scroll sideways instead of squeezing every column. */
+@media (max-width: 760px) {
+  .prospect-toolbar .filter-field, .prospect-toolbar .form-select, .prospect-toolbar .form-input { width: 100%; min-width: 0; flex: 1 1 100%; }
+  .data-table-scroll > table.data-table { min-width: 720px; }
 }

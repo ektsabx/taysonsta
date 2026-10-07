@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -35,6 +35,13 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "team", icon: Users },
 ];
 
+const NARROW = "(max-width: 900px)";
+function subscribeNarrow(onChange: () => void) {
+  const m = window.matchMedia(NARROW);
+  m.addEventListener("change", onChange);
+  return () => m.removeEventListener("change", onChange);
+}
+
 export function AppShell({ data, initialClosed, children }: { data: ShellData; initialClosed: boolean; children: React.ReactNode }) {
   const { t } = useI18n();
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
@@ -48,8 +55,18 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
+  // On phones the open sidebar covers the page: it starts closed and closes
+  // after every navigation; the saved desktop preference is left as is.
+  const narrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false);
+  const [mobileOpenOn, setMobileOpenOn] = useState<string | null>(null);
+  const sidebarClosed = narrow ? mobileOpenOn !== pathname : closed;
+
   // Remembered in a cookie so the server renders the same state (no flash).
   const toggleSidebar = (next: boolean) => {
+    if (narrow) {
+      setMobileOpenOn(next ? null : pathname);
+      return;
+    }
     setClosed(next);
     document.cookie = `${SIDEBAR_COOKIE}=${next ? "closed" : "open"}; path=/; max-age=31536000; samesite=lax`;
   };
@@ -91,7 +108,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
   return (
     <ToastProvider closeLabel={t.common.close}>
-    <div className={`app-shell${closed ? " sidebar-closed" : ""}`}>
+    <div className={`app-shell${sidebarClosed ? " sidebar-closed" : ""}`}>
       <aside className="sidebar">
         <button className="sidebar-toggle sidebar-open-button" type="button" aria-label={t.nav.openSidebar} onClick={() => toggleSidebar(false)}>
           <PanelLeftOpen className="flip-rtl" />
