@@ -45,6 +45,7 @@ export function PricingView({ signedIn, plans, currency }: Props) {
       usage={fmt(plan === "free" ? dict.plans.prospectsOnce : dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
       href={href(plan)}
       cta={plan === "free" ? t.startFree : t.tryYolias}
+      foot={plan === "free" ? t.noCardSetup : t.setupMinutes}
       recommended={recommended}
     />
   );
@@ -146,8 +147,8 @@ export function PricingView({ signedIn, plans, currency }: Props) {
   );
 }
 
-function PlanCard({ t, name, price, note, usage, href, cta, recommended }: {
-  t: PricingCopy; name: string; price: string; note: string; usage: string; href: string; cta: string; recommended?: string;
+function PlanCard({ t, name, price, note, usage, href, cta, foot, recommended }: {
+  t: PricingCopy; name: string; price: string; note: string; usage: string; href: string; cta: string; foot: string; recommended?: string;
 }) {
   return (
     <article className={`pricing-card${recommended ? " recommended" : ""}`}>
@@ -162,6 +163,7 @@ function PlanCard({ t, name, price, note, usage, href, cta, recommended }: {
         <li><Check width={17} height={17} /><span>{t.unlimitedUsers}</span></li>
       </ul>
       <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{cta}</Link>
+      <p className="plan-foot">{foot}</p>
     </article>
   );
 }

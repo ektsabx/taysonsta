@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import type { StrategyAttachment } from "@/lib/ai/strategy";
 import { AttachmentError, readAttachments } from "@/lib/attachments";
-import { titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
+import { confirmSetup, titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
+import { parseIcp } from "@/lib/discovery/icp";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Json } from "@/types/database";
@@ -122,4 +123,15 @@ export async function rateReply(messageId: number, rating: 1 | -1 | null): Promi
     ? await db.from("agent_feedback").delete().eq("message_id", messageId).eq("user_id", session.userId)
     : await db.from("agent_feedback").upsert({ message_id: messageId, user_id: session.userId, rating }, { onConflict: "message_id,user_id" });
   return { ok: !error };
+}
+
+/** The member confirmed the Campaign Setup (D-167): the search starts on these criteria. */
+export async function confirmCampaignSetup(strategyId: string, criteria: unknown): Promise<{ ok: boolean }> {
+  const session = await requireSession();
+  if (!/^[0-9a-f-]{36}$/i.test(strategyId)) return { ok: false };
+  const icp = parseIcp(criteria);
+  if (!icp) return { ok: false };
+  const campaignId = await confirmSetup(session, strategyId, icp);
+  revalidatePath("/", "layout");
+  return { ok: Boolean(campaignId) };
 }

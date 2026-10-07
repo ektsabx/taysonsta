@@ -12,6 +12,7 @@ import { ArrowRight } from "lucide-react";
 import { CompanyLogo, PersonAvatar } from "./Media";
 import { BuyMoreProspectsButton, RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
+import { CampaignSetup } from "./CampaignSetup";
 import { ContactCell } from "./ProspectBits";
 import { maskEmail, maskPhone } from "@/services/prospects";
 
@@ -56,6 +57,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
   }
 
   const icp = parseIcp(campaign?.criteria ?? strategy.icp);
+  if (strategy.status === "setup" && icp && !campaign) return <CampaignSetup strategyId={strategy.id} icp={icp} />;
   if (!icp || !campaign) {
     return (
       <div className="agent-artifact-card">

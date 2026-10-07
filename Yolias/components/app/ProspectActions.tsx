@@ -148,7 +148,6 @@ export function MessageComposer({ recipients: all, channel, onClose }: { recipie
   const [pending, start] = useTransition();
   const current = people[Math.min(index, Math.max(people.length - 1, 0))];
   const draft = current ? drafts[current.id] : undefined;
-  const tried = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -180,12 +179,7 @@ export function MessageComposer({ recipients: all, channel, onClose }: { recipie
     }
   }, [channel]);
 
-  // Yolias prepares the message as soon as a person is shown (once each), with the last-used settings.
-  useEffect(() => {
-    if (!current || !settings || drafts[current.id] || tried.current.has(current.id)) return;
-    tried.current.add(current.id);
-    void write(current, instruction, settings);
-  }, [current, drafts, write, settings, instruction]);
+  // Nothing is written until the member presses "Write message" (owner decision 2026-10-07, D-167).
 
   const title = o.title[channel];
   if (!current) {

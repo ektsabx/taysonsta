@@ -19,7 +19,7 @@ export type Currency = "USD";
 /** Currency a provider actually charges in (prices are always USD). */
 export type ChargeCurrency = "USD" | "EGP";
 export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
-export type StrategyStatus = "understanding" | "ready" | "failed";
+export type StrategyStatus = "understanding" | "setup" | "ready" | "failed";
 export type CampaignStatus =
   | "created" | "queued" | "awaiting_source" | "scheduled"
   | "discovering_companies" | "matching_companies" | "discovering_people" | "enriching" | "verifying"

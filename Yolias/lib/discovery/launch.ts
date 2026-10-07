@@ -3,7 +3,7 @@ import { capture } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
-import { criteriaLine } from "@/lib/discovery/icp";
+import { criteriaLine, type IcpCriteria } from "@/lib/discovery/icp";
 import { logEvent } from "@/lib/discovery/pipeline";
 import { enqueue } from "@/lib/jobs/queue";
 import { sourceLabels } from "@/lib/intel/registry";
@@ -27,15 +27,36 @@ export async function understandAndLaunch(session: Session, strategyId: string, 
     return;
   }
   const { understood } = r;
-  const icp = understood.icp;
+  // Campaign Setup (D-167): the request becomes structured criteria that the
+  // member reviews and completes; nothing runs until they start it.
+  const icp = understood.icp.search_type === "people" ? { ...understood.icp, search_type: "companies" as const, target_unit: "companies" as const } : understood.icp;
   await supabase.from("strategies").update({
-    status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
+    status: "setup", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name),
     icp_fingerprint: understood.fingerprint, icp_model: understood.model, icp_prompt_version: understood.promptVersion,
     interpretation_cost_usd: understood.costUsd, icp_cached: understood.cached,
   }).eq("id", strategyId);
-  if (!(await startCampaign(session, supabase, strategyId, icp))) {
-    await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
-  }
+}
+
+/** What a Campaign Setup still needs before the search can start. */
+export function setupMissing(icp: IcpCriteria): ("target" | "where" | "count" | "seeds")[] {
+  const out: ("target" | "where" | "count" | "seeds")[] = [];
+  if (icp.search_type === "company_lookalikes" ? !icp.lookalike_seeds.length : !icp.industries.length && !icp.keywords.length) out.push(icp.search_type === "company_lookalikes" ? "seeds" : "target");
+  if (!icp.countries.length && !icp.cities.length) out.push("where");
+  if (!(icp.target_count > 0)) out.push("count");
+  return out;
+}
+
+/** The member confirmed the Campaign Setup: save the criteria as edited and start the campaign. */
+export async function confirmSetup(session: Session, strategyId: string, icp: IcpCriteria): Promise<string | null> {
+  const supabase = await createClient();
+  const { data: strategy } = await supabase.from("strategies").select("id, status").eq("id", strategyId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!strategy || strategy.status !== "setup" || setupMissing(icp).length) return null;
+  const { data: claimed } = await supabase.from("strategies").update({ status: "ready", icp: icp as unknown as Json, title: titleFrom(icp.campaign_name) })
+    .eq("id", strategyId).eq("status", "setup").select("id").maybeSingle();
+  if (!claimed) return null;
+  const id = await startCampaign(session, supabase, strategyId, icp);
+  if (!id) await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
+  return id;
 }
 
 /**

@@ -1990,3 +1990,21 @@ html[lang="ar"] .form-select, html[lang="ar"] .form-input { font-size: .8rem; pa
 .an-activity dt { font-size: .76rem; color: var(--muted); }
 .an-activity dd { margin: 4px 0 0; font-size: 1.2rem; font-weight: 700; color: var(--ink); }
 @media (max-width: 760px) { .an-activity { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Campaign Setup (D-167) */
+.campaign-setup { display: flex; flex-direction: column; gap: 16px; }
+.setup-head strong { font-size: 1rem; }
+.setup-head .artifact-note { margin-top: 4px; }
+.setup-field { display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.setup-field > span, .setup-field > legend { font-size: .82rem; font-weight: 600; color: var(--ink); padding: 0; margin-bottom: 2px; }
+.setup-field em { font-style: normal; font-weight: 500; font-size: .7rem; color: var(--muted); margin-inline-start: 6px; }
+.setup-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.setup-row.narrow { max-width: 320px; }
+.setup-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.setup-chip { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .8rem; cursor: pointer; line-height: 1.4; }
+.setup-chip:hover { border-color: var(--line-focus); }
+.setup-chip.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.setup-count { width: 120px; }
+.setup-actions { display: flex; justify-content: flex-end; }
+@media (max-width: 760px) { .setup-row { grid-template-columns: 1fr; } .setup-row.narrow { max-width: none; } .setup-actions .btn-primary { width: 100%; justify-content: center; } }
+.plan-foot { margin: 10px 0 0; text-align: center; font-size: .78rem; color: var(--muted); }

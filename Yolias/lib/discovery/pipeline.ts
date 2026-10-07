@@ -268,10 +268,12 @@ function intelligence(kind: EntityKind, row: Record<string, unknown>, source: st
  * (website, domain or map place) and reach (email, phone or WhatsApp); social
  * profiles alone are not enough (owner decision 2026-10-07, D-164).
  */
-function qualifies(c: CompanyCandidate): boolean {
+function qualifies(c: CompanyCandidate, icp: IcpCriteria): boolean {
   const identified = Boolean(c.website || c.domain || c.placeRef);
-  const reachable = Boolean(c.email || c.phone || whatsappNumber(c.whatsapp));
-  return identified && reachable;
+  const has = { email: Boolean(c.email), phone: Boolean(c.phone), whatsapp: Boolean(whatsappNumber(c.whatsapp)), linkedin: Boolean(c.linkedinUrl) };
+  // The contact the member asked for in the Campaign Setup (D-167); otherwise any of email, phone or WhatsApp.
+  const wanted = icp.contact?.length ? icp.contact : (["email", "phone", "whatsapp"] as const);
+  return identified && wanted.some((m) => has[m]);
 }
 
 async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, c: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
@@ -312,7 +314,7 @@ async function discoverPeople(db: Db, campaignId: string, icp: IcpCriteria, ctx:
   for (const company of companies) {
     if (companiesFound >= remaining || (await interrupted(db, campaignId))) break;
     const enriched = await withSocials(await enrichCompany(company, ctx));
-    if (!qualifies(enriched)) continue;
+    if (!qualifies(enriched, icp)) continue;
     if (await isSuppressed({ domain: enriched.domain ?? enriched.website, email: enriched.email })) continue;
     if (await companyAlreadyDelivered(db, ctx.workspaceId, "company", enriched)) continue;
     const { data: row, error } = await insertCompany(db, campaignId, ctx, enriched, "company", scoreMatch(icp, enriched, null), true);
@@ -456,7 +458,7 @@ async function discoverCompanies(db: Db, campaignId: string, icp: IcpCriteria, s
   for (const candidate of candidates) {
     if (delivered >= remaining || (await interrupted(db, campaignId))) break;
     const c = await withSocials(local ? candidate : await enrichCompany(candidate, ctx));
-    if (!qualifies(c)) continue;
+    if (!qualifies(c, icp)) continue;
     if (await isSuppressed({ domain: c.domain ?? c.website, email: c.email })) continue;
     if (await companyAlreadyDelivered(db, ctx.workspaceId, kind, c)) continue;
     await setStage("scoring");

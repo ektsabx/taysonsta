@@ -417,7 +417,7 @@ export const agentTools = [
   }),
   define({
     name: "createCampaign",
-    description: "Start a new search from a natural-language request (Arabic or English), exactly like typing it in the search box. It can find people, companies, local businesses or company lookalikes. Delivered results count against the monthly prospects. Confirm with the user before calling.",
+    description: "Prepare a new search from a natural-language request (Arabic or English), exactly like typing it in the search box: companies (with their decision makers), local businesses or company lookalikes. It opens a Campaign Setup with the understood criteria; the user reviews it and presses Start search there — nothing runs or is charged before that. Delivered results count against the monthly prospects.",
     permission: "campaign.create",
     input: z.object({ request: z.string().trim().min(3).max(4000) }),
     async run(ctx, input) {
@@ -439,7 +439,7 @@ export const agentTools = [
         db.from("strategies").select("status, error").eq("id", strategy.id).single(),
         db.from("campaigns").select("id, status, quota, search_type").eq("strategy_id", strategy.id).order("created_at").limit(1).maybeSingle(),
       ]);
-      return ok({ strategyId: strategy.id, strategyStatus: after?.status, error: after?.error ?? null, campaign });
+      return ok({ strategyId: strategy.id, strategyStatus: after?.status, error: after?.error ?? null, campaign, setupUrl: after?.status === "setup" ? `/search/${strategy.id}` : null });
     },
   }),
 

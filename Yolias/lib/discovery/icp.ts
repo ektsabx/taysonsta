@@ -6,6 +6,9 @@ import type { Locale } from "@/lib/i18n/config";
 // stored on the strategy and as the campaign's criteria, and is the only input
 // data providers receive — so every provider speaks the same language.
 
+export const contactMethods = ["email", "phone", "whatsapp", "linkedin"] as const;
+export type ContactMethod = (typeof contactMethods)[number];
+
 export const seniorities = ["founder", "c_level", "vp", "director", "head", "manager", "other"] as const;
 
 /** What a search returns (final spec §11–14): its own entity and output schema (lib/entities). */
@@ -34,6 +37,7 @@ export const IcpSchema = z.object({
   funding_stages: z.array(z.string()),
   technologies: z.array(z.string()),
   exclusions: z.array(z.string()).describe("Companies, industries or traits to exclude"),
+  contact: z.array(z.enum(contactMethods)).optional().describe("Contact methods the user requires for each company (email, phone, whatsapp, linkedin); empty or missing = any available contact"),
   assumptions: z.array(z.string()).describe("Defaults Yolias assumed because the request did not say"),
 });
 
