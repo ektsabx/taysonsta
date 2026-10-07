@@ -10,9 +10,15 @@ import { appEnv } from "@/lib/monitoring/env";
 export async function POST(req: NextRequest) {
   const secret = process.env.WORKER_SECRET;
   const got = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (!secret || got.length !== secret.length || !timingSafeEqual(Buffer.from(got), Buffer.from(secret))) return NextResponse.json({ error: "not found" }, { status: 404 });
-  const sentryEventId = Sentry.captureException(new Error(`Yolias monitoring test (${appEnv})`));
-  const sentryDelivered = await Sentry.flush(5000);
-  await capture("monitoring-test", "signed_in", { test: true, environment_check: appEnv });
-  return NextResponse.json({ environment: appEnv, sentry: { enabled: Boolean(Sentry.getClient()?.getDsn()), eventId: sentryEventId, delivered: sentryDelivered }, posthog: { enabled: Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY) } });
+  if (!secret || got.length !== secret.length || !timingSafeEqual(Buffer.from(got), Buffer.from(secret))) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  const eventId = Sentry.captureException(new Error(`Yolias monitoring test (${appEnv})`));
+  const delivered = await Sentry.flush(5000);
+  await capture("monitoring-test", "signed_in", { test: true });
+  return NextResponse.json({
+    environment: appEnv,
+    sentry: { enabled: Boolean(Sentry.getClient()?.getDsn()), eventId, delivered },
+    posthog: { enabled: Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY) },
+  });
 }

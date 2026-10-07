@@ -77,6 +77,13 @@ const current = await fetch(api, { headers });
 if (!current.ok) throw new Error(`Reading the auth settings failed: ${current.status} ${await current.text()}`);
 const now = (await current.json()) as Record<string, unknown>;
 
+// Redirect URLs (Authentication → URL Configuration): Yolias sign-in and the
+// published Admin's sign-in / password reset (D-150). Existing ones are kept.
+const redirects = ["https://www.yolias.com/auth/confirm", "https://yol.yolias.com/admin/auth/callback", "https://yol.yolias.com/admin/reset-password"];
+const allow = String(now.uri_allow_list ?? "").split(",").map((u) => u.trim()).filter(Boolean);
+const merged = [...new Set([...allow, ...redirects])];
+if (merged.length !== allow.length) payload.uri_allow_list = merged.join(",");
+
 const changed = Object.keys(payload).filter((k) => k === "smtp_pass" || now[k] !== payload[k]);
 console.log(`Project ${REF} — site URL: ${String(now.site_url)}`);
 console.log(changed.length ? `Will change:\n  ${changed.join("\n  ")}` : "Nothing to change.");
@@ -87,4 +94,4 @@ if (!apply || !changed.length) {
 
 const res = await fetch(api, { method: "PATCH", headers, body: JSON.stringify(Object.fromEntries(changed.map((k) => [k, payload[k]]))) });
 if (!res.ok) throw new Error(`Update failed: ${res.status} ${await res.text()}`);
-console.log("Done. Auth emails on the hosted project now use the Yolias templates" + (env.RESEND_API_KEY ? " and Resend." : "."));
+console.log("Done. Auth emails on the hosted project now use the Yolias templates" + (env.RESEND_API_KEY ? " and Resend" : "") + (payload.uri_allow_list ? "; redirect URLs added." : "."));

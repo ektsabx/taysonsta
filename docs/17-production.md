@@ -100,7 +100,7 @@ npx wrangler secret put WORKER_SECRET
 5) Supabase: Redirect URL `https://www.yolias.com/auth/confirm`، و Exposed schemas: `intel`، و SMTP خاص.
 
 
-## مشروع Supabase واحد ليولياس والأدمن (D-150) — جاهز، مستني موافقتك
+## مشروع Supabase واحد ليولياس والأدمن (D-150) — اتنشر 2026-10-07
 
 الأدمن بقى ينفع ينزل على نفس مشروع Taysonsta `iudasrzqjnsutvanjrvn` من غير مشروع تاني ومن غير Supabase Pro:
 - الأربع جداول اللي كانت بنفس الاسم بقت في الأدمن `bos_conversations` و `bos_invoices` و `bos_notifications` و `bos_payments`. جداول يولياس ما اتغيرتش.
@@ -139,3 +139,8 @@ npx wrangler secret put WORKER_SECRET
 - `RESEND_FROM="Yolias <no-reply@yolias.com>"`
 
 من غير `--apply` بيعرض بس اللي هيتغير.
+
+### اتعمل في النشر (2026-10-07)
+- يولياس: 6 migrations (`20261107000000` لحد `…000500`)، ونشر `yolias`. Sentry شغال بـ fetch transport، ومن غير الـ integrations اللي ما بتشتغلش على Workers.
+- الأدمن: 70 migration، ومفاتيح مركز التكاملات اتنقلت متشفّرة بنفس `BOS_SECRETS_KEY`، و7 secrets على `yolias-admin` (منهم `CRON_SECRET` جديد)، ونشر `npm run cf:deploy:admin`. ملف البناء: `.env.production.local` في الجذر، وفيه المفاتيح العامة بس.
+- الأدمن المحلي لسه شغال على الداتابيز المحلية. الأدمن المنشور هو اللي شغال على بيانات الإنتاج.
