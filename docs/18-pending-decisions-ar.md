@@ -10,9 +10,9 @@
 | 1 | **مشروع Supabase واحد (D-150)** | **اتنشر 2026-10-07:** الـ 70 migration بتوع الأدمن والـ 6 بتوع يولياس اتطبقوا على المشروع من غير ولا خطأ، وبيانات الموقع ويولياس سليمة. الأدمن شغال على `yol.yolias.com` (اتجرّب دخول حقيقي). حسابك `youseeffwaleed@gmail.com` هو Super Admin وبتدخل بباسورده القديم. |
 | 2 | **روابط Gmail في Google Cloud** | **اتلغى (D-155):** يولياس ما بقاش بيبعت من Gmail، فمش محتاجين صلاحية `gmail.send` ولا مراجعة Google. «إيميل» بيفتح Gmail أو Outlook بتوع العميل نفسه. |
 | 3 | **النشر (اتعمل 2026-10-06)** | داتابيز يولياس على مشروع Taysonsta، والموقع على www.yolias.com، والأدمن المحلي مربوط بيه. |
-| 4 | **إيميلات الدخول (D-153)** | Resend اتربط من جوه Supabase. فاضل تحط `SUPABASE_ACCESS_TOKEN` في `Yolias/.env.auth-emails.local` (الملف اتعمل)، وأنا أرفع القوالب. |
-| 5 | **إعدادات Supabase للإنتاج** | Resend اتربط. ولما تحط الـ token، السكريبت هيضيف كمان روابط الأدمن (`/admin/auth/callback` و `/admin/reset-password`) في Redirect URLs. |
-| 6 | **PostHog (D-152)** | محتاج: الـ Project API Key (`phc_…`) من Project settings، والمنطقة (US أو EU). |
+| 4 | **إيميلات الدخول (D-153, D-158)** | **اتعمل 2026-10-07:** كل الإيميلات المفعّلة في Supabase اترفعت بقوالب يولياس، إنجليزي بس، ومن غير Taysonsta، والرابط yolias.com. اختياري: اسم المرسل في Supabase لسه «Yolias by Taysonsta» — تحب يبقى «Yolias» بس؟ |
+| 5 | **إعدادات Supabase للإنتاج** | **اتعمل:** Site URL بقى `https://www.yolias.com`، وروابط الأدمن اتضافت في Redirect URLs. |
+| 6 | **PostHog (D-152)** | المفتاح اتحط (المنطقة EU) وحدث تجريبي وصل. هيشتغل في الإنتاج مع النشر الجاي. |
 | 7 | **Sentry (D-152)** | **شغال في الإنتاج:** خطأ تجريبي وصل (environment = production). اختياري: Auth Token لرفع الـ source maps. |
 | 8 | **Meta Pixel (D-152)** | **منشور.** اتأكد من Events Manager ← Test events: افتح yolias.com، ودوس «قبول الكل»، وروح على صفحة الدفع. |
 | 9 | **TikTok Pixel** | Pixel ID. وهيشتغل بنفس شريط الكوكيز (بعد «قبول الكل»). |

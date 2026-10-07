@@ -70,6 +70,24 @@ export async function removeFromProspects(target: Target, tab: "people" | "compa
   return { ok: true, removed: data?.length ?? 0 };
 }
 
+/** Removes rows from Saved (they stay in Prospects). Ids are "person:<id>" / "company:<id>". */
+export async function removeFromSaved(target: Target): Promise<{ ok: boolean; removed: number }> {
+  const session = await requireSession();
+  const filters = parseFilters(Object.fromEntries(new URLSearchParams("all" in target ? target.all : "")));
+  filters.tab = "saved";
+  const page = await selectEntities(session.workspace.id, filters, "ids" in target ? target.ids.slice(0, 10_000) : "all");
+  if (page.tab !== "saved" || !page.rows.length) return { ok: false, removed: 0 };
+  const supabase = await createClient();
+  const people = page.rows.filter((i) => i.kind === "person").map((i) => i.row.id);
+  const companies = page.rows.filter((i) => i.kind !== "person").map((i) => i.row.id);
+  const [p, c] = await Promise.all([
+    people.length ? supabase.from("prospects").update({ bookmarked_at: null }).eq("workspace_id", session.workspace.id).in("id", people).select("id") : { data: [] },
+    companies.length ? supabase.from("companies").update({ bookmarked_at: null }).eq("workspace_id", session.workspace.id).in("id", companies).select("id") : { data: [] },
+  ]);
+  revalidatePath("/prospects", "layout");
+  return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
+}
+
 /** The selected people as cards, for the Email / LinkedIn actions on the Prospects table (at most 100). */
 export async function peopleForActions(target: Target): Promise<GridPerson[]> {
   const { page } = await resolve("ids" in target ? { ids: target.ids.slice(0, 100) } : target, "people");

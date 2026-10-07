@@ -1711,6 +1711,7 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .person-card-sub { font-size: .74rem; color: var(--muted); margin-top: 2px; }
 .person-card-sub a { color: inherit; text-decoration: underline; }
 .person-card-li { display: inline-flex; }
+.person-card-tools { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; align-self: flex-start; }
 .person-card-contact { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; padding-top: 12px; border-top: 1px solid var(--line-faint); font-size: .8rem; }
 .person-card-contact dt { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
 .person-card-contact dt svg { width: 14px; height: 14px; }
@@ -1860,3 +1861,21 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .message-log-channel { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .message-log-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
 @media (max-width: 560px) { .message-log li { grid-template-columns: 1fr; gap: 2px; } }
+
+/* Saved tab, person page, message settings (D-159, D-160) */
+.chip { display: inline-flex; align-items: center; min-height: 20px; padding: 2px 9px; border-radius: 999px; background: var(--line-faint); color: var(--ink); font-size: .72rem; font-weight: 600; line-height: 1.3; }
+.entity-tabs a.entity-tab-saved svg { width: 14px; height: 14px; }
+.person-company { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--ink); text-decoration: none; }
+.person-company:hover strong { text-decoration: underline; }
+.company-from { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.company-from svg { width: 14px; height: 14px; }
+.composer-settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.composer-settings label { display: grid; gap: 4px; font-size: .72rem; font-weight: 600; color: var(--muted); }
+.composer-settings .form-select { width: 100%; }
+.composer-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; padding: 10px 12px; border: 1px solid var(--line-faint); border-radius: 10px; font-size: .78rem; }
+.composer-facts dt { color: var(--muted); font-weight: 600; }
+.composer-facts dd { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; color: var(--ink); }
+@media (max-width: 560px) {
+  .composer-settings { grid-template-columns: 1fr; }
+  .composer-facts { grid-template-columns: 1fr; }
+}

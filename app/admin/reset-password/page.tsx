@@ -19,8 +19,16 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    const code = new URL(window.location.href).searchParams.get("code");
-    (code ? supabase.auth.exchangeCodeForSession(code) : Promise.resolve(null))
+    const params = new URL(window.location.href).searchParams;
+    const code = params.get("code");
+    // Links from the email templates carry token_hash + type (invite, recovery, magiclink).
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    const linkTypes = ["invite", "recovery", "magiclink"] as const;
+    const otpType = linkTypes.find((t) => t === type);
+    (tokenHash && otpType
+      ? supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType })
+      : code ? supabase.auth.exchangeCodeForSession(code) : Promise.resolve(null))
       .then(() => supabase.auth.getSession())
       .then(({ data }) => {
         const token = data.session?.access_token;

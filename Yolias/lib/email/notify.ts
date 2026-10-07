@@ -118,8 +118,9 @@ export async function notify<K extends EmailKind>(kind: K, to: Recipient[], data
     if (pref && !opts.ignorePrefs && r.prefs[pref] === false) continue;
     try {
       const row = {
-        kind, category, to_email: r.email, user_id: r.userId, workspace_id: opts.workspaceId ?? null, locale: r.locale,
-        data: (typeof data === "function" ? data(r.locale) : data) as unknown as Json, dedupe_key: opts.dedupe ? `${kind}:${opts.dedupe}:${r.email.toLowerCase()}` : null,
+        kind, category, to_email: r.email, user_id: r.userId, workspace_id: opts.workspaceId ?? null, locale: "en" as const,
+        // Emails are always in English (D-158).
+        data: (typeof data === "function" ? data("en") : data) as unknown as Json, dedupe_key: opts.dedupe ? `${kind}:${opts.dedupe}:${r.email.toLowerCase()}` : null,
       };
       const db = createAdminClient();
       const { data: inserted, error } = opts.dedupe
@@ -143,7 +144,7 @@ export async function deliverEmail(logId: number): Promise<void> {
   const { data: row } = await db.from("email_log").select("*").eq("id", logId).maybeSingle();
   if (!row || row.status === "sent" || row.status === "skipped") return;
   const kind = row.kind as EmailKind;
-  const email = renderEmail(kind, row.locale, { ...(row.data as object), siteUrl: siteUrl() } as EmailData[typeof kind]);
+  const email = renderEmail(kind, "en", { ...(row.data as object), siteUrl: siteUrl() } as EmailData[typeof kind]);
   const result = await sendEmail(row.to_email, email, row.category);
   const attempts = row.attempts + 1;
   if (result.status === "sent") {

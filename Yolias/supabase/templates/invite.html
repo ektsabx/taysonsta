@@ -1,40 +1,38 @@
-{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}<!doctype html>
-<html lang="ar" dir="rtl">
+{{ if .Data.role }}{{ if eq .Data.role "staff" }}<!doctype html>
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light only">
-<title>تمت دعوتك للانضمام إلى فريق على يولـياس</title>
+<title>You’ve been invited to the Yolias Admin</title>
 </head>
 <body style="margin:0;padding:0;background:#ffffff">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">فريقك يستخدم يولـياس للعثور على العملاء. اقبل الدعوة للانضمام.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Set your password to sign in to the Yolias Admin.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff">
   <tr><td align="center" style="padding:40px 16px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl" style="max-width:520px;text-align:right">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="ltr" style="max-width:520px;text-align:left">
       <tr><td style="padding:0 0 32px">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
           <td style="vertical-align:middle"><img src="{{ .SiteURL }}/brand/logo-mark.png" width="26" height="28" alt="" style="display:block;border:0"></td>
           <td style="vertical-align:middle;padding:0 9px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:.14em;color:#141413">YOLIAS</td>
         </tr></table>
       </td></tr>
-      <tr><td style="padding:0 0 14px;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:26px;line-height:1.3;font-weight:600;color:#141413">تمت دعوتك للانضمام إلى فريق على يولـياس</td></tr>
-      <tr><td style="padding:0 0 16px;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:15px;line-height:1.65;color:#141413">يستخدم فريقك يولـياس لاكتشاف العملاء وصنّاع القرار المناسبين. اقبل الدعوة للانضمام إلى مساحة العمل. تنتهي صلاحية الرابط خلال 24 ساعة.</td></tr>
+      <tr><td style="padding:0 0 14px;font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-size:26px;line-height:1.3;font-weight:600;color:#141413">You’ve been invited to the Yolias Admin</td></tr>
+      <tr><td style="padding:0 0 16px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#141413">An administrator created a Yolias Admin account for you. Set your password to sign in. The link expires in 24 hours and can only be used once.</td></tr>
       
       <tr><td style="padding:8px 0 4px">
-         <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="display:inline-block;padding:11px 20px;background:#141413;color:#ffffff;border-radius:8px;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;font-weight:600;line-height:1.2;text-decoration:none">قبول الدعوة</a>
+         <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite" style="display:inline-block;padding:11px 20px;background:#141413;color:#ffffff;border-radius:8px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;line-height:1.2;text-decoration:none">Set your password</a>
        </td></tr>
-      <tr><td style="padding:20px 0 0;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a9a94">
-         أو انسخ هذا الرابط والصقه في متصفحك:<br>
-         <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="color:#6b6b66;word-break:break-all;text-decoration:underline" dir="ltr">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite</a>
+      <tr><td style="padding:20px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a9a94">
+         Or copy and paste this link into your browser:<br>
+         <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite" style="color:#6b6b66;word-break:break-all;text-decoration:underline" dir="ltr">{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite</a>
        </td></tr>
-      <tr><td style="padding:28px 0 0;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b6b66">إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.</td></tr>
+      <tr><td style="padding:28px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b6b66">If you weren’t expecting this invitation, you can ignore this email.</td></tr>
       <tr><td style="padding:32px 0 0"><div style="border-top:1px solid #e8e8e3;height:1px;line-height:1px">&nbsp;</div></td></tr>
-      <tr><td style="padding:16px 0 0;font-family:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;font-size:12px;line-height:1.7;color:#9a9a94">
-        يولـياس · اكتشاف العملاء بالذكاء الاصطناعي<br>
-        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.ai</a> &nbsp;·&nbsp;
-        <a href="{{ .SiteURL }}/legal/privacy" style="color:#9a9a94;text-decoration:underline">الخصوصية</a> &nbsp;·&nbsp;
-        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">مركز المساعدة</a><br>
-        من تطوير تايسونستا
+      <tr><td style="padding:16px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:#9a9a94">
+        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.com</a> &nbsp;·&nbsp;
+        <a href="{{ .SiteURL }}/legal/privacy" style="color:#9a9a94;text-decoration:underline">Privacy</a> &nbsp;·&nbsp;
+        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">Help Center</a>
       </td></tr>
     </table>
   </td></tr>
@@ -72,11 +70,9 @@
       <tr><td style="padding:28px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b6b66">If you weren’t expecting this invitation, you can ignore this email.</td></tr>
       <tr><td style="padding:32px 0 0"><div style="border-top:1px solid #e8e8e3;height:1px;line-height:1px">&nbsp;</div></td></tr>
       <tr><td style="padding:16px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:#9a9a94">
-        Yolias · AI customer discovery<br>
-        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.ai</a> &nbsp;·&nbsp;
+        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.com</a> &nbsp;·&nbsp;
         <a href="{{ .SiteURL }}/legal/privacy" style="color:#9a9a94;text-decoration:underline">Privacy</a> &nbsp;·&nbsp;
-        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">Help Center</a><br>
-        Built by Taysonsta
+        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">Help Center</a>
       </td></tr>
     </table>
   </td></tr>
@@ -114,11 +110,9 @@
       <tr><td style="padding:28px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b6b66">If you weren’t expecting this invitation, you can ignore this email.</td></tr>
       <tr><td style="padding:32px 0 0"><div style="border-top:1px solid #e8e8e3;height:1px;line-height:1px">&nbsp;</div></td></tr>
       <tr><td style="padding:16px 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:#9a9a94">
-        Yolias · AI customer discovery<br>
-        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.ai</a> &nbsp;·&nbsp;
+        <a href="{{ .SiteURL }}/" style="color:#9a9a94;text-decoration:underline">yolias.com</a> &nbsp;·&nbsp;
         <a href="{{ .SiteURL }}/legal/privacy" style="color:#9a9a94;text-decoration:underline">Privacy</a> &nbsp;·&nbsp;
-        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">Help Center</a><br>
-        Built by Taysonsta
+        <a href="{{ .SiteURL }}/help-center" style="color:#9a9a94;text-decoration:underline">Help Center</a>
       </td></tr>
     </table>
   </td></tr>

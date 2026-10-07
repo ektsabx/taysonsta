@@ -30,6 +30,10 @@ export interface CompanyCandidate {
   logoUrl?: string | null;
   linkedinUrl?: string | null;
   foundedYear?: number | null;
+  /** Social profiles (D-161): Facebook page, Instagram account, WhatsApp number. */
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  whatsapp?: string | null;
   mapsUrl?: string | null;
   /** The provider's own confidence in the record (0–1), when it gives one. */
   confidence?: number | null;
@@ -48,6 +52,10 @@ export interface PersonCandidate {
   confidence?: number | null;
   /** Profile photo (https) when the provider has one (D-147). */
   photoUrl?: string | null;
+  /** Social profiles (D-161), when the provider has them. */
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  whatsapp?: string | null;
   raw?: unknown;
 }
 

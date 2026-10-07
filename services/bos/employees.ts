@@ -8,7 +8,7 @@ import { emitEvent } from "@/lib/bos/events";
 import { getSetting } from "@/lib/bos/settings";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { todayIn } from "@/lib/bos/format";
-import { recordInvitation } from "@/services/bos/users";
+import { recordInvitation, staffLinkTarget } from "@/services/bos/users";
 
 // Employees (§29, IT §2): one record per person connecting role, org,
 // schedule, attendance, KPIs, access and devices.
@@ -244,7 +244,7 @@ export async function createBosLogin(bos: BosUser, employeeId: string, roleIds: 
   let userId = (existing as string | null) ?? null;
   let invited = false;
   if (!userId) {
-    const { data, error } = await admin.auth.admin.inviteUserByEmail(emp.email, { data: { full_name: emp.full_name, role: "staff" } });
+    const { data, error } = await admin.auth.admin.inviteUserByEmail(emp.email, { data: { full_name: emp.full_name, role: "staff" }, redirectTo: staffLinkTarget() });
     if (error) throw new ValidationError(`تعذر إنشاء حساب الدخول: ${error.message}`);
     userId = data.user.id;
     invited = true;

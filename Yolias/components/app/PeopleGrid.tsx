@@ -8,6 +8,7 @@ import { fmt } from "@/lib/i18n/config";
 import { revealPeople } from "@/app/(app)/prospects/people-actions";
 import { LinkedInIcon } from "./ConnectorIcons";
 import { AvatarStack, PersonAvatar } from "./Media";
+import { SaveButton } from "./ResultActions";
 import { ProspectActionButtons } from "./ProspectActions";
 
 export interface GridPerson {
@@ -27,6 +28,11 @@ export interface GridPerson {
   phone: string | null;
   revealed: boolean;
   matchScore: number | null;
+  /** WhatsApp number (or a phone to try on WhatsApp) is known. */
+  hasWhatsapp: boolean;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  bookmarked: boolean;
 }
 
 interface Props {
@@ -85,7 +91,10 @@ export function PeopleGrid({ people, showCompany = false }: Props) {
                 {p.place && <div className="person-card-sub">{p.place}</div>}
                 {p.emailStatus === "verified" && <span className="chip-ok">{r.verified}</span>}
               </div>
-              {p.linkedinUrl && <a className="person-card-li" href={p.linkedinUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn"><LinkedInIcon /></a>}
+              <span className="person-card-tools">
+                {p.linkedinUrl && <a className="person-card-li" href={p.linkedinUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn"><LinkedInIcon /></a>}
+                <SaveButton kind="person" id={p.id} saved={p.bookmarked} compact />
+              </span>
             </div>
             <dl className="person-card-contact">
               <dt><Mail /> {r.email}</dt>

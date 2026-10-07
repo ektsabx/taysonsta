@@ -29,13 +29,20 @@ export async function revealPeople(personIds: string[]): Promise<{ ok: true; con
 }
 
 /** Bookmark: a company in / out of the Prospects list. */
-export async function setCompanySaved(companyId: string, saved: boolean): Promise<{ ok: boolean }> {
+/**
+ * Save / unsave a person, company or local business (Prospects → Saved,
+ * D-159). Saving also puts it in Prospects; unsaving keeps it there.
+ */
+export async function setSaved(kind: "person" | "company", id: string, saved: boolean): Promise<{ ok: boolean }> {
   const session = await requireSession();
-  if (!uuid.test(companyId)) return { ok: false };
+  if (!uuid.test(id)) return { ok: false };
   const db = await createClient();
-  const { error } = await db.from("companies").update({ saved_at: saved ? new Date().toISOString() : null }).eq("id", companyId).eq("workspace_id", session.workspace.id);
+  const now = new Date().toISOString();
+  const table = kind === "person" ? "prospects" : "companies";
+  const { data, error } = await db.from(table).update({ bookmarked_at: saved ? now : null }).eq("id", id).eq("workspace_id", session.workspace.id).select("id");
+  if (saved && data?.length) await db.from(table).update({ saved_at: now }).eq("id", id).is("saved_at", null);
   revalidatePath("/prospects", "layout");
-  return { ok: !error };
+  return { ok: !error && Boolean(data?.length) };
 }
 
 /** "Collect decision makers" for delivered companies (saved or not). Free: the company was the result (D-146). */

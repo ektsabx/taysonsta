@@ -14,6 +14,7 @@ import { hasProviderFor, sourceLabels } from "@/lib/intel/registry";
 import { runCapability, type CallScope } from "@/lib/intel/service";
 import { cacheCompanies, cachedCompanies, isSuppressed, saveContact, upsertCompany, upsertPerson, type Source } from "@/lib/intel/shared";
 import { fingerprintIcp } from "@/lib/intel/fingerprint";
+import { findSocials } from "@/lib/intel/socials";
 
 // Discovery pipeline: Search → Find Companies → Find Decision Makers →
 // Enrich & Verify → Qualify / Match → Prospects. Runs with the service role
@@ -208,6 +209,7 @@ function companyFields(c: CompanyCandidate) {
     employee_count: c.employeeCount, funding_stage: c.fundingStage, hiring_roles: c.hiringRoles,
     category: c.category ?? null, address: c.address ?? null, phone: c.phone ?? null, website: c.website ?? null,
     rating: c.rating ?? null, reviews_count: c.reviewsCount ?? null,
+    ...socialFields(c),
   };
 }
 
@@ -217,6 +219,33 @@ const year = (y: number | null | undefined) => (y && Number.isInteger(y) && y >=
 /** Logo, LinkedIn page and founding year (kept outside the provenance fields). */
 function companyMedia(c: CompanyCandidate) {
   return { logo_url: httpsOnly(c.logoUrl), linkedin_url: httpsOnly(c.linkedinUrl), founded_year: year(c.foundedYear) };
+}
+
+const whatsappNumber = (v: string | null | undefined) => {
+  const digits = (v ?? "").replace(/\D/g, "");
+  return digits.length >= 6 && digits.length <= 20 ? digits : null;
+};
+
+/** Facebook, Instagram and WhatsApp (D-161), as the source gave them. */
+function socialFields(c: { facebookUrl?: string | null; instagramUrl?: string | null; whatsapp?: string | null }) {
+  return { facebook_url: httpsOnly(c.facebookUrl), instagram_url: httpsOnly(c.instagramUrl), whatsapp: whatsappNumber(c.whatsapp) };
+}
+
+/**
+ * Fills a company's missing social profiles from the links on its own
+ * website (no provider, no cost); the source stays the website.
+ */
+async function withSocials(c: CompanyCandidate): Promise<CompanyCandidate> {
+  if (c.facebookUrl && c.instagramUrl && c.whatsapp) return c;
+  const site = c.website ?? c.domain;
+  if (!site) return c;
+  const found = await findSocials(site);
+  const next = { ...c, facebookUrl: c.facebookUrl ?? found.facebookUrl, instagramUrl: c.instagramUrl ?? found.instagramUrl, whatsapp: c.whatsapp ?? found.whatsapp };
+  const o = origin.get(c);
+  if (o) origin.set(next, o);
+  const id = intelIds.get(c);
+  if (id) intelIds.set(next, id);
+  return next;
 }
 
 function intelligence(kind: EntityKind, row: Record<string, unknown>, source: string, confidence: number | null) {
@@ -229,7 +258,8 @@ function intelligence(kind: EntityKind, row: Record<string, unknown>, source: st
   };
 }
 
-async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, c: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
+async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, candidate: CompanyCandidate, kind: CompanyKind, match: { score: number; reasons: string[] } | null, delivered = false) {
+  const c = await withSocials(candidate);
   const fields = companyFields(c);
   return db.from("companies").insert({
     workspace_id: ctx.workspaceId, campaign_id: campaignId, kind, name: c.name, domain: c.domain,
@@ -238,6 +268,7 @@ async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, 
     hiring_roles: c.hiringRoles, signals: c.signals, source: sourceOf(c), source_ref: c.sourceRef,
     category: fields.category, address: fields.address, phone: fields.phone, website: fields.website,
     rating: fields.rating, reviews_count: fields.reviews_count, place_ref: c.placeRef ?? null, maps_url: c.mapsUrl ?? null,
+    facebook_url: fields.facebook_url, instagram_url: fields.instagram_url, whatsapp: fields.whatsapp,
     ...companyMedia(c),
     intel_company_id: intelIds.get(c) ?? null,
     delivered_at: delivered ? new Date().toISOString() : null,
@@ -305,7 +336,7 @@ async function deliverPerson(
   await setStage("scoring");
   const match = scoreMatch(icp, company, p);
   await setStage("delivering");
-  const fields = { full_name: p.fullName, title: p.title, email: p.email, phone: p.phone, linkedin_url: p.linkedinUrl, city: p.city ?? company.city, country: p.country ?? company.country };
+  const fields = { full_name: p.fullName, title: p.title, email: p.email, phone: p.phone, linkedin_url: p.linkedinUrl, city: p.city ?? company.city, country: p.country ?? company.country, ...socialFields(p) };
   const { data: inserted, error: insertError } = await db.from("prospects").insert({
     workspace_id: ctx.workspaceId, campaign_id: campaignId, company_id: companyRowId, ...fields,
     seniority: classifySeniority(p.title), email_status: emailStatus,

@@ -7,11 +7,11 @@ import { useI18n } from "@/lib/i18n/client";
 
 // Official Yolias accounts.
 const socials = [
-  { label: "Facebook", href: "https://www.facebook.com/yoliasai", Icon: FacebookIcon },
   { label: "Instagram", href: "https://www.instagram.com/yolias.ai", Icon: InstagramIcon },
-  { label: "TikTok", href: "https://www.tiktok.com/@yolias.ai", Icon: TiktokIcon },
-  { label: "LinkedIn", href: "https://www.linkedin.com/company/yolias.ai", Icon: LinkedinIcon },
-  { label: "X", href: "https://x.com/yolias.ai", Icon: XIcon },
+  { label: "YouTube", href: "https://www.youtube.com/@yoliasai", Icon: YoutubeIcon },
+  { label: "Facebook", href: "https://www.facebook.com/yoliasai", Icon: FacebookIcon },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/yolias", Icon: LinkedinIcon },
+  { label: "X", href: "https://x.com/yolias", Icon: XIcon },
 ];
 
 // Footer shared by every public page (from the pricing design).
@@ -34,7 +34,6 @@ export function SiteFooter() {
       links: [
         { href: "/about", label: s.about },
         { href: "/contact", label: s.contact },
-        { href: "https://taysonsta.com", label: s.taysonsta, external: true },
       ],
     },
     {
@@ -57,7 +56,7 @@ export function SiteFooter() {
             <Link href="/" className="focus-ring inline-flex rounded" aria-label={s.home}>
               <BrandLogo tone="light" />
             </Link>
-            <p className="mt-4 max-w-[240px] text-sm leading-6 text-neutral-300">{s.tagline}</p>
+            <p className="mt-4 max-w-[320px] text-sm leading-6 text-neutral-300">{s.tagline}</p>
             <div className="mt-4 flex items-center gap-4" aria-label={s.social}>
               {socials.map(({ label, href, Icon }) => (
                 <a key={label} className="footer-link focus-ring rounded" href={href} target="_blank" rel="noopener noreferrer" aria-label={label}><Icon /></a>
@@ -71,8 +70,6 @@ export function SiteFooter() {
                 {col.links.map((l) =>
                   l.href === "/contact?topic=support" ? (
                     <SupportLink key={l.href} className="footer-link focus-ring w-fit rounded">{l.label}</SupportLink>
-                  ) : "external" in l ? (
-                    <a key={l.href} className="footer-link focus-ring w-fit rounded" href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
                   ) : (
                     <Link key={l.href} className="footer-link focus-ring w-fit rounded" href={l.href}>{l.label}</Link>
                   )
@@ -115,10 +112,11 @@ function FacebookIcon() {
   );
 }
 
-function TiktokIcon() {
+function YoutubeIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .8.1V9.1a6.4 6.4 0 1 0 5.5 6.3V8.6a8 8 0 0 0 4.7 1.5V6.7a4.7 4.7 0 0 1-4.7-4.7Z" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2.5 17a24.1 24.1 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.1 24.1 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3z" />
     </svg>
   );
 }

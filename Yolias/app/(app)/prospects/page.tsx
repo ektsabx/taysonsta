@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Download } from "lucide-react";
+import { Bookmark, Download } from "lucide-react";
 import { ChannelBadges } from "@/components/app/ChannelBadges";
 import { ContactCell, EntityTable, PeopleStatus, type TableRow } from "@/components/app/EntityTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
@@ -10,14 +10,14 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
 import { listCampaigns } from "@/services/campaigns";
-import { filterQuery, listEntities, maskEmail, maskPhone, PAGE_SIZE, parseFilters, visibleTabs, tabCounts } from "@/services/prospects";
+import { filterQuery, listEntities, maskEmail, maskPhone, PAGE_SIZE, parseFilters, savedKey, visibleTabs, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.prospects} — Yolias` };
 }
 
 // Prospects workspace (final spec phase 5): People, Companies, Local
-// Businesses and Jobs tabs; search, filters and sort in the URL; selection
+// Businesses and Saved (D-159) tabs; search, filters and sort in the URL; selection
 // (also "all matching" across pages), CSV export, contact reveal and
 // decision-maker matching. Contacts reach the browser only once revealed.
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
@@ -34,7 +34,27 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
 
   let columns: string[];
   let rows: TableRow[];
-  if (page.tab === "people") {
+  if (page.tab === "saved") {
+    columns = [pr.colName, pr.colType, pr.colLocation, pr.colMatch, pr.colSavedAt];
+    rows = page.rows.map((i) => {
+      const person = i.kind === "person";
+      const name = person ? i.row.full_name : i.row.name;
+      const sub = person ? [i.row.title, i.row.company?.name].filter(Boolean).join(" · ") : (i.row.domain ?? i.row.website);
+      return {
+        id: savedKey(i),
+        label: name,
+        cells: [
+          <Link key="n" href={person ? `/prospects/person/${i.row.id}` : `/prospects/company/${i.row.id}`} className="entity-link">
+            <strong>{name}</strong>{sub && <span className="cell-sub" dir={person ? undefined : "ltr"}>{sub}</span>}
+          </Link>,
+          <span key="t" className="chip">{pr.csv.types[i.kind]}</span>,
+          (person ? location(i.row.city ?? i.row.company?.city, i.row.country ?? i.row.company?.country, locale) : location(i.row.city, i.row.country, locale)) || "—",
+          match(i.row.match_score),
+          i.row.bookmarked_at ? formatDate(i.row.bookmarked_at, locale, session.profile.timezone) : "—",
+        ],
+      };
+    });
+  } else if (page.tab === "people") {
     columns = [pr.colMaker, pr.colCompany, pr.colLocation, pr.colContact, pr.colCampaign, pr.colMatch];
     rows = page.rows.map((p) => ({
       id: p.id,
@@ -102,8 +122,8 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
 
       <nav className="entity-tabs" aria-label={pr.title}>
         {visibleTabs.map((tab) => (
-          <Link key={tab} href={`/prospects${tab === "people" ? "" : `?tab=${tab}`}`} className={tab === filters.tab ? "active" : ""} aria-current={tab === filters.tab ? "page" : undefined}>
-            {pr.tabs[tab]} <span className="entity-tab-count">{n(counts[tab])}</span>
+          <Link key={tab} href={`/prospects${tab === "people" ? "" : `?tab=${tab}`}`} className={`${tab === filters.tab ? "active" : ""}${tab === "saved" ? " entity-tab-saved" : ""}`} aria-current={tab === filters.tab ? "page" : undefined}>
+            {tab === "saved" && <Bookmark aria-hidden="true" />}{pr.tabs[tab]} <span className="entity-tab-count">{n(counts[tab])}</span>
           </Link>
         ))}
       </nav>

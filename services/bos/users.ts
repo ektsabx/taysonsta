@@ -37,14 +37,20 @@ async function openInvitation(id: string) {
   return data;
 }
 
+// Staff emails (invitation, set-password link) open the Admin's set-password
+// page, which verifies the link (Yolias's email templates, D-158).
+export function staffLinkTarget(origin = process.env.ADMIN_URL ?? "") {
+  return `${origin.replace(/\/+$/, "")}/admin/reset-password`;
+}
+
 export async function resendInvitation(bos: BosUser, id: string) {
   const inv = await openInvitation(id);
-  const { error } = await db().auth.admin.inviteUserByEmail(inv.email, { data: { role: "staff" } });
+  const { error } = await db().auth.admin.inviteUserByEmail(inv.email, { data: { role: "staff" }, redirectTo: staffLinkTarget() });
   if (error && !/already been registered|already registered|exists/i.test(error.message)) throw new ValidationError(`تعذر إرسال الدعوة: ${error.message}`);
   if (error) {
     // GoTrue refuses to re-invite an existing (unconfirmed) user: send a fresh
     // one-time sign-in link to the same address instead.
-    const { error: e2 } = await db().auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false } });
+    const { error: e2 } = await db().auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false, emailRedirectTo: staffLinkTarget() } });
     if (e2) throw new ValidationError(`تعذر إرسال الدعوة: ${e2.message}`);
   }
   await db().from("user_invitations").update({ sent_count: inv.sent_count + 1, last_sent_at: nowIso() }).eq("id", id);
@@ -95,7 +101,7 @@ export async function sendStaffPasswordReset(bos: BosUser, employeeId: string, o
   const { data: u } = await db().auth.admin.getUserById(emp.user_id);
   const email = u.user?.email ?? emp.email;
   if (!email) throw new ValidationError("لا يوجد بريد لهذا المستخدم.");
-  const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: `${origin}/admin/reset-password` });
+  const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: staffLinkTarget(origin) });
   if (error) throw new ValidationError(error.message);
   await audit({ actorId: bos.userId, action: "user.password_reset_sent", entityType: "employee", entityId: emp.id, newValue: { email } });
 }

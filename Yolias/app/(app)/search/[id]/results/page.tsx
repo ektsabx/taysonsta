@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, SlidersHorizontal, UsersRound } from "lucide-react";
 import { AvatarStack, CompanyLogo } from "@/components/app/Media";
 import { PeopleGrid } from "@/components/app/PeopleGrid";
-import { CollectButton, SaveCompanyButton } from "@/components/app/ResultActions";
+import { CollectButton, SaveButton } from "@/components/app/ResultActions";
 import { ResultsToolbar } from "@/components/app/ResultsToolbar";
 import { YoliasMark } from "@/components/YoliasMark";
 import { countryLabel, formatNumber } from "@/lib/format";
@@ -99,7 +99,7 @@ export default async function SearchResultsPage({ params, searchParams }: PagePr
                       <Link className="company-card-name" href={`/prospects/company/${c.id}`}>{c.name}</Link>
                       {site && <a className="company-card-site" href={site.startsWith("http") ? site : `https://${site}`} target="_blank" rel="noreferrer" dir="ltr">{site.replace(/^https?:\/\/(www\.)?/, "")} <ExternalLink /></a>}
                     </div>
-                    <SaveCompanyButton id={c.id} saved={Boolean(c.saved_at)} compact />
+                    <SaveButton kind="company" id={c.id} saved={Boolean(c.bookmarked_at)} compact />
                   </div>
                   <div className="company-card-meta">{[c.industry ?? c.category, c.city, size].filter(Boolean).join(" · ")}</div>
                   <div className="company-card-people">

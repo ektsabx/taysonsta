@@ -44,6 +44,9 @@ export const PersonSchema = z.object({
   email_status: z.enum(["unknown", "found", "verified", "invalid"]),
   phone: z.string().nullable(),
   linkedin_url: z.string().nullable(),
+  facebook_url: z.string().nullable(),
+  instagram_url: z.string().nullable(),
+  whatsapp: z.string().nullable(),
   city: z.string().nullable(),
   country: z.string().nullable(),
   company: z.object({ id: z.string().nullable(), name: z.string().nullable(), domain: z.string().nullable() }).nullable(),
@@ -63,6 +66,9 @@ export const CompanySchema = z.object({
   city: z.string().nullable(),
   country: z.string().nullable(),
   signals: z.array(z.string()),
+  facebook_url: z.string().nullable(),
+  instagram_url: z.string().nullable(),
+  whatsapp: z.string().nullable(),
   intelligence: IntelligenceSchema,
 });
 
@@ -79,6 +85,9 @@ export const LocalBusinessSchema = z.object({
   rating: z.number().nullable(),
   reviews_count: z.number().int().nullable(),
   maps_url: z.string().nullable(),
+  facebook_url: z.string().nullable(),
+  instagram_url: z.string().nullable(),
+  whatsapp: z.string().nullable(),
   intelligence: IntelligenceSchema,
 });
 
@@ -127,8 +136,8 @@ export const searchTypeSpecs: Record<SearchTypeId, SearchTypeSpec> = {
 /** Fields each entity is expected to have; what's absent is reported as missing (never invented). */
 export const expectedFields: Record<EntityKind, string[]> = {
   person: ["title", "email", "phone", "linkedin_url", "city", "country"],
-  company: ["domain", "industry", "employee_count", "city", "country", "description"],
-  local_business: ["category", "address", "phone", "website", "rating", "city"],
+  company: ["domain", "industry", "employee_count", "city", "country", "description", "facebook_url", "instagram_url", "whatsapp"],
+  local_business: ["category", "address", "phone", "website", "rating", "city", "facebook_url", "instagram_url", "whatsapp"],
   job: ["department", "city", "country", "url", "posted_at"],
 };
 
@@ -145,7 +154,7 @@ export function provenanceFor(row: Record<string, unknown>, fields: string[], so
 
 /** All the fields a provider may have filled for this entity, for provenance. */
 export const provenanceFields: Record<EntityKind, string[]> = {
-  person: ["full_name", ...expectedFields.person],
+  person: ["full_name", ...expectedFields.person, "facebook_url", "instagram_url", "whatsapp"],
   company: ["name", ...expectedFields.company, "funding_stage", "hiring_roles"],
   local_business: ["name", ...expectedFields.local_business, "reviews_count", "country"],
   job: ["title", ...expectedFields.job],

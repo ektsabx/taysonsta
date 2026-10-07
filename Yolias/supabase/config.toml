@@ -51,7 +51,7 @@ file_size_limit = "5MiB"
 [auth]
 enabled = true
 site_url = "http://localhost:3200"
-additional_redirect_urls = ["http://localhost:3200/auth/confirm", "http://127.0.0.1:3200/auth/confirm"]
+additional_redirect_urls = ["http://localhost:3200/auth/confirm", "http://127.0.0.1:3200/auth/confirm", "http://admin.localhost:3200/admin/reset-password"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -95,36 +95,50 @@ admin_email = "env(RESEND_FROM_EMAIL)"
 sender_name = "Yolias"
 
 [auth.email.template.magic_link]
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}رابط تسجيل الدخول إلى يولـياس{{ else }}Your Yolias sign-in link{{ end }}{{ else }}Your Yolias sign-in link{{ end }}"
+subject = "{{ if .Data.role }}{{ if eq .Data.role \"staff\" }}Your Yolias Admin sign-in link{{ else }}Your Yolias sign-in link{{ end }}{{ else }}Your Yolias sign-in link{{ end }}"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.confirmation]
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}أكّد حسابك في يولـياس{{ else }}Confirm your Yolias account{{ end }}{{ else }}Confirm your Yolias account{{ end }}"
+subject = "Confirm your Yolias account"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.invite]
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}دعوة للانضمام إلى يولـياس{{ else }}You've been invited to Yolias{{ end }}{{ else }}You've been invited to Yolias{{ end }}"
+subject = "{{ if .Data.role }}{{ if eq .Data.role \"staff\" }}You’ve been invited to the Yolias Admin{{ else }}You’ve been invited to Yolias{{ end }}{{ else }}You’ve been invited to Yolias{{ end }}"
 content_path = "./supabase/templates/invite.html"
 
 [auth.email.template.email_change]
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}أكّد بريدك الجديد في يولـياس{{ else }}Confirm your new Yolias email{{ end }}{{ else }}Confirm your new Yolias email{{ end }}"
+subject = "Confirm your new Yolias email"
 content_path = "./supabase/templates/email_change.html"
+
+# Password reset: only Admin staff have passwords (customers sign in with a link).
+[auth.email.template.recovery]
+subject = "Reset your Yolias password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.reauthentication]
+subject = "Your Yolias verification code"
+content_path = "./supabase/templates/reauthentication.html"
 
 # Security notice to the old address after an email change.
 [auth.email.notification.email_changed]
 enabled = true
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم تغيير بريدك في يولـياس{{ else }}Your Yolias email address was changed{{ end }}{{ else }}Your Yolias email address was changed{{ end }}"
+subject = "Your Yolias email address was changed"
 content_path = "./supabase/templates/email_changed_notification.html"
 
 [auth.email.notification.mfa_factor_enrolled]
 enabled = true
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم تفعيل المصادقة الثنائية{{ else }}Two-factor authentication enabled{{ end }}{{ else }}Two-factor authentication enabled{{ end }}"
+subject = "Two-factor authentication enabled"
 content_path = "./supabase/templates/mfa_factor_enrolled_notification.html"
 
 [auth.email.notification.mfa_factor_unenrolled]
 enabled = true
-subject = "{{ if .Data.locale }}{{ if eq .Data.locale \"ar\" }}تم إيقاف المصادقة الثنائية{{ else }}Two-factor authentication disabled{{ end }}{{ else }}Two-factor authentication disabled{{ end }}"
+subject = "Two-factor authentication disabled"
 content_path = "./supabase/templates/mfa_factor_unenrolled_notification.html"
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your Yolias password was changed"
+content_path = "./supabase/templates/password_changed_notification.html"
 
 # Two-factor authentication with an authenticator app (Settings → Account).
 [auth.mfa.totp]

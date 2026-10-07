@@ -181,14 +181,17 @@ export type MailboxRow = {
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
 };
 export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled";
-export type MessageChannel = "email" | "linkedin";
-export type MessageOpenedVia = "gmail" | "outlook" | "mail_app" | "linkedin" | "copy";
+export type MessageChannel = "email" | "linkedin" | "whatsapp" | "facebook" | "instagram";
+export type MessageOpenedVia = "gmail" | "outlook" | "mail_app" | "linkedin" | "whatsapp" | "facebook" | "instagram" | "copy";
+export type MessageObjective = "introduction" | "sales" | "meeting" | "follow_up" | "partnership" | "referral";
+export type MessageTone = "conservative" | "direct" | "friendly";
 export type OutreachMessageRow = {
-  id: string; workspace_id: string; prospect_id: string; campaign_id: string | null; created_by: string | null; channel: MessageChannel;
-  to_email: string | null; subject: string; body: string; language: "en" | "ar"; instruction: string | null; status: OutreachStatus;
+  id: string; workspace_id: string; prospect_id: string | null; company_id: string | null; campaign_id: string | null; created_by: string | null; channel: MessageChannel;
+  to_email: string | null; subject: string; body: string; language: string; instruction: string | null; status: OutreachStatus;
   mailbox_id: string | null; provider_message_id: string | null; error: string | null; model: string | null; cost_usd: number | null;
   approved_by: string | null; approved_at: string | null; sent_at: string | null; created_at: string; updated_at: string;
   opened_at: string | null; opened_via: MessageOpenedVia | null;
+  objective: MessageObjective | null; tone: MessageTone | null; cta: string | null; personalization: string[];
 };
 export type ContentKind = "help" | "docs" | "blog" | "legal";
 export type ContentEntryRow = {
@@ -270,6 +273,10 @@ export type CompanyRow = {
   logo_url: string | null;
   linkedin_url: string | null;
   founded_year: number | null;
+  bookmarked_at: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  whatsapp: string | null;
 } & IntelligenceColumns;
 
 export type JobRow = {
@@ -321,6 +328,10 @@ export type ProspectRow = {
   raw: Json | null;
   created_at: string;
   photo_url: string | null;
+  bookmarked_at: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  whatsapp: string | null;
 };
 
 export type SubscriptionEventRow = {
@@ -576,7 +587,7 @@ export interface Database {
       email_settings: Table<EmailSettingRow, "kind">;
       content_entries: Table<ContentEntryRow, "kind" | "slug" | "doc">;
       mailboxes: Table<MailboxRow, "workspace_id" | "user_id" | "provider" | "email">;
-      outreach_messages: Table<OutreachMessageRow, "workspace_id" | "prospect_id">;
+      outreach_messages: Table<OutreachMessageRow, "workspace_id">;
       email_log: Table<EmailLogRow, "kind" | "category" | "to_email">;
       known_devices: Table<KnownDeviceRow, "user_id" | "device_hash" | "label">;
       sign_in_requests: Table<SignInRequestRow, "email">;

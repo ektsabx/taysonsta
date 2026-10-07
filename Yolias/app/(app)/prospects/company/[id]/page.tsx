@@ -6,8 +6,10 @@ import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { PeopleStatus } from "@/components/app/EntityTable";
 import { CompanyLogo } from "@/components/app/Media";
 import { PeopleGrid } from "@/components/app/PeopleGrid";
-import { CollectButton, SaveCompanyButton } from "@/components/app/ResultActions";
-import { LinkedInIcon } from "@/components/app/ConnectorIcons";
+import { CollectButton, SaveButton } from "@/components/app/ResultActions";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/app/ConnectorIcons";
+import { CompanyActionButtons, type MessageRecipient } from "@/components/app/ProspectActions";
+import { whatsappDigits } from "@/lib/outreach/channels";
 import { formatNumber, location } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -45,6 +47,16 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const meta = [local ? c.category : c.industry, place, size].filter(Boolean);
   const back = c.campaign?.strategy_id ? `/search/${c.campaign.strategy_id}/results` : `/prospects?tab=${local ? "local" : "companies"}`;
 
+  const csv = t.prospects.csv;
+  const socials = [
+    { icon: <WhatsAppIcon />, label: csv.whatsapp, ltr: true, value: c.whatsapp },
+    { icon: <FacebookIcon />, label: csv.facebook, ltr: true, value: c.facebook_url && <a className="entity-link" href={c.facebook_url} target="_blank" rel="noreferrer">{bare(c.facebook_url)} <ExternalLink /></a> },
+    { icon: <InstagramIcon />, label: csv.instagram, ltr: true, value: c.instagram_url && <a className="entity-link" href={c.instagram_url} target="_blank" rel="noreferrer">{bare(c.instagram_url)} <ExternalLink /></a> },
+  ];
+  const recipient: MessageRecipient = {
+    kind: "company", id: c.id, name: c.name, title: local ? c.category : c.industry, company: null, photoUrl: null, logo: { logoUrl: c.logo_url, domain: c.domain },
+    can: { email: false, linkedin: false, whatsapp: Boolean(whatsappDigits(c.whatsapp ?? c.phone)), facebook: Boolean(c.facebook_url), instagram: Boolean(c.instagram_url) },
+  };
   const info: { icon: React.ReactNode; label: string; value: React.ReactNode; ltr?: boolean }[] = local
     ? [
       { icon: <Tag />, label: r.category, value: c.category },
@@ -53,6 +65,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
       { icon: <Globe />, label: r.website, ltr: true, value: site && <a className="entity-link" href={href(site)} target="_blank" rel="noreferrer">{bare(site)} <ExternalLink /></a> },
       { icon: <Star />, label: r.rating, value: c.rating != null ? `${c.rating} ★${c.reviews_count != null ? ` (${n(c.reviews_count)})` : ""}` : null },
       { icon: <MapPin />, label: t.prospects.csv.mapsUrl, value: c.maps_url && <a className="entity-link" href={c.maps_url} target="_blank" rel="noreferrer">{t.prospects.csv.mapsUrl} <ExternalLink /></a> },
+      ...socials,
     ]
     : [
       { icon: <Building2 />, label: r.industry, value: c.industry },
@@ -61,6 +74,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
       { icon: <LinkedInIcon />, label: r.linkedin, ltr: true, value: c.linkedin_url && <a className="entity-link" href={c.linkedin_url} target="_blank" rel="noreferrer">{bare(c.linkedin_url)} <ExternalLink /></a> },
       { icon: <Users />, label: r.size, value: size },
       { icon: <CalendarDays />, label: r.founded, value: c.founded_year },
+      ...socials,
     ];
 
   return (
@@ -77,7 +91,8 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
           <div className="company-hero-actions">
             {site && <a className="btn-secondary" href={href(site)} target="_blank" rel="noreferrer">{r.visitWebsite} <ExternalLink /></a>}
             {c.linkedin_url && <a className="btn-primary" href={c.linkedin_url} target="_blank" rel="noreferrer"><LinkedInIcon /> {r.openLinkedIn}</a>}
-            <SaveCompanyButton id={c.id} saved={Boolean(c.saved_at)} />
+            <CompanyActionButtons company={recipient} />
+            <SaveButton kind="company" id={c.id} saved={Boolean(c.bookmarked_at)} />
           </div>
         </section>
 

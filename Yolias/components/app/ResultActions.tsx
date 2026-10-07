@@ -4,18 +4,20 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Bookmark, BookmarkCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { collectDecisionMakers, setCompanySaved } from "@/app/(app)/prospects/people-actions";
+import { collectDecisionMakers, setSaved } from "@/app/(app)/prospects/people-actions";
 
-/** Bookmark a company (in / out of Prospects). */
-export function SaveCompanyButton({ id, saved, compact = false }: { id: string; saved: boolean; compact?: boolean }) {
+/** Save a person, company or local business (Prospects → Saved, D-159). */
+export function SaveButton({ kind, id, saved, compact = false }: { kind: "person" | "company"; id: string; saved: boolean; compact?: boolean }) {
   const { t } = useI18n();
+  const router = useRouter();
   const [on, setOn] = useState(saved);
   const [pending, start] = useTransition();
   return (
     <button className={compact ? "icon-btn bookmark" : "btn-secondary icon-only"} type="button" aria-pressed={on} aria-label={on ? t.results.saved : t.results.save} title={on ? t.results.saved : t.results.save} disabled={pending}
       onClick={() => start(async () => {
-        const r = await setCompanySaved(id, !on);
+        const r = await setSaved(kind, id, !on);
         if (r.ok) setOn(!on);
+        router.refresh();
       })}>
       {on ? <BookmarkCheck className="on" /> : <Bookmark />}
     </button>

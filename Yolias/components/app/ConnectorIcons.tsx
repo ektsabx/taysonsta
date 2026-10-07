@@ -48,3 +48,37 @@ export function LinkedInIcon() {
     </svg>
   );
 }
+
+export function WhatsAppIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <rect width="24" height="24" rx="5" fill="#25D366" />
+      <path fill="#fff" d="M12 5.2a6.7 6.7 0 0 0-5.8 10.1l-.9 3.4 3.5-.9A6.7 6.7 0 1 0 12 5.2Zm0 12.2c-1 0-2-.3-2.8-.8l-.2-.1-2 .5.5-2-.1-.2A5.5 5.5 0 1 1 12 17.4Zm3-4.1c-.2-.1-1-.5-1.1-.5-.2-.1-.3-.1-.4.1l-.5.6c-.1.1-.2.1-.4 0a4.5 4.5 0 0 1-2.2-1.9c-.2-.3.2-.3.5-1 .1-.1 0-.2 0-.3l-.5-1.2c-.1-.3-.3-.3-.4-.3h-.3a.6.6 0 0 0-.5.2 1.9 1.9 0 0 0-.6 1.4c0 .8.6 1.6.7 1.8.1.1 1.2 1.8 2.9 2.5 1.1.5 1.5.5 2 .4.3 0 1-.4 1.1-.8.1-.4.1-.7.1-.8l-.4-.2Z" />
+    </svg>
+  );
+}
+
+export function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <rect width="24" height="24" rx="5" fill="#1877F2" />
+      <path fill="#fff" d="M15.4 24v-8.6h2.9l.4-3.4h-3.3V9.9c0-1 .3-1.6 1.7-1.6h1.8v-3a24 24 0 0 0-2.6-.2c-2.6 0-4.3 1.6-4.3 4.4V12H9.1v3.4H12V24h3.4Z" />
+    </svg>
+  );
+}
+
+export function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <defs>
+        <linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#FEDA75" /><stop offset=".35" stopColor="#FA7E1E" /><stop offset=".6" stopColor="#D62976" /><stop offset="1" stopColor="#4F5BD5" />
+        </linearGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#ig-grad)" />
+      <rect x="5.5" y="5.5" width="13" height="13" rx="3.8" fill="none" stroke="#fff" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3.1" fill="none" stroke="#fff" strokeWidth="1.6" />
+      <circle cx="16.1" cy="7.9" r=".9" fill="#fff" />
+    </svg>
+  );
+}

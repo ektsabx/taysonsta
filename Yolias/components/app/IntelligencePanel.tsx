@@ -9,9 +9,9 @@ export function IntelligencePanel({ t, locale, timeZone, row }: {
   row: { match_score: number | null; match_reasons: Json; confidence: number | null; provenance: Json; missing_fields: string[]; last_updated: string; source: string };
 }) {
   const d = t.prospects.detail;
-  const csv = t.prospects.csv as Record<string, string>;
+  const csv = t.prospects.csv as unknown as Record<string, string>;
   const names: Record<string, string> = { ...csv, description: d.about, funding_stage: csv.funding, hiring_roles: csv.hiringRoles };
-  const label = (f: string) => names[{ full_name: "name", linkedin_url: "linkedin", employee_count: "employees", reviews_count: "reviews", maps_url: "mapsUrl", posted_at: "postedAt", website: "domain" }[f] ?? f] ?? f;
+  const label = (f: string) => names[{ full_name: "name", linkedin_url: "linkedin", employee_count: "employees", reviews_count: "reviews", maps_url: "mapsUrl", posted_at: "postedAt", website: "domain", facebook_url: "facebook", instagram_url: "instagram" }[f] ?? f] ?? f;
   const reasons = Array.isArray(row.match_reasons) ? (row.match_reasons as string[]) : [];
   const prov = (Array.isArray(row.provenance) ? row.provenance : []) as unknown as FieldProvenance[];
   const pct = (v: number | null) => (v == null ? "—" : `${Math.round(v * 100)}%`);

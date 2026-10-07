@@ -6,10 +6,14 @@ import type { CompanyRow, JobRow, ProspectRow } from "@/types/database";
 // filters, search, sort and pagination; selection by ids or "all matching".
 // Reads go through the member's own client (RLS), never the service role.
 
-export const prospectTabs = ["people", "companies", "local", "jobs"] as const;
+export const prospectTabs = ["people", "companies", "local", "saved", "jobs"] as const;
 export type ProspectTab = (typeof prospectTabs)[number];
-/** Tabs shown to customers: Yolias doesn't search for jobs (owner decision D-149); hiring stays an internal signal. */
-export const visibleTabs = ["people", "companies", "local"] as const;
+/**
+ * Tabs shown to customers: Yolias doesn't search for jobs (owner decision
+ * D-149); hiring stays an internal signal. Saved lists the people, companies
+ * and local businesses a member saved (bookmarked_at, D-159).
+ */
+export const visibleTabs = ["people", "companies", "local", "saved"] as const;
 export const sorts = ["match", "newest", "name"] as const;
 export type ProspectSort = (typeof sorts)[number];
 export const PAGE_SIZE = 50;
@@ -125,15 +129,56 @@ function sorted(q: any, f: ProspectFilters) {
   return q.order("match_score", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
 }
 
+export type SavedItem =
+  | { kind: "person"; row: ProspectListItem }
+  | { kind: "company" | "local_business"; row: CompanyListItem };
+
 export type EntityPage =
+  | { tab: "saved"; rows: SavedItem[]; total: number }
   | { tab: "people"; rows: ProspectListItem[]; total: number }
   | { tab: "companies" | "local"; rows: CompanyListItem[]; total: number }
   | { tab: "jobs"; rows: JobListItem[]; total: number };
+
+const SAVED_CAP = 2000;
+
+/** Everything saved (people, companies, local businesses), newest first; search by name. */
+async function listSaved(db: Client, workspaceId: string, f: ProspectFilters): Promise<SavedItem[]> {
+  const t = f.q ? safe(f.q) : null;
+  let people = db.from("prospects").select("*, company:companies(id, name, domain, employee_count, city, country), campaign:campaigns(name)")
+    .eq("workspace_id", workspaceId).not("bookmarked_at", "is", null);
+  let companies = db.from("companies").select("*, campaign:campaigns(name)").eq("workspace_id", workspaceId).not("bookmarked_at", "is", null);
+  if (t) {
+    people = people.or(`full_name.ilike.%${t}%,title.ilike.%${t}%`);
+    companies = companies.or(`name.ilike.%${t}%,industry.ilike.%${t}%,category.ilike.%${t}%,domain.ilike.%${t}%`);
+  }
+  const [p, c] = await Promise.all([
+    people.order("bookmarked_at", { ascending: false }).limit(SAVED_CAP),
+    companies.order("bookmarked_at", { ascending: false }).limit(SAVED_CAP),
+  ]);
+  const items: SavedItem[] = [
+    ...((p.data ?? []) as unknown as ProspectListItem[]).map((row) => ({ kind: "person" as const, row })),
+    ...((c.data ?? []) as unknown as CompanyListItem[]).map((row) => ({ kind: row.kind === "local_business" ? "local_business" as const : "company" as const, row })),
+  ];
+  const name = (i: SavedItem) => (i.kind === "person" ? i.row.full_name : i.row.name);
+  const at = (i: SavedItem) => i.row.bookmarked_at ?? "";
+  if (f.sort === "name") return items.sort((a, b) => name(a).localeCompare(name(b)));
+  if (f.sort === "match") return items.sort((a, b) => (b.row.match_score ?? -1) - (a.row.match_score ?? -1) || at(b).localeCompare(at(a)));
+  return items.sort((a, b) => at(b).localeCompare(at(a)));
+}
+
+/** Saved rows are addressed as "person:<id>" / "company:<id>" (two tables in one list). */
+export function savedKey(i: SavedItem) {
+  return `${i.kind === "person" ? "person" : "company"}:${i.row.id}`;
+}
 
 /** One page of a tab. */
 export async function listEntities(workspaceId: string, f: ProspectFilters, pageSize = PAGE_SIZE): Promise<EntityPage> {
   const db = await createClient();
   const from = (f.page - 1) * pageSize;
+  if (f.tab === "saved") {
+    const all = await listSaved(db, workspaceId, f);
+    return { tab: "saved", rows: all.slice(from, from + pageSize), total: all.length };
+  }
   const { data, count } = await sorted(base(db, f, workspaceId), f).range(from, from + pageSize - 1);
   return { tab: f.tab, rows: data ?? [], total: count ?? 0 } as EntityPage;
 }
@@ -141,6 +186,11 @@ export async function listEntities(workspaceId: string, f: ProspectFilters, page
 /** Rows to export or act on: the given ids, or every row matching the filters (capped). */
 export async function selectEntities(workspaceId: string, f: ProspectFilters, ids: string[] | "all", cap = 10_000): Promise<EntityPage> {
   const db = await createClient();
+  if (f.tab === "saved") {
+    const keys = ids === "all" ? null : new Set(ids);
+    const all = (await listSaved(db, workspaceId, f)).filter((i) => !keys || keys.has(savedKey(i)));
+    return { tab: "saved", rows: all.slice(0, cap), total: all.length };
+  }
   let q = base(db, f, workspaceId);
   if (ids !== "all") q = q.in("id", ids.filter((i) => uuid.test(i)).slice(0, cap));
   const { data, count } = await sorted(q, f).range(0, cap - 1);
@@ -151,13 +201,18 @@ export async function selectEntities(workspaceId: string, f: ProspectFilters, id
 export async function tabCounts(workspaceId: string): Promise<Record<ProspectTab, number>> {
   const db = await createClient();
   const head = { count: "exact" as const, head: true };
-  const [people, companies, local, jobs] = await Promise.all([
+  const [people, companies, local, jobs, savedPeople, savedCompanies] = await Promise.all([
     db.from("prospects").select("id", head).eq("workspace_id", workspaceId).not("saved_at", "is", null),
     db.from("companies").select("id", head).eq("workspace_id", workspaceId).eq("kind", "company").not("saved_at", "is", null),
     db.from("companies").select("id", head).eq("workspace_id", workspaceId).eq("kind", "local_business").not("saved_at", "is", null),
     db.from("jobs").select("id", head).eq("workspace_id", workspaceId),
+    db.from("prospects").select("id", head).eq("workspace_id", workspaceId).not("bookmarked_at", "is", null),
+    db.from("companies").select("id", head).eq("workspace_id", workspaceId).not("bookmarked_at", "is", null),
   ]);
-  return { people: people.count ?? 0, companies: companies.count ?? 0, local: local.count ?? 0, jobs: jobs.count ?? 0 };
+  return {
+    people: people.count ?? 0, companies: companies.count ?? 0, local: local.count ?? 0, jobs: jobs.count ?? 0,
+    saved: (savedPeople.count ?? 0) + (savedCompanies.count ?? 0),
+  };
 }
 
 // ───────────────────────── Details ─────────────────────────

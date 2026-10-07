@@ -42,20 +42,24 @@ export function ProspectToolbar({ tab, campaigns, countries }: Props) {
         <Search aria-hidden="true" />
         <input className="form-input" value={form.q} onChange={(e) => set("q", e.target.value)} placeholder={pr.searchPlaceholder} aria-label={pr.searchPlaceholder} />
       </div>
-      <select className="form-select" aria-label={pr.filterCampaign} value={form.campaign} onChange={(e) => set("campaign", e.target.value, true)}>
-        <option value="">{pr.allCampaigns}</option>
-        {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <select className="form-select" aria-label={pr.filterLocation} value={form.country} onChange={(e) => set("country", e.target.value, true)}>
-        <option value="">{pr.allMarkets}</option>
-        {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
-      </select>
-      <select className="form-select" aria-label={pr.filterMatch} value={form.min} onChange={(e) => set("min", e.target.value, true)}>
-        <option value="">{pr.filterMatch}: {pr.any}</option>
-        <option value="70">70%+</option>
-        <option value="80">80%+</option>
-        <option value="90">90%+</option>
-      </select>
+      {tab !== "saved" && (
+        <>
+          <select className="form-select" aria-label={pr.filterCampaign} value={form.campaign} onChange={(e) => set("campaign", e.target.value, true)}>
+            <option value="">{pr.allCampaigns}</option>
+            {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select className="form-select" aria-label={pr.filterLocation} value={form.country} onChange={(e) => set("country", e.target.value, true)}>
+            <option value="">{pr.allMarkets}</option>
+            {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+          </select>
+          <select className="form-select" aria-label={pr.filterMatch} value={form.min} onChange={(e) => set("min", e.target.value, true)}>
+            <option value="">{pr.filterMatch}: {pr.any}</option>
+            <option value="70">70%+</option>
+            <option value="80">80%+</option>
+            <option value="90">90%+</option>
+          </select>
+        </>
+      )}
       {tab === "people" && (
         <label className="toolbar-check">
           <input type="checkbox" checked={form.verified === "1"} onChange={(e) => set("verified", e.target.checked ? "1" : "", true)} />
@@ -67,7 +71,7 @@ export function ProspectToolbar({ tab, campaigns, countries }: Props) {
       )}
       <select className="form-select" aria-label={pr.sortBy} value={form.sort || "match"} onChange={(e) => set("sort", e.target.value === "match" ? "" : e.target.value, true)}>
         <option value="match">{pr.sort.match}</option>
-        <option value="newest">{pr.sort.newest}</option>
+        <option value="newest">{tab === "saved" ? pr.colSavedAt : pr.sort.newest}</option>
         <option value="name">{pr.sort.name}</option>
       </select>
       <button className="btn-primary" type="submit">{pr.apply}</button>

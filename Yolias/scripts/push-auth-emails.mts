@@ -41,12 +41,12 @@ function section(name: string) {
 }
 
 const payload: Record<string, string | number | boolean> = {};
-for (const kind of ["magic_link", "confirmation", "invite", "email_change"]) {
+for (const kind of ["magic_link", "confirmation", "invite", "email_change", "recovery", "reauthentication"]) {
   const s = section(`auth.email.template.${kind}`);
   payload[`mailer_subjects_${kind}`] = s.subject!;
   payload[`mailer_templates_${kind}_content`] = s.content!;
 }
-for (const kind of ["email_changed", "mfa_factor_enrolled", "mfa_factor_unenrolled"]) {
+for (const kind of ["email_changed", "mfa_factor_enrolled", "mfa_factor_unenrolled", "password_changed"]) {
   const s = section(`auth.email.notification.${kind}`);
   payload[`mailer_notifications_${kind}_enabled`] = true;
   payload[`mailer_subjects_${kind}_notification`] = s.subject!;
@@ -68,7 +68,7 @@ if (env.RESEND_API_KEY) {
     rate_limit_email_sent: 30,
   });
 } else {
-  console.log("No RESEND_API_KEY: templates only (Supabase keeps sending to project members only).");
+  console.log("No RESEND_API_KEY: templates only (the project's SMTP settings stay as they are).");
 }
 
 const api = `https://api.supabase.com/v1/projects/${REF}/config/auth`;
@@ -76,6 +76,11 @@ const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application
 const current = await fetch(api, { headers });
 if (!current.ok) throw new Error(`Reading the auth settings failed: ${current.status} ${await current.text()}`);
 const now = (await current.json()) as Record<string, unknown>;
+
+// The templates build links as {{ .SiteURL }}/auth/confirm, so the Site URL is
+// the bare Yolias origin.
+const SITE = "https://www.yolias.com";
+if (now.site_url !== SITE) payload.site_url = SITE;
 
 // Redirect URLs (Authentication → URL Configuration): Yolias sign-in and the
 // published Admin's sign-in / password reset (D-150). Existing ones are kept.

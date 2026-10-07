@@ -3,17 +3,16 @@
 import { useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Download, Eye, Mail, Trash2, UsersRound, X } from "lucide-react";
+import { BookmarkMinus, ChevronLeft, ChevronRight, Download, Eye, Trash2, UsersRound, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { findDecisionMakersAction, peopleForActions, removeFromProspects, revealContacts, type Target } from "@/app/(app)/prospects/actions";
+import { findDecisionMakersAction, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
 import type { MessageChannel } from "@/types/database";
-import { LinkedInIcon } from "./ConnectorIcons";
 import type { GridPerson } from "./PeopleGrid";
-import { MessageComposer } from "./ProspectActions";
+import { ChannelIcon, MessageComposer, personRecipient } from "./ProspectActions";
 import type { ProspectTab } from "@/services/prospects";
 
 export interface TableRow {
@@ -93,8 +92,9 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
           <span className="bulk-actions">
             {tab === "people" && (
               <>
-                <button type="button" className="btn-primary" disabled={pending} onClick={() => message("email")}><Mail /> {t.outreach.email}</button>
-                <button type="button" className="btn-secondary" disabled={pending} onClick={() => message("linkedin")}><LinkedInIcon /> {t.outreach.linkedin}</button>
+                {(["email", "linkedin", "whatsapp", "facebook", "instagram"] as const).map((c, i) => (
+                  <button key={c} type="button" className={i === 0 ? "btn-primary" : "btn-secondary"} disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /> {t.outreach[c]}</button>
+                ))}
               </>
             )}
             <button type="button" className="btn-secondary" onClick={() => {
@@ -110,7 +110,13 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
                 return r.ok ? fmt(pr.findPeopleQueued, { count: n(r.queued) }) : null;
               })}><UsersRound /> {pr.findPeople}</button>
             )}
-            {tab !== "jobs" && (
+            {tab === "saved" && (
+              <button type="button" className="btn-danger-ghost" disabled={pending} onClick={() => run(async () => {
+                const r = await removeFromSaved(target());
+                return r.ok ? fmt(pr.removedSaved, { count: n(r.removed) }) : null;
+              })}><BookmarkMinus /> {pr.removeSaved}</button>
+            )}
+            {tab !== "jobs" && tab !== "saved" && (
               <button type="button" className="btn-danger-ghost" disabled={pending} onClick={() => run(async () => {
                 const r = await removeFromProspects(target(), tab);
                 return r.ok ? fmt(pr.removed, { count: n(r.removed) }) : null;
@@ -118,7 +124,7 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
             )}
             <button type="button" className="btn-secondary" onClick={clear}><X /> {pr.clearSelection}</button>
           </span>
-          {compose && <MessageComposer people={compose.people} channel={compose.channel} onClose={() => setCompose(null)} />}
+          {compose && <MessageComposer recipients={compose.people.map(personRecipient)} channel={compose.channel} onClose={() => setCompose(null)} />}
           <form ref={exportForm} method="post" action="/prospects/export" hidden>
             <input type="hidden" name="query" value={query} />
             {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}

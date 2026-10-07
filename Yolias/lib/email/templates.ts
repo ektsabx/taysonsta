@@ -3,9 +3,11 @@
 // Table-based inline-styled HTML so it renders in Gmail, Outlook and Apple Mail.
 //
 // Two kinds:
-// - Auth emails (magic link, confirmation, invite) are sent by Supabase Auth.
-//   They're written to supabase/templates/*.html by
-//   `npm run emails:build` with Go template placeholders, in both languages.
+// - Auth emails (sign-in link, confirmation, invite, email change, password
+//   reset, verification code, security notices) are sent by Supabase Auth.
+//   `npm run emails:build` writes them to supabase/templates/*.html (and their
+//   subjects to supabase/config.toml) with Go template placeholders, in
+//   English only (D-158); `npm run auth-emails:push` puts them on the project.
 // - Product emails (receipt, discovery ready, usage, plan ending) are rendered
 //   here and sent through Resend by lib/email/send.ts.
 // Preview all of them at /dev/emails (development only).
@@ -50,11 +52,6 @@ interface LayoutInput {
   footnote: string;
 }
 
-const footer: Record<EmailLocale, { sent: string; manage: string; company: string }> = {
-  en: { sent: "Yolias · AI customer discovery", manage: "Notification settings", company: "Built by Taysonsta" },
-  ar: { sent: "يولـياس · اكتشاف العملاء بالذكاء الاصطناعي", manage: "إعدادات الإشعارات", company: "من تطوير تايسونستا" },
-};
-
 const copyLink: Record<EmailLocale, string> = {
   en: "Or copy and paste this link into your browser:",
   ar: "أو انسخ هذا الرابط والصقه في متصفحك:",
@@ -65,7 +62,6 @@ export function layout(i: LayoutInput): string {
   const dir = rtl ? "rtl" : "ltr";
   const align = rtl ? "right" : "left";
   const font = rtl ? FONT_AR : FONT_EN;
-  const f = footer[i.locale];
   const button = i.button
     ? `<tr><td style="padding:8px 0 4px">
          <a href="${i.button.href}" style="display:inline-block;padding:11px 20px;background:${C.ink};color:#ffffff;border-radius:8px;font-family:${font};font-size:14px;font-weight:600;line-height:1.2;text-decoration:none">${esc(i.button.label)}</a>
@@ -105,11 +101,9 @@ export function layout(i: LayoutInput): string {
       <tr><td style="padding:28px 0 0;font-family:${font};font-size:13px;line-height:1.6;color:${C.muted}">${i.footnote}</td></tr>
       <tr><td style="padding:32px 0 0"><div style="border-top:1px solid ${C.line};height:1px;line-height:1px">&nbsp;</div></td></tr>
       <tr><td style="padding:16px 0 0;font-family:${font};font-size:12px;line-height:1.7;color:${C.faint}">
-        ${f.sent}<br>
-        <a href="${i.siteUrl}/" style="color:${C.faint};text-decoration:underline">yolias.ai</a> &nbsp;·&nbsp;
+        <a href="${i.siteUrl}/" style="color:${C.faint};text-decoration:underline">yolias.com</a> &nbsp;·&nbsp;
         <a href="${i.siteUrl}/legal/privacy" style="color:${C.faint};text-decoration:underline">${rtl ? "الخصوصية" : "Privacy"}</a> &nbsp;·&nbsp;
-        <a href="${i.siteUrl}/help-center" style="color:${C.faint};text-decoration:underline">${rtl ? "مركز المساعدة" : "Help Center"}</a><br>
-        ${f.company}
+        <a href="${i.siteUrl}/help-center" style="color:${C.faint};text-decoration:underline">${rtl ? "مركز المساعدة" : "Help Center"}</a>
       </td></tr>
     </table>
   </td></tr>
@@ -120,9 +114,11 @@ export function layout(i: LayoutInput): string {
 
 /* ───────────────────────── Auth emails (Supabase) ───────────────────────── */
 
-export type AuthTemplate = "magic_link" | "confirmation" | "invite" | "email_change";
+export type AuthTemplate = "magic_link" | "confirmation" | "invite" | "email_change" | "recovery" | "reauthentication";
 
-const authCopy: Record<AuthTemplate, Record<EmailLocale, { subject: string; heading: string; body: string; button: string; footnote: string; preheader: string }>> = {
+type AuthCopy = { subject: string; heading: string; body: string; button: string; footnote: string; preheader: string };
+
+const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
   magic_link: {
     en: {
       subject: "Your Yolias sign-in link",
@@ -195,6 +191,47 @@ const authCopy: Record<AuthTemplate, Record<EmailLocale, { subject: string; head
       footnote: "إذا لم تطلب ذلك، تجاهل هذه الرسالة — لن يتغير شيء.",
     },
   },
+  // Passwords exist only for Admin staff (customers sign in with a link).
+  recovery: {
+    en: {
+      subject: "Reset your Yolias password",
+      preheader: "Use this link to set a new password. It expires in 1 hour.",
+      heading: "Reset your password",
+      body: "We received a request to reset the password for your Yolias account. Click the button below to set a new one. The link expires in 1 hour and can only be used once.",
+      button: "Set a new password",
+      footnote: "If you didn’t ask for a password reset, you can safely ignore this email. Your password stays the same.",
+    },
+  },
+  reauthentication: {
+    en: {
+      subject: "Your Yolias verification code",
+      preheader: "Enter this code to confirm it’s you. It expires in 1 hour.",
+      heading: "Confirm it’s you",
+      body: "Enter this code in Yolias to confirm the change to your account. It expires in 1 hour.",
+      button: "",
+      footnote: "If you didn’t request this code, someone may be trying to change your account. You can ignore this email, and consider changing your password.",
+    },
+  },
+};
+
+/** Copy for Admin staff (user_metadata.role = "staff"), who sign in on the Admin, not Yolias. */
+const staffCopy: Partial<Record<AuthTemplate, AuthCopy>> = {
+  invite: {
+    subject: "You’ve been invited to the Yolias Admin",
+    preheader: "Set your password to sign in to the Yolias Admin.",
+    heading: "You’ve been invited to the Yolias Admin",
+    body: "An administrator created a Yolias Admin account for you. Set your password to sign in. The link expires in 24 hours and can only be used once.",
+    button: "Set your password",
+    footnote: "If you weren’t expecting this invitation, you can ignore this email.",
+  },
+  magic_link: {
+    subject: "Your Yolias Admin sign-in link",
+    preheader: "Use this link to set your password and sign in. It expires in 1 hour.",
+    heading: "Finish setting up your Yolias Admin account",
+    body: "Click the button below to set your password and sign in to the Yolias Admin. The link expires in 1 hour and can only be used once.",
+    button: "Set your password",
+    footnote: "If you weren’t expecting this email, you can safely ignore it.",
+  },
 };
 
 const authLink: Record<AuthTemplate, string> = {
@@ -202,25 +239,58 @@ const authLink: Record<AuthTemplate, string> = {
   confirmation: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email",
   invite: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite",
   email_change: "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change",
+  // The Admin passes its own /admin/reset-password page as the redirect.
+  recovery: "{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery",
+  reauthentication: "",
 };
 
-export function authEmail(name: AuthTemplate, locale: EmailLocale, siteUrl = "{{ .SiteURL }}", href = authLink[name]): RenderedEmail {
-  const c = authCopy[name][locale];
+/** Staff links open the Admin page the Admin passed as the redirect (it verifies the token there). */
+const staffLink: Partial<Record<AuthTemplate, string>> = {
+  invite: "{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite",
+  magic_link: "{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink",
+};
+
+function codeBlock(token: string) {
+  return `<div style="display:inline-block;padding:14px 22px;background:${C.soft};border:1px solid ${C.line};border-radius:8px;font-family:${FONT_EN};font-size:26px;font-weight:700;letter-spacing:.24em;color:${C.ink}" dir="ltr">${token}</div>`;
+}
+
+function renderAuth(c: AuthCopy, locale: EmailLocale, siteUrl: string, href: string, token?: string): RenderedEmail {
   return {
     subject: c.subject,
-    html: layout({ locale, siteUrl, preheader: c.preheader, heading: c.heading, body: [esc(c.body)], button: { label: c.button, href }, fallbackLink: true, footnote: esc(c.footnote) }),
+    html: layout({
+      locale, siteUrl, preheader: c.preheader, heading: c.heading, body: [esc(c.body)],
+      ...(token ? { extra: codeBlock(token) } : { button: { label: c.button, href }, fallbackLink: true }),
+      footnote: esc(c.footnote),
+    }),
   };
 }
 
-/** Supabase template: Arabic when the user's metadata says so, else English. */
-export function supabaseAuthTemplate(name: AuthTemplate): string {
-  const body = (l: EmailLocale) => authEmail(name, l).html;
-  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${body("ar")}{{ else }}${body("en")}{{ end }}{{ else }}${body("en")}{{ end }}\n`;
+export function authEmail(name: AuthTemplate, locale: EmailLocale, siteUrl = "{{ .SiteURL }}", href = authLink[name]): RenderedEmail {
+  const c = authCopy[name][locale] ?? authCopy[name].en;
+  return renderAuth(c, locale, siteUrl, href, name === "reauthentication" ? "{{ .Token }}" : undefined);
 }
 
-/** Subjects can't switch language in Supabase config, so they carry both. */
+/** The staff version of an auth email (Admin invitation / set-password link), or null. */
+export function staffAuthEmail(name: AuthTemplate, siteUrl = "{{ .SiteURL }}", href = staffLink[name]): RenderedEmail | null {
+  const c = staffCopy[name];
+  return c && href ? renderAuth(c, "en", siteUrl, href) : null;
+}
+
+/** Go-template switch on the user's metadata: staff → Admin version, everyone else → Yolias. */
+function byRole(staff: string, customer: string) {
+  return `{{ if .Data.role }}{{ if eq .Data.role "staff" }}${staff}{{ else }}${customer}{{ end }}{{ else }}${customer}{{ end }}`;
+}
+
+/** Supabase template (all auth emails are in English, D-158). */
+export function supabaseAuthTemplate(name: AuthTemplate): string {
+  const customer = authEmail(name, "en").html;
+  const staff = staffAuthEmail(name);
+  return `${staff ? byRole(staff.html, customer) : customer}\n`;
+}
+
 export function supabaseAuthSubject(name: AuthTemplate): string {
-  return `${authCopy[name].en.subject} · ${authCopy[name].ar.subject}`;
+  const staff = staffCopy[name];
+  return staff ? byRole(staff.subject, authCopy[name].en.subject) : authCopy[name].en.subject;
 }
 
 /** Sent by Supabase to the old address after an email change (no link to click). */
@@ -242,9 +312,11 @@ export function emailChangedNotice(locale: EmailLocale, siteUrl = "{{ .SiteURL }
   };
 }
 
-export type SecurityNotice = "mfa_factor_enrolled" | "mfa_factor_unenrolled";
+export type SecurityNotice = "mfa_factor_enrolled" | "mfa_factor_unenrolled" | "password_changed";
 
-const noticeCopy: Record<SecurityNotice, Record<EmailLocale, { subject: string; heading: string; body: string }>> = {
+type NoticeCopy = { subject: string; heading: string; body: string };
+
+const noticeCopy: Record<SecurityNotice, { en: NoticeCopy; ar?: NoticeCopy }> = {
   mfa_factor_enrolled: {
     en: { subject: "Two-factor authentication enabled", heading: "Two-factor authentication is on", body: "Two-factor authentication was turned on for your Yolias account. From now on, signing in needs a code from your authenticator app." },
     ar: { subject: "تم تفعيل المصادقة الثنائية", heading: "المصادقة الثنائية مفعّلة", body: "تم تفعيل المصادقة الثنائية لحسابك في يولـياس. من الآن يحتاج تسجيل الدخول إلى رمز من تطبيق المصادقة." },
@@ -253,10 +325,13 @@ const noticeCopy: Record<SecurityNotice, Record<EmailLocale, { subject: string; 
     en: { subject: "Two-factor authentication disabled", heading: "Two-factor authentication is off", body: "Two-factor authentication was turned off for your Yolias account. Signing in now needs only the link sent to your email." },
     ar: { subject: "تم إيقاف المصادقة الثنائية", heading: "المصادقة الثنائية متوقفة", body: "تم إيقاف المصادقة الثنائية لحسابك في يولـياس. يحتاج تسجيل الدخول الآن فقط إلى الرابط المرسل إلى بريدك." },
   },
+  password_changed: {
+    en: { subject: "Your Yolias password was changed", heading: "Your password was changed", body: "The password for your Yolias account was just changed. If this was you, there’s nothing else to do." },
+  },
 };
 
 export function securityNoticeEmail(name: SecurityNotice, locale: EmailLocale, siteUrl = "{{ .SiteURL }}"): RenderedEmail {
-  const c = noticeCopy[name][locale];
+  const c = noticeCopy[name][locale] ?? noticeCopy[name].en;
   const ar = locale === "ar";
   return {
     subject: c.subject,
@@ -270,15 +345,15 @@ export function securityNoticeEmail(name: SecurityNotice, locale: EmailLocale, s
 }
 
 export function supabaseSecurityNoticeTemplate(name: SecurityNotice): string {
-  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${securityNoticeEmail(name, "ar").html}{{ else }}${securityNoticeEmail(name, "en").html}{{ end }}{{ else }}${securityNoticeEmail(name, "en").html}{{ end }}\n`;
+  return `${securityNoticeEmail(name, "en").html}\n`;
 }
 
 export function supabaseNoticeSubject(name: SecurityNotice): string {
-  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${noticeCopy[name].ar.subject}{{ else }}${noticeCopy[name].en.subject}{{ end }}{{ else }}${noticeCopy[name].en.subject}{{ end }}`;
+  return noticeCopy[name].en.subject;
 }
 
 export function supabaseEmailChangedTemplate(): string {
-  return `{{ if .Data.locale }}{{ if eq .Data.locale "ar" }}${emailChangedNotice("ar").html}{{ else }}${emailChangedNotice("en").html}{{ end }}{{ else }}${emailChangedNotice("en").html}{{ end }}\n`;
+  return `${emailChangedNotice("en").html}\n`;
 }
 
 /* ───────────────────────── Product emails ───────────────────────── */

@@ -9,6 +9,7 @@ import * as control from "@/lib/discovery/campaign-control";
 import { enqueue } from "@/lib/jobs/queue";
 import { extractCompanyFacts, researchSummary } from "@/lib/ai/orchestrator";
 import { draftOutreach } from "@/lib/outreach";
+import { isMessageLanguage } from "@/lib/outreach/channels";
 import { hasActivePlan } from "@/lib/plans";
 import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
@@ -327,19 +328,27 @@ export const agentTools = [
   // ───────────── Outreach ─────────────
   define({
     name: "prepareOutreach",
-    description: "Write a personal email or LinkedIn connection note for a person. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app or on LinkedIn. Yolias never sends messages.",
+    description: "Write a message for a person: an email (subject + body), a LinkedIn connection note, or a WhatsApp / Facebook / Instagram message. Pick the goal (introduction, sales, meeting, follow_up, partnership, referral), the tone (direct by default, conservative or friendly) and the language (ISO code, e.g. en, ar, fr). Only verified facts are used. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app, WhatsApp, Messenger, Instagram or LinkedIn. Yolias never sends messages.",
     permission: "outreach.prepare",
-    input: z.object({ prospectId: uuid, channel: z.enum(["email", "linkedin"]).default("email"), instruction: z.string().trim().max(1000).optional(), language: z.enum(["en", "ar"]).optional() }),
+    input: z.object({
+      prospectId: uuid,
+      channel: z.enum(["email", "linkedin", "whatsapp", "facebook", "instagram"]).default("email"),
+      objective: z.enum(["introduction", "sales", "meeting", "follow_up", "partnership", "referral"]).default("introduction"),
+      tone: z.enum(["direct", "conservative", "friendly"]).default("direct"),
+      instruction: z.string().trim().max(1000).optional().describe("The reason for contacting, in the user's words"),
+      language: z.string().trim().max(3).optional(),
+    }),
     async run(ctx, input) {
       const { data: p } = await ctx.db.from("prospects").select("id, workspace_id").eq("id", input.prospectId).maybeSingle();
       if (!p || p.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such prospect in this workspace.");
       const r = await draftOutreach({
-        workspaceId: ctx.session.workspace.id, userId: ctx.session.userId, prospectId: p.id, channel: input.channel,
-        instruction: input.instruction ?? null, language: input.language ?? (ctx.session.profile.language === "ar" ? "ar" : "en"),
+        workspaceId: ctx.session.workspace.id, userId: ctx.session.userId, target: { kind: "person", id: p.id }, channel: input.channel,
+        instruction: input.instruction ?? null, language: isMessageLanguage(input.language) ? input.language : "en",
+        objective: input.objective, tone: input.tone,
       });
       if (!r.ok) return fail(r.error === "not_found" ? "not_found" : r.error === "not_configured" ? "not_connected" : "invalid", r.error);
       ctx.spend?.(r.message.cost_usd);
-      return ok({ draftId: r.message.id, channel: r.message.channel, subject: r.message.subject, body: r.message.body, status: "draft", openAt: `/prospects/person/${p.id}` });
+      return ok({ draftId: r.message.id, channel: r.message.channel, subject: r.message.subject, body: r.message.body, cta: r.message.cta, personalizationUsed: r.message.personalization, status: "draft", openAt: `/prospects/person/${p.id}` });
     },
   }),
 
