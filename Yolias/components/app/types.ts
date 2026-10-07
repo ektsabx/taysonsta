@@ -45,6 +45,6 @@ export interface ShellData {
   device: { label: string; ip: string | null };
 }
 
-export type SettingsTab = "general" | "account" | "organization" | "notifications" | "usage" | "billing" | "team";
+export type SettingsTab = "general" | "account" | "organization" | "notifications" | "usage" | "billing" | "team" | "integration";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";

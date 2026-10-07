@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, Building2, CreditCard, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, Building2, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { COUNTRIES, timeZoneChoices, timeZoneLabel } from "@/lib/regions";
@@ -10,6 +10,7 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
+import { GoogleSheetsIcon, HubSpotIcon } from "./ConnectorIcons";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
@@ -26,6 +27,7 @@ const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
   { tab: "team", icon: Users },
+  { tab: "integration", icon: Plug },
 ];
 
 interface Props {
@@ -72,6 +74,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
+            {tab === "integration" && <IntegrationTab />}
           </div>
         </div>
       </div>
@@ -831,6 +834,35 @@ function TeamTab({ data }: { data: ShellData }) {
         ))}
       </div>
       {error && <p className="form-error">{error}</p>}
+    </div>
+  );
+}
+
+/* ─────────────── Integrations ─────────────── */
+
+function IntegrationTab() {
+  const { t } = useI18n();
+  const it = t.settings.integration;
+  const connectors = [
+    { id: "sheets", name: "Google Sheets", desc: it.sheetsDesc, Icon: GoogleSheetsIcon },
+    { id: "hubspot", name: "HubSpot", desc: it.hubspotDesc, Icon: HubSpotIcon },
+  ];
+  return (
+    <div className="setting-group">
+      <p className="setting-intro">{it.intro}</p>
+      <div className="connector-list">
+        {connectors.map(({ id, name, desc, Icon }) => (
+          // Not connected yet: the button stays disabled until the integration exists.
+          <div className="connector" key={id}>
+            <div className="connector-icon"><Icon /></div>
+            <div className="connector-main">
+              <div className="connector-name">{name}</div>
+              <div className="connector-desc">{desc}</div>
+            </div>
+            <button className="btn-secondary" type="button" disabled>{it.connect}</button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

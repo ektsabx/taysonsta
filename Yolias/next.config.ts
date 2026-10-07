@@ -23,6 +23,21 @@ const nextConfig: NextConfig = {
     // Search requests can carry an ICP file or screenshot (max 4 MB each, see lib/attachments.ts).
     serverActions: { bodySizeLimit: "9mb" },
   },
+  poweredByHeader: false,
+  // Baseline security headers on every response. Framing is limited to
+  // Yolias itself (the support widget is served from /support-widget).
+  async headers() {
+    return [{
+      source: "/:path*",
+      headers: [
+        { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      ],
+    }];
+  },
   // Searches used to live at /strategies/<id>; keep old links working.
   async redirects() {
     return [
