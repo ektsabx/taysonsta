@@ -36,8 +36,9 @@ export async function getCampaignDashboard(id: string): Promise<CampaignDashboar
     db.from("campaign_events").select("*").eq("campaign_id", id).order("created_at", { ascending: false }).limit(100),
     db.rpc("campaign_usage", { p_campaign: id }),
     db.from("prospects").select("id", head).eq("campaign_id", id),
-    db.from("companies").select("id", head).eq("campaign_id", id).eq("kind", "company").not("delivered_at", "is", null),
-    db.from("companies").select("id", head).eq("campaign_id", id).eq("kind", "local_business").not("delivered_at", "is", null),
+    // Counted as they appear in Prospects (the campaign page links there, D-168).
+    db.from("companies").select("id", head).eq("campaign_id", id).eq("kind", "company").not("saved_at", "is", null),
+    db.from("companies").select("id", head).eq("campaign_id", id).eq("kind", "local_business").not("saved_at", "is", null),
     db.from("jobs").select("id", head).eq("campaign_id", id),
     db.from("prospects").select("id", head).eq("campaign_id", id).not("saved_at", "is", null),
     db.from("companies").select("id", head).eq("campaign_id", id).not("delivered_at", "is", null).not("saved_at", "is", null),
