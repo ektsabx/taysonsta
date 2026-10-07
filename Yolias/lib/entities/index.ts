@@ -155,8 +155,8 @@ export function provenanceFor(row: Record<string, unknown>, fields: string[], so
 /** All the fields a provider may have filled for this entity, for provenance. */
 export const provenanceFields: Record<EntityKind, string[]> = {
   person: ["full_name", ...expectedFields.person, "facebook_url", "instagram_url", "whatsapp"],
-  company: ["name", ...expectedFields.company, "funding_stage", "hiring_roles"],
-  local_business: ["name", ...expectedFields.local_business, "reviews_count", "country"],
+  company: ["name", ...expectedFields.company, "funding_stage", "hiring_roles", "phone", "email"],
+  local_business: ["name", ...expectedFields.local_business, "reviews_count", "country", "email"],
   job: ["title", ...expectedFields.job],
 };
 

@@ -34,6 +34,8 @@ export interface CompanyCandidate {
   facebookUrl?: string | null;
   instagramUrl?: string | null;
   whatsapp?: string | null;
+  /** Public inbox (info@, sales@ …) the business publishes on its own website (D-163). */
+  email?: string | null;
   mapsUrl?: string | null;
   /** The provider's own confidence in the record (0–1), when it gives one. */
   confidence?: number | null;

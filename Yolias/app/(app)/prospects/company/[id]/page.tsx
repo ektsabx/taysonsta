@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Building2, CalendarDays, ExternalLink, FileText, Globe, MapPin, Phone, Star, Tag, Users } from "lucide-react";
+import { ArrowLeft, Building2, CalendarDays, ExternalLink, FileText, Globe, Mail, MapPin, Phone, Star, Tag, Users } from "lucide-react";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
-import { PeopleStatus } from "@/components/app/EntityTable";
+import { PeopleStatus } from "@/components/app/ProspectBits";
 import { CompanyLogo } from "@/components/app/Media";
 import { PeopleGrid } from "@/components/app/PeopleGrid";
 import { CollectButton, SaveButton } from "@/components/app/ResultActions";
@@ -48,6 +48,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const back = c.campaign?.strategy_id ? `/search/${c.campaign.strategy_id}/results` : `/prospects?tab=${local ? "local" : "companies"}`;
 
   const csv = t.prospects.csv;
+  const email = { icon: <Mail />, label: csv.email, ltr: true, value: c.email && <a className="entity-link" href={`mailto:${c.email}`}>{c.email}</a> };
   const socials = [
     { icon: <WhatsAppIcon />, label: csv.whatsapp, ltr: true, value: c.whatsapp },
     { icon: <FacebookIcon />, label: csv.facebook, ltr: true, value: c.facebook_url && <a className="entity-link" href={c.facebook_url} target="_blank" rel="noreferrer">{bare(c.facebook_url)} <ExternalLink /></a> },
@@ -55,13 +56,14 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   ];
   const recipient: MessageRecipient = {
     kind: "company", id: c.id, name: c.name, title: local ? c.category : c.industry, company: null, photoUrl: null, logo: { logoUrl: c.logo_url, domain: c.domain },
-    can: { email: false, linkedin: false, whatsapp: Boolean(whatsappDigits(c.whatsapp ?? c.phone)), facebook: Boolean(c.facebook_url), instagram: Boolean(c.instagram_url) },
+    can: { email: Boolean(c.email), linkedin: false, whatsapp: Boolean(whatsappDigits(c.whatsapp ?? c.phone)), facebook: Boolean(c.facebook_url), instagram: Boolean(c.instagram_url) },
   };
   const info: { icon: React.ReactNode; label: string; value: React.ReactNode; ltr?: boolean }[] = local
     ? [
       { icon: <Tag />, label: r.category, value: c.category },
       { icon: <MapPin />, label: r.address, value: c.address ?? place },
       { icon: <Phone />, label: r.phone, value: c.phone && <span dir="ltr">{c.phone}</span> },
+      email,
       { icon: <Globe />, label: r.website, ltr: true, value: site && <a className="entity-link" href={href(site)} target="_blank" rel="noreferrer">{bare(site)} <ExternalLink /></a> },
       { icon: <Star />, label: r.rating, value: c.rating != null ? `${c.rating} ★${c.reviews_count != null ? ` (${n(c.reviews_count)})` : ""}` : null },
       { icon: <MapPin />, label: t.prospects.csv.mapsUrl, value: c.maps_url && <a className="entity-link" href={c.maps_url} target="_blank" rel="noreferrer">{t.prospects.csv.mapsUrl} <ExternalLink /></a> },
@@ -71,6 +73,8 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
       { icon: <Building2 />, label: r.industry, value: c.industry },
       { icon: <MapPin />, label: r.location, value: place },
       { icon: <Globe />, label: r.website, ltr: true, value: site && <a className="entity-link" href={href(site)} target="_blank" rel="noreferrer">{bare(site)} <ExternalLink /></a> },
+      email,
+      { icon: <Phone />, label: r.phone, value: c.phone && <span dir="ltr">{c.phone}</span> },
       { icon: <LinkedInIcon />, label: r.linkedin, ltr: true, value: c.linkedin_url && <a className="entity-link" href={c.linkedin_url} target="_blank" rel="noreferrer">{bare(c.linkedin_url)} <ExternalLink /></a> },
       { icon: <Users />, label: r.size, value: size },
       { icon: <CalendarDays />, label: r.founded, value: c.founded_year },

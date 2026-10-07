@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { parseFilters, selectEntities, type ProspectFilters } from "@/services/prospects";
 
 // CSV export of a Prospects tab (final spec phase 5). GET = every row
@@ -39,7 +40,7 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
       ? [h.types.person, i.row.full_name, i.row.title, i.row.company?.name, i.row.city ?? i.row.company?.city, i.row.country ?? i.row.company?.country,
         i.row.email_status === "invalid" ? "" : i.row.email, i.row.phone, i.row.company?.domain, i.row.linkedin_url, ...socialOf(i.row), i.row.campaign?.name, ...intelOf(i.row)]
       : [h.types[i.kind], i.row.name, i.kind === "local_business" ? i.row.category : i.row.industry, "", i.row.city, i.row.country,
-        "", i.row.phone, i.row.website ?? i.row.domain, i.row.linkedin_url, ...socialOf(i.row), i.row.campaign?.name, ...intelOf(i.row)]);
+        i.row.email, i.row.phone, i.row.website ?? i.row.domain, i.row.linkedin_url, ...socialOf(i.row), i.row.campaign?.name, ...intelOf(i.row)]);
     people = page.rows.flatMap((i) => (i.kind === "person" ? [i.row] : []));
   } else if (page.tab === "people") {
     header = [h.name, h.title, h.company, h.employees, h.city, h.country, h.campaign, h.email, h.emailStatus, h.phone, h.linkedin, ...social, ...intel];
@@ -52,11 +53,11 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
     header = [h.title, h.department, h.company, h.city, h.country, h.postedAt, h.url, h.campaign, ...intel];
     lines = page.rows.map((j) => [j.title, j.department, j.company?.name, j.city, j.country, j.posted_at, j.url, j.campaign?.name, ...intelOf(j)]);
   } else if (page.tab === "local") {
-    header = [h.name, h.category, h.address, h.city, h.country, h.phone, h.domain, h.rating, h.reviews, h.mapsUrl, ...social, h.campaign, ...intel];
-    lines = page.rows.map((c) => [c.name, c.category, c.address, c.city, c.country, c.phone, c.website ?? c.domain, c.rating, c.reviews_count, c.maps_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
+    header = [h.name, h.category, h.address, h.city, h.country, h.email, h.phone, h.domain, h.rating, h.reviews, h.mapsUrl, ...social, h.campaign, ...intel];
+    lines = page.rows.map((c) => [c.name, c.category, c.address, c.city, c.country, c.email, c.phone, c.website ?? c.domain, c.rating, c.reviews_count, c.maps_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   } else {
-    header = [h.name, h.domain, h.industry, h.employees, h.city, h.country, h.linkedin, ...social, h.campaign, ...intel];
-    lines = page.rows.map((c) => [c.name, c.domain, c.industry, c.employee_count, c.city, c.country, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
+    header = [h.name, h.domain, h.industry, h.employees, h.city, h.country, h.email, h.phone, h.linkedin, ...social, h.campaign, ...intel];
+    lines = page.rows.map((c) => [c.name, c.domain, c.industry, c.employee_count, c.city, c.country, c.email, c.phone, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   }
   {
     const unrevealed = people.filter((p) => !p.revealed_at).map((p) => p.id);
@@ -65,6 +66,9 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
       await db.from("prospects").update({ revealed_at: new Date().toISOString(), revealed_by: session.userId }).eq("workspace_id", session.workspace.id).in("id", unrevealed).is("revealed_at", null);
     }
   }
+
+  // Counted for Analytics → user activity (D-162).
+  await createAdminClient().from("workspace_activity").insert({ workspace_id: session.workspace.id, user_id: session.userId, kind: "export", format: "csv", source: filters.tab, rows: lines.length });
 
   const csv = "﻿" + [header.map(csvCell).join(","), ...lines.map((l) => l.map(csvCell).join(","))].join("\r\n");
   const date = new Date().toISOString().slice(0, 10);

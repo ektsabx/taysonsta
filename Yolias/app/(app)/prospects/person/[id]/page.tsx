@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Building2, ExternalLink, Globe, Mail, MapPin, MessageSquare, Phone, Search, UserRound, Users } from "lucide-react";
-import { ContactCell } from "@/components/app/EntityTable";
+import { ContactCell } from "@/components/app/ProspectBits";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { CompanyLogo, PersonAvatar } from "@/components/app/Media";
 import { ProspectActionButtons } from "@/components/app/ProspectActions";

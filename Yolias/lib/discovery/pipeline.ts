@@ -208,11 +208,13 @@ function companyFields(c: CompanyCandidate) {
     name: c.name, domain: c.domain, industry: c.industry, description: c.description, city: c.city, country: c.country,
     employee_count: c.employeeCount, funding_stage: c.fundingStage, hiring_roles: c.hiringRoles,
     category: c.category ?? null, address: c.address ?? null, phone: c.phone ?? null, website: c.website ?? null,
+    email: publicEmail(c.email),
     rating: c.rating ?? null, reviews_count: c.reviewsCount ?? null,
     ...socialFields(c),
   };
 }
 
+const publicEmail = (e: string | null | undefined) => (e && e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) ? e.toLowerCase() : null);
 const httpsOnly = (u: string | null | undefined) => (u && /^https:\/\//i.test(u) ? u.slice(0, 1000) : null);
 const year = (y: number | null | undefined) => (y && Number.isInteger(y) && y >= 1800 && y <= 2100 ? y : null);
 
@@ -232,15 +234,18 @@ function socialFields(c: { facebookUrl?: string | null; instagramUrl?: string | 
 }
 
 /**
- * Fills a company's missing social profiles from the links on its own
- * website (no provider, no cost); the source stays the website.
+ * Fills a company's missing social profiles, public email and phone from
+ * its own website (D-161, D-163; no provider, no cost); the source stays the website.
  */
 async function withSocials(c: CompanyCandidate): Promise<CompanyCandidate> {
-  if (c.facebookUrl && c.instagramUrl && c.whatsapp) return c;
+  if (c.facebookUrl && c.instagramUrl && c.whatsapp && c.email && c.phone) return c;
   const site = c.website ?? c.domain;
   if (!site) return c;
   const found = await findSocials(site);
-  const next = { ...c, facebookUrl: c.facebookUrl ?? found.facebookUrl, instagramUrl: c.instagramUrl ?? found.instagramUrl, whatsapp: c.whatsapp ?? found.whatsapp };
+  const next = {
+    ...c, facebookUrl: c.facebookUrl ?? found.facebookUrl, instagramUrl: c.instagramUrl ?? found.instagramUrl, whatsapp: c.whatsapp ?? found.whatsapp,
+    email: c.email ?? found.email, phone: c.phone ?? found.phone,
+  };
   const o = origin.get(c);
   if (o) origin.set(next, o);
   const id = intelIds.get(c);
@@ -268,7 +273,7 @@ async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, 
     hiring_roles: c.hiringRoles, signals: c.signals, source: sourceOf(c), source_ref: c.sourceRef,
     category: fields.category, address: fields.address, phone: fields.phone, website: fields.website,
     rating: fields.rating, reviews_count: fields.reviews_count, place_ref: c.placeRef ?? null, maps_url: c.mapsUrl ?? null,
-    facebook_url: fields.facebook_url, instagram_url: fields.instagram_url, whatsapp: fields.whatsapp,
+    facebook_url: fields.facebook_url, instagram_url: fields.instagram_url, whatsapp: fields.whatsapp, email: fields.email,
     ...companyMedia(c),
     intel_company_id: intelIds.get(c) ?? null,
     delivered_at: delivered ? new Date().toISOString() : null,

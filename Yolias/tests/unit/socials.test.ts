@@ -14,14 +14,30 @@ test("a website's own social links are read; share buttons and posts are not", (
     facebookUrl: "https://www.facebook.com/AcmeBakery",
     instagramUrl: "https://www.instagram.com/acme.bakery",
     whatsapp: "201001234567",
+    email: null,
+    phone: null,
   });
 });
 
 test("wa.me links and numeric Facebook profiles are understood; nothing is guessed", () => {
   assert.deepEqual(socialsFromHtml(`<a href="https://wa.me/966500000001">chat</a><a href="https://www.facebook.com/profile.php?id=1000123">fb</a>`, "https://x.example"), {
-    facebookUrl: "https://www.facebook.com/profile.php?id=1000123", instagramUrl: null, whatsapp: "966500000001",
+    facebookUrl: "https://www.facebook.com/profile.php?id=1000123", instagramUrl: null, whatsapp: "966500000001", email: null, phone: null,
   });
-  assert.deepEqual(socialsFromHtml(`<p>Call +20 100 000 0000</p><a href="/contact">Contact</a>`, "https://x.example"), { facebookUrl: null, instagramUrl: null, whatsapp: null });
+  assert.deepEqual(socialsFromHtml(`<p>Call +20 100 000 0000</p><a href="/contact">Contact</a>`, "https://x.example"), { facebookUrl: null, instagramUrl: null, whatsapp: null, email: null, phone: null });
+});
+
+test("the site's own public inbox and phone are read (D-163); placeholders are not", () => {
+  const html = `
+    <a href="mailto:noreply@acme.example">x</a>
+    <a href="mailto:Ahmed@acme.example?subject=hi">Ahmed</a>
+    <a href="mailto:info@acme.example">Email us</a>
+    <a href="mailto:user@domain.com">template</a>
+    <a href="tel:+20 2 1234 5678">Call</a>`;
+  const s = socialsFromHtml(html, "https://acme.example");
+  assert.equal(s.email, "info@acme.example");
+  assert.equal(s.phone, "+20212345678");
+  assert.equal(socialsFromHtml(`<a href="mailto:ahmed@acme.example">a</a>`, "https://acme.example").email, "ahmed@acme.example");
+  assert.equal(socialsFromHtml(`<p>info@acme.example</p><a href="mailto:test@acme.example">t</a>`, "https://acme.example").email, null);
 });
 
 test("conversation links open the member's own app", () => {

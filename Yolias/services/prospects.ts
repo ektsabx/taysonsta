@@ -16,7 +16,8 @@ export type ProspectTab = (typeof prospectTabs)[number];
 export const visibleTabs = ["people", "companies", "local", "saved"] as const;
 export const sorts = ["match", "newest", "name"] as const;
 export type ProspectSort = (typeof sorts)[number];
-export const PAGE_SIZE = 50;
+/** Cards per page (fills 2, 3 or 4 columns evenly). */
+export const PAGE_SIZE = 48;
 
 export interface ProspectFilters {
   tab: ProspectTab;
@@ -213,6 +214,19 @@ export async function tabCounts(workspaceId: string): Promise<Record<ProspectTab
     people: people.count ?? 0, companies: companies.count ?? 0, local: local.count ?? 0, jobs: jobs.count ?? 0,
     saved: (savedPeople.count ?? 0) + (savedCompanies.count ?? 0),
   };
+}
+
+/** The decision makers already found at these companies (faces on their cards). */
+export async function peopleByCompany(companyIds: string[]): Promise<Map<string, { full_name: string; photo_url: string | null }[]>> {
+  const map = new Map<string, { full_name: string; photo_url: string | null }[]>();
+  if (!companyIds.length) return map;
+  const db = await createClient();
+  const { data } = await db.from("prospects").select("company_id, full_name, photo_url").in("company_id", companyIds).order("match_score", { ascending: false, nullsFirst: false }).limit(1000);
+  for (const p of data ?? []) {
+    if (!p.company_id) continue;
+    map.set(p.company_id, [...(map.get(p.company_id) ?? []), { full_name: p.full_name, photo_url: p.photo_url }]);
+  }
+  return map;
 }
 
 // ───────────────────────── Details ─────────────────────────

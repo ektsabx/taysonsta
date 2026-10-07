@@ -98,7 +98,7 @@ export interface DraftInput {
 export type DraftError = "not_found" | "no_email" | "no_linkedin" | "no_whatsapp" | "no_facebook" | "no_instagram" | "suppressed" | "not_configured" | "failed";
 export type DraftResult = { ok: true; message: OutreachMessageRow } | { ok: false; error: DraftError };
 
-const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, whatsapp, facebook_url, instagram_url";
+const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, email, whatsapp, facebook_url, instagram_url";
 
 type Loaded = {
   campaignId: string | null;
@@ -136,15 +136,17 @@ export async function loadTarget(workspaceId: string, target: MessageTarget, cha
   }
   const { data: c } = await db.from("companies").select(companyColumns).eq("id", target.id).eq("workspace_id", workspaceId).maybeSingle();
   if (!c) return { ok: false, error: "not_found" };
-  if (channel === "email" || channel === "linkedin") return { ok: false, error: channel === "email" ? "no_email" : "no_linkedin" };
+  // A company is emailed at the public inbox from its own website (D-163); it has no LinkedIn messages.
+  if (channel === "email" && !c.email) return { ok: false, error: "no_email" };
+  if (channel === "linkedin") return { ok: false, error: "no_linkedin" };
   if (channel === "whatsapp" && !whatsappDigits(c.whatsapp ?? c.phone)) return { ok: false, error: "no_whatsapp" };
   if (channel === "facebook" && !c.facebook_url) return { ok: false, error: "no_facebook" };
   if (channel === "instagram" && !c.instagram_url) return { ok: false, error: "no_instagram" };
-  if (await isSuppressed({ domain: c.domain ?? c.website })) return { ok: false, error: "suppressed" };
+  if (await isSuppressed({ domain: c.domain ?? c.website, email: c.email })) return { ok: false, error: "suppressed" };
   return {
     ok: true,
     data: {
-      campaignId: c.campaign_id, prospectId: null, companyId: c.id, toEmail: null,
+      campaignId: c.campaign_id, prospectId: null, companyId: c.id, toEmail: channel === "email" ? c.email : null,
       facts: {
         prospect_company: clean({
           name: c.name, kind: c.kind === "local_business" ? "local business" : "company", website: c.website ?? c.domain, industry: c.industry, category: c.category,

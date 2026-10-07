@@ -1,17 +1,24 @@
 import "server-only";
 
-// Facebook page, Instagram account and WhatsApp number of a company or local
-// business, read from the links on its own website's home page (D-161).
-// Only what the site itself links to; nothing is guessed. One request, short
-// timeout, public hosts only; any failure just means "not found".
+// Facebook page, Instagram account, WhatsApp number, public email and phone
+// of a company or local business, read from the links on its own website
+// (D-161, D-163): the home page, and its contact page when the home page has
+// no email. Only what the site itself links to; nothing is guessed. Short
+// timeouts, public hosts only; any failure just means "not found".
 
 export interface Socials {
   facebookUrl: string | null;
   instagramUrl: string | null;
   whatsapp: string | null;
+  email: string | null;
+  phone: string | null;
 }
 
-const NONE: Socials = { facebookUrl: null, instagramUrl: null, whatsapp: null };
+const NONE: Socials = { facebookUrl: null, instagramUrl: null, whatsapp: null, email: null, phone: null };
+const EMAIL = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+// Placeholder and service addresses that aren't the business's own inbox.
+const NOT_CONTACT = /^(noreply|no-reply|donotreply|example|test|email|user|name|you|your)@|@(example\.|sentry|wixpress|domain\.)/i;
+const PREFERRED = /^(info|contact|hello|sales|support|office|admin|enquiries|inquiries)@/i;
 const MAX_HTML = 1_500_000;
 const FB_SKIP = new Set(["sharer", "sharer.php", "share", "share.php", "dialog", "plugins", "tr", "login", "login.php", "groups", "events", "watch", "photo", "photo.php", "story.php", "hashtag", "help", "policies", "privacy", "legal", "business", "ads", "pages", "home.php", "l.php"]);
 const IG_SKIP = new Set(["p", "reel", "reels", "explore", "accounts", "stories", "tv", "direct", "about", "legal", "developer"]);
@@ -31,8 +38,19 @@ function publicUrl(site: string): URL | null {
 
 export function socialsFromHtml(html: string, base: string): Socials {
   const out: Socials = { ...NONE };
+  const emails: string[] = [];
   for (const m of html.matchAll(/href\s*=\s*["']([^"'<>]{4,500})["']/gi)) {
     const raw = m[1].trim().replace(/&amp;/g, "&");
+    if (/^mailto:/i.test(raw)) {
+      const e = decodeURIComponent(raw.slice(7).split("?")[0]).trim().toLowerCase();
+      if (EMAIL.test(e) && !NOT_CONTACT.test(e) && e.length <= 254) emails.push(e);
+      continue;
+    }
+    if (/^tel:/i.test(raw)) {
+      const t = decodeURIComponent(raw.slice(4)).replace(/[^\d+]/g, "");
+      if (!out.phone && t.replace(/\D/g, "").length >= 6 && t.length <= 20) out.phone = t;
+      continue;
+    }
     if (!out.whatsapp && /^whatsapp:/i.test(raw)) {
       const n = new URLSearchParams(raw.split("?")[1] ?? "").get("phone")?.replace(/\D/g, "");
       if (n && n.length >= 6 && n.length <= 20) out.whatsapp = n;
@@ -56,25 +74,53 @@ export function socialsFromHtml(html: string, base: string): Socials {
       const n = (host === "wa.me" ? seg[0] : u.searchParams.get("phone"))?.replace(/\D/g, "");
       if (n && n.length >= 6 && n.length <= 20) out.whatsapp = n;
     }
-    if (out.facebookUrl && out.instagramUrl && out.whatsapp) break;
   }
+  out.email = emails.find((e) => PREFERRED.test(e)) ?? emails[0] ?? null;
   return out;
 }
 
-/** The social profiles a company's website links to. */
-export async function findSocials(website: string | null | undefined): Promise<Socials> {
-  const url = website ? publicUrl(website) : null;
-  if (!url) return NONE;
+/** The site's contact page, if the home page links to one. */
+function contactPage(html: string, base: string): string | null {
+  for (const m of html.matchAll(/href\s*=\s*["']([^"'<>]{1,300})["']/gi)) {
+    if (!/contact|اتصل|تواصل/i.test(m[1])) continue;
+    try {
+      const u = new URL(m[1].trim(), base);
+      if (u.hostname === new URL(base).hostname && /^https?:$/.test(u.protocol)) return u.toString();
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+async function page(url: string | URL): Promise<{ html: string; url: string } | null> {
   try {
     const res = await fetch(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(5000),
       headers: { "User-Agent": "Mozilla/5.0 (compatible; YoliasBot/1.0; +https://www.yolias.com)", Accept: "text/html" },
     });
-    if (!res.ok || !/text\/html/i.test(res.headers.get("content-type") ?? "")) return NONE;
-    const html = (await res.text()).slice(0, MAX_HTML);
-    return socialsFromHtml(html, res.url || url.toString());
+    if (!res.ok || !/text\/html/i.test(res.headers.get("content-type") ?? "")) return null;
+    return { html: (await res.text()).slice(0, MAX_HTML), url: res.url || url.toString() };
   } catch {
-    return NONE;
+    return null;
   }
+}
+
+/** The social profiles and public contact details a company's website links to. */
+export async function findSocials(website: string | null | undefined): Promise<Socials> {
+  const url = website ? publicUrl(website) : null;
+  if (!url) return NONE;
+  const home = await page(url);
+  if (!home) return NONE;
+  const found = socialsFromHtml(home.html, home.url);
+  if (found.email && found.phone) return found;
+  const contact = contactPage(home.html, home.url);
+  const more = contact ? await page(contact) : null;
+  if (!more) return found;
+  const extra = socialsFromHtml(more.html, more.url);
+  return {
+    facebookUrl: found.facebookUrl ?? extra.facebookUrl, instagramUrl: found.instagramUrl ?? extra.instagramUrl, whatsapp: found.whatsapp ?? extra.whatsapp,
+    email: found.email ?? extra.email, phone: found.phone ?? extra.phone,
+  };
 }

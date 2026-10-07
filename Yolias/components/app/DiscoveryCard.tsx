@@ -12,7 +12,7 @@ import { ArrowRight } from "lucide-react";
 import { CompanyLogo, PersonAvatar } from "./Media";
 import { BuyMoreProspectsButton, RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
-import { ContactCell } from "./EntityTable";
+import { ContactCell } from "./ProspectBits";
 import { maskEmail, maskPhone } from "@/services/prospects";
 
 // Renders a campaign event in the reader's language when it carries a

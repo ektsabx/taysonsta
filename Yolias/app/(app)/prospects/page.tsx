@@ -2,24 +2,26 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Bookmark, Download } from "lucide-react";
-import { ChannelBadges } from "@/components/app/ChannelBadges";
-import { ContactCell, EntityTable, PeopleStatus, type TableRow } from "@/components/app/EntityTable";
+import { ProspectGrid, type GridItem } from "@/components/app/ProspectGrid";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
-import { countryLabel, formatDate, formatNumber, location } from "@/lib/format";
-import { fmt } from "@/lib/i18n/config";
+import { countryLabel, formatNumber } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { cardCompany, gridPerson } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { listCampaigns } from "@/services/campaigns";
-import { filterQuery, listEntities, maskEmail, maskPhone, PAGE_SIZE, parseFilters, savedKey, visibleTabs, tabCounts } from "@/services/prospects";
+import { filterQuery, listEntities, PAGE_SIZE, parseFilters, peopleByCompany, savedKey, visibleTabs, tabCounts } from "@/services/prospects";
+import type { CompanyRow, ProspectRow } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.prospects} — Yolias` };
 }
 
 // Prospects workspace (final spec phase 5): People, Companies, Local
-// Businesses and Saved (D-159) tabs; search, filters and sort in the URL; selection
-// (also "all matching" across pages), CSV export, contact reveal and
-// decision-maker matching. Contacts reach the browser only once revealed.
+// Businesses and Saved (D-159) tabs, all as the same cards as the search
+// results (owner's reference design); search, filters and sort in the URL;
+// selection (also "all matching" across pages), CSV export, contact reveal,
+// messages and decision-maker matching. Contacts reach the browser only once
+// revealed.
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
   const session = await requireSession();
   const filters = parseFilters(await searchParams);
@@ -30,82 +32,20 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     .map((code) => ({ code, name: countryLabel(code, locale) }));
   const filtered = Boolean(filters.q || filters.campaign || filters.country || filters.minMatch || filters.verified || filters.city);
   const n = (v: number) => formatNumber(v, locale);
-  const match = (v: number | null) => (v != null ? <span className={v >= 70 ? "match-good" : undefined}>{v}%</span> : "—");
 
-  let columns: string[];
-  let rows: TableRow[];
-  if (page.tab === "saved") {
-    columns = [pr.colName, pr.colType, pr.colLocation, pr.colMatch, pr.colSavedAt];
-    rows = page.rows.map((i) => {
-      const person = i.kind === "person";
-      const name = person ? i.row.full_name : i.row.name;
-      const sub = person ? [i.row.title, i.row.company?.name].filter(Boolean).join(" · ") : (i.row.domain ?? i.row.website);
-      return {
-        id: savedKey(i),
-        label: name,
-        cells: [
-          <Link key="n" href={person ? `/prospects/person/${i.row.id}` : `/prospects/company/${i.row.id}`} className="entity-link">
-            <strong>{name}</strong>{sub && <span className="cell-sub" dir={person ? undefined : "ltr"}>{sub}</span>}
-          </Link>,
-          <span key="t" className="chip">{pr.csv.types[i.kind]}</span>,
-          (person ? location(i.row.city ?? i.row.company?.city, i.row.country ?? i.row.company?.country, locale) : location(i.row.city, i.row.country, locale)) || "—",
-          match(i.row.match_score),
-          i.row.bookmarked_at ? formatDate(i.row.bookmarked_at, locale, session.profile.timezone) : "—",
-        ],
-      };
-    });
-  } else if (page.tab === "people") {
-    columns = [pr.colMaker, pr.colCompany, pr.colLocation, pr.colContact, pr.colCampaign, pr.colMatch];
-    rows = page.rows.map((p) => ({
-      id: p.id,
-      label: p.full_name,
-      cells: [
-        <Link key="n" href={`/prospects/person/${p.id}`} className="entity-link"><strong>{p.full_name}</strong>{p.title && <span className="cell-sub">{p.title}</span>}</Link>,
-        <span key="c" className="cell-stack">{p.company?.name ?? "—"}{p.company?.employee_count != null && <span className="cell-sub">{fmt(pr.employees, { count: n(p.company.employee_count) })}</span>}</span>,
-        location(p.city ?? p.company?.city, p.country ?? p.company?.country, locale) || "—",
-        p.revealed_at
-          ? <ChannelBadges key="ch" prospect={p} />
-          : <ContactCell key="ch" id={p.id} masked={{ email: p.email && p.email_status !== "invalid" ? maskEmail(p.email) : null, phone: p.phone ? maskPhone(p.phone) : null, verified: p.email_status === "verified" }} linkedin={p.linkedin_url} />,
-        p.campaign?.name ?? "—",
-        match(p.match_score),
-      ],
-    }));
-  } else if (page.tab === "jobs") {
-    columns = [pr.colJob, pr.colCompany, pr.colLocation, pr.colPosted, pr.colCampaign, pr.colMatch];
-    rows = page.rows.map((j) => ({
-      id: j.id,
-      label: j.title,
-      cells: [
-        j.url ? <a key="t" href={j.url} target="_blank" rel="noreferrer" className="entity-link"><strong>{j.title}</strong>{j.department && <span className="cell-sub">{j.department}</span>}</a> : <strong key="t">{j.title}</strong>,
-        j.company ? <Link key="c" href={`/prospects/company/${j.company.id}`} className="entity-link">{j.company.name}</Link> : "—",
-        location(j.city, j.country, locale) || "—",
-        j.posted_at ? formatDate(j.posted_at, locale, session.profile.timezone) : "—",
-        j.campaign?.name ?? "—",
-        match(j.match_score),
-      ],
-    }));
-  } else {
-    const local = page.tab === "local";
-    columns = local
-      ? [pr.colName, pr.colCategory, pr.colAddress, pr.colRating, pr.colPeople, pr.colMatch]
-      : [pr.colName, pr.colIndustry, pr.colLocation, pr.colPeople, pr.colCampaign, pr.colMatch];
-    rows = page.rows.map((c) => {
-      const name = (
-        <Link key="n" href={`/prospects/company/${c.id}`} className="entity-link">
-          <strong>{c.name}</strong>
-          {(c.domain || c.website) && <span className="cell-sub" dir="ltr">{c.domain ?? c.website}</span>}
-        </Link>
-      );
-      const people = <PeopleStatus key="p" status={c.people_status} found={c.people_found} requested={Boolean(c.people_requested_at)} />;
-      return {
-        id: c.id,
-        label: c.name,
-        cells: local
-          ? [name, c.category ?? "—", c.address ?? location(c.city, c.country, locale) ?? "—", c.rating != null ? `${c.rating} ★${c.reviews_count != null ? ` (${n(c.reviews_count)})` : ""}` : "—", people, match(c.match_score)]
-          : [name, <span key="i" className="cell-stack">{c.industry ?? "—"}{c.employee_count != null && <span className="cell-sub">{fmt(pr.employees, { count: n(c.employee_count) })}</span>}</span>, location(c.city, c.country, locale) || "—", people, c.campaign?.name ?? "—", match(c.match_score)],
-      };
-    });
-  }
+  const person = (p: ProspectRow & { company: { id: string; name: string } | null }, key = p.id): GridItem =>
+    ({ key, kind: "person", person: gridPerson(p, p.company_id && p.company ? { id: p.company_id, name: p.company.name } : null, locale) });
+  const companyIds = page.tab === "saved"
+    ? page.rows.flatMap((i) => (i.kind === "person" ? [] : [i.row.id]))
+    : page.tab === "companies" || page.tab === "local" ? page.rows.map((c) => c.id) : [];
+  const faces = await peopleByCompany(companyIds);
+  const company = (c: CompanyRow, key = c.id): GridItem => ({ key, kind: "company", company: cardCompany(c, faces.get(c.id) ?? [], locale) });
+
+  const items: GridItem[] = page.tab === "saved"
+    ? page.rows.map((i) => (i.kind === "person" ? person(i.row, savedKey(i)) : company(i.row, savedKey(i))))
+    : page.tab === "people" ? page.rows.map((p) => person(p))
+    : page.tab === "jobs" ? []
+    : page.rows.map((c) => company(c));
 
   const query = filterQuery(filters, { page: undefined });
   return (
@@ -132,11 +72,10 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
         <Suspense>
           <ProspectToolbar tab={filters.tab} campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))} countries={countries} />
         </Suspense>
-        <EntityTable
+        <ProspectGrid
           key={`${filters.tab}:${query}:${filters.page}`}
           tab={filters.tab}
-          columns={columns}
-          rows={rows}
+          items={items}
           total={page.total}
           page={filters.page}
           pageSize={PAGE_SIZE}

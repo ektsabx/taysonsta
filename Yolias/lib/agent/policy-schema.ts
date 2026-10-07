@@ -113,7 +113,8 @@ const toolDefaults = Object.fromEntries(AGENT_TOOLS.map((t) => [t.name, {
   // Yolias doesn't search for jobs (D-149): hiring is only a signal on companies.
   enabled: t.name !== "listJobs",
   // Actions that use prospects or change a campaign wait for the user's OK.
-  approval: ["createCampaign", "findDecisionMakers", "enrichProspect"].includes(t.name),
+  // Finding decision makers is free (D-146), so it runs without one (owner, 2026-10-07).
+  approval: ["createCampaign", "enrichProspect"].includes(t.name),
   roles: t.name === "getBilling" ? (["owner", "admin"] as ToolPolicy["roles"]) : ALL,
 }])) as Record<string, ToolPolicy>;
 

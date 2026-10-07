@@ -193,6 +193,9 @@ export type OutreachMessageRow = {
   opened_at: string | null; opened_via: MessageOpenedVia | null;
   objective: MessageObjective | null; tone: MessageTone | null; cta: string | null; personalization: string[];
 };
+export type WorkspaceActivityRow = {
+  id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;
+};
 export type ContentKind = "help" | "docs" | "blog" | "legal";
 export type ContentEntryRow = {
   id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "published" | "hidden"; sort: number;
@@ -277,6 +280,8 @@ export type CompanyRow = {
   facebook_url: string | null;
   instagram_url: string | null;
   whatsapp: string | null;
+  /** Public inbox from the business's own website (D-163). */
+  email: string | null;
 } & IntelligenceColumns;
 
 export type JobRow = {
@@ -588,6 +593,7 @@ export interface Database {
       content_entries: Table<ContentEntryRow, "kind" | "slug" | "doc">;
       mailboxes: Table<MailboxRow, "workspace_id" | "user_id" | "provider" | "email">;
       outreach_messages: Table<OutreachMessageRow, "workspace_id">;
+      workspace_activity: Table<WorkspaceActivityRow, "workspace_id" | "kind">;
       email_log: Table<EmailLogRow, "kind" | "category" | "to_email">;
       known_devices: Table<KnownDeviceRow, "user_id" | "device_hash" | "label">;
       sign_in_requests: Table<SignInRequestRow, "email">;

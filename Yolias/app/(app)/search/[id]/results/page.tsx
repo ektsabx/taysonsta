@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, SlidersHorizontal, UsersRound } from "lucide-react";
-import { AvatarStack, CompanyLogo } from "@/components/app/Media";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { PeopleGrid } from "@/components/app/PeopleGrid";
-import { CollectButton, SaveButton } from "@/components/app/ResultActions";
+import { CompanyCard } from "@/components/app/Cards";
 import { ResultsToolbar } from "@/components/app/ResultsToolbar";
 import { YoliasMark } from "@/components/YoliasMark";
 import { countryLabel, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { gridPerson, sizeBand } from "@/lib/results";
+import { cardCompany, gridPerson } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { getStrategyView } from "@/services/strategies";
 import { parseResultFilters, RESULTS_PAGE, searchResults, type ResultFilters } from "@/services/results";
@@ -88,45 +87,7 @@ export default async function SearchResultsPage({ params, searchParams }: PagePr
           ) : <p className="cell-sub results-empty">{r.empty}</p>
         ) : data.companies.rows.length ? (
           <ul className="company-grid">
-            {data.companies.rows.map((c) => {
-              const site = c.domain ?? c.website;
-              const size = sizeBand(c.employee_count);
-              return (
-                <li key={c.id} className="company-card">
-                  <div className="company-card-top">
-                    <CompanyLogo name={c.name} logoUrl={c.logo_url} domain={c.domain} size={44} />
-                    <div className="company-card-id">
-                      <Link className="company-card-name" href={`/prospects/company/${c.id}`}>{c.name}</Link>
-                      {site && <a className="company-card-site" href={site.startsWith("http") ? site : `https://${site}`} target="_blank" rel="noreferrer" dir="ltr">{site.replace(/^https?:\/\/(www\.)?/, "")} <ExternalLink /></a>}
-                    </div>
-                    <SaveButton kind="company" id={c.id} saved={Boolean(c.bookmarked_at)} compact />
-                  </div>
-                  <div className="company-card-meta">{[c.industry ?? c.category, c.city, size].filter(Boolean).join(" · ")}</div>
-                  <div className="company-card-people">
-                    <span className="company-card-people-icon"><UsersRound /></span>
-                    {c.people.length ? (
-                      <div>
-                        <strong>{fmt(r.dmCount, { count: n(c.people.length) })}</strong>
-                        <AvatarStack people={c.people.map((p) => ({ name: p.full_name, photoUrl: p.photo_url }))} max={4} size={24} />
-                      </div>
-                    ) : (
-                      <div>
-                        <strong>{r.notCollected}</strong>
-                        <span className="cell-sub">{r.notCollectedSub}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="company-card-actions">
-                    <Link className="btn-secondary" href={`/prospects/company/${c.id}`}>{r.viewCompany}</Link>
-                    {c.people.length ? (
-                      <Link className="btn-outline-accent" href={`/prospects/company/${c.id}#decision-makers`}>{r.viewDecisionMakers} <ArrowRight className="flip-rtl" /></Link>
-                    ) : c.people_status === "done" ? null : (
-                      <CollectButton id={c.id} running={c.people_status === "running" || c.people_status === "queued" || (Boolean(c.people_requested_at) && !c.people_status)} />
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {data.companies.rows.map((c) => <CompanyCard key={c.id} company={cardCompany(c, c.people, locale)} />)}
           </ul>
         ) : <p className="cell-sub results-empty">{r.empty}</p>}
 
