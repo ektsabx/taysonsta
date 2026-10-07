@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X } from "lucide-react";
+  Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -151,10 +151,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               </button>
             ))}
             <div className="menu-divider" />
-            <button className="menu-item" type="button" onClick={() => openSettings("integration")}>
-              <Plug />
-              <span>{t.settings.tabs.integration}</span>
-            </button>
             <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
               <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen((o) => !o)}>
                 <CircleHelp />
