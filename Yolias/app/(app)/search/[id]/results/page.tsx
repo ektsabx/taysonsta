@@ -13,7 +13,6 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { gridPerson, sizeBand } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { getStrategyView } from "@/services/strategies";
-import { myMailboxes } from "@/services/outreach";
 import { parseResultFilters, RESULTS_PAGE, searchResults, type ResultFilters } from "@/services/results";
 
 export async function generateMetadata({ params }: PageProps<"/search/[id]/results">): Promise<Metadata> {
@@ -43,7 +42,7 @@ export default async function SearchResultsPage({ params, searchParams }: PagePr
   const view = await getStrategyView(id);
   if (!view || view.strategy.workspace_id !== session.workspace.id) notFound();
   const f = parseResultFilters(await searchParams);
-  const [data, t, locale, boxes] = await Promise.all([searchResults(id, session.workspace.id, f), getDictionary(), getLocale(), myMailboxes(session.userId)]);
+  const [data, t, locale] = await Promise.all([searchResults(id, session.workspace.id, f), getDictionary(), getLocale()]);
   const r = t.results;
   const n = (v: number) => formatNumber(v, locale);
   const base = `/search/${id}/results`;
@@ -85,8 +84,7 @@ export default async function SearchResultsPage({ params, searchParams }: PagePr
 
         {f.tab === "people" ? (
           data.people.rows.length ? (
-            <PeopleGrid showCompany people={data.people.rows.map((p) => gridPerson(p, p.company_id ? { id: p.company_id, name: data.companyName.get(p.company_id) ?? "" } : null, locale))}
-              mailboxes={boxes.filter((b) => b.status === "connected").map((b) => ({ id: b.id, email: b.email }))} />
+            <PeopleGrid showCompany people={data.people.rows.map((p) => gridPerson(p, p.company_id ? { id: p.company_id, name: data.companyName.get(p.company_id) ?? "" } : null, locale))} />
           ) : <p className="cell-sub results-empty">{r.empty}</p>
         ) : data.companies.rows.length ? (
           <ul className="company-grid">

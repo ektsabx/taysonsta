@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { isThemePref, THEME_COOKIE, themeScript } from "@/lib/theme";
+import { resolveTheme, THEME_COOKIE } from "@/lib/theme";
+import { ThemeCookieSync } from "@/components/ThemeCookieSync";
 import { DM_Sans, Noto_Kufi_Arabic, Source_Serif_4 } from "next/font/google";
 import { getSession } from "@/lib/session";
 import { dirOf } from "@/lib/i18n/config";
@@ -23,26 +24,23 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [session, locale] = await Promise.all([getSession(), getLocale()]);
   const cookieTheme = (await cookies()).get(THEME_COOKIE)?.value;
-  // One theme for every page: profile → last choice on this browser → system.
-  const theme = session?.profile.theme ?? (isThemePref(cookieTheme) ? cookieTheme : "system");
+  // One theme for every page: the account's choice → this browser's last choice → dark.
+  const theme = resolveTheme(session?.profile.theme, cookieTheme);
   const textSize = session?.profile.text_size ?? "normal";
 
   return (
     <html
       lang={locale}
       dir={dirOf(locale)}
-      data-theme-pref={theme}
-      data-theme={theme === "dark" ? "dark" : "light"}
+      data-theme={theme}
       data-text-size={textSize}
       className={`${dmSans.variable} ${sourceSerif.variable} ${kufi.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React loads. */}
       <body suppressHydrationWarning>
         <I18nProvider locale={locale}>{children}</I18nProvider>
+        {session && <ThemeCookieSync theme={theme} />}
         <I18nProvider locale={locale}>
           <Analytics locale={locale} user={session ? { userId: session.userId, workspaceId: session.workspace.id, plan: session.workspace.plan, role: session.role } : null} />
         </I18nProvider>

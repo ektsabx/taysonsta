@@ -20,7 +20,7 @@ test("country headers are normalised", () => {
 });
 
 test("one USD price for every country (D-131)", () => {
-  assert.equal(planPrice(defaultPlans.pro, "USD"), 20);
+  assert.equal(planPrice(defaultPlans.pro, "USD"), 50);
 });
 
 test("money is shown in USD", () => {

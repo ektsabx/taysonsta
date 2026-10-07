@@ -5,7 +5,6 @@ import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
-import { myMailboxes, providersAvailable } from "@/services/outreach";
 import { unreadNotifications } from "@/services/workspace";
 import { providerFor } from "@/lib/payments";
 import { planPrice } from "@/lib/plans";
@@ -31,14 +30,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const h = await headers();
 
   const currency = await workspaceCurrency(workspace);
-  const [recent, usage, team, invoices, packs, online, mailboxes, unread] = await Promise.all([
+  const [recent, usage, team, invoices, packs, online, unread] = await Promise.all([
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
     canManageTeam(session) ? listInvoices(workspace.id) : Promise.resolve([]),
     listPacks(),
     providerFor(currency).then(Boolean),
-    myMailboxes(session.userId),
     unreadNotifications(session.userId),
   ]);
 
@@ -85,8 +83,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
     packs: packs.map((p) => ({ id: p.id, prospects: p.prospects, price: Number(p.price_usd) })),
     billing: { online, testMode: billingTestMode() },
-    mailboxes: mailboxes.map((m) => ({ provider: m.provider, email: m.email, status: m.status })),
-    mailProviders: await providersAvailable(),
     unread,
     team: {
       members: team.members.map((m) => ({

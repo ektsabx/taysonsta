@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 import { parseFilters, selectEntities } from "@/services/prospects";
+import { getLocale } from "@/lib/i18n/server";
+import { gridPerson } from "@/lib/results";
+import type { GridPerson } from "@/components/app/PeopleGrid";
+import type { ProspectRow } from "@/types/database";
 
 // Prospects workspace actions (final spec phase 5). The browser sends ids or
 // "all rows matching these filters"; the server resolves them with the
@@ -64,4 +68,12 @@ export async function removeFromProspects(target: Target, tab: "people" | "compa
   const { data } = await supabase.from(table).update({ saved_at: null }).eq("workspace_id", session.workspace.id).in("id", ids).select("id");
   revalidatePath("/prospects", "layout");
   return { ok: true, removed: data?.length ?? 0 };
+}
+
+/** The selected people as cards, for the Email / LinkedIn actions on the Prospects table (at most 100). */
+export async function peopleForActions(target: Target): Promise<GridPerson[]> {
+  const { page } = await resolve("ids" in target ? { ids: target.ids.slice(0, 100) } : target, "people");
+  if (page.tab !== "people") return [];
+  const locale = await getLocale();
+  return page.rows.slice(0, 100).map((p) => gridPerson(p as unknown as ProspectRow, p.company_id && p.company ? { id: p.company_id, name: p.company.name } : null, locale));
 }

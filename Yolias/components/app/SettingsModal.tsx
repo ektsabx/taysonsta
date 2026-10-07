@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { Activity, Bell, Building2, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
-import { COUNTRIES, TIMEZONES, timeZoneLabel } from "@/lib/regions";
+import { COUNTRIES, timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
-import { GmailIcon, GoogleSheetsIcon, HubSpotIcon, OutlookIcon } from "./ConnectorIcons";
+import { GoogleSheetsIcon, HubSpotIcon } from "./ConnectorIcons";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
@@ -74,7 +74,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
-            {tab === "integration" && <IntegrationTab data={data} />}
+            {tab === "integration" && <IntegrationTab />}
           </div>
         </div>
       </div>
@@ -96,11 +96,7 @@ function useSave() {
 
 function applyAppearance(theme?: string, size?: string) {
   const d = document.documentElement;
-  if (theme) {
-    d.setAttribute("data-theme-pref", theme);
-    const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    d.setAttribute("data-theme", dark ? "dark" : "light");
-  }
+  if (theme) d.setAttribute("data-theme", theme === "light" ? "light" : "dark");
   if (size) d.setAttribute("data-text-size", size);
 }
 
@@ -130,7 +126,6 @@ function GeneralTab({ data }: { data: ShellData }) {
     <div className="setting-group">
       <SettingRow label={g.theme} desc={g.themeDesc}>
         <select className="form-select" value={prefs.theme} onChange={(e) => change("theme", e.target.value as typeof prefs.theme)}>
-          <option value="system">{g.system}</option>
           <option value="light">{g.light}</option>
           <option value="dark">{g.dark}</option>
         </select>
@@ -150,7 +145,7 @@ function GeneralTab({ data }: { data: ShellData }) {
       </SettingRow>
       <SettingRow label={g.timezone} desc={g.timezoneDesc}>
         <select className="form-select" value={prefs.timezone} onChange={(e) => change("timezone", e.target.value)}>
-          {TIMEZONES.map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
+          {timeZoneChoices(prefs.timezone).map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
         </select>
       </SettingRow>
       <SettingRow label={g.country} desc={g.countryDesc}>
@@ -845,36 +840,28 @@ function TeamTab({ data }: { data: ShellData }) {
 
 /* ─────────────── Integrations ─────────────── */
 
-function IntegrationTab({ data }: { data: ShellData }) {
+function IntegrationTab() {
   const { t } = useI18n();
   const it = t.settings.integration;
   const connectors = [
     { id: "sheets", name: "Google Sheets", desc: it.sheetsDesc, Icon: GoogleSheetsIcon },
     { id: "hubspot", name: "HubSpot", desc: it.hubspotDesc, Icon: HubSpotIcon },
-    { id: "gmail", name: "Gmail", desc: it.gmailDesc, Icon: GmailIcon },
-    { id: "outlook", name: "Outlook", desc: it.outlookDesc, Icon: OutlookIcon },
   ];
   return (
     <div className="setting-group">
       <p className="setting-intro">{it.intro}</p>
       <div className="connector-list">
-        {connectors.map(({ id, name, desc, Icon }) => {
-          // Gmail / Outlook are real (outreach, final spec phase 8); the others are still coming.
-          const mail = id === "gmail" || id === "outlook" ? id : null;
-          const box = mail ? data.mailboxes.find((m) => m.provider === mail) : undefined;
-          return (
-            <div className="connector" key={id}>
-              <div className="connector-icon"><Icon /></div>
-              <div className="connector-main">
-                <div className="connector-name">{name}</div>
-                <div className="connector-desc">{box?.status === "connected" ? <span dir="ltr">{fmt(t.outreach.connectedAs, { email: box.email })}</span> : desc}</div>
-              </div>
-              {mail && data.mailProviders[mail]
-                ? <a className="btn-secondary" href={box?.status === "connected" ? "/outreach" : `/api/integrations/${mail}/connect`}>{box?.status === "connected" ? t.outreach.title : it.connect}</a>
-                : <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{it.connect}</button>}
+        {connectors.map(({ id, name, desc, Icon }) => (
+          // Coming later. Email and LinkedIn messages open in the member's own apps (no connection needed).
+          <div className="connector" key={id}>
+            <div className="connector-icon"><Icon /></div>
+            <div className="connector-main">
+              <div className="connector-name">{name}</div>
+              <div className="connector-desc">{desc}</div>
             </div>
-          );
-        })}
+            <button className="btn-secondary" type="button" disabled title={t.common.comingSoon}>{it.connect}</button>
+          </div>
+        ))}
       </div>
       <p className="setting-hint connector-note">{it.soon}</p>
     </div>

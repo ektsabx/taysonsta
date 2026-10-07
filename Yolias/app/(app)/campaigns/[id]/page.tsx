@@ -103,7 +103,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
               {daily.length === 0 ? <p className="cell-sub">{cc.noDeliveries}</p> : (
                 <div className="bar-chart" role="img" aria-label={cc.deliveredChart}>
                   {daily.map((d) => (
-                    <div key={d.day} className="bar-col" title={`${formatDate(d.day, locale)}: ${n(d.delivered)}`}>
+                    <div key={d.day} className="bar-col" title={`${formatDate(d.day, locale, "UTC")}: ${n(d.delivered)}`}>
                       <span className="bar-value">{n(d.delivered)}</span>
                       <span className="bar" style={{ height: `${(d.delivered / maxDay) * 100}%` }} />
                       <span className="bar-label">{new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { month: "short", day: "numeric" }).format(new Date(d.day))}</span>

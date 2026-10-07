@@ -6,9 +6,11 @@ import { ArrowLeft } from "lucide-react";
 import { ChannelBadges } from "@/components/app/ChannelBadges";
 import { ContactCell } from "@/components/app/EntityTable";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
-import { OutreachComposer } from "@/components/app/OutreachComposer";
-import { messagesFor, myMailboxes } from "@/services/outreach";
-import { formatNumber, location } from "@/lib/format";
+import { ProspectActionButtons } from "@/components/app/ProspectActions";
+import { messagesFor } from "@/services/outreach";
+import { formatDate, formatNumber, location } from "@/lib/format";
+import { gridPerson } from "@/lib/results";
+import type { ProspectRow } from "@/types/database";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
@@ -28,7 +30,8 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await getPerson(id);
   if (!p || p.workspace_id !== session.workspace.id) notFound();
-  const [t, locale, mailboxes, messages] = await Promise.all([getDictionary(), getLocale(), myMailboxes(session.userId), messagesFor(p.id)]);
+  const [t, locale, messages] = await Promise.all([getDictionary(), getLocale(), messagesFor(p.id)]);
+  const o = t.outreach;
   const pr = t.prospects;
   const d = pr.detail;
 
@@ -70,7 +73,23 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
             </dl>
           </section>
         )}
-        <OutreachComposer prospectId={p.id} canEmail={Boolean(p.email && p.email_status !== "invalid")} mailboxes={mailboxes} latest={messages[0] ?? null} />
+        <section className="detail-card">
+          <h3>{o.messages}</h3>
+          <div className="person-actions">
+            <ProspectActionButtons people={[gridPerson(p as unknown as ProspectRow, p.company ? { id: p.company.id, name: p.company.name } : null, locale)]} source="prospects" />
+          </div>
+          {messages.length ? (
+            <ul className="message-log">
+              {messages.map((m) => (
+                <li key={m.id}>
+                  <span className="message-log-channel">{m.channel === "linkedin" ? o.linkedin : o.email}</span>
+                  <span className="message-log-text" dir="auto">{m.subject || m.body.slice(0, 120)}</span>
+                  <span className="cell-sub">{m.opened_at && m.opened_via ? fmt(o.lastOpened, { via: o.via[m.opened_via], date: formatDate(m.opened_at, locale, session.profile.timezone) }) : formatDate(m.created_at, locale, session.profile.timezone)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="cell-sub">{o.none}</p>}
+        </section>
         <IntelligencePanel t={t} locale={locale} timeZone={session.profile.timezone} row={p} />
       </div>
     </div>

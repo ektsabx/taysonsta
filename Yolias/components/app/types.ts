@@ -35,9 +35,6 @@ export interface ShellData {
   packs: { id: string; prospects: number; price: number }[];
   /** A payment provider is connected for the workspace currency / billing test mode is on. */
   billing: { online: boolean; testMode: boolean };
-  /** The member's connected mailboxes and which mail providers can be connected (outreach). */
-  mailboxes: { provider: "gmail" | "outlook"; email: string; status: string }[];
-  mailProviders: { gmail: boolean; outlook: boolean };
   /** Unread in-app notifications. */
   unread: number;
   team: {

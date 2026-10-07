@@ -87,7 +87,7 @@ export type ProfileRow = {
   avatar_url: string | null;
   workspace_id: string | null;
   onboarded_at: string | null;
-  theme: "system" | "light" | "dark";
+  theme: "light" | "dark";
   text_size: "compact" | "normal" | "large";
   language: "en" | "ar";
   timezone: string;
@@ -181,11 +181,14 @@ export type MailboxRow = {
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
 };
 export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled";
+export type MessageChannel = "email" | "linkedin";
+export type MessageOpenedVia = "gmail" | "outlook" | "mail_app" | "linkedin" | "copy";
 export type OutreachMessageRow = {
-  id: string; workspace_id: string; prospect_id: string; campaign_id: string | null; created_by: string | null; channel: "email";
+  id: string; workspace_id: string; prospect_id: string; campaign_id: string | null; created_by: string | null; channel: MessageChannel;
   to_email: string | null; subject: string; body: string; language: "en" | "ar"; instruction: string | null; status: OutreachStatus;
   mailbox_id: string | null; provider_message_id: string | null; error: string | null; model: string | null; cost_usd: number | null;
   approved_by: string | null; approved_at: string | null; sent_at: string | null; created_at: string; updated_at: string;
+  opened_at: string | null; opened_via: MessageOpenedVia | null;
 };
 export type ContentKind = "help" | "docs" | "blog" | "legal";
 export type ContentEntryRow = {

@@ -327,19 +327,19 @@ export const agentTools = [
   // ───────────── Outreach ─────────────
   define({
     name: "prepareOutreach",
-    description: "Write a personal email draft to a person, saved in Outreach for the user to review. It is never sent automatically: the user approves and sends it from their own mailbox.",
+    description: "Write a personal email or LinkedIn connection note for a person. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app or on LinkedIn. Yolias never sends messages.",
     permission: "outreach.prepare",
-    input: z.object({ prospectId: uuid, instruction: z.string().trim().max(1000).optional(), language: z.enum(["en", "ar"]).optional() }),
+    input: z.object({ prospectId: uuid, channel: z.enum(["email", "linkedin"]).default("email"), instruction: z.string().trim().max(1000).optional(), language: z.enum(["en", "ar"]).optional() }),
     async run(ctx, input) {
       const { data: p } = await ctx.db.from("prospects").select("id, workspace_id").eq("id", input.prospectId).maybeSingle();
       if (!p || p.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such prospect in this workspace.");
       const r = await draftOutreach({
-        workspaceId: ctx.session.workspace.id, userId: ctx.session.userId, prospectId: p.id,
+        workspaceId: ctx.session.workspace.id, userId: ctx.session.userId, prospectId: p.id, channel: input.channel,
         instruction: input.instruction ?? null, language: input.language ?? (ctx.session.profile.language === "ar" ? "ar" : "en"),
       });
       if (!r.ok) return fail(r.error === "not_found" ? "not_found" : r.error === "not_configured" ? "not_connected" : "invalid", r.error);
       ctx.spend?.(r.message.cost_usd);
-      return ok({ draftId: r.message.id, subject: r.message.subject, body: r.message.body, status: "draft", openAt: `/prospects/person/${p.id}` });
+      return ok({ draftId: r.message.id, channel: r.message.channel, subject: r.message.subject, body: r.message.body, status: "draft", openAt: `/prospects/person/${p.id}` });
     },
   }),
 

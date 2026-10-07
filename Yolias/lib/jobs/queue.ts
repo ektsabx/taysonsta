@@ -6,16 +6,12 @@ import type { Json } from "@/types/database";
 // worker (/api/worker) runs them. Every job must be idempotent: it can run
 // again after a crash or timeout.
 
-export type JobKind = "campaign.discover" | "company.people" | "outreach.prepare" | "outreach.send" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep";
+export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep";
 
 export interface JobPayloads {
   "campaign.discover": { campaignId: string };
   /** Decision-maker matching for saved companies / local businesses (Prospects). */
   "company.people": { workspaceId: string; companyIds: string[] };
-  /** Outreach drafts for many prospects (Prospects bulk action). */
-  "outreach.prepare": { workspaceId: string; userId: string; prospectIds: string[]; instruction: string | null; language: "en" | "ar" };
-  /** Send one approved outreach message from the approver's mailbox. */
-  "outreach.send": { messageId: string };
   /** One logged email (lib/email/notify.ts). */
   "email.send": { logId: number };
   /** An email to a workspace's owners/admins, queued by Yolias Admin (e.g. prospects added). */

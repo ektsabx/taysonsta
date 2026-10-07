@@ -8,8 +8,12 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { findDecisionMakersAction, removeFromProspects, revealContacts, type Target } from "@/app/(app)/prospects/actions";
-import { prepareMany } from "@/app/(app)/outreach/actions";
+import { findDecisionMakersAction, peopleForActions, removeFromProspects, revealContacts, type Target } from "@/app/(app)/prospects/actions";
+import { exportedPeople } from "@/app/(app)/prospects/message-actions";
+import type { MessageChannel } from "@/types/database";
+import { LinkedInIcon } from "./ConnectorIcons";
+import type { GridPerson } from "./PeopleGrid";
+import { MessageComposer } from "./ProspectActions";
 import type { ProspectTab } from "@/services/prospects";
 
 export interface TableRow {
@@ -42,6 +46,9 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
   const [allMatching, setAllMatching] = useState(false);
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
+  // Email / LinkedIn for the selected people (D-155): their cards are loaded, then the composer opens.
+  const [compose, setCompose] = useState<{ channel: MessageChannel; people: GridPerson[] } | null>(null);
+  const message = (channel: MessageChannel) => start(async () => setCompose({ channel, people: await peopleForActions(target()) }));
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.id));
@@ -84,15 +91,18 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
           )}
           {allMatching && <span className="bulk-note">{fmt(pr.allMatchingSelected, { count: n(total) })}</span>}
           <span className="bulk-actions">
-            <button type="button" className="btn-secondary" onClick={() => exportForm.current?.requestSubmit()}><Download /> {pr.exportSelected}</button>
+            {tab === "people" && (
+              <>
+                <button type="button" className="btn-primary" disabled={pending} onClick={() => message("email")}><Mail /> {t.outreach.email}</button>
+                <button type="button" className="btn-secondary" disabled={pending} onClick={() => message("linkedin")}><LinkedInIcon /> {t.outreach.linkedin}</button>
+              </>
+            )}
+            <button type="button" className="btn-secondary" onClick={() => {
+              exportForm.current?.requestSubmit();
+              if (tab === "people") void exportedPeople(count, "prospects");
+            }}><Download /> {pr.exportSelected}</button>
             {tab === "people" && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => ((await revealContacts(target())).ok ? pr.revealed : null))}><Eye /> {pr.revealContacts}</button>
-            )}
-            {tab === "people" && (
-              <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
-                const r = await prepareMany(target(), "", locale === "ar" ? "ar" : "en");
-                return r.ok ? fmt(t.outreach.preparingMany, { count: n(r.queued) }) : null;
-              })}><Mail /> {t.outreach.prepareMany}</button>
             )}
             {(tab === "companies" || tab === "local") && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
@@ -108,6 +118,7 @@ export function EntityTable({ tab, columns, rows, total, page, pageSize, query, 
             )}
             <button type="button" className="btn-secondary" onClick={clear}><X /> {pr.clearSelection}</button>
           </span>
+          {compose && <MessageComposer people={compose.people} channel={compose.channel} onClose={() => setCompose(null)} />}
           <form ref={exportForm} method="post" action="/prospects/export" hidden>
             <input type="hidden" name="query" value={query} />
             {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}

@@ -15,7 +15,7 @@ export interface PlanTerms {
 /** Fallback only — the live values come from the database (lib/plan-catalog.ts). */
 export const defaultPlans: Record<Plan, PlanTerms> = {
   free: { priceUsd: 0, prospects: 50 },
-  pro: { priceUsd: 20, prospects: 1000 },
+  pro: { priceUsd: 50, prospects: 1000 },
   growth: { priceUsd: 100, prospects: 3000 },
 };
 

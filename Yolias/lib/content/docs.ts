@@ -59,9 +59,9 @@ export const docs: DocPage[] = [
             { x: 25, y: 70, label: "What each day delivered." },
           ] } },
           { h2: "5. Ask Yolias AI" },
-          { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or prepare outreach — the reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
-          { h2: "6. Reach out from your own mailbox" },
-          { figure: { src: "/docs/shots/en-outreach.png", alt: "The Outreach page", caption: "Outreach: connect Gmail or Outlook, then review each email Yolias prepared before it's sent from your mailbox." } },
+          { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or write a message — the reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
+          { h2: "6. Reach out from your own email or LinkedIn" },
+          { p: "Select people in the results or in Prospects, then choose Email, LinkedIn or Export CSV. Yolias writes a personal message for each person; you edit it and open it in Gmail, Outlook or your email app, or copy it and open their LinkedIn profile. Yolias never sends anything — you send it from your own account." },
         ],
       },
       ar: {
@@ -97,9 +97,9 @@ export const docs: DocPage[] = [
             { x: 25, y: 70, label: "ما تم تسليمه كل يوم." },
           ] } },
           { h2: "5. اسأل Yolias AI" },
-          { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو تجهيز رسائل التواصل — ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
-          { h2: "6. تواصل من بريدك أنت" },
-          { figure: { src: "/docs/shots/ar-outreach.png", alt: "صفحة التواصل", caption: "التواصل: اربط Gmail أو Outlook، وراجع كل رسالة جهّزها يولـياس قبل إرسالها من بريدك." } },
+          { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو كتابة رسالة — ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
+          { h2: "6. تواصل من بريدك أو لينكدإن" },
+          { p: "حدّد الأشخاص في النتائج أو في العملاء المحتملين، ثم اختر إيميل أو لينكدإن أو تصدير CSV. يكتب يولـياس رسالة شخصية لكل شخص، تعدّلها ثم تفتحها في Gmail أو Outlook أو تطبيق البريد، أو تنسخها وتفتح صفحته على لينكدإن. يولـياس لا يرسل أي شيء — أنت ترسلها من حسابك." },
         ],
       },
     },
@@ -433,7 +433,7 @@ export const docs: DocPage[] = [
         summary: "Monthly limits per plan and how they are counted.",
         blocks: [
           { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
-            ["Free", "$0", "50 (to get started)"], ["Pro", "$20", "1,000"], ["Growth", "$100", "3,000"],
+            ["Free", "$0", "50 (to get started)"], ["Pro", "$50", "1,000"], ["Growth", "$100", "3,000"],
           ] } },
           { ul: [
             "Plans count prospects only. Free includes prospects to get started; Pro and Growth include a new allowance every month.",
@@ -450,7 +450,7 @@ export const docs: DocPage[] = [
         summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
         blocks: [
           { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
-            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$20", "1,000"], ["النمو", "$100", "3,000"],
+            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$50", "1,000"], ["النمو", "$100", "3,000"],
           ] } },
           { ul: [
             "تُحسب الخطط بالعملاء المحتملين فقط. الخطة المجانية تشمل عملاء محتملين للبداية، وبرو والنمو تشملان رصيداً جديداً كل شهر.",

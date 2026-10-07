@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { completeOnboarding, type OnboardingState } from "./actions";
@@ -10,9 +10,14 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
   const o = t.onboarding;
   const [state, action, pending] = useActionState<OnboardingState, FormData>(completeOnboarding, {});
   const v = (k: string) => state.fields?.[k] ?? defaults[k] ?? "";
+  // The device's time zone, saved on the account with the form (Settings can change it).
+  const [timeZone, setTimeZone] = useState("");
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""), []);
 
   return (
     <form className="auth-form" action={action}>
+      <input type="hidden" name="timezone" value={timeZone} />
       <div className="field">
         <label htmlFor="full_name">{o.name}</label>
         <input id="full_name" name="full_name" className="form-input" placeholder={o.namePlaceholder} defaultValue={v("full_name")} autoComplete="name" required autoFocus />

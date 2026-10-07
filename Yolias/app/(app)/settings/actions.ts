@@ -8,13 +8,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
-import { THEME_COOKIE } from "@/lib/theme";
+import { THEME_COOKIE, themeCookieOptions } from "@/lib/theme";
 import { setCancelAtPeriodEnd } from "@/lib/billing";
 import { capture } from "@/lib/analytics/server";
 import { companyProfileSchema } from "@/lib/company-profile";
 import { securityAlert } from "@/lib/email/events";
 import { notify } from "@/lib/email/notify";
-import { COUNTRIES, TIMEZONES } from "@/lib/regions";
+import { COUNTRIES, isValidTimeZone } from "@/lib/regions";
 import { monthlyUsage } from "@/services/workspace";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
@@ -22,10 +22,10 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const preferencesSchema = z
   .object({
-    theme: z.enum(["system", "light", "dark"]),
+    theme: z.enum(["light", "dark"]),
     text_size: z.enum(["compact", "normal", "large"]),
     language: z.enum(["en", "ar"]),
-    timezone: z.enum(TIMEZONES),
+    timezone: z.string().refine(isValidTimeZone),
     country: z.enum(COUNTRIES),
     notify_campaign_done: z.boolean(),
     notify_usage: z.boolean(),
@@ -45,7 +45,7 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
   if (error) return { ok: false, error: t.saveFailed };
   // Theme also applies to public and sign-in pages, even after signing out.
   if (parsed.data.theme) {
-    (await cookies()).set(THEME_COOKIE, parsed.data.theme, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+    (await cookies()).set(THEME_COOKIE, parsed.data.theme, themeCookieOptions);
   }
   // The language setting is also the interface language.
   if (parsed.data.language) {

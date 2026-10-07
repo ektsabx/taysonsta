@@ -10,7 +10,7 @@ import { getSession } from "@/lib/session";
 import { welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
-import { isCountry } from "@/lib/regions";
+import { detectPreferences } from "@/lib/regions";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -36,13 +36,15 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     company = c.data;
   }
 
-  // Home market = the visitor's country when Settings offers it.
-  const country = await requestCountry();
+  // First sign-up: time zone from the device, home country matching it (else
+  // the network's country). Saved on the account; never changed automatically
+  // again — only the user changes them, in Settings → General.
+  const detected = detectPreferences(formData.get("timezone"), await requestCountry());
   const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
     // Keep the language picked before signup (pricing/auth) as the account language.
-    .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString(), ...(isCountry(country) ? { country } : {}) })
+    .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString(), ...detected })
     .eq("id", session.userId);
   if (error) return { error: t.saveFailed, fields };
 

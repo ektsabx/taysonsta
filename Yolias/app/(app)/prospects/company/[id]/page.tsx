@@ -14,7 +14,6 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { gridPerson, sizeBand } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { getCompany } from "@/services/prospects";
-import { myMailboxes } from "@/services/outreach";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/company/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -35,7 +34,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const data = await getCompany(id);
   if (!data || data.company.workspace_id !== session.workspace.id) notFound();
   const { company: c, people } = data;
-  const [t, locale, boxes] = await Promise.all([getDictionary(), getLocale(), myMailboxes(session.userId)]);
+  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const r = t.results;
   const d = t.prospects.detail;
   const local = c.kind === "local_business";
@@ -112,7 +111,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
             </div>
           </div>
           {people.length > 0 ? (
-            <PeopleGrid people={people.map((p) => gridPerson(p, { id: c.id, name: c.name }, locale))} mailboxes={boxes.filter((b) => b.status === "connected").map((b) => ({ id: b.id, email: b.email }))} />
+            <PeopleGrid people={people.map((p) => gridPerson(p, { id: c.id, name: c.name }, locale))} />
           ) : (
             <div className="result-card dm-empty">
               <div>

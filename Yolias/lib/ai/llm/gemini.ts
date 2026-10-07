@@ -54,6 +54,12 @@ const usageOf = (g: Generated) => ({
   cache_read_input_tokens: g.usageMetadata?.cachedContentTokenCount ?? 0,
 });
 const blocked = (g: Generated) => Boolean(g.promptFeedback?.blockReason) || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "RECITATION"].includes(g.candidates?.[0]?.finishReason ?? "");
+// Gemini 2.5 counts its thinking tokens in maxOutputTokens: without headroom
+// a short answer (e.g. 900 tokens) is cut off mid-JSON (finish MAX_TOKENS).
+// Only the tokens actually used are billed.
+const THINKING_HEADROOM = 8192;
+const withThinking = (answerTokens: number) => answerTokens + THINKING_HEADROOM;
+
 const textOf = (c?: Content) => (c?.parts ?? []).filter((p) => p.text && !p.thought).map((p) => p.text).join("").trim();
 
 function parts(input: InputPart[]): Part[] {
@@ -72,13 +78,14 @@ export const geminiAdapter: LlmAdapter = {
     const g = await call(model, {
       systemInstruction: { parts: [{ text: req.system }] },
       contents: [{ role: "user", parts: parts(req.parts) }],
-      generationConfig: { responseMimeType: "application/json", responseJsonSchema: req.schema, maxOutputTokens: req.maxTokens },
+      generationConfig: { responseMimeType: "application/json", responseJsonSchema: req.schema, maxOutputTokens: withThinking(req.maxTokens) },
     });
     const servedModel = g.modelVersion ?? model;
     if (blocked(g)) return { data: null, usage: usageOf(g), servedModel, refused: true };
     try {
       return { data: JSON.parse(textOf(g.candidates?.[0]?.content)), usage: usageOf(g), servedModel, refused: false };
     } catch {
+      console.error(`[gemini] not JSON (finish: ${g.candidates?.[0]?.finishReason}, thoughts: ${g.usageMetadata?.thoughtsTokenCount ?? 0}, output: ${g.usageMetadata?.candidatesTokenCount ?? 0})`);
       throw new LlmProviderError("gemini: output is not JSON", "bad_output");
     }
   },
@@ -91,7 +98,7 @@ export const geminiAdapter: LlmAdapter = {
       const started = Date.now();
       let g: Generated;
       try {
-        g = await call(model, { systemInstruction: { parts: [{ text: req.context ? `${req.system}\n\n${req.context}` : req.system }] }, contents, tools, generationConfig: { maxOutputTokens: req.maxTokens } });
+        g = await call(model, { systemInstruction: { parts: [{ text: req.context ? `${req.system}\n\n${req.context}` : req.system }] }, contents, tools, generationConfig: { maxOutputTokens: withThinking(req.maxTokens) } });
       } catch (e) {
         if (e instanceof LlmProviderError) e.steps = steps;
         throw e;

@@ -3,7 +3,6 @@ import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { findDecisionMakers, runDiscovery } from "@/lib/discovery/pipeline";
-import { draftOutreach, sendOutreach } from "@/lib/outreach";
 import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
@@ -24,12 +23,6 @@ type Handler<K extends JobKind> = (payload: JobPayloads[K], attempt: number) => 
 const handlers: { [K in JobKind]: Handler<K> } = {
   "campaign.discover": (p, attempt) => runDiscovery(p.campaignId, { attempt }),
   "company.people": (p) => findDecisionMakers(p.workspaceId, p.companyIds),
-  "outreach.prepare": async (p) => {
-    for (const prospectId of p.prospectIds) await draftOutreach({ workspaceId: p.workspaceId, userId: p.userId, prospectId, instruction: p.instruction, language: p.language });
-  },
-  "outreach.send": async (p) => {
-    await sendOutreach(p.messageId);
-  },
   "email.send": (p) => deliverEmail(p.logId),
   "email.workspace": async (p) => {
     const { data: u } = await createAdminClient().rpc("usage_summary", { p_ws: p.workspaceId });

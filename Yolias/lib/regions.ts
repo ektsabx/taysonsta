@@ -41,8 +41,46 @@ export function timeZoneLabel(tz: string, locale: Locale, now = new Date()): str
   return `(${offset}) ${city}`;
 }
 
-export function isTimeZone(v: unknown): v is TimeZone {
-  return typeof v === "string" && (TIMEZONES as readonly string[]).includes(v);
+/** Any real IANA time zone (the device's, or one from the list). */
+export function isValidTimeZone(v: unknown): v is string {
+  if (typeof v !== "string" || !/^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$/.test(v) || v.length > 64) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: v });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Settings → time zone choices: the list, plus the account's own zone when it isn't in it. */
+export function timeZoneChoices(current: string): string[] {
+  return (TIMEZONES as readonly string[]).includes(current) ? [...TIMEZONES] : [current, ...TIMEZONES];
+}
+
+// The country each listed time zone belongs to. Used once, at onboarding, to
+// pick the home country that matches the device's time zone.
+const zoneCountry: Record<string, Country> = {
+  "Asia/Riyadh": "SA", "Asia/Dubai": "AE", "Asia/Kuwait": "KW", "Asia/Qatar": "QA", "Asia/Bahrain": "BH", "Asia/Muscat": "OM",
+  "Africa/Cairo": "EG", "Asia/Amman": "JO", "Asia/Beirut": "LB", "Asia/Baghdad": "IQ", "Africa/Casablanca": "MA", "Africa/Tunis": "TN",
+  "Africa/Algiers": "DZ", "Europe/Istanbul": "TR", "Europe/London": "GB", "Europe/Paris": "FR", "Europe/Berlin": "DE",
+  "America/New_York": "US", "America/Chicago": "US", "America/Los_Angeles": "US", "America/Denver": "US", "America/Phoenix": "US",
+  "Asia/Karachi": "PK", "Asia/Kolkata": "IN", "Asia/Calcutta": "IN", "Asia/Singapore": "SG",
+};
+
+export function countryForTimeZone(tz: string | null | undefined): Country | null {
+  return tz ? zoneCountry[tz] ?? null : null;
+}
+
+/**
+ * First sign-up only: the home country and time zone that belong together.
+ * The device's time zone decides first (it is the user's own setting); the
+ * network country (cf-ipcountry) is used when the zone says nothing. Saved on
+ * the account afterwards and never changed automatically again.
+ */
+export function detectPreferences(deviceTimeZone: unknown, networkCountry: string | null): { timezone?: string; country?: Country } {
+  const timezone = isValidTimeZone(deviceTimeZone) ? deviceTimeZone : undefined;
+  const country = countryForTimeZone(timezone) ?? (isCountry(networkCountry) ? networkCountry : undefined);
+  return { ...(timezone ? { timezone } : {}), ...(country ? { country } : {}) };
 }
 
 export function isCountry(v: unknown): v is Country {
