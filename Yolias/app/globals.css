@@ -2008,3 +2008,9 @@ html[lang="ar"] .form-select, html[lang="ar"] .form-input { font-size: .8rem; pa
 .setup-actions { display: flex; justify-content: flex-end; }
 @media (max-width: 760px) { .setup-row { grid-template-columns: 1fr; } .setup-row.narrow { max-width: none; } .setup-actions .btn-primary { width: 100%; justify-content: center; } }
 .plan-foot { margin: 10px 0 0; text-align: center; font-size: .78rem; color: var(--muted); }
+.campaign-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 0 0 16px; }
+.campaign-facts > div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.campaign-facts > div.wide { grid-column: span 2; }
+.campaign-facts dt { font-size: .74rem; color: var(--muted); margin-bottom: 4px; }
+.campaign-facts dd { margin: 0; font-size: .86rem; font-weight: 600; color: var(--ink); display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 760px) { .campaign-facts > div.wide { grid-column: auto; } }

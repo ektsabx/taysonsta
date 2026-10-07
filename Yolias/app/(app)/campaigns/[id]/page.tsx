@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { YoliasMark } from "@/components/YoliasMark";
 import { CampaignControls } from "@/components/app/CampaignControls";
 import { campaignStatus } from "@/lib/discovery/campaign-view";
-import { criteriaLine, parseIcp } from "@/lib/discovery/icp";
+import { parseIcp, sizeLabel } from "@/lib/discovery/icp";
 import { countryLabel, formatDate, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -41,16 +40,12 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[id
   const { campaign: c, runs, events, usage, results } = data;
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const cc = t.campaigns;
-  const r = t.results;
   const tz = session.profile.timezone;
   const n = (v: number) => formatNumber(v, locale);
   const icp = parseIcp(c.criteria);
   const st = campaignStatus(c.status, t);
   const pct = c.quota ? Math.min(100, (c.prospects_found / c.quota) * 100) : 0;
   const local = c.search_type === "local_businesses";
-  const where = icp ? [...icp.cities, ...icp.countries.map((x) => countryLabel(x, locale))].slice(0, 3).join(locale === "ar" ? "، " : ", ") : "";
-  const total = local ? results.local : results.companies;
-  const running = !["completed", "partial", "failed", "paused", "awaiting_source"].includes(c.status);
 
   return (
     <div className="page-view">
@@ -58,10 +53,6 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[id
         <div className="view-title-group">
           <Link href="/campaigns" className="detail-back"><ArrowLeft className="flip-rtl" /> {cc.back}</Link>
           <h2>{c.name}</h2>
-          <p>
-            <span className={st.cls}>{st.label}</span> · {t.searchTypes[c.search_type]} · {c.continuous ? `${cc.continuous} (${cc.every[String(c.run_every_hours) as "24" | "168"]})` : cc.oneOff}
-            {icp ? ` · ${criteriaLine(icp, locale, t.icp)}` : ""}
-          </p>
         </div>
         <div className="view-actions">
           {c.strategy_id && <Link className="btn-secondary" href={`/search/${c.strategy_id}`}><Sparkles /> {cc.openChat}</Link>}
@@ -70,19 +61,17 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[id
       </header>
 
       <div className="view-content-padding result-page">
-        <section className="result-card results-summary campaign-summary">
-          <span className={`results-dot${running ? " running" : ""}`} aria-hidden="true">{running && <YoliasMark size={14} thinking />}</span>
-          <div className="results-summary-main">
-            <strong>{running ? r.running : r.done}</strong>
-            <span>{fmt(r.foundIn, { count: n(total), unit: local ? r.unitPlaces : r.unitCompanies, where: where ? (locale === "ar" ? ` في ${where}` : ` in ${where}`) : "" })}</span>
-          </div>
-          <div className="campaign-summary-progress">
-            <span className="cell-sub">{fmt(cc.goalProgress, { found: n(c.prospects_found), goal: n(c.quota) })} · {cc.kpi.used}: {n(usage.consumed)}</span>
-            <span className="progress-track"><span className="progress-fill" style={{ width: `${pct.toFixed(1)}%` }} /></span>
-            {c.status === "scheduled" && c.next_run_at && <span className="cell-sub">{cc.kpi.nextRun}: {dateTime(c.next_run_at, locale, tz)}</span>}
-            {c.deadline && <span className="cell-sub">{cc.kpi.deadline}: {formatDate(c.deadline, locale, tz)}</span>}
-          </div>
-        </section>
+        <dl className="campaign-facts">
+          <div><dt>{cc.runCol.status}</dt><dd><span className={st.cls}>{st.label}</span></dd></div>
+          <div><dt>{cc.kpi.progress}</dt><dd>{fmt(cc.goalProgress, { found: n(c.prospects_found), goal: n(c.quota) })}<span className="progress-track"><span className="progress-fill" style={{ width: `${pct.toFixed(1)}%` }} /></span></dd></div>
+          <div><dt>{cc.kpi.used}</dt><dd>{n(usage.consumed)}</dd></div>
+          <div><dt>{t.setup.target}</dt><dd>{t.searchTypes[c.search_type]} · {c.continuous ? cc.every[String(c.run_every_hours) as "24" | "168"] : cc.oneOff}</dd></div>
+          {icp && (icp.industries.length > 0 || icp.keywords.length > 0) && <div><dt>{t.setup.industries}</dt><dd dir="auto">{(icp.industries.length ? icp.industries : icp.keywords).join("، ")}</dd></div>}
+          {icp && <div><dt>{t.setup.size}</dt><dd>{sizeLabel(icp, t.icp)}</dd></div>}
+          {icp && icp.countries.length > 0 && <div className="wide"><dt>{t.setup.countries}</dt><dd>{icp.countries.map((x) => countryLabel(x, locale)).join("، ")}</dd></div>}
+          {c.status === "scheduled" && c.next_run_at && <div><dt>{cc.kpi.nextRun}</dt><dd>{dateTime(c.next_run_at, locale, tz)}</dd></div>}
+          {c.deadline && <div><dt>{cc.kpi.deadline}</dt><dd>{formatDate(c.deadline, locale, tz)}</dd></div>}
+        </dl>
 
         <section className="detail-card campaign-results">
           <h3>{cc.views.results}</h3>
