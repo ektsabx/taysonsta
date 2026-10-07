@@ -8,6 +8,7 @@ import { countryLabel, formatNumber } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { cardCompany, gridPerson } from "@/lib/results";
 import { requireSession } from "@/lib/session";
+import { hasProviderFor } from "@/lib/intel/registry";
 import { listCampaigns } from "@/services/campaigns";
 import { filterQuery, listEntities, PAGE_SIZE, parseFilters, peopleByCompany, savedKey, visibleTabs, tabCounts } from "@/services/prospects";
 import type { CompanyRow, ProspectRow } from "@/types/database";
@@ -26,7 +27,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
   const session = await requireSession();
   const filters = parseFilters(await searchParams);
   const ws = session.workspace.id;
-  const [page, counts, campaigns, t, locale] = await Promise.all([listEntities(ws, filters), tabCounts(ws), listCampaigns(ws), getDictionary(), getLocale()]);
+  const [page, counts, campaigns, t, locale, canCollect] = await Promise.all([listEntities(ws, filters), tabCounts(ws), listCampaigns(ws), getDictionary(), getLocale(), hasProviderFor("person.search")]);
   const pr = t.prospects;
   const countries = [...new Set(campaigns.flatMap((c) => (((c.criteria as { countries?: string[] })?.countries ?? []) as string[])))]
     .map((code) => ({ code, name: countryLabel(code, locale) }));
@@ -39,7 +40,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     ? page.rows.flatMap((i) => (i.kind === "person" ? [] : [i.row.id]))
     : page.tab === "companies" || page.tab === "local" ? page.rows.map((c) => c.id) : [];
   const faces = await peopleByCompany(companyIds);
-  const company = (c: CompanyRow, key = c.id): GridItem => ({ key, kind: "company", company: cardCompany(c, faces.get(c.id) ?? [], locale) });
+  const company = (c: CompanyRow, key = c.id): GridItem => ({ key, kind: "company", company: cardCompany(c, faces.get(c.id) ?? [], locale, canCollect) });
 
   const items: GridItem[] = page.tab === "saved"
     ? page.rows.map((i) => (i.kind === "person" ? person(i.row, savedKey(i)) : company(i.row, savedKey(i))))
@@ -62,7 +63,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
 
       <nav className="entity-tabs" aria-label={pr.title}>
         {visibleTabs.map((tab) => (
-          <Link key={tab} href={`/prospects${tab === "people" ? "" : `?tab=${tab}`}`} className={`${tab === filters.tab ? "active" : ""}${tab === "saved" ? " entity-tab-saved" : ""}`} aria-current={tab === filters.tab ? "page" : undefined}>
+          <Link key={tab} href={`/prospects${tab === "companies" ? "" : `?tab=${tab}`}`} className={`${tab === filters.tab ? "active" : ""}${tab === "saved" ? " entity-tab-saved" : ""}`} aria-current={tab === filters.tab ? "page" : undefined}>
             {tab === "saved" && <Bookmark aria-hidden="true" />}{pr.tabs[tab]} <span className="entity-tab-count">{n(counts[tab])}</span>
           </Link>
         ))}
@@ -81,6 +82,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           pageSize={PAGE_SIZE}
           query={query}
           empty={filtered ? pr.emptyFiltered : pr.emptyTab[filters.tab]}
+          canCollect={canCollect}
         />
       </div>
     </div>

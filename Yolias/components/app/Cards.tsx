@@ -32,6 +32,8 @@ export interface CardCompany {
   people: { name: string; photoUrl: string | null }[];
   peopleStatus: string | null;
   peopleRequested: boolean;
+  /** A source for decision makers is connected: collecting can be offered. */
+  canCollect: boolean;
 }
 
 function Select({ label, checked, onToggle }: { label: string; checked: boolean; onToggle?: () => void }) {
@@ -124,8 +126,8 @@ export function CompanyCard({ company: c, selected = false, onToggle }: { compan
           </div>
         ) : (
           <div>
-            <strong>{r.notCollected}</strong>
-            <span className="cell-sub">{r.notCollectedSub}</span>
+            <strong>{c.canCollect && c.peopleStatus !== "done" ? r.notCollected : r.noPeopleFound}</strong>
+            {c.canCollect && c.peopleStatus !== "done" && <span className="cell-sub">{r.notCollectedSub}</span>}
           </div>
         )}
       </div>
@@ -133,8 +135,8 @@ export function CompanyCard({ company: c, selected = false, onToggle }: { compan
         <Link className="btn-secondary" href={`/prospects/company/${c.id}`}>{r.viewCompany}</Link>
         {c.people.length ? (
           <Link className="btn-outline-accent" href={`/prospects/company/${c.id}#decision-makers`}>{r.viewDecisionMakers} <ArrowRight className="flip-rtl" /></Link>
-        ) : c.peopleStatus === "done" ? null : (
-          <CollectButton id={c.id} running={c.peopleStatus === "running" || c.peopleStatus === "queued" || (c.peopleRequested && !c.peopleStatus)} />
+        ) : !c.canCollect || c.peopleStatus === "done" ? null : (
+          <CollectButton id={c.id} running={c.peopleStatus === "running" || c.peopleStatus === "queued"} />
         )}
       </div>
     </li>

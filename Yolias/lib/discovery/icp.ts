@@ -14,7 +14,7 @@ export type SearchTypeId = (typeof searchTypes)[number];
 
 export const IcpSchema = z.object({
   search_type: z.enum(searchTypes).describe(
-    'people = decision makers inside matching companies (default); companies = the companies themselves; local_businesses = shops, clinics, restaurants and other places on a map in a city; company_lookalikes = companies similar to the ones the user names',
+    'companies = matching companies and the decision makers inside them (default; people is legacy, treated as companies); local_businesses = shops, clinics, restaurants and other places on a map in a city; company_lookalikes = companies similar to the ones the user names',
   ),
   lookalike_seeds: z.array(z.string()).describe("For company_lookalikes: the companies (names or websites) to find lookalikes of; otherwise empty"),
   campaign_name: z.string().describe('Short mission name, e.g. "Saudi SaaS Companies — Founders"'),

@@ -196,7 +196,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
               ? eventText(lastEvent.message, lastEvent.meta, t, locale, criteria)
               : fmt(d.created, { name: campaign.name })}
         </span>
-        {hasResults && <Link className="artifact-results-link" href={`/search/${strategy.id}/results`}>{t.results.viewAll} <ArrowRight className="flip-rtl" /></Link>}
+        {hasResults && <Link className="artifact-results-link" href={`/campaigns/${campaign.id}`}>{t.results.viewAll} <ArrowRight className="flip-rtl" /></Link>}
         <SaveToProspectsButton campaignId={campaign.id} alreadySaved={hasResults && savedCount >= campaign.prospects_found} disabled={!hasResults} />
       </div>
       {outOfProspects && (

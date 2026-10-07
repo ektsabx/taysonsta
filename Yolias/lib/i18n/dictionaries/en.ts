@@ -671,7 +671,7 @@ export const en = {
     selectAll: "Select all", viewProfile: "View profile", reveal: "Reveal contact", revealed: "Contact revealed",
     email: "Email", available: "Available", notFound: "Not found", verified: "Verified",
     selected: "{count} selected", startOutreach: "Start outreach ({count})",
-    notCollected: "Not collected yet", notCollectedSub: "Collect decision makers for this company.", collect: "Collect decision makers", collecting: "Collecting…",
+    notCollected: "Not collected yet", noPeopleFound: "No decision makers found yet", notCollectedSub: "Collect decision makers for this company.", collect: "Collect decision makers", collecting: "Collecting…",
     dmCount: "{count} decision makers", viewCompany: "View company", viewDecisionMakers: "View decision makers",
     done: "Done.", running: "Searching…", foundIn: "{count} {unit} found{where}", unitCompanies: "companies", unitPlaces: "places", unitPeople: "people",
     dmSummary: "Decision makers collected at {companies} companies · {people} decision makers",

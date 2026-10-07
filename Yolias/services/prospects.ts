@@ -13,7 +13,9 @@ export type ProspectTab = (typeof prospectTabs)[number];
  * D-149); hiring stays an internal signal. Saved lists the people, companies
  * and local businesses a member saved (bookmarked_at, D-159).
  */
-export const visibleTabs = ["people", "companies", "local", "saved"] as const;
+// People are reached through their company (owner decision 2026-10-07, D-166):
+// no People tab; "people" stays valid for exports of selected decision makers.
+export const visibleTabs = ["companies", "local", "saved"] as const;
 export const sorts = ["match", "newest", "name"] as const;
 export type ProspectSort = (typeof sorts)[number];
 /** Cards per page (fills 2, 3 or 4 columns evenly). */
@@ -46,7 +48,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string).trim() : "");
   const min = Number(one("min"));
   const page = Number(one("page"));
-  const tab = (visibleTabs as readonly string[]).includes(one("tab")) ? (one("tab") as ProspectTab) : "people";
+  const tab = (prospectTabs as readonly string[]).includes(one("tab")) ? (one("tab") as ProspectTab) : "companies";
   const sort = (sorts as readonly string[]).includes(one("sort")) ? (one("sort") as ProspectSort) : "match";
   return {
     tab,
@@ -68,7 +70,7 @@ export function filterQuery(f: ProspectFilters, over: Partial<Record<keyof Prosp
   for (const k of ["tab", "q", "campaign", "country", "minMatch", "verified", "city", "sort", "page"]) {
     const val = v[k];
     if (val === undefined || val === null || val === false || val === "") continue;
-    if (k === "tab" && val === "people") continue;
+    if (k === "tab" && val === "companies") continue;
     if (k === "sort" && val === "match") continue;
     if (k === "page" && Number(val) <= 1) continue;
     qs.set(k === "minMatch" ? "min" : k, val === true ? "1" : String(val));

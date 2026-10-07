@@ -1,5 +1,6 @@
 "use server";
 
+import { hasProviderFor } from "@/lib/intel/registry";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
@@ -47,9 +48,11 @@ export async function revealContacts(target: Target): Promise<{ ok: true; contac
 export async function findDecisionMakersAction(target: Target, tab: "companies" | "local"): Promise<{ ok: boolean; queued: number }> {
   const { session, ids } = await resolve(target, tab);
   if (!ids.length) return { ok: false, queued: 0 };
+  if (!(await hasProviderFor("person.search"))) return { ok: false, queued: 0 };
   const supabase = await createClient();
-  const { data } = await supabase.from("companies").update({ people_requested_at: new Date().toISOString() })
-    .eq("workspace_id", session.workspace.id).in("id", ids).select("id");
+  const { data } = await supabase.from("companies").update({ people_requested_at: new Date().toISOString(), people_status: "queued" })
+    .eq("workspace_id", session.workspace.id).in("id", ids)
+    .or("people_status.is.null,people_status.in.(no_source,failed,no_quota)").select("id");
   const companyIds = (data ?? []).map((r) => r.id);
   // Batches keep each job inside one worker invocation.
   for (let i = 0; i < companyIds.length; i += 20) {

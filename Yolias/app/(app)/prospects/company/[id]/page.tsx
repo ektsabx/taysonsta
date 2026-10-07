@@ -45,7 +45,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const size = c.employee_count != null ? fmt(r.employees, { count: sizeBand(c.employee_count) ?? n(c.employee_count) }) : null;
   const site = c.website ?? (c.domain ? c.domain : null);
   const meta = [local ? c.category : c.industry, place, size].filter(Boolean);
-  const back = c.campaign?.strategy_id ? `/search/${c.campaign.strategy_id}/results` : `/prospects?tab=${local ? "local" : "companies"}`;
+  const back = local ? "/prospects?tab=local" : "/prospects";
 
   const csv = t.prospects.csv;
   const email = { icon: <Mail />, label: csv.email, ltr: true, value: c.email && <a className="entity-link" href={`mailto:${c.email}`}>{c.email}</a> };

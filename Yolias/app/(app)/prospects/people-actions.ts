@@ -1,4 +1,5 @@
 "use server";
+import { hasProviderFor } from "@/lib/intel/registry";
 import { capture } from "@/lib/analytics/server";
 
 import { revalidatePath } from "next/cache";
@@ -50,10 +51,12 @@ export async function collectDecisionMakers(companyIds: string[]): Promise<{ ok:
   const session = await requireSession();
   const list = ids(companyIds);
   if (!list.length) return { ok: false, queued: 0 };
+  // Without a source for people nothing would run: say so instead of spinning.
+  if (!(await hasProviderFor("person.search"))) return { ok: false, queued: 0 };
   const db = await createClient();
-  const { data } = await db.from("companies").update({ people_requested_at: new Date().toISOString() })
-    .eq("workspace_id", session.workspace.id).in("id", list).not("delivered_at", "is", null)
-    .or("people_status.is.null,people_status.in.(no_source,failed)").select("id");
+  const { data } = await db.from("companies").update({ people_requested_at: new Date().toISOString(), people_status: "queued" })
+    .eq("workspace_id", session.workspace.id).in("id", list)
+    .or("people_status.is.null,people_status.in.(no_source,failed,no_quota)").select("id");
   const queued = (data ?? []).map((r) => r.id);
   for (let i = 0; i < queued.length; i += 20) {
     await enqueue("company.people", { workspaceId: session.workspace.id, companyIds: queued.slice(i, i + 20) });

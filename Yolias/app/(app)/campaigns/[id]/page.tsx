@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { CompanyCard } from "@/components/app/Cards";
+import { ResultsToolbar } from "@/components/app/ResultsToolbar";
+import { YoliasMark } from "@/components/YoliasMark";
+import { hasProviderFor } from "@/lib/intel/registry";
+import { cardCompany } from "@/lib/results";
+import { parseResultFilters, RESULTS_PAGE, searchResults, type ResultFilters } from "@/services/results";
 import { CampaignControls } from "@/components/app/CampaignControls";
 import { campaignStatus } from "@/lib/discovery/campaign-view";
 import { criteriaLine, parseIcp } from "@/lib/discovery/icp";
-import { formatDate, formatNumber } from "@/lib/format";
+import { countryLabel, formatDate, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/session";
@@ -18,8 +24,15 @@ export async function generateMetadata({ params }: PageProps<"/campaigns/[id]">)
   return { title: d ? `${d.campaign.name} — Yolias` : "Yolias" };
 }
 
-const views = ["overview", "results", "runs", "activity"] as const;
-type View = (typeof views)[number];
+function qs(f: ResultFilters, over: Partial<ResultFilters>) {
+  const v = { ...f, ...over };
+  const out = new URLSearchParams();
+  for (const k of ["q", "industry", "city", "size"] as const) if (v[k]) out.set(k, v[k]);
+  if (v.sort !== "relevance") out.set("sort", v.sort);
+  if (v.page > 1) out.set("page", String(v.page));
+  const s = out.toString();
+  return s ? `?${s}` : "";
+}
 
 function eventText(message: string, meta: Json | null, t: Dictionary): string {
   const m = meta as { key?: string; vars?: Record<string, string | number> } | null;
@@ -30,28 +43,34 @@ function eventText(message: string, meta: Json | null, t: Dictionary): string {
 const dateTime = (iso: string, locale: Locale, timeZone: string) =>
   new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { dateStyle: "medium", timeStyle: "short", timeZone }).format(new Date(iso));
 
-// Campaign dashboard (final spec phase 6): status and controls, goal
-// progress, prospects used, schedule and deadline, results per entity,
-// runs (lineage), activity, and the campaign's chat — one page with
-// internal navigation (?view=).
+// One campaign (owner's design, D-166): what it is and where it stands, its
+// companies as the same cards as Prospects (each with its decision makers),
+// then runs and activity folded away at the bottom. The search's old results
+// page now redirects here.
 export default async function CampaignPage({ params, searchParams }: PageProps<"/campaigns/[id]">) {
   const session = await requireSession();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await getCampaignDashboard(id);
   if (!data || data.campaign.workspace_id !== session.workspace.id) notFound();
-  const { campaign: c, runs, events, usage, results, daily, daysLeft: days } = data;
-  const sp = await searchParams;
-  const view: View = (views as readonly string[]).includes(String(sp.view)) ? (sp.view as View) : "overview";
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const { campaign: c, runs, events, usage } = data;
+  const f = { ...parseResultFilters(await searchParams), tab: "companies" as const };
+  const [t, locale, found, canCollect] = await Promise.all([
+    getDictionary(), getLocale(), c.strategy_id ? searchResults(c.strategy_id, session.workspace.id, f) : Promise.resolve(null), hasProviderFor("person.search"),
+  ]);
   const cc = t.campaigns;
+  const r = t.results;
   const tz = session.profile.timezone;
   const n = (v: number) => formatNumber(v, locale);
   const icp = parseIcp(c.criteria);
   const st = campaignStatus(c.status, t);
   const pct = c.quota ? Math.min(100, (c.prospects_found / c.quota) * 100) : 0;
-  const maxDay = Math.max(1, ...daily.map((d) => d.delivered));
-  const prospectsTab = c.search_type === "people" ? "" : c.search_type === "local_businesses" ? "tab=local&" : "tab=companies&";
+  const local = c.search_type === "local_businesses";
+  const where = icp ? [...icp.cities, ...icp.countries.map((x) => countryLabel(x, locale))].slice(0, 3).join(locale === "ar" ? "، " : ", ") : "";
+  const total = found?.companies.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / RESULTS_PAGE));
+  const base = `/campaigns/${c.id}`;
+  const running = !["completed", "partial", "failed", "paused", "awaiting_source"].includes(c.status);
 
   return (
     <div className="page-view">
@@ -70,105 +89,79 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
         </div>
       </header>
 
-      <nav className="entity-tabs" aria-label={c.name}>
-        {views.map((v) => (
-          <Link key={v} href={`/campaigns/${c.id}${v === "overview" ? "" : `?view=${v}`}`} className={v === view ? "active" : ""} aria-current={v === view ? "page" : undefined}>
-            {cc.views[v]}{v === "runs" && <span className="entity-tab-count">{n(runs.length)}</span>}
-          </Link>
-        ))}
-      </nav>
+      <div className="view-content-padding result-page">
+        <section className="result-card results-summary campaign-summary">
+          <span className={`results-dot${running ? " running" : ""}`} aria-hidden="true">{running && <YoliasMark size={14} thinking />}</span>
+          <div className="results-summary-main">
+            <strong>{running ? r.running : r.done}</strong>
+            <span>{fmt(r.foundIn, { count: n(total), unit: local ? r.unitPlaces : r.unitCompanies, where: where ? (locale === "ar" ? ` في ${where}` : ` in ${where}`) : "" })}</span>
+          </div>
+          <div className="campaign-summary-progress">
+            <span className="cell-sub">{fmt(cc.goalProgress, { found: n(c.prospects_found), goal: n(c.quota) })} · {cc.kpi.used}: {n(usage.consumed)}</span>
+            <span className="progress-track"><span className="progress-fill" style={{ width: `${pct.toFixed(1)}%` }} /></span>
+            {c.status === "scheduled" && c.next_run_at && <span className="cell-sub">{cc.kpi.nextRun}: {dateTime(c.next_run_at, locale, tz)}</span>}
+            {c.deadline && <span className="cell-sub">{cc.kpi.deadline}: {formatDate(c.deadline, locale, tz)}</span>}
+          </div>
+        </section>
 
-      <div className="view-content-padding">
-        {view === "overview" && (
-          <>
-            <div className="kpi-row">
-              <div className="kpi-card">
-                <span className="kpi-label">{cc.kpi.progress}</span>
-                <strong className="kpi-value">{fmt(cc.goalProgress, { found: n(c.prospects_found), goal: n(c.quota) })}</strong>
-                <span className="progress-track"><span className="progress-fill" style={{ width: `${pct.toFixed(1)}%` }} /></span>
-                {c.partial_reason && c.partial_reason in cc.reasons ? <span className="cell-sub">{cc.reasons[c.partial_reason as keyof typeof cc.reasons]}</span> : null}
-              </div>
-              <div className="kpi-card"><span className="kpi-label">{cc.kpi.used}</span><strong className="kpi-value">{n(usage.consumed)}</strong>{usage.reserved > 0 && <span className="cell-sub">+{n(usage.reserved)}</span>}</div>
-              <div className="kpi-card"><span className="kpi-label">{cc.kpi.saved}</span><strong className="kpi-value">{n(results.saved)}</strong></div>
-              <div className="kpi-card"><span className="kpi-label">{cc.kpi.runs}</span><strong className="kpi-value">{n(Math.max(c.runs_count, runs.length))}</strong></div>
-              <div className="kpi-card">
-                <span className="kpi-label">{cc.kpi.deadline}</span>
-                <strong className="kpi-value">{c.deadline ? formatDate(c.deadline, locale, tz) : cc.noDeadline}</strong>
-                {days != null && <span className="cell-sub">{days > 0 ? fmt(cc.daysLeft, { count: n(days) }) : cc.deadlinePassed}</span>}
-              </div>
-              <div className="kpi-card"><span className="kpi-label">{cc.kpi.nextRun}</span><strong className="kpi-value">{c.status === "scheduled" && c.next_run_at ? dateTime(c.next_run_at, locale, tz) : "—"}</strong></div>
-            </div>
-            <section className="detail-card">
-              <h3>{cc.deliveredChart}</h3>
-              {daily.length === 0 ? <p className="cell-sub">{cc.noDeliveries}</p> : (
-                <div className="bar-chart" role="img" aria-label={cc.deliveredChart}>
-                  {daily.map((d) => (
-                    <div key={d.day} className="bar-col" title={`${formatDate(d.day, locale, "UTC")}: ${n(d.delivered)}`}>
-                      <span className="bar-value">{n(d.delivered)}</span>
-                      <span className="bar" style={{ height: `${(d.delivered / maxDay) * 100}%` }} />
-                      <span className="bar-label">{new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { month: "short", day: "numeric" }).format(new Date(d.day))}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
+        {found && (found.options.industries.length > 1 || found.options.cities.length > 1 || total > RESULTS_PAGE) && (
+          <ResultsToolbar industries={found.options.industries} cities={found.options.cities} people={false} />
         )}
 
-        {view === "results" && (
-          <div className="kpi-row">
-            {([["people", results.people, ""], ["companies", results.companies, "tab=companies&"], ["local", results.local, "tab=local&"]] as const).map(([k, count, tab]) => (
-              <Link key={k} className="kpi-card kpi-link" href={`/prospects?${tab}campaign=${c.id}`}>
-                <span className="kpi-label">{t.prospects.tabs[k]}</span>
-                <strong className="kpi-value">{n(count)}</strong>
-                <span className="cell-sub">{cc.openInProspects} →</span>
-              </Link>
-            ))}
-            <p className="cell-sub" style={{ gridColumn: "1 / -1" }}><Link className="entity-link" href={`/prospects?${prospectsTab}campaign=${c.id}`}>{cc.openInProspects}</Link></p>
+        {found && found.companies.rows.length ? (
+          <ul className="company-grid">
+            {found.companies.rows.map((x) => <CompanyCard key={x.id} company={cardCompany(x, x.people, locale, canCollect)} />)}
+          </ul>
+        ) : <p className="cell-sub results-empty">{running ? r.running : r.empty}</p>}
+
+        {pages > 1 && (
+          <div className="results-pager">
+            <span className="cell-sub">{fmt(r.showing, { from: n((f.page - 1) * RESULTS_PAGE + 1), to: n(Math.min(f.page * RESULTS_PAGE, total)), total: n(total) })}</span>
+            <div className="results-pages">
+              {f.page > 1 ? <Link className="icon-btn" href={`${base}${qs(f, { page: f.page - 1 })}`} aria-label="‹"><ChevronLeft className="flip-rtl" /></Link> : <span className="icon-btn disabled"><ChevronLeft className="flip-rtl" /></span>}
+              {Array.from({ length: Math.min(pages, 7) }, (_, k) => k + 1).map((p) => (
+                <Link key={p} className={`page-num${p === f.page ? " active" : ""}`} href={`${base}${qs(f, { page: p })}`}>{n(p)}</Link>
+              ))}
+              {f.page < pages ? <Link className="icon-btn" href={`${base}${qs(f, { page: f.page + 1 })}`} aria-label="›"><ChevronRight className="flip-rtl" /></Link> : <span className="icon-btn disabled"><ChevronRight className="flip-rtl" /></span>}
+            </div>
           </div>
         )}
 
-        {view === "runs" && (
-          <div className="data-table-card">
+        <details className="detail-card campaign-more">
+          <summary>{cc.views.runs} <span className="entity-tab-count">{n(runs.length)}</span></summary>
+          {runs.length === 0 ? <p className="cell-sub">{cc.noRuns}</p> : (
             <div className="data-table-scroll">
-              <table className="data-table">
-                <thead><tr><th>{cc.runCol.run}</th><th>{cc.runCol.started}</th><th>{cc.runCol.finished}</th><th>{cc.runCol.status}</th><th>{cc.runCol.candidates}</th><th>{cc.runCol.delivered}</th></tr></thead>
+              <table className="data-table compact">
+                <thead><tr><th>{cc.runCol.run}</th><th>{cc.runCol.started}</th><th>{cc.runCol.finished}</th><th>{cc.runCol.status}</th><th>{cc.runCol.delivered}</th></tr></thead>
                 <tbody>
-                  {runs.length === 0 && <tr><td colSpan={6} className="empty-cell">{cc.noRuns}</td></tr>}
-                  {runs.map((r, i) => {
-                    const meta = (r.meta ?? {}) as { candidates?: number; reason?: string };
-                    return (
-                      <tr key={r.id}>
-                        <td>#{n(runs.length - i)}{r.attempt > 1 && <span className="cell-sub">↻ {r.attempt}</span>}</td>
-                        <td>{dateTime(r.started_at, locale, tz)}</td>
-                        <td>{r.finished_at ? dateTime(r.finished_at, locale, tz) : "—"}</td>
-                        <td>{cc.runStatus[r.status]}{r.error && <span className="cell-sub">{r.error}</span>}</td>
-                        <td>{meta.candidates != null ? n(meta.candidates) : "—"}</td>
-                        <td><strong>{n(r.delivered)}</strong></td>
-                      </tr>
-                    );
-                  })}
+                  {runs.map((run, i) => (
+                    <tr key={run.id}>
+                      <td>#{n(runs.length - i)}</td>
+                      <td>{dateTime(run.started_at, locale, tz)}</td>
+                      <td>{run.finished_at ? dateTime(run.finished_at, locale, tz) : "—"}</td>
+                      <td>{cc.runStatus[run.status]}</td>
+                      <td><strong>{n(run.delivered)}</strong></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+          )}
+        </details>
 
-        {view === "activity" && (
-          <section className="detail-card">
-            {events.length === 0 ? <p className="cell-sub">{cc.noActivity}</p> : (
-              <ul className="activity-list">
-                {events.map((e) => (
-                  <li key={e.id} className={`activity-${e.level}`}>
-                    <span className="activity-time">{dateTime(e.created_at, locale, tz)}</span>
-                    <span>{eventText(e.message, e.meta, t)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-
+        <details className="detail-card campaign-more">
+          <summary>{cc.views.activity}</summary>
+          {events.length === 0 ? <p className="cell-sub">{cc.noActivity}</p> : (
+            <ul className="activity-list">
+              {events.map((e) => (
+                <li key={e.id} className={`activity-${e.level}`}>
+                  <span className="activity-time">{dateTime(e.created_at, locale, tz)}</span>
+                  <span>{eventText(e.message, e.meta, t)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
       </div>
     </div>
   );

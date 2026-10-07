@@ -33,7 +33,7 @@ export function CollectButton({ id, running }: { id: string; running: boolean })
   return (
     <button className="btn-primary" type="button" disabled={pending || queued} onClick={() => start(async () => {
       const r = await collectDecisionMakers([id]);
-      if (r.ok) setQueued(true);
+      setQueued(r.ok && r.queued > 0);
       router.refresh();
     })}>
       {queued ? t.results.collecting : t.results.collect} {!queued && <ArrowRight className="flip-rtl" />}

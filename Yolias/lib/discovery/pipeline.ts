@@ -450,6 +450,7 @@ async function discoverCompanies(db: Db, campaignId: string, icp: IcpCriteria, s
   const kind: CompanyKind = local ? "local_business" : "company";
   const candidates = await findCompanies(icp, ctx, searchTypeSpecs[searchType].source);
   await setStage("matching_companies");
+  const peopleSource = !local && (await hasProviderFor("person.search"));
   let delivered = 0;
 
   for (const candidate of candidates) {
@@ -469,6 +470,17 @@ async function discoverCompanies(db: Db, campaignId: string, icp: IcpCriteria, s
     }
     delivered++;
     if (!local) await findJobs(db, campaignId, icp, c, row.id, ctx);
+    // Decision makers inside the company come with it, free (D-164, D-166).
+    if (!local && peopleSource) {
+      await setStage("discovering_people");
+      let found = 0;
+      for (const person of await findPeople(c, icp, ctx)) {
+        if (found >= PEOPLE_PER_COMPANY) break;
+        const r = await deliverPerson(db, campaignId, row.id, c, intelIds.get(c) ?? intelIds.get(candidate) ?? null, person, icp, { ...ctx, free: true }, setStage, new Date().toISOString());
+        if (r === "delivered") found++;
+      }
+      await db.from("companies").update({ people_status: "done", people_found: found }).eq("id", row.id);
+    }
     await db.from("campaigns").update({ companies_found: totals.companies + delivered, prospects_found: totals.prospects + delivered }).eq("id", campaignId);
   }
 

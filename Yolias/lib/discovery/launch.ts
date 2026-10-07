@@ -79,7 +79,10 @@ async function understand(session: Session, strategyId: string, prompt: string, 
 type Icp = Awaited<ReturnType<typeof understandStrategy>>["icp"];
 
 /** Campaign row + plan events + the queued discovery job. Returns the campaign id, or null if it couldn't be created. */
-async function startCampaign(session: Session, supabase: Db, strategyId: string, icp: Icp): Promise<string | null> {
+async function startCampaign(session: Session, supabase: Db, strategyId: string, understoodIcp: Icp): Promise<string | null> {
+  // Yolias searches companies and finds the decision makers inside them (D-166):
+  // a request for people becomes a company search that keeps its job titles.
+  const icp = understoodIcp.search_type === "people" ? { ...understoodIcp, search_type: "companies" as const, target_unit: "companies" as const } : understoodIcp;
   const { data: campaign } = await supabase
     .from("campaigns")
     .insert({

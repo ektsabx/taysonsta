@@ -673,7 +673,7 @@ export const ar: Dictionary = {
     selectAll: "تحديد الكل", viewProfile: "عرض الملف", reveal: "إظهار بيانات التواصل", revealed: "تم إظهار البيانات",
     email: "البريد", available: "متاح", notFound: "غير متاح", verified: "موثّق",
     selected: "تم تحديد {count}", startOutreach: "بدء التواصل ({count})",
-    notCollected: "لم يتم الجمع بعد", notCollectedSub: "اجمع صنّاع القرار في هذه الشركة.", collect: "جمع صنّاع القرار", collecting: "جارٍ الجمع…",
+    notCollected: "لم يتم الجمع بعد", noPeopleFound: "لم يُعثر على صنّاع قرار بعد", notCollectedSub: "اجمع صنّاع القرار في هذه الشركة.", collect: "جمع صنّاع القرار", collecting: "جارٍ الجمع…",
     dmCount: "{count} من صنّاع القرار", viewCompany: "عرض الشركة", viewDecisionMakers: "عرض صنّاع القرار",
     done: "تم.", running: "جارٍ البحث…", foundIn: "تم العثور على {count} {unit}{where}", unitCompanies: "شركة", unitPlaces: "نشاط محلي", unitPeople: "شخص",
     dmSummary: "تم جمع صنّاع القرار في {companies} شركة · {people} من صنّاع القرار",

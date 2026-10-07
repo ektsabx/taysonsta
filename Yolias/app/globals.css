@@ -1950,3 +1950,43 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
   .prospect-toolbar .filter-field, .prospect-toolbar .form-select, .prospect-toolbar .form-input { width: 100%; min-width: 0; flex: 1 1 100%; }
   .data-table-scroll > table.data-table { min-width: 720px; }
 }
+
+/* Filters: Arabic glyphs are taller than Latin ones; fixed heights clipped them. */
+.form-select, .form-input { line-height: 1.45; }
+.form-select { text-overflow: ellipsis; }
+.results-toolbar .form-select { height: auto; min-height: 36px; }
+html[lang="ar"] .form-select, html[lang="ar"] .form-input { font-size: .8rem; padding-block: 6px; }
+@media (max-width: 760px) {
+  .results-toolbar .form-select, .results-toolbar .results-search, .results-sort { width: 100%; min-width: 0; flex: 1 1 100%; margin-inline-start: 0; }
+  .results-sort .form-select { flex: 1; }
+  .campaign-summary { flex-wrap: wrap; }
+}
+
+/* Campaign page (D-166): summary, cards, then runs and activity folded away. */
+.campaign-summary { align-items: flex-start; }
+.campaign-summary-progress { display: flex; flex-direction: column; gap: 6px; min-width: 220px; margin-inline-start: auto; }
+.campaign-summary-progress .progress-track { width: 100%; }
+.campaign-more { margin-top: 14px; padding: 0; }
+.campaign-more > summary { cursor: pointer; list-style: none; padding: 14px 18px; font-weight: 600; font-size: .9rem; display: flex; align-items: center; gap: 8px; }
+.campaign-more > summary::-webkit-details-marker { display: none; }
+.campaign-more > summary::after { content: "+"; margin-inline-start: auto; color: var(--muted); font-weight: 400; }
+.campaign-more[open] > summary::after { content: "–"; }
+.campaign-more > :not(summary) { padding: 0 18px 16px; }
+
+/* Analytics (D-166): one quiet style — ink values, neutral tracks, no palette. */
+.analytics-page .stat-note { color: var(--muted); }
+.an-caption { margin: -4px 0 10px; }
+.an-bars { display: flex; flex-direction: column; gap: 12px; }
+.an-bar-head { display: flex; justify-content: space-between; gap: 12px; font-size: .82rem; color: var(--ink); margin-bottom: 6px; }
+.an-bar-head > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.an-bar-value { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.an-track { height: 6px; border-radius: 999px; background: var(--table-head); overflow: hidden; }
+.an-fill { height: 100%; border-radius: inherit; background: var(--ink); opacity: .8; }
+.an-trend { display: flex; align-items: flex-end; gap: 4px; height: 160px; border-bottom: 1px solid var(--line); }
+.an-trend-col { flex: 1; height: 100%; display: flex; align-items: flex-end; min-width: 3px; }
+.an-trend-bar { width: 100%; max-width: 28px; margin-inline: auto; border-radius: 4px 4px 0 0; background: var(--ink); opacity: .8; min-height: 2px; }
+.an-activity { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.an-activity div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.an-activity dt { font-size: .76rem; color: var(--muted); }
+.an-activity dd { margin: 4px 0 0; font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+@media (max-width: 760px) { .an-activity { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

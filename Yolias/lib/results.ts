@@ -33,6 +33,7 @@ export function cardCompany(
   c: Pick<CompanyRow, "id" | "kind" | "name" | "domain" | "website" | "logo_url" | "industry" | "category" | "city" | "country" | "employee_count" | "rating" | "reviews_count" | "bookmarked_at" | "people_status" | "people_requested_at">,
   people: { full_name: string; photo_url: string | null }[],
   locale: Locale,
+  canCollect = false,
 ): CardCompany {
   const local = c.kind === "local_business";
   const size = local ? null : sizeBand(c.employee_count);
@@ -41,6 +42,6 @@ export function cardCompany(
     meta: [local ? c.category : c.industry ?? c.category, location(c.city, c.country, locale), size].filter(Boolean).join(" · "),
     rating: local ? c.rating : null, reviews: local ? c.reviews_count : null, bookmarked: Boolean(c.bookmarked_at),
     people: people.map((p) => ({ name: p.full_name, photoUrl: p.photo_url })),
-    peopleStatus: c.people_status, peopleRequested: Boolean(c.people_requested_at),
+    peopleStatus: c.people_status, peopleRequested: Boolean(c.people_requested_at), canCollect,
   };
 }

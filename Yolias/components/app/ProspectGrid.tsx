@@ -30,13 +30,15 @@ interface Props {
   /** The active filters as a query string (no page). */
   query: string;
   empty: string;
+  /** A source for decision makers is connected. */
+  canCollect: boolean;
 }
 
 // One Prospects tab as cards (owner's reference design, the same cards as the
 // search results): a checkbox on every card, "select all on this page" and
 // "select all N matching" (across pages), a floating bar for the selection
 // and pagination. Bulk actions send ids or the filters, never row data.
-export function ProspectGrid({ tab, items, total, page, pageSize, query, empty }: Props) {
+export function ProspectGrid({ tab, items, total, page, pageSize, query, empty, canCollect }: Props) {
   const { t, locale } = useI18n();
   const pr = t.prospects;
   const toast = useToast();
@@ -130,7 +132,7 @@ export function ProspectGrid({ tab, items, total, page, pageSize, query, empty }
             {tab === "people" && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => ((await revealContacts(target())).ok ? pr.revealed : null))}><Eye /> {pr.revealContacts}</button>
             )}
-            {(tab === "companies" || tab === "local") && (
+            {canCollect && (tab === "companies" || tab === "local") && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
                 const r = await findDecisionMakersAction(target(), tab);
                 return r.ok ? fmt(pr.findPeopleQueued, { count: n(r.queued) }) : null;

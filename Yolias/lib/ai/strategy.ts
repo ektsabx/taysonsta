@@ -35,7 +35,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-07";
+export const ICP_PROMPT_VERSION = "icp-2026-10-07b";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -55,8 +55,8 @@ Rules:
 - Use the user's own business (industry, products and services) to infer which decision-maker job titles are relevant when they don't name any.
 - When the request doesn't say who to look for, use the business's ideal customer profile; when it doesn't name a market, use its target markets. Say so in "assumptions". What the request says always wins.
 - countries are ISO 3166-1 alpha-2 codes. If no market is given and the business has no target markets, use the user's default country and say so in "assumptions".
-- search_type: "people" when the user wants decision makers/contacts (the default); "companies" when they want a list of companies; "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
-- target_count is the number the user asked for (default 100). target_unit says whether it counts companies or people.
+- search_type: "companies" (the default) when the user wants companies, decision makers or contacts: Yolias finds the companies, then the decision makers inside them (put the titles in job_titles); "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
+- target_count is the number of companies the user asked for (default 100); target_unit is "companies".
 - campaign_name is short and specific, in the form "<Market> <Segment> — <Decision makers>".
 - Attached files or images may describe the ICP; use them.
 - Write campaign_name, summary and assumptions in {LANGUAGE}.`;
