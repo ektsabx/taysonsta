@@ -3,6 +3,8 @@ import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { findDecisionMakers, runDiscovery } from "@/lib/discovery/pipeline";
+import { searchTypeSpecs } from "@/lib/entities";
+import { hasProviderFor } from "@/lib/intel/registry";
 import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
@@ -82,6 +84,20 @@ export async function scheduleCampaigns(now = new Date()): Promise<number> {
   let queued = 0;
   for (const c of due ?? []) {
     const { data: claimed } = await db.from("campaigns").update({ status: "queued" }).eq("id", c.id).eq("status", "scheduled").select("id").maybeSingle();
+    if (!claimed) continue;
+    await db.rpc("jobs_enqueue", { p_kind: "campaign.discover", p_payload: { campaignId: c.id }, p_delay: 0 });
+    queued++;
+  }
+  // Campaigns waiting for a data source start by themselves once one is
+  // connected for their search type (what the member and Yolias AI are told).
+  const { data: waiting } = await db.from("campaigns").select("id, search_type").eq("status", "awaiting_source").limit(50);
+  const available = new Map<string, boolean>();
+  for (const c of waiting ?? []) {
+    const source = searchTypeSpecs[c.search_type ?? "people"]?.source;
+    if (!source) continue;
+    if (!available.has(source)) available.set(source, await hasProviderFor(source));
+    if (!available.get(source)) continue;
+    const { data: claimed } = await db.from("campaigns").update({ status: "queued" }).eq("id", c.id).eq("status", "awaiting_source").select("id").maybeSingle();
     if (!claimed) continue;
     await db.rpc("jobs_enqueue", { p_kind: "campaign.discover", p_payload: { campaignId: c.id }, p_delay: 0 });
     queued++;
