@@ -24,9 +24,10 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const h = (await getDictionary()).prospects.csv;
   const page = await selectEntities(session.workspace.id, filters, ids);
-  const intel = [h.match, h.confidence, h.lastUpdated, h.missing, h.source];
-  const intelOf = (r: { match_score: number | null; confidence: number | null; last_updated: string; missing_fields: string[]; source: string }) =>
-    [r.match_score, r.confidence, r.last_updated, r.missing_fields, r.source];
+  // Sources and confidence stay internal (D-165).
+  const intel = [h.match, h.lastUpdated, h.missing];
+  const intelOf = (r: { match_score: number | null; last_updated: string; missing_fields: string[] }) =>
+    [r.match_score, r.last_updated, r.missing_fields];
 
   let header: string[];
   let lines: unknown[][];

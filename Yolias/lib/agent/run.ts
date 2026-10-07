@@ -13,7 +13,7 @@ import { toMessages, type AgentTurn } from "@/lib/agent/messages";
 // tools in tools.ts. Every model call is logged with its cost (rule 28);
 // every tool call is authorized and audited inside executeTool (rules 33, 35).
 
-export const AGENT_PROMPT_VERSION = "agent-2026-10-07";
+export const AGENT_PROMPT_VERSION = "agent-2026-10-07b";
 
 // The system prompt comes from the published policy (lib/agent/policy.ts, D-141).
 

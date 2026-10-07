@@ -10,7 +10,7 @@ import type { CompanyCandidate, DiscoveryContext, JobCandidate, PersonCandidate 
 import type { EmailStatus } from "@/types/database";
 import { clampConfidence, missingFields, provenanceFields, provenanceFor, searchTypeSpecs, type EntityKind } from "@/lib/entities";
 import type { Capability } from "@/lib/intel/capabilities";
-import { hasProviderFor, sourceLabels } from "@/lib/intel/registry";
+import { hasProviderFor } from "@/lib/intel/registry";
 import { runCapability, type CallScope } from "@/lib/intel/service";
 import { cacheCompanies, cachedCompanies, isSuppressed, saveContact, upsertCompany, upsertPerson, type Source } from "@/lib/intel/shared";
 import { fingerprintIcp } from "@/lib/intel/fingerprint";
@@ -287,6 +287,8 @@ async function insertCompany(db: Db, campaignId: string, ctx: DiscoveryContext, 
     ...companyMedia(c),
     intel_company_id: intelIds.get(c) ?? null,
     delivered_at: delivered ? new Date().toISOString() : null,
+    // Every delivered result goes straight to Prospects (owner decision 2026-10-07, D-165).
+    saved_at: delivered ? new Date().toISOString() : null,
     run_id: ctx.runId ?? null,
     match_score: match?.score ?? null, match_reasons: match?.reasons ?? [],
     ...intelligence(kind === "local_business" ? "local_business" : "company", fields, sourceOf(c), clampConfidence(c.confidence)),
@@ -327,7 +329,7 @@ async function discoverPeople(db: Db, campaignId: string, icp: IcpCriteria, ctx:
     let found = 0;
     for (const person of people) {
       if (found >= PEOPLE_PER_COMPANY) break;
-      const r = await deliverPerson(db, campaignId, row.id, enriched, intelIds.get(enriched) ?? intelIds.get(company) ?? null, person, icp, free, setStage);
+      const r = await deliverPerson(db, campaignId, row.id, enriched, intelIds.get(enriched) ?? intelIds.get(company) ?? null, person, icp, free, setStage, new Date().toISOString());
       if (r === "delivered") found++;
     }
     peopleFound += found;
@@ -526,7 +528,7 @@ async function findCompanies(icp: IcpCriteria, ctx: DiscoveryContext, capability
     return cached.slice(0, ctx.limit);
   }
 
-  const source = (await sourceLabels()).join(", ") || "Yolias";
+  const source = "Yolias"; // providers stay internal (D-165)
   await ctx.log("companies", places ? `Searching ${source} for matching local businesses…` : `Searching ${source} for matching companies…`, "info", { key: places ? "searchingPlaces" : "searching", vars: { source } });
   const res = capability === "company.lookalikes"
     ? await runCapability("company.lookalikes", { seeds: icp.lookalike_seeds, icp, limit: ctx.limit, offset }, scopeOf(ctx))

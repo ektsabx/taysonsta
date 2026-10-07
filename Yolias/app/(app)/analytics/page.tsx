@@ -159,7 +159,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
               <div><dt>{an.quality.verifiedContacts}</dt><dd>{n(a.dataQuality.verifiedContacts)}</dd><span className="cell-sub">{fmt(an.quality.ofLeads, { pct: a.dataQuality.verifiedContactsPct })}</span></div>
               <div><dt>{an.quality.emailVerified}</dt><dd>{n(a.dataQuality.emailVerified)}</dd><span className="cell-sub">{fmt(an.quality.emailsFound, { count: n(a.dataQuality.emailFound) })}</span></div>
               <div><dt>{an.quality.phoneVerified}</dt><dd>—</dd><span className="cell-sub">{fmt(an.quality.phonesFound, { count: n(a.dataQuality.phoneFound) })}</span></div>
-              <div><dt>{an.quality.confidence}</dt><dd>{p(a.dataQuality.confidence)}</dd><span className="cell-sub">{an.quality.confidenceNote}</span></div>
             </dl>
             <h5 className="panel-subtitle">{an.quality.missing}</h5>
             <Bars rows={a.dataQuality.missing.map((m) => ({ key: m.field, pct: m.pct, count: m.count }))} label={fieldLabel} value={(r) => fmt(an.quality.missingCount, { count: n(r.count), pct: r.pct })} empty={an.quality.noMissing} />
@@ -204,21 +203,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
               <div><dt>{an.perCompany}</dt><dd>{a.decisionMakers.perCompany ?? "—"}</dd></div>
             </dl>
             <Bars rows={a.decisionMakers.total ? a.decisionMakers.roles : []} label={(k) => an.roles[k as keyof typeof an.roles]} value={share} empty={an.dist.none} />
-          </Panel>
-
-          <Panel title={an.sections.sources}>
-            {a.sources.length === 0 ? <p className="panel-empty">{an.empty}</p> : (
-              <div className="data-table-scroll">
-                <table className="data-table compact">
-                  <thead><tr><th>{an.sourceCols.source}</th><th>{an.sourceCols.leads}</th><th>{an.sourceCols.match}</th><th>{an.sourceCols.verified}</th><th>{an.sourceCols.confidence}</th></tr></thead>
-                  <tbody>
-                    {a.sources.map((s) => (
-                      <tr key={s.source}><td dir="ltr">{s.source}</td><td>{n(s.count)} ({s.pct}%)</td><td>{p(s.avgMatch)}</td><td>{p(s.verifiedPct)}</td><td>{p(s.confidence)}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </Panel>
 
           <Panel title={an.sections.markets} wide>

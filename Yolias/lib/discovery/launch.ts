@@ -101,7 +101,8 @@ async function startCampaign(session: Session, supabase: Db, strategyId: string,
   });
 
   await logEvent(session.workspace.id, campaign.id, "understand", icp.summary, "success");
-  const sources = await sourceLabels();
+  // Members see "Yolias", never the providers behind it (D-165).
+  const sources = (await sourceLabels()).length ? ["Yolias"] : [];
   const en = dictionaries.en;
   const titles = icp.job_titles.length ? ` · ${icp.job_titles.slice(0, 4).join(", ")}` : "";
   const unitKey = icp.target_unit === "companies" ? "unitCompanies" : "unitProspects";
