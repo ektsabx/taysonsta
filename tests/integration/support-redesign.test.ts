@@ -20,7 +20,7 @@ test("spam: move out of the inbox, known spammer stays in spam silently, restore
   const first = await receiveInbound({ channel: "email", customer: { name: "Spam Bot", email }, subject: "Cheap offer", body: "Buy now" });
   const convId = first!.conversation.id;
   const customerId = first!.conversation.customer_id;
-  cleanup.push(async () => { await db().from("conversations").delete().eq("customer_id", customerId); await db().from("support_customers").delete().eq("id", customerId); });
+  cleanup.push(async () => { await db().from("bos_conversations").delete().eq("customer_id", customerId); await db().from("support_customers").delete().eq("id", customerId); });
 
   if (!dev.permissions.get("conversations.update")) await assert.rejects(markConversationSpam(dev, convId, "x"), ForbiddenError);
   await markConversationSpam(admin, convId, "unsolicited offer");
@@ -31,11 +31,11 @@ test("spam: move out of the inbox, known spammer stays in spam silently, restore
   assert.equal(spam[0].spam_reason, "unsolicited offer");
 
   // Same customer writes again on a new thread: lands in spam, no agent alert.
-  await db().from("conversations").update({ status: "closed" }).eq("id", convId);
+  await db().from("bos_conversations").update({ status: "closed" }).eq("id", convId);
   const started = new Date().toISOString();
   const second = await receiveInbound({ channel: "email", customer: { name: "Spam Bot", email }, subject: "Another offer", body: "Buy again" });
   assert.equal((second as { spam?: boolean }).spam, true);
-  const { data: again } = await db().from("conversations").select("spam_at").eq("id", second!.conversation.id).single();
+  const { data: again } = await db().from("bos_conversations").select("spam_at").eq("id", second!.conversation.id).single();
   assert.ok(again!.spam_at, "auto-flagged as spam");
   const { count: events, error: evErr } = await db().from("activity_events").select("id", { count: "exact", head: true }).eq("entity_id", second!.conversation.id).gte("occurred_at", started).eq("event_type", "conversation.customer_message");
   assert.equal(evErr, null);
@@ -53,7 +53,7 @@ test("analytics: spam excluded, new breakdowns and a daily series for custom ran
   const a = await supportAnalytics({ from: today, to: today });
   for (const k of ["byStatus", "byTeam", "byAgent", "ai", "tickets", "daily", "spam", "pending", "snoozed"]) assert.ok(k in a, k);
   assert.equal(a.daily.length, 1);
-  const { count: realToday } = await db().from("conversations").select("id", { count: "exact", head: true }).is("spam_at", null).gte("created_at", `${today}T00:00:00Z`);
+  const { count: realToday } = await db().from("bos_conversations").select("id", { count: "exact", head: true }).is("spam_at", null).gte("created_at", `${today}T00:00:00Z`);
   assert.equal(a.total, realToday ?? 0);
 });
 

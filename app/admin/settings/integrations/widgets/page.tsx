@@ -19,7 +19,7 @@ export default async function IntegrationWidgetsPage() {
   const [widgets, agents, teams, { data: sessions }, { data: convs }, h] = await Promise.all([
     listWidgets(), listAgents(), listTeams(),
     db().from("widget_sessions").select("widget_id").gte("created_at", since),
-    db().from("conversations").select("widget_id, handed_off_at, ai_agent_id").not("widget_id", "is", null).gte("created_at", since),
+    db().from("bos_conversations").select("widget_id, handed_off_at, ai_agent_id").not("widget_id", "is", null).gte("created_at", since),
     headers(),
   ]);
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3100"}`;

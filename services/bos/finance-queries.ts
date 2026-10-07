@@ -29,7 +29,7 @@ export async function listInvoices(bos: BosUser, scope: Scope, f: InvoiceFilters
   const pageSize = 25;
   const page = Math.max(1, f.page ?? 1);
   let q = db()
-    .from("invoices")
+    .from("bos_invoices")
     .select("id, invoice_number, status, currency, total, amount_paid, amount_refunded, balance, issue_date, due_date, client_id, deal_id, clients(name, company_name)", { count: "exact" });
   const filter = await relatedFilter(bos, scope);
   if (filter) q = q.or(filter);
@@ -46,7 +46,7 @@ export async function listInvoices(bos: BosUser, scope: Scope, f: InvoiceFilters
 }
 
 export async function invoiceTotalsByCurrency(bos: BosUser, scope: Scope) {
-  let q = db().from("invoices").select("currency, total, balance, status").neq("status", "cancelled");
+  let q = db().from("bos_invoices").select("currency, total, balance, status").neq("status", "cancelled");
   const filter = await relatedFilter(bos, scope);
   if (filter) q = q.or(filter);
   const { data } = await q;
@@ -65,8 +65,8 @@ export async function listPayments(bos: BosUser, scope: Scope, f: { q?: string; 
   const pageSize = 25;
   const page = Math.max(1, f.page ?? 1);
   let q = db()
-    .from("payments")
-    .select("id, payment_number, amount, currency, method, status, payment_date, reference, refunded_amount, client_id, invoice_id, deal_id, clients(name, company_name), invoices(invoice_number)", { count: "exact" });
+    .from("bos_payments")
+    .select("id, payment_number, amount, currency, method, status, payment_date, reference, refunded_amount, client_id, invoice_id, deal_id, clients(name, company_name), invoices:bos_invoices(invoice_number)", { count: "exact" });
   const filter = await relatedFilter(bos, scope);
   if (filter) q = q.or(filter);
   if (f.status) q = q.eq("status", f.status as "completed");

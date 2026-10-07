@@ -15,6 +15,7 @@ import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { buyProspectPack } from "@/app/checkout/actions";
+import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
 import type { Currency } from "@/types/database";
 
@@ -169,7 +170,8 @@ function OrganizationTab({ data }: { data: ShellData }) {
   const { t } = useI18n();
   const o = t.settings.organization;
   const manage = data.role === "owner" || data.role === "admin";
-  const [form, setForm] = useState({ name: data.workspace.name, website: data.workspace.website ?? "", offering: data.workspace.offering ?? "" });
+  const w = data.workspace;
+  const [form, setForm] = useState({ name: w.name, website: w.website ?? "", industry: w.industry ?? "", offering: w.offering ?? "", ideal_customer: w.idealCustomer ?? "", target_markets: w.targetMarkets ?? "" });
   const [saved, setSaved] = useState(false);
   const { error, run, pending } = useSave();
   const save = () => run(async () => {
@@ -186,13 +188,26 @@ function OrganizationTab({ data }: { data: ShellData }) {
       <SettingRow label={o.website} desc={o.websiteDesc}>
         <input className="form-input" dir="ltr" value={form.website} maxLength={200} disabled={!manage} onChange={set("website")} />
       </SettingRow>
+      <SettingRow label={o.industry} desc={o.industryDesc}>
+        <input className="form-input" value={form.industry} maxLength={120} disabled={!manage} onChange={set("industry")} />
+      </SettingRow>
       <div className="setting-row setting-row-stack">
         <div className="setting-label-wrap">
           <div className="setting-label">{o.offering}</div>
           <div className="setting-desc">{o.offeringDesc}</div>
         </div>
-        <textarea className="form-input" rows={4} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />
+        <textarea className="form-input" rows={3} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />
       </div>
+      <div className="setting-row setting-row-stack">
+        <div className="setting-label-wrap">
+          <div className="setting-label">{o.idealCustomer}</div>
+          <div className="setting-desc">{o.idealCustomerDesc}</div>
+        </div>
+        <textarea className="form-input" rows={3} value={form.ideal_customer} maxLength={2000} disabled={!manage} onChange={set("ideal_customer")} />
+      </div>
+      <SettingRow label={o.targetMarkets} desc={o.targetMarketsDesc}>
+        <input className="form-input" value={form.target_markets} maxLength={300} disabled={!manage} onChange={set("target_markets")} />
+      </SettingRow>
       {manage ? (
         <div className="setting-actions">
           {error && <p className="form-error" role="alert">{error}</p>}
@@ -549,6 +564,11 @@ function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBoug
   const buy = async (id: string) => {
     setBusy(id);
     setError(null);
+    const pack = data.packs.find((p) => p.id === id);
+    if (pack) {
+      track("buy_more_opened", { prospects: pack.prospects, value: pack.price, currency: data.workspace.currency });
+      metaTrack("InitiateCheckout", { value: pack.price, currency: data.workspace.currency, content_type: "product", content_ids: [`prospects_${pack.prospects}`], num_items: 1 });
+    }
     const r = await buyProspectPack(id);
     setBusy(null);
     if (!r) return; // redirected to the payment page

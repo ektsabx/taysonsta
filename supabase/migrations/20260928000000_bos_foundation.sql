@@ -418,7 +418,7 @@ create table saved_views (
 -- Notifications
 -- ---------------------------------------------------------------------------
 
-create table notifications (
+create table bos_notifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   event_id bigint references activity_events(id) on delete set null,
@@ -431,8 +431,8 @@ create table notifications (
   read_at timestamptz,
   created_at timestamptz not null default now()
 );
-create index notifications_user_idx on notifications (user_id, read_at, created_at desc);
-create unique index notifications_user_event_idx on notifications (user_id, event_id) where event_id is not null;
+create index bos_notifications_user_idx on bos_notifications (user_id, read_at, created_at desc);
+create unique index bos_notifications_user_event_idx on bos_notifications (user_id, event_id) where event_id is not null;
 
 create table notification_subscriptions (
   id uuid primary key default gen_random_uuid(),
@@ -464,7 +464,7 @@ create table notification_preferences (
 
 create table notification_deliveries (
   id uuid primary key default gen_random_uuid(),
-  notification_id uuid not null references notifications(id) on delete cascade,
+  notification_id uuid not null references bos_notifications(id) on delete cascade,
   channel text not null check (channel in ('email','push')),
   status text not null default 'queued' check (status in ('queued','sent','failed','skipped')),
   attempts integer not null default 0,
@@ -607,7 +607,7 @@ alter table comments enable row level security;
 alter table files enable row level security;
 alter table file_shares enable row level security;
 alter table saved_views enable row level security;
-alter table notifications enable row level security;
+alter table bos_notifications enable row level security;
 alter table notification_subscriptions enable row level security;
 alter table notification_preferences enable row level security;
 alter table notification_deliveries enable row level security;

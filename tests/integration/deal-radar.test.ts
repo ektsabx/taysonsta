@@ -30,7 +30,7 @@ before(async () => {
   const { data: deal } = await db().from("deals").insert({ name: uniq("Radar deal"), client_id: client!.id, pipeline_id: stage!.pipeline_id, stage_id: stage!.id, value: 150000, currency: "EGP", expected_close_date: iso(-10).slice(0, 10), assigned_to: sara, created_by: sara }).select("id").single();
   dealId = deal!.id;
   cleanup.push(async () => {
-    await db().from("notifications").delete().eq("entity_id", dealId);
+    await db().from("bos_notifications").delete().eq("entity_id", dealId);
     await db().from("activities").delete().eq("deal_id", dealId);
     await db().from("proposals").delete().eq("deal_id", dealId);
     await db().from("deals").delete().eq("id", dealId);
@@ -84,7 +84,7 @@ test("actions on the existing CRM: follow-up, reschedule, assign, nudge, risks; 
   if (!s.permissions.get("deals.assign")) await assert.rejects(assignDealOwner(s, dealId, admin.userId), ForbiddenError);
   await assignDealOwner(admin, dealId, sara);
   await nudgeOwner(admin, dealId, "Please call the client today");
-  const { count } = await db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", sara).eq("entity_id", dealId);
+  const { count } = await db().from("bos_notifications").select("id", { count: "exact", head: true }).eq("user_id", sara).eq("entity_id", dealId);
   assert.ok((count ?? 0) >= 1, "owner notified");
 
   const riskId = await addRisk(admin, dealId, "blocker", "Waiting for budget approval");
@@ -107,14 +107,14 @@ test("daily radar alert reaches the owner once a day (sweep)", async () => {
     const { data: ev } = await db().from("activity_events").select("id").eq("event_type", "deal.radar_alert").gte("occurred_at", started);
     const ids = (ev ?? []).map((e) => e.id);
     if (ids.length) {
-      await db().from("notifications").delete().in("event_id", ids);
+      await db().from("bos_notifications").delete().in("event_id", ids);
       await db().from("activity_events").delete().in("id", ids);
     }
   });
   await radarAlerts();
   const { count: first } = await db().from("activity_events").select("id", { count: "exact", head: true }).eq("event_type", "deal.radar_alert").eq("entity_id", dealId).gte("occurred_at", started);
   assert.equal(first, 1);
-  const { count: notified } = await db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", sara).eq("entity_id", dealId).eq("event_type", "deal.radar_alert");
+  const { count: notified } = await db().from("bos_notifications").select("id", { count: "exact", head: true }).eq("user_id", sara).eq("entity_id", dealId).eq("event_type", "deal.radar_alert");
   assert.equal(notified, 1, "owner notified");
   await radarAlerts();
   const { count: second } = await db().from("activity_events").select("id", { count: "exact", head: true }).eq("event_type", "deal.radar_alert").eq("entity_id", dealId).gte("occurred_at", started);

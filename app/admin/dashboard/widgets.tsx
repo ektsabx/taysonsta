@@ -184,7 +184,7 @@ export async function DealRadarWidget({ bos }: Props) {
 }
 
 export async function NotificationsWidget({ bos }: Props) {
-  const { data } = await db().from("notifications").select("id, title, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(6);
+  const { data } = await db().from("bos_notifications").select("id, title, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(6);
   if (!data?.length) return <EmptyState title="لا إشعارات" />;
   return (
     <List>
@@ -377,7 +377,7 @@ export async function FinRevenueWidget({ bos }: Props) {
   const { data } = await db().rpc("bos_report_revenue", { f: { from, to, currency: await defaultCurrency() } });
   const r = (data ?? {}) as Record<string, number | string>;
   const base = String(r.currency ?? "USD");
-  const { count: overdue } = await db().from("invoices").select("id", { count: "exact", head: true }).eq("status", "overdue");
+  const { count: overdue } = await db().from("bos_invoices").select("id", { count: "exact", head: true }).eq("status", "overdue");
   return (
     <div className="bos-kpis" style={{ marginBottom: 0 }}>
       <KpiCard label="الإيراد (فواتير هذا الشهر)" value={formatMoney(r.revenue, base)} href="/admin/finance/revenue" />

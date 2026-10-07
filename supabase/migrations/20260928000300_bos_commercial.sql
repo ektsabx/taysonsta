@@ -206,7 +206,7 @@ create table payment_schedules (
 );
 create index payment_schedules_project_idx on payment_schedules (project_id);
 
-create table invoices (
+create table bos_invoices (
   id uuid primary key default gen_random_uuid(),
   invoice_number text not null unique default bos_next_number('invoice'),
   client_id uuid not null references clients(id) on delete restrict,
@@ -237,16 +237,16 @@ create table invoices (
   check (due_date >= issue_date),
   check (discount_amount <= subtotal)
 );
-create index invoices_client_idx on invoices (client_id);
-create index invoices_project_idx on invoices (project_id);
-create index invoices_deal_idx on invoices (deal_id);
-create index invoices_status_due_idx on invoices (status, due_date);
+create index bos_invoices_client_idx on bos_invoices (client_id);
+create index bos_invoices_project_idx on bos_invoices (project_id);
+create index bos_invoices_deal_idx on bos_invoices (deal_id);
+create index bos_invoices_status_due_idx on bos_invoices (status, due_date);
 
-alter table payment_schedules add column invoice_id uuid references invoices(id) on delete set null;
+alter table payment_schedules add column invoice_id uuid references bos_invoices(id) on delete set null;
 
 create table invoice_items (
   id uuid primary key default gen_random_uuid(),
-  invoice_id uuid not null references invoices(id) on delete cascade,
+  invoice_id uuid not null references bos_invoices(id) on delete cascade,
   product_id uuid references products(id) on delete set null,
   description text not null,
   quantity numeric(12,2) not null default 1 check (quantity > 0),
@@ -268,8 +268,8 @@ begin
 end;
 $$;
 
-create trigger invoices_compute_totals before insert or update of subtotal, discount_amount, tax_rate, currency
-on invoices for each row execute function bos_invoice_compute_totals();
+create trigger bos_invoices_compute_totals before insert or update of subtotal, discount_amount, tax_rate, currency
+on bos_invoices for each row execute function bos_invoice_compute_totals();
 
 create or replace function public.bos_invoice_items_changed()
 returns trigger
@@ -278,7 +278,7 @@ as $$
 declare
   v_invoice uuid := coalesce(new.invoice_id, old.invoice_id);
 begin
-  update invoices
+  update bos_invoices
      set subtotal = coalesce((select sum(line_total) from invoice_items where invoice_id = v_invoice), 0)
    where id = v_invoice;
   return null;
@@ -288,11 +288,11 @@ $$;
 create trigger invoice_items_recalc after insert or update or delete on invoice_items
 for each row execute function bos_invoice_items_changed();
 
-create table payments (
+create table bos_payments (
   id uuid primary key default gen_random_uuid(),
   payment_number text not null unique default bos_next_number('payment'),
   client_id uuid not null references clients(id) on delete restrict,
-  invoice_id uuid references invoices(id) on delete restrict,
+  invoice_id uuid references bos_invoices(id) on delete restrict,
   deal_id uuid references deals(id) on delete restrict,
   project_id uuid,
   amount numeric(14,3) not null check (amount > 0),
@@ -313,11 +313,11 @@ create table payments (
   updated_at timestamptz not null default now(),
   check (refunded_amount <= amount)
 );
-create index payments_client_idx on payments (client_id);
-create index payments_invoice_idx on payments (invoice_id);
-create index payments_deal_idx on payments (deal_id);
-create index payments_date_idx on payments (payment_date);
-create unique index payments_invoice_reference_idx on payments (invoice_id, reference) where reference is not null and invoice_id is not null;
+create index bos_payments_client_idx on bos_payments (client_id);
+create index bos_payments_invoice_idx on bos_payments (invoice_id);
+create index bos_payments_deal_idx on bos_payments (deal_id);
+create index bos_payments_date_idx on bos_payments (payment_date);
+create unique index bos_payments_invoice_reference_idx on bos_payments (invoice_id, reference) where reference is not null and invoice_id is not null;
 
 -- ---------------------------------------------------------------------------
 -- Commission engine
@@ -472,7 +472,7 @@ begin
 
   v_collected := coalesce((
     select sum(coalesce(p.deal_amount, 0) * (p.amount - p.refunded_amount) / p.amount)
-    from payments p where p.deal_id = p_deal_id and p.status in ('completed','refunded')
+    from bos_payments p where p.deal_id = p_deal_id and p.status in ('completed','refunded')
   ), 0);
   v_ratio := case when v_deal.value > 0 then least(1, v_collected / v_deal.value) else 0 end;
 
@@ -551,18 +551,18 @@ returns void
 language plpgsql
 as $$
 declare
-  v_inv invoices%rowtype;
+  v_inv bos_invoices%rowtype;
   v_paid numeric;
   v_refunded numeric;
   v_new invoice_status;
 begin
-  select * into v_inv from invoices where id = p_invoice_id for update;
+  select * into v_inv from bos_invoices where id = p_invoice_id for update;
   if v_inv.id is null then return; end if;
 
   select coalesce(sum(invoice_amount), 0),
          coalesce(sum(invoice_amount * refunded_amount / amount), 0)
     into v_paid, v_refunded
-    from payments
+    from bos_payments
    where invoice_id = p_invoice_id and status in ('completed','refunded');
 
   v_refunded := bos_round_money(v_refunded, v_inv.currency);
@@ -579,7 +579,7 @@ begin
     v_new := v_inv.status;
   end if;
 
-  update invoices
+  update bos_invoices
      set amount_paid = v_paid,
          amount_refunded = v_refunded,
          status = v_new,
@@ -621,7 +621,7 @@ begin
 
   v_collected := coalesce((
     select sum(coalesce(deal_amount, 0) * (amount - refunded_amount) / amount)
-    from payments where deal_id = p_deal_id and status in ('completed','refunded')
+    from bos_payments where deal_id = p_deal_id and status in ('completed','refunded')
   ), 0);
 
   v_new := case
@@ -647,7 +647,7 @@ language plpgsql
 as $$
 declare
   v_existing uuid;
-  v_inv invoices%rowtype;
+  v_inv bos_invoices%rowtype;
   v_deal deals%rowtype;
   v_amount numeric := (p->>'amount')::numeric;
   v_currency char(3) := upper(p->>'currency');
@@ -661,7 +661,7 @@ declare
   v_project uuid := nullif(p->>'project_id', '')::uuid;
 begin
   if nullif(p->>'idempotency_key', '') is not null then
-    select id into v_existing from payments where idempotency_key = p->>'idempotency_key';
+    select id into v_existing from bos_payments where idempotency_key = p->>'idempotency_key';
     if v_existing is not null then
       return v_existing;
     end if;
@@ -672,7 +672,7 @@ begin
   end if;
 
   if nullif(p->>'invoice_id', '') is not null then
-    select * into v_inv from invoices where id = (p->>'invoice_id')::uuid for update;
+    select * into v_inv from bos_invoices where id = (p->>'invoice_id')::uuid for update;
     if v_inv.id is null then
       raise exception 'Invoice not found' using errcode = 'P0002';
     end if;
@@ -701,7 +701,7 @@ begin
     end if;
 
     if v_inv.status = 'draft' then
-      update invoices set status = 'sent', sent_at = coalesce(sent_at, now()) where id = v_inv.id;
+      update bos_invoices set status = 'sent', sent_at = coalesce(sent_at, now()) where id = v_inv.id;
       perform bos_status('invoice', v_inv.id, 'draft', 'sent', p_actor, 'Payment recorded');
     end if;
     v_project := coalesce(v_project, v_inv.project_id);
@@ -718,7 +718,7 @@ begin
     end if;
   end if;
 
-  insert into payments (client_id, invoice_id, deal_id, project_id, amount, currency, exchange_rate, invoice_amount, deal_amount,
+  insert into bos_payments (client_id, invoice_id, deal_id, project_id, amount, currency, exchange_rate, invoice_amount, deal_amount,
                         method, payment_date, reference, status, notes, idempotency_key, created_by)
   values (v_client, v_inv.id, v_deal.id, v_project, v_amount, v_currency, v_rate, v_invoice_amount, v_deal_amount,
           coalesce(nullif(p->>'method', ''), 'bank_transfer')::payment_method,
@@ -748,9 +748,9 @@ returns void
 language plpgsql
 as $$
 declare
-  v_pay payments%rowtype;
+  v_pay bos_payments%rowtype;
 begin
-  select * into v_pay from payments where id = p_payment_id;
+  select * into v_pay from bos_payments where id = p_payment_id;
   if v_pay.invoice_id is not null then
     perform bos_recalc_invoice(v_pay.invoice_id, p_actor);
   end if;
@@ -773,9 +773,9 @@ returns void
 language plpgsql
 as $$
 declare
-  v_pay payments%rowtype;
+  v_pay bos_payments%rowtype;
 begin
-  select * into v_pay from payments where id = p_payment_id for update;
+  select * into v_pay from bos_payments where id = p_payment_id for update;
   if v_pay.id is null then
     raise exception 'Payment not found' using errcode = 'P0002';
   end if;
@@ -787,7 +787,7 @@ begin
     raise exception 'Invalid payment status transition % → %', v_pay.status, p_status using errcode = '22023';
   end if;
 
-  update payments set status = p_status, updated_at = now() where id = p_payment_id;
+  update bos_payments set status = p_status, updated_at = now() where id = p_payment_id;
   perform bos_status('payment', p_payment_id, v_pay.status::text, p_status::text, p_actor, p_reason);
   perform bos_audit(p_actor, 'payment.status_changed', 'payment', p_payment_id,
     jsonb_build_object('status', v_pay.status), jsonb_build_object('status', p_status), p_reason);
@@ -807,10 +807,10 @@ returns void
 language plpgsql
 as $$
 declare
-  v_pay payments%rowtype;
+  v_pay bos_payments%rowtype;
   v_new_refunded numeric;
 begin
-  select * into v_pay from payments where id = p_payment_id for update;
+  select * into v_pay from bos_payments where id = p_payment_id for update;
   if v_pay.id is null then
     raise exception 'Payment not found' using errcode = 'P0002';
   end if;
@@ -829,7 +829,7 @@ begin
     raise exception 'Refund exceeds the payment amount' using errcode = '22023';
   end if;
 
-  update payments
+  update bos_payments
      set refunded_amount = v_new_refunded,
          refund_reason = p_reason,
          status = case when v_new_refunded = amount then 'refunded'::payment_status else status end,
@@ -863,11 +863,11 @@ declare
   v_count integer := 0;
 begin
   for v_inv in
-    select * from invoices
+    select * from bos_invoices
     where status in ('sent','partially_paid') and due_date < current_date and balance > 0
     for update skip locked
   loop
-    update invoices set status = 'overdue', overdue_notified_at = now() where id = v_inv.id;
+    update bos_invoices set status = 'overdue', overdue_notified_at = now() where id = v_inv.id;
     perform bos_status('invoice', v_inv.id, v_inv.status::text, 'overdue', null, 'Past due date');
     perform bos_emit('invoice.overdue', 'invoice', v_inv.id, null,
       'Invoice ' || v_inv.invoice_number || ' is overdue (' || v_inv.balance || ' ' || v_inv.currency || ')',
@@ -941,8 +941,8 @@ create index expenses_vendor_idx on expenses (vendor_id);
 -- ---------------------------------------------------------------------------
 
 create trigger contracts_touch before update on contracts for each row execute function bos_touch_updated_at();
-create trigger invoices_touch before update on invoices for each row execute function bos_touch_updated_at();
-create trigger payments_touch before update on payments for each row execute function bos_touch_updated_at();
+create trigger bos_invoices_touch before update on bos_invoices for each row execute function bos_touch_updated_at();
+create trigger bos_payments_touch before update on bos_payments for each row execute function bos_touch_updated_at();
 create trigger commission_rules_touch before update on commission_rules for each row execute function bos_touch_updated_at();
 create trigger commissions_touch before update on commissions for each row execute function bos_touch_updated_at();
 create trigger vendors_touch before update on vendors for each row execute function bos_touch_updated_at();
@@ -951,9 +951,9 @@ create trigger expenses_touch before update on expenses for each row execute fun
 alter table contracts enable row level security;
 alter table contract_signatures enable row level security;
 alter table payment_schedules enable row level security;
-alter table invoices enable row level security;
+alter table bos_invoices enable row level security;
 alter table invoice_items enable row level security;
-alter table payments enable row level security;
+alter table bos_payments enable row level security;
 alter table commission_rules enable row level security;
 alter table commissions enable row level security;
 alter table vendors enable row level security;

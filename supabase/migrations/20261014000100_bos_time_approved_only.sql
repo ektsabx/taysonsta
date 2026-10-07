@@ -11,11 +11,11 @@ AS $function$
   collected as (
     select coalesce(sum(case when pay.currency = p.currency then pay.amount - pay.refunded_amount
                              else round((pay.amount - pay.refunded_amount) * coalesce(bos_fx_rate(pay.currency, p.currency, pay.payment_date), 0), 3) end), 0) v
-    from payments pay, p where pay.project_id = p.id and pay.status in ('completed','refunded')
+    from bos_payments pay, p where pay.project_id = p.id and pay.status in ('completed','refunded')
   ),
   invoiced as (
     select coalesce(sum(i.total), 0) v, coalesce(sum(i.balance) filter (where i.status in ('sent','partially_paid','overdue')), 0) outstanding
-    from invoices i, p where i.project_id = p.id and i.status not in ('cancelled','draft')
+    from bos_invoices i, p where i.project_id = p.id and i.status not in ('cancelled','draft')
   ),
   time_cost as (
     select coalesce(sum(case when te.cost_currency = p.currency or te.cost_currency is null then te.cost_amount
@@ -124,7 +124,7 @@ begin
       return case when v_den > 0 then round(100 * v_num / v_den, 2) else 0 end;
     when 'payments.collected_value' then
       return (select coalesce(sum(p.deal_amount * (p.amount - p.refunded_amount) / p.amount), 0)
-              from payments p join deals d on d.id = p.deal_id
+              from bos_payments p join deals d on d.id = p.deal_id
               where d.assigned_to = p_user and p.status in ('completed','refunded')
                 and p.payment_date >= p_start and p.payment_date <= p_end);
     when 'commissions.amount' then

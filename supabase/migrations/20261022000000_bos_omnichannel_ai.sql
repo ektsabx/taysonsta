@@ -1,10 +1,10 @@
 -- Omnichannel support + AI workforce (docs/bos/39 §5). Additive only.
 
 -- 1. More channels feed the one inbox and replies go back the same way.
-alter table conversations drop constraint if exists conversations_channel_check;
-alter table conversations add constraint conversations_channel_check
+alter table bos_conversations drop constraint if exists bos_conversations_channel_check;
+alter table bos_conversations add constraint bos_conversations_channel_check
   check (channel = any (array['web_widget', 'email', 'whatsapp', 'sms', 'portal', 'phone', 'manual', 'instagram', 'messenger', 'telegram']));
-alter table conversations add column if not exists handoff_reason text check (handoff_reason is null or length(handoff_reason) <= 300);
+alter table bos_conversations add column if not exists handoff_reason text check (handoff_reason is null or length(handoff_reason) <= 300);
 
 -- Channel identities of a customer (Messenger PSID, Instagram IGSID, Telegram chat id).
 alter table support_customers

@@ -23,7 +23,7 @@ function entity() {
   const id = crypto.randomUUID();
   cleanup.push(async () => {
     await db().from("approvals").delete().eq("entity_id", id);
-    await db().from("notifications").delete().eq("entity_id", id);
+    await db().from("bos_notifications").delete().eq("entity_id", id);
   });
   return id;
 }
@@ -142,7 +142,7 @@ test("notification copy follows the recipient's language; subscription condition
   const title = uniq("Lang");
   const id = entity();
   await requestApproval({ type: "design", entityType: "test_entity", entityId: id, title, requestedBy: admin.userId, steps: [`user:${sara.userId}|user:${hr.userId}`] });
-  const { data: notes } = await c.from("notifications").select("user_id, title, priority").eq("entity_id", id).eq("event_type", "approval.requested");
+  const { data: notes } = await c.from("bos_notifications").select("user_id, title, priority").eq("entity_id", id).eq("event_type", "approval.requested");
   const toSara = notes!.find((n) => n.user_id === sara.userId);
   const toHr = notes!.find((n) => n.user_id === hr.userId);
   assert.ok(toSara && toHr, "both approvers notified");
@@ -157,10 +157,10 @@ test("notification copy follows the recipient's language; subscription condition
   const ent = entity();
   const base = { id: null, event_type: eventType, entity_type: "test_entity", entity_id: ent, actor_user_id: null, actor_type: "system", summary: "Security alert test", visibility: "internal", created_at: new Date().toISOString(), processed_at: null, dedupe_key: null };
   await dispatchNotifications({ ...base, payload: { level: "low" } } as never);
-  const { count: low } = await c.from("notifications").select("id", { count: "exact", head: true }).eq("entity_id", ent).eq("user_id", sara.userId);
+  const { count: low } = await c.from("bos_notifications").select("id", { count: "exact", head: true }).eq("entity_id", ent).eq("user_id", sara.userId);
   assert.equal(low, 0, "condition not met → no notification");
   await dispatchNotifications({ ...base, payload: { level: "high" } } as never);
-  const { data: high } = await c.from("notifications").select("title, priority").eq("entity_id", ent).eq("user_id", sara.userId);
+  const { data: high } = await c.from("bos_notifications").select("title, priority").eq("entity_id", ent).eq("user_id", sara.userId);
   assert.equal(high!.length, 1, "condition met → notified");
   assert.equal(high![0].priority, "urgent");
 });
@@ -170,7 +170,7 @@ test("delivery queue: channels without a provider are skipped with a reason; ret
   const admin = await bosUserFor("admin@taysonsta.local");
   const c = db();
   const ent = entity();
-  const { data: n } = await c.from("notifications").insert({ user_id: sara.userId, event_type: "security.alert", title: uniq("Delivery"), entity_type: "test_entity", entity_id: ent }).select("id").single();
+  const { data: n } = await c.from("bos_notifications").insert({ user_id: sara.userId, event_type: "security.alert", title: uniq("Delivery"), entity_type: "test_entity", entity_id: ent }).select("id").single();
   const { data: d } = await c.from("notification_deliveries").insert([{ notification_id: n!.id, channel: "push" }]).select("id, channel");
   await processDeliveries(500);
   const { data: after } = await c.from("notification_deliveries").select("channel, status, last_error").in("id", d!.map((x) => x.id));
@@ -188,11 +188,11 @@ test("manual notifications: delivered to the chosen people, duplicate blocked, p
   const title = uniq("Announcement");
   const r = await sendManualNotification(hr, { target_kind: "users", target_ids: [sara.userId, admin.userId], channels: ["in_app"], priority: "high", title, body: "Office closed tomorrow", link: "/admin/knowledge" });
   cleanup.push(async () => {
-    await c.from("notifications").delete().eq("entity_id", r.id);
+    await c.from("bos_notifications").delete().eq("entity_id", r.id);
     await c.from("manual_notifications").delete().eq("id", r.id);
   });
   assert.equal(r.recipients, 2);
-  const { data: rows } = await c.from("notifications").select("user_id, priority, link").eq("entity_id", r.id);
+  const { data: rows } = await c.from("bos_notifications").select("user_id, priority, link").eq("entity_id", r.id);
   assert.equal(rows!.length, 2);
   assert.ok(rows!.every((x) => x.priority === "high" && x.link === "/admin/knowledge"));
   await assert.rejects(sendManualNotification(hr, { target_kind: "users", target_ids: [sara.userId, admin.userId], channels: ["in_app"], priority: "high", title, body: "Office closed tomorrow", link: null }), ValidationError, "duplicate within 10 minutes");

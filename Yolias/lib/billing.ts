@@ -7,6 +7,7 @@ import { requestCountry } from "@/lib/geo-server";
 import { planCanceled, planEnded, planStarted } from "@/lib/email/events";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { dictionaries } from "@/lib/i18n/config";
+import { capture } from "@/lib/analytics/server";
 import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
 /**
@@ -71,6 +72,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
     })
     .eq("id", ws.id);
   if (error) return false;
+  await capture(payer.userId, "plan_started", { workspace_id: ws.id, plan, billing_period: paid ? period : "monthly", paid, mode, previous_plan: ws.plan });
 
   const amount = charge?.amount ?? 0;
   await db.from("subscription_events").insert({
@@ -118,6 +120,7 @@ export async function setCancelAtPeriodEnd(ws: WorkspaceRow, cancel: boolean, us
   const db = createAdminClient();
   const { error } = await db.from("workspaces").update({ cancel_at_period_end: cancel }).eq("id", ws.id);
   if (error) return false;
+  if (cancel) await capture(userId, "plan_canceled", { workspace_id: ws.id, plan: ws.plan, billing_period: ws.billing_period });
   await db.from("subscription_events").insert({
     workspace_id: ws.id,
     plan: ws.plan,

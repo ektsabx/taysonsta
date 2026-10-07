@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { ErrorScreen } from "@/components/ErrorScreen";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -10,6 +11,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   const e = t.errorPages;
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
   return (
     <ErrorScreen

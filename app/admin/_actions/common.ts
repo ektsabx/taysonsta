@@ -247,8 +247,8 @@ export async function shareFileAction(fileId: string, userId: string): Promise<A
 export async function getNotificationsAction(): Promise<{ unread: number; items: { id: string; title: string; body: string | null; link: string | null; createdAt: string; read: boolean }[] }> {
   const bos = await requireBosUserForAction();
   const [{ count }, { data }] = await Promise.all([
-    db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
-    db().from("notifications").select("id, title, body, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(12),
+    db().from("bos_notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
+    db().from("bos_notifications").select("id, title, body, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(12),
   ]);
   return {
     unread: count ?? 0,
@@ -259,7 +259,7 @@ export async function getNotificationsAction(): Promise<{ unread: number; items:
 export async function markNotificationsReadAction(ids: string[] | "all"): Promise<ActionState> {
   return handleAction("markRead", async () => {
     const bos = await requireBosUserForAction();
-    let q = db().from("notifications").update({ read_at: nowIso() }).eq("user_id", bos.userId).is("read_at", null);
+    let q = db().from("bos_notifications").update({ read_at: nowIso() }).eq("user_id", bos.userId).is("read_at", null);
     if (ids !== "all") q = q.in("id", ids);
     await q;
     return { ok: true };
@@ -269,7 +269,7 @@ export async function markNotificationsReadAction(ids: string[] | "all"): Promis
 export async function markNotificationUnreadAction(id: string): Promise<ActionState> {
   return handleAction("markUnread", async () => {
     const bos = await requireBosUserForAction();
-    await db().from("notifications").update({ read_at: null }).eq("user_id", bos.userId).eq("id", id);
+    await db().from("bos_notifications").update({ read_at: null }).eq("user_id", bos.userId).eq("id", id);
     return { ok: true };
   });
 }

@@ -67,6 +67,6 @@ test("notification subscription change affects recipients", async () => {
   const { emitEvent } = await import("@/lib/bos/events");
   const id = crypto.randomUUID();
   const eventId = await emitEvent({ type, entityType: "kb_article", entityId: id, summary: "Policy updated test", actorId: admin.userId, dedupeKey: `sub-test:${id}` });
-  const { data: n } = await db().from("notifications").select("id").eq("user_id", hana.userId).eq("event_id", eventId!);
+  const { data: n } = await db().from("bos_notifications").select("id").eq("user_id", hana.userId).eq("event_id", eventId!);
   assert.equal(n?.length, 1);
 });

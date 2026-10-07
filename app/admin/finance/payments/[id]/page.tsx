@@ -16,7 +16,7 @@ export default async function PaymentDetailPage({ params }: { params: Promise<{ 
   const { bos } = await requirePermission("payments.read");
   const { id } = await params;
   if (!(await canAccessEntity(bos, "payment", id))) notFound();
-  const { data: p, error } = await db().from("payments").select("*, clients(id, name, company_name), invoices(id, invoice_number, currency), deals(id, deal_number)").eq("id", id).maybeSingle();
+  const { data: p, error } = await db().from("bos_payments").select("*, clients(id, name, company_name), invoices:bos_invoices(id, invoice_number, currency), deals(id, deal_number)").eq("id", id).maybeSingle();
   if (error) throw error;
   if (!p) notFound();
   const names = await userNameMap();

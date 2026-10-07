@@ -42,7 +42,7 @@ test("§106 full business lifecycle", async () => {
   await assignLeads(sm, [lead.id], bd.userId);
   await dispatchPendingEvents();
   assert.ok((await events(lead.id)).includes("lead.assigned"), "2. lead.assigned");
-  const { data: notif } = await c.from("notifications").select("id").eq("user_id", bd.userId).eq("entity_id", lead.id);
+  const { data: notif } = await c.from("bos_notifications").select("id").eq("user_id", bd.userId).eq("entity_id", lead.id);
   assert.ok((notif ?? []).length > 0, "2. BD notified");
 
   // 3–5. Contacted (outbound), replied (inbound), qualified
@@ -104,23 +104,23 @@ test("§106 full business lifecycle", async () => {
   const { data: schedule } = await c.from("payment_schedules").select("id, amount, sort_order, trigger, status").eq("deal_id", dealId).order("sort_order");
   assert.equal(schedule?.length, 3, "13. 3 schedule rows");
   assert.deepEqual(schedule!.map((s) => Number(s.amount)), [10000, 7500, 7500], "13. 40/30/30");
-  const { data: invoices } = await c.from("invoices").select("id, total, status").eq("deal_id", dealId);
+  const { data: invoices } = await c.from("bos_invoices").select("id, total, status").eq("deal_id", dealId);
   assert.equal(invoices?.length, 1, "13. first invoice, not duplicated");
   assert.equal(Number(invoices![0].total), 10000);
   const { count: onboarding } = await c.from("onboarding_checklists").select("id", { count: "exact", head: true }).eq("deal_id", dealId);
   assert.equal(onboarding, 1, "13. client onboarding started");
   const { count: commissions } = await c.from("commissions").select("id", { count: "exact", head: true }).eq("deal_id", dealId);
   assert.ok((commissions ?? 0) >= 1, "13. commission created");
-  const { data: finNotif } = await c.from("notifications").select("id").eq("user_id", finance.userId).eq("entity_id", dealId);
+  const { data: finNotif } = await c.from("bos_notifications").select("id").eq("user_id", finance.userId).eq("entity_id", dealId);
   assert.ok((finNotif ?? []).length > 0, "13. Finance notified");
 
   // 14. Client pays $10,000
   await recordPayment(finance, { client_id: clientId, invoice_id: invoices![0].id, deal_id: dealId, amount: "10000", currency: "USD", method: "bank_transfer", payment_date: new Date().toISOString().slice(0, 10), reference: tag, status: "completed", notes: null, idempotency_key: `e2e-${tag}-1` });
-  const { data: inv1 } = await c.from("invoices").select("status, balance").eq("id", invoices![0].id).single();
+  const { data: inv1 } = await c.from("bos_invoices").select("status, balance").eq("id", invoices![0].id).single();
   assert.equal(inv1!.status, "paid", "14. invoice paid");
   const { data: dealAfterPay } = await c.from("deals").select("payment_status, value").eq("id", dealId).single();
   assert.equal(dealAfterPay!.payment_status, "partially_paid", "14. deal partially paid");
-  const { data: paid } = await c.from("payments").select("amount, refunded_amount").eq("deal_id", dealId).eq("status", "completed");
+  const { data: paid } = await c.from("bos_payments").select("amount, refunded_amount").eq("deal_id", dealId).eq("status", "completed");
   const collected = (paid ?? []).reduce((s, p) => s + Number(p.amount) - Number(p.refunded_amount), 0);
   assert.equal(collected, 10000, "14. collected 10,000");
   assert.equal(Number(dealAfterPay!.value) - collected, 15000, "14. outstanding 15,000");
@@ -136,8 +136,8 @@ test("§106 full business lifecycle", async () => {
   let n = 2;
   for (const s of openSched ?? []) {
     const invId = s.invoice_id ?? (await invoiceFromSchedule(finance, s.id));
-    const { data: inv } = await c.from("invoices").select("status, balance").eq("id", invId).single();
-    if (inv!.status === "draft") await c.from("invoices").update({ status: "sent" }).eq("id", invId);
+    const { data: inv } = await c.from("bos_invoices").select("status, balance").eq("id", invId).single();
+    if (inv!.status === "draft") await c.from("bos_invoices").update({ status: "sent" }).eq("id", invId);
     if (Number(inv!.balance) > 0) await recordPayment(finance, { client_id: clientId, invoice_id: invId, deal_id: dealId, amount: String(inv!.balance), currency: "USD", method: "bank_transfer", payment_date: new Date().toISOString().slice(0, 10), reference: tag, status: "completed", notes: null, idempotency_key: `e2e-${tag}-${n++}` });
   }
 

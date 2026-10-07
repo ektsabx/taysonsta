@@ -35,7 +35,7 @@ async function scoped(bos: BosUser, perm: PermissionKey) {
 
 async function outstandingInvoices(bos: BosUser): Promise<ToolResult> {
   const sensitive = can(bos, "invoices.view_sensitive");
-  let q = db().from("invoices").select("id, invoice_number, balance, currency, due_date, status, created_by, clients(name, company_name)").in("status", ["sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(40);
+  let q = db().from("bos_invoices").select("id, invoice_number, balance, currency, due_date, status, created_by, clients(name, company_name)").in("status", ["sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(40);
   if (bos.permissions.get("invoices.read") !== "all") {
     const users = await scoped(bos, "invoices.read");
     if (users) q = q.in("created_by", users);

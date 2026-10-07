@@ -207,7 +207,7 @@ export async function resolveData(docType: string, entityType: string, entityId:
   const t = (s: string) => translate(locale, s);
 
   if (entityType === "invoice") {
-    const { data: inv } = await c.from("invoices").select("*, clients(name, company_name, email, phone, address, city, country, tax_id)").eq("id", entityId).maybeSingle();
+    const { data: inv } = await c.from("bos_invoices").select("*, clients(name, company_name, email, phone, address, city, country, tax_id)").eq("id", entityId).maybeSingle();
     if (!inv) throw new NotFoundError();
     const { data: items } = await c.from("invoice_items").select("description, quantity, unit_price, line_total, sort_order").eq("invoice_id", entityId).order("sort_order");
     return {

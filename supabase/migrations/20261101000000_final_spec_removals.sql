@@ -12,8 +12,8 @@ alter table public.meetings drop column if exists project_id, drop column if exi
 alter table public.email_threads drop column if exists project_id;
 alter table public.contracts drop column if exists project_id;
 alter table public.payment_schedules drop column if exists project_id, drop column if exists milestone_id;
-alter table public.invoices drop column if exists project_id, drop column if exists branch_id;
-alter table public.payments drop column if exists project_id, drop column if exists branch_id;
+alter table public.bos_invoices drop column if exists project_id, drop column if exists branch_id;
+alter table public.bos_payments drop column if exists project_id, drop column if exists branch_id;
 alter table public.expenses drop column if exists project_id, drop column if exists branch_id;
 alter table public.onboarding_checklists drop column if exists project_id;
 alter table public.channels drop column if exists project_id, drop column if exists task_id;
@@ -33,7 +33,7 @@ alter table public.holidays drop column if exists branch_id;
 alter table public.devices drop column if exists branch_id;
 alter table public.schedule_assignments drop column if exists branch_id;
 alter table public.payroll_runs drop column if exists branch_id;
-alter table public.conversations drop column if exists branch_id;
+alter table public.bos_conversations drop column if exists branch_id;
 alter table public.support_widgets drop column if exists branch_id;
 alter table public.content_items drop column if exists branch_id;
 alter table public.asset_events drop column if exists to_branch_id, drop column if exists from_branch_id;
@@ -55,9 +55,9 @@ drop table if exists
   cascade;
 
 -- ───────────── Channels: no WhatsApp, SMS, voice/phone, portal ─────────────
-delete from public.conversations where channel in ('whatsapp', 'sms', 'phone', 'portal');
-alter table public.conversations drop constraint if exists conversations_channel_check;
-alter table public.conversations add constraint conversations_channel_check
+delete from public.bos_conversations where channel in ('whatsapp', 'sms', 'phone', 'portal');
+alter table public.bos_conversations drop constraint if exists bos_conversations_channel_check;
+alter table public.bos_conversations add constraint bos_conversations_channel_check
   check (channel in ('web_widget', 'email', 'manual', 'instagram', 'messenger', 'telegram'));
 
 delete from public.notification_deliveries where channel in ('whatsapp', 'sms');

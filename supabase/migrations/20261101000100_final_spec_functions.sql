@@ -8,8 +8,8 @@ drop trigger if exists employees_infer_branch on public.employees;
 drop trigger if exists leads_infer_branch on public.leads;
 drop trigger if exists clients_infer_branch on public.clients;
 drop trigger if exists deals_infer_branch on public.deals;
-drop trigger if exists invoices_infer_branch on public.invoices;
-drop trigger if exists payments_infer_branch on public.payments;
+drop trigger if exists bos_invoices_infer_branch on public.bos_invoices;
+drop trigger if exists bos_payments_infer_branch on public.bos_payments;
 drop trigger if exists expenses_infer_branch on public.expenses;
 drop trigger if exists tickets_infer_branch on public.tickets;
 drop trigger if exists devices_infer_branch on public.devices;
@@ -47,7 +47,7 @@ end $$;
 -- ───────────── Data of removed modules ─────────────
 -- Maintenance plans belonged to project delivery and the client portal.
 drop table if exists public.support_plans cascade;
-alter table public.payments drop column if exists exchange_rate;
+alter table public.bos_payments drop column if exists exchange_rate;
 -- Distance was measured to the employee's branch.
 alter table public.employee_locations drop column if exists distance_to_branch_m;
 delete from public.schedule_assignments where scope = 'branch';
@@ -219,7 +219,7 @@ AS $function$
      order by 7 desc limit p_limit)
   union all
   (select 'invoice', i.id, i.invoice_number, i.status::text || ' · ' || i.total || ' ' || i.currency, i.created_by, i.client_id, extensions.similarity(i.invoice_number, q.t)
-     from invoices i, q where (p_types is null or 'invoice' = any(p_types)) and lower(i.invoice_number) like q.pat
+     from bos_invoices i, q where (p_types is null or 'invoice' = any(p_types)) and lower(i.invoice_number) like q.pat
      order by 7 desc limit p_limit)
   union all
   (select 'expense', x.id, x.description, x.amount || ' ' || x.currency || ' · ' || x.expense_date, coalesce(x.employee_user_id, x.created_by), x.client_id, extensions.similarity(x.description, q.t)
@@ -236,7 +236,7 @@ AS $function$
      order by 7 desc limit p_limit)
   union all
   (select 'conversation', v.id, coalesce(v.subject, v.number), v.number || ' · ' || v.status || ' · ' || coalesce(sc.name, ''), v.assignee_id, v.client_id, extensions.similarity(coalesce(v.subject, ''), q.t)
-     from conversations v join support_customers sc on sc.id = v.customer_id, q where (p_types is null or 'conversation' = any(p_types))
+     from bos_conversations v join support_customers sc on sc.id = v.customer_id, q where (p_types is null or 'conversation' = any(p_types))
        and (bos_norm(v.subject) like q.pat or lower(v.number) like q.pat or bos_norm(sc.name) like q.pat or lower(coalesce(sc.email, '')) like q.pat)
      order by 7 desc limit p_limit);
 $function$
@@ -273,7 +273,7 @@ begin
 
   v_status := case when coalesce((v_fin->>'auto_send_first_invoice')::boolean, false) then 'sent' else 'draft' end;
 
-  insert into invoices (client_id, deal_id, schedule_id, currency, issue_date, due_date, status, payment_terms, sent_at, created_by)
+  insert into bos_invoices (client_id, deal_id, schedule_id, currency, issue_date, due_date, status, payment_terms, sent_at, created_by)
   values (v_s.client_id, v_s.deal_id, v_s.id, v_s.currency, current_date,
           greatest(current_date, coalesce(v_s.due_date, current_date)) + coalesce((v_fin->>'default_payment_due_days')::int, 7),
           v_status, v_s.label || ' (' || v_s.percent || '%)', case when v_status = 'sent' then now() end, p_actor)
@@ -281,7 +281,7 @@ begin
   returning id into v_invoice;
 
   if v_invoice is null then
-    select id into v_invoice from invoices where schedule_id = p_schedule_id;
+    select id into v_invoice from bos_invoices where schedule_id = p_schedule_id;
     return v_invoice;
   end if;
 
@@ -515,7 +515,7 @@ begin
   if v_contract.status = 'signed' then
     perform bos_complete_onboarding_item(v_checklist, 'contract_signed', p_actor);
   end if;
-  if exists (select 1 from payments where deal_id = p_deal_id and status = 'completed') then
+  if exists (select 1 from bos_payments where deal_id = p_deal_id and status = 'completed') then
     perform bos_complete_onboarding_item(v_checklist, 'initial_payment', p_actor);
   end if;
 
@@ -536,7 +536,7 @@ CREATE OR REPLACE FUNCTION public.bos_record_payment(p jsonb, p_actor uuid)
 AS $function$
 declare
   v_existing uuid;
-  v_inv invoices%rowtype;
+  v_inv bos_invoices%rowtype;
   v_deal deals%rowtype;
   v_amount numeric := (p->>'amount')::numeric;
   v_currency char(3) := upper(p->>'currency');
@@ -548,7 +548,7 @@ declare
   v_id uuid;
 begin
   if nullif(p->>'idempotency_key', '') is not null then
-    select id into v_existing from payments where idempotency_key = p->>'idempotency_key';
+    select id into v_existing from bos_payments where idempotency_key = p->>'idempotency_key';
     if v_existing is not null then
       return v_existing;
     end if;
@@ -559,7 +559,7 @@ begin
   end if;
 
   if nullif(p->>'invoice_id', '') is not null then
-    select * into v_inv from invoices where id = (p->>'invoice_id')::uuid for update;
+    select * into v_inv from bos_invoices where id = (p->>'invoice_id')::uuid for update;
     if v_inv.id is null then
       raise exception 'Invoice not found' using errcode = 'P0002';
     end if;
@@ -582,7 +582,7 @@ begin
     end if;
 
     if v_inv.status = 'draft' then
-      update invoices set status = 'sent', sent_at = coalesce(sent_at, now()) where id = v_inv.id;
+      update bos_invoices set status = 'sent', sent_at = coalesce(sent_at, now()) where id = v_inv.id;
       perform bos_status('invoice', v_inv.id, 'draft', 'sent', p_actor, 'Payment recorded');
     end if;
   end if;
@@ -595,7 +595,7 @@ begin
     v_deal_amount := v_amount;
   end if;
 
-  insert into payments (client_id, invoice_id, deal_id, amount, currency, invoice_amount, deal_amount,
+  insert into bos_payments (client_id, invoice_id, deal_id, amount, currency, invoice_amount, deal_amount,
                         method, payment_date, reference, status, notes, idempotency_key, created_by)
   values (v_client, v_inv.id, v_deal.id, v_amount, v_currency, v_invoice_amount, v_deal_amount,
           coalesce(nullif(p->>'method', ''), 'bank_transfer')::payment_method,
@@ -830,7 +830,7 @@ begin
       return case when v_den > 0 then round(100 * v_num / v_den, 2) else 0 end;
     when 'payments.collected_value' then
       return (select coalesce(sum(p.deal_amount * (p.amount - p.refunded_amount) / p.amount), 0)
-              from payments p join deals d on d.id = p.deal_id
+              from bos_payments p join deals d on d.id = p.deal_id
               where d.assigned_to = p_user and p.status in ('completed','refunded')
                 and p.payment_date >= p_start and p.payment_date <= p_end);
     when 'commissions.amount' then
@@ -936,11 +936,11 @@ declare
   r jsonb;
 begin
   with inv as (
-    select i.* from invoices i
+    select i.* from bos_invoices i
     where i.status <> 'cancelled'
       and (v_client is null or i.client_id = v_client)
   ), pay as (
-    select p.* from payments p
+    select p.* from bos_payments p
     where p.status in ('completed','refunded')
       and (v_client is null or p.client_id = v_client)
   )
@@ -1077,7 +1077,7 @@ begin
                    where d.assigned_to = e.user_id and s.category = 'open' and d.archived_at is null),
       'won', (select count(*) from deals d where d.assigned_to = e.user_id and d.won_at::date between v_from and v_to),
       'won_value', (select coalesce(sum((case when d.currency = v_cur then d.value else 0 end)), 0) from deals d where d.assigned_to = e.user_id and d.won_at::date between v_from and v_to),
-      'revenue', (select coalesce(sum((case when p.currency = v_cur then p.amount - p.refunded_amount else 0 end)), 0) from payments p join deals d on d.id = p.deal_id
+      'revenue', (select coalesce(sum((case when p.currency = v_cur then p.amount - p.refunded_amount else 0 end)), 0) from bos_payments p join deals d on d.id = p.deal_id
                   where d.assigned_to = e.user_id and p.status in ('completed','refunded') and p.payment_date between v_from and v_to),
       'commission', (select coalesce(sum((case when c.currency = v_cur then c.eligible_amount else 0 end)), 0) from commissions c where c.user_id = e.user_id and c.status in ('eligible','approved','paid'))
     ) order by e.full_name)
@@ -1120,7 +1120,7 @@ begin
       'upsells', (select count(*) from deals d join c on c.id = d.client_id where d.is_upsell and d.created_at::date between v_from and v_to),
       'clients', coalesce((select jsonb_agg(x order by (x->>'revenue')::numeric desc) from (
           select jsonb_build_object('id', c.id, 'name', c.name, 'country', c.country,
-            'revenue', (select coalesce(sum((case when p.currency = v_cur then p.amount - p.refunded_amount else 0 end)), 0) from payments p where p.client_id = c.id and p.status in ('completed','refunded')),
+            'revenue', (select coalesce(sum((case when p.currency = v_cur then p.amount - p.refunded_amount else 0 end)), 0) from bos_payments p where p.client_id = c.id and p.status in ('completed','refunded')),
             'upsells', (select count(*) from deals d where d.client_id = c.id and d.is_upsell),
             'open_upsell_value', (select coalesce(sum((case when d.currency = v_cur then d.value else 0 end)), 0) from deals d join pipeline_stages s on s.id = d.stage_id where d.client_id = c.id and d.is_upsell and s.category = 'open')) x
           from c) s), '[]'::jsonb)
@@ -1210,9 +1210,9 @@ CREATE OR REPLACE FUNCTION public.bos_apply_payment_completed(p_payment_id uuid,
  LANGUAGE plpgsql
 AS $function$
 declare
-  v_pay payments%rowtype;
+  v_pay bos_payments%rowtype;
 begin
-  select * into v_pay from payments where id = p_payment_id;
+  select * into v_pay from bos_payments where id = p_payment_id;
   if v_pay.invoice_id is not null then
     perform bos_recalc_invoice(v_pay.invoice_id, p_actor);
   end if;
@@ -1292,11 +1292,11 @@ declare
   v_count integer := 0;
 begin
   for v_inv in
-    select * from invoices
+    select * from bos_invoices
     where status in ('sent','partially_paid') and due_date < current_date and balance > 0
     for update skip locked
   loop
-    update invoices set status = 'overdue', overdue_notified_at = now() where id = v_inv.id;
+    update bos_invoices set status = 'overdue', overdue_notified_at = now() where id = v_inv.id;
     perform bos_status('invoice', v_inv.id, v_inv.status::text, 'overdue', null, 'Past due date');
     perform bos_emit('invoice.overdue', 'invoice', v_inv.id, null,
       'Invoice ' || v_inv.invoice_number || ' is overdue (' || v_inv.balance || ' ' || v_inv.currency || ')',
@@ -1315,18 +1315,18 @@ CREATE OR REPLACE FUNCTION public.bos_recalc_invoice(p_invoice_id uuid, p_actor 
  LANGUAGE plpgsql
 AS $function$
 declare
-  v_inv invoices%rowtype;
+  v_inv bos_invoices%rowtype;
   v_paid numeric;
   v_refunded numeric;
   v_new invoice_status;
 begin
-  select * into v_inv from invoices where id = p_invoice_id for update;
+  select * into v_inv from bos_invoices where id = p_invoice_id for update;
   if v_inv.id is null then return; end if;
 
   select coalesce(sum(invoice_amount), 0),
          coalesce(sum(invoice_amount * refunded_amount / amount), 0)
     into v_paid, v_refunded
-    from payments
+    from bos_payments
    where invoice_id = p_invoice_id and status in ('completed','refunded');
 
   v_refunded := bos_round_money(v_refunded, v_inv.currency);
@@ -1343,7 +1343,7 @@ begin
     v_new := v_inv.status;
   end if;
 
-  update invoices
+  update bos_invoices
      set amount_paid = v_paid,
          amount_refunded = v_refunded,
          status = v_new,
@@ -1389,7 +1389,7 @@ begin
 
   v_collected := coalesce((
     select sum(coalesce(p.deal_amount, 0) * (p.amount - p.refunded_amount) / p.amount)
-    from payments p where p.deal_id = p_deal_id and p.status in ('completed','refunded')
+    from bos_payments p where p.deal_id = p_deal_id and p.status in ('completed','refunded')
   ), 0);
   v_ratio := case when v_deal.value > 0 then least(1, v_collected / v_deal.value) else 0 end;
 

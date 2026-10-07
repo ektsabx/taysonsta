@@ -62,7 +62,7 @@ as $$
      order by 8 desc limit p_limit)
   union all
   (select 'invoice', i.id, i.invoice_number, i.status::text || ' · ' || i.total || ' ' || i.currency, i.created_by, i.client_id, i.project_id, extensions.similarity(i.invoice_number, q.t)
-     from invoices i, q where (p_types is null or 'invoice' = any(p_types)) and lower(i.invoice_number) like q.pat
+     from bos_invoices i, q where (p_types is null or 'invoice' = any(p_types)) and lower(i.invoice_number) like q.pat
      order by 8 desc limit p_limit)
   union all
   (select 'expense', x.id, x.description, x.amount || ' ' || x.currency || ' · ' || x.expense_date, coalesce(x.employee_user_id, x.created_by), x.client_id, x.project_id, extensions.similarity(x.description, q.t)
@@ -79,7 +79,7 @@ as $$
      order by 8 desc limit p_limit)
   union all
   (select 'conversation', v.id, coalesce(v.subject, v.number), v.number || ' · ' || v.status || ' · ' || coalesce(sc.name, ''), v.assignee_id, v.client_id, null, extensions.similarity(coalesce(v.subject, ''), q.t)
-     from conversations v join support_customers sc on sc.id = v.customer_id, q where (p_types is null or 'conversation' = any(p_types))
+     from bos_conversations v join support_customers sc on sc.id = v.customer_id, q where (p_types is null or 'conversation' = any(p_types))
        and (bos_norm(v.subject) like q.pat or lower(v.number) like q.pat or bos_norm(sc.name) like q.pat or lower(coalesce(sc.email, '')) like q.pat)
      order by 8 desc limit p_limit);
 $$;

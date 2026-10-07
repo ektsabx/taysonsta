@@ -22,7 +22,7 @@ export default async function SupportCustomerPage({ params }: { params: Promise<
   const { data: cust } = await c.from("support_customers").select("*").eq("id", id).maybeSingle();
   if (!cust) notFound();
   const [{ data: convs }, { data: tickets }, deals, dups, staff, { data: contact }, { data: client }] = await Promise.all([
-    c.from("conversations").select("id, number, subject, channel, status, last_message_at").eq("customer_id", id).order("last_message_at", { ascending: false }).limit(50),
+    c.from("bos_conversations").select("id, number, subject, channel, status, last_message_at").eq("customer_id", id).order("last_message_at", { ascending: false }).limit(50),
     c.from("tickets").select("id, ticket_number, subject, status, created_at").or([`support_customer_id.eq.${id}`, cust.contact_id ? `contact_id.eq.${cust.contact_id}` : null].filter(Boolean).join(",")).order("created_at", { ascending: false }).limit(50),
     cust.client_id && can(bos, "deals.read") ? c.from("deals").select("id, deal_number, name, value, currency").eq("client_id", cust.client_id).is("archived_at", null).order("created_at", { ascending: false }).limit(10).then((r) => r.data ?? []) : Promise.resolve([]),
     duplicateCandidates(id),

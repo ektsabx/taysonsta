@@ -1,4 +1,5 @@
 "use server";
+import { capture } from "@/lib/analytics/server";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +26,7 @@ export async function revealPeople(personIds: string[]): Promise<{ ok: true; con
   if (!data?.length) return { ok: false };
   await db.from("prospects").update({ revealed_at: new Date().toISOString(), revealed_by: session.userId })
     .eq("workspace_id", session.workspace.id).in("id", data.map((p) => p.id)).is("revealed_at", null);
+  await capture(session.userId, "people_revealed", { workspace_id: session.workspace.id, count: data.length, with_email: data.filter((p) => p.email && p.email_status !== "invalid").length, with_phone: data.filter((p) => p.phone).length });
   revalidatePath("/prospects", "layout");
   return { ok: true, contacts: data.map((p) => ({ id: p.id, email: p.email_status === "invalid" ? null : p.email, phone: p.phone, emailStatus: p.email_status })) };
 }
@@ -89,6 +91,7 @@ export async function startOutreach(items: OutreachItem[], mailboxId: string): P
     out.push(id);
   }
   revalidatePath("/outreach");
+  await capture(session.userId, "outreach_started", { workspace_id: session.workspace.id, queued: out.length, skipped, personalized: wanted.filter((i) => i.messageId).length });
   return out.length ? { ok: true, ids: out, skipped } : { ok: false, error: e.failed };
 }
 
@@ -105,6 +108,7 @@ export async function collectDecisionMakers(companyIds: string[]): Promise<{ ok:
   for (let i = 0; i < queued.length; i += 20) {
     await enqueue("company.people", { workspaceId: session.workspace.id, companyIds: queued.slice(i, i + 20) });
   }
+  await capture(session.userId, "decision_makers_requested", { workspace_id: session.workspace.id, companies: queued.length });
   revalidatePath("/prospects", "layout");
   revalidatePath("/search", "layout");
   return { ok: true, queued: queued.length };

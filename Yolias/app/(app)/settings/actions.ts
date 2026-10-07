@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
 import { THEME_COOKIE } from "@/lib/theme";
 import { setCancelAtPeriodEnd } from "@/lib/billing";
+import { capture } from "@/lib/analytics/server";
+import { companyProfileSchema } from "@/lib/company-profile";
 import { securityAlert } from "@/lib/email/events";
 import { notify } from "@/lib/email/notify";
 import { COUNTRIES, TIMEZONES } from "@/lib/regions";
@@ -201,27 +203,19 @@ export async function changeEmail(input: z.input<typeof emailChangeSchema>): Pro
   return { ok: true };
 }
 
-const organizationSchema = z.object({
-  name: z.string().trim().min(1).max(160),
-  website: z.string().trim().transform((v) => v.replace(/^https?:\/\//i, "").replace(/\/+$/, "")).pipe(z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i)),
-  offering: z.string().trim().min(10).max(2000),
-});
 
-// Settings → Organization: the company details from onboarding (name,
-// website, what you sell). Yolias AI uses them to understand searches.
+// Settings → Organization: the company profile from onboarding
+// (lib/company-profile.ts). Yolias AI uses it to understand searches.
 // Owners and admins only; workspace rows are written by the server.
-export async function updateOrganization(input: z.input<typeof organizationSchema>): Promise<ActionResult> {
+export async function updateOrganization(input: Record<"name" | "website" | "industry" | "offering" | "ideal_customer" | "target_markets", string>): Promise<ActionResult> {
   const session = await requireSession();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  const parsed = organizationSchema.safeParse(input);
-  if (!parsed.success) {
-    const field = parsed.error.issues[0].path[0];
-    const e = t.onboarding.errors;
-    return { ok: false, error: field === "website" ? e.website : field === "offering" ? e.offering : e.company };
-  }
+  const parsed = companyProfileSchema(t.onboarding.errors).safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? t.settings.errors.saveFailed };
   const { error } = await createAdminClient().from("workspaces").update(parsed.data).eq("id", session.workspace.id);
   if (error) return { ok: false, error: t.settings.errors.saveFailed };
+  await capture(session.userId, "company_profile_updated", { workspace_id: session.workspace.id, has_ideal_customer: Boolean(parsed.data.ideal_customer) });
   revalidatePath("/", "layout");
   return { ok: true };
 }

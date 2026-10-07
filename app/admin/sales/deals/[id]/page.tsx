@@ -71,8 +71,8 @@ export default async function DealDetailPage({ params, searchParams }: { params:
     tab === "proposals" || tab === "overview" ? db().from("proposals").select("id, title, status, total_amount, currency, sent_at, view_count, valid_until").eq("deal_id", id).order("created_at", { ascending: false }).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "contract" || tab === "overview" ? db().from("contracts").select("id, contract_number, title, status, value, currency, signed_at, start_date, end_date").eq("deal_id", id).order("created_at", { ascending: false }).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "payments" ? db().from("payment_schedules").select("*").eq("deal_id", id).order("sort_order").then((r) => r.data ?? []) : Promise.resolve([]),
-    tab === "payments" ? db().from("invoices").select("id, invoice_number, total, balance, currency, status, due_date").eq("deal_id", id).order("issue_date").then((r) => r.data ?? []) : Promise.resolve([]),
-    tab === "payments" ? db().from("payments").select("id, payment_number, amount, currency, status, payment_date, method").eq("deal_id", id).order("payment_date").then((r) => r.data ?? []) : Promise.resolve([]),
+    tab === "payments" ? db().from("bos_invoices").select("id, invoice_number, total, balance, currency, status, due_date").eq("deal_id", id).order("issue_date").then((r) => r.data ?? []) : Promise.resolve([]),
+    tab === "payments" ? db().from("bos_payments").select("id, payment_number, amount, currency, status, payment_date, method").eq("deal_id", id).order("payment_date").then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "commission" && canSeeCommission ? db().from("commissions").select("*, commission_rules(name, trigger, basis, rate)").eq("deal_id", id).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "activities" || tab === "communications" ? listEntityActivities({ deal_id: id }, tab === "communications") : Promise.resolve([]),
   ]);

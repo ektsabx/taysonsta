@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const bos = session.bos;
   const collapsed = (await cookies()).get(COLLAPSE_COOKIE)?.value === "1";
   const [{ count: unread }, clockState, systemTime, rules] = await Promise.all([
-    db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
+    db().from("bos_notifications").select("id", { count: "exact", head: true }).eq("user_id", bos.userId).is("read_at", null),
     can(bos, "attendance.create") ? getClockState(bos) : Promise.resolve(null),
     getSystemTime(),
     pageRules(),

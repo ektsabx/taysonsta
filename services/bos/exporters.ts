@@ -59,7 +59,7 @@ export const exporters: Record<string, Exporter> = {
   invoices: {
     permission: "invoices.export",
     async run(_bos, f) {
-      let q = db().from("invoices").select("invoice_number, issue_date, due_date, status, currency, subtotal, discount_amount, tax_amount, total, amount_paid, amount_refunded, balance, clients(name)").limit(MAX).order("issue_date", { ascending: false });
+      let q = db().from("bos_invoices").select("invoice_number, issue_date, due_date, status, currency, subtotal, discount_amount, tax_amount, total, amount_paid, amount_refunded, balance, clients(name)").limit(MAX).order("issue_date", { ascending: false });
       if (f.status) q = q.eq("status", f.status as never);
       const { data } = await q;
       return {
@@ -71,7 +71,7 @@ export const exporters: Record<string, Exporter> = {
   payments: {
     permission: "payments.export",
     async run() {
-      const { data } = await db().from("payments").select("payment_number, payment_date, amount, currency, method, status, reference, refunded_amount, clients(name), invoices(invoice_number)").limit(MAX).order("payment_date", { ascending: false });
+      const { data } = await db().from("bos_payments").select("payment_number, payment_date, amount, currency, method, status, reference, refunded_amount, clients(name), invoices:bos_invoices(invoice_number)").limit(MAX).order("payment_date", { ascending: false });
       return {
         header: ["Payment #", "Date", "Client", "Invoice", "Amount", "Currency", "Method", "Status", "Reference", "Refunded"],
         rows: (data ?? []).map((p) => [p.payment_number, p.payment_date, (p.clients as unknown as { name: string } | null)?.name, (p.invoices as unknown as { invoice_number: string } | null)?.invoice_number, p.amount, p.currency, p.method, p.status, p.reference, p.refunded_amount]),

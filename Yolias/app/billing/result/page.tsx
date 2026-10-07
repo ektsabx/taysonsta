@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PurchaseTracker } from "@/components/analytics/PurchaseTracker";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -40,6 +41,12 @@ export default async function BillingResultPage({ searchParams }: PageProps<"/bi
         <Link href="/" aria-label="Yolias"><BrandLogo /></Link>
       </header>
       <main className="billing-result">
+        {ok && p && (
+          <PurchaseTracker
+            paymentId={p.id} value={Number(p.amount)} currency={p.currency} kind={p.kind} live={p.mode === "live"}
+            item={p.kind === "subscription" ? `${p.plan}_${p.billing_period}` : `prospects_${p.prospects}`}
+          />
+        )}
         <Icon className={`billing-result-icon${ok ? " ok" : failed || !p ? " bad" : ""}`} />
         <h1>{title}</h1>
         {p && <p className="billing-result-amount" dir="ltr">{formatMoney(Number(p.amount), p.currency, true)}</p>}

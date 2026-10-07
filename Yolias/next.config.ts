@@ -1,7 +1,20 @@
+import { execSync } from "node:child_process";
 import path from "node:path";
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
+
+// Release = the git commit this build came from, so Sentry and PostHog can
+// tell versions apart (lib/monitoring/env.ts).
+const release = process.env.NEXT_PUBLIC_RELEASE || (() => {
+  try {
+    return `yolias@${execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim()}`;
+  } catch {
+    return "";
+  }
+})();
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_RELEASE: release },
   // Yolias lives inside the Taysonsta repo but is its own app: never resolve
   // modules from the parent (BOS) project.
   turbopack: { root: path.join(__dirname) },
@@ -29,4 +42,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry (sentry.server.config.ts, instrumentation-client.ts). Source maps
+// are uploaded only when SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT are
+// set at build time (never committed), then removed from the deployed files.
+const uploadSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT);
+
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  release: { name: release || undefined, create: uploadSourceMaps },
+  sourcemaps: { disable: !uploadSourceMaps, deleteSourcemapsAfterUpload: true },
+  widenClientFileUpload: uploadSourceMaps,
+  telemetry: false,
+  silent: !process.env.CI,
+});

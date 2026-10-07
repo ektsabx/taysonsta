@@ -48,6 +48,9 @@ export type WorkspaceRow = {
   name: string | null;
   website: string | null;
   offering: string | null;
+  industry: string | null;
+  ideal_customer: string | null;
+  target_markets: string | null;
   plan: Plan;
   subscription_status: SubscriptionStatus;
   current_period_end: string | null;

@@ -1,4 +1,5 @@
 import "server-only";
+import { businessLines } from "@/lib/company-profile";
 import { z } from "zod";
 import { LlmNotConfiguredError, routesFor, runChat } from "@/lib/ai/llm";
 import type { ChatTool } from "@/lib/ai/llm/types";
@@ -52,7 +53,9 @@ export async function runAgent(
     ? ` This conversation is about search ${focus.strategyId}${focus.campaignId ? ` (campaign ${focus.campaignId})` : ""}; "this search" means it.`
     : focus.scope === "workspace" ? " This conversation is shared with the whole workspace." : " This is the user's private conversation.";
   const remembered = memories.length ? `\nSaved facts about this workspace (from earlier conversations; use when relevant, forget with forgetFact):\n${memories.map((m) => `- ${m.content} [${m.id}]`).join("\n")}` : "";
-  const context = `Workspace: ${ws.name}. Plan: ${ws.plan}. User: ${ctx.session.profile.full_name ?? ctx.session.email}. Role: ${ctx.session.role}. Preferred language: ${ctx.session.profile.language}. Today: ${new Date().toISOString().slice(0, 10)}.${about}${remembered}`;
+  const profile = businessLines({ ...ws, name: null });
+  const business = profile ? `\nThe workspace's business (use it to suggest who to look for and to judge fit; what the user asks always wins):\n${profile}` : "";
+  const context = `Workspace: ${ws.name}. Plan: ${ws.plan}. User: ${ctx.session.profile.full_name ?? ctx.session.email}. Role: ${ctx.session.role}. Preferred language: ${ctx.session.profile.language}. Today: ${new Date().toISOString().slice(0, 10)}.${about}${business}${remembered}`;
   onEvent({ type: "thinking" });
   // A tool that changes something (e.g. starts a campaign) must not run twice
   // because we switched provider mid-turn.

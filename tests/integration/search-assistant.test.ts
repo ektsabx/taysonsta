@@ -25,7 +25,7 @@ test("search: new types, Arabic letter forms, and no hits from forbidden records
   const hits = await globalSearch(admin, `احمد اسماعيل ${tag}`, 5);
   assert.ok(hits.some((h) => h.id === ct!.id), "hamza forms normalised");
 
-  const { data: inv } = await db().from("invoices").select("invoice_number").limit(1).single();
+  const { data: inv } = await db().from("bos_invoices").select("invoice_number").limit(1).single();
   const adminInv = await globalSearch(admin, inv!.invoice_number, 5, "invoice");
   assert.ok(adminInv.some((h) => h.type === "invoice"));
   if (!dev.permissions.get("invoices.read")) assert.equal((await globalSearch(dev, inv!.invoice_number, 5)).filter((h) => h.type === "invoice").length, 0, "no invoice numbers leak to developers");

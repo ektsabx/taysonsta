@@ -46,7 +46,7 @@ begin
                    where d.assigned_to = e.user_id and s.category = 'open' and d.archived_at is null),
       'won', (select count(*) from deals d where d.assigned_to = e.user_id and d.won_at::date between v_from and v_to),
       'won_value', (select coalesce(sum(bos_to_base(d.value, d.currency, d.won_at::date)), 0) from deals d where d.assigned_to = e.user_id and d.won_at::date between v_from and v_to),
-      'revenue', (select coalesce(sum(bos_to_base(p.amount - p.refunded_amount, p.currency, p.payment_date)), 0) from payments p join deals d on d.id = p.deal_id
+      'revenue', (select coalesce(sum(bos_to_base(p.amount - p.refunded_amount, p.currency, p.payment_date)), 0) from bos_payments p join deals d on d.id = p.deal_id
                   where d.assigned_to = e.user_id and p.status in ('completed','refunded') and p.payment_date between v_from and v_to),
       'commission', (select coalesce(sum(bos_to_base(c.eligible_amount, c.currency)), 0) from commissions c where c.user_id = e.user_id and c.status in ('eligible','approved','paid'))
     ) order by e.full_name)
@@ -89,7 +89,7 @@ begin
       'upsells', (select count(*) from deals d join c on c.id = d.client_id where d.is_upsell and d.created_at::date between v_from and v_to),
       'clients', coalesce((select jsonb_agg(x order by (x->>'revenue')::numeric desc) from (
           select jsonb_build_object('id', c.id, 'name', c.name, 'country', c.country,
-            'revenue', (select coalesce(sum(bos_to_base(p.amount - p.refunded_amount, p.currency, p.payment_date)), 0) from payments p where p.client_id = c.id and p.status in ('completed','refunded')),
+            'revenue', (select coalesce(sum(bos_to_base(p.amount - p.refunded_amount, p.currency, p.payment_date)), 0) from bos_payments p where p.client_id = c.id and p.status in ('completed','refunded')),
             'projects', (select count(*) from projects p where p.client_id = c.id),
             'active_projects', (select count(*) from projects p where p.client_id = c.id and p.status not in ('completed','cancelled')),
             'upsells', (select count(*) from deals d where d.client_id = c.id and d.is_upsell),
@@ -229,12 +229,12 @@ declare
   r jsonb;
 begin
   with inv as (
-    select i.* from invoices i
+    select i.* from bos_invoices i
     where i.status <> 'cancelled' and bos_branch_ok(f, i.branch_id)
       and (v_client is null or i.client_id = v_client)
       and (v_project is null or i.project_id = v_project)
   ), pay as (
-    select p.* from payments p
+    select p.* from bos_payments p
     where p.status in ('completed','refunded') and bos_branch_ok(f, p.branch_id)
       and (v_client is null or p.client_id = v_client)
       and (v_project is null or p.project_id = v_project)

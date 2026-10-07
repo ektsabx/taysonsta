@@ -60,6 +60,8 @@ if (INTO) {
   await db.from("profiles").update({ full_name: "Mona Adel", onboarded_at: new Date().toISOString(), language: "ar", country: "EG", timezone: "Africa/Cairo" }).eq("id", userId);
   await db.from("workspaces").update({
     name: "Nile CRM", website: "https://nilecrm.example", offering: "A simple CRM for small sales teams in Egypt and the Gulf",
+    industry: "B2B software (CRM)", target_markets: "Egypt, Saudi Arabia, UAE",
+    ideal_customer: "Companies with 10–200 employees and a sales team of 3+; Sales or Commercial Directors and founders decide.",
     plan: "free", subscription_status: "active", billing_country: "EG",
   }).eq("id", ws);
 }

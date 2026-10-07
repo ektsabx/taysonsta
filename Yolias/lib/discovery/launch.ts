@@ -1,4 +1,5 @@
 import "server-only";
+import { capture } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
@@ -56,10 +57,17 @@ async function understand(session: Session, strategyId: string, prompt: string, 
       companyName: session.workspace.name,
       website: session.workspace.website,
       offering: session.workspace.offering,
+      industry: session.workspace.industry,
+      idealCustomer: session.workspace.ideal_customer,
+      targetMarkets: session.workspace.target_markets,
       defaultCountry: countryLabel(session.profile.country, "en") || session.profile.country,
       language: session.profile.language,
       workspaceId: session.workspace.id,
       strategyId,
+    });
+    await capture(session.userId, "search_started", {
+      workspace_id: session.workspace.id, strategy_id: strategyId, search_type: understood.icp.search_type,
+      target_count: understood.icp.target_count, attachments: attachments.length, cached: understood.cached,
     });
     return { ok: true as const, understood };
   } catch (e) {
@@ -87,6 +95,10 @@ async function startCampaign(session: Session, supabase: Db, strategyId: string,
     .select("id")
     .single();
   if (!campaign) return null;
+  await capture(session.userId, "campaign_started", {
+    workspace_id: session.workspace.id, campaign_id: campaign.id, strategy_id: strategyId, search_type: icp.search_type,
+    target_count: icp.target_count, countries: icp.countries?.length ?? 0, titles: icp.job_titles.length,
+  });
 
   await logEvent(session.workspace.id, campaign.id, "understand", icp.summary, "success");
   const sources = await sourceLabels();

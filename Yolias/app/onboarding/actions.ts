@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { capture } from "@/lib/analytics/server";
+import { companyProfileSchema, type CompanyProfile } from "@/lib/company-profile";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/session";
@@ -12,32 +14,27 @@ import { isCountry } from "@/lib/regions";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
-// Collects the permanent business context Yolias AI uses for every strategy.
-// The ICP is deliberately not asked here — it changes per strategy.
+// Collects the permanent business context Yolias AI uses for every search:
+// the company profile (lib/company-profile.ts). The ideal customer here is the
+// company's usual buyer; a search can still ask for someone else.
 // Last step of the journey (after checkout) → Yolias home.
 export async function completeOnboarding(_prev: OnboardingState, formData: FormData): Promise<OnboardingState> {
   const session = await getSession();
   if (!session) redirect("/auth/signout");
   const t = (await getDictionary()).onboarding.errors;
 
-  const websiteSchema = z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/^https?:\/\//i, "").replace(/\/+$/, ""))
-    .pipe(z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i, t.website));
-  const ownerSchema = z.object({
-    full_name: z.string().trim().min(2, t.name).max(120),
-    company_name: z.string().trim().min(1, t.company).max(160),
-    website: websiteSchema,
-    offering: z.string().trim().min(10, t.offering).max(2000),
-  });
-  const memberSchema = ownerSchema.pick({ full_name: true });
-
-  const fields = Object.fromEntries(["full_name", "company_name", "website", "offering"].map((k) => [k, String(formData.get(k) ?? "")]));
-  const isOwner = session.role === "owner";
-  const parsed = isOwner ? ownerSchema.safeParse(fields) : memberSchema.safeParse(fields);
+  const memberSchema = z.object({ full_name: z.string().trim().min(2, t.name).max(120) });
+  const keys = ["full_name", "company_name", "website", "industry", "offering", "ideal_customer", "target_markets"];
+  const fields = Object.fromEntries(keys.map((k) => [k, String(formData.get(k) ?? "")]));
+  const parsed = memberSchema.safeParse(fields);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
-  const company = isOwner ? ownerSchema.parse(fields) : null;
+  const isOwner = session.role === "owner";
+  let company: CompanyProfile | null = null;
+  if (isOwner) {
+    const c = companyProfileSchema(t).safeParse({ ...fields, name: fields.company_name });
+    if (!c.success) return { error: c.error.issues[0]?.message, fields };
+    company = c.data;
+  }
 
   // Home market = the visitor's country when Settings offers it.
   const country = await requestCountry();
@@ -53,11 +50,15 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     // Workspace rows are written by the server only (no client write policy).
     const { error: wsError } = await createAdminClient()
       .from("workspaces")
-      .update({ name: company.company_name, website: company.website, offering: company.offering })
+      .update(company)
       .eq("id", session.workspace.id);
     if (wsError) return { error: t.companyFailed, fields };
   }
 
   await welcome(session.userId, parsed.data.full_name);
+  await capture(session.userId, "onboarding_completed", {
+    workspace_id: session.workspace.id, role: session.role, plan: session.workspace.plan,
+    has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null,
+  });
   redirect("/");
 }

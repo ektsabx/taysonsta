@@ -34,7 +34,7 @@ begin
   end if;
 
   if not coalesce((v_cfg->>'allow_complete_with_pending_payment')::boolean, false) then
-    if exists (select 1 from invoices where project_id = p_project and status not in ('paid','cancelled'))
+    if exists (select 1 from bos_invoices where project_id = p_project and status not in ('paid','cancelled'))
        or (v_p.deal_id is not null and (select payment_status from deals where id = v_p.deal_id) <> 'paid') then
       v_blockers := v_blockers || 'final_payment_pending';
     end if;
@@ -63,7 +63,7 @@ begin
     when 'task' then exists (select 1 from tasks where id = p_id and client_id = v_client)
     when 'change_request' then exists (select 1 from change_requests where id = p_id and client_id = v_client)
     when 'ticket' then exists (select 1 from tickets where id = p_id and client_id = v_client)
-    when 'invoice' then exists (select 1 from invoices where id = p_id and client_id = v_client)
+    when 'invoice' then exists (select 1 from bos_invoices where id = p_id and client_id = v_client)
     when 'contract' then exists (select 1 from contracts where id = p_id and client_id = v_client)
     when 'proposal' then exists (select 1 from proposals where id = p_id and client_id = v_client)
     when 'deal' then exists (select 1 from deals where id = p_id and client_id = v_client)

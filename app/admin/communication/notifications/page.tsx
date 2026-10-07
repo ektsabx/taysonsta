@@ -17,14 +17,14 @@ export default async function NotificationsPage({ searchParams }: { searchParams
   const sp = await readParams(searchParams);
   const view = sp.view ?? "unread";
   const page = pageOf(sp);
-  let q = db().from("notifications").select("*", { count: "exact" }).eq("user_id", bos.userId);
+  let q = db().from("bos_notifications").select("*", { count: "exact" }).eq("user_id", bos.userId);
   if (view === "unread") q = q.is("read_at", null);
   if (sp.type) q = q.eq("event_type", sp.type);
   if (sp.from) q = q.gte("created_at", `${sp.from}T00:00:00Z`);
   if (sp.to) q = q.lte("created_at", `${sp.to}T23:59:59Z`);
   const [{ data, count }, { data: types }] = await Promise.all([
     q.order("created_at", { ascending: false }).range((page - 1) * 30, page * 30 - 1),
-    db().from("notifications").select("event_type").eq("user_id", bos.userId).limit(1000),
+    db().from("bos_notifications").select("event_type").eq("user_id", bos.userId).limit(1000),
   ]);
   const typeOptions = [...new Set((types ?? []).map((t) => t.event_type))].sort().map((t) => ({ value: t, label: eventMap.get(t)?.label ?? (t === "notification.manual" ? "إشعار يدوي" : t) }));
   const canSend = can(bos, "notifications.manage");

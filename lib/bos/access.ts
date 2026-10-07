@@ -207,7 +207,7 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
     case "invoice":
     case "payment":
     case "contract": {
-      const table = entityType === "invoice" ? "invoices" : entityType === "payment" ? "payments" : "contracts";
+      const table = entityType === "invoice" ? "bos_invoices" : entityType === "payment" ? "bos_payments" : "contracts";
       const { data } = await client.from(table).select("client_id, deal_id, created_by").eq("id", entityId).maybeSingle();
       if (!data) return false;
       const row = data as { client_id: string; deal_id: string | null; created_by: string | null };

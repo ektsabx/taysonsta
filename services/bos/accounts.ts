@@ -70,8 +70,8 @@ export async function listAccounts(bos: BosUser, scope: Scope, f: AccountFilters
   // Per-row aggregates for just this page.
   const [payments, invoices, activities] = pageIds.length
     ? await Promise.all([
-        db().from("payments").select("client_id, amount, refunded_amount, currency").in("client_id", pageIds).in("status", ["completed", "refunded"]),
-        db().from("invoices").select("client_id, balance, currency").in("client_id", pageIds).in("status", ["sent", "partially_paid", "overdue"]),
+        db().from("bos_payments").select("client_id, amount, refunded_amount, currency").in("client_id", pageIds).in("status", ["completed", "refunded"]),
+        db().from("bos_invoices").select("client_id, balance, currency").in("client_id", pageIds).in("status", ["sent", "partially_paid", "overdue"]),
         db().from("activities").select("client_id, created_at").in("client_id", pageIds).order("created_at", { ascending: false }).limit(1000),
       ])
     : [{ data: [] }, { data: [] }, { data: [] }];
@@ -103,21 +103,21 @@ export async function getAccount(id: string) {
 export async function getAccount360(id: string) {
   const account = await getAccount(id);
   const c = db();
-  const count = (table: "contacts" | "deals" | "contracts" | "invoices" | "payments" | "meetings" | "tickets" | "proposals") =>
+  const count = (table: "contacts" | "deals" | "contracts" | "bos_invoices" | "bos_payments" | "meetings" | "tickets" | "proposals") =>
     c.from(table).select("id", { count: "exact", head: true }).eq("client_id", id);
   const [contacts, deals, openDeals, contracts, invoices, payments, meetings, tickets, openTickets, proposals, paymentRows, invoiceRows, lastActivity, primary] = await Promise.all([
     count("contacts").is("archived_at", null),
     count("deals").is("archived_at", null),
     c.from("deals").select("id, pipeline_stages!inner(category)", { count: "exact", head: true }).eq("client_id", id).is("archived_at", null).eq("pipeline_stages.category", "open"),
     count("contracts"),
-    count("invoices"),
-    count("payments"),
+    count("bos_invoices"),
+    count("bos_payments"),
     count("meetings"),
     count("tickets"),
     count("tickets").not("status", "in", "(resolved,closed)"),
     count("proposals"),
-    c.from("payments").select("amount, refunded_amount, currency").eq("client_id", id).in("status", ["completed", "refunded"]),
-    c.from("invoices").select("balance, currency, status, due_date").eq("client_id", id).in("status", ["sent", "partially_paid", "overdue"]),
+    c.from("bos_payments").select("amount, refunded_amount, currency").eq("client_id", id).in("status", ["completed", "refunded"]),
+    c.from("bos_invoices").select("balance, currency, status, due_date").eq("client_id", id).in("status", ["sent", "partially_paid", "overdue"]),
     c.from("activities").select("created_at").eq("client_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     account.primary_contact_id ? c.from("contacts").select("id, full_name, email, phone, position").eq("id", account.primary_contact_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);

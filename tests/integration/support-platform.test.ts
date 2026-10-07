@@ -23,15 +23,15 @@ after(async () => {
 function trackCustomer(id: string) {
   cleanup.push(async () => {
     const c = db();
-    const { data: convs } = await c.from("conversations").select("id, ticket_id").eq("customer_id", id);
+    const { data: convs } = await c.from("bos_conversations").select("id, ticket_id").eq("customer_id", id);
     for (const v of convs ?? []) {
       if (v.ticket_id) {
-        await c.from("conversations").update({ ticket_id: null }).eq("id", v.id);
+        await c.from("bos_conversations").update({ ticket_id: null }).eq("id", v.id);
         await c.from("tickets").delete().eq("id", v.ticket_id);
       }
     }
     await c.from("tickets").delete().eq("support_customer_id", id);
-    await c.from("conversations").delete().eq("customer_id", id);
+    await c.from("bos_conversations").delete().eq("customer_id", id);
     await c.from("support_customers").update({ merged_into: null }).eq("merged_into", id);
     const d = await c.from("support_customers").delete().eq("id", id);
     if (d.error) throw d.error;
@@ -110,7 +110,7 @@ test("manual conversation, assignment, ticket from conversation, escalation, acc
 
   await assert.rejects(escalateConversation(support, conv.id, " "), ValidationError);
   await escalateConversation(support, conv.id, "VIP client");
-  const { data: after } = await db().from("conversations").select("priority, ticket_id").eq("id", conv.id).single();
+  const { data: after } = await db().from("bos_conversations").select("priority, ticket_id").eq("id", conv.id).single();
   assert.equal(after!.priority, "high");
   assert.equal(after!.ticket_id, t.id);
 });
@@ -124,7 +124,7 @@ test("merge moves conversations to the kept profile", async () => {
   const conv = await receiveInbound({ channel: "email", customer: { email: a.email }, subject: "x", body: "hello" });
   const moved = await mergeCustomers(admin, a.id, b.id);
   assert.equal(moved, 1);
-  const { data: v } = await db().from("conversations").select("customer_id").eq("id", conv!.conversation.id).single();
+  const { data: v } = await db().from("bos_conversations").select("customer_id").eq("id", conv!.conversation.id).single();
   assert.equal(v!.customer_id, b.id);
   const { data: src } = await db().from("support_customers").select("merged_into").eq("id", a.id).single();
   assert.equal(src!.merged_into, b.id);
@@ -144,7 +144,7 @@ test("signed inbound-email webhook opens a conversation; forged one refused", as
   assert.equal(ok.status, 200);
   const { data: cust } = await db().from("support_customers").select("id").eq("normalized_email", email).single();
   trackCustomer(cust!.id);
-  const { count } = await db().from("conversations").select("id", { count: "exact", head: true }).eq("customer_id", cust!.id);
+  const { count } = await db().from("bos_conversations").select("id", { count: "exact", head: true }).eq("customer_id", cust!.id);
   assert.equal(count, 1);
   const bad = await receiveWebhook("support_email", new Headers({ "x-signature": "AAAA", "x-request-id": uniq("req") }), body);
   assert.equal(bad.status, 401);

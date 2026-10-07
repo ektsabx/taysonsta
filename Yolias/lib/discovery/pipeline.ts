@@ -1,4 +1,5 @@
 import "server-only";
+import { capture } from "@/lib/analytics/server";
 import { campaignFinished, usageAlerts } from "@/lib/email/events";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CampaignStatus, CompanyKind, CompanyRow, EventLevel, Json, PipelineStage, SearchType } from "@/types/database";
@@ -124,6 +125,10 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
       : await discoverCompanies(db, campaignId, icp, searchType, ctx, reserved, totals);
     final = await settleRun(db, campaignId, outcome.prospects + totals.prospects, ctx);
     await finishRun("succeeded", outcome);
+    // Qualification: candidates the sources returned vs. those that matched the ICP and were delivered.
+    const props = { workspace_id: campaign.workspace_id, campaign_id: campaignId, search_type: searchType, run: campaign.runs_count + 1 };
+    await capture(campaign.created_by, "qualification_completed", { ...props, candidates: outcome.candidates, qualified: outcome.prospects, rate: outcome.candidates ? Math.round((outcome.prospects / outcome.candidates) * 100) / 100 : null });
+    if (outcome.prospects > 0) await capture(campaign.created_by, "results_delivered", { ...props, prospects: outcome.prospects, companies: outcome.companies, total: outcome.prospects + totals.prospects, goal: campaign.quota, finished: final });
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown error";
     await finishRun("failed", {}, reason.slice(0, 1000));

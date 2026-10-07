@@ -36,9 +36,9 @@ async function trackSessionCleanup(widgetId: string) {
     await c.from("widget_sessions").delete().eq("widget_id", widgetId);
     const convIds = (ss ?? []).map((s) => s.conversation_id).filter(Boolean) as string[];
     const custIds = [...new Set((ss ?? []).map((s) => s.customer_id).filter(Boolean) as string[])];
-    if (convIds.length) await c.from("conversations").delete().in("id", convIds);
+    if (convIds.length) await c.from("bos_conversations").delete().in("id", convIds);
     if (custIds.length) {
-      await c.from("conversations").delete().in("customer_id", custIds);
+      await c.from("bos_conversations").delete().in("customer_id", custIds);
       await c.from("support_customers").delete().in("id", custIds);
     }
   });
@@ -85,7 +85,7 @@ test("AI answers from the KB with sources; visitor never sees internal notes; ha
   const s = (await sessionFor(widget, await startSession(widget, { origin: "https://shop.example.com" })))!;
   const r = await postVisitorMessage(widget, s, { body: `How do I configure ${word}?`, email, name: "Visitor" });
   assert.equal(r.aiShouldRespond, true);
-  const { data: conv } = await db().from("conversations").select("assignee_id, ai_active, widget_id, channel").eq("id", r.conversationId).single();
+  const { data: conv } = await db().from("bos_conversations").select("assignee_id, ai_active, widget_id, channel").eq("id", r.conversationId).single();
   assert.equal(conv!.assignee_id, null, "not assigned while the AI answers");
   assert.equal(conv!.channel, "web_widget");
 
@@ -103,7 +103,7 @@ test("AI answers from the KB with sources; visitor never sees internal notes; ha
   const h = await agentRespond(r.conversationId, { generate: answer({ answer: "x", confidence: 1 }) });
   assert.equal(h?.kind, "handoff");
   assert.equal((h as { reason: string }).reason, "requested");
-  const { data: after1 } = await db().from("conversations").select("ai_active, handed_off_at").eq("id", r.conversationId).single();
+  const { data: after1 } = await db().from("bos_conversations").select("ai_active, handed_off_at").eq("id", r.conversationId).single();
   assert.equal(after1!.ai_active, false);
   assert.ok(after1!.handed_off_at);
   const { count: internal } = await db().from("conversation_messages").select("id", { count: "exact", head: true }).eq("conversation_id", r.conversationId).eq("direction", "internal");
@@ -137,7 +137,7 @@ test("hand-off rules: sensitive topic, no knowledge, low confidence; human reply
   const d = await mk(`configure ${word}`);
   const support = await bosUserFor("support@taysonsta.local");
   await replyToConversation(support, d.conversationId, "Hi, I'm here to help.", { internal: false });
-  const { data: dc } = await db().from("conversations").select("ai_active").eq("id", d.conversationId).single();
+  const { data: dc } = await db().from("bos_conversations").select("ai_active").eq("id", d.conversationId).single();
   assert.equal(dc!.ai_active, false, "human reply stops the AI");
   assert.equal(await agentRespond(d.conversationId, { generate: answer({}) }), null);
 });

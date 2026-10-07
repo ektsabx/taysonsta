@@ -171,8 +171,8 @@ alter table activities add constraint activities_project_fk foreign key (project
 alter table meetings add constraint meetings_project_fk foreign key (project_id) references projects(id) on delete set null;
 alter table contracts add constraint contracts_project_fk foreign key (project_id) references projects(id) on delete set null;
 alter table payment_schedules add constraint payment_schedules_project_fk foreign key (project_id) references projects(id) on delete set null;
-alter table invoices add constraint invoices_project_fk foreign key (project_id) references projects(id) on delete restrict;
-alter table payments add constraint payments_project_fk foreign key (project_id) references projects(id) on delete restrict;
+alter table bos_invoices add constraint bos_invoices_project_fk foreign key (project_id) references projects(id) on delete restrict;
+alter table bos_payments add constraint bos_payments_project_fk foreign key (project_id) references projects(id) on delete restrict;
 alter table expenses add constraint expenses_project_fk foreign key (project_id) references projects(id) on delete restrict;
 alter table email_threads add constraint email_threads_project_fk foreign key (project_id) references projects(id) on delete set null;
 
@@ -276,7 +276,7 @@ create table change_requests (
   additional_days integer not null default 0 check (additional_days >= 0),
   status change_request_status not null default 'requested',
   approval_group_id uuid,
-  invoice_id uuid references invoices(id) on delete set null,
+  invoice_id uuid references bos_invoices(id) on delete set null,
   decided_at timestamptz,
   applied_at timestamptz,
   created_at timestamptz not null default now(),
@@ -917,7 +917,7 @@ begin
     if v_contract.status = 'signed' then
       perform bos_complete_onboarding_item(v_checklist, 'contract_signed', p_actor);
     end if;
-    if exists (select 1 from payments where deal_id = p_deal_id and status = 'completed') then
+    if exists (select 1 from bos_payments where deal_id = p_deal_id and status = 'completed') then
       perform bos_complete_onboarding_item(v_checklist, 'initial_payment', p_actor);
     end if;
 
@@ -971,7 +971,7 @@ begin
 
   v_status := case when coalesce((v_fin->>'auto_send_first_invoice')::boolean, false) then 'sent' else 'draft' end;
 
-  insert into invoices (client_id, project_id, deal_id, schedule_id, currency, issue_date, due_date, status, payment_terms, sent_at, created_by)
+  insert into bos_invoices (client_id, project_id, deal_id, schedule_id, currency, issue_date, due_date, status, payment_terms, sent_at, created_by)
   values (v_s.client_id, v_s.project_id, v_s.deal_id, v_s.id, v_s.currency, current_date,
           greatest(current_date, coalesce(v_s.due_date, current_date)) + coalesce((v_fin->>'default_payment_due_days')::int, 7),
           v_status, v_s.label || ' (' || v_s.percent || '%)', case when v_status = 'sent' then now() end, p_actor)
@@ -979,7 +979,7 @@ begin
   returning id into v_invoice;
 
   if v_invoice is null then
-    select id into v_invoice from invoices where schedule_id = p_schedule_id;
+    select id into v_invoice from bos_invoices where schedule_id = p_schedule_id;
     return v_invoice;
   end if;
 
@@ -1037,7 +1037,7 @@ begin
    where id = v_p.id;
 
   if v_cr.additional_cost > 0 then
-    insert into invoices (client_id, project_id, deal_id, currency, issue_date, due_date, status, payment_terms, created_by)
+    insert into bos_invoices (client_id, project_id, deal_id, currency, issue_date, due_date, status, payment_terms, created_by)
     values (v_cr.client_id, v_p.id, v_p.deal_id, v_cr.currency, current_date,
             current_date + coalesce((select (value->>'default_payment_due_days')::int from bos_settings where key = 'finance'), 7),
             'draft', 'Change request ' || v_cr.cr_number, p_actor)
@@ -1100,7 +1100,7 @@ begin
   end if;
 
   if not coalesce((v_cfg->>'allow_complete_with_pending_payment')::boolean, false) then
-    if exists (select 1 from invoices where project_id = p_project and status not in ('paid','cancelled'))
+    if exists (select 1 from bos_invoices where project_id = p_project and status not in ('paid','cancelled'))
        or (v_p.deal_id is not null and (select payment_status from deals where id = v_p.deal_id) <> 'paid') then
       v_blockers := v_blockers || 'final_payment_pending';
     end if;

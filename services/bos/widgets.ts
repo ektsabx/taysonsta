@@ -205,7 +205,7 @@ export async function postVisitorMessage(w: Widget, s: WidgetSession, m: Visitor
   });
   if (!res) throw new ValidationError("الرسالة فارغة.");
   await c.from("widget_sessions").update({ customer_id: customerId, conversation_id: res.conversation.id, last_seen_at: nowIso() }).eq("id", s.id);
-  const { data: conv } = await c.from("conversations").select("id, ai_active").eq("id", res.conversation.id).single();
+  const { data: conv } = await c.from("bos_conversations").select("id, ai_active").eq("id", res.conversation.id).single();
   return { conversationId: conv!.id, aiShouldRespond: conv!.ai_active };
 }
 
@@ -215,7 +215,7 @@ export async function visitorMessages(s: WidgetSession, since?: string | null) {
   const c = db();
   let q = c.from("conversation_messages").select("id, direction, author_kind, body, created_at").eq("conversation_id", s.conversation_id).in("direction", ["inbound", "outbound"]).order("created_at").limit(200);
   if (since && !Number.isNaN(Date.parse(since))) q = q.gt("created_at", since);
-  const [{ data }, { data: conv }] = await Promise.all([q, c.from("conversations").select("status, ai_active").eq("id", s.conversation_id).maybeSingle()]);
+  const [{ data }, { data: conv }] = await Promise.all([q, c.from("bos_conversations").select("status, ai_active").eq("id", s.conversation_id).maybeSingle()]);
   await c.from("widget_sessions").update({ last_seen_at: nowIso() }).eq("id", s.id);
   return {
     messages: (data ?? []).map((m) => ({ id: m.id, from: m.direction === "inbound" ? "me" : m.author_kind === "ai" ? "ai" : "agent", body: m.body, at: m.created_at })),

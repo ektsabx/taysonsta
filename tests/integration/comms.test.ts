@@ -28,7 +28,7 @@ test("DM is unique per pair; mention notifies; replies thread; search is scoped"
   await dispatchPendingEvents();
   const { data: mention } = await db().from("message_mentions").select("user_id").eq("message_id", root.id);
   assert.deepEqual((mention ?? []).map((m) => m.user_id), [hana.userId]);
-  const { data: notif } = await db().from("notifications").select("event_type").eq("user_id", hana.userId).eq("event_type", "chat.mentioned").order("created_at", { ascending: false }).limit(1);
+  const { data: notif } = await db().from("bos_notifications").select("event_type").eq("user_id", hana.userId).eq("event_type", "chat.mentioned").order("created_at", { ascending: false }).limit(1);
   assert.equal(notif?.[0]?.event_type, "chat.mentioned", "mention notification");
 
   const reply = await postMessage(hana, a, { body: `Done ${token}`, parentId: root.id, linkedEntityType: null, linkedEntityId: null });
@@ -37,7 +37,7 @@ test("DM is unique per pair; mention notifies; replies thread; search is scoped"
   assert.ok(!top.some((m) => m.id === reply.id), "reply not in main list");
   const thread = await listMessages(omar, a, { parentId: root.id });
   assert.equal(thread[0]?.id, reply.id);
-  const { data: replyNotif } = await db().from("notifications").select("id").eq("user_id", omar.userId).eq("event_type", "chat.reply").limit(1);
+  const { data: replyNotif } = await db().from("bos_notifications").select("id").eq("user_id", omar.userId).eq("event_type", "chat.reply").limit(1);
   assert.ok(replyNotif?.length, "reply notification to parent author");
 
   assert.ok((await searchMessages(omar, token)).length >= 1, "participant finds it");

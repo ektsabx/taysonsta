@@ -184,7 +184,7 @@ export async function customerContextFor(tools: string[], conv: Pick<Conversatio
     lines.push(`Name: ${cust.name}${cust.company ? ` · Company: ${cust.company}` : ""}${client ? ` · Account: ${client.company_name ?? client.name}` : " · No linked account"}`);
   }
   if (tools.includes("invoice_status") && clientId) {
-    const { data: inv } = await c.from("invoices").select("invoice_number, status, total, currency, due_date").eq("client_id", clientId).not("status", "in", "(draft,cancelled)").order("due_date", { ascending: false }).limit(5);
+    const { data: inv } = await c.from("bos_invoices").select("invoice_number, status, total, currency, due_date").eq("client_id", clientId).not("status", "in", "(draft,cancelled)").order("due_date", { ascending: false }).limit(5);
     lines.push(inv?.length ? `Invoices: ${inv.map((i) => `${i.invoice_number} ${i.status} ${i.total} ${i.currency} due ${i.due_date ?? "-"}`).join("; ")}` : "Invoices: none");
   }
   if (tools.includes("ticket_status")) {
@@ -260,7 +260,7 @@ async function sendAiMessage(conv: Conversation, text: string, extra: { ai_sourc
 // replied since that message.
 export async function agentRespond(conversationId: string, opts: { generate?: Generate } = {}) {
   const c = db();
-  const { data: conv } = await c.from("conversations").select("*").eq("id", conversationId).maybeSingle();
+  const { data: conv } = await c.from("bos_conversations").select("*").eq("id", conversationId).maybeSingle();
   if (!conv?.ai_active || !conv.ai_agent_id || conv.spam_at || ["resolved", "closed"].includes(conv.status)) return null;
   const { data: agent } = await c.from("ai_agents").select("*").eq("id", conv.ai_agent_id).maybeSingle();
   const { data: msgs } = await c.from("conversation_messages").select("direction, author_kind, body, created_at").eq("conversation_id", conversationId).in("direction", ["inbound", "outbound"]).order("created_at", { ascending: false }).limit(12);
@@ -274,13 +274,13 @@ export async function agentRespond(conversationId: string, opts: { generate?: Ge
   const decision = await decide(agent, last.body, history, { turns: conv.ai_turns, generate: opts.generate, customerContext });
 
   // Race guard: a person may have taken over while the model was thinking.
-  const { data: fresh } = await c.from("conversations").select("ai_active").eq("id", conversationId).single();
+  const { data: fresh } = await c.from("bos_conversations").select("ai_active").eq("id", conversationId).single();
   const { count: humanSince } = await c.from("conversation_messages").select("id", { count: "exact", head: true }).eq("conversation_id", conversationId).eq("direction", "outbound").eq("author_kind", "agent").gt("created_at", last.created_at);
   if (!fresh?.ai_active || humanSince) return null;
 
   if (decision.kind === "handoff") return handOff(conv, agent, decision.reason, decision.text, decision.detail);
   await sendAiMessage(conv, decision.text, { ai_sources: { sources: decision.sources, confidence: decision.confidence, provider: decision.provider } });
-  await c.from("conversations").update({ ai_turns: conv.ai_turns + 1, last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(conv.first_response_at ? {} : { first_response_at: nowIso() }) }).eq("id", conv.id);
+  await c.from("bos_conversations").update({ ai_turns: conv.ai_turns + 1, last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(conv.first_response_at ? {} : { first_response_at: nowIso() }) }).eq("id", conv.id);
   return decision;
 }
 
@@ -295,13 +295,13 @@ async function handOff(conv: Conversation, agent: AiAgent | null, reason: Extrac
   await sendAiMessage(conv, customerText);
   const summary = `🤖 ${reasonText[reason]}${detail ? ` (${detail.slice(0, 120)})` : ""}${route ? ` · ${route.name}` : ""}\n` + (msgs ?? []).reverse().map((m) => `• ${m.body.slice(0, 200)}`).join("\n");
   await addMessage(conv, { direction: "internal", author_kind: "ai", body: summary });
-  await c.from("conversations").update({ ai_active: false, handed_off_at: nowIso(), handoff_reason: reason, team_id: teamId, assignee_id: assignee, status: "open", unread_for_agent: (conv.unread_for_agent ?? 0) + 1, last_message_at: nowIso() }).eq("id", conv.id);
+  await c.from("bos_conversations").update({ ai_active: false, handed_off_at: nowIso(), handoff_reason: reason, team_id: teamId, assignee_id: assignee, status: "open", unread_for_agent: (conv.unread_for_agent ?? 0) + 1, last_message_at: nowIso() }).eq("id", conv.id);
   if (agent?.tools.includes("create_ticket") && !conv.ticket_id && ["requested", "sensitive", "no_knowledge", "model_requested"].includes(reason)) {
     try {
       const { data: cust } = await c.from("support_customers").select("name, client_id, contact_id").eq("id", conv.customer_id).single();
       const { createTicket } = await import("@/services/bos/support");
       const t = await createTicket({}, { client_id: cust?.client_id ?? conv.client_id, contact_id: cust?.contact_id ?? null, category: "support", priority: "medium", subject: (conv.subject ?? `${conv.number} — ${cust?.name ?? ""}`).slice(0, 300), description: summary, assigned_to: assignee, conversation_id: conv.id, support_customer_id: conv.customer_id, team_id: teamId } as never, "internal");
-      await c.from("conversations").update({ ticket_id: t.id }).eq("id", conv.id);
+      await c.from("bos_conversations").update({ ticket_id: t.id }).eq("id", conv.id);
       await addMessage(conv, { direction: "system", author_kind: "system", body: `ticket:${t.ticket_number}` });
     } catch (e) {
       await addMessage(conv, { direction: "internal", author_kind: "system", body: `تعذر فتح تذكرة تلقائياً: ${e instanceof Error ? e.message.slice(0, 160) : "خطأ"}` });
@@ -316,7 +316,7 @@ async function handOff(conv: Conversation, agent: AiAgent | null, reason: Extrac
 // widget keeps its explicit agent (services/bos/widgets.ts).
 export async function routeInboundToAi(conversationId: string, ctx: { isNew: boolean; reopened: boolean; text: string }, opts: { generate?: Generate } = {}) {
   const c = db();
-  const { data: conv } = await c.from("conversations").select("*").eq("id", conversationId).maybeSingle();
+  const { data: conv } = await c.from("bos_conversations").select("*").eq("id", conversationId).maybeSingle();
   if (!conv || conv.channel === "web_widget" || conv.spam_at) return null;
   if (conv.ai_active && conv.ai_agent_id) return agentRespond(conversationId, opts);
   const agents = (await listAgents()).filter((a) => a.is_active);
@@ -325,7 +325,7 @@ export async function routeInboundToAi(conversationId: string, ctx: { isNew: boo
   const companyHours: WorkingHours | null = sched ? { tz: sched.timezone, start: String(sched.start_time).slice(0, 5), end: String(sched.end_time).slice(0, 5), days: sched.work_days as number[] } : null;
   const agent = agents.find((a) => aiShouldHandle(a, { channel: conv.channel, isNew: ctx.isNew, reopened: ctx.reopened, assigned: !!conv.assignee_id, text: ctx.text, companyHours }));
   if (!agent) return null;
-  await c.from("conversations").update({ ai_active: true, ai_agent_id: agent.id }).eq("id", conv.id);
+  await c.from("bos_conversations").update({ ai_active: true, ai_agent_id: agent.id }).eq("id", conv.id);
   await addMessage(conv, { direction: "system", author_kind: "system", body: `ai:start:${agent.name}` });
   return agentRespond(conversationId, opts);
 }
@@ -341,7 +341,7 @@ export async function testAgent(bos: BosUser, agentId: string, question: string,
 
 export async function agentStats(days = 30) {
   const since = new Date(nowMs() - days * 86400_000).toISOString();
-  const { data } = await db().from("conversations").select("ai_agent_id, ai_active, handed_off_at, status").not("ai_agent_id", "is", null).gte("created_at", since);
+  const { data } = await db().from("bos_conversations").select("ai_agent_id, ai_active, handed_off_at, status").not("ai_agent_id", "is", null).gte("created_at", since);
   const by = new Map<string, { total: number; handedOff: number; resolvedByAi: number }>();
   for (const r of data ?? []) {
     const s = by.get(r.ai_agent_id!) ?? { total: 0, handedOff: 0, resolvedByAi: 0 };
@@ -359,7 +359,7 @@ export async function agentAnalytics(agentId: string, days = 30) {
   const since = new Date(nowMs() - days * 86400_000).toISOString();
   const c = db();
   const [{ data: convs }, { data: usage }] = await Promise.all([
-    c.from("conversations").select("id, channel, handed_off_at, handoff_reason, status").eq("ai_agent_id", agentId).gte("created_at", since).limit(5000),
+    c.from("bos_conversations").select("id, channel, handed_off_at, handoff_reason, status").eq("ai_agent_id", agentId).gte("created_at", since).limit(5000),
     c.from("ai_usage_log").select("input_tokens, output_tokens, cost_micros, ok").eq("feature", `support.agent.${agentId}`).gte("created_at", since).limit(20000),
   ]);
   const rows = convs ?? [];

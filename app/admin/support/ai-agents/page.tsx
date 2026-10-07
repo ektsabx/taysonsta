@@ -20,7 +20,7 @@ export default async function AiAgentsPage() {
     db().from("kb_articles").select("id, category_id").eq("status", "published").eq("ai_allowed", true).eq("audience", "public"),
     db().from("integration_connections").select("id", { count: "exact", head: true }).in("provider", ["anthropic", "openai", "gemini"]).eq("status", "active"),
     db().from("support_widgets").select("id, name, ai_agent_id, is_active"),
-    db().from("conversations").select("id, number, ai_agent_id, ai_turns, handed_off_at, status, created_at, support_customers(name)").not("ai_agent_id", "is", null).order("created_at", { ascending: false }).limit(40),
+    db().from("bos_conversations").select("id, number, ai_agent_id, ai_turns, handed_off_at, status, created_at, support_customers(name)").not("ai_agent_id", "is", null).order("created_at", { ascending: false }).limit(40),
   ]);
   const spend = new Map(await Promise.all(agents.map(async (a) => [a.id, await agentMonthSpendUsd(a.id)] as const)));
   const catOpts = categories.map((c) => ({ value: c.id, label: c.name }));

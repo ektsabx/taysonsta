@@ -22,7 +22,7 @@ export async function processDeliveries(limit = 100): Promise<{ sent: number; fa
   const now = new Date(nowMs()).toISOString();
   const { data: rows } = await db()
     .from("notification_deliveries")
-    .select("id, channel, status, attempts, notification_id, notifications(user_id, title, body, link, priority)")
+    .select("id, channel, status, attempts, notification_id, notifications:bos_notifications(user_id, title, body, link, priority)")
     .in("status", ["queued", "failed"])
     .lt("attempts", MAX_ATTEMPTS)
     .or(`next_attempt_at.is.null,next_attempt_at.lte.${now}`)
@@ -81,7 +81,7 @@ export async function retryDelivery(bos: BosUser, id: string) {
 }
 
 export async function deliveryLog(filters: { status?: string; channel?: string } = {}) {
-  let q = db().from("notification_deliveries").select("id, channel, status, attempts, last_error, sent_at, created_at, recipient, next_attempt_at, notifications(title, user_id, event_type, priority)").order("created_at", { ascending: false }).limit(200);
+  let q = db().from("notification_deliveries").select("id, channel, status, attempts, last_error, sent_at, created_at, recipient, next_attempt_at, notifications:bos_notifications(title, user_id, event_type, priority)").order("created_at", { ascending: false }).limit(200);
   if (filters.status) q = q.eq("status", filters.status);
   if (filters.channel) q = q.eq("channel", filters.channel);
   const { data } = await q;

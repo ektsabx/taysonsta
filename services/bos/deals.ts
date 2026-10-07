@@ -319,7 +319,7 @@ export async function reopenDeal(bos: BosUser, id: string, stageId: string, reas
   if (!deal) throw new NotFoundError();
   const current = deal.pipeline_stages as unknown as { key: string; category: string };
   if (current.category === "won") {
-    const { count } = await db().from("payments").select("id", { count: "exact", head: true }).eq("deal_id", id).in("status", ["completed", "processing"]);
+    const { count } = await db().from("bos_payments").select("id", { count: "exact", head: true }).eq("deal_id", id).in("status", ["completed", "processing"]);
     if ((count ?? 0) > 0) throw new ValidationError("لا يمكن إعادة فتح صفقة تم تحصيل دفعات لها.");
   }
   const { stages } = await getPipeline("deal");

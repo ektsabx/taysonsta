@@ -13,7 +13,7 @@ const assignmentLabels: Record<string, string> = { least_busy: "الأقل ان�
 // availability, assignment rule; open load per agent.
 export default async function SupportTeamsPage() {
   await requirePermission("conversations.manage", "all");
-  const [teams, staff, names, { data: open }] = await Promise.all([listTeams(), listActiveStaff(), userNameMap(), db().from("conversations").select("assignee_id").not("status", "in", "(resolved,closed)")]);
+  const [teams, staff, names, { data: open }] = await Promise.all([listTeams(), listActiveStaff(), userNameMap(), db().from("bos_conversations").select("assignee_id").not("status", "in", "(resolved,closed)")]);
   const load = new Map<string, number>();
   for (const o of open ?? []) if (o.assignee_id) load.set(o.assignee_id, (load.get(o.assignee_id) ?? 0) + 1);
   const staffOpts = staff.map((s) => ({ value: s.userId, label: s.name }));

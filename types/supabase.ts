@@ -532,7 +532,7 @@ export type Database = {
           content: string
           id?: never
           idx: number
-          search?: never
+          search?: unknown
           source_id: string
           title: string
           url?: string | null
@@ -542,7 +542,7 @@ export type Database = {
           content?: string
           id?: never
           idx?: number
-          search?: never
+          search?: unknown
           source_id?: string
           title?: string
           url?: string | null
@@ -1632,6 +1632,413 @@ export type Database = {
           },
         ]
       }
+      bos_conversations: {
+        Row: {
+          ai_active: boolean
+          ai_agent_id: string | null
+          ai_turns: number
+          assignee_id: string | null
+          channel: string
+          client_id: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          external_thread_id: string | null
+          first_response_at: string | null
+          handed_off_at: string | null
+          handoff_reason: string | null
+          id: string
+          last_agent_message_at: string | null
+          last_customer_message_at: string | null
+          last_message_at: string
+          number: string
+          priority: string
+          reopened_count: number
+          resolved_at: string | null
+          snoozed_until: string | null
+          spam_at: string | null
+          spam_by: string | null
+          spam_reason: string | null
+          status: string
+          subject: string | null
+          tags: string[]
+          team_id: string | null
+          ticket_id: string | null
+          unread_for_agent: number
+          updated_at: string
+          widget_id: string | null
+        }
+        Insert: {
+          ai_active?: boolean
+          ai_agent_id?: string | null
+          ai_turns?: number
+          assignee_id?: string | null
+          channel: string
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          external_thread_id?: string | null
+          first_response_at?: string | null
+          handed_off_at?: string | null
+          handoff_reason?: string | null
+          id?: string
+          last_agent_message_at?: string | null
+          last_customer_message_at?: string | null
+          last_message_at?: string
+          number?: string
+          priority?: string
+          reopened_count?: number
+          resolved_at?: string | null
+          snoozed_until?: string | null
+          spam_at?: string | null
+          spam_by?: string | null
+          spam_reason?: string | null
+          status?: string
+          subject?: string | null
+          tags?: string[]
+          team_id?: string | null
+          ticket_id?: string | null
+          unread_for_agent?: number
+          updated_at?: string
+          widget_id?: string | null
+        }
+        Update: {
+          ai_active?: boolean
+          ai_agent_id?: string | null
+          ai_turns?: number
+          assignee_id?: string | null
+          channel?: string
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          external_thread_id?: string | null
+          first_response_at?: string | null
+          handed_off_at?: string | null
+          handoff_reason?: string | null
+          id?: string
+          last_agent_message_at?: string | null
+          last_customer_message_at?: string | null
+          last_message_at?: string
+          number?: string
+          priority?: string
+          reopened_count?: number
+          resolved_at?: string | null
+          snoozed_until?: string | null
+          spam_at?: string | null
+          spam_by?: string | null
+          spam_reason?: string | null
+          status?: string
+          subject?: string | null
+          tags?: string[]
+          team_id?: string | null
+          ticket_id?: string | null
+          unread_for_agent?: number
+          updated_at?: string
+          widget_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bos_conversations_ai_agent_id_fkey"
+            columns: ["ai_agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_conversations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "support_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_conversations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "support_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_conversations_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_conversations_widget_fk"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "support_widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bos_invoices: {
+        Row: {
+          amount_paid: number
+          amount_refunded: number
+          balance: number | null
+          cancelled_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deal_id: string | null
+          discount_amount: number
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          notes: string | null
+          overdue_notified_at: string | null
+          paid_at: string | null
+          payment_terms: string | null
+          schedule_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          amount_refunded?: number
+          balance?: number | null
+          cancelled_at?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          deal_id?: string | null
+          discount_amount?: number
+          due_date: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          notes?: string | null
+          overdue_notified_at?: string | null
+          paid_at?: string | null
+          payment_terms?: string | null
+          schedule_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          amount_refunded?: number
+          balance?: number | null
+          cancelled_at?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deal_id?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          notes?: string | null
+          overdue_notified_at?: string | null
+          paid_at?: string | null
+          payment_terms?: string | null
+          schedule_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bos_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_invoices_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_invoices_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: true
+            referencedRelation: "payment_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bos_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_id: number | null
+          event_type: string
+          id: string
+          link: string | null
+          priority: string
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_id?: number | null
+          event_type: string
+          id?: string
+          link?: string | null
+          priority?: string
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_id?: number | null
+          event_type?: string
+          id?: string
+          link?: string | null
+          priority?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bos_notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "activity_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bos_payments: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deal_amount: number | null
+          deal_id: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_amount: number | null
+          invoice_id: string | null
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          payment_date: string
+          payment_number: string
+          reference: string | null
+          refund_reason: string | null
+          refunded_amount: number
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          deal_amount?: number | null
+          deal_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          invoice_amount?: number | null
+          invoice_id?: string | null
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          payment_date?: string
+          payment_number?: string
+          reference?: string | null
+          refund_reason?: string | null
+          refunded_amount?: number
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deal_amount?: number | null
+          deal_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          invoice_amount?: number | null
+          invoice_id?: string | null
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          payment_date?: string
+          payment_number?: string
+          reference?: string | null
+          refund_reason?: string | null
+          refunded_amount?: number
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bos_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_payments_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bos_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "bos_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bos_settings: {
         Row: {
           key: string
@@ -2357,7 +2764,7 @@ export type Database = {
           id?: string
           industry?: string | null
           name: string
-          normalized_email?: never
+          normalized_email?: string | null
           notes?: string | null
           phone?: string | null
           primary_contact_id?: string | null
@@ -2383,7 +2790,7 @@ export type Database = {
           id?: string
           industry?: string | null
           name?: string
-          normalized_email?: never
+          normalized_email?: string | null
           notes?: string | null
           phone?: string | null
           primary_contact_id?: string | null
@@ -3116,161 +3523,7 @@ export type Database = {
             foreignKeyName: "conversation_messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversations: {
-        Row: {
-          ai_active: boolean
-          ai_agent_id: string | null
-          ai_turns: number
-          assignee_id: string | null
-          channel: string
-          client_id: string | null
-          closed_at: string | null
-          created_at: string
-          created_by: string | null
-          customer_id: string
-          external_thread_id: string | null
-          first_response_at: string | null
-          handed_off_at: string | null
-          handoff_reason: string | null
-          id: string
-          last_agent_message_at: string | null
-          last_customer_message_at: string | null
-          last_message_at: string
-          number: string
-          priority: string
-          reopened_count: number
-          resolved_at: string | null
-          snoozed_until: string | null
-          spam_at: string | null
-          spam_by: string | null
-          spam_reason: string | null
-          status: string
-          subject: string | null
-          tags: string[]
-          team_id: string | null
-          ticket_id: string | null
-          unread_for_agent: number
-          updated_at: string
-          widget_id: string | null
-        }
-        Insert: {
-          ai_active?: boolean
-          ai_agent_id?: string | null
-          ai_turns?: number
-          assignee_id?: string | null
-          channel: string
-          client_id?: string | null
-          closed_at?: string | null
-          created_at?: string
-          created_by?: string | null
-          customer_id: string
-          external_thread_id?: string | null
-          first_response_at?: string | null
-          handed_off_at?: string | null
-          handoff_reason?: string | null
-          id?: string
-          last_agent_message_at?: string | null
-          last_customer_message_at?: string | null
-          last_message_at?: string
-          number?: string
-          priority?: string
-          reopened_count?: number
-          resolved_at?: string | null
-          snoozed_until?: string | null
-          spam_at?: string | null
-          spam_by?: string | null
-          spam_reason?: string | null
-          status?: string
-          subject?: string | null
-          tags?: string[]
-          team_id?: string | null
-          ticket_id?: string | null
-          unread_for_agent?: number
-          updated_at?: string
-          widget_id?: string | null
-        }
-        Update: {
-          ai_active?: boolean
-          ai_agent_id?: string | null
-          ai_turns?: number
-          assignee_id?: string | null
-          channel?: string
-          client_id?: string | null
-          closed_at?: string | null
-          created_at?: string
-          created_by?: string | null
-          customer_id?: string
-          external_thread_id?: string | null
-          first_response_at?: string | null
-          handed_off_at?: string | null
-          handoff_reason?: string | null
-          id?: string
-          last_agent_message_at?: string | null
-          last_customer_message_at?: string | null
-          last_message_at?: string
-          number?: string
-          priority?: string
-          reopened_count?: number
-          resolved_at?: string | null
-          snoozed_until?: string | null
-          spam_at?: string | null
-          spam_by?: string | null
-          spam_reason?: string | null
-          status?: string
-          subject?: string | null
-          tags?: string[]
-          team_id?: string | null
-          ticket_id?: string | null
-          unread_for_agent?: number
-          updated_at?: string
-          widget_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_ai_agent_id_fkey"
-            columns: ["ai_agent_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "support_customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "support_teams"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_widget_fk"
-            columns: ["widget_id"]
-            isOneToOne: false
-            referencedRelation: "support_widgets"
+            referencedRelation: "bos_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -5894,7 +6147,7 @@ export type Database = {
           description: string
           id?: string
           invoice_id: string
-          line_total?: never
+          line_total?: number | null
           quantity?: number
           sort_order?: number
           unit_price?: number
@@ -5903,7 +6156,7 @@ export type Database = {
           description?: string
           id?: string
           invoice_id?: string
-          line_total?: never
+          line_total?: number | null
           quantity?: number
           sort_order?: number
           unit_price?: number
@@ -5913,116 +6166,7 @@ export type Database = {
             foreignKeyName: "invoice_items_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      invoices: {
-        Row: {
-          amount_paid: number
-          amount_refunded: number
-          balance: number | null
-          cancelled_at: string | null
-          client_id: string
-          created_at: string
-          created_by: string | null
-          currency: string
-          deal_id: string | null
-          discount_amount: number
-          due_date: string
-          id: string
-          invoice_number: string
-          issue_date: string
-          notes: string | null
-          overdue_notified_at: string | null
-          paid_at: string | null
-          payment_terms: string | null
-          schedule_id: string | null
-          sent_at: string | null
-          status: Database["public"]["Enums"]["invoice_status"]
-          subtotal: number
-          tax_amount: number
-          tax_rate: number
-          total: number
-          updated_at: string
-        }
-        Insert: {
-          amount_paid?: number
-          amount_refunded?: number
-          balance?: never
-          cancelled_at?: string | null
-          client_id: string
-          created_at?: string
-          created_by?: string | null
-          currency: string
-          deal_id?: string | null
-          discount_amount?: number
-          due_date: string
-          id?: string
-          invoice_number?: string
-          issue_date?: string
-          notes?: string | null
-          overdue_notified_at?: string | null
-          paid_at?: string | null
-          payment_terms?: string | null
-          schedule_id?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["invoice_status"]
-          subtotal?: number
-          tax_amount?: number
-          tax_rate?: number
-          total?: number
-          updated_at?: string
-        }
-        Update: {
-          amount_paid?: number
-          amount_refunded?: number
-          balance?: never
-          cancelled_at?: string | null
-          client_id?: string
-          created_at?: string
-          created_by?: string | null
-          currency?: string
-          deal_id?: string | null
-          discount_amount?: number
-          due_date?: string
-          id?: string
-          invoice_number?: string
-          issue_date?: string
-          notes?: string | null
-          overdue_notified_at?: string | null
-          paid_at?: string | null
-          payment_terms?: string | null
-          schedule_id?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["invoice_status"]
-          subtotal?: number
-          tax_amount?: number
-          tax_rate?: number
-          total?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoices_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_schedule_id_fkey"
-            columns: ["schedule_id"]
-            isOneToOne: true
-            referencedRelation: "payment_schedules"
+            referencedRelation: "bos_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -6261,7 +6405,7 @@ export type Database = {
             | null
           published_at?: string | null
           required_documents?: string | null
-          search?: never
+          search?: unknown
           slug: string
           status?: string
           tags?: string[]
@@ -6286,7 +6430,7 @@ export type Database = {
             | null
           published_at?: string | null
           required_documents?: string | null
-          search?: never
+          search?: unknown
           slug?: string
           status?: string
           tags?: string[]
@@ -6585,7 +6729,7 @@ export type Database = {
           stage_id: string
           team_id?: string | null
           timeline?: string | null
-          total_score?: never
+          total_score?: number | null
           updated_at?: string
           website?: string | null
         }
@@ -6629,7 +6773,7 @@ export type Database = {
           stage_id?: string
           team_id?: string | null
           timeline?: string | null
-          total_score?: never
+          total_score?: number | null
           updated_at?: string
           website?: string | null
         }
@@ -7251,7 +7395,7 @@ export type Database = {
           linked_entity_id?: string | null
           linked_entity_type?: string | null
           parent_id?: string | null
-          search?: never
+          search?: unknown
         }
         Update: {
           author_contact_id?: string | null
@@ -7267,7 +7411,7 @@ export type Database = {
           linked_entity_id?: string | null
           linked_entity_type?: string | null
           parent_id?: string | null
-          search?: never
+          search?: unknown
         }
         Relationships: [
           {
@@ -7363,7 +7507,7 @@ export type Database = {
             foreignKeyName: "notification_deliveries_notification_id_fkey"
             columns: ["notification_id"]
             isOneToOne: false
-            referencedRelation: "notifications"
+            referencedRelation: "bos_notifications"
             referencedColumns: ["id"]
           },
         ]
@@ -7477,59 +7621,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
-      }
-      notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          entity_id: string | null
-          entity_type: string | null
-          event_id: number | null
-          event_type: string
-          id: string
-          link: string | null
-          priority: string
-          read_at: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          entity_id?: string | null
-          entity_type?: string | null
-          event_id?: number | null
-          event_type: string
-          id?: string
-          link?: string | null
-          priority?: string
-          read_at?: string | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          entity_id?: string | null
-          entity_type?: string | null
-          event_id?: number | null
-          event_type?: string
-          id?: string
-          link?: string | null
-          priority?: string
-          read_at?: string | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "activity_events"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       onboarding_checklists: {
         Row: {
@@ -7800,98 +7891,7 @@ export type Database = {
             foreignKeyName: "payment_schedules_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payments: {
-        Row: {
-          amount: number
-          client_id: string
-          created_at: string
-          created_by: string | null
-          currency: string
-          deal_amount: number | null
-          deal_id: string | null
-          id: string
-          idempotency_key: string | null
-          invoice_amount: number | null
-          invoice_id: string | null
-          method: Database["public"]["Enums"]["payment_method"]
-          notes: string | null
-          payment_date: string
-          payment_number: string
-          reference: string | null
-          refund_reason: string | null
-          refunded_amount: number
-          status: Database["public"]["Enums"]["payment_status"]
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          client_id: string
-          created_at?: string
-          created_by?: string | null
-          currency: string
-          deal_amount?: number | null
-          deal_id?: string | null
-          id?: string
-          idempotency_key?: string | null
-          invoice_amount?: number | null
-          invoice_id?: string | null
-          method?: Database["public"]["Enums"]["payment_method"]
-          notes?: string | null
-          payment_date?: string
-          payment_number?: string
-          reference?: string | null
-          refund_reason?: string | null
-          refunded_amount?: number
-          status?: Database["public"]["Enums"]["payment_status"]
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          client_id?: string
-          created_at?: string
-          created_by?: string | null
-          currency?: string
-          deal_amount?: number | null
-          deal_id?: string | null
-          id?: string
-          idempotency_key?: string | null
-          invoice_amount?: number | null
-          invoice_id?: string | null
-          method?: Database["public"]["Enums"]["payment_method"]
-          notes?: string | null
-          payment_date?: string
-          payment_number?: string
-          reference?: string | null
-          refund_reason?: string | null
-          refunded_amount?: number
-          status?: Database["public"]["Enums"]["payment_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payments_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payments_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payments_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
+            referencedRelation: "bos_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -9571,8 +9571,8 @@ export type Database = {
           merged_into?: string | null
           messenger_id?: string | null
           name: string
-          normalized_email?: never
-          normalized_phone?: never
+          normalized_email?: string | null
+          normalized_phone?: string | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
@@ -9598,8 +9598,8 @@ export type Database = {
           merged_into?: string | null
           messenger_id?: string | null
           name?: string
-          normalized_email?: never
-          normalized_phone?: never
+          normalized_email?: string | null
+          normalized_phone?: string | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
@@ -9919,7 +9919,7 @@ export type Database = {
             foreignKeyName: "tickets_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "bos_conversations"
             referencedColumns: ["id"]
           },
           {
@@ -10232,7 +10232,7 @@ export type Database = {
             foreignKeyName: "widget_sessions_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "bos_conversations"
             referencedColumns: ["id"]
           },
           {
@@ -10377,10 +10377,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      bos_check_sla_breaches: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      bos_check_sla_breaches: { Args: never; Returns: number }
       bos_clock_in: {
         Args: { p_client_tz?: string; p_source?: string; p_user: string }
         Returns: string
@@ -10401,10 +10398,7 @@ export type Database = {
         Args: { p_date: string; p_employee: string }
         Returns: string
       }
-      bos_detect_open_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      bos_detect_open_sessions: { Args: never; Returns: number }
       bos_emit: {
         Args: {
           p_actor: string
@@ -10512,10 +10506,7 @@ export type Database = {
         Returns: number
       }
       bos_end_break: { Args: { p_user: string }; Returns: undefined }
-      bos_ensure_client_email_unique: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      bos_ensure_client_email_unique: { Args: never; Returns: undefined }
       bos_evaluate_commissions: {
         Args: { p_actor?: string; p_deal_id: string }
         Returns: undefined
@@ -10550,10 +10541,7 @@ export type Database = {
         Returns: number
       }
       bos_mark_absences: { Args: { p_date: string }; Returns: number }
-      bos_mark_overdue_invoices: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      bos_mark_overdue_invoices: { Args: never; Returns: number }
       bos_mark_overdue_work: { Args: { p_today?: string }; Returns: number }
       bos_merge_accounts: {
         Args: { p_actor: string; p_source: string; p_target: string }
@@ -10670,10 +10658,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      bos_sync_hourly_cost: {
-        Args: { p_employee: string }
-        Returns: undefined
-      }
+      bos_sync_hourly_cost: { Args: { p_employee: string }; Returns: undefined }
       bos_update_commission_eligibility: {
         Args: { p_actor?: string; p_deal_id: string }
         Returns: undefined
@@ -10925,12 +10910,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10954,11 +10939,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10979,11 +10964,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11004,11 +10989,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11021,11 +11006,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11286,3 +11271,4 @@ export const Constants = {
     },
   },
 } as const
+

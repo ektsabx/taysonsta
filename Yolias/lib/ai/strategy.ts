@@ -4,6 +4,7 @@ import { LlmNotConfiguredError, LlmProviderError, routesFor, runStructured } fro
 import type { InputPart } from "@/lib/ai/llm/types";
 import { IcpSchema, parseIcp, type IcpCriteria } from "@/lib/discovery/icp";
 import { cacheKey, fingerprintIcp } from "@/lib/intel/fingerprint";
+import { businessLines } from "@/lib/company-profile";
 import { readLlmCache, recordLlmCall, writeLlmCache } from "@/lib/intel/llm";
 
 // Yolias AI — step 1 of every strategy: understand who the user wants to sell
@@ -23,6 +24,9 @@ export interface StrategyContext {
   companyName: string | null;
   website: string | null;
   offering: string | null;
+  industry?: string | null;
+  idealCustomer?: string | null;
+  targetMarkets?: string | null;
   defaultCountry: string;
   language: "en" | "ar";
   /** For cost attribution (intel.llm_calls). */
@@ -31,7 +35,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-06";
+export const ICP_PROMPT_VERSION = "icp-2026-10-07";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -48,8 +52,9 @@ Your job in this step is to understand who the user wants to sell to and express
 
 Rules:
 - Extract only what the user asked for. Where the request is silent, choose a sensible default for a B2B discovery mission and record it in "assumptions".
-- Use the user's own business (what they sell) to infer which decision-maker job titles are relevant when they don't name any.
-- countries are ISO 3166-1 alpha-2 codes. If no market is given, use the user's default country and say so in "assumptions".
+- Use the user's own business (industry, products and services) to infer which decision-maker job titles are relevant when they don't name any.
+- When the request doesn't say who to look for, use the business's ideal customer profile; when it doesn't name a market, use its target markets. Say so in "assumptions". What the request says always wins.
+- countries are ISO 3166-1 alpha-2 codes. If no market is given and the business has no target markets, use the user's default country and say so in "assumptions".
 - search_type: "people" when the user wants decision makers/contacts (the default); "companies" when they want a list of companies; "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
 - target_count is the number the user asked for (default 100). target_unit says whether it counts companies or people.
 - campaign_name is short and specific, in the form "<Market> <Segment> — <Decision makers>".
@@ -100,11 +105,9 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
 }
 
 /** The exact request Yolias sends to understand a search (also used by the eval set). */
-export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "defaultCountry" | "language">) {
+export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "defaultCountry" | "language">) {
   const business = [
-    ctx.companyName && `Company: ${ctx.companyName}`,
-    ctx.website && `Website: ${ctx.website}`,
-    ctx.offering && `What we sell: ${ctx.offering}`,
+    businessLines({ name: ctx.companyName, website: ctx.website, industry: ctx.industry, offering: ctx.offering, ideal_customer: ctx.idealCustomer, target_markets: ctx.targetMarkets }),
     `Default country: ${ctx.defaultCountry}`,
   ].filter(Boolean).join("\n");
   const parts: InputPart[] = attachments.map((a): InputPart =>

@@ -50,10 +50,10 @@ create table support_widgets (
 );
 create trigger support_widgets_touch before update on support_widgets for each row execute function bos_touch_updated_at();
 
-alter table conversations
-  add constraint conversations_widget_fk foreign key (widget_id) references support_widgets(id) on delete set null;
-alter table conversations add column if not exists ai_agent_id uuid references ai_agents(id) on delete set null;
-alter table conversations add column if not exists ai_turns int not null default 0;
+alter table bos_conversations
+  add constraint bos_conversations_widget_fk foreign key (widget_id) references support_widgets(id) on delete set null;
+alter table bos_conversations add column if not exists ai_agent_id uuid references ai_agents(id) on delete set null;
+alter table bos_conversations add column if not exists ai_turns int not null default 0;
 
 -- A browser visitor: only a hash of the random token given to the browser is stored.
 create table widget_sessions (
@@ -61,7 +61,7 @@ create table widget_sessions (
   widget_id uuid not null references support_widgets(id) on delete cascade,
   token_hash text not null unique,
   customer_id uuid references support_customers(id) on delete set null,
-  conversation_id uuid references conversations(id) on delete set null,
+  conversation_id uuid references bos_conversations(id) on delete set null,
   origin text,
   page_url text,
   user_agent text,

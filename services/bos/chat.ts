@@ -248,7 +248,7 @@ export async function deleteMessage(bos: BosUser, messageId: string) {
 
 export async function markRead(bos: BosUser, channelId: string) {
   await db().from("channel_members").update({ last_read_at: nowIso() }).eq("channel_id", channelId).eq("user_id", bos.userId);
-  await db().from("notifications").update({ read_at: nowIso() }).eq("user_id", bos.userId).eq("entity_type", "channel").eq("entity_id", channelId).is("read_at", null);
+  await db().from("bos_notifications").update({ read_at: nowIso() }).eq("user_id", bos.userId).eq("entity_type", "channel").eq("entity_id", channelId).is("read_at", null);
 }
 
 export async function searchMessages(bos: BosUser, q: string) {

@@ -59,8 +59,8 @@ alter table leads add column branch_id uuid references branches(id) on delete se
 alter table clients add column branch_id uuid references branches(id) on delete set null;
 alter table deals add column branch_id uuid references branches(id) on delete set null;
 alter table projects add column branch_id uuid references branches(id) on delete set null;
-alter table invoices add column branch_id uuid references branches(id) on delete set null;
-alter table payments add column branch_id uuid references branches(id) on delete set null;
+alter table bos_invoices add column branch_id uuid references branches(id) on delete set null;
+alter table bos_payments add column branch_id uuid references branches(id) on delete set null;
 alter table expenses add column branch_id uuid references branches(id) on delete set null;
 alter table tickets add column branch_id uuid references branches(id) on delete set null;
 alter table devices add column branch_id uuid references branches(id) on delete set null;
@@ -71,7 +71,7 @@ alter table holidays add column branch_id uuid references branches(id) on delete
 do $$
 declare t text;
 begin
-  foreach t in array array['employees','leads','clients','deals','projects','invoices','payments','expenses','tickets','devices','career_jobs']
+  foreach t in array array['employees','leads','clients','deals','projects','bos_invoices','bos_payments','expenses','tickets','devices','career_jobs']
   loop
     execute format('update %I set branch_id = bos_head_office() where branch_id is null', t);
     execute format('create index %I on %I (branch_id)', t || '_branch_idx', t);
@@ -104,9 +104,9 @@ begin
       v := coalesce((select branch_id from clients where id = new.client_id), (select branch_id from leads where id = new.lead_id), case when new.assigned_to is not null then bos_user_branch(new.assigned_to) end);
     when 'projects' then
       v := coalesce((select branch_id from deals where id = new.deal_id), (select branch_id from clients where id = new.client_id));
-    when 'invoices' then
+    when 'bos_invoices' then
       v := coalesce((select branch_id from projects where id = new.project_id), (select branch_id from deals where id = new.deal_id), (select branch_id from clients where id = new.client_id));
-    when 'payments' then
+    when 'bos_payments' then
       v := coalesce((select branch_id from projects where id = new.project_id), (select branch_id from deals where id = new.deal_id), (select branch_id from clients where id = new.client_id));
     when 'expenses' then
       v := coalesce((select branch_id from projects where id = new.project_id), case when new.employee_user_id is not null then bos_user_branch(new.employee_user_id) end, case when new.created_by is not null then bos_user_branch(new.created_by) end);
@@ -127,7 +127,7 @@ $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['employees','leads','clients','deals','projects','invoices','payments','expenses','tickets','devices','career_jobs']
+  foreach t in array array['employees','leads','clients','deals','projects','bos_invoices','bos_payments','expenses','tickets','devices','career_jobs']
   loop
     execute format('create trigger %I before insert on %I for each row execute function bos_infer_branch()', t || '_infer_branch', t);
   end loop;

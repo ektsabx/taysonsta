@@ -8,7 +8,7 @@ import { NotFoundError, ValidationError } from "@/lib/bos/errors";
 import { getSetting } from "@/lib/bos/settings";
 import { requestApproval } from "@/services/bos/approvals";
 
-export type Invoice = Tables<"invoices">;
+export type Invoice = Tables<"bos_invoices">;
 
 function invoiceLinks(i: Pick<Invoice, "client_id" | "deal_id">) {
   return [
@@ -60,7 +60,7 @@ async function replaceItems(invoiceId: string, items: InvoiceItemInput[]) {
 export async function createInvoice(bos: BosUser, input: InvoiceInput) {
   await assertInvoiceLinks(input);
   const { data, error } = await db()
-    .from("invoices")
+    .from("bos_invoices")
     .insert({
       client_id: input.client_id,
       deal_id: input.deal_id,
@@ -79,10 +79,10 @@ export async function createInvoice(bos: BosUser, input: InvoiceInput) {
   await replaceItems(data.id, input.items);
   // Discount is validated against the recalculated subtotal (DB check).
   if (input.discount_amount && Number(input.discount_amount) > 0) {
-    const { error: discountError } = await db().from("invoices").update({ discount_amount: dec(input.discount_amount) }).eq("id", data.id);
+    const { error: discountError } = await db().from("bos_invoices").update({ discount_amount: dec(input.discount_amount) }).eq("id", data.id);
     if (discountError) throw new ValidationError("الخصم لا يمكن أن يتجاوز إجمالي البنود.", { discount_amount: "أكبر من الإجمالي" });
   }
-  const { data: fresh } = await db().from("invoices").select("*").eq("id", data.id).single();
+  const { data: fresh } = await db().from("bos_invoices").select("*").eq("id", data.id).single();
   await recordStatus("invoice", data.id, null, "draft", bos.userId);
   await audit({ actorId: bos.userId, action: "invoice.created", entityType: "invoice", entityId: data.id, newValue: { number: fresh!.invoice_number, total: fresh!.total, currency: fresh!.currency } });
   await emitEvent({
@@ -98,29 +98,29 @@ export async function createInvoice(bos: BosUser, input: InvoiceInput) {
 }
 
 export async function updateInvoice(bos: BosUser, id: string, input: InvoiceInput) {
-  const { data: before } = await db().from("invoices").select("*").eq("id", id).maybeSingle();
+  const { data: before } = await db().from("bos_invoices").select("*").eq("id", id).maybeSingle();
   if (!before) throw new NotFoundError();
   if (!["draft", "sent", "overdue"].includes(before.status) || Number(before.amount_paid) > 0) {
     throw new ValidationError("لا يمكن تعديل فاتورة عليها مدفوعات أو ملغاة/مدفوعة. أنشئ فاتورة تصحيح.");
   }
   await assertInvoiceLinks(input);
-  await db().from("invoices").update({ discount_amount: 0 }).eq("id", id);
+  await db().from("bos_invoices").update({ discount_amount: 0 }).eq("id", id);
   await db()
-    .from("invoices")
+    .from("bos_invoices")
     .update({ deal_id: input.deal_id, currency: input.currency, issue_date: input.issue_date, due_date: input.due_date, tax_rate: dec(input.tax_rate || "0"), payment_terms: input.payment_terms, notes: input.notes })
     .eq("id", id);
   await replaceItems(id, input.items);
   if (input.discount_amount && Number(input.discount_amount) > 0) {
-    const { error } = await db().from("invoices").update({ discount_amount: dec(input.discount_amount) }).eq("id", id);
+    const { error } = await db().from("bos_invoices").update({ discount_amount: dec(input.discount_amount) }).eq("id", id);
     if (error) throw new ValidationError("الخصم لا يمكن أن يتجاوز إجمالي البنود.", { discount_amount: "أكبر من الإجمالي" });
   }
-  const { data: after } = await db().from("invoices").select("*").eq("id", id).single();
+  const { data: after } = await db().from("bos_invoices").select("*").eq("id", id).single();
   await audit({ actorId: bos.userId, action: "invoice.updated", entityType: "invoice", entityId: id, oldValue: { total: before.total, due_date: before.due_date, tax_rate: before.tax_rate, discount: before.discount_amount }, newValue: { total: after!.total, due_date: after!.due_date, tax_rate: after!.tax_rate, discount: after!.discount_amount } });
   return after!;
 }
 
 export async function sendInvoice(bos: BosUser, id: string) {
-  const { data: inv } = await db().from("invoices").select("*").eq("id", id).maybeSingle();
+  const { data: inv } = await db().from("bos_invoices").select("*").eq("id", id).maybeSingle();
   if (!inv) throw new NotFoundError();
   if (inv.status !== "draft") throw new ValidationError("الفاتورة مُرسلة بالفعل.");
   if (Number(inv.total) <= 0) throw new ValidationError("لا يمكن إرسال فاتورة بإجمالي صفر.");
@@ -135,7 +135,7 @@ export async function sendInvoice(bos: BosUser, id: string) {
       throw new ValidationError("إرسال الفواتير يتطلب موافقة — تم إرسال طلب الموافقة.");
     }
   }
-  await db().from("invoices").update({ status: "sent", sent_at: nowIso() }).eq("id", id);
+  await db().from("bos_invoices").update({ status: "sent", sent_at: nowIso() }).eq("id", id);
   await recordStatus("invoice", id, "draft", "sent", bos.userId);
   await audit({ actorId: bos.userId, action: "invoice.sent", entityType: "invoice", entityId: id });
   await emitEvent({
@@ -152,11 +152,11 @@ export async function sendInvoice(bos: BosUser, id: string) {
 
 export async function cancelInvoice(bos: BosUser, id: string, reason: string) {
   if (!reason.trim()) throw new ValidationError("سبب الإلغاء مطلوب.");
-  const { data: inv } = await db().from("invoices").select("*").eq("id", id).maybeSingle();
+  const { data: inv } = await db().from("bos_invoices").select("*").eq("id", id).maybeSingle();
   if (!inv) throw new NotFoundError();
-  const { count } = await db().from("payments").select("id", { count: "exact", head: true }).eq("invoice_id", id).in("status", ["completed", "processing", "pending"]);
+  const { count } = await db().from("bos_payments").select("id", { count: "exact", head: true }).eq("invoice_id", id).in("status", ["completed", "processing", "pending"]);
   if ((count ?? 0) > 0) throw new ValidationError("لا يمكن إلغاء فاتورة عليها مدفوعات. سجّل استرداداً أولاً.");
-  await db().from("invoices").update({ status: "cancelled", cancelled_at: nowIso() }).eq("id", id);
+  await db().from("bos_invoices").update({ status: "cancelled", cancelled_at: nowIso() }).eq("id", id);
   if (inv.schedule_id) await db().from("payment_schedules").update({ status: "scheduled", invoice_id: null }).eq("id", inv.schedule_id);
   await recordStatus("invoice", id, inv.status, "cancelled", bos.userId, reason);
   await audit({ actorId: bos.userId, action: "invoice.cancelled", entityType: "invoice", entityId: id, reason });

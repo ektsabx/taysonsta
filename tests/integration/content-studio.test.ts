@@ -58,7 +58,7 @@ test("approval gate, review notification, reset on edit, tasks, access", async (
   await assert.rejects(moveStage(designer, it.id, "approved"), ValidationError, "approval only via review");
   await moveStage(designer, it.id, "script");
   await moveStage(designer, it.id, "review");
-  const { count: notes } = await db().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", manager.userId).eq("entity_id", it.id);
+  const { count: notes } = await db().from("bos_notifications").select("id", { count: "exact", head: true }).eq("user_id", manager.userId).eq("entity_id", it.id);
   assert.ok((notes ?? 0) >= 1, "approvers notified");
   await assert.rejects(reviewItem(designer, it.id, "approve", null), ForbiddenError);
   await assert.rejects(reviewItem(manager, it.id, "changes", ""), ValidationError);

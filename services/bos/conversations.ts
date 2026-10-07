@@ -13,7 +13,7 @@ import type { Scope } from "@/lib/bos/permissions";
 // (outbound via the hub, inbound via signed webhook), WhatsApp/SMS
 // (Phase 9), client portal, phone/manual logs.
 
-export type Conversation = Tables<"conversations">;
+export type Conversation = Tables<"bos_conversations">;
 export type ConversationMessage = Tables<"conversation_messages">;
 export type SupportCustomer = Tables<"support_customers">;
 export type Channel = Conversation["channel"];
@@ -113,7 +113,7 @@ export async function linkCustomer(bos: BosUser, id: string, contactId: string |
     client = ct.client_id;
   }
   await db().from("support_customers").update({ contact_id: contactId, client_id: client }).eq("id", id);
-  await db().from("conversations").update({ client_id: client }).eq("customer_id", id);
+  await db().from("bos_conversations").update({ client_id: client }).eq("customer_id", id);
   await audit({ actorId: bos.userId, action: "support_customer.linked", entityType: "support_customer", entityId: id, newValue: { contact_id: contactId, client_id: client } });
 }
 
@@ -126,8 +126,8 @@ export async function mergeCustomers(bos: BosUser, sourceId: string, targetId: s
   const [{ data: s }, { data: t }] = await Promise.all([c.from("support_customers").select("*").eq("id", sourceId).maybeSingle(), c.from("support_customers").select("*").eq("id", targetId).maybeSingle()]);
   if (!s || !t) throw new NotFoundError();
   if (s.merged_into || t.merged_into) throw new ValidationError("أحد العميلين مدموج بالفعل.");
-  const { count: convs } = await c.from("conversations").select("id", { count: "exact", head: true }).eq("customer_id", sourceId);
-  await c.from("conversations").update({ customer_id: targetId }).eq("customer_id", sourceId);
+  const { count: convs } = await c.from("bos_conversations").select("id", { count: "exact", head: true }).eq("customer_id", sourceId);
+  await c.from("bos_conversations").update({ customer_id: targetId }).eq("customer_id", sourceId);
   await c.from("tickets").update({ support_customer_id: targetId }).eq("support_customer_id", sourceId);
   await c.from("support_customers").update({
     tags: [...new Set([...t.tags, ...s.tags])],
@@ -178,7 +178,7 @@ export async function pickAgent(teamId: string): Promise<string | null> {
   const active = new Set((staff ?? []).map((s) => s.user_id));
   const pool = members.filter((m) => active.has(m.user_id));
   if (!pool.length) return null;
-  const { data: open } = await c.from("conversations").select("assignee_id").in("assignee_id", pool.map((m) => m.user_id)).not("status", "in", "(resolved,closed)");
+  const { data: open } = await c.from("bos_conversations").select("assignee_id").in("assignee_id", pool.map((m) => m.user_id)).not("status", "in", "(resolved,closed)");
   const load = new Map(pool.map((m) => [m.user_id, 0]));
   for (const o of open ?? []) if (o.assignee_id) load.set(o.assignee_id, (load.get(o.assignee_id) ?? 0) + 1);
   const eligible = pool.filter((m) => (load.get(m.user_id) ?? 0) < m.max_open);
@@ -224,7 +224,7 @@ export interface InboxFilters {
 }
 
 export async function listConversations(bos: BosUser, scope: Scope, f: InboxFilters, limit = 100) {
-  let q = db().from("conversations").select("*, support_customers(id, name, email, phone, company, country)").order("last_message_at", { ascending: false }).limit(limit);
+  let q = db().from("bos_conversations").select("*, support_customers(id, name, email, phone, company, country)").order("last_message_at", { ascending: false }).limit(limit);
   q = f.spam ? q.not("spam_at", "is", null) : q.is("spam_at", null);
   if (f.spam) {
     if (f.status && f.status !== "all" && f.status !== "active") q = q.eq("status", f.status as ConvStatus);
@@ -252,7 +252,7 @@ export async function listConversations(bos: BosUser, scope: Scope, f: InboxFilt
 }
 
 export async function getConversation(bos: BosUser, id: string) {
-  const { data: conv } = await db().from("conversations").select("*").eq("id", id).maybeSingle();
+  const { data: conv } = await db().from("bos_conversations").select("*").eq("id", id).maybeSingle();
   if (!conv) throw new NotFoundError();
   await assertAccess(bos, conv);
   const c = db();
@@ -261,7 +261,7 @@ export async function getConversation(bos: BosUser, id: string) {
     c.from("support_customers").select("*").eq("id", conv.customer_id).single(),
     conv.ticket_id ? c.from("tickets").select("id, ticket_number, status, subject").eq("id", conv.ticket_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
-  if (conv.unread_for_agent && conv.assignee_id === bos.userId) await c.from("conversations").update({ unread_for_agent: 0 }).eq("id", id);
+  if (conv.unread_for_agent && conv.assignee_id === bos.userId) await c.from("bos_conversations").update({ unread_for_agent: 0 }).eq("id", id);
   return { conversation: conv, messages: messages ?? [], customer: customer!, ticket };
 }
 
@@ -297,7 +297,7 @@ export async function createConversation(bos: BosUser, input: NewConversationInp
   const customer = await findOrCreateCustomer({ ...input.customer, channel: input.channel, source: input.customer.source ?? "manual" }, bos.userId);
   const conv = await openConversation({ customer, channel: input.channel, subject: input.subject, priority: input.priority ?? customer.priority as Conversation["priority"], team_id: input.team_id ?? null, assignee_id: input.assignee_id ?? null, actorId: bos.userId });
   await addMessage(conv, { direction: "inbound", author_kind: "customer", body: input.body.trim() });
-  await db().from("conversations").update({ last_customer_message_at: nowIso(), last_message_at: nowIso() }).eq("id", conv.id);
+  await db().from("bos_conversations").update({ last_customer_message_at: nowIso(), last_message_at: nowIso() }).eq("id", conv.id);
   return conv;
 }
 
@@ -310,7 +310,7 @@ async function openConversation(o: { customer: SupportCustomer; channel: Channel
   const teamId = o.team_id ?? o.extra?.team_id ?? (await defaultTeamId());
   const assignee = o.assignee_id ?? (teamId && !o.extra?.ai_active ? await pickAgent(teamId) : null);
   const { data: conv, error } = await db()
-    .from("conversations")
+    .from("bos_conversations")
     .insert({ customer_id: o.customer.id, channel: o.channel, subject: o.subject?.trim().slice(0, 300) || null, priority: o.priority, team_id: teamId, assignee_id: assignee, client_id: o.customer.client_id, external_thread_id: o.external_thread_id ?? null, created_by: o.actorId, unread_for_agent: 1, widget_id: o.extra?.widget_id ?? null, ai_agent_id: o.extra?.ai_active ? o.extra.ai_agent_id ?? null : null, ai_active: !!o.extra?.ai_active })
     .select("*")
     .single();
@@ -334,15 +334,15 @@ export async function receiveInbound(input: { channel: Channel; customer: Custom
   // threadOnly (web widget): a visitor only ever continues its own session's
   // thread — typing someone else's email must not reveal their conversations.
   const token = input.threadOnly ? undefined : /\[(CV-\d{6,})\]/.exec(input.subject ?? "")?.[1];
-  if (token) conv = (await c.from("conversations").select("*").eq("number", token).maybeSingle()).data;
+  if (token) conv = (await c.from("bos_conversations").select("*").eq("number", token).maybeSingle()).data;
   if (conv && conv.customer_id !== customer.id) {
     // A reply from another address to a known thread: accept only if it links to the same CRM contact/client.
     const { data: owner } = await c.from("support_customers").select("client_id").eq("id", conv.customer_id).maybeSingle();
     if (!owner?.client_id || owner.client_id !== customer.client_id) conv = null;
   }
-  if (!conv && input.external_thread_id) conv = (await c.from("conversations").select("*").eq("channel", input.channel).eq("external_thread_id", input.external_thread_id).not("status", "in", "(resolved,closed)").maybeSingle()).data;
+  if (!conv && input.external_thread_id) conv = (await c.from("bos_conversations").select("*").eq("channel", input.channel).eq("external_thread_id", input.external_thread_id).not("status", "in", "(resolved,closed)").maybeSingle()).data;
   if (!conv && !input.threadOnly) {
-    const { data: recent } = await c.from("conversations").select("*").eq("customer_id", customer.id).eq("channel", input.channel).not("status", "in", "(resolved,closed)").order("last_message_at", { ascending: false }).limit(1).maybeSingle();
+    const { data: recent } = await c.from("bos_conversations").select("*").eq("customer_id", customer.id).eq("channel", input.channel).not("status", "in", "(resolved,closed)").order("last_message_at", { ascending: false }).limit(1).maybeSingle();
     conv = recent;
   }
   const isNew = !conv;
@@ -350,14 +350,14 @@ export async function receiveInbound(input: { channel: Channel; customer: Custom
   const msg = await addMessage(conv, { direction: "inbound", author_kind: "customer", body, external_id: input.external_message_id ?? null, attachments: input.attachments });
   if (!msg) return { conversation: conv, duplicate: true, isNew: false };
   const reopen = ["resolved", "closed"].includes(conv.status);
-  await c.from("conversations").update({ last_customer_message_at: nowIso(), last_message_at: nowIso(), unread_for_agent: (conv.unread_for_agent ?? 0) + (isNew ? 0 : 1), ...(reopen ? { status: "open" as const, reopened_count: conv.reopened_count + 1, resolved_at: null, closed_at: null } : conv.status === "pending_customer" || conv.status === "snoozed" ? { status: "open" as const, snoozed_until: null } : {}) }).eq("id", conv.id);
+  await c.from("bos_conversations").update({ last_customer_message_at: nowIso(), last_message_at: nowIso(), unread_for_agent: (conv.unread_for_agent ?? 0) + (isNew ? 0 : 1), ...(reopen ? { status: "open" as const, reopened_count: conv.reopened_count + 1, resolved_at: null, closed_at: null } : conv.status === "pending_customer" || conv.status === "snoozed" ? { status: "open" as const, snoozed_until: null } : {}) }).eq("id", conv.id);
   if (reopen) await recordStatus("conversation", conv.id, conv.status, "open", null, "Customer replied");
   // A customer already marked as spam keeps landing in the spam folder, silently.
   let spam = !!conv.spam_at;
   if (isNew && !spam) {
-    const { count } = await c.from("conversations").select("id", { count: "exact", head: true }).eq("customer_id", customer.id).not("spam_at", "is", null);
+    const { count } = await c.from("bos_conversations").select("id", { count: "exact", head: true }).eq("customer_id", customer.id).not("spam_at", "is", null);
     if (count) {
-      await c.from("conversations").update({ spam_at: nowIso(), spam_reason: "auto: customer previously marked as spam" }).eq("id", conv.id);
+      await c.from("bos_conversations").update({ spam_at: nowIso(), spam_reason: "auto: customer previously marked as spam" }).eq("id", conv.id);
       spam = true;
     }
   }
@@ -404,7 +404,7 @@ export async function replyToConversation(bos: BosUser, id: string, body: string
   // A staff reply ends AI handling so the two never answer over each other.
   if (conv.ai_active) await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "handoff:human" });
   const first = !conv.first_response_at;
-  await db().from("conversations").update({ last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(first ? { first_response_at: nowIso() } : {}), ...(conv.status === "open" || conv.status === "pending_internal" ? { status: "pending_customer" as const } : {}), ...(conv.assignee_id ? {} : { assignee_id: bos.userId }), unread_for_agent: 0, ...(conv.ai_active ? { ai_active: false, handed_off_at: nowIso(), handoff_reason: "human_reply" } : {}) }).eq("id", id);
+  await db().from("bos_conversations").update({ last_agent_message_at: nowIso(), last_message_at: nowIso(), ...(first ? { first_response_at: nowIso() } : {}), ...(conv.status === "open" || conv.status === "pending_internal" ? { status: "pending_customer" as const } : {}), ...(conv.assignee_id ? {} : { assignee_id: bos.userId }), unread_for_agent: 0, ...(conv.ai_active ? { ai_active: false, handed_off_at: nowIso(), handoff_reason: "human_reply" } : {}) }).eq("id", id);
   await audit({ actorId: bos.userId, action: "conversation.replied", entityType: "conversation", entityId: id, newValue: { message_id: msg?.id, channel: conv.channel, delivery: status } });
   return { delivery: status, error };
 }
@@ -423,7 +423,7 @@ export async function setConversationStatus(bos: BosUser, id: string, to: ConvSt
     patch.resolved_at = null;
     patch.closed_at = null;
   }
-  await db().from("conversations").update(patch).eq("id", id);
+  await db().from("bos_conversations").update(patch).eq("id", id);
   await recordStatus("conversation", id, conv.status, to, bos.userId, opts.reason ?? null);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: `status:${conv.status}→${to}` });
   if (to === "resolved") await emitEvent({ type: "conversation.resolved", entityType: "conversation", entityId: id, summary: `Resolved: ${conv.number}`, actorId: bos.userId, payload: { title: conv.subject ?? conv.number } });
@@ -445,7 +445,7 @@ export async function assignConversation(bos: BosUser, id: string, patch: { assi
     }
     next.assignee_id = patch.assignee_id;
   }
-  await db().from("conversations").update({ ...next, unread_for_agent: conv.unread_for_agent }).eq("id", id);
+  await db().from("bos_conversations").update({ ...next, unread_for_agent: conv.unread_for_agent }).eq("id", id);
   await audit({ actorId: bos.userId, action: "conversation.assigned", entityType: "conversation", entityId: id, oldValue: { assignee_id: conv.assignee_id, team_id: conv.team_id }, newValue: next });
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: `assigned:${next.assignee_id ?? conv.assignee_id ?? "-"}|team:${next.team_id ?? conv.team_id ?? "-"}` });
   if (next.assignee_id && next.assignee_id !== conv.assignee_id) await emitEvent({ type: "conversation.assigned", entityType: "conversation", entityId: id, summary: `Conversation assigned: ${conv.number}`, actorId: bos.userId, payload: { title: conv.subject ?? conv.number, assignee_user_id: next.assignee_id, previous_assignee_user_id: conv.assignee_id } });
@@ -458,7 +458,7 @@ export async function markConversationSpam(bos: BosUser, id: string, reason: str
   if (!can(bos, "conversations.update")) throw new ForbiddenError();
   if (conv.spam_at) return;
   const clean = reason?.trim().slice(0, 500) || null;
-  await db().from("conversations").update({ spam_at: nowIso(), spam_by: bos.userId, spam_reason: clean, unread_for_agent: 0 }).eq("id", id);
+  await db().from("bos_conversations").update({ spam_at: nowIso(), spam_by: bos.userId, spam_reason: clean, unread_for_agent: 0 }).eq("id", id);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "spam:marked" });
   await audit({ actorId: bos.userId, action: "conversation.marked_spam", entityType: "conversation", entityId: id, reason: clean ?? undefined });
 }
@@ -467,7 +467,7 @@ export async function restoreConversationFromSpam(bos: BosUser, id: string) {
   const { conversation: conv } = await getConversation(bos, id);
   if (!can(bos, "conversations.update")) throw new ForbiddenError();
   if (!conv.spam_at) return;
-  await db().from("conversations").update({ spam_at: null, spam_by: null, spam_reason: null }).eq("id", id);
+  await db().from("bos_conversations").update({ spam_at: null, spam_by: null, spam_reason: null }).eq("id", id);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "spam:restored" });
   await audit({ actorId: bos.userId, action: "conversation.restored_from_spam", entityType: "conversation", entityId: id, oldValue: { spam_at: conv.spam_at, spam_reason: conv.spam_reason } });
 }
@@ -478,7 +478,7 @@ export async function takeOverConversation(bos: BosUser, id: string) {
   const { conversation: conv } = await getConversation(bos, id);
   if (!can(bos, "conversations.update")) throw new ForbiddenError();
   if (!conv.ai_active && conv.assignee_id === bos.userId) return;
-  await db().from("conversations").update({ ai_active: false, handed_off_at: conv.ai_active ? nowIso() : conv.handed_off_at, handoff_reason: conv.ai_active ? "human_takeover" : conv.handoff_reason, assignee_id: bos.userId, status: conv.status === "pending_customer" ? conv.status : "open" }).eq("id", id);
+  await db().from("bos_conversations").update({ ai_active: false, handed_off_at: conv.ai_active ? nowIso() : conv.handed_off_at, handoff_reason: conv.ai_active ? "human_takeover" : conv.handoff_reason, assignee_id: bos.userId, status: conv.status === "pending_customer" ? conv.status : "open" }).eq("id", id);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: "handoff:human" });
   await audit({ actorId: bos.userId, action: "conversation.taken_over", entityType: "conversation", entityId: id, oldValue: { ai_active: conv.ai_active, assignee_id: conv.assignee_id } });
 }
@@ -489,7 +489,7 @@ export async function escalateConversation(bos: BosUser, id: string, reason: str
   if (!can(bos, "conversations.update")) throw new ForbiddenError();
   if (!reason.trim()) throw new ValidationError("سبب التصعيد مطلوب.", { reason: "مطلوب" });
   const priority: Conversation["priority"] = conv.priority === "urgent" || conv.priority === "high" ? "urgent" : "high";
-  await db().from("conversations").update({ priority, status: conv.status === "pending_customer" ? "open" : conv.status }).eq("id", id);
+  await db().from("bos_conversations").update({ priority, status: conv.status === "pending_customer" ? "open" : conv.status }).eq("id", id);
   const { data: leads } = conv.team_id ? await db().from("support_team_members").select("user_id").eq("team_id", conv.team_id).eq("role", "lead") : { data: [] as { user_id: string }[] };
   await addMessage(conv, { direction: "internal", author_kind: "agent", author_user_id: bos.userId, body: `⚠ ${reason.trim()}` });
   await audit({ actorId: bos.userId, action: "conversation.escalated", entityType: "conversation", entityId: id, newValue: { priority }, reason });
@@ -500,7 +500,7 @@ export async function updateConversationMeta(bos: BosUser, id: string, patch: { 
   const { conversation: conv } = await getConversation(bos, id);
   if (!can(bos, "conversations.update")) throw new ForbiddenError();
   const clean = { ...patch, ...(patch.tags ? { tags: [...new Set(patch.tags.map((t) => t.trim()).filter(Boolean))].slice(0, 20) } : {}) };
-  await db().from("conversations").update(clean).eq("id", id);
+  await db().from("bos_conversations").update(clean).eq("id", id);
   await audit({ actorId: bos.userId, action: "conversation.updated", entityType: "conversation", entityId: id, oldValue: { priority: conv.priority, tags: conv.tags, subject: conv.subject }, newValue: clean });
 }
 
@@ -528,7 +528,7 @@ export async function createTicketFromConversation(bos: BosUser, id: string, inp
     support_customer_id: customer.id,
     team_id: conv.team_id,
   } as never, conv.channel === "email" ? "email" : "internal");
-  await db().from("conversations").update({ ticket_id: ticket.id }).eq("id", id);
+  await db().from("bos_conversations").update({ ticket_id: ticket.id }).eq("id", id);
   await addMessage(conv, { direction: "system", author_kind: "system", author_user_id: bos.userId, body: `ticket:${ticket.ticket_number}` });
   return ticket;
 }
@@ -545,11 +545,11 @@ export async function supportAnalytics(period: number | { from: string; to: stri
     : { since: `${period.from}T00:00:00Z`, until: `${period.to}T23:59:59Z` };
   const c = db();
   const [{ data: convs }, { data: open }, { data: tickets }, { data: openTickets }, { count: spam }] = await Promise.all([
-    c.from("conversations").select("channel, status, assignee_id, team_id, created_at, first_response_at, resolved_at, reopened_count, ai_agent_id, handed_off_at").is("spam_at", null).gte("created_at", range.since).lte("created_at", range.until).limit(20000),
-    c.from("conversations").select("status, team_id, assignee_id, priority, last_customer_message_at, last_agent_message_at").is("spam_at", null).not("status", "in", "(resolved,closed)").limit(20000),
+    c.from("bos_conversations").select("channel, status, assignee_id, team_id, created_at, first_response_at, resolved_at, reopened_count, ai_agent_id, handed_off_at").is("spam_at", null).gte("created_at", range.since).lte("created_at", range.until).limit(20000),
+    c.from("bos_conversations").select("status, team_id, assignee_id, priority, last_customer_message_at, last_agent_message_at").is("spam_at", null).not("status", "in", "(resolved,closed)").limit(20000),
     c.from("tickets").select("status, created_at, first_responded_at, resolved_at, sla_breached_at, conversation_id").gte("created_at", range.since).lte("created_at", range.until).limit(20000),
     c.from("tickets").select("status, sla_breached_at").not("status", "in", "(resolved,closed)").limit(20000),
-    c.from("conversations").select("id", { count: "exact", head: true }).not("spam_at", "is", null).gte("created_at", range.since).lte("created_at", range.until),
+    c.from("bos_conversations").select("id", { count: "exact", head: true }).not("spam_at", "is", null).gte("created_at", range.since).lte("created_at", range.until),
   ]);
   const rows = convs ?? [];
   const mins = (a: string, b: string) => (new Date(b).getTime() - new Date(a).getTime()) / 60000;

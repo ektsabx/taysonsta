@@ -12,12 +12,12 @@ declare
   r jsonb;
 begin
   with inv as (
-    select i.* from invoices i
+    select i.* from bos_invoices i
     where i.status <> 'cancelled'
       and (v_client is null or i.client_id = v_client)
       and (v_project is null or i.project_id = v_project)
   ), pay as (
-    select p.* from payments p
+    select p.* from bos_payments p
     where p.status in ('completed','refunded')
       and (v_client is null or p.client_id = v_client)
       and (v_project is null or p.project_id = v_project)

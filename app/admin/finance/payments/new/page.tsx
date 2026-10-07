@@ -11,7 +11,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: S
   const sp = await readParams(searchParams);
   const [currencies, { data: open }] = await Promise.all([
     listCurrencies(),
-    db().from("invoices").select("id, invoice_number, currency, balance, client_id, deal_id").in("status", ["draft", "sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(500),
+    db().from("bos_invoices").select("id, invoice_number, currency, balance, client_id, deal_id").in("status", ["draft", "sent", "partially_paid", "overdue"]).gt("balance", 0).order("due_date").limit(500),
   ]);
   let initialClient = null;
   if (sp.clientId) {

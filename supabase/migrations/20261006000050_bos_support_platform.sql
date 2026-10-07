@@ -59,7 +59,7 @@ create table support_team_members (
 );
 
 -- ------------------------------------------------------------ conversations
-create table conversations (
+create table bos_conversations (
   id uuid primary key default gen_random_uuid(),
   number text not null unique default bos_next_number('conversation'),
   customer_id uuid not null references support_customers(id) on delete restrict,
@@ -90,16 +90,16 @@ create table conversations (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index conversations_inbox_idx on conversations (status, last_message_at desc);
-create index conversations_assignee_idx on conversations (assignee_id, status);
-create index conversations_team_idx on conversations (team_id, status);
-create index conversations_customer_idx on conversations (customer_id, created_at desc);
-create unique index conversations_thread_idx on conversations (channel, external_thread_id) where external_thread_id is not null and status not in ('resolved','closed');
-create trigger conversations_touch before update on conversations for each row execute function bos_touch_updated_at();
+create index bos_conversations_inbox_idx on bos_conversations (status, last_message_at desc);
+create index bos_conversations_assignee_idx on bos_conversations (assignee_id, status);
+create index bos_conversations_team_idx on bos_conversations (team_id, status);
+create index bos_conversations_customer_idx on bos_conversations (customer_id, created_at desc);
+create unique index bos_conversations_thread_idx on bos_conversations (channel, external_thread_id) where external_thread_id is not null and status not in ('resolved','closed');
+create trigger bos_conversations_touch before update on bos_conversations for each row execute function bos_touch_updated_at();
 
 create table conversation_messages (
   id uuid primary key default gen_random_uuid(),
-  conversation_id uuid not null references conversations(id) on delete cascade,
+  conversation_id uuid not null references bos_conversations(id) on delete cascade,
   direction text not null check (direction in ('inbound','outbound','internal','system')),
   author_kind text not null check (author_kind in ('customer','agent','ai','system')),
   author_user_id uuid references auth.users(id) on delete set null,
@@ -116,7 +116,7 @@ create index conversation_messages_conv_idx on conversation_messages (conversati
 create unique index conversation_messages_external_idx on conversation_messages (channel, external_id) where external_id is not null;
 
 -- Ticket ↔ conversation link (tickets keep all their existing behaviour).
-alter table tickets add column if not exists conversation_id uuid references conversations(id) on delete set null;
+alter table tickets add column if not exists conversation_id uuid references bos_conversations(id) on delete set null;
 alter table tickets add column if not exists support_customer_id uuid references support_customers(id) on delete set null;
 alter table tickets add column if not exists team_id uuid references support_teams(id) on delete set null;
 -- Tickets from the inbox may be for people who aren't account contacts yet.
@@ -130,9 +130,9 @@ alter table kb_articles add column if not exists ai_allowed boolean not null def
 alter table support_customers enable row level security;
 alter table support_teams enable row level security;
 alter table support_team_members enable row level security;
-alter table conversations enable row level security;
+alter table bos_conversations enable row level security;
 alter table conversation_messages enable row level security;
-grant all on support_customers, support_teams, support_team_members, conversations, conversation_messages to service_role;
+grant all on support_customers, support_teams, support_team_members, bos_conversations, conversation_messages to service_role;
 
 -- Default team from the existing support role (people keep their roles).
 insert into support_teams (name, description, is_default) values ('الدعم الفني', 'فريق الدعم الافتراضي', true) on conflict (name) do nothing;

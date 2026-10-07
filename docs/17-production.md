@@ -99,3 +99,43 @@ npx wrangler secret put WORKER_SECRET
 
 5) Supabase: Redirect URL `https://www.yolias.com/auth/confirm`، و Exposed schemas: `intel`، و SMTP خاص.
 
+
+## مشروع Supabase واحد ليولياس والأدمن (D-150) — جاهز، مستني موافقتك
+
+الأدمن بقى ينفع ينزل على نفس مشروع Taysonsta `iudasrzqjnsutvanjrvn` من غير مشروع تاني ومن غير Supabase Pro:
+- الأربع جداول اللي كانت بنفس الاسم بقت في الأدمن `bos_conversations` و `bos_invoices` و `bos_notifications` و `bos_payments`. جداول يولياس ما اتغيرتش.
+- أرقام migrations الأدمن اللي كانت زي أرقام يولياس اتزحزحت 50 ثانية (`…000050_…`)، فالاتنين يتسجلوا في نفس `schema_migrations` من غير تعارض.
+- الحسابات مشتركة (`auth.users`): أي حساب دوره `staff` (موظف أدمن) أو `proposal_client` (عميل عروض الموقع) ما بيتعملوش مساحة عمل في يولياس (`20261107000000_shared_auth_admin_users.sql`). عملاء يولياس ما يقدروش يدخلوا الأدمن، لأن الأدمن بيطلب `app_metadata.role = staff`.
+- اتجرّب: كل الـ 126 migration اتطبقت بنفس ترتيب الإنتاج (الموقع، ثم يولياس، ثم الأدمن) على داتابيز تجريبية من غير أي خطأ. واختبارات الأدمن 87/87 نجحت.
+
+خطوات النشر (لما توافق):
+1. Yolias: `20261107000000_shared_auth_admin_users.sql` و `20261107000100_company_profile.sql`.
+2. الأدمن: كل migrations من `20260916000000` لحد `20261107000050`، بالترتيب، واحدة واحدة، بـ `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f <file>`، وبعد كل واحدة تتسجل في `supabase_migrations.schema_migrations`.
+3. أول حساب أدمن: `admin@…` بدور `staff` (seed أو invite)، ومفاتيح مركز التكاملات تتدخل تاني في الأدمن المنشور.
+4. `npm run cf:deploy:admin` على `yol.yolias.com`، وتضيف `https://yol.yolias.com/admin/auth/callback` في Redirect URLs.
+5. `.env.local` في جذر المشروع يشاور على المشروع ده، فالأدمن المحلي والمنشور يبقوا نفس البيانات.
+
+## Sentry و PostHog و Meta Pixel (D-152)
+
+متغيرات البيئة. ولا واحد منهم في Git: المحلي في `Yolias/.env.local`، والإنتاج في `Yolias/.env.production.local` وقت البناء، والسيرفر في `wrangler secret`.
+
+| المتغير | فين | ملاحظة |
+|---|---|---|
+| `NEXT_PUBLIC_APP_ENV` | البناء | `production` أو `staging`. أي حاجة تانية تبقى `local`. |
+| `NEXT_PUBLIC_SENTRY_DSN` | البناء | الـ DSN بتاع مشروع Sentry. ولو مش موجود، Sentry مقفول. |
+| `SENTRY_AUTH_TOKEN` و `SENTRY_ORG` و `SENTRY_PROJECT` | البناء فقط | لرفع الـ source maps. بتتمسح من الملفات المنشورة بعد الرفع. |
+| `NEXT_PUBLIC_POSTHOG_KEY` و `NEXT_PUBLIC_POSTHOG_HOST` | البناء | `https://us.i.posthog.com` أو `https://eu.i.posthog.com`. |
+| `NEXT_PUBLIC_META_PIXEL_ID` | البناء | `1121444496996644`. |
+
+- الإصدار (release) هو رقم الـ commit تلقائيًا (`yolias@<sha>`)، والبيئة من `NEXT_PUBLIC_APP_ENV`.
+- البناء على Cloudflare: `open-next.config.ts` بيشغّل `scripts/cf-build.mjs`، اللي بيكمّل ملفات `@opentelemetry/api` للـ proxy. ده إصلاح لمشكلة معروفة في OpenNext مع Sentry.
+- حجم الـ Worker بعد Sentry: حوالي 6.7 MB مضغوط (الحد 10 MB).
+
+## إيميلات الدخول على Supabase (D-153)
+
+`npm run auth-emails:push` في `Yolias` بيرفع قوالب `supabase/templates` وعناوينها من `config.toml` على المشروع المنشور، ومعاهم SMTP بتاع Resend لو المفتاح موجود. محتاج `Yolias/.env.auth-emails.local` (مش في Git) وفيه:
+- `SUPABASE_ACCESS_TOKEN` (من supabase.com/dashboard/account/tokens)
+- `RESEND_API_KEY` (مفتاح دومين `yolias.com` فيه موثّق)
+- `RESEND_FROM="Yolias <no-reply@yolias.com>"`
+
+من غير `--apply` بيعرض بس اللي هيتغير.

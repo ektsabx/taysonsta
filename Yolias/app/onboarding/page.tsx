@@ -35,7 +35,10 @@ export default async function OnboardingPage() {
             full_name: profile.full_name ?? session.signupMeta.full_name ?? "",
             company_name: workspace.name ?? session.signupMeta.company ?? "",
             website: workspace.website ?? "",
+            industry: workspace.industry ?? "",
             offering: workspace.offering ?? "",
+            ideal_customer: workspace.ideal_customer ?? "",
+            target_markets: workspace.target_markets ?? "",
           }}
         />
       </main>

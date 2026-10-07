@@ -1,4 +1,5 @@
 import "server-only";
+import { capture } from "@/lib/analytics/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LlmNotConfiguredError, runStructured } from "@/lib/ai/llm";
@@ -50,14 +51,14 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
   if (!p.email || p.email_status === "invalid") return { ok: false, error: "no_email" };
   if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedin_url, personId: p.person_id })) return { ok: false, error: "suppressed" };
   const [{ data: ws }, { data: sender }] = await Promise.all([
-    db.from("workspaces").select("name, website, offering").eq("id", input.workspaceId).single(),
+    db.from("workspaces").select("name, website, industry, offering, target_markets").eq("id", input.workspaceId).single(),
     db.from("profiles").select("full_name").eq("id", input.userId).single(),
   ]);
   const company = p.company as unknown as Record<string, unknown> | null;
   const facts = {
     prospect: { name: p.full_name, title: p.title, city: p.city, country: p.country },
     company,
-    sender: { name: sender?.full_name, company: ws?.name, website: ws?.website, offering: ws?.offering },
+    sender: { name: sender?.full_name, company: ws?.name, website: ws?.website, industry: ws?.industry, products_and_services: ws?.offering, markets: ws?.target_markets },
     instruction: input.instruction,
   };
   const { $schema: _drop, ...schema } = z.toJSONSchema(DraftSchema) as Record<string, unknown>;
@@ -98,6 +99,7 @@ export async function sendOutreach(messageId: string): Promise<OutreachMessageRo
   if (!m) return null;
   const failWith = async (error: string) => {
     await db.from("outreach_messages").update({ status: "failed", error }).eq("id", m.id);
+    await capture(m.approved_by ?? m.created_by, "outreach_failed", { workspace_id: m.workspace_id, campaign_id: m.campaign_id, reason: error });
     return "failed" as const;
   };
 
@@ -133,6 +135,7 @@ export async function sendOutreach(messageId: string): Promise<OutreachMessageRo
     if (tokens.refreshToken && tokens.refreshToken !== refreshToken) await db.rpc("set_mailbox_token", { p_mailbox: box.id, p_token: tokens.refreshToken });
     const sent = await mailer.send(tokens.accessToken, { from: box.email, fromName: sender?.full_name ?? null, to, subject: m.subject, body: m.body });
     await db.from("outreach_messages").update({ status: "sent", sent_at: new Date().toISOString(), provider_message_id: sent.providerId, to_email: to }).eq("id", m.id);
+    await capture(m.approved_by ?? m.created_by, "outreach_sent", { workspace_id: m.workspace_id, campaign_id: m.campaign_id, provider: box.provider, language: m.language });
     return "sent";
   } catch (e) {
     // The send didn't happen: give the day's slot back.

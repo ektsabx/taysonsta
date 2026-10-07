@@ -9,6 +9,7 @@ import type { BillingPeriod, Currency, PaidPlan, PaymentRow, WorkspaceRow } from
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
+import { capture } from "@/lib/analytics/server";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
 
 // Provider-agnostic billing (final spec phase 3). Flow:
@@ -138,6 +139,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     const body = (await res.json().catch(() => null)) as { client_secret?: string; intention_order_id?: number; id?: string } | null;
     if (!res.ok || !body?.client_secret) throw new Error(`paymob intention ${res.status}`);
     await db.from("payments").update({ provider_ref: String(body.intention_order_id ?? body.id ?? "") || null }).eq("id", payment.id);
+    await capture(buyer.userId, "checkout_started", { workspace_id: ws.id, payment_id: payment.id, kind: row.kind, plan: row.plan ?? null, billing_period: row.billing_period ?? null, prospects: row.prospects ?? null, value: row.amount, currency: "USD", mode: provider.mode });
     return { ok: true, url: checkoutUrl(provider.baseUrl, provider.publicKey, body.client_secret) };
   } catch (e) {
     console.error("[payments] checkout", e);
@@ -182,6 +184,10 @@ export async function settlePayment(provider: "paymob", o: PaymentOutcome): Prom
     : { status: "failed" as const, failure_reason: o.reason?.slice(0, 200) ?? "declined", provider_txn: o.providerTxn || null };
   const { data: moved } = await db.from("payments").update(next).eq("id", payment.id).eq("status", "pending").select("*").maybeSingle();
   if (!moved) return payment;
+  await capture(moved.created_by, moved.status === "succeeded" ? "payment_succeeded" : "payment_failed", {
+    workspace_id: moved.workspace_id, payment_id: moved.id, kind: moved.kind, plan: moved.plan, billing_period: moved.billing_period,
+    prospects: moved.prospects, value: Number(moved.amount), currency: moved.currency, mode: moved.mode,
+  });
   if (moved.status === "succeeded") await fulfil(db, moved);
   else await failed(db, moved);
   return moved;
@@ -229,6 +235,7 @@ export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, cha
   if (charge.paymentId && invoice) await db.from("payments").update({ invoice_id: invoice.id }).eq("id", charge.paymentId);
 
   await resumeQuotaPaused(db, ws.id);
+  await capture(payer.userId, "prospects_pack_bought", { workspace_id: ws.id, prospects, value: charge.amount, currency: charge.currency, mode: charge.mode });
   const { data: usage } = await db.rpc("usage_summary", { p_ws: ws.id });
   const allowance = usage?.[0]?.allowance ?? 0;
   const label = (l: "en" | "ar") => fmt(dictionaries[l].buyMore.packName, { count: formatNumber(prospects, l) });

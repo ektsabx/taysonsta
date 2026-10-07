@@ -36,7 +36,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
   if (!(await canAccessEntity(bos, "invoice", id))) notFound();
 
   const { data: inv, error } = await db()
-    .from("invoices")
+    .from("bos_invoices")
     .select("*, clients(id, name, company_name, email), deals(id, name, deal_number), payment_schedules!invoices_schedule_id_fkey(label, percent)")
     .eq("id", id)
     .maybeSingle();
@@ -44,7 +44,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
   if (!inv) notFound();
   const [{ data: items }, { data: payments }, currencies] = await Promise.all([
     db().from("invoice_items").select("*").eq("invoice_id", id).order("sort_order"),
-    db().from("payments").select("id, payment_number, amount, currency, invoice_amount, method, payment_date, status, reference, refunded_amount").eq("invoice_id", id).order("payment_date"),
+    db().from("bos_payments").select("id, payment_number, amount, currency, invoice_amount, method, payment_date, status, reference, refunded_amount").eq("invoice_id", id).order("payment_date"),
     listCurrencies(),
   ]);
   const client = inv.clients as unknown as { id: string; name: string; company_name: string | null } | null;

@@ -20,7 +20,7 @@ async function resolveRelation(relation: string, event: ActivityEvent): Promise<
   const entityColumn = async (column: string): Promise<string | null> => {
     const tableByType: Record<string, string> = {
       lead: "leads", deal: "deals", task: "tasks", activity: "activities", project: "projects", ticket: "tickets",
-      meeting: "meetings", change_request: "change_requests", issue: "issues", invoice: "invoices",
+      meeting: "meetings", change_request: "change_requests", issue: "issues", invoice: "bos_invoices",
     };
     const table = tableByType[event.entity_type];
     if (!table) return null;
@@ -153,7 +153,7 @@ export async function insertNotifications(drafts: NotificationDraft[]): Promise<
     if (!wantInApp && !wantEmail && !wantPush && !extra.length) continue;
 
     const { data: inserted, error } = await client
-      .from("notifications")
+      .from("bos_notifications")
       .insert({
         user_id: draft.userId,
         event_id: draft.eventId,
@@ -188,7 +188,7 @@ export async function insertNotifications(drafts: NotificationDraft[]): Promise<
 }
 
 const entityTables: Record<string, string> = {
-  lead: "leads", deal: "deals", project: "projects", task: "tasks", client: "clients", invoice: "invoices", payment: "payments",
+  lead: "leads", deal: "deals", project: "projects", task: "tasks", client: "clients", invoice: "bos_invoices", payment: "bos_payments",
   ticket: "tickets", meeting: "meetings", employee: "employees", change_request: "change_requests", contract: "contracts", milestone: "milestones", issue: "issues",
 };
 

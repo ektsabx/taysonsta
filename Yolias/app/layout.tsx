@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 import { dirOf } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
-import { Clarity } from "@/components/Clarity";
+import { Analytics } from "@/components/analytics/Analytics";
 import { SupportWidget } from "@/components/SupportWidget";
 import "./globals.css";
 
@@ -43,7 +43,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React loads. */}
       <body suppressHydrationWarning>
         <I18nProvider locale={locale}>{children}</I18nProvider>
-        <Clarity />
+        <I18nProvider locale={locale}>
+          <Analytics locale={locale} user={session ? { userId: session.userId, workspaceId: session.workspace.id, plan: session.workspace.plan, role: session.role } : null} />
+        </I18nProvider>
         <SupportWidget />
       </body>
     </html>

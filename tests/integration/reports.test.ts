@@ -12,7 +12,7 @@ test("revenue report equals hand-computed collected in the chosen currency (no c
   const to = new Date().toISOString().slice(0, 10);
   for (const currency of ["USD", "EGP"] as const) {
     const { data } = await runReport<{ collected: number; revenue: number }>(exec, "revenue", { from, to, currency });
-    const { data: pays } = await db().from("payments").select("amount, refunded_amount").eq("currency", currency).in("status", ["completed", "refunded"]).gte("payment_date", from).lte("payment_date", to);
+    const { data: pays } = await db().from("bos_payments").select("amount, refunded_amount").eq("currency", currency).in("status", ["completed", "refunded"]).gte("payment_date", from).lte("payment_date", to);
     const expected = (pays ?? []).reduce((sum, p) => sum + Number(p.amount) - Number(p.refunded_amount), 0);
     assert.equal(Number(data.collected).toFixed(2), expected.toFixed(2));
   }

@@ -14,6 +14,9 @@ export interface ShellData {
     name: string;
     website: string | null;
     offering: string | null;
+    industry: string | null;
+    idealCustomer: string | null;
+    targetMarkets: string | null;
     plan: Plan;
     /** Monthly plan price in the workspace's billing currency. */
     price: number;

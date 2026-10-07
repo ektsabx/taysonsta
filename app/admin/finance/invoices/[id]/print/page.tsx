@@ -13,7 +13,7 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
   const { id } = await params;
   if (!(await canAccessEntity(bos, "invoice", id))) notFound();
   const [{ data: inv }, { data: items }, company] = await Promise.all([
-    db().from("invoices").select("*, clients(name, company_name, email, address, tax_id, country)").eq("id", id).maybeSingle(),
+    db().from("bos_invoices").select("*, clients(name, company_name, email, address, tax_id, country)").eq("id", id).maybeSingle(),
     db().from("invoice_items").select("*").eq("invoice_id", id).order("sort_order"),
     getSetting("company"),
   ]);

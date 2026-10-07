@@ -291,7 +291,7 @@ begin
       return case when v_den > 0 then round(100 * v_num / v_den, 2) else 0 end;
     when 'payments.collected_value' then
       return (select coalesce(sum(p.deal_amount * (p.amount - p.refunded_amount) / p.amount), 0)
-              from payments p join deals d on d.id = p.deal_id
+              from bos_payments p join deals d on d.id = p.deal_id
               where d.assigned_to = p_user and p.status in ('completed','refunded')
                 and p.payment_date >= p_start and p.payment_date <= p_end);
     when 'commissions.amount' then

@@ -6,7 +6,7 @@ import type { Tables } from "@/lib/bos/db";
 // channel and connected account and sends through it; when the channel is not
 // connected the reply is kept and marked "skipped" — never silently lost.
 
-type Conversation = Tables<"conversations">;
+type Conversation = Tables<"bos_conversations">;
 type Customer = Tables<"support_customers">;
 export type DeliveryStatus = "queued" | "sent" | "delivered" | "read" | "failed" | "skipped" | null;
 export interface Delivery { status: DeliveryStatus; error: string | null; externalId: string | null }

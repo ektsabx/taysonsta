@@ -12,7 +12,7 @@ import { docTypeEntities, docTypeLabels, getTemplate } from "@/services/bos/docu
 import { DuplicateTemplateButton, RestoreVersionButton, TemplateEditor, TemplateMetaControls } from "../../DocumentControls";
 
 const recordSources: Record<string, { table: string; label: string; cols: string; fmt: (r: Record<string, unknown>) => string }> = {
-  invoice: { table: "invoices", label: "فاتورة", cols: "id, invoice_number, created_at", fmt: (r) => String(r.invoice_number) },
+  invoice: { table: "bos_invoices", label: "فاتورة", cols: "id, invoice_number, created_at", fmt: (r) => String(r.invoice_number) },
   contract: { table: "contracts", label: "عقد", cols: "id, contract_number, title, created_at", fmt: (r) => `${r.contract_number} — ${r.title}` },
   deal: { table: "deals", label: "صفقة", cols: "id, deal_number, name, created_at", fmt: (r) => `${r.deal_number} — ${r.name}` },
   job_offer: { table: "job_offers", label: "عرض عمل", cols: "id, offer_number, position_title, created_at", fmt: (r) => `${r.offer_number} — ${r.position_title}` },

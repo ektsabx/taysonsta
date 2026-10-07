@@ -192,7 +192,7 @@ begin
     when 'task' then exists (select 1 from tasks where id = p_id and client_id = v_client)
     when 'change_request' then exists (select 1 from change_requests where id = p_id and client_id = v_client)
     when 'ticket' then exists (select 1 from tickets where id = p_id and client_id = v_client)
-    when 'invoice' then exists (select 1 from invoices where id = p_id and client_id = v_client)
+    when 'invoice' then exists (select 1 from bos_invoices where id = p_id and client_id = v_client)
     when 'contract' then exists (select 1 from contracts where id = p_id and client_id = v_client)
     when 'proposal' then exists (select 1 from proposals where id = p_id and client_id = v_client)
     when 'deal' then exists (select 1 from deals where id = p_id and client_id = v_client)
@@ -232,7 +232,7 @@ $$;
 -- ---------------------------------------------------------------------------
 
 grant select on public.clients, public.contacts, public.projects, public.milestones, public.files, public.approvals,
-  public.change_requests, public.invoices, public.invoice_items, public.payments, public.tickets, public.meetings,
+  public.change_requests, public.bos_invoices, public.invoice_items, public.bos_payments, public.tickets, public.meetings,
   public.comments, public.channels, public.messages, public.feature_requests, public.contracts, public.payment_schedules
 to authenticated;
 
@@ -245,9 +245,9 @@ create policy "portal reads client-visible files" on files for select to authent
 create policy "portal reads client-visible approvals" on approvals for select to authenticated
   using (client_visible and portal_owns_entity(entity_type, entity_id));
 create policy "portal reads own change requests" on change_requests for select to authenticated using (client_id = portal_client_id());
-create policy "portal reads own invoices" on invoices for select to authenticated using (client_id = portal_client_id() and status <> 'draft');
+create policy "portal reads own invoices" on bos_invoices for select to authenticated using (client_id = portal_client_id() and status <> 'draft');
 create policy "portal reads own invoice items" on invoice_items for select to authenticated using (portal_owns_entity('invoice', invoice_id));
-create policy "portal reads own payments" on payments for select to authenticated using (client_id = portal_client_id() and status in ('completed','refunded'));
+create policy "portal reads own payments" on bos_payments for select to authenticated using (client_id = portal_client_id() and status in ('completed','refunded'));
 create policy "portal reads own schedules" on payment_schedules for select to authenticated using (client_id = portal_client_id());
 create policy "portal reads own tickets" on tickets for select to authenticated using (client_id = portal_client_id());
 create policy "portal reads own meetings" on meetings for select to authenticated using (client_id = portal_client_id());

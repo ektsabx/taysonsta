@@ -40,7 +40,7 @@ async function testOffer(): Promise<string> {
 test("every document type renders from a real record, in Arabic and English, without leftovers", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const cases: [string, string, string | null][] = [
-    ["invoice", "invoice", await firstId("invoices")],
+    ["invoice", "invoice", await firstId("bos_invoices")],
     ["client_contract", "contract", await firstId("contracts")],
     ["client_contract", "deal", await firstId("deals")],
     ["proposal", "deal", await firstId("deals")],
@@ -67,7 +67,7 @@ test("every document type renders from a real record, in Arabic and English, wit
 test("issue → frozen copy (HTML + DOCX in storage); template changes and record changes don't alter it", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const c = db();
-  const invoiceId = (await firstId("invoices"))!;
+  const invoiceId = (await firstId("bos_invoices"))!;
   // Work on a copy so system templates don't collect test versions.
   const tplId = await duplicateTemplate(admin, await templateId("invoice_en"), uniq("t_inv").replace(/-/g, "_").toLowerCase().slice(0, 50), "Test invoice template");
   cleanup.push(() => c.from("document_templates").delete().eq("id", tplId));
@@ -80,7 +80,7 @@ test("issue → frozen copy (HTML + DOCX in storage); template changes and recor
   });
   assert.match(doc.number, /^DOC-\d{6}$/);
   const { data: row } = await c.from("generated_documents").select("*").eq("id", doc.id).single();
-  const { data: inv } = await c.from("invoices").select("invoice_number").eq("id", invoiceId).single();
+  const { data: inv } = await c.from("bos_invoices").select("invoice_number").eq("id", invoiceId).single();
   assert.equal(row!.reference, inv!.invoice_number);
   assert.equal(row!.template_version_id, v1!.id);
   assert.ok(row!.rendered_html.includes(inv!.invoice_number));
@@ -137,7 +137,7 @@ test("template versions: syntax is validated before saving", async () => {
 });
 
 test("email templates render subject and body", async () => {
-  const { data: inv } = await db().from("invoices").select("invoice_number, total, currency, due_date, clients(name, company_name)").limit(1).single();
+  const { data: inv } = await db().from("bos_invoices").select("invoice_number, total, currency, due_date, clients(name, company_name)").limit(1).single();
   const client = inv!.clients as unknown as { name: string; company_name: string | null };
   const r = await renderEmailTemplate("email_invoice_sent", { invoice: { number: inv!.invoice_number, total: inv!.total, currency: inv!.currency, due_date: inv!.due_date }, client: { display_name: client.company_name ?? client.name } }, "en");
   assert.ok(r);

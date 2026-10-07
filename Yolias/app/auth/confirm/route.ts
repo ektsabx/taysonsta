@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { securityAlert, signedIn } from "@/lib/email/events";
+import { capture } from "@/lib/analytics/server";
 
 // Magic link verification. Supports both link formats Supabase can send:
 //  - token_hash + type (Yolias email templates; works across devices)
@@ -33,6 +34,9 @@ export async function GET(request: NextRequest) {
     const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
     await signedIn(auth.user.id, request.headers.get("user-agent") ?? "", ip);
     if (type === "email_change") await securityAlert(auth.user.id, "email_changed");
+    // New account: the sign-up confirmation link, or a first Google sign-in.
+    const isNew = type === "signup" || (Boolean(code) && Date.now() - new Date(auth.user.created_at).getTime() < 10 * 60_000);
+    if (type !== "email_change") await capture(auth.user.id, isNew ? "signed_up" : "signed_in", { method: code ? (auth.user.app_metadata?.provider ?? "oauth") : "magic_link" });
   }
 
   return NextResponse.redirect(new URL("/", url.origin));

@@ -28,15 +28,20 @@
     "content:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-content.mts",
     "eval:icp": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/eval-icp.mts",
     "test": "npm run typecheck && npm run test:unit",
-    "emails:build": "node --experimental-strip-types --no-warnings=MODULE_TYPELESS_PACKAGE_JSON scripts/build-email-templates.mts"
+    "emails:build": "node --experimental-strip-types --no-warnings=MODULE_TYPELESS_PACKAGE_JSON scripts/build-email-templates.mts",
+    "auth-emails:push": "npx -y tsx scripts/push-auth-emails.mts",
+    "build:cf-next": "node scripts/cf-build.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
     "@opennextjs/cloudflare": "^1.20.8",
+    "@opentelemetry/api": "^1.9.1",
+    "@sentry/nextjs": "^11.4.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.115.0",
     "lucide-react": "^1.49.0",
     "next": "16.3.8",
+    "posthog-js": "^1.438.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",

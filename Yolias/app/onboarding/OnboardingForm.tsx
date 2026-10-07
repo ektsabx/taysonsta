@@ -28,9 +28,22 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
             <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} defaultValue={v("website")} autoComplete="url" required />
           </div>
           <div className="field">
-            <label htmlFor="offering">{o.offering}</label>
-            <textarea id="offering" name="offering" className="form-input" placeholder={o.offeringPlaceholder} defaultValue={v("offering")} rows={4} required />
+            <label htmlFor="industry">{o.industry}</label>
+            <input id="industry" name="industry" className="form-input" placeholder={o.industryPlaceholder} defaultValue={v("industry")} maxLength={120} required />
           </div>
+          <div className="field">
+            <label htmlFor="offering">{o.offering}</label>
+            <textarea id="offering" name="offering" className="form-input" placeholder={o.offeringPlaceholder} defaultValue={v("offering")} rows={3} maxLength={2000} required />
+          </div>
+          <div className="field">
+            <label htmlFor="ideal_customer">{o.idealCustomer} <span className="field-optional">{o.optional}</span></label>
+            <textarea id="ideal_customer" name="ideal_customer" className="form-input" placeholder={o.idealCustomerPlaceholder} defaultValue={v("ideal_customer")} rows={3} maxLength={2000} />
+          </div>
+          <div className="field">
+            <label htmlFor="target_markets">{o.targetMarkets}</label>
+            <input id="target_markets" name="target_markets" className="form-input" placeholder={o.targetMarketsPlaceholder} defaultValue={v("target_markets")} maxLength={300} required />
+          </div>
+          <p className="field-note">{o.contextNote}</p>
         </>
       )}
       {state.error && <p className="form-error" role="alert">{state.error}</p>}

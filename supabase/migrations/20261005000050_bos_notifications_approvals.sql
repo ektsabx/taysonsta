@@ -32,7 +32,7 @@ create table approval_delegations (
 create index approval_delegations_user_idx on approval_delegations (user_id, starts_on, ends_on) where is_active;
 
 -- ------------------------------------------------------------ notifications
-alter table notifications add column if not exists priority text not null default 'normal' check (priority in ('low','normal','high','urgent'));
+alter table bos_notifications add column if not exists priority text not null default 'normal' check (priority in ('low','normal','high','urgent'));
 alter table notification_subscriptions add column if not exists conditions jsonb not null default '[]'::jsonb;
 alter table notification_deliveries
   add column if not exists next_attempt_at timestamptz,

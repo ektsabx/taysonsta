@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, CreditCard, Lock } from "lucide-react";
 import { formatMoney, formatNumber } from "@/lib/format";
@@ -8,6 +8,7 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName, planUsage, priceFor } from "@/lib/plans";
 import type { BillingPeriod, Currency, Plan } from "@/types/database";
+import { metaTrack, track } from "@/lib/analytics/client";
 import { activatePlan } from "./actions";
 
 interface Option {
@@ -47,6 +48,14 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
   const price = (o: Option) => priceFor(o.price, period);
   const per = (o: Option) => (period === "annual" && o.price ? t.plans.perYear : t.plans.perMonth);
   const money = (n: number) => formatMoney(n, currency, true);
+
+  // Meta "InitiateCheckout" once, when the checkout page opens with a paid plan.
+  useEffect(() => {
+    const o = options.find((x) => x.id === initialPlan);
+    const value = o ? priceFor(o.price, initialPeriod) : 0;
+    track("checkout_viewed", { plan: initialPlan, billing_period: initialPeriod, value, currency });
+    if (value > 0) metaTrack("InitiateCheckout", { value, currency, content_type: "product", content_ids: [`${initialPlan}_${initialPeriod}`], num_items: 1 });
+  }, [initialPlan, initialPeriod, options, currency]);
 
   const subscribe = () =>
     start(async () => {
