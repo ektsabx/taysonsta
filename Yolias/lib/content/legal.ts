@@ -15,7 +15,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "What Yolias collects, why, who processes it with us, and the choices you have.",
       blocks: [
         { h2: "Who we are" },
-        { p: "Yolias is a customer-discovery product made by Taysonsta (“we”, “us”). This policy covers the Yolias website and app. For questions or requests, use the [Contact page](/contact)." },
+        { p: "Yolias is a customer-discovery product operated by Yolias LLC (“we”, “us”). This policy covers the Yolias website and app. For questions or requests, use the [Contact page](/contact)." },
         { h2: "Information we collect" },
         { h3: "Account and workspace" },
         { ul: [
@@ -78,7 +78,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "ما الذي يجمعه يولـياس، ولماذا، ومن يعالج البيانات معنا، والخيارات المتاحة لك.",
       blocks: [
         { h2: "من نحن" },
-        { p: "يولـياس منتج لاكتشاف العملاء تقدمه Taysonsta («نحن»). تشمل هذه السياسة موقع يولـياس وتطبيقه. للأسئلة أو الطلبات استخدم [صفحة التواصل](/contact)." },
+        { p: "يولـياس منتج لاكتشاف العملاء تقدمه شركة Yolias LLC («نحن»). تشمل هذه السياسة موقع يولـياس وتطبيقه. للأسئلة أو الطلبات استخدم [صفحة التواصل](/contact)." },
         { h2: "المعلومات التي نجمعها" },
         { h3: "الحساب ومساحة العمل" },
         { ul: [
@@ -140,7 +140,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
   terms: {
     en: {
       title: "Terms of Service",
-      summary: "The agreement between you and Taysonsta for using Yolias.",
+      summary: "The agreement between you and Yolias LLC for using Yolias.",
       blocks: [
         { h2: "Agreement" },
         { p: "By creating an account or using Yolias you agree to these terms on behalf of yourself and the organization you represent. Yolias is intended for business use." },
@@ -177,11 +177,13 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "Your content" },
         { p: "You own the searches, files and data you put into Yolias and the results you export. You give us permission to process them only to provide and secure the service." },
         { h2: "Our service" },
-        { p: "Yolias, its software and brand belong to Taysonsta. We improve the product continuously and may change or retire features; when a change materially reduces what your plan includes, we will tell you in advance." },
+        { p: "Yolias, its software and brand belong to Yolias LLC. We improve the product continuously and may change or retire features; when a change materially reduces what your plan includes, we will tell you in advance." },
         { h2: "Suspension and termination" },
         { p: "You can stop using Yolias and delete your account at any time. We may suspend or close accounts that break these terms or put other users at risk, and will tell you why where the law allows." },
         { h2: "Disclaimers and liability" },
         { p: "Yolias is provided “as is”. To the extent the law allows, we are not liable for indirect or consequential losses, and our total liability for any claim is limited to the fees you paid for Yolias in the twelve months before the claim." },
+        { h2: "Governing law and disputes" },
+        { p: "These terms are governed by the laws of the Arab Republic of Egypt. The courts of Cairo, Egypt have exclusive jurisdiction over any dispute arising from them or from your use of Yolias." },
         { h2: "Changes to these terms" },
         { p: "We will post updated terms here with a new date and notify signed-in users of material changes. Continuing to use Yolias after that means you accept them." },
         { h2: "Contact" },
@@ -190,7 +192,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
     },
     ar: {
       title: "شروط الخدمة",
-      summary: "الاتفاق بينك وبين Taysonsta لاستخدام يولـياس.",
+      summary: "الاتفاق بينك وبين Yolias LLC لاستخدام يولـياس.",
       blocks: [
         { h2: "الاتفاق" },
         { p: "بإنشاء حساب أو استخدام يولـياس فإنك توافق على هذه الشروط عن نفسك وعن الجهة التي تمثلها. يولـياس مخصص للاستخدام التجاري." },
@@ -227,11 +229,13 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "محتواك" },
         { p: "تملك عمليات البحث والملفات والبيانات التي تضعها في يولـياس والنتائج التي تصدّرها. وتمنحنا الإذن بمعالجتها فقط لتقديم الخدمة وتأمينها." },
         { h2: "خدمتنا" },
-        { p: "يولـياس وبرمجياته وعلامته التجارية ملك لـ Taysonsta. نطوّر المنتج باستمرار وقد نغيّر بعض الميزات أو نوقفها؛ وإذا قلّل تغيير ما بشكل جوهري مما تشمله خطتك فسنبلغك مسبقًا." },
+        { p: "يولـياس وبرمجياته وعلامته التجارية ملك لـ Yolias LLC. نطوّر المنتج باستمرار وقد نغيّر بعض الميزات أو نوقفها؛ وإذا قلّل تغيير ما بشكل جوهري مما تشمله خطتك فسنبلغك مسبقًا." },
         { h2: "الإيقاف والإنهاء" },
         { p: "يمكنك التوقف عن استخدام يولـياس وحذف حسابك في أي وقت. وقد نوقف أو نغلق الحسابات التي تخالف هذه الشروط أو تعرّض المستخدمين الآخرين للخطر، وسنوضح السبب متى سمح القانون بذلك." },
         { h2: "إخلاء المسؤولية وحدودها" },
         { p: "يُقدَّم يولـياس «كما هو». وفي الحدود التي يسمح بها القانون، لا نتحمل مسؤولية الخسائر غير المباشرة أو التبعية، وتقتصر مسؤوليتنا الإجمالية عن أي مطالبة على الرسوم التي دفعتها مقابل يولـياس خلال الاثني عشر شهرًا السابقة للمطالبة." },
+        { h2: "القانون الحاكم وتسوية النزاعات" },
+        { p: "تخضع هذه الشروط لقوانين جمهورية مصر العربية، وتختص محاكم القاهرة وحدها بنظر أي نزاع ينشأ عنها أو عن استخدامك ليولـياس." },
         { h2: "تغيير هذه الشروط" },
         { p: "سننشر الشروط المحدّثة هنا بتاريخ جديد ونبلغ المستخدمين المسجّلين بالتغييرات الجوهرية. واستمرارك في استخدام يولـياس بعد ذلك يعني قبولك لها." },
         { h2: "التواصل" },
