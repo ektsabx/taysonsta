@@ -144,3 +144,6 @@ npx wrangler secret put WORKER_SECRET
 - يولياس: 6 migrations (`20261107000000` لحد `…000500`)، ونشر `yolias`. Sentry شغال بـ fetch transport، ومن غير الـ integrations اللي ما بتشتغلش على Workers.
 - الأدمن: 70 migration، ومفاتيح مركز التكاملات اتنقلت متشفّرة بنفس `BOS_SECRETS_KEY`، و7 secrets على `yolias-admin` (منهم `CRON_SECRET` جديد)، ونشر `npm run cf:deploy:admin`. ملف البناء: `.env.production.local` في الجذر، وفيه المفاتيح العامة بس.
 - الأدمن المحلي لسه شغال على الداتابيز المحلية. الأدمن المنشور هو اللي شغال على بيانات الإنتاج.
+
+## تطبيق migrations يولياس على المشروع المشترك (مهم)
+`npx supabase db push` **ما بيشتغلش** على مشروع Taysonsta، لأن migrations الأدمن متسجلة في نفس الجدول، فبيرفض بـ «Remote migration versions not found». ما تشغّلش `migration repair` (هيعلّم migrations الأدمن إنها اتلغت). كل migration جديدة بتتطبق لوحدها بـ `npx supabase db query --linked -f <file>`، وبعدها تتسجل في `supabase_migrations.schema_migrations` (مثال: `Yolias/supabase/remote/record-20261107000700-000800.sql`). وتتأكد بـ `npx supabase migration list --linked`.
