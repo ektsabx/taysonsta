@@ -22,6 +22,10 @@ export type EmailKind = keyof EmailData;
 
 const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null } } = {
   welcome: { category: "account", pref: null },
+  // One-time onboarding email (sent once per account, never repeated), so it
+  // doesn't wait for "Product updates", which is off until a user turns it on.
+  // Admin can switch it off (Platform → Emails).
+  community_invite: { category: "account", pref: null },
   account_deleted: { category: "account", pref: null },
   new_sign_in: { category: "security", pref: null },
   suspicious_sign_in: { category: "security", pref: null },
@@ -48,6 +52,8 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   usage_limit: { category: "usage", pref: "notify_usage" },
   discovery_ready: { category: "usage", pref: "notify_campaign_done" },
   announcement: { category: "updates", pref: "notify_product" },
+  // Affiliate program: statements about the affiliate's own money and status.
+  affiliate_update: { category: "account", pref: null },
 };
 
 export function emailMeta(kind: EmailKind) {

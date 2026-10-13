@@ -328,11 +328,11 @@ export const agentTools = [
   // ───────────── Outreach ─────────────
   define({
     name: "prepareOutreach",
-    description: "Write a message for a person: an email (subject + body), a LinkedIn connection note, or a WhatsApp / Facebook / Instagram message. Pick the goal (introduction, sales, meeting, follow_up, partnership, referral), the tone (direct by default, conservative or friendly) and the language (ISO code, e.g. en, ar, fr). Only verified facts are used. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app, WhatsApp, Messenger, Instagram or LinkedIn. Yolias never sends messages.",
+    description: "Write a message for a person: an email (subject + body), a LinkedIn connection note, or a WhatsApp message. Pick the goal (introduction, sales, meeting, follow_up, partnership, referral), the tone (direct by default, conservative or friendly) and the language (ISO code, e.g. en, ar, fr). Only verified facts are used. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app, WhatsApp or LinkedIn. Yolias never sends messages.",
     permission: "outreach.prepare",
     input: z.object({
       prospectId: uuid,
-      channel: z.enum(["email", "linkedin", "whatsapp", "facebook", "instagram"]).default("email"),
+      channel: z.enum(["email", "linkedin", "whatsapp"]).default("email"),
       objective: z.enum(["introduction", "sales", "meeting", "follow_up", "partnership", "referral"]).default("introduction"),
       tone: z.enum(["direct", "conservative", "friendly"]).default("direct"),
       instruction: z.string().trim().max(1000).optional().describe("The reason for contacting, in the user's words"),

@@ -25,6 +25,9 @@ const widgetSchema = z.object({
   bottom_offset: zf.int(0, 400),
   language: z.enum(["ar", "en"]),
   require_email: zf.checkbox(),
+  ratings_enabled: zf.checkbox(),
+  show_agent_photos: zf.checkbox(),
+  help_enabled: zf.checkbox(),
   hours_enabled: zf.checkbox(),
   hours_tz: zf.optionalText(60),
   hours_start: zf.optionalText(5),
@@ -40,7 +43,7 @@ export async function saveWidgetAction(_prev: ActionState, formData: FormData): 
     const v = parseForm(widgetSchema, formData);
     await saveWidget(bos, v.id ?? null, {
       name: v.name, is_active: v.is_active, on_yolias: v.on_yolias, allowed_domains: normalizeDomains(v.allowed_domains ?? ""), title: v.title, welcome_message: v.welcome_message, offline_message: v.offline_message,
-      primary_color: v.primary_color, position: v.position, bottom_offset: v.bottom_offset, language: v.language, require_email: v.require_email,
+      primary_color: v.primary_color, position: v.position, bottom_offset: v.bottom_offset, language: v.language, require_email: v.require_email, ratings_enabled: v.ratings_enabled, show_agent_photos: v.show_agent_photos, help_enabled: v.help_enabled,
       working_hours: v.hours_enabled ? { tz: v.hours_tz ?? "Africa/Cairo", start: v.hours_start ?? "", end: v.hours_end ?? "", days: v.hours_days ?? [] } : {},
       ai_agent_id: v.ai_agent_id, team_id: v.team_id,
     });

@@ -2,13 +2,23 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CampaignEventRow, CampaignRow, CampaignRunRow } from "@/types/database";
 
-export async function listCampaigns(workspaceId: string) {
+/** Campaigns, newest first. CSV imports (origin "import") are listed only when asked for (Prospects filters). */
+export async function listCampaigns(workspaceId: string, opts: { imports?: boolean } = {}) {
   const supabase = await createClient();
-  const { data } = await supabase
+  let q = supabase
     .from("campaigns")
-    .select("id, name, criteria, search_type, quota, status, prospects_found, strategy_id, continuous, run_every_hours, deadline, next_run_at, runs_count, partial_reason, created_at, updated_at")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
+    .select("id, name, criteria, search_type, quota, status, prospects_found, strategy_id, continuous, run_every_hours, deadline, next_run_at, runs_count, partial_reason, origin, created_at, updated_at")
+    .eq("workspace_id", workspaceId);
+  if (!opts.imports) q = q.eq("origin", "search");
+  const { data } = await q.order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+/** Searches still in Campaign Setup (D-167): drafts, not started yet. */
+export async function listDrafts(workspaceId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("strategies").select("id, title, icp, created_at, updated_at")
+    .eq("workspace_id", workspaceId).eq("status", "setup").order("updated_at", { ascending: false }).limit(200);
   return data ?? [];
 }
 

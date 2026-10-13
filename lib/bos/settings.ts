@@ -105,12 +105,6 @@ const approvalWorkflowSchema = z.object({
 // Unified AI client (docs/bos/30 §7): provider order for fallback, monthly
 // budget (0 = no limit) and prices used for cost estimates (USD per 1M
 // tokens) — cost is only shown for models with a configured price.
-// Advertising analytics (docs/bos/30 §14): which Meta action types count as
-// conversions (avoid overlapping types such as "purchase" + pixel purchase),
-// and how many recent days each sync re-reads (late-attributed conversions).
-// Deal Radar (docs/bos/30 §17): what counts as "near closing", "no recent
-// activity", the value above which risky deals need a manager (0 = top 25%),
-// and how many closed deals are needed before historic win rates are used.
 // Time tracking (docs/bos/30 §22): which entries need a manager's approval
 // before they count in reports and costs — none, manual entries only, or all.
 // Employee location (docs/bos/30 §28): off by default; captured only at work
@@ -124,17 +118,18 @@ const locationSchema = z.object({
   allow_task_checkins: z.coerce.boolean().default(false),
 });
 
-const dealRadarSchema = z.object({
-  horizon_days: z.coerce.number().int().min(1).max(180).default(30),
-  inactivity_days: z.coerce.number().int().min(1).max(90).default(14),
-  min_probability: z.coerce.number().min(0).max(100).default(40),
-  intervention_value: z.coerce.number().min(0).default(0),
-  min_history: z.coerce.number().int().min(5).max(1000).default(20),
-});
-
-const adsSchema = z.object({
-  meta_conversion_types: z.array(z.string().min(1).max(80)).max(20).default(["purchase", "lead"]),
-  sync_days_back: z.coerce.number().int().min(1).max(30).default(3),
+// Platform alerts (2026-10-12, services/yolias/alerts.ts). Defaults follow
+// the current plans: Resend Free (100 emails a day) and Supabase Free (500 MB).
+const platformAlertsSchema = z.object({
+  enabled: z.boolean().default(true),
+  gemini_daily_usd: z.coerce.number().min(0).max(100_000).default(5),
+  ai_failures_per_hour: z.coerce.number().int().min(1).max(100_000).default(20),
+  payment_failure_pct: z.coerce.number().min(1).max(100).default(30),
+  payment_min_attempts: z.coerce.number().int().min(1).max(1_000).default(5),
+  email_daily_quota: z.coerce.number().int().min(1).max(10_000_000).default(100),
+  email_warn_pct: z.coerce.number().min(1).max(100).default(80),
+  db_limit_mb: z.coerce.number().min(1).max(10_000_000).default(500),
+  db_warn_pct: z.coerce.number().min(1).max(100).default(80),
 });
 
 const aiSchema = z.object({
@@ -216,7 +211,6 @@ const integrationsSchema = z.object({
     .default({ enabled: false, provider: null, from: null }),
   calendar: integrationToggle.default({ enabled: false }),
   payment: integrationToggle.default({ enabled: false }),
-  esign: integrationToggle.default({ enabled: false }),
   scheduler: integrationToggle.default({ enabled: false }),
   push: integrationToggle.default({ enabled: false }),
   webhooks: z
@@ -263,9 +257,8 @@ export const settingSchemas = {
   payroll_policy: payrollPolicySchema,
   ai: aiSchema,
   approval_workflow: approvalWorkflowSchema,
-  ads: adsSchema,
-  deal_radar: dealRadarSchema,
   location: locationSchema,
+  platform_alerts: platformAlertsSchema,
 } as const;
 
 export type SettingKey = keyof typeof settingSchemas;

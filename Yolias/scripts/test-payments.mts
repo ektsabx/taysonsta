@@ -98,6 +98,13 @@ try {
   assert.equal((intentions.at(-1) as { currency: string }).currency, "EGP", "the EGP card integration is charged in EGP (D-142)");
   assert.deepEqual((intentions.at(-1) as { payment_methods: number[] }).payment_methods, [222]);
 
+  // 1b) A second click (or Back from Paymob) reuses the same checkout: no new payment, no new intention.
+  const intentCount = intentions.length;
+  const again = await startCheckout(await ws(wsId), buyer, { kind: "subscription", plan: "pro", period: "monthly" });
+  assert.ok(again.ok && again.url === r.url, "the same checkout link is reused");
+  assert.equal(intentions.length, intentCount, "no second Paymob intention");
+  assert.equal((await db.from("payments").select("id").eq("workspace_id", wsId)).data!.length, 1);
+
   // 2) Bad signature / wrong amount change nothing.
   assert.equal((await callback(txn(sub.id, sub.provider_ref!, 50000), "wrong-secret")).status, 401);
   assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999))).status, 200, "the USD amount is not what was charged");
@@ -121,8 +128,8 @@ try {
   assert.ok(r.ok);
   ({ data: pays } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("plan", "growth"));
   const bad = pays![0];
-  assert.equal(Number(bad.amount), 24.99 * 12);
-  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(24.99 * 12 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
+  assert.equal(Number(bad.amount), 239.88, "annual = 12 × (24.99 − 20%)");
+  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(239.88 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
   assert.equal((await payment(bad.id)).status, "failed");
   assert.equal((await payment(bad.id)).failure_reason, "Do not honour");
   assert.equal((await ws(wsId)).plan, "pro");
@@ -134,6 +141,7 @@ try {
   assert.ok(r.ok);
   ({ data: pays } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("kind", "prospect_pack"));
   const pk = pays![0];
+  assert.equal(pays!.length, 1);
   assert.equal(Number(pk.amount), 2.5);
   // Settled through the signed redirect this time.
   const t = txn(pk.id, pk.provider_ref!, 12500);
@@ -143,11 +151,31 @@ try {
   assert.equal(back.status, 307);
   assert.match(back.headers.get("location") ?? "", new RegExp(`/billing/result\\?payment=${pk.id}`));
   assert.equal((await payment(pk.id)).status, "succeeded");
-  const { data: grants } = await db.from("usage_ledger").select("*").eq("workspace_id", wsId).eq("kind", "grant");
+  const { data: grants } = await db.from("usage_ledger").select("*").eq("workspace_id", wsId).eq("kind", "grant").eq("reason", `prospect_pack:${pk.id}`);
   assert.equal(grants!.length, 1); assert.equal(grants![0].prospects, 100);
   const packInvoice = (await payment(pk.id)).invoice_id!;
   const { data: pi } = await db.from("invoices").select("*").eq("id", packInvoice).single();
   assert.equal(pi!.kind, "prospect_pack"); assert.equal(pi!.prospects, 100); assert.equal(pi!.currency, "USD");
+
+  assert.ok((await payment(pk.id)).fulfilled_at, "fulfilment recorded");
+  assert.equal((await payment(pk.id)).checkout_url, null, "checkout link cleared once settled");
+
+  // 5b) Interrupted fulfilment: the payment is succeeded but the grant never
+  // ran (process died). The next signed callbacks finish it exactly once,
+  // even when they arrive together.
+  r = await startCheckout(await ws(wsId), buyer, { kind: "prospect_pack", packId });
+  assert.ok(r.ok);
+  const { data: pk2 } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("kind", "prospect_pack").eq("status", "pending").single();
+  await db.from("payments").update({ status: "succeeded", paid_at: new Date().toISOString(), fulfil_claimed_at: new Date(Date.now() - 10 * 60_000).toISOString() }).eq("id", pk2!.id);
+  const retry = txn(pk2!.id, pk2!.provider_ref!, 12500);
+  const answers = await Promise.all([callback(retry), callback(retry), callback(retry)]);
+  assert.ok(answers.every((a) => a.status === 200));
+  const { data: grants2 } = await db.from("usage_ledger").select("*").eq("workspace_id", wsId).eq("kind", "grant").eq("reason", `prospect_pack:${pk2!.id}`);
+  assert.equal(grants2!.length, 1, "granted exactly once");
+  assert.ok((await payment(pk2!.id)).fulfilled_at);
+  assert.equal((await db.from("invoices").select("id").eq("payment_id", pk2!.id)).data!.length, 1, "one invoice");
+  await callback(retry);
+  assert.equal((await db.from("usage_ledger").select("id").eq("reason", `prospect_pack:${pk2!.id}`)).data!.length, 1, "replay after fulfilment is a no-op");
 
   await callback(txn(pk.id, pk.provider_ref!, 12500, { is_refunded: true }));
   assert.equal((await payment(pk.id)).status, "refunded");
@@ -171,15 +199,16 @@ try {
   assert.equal(new Date(renewed.current_period_end!).getTime(), new Date(open!.period_end).getTime());
   assert.equal((await db.from("invoices").select("status").eq("id", open!.id).single()).data!.status, "paid");
 
-  // 7) Unpaid past the grace period → Free, open invoice voided.
+  // 7) Unpaid past the grace period → the plan ends (no Free since 2026-10-12), open invoice voided.
   const longAgo = new Date(Date.now() - 10 * 86_400_000).toISOString();
   await db.from("workspaces").update({ subscription_status: "past_due", current_period_end: longAgo }).eq("id", wsId);
   const { data: unpaid } = await db.from("invoices").insert({ workspace_id: wsId, kind: "subscription", plan: "pro", billing_period: "monthly", amount: 9.99, currency: "USD", status: "open", mode: "live", period_start: longAgo, period_end: new Date().toISOString(), bill_to_email: email }).select("id").single();
   const ended = await settleSubscription(await ws(wsId));
-  assert.equal(ended.plan, "free");
+  assert.equal(ended.subscription_status, "canceled");
+  assert.equal(ended.plan, "pro", "the plan isn't swapped for Free");
   assert.equal((await db.from("invoices").select("status").eq("id", unpaid!.id).single()).data!.status, "void");
 
-  console.log("✓ payments: checkout, signature, amount check, idempotency, failure, pack, redirect, refund, live renewal, grace downgrade");
+  console.log("✓ payments: checkout, reuse on repeat click, signature, interrupted fulfilment retried once, amount check, idempotency, failure, pack, redirect, refund, live renewal, grace period ends the plan");
 } finally {
   if (userId) {
     const { data: prof } = await db.from("profiles").select("workspace_id").eq("id", userId).maybeSingle();

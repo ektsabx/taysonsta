@@ -2,19 +2,21 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, Building2, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, Building2, CalendarDays, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, Video, X } from "lucide-react";
+import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { COUNTRIES, timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planName } from "@/lib/plans";
+import { monthWindow, planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
-import { GoogleSheetsIcon, HubSpotIcon } from "./ConnectorIcons";
+import { GmailIcon, LinkedInIcon, OutlookIcon, WhatsAppIcon } from "./ConnectorIcons";
 import {
-  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePreferences, type ActionResult,
+  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { buyProspectPack } from "@/app/checkout/actions";
+import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
 import type { Currency } from "@/types/database";
@@ -85,11 +87,13 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
 function useSave() {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
   const run = (fn: () => Promise<ActionResult>) =>
     start(async () => {
       setError(null);
-      const r = await fn();
-      if (!r.ok) setError(r.error);
+      const r = await callAction(fn);
+      if (isNetworkFailure(r)) setError(t.feedback.errors.network);
+      else if (!r.ok) setError(r.error);
     });
   return { pending, error, run };
 }
@@ -242,10 +246,24 @@ function AccountTab({ data }: { data: ShellData }) {
     if (name.trim() && name.trim() !== data.user.name) run(() => updatePreferences({ full_name: name }));
   };
 
+  const [phone, setPhone] = useState(data.user.phone ?? "");
+  const [savedPhone, setSavedPhone] = useState(data.user.phone ?? "");
+  const savePhone = () => {
+    if (phone.trim() === savedPhone) return;
+    run(async () => {
+      const r = await updatePhone(phone);
+      if (r.ok) {
+        setPhone(r.phone ?? "");
+        setSavedPhone(r.phone ?? "");
+      }
+      return r;
+    });
+  };
+
   const upload = async (file: File) => {
     setLocalError(null);
-    if (!file.type.startsWith("image/")) return setLocalError(a.chooseImage);
-    if (file.size > 2 * 1024 * 1024) return setLocalError(a.avatarTooLarge);
+    const bad = checkImageFile(file);
+    if (bad) return setLocalError(bad === "size" ? t.uploads.imageSize : t.uploads.imageType);
     setUploading(true);
     const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
     const path = `${data.user.id}/avatar-${Date.now()}.${ext}`;
@@ -273,14 +291,18 @@ function AccountTab({ data }: { data: ShellData }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {avatarUrl ? <img src={avatarUrl} alt="" /> : data.user.initials}
           </div>
-          <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? a.uploading : a.change}
-          </button>
+          <div>
+            <button className="btn-secondary" style={{ fontSize: ".76rem" }} type="button" disabled={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? a.uploading : a.change}
+            </button>
+            <p className="upload-hint" id="avatar-hint">{t.uploads.imageHint}</p>
+          </div>
           <input
             ref={fileRef}
             type="file"
             className="hidden-input"
-            accept="image/*"
+            accept={IMAGE_ACCEPT}
+            aria-describedby="avatar-hint"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) void upload(f);
@@ -298,6 +320,25 @@ function AccountTab({ data }: { data: ShellData }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={saveName}
+            onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+          />
+        </div>
+      </SettingRow>
+
+      <SettingRow label={a.phone} desc={a.phoneDesc}>
+        <div style={{ width: 200 }}>
+          <input
+            type="tel"
+            dir="ltr"
+            inputMode="tel"
+            autoComplete="tel"
+            className="form-input"
+            placeholder={a.phonePlaceholder}
+            aria-label={a.phone}
+            maxLength={40}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            onBlur={savePhone}
             onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
           />
         </div>
@@ -487,7 +528,7 @@ function UsageTab({ data }: { data: ShellData }) {
   const refresh = () =>
     startRefresh(async () => {
       const r = await refreshUsage();
-      setUsage({ prospects: r.prospects, allowance: r.allowance, extra: r.extra, resetsAt: r.resetsAt, checkedAt: Date.parse(r.checkedAt) });
+      setUsage({ prospects: r.prospects, allowance: r.allowance, extra: r.extra, resetsAt: r.resetsAt, emails: r.emails, contacts: r.contacts, trialEndsAt: r.trialEndsAt, checkedAt: Date.parse(r.checkedAt) });
       setNow(Date.parse(r.checkedAt));
     });
 
@@ -503,9 +544,11 @@ function UsageTab({ data }: { data: ShellData }) {
       <div className="usage-head">
         <div>
           <div className="setting-label">{u.title}</div>
-          <div className="setting-desc">{fmt(workspace.plan === "free" ? u.planLineFree : u.planLine, { plan: planName(workspace.plan, t) })}</div>
+          <div className="setting-desc">{usage.trialEndsAt
+            ? fmt(u.trialLine, { plan: planName(workspace.plan, t), date: formatDate(usage.trialEndsAt, locale, data.preferences.timezone) })
+            : fmt(workspace.plan === "free" ? u.planLineFree : u.planLine, { plan: planName(workspace.plan, t) })}</div>
         </div>
-        {workspace.plan !== "growth" && (data.role === "owner" || data.role === "admin") && (
+        {workspace.plan !== topPlan && (data.role === "owner" || data.role === "admin") && (
           <a className="btn-secondary" href="/checkout">{u.upgrade}</a>
         )}
       </div>
@@ -518,10 +561,28 @@ function UsageTab({ data }: { data: ShellData }) {
         <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : pct >= 80 ? " amber" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
           <span>{u.prospectsDesc}</span>
-          <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : u.oneTime}</span>
+          <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : usage.trialEndsAt ? u.trialOnly : u.oneTime}</span>
         </div>
         {usage.extra > 0 && <div className="usage-extra">{fmt(t.buyMore.extraBalance, { count: n(usage.extra) })}</div>}
       </div>
+
+      {([["emails", u.emails, u.emailsDesc], ["contacts", u.contacts, u.contactsDesc]] as const).map(([k, label, desc]) => {
+        const m = usage[k];
+        const p = Math.min(100, m.limit ? (m.used / m.limit) * 100 : 100);
+        return (
+          <div className="usage-meter" key={k}>
+            <div className="usage-meter-row">
+              <span className="usage-meter-label">{label}</span>
+              <span className="usage-meter-value">{fmt(u.value, { used: n(m.used), total: n(m.limit) })}</span>
+            </div>
+            <div className="progress-track"><div className={`progress-fill${p >= 100 ? " red" : p >= 80 ? " amber" : ""}`} style={{ width: `${p.toFixed(1)}%` }} /></div>
+            <div className="usage-meter-foot">
+              <span>{desc}</span>
+              <span>{usage.trialEndsAt ? u.trialOnly : fmt(u.resets, { date: formatDate(monthWindow(new Date(now)).resets.toISOString(), locale, data.preferences.timezone) })}</span>
+            </div>
+          </div>
+        );
+      })}
 
       <BuyMore data={data} pct={pct} onBought={refresh} />
 
@@ -564,9 +625,9 @@ function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBoug
       track("buy_more_opened", { prospects: pack.prospects, value: pack.price, currency: data.workspace.currency });
       metaTrack("InitiateCheckout", { value: pack.price, currency: data.workspace.currency, content_type: "product", content_ids: [`prospects_${pack.prospects}`], num_items: 1 });
     }
-    const r = await buyProspectPack(id);
-    setBusy(null);
+    const r = await callAction(() => buyProspectPack(id)).finally(() => setBusy(null));
     if (!r) return; // redirected to the payment page
+    if (isNetworkFailure(r)) return setError(t.checkout.errors.network);
     if (!r.ok) return setError(r.error);
     toast(`${fmt(bm.added, { count: formatNumber(r.added, locale) })} ${bm.testMode}`);
     onBought();
@@ -617,7 +678,7 @@ function BillingTab({ data }: { data: ShellData }) {
   const [confirming, setConfirming] = useState(false);
   const { pending, error, run } = useSave();
   const money = (v: number, currency: Currency = "USD") => formatMoney(v, currency, true);
-  const price = workspace.billingPeriod === "annual" ? workspace.price * 12 : workspace.price;
+  const price = priceFor(workspace.price, workspace.billingPeriod);
 
   const setCanceled = (cancel: boolean) =>
     run(async () => {
@@ -630,8 +691,11 @@ function BillingTab({ data }: { data: ShellData }) {
       return r;
     });
 
+  const trialing = workspace.subscriptionStatus === "trialing";
   const renewLine = !paid
     ? fmt(b.freeLine, { count: formatNumber(workspace.prospects, locale) })
+    : trialing && data.usage.trialEndsAt
+      ? fmt(t.plans.trialEnds, { date: formatDate(data.usage.trialEndsAt, locale, data.preferences.timezone) })
     : workspace.periodEnd
       ? fmt(workspace.cancelAtPeriodEnd ? b.endsOn : b.renewsOn, { date: formatDate(workspace.periodEnd, locale, data.preferences.timezone) })
       : "";
@@ -644,13 +708,17 @@ function BillingTab({ data }: { data: ShellData }) {
           <div className="billing-plan-name">
             {planName(workspace.plan, t)}
             {workspace.subscriptionStatus === "test" && <span className="coming-soon">{b.testMode}</span>}
+            {trialing && <span className="coming-soon">{t.plans.trialing}</span>}
           </div>
           <div className="billing-plan-sub">
             {paid && <>{workspace.billingPeriod === "annual" ? t.plans.annual : t.plans.monthly} · <span dir="ltr">{money(price, workspace.currency)}</span>{workspace.billingPeriod === "annual" ? b.perYear : t.common.perMonth}<br /></>}
             {renewLine}
           </div>
         </div>
-        {canManage && <a className="btn-secondary" href="/checkout">{paid ? b.adjustPlan : b.upgrade}</a>}
+        {/* Polar subscriptions are managed in Polar's hosted customer portal (plan, card, invoices, cancel). */}
+        {canManage && (data.billing.portalUrl
+          ? <a className="btn-secondary" href={data.billing.portalUrl} target="_blank" rel="noopener noreferrer">{b.manageBilling}</a>
+          : <a className="btn-secondary" href="/checkout">{paid ? b.adjustPlan : b.upgrade}</a>)}
       </section>
 
       {canManage && (
@@ -694,7 +762,13 @@ function BillingTab({ data }: { data: ShellData }) {
           {paid && (
             <section className="billing-section">
               <h4>{b.cancellation}</h4>
-              {workspace.cancelAtPeriodEnd ? (
+              {data.billing.portalUrl ? (
+                // Polar subscriptions are canceled or resumed in Polar's portal; its webhook updates Yolias.
+                <div className="billing-row">
+                  <div className="billing-row-text">{workspace.cancelAtPeriodEnd ? fmt(b.canceledNote, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale, data.preferences.timezone) : "" }) : b.cancelInPortal}</div>
+                  <a className="btn-secondary" href={data.billing.portalUrl} target="_blank" rel="noopener noreferrer">{b.manageBilling}</a>
+                </div>
+              ) : workspace.cancelAtPeriodEnd ? (
                 <div className="billing-row">
                   <div className="billing-row-text">{fmt(b.canceledNote, { date: workspace.periodEnd ? formatDate(workspace.periodEnd, locale, data.preferences.timezone) : "" })}</div>
                   <button className="btn-secondary" type="button" disabled={pending} onClick={() => setCanceled(false)}>{b.resume}</button>
@@ -843,26 +917,43 @@ function TeamTab({ data }: { data: ShellData }) {
 function IntegrationTab() {
   const { t } = useI18n();
   const it = t.settings.integration;
-  const connectors = [
-    { id: "sheets", name: "Google Sheets", desc: it.sheetsDesc, Icon: GoogleSheetsIcon },
-    { id: "hubspot", name: "HubSpot", desc: it.hubspotDesc, Icon: HubSpotIcon },
+  // Owner brief 2026-10-12: calendar / meetings and the three messaging
+  // channels (email, LinkedIn, WhatsApp). Each shows what really works today:
+  // messages open in the member's own app; account connections (OAuth) and
+  // calendars aren't built yet, so they say so (docs/21).
+  const groups = [
+    { title: it.calendar, items: [
+      { id: "google_calendar", name: "Google Calendar", desc: it.googleCalendarDesc, Icon: CalendarDays, live: false },
+      { id: "google_meet", name: "Google Meet", desc: it.googleMeetDesc, Icon: Video, live: false },
+      { id: "zoom", name: "Zoom", desc: it.zoomDesc, Icon: Video, live: false },
+    ] },
+    { title: it.channels, items: [
+      { id: "gmail", name: "Gmail", desc: it.gmailDesc, Icon: GmailIcon, live: true },
+      { id: "outlook", name: "Outlook", desc: it.outlookDesc, Icon: OutlookIcon, live: true },
+      { id: "linkedin", name: "LinkedIn", desc: it.linkedinDesc, Icon: LinkedInIcon, live: true },
+      { id: "whatsapp", name: "WhatsApp", desc: it.whatsappDesc, Icon: WhatsAppIcon, live: true },
+    ] },
   ];
   return (
     <div className="setting-group">
       <p className="setting-intro">{it.intro}</p>
-      <div className="connector-list">
-        {connectors.map(({ id, name, desc, Icon }) => (
-          // Not connected yet: the button stays disabled until the integration exists.
-          <div className="connector" key={id}>
-            <div className="connector-icon"><Icon /></div>
-            <div className="connector-main">
-              <div className="connector-name">{name}</div>
-              <div className="connector-desc">{desc}</div>
-            </div>
-            <button className="btn-secondary" type="button" disabled>{it.connect}</button>
+      {groups.map((g) => (
+        <div key={g.title} className="connector-group">
+          <div className="setting-label">{g.title}</div>
+          <div className="connector-list">
+            {g.items.map(({ id, name, desc, Icon, live }) => (
+              <div className="connector" key={id}>
+                <div className="connector-icon"><Icon /></div>
+                <div className="connector-main">
+                  <div className="connector-name">{name}</div>
+                  <div className="connector-desc">{desc}</div>
+                </div>
+                <span className={live ? "status-pill paid" : "coming-soon"}>{live ? it.viaYourApp : it.notConnected}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

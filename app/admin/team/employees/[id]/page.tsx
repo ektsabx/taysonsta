@@ -28,7 +28,6 @@ import { EmployeeHrTab, hrTabVisibility } from "./HrTabs";
 import { PhotoUploader } from "../../HrControls";
 import { managedEmployeeIds } from "@/services/bos/team-scope";
 import {
-  ConfirmReceiptButton,
   CorrectionButton,
   HrEditButton,
   LeaveRequestButton,
@@ -56,8 +55,8 @@ export default async function EmployeePage({ params, searchParams }: { params: P
   if (readScope !== "all" && !isSelf && !(emp.user_id && (await canSeeUser(bos, "employees.read", emp.user_id)))) notFound();
   const sees = async (key: Parameters<typeof canSeeUser>[1]) => isSelf ? can(bos, key) : !!emp.user_id && can(bos, key) && (bos.permissions.get(key) === "all" || (await canSeeUser(bos, key, emp.user_id)));
 
-  const [seeAttendance, seeLeave, seeKpis, seePerf, seeDevices, seeOnboarding, seeCommission] = await Promise.all([
-    sees("attendance.read"), sees("leave.read"), sees("kpis.read"), sees("performance.read"), sees("devices.read"), sees("onboarding.read"), sees("commissions.read"),
+  const [seeAttendance, seeLeave, seeKpis, seePerf, seeOnboarding, seeCommission] = await Promise.all([
+    sees("attendance.read"), sees("leave.read"), sees("kpis.read"), sees("performance.read"), sees("onboarding.read"), sees("commissions.read"),
   ]);
   const canSensitive = can(bos, "employees.view_sensitive");
   const canUpdate = can(bos, "employees.update") && (bos.permissions.get("employees.update") === "all" || (!!emp.user_id && (await canSeeUser(bos, "employees.update", emp.user_id))));
@@ -86,7 +85,6 @@ export default async function EmployeePage({ params, searchParams }: { params: P
     { key: "performance", label: "الأداء", hidden: !seePerf || !emp.user_id },
     { key: "commission", label: "العمولات", hidden: !seeCommission || !emp.user_id },
     { key: "leave", label: "الإجازات", hidden: !seeLeave || !emp.user_id },
-    { key: "devices", label: "الأجهزة", hidden: !seeDevices },
     { key: "onboarding", label: "التهيئة", hidden: !seeOnboarding },
     { key: "timeline", label: "السجل الزمني" },
     { key: "history", label: "سجل التدقيق", hidden: !can(bos, "audit.read") },
@@ -105,18 +103,16 @@ export default async function EmployeePage({ params, searchParams }: { params: P
 
   // Tab data (loaded only for the active tab).
   const c = db();
-  const [attendance, kpis, commissions, leave, balances, leaveTypes, devices, checklists, reviews] = await Promise.all([
+  const [attendance, kpis, commissions, leave, balances, leaveTypes, checklists, reviews] = await Promise.all([
     tab === "attendance" || tab === "profile" ? getAttendanceRange(uid, tab === "profile" ? addDays(today, -6) : from, tab === "profile" ? today : to) : Promise.resolve([]),
     tab === "kpis" ? computeUserKpis(uid, today, false) : Promise.resolve([]),
     tab === "commission" ? c.from("commissions").select("id, amount, currency, status, created_at, deals(id, name, deal_number), commission_rules(name)").eq("user_id", uid).order("created_at", { ascending: false }).limit(100).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "leave" ? listLeaveRequests(bos, "all", { view: "all", user: uid }) : Promise.resolve([]),
     tab === "leave" ? getBalances(uid, Number(today.slice(0, 4))) : Promise.resolve([]),
     tab === "leave" ? listLeaveTypes() : Promise.resolve([]),
-    tab === "devices" ? c.from("devices").select("*, device_assignments(id, employee_id, assigned_at, confirmed_by_employee_at, returned_at)").eq("assigned_employee_id", id).then((r) => r.data ?? []) : Promise.resolve([]),
     tab === "onboarding" ? listEmployeeChecklists(id) : Promise.resolve([]),
     tab === "performance" ? c.from("performance_reviews").select("*").eq("user_id", uid).order("period_end", { ascending: false }).then((r) => r.data ?? []) : Promise.resolve([]),
   ]);
-  const deviceHistory = tab === "devices" ? (await c.from("device_assignments").select("*, devices(id, asset_id, type, model)").eq("employee_id", id).order("assigned_at", { ascending: false })).data ?? [] : [];
   const week = summarize(attendance);
   const sched = emp.work_schedules as unknown as { id: string; name: string; timezone: string; start_time: string; end_time: string; work_days: number[]; break_minutes: number; grace_minutes: number } | null;
   const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -312,38 +308,6 @@ export default async function EmployeePage({ params, searchParams }: { params: P
             </div>
           </Card>
           <Card title="الطلبات"><LeaveTable rows={leave} names={names} viewerId={bos.userId} canManage={can(bos, "leave.manage")} /></Card>
-        </>
-      ) : null}
-
-      {tab === "devices" ? (
-        <>
-          <Card title="الأجهزة المسلّمة">
-            {devices.length ? (
-              <BosTable className="bos-table responsive">
-                <tbody>
-                  {devices.map((d) => {
-                    const open = ((d.device_assignments as { id: string; employee_id: string; confirmed_by_employee_at: string | null; returned_at: string | null }[]) ?? []).find((x) => !x.returned_at && x.employee_id === id);
-                    return (
-                      <tr key={d.id}>
-                        <td className="cell-primary"><Link href={`/admin/team/devices/${d.id}`}>{d.asset_id}</Link><span className="cell-sub">{d.model ?? ""} · {d.serial_number ?? ""}</span></td>
-                        <td><StatusBadge map="device_type" value={d.type} /></td>
-                        <td><StatusBadge map="device_security_status" value={d.security_status} /></td>
-                        <td>{d.return_status === "pending_return" ? <StatusBadge map="return_status" value={d.return_status} /> : null}</td>
-                        <td>{open?.confirmed_by_employee_at ? <span className="bos-faint" style={{ fontSize: 12 }}><Tx vars={{ v: formatDate(open.confirmed_by_employee_at) }}>{"استُلم {v}"}</Tx></span> : isSelf ? <ConfirmReceiptButton deviceId={d.id} /> : <span className="bos-faint" style={{ fontSize: 12 }}><Tx>لم يؤكد الاستلام</Tx></span>}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </BosTable>
-            ) : <EmptyState title="لا توجد أجهزة مسلّمة" />}
-          </Card>
-          <Card title="سجل التسليم والاسترجاع">
-            {deviceHistory.length ? deviceHistory.map((h) => (
-              <div key={h.id} style={{ fontSize: 13, marginBottom: 6 }}>
-                {(h.devices as { asset_id: string } | null)?.asset_id} — سُلّم {formatDate(h.assigned_at)}{h.returned_at ? ` · استُرجع ${formatDate(h.returned_at)} (${h.condition_in ?? ""})` : ""}
-              </div>
-            )) : <div className="bos-faint" style={{ fontSize: 13 }}><Tx>لا يوجد.</Tx></div>}
-          </Card>
         </>
       ) : null}
 

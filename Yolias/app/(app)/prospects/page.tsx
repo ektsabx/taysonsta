@@ -1,54 +1,70 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { Bookmark, Download } from "lucide-react";
-import { ProspectGrid, type GridItem } from "@/components/app/ProspectGrid";
+import { Download } from "lucide-react";
+import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
-import { countryLabel, formatNumber } from "@/lib/format";
+import { ImportCsvButton } from "@/components/app/ImportCsvButton";
+import { countryLabel, formatDate, location } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { cardCompany, gridPerson } from "@/lib/results";
+import { sizeBand } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { listCampaigns } from "@/services/campaigns";
-import { filterQuery, listEntities, PAGE_SIZE, parseFilters, peopleByCompany, savedKey, visibleTabs, tabCounts } from "@/services/prospects";
-import type { CompanyRow, ProspectRow } from "@/types/database";
+import { monthlyUsage } from "@/services/workspace";
+import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.prospects} — Yolias` };
 }
 
-// Prospects workspace (final spec phase 5): People, Companies, Local
-// Businesses and Saved (D-159) tabs, all as the same cards as the search
-// results (owner's reference design); search, filters and sort in the URL;
-// selection (also "all matching" across pages), CSV export, contact reveal,
-// messages and decision-maker matching. Contacts reach the browser only once
-// revealed.
+// Prospects (owner brief 2026-10-12): one table for companies, local
+// businesses and people, with type filters (All, Companies, Local businesses,
+// People, Saved) instead of tabs, keyword search, search filters on real
+// columns, sort, selection (also "all matching" across pages), Import CSV and
+// Export CSV. Contacts reach the browser only once revealed (the table only
+// says whether an email / phone exists).
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
   const session = await requireSession();
   const filters = parseFilters(await searchParams);
   const ws = session.workspace.id;
-  const [page, counts, campaigns, t, locale, canCollect] = await Promise.all([listEntities(ws, filters), tabCounts(ws), listCampaigns(ws), getDictionary(), getLocale(), hasProviderFor("person.search")]);
+  const [page, counts, campaigns, funding, usage, t, locale, canCollect] = await Promise.all([
+    listItems(ws, filters), tabCounts(ws), listCampaigns(ws, { imports: true }), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
+  ]);
   const pr = t.prospects;
-  const countries = [...new Set(campaigns.flatMap((c) => (((c.criteria as { countries?: string[] })?.countries ?? []) as string[])))]
-    .map((code) => ({ code, name: countryLabel(code, locale) }));
-  const filtered = Boolean(filters.q || filters.campaign || filters.country || filters.minMatch || filters.verified || filters.city);
-  const n = (v: number) => formatNumber(v, locale);
+  const tz = session.profile.timezone;
+  const countries = [...new Set([
+    ...campaigns.flatMap((c) => (((c.criteria as { countries?: string[] })?.countries ?? []) as string[])),
+    ...page.rows.map((r) => r.country).filter((c): c is string => Boolean(c)),
+  ])].map((code) => ({ code, name: countryLabel(code, locale) }));
+  const active = activeFilterCount(filters);
 
-  const person = (p: ProspectRow & { company: { id: string; name: string } | null }, key = p.id): GridItem =>
-    ({ key, kind: "person", person: gridPerson(p, p.company_id && p.company ? { id: p.company_id, name: p.company.name } : null, locale) });
-  const companyIds = page.tab === "saved"
-    ? page.rows.flatMap((i) => (i.kind === "person" ? [] : [i.row.id]))
-    : page.tab === "companies" || page.tab === "local" ? page.rows.map((c) => c.id) : [];
-  const faces = await peopleByCompany(companyIds);
-  const company = (c: CompanyRow, key = c.id): GridItem => ({ key, kind: "company", company: cardCompany(c, faces.get(c.id) ?? [], locale, canCollect) });
-
-  const items: GridItem[] = page.tab === "saved"
-    ? page.rows.map((i) => (i.kind === "person" ? person(i.row, savedKey(i)) : company(i.row, savedKey(i))))
-    : page.tab === "people" ? page.rows.map((p) => person(p))
-    : page.tab === "jobs" ? []
-    : page.rows.map((c) => company(c));
+  const rows: TableRow[] = page.rows.map((r) => {
+    const person = r.item_type === "person";
+    const employees = r.item_type === "local_business" ? null : r.employee_count != null ? sizeBand(r.employee_count) : null;
+    return {
+      key: r.key,
+      kind: r.item_type,
+      href: person ? `/prospects/person/${r.id}` : `/prospects/company/${r.id}`,
+      name: r.name,
+      sub: person ? r.title : r.domain,
+      imageUrl: r.image_url,
+      domain: r.domain,
+      company: person ? r.company_name : null,
+      companyHref: person && r.company_id ? `/prospects/company/${r.company_id}` : null,
+      industry: r.industry,
+      location: location(r.city, r.country, locale) || null,
+      employees,
+      hasEmail: Boolean(r.email) && r.email_status !== "invalid",
+      hasPhone: Boolean(r.phone),
+      linkedinUrl: r.linkedin_url,
+      match: r.match_score,
+      added: formatDate(filters.tab === "saved" && r.bookmarked_at ? r.bookmarked_at : r.created_at, locale, tz),
+      imported: r.campaign_origin === "import",
+    };
+  });
 
   const query = filterQuery(filters, { page: undefined });
+  const filtered = active > 0 || Boolean(filters.q);
   return (
     <div className="page-view">
       <header className="view-header">
@@ -57,26 +73,27 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           <p>{pr.subtitle}</p>
         </div>
         <div className="view-actions">
+          <ImportCsvButton available={Math.max(usage.contacts.limit - usage.contacts.used, 0)} />
           <a className="btn-secondary" href={`/prospects/export${query ? `?${query}` : ""}`}><Download /> {pr.export}</a>
         </div>
       </header>
 
-      <nav className="entity-tabs" aria-label={pr.title}>
-        {visibleTabs.map((tab) => (
-          <Link key={tab} href={`/prospects${tab === "companies" ? "" : `?tab=${tab}`}`} className={`${tab === filters.tab ? "active" : ""}${tab === "saved" ? " entity-tab-saved" : ""}`} aria-current={tab === filters.tab ? "page" : undefined}>
-            {tab === "saved" && <Bookmark aria-hidden="true" />}{pr.tabs[tab]} <span className="entity-tab-count">{n(counts[tab])}</span>
-          </Link>
-        ))}
-      </nav>
-
       <div className="view-content-padding">
         <Suspense>
-          <ProspectToolbar tab={filters.tab} campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))} countries={countries} />
+          <ProspectToolbar
+            key={query}
+            tab={filters.tab}
+            counts={counts}
+            campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
+            countries={countries}
+            funding={funding}
+            active={active}
+          />
         </Suspense>
-        <ProspectGrid
-          key={`${filters.tab}:${query}:${filters.page}`}
+        <ProspectTable
+          key={`${query}:${filters.page}`}
           tab={filters.tab}
-          items={items}
+          rows={rows}
           total={page.total}
           page={filters.page}
           pageSize={PAGE_SIZE}

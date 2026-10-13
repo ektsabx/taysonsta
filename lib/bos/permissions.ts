@@ -16,9 +16,11 @@ export const permissionActions = [
 export type PermissionAction = (typeof permissionActions)[number];
 
 export const permissionModules = [
-  "dashboard", "leads", "deals", "activities", "proposals", "contracts", "invoices", "payments", "commissions", "expenses", "vendors", "revenue", "clients", "contacts", "communications", "approvals", "files", "employees", "attendance", "leave", "overtime", "kpis", "performance", "onboarding", "devices", "chat", "meetings", "email", "notifications", "knowledge", "tickets", "reports", "settings", "users", "roles", "audit", "calendar", "search", "payroll", "recruitment", "hr_documents", "hr_requests", "integrations", "documents", "conversations", "content", "ads", "imports", "location",
+  "dashboard", "leads", "deals", "activities", "proposals", "contracts", "invoices", "payments", "commissions", "expenses", "vendors", "revenue", "clients", "contacts", "communications", "approvals", "files", "employees", "attendance", "leave", "overtime", "kpis", "performance", "onboarding", "chat", "meetings", "email", "notifications", "knowledge", "tickets", "reports", "settings", "users", "roles", "audit", "calendar", "search", "payroll", "recruitment", "hr_documents", "hr_requests", "integrations", "documents", "conversations", "imports", "location",
   // Yolias platform modules (docs/09-yolias-admin.md §B).
   "platform",
+  // Yolias affiliate program (D-178).
+  "affiliates", "affiliate_payouts",
 ] as const;
 
 export type PermissionModule = (typeof permissionModules)[number];

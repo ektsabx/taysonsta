@@ -221,6 +221,13 @@ export interface InboxFilters {
   customer?: string;
   // Spam folder (docs/bos/37 §3): spam is hidden from every other view.
   spam?: boolean;
+  /** A specific staff member (managers' view). */
+  assignee?: string;
+  /** Last activity from / to (YYYY-MM-DD). */
+  from?: string;
+  to?: string;
+  /** Who is answering: the AI agent, or people. */
+  responder?: "ai" | "human";
 }
 
 export async function listConversations(bos: BosUser, scope: Scope, f: InboxFilters, limit = 100) {
@@ -236,6 +243,11 @@ export async function listConversations(bos: BosUser, scope: Scope, f: InboxFilt
   if (f.team) q = q.eq("team_id", f.team);
   if (f.priority) q = q.eq("priority", f.priority as Conversation["priority"]);
   if (f.customer) q = q.eq("customer_id", f.customer);
+  if (f.assignee && /^[0-9a-f-]{36}$/i.test(f.assignee)) q = q.eq("assignee_id", f.assignee);
+  if (f.from && /^\d{4}-\d{2}-\d{2}$/.test(f.from)) q = q.gte("last_message_at", f.from);
+  if (f.to && /^\d{4}-\d{2}-\d{2}$/.test(f.to)) q = q.lte("last_message_at", `${f.to}T23:59:59Z`);
+  if (f.responder === "ai") q = q.eq("ai_active", true);
+  else if (f.responder === "human") q = q.eq("ai_active", false);
   if (f.q?.trim()) {
     const term = f.q.trim().replace(/[,()%]/g, " ");
     const { data: custs } = await db().from("support_customers").select("id").or(`name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,company.ilike.%${term}%`).limit(200);
@@ -324,17 +336,20 @@ async function openConversation(o: { customer: SupportCustomer; channel: Channel
 // Inbound from a channel (email webhook now; widget / WhatsApp later).
 // Idempotent on the provider message id; threads by conversation number in
 // the subject ([CV-000123]) or by the channel's thread id.
-export async function receiveInbound(input: { channel: Channel; customer: CustomerInput; subject?: string | null; body: string; external_message_id?: string | null; external_thread_id?: string | null; attachments?: unknown[]; open?: OpenOptions; customer_id?: string | null; threadOnly?: boolean }) {
+export async function receiveInbound(input: { channel: Channel; customer: CustomerInput; subject?: string | null; body: string; external_message_id?: string | null; external_thread_id?: string | null; attachments?: unknown[]; open?: OpenOptions; customer_id?: string | null; threadOnly?: boolean; conversation_id?: string | null }) {
   const body = input.body.trim().slice(0, 50_000);
   if (!body) return null;
   const c = db();
   const known = input.customer_id ? (await c.from("support_customers").select("*").eq("id", input.customer_id).maybeSingle()).data : null;
   const customer = known ?? (await findOrCreateCustomer({ ...input.customer, channel: input.channel, source: input.channel }));
   let conv: Conversation | null = null;
+  // A conversation the caller already proved belongs to this sender (the web
+  // widget checks ownership first); a resolved one is reopened below.
+  if (input.conversation_id) conv = (await c.from("bos_conversations").select("*").eq("id", input.conversation_id).eq("channel", input.channel).maybeSingle()).data;
   // threadOnly (web widget): a visitor only ever continues its own session's
   // thread — typing someone else's email must not reveal their conversations.
   const token = input.threadOnly ? undefined : /\[(CV-\d{6,})\]/.exec(input.subject ?? "")?.[1];
-  if (token) conv = (await c.from("bos_conversations").select("*").eq("number", token).maybeSingle()).data;
+  if (!conv && token) conv = (await c.from("bos_conversations").select("*").eq("number", token).maybeSingle()).data;
   if (conv && conv.customer_id !== customer.id) {
     // A reply from another address to a known thread: accept only if it links to the same CRM contact/client.
     const { data: owner } = await c.from("support_customers").select("client_id").eq("id", conv.customer_id).maybeSingle();

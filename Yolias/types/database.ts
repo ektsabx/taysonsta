@@ -11,14 +11,16 @@ type Table<Row, Required extends keyof Row, Rel = []> = {
 };
 
 export type WorkspaceRole = "owner" | "admin" | "member";
-export type Plan = "free" | "pro" | "growth";
+export type Plan = "free" | "pro" | "growth" | "scale";
 export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
 /** One USD price for every country (D-131). */
 export type Currency = "USD";
 /** Currency a provider actually charges in (prices are always USD). */
 export type ChargeCurrency = "USD" | "EGP";
-export type SubscriptionStatus = "none" | "active" | "test" | "canceled" | "past_due";
+export type SubscriptionStatus = "none" | "trialing" | "active" | "test" | "canceled" | "past_due";
+/** Who bills a workspace: Paymob in Egypt, Polar everywhere else. */
+export type BillingProvider = "paymob" | "polar";
 export type StrategyStatus = "understanding" | "setup" | "ready" | "failed";
 export type CampaignStatus =
   | "created" | "queued" | "awaiting_source" | "scheduled"
@@ -58,6 +60,13 @@ export type WorkspaceRow = {
   cancel_at_period_end: boolean;
   billing_currency: Currency;
   billing_country: string | null;
+  trial_started_at: string | null;
+  trial_ends_at: string | null;
+  /** A converted trial's usage from an earlier month: {period, prospects, emails, contacts}. */
+  trial_carry: Json | null;
+  billing_provider: BillingProvider | null;
+  polar_customer_id: string | null;
+  polar_subscription_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -87,6 +96,9 @@ export type ProfileRow = {
   avatar_url: string | null;
   workspace_id: string | null;
   onboarded_at: string | null;
+  /** Trustpilot request: when it was first shown and what the user did (once per user). */
+  review_prompted_at: string | null;
+  review_prompt_action: "shown" | "opened" | "dismissed" | null;
   theme: "light" | "dark";
   text_size: "compact" | "normal" | "large";
   language: "en" | "ar";
@@ -142,6 +154,8 @@ export type CampaignRow = {
   started_at: string | null;
   completed_at: string | null;
   partial_reason: string | null;
+  /** "import": one CSV file put in Prospects (not a search). */
+  origin: "search" | "import";
   created_at: string;
   updated_at: string;
 };
@@ -343,7 +357,7 @@ export type SubscriptionEventRow = {
   id: string;
   workspace_id: string;
   plan: Plan;
-  status: "activated" | "changed" | "canceled" | "resumed" | "ended" | "renewed" | "past_due";
+  status: "activated" | "changed" | "canceled" | "resumed" | "ended" | "renewed" | "past_due" | "trial_started" | "trial_converted" | "trial_ended";
   amount: number;
   currency: Currency;
   mode: "test" | "live";
@@ -385,7 +399,26 @@ export type ContactMessageRow = {
   locale: string;
   user_id: string | null;
   created_at: string;
+  kind: SupportMessageKind;
+  status: SupportMessageStatus;
+  subject: string | null;
+  category: BugCategory | null;
+  steps: string | null;
+  page_path: string | null;
+  app_release: string | null;
+  browser: string | null;
+  viewport: string | null;
+  screenshot_path: string | null;
+  workspace_id: string | null;
+  ip_hash: string | null;
+  notified_at: string | null;
+  status_changed_at: string | null;
+  status_changed_by: string | null;
+  updated_at: string;
 };
+export type SupportMessageKind = "contact" | "bug_report";
+export type SupportMessageStatus = "new" | "in_progress" | "resolved";
+export type BugCategory = "bug" | "feedback" | "billing" | "data" | "account" | "other";
 
 
 export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
@@ -415,12 +448,75 @@ export type PaymentRow = {
   created_at: string;
   paid_at: string | null;
   updated_at: string;
+  /** Plan started / pack granted for this payment (retried until set). */
+  fulfilled_at: string | null;
+  fulfil_claimed_at: string | null;
+  /** Hosted checkout link while pending, reused by a repeated click. */
+  checkout_url: string | null;
 };
 export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
 export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
 export type ProspectPackRow = { id: string; prospects: number; price_usd: number; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
 
-export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; updated_by: string | null; updated_at: string };
+/** Emails and uploaded contacts this month (limits_summary). */
+export type LimitsSummary = { period_start: string; emails_limit: number; emails_used: number; contacts_limit: number; contacts_used: number };
+
+export type BillingWebhookEventRow = {
+  id: number;
+  provider: "polar";
+  webhook_id: string;
+  event_type: string;
+  payload: Json;
+  status: "received" | "processed" | "ignored" | "failed";
+  note: string | null;
+  received_at: string;
+  processed_at: string | null;
+};
+
+/** One row of the unified Prospects table (view prospect_items). */
+export type ProspectItemRow = {
+  key: string;
+  item_type: "company" | "local_business" | "person";
+  id: string;
+  workspace_id: string;
+  campaign_id: string;
+  campaign_name: string | null;
+  campaign_origin: "search" | "import" | null;
+  name: string;
+  title: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  domain: string | null;
+  website: string | null;
+  industry: string | null;
+  description: string | null;
+  city: string | null;
+  country: string | null;
+  employee_count: number | null;
+  funding_stage: string | null;
+  hiring_roles: number | null;
+  hiring: boolean;
+  signals_text: string | null;
+  email: string | null;
+  email_status: EmailStatus | null;
+  phone: string | null;
+  whatsapp: string | null;
+  linkedin_url: string | null;
+  image_url: string | null;
+  match_score: number | null;
+  saved_at: string | null;
+  bookmarked_at: string | null;
+  created_at: string;
+  revealed: boolean;
+  people_titles: string | null;
+  people_found: number;
+};
+
+export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; emails_per_month: number; contacts_per_month: number; updated_by: string | null; updated_at: string };
+
+/** Per-user daily counters of LLM-backed actions (daily limits, 2026-10-12). */
+export type DailyUsageKind = "search" | "ai_message";
+export type DailyUsageRow = { user_id: string; day: string; kind: DailyUsageKind; used: number; updated_at: string };
 
 export type UsageLedgerKind = "reserve" | "consume" | "release" | "grant" | "adjust";
 export type UsageLedgerRow = {
@@ -558,6 +654,49 @@ export type IntelCoverageRow = {
 
 export type IntelSuppressionRow = { id: string; kind: "email" | "domain" | "linkedin" | "person"; value: string; reason: string | null; created_by: string | null; created_at: string };
 
+// Affiliate program (supabase/migrations/20261109000000_affiliates.sql).
+export type AffiliateStatus = "pending" | "approved" | "rejected" | "suspended" | "disabled";
+export type CommissionStatus = "pending" | "approved" | "available" | "processing" | "paid" | "rejected" | "reversed";
+export type PayoutStatus = "requested" | "approved" | "processing" | "paid" | "rejected" | "failed";
+export type AffiliateProgramVersionRow = { id: number; settings: Json; terms_version: string; terms_text: string; note: string | null; created_by: string; created_at: string };
+export type AffiliateRow = {
+  id: string; user_id: string | null; email: string; code: string; status: AffiliateStatus; answers: Json; terms_version: string; terms_accepted_at: string;
+  program_version_id: number | null; payout_method: string | null; payout_details: string | null; decision_reason: string | null; decided_at: string | null;
+  decided_by: string | null; ip_hash: string | null; risk_flags: string[]; created_at: string; updated_at: string;
+};
+export type AffiliateVisitRow = { id: string; affiliate_id: string; ip_hash: string | null; landing_path: string | null; campaign: string | null; referrer_host: string | null; created_at: string };
+export type AffiliateReferralRow = {
+  id: string; affiliate_id: string; referred_user_id: string | null; workspace_id: string | null; visit_id: string | null; visit_at: string | null; attributed_at: string;
+  model: "first_touch" | "last_touch"; method: "cookie" | "manual"; campaign: string | null; status: "active" | "rejected"; reject_reason: string | null;
+  risk_flags: string[]; signup_ip_hash: string | null; program_version_id: number | null; created_at: string;
+};
+export type AffiliateCommissionRow = {
+  id: string; affiliate_id: string; referral_id: string | null; payment_id: string | null; kind: "payment" | "reversal" | "adjustment"; status: CommissionStatus;
+  base_cents: number; amount_cents: number; currency: "USD"; rule: Json; program_version_id: number | null; payment_seq: number | null; payment_kind: string | null;
+  mode: "test" | "live"; on_hold: boolean; hold_reasons: string[]; available_at: string; approved_at: string | null; paid_at: string | null; payout_id: string | null;
+  reversal_of: string | null; reason: string | null; created_by: string; created_at: string; updated_at: string;
+};
+export type AffiliatePayoutRow = {
+  id: string; affiliate_id: string; amount_cents: number; currency: "USD"; method: string; details_snapshot: string | null; status: PayoutStatus; reference: string | null;
+  reason: string | null; admin_note: string | null; requested_at: string; decided_at: string | null; decided_by: string | null; paid_at: string | null; paid_by: string | null; updated_at: string;
+};
+export type AffiliateEventRow = { id: number; affiliate_id: string | null; actor: string; action: string; target_type: string | null; target_id: string | null; before: Json | null; after: Json | null; created_at: string };
+export type AffiliateBalances = { pending_cents: number; approved_cents: number; available_cents: number; processing_cents: number; paid_cents: number; reversed_cents: number; rejected_cents: number; on_hold_cents: number };
+
+// Status page (supabase/migrations/20261109000100_status_page.sql).
+export type ServiceStatus = "operational" | "degraded" | "partial_outage" | "major_outage" | "no_data";
+export type StatusComponentRow = {
+  id: string; name_en: string; name_ar: string; description_en: string | null; description_ar: string | null; sort: number; is_public: boolean;
+  check_kind: "website" | "database" | "auth" | "discovery" | "ai" | "payments" | "email" | "manual"; check_enabled: boolean;
+  last_status: ServiceStatus | null; last_checked_at: string | null; last_latency_ms: number | null; fail_streak: number; updated_at: string;
+};
+export type StatusIncidentRow = {
+  id: string; title: string; kind: "incident" | "maintenance"; impact: "degraded" | "partial_outage" | "major_outage" | "maintenance";
+  status: "investigating" | "identified" | "monitoring" | "resolved" | "scheduled" | "in_progress" | "completed"; components: string[];
+  started_at: string; resolved_at: string | null; scheduled_for: string | null; scheduled_until: string | null; created_by: string; created_at: string; updated_at: string;
+};
+export type StatusIncidentUpdateRow = { id: string; incident_id: string; status: string; body: string; created_by: string; created_at: string };
+
 type Rel = [];
 
 export interface Database {
@@ -606,11 +745,52 @@ export interface Database {
       agent_pending_actions: Table<AgentPendingActionRow, "workspace_id" | "tool" | "input" | "summary">;
       agent_eval_cases: Table<AgentEvalCaseRow, "name" | "prompt">;
       agent_eval_runs: Table<AgentEvalRunRow, "policy_version">;
+      daily_usage: Table<DailyUsageRow, "user_id" | "day" | "kind">;
+      user_phones: Table<{ user_id: string; phone: string; updated_at: string }, "user_id" | "phone">;
+      /** Managed in Yolias Admin (Recruitment → Jobs); public read = published only. */
+      career_jobs: Table<{ id: string; slug: string; title: string; team: string; location: string; employment_type: string; summary: string; role_description: string; responsibilities: string; requirements: string; ideal_candidate: string; disqualifiers: string; is_published: boolean; on_yolias: boolean; published_at: string | null; created_at: string; updated_at: string }, "title" | "slug">;
+      affiliate_program_versions: Table<AffiliateProgramVersionRow, "settings" | "terms_version" | "terms_text">;
+      affiliates: Table<AffiliateRow, "email" | "code" | "terms_version" | "terms_accepted_at">;
+      affiliate_visits: Table<AffiliateVisitRow, "affiliate_id">;
+      affiliate_referrals: Table<AffiliateReferralRow, "affiliate_id" | "model">;
+      affiliate_commissions: Table<AffiliateCommissionRow, "affiliate_id" | "kind" | "status" | "amount_cents">;
+      affiliate_payouts: Table<AffiliatePayoutRow, "affiliate_id" | "amount_cents" | "method">;
+      affiliate_events: Table<AffiliateEventRow, "actor" | "action">;
+      status_components: Table<StatusComponentRow, "id" | "name_en" | "name_ar" | "check_kind">;
+      status_checks: Table<{ id: number; component_id: string; status: ServiceStatus; latency_ms: number | null; detail: string | null; checked_at: string }, "component_id" | "status">;
+      status_daily: Table<{ component_id: string; day: string; total: number; ok: number; degraded: number; outage: number }, "component_id" | "day">;
+      status_incidents: Table<StatusIncidentRow, "title" | "impact" | "status" | "created_by">;
+      status_incident_updates: Table<StatusIncidentUpdateRow, "incident_id" | "status" | "body" | "created_by">;
+      affiliate_notes: Table<{ id: string; affiliate_id: string; author: string; body: string; created_at: string }, "affiliate_id" | "author" | "body">;
+      billing_webhook_events: Table<BillingWebhookEventRow, "provider" | "webhook_id" | "event_type" | "payload">;
     };
-    Views: { [_ in never]: never };
+    Views: {
+      prospect_items: { Row: ProspectItemRow; Relationships: [] };
+    };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
+      consume_daily_usage: { Args: { p_user: string; p_kind: DailyUsageKind; p_limit: number }; Returns: number | null };
+      release_daily_usage: { Args: { p_user: string; p_kind: DailyUsageKind }; Returns: undefined };
+      email_domain_blocked: { Args: { p_email: string }; Returns: boolean };
+      admin_db_size: { Args: Record<string, never>; Returns: number };
+      status_record: { Args: { p_component: string; p_status: ServiceStatus; p_latency: number | null; p_detail: string | null }; Returns: number };
+      affiliate_settings: { Args: Record<string, never>; Returns: { version_id: number; settings: Json; terms_version: string }[] };
+      affiliate_attribute_signup: { Args: { p_user: string; p_visit: string; p_ip_hash: string | null }; Returns: string | null };
+      affiliate_record_payment: { Args: { p_payment: string }; Returns: string | null };
+      affiliate_reverse_commission: { Args: { p_commission: string; p_reason: string; p_actor: string }; Returns: string };
+      affiliate_mature: { Args: Record<string, never>; Returns: { out_commission: string; out_affiliate: string }[] };
+      affiliate_set_commission: { Args: { p_commission: string; p_action: string; p_actor: string; p_reason: string | null }; Returns: string };
+      affiliate_adjust: { Args: { p_affiliate: string; p_amount_cents: number; p_reason: string; p_actor: string }; Returns: string };
+      affiliate_balances: { Args: { p_affiliate: string }; Returns: AffiliateBalances[] };
+      affiliate_request_payout: { Args: { p_affiliate: string; p_method: string }; Returns: { out_payout: string | null; out_error: string | null }[] };
+      affiliate_set_payout: { Args: { p_payout: string; p_to: string; p_actor: string; p_reference: string | null; p_reason: string | null; p_note: string | null }; Returns: string };
+      affiliate_overview: { Args: { p_since: string }; Returns: Json };
+      affiliate_stats: { Args: { p_affiliate: string; p_since: string }; Returns: { visits: number; signups: number; paying: number }[] };
+      affiliate_log: { Args: { p_affiliate: string | null; p_actor: string; p_action: string; p_type: string | null; p_id: string | null; p_before: Json | null; p_after: Json | null }; Returns: undefined };
       usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
+      limits_summary: { Args: { p_ws: string }; Returns: LimitsSummary[] };
+      convert_trial: { Args: { p_ws: string }; Returns: boolean };
+      import_contacts: { Args: { p_ws: string; p_name: string; p_rows: Json }; Returns: Json };
       campaign_usage: { Args: { p_campaign: string }; Returns: { consumed: number; reserved: number }[] };
       can_read_conversation: { Args: { p_id: string }; Returns: boolean };
       set_mailbox_token: { Args: { p_mailbox: string; p_token: string }; Returns: undefined };

@@ -1,13 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies, headers } from "next/headers";
+import { attributeSignup } from "@/lib/affiliates";
+import { AFFILIATE_COOKIE } from "@/lib/affiliates/program";
 import { z } from "zod";
 import { capture } from "@/lib/analytics/server";
 import { companyProfileSchema, type CompanyProfile } from "@/lib/company-profile";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/session";
-import { welcome } from "@/lib/email/events";
+import { communityInvite, welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
 import { detectPreferences } from "@/lib/regions";
@@ -57,7 +60,17 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     if (wsError) return { error: t.companyFailed, fields };
   }
 
+  // Retry of the referral attribution made at sign-in (auth/confirm), in case
+  // it didn't go through. Idempotent: a first referral is never replaced.
+  const jar = await cookies();
+  const ref = jar.get(AFFILIATE_COOKIE)?.value;
+  if (ref) {
+    const h = await headers();
+    await attributeSignup(session.userId, ref, h.get("cf-connecting-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null);
+  }
+
   await welcome(session.userId, parsed.data.full_name);
+  await communityInvite(session.userId, parsed.data.full_name);
   await capture(session.userId, "onboarding_completed", {
     workspace_id: session.workspace.id, role: session.role, plan: session.workspace.plan,
     has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null,

@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { signInRequested } from "@/lib/email/events";
+import { isDisposableEmail, normalizeEmail } from "@/lib/auth/email-policy";
+import { verifyCaptcha } from "@/lib/auth/captcha";
 
 export type MagicLinkMode = "login" | "signup" | "recover";
 export type MagicLinkState = { status: "idle" } | { status: "sent"; email: string } | { status: "error"; message: string; email?: string };
@@ -47,11 +49,25 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
 
 // Email: magic link. Supabase emails a one-time sign-in link — no password, no
 // numeric code. Login and recovery never create accounts; signup does.
-export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
+export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
   const t = (await getDictionary()).auth.errors;
+  // "Resend" after a sign-up: the account already exists (created by the
+  // first link), so it is a plain sign-in that can never create an account.
+  const mode: MagicLinkMode = requested === "signup" && formData.get("resend") === "1" ? "login" : requested;
   const parsed = emailSchema.safeParse(formData.get("email"));
   if (!parsed.success) return { status: "error", message: t.invalidEmail };
-  const email = parsed.data;
+  const email = normalizeEmail(parsed.data);
+
+  // New accounts only: a human check (Turnstile) and no disposable inboxes.
+  // Both are enforced on the server; the database refuses disposable domains too.
+  if (mode === "signup") {
+    if (await isDisposableEmail(email)) return { status: "error", email, message: t.disposableEmail };
+    const h = await headers();
+    const token = formData.get("cf-turnstile-response");
+    const captcha = await verifyCaptcha(typeof token === "string" ? token : null, h.get("cf-connecting-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null);
+    const captchaError = { missing: t.captchaMissing, failed: t.captchaFailed, expired: t.captchaExpired, unavailable: t.captchaUnavailable }[captcha as "missing"];
+    if (captchaError) return { status: "error", email, message: captchaError };
+  }
 
   // A plan picked on /pricing is remembered so the user lands on checkout
   // right after confirming their email.
@@ -74,6 +90,7 @@ export async function sendMagicLink(mode: MagicLinkMode, _prev: MagicLinkState, 
   });
 
   if (error) {
+    if (mode === "signup" && /disposable_email_domain/i.test(error.message)) return { status: "error", email, message: t.disposableEmail };
     if (mode !== "signup" && /signups? not allowed|user not found/i.test(error.message)) {
       return { status: "error", email, message: t.noAccount };
     }

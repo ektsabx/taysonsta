@@ -3,7 +3,7 @@
 // inflate — no third-party parser, no macros or formulas executed (cell
 // values only). Output: headers + rows of strings.
 
-import { parseCsv } from "@/lib/bos/ads/csv";
+import { parseCsv } from "@/lib/bos/import/csv";
 
 export interface Parsed { headers: string[]; rows: string[][] }
 export const MAX_ROWS = 20000;

@@ -99,7 +99,7 @@ test("AI answers from the KB with sources; visitor never sees internal notes; ha
   assert.equal(await agentRespond(r.conversationId, { generate: answer({}) }), null, "no double answer");
 
   const s2 = (await db().from("widget_sessions").select("*").eq("id", s.id).single()).data!;
-  await postVisitorMessage(widget, s2, { body: "I want a human please" });
+  await postVisitorMessage(widget, s2, { body: "I want a human please", conversationId: r.conversationId });
   const h = await agentRespond(r.conversationId, { generate: answer({ answer: "x", confidence: 1 }) });
   assert.equal(h?.kind, "handoff");
   assert.equal((h as { reason: string }).reason, "requested");
@@ -108,7 +108,7 @@ test("AI answers from the KB with sources; visitor never sees internal notes; ha
   assert.ok(after1!.handed_off_at);
   const { count: internal } = await db().from("conversation_messages").select("id", { count: "exact", head: true }).eq("conversation_id", r.conversationId).eq("direction", "internal");
   assert.equal(internal, 1, "summary for the agent");
-  const seen = await visitorMessages(s2);
+  const seen = await visitorMessages(widget, s2, r.conversationId);
   assert.deepEqual(seen.messages.map((m) => m.from), ["me", "ai", "me", "ai"]);
   assert.ok(!seen.messages.some((m) => m.body.startsWith("🤖")), "internal summary hidden");
 
@@ -116,7 +116,10 @@ test("AI answers from the KB with sources; visitor never sees internal notes; ha
   const intruder = (await sessionFor(widget, await startSession(widget, { origin: "https://shop.example.com" })))!;
   const r2 = await postVisitorMessage(widget, intruder, { body: "hello", email });
   assert.notEqual(r2.conversationId, r.conversationId);
-  const iSeen = await visitorMessages((await db().from("widget_sessions").select("*").eq("id", intruder.id).single()).data!);
+  const iSeen = await visitorMessages(widget, (await db().from("widget_sessions").select("*").eq("id", intruder.id).single()).data!, null);
+  // Nor can it open the first visitor's conversation by id.
+  assert.equal((await visitorMessages(widget, intruder, r.conversationId)).messages.length, 0);
+  await assert.rejects(postVisitorMessage(widget, intruder, { body: "let me in", conversationId: r.conversationId }), ValidationError);
   assert.equal(iSeen.messages.length, 1);
 });
 

@@ -165,24 +165,6 @@ export async function MyDealsWidget({ bos }: Props) {
   );
 }
 
-// Deal Radar summary (docs/bos/30 §17): near-closing value per currency
-// (actual + weighted), overdue, stale and manager-intervention counts.
-export async function DealRadarWidget({ bos }: Props) {
-  const { dealRadar } = await import("@/services/bos/deal-radar");
-  const r = await dealRadar(bos, {});
-  if (!r.rows.length) return <EmptyState title="لا توجد صفقات على الرادار" />;
-  return (
-    <List>
-      {r.summary.nearClosing.map((x) => (
-        <Row key={x.currency} href="/admin/sales/radar?flag=nearClosing" title={<Tx vars={{ n: String(x.count) }}>{"قريبة من الإغلاق: {n}"}</Tx>} meta={<Tx vars={{ w: `${x.weighted.toLocaleString("en-US")} ${x.currency}` }}>{"مرجّح {w}"}</Tx>} right={<Money value={x.value} currency={x.currency} />} />
-      ))}
-      <Row href="/admin/sales/radar?flag=overdue" title={<Tx>متأخرة عن تاريخ الإغلاق</Tx>} right={<b>{r.summary.overdue}</b>} />
-      <Row href="/admin/sales/radar?flag=stale" title={<Tx>بلا نشاط حديث</Tx>} right={<b>{r.summary.stale}</b>} />
-      <Row href="/admin/sales/radar?flag=intervention" title={<Tx>تحتاج تدخل المدير</Tx>} right={<b>{r.summary.intervention}</b>} />
-    </List>
-  );
-}
-
 export async function NotificationsWidget({ bos }: Props) {
   const { data } = await db().from("bos_notifications").select("id, title, link, created_at, read_at").eq("user_id", bos.userId).order("created_at", { ascending: false }).limit(6);
   if (!data?.length) return <EmptyState title="لا إشعارات" />;
@@ -543,7 +525,6 @@ export const widgetComponents: Record<string, (props: Props) => Promise<React.Re
   upcoming_meetings: UpcomingMeetingsWidget,
   my_leads: MyLeadsWidget,
   my_deals: MyDealsWidget,
-  deal_radar: DealRadarWidget,
   notifications: NotificationsWidget,
   personal_kpis: PersonalKpisWidget,
   recent_activity: RecentActivityWidget,

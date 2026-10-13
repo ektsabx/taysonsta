@@ -22,17 +22,21 @@ export function SiteFooter() {
     {
       title: s.resources,
       links: [
+        { href: "/use-cases", label: s.useCases },
         { href: "/help-center", label: s.helpCenter },
         { href: "/docs", label: s.documentation },
         { href: "/pricing#faq", label: s.faq },
         { href: "/blog", label: s.blog },
         { href: "/contact?topic=support", label: s.contactSupport },
+        { href: "/status", label: s.status },
       ],
     },
     {
       title: s.company,
       links: [
         { href: "/about", label: s.about },
+        { href: "/careers", label: s.careers },
+        { href: "/affiliates", label: s.affiliates },
         { href: "/contact", label: s.contact },
       ],
     },

@@ -84,12 +84,6 @@ registerWebhookHandler("telegram", async (payload) => {
   return "processed";
 });
 
-// DocuSign Connect (docs/bos/30 §19): envelope / recipient status → signature requests.
-registerWebhookHandler("docusign", async (payload) => {
-  const { handleDocusignWebhook } = await import("@/services/bos/esign");
-  return handleDocusignWebhook(payload);
-});
-
 async function sha256Hex(text: string) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");

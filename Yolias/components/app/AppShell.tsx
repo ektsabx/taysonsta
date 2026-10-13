@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowUpRight, BookOpen, ChevronRight, CircleHelp, MessageCircle,
-  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, PanelLeftClose, PanelLeftOpen,
+  ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, HandCoins, MessageCircle, UsersRound,
+  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { planLabel } from "@/lib/plans";
+import { planLabel, topPlan } from "@/lib/plans";
 import { signOut } from "@/app/(app)/settings/actions";
 import { SettingsModal } from "./SettingsModal";
 import { SupportLink } from "@/components/SupportLink";
+import { COMMUNITY_URL } from "@/lib/community";
+import { FeedbackModal } from "./FeedbackModal";
+import { ReviewPrompt } from "./ReviewPrompt";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
@@ -35,12 +38,10 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "team", icon: Users },
 ];
 
+// Phones and small tablets (same breakpoint as the CSS): the sidebar is a
+// drawer over the page, hidden until the menu button opens it (like Claude).
 const NARROW = "(max-width: 900px)";
-function subscribeNarrow(onChange: () => void) {
-  const m = window.matchMedia(NARROW);
-  m.addEventListener("change", onChange);
-  return () => m.removeEventListener("change", onChange);
-}
+const isNarrow = () => typeof window !== "undefined" && window.matchMedia(NARROW).matches;
 
 export function AppShell({ data, initialClosed, children }: { data: ShellData; initialClosed: boolean; children: React.ReactNode }) {
   const { t } = useI18n();
@@ -52,24 +53,58 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  // On phones the open sidebar covers the page: it starts closed and closes
-  // after every navigation; the saved desktop preference is left as is.
-  const narrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false);
-  const [mobileOpenOn, setMobileOpenOn] = useState<string | null>(null);
-  const sidebarClosed = narrow ? mobileOpenOn !== pathname : closed;
+  // Desktop: a collapsible sidebar, remembered in a cookie so the server
+  // renders the same state. Phones: a separate drawer state that the CSS keeps
+  // hidden until opened, so the first paint never shows a half-open menu.
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Remembered in a cookie so the server renders the same state (no flash).
   const toggleSidebar = (next: boolean) => {
-    if (narrow) {
-      setMobileOpenOn(next ? null : pathname);
+    if (isNarrow()) {
+      setMobileOpen(!next);
       return;
     }
     setClosed(next);
     document.cookie = `${SIDEBAR_COOKIE}=${next ? "closed" : "open"}; path=/; max-age=31536000; samesite=lax`;
   };
+
+  // The drawer closes after every navigation.
+  const [openedOn, setOpenedOn] = useState(pathname);
+  if (openedOn !== pathname) {
+    setOpenedOn(pathname);
+    if (mobileOpen) setMobileOpen(false);
+  }
+
+  // While the drawer is open: Escape closes it, the page behind doesn't
+  // scroll, focus moves into it and returns to the menu button afterwards.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
+    document.addEventListener("keydown", onKey);
+    const main = document.querySelector<HTMLElement>(".main-area");
+    const prev = main?.style.overflow;
+    if (main) main.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    const trigger = menuButtonRef.current;
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (main) main.style.overflow = prev ?? "";
+      trigger?.focus();
+    };
+  }, [mobileOpen]);
+
+  // Leaving the phone layout (rotation, resize) never leaves the drawer open.
+  useEffect(() => {
+    const m = window.matchMedia(NARROW);
+    const onChange = () => { if (!m.matches) setMobileOpen(false); };
+    m.addEventListener("change", onChange);
+    return () => m.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -108,12 +143,19 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
   return (
     <ToastProvider closeLabel={t.common.close}>
-    <div className={`app-shell${sidebarClosed ? " sidebar-closed" : ""}`}>
-      <aside className="sidebar">
+    <div className={`app-shell${closed ? " sidebar-closed" : ""}${mobileOpen ? " mobile-open" : ""}`}>
+      {mobileOpen && <div className="sidebar-backdrop" aria-hidden="true" onClick={() => setMobileOpen(false)} />}
+      <aside
+        className="sidebar"
+        id="app-sidebar"
+        aria-label={t.nav.menu}
+        // A tap on any link inside closes the drawer, even when it leads to the current page.
+        onClick={(e) => { if (mobileOpen && (e.target as HTMLElement).closest("a")) setMobileOpen(false); }}
+      >
         <button className="sidebar-toggle sidebar-open-button" type="button" aria-label={t.nav.openSidebar} onClick={() => toggleSidebar(false)}>
           <PanelLeftOpen className="flip-rtl" />
         </button>
-        <button className="sidebar-toggle sidebar-close-button" type="button" aria-label={t.nav.closeSidebar} onClick={() => toggleSidebar(true)}>
+        <button ref={closeButtonRef} className="sidebar-toggle sidebar-close-button" type="button" aria-label={t.nav.closeSidebar} onClick={() => toggleSidebar(true)}>
           <PanelLeftClose className="flip-rtl" />
         </button>
 
@@ -172,13 +214,17 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Plug />
               <span>{t.settings.tabs.integration}</span>
             </button>
+            <Link className="menu-item" href="/affiliate" onClick={() => setMenuOpen(false)}>
+              <HandCoins />
+              <span>{t.affiliate.nav}</span>
+            </Link>
             <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
-              <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen((o) => !o)}>
+              <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}>
                 <CircleHelp />
                 <span>{t.nav.getHelp}</span>
                 <ChevronRight className="menu-chevron flip-rtl" />
               </button>
-              {helpOpen && (
+              {helpOpen && menuOpen && (
                 <div className="menu-flyout" role="menu">
                   <Link className="menu-item" role="menuitem" href="/help-center" target="_blank" onClick={() => setMenuOpen(false)}>
                     <BookOpen />
@@ -190,6 +236,15 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
                     <MessageCircle />
                     <span>{t.nav.getSupport}</span>
                   </SupportLink>
+                  <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}>
+                    <Bug />
+                    <span>{t.nav.reportBug}</span>
+                  </button>
+                  <a className="menu-item" role="menuitem" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
+                    <UsersRound />
+                    <span>{t.nav.joinCommunity}</span>
+                    <ArrowUpRight className="menu-chevron" />
+                  </a>
                 </div>
               )}
             </div>
@@ -217,6 +272,14 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
       </aside>
 
       <main className="main-area">
+        <div className="mobile-topbar">
+          <button ref={menuButtonRef} className="mobile-topbar-btn" type="button" aria-label={t.nav.openSidebar} aria-controls="app-sidebar" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}>
+            <Menu />
+          </button>
+          <button className="mobile-topbar-btn" type="button" aria-label={t.nav.newStrategy} onClick={newStrategy}>
+            <Plus />
+          </button>
+        </div>
         {pastDue && (
           <div className="past-due-banner" role="status">
             <span>{t.invoicePay.pastDue}</span>
@@ -227,7 +290,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
           <div className={`usage-limit-banner ${limit}`} role="status">
             <span>{limit === "out" ? t.buyMore.bannerOut : fmt(t.buyMore.bannerNear, { pct: usedPct })}</span>
             {canBuy && <button type="button" onClick={() => openSettings("usage")}>{t.buyMore.cta}</button>}
-            {canBuy && data.workspace.plan !== "growth" && <Link href="/checkout">{t.buyMore.upgrade}</Link>}
+            {canBuy && data.workspace.plan !== topPlan && <Link href="/checkout">{t.buyMore.upgrade}</Link>}
             {limit === "near" && <button type="button" className="usage-limit-dismiss" aria-label={t.buyMore.dismiss} onClick={() => setNearDismissed(true)}><X /></button>}
           </div>
         )}
@@ -235,6 +298,8 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
       </main>
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+      {data.user.askReview && <ReviewPrompt />}
     </div>
     </ToastProvider>
   );

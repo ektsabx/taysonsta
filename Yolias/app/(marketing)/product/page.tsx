@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
-import { ArrowRight, ArrowUp, BarChart3, Check, Download, History, Image as ImageIcon, Mic, Paperclip, Users } from "lucide-react";
+import { ArrowUp, BarChart3, Check, Download, History, Image as ImageIcon, Mic, Paperclip, Users } from "lucide-react";
 import { product } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
 import { getSession } from "@/lib/session";
@@ -9,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   // "Yolias AI — <title>" stays within ~65 characters; the lead is the description.
   const title = product[locale].title.replace(/[.。]$/, "");
-  return { title: `${title} — Yolias`, description: product[locale].lead };
+  return pageMetadata({ title: `${title} | Yolias`, description: product[locale].lead, path: "/product" });
 }
 
 const moreIcons = [BarChart3, Download, Users, History];
@@ -21,6 +23,7 @@ export default async function ProductPage() {
 
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: c.title, description: c.lead, path: "/product" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.eyebrow, path: "/product" }])]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{c.eyebrow}</p>
@@ -28,7 +31,7 @@ export default async function ProductPage() {
           <p className="lead">{c.lead}</p>
           <div className="hero-actions">
             <Link className="btn-solid" href={session ? "/" : "/signup"}>{c.primary}</Link>
-            <Link className="btn-ghost" href="/docs">{c.secondary}<ArrowRight className="flip-rtl" /></Link>
+            <Link className="btn-ghost" href="/docs">{c.secondary}</Link>
           </div>
         </div>
       </section>

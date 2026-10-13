@@ -13,7 +13,6 @@ export const importSections: Record<string, ImportSection> = {
   employees: { href: "/admin/team/employees", label: "الموظفون", after: [] },
   tasks: { href: "/admin/projects/tasks", label: "المهام", after: [{ key: "projects", label: "المشاريع", href: "/admin/projects" }] },
   expenses: { href: "/admin/finance/expenses", label: "المصروفات", after: [{ key: "vendors", label: "الموردون", href: "/admin/finance/vendors" }] },
-  assets: { href: "/admin/team/devices", label: "الأجهزة والأصول", after: [] },
   vendors: { href: "/admin/finance/vendors", label: "الموردون", after: [] },
   products: { href: "/admin/products", label: "المنتجات والخدمات", after: [] },
   kb_articles: { href: "/admin/knowledge", label: "قاعدة المعرفة", after: [] },

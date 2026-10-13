@@ -2,50 +2,68 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
-import type { BillingPeriod, Currency, Plan } from "@/types/database";
+import { TrustLogos } from "@/components/marketing/SocialProof";
+import { monthlyRate, planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
+import type { BillingPeriod, Currency, PaidPlan } from "@/types/database";
 
 type PricingCopy = Dictionary["pricing"];
-type PlanId = Plan;
+type PlanId = PaidPlan;
 
-// Features that apply to Yolias today (customer discovery). Outreach, CRM and
-// support items from the original design were removed on purpose.
-const tiers: PlanId[] = ["free", "pro", "growth"];
+// Pro, Growth and Scale (owner brief 2026-10-12): no $0 plan, a free trial
+// on every plan, annual billing selected by default. Every number on a card
+// and in the table comes from the plan configuration (plan_quotas), the same
+// values the limits are enforced with.
+const tiers: PlanId[] = ["pro", "growth", "scale"];
 
-const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "analytics", "integrations", "unlimitedUsers"] as const;
+// Features on every plan. CRM, pipelines and deals are listed at the owner's
+// request ahead of the CRM module (docs/21).
+const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "crm", "enrichment", "analytics", "integrations", "chatSupport", "unlimitedUsers"] as const;
 
 interface Props {
   signedIn: boolean;
-  /** Monthly prices and prospects per plan (lib/plan-catalog.ts). */
+  /** Monthly prices and limits per plan (lib/plan-catalog.ts). */
   plans: Record<PlanId, PlanTerms>;
-  /** Egypt → EGP, every other country → USD (lib/plans.ts pricingCurrency). */
   currency: Currency;
+  /** Free trial length in days (lib/trial.ts). */
+  trialDays: number;
 }
 
-export function PricingView({ signedIn, plans, currency }: Props) {
+export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
-  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  const [period, setPeriod] = useState<BillingPeriod>("annual");
   const n = (v: number) => formatNumber(v, locale);
-  const price = (plan: PlanId) => formatMoney(priceFor(planPrice(plans[plan], currency) ?? 0, period), currency);
+  // Every price is per month; annual shows the discounted rate and the yearly charge under it.
+  const list = (plan: PlanId) => planPrice(plans[plan], currency) ?? 0;
+  const price = (plan: PlanId) => formatMoney(monthlyRate(list(plan), period), currency);
+  const billed = (plan: PlanId) => (period === "annual" ? fmt(dict.plans.billedYearlyAt, { amount: formatMoney(priceFor(list(plan), period), currency) }) : undefined);
 
   // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
   const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;
   const card = (plan: PlanId, recommended?: string) => (
     <PlanCard
-      t={t}
+      key={plan}
       name={planName(plan, dict)}
       price={price(plan)}
-      note={plan === "free" ? t.freeForever : period === "annual" ? t.perYear : t.perMonth}
-      usage={fmt(plan === "free" ? dict.plans.prospectsOnce : dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) })}
+      note={t.perMonth}
+      billed={billed(plan)}
+      items={[
+        fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
+        fmt(dict.plans.contactsPerMonth, { count: n(plans[plan].contacts) }),
+        fmt(dict.plans.emailsPerMonth, { count: n(plans[plan].emails) }),
+        t.features.crm,
+        t.features.enrichment,
+        t.features.chatSupport,
+        t.unlimitedUsers,
+      ]}
       href={href(plan)}
-      cta={plan === "free" ? t.startFree : t.tryYolias}
-      foot={plan === "free" ? t.noCardSetup : t.setupMinutes}
+      cta={t.startTrial}
+      foot={fmt(t.trialFoot, { days: n(trialDays) })}
       recommended={recommended}
     />
   );
@@ -62,6 +80,7 @@ export function PricingView({ signedIn, plans, currency }: Props) {
               {(["monthly", "annual"] as BillingPeriod[]).map((p) => (
                 <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
                   {p === "monthly" ? dict.plans.monthly : dict.plans.annual}
+                  {p === "annual" && <span className="period-save">{dict.plans.annualSave}</span>}
                 </button>
               ))}
             </div>
@@ -72,11 +91,12 @@ export function PricingView({ signedIn, plans, currency }: Props) {
       <section className="bg-[var(--paper)] py-16 lg:py-20">
         <div className="site-width">
           <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
-            {card("free")}
             {card("pro")}
             {card("growth", dict.plans.recommended)}
+            {card("scale")}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
+          <TrustLogos locale={locale} />
         </div>
       </section>
 
@@ -100,7 +120,7 @@ export function PricingView({ signedIn, plans, currency }: Props) {
                 {featureKeys.map((k) => (
                   <tr key={k}>
                     <td>{t.features[k]}</td>
-                    {[0, 1, 2].map((i) => (
+                    {tiers.map((i) => (
                       <td key={i}><span className="included"><Check width={16} height={16} /><span>{t.included}</span></span></td>
                     ))}
                   </tr>
@@ -109,6 +129,18 @@ export function PricingView({ signedIn, plans, currency }: Props) {
                 <tr>
                   <td>{t.usageProspects}</td>
                   {tiers.map((p) => <td key={p}>{n(plans[p].prospects)}</td>)}
+                </tr>
+                <tr>
+                  <td>{t.usageContacts}</td>
+                  {tiers.map((p) => <td key={p}>{n(plans[p].contacts)}</td>)}
+                </tr>
+                <tr>
+                  <td>{t.usageEmails}</td>
+                  {tiers.map((p) => <td key={p}>{n(plans[p].emails)}</td>)}
+                </tr>
+                <tr>
+                  <td>{t.freeTrial}</td>
+                  {tiers.map((p) => <td key={p}>{fmt(t.trialDays, { days: n(trialDays) })}</td>)}
                 </tr>
                 <tr>
                   <td>{t.price}</td>
@@ -147,8 +179,8 @@ export function PricingView({ signedIn, plans, currency }: Props) {
   );
 }
 
-function PlanCard({ t, name, price, note, usage, href, cta, foot, recommended }: {
-  t: PricingCopy; name: string; price: string; note: string; usage: string; href: string; cta: string; foot: string; recommended?: string;
+function PlanCard({ name, price, note, billed, items, href, cta, foot, recommended }: {
+  name: string; price: string; note: string; billed?: string; items: string[]; href: string; cta: string; foot: string; recommended?: string;
 }) {
   return (
     <article className={`pricing-card${recommended ? " recommended" : ""}`}>
@@ -156,11 +188,12 @@ function PlanCard({ t, name, price, note, usage, href, cta, foot, recommended }:
       <h2 className="plan-name">{name}</h2>
       <p className="price" dir="ltr">{price}</p>
       <p className="price-note">{note}</p>
+      {billed && <p className="price-billed" dir="auto">{billed}</p>}
       <div className="plan-divider" />
       <ul className="plan-list">
-        <li><Check width={17} height={17} /><span><strong>{usage}</strong></span></li>
-        <li><Check width={17} height={17} /><span>{t.sameFeatures}</span></li>
-        <li><Check width={17} height={17} /><span>{t.unlimitedUsers}</span></li>
+        {items.map((item, i) => (
+          <li key={item}><Check width={17} height={17} /><span>{i === 0 ? <strong>{item}</strong> : item}</span></li>
+        ))}
       </ul>
       <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{cta}</Link>
       <p className="plan-foot">{foot}</p>
@@ -191,7 +224,7 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
     return (
       <div className="form-panel p-6 sm:p-8">
         <h3 className="text-2xl font-bold tracking-[-.035em]">{t.formTitle}</h3>
-        <Link className="primary-button focus-ring mt-6 w-full" href="/">{t.continue}<ArrowRight className="flip-rtl" width={17} height={17} /></Link>
+        <Link className="primary-button focus-ring mt-6 w-full" href="/">{t.continue}</Link>
       </div>
     );
   }
@@ -234,7 +267,6 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
         </div>
         <button className="primary-button focus-ring w-full" type="submit" disabled={pending}>
           <span>{pending ? t.loading : t.submit}</span>
-          <ArrowRight className="flip-rtl" width={17} height={17} />
         </button>
         {status && <p className={`status-message status-${status.kind}`} role="status" aria-live="polite">{status.text}</p>}
       </form>

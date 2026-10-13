@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { organizationSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { about } from "@/lib/content/site";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${(await getDictionary()).site.about} — Yolias`, description: about[locale].lead };
+  return pageMetadata({ title: `${(await getDictionary()).site.about} | Yolias`, description: about[locale].lead, path: "/about" });
 }
 
 export default async function AboutPage() {
   const c = about[await getLocale()];
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: c.title, description: c.lead, path: "/about", type: "AboutPage" }), organizationSchema()]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{c.eyebrow}</p>
@@ -42,16 +44,6 @@ export default async function AboutPage() {
                 <p>{p.body}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="site-width split">
-          <h3>{c.makerTitle}</h3>
-          <div>
-            <p className="text-[1.02rem] leading-8 text-[var(--text-2)]">{c.maker}</p>
-            <a className="btn-ghost mt-5" href="https://taysonsta.com" target="_blank" rel="noopener noreferrer">{c.makerLink}<ArrowUpRight /></a>
           </div>
         </div>
       </section>

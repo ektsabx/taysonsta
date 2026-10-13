@@ -9,15 +9,33 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
 import { Analytics } from "@/components/analytics/Analytics";
 import { SupportWidget } from "@/components/SupportWidget";
+import { siteVerification } from "@/lib/seo-server";
+import { OG_IMAGE, SITE_NAME, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap" });
-const kufi = Noto_Kufi_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap" });
+// Self-hosted by next/font (same domain, cached). If a font file fails to
+// load (YOLIAS-6, flaky networks) the text stays readable in the system
+// fallback below and the page keeps working.
+// (next/font needs literal values here, not constants.)
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap", fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"] });
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap", fallback: ["Georgia", "Times New Roman", "serif"] });
+const kufi = Noto_Kufi_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap", fallback: ["Tahoma", "Geeza Pro", "Arial", "sans-serif"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDictionary();
-  return { title: t.meta.title, description: t.meta.description };
+  // Absolute canonical and Open Graph URLs on every page (lib/seo.ts).
+  // Pages set their own title, description and canonical; these are defaults.
+  const { google, bing } = await siteVerification();
+  return {
+    metadataBase: new URL(siteUrl()),
+    title: t.meta.title,
+    description: t.meta.description,
+    applicationName: SITE_NAME,
+    openGraph: { siteName: SITE_NAME, type: "website", images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image", images: [OG_IMAGE.url] },
+    // Search Console / Bing Webmaster ownership tokens (Yolias Admin → Integrations).
+    ...(google || bing ? { verification: { ...(google ? { google } : {}), ...(bing ? { other: { "msvalidate.01": bing } } : {}) } } : {}),
+  };
 }
 
 

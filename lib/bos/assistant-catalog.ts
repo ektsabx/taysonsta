@@ -2,17 +2,15 @@
 // fixed, read-only query over BOS data run with the asking user's
 // permissions — the model can only pick tools and a search text, never SQL.
 
-export type ToolName = "today_problems" | "outstanding_invoices" | "deals_followup" | "sales_performance" | "ticket_reasons" | "ads_spend" | "search_records" | "knowledge";
+export type ToolName = "today_problems" | "outstanding_invoices" | "sales_performance" | "ticket_reasons" | "search_records" | "knowledge";
 
 export interface ToolDef { name: ToolName; perm: string | null; description: string; keywords: string[] }
 
 export const tools: ToolDef[] = [
   { name: "today_problems", perm: null, description: "Top problems today: overdue invoices, deals needing follow-up, SLA-breached tickets (counts).", keywords: ["مشاكل", "مشكلة", "اليوم", "problems", "issues today", "ملخص", "summary", "وضع"] },
   { name: "outstanding_invoices", perm: "invoices.read", description: "Unpaid / overdue invoices (number, client, balance, due date) with totals per currency.", keywords: ["فواتير", "فاتورة", "مستحقة", "invoice", "unpaid", "تحصيل"] },
-  { name: "deals_followup", perm: "deals.read", description: "Deals needing follow-up or manager attention from the Deal Radar (estimate, signals).", keywords: ["صفقات", "صفقة", "متابعة", "deal", "follow"] },
   { name: "sales_performance", perm: "deals.read", description: "Won deals last 30 days vs the previous 30 days, per currency.", keywords: ["مبيعات", "أداء المبيعات", "sales", "won", "revenue"] },
   { name: "ticket_reasons", perm: "tickets.read", description: "Top ticket categories in the last 30 days and open tickets.", keywords: ["تذاكر", "تذكرة", "أسباب", "ticket", "support"] },
-  { name: "ads_spend", perm: "ads.read", description: "Campaigns whose spend rose or fell most, last 7 days vs previous 7, per currency.", keywords: ["إعلانات", "حملات", "إنفاق", "ads", "campaign", "spend"] },
   { name: "search_records", perm: null, description: "Find records by name/number across permitted modules (needs a query).", keywords: ["ابحث", "بحث", "find", "search", "من هو", "أين"] },
   { name: "knowledge", perm: "knowledge.read", description: "Answer 'how do I…' questions from permitted knowledge-base articles (policies, SOPs, guides).", keywords: ["كيف", "خطوات", "سياسة", "إجراء", "how", "steps", "policy", "sop"] },
 ];

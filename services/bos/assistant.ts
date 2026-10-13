@@ -52,13 +52,6 @@ async function outstandingInvoices(bos: BosUser): Promise<ToolResult> {
   };
 }
 
-async function dealsFollowup(bos: BosUser): Promise<ToolResult> {
-  const { dealRadar } = await import("@/services/bos/deal-radar");
-  const r = await dealRadar(bos, {});
-  const rows = r.rows.filter((d) => d.flags.followUp || d.flags.overdue || d.flags.intervention).slice(0, 15);
-  return { tool: "deals_followup", title: "صفقات تحتاج متابعة", source: "رادار الصفقات", updatedAt: nowIso(), rows: rows.map((d) => ({ label: d.name, detail: `${d.stage.name} · تقدير ~${d.score.estimate}% (تقدير قائم على قواعد)`, value: `${d.value} ${d.currency}`, href: `/admin/sales/deals/${d.id}` })), facts: [`${rows.length} صفقة تحتاج متابعة`, `${r.summary.overdue} متأخرة عن تاريخ الإغلاق`, `${r.summary.intervention} تحتاج تدخل المدير`], missing: r.meta.historyUsed ? [] : ["لا توجد بيانات تاريخية كافية — التقديرات مبنية على احتمال المرحلة"] };
-}
-
 async function salesPerformance(bos: BosUser): Promise<ToolResult> {
   const users = await scoped(bos, "deals.read");
   const sum = async (from: string, to: string) => {
@@ -84,15 +77,6 @@ async function ticketReasons(bos: BosUser): Promise<ToolResult> {
   return { tool: "ticket_reasons", title: "أسباب التذاكر (30 يوماً)", source: "التذاكر", updatedAt: nowIso(), rows: [...m.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: k, value: String(v), href: "/admin/support/tickets" })), facts: [`${(data ?? []).length} تذكرة خلال 30 يوماً، ${open} مفتوحة`], missing: [] };
 }
 
-async function adsSpend(bos: BosUser): Promise<ToolResult> {
-  const { adsReport } = await import("@/services/bos/ads");
-  const d = (n: number) => days(n).slice(0, 10);
-  const [cur, prev] = await Promise.all([adsReport(bos, { from: d(7), to: today() }), adsReport(bos, { from: d(14), to: d(8) })]);
-  const pm = new Map(prev.campaigns.map((c) => [c.id, c.spend]));
-  const rows = cur.campaigns.map((c) => ({ c, delta: c.spend - (pm.get(c.id) ?? 0) })).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 10);
-  return { tool: "ads_spend", title: "تغيّر إنفاق الحملات (7 أيام مقابل 7 سابقة)", source: "الإعلانات (قراءة فقط)", updatedAt: cur.accounts.map((a) => a.last_sync_at).filter(Boolean).sort().pop() ?? nowIso(), rows: rows.map(({ c, delta }) => ({ label: c.name, detail: c.account, value: `${money(c.spend, c.currency)} (${delta >= 0 ? "+" : ""}${money(delta, c.currency)})` })), facts: cur.byCurrency.map((t) => `إنفاق آخر 7 أيام ${money(t.spend, t.currency)}`), missing: cur.accounts.length ? [] : ["لا توجد حسابات إعلانية متصلة"] };
-}
-
 async function searchRecords(bos: BosUser, query: string): Promise<ToolResult> {
   const { globalSearch } = await import("@/services/bos/search");
   const hits = query.trim().length >= 2 ? await globalSearch(bos, query.trim(), 5) : [];
@@ -115,7 +99,6 @@ async function todayProblems(bos: BosUser): Promise<ToolResult> {
   const rows: ToolRow[] = [];
   const facts: string[] = [];
   if (allowed.includes("outstanding_invoices")) { const r = await outstandingInvoices(bos); rows.push({ label: "فواتير متأخرة", value: String(r.rows.filter((x) => (x.value ?? "").slice(-10) < today()).length), href: "/admin/finance/invoices?status=overdue" }); }
-  if (allowed.includes("deals_followup")) { const r = await dealsFollowup(bos); rows.push({ label: "صفقات تحتاج متابعة", value: String(r.rows.length), href: "/admin/sales/radar" }); }
   if (can(bos, "tickets.read")) {
     let q = db().from("tickets").select("id", { count: "exact", head: true }).not("status", "in", "(resolved,closed)").lt("resolution_due_at", nowIso());
     if (bos.permissions.get("tickets.read") !== "all") q = q.eq("assigned_to", bos.userId);
@@ -123,7 +106,7 @@ async function todayProblems(bos: BosUser): Promise<ToolResult> {
     if (!error) rows.push({ label: "تذاكر تجاوزت SLA", value: String(count ?? 0), href: "/admin/support/tickets" });
   }
   for (const r of rows) facts.push(`${r.label}: ${r.value}`);
-  return { tool: "today_problems", title: "أهم المشاكل اليوم", source: "الفواتير، رادار الصفقات، التذاكر", updatedAt: nowIso(), rows, facts, missing: [] };
+  return { tool: "today_problems", title: "أهم المشاكل اليوم", source: "الفواتير، التذاكر", updatedAt: nowIso(), rows, facts, missing: [] };
 }
 
 export async function runTool(bos: BosUser, name: ToolName, query = ""): Promise<ToolResult> {
@@ -133,10 +116,8 @@ export async function runTool(bos: BosUser, name: ToolName, query = ""): Promise
   switch (name) {
     case "today_problems": return todayProblems(bos);
     case "outstanding_invoices": return outstandingInvoices(bos);
-    case "deals_followup": return dealsFollowup(bos);
     case "sales_performance": return salesPerformance(bos);
     case "ticket_reasons": return ticketReasons(bos);
-    case "ads_spend": return adsSpend(bos);
     case "search_records": return searchRecords(bos, query);
     case "knowledge": return knowledge(bos, query);
   }

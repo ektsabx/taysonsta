@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): P
   const page = docs.find((d) => d.slug === slug);
   if (!page) return {};
   const doc = page.doc[await getLocale()];
-  return { title: `${doc.title} — Yolias Docs`, description: doc.summary };
+  return pageMetadata({ title: `${doc.title} | Yolias Docs`, description: doc.summary, path: `/docs/${slug}` });
 }
 
 // Documentation (Claude-docs layout): sections nav · content · on this page.
@@ -33,6 +35,10 @@ export default async function DocPage({ params }: PageProps<"/docs/[slug]">) {
 
   return (
     <div className="site-width doc-layout with-nav">
+      <JsonLd nodes={[
+        webPageSchema({ title: doc.title, description: doc.summary, path: `/docs/${slug}` }),
+        breadcrumbSchema([{ name: t.site.documentation, path: `/docs/${docs[0].slug}` }, { name: doc.title, path: `/docs/${slug}` }]),
+      ]} />
       <nav className="side-nav" aria-label={t.site.documentation}>
         {docGroups.map((g) => (
           <div className="side-nav-group" key={g.id}>

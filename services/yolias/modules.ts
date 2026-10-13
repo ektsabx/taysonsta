@@ -162,7 +162,12 @@ export async function usageOverview() {
 
 // ───────────────────────── SEO (live check of the website) ─────────────────────────
 
-const seoPages = ["/", "/product", "/pricing", "/about", "/contact", "/help-center", "/blog", "/docs/introduction", "/legal/privacy"];
+const seoPages = [
+  "/", "/product", "/pricing", "/about", "/contact", "/solutions", "/solutions/marketing-agencies", "/use-cases", "/use-cases/ai-prospecting",
+  "/affiliates", "/status", "/help-center", "/blog", "/docs/introduction", "/legal/privacy",
+];
+/** Pages that must never be indexed (checked for a noindex tag). */
+const privatePages = ["/login", "/signup"];
 
 function tag(html: string, re: RegExp): string | null {
   const m = re.exec(html);
@@ -188,7 +193,15 @@ export async function seoAudit() {
       const description = tag(html, /<meta[^>]+name="description"[^>]+content="([^"]*)"/i);
       const h1 = (html.match(/<h1[\s>]/gi) ?? []).length;
       const lang = tag(html, /<html[^>]+lang="([^"]+)"/i);
+      const canonical = tag(html, /<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i);
+      const structured = (html.match(/application\/ld\+json/g) ?? []).length;
+      const ogImage = /<meta[^>]+property="og:image"/i.test(html);
+      const noindexTag = /<meta[^>]+name="robots"[^>]+noindex/i.test(html);
       const issues: string[] = [];
+      if (!canonical) issues.push("no_canonical");
+      else if (!canonical.startsWith(base)) issues.push("canonical_other_domain");
+      if (!ogImage) issues.push("no_og_image");
+      if (noindexTag) issues.push("noindex_on_public_page");
       if (status !== 200) issues.push(`HTTP ${status}`);
       if (!title) issues.push("no_title");
       else if (title.length > 65) issues.push("long_title");
@@ -196,7 +209,7 @@ export async function seoAudit() {
       else if (description.length > 170) issues.push("long_description");
       if (h1 !== 1) issues.push(h1 === 0 ? "no_h1" : "many_h1");
       if (lang !== locale) issues.push("wrong_lang");
-      pages.push({ path, locale, status, title, description, h1, lang, issues });
+      pages.push({ path, locale, status, title, description, h1, lang, canonical, structured, issues });
     }
   }
   // The same description on several pages of one language tells search engines nothing.
@@ -207,10 +220,19 @@ export async function seoAudit() {
   }
   const robots = await get("/robots.txt", "en");
   const sitemap = await get("/sitemap.xml", "en");
+  const llms = await get("/llms.txt", "en");
+  const privateChecks = [];
+  for (const path of privatePages) {
+    const { html } = await get(path, "en");
+    privateChecks.push({ path, noindex: /<meta[^>]+name="robots"[^>]+noindex/i.test(html) });
+  }
   return {
     base,
     pages,
     robots: robots.status === 200 ? { sitemap: /sitemap:/i.test(robots.html), disallowsApp: /Disallow: \/prospects/i.test(robots.html) } : null,
     sitemapUrls: sitemap.status === 200 ? (sitemap.html.match(/<url>/g) ?? []).length : null,
+    sitemapOtherHosts: sitemap.status === 200 ? (sitemap.html.match(/<loc>([^<]+)<\/loc>/g) ?? []).filter((l) => !l.includes(base)).length : null,
+    llms: llms.status === 200,
+    privateChecks,
   };
 }

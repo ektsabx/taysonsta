@@ -80,7 +80,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[id
               <Link key={k} className="kpi-card kpi-link" href={`/prospects?${tab}campaign=${c.id}`}>
                 <span className="kpi-label">{k === "decisionMakers" ? t.analytics.decisionMakers : t.prospects.tabs[k as "companies" | "local"]}</span>
                 <strong className="kpi-value">{n(count)}</strong>
-                <span className="cell-sub">{cc.openInProspects} →</span>
+                <span className="cell-sub">{cc.openInProspects}</span>
               </Link>
             ))}
           </div>

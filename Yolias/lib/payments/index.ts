@@ -1,15 +1,20 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { addMonths, planCharge, renewalEmails, startPlan } from "@/lib/billing";
 import { workspaceCurrency } from "@/lib/plan-catalog";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { dictionaries, fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
-import type { BillingPeriod, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
+import type { BillingPeriod, BillingProvider, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
+import { requestCountry } from "@/lib/geo-server";
+import { ensurePolarProducts } from "./polar-products";
+import { loadPolar } from "./polar";
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { capture } from "@/lib/analytics/server";
+import { affiliateNotify } from "@/lib/affiliates/notify";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
 
 // Provider-agnostic billing (final spec phase 3). Flow:
@@ -60,7 +65,23 @@ export async function providerFor(currency: Currency): Promise<PaymobRuntime | n
   return paymob && (paymob.integrations.EGP?.length ?? 0) > 0 ? paymob : null;
 }
 
+/**
+ * Who bills this workspace (owner brief 2026-10-12, D-185): Paymob for
+ * Egypt (the workspace's billing country, else the visitor's country), Polar
+ * for every other country. A workspace already billed by one keeps it.
+ */
+export async function billingRoute(ws: WorkspaceRow): Promise<BillingProvider> {
+  if (ws.billing_provider) return ws.billing_provider;
+  const country = ws.billing_country ?? (await requestCountry());
+  return country === "EG" ? "paymob" : "polar";
+}
+
 export async function paymentsConnected(ws: WorkspaceRow): Promise<boolean> {
+  if ((await billingRoute(ws)) === "polar") {
+    // Connected = a token in the hub; the plan products are created on first use (D-191).
+    const polar = await loadPolar();
+    return Boolean(polar && Object.keys((await ensurePolarProducts(polar)).cfg.products).length);
+  }
   return Boolean(await providerFor(await workspaceCurrency(ws)));
 }
 
@@ -111,6 +132,11 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     description = fmt(t.buyMore.packName, { count: formatNumber(pack.prospects) });
   }
 
+  // A second click, or coming back from the provider's page, reuses the
+  // checkout opened minutes ago for the same purchase instead of a new one.
+  const reuse = await reusableCheckout(db, ws.id, buyer.userId, provider.mode, row);
+  if (reuse) return { ok: true, url: reuse };
+
   const rate = await usdToEgp(db);
   if (!rate) return { ok: false, error: "not_priced" };
   const charge = toEgp(row.amount, rate);
@@ -138,14 +164,32 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     });
     const body = (await res.json().catch(() => null)) as { client_secret?: string; intention_order_id?: number; id?: string } | null;
     if (!res.ok || !body?.client_secret) throw new Error(`paymob intention ${res.status}`);
-    await db.from("payments").update({ provider_ref: String(body.intention_order_id ?? body.id ?? "") || null }).eq("id", payment.id);
+    const url = checkoutUrl(provider.baseUrl, provider.publicKey, body.client_secret);
+    await db.from("payments").update({ provider_ref: String(body.intention_order_id ?? body.id ?? "") || null, checkout_url: url }).eq("id", payment.id);
     await capture(buyer.userId, "checkout_started", { workspace_id: ws.id, payment_id: payment.id, kind: row.kind, plan: row.plan ?? null, billing_period: row.billing_period ?? null, prospects: row.prospects ?? null, value: row.amount, currency: "USD", mode: provider.mode });
-    return { ok: true, url: checkoutUrl(provider.baseUrl, provider.publicKey, body.client_secret) };
+    return { ok: true, url };
   } catch (e) {
     console.error("[payments] checkout", e);
+    // Ids, kind and mode only: never the buyer, the amount sent or provider secrets.
+    Sentry.captureException(e, { tags: { area: "checkout", provider: "paymob", mode: provider.mode, kind: row.kind }, extra: { payment_id: payment.id, workspace_id: ws.id } });
     await db.from("payments").update({ status: "failed", failure_reason: "checkout_failed" }).eq("id", payment.id);
     return { ok: false, error: "failed" };
   }
+}
+
+/** Minutes a hosted checkout link is reused for the same purchase. */
+const REUSE_MINUTES = 10;
+
+async function reusableCheckout(db: Db, workspaceId: string, userId: string, mode: "test" | "live", row: Partial<PaymentRow> & { amount: number; kind: PaymentRow["kind"] }): Promise<string | null> {
+  const since = new Date(Date.now() - REUSE_MINUTES * 60_000).toISOString();
+  let q = db.from("payments").select("checkout_url, amount, plan, billing_period, pack_id, invoice_id")
+    .eq("workspace_id", workspaceId).eq("created_by", userId).eq("status", "pending").eq("mode", mode).eq("kind", row.kind)
+    .not("checkout_url", "is", null).gte("created_at", since).order("created_at", { ascending: false }).limit(1);
+  if (row.kind === "subscription") q = q.eq("plan", row.plan!).eq("billing_period", row.billing_period!);
+  else q = q.eq("pack_id", row.pack_id!);
+  const { data } = await q.maybeSingle();
+  if (!data?.checkout_url || Number(data.amount) !== row.amount || (data.invoice_id ?? null) !== (row.invoice_id ?? null)) return null;
+  return data.checkout_url;
 }
 
 /**
@@ -177,28 +221,76 @@ export async function settlePayment(provider: "paymob", o: PaymentOutcome): Prom
     if (moved) await refunded(db, moved);
     return moved ?? payment;
   }
+  // Paid earlier but the fulfilment didn't finish (e.g. a crash): a repeated
+  // signed callback finishes it. Never charges anything again.
+  if (payment.status === "succeeded" && o.status === "succeeded" && !payment.fulfilled_at) {
+    await fulfilOnce(db, payment);
+    return payment;
+  }
   if (payment.status !== "pending" || o.status === "pending") return payment;
 
+  const now = new Date().toISOString();
   const next = o.status === "succeeded"
-    ? { status: "succeeded" as const, paid_at: new Date().toISOString(), provider_txn: o.providerTxn || null }
-    : { status: "failed" as const, failure_reason: o.reason?.slice(0, 200) ?? "declined", provider_txn: o.providerTxn || null };
+    ? { status: "succeeded" as const, paid_at: now, provider_txn: o.providerTxn || null, checkout_url: null, fulfil_claimed_at: now }
+    : { status: "failed" as const, failure_reason: o.reason?.slice(0, 200) ?? "declined", provider_txn: o.providerTxn || null, checkout_url: null };
   const { data: moved } = await db.from("payments").update(next).eq("id", payment.id).eq("status", "pending").select("*").maybeSingle();
   if (!moved) return payment;
   await capture(moved.created_by, moved.status === "succeeded" ? "payment_succeeded" : "payment_failed", {
     workspace_id: moved.workspace_id, payment_id: moved.id, kind: moved.kind, plan: moved.plan, billing_period: moved.billing_period,
     prospects: moved.prospects, value: Number(moved.amount), currency: moved.currency, mode: moved.mode,
   });
-  if (moved.status === "succeeded") await fulfil(db, moved);
+  if (moved.status === "succeeded") await fulfilOnce(db, moved, true);
   else await failed(db, moved);
   return moved;
 }
 
-/** Plan started / renewed, or prospects granted — once per succeeded payment. */
+/** A claim older than this is considered abandoned (the process died mid-fulfilment). */
+const CLAIM_MS = 5 * 60_000;
+
+/**
+ * Runs fulfil() for a succeeded payment at most once at a time, and marks it
+ * done. `claimed`: the caller already took the claim with the status move.
+ * Throws if fulfilment fails, so the callback answers with an error and the
+ * provider (or the customer's return) retries.
+ */
+async function fulfilOnce(db: Db, p: PaymentRow, claimed = false): Promise<void> {
+  if (!claimed) {
+    const stale = new Date(Date.now() - CLAIM_MS).toISOString();
+    const { data: got } = await db.from("payments").update({ fulfil_claimed_at: new Date().toISOString() })
+      .eq("id", p.id).eq("status", "succeeded").is("fulfilled_at", null)
+      .or(`fulfil_claimed_at.is.null,fulfil_claimed_at.lt.${stale}`).select("id").maybeSingle();
+    if (!got) return;
+  }
+  try {
+    await fulfil(db, p);
+    await db.from("payments").update({ fulfilled_at: new Date().toISOString() }).eq("id", p.id);
+  } catch (e) {
+    console.error("[payments] fulfil", p.id, e);
+    Sentry.captureException(e, { tags: { area: "payment_fulfil", provider: p.provider, mode: p.mode, kind: p.kind }, extra: { payment_id: p.id, workspace_id: p.workspace_id } });
+    // Release the claim so the next callback can retry right away.
+    await db.from("payments").update({ fulfil_claimed_at: null }).eq("id", p.id).is("fulfilled_at", null);
+    throw e;
+  }
+}
+
+/**
+ * Plan started / renewed, or prospects granted for a succeeded payment.
+ * Safe to run again after a partial run: work already recorded for this
+ * payment (its invoice, its pack grant) is not repeated.
+ */
 export async function fulfil(db: Db, p: PaymentRow): Promise<void> {
   const { data: ws } = await db.from("workspaces").select("*").eq("id", p.workspace_id).maybeSingle();
   if (!ws) return;
+  if (!p.invoice_id) {
+    // A previous run got as far as the invoice: the plan / pack is in place.
+    const { data: done } = await db.from("invoices").select("id").eq("payment_id", p.id).limit(1).maybeSingle();
+    if (done) {
+      await db.from("payments").update({ invoice_id: done.id }).eq("id", p.id);
+      return;
+    }
+  }
   const payer = await payerOf(db, p);
-  const charge = { mode: p.mode, amount: Number(p.amount), currency: p.currency, paymentId: p.id };
+  const charge = { mode: p.mode, amount: Number(p.amount), currency: p.currency, paymentId: p.id, provider: "paymob" as const };
 
   if (p.kind === "subscription" && p.invoice_id) {
     // Paying an open renewal invoice: the period it covers starts.
@@ -226,7 +318,8 @@ export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, cha
     workspace_id: ws.id, kind: "grant", prospects, period_start: periodStart.toISOString().slice(0, 10),
     reason: `prospect_pack:${charge.paymentId ?? "test"}`, created_by: payer.email,
   });
-  if (error) throw error;
+  // 23505: this payment's grant already exists (a retried fulfilment) — never grant twice.
+  if (error && !(charge.paymentId && error.code === "23505")) throw error;
   const { data: invoice } = await db.from("invoices").insert({
     workspace_id: ws.id, kind: "prospect_pack", prospects, amount: charge.amount, currency: charge.currency, status: "paid", mode: charge.mode,
     period_start: now.toISOString(), period_end: periodEnd.toISOString(), bill_to_name: payer.name, bill_to_email: payer.email, bill_to_company: ws.name,
@@ -262,6 +355,12 @@ async function failed(db: Db, p: PaymentRow) {
 }
 
 async function refunded(db: Db, p: PaymentRow) {
+  // The database already reversed this payment's affiliate commission (trigger
+  // payments_affiliate); tell the affiliate. Never blocks the refund.
+  const { data: commission } = await db.from("affiliate_commissions").select("id, affiliate_id, amount_cents, status").eq("payment_id", p.id).eq("kind", "payment").maybeSingle();
+  if (commission?.status === "reversed") {
+    await affiliateNotify(commission.affiliate_id, "commission_reversed", commission.id, { amountCents: Number(commission.amount_cents), reason: "Payment refunded" }).catch(() => 0);
+  }
   if (!p.invoice_id) return;
   const { data: inv } = await db.from("invoices").update({ status: "void" }).eq("id", p.invoice_id).select("number").maybeSingle();
   if (inv) {

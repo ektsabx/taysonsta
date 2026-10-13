@@ -31,16 +31,6 @@ export const exporters: Record<string, Exporter> = {
       return { header: ["name", "type", "contact_name", "email", "phone", "services", "notes", "created"], rows: (data ?? []).map((v) => [v.name, v.type, v.contact_name, v.email, v.phone, v.services, v.notes, v.created_at]) };
     },
   },
-  assets: {
-    permission: "devices.export",
-    async run(_bos, f) {
-      let q = db().from("devices").select("asset_id, name, type, model, serial_number, purchase_date, warranty_until, purchase_value, currency, quantity, license_seats, location, notes, status").order("asset_id").limit(MAX);
-      if (f.status) q = q.eq("status", f.status as never);
-      if (f.type) q = q.eq("type", f.type as never);
-      const { data } = await q;
-      return { header: ["asset_id", "name", "type", "model", "serial_number", "purchase_date", "warranty_until", "purchase_value", "currency", "quantity", "license_seats", "location", "notes", "status"], rows: (data ?? []).map((d) => [d.asset_id, d.name, d.type, d.model, d.serial_number, d.purchase_date, d.warranty_until, d.purchase_value, d.currency, d.quantity, d.license_seats, d.location, d.notes, d.status]) };
-    },
-  },
   deals: {
     permission: "deals.export",
     async run(bos, f) {

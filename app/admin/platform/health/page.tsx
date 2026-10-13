@@ -1,4 +1,7 @@
-import { requirePermission } from "@/lib/bos/auth";
+import { can, requirePermission } from "@/lib/bos/auth";
+import { getSetting } from "@/lib/bos/settings";
+import { limits, measureAlerts } from "@/services/yolias/alerts";
+import { AlertsForm } from "./AlertsForm";
 import { PageHeader, Card, KpiCard, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
@@ -12,9 +15,10 @@ const Yes = ({ on, label }: { on: boolean; label?: string }) => <StatusBadge ton
 // email error rates over the last 24 hours. Configuration flags come from the
 // worker's heartbeat (yes/no only, never keys).
 export default async function HealthPage() {
-  await requirePermission("platform.read");
+  const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="صحة المنصة" /><NotConnected /></>);
-  const h = await platformHealth();
+  const alertCfg = await getSetting("platform_alerts");
+  const [h, alerts] = await Promise.all([platformHealth(), measureAlerts(alertCfg).catch(() => [])]);
   const workerOk = h.worker != null && h.worker.ageSec < 120;
   const llmRate = h.llm24h.total ? Math.round((h.llm24h.failed / h.llm24h.total) * 100) : null;
   return (
@@ -60,6 +64,27 @@ export default async function HealthPage() {
           </BosTable>
         ) : <EmptyState title="لا يوجد مزودو بيانات متصلون بعد" />}
       </Card>
+      <Card title="التنبيهات" flush>
+        <BosTable className="bos-table responsive">
+          <thead><tr><th><Tx>التنبيه</Tx></th><th><Tx>الخدمة</Tx></th><th><Tx>القيمة الآن</Tx></th><th><Tx>الحد</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
+          <tbody>
+            {alerts.map((a) => (
+              <tr key={a.key}>
+                <td dir="ltr" style={{ fontSize: 12.5 }}>{a.detail}</td>
+                <td>{a.service}</td>
+                <td className="bos-num" dir="ltr">{a.value} {a.unit}</td>
+                <td className="bos-num" dir="ltr">{a.threshold} {a.unit}</td>
+                <td>{a.severity === "critical" ? <StatusBadge tone="danger" label="حرج" /> : a.severity === "warning" ? <StatusBadge tone="warning" label="تحذير" /> : <StatusBadge tone="success" label="طبيعي" />}</td>
+              </tr>
+            ))}
+          </tbody>
+        </BosTable>
+        <div style={{ padding: "12px 16px" }}>
+          <p className="bos-faint" style={{ fontSize: 12.5, margin: "0 0 6px" }}><Tx>{alertCfg.enabled ? "يفحصها المجدول تلقائيًا ويرسل إشعارًا داخل النظام وبريدًا للمدير العام والمسؤولين، مرة واحدة لكل تنبيه في اليوم." : "التنبيهات متوقفة."}</Tx></p>
+          {limits.map((l) => <p key={l} className="bos-faint" style={{ fontSize: 12.5, margin: "0 0 6px" }}><Tx>{l}</Tx></p>)}
+        </div>
+      </Card>
+      {can(bos, "platform.manage", "all") ? <Card title="حدود التنبيهات"><AlertsForm v={alertCfg} /></Card> : null}
     </>
   );
 }

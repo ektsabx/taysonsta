@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPaidPlan, planPrice, priceFor } from "@/lib/plans";
+import { isPaidPlan, paidPlans, planPrice, priceFor } from "@/lib/plans";
+import { canStartTrial, trialLimits } from "@/lib/trial";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { requestCountry } from "@/lib/geo-server";
@@ -8,7 +9,7 @@ import { planCanceled, planEnded, planStarted } from "@/lib/email/events";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { dictionaries } from "@/lib/i18n/config";
 import { capture } from "@/lib/analytics/server";
-import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
+import type { BillingPeriod, BillingProvider, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
 /**
  * Local/dev only: with no payment provider connected for the workspace's
@@ -30,6 +31,8 @@ export interface Charge {
   amount: number;
   currency: Currency;
   paymentId?: string | null;
+  /** Who took the payment (recorded on the workspace). */
+  provider?: BillingProvider;
 }
 
 /** Price of a plan for this workspace, in its currency (never converted). Null = not priced in it. */
@@ -59,6 +62,10 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
   const periodEnd = paid ? addMonths(now, period === "annual" ? 12 : 1) : null;
   const currency = charge?.currency ?? (await workspaceCurrency(ws));
   const mode = charge?.mode ?? "test";
+  // A trial converting: what it used in earlier months is deducted from this
+  // first paid month (convert_trial records it once).
+  const converting = paid && ws.subscription_status === "trialing";
+  if (converting) await db.rpc("convert_trial", { p_ws: ws.id });
 
   const { error } = await db
     .from("workspaces")
@@ -69,6 +76,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
       subscription_status: paid ? (mode === "live" ? "active" : "test") : "active",
       current_period_end: periodEnd?.toISOString() ?? null,
       cancel_at_period_end: false,
+      ...(charge?.provider ? { billing_provider: charge.provider } : {}),
     })
     .eq("id", ws.id);
   if (error) return false;
@@ -78,7 +86,7 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
   await db.from("subscription_events").insert({
     workspace_id: ws.id,
     plan,
-    status: ws.subscription_status === "none" ? "activated" : "changed",
+    status: converting ? "trial_converted" : ws.subscription_status === "none" ? "activated" : "changed",
     amount,
     currency,
     billing_period: period,
@@ -112,6 +120,45 @@ export async function startPlan(ws: WorkspaceRow, plan: Plan, period: BillingPer
   return invoice?.id ?? null;
 }
 
+/**
+ * Starts the free trial on the chosen plan (lib/trial.ts). Live trials start
+ * only from the payment provider's confirmation that the card was taken
+ * (Polar, once its webhook is connected); `test` = billing test mode. Nothing
+ * is charged and no invoice is written until the trial converts.
+ * Returns false when the workspace already had a trial or the update failed.
+ */
+export async function startTrial(ws: WorkspaceRow, plan: PaidPlan, period: BillingPeriod, payer: Payer, opts: { mode: "test" | "live"; provider: BillingProvider; polarCustomerId?: string | null; polarSubscriptionId?: string | null }): Promise<boolean> {
+  if (!canStartTrial(ws)) return false;
+  const db = createAdminClient();
+  const trial = await trialLimits();
+  const now = new Date();
+  const ends = new Date(now.getTime() + trial.days * DAY);
+  const currency = await workspaceCurrency(ws);
+  const { data: moved, error } = await db.from("workspaces").update({
+    ...(await billingIdentity(ws, currency)),
+    plan,
+    billing_period: period,
+    subscription_status: "trialing",
+    trial_started_at: now.toISOString(),
+    trial_ends_at: ends.toISOString(),
+    current_period_end: ends.toISOString(),
+    cancel_at_period_end: false,
+    billing_provider: opts.provider,
+    ...(opts.polarCustomerId ? { polar_customer_id: opts.polarCustomerId } : {}),
+    ...(opts.polarSubscriptionId ? { polar_subscription_id: opts.polarSubscriptionId } : {}),
+  }).eq("id", ws.id).is("trial_started_at", null).select("id").maybeSingle();
+  if (error || !moved) return false;
+  await db.from("subscription_events").insert({
+    workspace_id: ws.id, plan, status: "trial_started", amount: 0, currency, billing_period: period, mode: opts.mode, created_by: payer.userId,
+  });
+  await capture(payer.userId, "trial_started", { workspace_id: ws.id, plan, billing_period: period, provider: opts.provider, mode: opts.mode, days: trial.days });
+  await resumeQuotaPaused(db, ws.id);
+  return true;
+}
+
+/** A trial left this long past its end without the first payment loses the plan. */
+export const TRIAL_GRACE_DAYS = 1;
+
 const eventMode = (ws: WorkspaceRow) => (ws.subscription_status === "test" ? ("test" as const) : ("live" as const));
 
 /** Cancel (keep the plan until the period ends) or resume a paid plan. */
@@ -141,16 +188,19 @@ export const RENEWAL_GRACE_DAYS = 7;
 
 /**
  * A canceled plan whose period has ended, or an unpaid renewal past its
- * grace period, moves to Free. Runs when the workspace is loaded and in the
- * daily sweep. Returns the updated row.
+ * grace period, ends: no plan until the member subscribes again (the $0 plan
+ * is no longer offered, owner brief 2026-10-12, so ending never grants free
+ * usage). Searches and prospects stay saved. Runs when the workspace is
+ * loaded and in the daily sweep. Returns the updated row.
  */
 export async function settleSubscription(ws: WorkspaceRow, now = new Date()): Promise<WorkspaceRow> {
+  if (ws.subscription_status === "trialing") return settleTrial(ws, now);
   const end = ws.current_period_end ? new Date(ws.current_period_end) : null;
   const canceledEnded = Boolean(ws.cancel_at_period_end && end && end <= now);
   const unpaid = Boolean(ws.subscription_status === "past_due" && end && end.getTime() + RENEWAL_GRACE_DAYS * DAY <= now.getTime());
   if (!canceledEnded && !unpaid) return ws;
   const db = createAdminClient();
-  const next = { plan: "free" as const, subscription_status: "active" as const, current_period_end: null, cancel_at_period_end: false, billing_period: "monthly" as const };
+  const next = { subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
   // Conditioned on the old period end, so two requests can't end it twice.
   const { data: moved } = await db.from("workspaces").update(next).eq("id", ws.id).eq("current_period_end", ws.current_period_end!).select("id").maybeSingle();
   if (!moved) return ws;
@@ -160,7 +210,26 @@ export async function settleSubscription(ws: WorkspaceRow, now = new Date()): Pr
   await db.from("subscription_events").insert({
     workspace_id: ws.id, plan: ws.plan, status: "ended", amount: 0, currency: ws.billing_currency, billing_period: ws.billing_period, mode: eventMode(ws),
   });
-  await planEnded(ws);
+  await planEnded(ws, unpaid ? "unpaid" : "canceled");
+  return { ...ws, ...next };
+}
+
+/**
+ * A trial whose end passed without the first payment (card declined, trial
+ * canceled, or no confirmation from the provider) ends: no plan until the
+ * member subscribes again. The data stays. The trial is never given twice.
+ */
+async function settleTrial(ws: WorkspaceRow, now: Date): Promise<WorkspaceRow> {
+  const end = ws.trial_ends_at ? new Date(ws.trial_ends_at) : null;
+  if (!end || end.getTime() + TRIAL_GRACE_DAYS * DAY > now.getTime()) return ws;
+  const db = createAdminClient();
+  const next = { subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
+  const { data: moved } = await db.from("workspaces").update(next).eq("id", ws.id).eq("subscription_status", "trialing").eq("trial_ends_at", ws.trial_ends_at!).select("id").maybeSingle();
+  if (!moved) return ws;
+  await db.from("subscription_events").insert({
+    workspace_id: ws.id, plan: ws.plan, status: "trial_ended", amount: 0, currency: ws.billing_currency, billing_period: ws.billing_period, mode: eventMode(ws),
+  });
+  await planEnded(ws, "trial");
   return { ...ws, ...next };
 }
 
@@ -185,11 +254,27 @@ export async function billingSweep(now = new Date()): Promise<{ reminders: numbe
   const out = { reminders: 0, ending: 0, renewed: 0, due: 0, ended: 0 };
   // Housekeeping: sign-in link requests only matter for an hour.
   await db.from("sign_in_requests").delete().lt("created_at", new Date(now.getTime() - DAY).toISOString());
-  const { data: subs } = await db.from("workspaces").select("*").in("plan", ["pro", "growth"]).in("subscription_status", ["test", "active", "past_due"]).not("current_period_end", "is", null);
+  const { data: subs } = await db.from("workspaces").select("*").in("plan", paidPlans).in("subscription_status", ["test", "active", "past_due", "trialing"]).not("current_period_end", "is", null);
   const catalog = await getPlanCatalog();
   for (const ws of subs ?? []) {
+    if (ws.subscription_status === "trialing") {
+      // Live trials (a Polar subscription) convert on Polar's payment
+      // confirmation; a test trial (billing test mode) converts with a test
+      // charge, like Polar charging the saved card at the end of the trial.
+      if (!ws.polar_subscription_id && billingTestMode() && ws.trial_ends_at && new Date(ws.trial_ends_at) <= now && !ws.cancel_at_period_end) {
+        const charge = await planCharge(ws, ws.plan as PaidPlan, ws.billing_period);
+        const { data: owner } = await db.from("workspace_members").select("user_id").eq("workspace_id", ws.id).eq("role", "owner").limit(1).maybeSingle();
+        const { data: prof } = owner ? await db.from("profiles").select("email, full_name").eq("id", owner.user_id).maybeSingle() : { data: null };
+        if (charge && owner && (await startPlan(ws, ws.plan, ws.billing_period, { userId: owner.user_id, email: prof?.email ?? "", name: prof?.full_name ?? null }, { mode: "test", ...charge })) !== false) out.renewed++;
+        continue;
+      }
+      if ((await settleSubscription(ws, now)).subscription_status === "canceled") out.ended++;
+      continue;
+    }
+    // Billed by Polar: Polar charges, reminds and renews; its webhooks update the workspace.
+    if (ws.billing_provider === "polar" && ws.polar_subscription_id) continue;
     if (ws.subscription_status === "past_due") {
-      if ((await settleSubscription(ws, now)).plan === "free") out.ended++;
+      if ((await settleSubscription(ws, now)).subscription_status === "canceled") out.ended++;
       continue;
     }
     const end = new Date(ws.current_period_end!);

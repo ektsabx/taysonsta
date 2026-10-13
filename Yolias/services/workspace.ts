@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { monthWindow } from "@/lib/plans";
+import { trialLimits } from "@/lib/trial";
 
 /**
  * Prospects from the usage ledger (docs/06): `prospects` = used (delivered),
@@ -13,11 +14,33 @@ import { monthWindow } from "@/lib/plans";
 export async function monthlyUsage(workspaceId: string) {
   const { resets } = monthWindow();
   const admin = createAdminClient();
-  const [{ data }, { data: ws }] = await Promise.all([
+  const [{ data }, { data: ws }, { data: lim }] = await Promise.all([
     admin.rpc("usage_summary", { p_ws: workspaceId }),
-    admin.from("workspaces").select("plan").eq("id", workspaceId).maybeSingle(),
+    admin.from("workspaces").select("plan, subscription_status, trial_ends_at").eq("id", workspaceId).maybeSingle(),
+    admin.rpc("limits_summary", { p_ws: workspaceId }),
   ]);
   const u = data?.[0];
+  const l = lim?.[0];
+  // Emails opened in the member's own mailbox and contacts uploaded by CSV, this month (owner brief 2026-10-12).
+  const limits = {
+    emails: { used: l?.emails_used ?? 0, limit: l?.emails_limit ?? 0 },
+    contacts: { used: l?.contacts_used ?? 0, limit: l?.contacts_limit ?? 0 },
+    trialEndsAt: ws?.subscription_status === "trialing" ? ws.trial_ends_at : null,
+  };
+  if (ws?.subscription_status === "trialing") {
+    // The trial's prospects last the whole trial, not a calendar month.
+    const trial = await trialLimits();
+    const before = Math.max(trial.prospects - (u?.quota ?? 0), 0);
+    return {
+      prospects: before + (u?.consumed ?? 0),
+      allowance: trial.prospects + (u?.granted ?? 0),
+      reserved: u?.reserved ?? 0,
+      available: u?.available ?? 0,
+      extra: u?.granted ?? 0,
+      resetsAt: null as string | null,
+      ...limits,
+    };
+  }
   if (ws?.plan === "free") {
     const { data: free } = await admin.from("plan_quotas").select("prospects_per_month").eq("plan", "free").maybeSingle();
     const gift = free?.prospects_per_month ?? 0;
@@ -29,6 +52,7 @@ export async function monthlyUsage(workspaceId: string) {
       available: u?.available ?? 0,
       extra: u?.granted ?? 0,
       resetsAt: null as string | null,
+      ...limits,
     };
   }
   return {
@@ -38,6 +62,7 @@ export async function monthlyUsage(workspaceId: string) {
     available: u?.available ?? 0,
     extra: u?.granted ?? 0,
     resetsAt: resets.toISOString() as string | null,
+    ...limits,
   };
 }
 

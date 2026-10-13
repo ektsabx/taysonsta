@@ -2,6 +2,18 @@ import { isActive, isRunning } from "@/lib/discovery/states";
 import type { Dictionary } from "@/lib/i18n/config";
 import type { CampaignStatus } from "@/types/database";
 
+/** The status filters of the Campaigns table (owner brief 2026-10-12). Drafts are searches still in setup. */
+export const campaignFilters = ["all", "active", "paused", "draft", "completed", "error"] as const;
+export type CampaignFilter = (typeof campaignFilters)[number];
+
+/** Which filter a campaign status belongs to: running, queued, scheduled or waiting for a source → Active; partial → Completed. */
+export function campaignFilterOf(status: CampaignStatus): Exclude<CampaignFilter, "all" | "draft"> {
+  if (status === "paused") return "paused";
+  if (status === "completed" || status === "partial") return "completed";
+  if (status === "failed") return "error";
+  return "active";
+}
+
 /** Status label + pill class for a campaign, shared by the list and the dashboard. */
 export function campaignStatus(status: CampaignStatus, t: Dictionary): { label: string; cls: string } {
   const c = t.campaigns;

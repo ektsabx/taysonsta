@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
 import { contactPage } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
 import { ContactForm } from "./ContactForm";
+import { captchaConfig } from "@/lib/auth/captcha";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${contactPage[locale].title} — Yolias`, description: contactPage[locale].lead };
+  return pageMetadata({ title: `${contactPage[locale].title.replace(/[.。]$/, "")} | Yolias`, description: contactPage[locale].lead, path: "/contact" });
 }
 
 const topics = ["sales", "support", "partnerships", "press", "other"];
@@ -18,6 +21,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
 
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: c.title, description: c.lead, path: "/contact", type: "ContactPage" })]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{c.eyebrow}</p>
@@ -36,7 +40,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
               </div>
             ))}
           </div>
-          <ContactForm title={c.formTitle} defaultTopic={defaultTopic} />
+          <ContactForm title={c.formTitle} defaultTopic={defaultTopic} captchaSiteKey={(await captchaConfig())?.siteKey ?? null} />
         </div>
       </section>
     </>

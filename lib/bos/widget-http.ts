@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
-import { originOk, rateOk, sessionFor, widgetByKey, type Widget, type WidgetSession } from "@/services/bos/widgets";
+import { originOk, rateOk, resolveSession, sessionFor, verifyIdentity, widgetByKey, type VisitorIdentity, type Widget, type WidgetSession } from "@/services/bos/widgets";
 
 // Shared guard for the public widget API (/api/public/widget/<key>/…):
 // active widget + Origin in its allowed domains + per-IP rate limit. CORS is
@@ -20,19 +20,22 @@ export function json(body: unknown, status: number, origin: string | null) {
   return NextResponse.json(body, { status, headers: { ...corsHeaders(origin), "Cache-Control": "no-store" } });
 }
 
-type Guarded = { widget: Widget; origin: string; session: WidgetSession | null } | { response: NextResponse };
+type Guarded = { widget: Widget; origin: string; session: WidgetSession | null; identity: VisitorIdentity | null } | { response: NextResponse };
 
 export async function guard(req: NextRequest, key: string, opts: { session?: boolean; rate: [number, number] }): Promise<Guarded> {
   const origin = req.headers.get("origin");
   const widget = await widgetByKey(key);
   if (!widget || !origin || !originOk(widget, origin)) return { response: NextResponse.json({ error: "not_allowed" }, { status: 403, headers: { "Cache-Control": "no-store" } }) };
   if (!(await rateOk(`widget:${widget.id}:ip:${clientIp(req)}`, opts.rate[0], opts.rate[1]))) return { response: json({ error: "rate_limited" }, 429, origin) };
+  // A signed-in user of the site, vouched for by the site's server (D-180).
+  const identity = await verifyIdentity(widget, req.headers.get("x-widget-identity"));
   let session: WidgetSession | null = null;
   if (opts.session) {
-    session = await sessionFor(widget, req.headers.get("x-widget-token"));
+    const found = await sessionFor(widget, req.headers.get("x-widget-token"));
+    session = found ? await resolveSession(found, identity) : null;
     if (!session) return { response: json({ error: "session" }, 401, origin) };
   }
-  return { widget, origin, session };
+  return { widget, origin, session, identity };
 }
 
 export async function preflight(req: NextRequest, key: string) {

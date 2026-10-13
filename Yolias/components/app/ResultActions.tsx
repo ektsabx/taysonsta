@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Bookmark, BookmarkCheck } from "lucide-react";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { collectDecisionMakers, setSaved } from "@/app/(app)/prospects/people-actions";
 
@@ -36,7 +36,7 @@ export function CollectButton({ id, running }: { id: string; running: boolean })
       setQueued(r.ok && r.queued > 0);
       router.refresh();
     })}>
-      {queued ? t.results.collecting : t.results.collect} {!queued && <ArrowRight className="flip-rtl" />}
+      {queued ? t.results.collecting : t.results.collect}
     </button>
   );
 }

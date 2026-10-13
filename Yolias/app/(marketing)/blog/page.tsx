@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { blogHero } from "@/lib/content/blog";
 import { blogPosts } from "@/lib/content/store";
@@ -9,7 +10,7 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${blogHero[locale].title} — Yolias`, description: blogHero[locale].lead };
+  return pageMetadata({ title: `${blogHero[locale].title} | Yolias`, description: blogHero[locale].lead, path: "/blog" });
 }
 
 export default async function BlogPage() {
@@ -38,7 +39,7 @@ export default async function BlogPage() {
                 </div>
                 <h2>{doc.title}</h2>
                 <p>{doc.summary}</p>
-                <span className="read">{t.site.readMore} {locale === "ar" ? "←" : "→"}</span>
+                <span className="read">{t.site.readMore}</span>
               </Link>
             );
           })}

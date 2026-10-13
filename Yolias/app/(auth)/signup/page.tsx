@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
 import { requestCountry } from "@/lib/geo-server";
+import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
-import { isBillingPeriod, isPlan, planName, planPrice, priceFor } from "@/lib/plans";
+import { isBillingPeriod, isPaidPlan, monthlyRate, planName, planPrice, priceFor } from "@/lib/plans";
 import { currencyFor, getPlanCatalog } from "@/lib/plan-catalog";
 import { MagicLinkForm } from "../MagicLinkForm";
 import { GoogleButton } from "../GoogleButton";
 import { googleSignInEnabled } from "@/lib/auth/providers";
+import { captchaConfig } from "@/lib/auth/captcha";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).auth.signupSubmit} — Yolias` };
@@ -16,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
   const [t, plans, currency] = await Promise.all([getDictionary(), getPlanCatalog(), requestCountry().then(currencyFor)]);
   const { plan, period: rawPeriod } = await searchParams;
-  const picked = isPlan(plan) ? plan : undefined;
-  const period = isBillingPeriod(rawPeriod) ? rawPeriod : "monthly";
+  const picked = isPaidPlan(plan) ? plan : undefined;
+  const period = isBillingPeriod(rawPeriod) ? rawPeriod : "annual";
 
   return (
     <>
@@ -27,13 +29,14 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
         <div className="selected-plan">
           <div>
             <span className="selected-plan-label">{t.auth.selectedPlan}</span>
-            <strong>{planName(picked, t)}</strong> · <span dir="ltr">{formatMoney(priceFor(planPrice(plans[picked], currency) ?? 0, period), currency)}</span>{picked !== "free" && period === "annual" ? t.plans.perYear : t.plans.perMonth}
+            <strong>{planName(picked, t)}</strong> · <span dir="ltr">{formatMoney(monthlyRate(planPrice(plans[picked], currency) ?? 0, period), currency)}</span>{t.plans.perMonth}
+            {period === "annual" && <> · {fmt(t.plans.billedYearlyAt, { amount: formatMoney(priceFor(planPrice(plans[picked], currency) ?? 0, period), currency) })}</>}
           </div>
           <Link href="/pricing">{t.auth.change}</Link>
         </div>
       )}
       {(await googleSignInEnabled()) && <GoogleButton label={t.auth.google} or={t.auth.orEmail} plan={picked} period={picked ? period : undefined} />}
-      <MagicLinkForm mode="signup" plan={picked} period={picked ? period : undefined} />
+      <MagicLinkForm mode="signup" plan={picked} period={picked ? period : undefined} captchaSiteKey={(await captchaConfig())?.siteKey ?? null} />
     </>
   );
 }

@@ -33,7 +33,6 @@ export default async function EmployeeOnboardingPage({ params }: { params: Promi
             <RefreshOnboardingButton employeeId={employeeId} />
             {!emp.user_id && can(bos, "employees.manage") ? <LoginControls employeeId={employeeId} hasLogin={false} disabled={false} /> : null}
             <Link className="admin-btn small secondary" href={`/admin/team/employees/${employeeId}?tab=access`}><Tx>الصلاحيات</Tx></Link>
-            <Link className="admin-btn small secondary" href={`/admin/team/employees/${employeeId}?tab=devices`}><Tx>الأجهزة</Tx></Link>
           </>
         }
       />
@@ -51,14 +50,11 @@ export default async function EmployeeOnboardingPage({ params }: { params: Promi
               role_assigned: { href: `/admin/team/employees/${employeeId}/edit`, label: "الأدوار" },
               manager_assigned: { href: `/admin/team/employees/${employeeId}/edit`, label: "تعيين المدير" },
               team_assigned: { href: `/admin/team/employees/${employeeId}/edit`, label: "تعيين الفريق" },
-              device_assigned: { href: "/admin/team/devices", label: "تسليم جهاز" },
-              device_received: { href: `/admin/team/employees/${employeeId}?tab=devices`, label: "تأكيد الاستلام" },
               kpis_assigned: { href: "/admin/team/kpis?view=assignments", label: "تخصيص المؤشرات" },
               manager_meeting: { href: "/admin/communication/meetings/new", label: "جدولة اجتماع" },
               mfa_enabled: { href: `/admin/team/employees/${employeeId}?tab=access`, label: "حالة 2FA" },
               access_revoked: { href: `/admin/team/employees/${employeeId}?tab=access`, label: "سحب الصلاحيات" },
               accounts_suspended: { href: `/admin/team/employees/${employeeId}?tab=access`, label: "حسابات الشركة" },
-              devices_returned: { href: `/admin/team/employees/${employeeId}?tab=devices`, label: "الأجهزة" },
             }}
           />
           <p className="bos-faint" style={{ fontSize: 12, marginTop: 10 }}><Tx>البنود «التلقائية» تكتمل من بيانات النظام. التأكيدات الثلاثة (الموظف، المدير، الإدارة) متاحة بعد إكمال باقي البنود المطلوبة، وعند اكتمالها يصبح الموظف «نشطاً».</Tx></p>

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
   if (!(await rateOk(`widget:${g.widget.id}:session:${clientIp(req)}`, 3600, 20))) return json({ error: "rate_limited" }, 429, g.origin);
   try {
     const body = (await req.json().catch(() => ({}))) as { page?: string };
-    const token = await startSession(g.widget, { origin: g.origin, pageUrl: typeof body.page === "string" ? body.page : null, userAgent: req.headers.get("user-agent") });
+    const token = await startSession(g.widget, { origin: g.origin, pageUrl: typeof body.page === "string" ? body.page : null, userAgent: req.headers.get("user-agent") }, g.identity);
     return json({ token }, 200, g.origin);
   } catch (e) {
     logServerError("widget:session", e);

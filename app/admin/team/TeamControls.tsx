@@ -9,21 +9,17 @@ import { useRouter } from "next/navigation";
 import { ActionButton, ConfirmButton, ModalButton } from "@/components/bos/Dialog";
 import { ActionForm, CheckboxField, SelectField, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
 import {
-  assignDeviceAction,
   cancelLeaveAction,
   changeLifecycleAction,
-  confirmReceiptAction,
   createLoginAction,
   hrEditSessionAction,
   refreshOnboardingAction,
   requestCorrectionAction,
   requestLeaveAction,
   requestOvertimeAction,
-  returnDeviceAction,
   saveManualKpiValueAction,
   saveReviewAction,
   acknowledgeReviewAction,
-  securityCheckAction,
   setKpiAssignmentAction,
   setLoginDisabledAction,
   setMfaStatusAction,
@@ -360,63 +356,4 @@ export function ReviewButton({ userId, review, label = "+ مراجعة أداء"
 
 export function AcknowledgeReviewButton({ id }: { id: string }) {
   return <ActionButton label="تأكيد الاطلاع" className="admin-btn small" action={() => acknowledgeReviewAction(id)} />;
-}
-
-// ---------------------------------------------------------------------------
-// Devices
-// ---------------------------------------------------------------------------
-
-export function AssignDeviceButton({ deviceId, employees }: { deviceId: string; employees: Opt[] }) {
-  return (
-    <ModalButton label="تسليم لموظف" title="تسليم الجهاز" className="admin-btn small">
-      {(close) => (
-        <ActionForm action={assignDeviceAction.bind(null, deviceId)} onSuccess={close}>
-          <SelectField name="employee_id" label="الموظف" required placeholder="اختر..." options={employees} />
-          <SelectField name="condition" label="حالة الجهاز عند التسليم" options={[{ value: "new", label: "جديد" }, { value: "good", label: "جيد" }, { value: "fair", label: "مقبول" }, { value: "poor", label: "ضعيف" }]} defaultValue="good" />
-          <div className="bos-form-actions"><SubmitButton label="تسليم" /></div>
-        </ActionForm>
-      )}
-    </ModalButton>
-  );
-}
-
-export function ReturnDeviceButton({ deviceId }: { deviceId: string }) {
-  return (
-    <ModalButton label="تسجيل الاسترجاع" title="استرجاع الجهاز" className="admin-btn small secondary">
-      {(close) => (
-        <ActionForm action={returnDeviceAction.bind(null, deviceId)} onSuccess={close}>
-          <SelectField name="condition" label="الحالة عند الاسترجاع" options={[{ value: "new", label: "جديد" }, { value: "good", label: "جيد" }, { value: "fair", label: "مقبول" }, { value: "poor", label: "ضعيف" }, { value: "damaged", label: "تالف" }]} defaultValue="good" />
-          <SelectField name="next_status" label="الوجهة" options={[{ value: "in_stock", label: "المخزون" }, { value: "in_repair", label: "الصيانة" }, { value: "retired", label: "استبعاد" }, { value: "lost", label: "مفقود" }]} defaultValue="in_stock" />
-          <div className="bos-form-actions"><SubmitButton label="حفظ" /></div>
-        </ActionForm>
-      )}
-    </ModalButton>
-  );
-}
-
-export function ConfirmReceiptButton({ deviceId }: { deviceId: string }) {
-  return <ActionButton label="تأكيد استلام الجهاز" className="admin-btn small" action={() => confirmReceiptAction(deviceId)} />;
-}
-
-const triOptions: Opt[] = [
-  { value: "", label: "غير معروف" },
-  { value: "yes", label: "نعم" },
-  { value: "no", label: "لا" },
-];
-const triValue = (v: boolean | null) => (v === true ? "yes" : v === false ? "no" : "");
-
-export function SecurityCheckForm({ deviceId, values }: { deviceId: string; values: { os_updated: boolean | null; encryption_enabled: boolean | null; screen_lock_enabled: boolean | null; antivirus_enabled: boolean | null; company_account_configured: boolean | null } }) {
-  return (
-    <ActionForm action={securityCheckAction.bind(null, deviceId)} successMessage="تم الحفظ">
-      <div className="bos-form-grid">
-        <SelectField name="os_updated" label="نظام التشغيل محدّث" options={triOptions} defaultValue={triValue(values.os_updated)} />
-        <SelectField name="encryption_enabled" label="تشفير القرص" options={triOptions} defaultValue={triValue(values.encryption_enabled)} />
-        <SelectField name="screen_lock_enabled" label="قفل الشاشة" options={triOptions} defaultValue={triValue(values.screen_lock_enabled)} />
-        <SelectField name="antivirus_enabled" label="برنامج الحماية" options={triOptions} defaultValue={triValue(values.antivirus_enabled)} />
-        <SelectField name="company_account_configured" label="حساب الشركة مُعد" options={triOptions} defaultValue={triValue(values.company_account_configured)} />
-      </div>
-      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>فحص حماية أصول الشركة وبياناتها — لا مراقبة للموظفين.</Tx></p>
-      <div className="bos-form-actions"><SubmitButton label="حفظ الفحص" className="admin-btn small" /></div>
-    </ActionForm>
-  );
 }

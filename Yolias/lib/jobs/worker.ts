@@ -9,6 +9,8 @@ import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
 import { billingSweep } from "@/lib/billing";
+import { affiliateNotify, matureCommissions } from "@/lib/affiliates/notify";
+import { runStatusChecks, statusSettings } from "@/lib/status/checks";
 import type { JobKind, JobPayloads } from "@/lib/jobs/queue";
 import type { Json } from "@/types/database";
 
@@ -34,6 +36,10 @@ const handlers: { [K in JobKind]: Handler<K> } = {
   "email.announce": (p) => sendAnnouncement(p.announcementId),
   "billing.sweep": async () => {
     await billingSweep();
+    await matureCommissions();
+  },
+  "affiliate.notify": async (p) => {
+    await affiliateNotify(p.affiliateId, p.event, p.dedupeId, { amountCents: p.amountCents, reason: p.reason, reference: p.reference });
   },
 };
 
@@ -65,6 +71,21 @@ async function scheduleSweep() {
   // Conditional bump: only one caller wins per hour.
   const { data: won } = await db.from("worker_state").update({ updated_at: new Date().toISOString() }).eq("key", "billing.sweep").lt("updated_at", since).select("key");
   if (won?.length) await db.rpc("jobs_enqueue", { p_kind: "billing.sweep", p_payload: {}, p_delay: 0 });
+}
+
+/**
+ * Status page checks (D-181), at most once per configured interval across
+ * every worker call: the caller that moves worker_state "status.checks"
+ * forward runs them (inline, each check has its own short timeout).
+ */
+export async function scheduleStatusChecks(): Promise<number> {
+  const db = createAdminClient();
+  const minutes = (await statusSettings()).intervalMinutes;
+  const since = new Date(Date.now() - minutes * 60_000 + 5_000).toISOString();
+  const { data: first } = await db.from("worker_state").upsert({ key: "status.checks", value: {}, updated_at: new Date().toISOString() }, { onConflict: "key", ignoreDuplicates: true }).select("key");
+  const won = first?.length ? first : (await db.from("worker_state").update({ updated_at: new Date().toISOString() }).eq("key", "status.checks").lt("updated_at", since).select("key")).data;
+  if (!won?.length) return 0;
+  return runStatusChecks();
 }
 
 /**
@@ -124,6 +145,7 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
   await scheduleCampaigns().catch((e) => console.error("[jobs] campaign scheduling failed", e));
   await heartbeat().catch(() => {});
+  await scheduleStatusChecks().catch((e) => console.error("[jobs] status checks failed", e));
   await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });

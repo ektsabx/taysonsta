@@ -120,14 +120,6 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
     return (emps ?? []).length;
   });
 
-  // Device security check older than 90 days → IT reminder.
-  await step(results, "device_security_checks", async () => {
-    const cutoff = new Date(now.getTime() - 90 * 86400_000).toISOString();
-    const { data } = await c.from("devices").select("id, asset_id").eq("status", "assigned").not("type", "in", "(monitor,headset)").or(`last_security_check_at.is.null,last_security_check_at.lt.${cutoff}`);
-    for (const d of data ?? []) await emitEvent({ type: "device.security_check_due", entityType: "device", entityId: d.id, summary: `Security check due for ${d.asset_id}`, actorType: "system", dedupeKey: `device.security_check_due:${d.id}:${today.slice(0, 7)}` });
-    return (data ?? []).length;
-  });
-
   // Onboarding checklists past due → responsible people notified.
   await step(results, "onboarding_overdue", async () => {
     const { data } = await c.from("onboarding_checklists").select("id, subject, client_id, employee_id, due_date, template_key").eq("status", "in_progress").lt("due_date", today);
@@ -174,32 +166,12 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
     return purgeLocations();
   });
 
-  // Assets: expiring warranties/licences, maintenance due, low stock (docs/bos/30 §21).
-  await step(results, "asset_alerts", async () => {
-    const { assetAlerts } = await import("@/services/bos/assets");
-    return assetAlerts();
+  // Platform alerts: Gemini spend, failures, payments, email, database size (2026-10-12).
+  await step(results, "platform_alerts", async () => {
+    const { checkPlatformAlerts } = await import("@/services/yolias/alerts");
+    return checkPlatformAlerts();
   });
 
-  // E-signature status fallback (webhooks unreachable) + signed-copy download retry (docs/bos/30 §19).
-  await step(results, "esign_poll", async () => {
-    const { pollSignatureRequests } = await import("@/services/bos/esign");
-    return pollSignatureRequests(20);
-  });
-
-  // Deal Radar alerts to deal owners, once a day per deal (docs/bos/30 §17, §20).
-  await step(results, "deal_radar_alerts", async () => {
-    const { radarAlerts } = await import("@/services/bos/deal-radar");
-    return radarAlerts();
-  });
-
-  // Ads: read-only sync of API ad accounts every 6 h (docs/bos/30 §14).
-  await step(results, "ads_sync", async () => {
-    const { syncDueAdAccounts } = await import("@/services/bos/ads");
-    return syncDueAdAccounts(10);
-  });
-
-  // Approvals past their due date: reminder to the approver, escalation to
-  // their manager after the configured delay (docs/bos/30 §18).
   await step(results, "approval_reminders", async () => {
     const { remindOverdueApprovals } = await import("@/services/bos/approvals");
     return remindOverdueApprovals();

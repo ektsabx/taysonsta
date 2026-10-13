@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+
 import { useI18n } from "@/lib/i18n/client";
 import { completeOnboarding, type OnboardingState } from "./actions";
 
@@ -54,7 +54,6 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
       {state.error && <p className="form-error" role="alert">{state.error}</p>}
       <button className="btn-primary auth-submit" type="submit" disabled={pending}>
         {pending ? t.common.saving : o.submit}
-        {!pending && <ArrowRight className="flip-rtl" />}
       </button>
     </form>
   );

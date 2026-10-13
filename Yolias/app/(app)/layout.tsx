@@ -3,13 +3,21 @@ import { AppShell } from "@/components/app/AppShell";
 import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
-import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
+import { createClient } from "@/lib/supabase/server";
+import { shouldAskForReview } from "@/lib/review-prompt";
+import { getPlanCatalog } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
-import { providerFor } from "@/lib/payments";
+import { billingRoute, paymentsConnected } from "@/lib/payments";
+import { loadPolar, polarPortalUrl } from "@/lib/payments/polar";
 import { planPrice } from "@/lib/plans";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
+import type { Metadata as NoindexMetadata } from "next";
+import { noindex } from "@/lib/seo";
+
+// Never in search results (D-179): private, per-user pages.
+export const metadata: NoindexMetadata = { robots: noindex };
 
 function deviceLabel(ua: string): string {
   const browser = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
@@ -23,21 +31,30 @@ function maskIp(ip: string | null): string | null {
   return v4.length === 4 ? `${v4[0]}.${v4[1]}.•••.••` : null;
 }
 
+// The user's own phone (RLS: only its owner can read it).
+async function ownPhone(userId: string): Promise<string | null> {
+  const { data } = await (await createClient()).from("user_phones").select("phone").eq("user_id", userId).maybeSingle();
+  return data?.phone ?? null;
+}
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
   const { profile, workspace } = session;
   const plan = (await getPlanCatalog())[workspace.plan];
   const h = await headers();
 
-  const currency = await workspaceCurrency(workspace);
-  const [recent, usage, team, invoices, packs, online, unread] = await Promise.all([
+  const [route, polar] = await Promise.all([billingRoute(workspace), loadPolar()]);
+  const polarEnv = polar?.environment ?? "production";
+  const [recent, usage, team, invoices, packs, online, unread, phone, askReview] = await Promise.all([
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
     canManageTeam(session) ? listInvoices(workspace.id) : Promise.resolve([]),
     listPacks(),
-    providerFor(currency).then(Boolean),
+    paymentsConnected(workspace),
     unreadNotifications(session.userId),
+    ownPhone(session.userId),
+    shouldAskForReview(session).catch(() => false),
   ]);
 
   const name = profile.full_name || session.email;
@@ -49,6 +66,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       emailConfirmed: session.emailConfirmed,
       avatarUrl: profile.avatar_url,
       initials: initials(profile.full_name, session.email.slice(0, 2).toUpperCase()),
+      phone,
+      askReview,
     },
     preferences: {
       theme: profile.theme,
@@ -82,7 +101,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     usage,
     invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
     packs: packs.map((p) => ({ id: p.id, prospects: p.prospects, price: Number(p.price_usd) })),
-    billing: { online, testMode: billingTestMode() },
+    billing: { online, testMode: billingTestMode(), provider: route, portalUrl: route === "polar" && workspace.polar_subscription_id ? polarPortalUrl(polarEnv) : null },
     unread,
     team: {
       members: team.members.map((m) => ({

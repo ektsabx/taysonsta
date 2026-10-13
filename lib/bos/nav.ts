@@ -62,7 +62,22 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/risk", label: "المخاطر", perm: "platform.read" },
       { href: "/admin/platform/seo", label: "تحسين محركات البحث", perm: "platform.read" },
       { href: "/admin/platform/health", label: "صحة المنصة", perm: "platform.read" },
+      { href: "/admin/platform/status", label: "صفحة الحالة", perm: "platform.read" },
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },
+    ],
+  },
+  // Yolias affiliate program (D-178): marketers, commissions, payouts, rules.
+  {
+    key: "affiliates",
+    label: "الأفلييت",
+    icon: "affiliates",
+    items: [
+      { href: "/admin/affiliates", label: "نظرة عامة", perm: "affiliates.read" },
+      { href: "/admin/affiliates/list", label: "المسوّقون", perm: "affiliates.read" },
+      { href: "/admin/affiliates/commissions", label: "العمولات", perm: "affiliates.read" },
+      { href: "/admin/affiliates/payouts", label: "طلبات السحب", perm: "affiliates.read" },
+      { href: "/admin/affiliates/settings", label: "إعدادات البرنامج", perm: "affiliates.read" },
+      { href: "/admin/affiliates/audit", label: "سجل التدقيق", perm: "affiliates.read" },
     ],
   },
   {
@@ -76,7 +91,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/sales/proposals", label: "المقترحات", perm: "proposals.read" },
       { href: "/admin/sales/contracts", label: "العقود", perm: "contracts.read" },
       { href: "/admin/sales/pipeline", label: "مسار المبيعات", perm: ["deals.read", "leads.read"] },
-      { href: "/admin/sales/radar", label: "رادار الصفقات", perm: "deals.read" },
       { href: "/admin/approvals", label: "الموافقات", perm: "approvals.read" },
     ],
   },
@@ -123,7 +137,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/team/performance", label: "الأداء", perm: "performance.read", children: hr("performance") },
       { href: "/admin/team/requests", label: "المصروفات والطلبات", perm: "hr_requests.read", children: hr("requests") },
       { href: "/admin/team/documents", label: "المستندات والعقود", perm: "hr_documents.read", children: hr("documents") },
-      { href: "/admin/team/devices", label: "الأجهزة", perm: "devices.read" },
       { href: "/admin/team/locations", label: "مشاركة الموقع", perm: ["attendance.create", "location.read"] },
     ],
   },
@@ -137,29 +150,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/communication/meetings", label: "الاجتماعات", perm: "meetings.read" },
       { href: "/admin/communication/notifications", label: "الإشعارات", perm: "notifications.read" },
       { href: "/admin/calendar", label: "التقويم", perm: "calendar.read" },
-    ],
-  },
-  {
-    key: "marketing",
-    label: "التسويق",
-    icon: "marketing",
-    // Master upgrade Phases 10–12 (docs/bos/30 §12–15).
-    items: [
-      {
-        href: "/admin/content", label: "استوديو المحتوى", perm: "content.read",
-        children: [
-          { href: "/admin/content", label: "لوحة المحتوى", perm: "content.read" },
-          { href: "/admin/content/ideas", label: "مولّد الأفكار", perm: "content.create" },
-          { href: "/admin/content/stages", label: "مراحل العمل", perm: "content.manage" },
-        ],
-      },
-      {
-        href: "/admin/ads", label: "الإعلانات", perm: "ads.read",
-        children: [
-          { href: "/admin/ads", label: "الأداء", perm: "ads.read" },
-          { href: "/admin/ads/alerts", label: "التنبيهات", perm: "ads.manage" },
-        ],
-      },
     ],
   },
   {
@@ -177,11 +167,14 @@ export const navigation: NavGroup[] = [
     key: "support",
     label: "الدعم",
     icon: "support",
-    // docs/bos/37 §3: exactly these six pages; customers and teams open from
-    // the inbox, the website widget lives in Settings → Integrations.
+    // docs/bos/37 §3 (plus Website messages, 2026-10-12): customers and teams
+    // open from the inbox, the website widget lives in Settings → Integrations.
     items: [
       { href: "/admin/support", label: "نظرة عامة", perm: "conversations.read" },
       { href: "/admin/support/inbox", label: "صندوق الوارد", perm: "conversations.read" },
+      { href: "/admin/support/messages", label: "رسائل الموقع والبلاغات", perm: "conversations.read" },
+      { href: "/admin/support/ratings", label: "التقييمات", perm: "conversations.read" },
+      { href: "/admin/support/profile", label: "ملفي في الدعم", perm: "conversations.read" },
       { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
       { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
       { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
@@ -213,7 +206,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/files", label: "كل الملفات", perm: "files.read" },
       { href: "/admin/files/shared", label: "الملفات المشتركة", perm: "files.read" },
       { href: "/admin/documents", label: "المستندات والقوالب", perm: "documents.read" },
-      { href: "/admin/documents/signatures", label: "طلبات التوقيع", perm: "documents.read" },
       { href: "/admin/files/templates", label: "ملفات قوالب مرفوعة", perm: "files.read" },
     ],
   },
@@ -233,11 +225,10 @@ export const navigation: NavGroup[] = [
       // docs/bos/37 §5: everything that connects the system to an outside
       // service, site or platform is managed here.
       {
-        href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage", "ads.manage"], hrefPerm: "integrations.manage",
+        href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage"], hrefPerm: "integrations.manage",
         children: [
           { href: "/admin/settings/integrations", label: "الخدمات والمفاتيح", perm: "integrations.manage", all: "integrations.manage" },
           { href: "/admin/settings/integrations/widgets", label: "ويدجت الموقع", perm: "conversations.manage" },
-          { href: "/admin/settings/integrations/ads", label: "الحسابات الإعلانية", perm: "ads.manage" },
         ],
       },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },

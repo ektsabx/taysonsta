@@ -8,6 +8,7 @@ import { AgentNotConfiguredError, runAgent, type AgentEvent, type AgentFocus } f
 import { titleFrom } from "@/lib/discovery/launch";
 import { campaignConversation, conversationTurns } from "@/services/conversations";
 import type { ConversationRow, Json } from "@/types/database";
+import { releaseDaily, takeDaily } from "@/lib/daily-limits";
 import { activePolicy, applyGuardrails, cachedAnswer, detectLanguage, isGeneralQuestion, storeAnswer } from "@/lib/agent/policy";
 
 const BodySchema = z.object({
@@ -48,6 +49,9 @@ export async function POST(request: NextRequest) {
     db.from("agent_messages").select("id", { count: "exact", head: true }).eq("user_id", session.userId).eq("role", "user").gte("created_at", since(86_400_000)),
   ]);
   if ((lastMinute ?? 0) >= policy.limits.perMinute || (lastDay ?? 0) >= policy.limits.perDay) return NextResponse.json({ error: "rateLimited" }, { status: 429 });
+  // The plan's daily message limit, counted atomically (lib/daily-limits.ts).
+  const slot = await takeDaily(session.userId, session.workspace.plan, "ai_message");
+  if (!slot.ok) return NextResponse.json({ error: "dailyLimit", limit: slot.limit }, { status: 429 });
 
   // The user's turn is saved first (user's client, RLS), so it's never lost.
   const { data: userTurn, error: saveError } = await db.from("agent_messages")
@@ -55,6 +59,7 @@ export async function POST(request: NextRequest) {
     .select("id, role, content, created_at").single();
   if (saveError || !userTurn) {
     console.error("agent message save failed", saveError?.message);
+    await releaseDaily(session.userId, "ai_message");
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
   const admin = createAdminClient();

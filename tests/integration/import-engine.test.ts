@@ -6,7 +6,6 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { db } from "@/lib/bos/db";
 import { bosUserFor, uniq } from "@/tests/integration/helpers";
-import { createZip } from "@/lib/bos/documents/zip";
 import { analyzeImport, errorReportCsv, executeImport, rollbackImport, startImport, validateImport } from "@/services/bos/import-engine";
 import { ForbiddenError, ValidationError } from "@/lib/bos/errors";
 
@@ -83,22 +82,11 @@ test("update mode changes only mapped non-empty safe fields and rollback restore
   assert.equal((await db().from("clients").select("phone").eq("id", c!.id).single()).data!.phone, c!.phone, "previous value restored");
 });
 
-test("XLSX assets import through the asset service; KB import creates drafts", async () => {
+// The assets import left with the assets module (2026-10-12, D-174).
+test("KB import creates drafts; the removed assets import is gone", async () => {
   const admin = await bosUserFor("admin@taysonsta.local");
   const tag = uniq("A").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(-8);
-  const sheet = `<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Asset Tag</t></is></c><c r="B1" t="inlineStr"><is><t>Type</t></is></c><c r="C1" t="inlineStr"><is><t>Purchase Date</t></is></c><c r="D1" t="inlineStr"><is><t>Value</t></is></c><c r="E1" t="inlineStr"><is><t>Currency</t></is></c></row>
-<row r="2"><c r="A2" t="inlineStr"><is><t>X-${tag}-1</t></is></c><c r="B2" t="inlineStr"><is><t>لابتوب</t></is></c><c r="C2"><v>46082</v></c><c r="D2"><v>1500</v></c><c r="E2" t="inlineStr"><is><t>usd</t></is></c></row>
-<row r="3"><c r="A3" t="inlineStr"><is><t>X-${tag}-2</t></is></c><c r="B3" t="inlineStr"><is><t>spaceship</t></is></c></row></sheetData></worksheet>`;
-  const xlsx = createZip([{ name: "xl/worksheets/sheet1.xml", data: enc.encode(sheet) }]);
-  const id = await job(admin, "assets", "assets.xlsx", xlsx);
-  const v = await validateImport(admin, id, { mapping: { asset_id: "Asset Tag", type: "Type", purchase_date: "Purchase Date", purchase_value: "Value", currency: "Currency" }, matchKey: "asset_id", mode: "create_only", expectedCount: null });
-  assert.deepEqual([v.valid, v.errors], [1, 1], "unknown type refused");
-  await executeImport(admin, id, { acknowledgeCountMismatch: false });
-  const { data: dev } = await db().from("devices").select("id, type, purchase_date, currency").eq("asset_id", `X-${tag}-1`).single();
-  cleanup.push(() => db().from("devices").delete().eq("id", dev!.id));
-  assert.deepEqual([dev!.type, dev!.purchase_date, dev!.currency], ["laptop", "2026-03-01", "USD"]);
-  const { count: ev } = await db().from("asset_events").select("id", { count: "exact", head: true }).eq("device_id", dev!.id).eq("kind", "purchased");
-  assert.equal(ev, 1, "service side effects kept (event log)");
+  await assert.rejects(job(admin, "assets", "assets.csv", enc.encode("asset_id\nX")), "no assets import type");
 
   const { data: cat } = await db().from("kb_categories").select("name").limit(1).single();
   const kid = await job(admin, "kb_articles", "kb.json", enc.encode(JSON.stringify([{ title: `Imported ${tag}`, content: "Steps…", category: cat!.name }])));

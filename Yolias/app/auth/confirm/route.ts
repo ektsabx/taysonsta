@@ -3,6 +3,8 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { securityAlert, signedIn } from "@/lib/email/events";
 import { capture } from "@/lib/analytics/server";
+import { attributeSignup } from "@/lib/affiliates";
+import { AFFILIATE_COOKIE } from "@/lib/affiliates/program";
 
 // Magic link verification. Supports both link formats Supabase can send:
 //  - token_hash + type (Yolias email templates; works across devices)
@@ -37,6 +39,10 @@ export async function GET(request: NextRequest) {
     // New account: the sign-up confirmation link, or a first Google sign-in.
     const isNew = type === "signup" || (Boolean(code) && Date.now() - new Date(auth.user.created_at).getTime() < 10 * 60_000);
     if (type !== "email_change") await capture(auth.user.id, isNew ? "signed_up" : "signed_in", { method: code ? (auth.user.app_metadata?.provider ?? "oauth") : "magic_link" });
+    // Referral link visited before signing up: the database decides whether
+    // it counts (new account, valid window, not the affiliate themself).
+    const ref = request.cookies.get(AFFILIATE_COOKIE)?.value;
+    if (ref) await attributeSignup(auth.user.id, ref, ip);
   }
 
   return NextResponse.redirect(new URL("/", url.origin));

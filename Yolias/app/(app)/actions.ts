@@ -9,11 +9,13 @@ import { confirmSetup, titleFrom, understandAndLaunch } from "@/lib/discovery/la
 import { parseIcp } from "@/lib/discovery/icp";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
+import { releaseDaily, takeDaily } from "@/lib/daily-limits";
 import type { Json } from "@/types/database";
 
 export type StrategyResult = { ok: true; id: string } | { ok: false; error: string };
 
 const MAX_PROMPT = 4000;
+const DEDUPE_MS = 2 * 60_000;
 
 // Yolias AI entry point: request → understood ICP → campaign (search mission)
 // → discovery pipeline. The strategy row is created first so the request is
@@ -34,6 +36,18 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
   if (!prompt && attachments.length === 0) return { ok: false, error: t.strategy.errors.empty };
 
   const supabase = await createClient();
+  // The same request sent again within two minutes (a retry after a dropped
+  // connection, a double submit) opens the search already started.
+  if (prompt && attachments.length === 0) {
+    const { data: recent } = await supabase.from("strategies").select("id")
+      .eq("workspace_id", session.workspace.id).eq("created_by", session.userId).eq("prompt", prompt)
+      .gte("created_at", new Date(Date.now() - DEDUPE_MS).toISOString())
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (recent) return { ok: true, id: recent.id };
+  }
+  const slot = await takeDaily(session.userId, session.workspace.plan, "search");
+  if (!slot.ok) return { ok: false, error: fmt(t.strategy.errors.dailyLimit, { count: slot.limit }) };
+
   const { data: strategy, error } = await supabase
     .from("strategies")
     .insert({
@@ -45,7 +59,10 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
     })
     .select("id")
     .single();
-  if (error || !strategy) return { ok: false, error: t.strategy.errors.startFailed };
+  if (error || !strategy) {
+    await releaseDaily(session.userId, "search");
+    return { ok: false, error: t.strategy.errors.startFailed };
+  }
 
   await understandAndLaunch(session, strategy.id, prompt, attachments);
   revalidatePath("/", "layout");
@@ -61,6 +78,8 @@ export async function retryStrategy(strategyId: string): Promise<StrategyResult>
   const { data: strategy } = await supabase.from("strategies").select("id, prompt, status").eq("id", strategyId).maybeSingle();
   if (!strategy) return { ok: false, error: t.strategy.errors.notFound };
   if (strategy.status !== "failed") return { ok: true, id: strategy.id };
+  const slot = await takeDaily(session.userId, session.workspace.plan, "search");
+  if (!slot.ok) return { ok: false, error: fmt(t.strategy.errors.dailyLimit, { count: slot.limit }) };
 
   await supabase.from("strategies").update({ status: "understanding", error: null }).eq("id", strategy.id);
   await understandAndLaunch(session, strategy.id, strategy.prompt, []);

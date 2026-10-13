@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ExternalLink, Eye, Mail, Phone, Star, UsersRound } from "lucide-react";
+import { CheckCircle2, ExternalLink, Eye, Mail, Phone, Star, UsersRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -134,7 +134,7 @@ export function CompanyCard({ company: c, selected = false, onToggle }: { compan
       <div className="company-card-actions">
         <Link className="btn-secondary" href={`/prospects/company/${c.id}`}>{r.viewCompany}</Link>
         {c.people.length ? (
-          <Link className="btn-outline-accent" href={`/prospects/company/${c.id}#decision-makers`}>{r.viewDecisionMakers} <ArrowRight className="flip-rtl" /></Link>
+          <Link className="btn-outline-accent" href={`/prospects/company/${c.id}#decision-makers`}>{r.viewDecisionMakers}</Link>
         ) : !c.canCollect || c.peopleStatus === "done" ? null : (
           <CollectButton id={c.id} running={c.peopleStatus === "running" || c.peopleStatus === "queued"} />
         )}

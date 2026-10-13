@@ -5,6 +5,7 @@ import { getPlanCatalog } from "@/lib/plan-catalog";
 import { isPaidPlan } from "@/lib/plans";
 import { dictionaries } from "@/lib/i18n/config";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
+import { COMMUNITY_URL } from "@/lib/community";
 import type { BillingPeriod, Currency, Plan, WorkspaceRow } from "@/types/database";
 
 // Email triggers: one function per real event. Callers never await email
@@ -68,7 +69,7 @@ export async function planStarted(before: WorkspaceRow, plan: Plan, period: Bill
     const base = (l: "en" | "ar") => ({ planName: planName(plan)(l), period, amount, currency, periodEnd, test });
     if (!wasPaid) {
       const { count } = await createAdminClient().from("subscription_events").select("id", { count: "exact", head: true })
-        .eq("workspace_id", ws).in("plan", ["pro", "growth"]).in("status", ["activated", "changed"]);
+        .eq("workspace_id", ws).in("plan", ["pro", "growth", "scale"]).in("status", ["activated", "changed"]);
       // count includes the event just written for this activation.
       if ((count ?? 0) <= 1) await notify("plan_welcome", admins, (l) => ({ ...base(l), prospectsPerMonth: catalog[plan].prospects }), { workspaceId: ws, dedupe: `${ws}:welcome:${plan}` });
       else await notify("subscription_activated", admins, base, { workspaceId: ws });
@@ -95,17 +96,31 @@ export async function planCanceled(ws: WorkspaceRow, cancel: boolean) {
 }
 
 /** A canceled plan reached its end and the workspace moved to Free. */
-export async function planEnded(ws: WorkspaceRow) {
-  const catalog = await getPlanCatalog();
-  await notify("plan_downgraded", await workspaceRecipients(ws.id), (l) => ({
-    planName: planName("free")(l), fromPlanName: planName(ws.plan)(l), period: "monthly" as const, amount: 0, periodEnd: new Date().toISOString(), test: true, prospectsPerMonth: catalog.free.prospects,
-  }), { workspaceId: ws.id, dedupe: `${ws.id}:ended:${ws.current_period_end}` });
+/** The plan ended (canceled, unpaid renewal, or a trial without its first payment): new searches stop until the member subscribes. */
+export async function planEnded(ws: WorkspaceRow, why: "canceled" | "unpaid" | "trial") {
+  const reason = {
+    canceled: { en: "the plan ended after it was canceled", ar: "انتهت الخطة بعد إلغائها" },
+    unpaid: { en: "the renewal wasn’t paid", ar: "لم يتم دفع التجديد" },
+    trial: { en: "the free trial ended without a payment", ar: "انتهت التجربة المجانية دون دفع" },
+  }[why];
+  await notify("subscription_paused", await workspaceRecipients(ws.id), (l) => ({ planName: planName(ws.plan)(l), reason: reason[l] }),
+    { workspaceId: ws.id, dedupe: `${ws.id}:ended:${ws.current_period_end ?? ws.trial_ends_at}` });
 }
 
 /* ───────────────────────── Account & security ───────────────────────── */
 
 export async function welcome(userId: string, name: string | null) {
   await notify("welcome", await userRecipient(userId), { name }, { dedupe: userId });
+}
+
+/**
+ * Invitation to the Yolias Facebook community: once per account, after the
+ * account is set up. The dedupe key makes repeats (a second onboarding
+ * submit, a replayed auth event) no-ops; email_log records whether it was
+ * sent, skipped or failed (retried by the worker). Admin can switch it off.
+ */
+export async function communityInvite(userId: string, name: string | null) {
+  await notify("community_invite", await userRecipient(userId), { name, communityUrl: COMMUNITY_URL }, { dedupe: userId });
 }
 
 const DEVICE_LABELS: [RegExp, string][] = [

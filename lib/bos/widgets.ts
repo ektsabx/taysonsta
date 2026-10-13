@@ -22,7 +22,6 @@ export const widgets: WidgetDef[] = [
   { key: "recent_activity", title: "آخر نشاطاتي", size: 2, perm: ["dashboard.read"], dashboard: "employee" },
   { key: "bd_funnel", title: "قمع المبيعات (هذا الشهر)", size: 4, perm: ["leads.read", "deals.read"], dashboard: "bd" },
   { key: "bd_pipeline", title: "مسار الصفقات", size: 4, perm: ["deals.read"], dashboard: "bd" },
-  { key: "deal_radar", title: "رادار الصفقات", size: 2, perm: ["deals.read"], dashboard: "bd" },
   { key: "followups_due", title: "المتابعات المستحقة", size: 2, perm: ["activities.read"], dashboard: "bd" },
   { key: "approvals", title: "موافقات معلقة", size: 2, perm: ["approvals.read"], dashboard: "employee" },
   { key: "fin_revenue", title: "الإيرادات والتحصيل", size: 4, perm: ["invoices.view_sensitive"], dashboard: "finance" },
@@ -39,9 +38,9 @@ export const widgetByKey = new Map(widgets.map((w) => [w.key, w]));
 
 export const defaultLayouts: Record<string, string[]> = {
   employee: ["attendance_status", "my_tasks_today", "my_tasks_overdue", "upcoming_meetings", "approvals", "notifications", "personal_kpis", "recent_activity"],
-  bd: ["deal_radar", "bd_funnel", "bd_pipeline", "followups_due", "my_leads", "my_deals"],
+  bd: ["bd_funnel", "bd_pipeline", "followups_due", "my_leads", "my_deals"],
   finance: ["fin_revenue", "fin_cashflow", "fin_expenses", "fin_commissions"],
-  executive: ["exec_overview", "deal_radar", "exec_sales", "fin_cashflow", "exec_team", "exec_clients"],
+  executive: ["exec_overview", "exec_sales", "fin_cashflow", "exec_team", "exec_clients"],
 };
 
 // Which dashboard a role contributes (a user with several roles sees the union).

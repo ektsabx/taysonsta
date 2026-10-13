@@ -8,11 +8,11 @@ import type { Currency, Plan, WorkspaceRow } from "@/types/database";
 // live in public.plan_quotas and are edited in Yolias Admin. The constants in
 // lib/plans.ts are only the fallback if the table can't be read.
 export const getPlanCatalog = cache(async (): Promise<Record<Plan, PlanTerms>> => {
-  const { data, error } = await createAdminClient().from("plan_quotas").select("plan, price_usd, prospects_per_month");
+  const { data, error } = await createAdminClient().from("plan_quotas").select("plan, price_usd, prospects_per_month, emails_per_month, contacts_per_month");
   if (error || !data?.length) return defaultPlans;
   const out = { ...defaultPlans };
   for (const row of data) {
-    if ((allPlans as string[]).includes(row.plan)) out[row.plan as Plan] = { priceUsd: Number(row.price_usd), prospects: row.prospects_per_month };
+    if ((allPlans as string[]).includes(row.plan)) out[row.plan as Plan] = { priceUsd: Number(row.price_usd), prospects: row.prospects_per_month, emails: row.emails_per_month, contacts: row.contacts_per_month };
   }
   return out;
 });

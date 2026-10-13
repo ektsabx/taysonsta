@@ -1,7 +1,7 @@
 # 11 — Current State
 
 Snapshot of what exists in the code. Update with every change.
-Last updated: 2026-10-05.
+Last updated: 2026-10-13.
 
 ## Repository
 
@@ -24,6 +24,20 @@ Admin http://admin.localhost:3200.
 | Area | Where | State |
 | --- | --- | --- |
 | Auth (magic link) | `app/(auth)`, `app/auth/confirm` | working |
+| Checkout | `app/checkout/CheckoutForm.tsx`, `lib/payments` | Keyed buttons + text in elements (browser translation safe, YOLIAS-8/9); network failures shown with retry (`lib/action-client.ts`); checkout reused for repeat clicks; fulfilment retried exactly once (D-169) |
+| Plans and trial | `lib/plans.ts`, `lib/trial.ts`, `lib/billing.ts`, `plan_quotas` | Pro / Growth / Scale with prospects, emails and uploaded contacts per month; 7-day trial (50/50/50), trial usage carried into the first paid month; ended plans and unpaid trials close access (D-183, D-184) |
+| Polar | `lib/payments/polar.ts`, `app/checkout/polar`, `app/api/webhook/polar` | checkout + hosted portal ready; webhook verified and stored once, **not applied** until owner approval (D-185) |
+| Prospects table | `services/prospects.ts`, view `prospect_items`, `components/app/ProspectTable.tsx`, `ImportCsvButton.tsx` | one table, type filters, search filters on real columns, CSV import under the contacts limit (D-187) |
+| Campaigns list | `app/(app)/campaigns/page.tsx` | Name / Type / Status / Activity, status filters incl. drafts (D-188) |
+| Daily limits | `lib/daily-limits.ts`, `daily_usage` | searches and Yolias AI messages per user per UTC day, atomic (D-170) |
+| Sign-up protection | `lib/auth/captcha.ts`, `lib/auth/email-policy.ts`, `components/Turnstile.tsx` | Turnstile when configured; disposable domains refused by server and DB trigger (D-171) |
+| Contact / bug reports | `app/(marketing)/contact`, `app/(app)/feedback-actions.ts`, `components/app/FeedbackModal.tsx`, `lib/support/messages.ts` | stored with status, limits, team email; handled in Admin → Support → Website messages (D-172) |
+| Phone number | `user_phones`, Settings → Account | E.164, owner-only RLS |
+| Community / Trustpilot | `lib/community.ts`, `components/app/ReviewPrompt.tsx`, `lib/review-prompt.ts` | Get Help link, one-time invite email, one-time review card (D-173) |
+| Careers | `app/(marketing)/careers`, `lib/careers.ts` | published jobs marked for Yolias (D-175) |
+| Solutions | `app/(marketing)/solutions`, `lib/content/solutions.ts` | 7 pages, header Solutions / Resources menus (D-177) |
+| Social proof | `components/marketing/SocialProof.tsx`, `lib/content/social-proof.ts` | renders only from real approved data (empty now) |
+| App shell (mobile) | `components/app/AppShell.tsx` | drawer below 900px, backdrop, Escape, closes on navigation |
 | Workspaces, members, invitations | `supabase/migrations/20261001000000_yolias_init.sql` | working, RLS |
 | Search composer (text only; voice removed by the final spec, D-119) | `components/app/StrategyComposer.tsx` | working |
 | ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working; structured output through `lib/ai/llm` (Anthropic / OpenAI / Gemini with fallback, D-118) |
@@ -53,6 +67,14 @@ Searches under `/admin/platform` (read-only), reading the Yolias database.
 Runs at http://admin.localhost:3200.
 The demo seed (`npm run seed:bos`) follows the new schema: USD/EGP only,
 no projects, products, portal users or IT access records.
+
+2026-10-12: also removed from the UI and code (tables kept): Marketing
+(content studio, ads), Deal Radar, e-signature requests (DocuSign) and assets /
+devices (D-174). Added: Support → Website messages (contact form + bug
+reports, D-172), Careers "also on yolias.com" (D-175), platform alerts and
+thresholds on Platform → Health, provider numbers and on/off on Platform →
+Providers, recent Yolias AI tasks on Platform → LLM (D-176), Cloudflare
+Turnstile in the Integration Hub (D-171).
 
 ## Known gaps vs the specs
 

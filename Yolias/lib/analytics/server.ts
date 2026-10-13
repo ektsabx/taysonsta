@@ -13,6 +13,8 @@ const HOST = (process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
 
 export type ServerEvent =
   | "signed_up"
+  | "trial_started"
+  | "contacts_imported"
   | "signed_in"
   | "onboarding_completed"
   | "company_profile_updated"

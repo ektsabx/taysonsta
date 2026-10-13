@@ -147,3 +147,58 @@ npx wrangler secret put WORKER_SECRET
 
 ## تطبيق migrations يولياس على المشروع المشترك (مهم)
 `npx supabase db push` **ما بيشتغلش** على مشروع Taysonsta، لأن migrations الأدمن متسجلة في نفس الجدول، فبيرفض بـ «Remote migration versions not found». ما تشغّلش `migration repair` (هيعلّم migrations الأدمن إنها اتلغت). كل migration جديدة بتتطبق لوحدها بـ `npx supabase db query --linked -f <file>`، وبعدها تتسجل في `supabase_migrations.schema_migrations` (مثال: `Yolias/supabase/remote/record-20261107000700-000800.sql`). وتتأكد بـ `npx supabase migration list --linked`.
+
+## جولة 2026-10-12 (مستنية موافقة المالك، ما اتنفذش منها حاجة على الإنتاج)
+**قبل أي خطوة:** نسخة احتياطية من قاعدة البيانات، وتأكيد إن مفيش ازدواج في منح الباقات (السكريبت تحت).
+
+### بالترتيب على المشروع المشترك (`db query --linked -f` لكل ملف ثم تسجيله)
+1. `Yolias/supabase/migrations/20261108000000_payment_reliability.sql` (أعمدة جديدة في `payments` + فهرس فريد لمنح الباقات). قبلها شغّل: `select reason, count(*) from usage_ledger where kind='grant' and reason like 'prospect_pack:%' and reason <> 'prospect_pack:test' group by 1 having count(*) > 1;` ولازم ترجع صفر صفوف، وإلا الفهرس الفريد هيفشل.
+2. `…000100_daily_limits.sql` (جدول `daily_usage` ودوالّه).
+3. `…000200_blocked_email_domains.sql` (قائمة النطاقات المؤقتة + trigger على `auth.users`). الـ trigger بيأثر على أي إنشاء مستخدم جديد في المشروع (الأدمن كمان) لو بريده من نطاق مؤقت فقط.
+4. `…000300_support_messages.sql` (أعمدة الحالة والنوع للرسائل + bucket خاص `bug-screenshots`).
+5. `…000400_user_phone.sql` (جدول `user_phones` برقم الهاتف الخاص).
+6. `…000500_review_prompt.sql` (عمودين في `profiles`).
+7. `…000600_careers.sql` (على المشروع المشترك بيضيف عمود `on_yolias` بس، لأن الجدول موجود).
+8. `…000700_admin_db_size.sql` (دالة قراءة حجم قاعدة البيانات).
+9. الأدمن: `supabase/migrations/20261108000050_career_jobs_on_yolias.sql` ثم `20261108000150_platform_alerts.sql`.
+
+### بعد الـ migrations
+- نشر يولياس (`npm run cf:deploy` في `Yolias`) ونشر الأدمن (`npm run cf:deploy:admin`).
+- في الأدمن المنشور: مفاتيح Cloudflare Turnstile، وبريد إشعارات رسائل الدعم، ومراجعة حدود التنبيهات.
+- صفحات الأدمن الجديدة (رسائل الموقع، المزودون، التنبيهات) بتقرأ أعمدة يولياس الجديدة، فلازم الـ migrations تتطبق قبل نشر الأدمن، وإلا الصفحات دي هتظهر خطأ.
+- تنبيه: `.env.local` في الجذر بيوجّه الأدمن المحلي لقاعدة يولياس **الإنتاجية** (من `.env.yolias-production.local`). أي تجربة محلية للأدمن بعد الـ migrations دي بتقرا بيانات الإنتاج.
+
+## الجولة الثانية 2026-10-12 (الأفلييت، SEO، الدعم، صفحة الحالة، الصور). مستنية موافقة المالك، وما اتنفذش منها حاجة على الإنتاج
+**قبل أي خطوة:** نسخة احتياطية، ثم migrations الجولة الأولى (القسم اللي فوق) بالترتيب.
+
+**بعدها، بالترتيب على المشروع المشترك:** كل ملف بأمر `db query --linked -f`، ثم تسجيله في `schema_migrations`.
+1. `Yolias/supabase/migrations/20261109000000_affiliates.sql`
+   - جداول الأفلييت ودوالّها.
+   - trigger على `payments`: بعد تفعيل الدفع أو استرداده بيحسب العمولة. لو حصل فيه خطأ، الدفع نفسه ما بيقفش، والخطأ بيتسجّل في `affiliate_events`.
+2. `Yolias/supabase/migrations/20261109000100_status_page.sql`: جداول صفحة الحالة والخدمات السبع.
+3. `Yolias/supabase/migrations/20261109000200_image_uploads.sql`: حد 10MB وأنواع PNG وJPEG وWebP على bucketين.
+   - ⚠️ لو فيه صور GIF قديمة في avatars بتفضل موجودة. الشرط بيمنع رفع GIF جديدة بس.
+4. الأدمن: `supabase/migrations/20261109000050_affiliate_perms.sql`، ثم `20261109000150_support_messenger.sql`.
+
+**بعد النشر:**
+- **ويدجت الدعم:** افتح الأدمن ← مركز التكاملات ← ويدجت الموقع، واحفظ ويدجت يولياس مرة واحدة. الحفظ بيولّد مفتاح الهوية ويبعته لـ Vault يولياس. من غيره المحادثات بتشتغل، لكن مش بتتربط بحساب المستخدم.
+- **Search Console:** رمز Google (واختياريًا Bing) من مركز التكاملات، ثم Verify، ثم إرسال `https://www.yolias.com/sitemap.xml`.
+- **برنامج الأفلييت:** راجع إعدادات البرنامج ونص الشروط قبل الإعلان عنه (البنود 39 إلى 41 في docs/18).
+- **صفحة الحالة:** بتبدأ تتملّى أول ما الـ worker يشتغل (كل 5 دقائق). أول ساعة ممكن تبيّن «لا توجد بيانات حديثة» لبعض الخدمات.
+
+### اتعمل في النشر (2026-10-12)
+- **نسخة احتياطية:** `~/Desktop/taysonsta-backups/prod-20261012-1837-{schema,data}.sql`.
+- **فحص التكرار:** فحص منح الباقات المكررة رجع صفر.
+- **الـ migrations:** اتطبقت الـ 15 بالترتيب واتسجلت: 8 للجولة الأولى ليولياس، و3 للجولة الثانية، و4 للأدمن.
+- **النشر:** يولياس على الإصدار `40c9a6a9`، والأدمن على الإصدار `94d9ba8f`.
+- **صفحة الحالة:** الفحوص بدأت تشتغل على الإنتاج.
+- **باقي (يدوي، من المالك):** حفظ ويدجت يولياس مرة من الأدمن (مركز التكاملات ← ويدجت الموقع) عشان مفتاح الهوية يتنقل لـ Vault يولياس.
+
+## المرحلة الأولى 2026-10-12 (الخطط والتجربة وPolar). مستنية موافقة المالك، وما اتنفذش منها حاجة على الإنتاج
+1. نسخة احتياطية.
+2. `Yolias/supabase/migrations/20261110000000_plans_trial_limits.sql` بأمر `db query --linked -f`، ثم تسجيله في `schema_migrations`. إضافي فقط: خطة scale، وأعمدة الحدود، وحالة trialing، والـ view، وجدول webhooks، ونسخة أفلييت جديدة 15%.
+3. نشر يولياس (`npm run cf:deploy`) ثم الأدمن (`npm run cf:deploy:admin`). الأدمن فيه تكامل Polar وخط الويدجت.
+4. في الأدمن المنشور ← التكاملات ← Polar: البيئة production، والـ Token، والمنتجات الست، ثم «اختبار الاتصال».
+5. في لوحة Polar ← Webhooks: Endpoint واحد بس `https://www.yolias.com/api/webhook/polar` بالأحداث `order.paid` و `customer.state_changed`، وانسخ السر في الأدمن. (اتأكد إن مفيش Endpoint تاني بنفس الرابط.)
+6. فعّل «Prevent trial abuse» في إعدادات Polar.
+7. الربط اتوافق عليه (D-190). قبل فتح البيع: تجربة كاملة على Polar Sandbox، وحساب البنك في Polar متفعّل.

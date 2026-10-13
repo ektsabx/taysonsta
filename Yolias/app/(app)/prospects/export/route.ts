@@ -3,13 +3,14 @@ import { getSession } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parseFilters, selectEntities, type ProspectFilters } from "@/services/prospects";
+import { parseFilters, selectItems, type ProspectFilters } from "@/services/prospects";
 
-// CSV export of a Prospects tab (final spec phase 5). GET = every row
-// matching the filters in the query string; POST (from the selection bar) =
-// the selected ids, or all matching. Each entity has its own columns plus
-// the standard intelligence fields. Exporting people reveals their contacts
-// (recorded like a reveal).
+// CSV export of the Prospects table. GET = every row matching the filters in
+// the query string; POST (from the selection bar) = the selected rows, or all
+// matching. One type filtered (Companies, Local businesses, People) gets that
+// type's own columns; a mixed list gets one row per item with a Type column.
+// Plus the standard intelligence fields. Exporting people reveals their
+// contacts (recorded like a reveal).
 const csvCell = (v: unknown) => {
   const s = v == null ? "" : Array.isArray(v) ? v.join("; ") : String(v);
   // Neutralise spreadsheet formula injection, then quote.
@@ -23,7 +24,9 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const h = (await getDictionary()).prospects.csv;
-  const page = await selectEntities(session.workspace.id, filters, ids);
+  const { rows } = await selectItems(session.workspace.id, filters, ids);
+  const people0 = rows.flatMap((i) => (i.kind === "person" ? [i.row] : []));
+  const companies0 = rows.flatMap((i) => (i.kind === "person" ? [] : [i.row]));
   // Sources and confidence stay internal (D-165).
   const intel = [h.match, h.lastUpdated, h.missing];
   const intelOf = (r: { match_score: number | null; last_updated: string; missing_fields: string[] }) =>
@@ -34,31 +37,28 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
   const social = [h.facebook, h.instagram, h.whatsapp];
   const socialOf = (r: { facebook_url: string | null; instagram_url: string | null; whatsapp: string | null }) => [r.facebook_url, r.instagram_url, r.whatsapp];
   let people: { id: string; revealed_at: string | null }[] = [];
-  if (page.tab === "saved") {
-    // Everything saved in one file: one row per person, company or local business.
+  if (filters.tab === "all" || filters.tab === "saved") {
+    // Mixed list: one row per person, company or local business.
     header = [h.type, h.name, h.title, h.company, h.city, h.country, h.email, h.phone, h.domain, h.linkedin, ...social, h.campaign, ...intel];
-    lines = page.rows.map((i) => i.kind === "person"
+    lines = rows.map((i) => i.kind === "person"
       ? [h.types.person, i.row.full_name, i.row.title, i.row.company?.name, i.row.city ?? i.row.company?.city, i.row.country ?? i.row.company?.country,
         i.row.email_status === "invalid" ? "" : i.row.email, i.row.phone, i.row.company?.domain, i.row.linkedin_url, ...socialOf(i.row), i.row.campaign?.name, ...intelOf(i.row)]
       : [h.types[i.kind], i.row.name, i.kind === "local_business" ? i.row.category : i.row.industry, "", i.row.city, i.row.country,
         i.row.email, i.row.phone, i.row.website ?? i.row.domain, i.row.linkedin_url, ...socialOf(i.row), i.row.campaign?.name, ...intelOf(i.row)]);
-    people = page.rows.flatMap((i) => (i.kind === "person" ? [i.row] : []));
-  } else if (page.tab === "people") {
+    people = people0;
+  } else if (filters.tab === "people") {
     header = [h.name, h.title, h.company, h.employees, h.city, h.country, h.campaign, h.email, h.emailStatus, h.phone, h.linkedin, ...social, ...intel];
-    lines = page.rows.map((p) => [
+    lines = people0.map((p) => [
       p.full_name, p.title, p.company?.name, p.company?.employee_count, p.city ?? p.company?.city, p.country ?? p.company?.country,
       p.campaign?.name, p.email_status === "invalid" ? "" : p.email, p.email ? p.email_status : "", p.phone, p.linkedin_url, ...socialOf(p), ...intelOf(p),
     ]);
-    people = page.rows;
-  } else if (page.tab === "jobs") {
-    header = [h.title, h.department, h.company, h.city, h.country, h.postedAt, h.url, h.campaign, ...intel];
-    lines = page.rows.map((j) => [j.title, j.department, j.company?.name, j.city, j.country, j.posted_at, j.url, j.campaign?.name, ...intelOf(j)]);
-  } else if (page.tab === "local") {
+    people = people0;
+  } else if (filters.tab === "local") {
     header = [h.name, h.category, h.address, h.city, h.country, h.email, h.phone, h.domain, h.rating, h.reviews, h.mapsUrl, ...social, h.campaign, ...intel];
-    lines = page.rows.map((c) => [c.name, c.category, c.address, c.city, c.country, c.email, c.phone, c.website ?? c.domain, c.rating, c.reviews_count, c.maps_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
+    lines = companies0.map((c) => [c.name, c.category, c.address, c.city, c.country, c.email, c.phone, c.website ?? c.domain, c.rating, c.reviews_count, c.maps_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   } else {
     header = [h.name, h.domain, h.industry, h.employees, h.city, h.country, h.email, h.phone, h.linkedin, ...social, h.campaign, ...intel];
-    lines = page.rows.map((c) => [c.name, c.domain, c.industry, c.employee_count, c.city, c.country, c.email, c.phone, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
+    lines = companies0.map((c) => [c.name, c.domain, c.industry, c.employee_count, c.city, c.country, c.email, c.phone, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   }
   {
     const unrevealed = people.filter((p) => !p.revealed_at).map((p) => p.id);

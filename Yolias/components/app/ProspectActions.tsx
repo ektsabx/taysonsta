@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { exportedPeople, openMessage, prepareMessage } from "@/app/(app)/prospects/message-actions";
 import {
-  channelLimit, isMessageLanguage, languageLabels, messageLanguages, objectives, tones,
+  channelLimit, channels, isMessageLanguage, languageLabels, messageLanguages, objectives, tones,
   DEFAULT_LANGUAGE, DEFAULT_OBJECTIVE, DEFAULT_TONE, type MessageLanguage,
 } from "@/lib/outreach/channels";
 import type { MessageChannel, MessageObjective, MessageOpenedVia, MessageTone } from "@/types/database";
@@ -66,7 +66,7 @@ function ChannelButtons({ recipients, onPick }: { recipients: MessageRecipient[]
   const { t } = useI18n();
   const o = t.outreach;
   const has = (c: MessageChannel) => recipients.some((r) => r.can[c]);
-  const list: MessageChannel[] = (["email", "linkedin", "whatsapp", "facebook", "instagram"] as const).filter((c) => (recipients[0]?.kind === "person" && (c === "email" || c === "linkedin")) || has(c));
+  const list: MessageChannel[] = channels.filter((c) => (recipients[0]?.kind === "person" && (c === "email" || c === "linkedin")) || has(c));
   return (
     <>
       {list.map((c, i) => (

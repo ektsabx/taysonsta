@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // environment variables. Values are cached for a short time per server
 // process, so a key changed in Admin applies within seconds.
 
-export type IntegrationProvider = "anthropic" | "openai" | "gemini" | "google_oauth" | "microsoft_oauth";
+export type IntegrationProvider = "anthropic" | "openai" | "gemini" | "google_oauth" | "microsoft_oauth" | "turnstile" | "support_widget" | "polar";
 
 interface Values {
   config: Record<string, string>;
@@ -54,6 +54,6 @@ export function integrationConfig(provider: IntegrationProvider, name: string): 
 }
 
 /** Local test scripts only: use these keys instead of the database. */
-export function setIntegrationsForTests(v: Partial<Record<IntegrationProvider, Record<string, string>>> | null) {
-  fixed = v ? new Map(Object.entries(v).map(([k, secrets]) => [k, { config: {}, secrets: secrets ?? {} }])) : null;
+export function setIntegrationsForTests(v: Partial<Record<IntegrationProvider, Record<string, string>>> | null, config: Partial<Record<IntegrationProvider, Record<string, string>>> = {}) {
+  fixed = v ? new Map(Object.entries(v).map(([k, secrets]) => [k, { config: config[k as IntegrationProvider] ?? {}, secrets: secrets ?? {} }])) : null;
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { verifyImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
@@ -15,6 +16,7 @@ import { companyProfileSchema } from "@/lib/company-profile";
 import { securityAlert } from "@/lib/email/events";
 import { notify } from "@/lib/email/notify";
 import { COUNTRIES, isValidTimeZone } from "@/lib/regions";
+import { normalizePhone } from "@/lib/phone";
 import { monthlyUsage } from "@/services/workspace";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
@@ -57,11 +59,40 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
   return { ok: true };
 }
 
+// Account → Phone: an international number (E.164) only the user can read
+// (public.user_phones, RLS). Empty removes it.
+export async function updatePhone(input: string): Promise<ActionResult & { phone?: string | null }> {
+  const session = await requireSession();
+  const t = (await getDictionary()).settings.errors;
+  const supabase = await createClient();
+  if (!input.trim()) {
+    const { error } = await supabase.from("user_phones").delete().eq("user_id", session.userId);
+    return error ? { ok: false, error: t.saveFailed } : { ok: true, phone: null };
+  }
+  const phone = normalizePhone(input.slice(0, 40));
+  if (!phone) return { ok: false, error: t.phoneInvalid };
+  const { error } = await supabase.from("user_phones").upsert({ user_id: session.userId, phone });
+  if (error) return { ok: false, error: t.saveFailed };
+  return { ok: true, phone };
+}
+
+// Trustpilot request (lib/review-prompt.ts): the first call marks it as asked,
+// so it never shows again on any device; later calls record the choice.
+export async function recordReviewPrompt(action: "shown" | "opened" | "dismissed"): Promise<ActionResult> {
+  const session = await requireSession();
+  if (!["shown", "opened", "dismissed"].includes(action)) return { ok: false, error: "invalid" };
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles")
+    .update({ review_prompted_at: session.profile.review_prompted_at ?? new Date().toISOString(), review_prompt_action: action })
+    .eq("id", session.userId);
+  return error ? { ok: false, error: "failed" } : { ok: true };
+}
+
 // Settings → Usage "refresh": recounts this month's prospects.
-export async function refreshUsage(): Promise<{ prospects: number; allowance: number; extra: number; resetsAt: string | null; checkedAt: string }> {
+export async function refreshUsage(): Promise<{ prospects: number; allowance: number; extra: number; resetsAt: string | null; emails: { used: number; limit: number }; contacts: { used: number; limit: number }; trialEndsAt: string | null; checkedAt: string }> {
   const session = await requireSession();
   const usage = await monthlyUsage(session.workspace.id);
-  return { prospects: usage.prospects, allowance: usage.allowance, extra: usage.extra, resetsAt: usage.resetsAt, checkedAt: new Date().toISOString() };
+  return { prospects: usage.prospects, allowance: usage.allowance, extra: usage.extra, resetsAt: usage.resetsAt, emails: usage.emails, contacts: usage.contacts, trialEndsAt: usage.trialEndsAt, checkedAt: new Date().toISOString() };
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.
@@ -80,7 +111,17 @@ export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
 export async function setAvatar(path: string): Promise<ActionResult> {
   const session = await requireSession();
   const t = (await getDictionary()).settings.errors;
-  if (!path.startsWith(`${session.userId}/`)) return { ok: false, error: t.invalidAvatar };
+  if (!path.startsWith(`${session.userId}/`) || path.includes("..") || path.length > 300) return { ok: false, error: t.invalidAvatar };
+  // The browser uploaded it: check the stored file itself (PNG, JPEG or WebP
+  // by its bytes, up to 10 MB, D-182) and remove it if it isn't one.
+  const admin = createAdminClient();
+  const { data: blob } = await admin.storage.from("avatars").download(path);
+  const u = (await getDictionary()).uploads;
+  const checked = blob ? await verifyImageFile(blob) : { ok: false as const, error: "type" as const };
+  if (!checked.ok) {
+    await admin.storage.from("avatars").remove([path]);
+    return { ok: false, error: blob ? (checked.error === "size" ? u.imageSize : u.imageType) : t.avatarFailed };
+  }
   const supabase = await createClient();
   const { data } = supabase.storage.from("avatars").getPublicUrl(path);
   const { error } = await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", session.userId);

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -20,7 +22,7 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
   const post = posts.find((p) => p.slug === slug);
   if (!post) return {};
   const doc = post.doc[await getLocale()];
-  return { title: `${doc.title} — Yolias`, description: doc.summary };
+  return pageMetadata({ title: `${doc.title} | Yolias`, description: doc.summary, path: `/blog/${slug}`, type: "article", publishedTime: post.date });
 }
 
 export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">) {
@@ -34,6 +36,10 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
 
   return (
     <>
+      <JsonLd nodes={[
+        articleSchema({ title: doc.title, description: doc.summary, path: `/blog/${slug}`, date: post.date }),
+        breadcrumbSchema([{ name: t.site.blog, path: "/blog" }, { name: doc.title, path: `/blog/${slug}` }]),
+      ]} />
       <article className="site-width max-w-[780px] py-16">
         <Link href="/blog" className="crumbs inline-flex"><ArrowLeft width={14} height={14} className="flip-rtl" /> {fmt(t.site.backTo, { page: t.site.blog })}</Link>
         <div className="post-meta">
@@ -53,7 +59,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               <div className="post-meta"><b>{p.category[locale]}</b><span>{formatDate(p.date, locale, "UTC")}</span></div>
               <h2>{p.doc[locale].title}</h2>
               <p>{p.doc[locale].summary}</p>
-              <span className="read">{t.site.readMore} {locale === "ar" ? "←" : "→"}</span>
+              <span className="read">{t.site.readMore}</span>
             </Link>
           ))}
         </div>

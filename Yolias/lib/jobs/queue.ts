@@ -1,12 +1,13 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/types/database";
+import type { AffiliateEmailEvent } from "@/lib/email/messages";
 
 // Background jobs (docs/05 "Queue & worker"). The web app only enqueues; the
 // worker (/api/worker) runs them. Every job must be idempotent: it can run
 // again after a crash or timeout.
 
-export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep";
+export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep" | "affiliate.notify";
 
 export interface JobPayloads {
   "campaign.discover": { campaignId: string };
@@ -22,6 +23,8 @@ export interface JobPayloads {
   "email.announce": { announcementId: string };
   /** Renewal reminders, ending reminders and test-mode renewals. */
   "billing.sweep": Record<string, never>;
+  /** An affiliate notice queued by Yolias Admin (decision, commission review, payout step, terms change). */
+  "affiliate.notify": { affiliateId: string; event: AffiliateEmailEvent; dedupeId: string; amountCents?: number | null; reason?: string | null; reference?: string | null };
 }
 
 export async function enqueue<K extends JobKind>(kind: K, payload: JobPayloads[K], delaySeconds = 0): Promise<number | null> {

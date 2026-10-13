@@ -93,16 +93,22 @@ export async function openMessage(input: OpenInput): Promise<MessageResult<{ ema
   const now = new Date().toISOString();
   const text = { subject: input.channel === "email" ? input.subject.trim().slice(0, 300) : "", body: input.body.trim().slice(0, channelLimit[input.channel]) };
   const language = isMessageLanguage(input.language) ? input.language : DEFAULT_LANGUAGE;
-  const updated = input.messageId && uuid.test(input.messageId)
-    ? (await admin.from("outreach_messages").update({ ...text, opened_at: now, opened_via: input.via })
+  // An email counts against the plan's monthly email limit the first time it
+  // is opened (trigger outreach_email_limit, atomic per workspace).
+  const limited = (e: { message?: string } | null) => Boolean(e?.message?.includes("email_limit_reached"));
+  const upd = input.messageId && uuid.test(input.messageId)
+    ? await admin.from("outreach_messages").update({ ...text, opened_at: now, opened_via: input.via })
       .eq("id", input.messageId).eq(input.target.kind === "person" ? "prospect_id" : "company_id", input.target.id)
-      .eq("workspace_id", session.workspace.id).eq("status", "draft").select("id").maybeSingle()).data
+      .eq("workspace_id", session.workspace.id).eq("status", "draft").select("id").maybeSingle()
     : null;
-  if (!updated) {
-    await admin.from("outreach_messages").insert({
+  if (limited(upd?.error ?? null)) return { ok: false, error: e.email_limit };
+  if (!upd?.data) {
+    const { error: insertError } = await admin.from("outreach_messages").insert({
       workspace_id: session.workspace.id, prospect_id: t.prospectId, company_id: t.prospectId ? null : t.companyId, campaign_id: t.campaignId,
       created_by: session.userId, channel: input.channel, to_email: t.toEmail, ...text, language, opened_at: now, opened_via: input.via,
     });
+    if (limited(insertError)) return { ok: false, error: e.email_limit };
+    if (insertError) return { ok: false, error: e.failed };
   }
   // Using a person's email or phone reveals it (recorded like Reveal).
   const usesContact = input.channel === "email" || (input.channel === "whatsapp" && !r.whatsapp);

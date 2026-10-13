@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { noindex } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
@@ -9,7 +10,7 @@ import { requireUser } from "@/lib/session";
 import { OnboardingForm } from "./OnboardingForm";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).onboarding.title}` };
+  return { title: `${(await getDictionary()).onboarding.title}`, robots: noindex };
 }
 
 export default async function OnboardingPage() {

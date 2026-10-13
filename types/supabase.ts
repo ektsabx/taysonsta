@@ -1668,6 +1668,7 @@ export type Database = {
           unread_for_agent: number
           updated_at: string
           widget_id: string | null
+          widget_visitor: string | null
         }
         Insert: {
           ai_active?: boolean
@@ -1704,6 +1705,7 @@ export type Database = {
           unread_for_agent?: number
           updated_at?: string
           widget_id?: string | null
+          widget_visitor?: string | null
         }
         Update: {
           ai_active?: boolean
@@ -1740,6 +1742,7 @@ export type Database = {
           unread_for_agent?: number
           updated_at?: string
           widget_id?: string | null
+          widget_visitor?: string | null
         }
         Relationships: [
           {
@@ -2324,6 +2327,7 @@ export type Database = {
           ideal_candidate: string
           is_published: boolean
           location: string
+          on_yolias: boolean
           openings: number
           published_at: string | null
           requirements: string
@@ -2352,6 +2356,7 @@ export type Database = {
           ideal_candidate: string
           is_published?: boolean
           location: string
+          on_yolias?: boolean
           openings?: number
           published_at?: string | null
           requirements: string
@@ -2380,6 +2385,7 @@ export type Database = {
           ideal_candidate?: string
           is_published?: boolean
           location?: string
+          on_yolias?: boolean
           openings?: number
           published_at?: string | null
           requirements?: string
@@ -9528,6 +9534,27 @@ export type Database = {
         }
         Relationships: []
       }
+      support_agent_profiles: {
+        Row: {
+          display_name: string | null
+          show_photo: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          display_name?: string | null
+          show_photo?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          display_name?: string | null
+          show_photo?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_customers: {
         Row: {
           client_id: string | null
@@ -9634,6 +9661,63 @@ export type Database = {
           },
         ]
       }
+      support_ratings: {
+        Row: {
+          agent_user_id: string | null
+          comment: string | null
+          conversation_id: string
+          conversation_status: string
+          created_at: string
+          id: string
+          rating: number
+          responder_kind: string
+          round: number
+          visitor: string | null
+          widget_id: string | null
+        }
+        Insert: {
+          agent_user_id?: string | null
+          comment?: string | null
+          conversation_id: string
+          conversation_status: string
+          created_at?: string
+          id?: string
+          rating: number
+          responder_kind: string
+          round?: number
+          visitor?: string | null
+          widget_id?: string | null
+        }
+        Update: {
+          agent_user_id?: string | null
+          comment?: string | null
+          conversation_id?: string
+          conversation_status?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          responder_kind?: string
+          round?: number
+          visitor?: string | null
+          widget_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ratings_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "bos_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ratings_widget_id_fkey"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "support_widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_team_members: {
         Row: {
           is_available: boolean
@@ -9706,7 +9790,9 @@ export type Database = {
           bottom_offset: number
           created_at: string
           created_by: string | null
+          help_enabled: boolean
           id: string
+          identity_secret_enc: string | null
           is_active: boolean
           language: string
           name: string
@@ -9715,7 +9801,9 @@ export type Database = {
           position: string
           primary_color: string
           public_key: string
+          ratings_enabled: boolean
           require_email: boolean
+          show_agent_photos: boolean
           team_id: string | null
           title: string
           updated_at: string
@@ -9728,7 +9816,9 @@ export type Database = {
           bottom_offset?: number
           created_at?: string
           created_by?: string | null
+          help_enabled?: boolean
           id?: string
+          identity_secret_enc?: string | null
           is_active?: boolean
           language?: string
           name: string
@@ -9737,7 +9827,9 @@ export type Database = {
           position?: string
           primary_color?: string
           public_key?: string
+          ratings_enabled?: boolean
           require_email?: boolean
+          show_agent_photos?: boolean
           team_id?: string | null
           title?: string
           updated_at?: string
@@ -9750,7 +9842,9 @@ export type Database = {
           bottom_offset?: number
           created_at?: string
           created_by?: string | null
+          help_enabled?: boolean
           id?: string
+          identity_secret_enc?: string | null
           is_active?: boolean
           language?: string
           name?: string
@@ -9759,7 +9853,9 @@ export type Database = {
           position?: string
           primary_color?: string
           public_key?: string
+          ratings_enabled?: boolean
           require_email?: boolean
+          show_agent_photos?: boolean
           team_id?: string | null
           title?: string
           updated_at?: string
@@ -10201,6 +10297,7 @@ export type Database = {
           page_url: string | null
           token_hash: string
           user_agent: string | null
+          visitor_key: string | null
           widget_id: string
         }
         Insert: {
@@ -10213,6 +10310,7 @@ export type Database = {
           page_url?: string | null
           token_hash: string
           user_agent?: string | null
+          visitor_key?: string | null
           widget_id: string
         }
         Update: {
@@ -10225,6 +10323,7 @@ export type Database = {
           page_url?: string | null
           token_hash?: string
           user_agent?: string | null
+          visitor_key?: string | null
           widget_id?: string
         }
         Relationships: [

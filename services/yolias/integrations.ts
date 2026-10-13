@@ -11,7 +11,7 @@ import type { ResolvedConnection } from "@/services/bos/integrations";
 // secrets in Supabase Vault. Yolias never reads these keys from anywhere else.
 
 /** Hub provider → what it becomes in Yolias. */
-const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob" };
+const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", turnstile: "turnstile", search_console: "search_console", polar: "polar" };
 
 export function usedByYolias(provider: string): boolean {
   return provider in targets;
@@ -63,6 +63,15 @@ export async function syncToYolias(provider: string, conn: ResolvedConnection | 
       updated_by: by,
       updated_at: new Date().toISOString(),
     }).eq("id", "paymob"));
+    return;
+  }
+
+  // Ownership tokens are public (they appear in the page): a site setting, no Vault.
+  if (target === "search_console") {
+    const c = (conn?.connection.config ?? {}) as Record<string, string>;
+    const value = { google: (c.google_verification ?? "").trim().slice(0, 200), bing: (c.bing_verification ?? "").trim().slice(0, 200) };
+    if (!conn || (!value.google && !value.bing)) await run(ydb().from("site_settings").delete().eq("key", "search_console"));
+    else await run(ydb().from("site_settings").upsert({ key: "search_console", value, updated_at: new Date().toISOString() }));
     return;
   }
 

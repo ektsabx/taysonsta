@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { noindex } from "@/lib/seo";
 import Link from "next/link";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -11,7 +12,7 @@ import { requireUser } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).billingResult.title} — Yolias` };
+  return { title: `${(await getDictionary()).billingResult.title} | Yolias`, robots: noindex };
 }
 
 // Where the payment provider sends the customer back (via

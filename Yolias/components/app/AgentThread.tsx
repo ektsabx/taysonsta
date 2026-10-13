@@ -8,6 +8,7 @@ import { YoliasMark, YoliasThinking } from "@/components/YoliasMark";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { rateReply } from "@/app/(app)/actions";
+import { isNetworkError } from "@/lib/action-client";
 
 export interface ThreadTurn {
   id: number;
@@ -17,7 +18,7 @@ export interface ThreadTurn {
   rating?: -1 | 1 | null;
 }
 
-type AgentError = "notConfigured" | "failed" | "forbidden" | "rateLimited" | "notFound";
+type AgentError = "notConfigured" | "failed" | "forbidden" | "rateLimited" | "dailyLimit" | "network" | "notFound";
 
 interface Props {
   /** The search (sidebar "Recent") whose conversation this is. */
@@ -72,7 +73,7 @@ export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
       const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ strategyId, text: value }) });
       if (!res.ok || !res.body) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError((["notConfigured", "forbidden", "rateLimited", "notFound"] as string[]).includes(body.error ?? "") ? (body.error as AgentError) : "failed");
+        setError((["notConfigured", "forbidden", "rateLimited", "dailyLimit", "notFound"] as string[]).includes(body.error ?? "") ? (body.error as AgentError) : "failed");
         return;
       }
       // NDJSON events: thinking → tool … → done | error.
@@ -105,8 +106,8 @@ export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
       }
       // A tool may have started a campaign or changed results: refresh server data.
       router.refresh();
-    } catch {
-      setError("failed");
+    } catch (e) {
+      setError(isNetworkError(e) ? "network" : "failed");
     } finally {
       setPending(false);
       setStatus(null);
@@ -174,6 +175,7 @@ export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
           </button>
         </div>
       </div>
+      <p className="ai-disclaimer">{a.disclaimer}</p>
       <div ref={endRef} />
     </section>
   );

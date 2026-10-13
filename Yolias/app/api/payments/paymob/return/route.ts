@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
   const paymob = await loadPaymob();
   let paymentId: string | null = null;
   if (paymob && hmacMatches(hmacStringFromQuery(q), paymob.hmacSecret, q.get("hmac"))) {
-    paymentId = (await settlePayment("paymob", outcomeFromQuery(q)))?.id ?? null;
+    const outcome = outcomeFromQuery(q);
+    // A failed fulfilment (already reported) still shows the payment's status.
+    paymentId = (await settlePayment("paymob", outcome).catch(() => null))?.id ?? (outcome.merchantRef && /^[0-9a-f-]{36}$/i.test(outcome.merchantRef) ? outcome.merchantRef : null);
   }
   const url = new URL("/billing/result", request.nextUrl.origin);
   if (paymentId) url.searchParams.set("payment", paymentId);

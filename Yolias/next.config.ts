@@ -20,8 +20,9 @@ const nextConfig: NextConfig = {
   turbopack: { root: path.join(__dirname) },
   outputFileTracingRoot: path.join(__dirname),
   experimental: {
-    // Search requests can carry an ICP file or screenshot (max 4 MB each, see lib/attachments.ts).
-    serverActions: { bodySizeLimit: "9mb" },
+    // Search requests can carry up to 3 files: images up to 10 MB each (D-182,
+    // usually made smaller in the browser first), documents up to 4 MB (lib/attachments.ts).
+    serverActions: { bodySizeLimit: "32mb" },
   },
   poweredByHeader: false,
   // Baseline security headers on every response. Framing is limited to

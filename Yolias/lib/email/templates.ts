@@ -180,7 +180,7 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       heading: "Confirm your new email address",
       body: "You asked to change the email of your Yolias account to this address. Confirm it to finish. The link expires in 1 hour.",
       button: "Confirm new email",
-      footnote: "If you didn’t ask for this, ignore this email — nothing changes.",
+      footnote: "If you didn’t ask for this, ignore this email. Nothing changes.",
     },
     ar: {
       subject: "أكّد بريدك الجديد في يولـياس",
@@ -188,7 +188,7 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       heading: "أكّد بريدك الإلكتروني الجديد",
       body: "طلبت تغيير البريد الإلكتروني لحسابك في يولـياس إلى هذا العنوان. أكّده لإكمال التغيير. تنتهي صلاحية الرابط خلال ساعة.",
       button: "تأكيد البريد الجديد",
-      footnote: "إذا لم تطلب ذلك، تجاهل هذه الرسالة — لن يتغير شيء.",
+      footnote: "إذا لم تطلب ذلك، تجاهل هذه الرسالة، ولن يتغير شيء.",
     },
   },
   // Passwords exist only for Admin staff (customers sign in with a link).
@@ -395,7 +395,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
   const ar = locale === "ar";
   const periodText = r.period === "annual" ? (ar ? "سنوي" : "Annual") : ar ? "شهري" : "Monthly";
   return {
-    subject: ar ? `تم الدفع بنجاح — إيصالك من يولـياس #${r.invoiceNumber}` : `Payment successful — your Yolias receipt #${r.invoiceNumber}`,
+    subject: ar ? `تم الدفع بنجاح: إيصالك من يولـياس #${r.invoiceNumber}` : `Payment successful: your Yolias receipt #${r.invoiceNumber}`,
     html: layout({
       locale,
       siteUrl: r.siteUrl,
@@ -405,7 +405,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
         ar
           ? `هذا إيصال اشتراكك في <strong>${esc(r.planName)}</strong>. يتجدد اشتراكك في ${dateText(r.periodEnd, locale)}.`
           : `Here’s your receipt for <strong>${esc(r.planName)}</strong>. Your plan renews on ${dateText(r.periodEnd, locale)}.`,
-        ...(r.test ? [ar ? `<span style="color:${C.red}">وضع الاختبار — لم يتم تحصيل أي مبلغ فعلي.</span>` : `<span style="color:${C.red}">Test mode — no real charge was made.</span>`] : []),
+        ...(r.test ? [ar ? `<span style="color:${C.red}">وضع الاختبار: لم يتم تحصيل أي مبلغ فعلي.</span>` : `<span style="color:${C.red}">Test mode: no real charge was made.</span>`] : []),
       ],
       extra: rows(
         locale,
@@ -504,7 +504,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "برو والنمو يشملان رصيداً جديداً من العملاء المحتملين كل شهر." : "Pro and Growth include a new prospect allowance every month.",
+      footnote: ar ? "الخطط المدفوعة تشمل رصيداً جديداً من العملاء المحتملين كل شهر." : "Paid plans include a new prospect allowance every month.",
     }) : layout({
       locale,
       siteUrl: u.siteUrl,
@@ -543,8 +543,8 @@ export function planEndingEmail(locale: EmailLocale, p: PlanEndingInput): Render
       heading: ar ? "تم إلغاء اشتراكك" : "Your plan has been canceled",
       body: [
         ar
-          ? `سيبقى <strong>${esc(p.planName)}</strong> فعالًا حتى ${dateText(p.endsAt, locale)}، ثم تنتقل مساحة العمل إلى الخطة المجانية. تبقى كل عمليات البحث الخاصة بك وعملاؤك المحتملون محفوظين.`
-          : `<strong>${esc(p.planName)}</strong> stays active until ${dateText(p.endsAt, locale)}. After that your workspace moves to Free. All your searches and prospects stay saved.`,
+          ? `سيبقى <strong>${esc(p.planName)}</strong> فعالًا حتى ${dateText(p.endsAt, locale)}، ثم تتوقف عمليات البحث الجديدة حتى تشترك من جديد. تبقى كل عمليات البحث الخاصة بك وعملاؤك المحتملون محفوظين.`
+          : `<strong>${esc(p.planName)}</strong> stays active until ${dateText(p.endsAt, locale)}. After that new searches stop until you subscribe again. All your searches and prospects stay saved.`,
       ],
       button: { label: ar ? "استئناف الاشتراك" : "Resume plan", href: `${p.siteUrl}/` },
       footnote: ar ? "غيّرت رأيك؟ يمكنك الاستئناف من الإعدادات ← الفوترة." : "Changed your mind? Resume any time from Settings → Billing.",

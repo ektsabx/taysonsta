@@ -34,7 +34,7 @@ const manualMoves: Record<string, string[]> = {
 export interface JobInitial {
   id?: string;
   title?: string; slug?: string; team?: string; location?: string; employment_type?: string; summary?: string; role_description?: string;
-  ideal_candidate?: string; requirements?: string; responsibilities?: string; disqualifiers?: string; is_published?: boolean;
+  ideal_candidate?: string; requirements?: string; responsibilities?: string; disqualifiers?: string; is_published?: boolean; on_yolias?: boolean;
   department_id?: string | null; team_id?: string | null; hiring_manager_id?: string | null; openings?: number; closes_at?: string | null;
   salary_min?: number | null; salary_max?: number | null; salary_currency?: string | null;
 }
@@ -59,6 +59,7 @@ export function JobForm({ initial = {}, departments, teams, managers, currencies
         <TextAreaField name="idealCandidate" label="المرشح المثالي" rows={3} defaultValue={initial.ideal_candidate ?? ""} />
         <TextAreaField name="disqualifiers" label="أسباب الاستبعاد" rows={2} defaultValue={initial.disqualifiers ?? ""} />
         <CheckboxField name="isPublished" label="منشورة على الموقع" defaultChecked={initial.is_published ?? false} />
+        <CheckboxField name="onYolias" label="اعرضها أيضًا في صفحة الوظائف على yolias.com" hint="تظهر هناك فقط وهي منشورة." defaultChecked={initial.on_yolias ?? false} />
       </FormSection>
       <FormSection title="إدارة التوظيف (داخلي)">
         <SelectField name="department_id" label="القسم" placeholder="—" options={departments} defaultValue={initial.department_id ?? ""} />

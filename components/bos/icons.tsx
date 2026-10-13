@@ -85,6 +85,18 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   automation: <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />,
+  affiliates: (
+    <>
+      <circle cx="8" cy="8" r="3" />
+      <path d="M2.5 20a5.5 5.5 0 0 1 11 0" />
+      <path d="M16 6h5M18.5 3.5v5M15 14l3 3 4-5" />
+    </>
+  ),
+  status: (
+    <>
+      <path d="M3 12h4l3-7 4 14 3-7h4" />
+    </>
+  ),
   files: <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12z" />,
   settings: (
     <>

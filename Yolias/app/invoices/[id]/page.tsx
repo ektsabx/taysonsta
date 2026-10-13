@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { noindex } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<"/invoices/[id]">):
   const { id } = await params;
   const t = await getDictionary();
   const inv = /^[0-9a-f-]{36}$/i.test(id) ? await getInvoice(id) : null;
-  return { title: inv ? `${t.invoice.title} ${inv.number} — Yolias` : "Yolias" };
+  return { title: inv ? `${t.invoice.title} ${inv.number} | Yolias` : "Yolias", robots: noindex };
 }
 
 // Printable invoice (Claude/Stripe style). Visible to the workspace owner and
@@ -67,7 +68,7 @@ export default async function InvoicePage({ params }: PageProps<"/invoices/[id]"
           <div>
             <strong>Yolias</strong>
             <span>{v.seller}</span>
-            <span dir="ltr">yolias.ai</span>
+            <span dir="ltr">yolias.com</span>
           </div>
           <div>
             <span className="invoice-label">{v.billTo}</span>

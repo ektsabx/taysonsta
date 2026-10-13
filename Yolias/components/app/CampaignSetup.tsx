@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+
 import { useI18n } from "@/lib/i18n/client";
 import { countryLabel } from "@/lib/format";
 import { contactMethods, type ContactMethod, type IcpCriteria } from "@/lib/discovery/icp";
@@ -175,7 +175,7 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="setup-actions">
         <button className="btn-primary" type="button" disabled={pending} onClick={submit}>
-          {pending ? s.starting : s.start} {!pending && <ArrowRight className="flip-rtl" />}
+          {pending ? s.starting : s.start}
         </button>
       </div>
     </div>

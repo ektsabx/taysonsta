@@ -37,6 +37,7 @@ const jobSchema = z.object({
   responsibilities: zf.text(10000).default(""),
   disqualifiers: zf.text(10000).default(""),
   isPublished: zf.checkbox().optional(),
+  onYolias: zf.checkbox().optional(),
   department_id: zf.optionalUuid(),
   team_id: zf.optionalUuid(),
   hiring_manager_id: zf.optionalUuid(),
@@ -55,7 +56,7 @@ export async function saveJobAction(id: string | null, _prev: ActionState, formD
       bos,
       id,
       { title: v.title, slug: v.slug, team: v.team, location: v.location, employmentType: v.employmentType, summary: v.summary, roleDescription: v.roleDescription, idealCandidate: v.idealCandidate, requirements: v.requirements, responsibilities: v.responsibilities, disqualifiers: v.disqualifiers, isPublished: Boolean(v.isPublished) },
-      { department_id: v.department_id, team_id: v.team_id, hiring_manager_id: v.hiring_manager_id, openings: v.openings, closes_at: v.closes_at, salary_min: v.salary_min ?? null, salary_max: v.salary_max ?? null, salary_currency: v.salary_currency },
+      { on_yolias: Boolean(v.onYolias), department_id: v.department_id, team_id: v.team_id, hiring_manager_id: v.hiring_manager_id, openings: v.openings, closes_at: v.closes_at, salary_min: v.salary_min ?? null, salary_max: v.salary_max ?? null, salary_currency: v.salary_currency },
     );
     refresh();
     redirect(`/admin/team/recruitment/jobs/${jobId}`);

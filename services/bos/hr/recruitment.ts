@@ -53,6 +53,8 @@ export async function getJob(id: string) {
 }
 
 export interface JobHrInput {
+  /** Also listed on yolias.com/careers when published. */
+  on_yolias: boolean;
   department_id: string | null;
   team_id: string | null;
   hiring_manager_id: string | null;

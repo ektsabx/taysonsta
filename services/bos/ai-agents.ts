@@ -284,6 +284,18 @@ export async function agentRespond(conversationId: string, opts: { generate?: Ge
   return decision;
 }
 
+/**
+ * The customer asked for a person (widget "Talk to a person"): the AI stops,
+ * the conversation goes to the team with the whole history, and the customer
+ * sees the agent's hand-off message. Nothing happens if a person already has it.
+ */
+export async function handoffRequested(conversationId: string) {
+  const { data: conv } = await db().from("bos_conversations").select("*").eq("id", conversationId).maybeSingle();
+  if (!conv?.ai_active) return null;
+  const { data: agent } = conv.ai_agent_id ? await db().from("ai_agents").select("*").eq("id", conv.ai_agent_id).maybeSingle() : { data: null };
+  return handOff(conv, agent ?? null, "requested", agent?.handoff_message ?? "سيرد عليك أحد أعضاء الفريق قريباً.", "customer asked for a person");
+}
+
 async function handOff(conv: Conversation, agent: AiAgent | null, reason: Extract<AgentDecision, { kind: "handoff" }>["reason"], customerText: string, detail?: string) {
   const c = db();
   const { data: msgs } = await c.from("conversation_messages").select("direction, body").eq("conversation_id", conv.id).eq("direction", "inbound").order("created_at", { ascending: false }).limit(3);

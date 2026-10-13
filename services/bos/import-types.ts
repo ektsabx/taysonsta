@@ -206,32 +206,6 @@ export const importTypes: ImportType[] = [
     toRow: () => ({}),
   },
   {
-    key: "assets", label: "الأصول والمخزون", perm: "devices.create", table: "devices", matchKeys: ["asset_id", "serial_number"],
-    fields: [
-      { key: "asset_id", label: "رقم الأصل", type: "text", required: true, max: 50, aliases: ["asset", "asset tag", "tag"] },
-      { key: "name", label: "الاسم", type: "text", max: 200 },
-      { key: "type", label: "النوع", type: "enum", required: true, values: enumMap([["laptop", ["لابتوب"]], ["desktop", ["كمبيوتر مكتبي", "pc"]], ["monitor", ["شاشة"]], ["mobile", ["هاتف", "phone"]], ["tablet", ["تابلت"]], ["headset", ["سماعة"]], ["office_equipment", ["معدات مكتبية", "office"]], ["software_license", ["ترخيص", "license", "licence"]], ["loanable", ["إعارة"]], ["spare_part", ["قطع غيار", "stock"]], ["other", ["أخرى"]]]) },
-      { key: "model", label: "الموديل", type: "text", max: 200 },
-      { key: "serial_number", label: "الرقم التسلسلي", type: "text", max: 100, aliases: ["serial"] },
-      { key: "purchase_date", label: "تاريخ الشراء", type: "date" },
-      { key: "warranty_until", label: "الضمان حتى", type: "date", aliases: ["warranty"] },
-      { key: "purchase_value", label: "قيمة الشراء", type: "number", aliases: ["value", "cost"] },
-      { key: "currency", label: "العملة", type: "currency" },
-      { key: "quantity", label: "الكمية", type: "int" },
-      { key: "license_seats", label: "مقاعد الترخيص", type: "int", aliases: ["seats"] },
-      { key: "location", label: "الموقع", type: "text", max: 200 },
-      { key: "notes", label: "ملاحظات", type: "text", max: 2000 },
-    ],
-    resolve: async (v) => (v.purchase_value != null && !v.currency ? ["حدد عملة قيمة الشراء"] : v.type === "software_license" && !v.license_seats ? ["حدد عدد مقاعد الترخيص"] : []),
-    find: async (v, key) => (key === "serial_number" ? findBy("devices", "serial_number", v.serial_number) : findBy("devices", "asset_id", v.asset_id)),
-    create: async (bos, v) => {
-      const { saveDevice } = await import("@/services/bos/devices");
-      return saveDevice(bos, null, { asset_id: String(v.asset_id), type: v.type as never, model: str(v.model), serial_number: str(v.serial_number), os: null, purchase_date: str(v.purchase_date), warranty_until: str(v.warranty_until), condition: "good", location: str(v.location), mdm_provider: null, mdm_reference: null, notes: str(v.notes), name: str(v.name), purchase_value: v.purchase_value != null ? Number(v.purchase_value) : null, currency: str(v.currency), quantity: v.type === "spare_part" ? Number(v.quantity ?? 0) : 1, license_seats: v.license_seats != null ? Number(v.license_seats) : null });
-    },
-    updatable: ["name", "model", "warranty_until", "location", "notes"],
-    toRow: (v) => ({ name: v.name, model: v.model, warranty_until: v.warranty_until, location: v.location, notes: v.notes }),
-  },
-  {
     key: "vendors", label: "الموردون", perm: "vendors.create", table: "vendors", matchKeys: ["name", "email"],
     fields: [
       { key: "name", label: "الاسم", type: "text", required: true, max: 200 },

@@ -85,6 +85,7 @@ export async function sendAnnouncement(bos: BosUser, id: string): Promise<void> 
 
 export const emailEvents: { kind: string; category: string; label: string; inApp: boolean }[] = [
   { kind: "welcome", category: "account", label: "ترحيب بعد التسجيل", inApp: false },
+  { kind: "community_invite", category: "account", label: "دعوة للانضمام إلى مجتمع يولياس", inApp: false },
   { kind: "account_deleted", category: "account", label: "تأكيد حذف الحساب", inApp: false },
   { kind: "new_sign_in", category: "security", label: "تسجيل دخول من جهاز جديد", inApp: true },
   { kind: "suspicious_sign_in", category: "security", label: "نشاط دخول مريب", inApp: true },
@@ -108,6 +109,7 @@ export const emailEvents: { kind: string; category: string; label: string; inApp
   { kind: "usage_limit", category: "usage", label: "نفد الرصيد", inApp: true },
   { kind: "discovery_ready", category: "usage", label: "نتائج البحث جاهزة", inApp: true },
   { kind: "announcement", category: "updates", label: "إعلان تحديثات المنتج", inApp: true },
+  { kind: "affiliate_update", category: "account", label: "إشعارات برنامج الأفلييت (القبول، العمولات، السحب)", inApp: true },
 ];
 
 export async function emailEventStats(days = 30) {

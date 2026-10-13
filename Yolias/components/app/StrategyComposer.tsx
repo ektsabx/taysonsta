@@ -4,13 +4,16 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Paperclip, Search, Sparkles, X } from "lucide-react";
 import { createStrategy } from "@/app/(app)/actions";
+import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { YoliasThinking } from "@/components/YoliasMark";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
+import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
+import { shrinkForAi } from "@/lib/uploads/shrink";
 
 const pillIcons = [Search, Sparkles, Building2];
 const MAX_FILES = 3;
-const MAX_BYTES = 4 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // documents; images follow lib/uploads/image.ts (10 MB)
 
 
 export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: string }) {
@@ -29,12 +32,22 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
     if (!initialPrompt) inputRef.current?.focus();
   }, [initialPrompt]);
 
-  const addFiles = (list: FileList | null) => {
+  const [imageHint, setImageHint] = useState(false);
+  const addFiles = async (list: FileList | null, images = false) => {
     if (!list?.length) return;
     setError(null);
     const next = [...files];
-    for (const f of Array.from(list)) {
-      if (f.size > MAX_BYTES) {
+    for (const raw of Array.from(list)) {
+      let f = raw;
+      if (images) {
+        const bad = checkImageFile(f);
+        if (bad) {
+          setError(bad === "size" ? t.uploads.imageSize : t.uploads.imageType);
+          continue;
+        }
+        // Very large photos are made smaller before they go to Yolias AI.
+        f = await shrinkForAi(f);
+      } else if (f.size > MAX_BYTES) {
         setError(fmt(c.errors.tooLarge, { name: f.name }));
         continue;
       }
@@ -58,7 +71,11 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
     fd.set("prompt", prompt.trim());
     for (const f of files) fd.append("files", f);
     start(async () => {
-      const r = await createStrategy(fd);
+      const r = await callAction(() => createStrategy(fd));
+      if (isNetworkFailure(r)) {
+        setError(t.strategy.errors.network);
+        return;
+      }
       if (!r.ok) {
         setError(r.error);
         return;
@@ -104,12 +121,14 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
           </div>
         )}
 
+        {imageHint || files.some((f) => f.type.startsWith("image/")) ? <p className="upload-hint" id="composer-image-hint">{t.uploads.imageHint}</p> : null}
+
         <div className="prompt-footer">
           <div className="prompt-attachments">
-            <button className="btn-attach" type="button" title={c.image} onClick={() => imageRef.current?.click()} disabled={pending}>
+            <button className="btn-attach" type="button" title={`${c.image} · ${t.uploads.imageHint}`} aria-describedby={imageHint ? "composer-image-hint" : undefined} onClick={() => { setImageHint(true); imageRef.current?.click(); }} disabled={pending}>
               <ImageIcon />
             </button>
-            <input ref={imageRef} type="file" className="hidden-input" accept="image/png,image/jpeg,image/gif,image/webp" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+            <input ref={imageRef} type="file" className="hidden-input" accept={IMAGE_ACCEPT} onChange={(e) => { const l = e.target.files; void addFiles(l, true).finally(() => { e.target.value = ""; }); }} />
             <button className="btn-attach" type="button" title={c.file} onClick={() => fileRef.current?.click()} disabled={pending}>
               <Paperclip />
             </button>
@@ -121,6 +140,7 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
           </button>
         </div>
       </div>
+      <p className="ai-disclaimer">{t.agent.disclaimer}</p>
 
       {pending && (
         <div className="composer-thinking">

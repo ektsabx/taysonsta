@@ -62,8 +62,9 @@ export const eventCatalog: EventType[] = [
     ["leave.requested", "طلب إجازة"], ["leave.approved", "قبول إجازة"], ["leave.rejected", "رفض إجازة"], ["overtime.requested", "طلب عمل إضافي"], ["overtime.decided", "قرار عمل إضافي"],
     ["employee.created", "إنشاء موظف"], ["employee.lifecycle_changed", "تغيير حالة موظف", ["from", "to"]], ["review.submitted", "مراجعة أداء"],
   ]),
-  ...e("الأجهزة والأمان", [
-    ["device.assigned", "تسليم جهاز"], ["device.returned", "استرجاع جهاز"], ["device.security_check_due", "فحص أمان مستحق"], ["security.mfa_required", "2FA مطلوب"],
+  ...e("منصة Yolias", [["platform.alert", "تنبيه تشغيلي للمنصة", ["alert", "severity", "service"]]]),
+  ...e("الأمان", [
+    ["security.mfa_required", "2FA مطلوب"],
   ]),
   ...e("المعرفة", [["kb.article_published", "نشر مقال", ["kind"]], ["kb.policy_updated", "تحديث سياسة"]]),
   // Events emitted by the modules that were missing from the catalogue, plus

@@ -9,7 +9,6 @@ import { createEmployee, changeLifecycleStatus, updateEmployee, refreshEmployeeO
 import { listEmployeeChecklists, setEmployeeChecklistItem } from "@/services/bos/onboarding";
 import { requestLeave, cancelLeave } from "@/services/bos/leave";
 import { requestCorrection } from "@/services/bos/attendance";
-import { assignDevice, returnDevice, updateSecurityCheck } from "@/services/bos/devices";
 import { computeUserKpis } from "@/services/bos/kpis";
 import { decideApproval } from "@/services/bos/approvals";
 import { ValidationError } from "@/lib/bos/errors";
@@ -127,31 +126,6 @@ test("attendance correction: approval applies change with audit old/new/reason",
   assert.equal(audit!.reason, "Forgot to clock in and out", "reason");
   assert.ok(audit!.old_value !== undefined && audit!.new_value, "old and new values");
   assert.ok(audit!.created_at, "when");
-});
-
-test("devices: assign → history + onboarding auto item; compliance; return", async () => {
-  const admin = await bosUserFor("admin@taysonsta.local");
-  const c = db();
-  const assetId = uniq("TS-TEST");
-  const { data: device } = await c.from("devices").insert({ asset_id: assetId, type: "laptop", model: "Test" }).select("id").single();
-  const { data: mariam } = await c.from("employees").select("id").eq("email", "mariam@taysonsta.local").single();
-  cleanup.push(async () => {
-    await c.from("device_assignments").delete().eq("device_id", device!.id);
-    await c.from("devices").delete().eq("id", device!.id);
-  });
-  await assignDevice(admin, device!.id, mariam!.id, "new");
-  const list = await listEmployeeChecklists(mariam!.id);
-  assert.ok(list[0].items.find((i) => i.auto_key === "device_assigned")?.is_done, "onboarding device item auto-completed");
-  await assert.rejects(assignDevice(admin, device!.id, mariam!.id, null), ValidationError, "already assigned");
-  await updateSecurityCheck(admin, device!.id, { os_updated: true, encryption_enabled: false, screen_lock_enabled: true, antivirus_enabled: true, company_account_configured: true });
-  const { data: d1 } = await c.from("devices").select("security_status").eq("id", device!.id).single();
-  assert.equal(d1!.security_status, "non_compliant", "encryption off ⇒ non-compliant");
-  await updateSecurityCheck(admin, device!.id, { os_updated: true, encryption_enabled: true, screen_lock_enabled: true, antivirus_enabled: true, company_account_configured: true });
-  const { data: d2 } = await c.from("devices").select("security_status").eq("id", device!.id).single();
-  assert.equal(d2!.security_status, "compliant");
-  await returnDevice(admin, device!.id, "good", "in_stock");
-  const { data: hist } = await c.from("device_assignments").select("returned_at").eq("device_id", device!.id);
-  assert.ok(hist?.[0]?.returned_at, "return recorded in history");
 });
 
 test("KPIs compute for BD from the metric registry", async () => {

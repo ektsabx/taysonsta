@@ -62,13 +62,14 @@ type Payload<K extends EmailKind> = Omit<EmailData[K], "siteUrl">;
 const IN_APP = new Set<EmailKind>([
   "discovery_ready", "usage_low", "usage_limit", "prospects_added", "plan_welcome", "subscription_activated", "subscription_renewed",
   "subscription_ending", "subscription_canceled", "plan_upgraded", "plan_downgraded", "receipt", "payment_failed", "invoice_ready",
-  "refund_processed", "refund_issued", "payment_overdue", "announcement", "security_alert", "suspicious_sign_in", "new_sign_in",
+  "refund_processed", "refund_issued", "payment_overdue", "announcement", "security_alert", "suspicious_sign_in", "new_sign_in", "affiliate_update",
 ] as EmailKind[]);
 
 /** Where a notice opens in the app. */
 function linkFor(kind: EmailKind, data: Record<string, unknown>): string | null {
   if (typeof data.invoiceId === "string" && data.invoiceId !== "sample") return `/invoices/${data.invoiceId}`;
   if (typeof data.strategyId === "string") return `/search/${data.strategyId}`;
+  if (kind === "affiliate_update") return "/affiliate";
   if (kind.startsWith("usage_") || kind === "prospects_added") return "/prospects";
   if (kind.startsWith("plan_") || kind.startsWith("subscription_") || kind.startsWith("payment_")) return "/checkout";
   if (kind === "announcement" && typeof data.ctaUrl === "string" && data.ctaUrl.startsWith("/")) return data.ctaUrl;

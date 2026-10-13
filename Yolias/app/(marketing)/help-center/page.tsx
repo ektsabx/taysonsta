@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ChevronRight, Rocket, Sparkles, Users } from "lucide-react";
 import { collections, helpHero } from "@/lib/content/help";
@@ -9,7 +10,7 @@ import { HelpSearch } from "./HelpSearch";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: `${(await getDictionary()).site.helpCenter} — Yolias`, description: helpHero[locale].lead };
+  return pageMetadata({ title: `${(await getDictionary()).site.helpCenter} | Yolias`, description: helpHero[locale].lead, path: "/help-center" });
 }
 
 const icons = { rocket: Rocket, sparkles: Sparkles, users: Users };

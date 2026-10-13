@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): 
   const { slug } = await params;
   if (!isLegal(slug)) return {};
   const doc = legal[slug][await getLocale()];
-  return { title: `${doc.title} — Yolias`, description: doc.summary };
+  return pageMetadata({ title: `${doc.title} | Yolias`, description: doc.summary, path: `/legal/${slug}` });
 }
 
 export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) {

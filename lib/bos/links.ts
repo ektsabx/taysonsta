@@ -28,7 +28,6 @@ const routes: Record<string, (id: string) => string> = {
   kb_article: (id) => `/admin/knowledge/articles/${id}`,
   file: (id) => `/api/bos/files/${id}`,
   channel: (id) => `/admin/communication/chat/${id}`,
-  device: (id) => `/admin/team/devices/${id}`,
   // HR & Workforce (docs/bos/28)
   payroll_run: (id) => `/admin/team/payroll/runs/${id}`,
   payslip: (id) => `/admin/team/payroll/payslips/${id}`,

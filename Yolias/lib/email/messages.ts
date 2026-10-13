@@ -53,7 +53,7 @@ const securityNote = (l: EmailLocale, site: string) =>
     `إذا لم تكن أنت، ${link(`${site}/`, "سجّل الخروج من كل الأجهزة")} من الإعدادات ← الحساب و${link(`${site}/contact?topic=support`, "تواصل معنا")}.`);
 const billingNote = (l: EmailLocale, site: string) =>
   T(l, `Questions about billing? ${link(`${site}/contact?topic=support`, "Contact us")}.`, `لديك سؤال عن الفوترة؟ ${link(`${site}/contact?topic=support`, "تواصل معنا")}.`);
-const testNote = (l: EmailLocale) => warn(T(l, "Test mode — no real charge was made.", "وضع الاختبار — لم يتم تحصيل أي مبلغ فعلي."));
+const testNote = (l: EmailLocale) => warn(T(l, "Test mode: no real charge was made.", "وضع الاختبار: لم يتم تحصيل أي مبلغ فعلي."));
 
 /* ───────────────────────── Data per message ───────────────────────── */
 
@@ -104,6 +104,7 @@ export type AnnouncementType = "new_feature" | "feature_available" | "feature_up
 
 export interface MessageData {
   welcome: Base & { name: string | null };
+  community_invite: Base & { name: string | null; communityUrl: string };
   account_deleted: Base & { email: string };
   new_sign_in: SignInData;
   suspicious_sign_in: Base & { attempts: number; windowMinutes: number };
@@ -125,8 +126,34 @@ export interface MessageData {
   payment_overdue: PaymentProblemData & { daysOverdue: number };
   prospects_added: Base & { added: number; allowance: number; reason: string | null };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
+  affiliate_update: Base & { event: AffiliateEmailEvent; amountCents: number | null; reason: string | null; reference: string | null };
 }
 export type MessageKind = keyof MessageData;
+
+/** Affiliate program notices (lib/affiliates, Yolias Admin → Affiliates). */
+export type AffiliateEmailEvent =
+  | "application_received" | "approved" | "rejected" | "suspended" | "reactivated"
+  | "commission_available" | "commission_on_hold" | "commission_reversed"
+  | "payout_requested" | "payout_approved" | "payout_rejected" | "payout_processing" | "payout_paid" | "payout_failed"
+  | "terms_updated";
+
+const affiliateCopy: Record<AffiliateEmailEvent, { subject: [string, string]; body: [string, string] }> = {
+  application_received: { subject: ["We received your affiliate application", "استلمنا طلب انضمامك لبرنامج الأفلييت"], body: ["Thanks for applying to the Yolias affiliate program. Our team reviews every application and will email you the decision.", "شكرًا لتقديمك على برنامج الأفلييت في يولـياس. يراجع فريقنا كل طلب وسنرسل لك القرار بالبريد."] },
+  approved: { subject: ["You’re now a Yolias affiliate", "أصبحت مسوّقًا معتمدًا في يولـياس"], body: ["Your application was approved. Your referral link is ready in your affiliate dashboard.", "تمت الموافقة على طلبك. رابط الإحالة الخاص بك جاهز في لوحة الأفلييت."] },
+  rejected: { subject: ["About your Yolias affiliate application", "بخصوص طلب انضمامك لبرنامج الأفلييت"], body: ["We reviewed your application and can’t approve it at this time.", "راجعنا طلبك ولا يمكننا الموافقة عليه حاليًا."] },
+  suspended: { subject: ["Your Yolias affiliate account is suspended", "تم تعليق حسابك في برنامج الأفلييت"], body: ["Your affiliate account was suspended. New referrals and commissions are paused while it is suspended.", "تم تعليق حسابك في برنامج الأفلييت. تتوقف الإحالات والعمولات الجديدة طوال فترة التعليق."] },
+  reactivated: { subject: ["Your Yolias affiliate account is active again", "تمت إعادة تفعيل حسابك في برنامج الأفلييت"], body: ["Your affiliate account was reactivated. Your referral link works again.", "أعيد تفعيل حسابك في برنامج الأفلييت، ورابط الإحالة يعمل من جديد."] },
+  commission_available: { subject: ["A commission is ready to withdraw", "عمولة أصبحت متاحة للسحب"], body: ["A commission finished its waiting period and was added to your available balance.", "انتهت فترة انتظار إحدى العمولات وأضيفت إلى رصيدك المتاح."] },
+  commission_on_hold: { subject: ["A commission is under review", "عمولة قيد المراجعة"], body: ["One of your commissions is on hold while our team reviews it. It stays in your history and you’ll be told the outcome.", "إحدى عمولاتك معلّقة حتى يراجعها فريقنا. تبقى في سجلك وسنخبرك بالنتيجة."] },
+  commission_reversed: { subject: ["A commission was reversed", "تم عكس إحدى العمولات"], body: ["A commission was reversed, for example because the customer’s payment was refunded or disputed.", "تم عكس إحدى العمولات، مثلًا لأن دفعة العميل استُردت أو اعتُرض عليها."] },
+  payout_requested: { subject: ["We received your payout request", "استلمنا طلب السحب"], body: ["Your payout request was received. The team reviews requests and sends payouts manually to the method you chose.", "استلمنا طلب السحب. يراجع الفريق الطلبات ويرسل المبالغ يدويًا إلى الطريقة التي اخترتها."] },
+  payout_approved: { subject: ["Your payout was approved", "تمت الموافقة على طلب السحب"], body: ["Your payout request was approved and will be sent soon.", "تمت الموافقة على طلب السحب وسيتم إرساله قريبًا."] },
+  payout_rejected: { subject: ["About your payout request", "بخصوص طلب السحب"], body: ["Your payout request wasn’t approved. The amount is back in your available balance.", "لم تتم الموافقة على طلب السحب، وعاد المبلغ إلى رصيدك المتاح."] },
+  payout_processing: { subject: ["Your payout is being sent", "جارٍ إرسال مبلغ السحب"], body: ["The team started sending your payout.", "بدأ الفريق في إرسال مبلغ السحب."] },
+  payout_paid: { subject: ["Your payout was sent", "تم إرسال مبلغ السحب"], body: ["The team recorded your payout as sent. It can take a few days to arrive depending on the method.", "سجّل الفريق إرسال مبلغ السحب. قد يستغرق وصوله بضعة أيام حسب الطريقة."] },
+  payout_failed: { subject: ["Your payout couldn’t be sent", "تعذّر إرسال مبلغ السحب"], body: ["The payout couldn’t be completed. The amount is back in your available balance; check your payout details.", "تعذّر إتمام السحب، وعاد المبلغ إلى رصيدك المتاح. راجع بيانات السحب."] },
+  terms_updated: { subject: ["The Yolias affiliate terms changed", "تغيّرت شروط برنامج الأفلييت في يولـياس"], body: ["We updated the affiliate program terms. Please read them in your affiliate dashboard.", "حدّثنا شروط برنامج الأفلييت. يرجى قراءتها في لوحة الأفلييت."] },
+};
 
 const announcementEyebrow: Record<AnnouncementType, [string, string]> = {
   new_feature: ["Introducing", "جديد"],
@@ -152,8 +179,8 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     preheader: T(l, "Tell Yolias who you sell to. It finds the decision makers.", "أخبر يولـياس بمن تبيع له، وسيجد لك صنّاع القرار."),
     heading: T(l, d.name ? `Welcome to Yolias, ${d.name}` : "Welcome to Yolias", d.name ? `أهلًا بك في يولـياس يا ${d.name}` : "أهلًا بك في يولـياس"),
     body: [
-      T(l, "Your workspace is ready. Describe your ideal customer in one sentence — industry, market, company size, titles — by typing or by voice, in Arabic or English.",
-        "مساحة عملك جاهزة. صِف عميلك المثالي في جملة واحدة — المجال والسوق وحجم الشركة والمسميات — بالكتابة أو بالصوت، بالعربية أو الإنجليزية."),
+      T(l, "Your workspace is ready. Describe your ideal customer in one sentence: industry, market, company size and titles, in Arabic or English.",
+        "مساحة عملك جاهزة. صِف عميلك المثالي في جملة واحدة: المجال والسوق وحجم الشركة والمسميات، بالعربية أو الإنجليزية."),
       T(l, "Yolias turns it into a search, finds matching companies and their decision makers, and scores each match.",
         "يحوّلها يولـياس إلى عملية بحث، ويجد الشركات المطابقة وصنّاع القرار فيها، ويقيّم كل نتيجة."),
     ],
@@ -215,6 +242,20 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   },
 
   /* Subscription */
+  // Sent once, after the account is set up (onboarding), never on later sign-ins.
+  community_invite: (l, d) => ({
+    subject: T(l, "Join the Yolias community", "انضم إلى مجتمع يولـياس"),
+    preheader: T(l, "Swap ideas with other Yolias users and hear about new features first.", "تبادل الأفكار مع مستخدمي يولـياس وتعرّف على الميزات الجديدة أولًا."),
+    heading: T(l, d.name ? `${d.name}, join the Yolias community` : "Join the Yolias community", d.name ? `${d.name}، انضم إلى مجتمع يولـياس` : "انضم إلى مجتمع يولـياس"),
+    body: [
+      T(l, "Our Facebook group is where Yolias users share how they find customers, ask questions and suggest what we should build next.",
+        "مجموعتنا على فيسبوك هي المكان الذي يتبادل فيه مستخدمو يولـياس طرق إيجاد العملاء، ويطرحون أسئلتهم، ويقترحون ما نبنيه بعد ذلك."),
+      T(l, "The Yolias team is there too, and new features are announced there first.", "فريق يولـياس موجود هناك أيضًا، ونعلن فيها عن الميزات الجديدة أولًا."),
+    ],
+    button: { label: T(l, "Join the community", "انضم إلى المجتمع"), href: d.communityUrl },
+    footnote: T(l, `A one-time invitation sent when you created your account. We won’t send it again. Other emails: ${link(`${d.siteUrl}/`, "Notification settings")}`, `دعوة لمرة واحدة عند إنشاء حسابك، ولن نرسلها مرة أخرى. لباقي الرسائل: ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
+  }),
+
   plan_welcome: (l, d) => ({
     subject: T(l, `Welcome to the ${d.planName} plan`, `أهلًا بك في خطة ${d.planName}`),
     preheader: T(l, `${d.prospectsPerMonth} prospects a month are ready for you.`, `${d.prospectsPerMonth} عميل محتمل شهريًا بانتظارك.`),
@@ -261,8 +302,8 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     subject: T(l, `Your ${d.planName} plan ends on ${day(d.endsAt, l)}`, `ينتهي اشتراك ${d.planName} في ${day(d.endsAt, l)}`),
     preheader: T(l, "Resume any time before then to keep your plan.", "استأنف في أي وقت قبل ذلك للاحتفاظ بخطتك."),
     heading: T(l, "Your subscription is ending", "اشتراكك على وشك الانتهاء"),
-    body: [T(l, `<strong>${esc(d.planName)}</strong> ends on ${day(d.endsAt, l)}. Your workspace then moves to Free; your searches and prospects stay saved.`,
-      `ينتهي <strong>${esc(d.planName)}</strong> في ${day(d.endsAt, l)}، ثم تنتقل مساحة العمل إلى الخطة المجانية مع بقاء عمليات البحث والعملاء المحتملين محفوظين.`)],
+    body: [T(l, `<strong>${esc(d.planName)}</strong> ends on ${day(d.endsAt, l)}. New searches then stop until you subscribe again; your searches and prospects stay saved.`,
+      `ينتهي <strong>${esc(d.planName)}</strong> في ${day(d.endsAt, l)}، ثم تتوقف عمليات البحث الجديدة حتى تشترك من جديد، مع بقاء عمليات البحث والعملاء المحتملين محفوظين.`)],
     button: { label: T(l, "Resume plan", "استئناف الاشتراك"), href: `${d.siteUrl}/` },
     footnote: T(l, "Resume from Settings → Billing.", "يمكنك الاستئناف من الإعدادات ← الفوترة."),
   }),
@@ -383,6 +424,25 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     button: d.ctaLabel && d.ctaUrl ? { label: d.ctaLabel, href: d.ctaUrl } : undefined,
     footnote: T(l, `You’re receiving this because “Product updates” is on. ${link(`${d.siteUrl}/`, "Notification settings")}`, `تصلك هذه الرسالة لأن «تحديثات المنتج» مفعّلة. ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
+
+  /* Affiliate program */
+  affiliate_update: (l, d) => {
+    const c = affiliateCopy[d.event];
+    const rows: [string, string][] = [];
+    if (d.amountCents != null) rows.push([T(l, "Amount", "المبلغ"), money(d.amountCents / 100)]);
+    if (d.reference) rows.push([T(l, "Reference", "المرجع"), `<span dir="ltr">${esc(d.reference)}</span>`]);
+    if (d.reason) rows.push([T(l, "Note from the team", "ملاحظة الفريق"), esc(d.reason)]);
+    return {
+      subject: T(l, c.subject[0], c.subject[1]),
+      preheader: T(l, c.body[0], c.body[1]),
+      heading: T(l, c.subject[0], c.subject[1]),
+      body: [T(l, c.body[0], c.body[1])],
+      extra: rows.length ? table(l, rows) : undefined,
+      button: { label: T(l, "Open affiliate dashboard", "افتح لوحة الأفلييت"), href: `${d.siteUrl}/affiliate` },
+      footnote: T(l, `You’re receiving this because you joined the Yolias affiliate program. Questions? ${link(`${d.siteUrl}/contact?topic=partnerships`, "Contact us")}.`,
+        `تصلك هذه الرسالة لأنك عضو في برنامج الأفلييت في يولـياس. لديك سؤال؟ ${link(`${d.siteUrl}/contact?topic=partnerships`, "تواصل معنا")}.`),
+    };
+  },
 };
 
 export function renderMessage<K extends MessageKind>(kind: K, locale: EmailLocale, data: MessageData[K]): RenderedEmail {

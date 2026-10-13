@@ -142,7 +142,7 @@ try {
   // Account deletion confirmation (sent to the captured address).
   await notify("account_deleted", [{ userId: null, email, locale: "ar", prefs: {} }], { email });
   await drain();
-  assert.ok(captured.some((c) => c.to[0] === email && /تم حذف حسابك/.test(c.subject)));
+  assert.ok(captured.some((c) => c.to[0] === email && /Your Yolias account has been deleted/.test(c.subject)));
 
   console.log(`${mine.length + 1} emails delivered:`);
   for (const c of captured.filter((c) => c.to[0] === email)) console.log(` · ${c.from.padEnd(38)} ${c.subject}`);

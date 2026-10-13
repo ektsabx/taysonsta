@@ -17,6 +17,11 @@ import { ConversationFields, CxComposer, QuerySelect, ScrollToEnd, ThreadActions
 // conversation · customer panel. One implementation serves the inbox and the
 // spam folder (mode), on the existing conversations data and services.
 
+const handoffLabels: Record<string, string> = {
+  requested: "العميل طلب موظفًا", sensitive: "موضوع حساس", no_knowledge: "لا توجد معلومة في المعرفة", low_confidence: "ثقة منخفضة", turn_limit: "حد الردود",
+  cost_limit: "حد التكلفة", ai_unavailable: "المساعد غير متاح", model_requested: "المساعد طلب موظفًا", human_reply: "رد موظف", human_takeover: "تولّاها موظف",
+};
+
 export const channelLabels: Record<string, string> = { web_widget: "الموقع", email: "بريد", messenger: "Messenger", instagram: "Instagram", telegram: "Telegram", manual: "أخرى" };
 export const statusLabels: Record<string, { label: string; tone: "info" | "warning" | "success" | "neutral" | "danger" }> = {
   open: { label: "مفتوحة", tone: "info" },
@@ -29,6 +34,7 @@ export const statusLabels: Record<string, { label: string; tone: "info" | "warni
 const channelGlyph: Record<string, string> = { web_widget: "◎", email: "✉", messenger: "✉", instagram: "◎", telegram: "✈", manual: "✎" };
 const hues = [4, 24, 150, 200, 225, 265, 300, 330];
 const hue = (s: string) => hues[[...s].reduce((a, ch) => a + ch.charCodeAt(0), 0) % hues.length];
+const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
 const initials = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
 
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
@@ -42,7 +48,7 @@ export async function InboxView({ bos, scope, mode, sp }: { bos: BosUser; scope:
   const who = sp.who === "unassigned" || sp.who === "all" ? sp.who : sp.who === "me" ? "me" : scope === "all" ? "all" : "me";
   const status = sp.status ?? (spam ? "all" : "active");
   const [list, active, spamList, teams, staff, names, { data: membership }] = await Promise.all([
-    listConversations(bos, scope, { status, channel: sp.channel, who: spam ? "all" : who, team: sp.team, priority: sp.priority, q: sp.q, spam }, 150),
+    listConversations(bos, scope, { status, channel: sp.channel, who: spam ? "all" : who, team: sp.team, priority: sp.priority, q: sp.q, spam, assignee: scope === "all" ? sp.assignee : undefined, from: sp.from, to: sp.to, responder: sp.responder === "ai" || sp.responder === "human" ? sp.responder : undefined }, 150),
     // Counts for the views, within the viewer's scope.
     listConversations(bos, scope, { status: "active", who: "all" }, 500),
     listConversations(bos, scope, { status: "all", who: "all", spam: true }, 500),
@@ -68,6 +74,7 @@ export async function InboxView({ bos, scope, mode, sp }: { bos: BosUser; scope:
       if (!detailError) throw e;
     }
   }
+  const rating = detail ? (await db().from("support_ratings").select("rating, comment, responder_kind, created_at").eq("conversation_id", detail.conversation.id).order("created_at", { ascending: false }).limit(1).maybeSingle()).data : null;
   const others = detail ? (await listConversations(bos, scope, { customer: detail.customer.id, status: "all", who: "all" }, 8)).filter((c) => c.id !== detail!.conversation.id) : [];
   const available = membership?.length ? membership.some((m) => m.is_available) : null;
   const teamOpts = teams.filter((t) => t.is_active).map((t) => ({ value: t.id, label: t.name }));
@@ -126,6 +133,9 @@ export async function InboxView({ bos, scope, mode, sp }: { bos: BosUser; scope:
             {!spam ? <span className="cx-compact-only"><QuerySelect name="who" label="العرض" value={who} options={[{ value: "me", label: "المسندة لي" }, { value: "unassigned", label: "غير المسندة" }, ...(scope === "all" ? [{ value: "all", label: "كل المحادثات" }] : [])]} /></span> : null}
             <QuerySelect name="channel" label="القناة" value={sp.channel ?? ""} options={[{ value: "", label: "كل القنوات" }, ...Object.entries(channelLabels).map(([value, label]) => ({ value, label }))]} />
             {teamOpts.length ? <QuerySelect name="team" label="الفريق" value={sp.team ?? ""} options={[{ value: "", label: "كل الفرق" }, ...teamOpts]} /> : null}
+            {scope === "all" ? <QuerySelect name="assignee" label="الموظف" value={sp.assignee ?? ""} options={[{ value: "", label: "كل الموظفين" }, ...staff.map((s) => ({ value: s.userId, label: s.name }))]} /> : null}
+            <QuerySelect name="responder" label="من يرد" value={sp.responder ?? ""} options={[{ value: "", label: "الكل" }, { value: "ai", label: "Yolias Agent" }, { value: "human", label: "موظف" }]} />
+            <QuerySelect name="from" label="آخر نشاط" value={sp.from ?? ""} options={[{ value: "", label: "أي وقت" }, { value: daysAgo(1), label: "آخر 24 ساعة" }, { value: daysAgo(7), label: "آخر 7 أيام" }, { value: daysAgo(30), label: "آخر 30 يومًا" }]} />
             <QuerySelect name="priority" label="الأولوية" value={sp.priority ?? ""} options={[{ value: "", label: "كل الأولويات" }, { value: "urgent", label: "عاجلة" }, { value: "high", label: "عالية" }, { value: "normal", label: "عادية" }, { value: "low", label: "منخفضة" }]} />
           </div>
         </div>
@@ -229,6 +239,9 @@ export async function InboxView({ bos, scope, mode, sp }: { bos: BosUser; scope:
               <dt><Tx>القناة</Tx></dt><dd><Tx>{channelLabels[detail.conversation.channel]}</Tx></dd>
               <dt><Tx>بدأت</Tx></dt><dd>{formatDateTime(detail.conversation.created_at)}</dd>
               {detail.conversation.first_response_at ? <><dt><Tx>أول رد</Tx></dt><dd>{formatDateTime(detail.conversation.first_response_at)}</dd></> : null}
+              <dt><Tx>من يرد</Tx></dt><dd>{detail.conversation.ai_active ? <Tx>Yolias Agent (ذكاء اصطناعي)</Tx> : detail.conversation.assignee_id ? names.get(detail.conversation.assignee_id) ?? "—" : <Tx>بانتظار موظف</Tx>}</dd>
+              {detail.conversation.handed_off_at ? <><dt><Tx>تحويل إلى موظف</Tx></dt><dd>{formatDateTime(detail.conversation.handed_off_at)}{detail.conversation.handoff_reason ? <span className="cx-sub"><Tx>{handoffLabels[detail.conversation.handoff_reason] ?? detail.conversation.handoff_reason}</Tx></span> : null}</dd></> : null}
+              {rating ? <><dt><Tx>تقييم العميل</Tx></dt><dd>{"★".repeat(rating.rating)}{"☆".repeat(5 - rating.rating)} <span className="cx-sub"><Tx>{rating.responder_kind === "ai" ? "للمساعد الذكي" : "للموظف"}</Tx></span>{rating.comment ? <span className="cx-sub" dir="auto">{rating.comment}</span> : null}</dd></> : null}
               <dt><Tx>التذكرة</Tx></dt><dd>{detail.ticket ? <Link className="bos-link" href={`/admin/support/tickets/${detail.ticket.id}`}>{detail.ticket.ticket_number}</Link> : "—"}</dd>
             </dl>
             {!detail.conversation.spam_at ? <ConversationFields id={detail.conversation.id} assigneeId={detail.conversation.assignee_id} teamId={detail.conversation.team_id} priority={detail.conversation.priority} staff={staff.map((s) => ({ value: s.userId, label: s.name }))} teams={teamOpts} canAssign={can(bos, "conversations.assign")} canUpdate={canUpdate} /> : null}
@@ -256,6 +269,11 @@ function SystemLine({ body, names }: { body: string; names: Map<string, string> 
   const ticket = /^ticket:(.+)$/.exec(body);
   if (ticket) return <><Tx>أُنشئت تذكرة</Tx> {ticket[1]}</>;
   if (body === "spam:marked") return <Tx>نُقلت إلى الرسائل المزعجة</Tx>;
+  if (body === "handoff:human") return <Tx>تولّى موظف المحادثة بدل المساعد الذكي</Tx>;
+  const ai = /^ai:start:(.+)$/.exec(body);
+  if (ai) return <><Tx>بدأ المساعد الذكي الرد</Tx> ({ai[1]})</>;
+  const rated = /^rating:(\d)$/.exec(body);
+  if (rated) return <><Tx>قيّم العميل المحادثة</Tx> {rated[1]}/5</>;
   if (body === "spam:restored") return <Tx>أُعيدت من الرسائل المزعجة</Tx>;
   return <>{body}</>;
 }

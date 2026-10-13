@@ -2,7 +2,10 @@ import { requirePermission, can } from "@/lib/bos/auth";
 import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
-import { getIntelSettings, llmUsage } from "@/services/yolias/intel";
+import { getIntelSettings, llmUsage, recentLlmTasks } from "@/services/yolias/intel";
+import { readParams, type SearchParams } from "@/lib/bos/params";
+import { FilterBar } from "@/components/bos/FilterBar";
+import { formatDateTime } from "@/lib/bos/format";
 import { platformHealth } from "@/services/yolias/health";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
 import { PricesForm, RoutingForm } from "./LlmForms";
@@ -20,10 +23,11 @@ const tasks = [
   { id: "icp.parse", label: "فهم البحث (ICP)", hint: "تحويل طلب البحث إلى معايير منظّمة." },
 ];
 
-export default async function LlmPage() {
+export default async function LlmPage({ searchParams }: { searchParams: SearchParams }) {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="النماذج اللغوية" /><NotConnected /></>);
-  const [settings, usage, health] = await Promise.all([getIntelSettings(), llmUsage(30), platformHealth()]);
+  const sp = await readParams(searchParams);
+  const [settings, usage, health, recent] = await Promise.all([getIntelSettings(), llmUsage(30), platformHealth(), recentLlmTasks({ task: sp.task, status: sp.status, limit: 50 })]);
   const manage = can(bos, "platform.manage", "all");
   const keys = health.configured?.llm ?? null;
   const routing = (settings.llm_routing ?? { default: [] }) as Record<string, { provider: "anthropic" | "openai" | "gemini"; model: string }[]>;
@@ -70,6 +74,36 @@ export default async function LlmPage() {
             </tbody>
           </BosTable>
         ) : <EmptyState title="لا توجد طلبات للنموذج اللغوي" />}
+      </Card>
+
+      <Card title="آخر مهام Yolias AI" flush>
+        <div style={{ padding: "12px 16px 0" }}>
+          <FilterBar searchPlaceholder="" filters={[
+            { key: "task", label: "المهمة", type: "select", options: [...new Set([...tasks.map((x) => x.id).filter((x) => x !== "default"), ...usage.map((u) => u.task)])].map((x) => ({ value: x, label: x })) },
+            { key: "status", label: "الحالة", type: "select", options: [{ value: "ok", label: "نجحت" }, { value: "failed", label: "فشلت" }] },
+          ]} />
+        </div>
+        {recent.length ? (
+          <div className="bos-table-scroll">
+            <BosTable className="bos-table responsive">
+              <thead><tr><th><Tx>المهمة</Tx></th><th><Tx>النموذج المستخدم فعليًا</Tx></th><th><Tx>إصدار الـ Prompt</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>التكلفة</Tx></th><th><Tx>البداية</Tx></th><th><Tx>الانتهاء</Tx></th><th><Tx>الخطأ</Tx></th></tr></thead>
+              <tbody>
+                {recent.map((r) => (
+                  <tr key={r.id}>
+                    <td dir="ltr">{r.task}</td>
+                    <td dir="ltr">{r.served_model ?? r.model}{r.served_model && r.served_model !== r.model ? <span className="cell-sub"><Tx vars={{ m: r.model }}>{"المطلوب: {m}"}</Tx></span> : null}</td>
+                    <td dir="ltr" style={{ fontSize: 12 }}>{r.prompt_version}</td>
+                    <td>{r.ok ? <StatusBadge tone="success" label={r.cache_hit ? "من الكاش" : "نجحت"} /> : <StatusBadge tone="danger" label="فشلت" />}</td>
+                    <td className="bos-num" dir="ltr">{r.cost_usd == null ? (r.cache_hit ? "$0" : <Tx>غير مسعّر</Tx>) : usd4(Number(r.cost_usd))}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{r.started_at ? formatDateTime(r.started_at) : "—"}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{formatDateTime(r.ended_at)}{r.latency_ms != null ? <span className="cell-sub">{r.latency_ms} ms</span> : null}</td>
+                    <td dir="ltr" style={{ fontSize: 12, maxWidth: 280, overflowWrap: "anywhere" }}>{r.error ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </BosTable>
+          </div>
+        ) : <EmptyState title="لا توجد مهام مطابقة" />}
       </Card>
     </>
   );

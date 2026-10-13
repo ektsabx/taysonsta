@@ -18,7 +18,6 @@ import { hrEditSession, requestCorrection, requestOvertime, setOvertimeCompensat
 import { computeAllKpis, createKpi, saveManualKpiValue, setKpiAssignment, updateKpi, type KpiInput } from "@/services/bos/kpis";
 import { acknowledgeReview, saveReview } from "@/services/bos/performance";
 import { setMfaStatus, syncBosMfaStatus } from "@/services/bos/mfa";
-import { assignDevice, confirmReceipt, returnDevice, saveDevice, updateSecurityCheck } from "@/services/bos/devices";
 
 function refreshTeam(employeeId?: string) {
   revalidatePath("/admin/team", "layout");
@@ -460,88 +459,3 @@ export async function syncMfaAction(employeeId: string): Promise<ActionState> {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Devices
-// ---------------------------------------------------------------------------
-
-const deviceSchema = z.object({
-  asset_id: zf.required("رقم الأصل", 50),
-  type: z.enum(["laptop", "desktop", "monitor", "mobile", "tablet", "headset", "office_equipment", "software_license", "loanable", "spare_part", "other"]),
-  name: zf.optionalText(200),
-  purchase_value: zf.optionalMoney(),
-  currency: z.preprocess((v) => (v === "" || v == null ? null : String(v).toUpperCase()), z.enum(["EGP", "USD"], { message: "العملة EGP أو USD فقط" }).nullable()),
-  vendor_id: zf.optionalUuid(),
-  next_maintenance_date: zf.optionalDate(),
-  quantity: z.preprocess((v) => (v === "" || v == null ? 1 : v), z.coerce.number().int().min(0).max(1000000)),
-  min_quantity: z.preprocess((v) => (v === "" || v == null ? null : v), z.coerce.number().int().min(0).nullable()),
-  license_seats: z.preprocess((v) => (v === "" || v == null ? null : v), z.coerce.number().int().min(1).max(100000).nullable()),
-  license_expiry: zf.optionalDate(),
-  license_account: zf.optionalText(200),
-  model: zf.optionalText(200),
-  serial_number: zf.optionalText(100),
-  os: zf.optionalText(100),
-  purchase_date: zf.optionalDate(),
-  warranty_until: zf.optionalDate(),
-  condition: z.enum(["new", "good", "fair", "poor", "damaged"]).default("good"),
-  location: zf.optionalText(200),
-  mdm_provider: zf.optionalText(100),
-  mdm_reference: zf.optionalText(200),
-  notes: zf.optionalText(2000),
-});
-
-export async function saveDeviceAction(id: string | null, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("saveDevice", async () => {
-    const { bos } = await authorize(id ? "devices.update" : "devices.create", "all");
-    const v = parseForm(deviceSchema, formData);
-    const deviceId = await saveDevice(bos, id, { ...v, model: v.model ?? null, serial_number: v.serial_number ?? null, os: v.os ?? null, location: v.location ?? null, mdm_provider: v.mdm_provider ?? null, mdm_reference: v.mdm_reference ?? null, notes: v.notes ?? null, name: v.name ?? null, purchase_value: v.purchase_value != null ? Number(v.purchase_value) : null, license_account: v.license_account ?? null, quantity: v.type === "spare_part" ? v.quantity : 1 });
-    revalidatePath("/admin/team/devices");
-    if (!id) redirect(`/admin/team/devices/${deviceId}`);
-    revalidatePath(`/admin/team/devices/${id}`);
-    return { ok: true, message: "تم حفظ الجهاز" };
-  }, "تعذر حفظ الجهاز.");
-}
-
-export async function assignDeviceAction(deviceId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("assignDevice", async () => {
-    const { bos } = await authorize("devices.manage", "all");
-    const v = parseForm(z.object({ employee_id: zf.uuid("الموظف"), condition: zf.optionalText(20) }), formData);
-    await assignDevice(bos, deviceId, v.employee_id, v.condition ?? null);
-    revalidatePath(`/admin/team/devices/${deviceId}`);
-    refreshTeam(v.employee_id);
-    return { ok: true, message: "تم تسليم الجهاز" };
-  }, "تعذر تسليم الجهاز.");
-}
-
-export async function confirmReceiptAction(deviceId: string): Promise<ActionState> {
-  return handleAction("confirmReceipt", async () => {
-    const { bos } = await authorize("devices.read");
-    await confirmReceipt(bos, deviceId);
-    refreshTeam();
-    revalidatePath(`/admin/team/devices/${deviceId}`);
-    return { ok: true, message: "تم تأكيد الاستلام" };
-  });
-}
-
-export async function returnDeviceAction(deviceId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("returnDevice", async () => {
-    const { bos } = await authorize("devices.manage", "all");
-    const v = parseForm(z.object({ condition: z.enum(["new", "good", "fair", "poor", "damaged"]), next_status: z.enum(["in_stock", "in_repair", "retired", "lost"]) }), formData);
-    await returnDevice(bos, deviceId, v.condition, v.next_status);
-    revalidatePath(`/admin/team/devices/${deviceId}`);
-    refreshTeam();
-    return { ok: true, message: "تم تسجيل الاسترجاع" };
-  }, "تعذر تسجيل الاسترجاع.");
-}
-
-const tri = z.preprocess((v) => (v === "yes" ? true : v === "no" ? false : null), z.boolean().nullable());
-
-export async function securityCheckAction(deviceId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  return handleAction("securityCheck", async () => {
-    const { bos } = await authorize("devices.update", "all");
-    const v = parseForm(z.object({ os_updated: tri, encryption_enabled: tri, screen_lock_enabled: tri, antivirus_enabled: tri, company_account_configured: tri }), formData);
-    await updateSecurityCheck(bos, deviceId, v);
-    revalidatePath(`/admin/team/devices/${deviceId}`);
-    revalidatePath("/admin/team/devices");
-    return { ok: true, message: "تم حفظ فحص الأمان" };
-  });
-}

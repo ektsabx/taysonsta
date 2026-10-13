@@ -44,10 +44,7 @@ export const pageGuides: Record<string, PageGuide> = {
     { title: "مسار المبيعات", purpose: "عرض لوحي للصفقات والعملاء المحتملين حسب المرحلة.", owner: "فريق المبيعات ومديره.", steps: ["اسحب البطاقة لتغيير مرحلتها.", "افتح البطاقة للتفاصيل.", "راقب القيمة في كل عمود."] },
     { title: "Sales pipeline", purpose: "A board of deals and leads by stage.", owner: "The sales team and manager.", steps: ["Drag a card to change its stage.", "Open a card for details.", "Watch the value in each column."] },
   ),
-  "/admin/sales/radar": g(
-    { title: "رادار الصفقات", purpose: "يكشف الصفقات المعرضة للخطر (تأخر المتابعة، ركود المرحلة) ويقترح الخطوة التالية.", owner: "مديرو المبيعات ومسؤولو الصفقات.", steps: ["ابدأ بالصفقات عالية الخطورة.", "افتح الصفقة ونفّذ الإجراء المقترح.", "حدّث النشاط لتنخفض الخطورة."] },
-    { title: "Deal radar", purpose: "Flags deals at risk (late follow-up, stalled stage) and suggests the next step.", owner: "Sales managers and deal owners.", steps: ["Start with high-risk deals.", "Open the deal and take the suggested action.", "Log the activity so the risk drops."] },
-  ),
+
   "/admin/clients": g(
     { title: "الحسابات", purpose: "ملف كل عميل: جهات الاتصال والمشاريع والفواتير والتواصل.", owner: "مديرو الحسابات والمبيعات.", steps: ["افتح الحساب لرؤية الصورة الكاملة.", "حدد مدير الحساب والحالة.", "فعّل بوابة العميل لجهات الاتصال عند الحاجة."] },
     { title: "Accounts", purpose: "Each client's record: contacts, projects, invoices and communication.", owner: "Account managers and sales.", steps: ["Open an account for the full picture.", "Set the account manager and status.", "Enable client-portal access for contacts when needed."] },
@@ -104,18 +101,9 @@ export const pageGuides: Record<string, PageGuide> = {
     { title: "التواصل", purpose: "صندوق الوارد والمحادثات الداخلية والرسائل والاجتماعات والإشعارات.", owner: "كل المستخدمين حسب الصلاحية.", steps: ["اختر القناة من القائمة.", "رد أو أنشئ رسالة جديدة.", "تابع الإشعارات غير المقروءة."] },
     { title: "Communication", purpose: "Inbox, internal chat, messaging, meetings and notifications.", owner: "All users, per permission.", steps: ["Pick the channel from the menu.", "Reply or start a new message.", "Follow unread notifications."] },
   ),
-  "/admin/social": g(
-    { title: "التواصل الاجتماعي", purpose: "جدولة المنشورات ونشرها ومتابعة أدائها على الحسابات المتصلة.", owner: "فريق التسويق.", steps: ["اربط الحسابات من «الحسابات المتصلة».", "أنشئ منشوراً وحدد موعده.", "راجع التحليلات بعد النشر."] },
-    { title: "Social media", purpose: "Schedule, publish and track posts on connected accounts.", owner: "Marketing.", steps: ["Connect accounts under “Connected accounts”.", "Create a post and schedule it.", "Review analytics after publishing."] },
-  ),
-  "/admin/content": g(
-    { title: "استوديو المحتوى", purpose: "تخطيط الأفكار وكتابة المحتوى ومراجعته قبل النشر.", owner: "فريق المحتوى والتسويق.", steps: ["أضف فكرة أو ولّد أفكاراً.", "حرّك العنصر عبر مراحل العمل.", "راجع «أداء المحتوى» لمعرفة ما ينجح."] },
-    { title: "Content studio", purpose: "Plan ideas, write and review content before publishing.", owner: "Content and marketing.", steps: ["Add or generate ideas.", "Move items through the workflow stages.", "Check “Content performance” to see what works."] },
-  ),
-  "/admin/ads": g(
-    { title: "الإعلانات", purpose: "قراءة أداء الحملات الإعلانية وتحليلها دون تغيير أي حملة أو ميزانية.", owner: "فريق التسويق والإدارة.", steps: ["اختر نطاق التاريخ والمنصة.", "قارن الإنفاق والنتائج.", "صدّر البيانات عند الحاجة."] },
-    { title: "Ads", purpose: "Read and analyse ad performance without changing any campaign or budget.", owner: "Marketing and management.", steps: ["Pick the date range and platform.", "Compare spend and results.", "Export the data when needed."] },
-  ),
+
+
+
   "/admin/knowledge": g(
     { title: "المعرفة", purpose: "مقالات وإجراءات وأدلة الشركة المعتمدة.", owner: "الجميع يقرأ؛ المسؤولون يكتبون ويراجعون.", steps: ["ابحث أو تصفح حسب الفئة.", "افتح المقال واتبع الخطوات.", "اقترح تعديلاً إن وجدت خطأ."] },
     { title: "Knowledge", purpose: "Approved company articles, procedures and guides.", owner: "Everyone reads; owners write and review.", steps: ["Search or browse by category.", "Open an article and follow the steps.", "Suggest an edit if something is wrong."] },

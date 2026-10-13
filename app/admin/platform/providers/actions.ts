@@ -6,7 +6,7 @@ import { authorize } from "@/lib/bos/auth";
 import { handleAction, parseForm, type ActionState } from "@/lib/bos/action";
 import { ValidationError } from "@/lib/bos/errors";
 import { settingKeys, type SettingKey } from "@/lib/yolias/intel";
-import { clearProviderCredential, setProviderCredential, updateIntelSetting, updateProvider } from "@/services/yolias/intel";
+import { clearProviderCredential, setProviderCredential, setProviderEnabled, updateIntelSetting, updateProvider } from "@/services/yolias/intel";
 
 // Provider registry and Intelligence Layer settings (docs/09 §B). Only
 // platform.manage (scope all) may change them; every change is audited.
@@ -79,6 +79,17 @@ export async function updateSettingAction(_prev: ActionState, formData: FormData
     if (!settingKeys.includes(key)) throw new ValidationError("إعداد غير معروف.");
     await updateIntelSetting(bos, key, String(formData.get("value") ?? ""));
     revalidatePath("/admin/platform/providers");
+    return { ok: true };
+  });
+}
+
+export async function toggleProviderAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return handleAction("yolias.toggleProvider", async () => {
+    const { bos } = await authorize("platform.manage", "all");
+    const id = idFrom(formData);
+    await setProviderEnabled(bos, id, formData.get("enabled") === "1");
+    revalidatePath("/admin/platform/providers");
+    revalidatePath(`/admin/platform/providers/${id}`);
     return { ok: true };
   });
 }

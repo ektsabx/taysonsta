@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/JsonLd";
+import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<"/help-center/[slug
   const article = articles.find((a) => a.slug === slug);
   if (!article) return {};
   const doc = article.doc[await getLocale()];
-  return { title: `${doc.title} — Yolias`, description: doc.summary };
+  return pageMetadata({ title: `${doc.title} | Yolias Help Center`, description: doc.summary, path: `/help-center/${slug}` });
 }
 
 export default async function HelpArticlePage({ params }: PageProps<"/help-center/[slug]">) {
@@ -32,6 +34,10 @@ export default async function HelpArticlePage({ params }: PageProps<"/help-cente
 
   return (
     <div className="site-width doc-layout">
+      <JsonLd nodes={[
+        webPageSchema({ title: doc.title, description: doc.summary, path: `/help-center/${slug}` }),
+        breadcrumbSchema([{ name: t.site.helpCenter, path: "/help-center" }, { name: doc.title, path: `/help-center/${slug}` }]),
+      ]} />
       <article className="doc-main">
         <nav className="crumbs" aria-label="Breadcrumb">
           <Link href="/help-center">{t.site.helpCenter}</Link>

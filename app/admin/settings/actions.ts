@@ -166,7 +166,6 @@ export async function testIntegrationAction(name: string): Promise<ActionState> 
     const env: Record<string, string[]> = {
       email: ["EMAIL_PROVIDER_API_KEY"],
       payment: ["PAYMENT_PROVIDER_SECRET"],
-      esign: ["ESIGN_API_KEY"],
       whatsapp: ["WHATSAPP_API_TOKEN"],
       push: ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"],
       scheduler: ["CRON_SECRET"],

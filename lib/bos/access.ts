@@ -36,11 +36,10 @@ async function ownerIn(bos: BosUser, scope: Scope, owners: (string | null | unde
 }
 
 const entityPermission: Record<string, string> = {
-  content_item: "content",
   lead: "leads", deal: "deals", client: "clients", contact: "contacts", ticket: "tickets", invoice: "invoices",
   payment: "payments", contract: "contracts", proposal: "proposals",
   meeting: "meetings", employee: "employees", expense: "expenses", vendor: "vendors", kb_article: "knowledge",
-  device: "devices", activity: "activities", commission: "commissions", approval: "approvals",
+  activity: "activities", commission: "commissions", approval: "approvals",
 };
 
 // Chat channels / messages: membership-based (docs/bos/14).
@@ -228,14 +227,6 @@ export async function canAccessEntity(bos: BosUser, entityType: string, entityId
     case "expense": {
       const { data } = await client.from("expenses").select("created_by, employee_user_id").eq("id", entityId).maybeSingle();
       return !!data && ownerIn(bos, scope, [data.created_by, data.employee_user_id]);
-    }
-    case "device": {
-      const { data } = await client.from("devices").select("assigned_employee_id").eq("id", entityId).maybeSingle();
-      return !!data && data.assigned_employee_id === bos.employee.id;
-    }
-    case "content_item": {
-      const { data } = await client.from("content_items").select("owner_id, created_by").eq("id", entityId).maybeSingle();
-      return !!data && ownerIn(bos, scope, [data.owner_id, data.created_by]);
     }
     case "kb_article": {
       const { data } = await client.from("kb_articles").select("allowed_role_ids, author_id, status").eq("id", entityId).maybeSingle();

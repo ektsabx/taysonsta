@@ -44,7 +44,7 @@ export const articles: HelpArticle[] = [
             { x: 93, y: 6, label: "Export CSV." },
           ] } },
           { h2: "Reveal contact details" },
-          { p: "Emails and phones show masked (for example s•••@company.com) until you click **Reveal** — on one person or for a selection. Revealing doesn't use extra prospects: the person was counted when Yolias delivered them." },
+          { p: "Emails and phones show masked (for example s•••@company.com) until you click **Reveal**, on one person or for a selection. Revealing doesn't use extra prospects: the person was counted when Yolias delivered them." },
           { h2: "Find decision makers at a company" },
           { p: "On the Companies or Local Businesses tab, select companies and choose **Find decision makers**. They come with the company at no extra prospects and are saved straight to People." },
           { h2: "Export" },
@@ -61,7 +61,7 @@ export const articles: HelpArticle[] = [
             { x: 93, y: 6, label: "تصدير CSV." },
           ] } },
           { h2: "إظهار بيانات التواصل" },
-          { p: "يظهر البريد والهاتف مخفيين (مثل s•••@company.com) حتى تضغط **إظهار** — لشخص واحد أو لمجموعة محددة. الإظهار لا يستهلك عملاء محتملين إضافيين: تم احتساب الشخص عند تسليمه." },
+          { p: "يظهر البريد والهاتف مخفيين (مثل s•••@company.com) حتى تضغط **إظهار**: لشخص واحد أو لمجموعة محددة. الإظهار لا يستهلك عملاء محتملين إضافيين: تم احتساب الشخص عند تسليمه." },
           { h2: "إيجاد صناع القرار في شركة" },
           { p: "في تبويب الشركات أو الأنشطة المحلية حدّد الشركات واختر **إيجاد صناع القرار**. كل شخص يجده يولـياس يستهلك عميلًا محتملًا واحدًا ويُحفظ مباشرة في الأشخاص." },
           { h2: "التصدير" },
@@ -81,7 +81,7 @@ export const articles: HelpArticle[] = [
           { p: "Enter your work email on the [log in page](/login) and Yolias emails you a one-time link. Open it on the same device and you are in." },
           { h2: "The email didn’t arrive" },
           { ol: [
-            "Wait a minute — delivery can take a little time.",
+            "Wait a minute. Delivery can take a little time.",
             "Check spam, promotions or quarantine folders for an email from Yolias.",
             "Make sure you typed the address you signed up with. Log in only works for existing accounts; new users start from [Create account](/signup).",
             "Request a new link. If you request several in a row, you may need to wait a minute before the next one.",
@@ -97,7 +97,7 @@ export const articles: HelpArticle[] = [
           { p: "أدخل بريد العمل في [صفحة تسجيل الدخول](/login) وسيرسل لك يولـياس رابطًا يُستخدم مرة واحدة. افتحه على الجهاز نفسه وستدخل مباشرة." },
           { h2: "لم يصل البريد" },
           { ol: [
-            "انتظر دقيقة — قد يتأخر الإرسال قليلًا.",
+            "انتظر دقيقة، قد يتأخر الإرسال قليلًا.",
             "تحقق من مجلدات الرسائل المزعجة أو العروض أو الحجر بحثًا عن بريد من يولـياس.",
             "تأكد من كتابة البريد الذي سجّلت به. تسجيل الدخول يعمل للحسابات الموجودة فقط؛ المستخدمون الجدد يبدؤون من [إنشاء حساب](/signup).",
             "اطلب رابطًا جديدًا. إذا طلبت عدة روابط متتالية فقد تحتاج للانتظار دقيقة قبل الطلب التالي.",
@@ -116,9 +116,9 @@ export const articles: HelpArticle[] = [
         title: "Choosing a plan and billing period",
         summary: "All plans have the same features; they differ in how much discovery you can run each month.",
         blocks: [
-          { p: "Free, Pro and Growth include the same Yolias features and unlimited users. They differ only in how many prospects you get: Free includes a starting allowance, Pro and Growth a new one every month — pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Pro, Growth and Scale include the same Yolias features and unlimited users. They differ in their monthly limits: prospects, emails and uploaded contacts. Every plan starts with a 7-day free trial (a card is required; in Egypt the first period is paid up front through Paymob). Pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
-          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is twelve times the monthly price, paid upfront, and your usage limits still reset every month." },
+          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is 20% off: prices show the monthly rate, the year is paid upfront, and your usage limits still reset every month." },
           { h2: "Not sure yet?" },
           { p: "Start with the plan closest to your current needs. You can change plan or billing period later from Settings → Billing." },
         ],
@@ -127,9 +127,9 @@ export const articles: HelpArticle[] = [
         title: "اختيار الخطة وفترة الفوترة",
         summary: "كل الخطط تشمل الميزات نفسها، وتختلف في حجم الاكتشاف الذي يمكنك تشغيله شهريًا.",
         blocks: [
-          { p: "تشمل الخطط المجانية وبرو والنمو ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق الوحيد هو عدد العملاء المحتملين: المجانية تشمل رصيداً للبداية، وبرو والنمو رصيداً جديداً كل شهر — اختر ما يناسب الحجم الذي تتوقعه. تجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "تشمل خطط برو والنمو والتوسع ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق في حدودها الشهرية: العملاء المحتملون ورسائل البريد وجهات الاتصال المرفوعة. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام (البطاقة مطلوبة، وفي مصر تُدفع أول فترة مقدمًا عبر Paymob). اختر ما يناسب الحجم الذي تتوقعه، وتجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
-          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تساوي اثني عشر ضعف السعر الشهري وتُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
+          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية بخصم 20%: الأسعار تظهر بالشهر، والسنة تُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
           { h2: "لم تقرر بعد؟" },
           { p: "ابدأ بالخطة الأقرب لاحتياجك الحالي. يمكنك تغيير الخطة أو فترة الفوترة لاحقًا من الإعدادات ← الفوترة." },
         ],
@@ -142,7 +142,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Switching between Arabic and English",
-        summary: "Change the interface language — and the language Yolias answers in — in one place.",
+        summary: "Change the interface language, and the language Yolias answers in, in one place.",
         blocks: [
           { p: "On public pages, use the language menu in the header. Inside the app, open your name at the bottom of the sidebar, choose **General**, and set **Languages**." },
           { p: "The whole interface switches direction: right-to-left for Arabic, left-to-right for English. Campaign names and summaries that Yolias writes from then on follow the same language." },
@@ -151,7 +151,7 @@ export const articles: HelpArticle[] = [
       },
       ar: {
         title: "التبديل بين العربية والإنجليزية",
-        summary: "غيّر لغة الواجهة — واللغة التي يرد بها يولـياس — من مكان واحد.",
+        summary: "غيّر لغة الواجهة، واللغة التي يرد بها يولـياس، من مكان واحد.",
         blocks: [
           { p: "في الصفحات العامة استخدم قائمة اللغة في أعلى الصفحة. وداخل التطبيق اضغط على اسمك أسفل الشريط الجانبي، واختر **عام**، ثم اضبط **اللغة**." },
           { p: "يتغير اتجاه الواجهة كلها: من اليمين لليسار للعربية، ومن اليسار لليمين للإنجليزية. وتتبع أسماء الحملات والملخصات التي يكتبها يولـياس بعد ذلك اللغة نفسها." },
@@ -168,7 +168,7 @@ export const articles: HelpArticle[] = [
         title: "Why a campaign says “Awaiting data source”",
         summary: "Yolias understood your search, but no company data source is connected to collect results yet.",
         blocks: [
-          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and opens the campaign — that part is complete when you see the target criteria and the decision makers to find. Then the campaign searches connected data sources for matching companies and people." },
+          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and opens the campaign. That part is complete when you see the target criteria and the decision makers to find. Then the campaign searches connected data sources for matching companies and people." },
           { p: "**Awaiting data source** means the first half finished and the second is waiting for a source to be connected to your workspace. Nothing is lost: the campaign keeps its criteria and will collect results once a source is available." },
           { p: "See [Campaigns](/docs/campaigns) for every status a campaign can have." },
         ],
@@ -177,7 +177,7 @@ export const articles: HelpArticle[] = [
         title: "لماذا تظهر الحملة «بانتظار مصدر بيانات»",
         summary: "فهم يولـياس بحثك، لكن لا يوجد مصدر بيانات للشركات متصل بعد لجمع النتائج.",
         blocks: [
-          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويفتح الحملة — وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم تبحث الحملة في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
+          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويفتح الحملة، وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم تبحث الحملة في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
           { p: "**بانتظار مصدر بيانات** يعني أن المرحلة الأولى اكتملت وأن الثانية تنتظر ربط مصدر بمساحة عملك. لا يضيع شيء: تحتفظ الحملة بمعاييرها وستجمع النتائج بمجرد توفر مصدر." },
           { p: "راجع [الحملات](/docs/campaigns) لمعرفة كل الحالات الممكنة للحملة." },
         ],
@@ -192,11 +192,11 @@ export const articles: HelpArticle[] = [
         title: "When a search needs attention",
         summary: "What the red “Search needs attention” card means and how to continue.",
         blocks: [
-          { p: "The card appears when Yolias AI could not turn a request into criteria — for example when the AI service was busy, or the request had nothing it could interpret." },
+          { p: "The card appears when Yolias AI could not turn a request into criteria, for example when the AI service was busy, or the request had nothing it could interpret." },
           { ol: [
             "Read the message on the card; it says what went wrong.",
             "Press **Try again**. Your request is saved, so you don’t need to retype it.",
-            "If it keeps failing, edit the request above the card to be more specific — a market, an industry and the roles you want — and send it again.",
+            "If it keeps failing, edit the request above the card to be more specific (a market, an industry and the roles you want) and send it again.",
           ] },
           { note: "Retrying re-reads the text only. If your original request relied on an attached file, attach it again in a new search." },
         ],
@@ -205,11 +205,11 @@ export const articles: HelpArticle[] = [
         title: "عندما يحتاج البحث انتباهك",
         summary: "ماذا تعني بطاقة «البحث يحتاج انتباهك» الحمراء وكيف تكمل.",
         blocks: [
-          { p: "تظهر البطاقة عندما يتعذر على يولـياس AI تحويل الطلب إلى معايير — مثلًا عندما تكون خدمة الذكاء الاصطناعي مشغولة، أو لا يحتوي الطلب على ما يمكن فهمه." },
+          { p: "تظهر البطاقة عندما يتعذر على يولـياس AI تحويل الطلب إلى معايير، مثلًا عندما تكون خدمة الذكاء الاصطناعي مشغولة، أو لا يحتوي الطلب على ما يمكن فهمه." },
           { ol: [
             "اقرأ الرسالة على البطاقة؛ فهي توضح ما حدث.",
             "اضغط **حاول مرة أخرى**. طلبك محفوظ ولا تحتاج لإعادة كتابته.",
-            "إذا تكرر الفشل، عدّل الطلب أعلى البطاقة ليكون أوضح — سوق وقطاع والمناصب المطلوبة — ثم أرسله مجددًا.",
+            "إذا تكرر الفشل، عدّل الطلب أعلى البطاقة ليكون أوضح، سوق وقطاع والمناصب المطلوبة، ثم أرسله مجددًا.",
           ] },
           { note: "إعادة المحاولة تقرأ النص فقط. إذا كان طلبك الأصلي يعتمد على ملف مرفق فأرفقه من جديد في بحث جديد." },
         ],
@@ -252,7 +252,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Inviting teammates",
-        summary: "Bring colleagues into your workspace — every plan includes unlimited users.",
+        summary: "Bring colleagues into your workspace. Every plan includes unlimited users.",
         blocks: [
           { ol: [
             "Open your name at the bottom of the sidebar and choose **Team**.",
@@ -264,7 +264,7 @@ export const articles: HelpArticle[] = [
       },
       ar: {
         title: "دعوة أعضاء الفريق",
-        summary: "أضف زملاءك إلى مساحة عملك — كل الخطط تشمل مستخدمين غير محدودين.",
+        summary: "أضف زملاءك إلى مساحة عملك، كل الخطط تشمل مستخدمين غير محدودين.",
         blocks: [
           { ol: [
             "اضغط على اسمك أسفل الشريط الجانبي واختر **الفريق**.",
@@ -282,19 +282,19 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Changing your plan",
-        summary: "Move between Free, Pro and Growth, switch billing period, or cancel.",
+        summary: "Move between Pro, Growth and Scale, switch billing period, or cancel.",
         blocks: [
-          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan**. Pick the plan and billing period and confirm." },
-          { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period, then the workspace moves to Free with everything saved. You can resume before then." },
+          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan** (or **Manage billing** when your subscription is with Polar, which opens its customer portal). Pick the plan and billing period and confirm." },
+          { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period; after that new searches stop until you subscribe again, and everything stays saved. You can resume before then." },
           { p: "Your new limits apply right away. Usage counters reset on the first day of each month, whatever the billing period." },
         ],
       },
       ar: {
         title: "تغيير خطتك",
-        summary: "انتقل بين المجانية وبرو والنمو، أو غيّر فترة الفوترة، أو ألغِ الاشتراك.",
+        summary: "انتقل بين برو والنمو والتوسع، أو غيّر فترة الفوترة، أو ألغِ الاشتراك.",
         blocks: [
-          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة**. اختر الخطة وفترة الفوترة وأكّد." },
-          { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، ثم تنتقل مساحة العمل إلى الخطة المجانية مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },
+          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة** (أو **إدارة الفوترة** إذا كان اشتراكك عبر Polar، فتفتح بوابة العملاء الخاصة به). اختر الخطة وفترة الفوترة وأكّد." },
+          { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، وبعدها تتوقف عمليات البحث الجديدة حتى تشترك من جديد مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },
           { p: "تُطبق الحدود الجديدة فورًا. وتتجدد عدادات الاستخدام في أول يوم من كل شهر أيًا كانت فترة الفوترة." },
         ],
       },

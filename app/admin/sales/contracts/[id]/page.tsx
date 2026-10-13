@@ -128,7 +128,6 @@ export default async function ContractDetailPage({ params, searchParams }: { par
                   { label: "أُرسل", value: c.sent_at ? formatDateTime(c.sent_at) : null },
                   { label: "شوهد", value: c.viewed_at ? formatDateTime(c.viewed_at) : null },
                   { label: "وُقّع", value: c.signed_at ? formatDateTime(c.signed_at) : null },
-                  { label: "مزود التوقيع الإلكتروني", value: c.esign_provider ?? "غير مفعّل — تسجيل يدوي" },
                 ]}
               />
             </Card>

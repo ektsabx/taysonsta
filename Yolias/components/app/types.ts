@@ -8,6 +8,10 @@ export interface ShellData {
     emailConfirmed: boolean;
     avatarUrl: string | null;
     initials: string;
+    /** E.164, visible only to this user (public.user_phones). */
+    phone: string | null;
+    /** Show the Trustpilot request now (once per user, after a successful search). */
+    askReview: boolean;
   };
   preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product">;
   workspace: {
@@ -29,12 +33,19 @@ export interface ShellData {
   };
   role: WorkspaceRole;
   /** Used and extra (bought this month) prospects; the allowance is workspace.prospects. */
-  usage: { prospects: number; resetsAt: string | null; extra: number };
+  usage: {
+    prospects: number; resetsAt: string | null; extra: number;
+    /** Emails opened from Yolias and contacts uploaded by CSV this month, with the plan's limits. */
+    emails: { used: number; limit: number };
+    contacts: { used: number; limit: number };
+    /** Set while the workspace is in its free trial. */
+    trialEndsAt: string | null;
+  };
   invoices: { id: string; number: string; date: string; amount: number; currency: Currency; status: "paid" | "open" | "void"; test: boolean }[];
   /** Buy More Prospects: active packs priced in the workspace currency. */
   packs: { id: string; prospects: number; price: number }[];
   /** A payment provider is connected for the workspace currency / billing test mode is on. */
-  billing: { online: boolean; testMode: boolean };
+  billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar"; portalUrl: string | null };
   /** Unread in-app notifications. */
   unread: number;
   team: {

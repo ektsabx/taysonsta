@@ -24,6 +24,16 @@ export function initAnalytics() {
     capture_pageleave: true,
     autocapture: false,
     disable_session_recording: true,
+    // Yolias uses no feature flags, surveys, tours, experiments or remote
+    // config. Their /flags request timed out on slow mobile networks and
+    // surfaced as unhandled rejections (YOLIAS-B, YOLIAS-C); without it,
+    // PostHog only sends the named events.
+    advanced_disable_flags: true,
+    disable_surveys: true,
+    disable_product_tours: true,
+    disable_conversations: true,
+    disable_web_experiments: true,
+    disable_external_dependency_loading: true,
     person_profiles: "identified_only",
     persistence: readConsent() === "all" ? "localStorage+cookie" : "memory",
     before_send: (event) => {
@@ -52,7 +62,12 @@ export type ClientEvent =
 
 /** A product event from the browser. Properties must not hold personal data. */
 export function track(event: ClientEvent, properties?: Record<string, string | number | boolean | null | undefined>) {
-  if (started) posthog.capture(event, properties);
+  if (!started) return;
+  try {
+    posthog.capture(event, properties);
+  } catch {
+    // Analytics never breaks the product.
+  }
 }
 
 export function identify(userId: string, props: { workspace_id: string; plan: string | null; role: string; locale: string }) {
@@ -86,6 +101,10 @@ export function loadMetaPixel() {
   t.async = true;
   t.src = "https://connect.facebook.net/en_US/fbevents.js";
   document.head.appendChild(t);
+  // No automatic events: they make Meta's script scan the page's elements
+  // (signals/iwl.js), which threw "getBoundingClientRect is not a function"
+  // on our pages (YOLIAS-5). Yolias sends its own named events.
+  n("set", "autoConfig", false, META_PIXEL_ID);
   n("init", META_PIXEL_ID);
   n("track", "PageView");
   for (const args of pendingMeta.splice(0)) n(...args);

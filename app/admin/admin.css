@@ -113,3 +113,32 @@
   .admin-detail-grid { grid-template-columns: 1fr; }
   .admin-kanban { grid-template-columns: repeat(3, minmax(220px, 1fr)); }
 }
+
+/* Support → Website messages (app/admin/support/messages) */
+.support-msg-status { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.support-msg-status .llm-input { width: auto; min-width: 130px; }
+.support-msg-notify { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.support-msg-notify .llm-input { width: 260px; max-width: 100%; }
+.support-msg-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; font-size: 14px; }
+.support-msg-shot { display: block; max-width: 100%; max-height: 520px; border-radius: 10px; border: 1px solid rgba(var(--bos-fg-rgb), 0.12); }
+
+/* Yolias affiliates (D-178) */
+.aff-inline-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 220px; }
+.aff-inline-form .llm-input { min-width: 0; flex: 1 1 140px; }
+.aff-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.aff-row .aff-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.aff-note { padding: 8px 0; border-bottom: 1px solid rgba(var(--bos-fg-rgb), 0.08); }
+.aff-note p { margin: 4px 0 0; white-space: pre-wrap; }
+.aff-events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.aff-events li { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(var(--bos-fg-rgb), 0.06); font-size: 13px; }
+.aff-policy { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.6; }
+@media (max-width: 720px) {
+  .aff-row { grid-template-columns: 1fr; }
+  .aff-events li { grid-template-columns: 1fr; gap: 2px; }
+}
+.aff-dist { display: flex; flex-direction: column; gap: 8px; max-width: 520px; }
+.aff-dist-row { display: grid; grid-template-columns: 90px 1fr 40px; gap: 10px; align-items: center; font-size: 13px; }
+.aff-dist-row > span:first-child { color: #f5a524; }
+.aff-dist-track { height: 8px; border-radius: 4px; background: rgba(var(--bos-fg-rgb), 0.08); overflow: hidden; }
+.aff-dist-track span { display: block; height: 100%; background: #f5a524; }
+.status-admin-incident { padding: 12px 0; border-bottom: 1px solid rgba(var(--bos-fg-rgb), 0.08); display: flex; flex-direction: column; gap: 8px; }

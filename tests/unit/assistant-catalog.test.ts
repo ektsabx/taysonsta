@@ -4,7 +4,8 @@ import { detectLang, routeByKeywords, tools } from "@/lib/bos/assistant-catalog"
 
 // Master upgrade Phase 17 (docs/bos/30 §25): fixed read-only tool catalogue and the no-AI router.
 test("catalogue: fixed tools, each with a description; no SQL tool", () => {
-  assert.ok(tools.length >= 8);
+  // Ads spend and Deal Radar follow-ups left with their modules (2026-10-12).
+  assert.deepEqual(tools.map((t) => t.name).sort(), ["knowledge", "outstanding_invoices", "sales_performance", "search_records", "ticket_reasons", "today_problems"]);
   assert.ok(!tools.some((t) => /sql|query_db|raw/i.test(t.name)));
   for (const t of tools) assert.ok(t.description.length > 10, t.name);
 });

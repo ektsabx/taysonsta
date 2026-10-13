@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -45,7 +45,6 @@ export function TwoFactorForm() {
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="btn-primary auth-submit" type="submit" disabled={pending || code.length !== 6}>
           {pending ? t.common.sending : a.twoFactorSubmit}
-          {!pending && <ArrowRight className="flip-rtl" />}
         </button>
       </form>
       <p className="auth-alt"><a href="/auth/signout">{a.twoFactorSignOut}</a></p>

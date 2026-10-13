@@ -2,21 +2,25 @@ import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
-// Plans from the Yolias pricing page: Free, Pro and Growth. Every plan has
-// the same features and unlimited users; they differ only in how many
-// prospects Yolias delivers per month. One prospect = one target decision
-// maker discovered with a verified email and company data (phone when
-// available). That is the only thing usage counts.
+// Plans from the Yolias pricing page: Pro, Growth and Scale (owner brief
+// 2026-10-12; the $0 Free plan is no longer offered, workspaces already on it
+// keep it). Every plan has the same features and unlimited users; they differ
+// in their monthly limits: prospects delivered (D-164), emails prepared and
+// opened in the member's own mailbox (D-155), and contacts uploaded by CSV.
+// Every paid plan starts with a free trial (lib/trial.ts) where it is offered.
 export interface PlanTerms {
   priceUsd: number;
   prospects: number;
+  emails: number;
+  contacts: number;
 }
 
 /** Fallback only — the live values come from the database (lib/plan-catalog.ts). */
 export const defaultPlans: Record<Plan, PlanTerms> = {
-  free: { priceUsd: 0, prospects: 50 },
-  pro: { priceUsd: 50, prospects: 1000 },
-  growth: { priceUsd: 100, prospects: 3000 },
+  free: { priceUsd: 0, prospects: 50, emails: 50, contacts: 50 },
+  pro: { priceUsd: 50, prospects: 1000, emails: 1000, contacts: 1000 },
+  growth: { priceUsd: 100, prospects: 2000, emails: 2000, contacts: 2000 },
+  scale: { priceUsd: 200, prospects: 4000, emails: 4000, contacts: 4000 },
 };
 
 /** Monthly price of a plan (one USD price for every country, D-131). */
@@ -25,8 +29,12 @@ export function planPrice(terms: PlanTerms, currency: Currency): number | null {
   return terms.priceUsd;
 }
 
-export const allPlans: Plan[] = ["free", "pro", "growth"];
-export const paidPlans: PaidPlan[] = ["pro", "growth"];
+export const allPlans: Plan[] = ["free", "pro", "growth", "scale"];
+export const paidPlans: PaidPlan[] = ["pro", "growth", "scale"];
+/** The plans a workspace can choose (no $0 plan). */
+export const offeredPlans: PaidPlan[] = paidPlans;
+/** The biggest plan: nothing to upgrade to. */
+export const topPlan: PaidPlan = "scale";
 
 /** Localized plan name: "Free" / "Yolias Pro" / "Yolias Growth". */
 export function planName(plan: Plan, t: Dictionary): string {
@@ -35,7 +43,7 @@ export function planName(plan: Plan, t: Dictionary): string {
 
 /** Short badge label: "Growth" / "نمو". */
 export function planLabel(plan: Plan, t: Dictionary): string {
-  const key = { free: "labelFree", pro: "labelPro", growth: "labelGrowth" } as const;
+  const key = { free: "labelFree", pro: "labelPro", growth: "labelGrowth", scale: "labelScale" } as const;
   return t.plans[key[plan]];
 }
 
@@ -45,9 +53,9 @@ export function planUsage(prospects: number, t: Dictionary, locale: Locale, plan
   return fmt(plan === "free" ? t.plans.prospectsOnce : t.plans.prospectsPerMonth, { count: formatNumber(prospects, locale) });
 }
 
-/** A workspace has chosen a plan (paid, test, or — if offered later — free). */
+/** A workspace has a plan it can use: paid, in its free trial, test, or the legacy Free plan. */
 export function hasActivePlan(ws: Pick<WorkspaceRow, "subscription_status">): boolean {
-  return ws.subscription_status === "active" || ws.subscription_status === "test" || ws.subscription_status === "past_due";
+  return ws.subscription_status === "active" || ws.subscription_status === "trialing" || ws.subscription_status === "test" || ws.subscription_status === "past_due";
 }
 
 export function isPaidPlan(v: unknown): v is PaidPlan {
@@ -66,9 +74,19 @@ export function isBillingPeriod(v: unknown): v is BillingPeriod {
   return v === "monthly" || v === "annual";
 }
 
-/** Annual billing = 12 × the monthly price (no discount). */
+/** Annual billing is 20% off the monthly price (owner decision 2026-10-13, D-192). */
+export const ANNUAL_DISCOUNT = 0.2;
+
+const cents = (v: number) => Math.round(v * 100) / 100;
+
+/** The price per month: the list price, or the discounted rate on annual billing. Shown on every price. */
+export function monthlyRate(monthlyUsd: number, period: BillingPeriod): number {
+  return period === "annual" ? cents(monthlyUsd * (1 - ANNUAL_DISCOUNT)) : monthlyUsd;
+}
+
+/** What one billing period charges: the monthly price, or 12 × the discounted rate paid once a year. */
 export function priceFor(monthlyUsd: number, period: BillingPeriod): number {
-  return period === "annual" ? monthlyUsd * 12 : monthlyUsd;
+  return period === "annual" ? cents(monthlyRate(monthlyUsd, period) * 12) : monthlyUsd;
 }
 
 export function monthWindow(now = new Date()) {

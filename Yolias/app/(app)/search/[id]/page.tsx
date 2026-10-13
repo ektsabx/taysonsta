@@ -5,7 +5,7 @@ import { DiscoveryCard } from "@/components/app/DiscoveryCard";
 import { YoliasMark } from "@/components/YoliasMark";
 import { ApprovalCard } from "@/components/app/ApprovalCard";
 import { canManageTeam, requireSession } from "@/lib/session";
-import { planLabel } from "@/lib/plans";
+import { planLabel, topPlan } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
 import { getStrategyView } from "@/services/strategies";
 import { approvalCards, conversationFor } from "@/services/conversations";
@@ -51,7 +51,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
           strategyId={view.strategy.id}
           initial={turns}
           cards={cards}
-          plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== "growth" && canManageTeam(session) }}
+          plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== topPlan && canManageTeam(session) }}
           lead={
             <>
               <li className="agent-turn user">

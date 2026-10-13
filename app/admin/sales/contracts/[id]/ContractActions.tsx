@@ -38,7 +38,6 @@ export function SignatureForm({ contractId, contacts }: { contractId: string; co
           options={[
             { value: "manual", label: "مستند موقّع (مرفوع)" },
             { value: "click", label: "موافقة إلكترونية" },
-            { value: "esign", label: "مزود توقيع إلكتروني" },
           ]}
           defaultValue="manual"
         />

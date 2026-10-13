@@ -10,11 +10,13 @@ export const home: Localized<{
   features: { eyebrow: string; title: string; tiles: { title: string; body: string }[] };
   statement: { text: string; small: string };
   cta: { title: string; body: string; primary: string; secondary: string };
+  /** Direct answers for people and answer engines (also FAQPage structured data). */
+  faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
 }> = {
   en: {
     eyebrow: "AUTONOMOUS CUSTOMER DISCOVERY",
     title: "Tell Yolias who you want to sell to.",
-    lead: "Describe your ideal customers in a sentence — market, industry, company size, the roles you need to reach. Yolias turns it into a discovery campaign and returns the decision makers that match.",
+    lead: "Describe your ideal customers in a sentence: market, industry, company size and the roles you need to reach. Yolias turns it into a discovery campaign and returns the decision makers that match.",
     primary: "Try Yolias",
     secondary: "See the product",
     preview: {
@@ -38,13 +40,25 @@ export const home: Localized<{
       tiles: [
         { title: "Searches in plain language", body: "No filter panels to configure. Yolias reads your request and only assumes what your business context already tells it." },
         { title: "Campaigns as missions", body: "Every search becomes a campaign with a target, its criteria and a progress log, so you always know what Yolias is working on." },
-        { title: "Scores you can read", body: "Each prospect shows why it matched — market, industry, size, hiring, role — instead of an unexplained number." },
+        { title: "Scores you can read", body: "Each prospect shows why it matched (market, industry, size, hiring, role) instead of an unexplained number." },
         { title: "Arabic and English, end to end", body: "The whole product works right-to-left and left-to-right, and Yolias answers in the language you choose." },
       ],
     },
     statement: {
       text: "Yolias finds and qualifies the people worth talking to. How you reach them stays your decision.",
-      small: "Discovery first — Yolias never sends messages on your behalf.",
+      small: "Discovery first. Yolias never sends messages on your behalf.",
+    },
+    faq: {
+      eyebrow: "QUESTIONS, ANSWERED",
+      title: "What people ask about Yolias",
+      items: [
+        { q: "What is Yolias?", a: "Yolias is an AI customer discovery platform for businesses that sell services. You describe your ideal customer in plain language, in English or Arabic, and Yolias runs a discovery campaign that finds matching companies, local businesses and decision makers, explains why each one fits, and prepares first messages that you send from your own accounts." },
+        { q: "Who is Yolias for?", a: "Teams and people who sell services to other businesses: marketing and software agencies, consultants, recruitment agencies, freelancers, real estate sales professionals and B2B sales teams." },
+        { q: "What can I search for?", a: "Decision makers at companies that match your criteria, companies on their own, local businesses in a city or area, and companies similar to ones you name. What Yolias finds depends on your market and on the information that is publicly available or offered by the data sources connected to Yolias." },
+        { q: "Does Yolias send messages for me?", a: "No. Yolias prepares a first email, LinkedIn, WhatsApp, Facebook or Instagram message from your company profile and the facts it found. You review it and send it yourself from your own account." },
+        { q: "Which languages does Yolias support?", a: "The whole product works in Arabic and English, right-to-left and left-to-right. Messages can be drafted in 15 languages." },
+        { q: "How much does Yolias cost?", a: "Three plans, Pro, Growth and Scale, each with a 7-day free trial and more prospects, emails and uploaded contacts each month as you go up. Every plan includes unlimited users. See the pricing page for current prices." },
+      ],
     },
     cta: {
       title: "Start with one search.",
@@ -56,7 +70,7 @@ export const home: Localized<{
   ar: {
     eyebrow: "اكتشاف العملاء بشكل مستقل",
     title: "أخبر يولـياس لمن تريد أن تبيع.",
-    lead: "صِف عملاءك المثاليين في جملة واحدة — السوق والقطاع وحجم الشركة والمناصب التي تريد الوصول إليها. يحوّل يولـياس وصفك إلى حملة اكتشاف ويعيد لك صنّاع القرار المطابقين.",
+    lead: "صِف عملاءك المثاليين في جملة واحدة: السوق والقطاع وحجم الشركة والمناصب التي تريد الوصول إليها. يحوّل يولـياس وصفك إلى حملة اكتشاف ويعيد لك صنّاع القرار المطابقين.",
     primary: "جرّب يولـياس",
     secondary: "تعرّف على المنتج",
     preview: {
@@ -80,13 +94,25 @@ export const home: Localized<{
       tiles: [
         { title: "عمليات بحث بلغة طبيعية", body: "لا توجد لوحات فلاتر لضبطها. يقرأ يولـياس طلبك ولا يفترض إلا ما يخبره به سياق عملك." },
         { title: "الحملات كمهام", body: "يتحول كل بحث إلى حملة لها هدف ومعايير وسجل تقدّم، لتعرف دائمًا ما الذي يعمل عليه يولـياس." },
-        { title: "نسب تطابق مفهومة", body: "يوضّح كل عميل محتمل سبب تطابقه — السوق والقطاع والحجم والتوظيف والمنصب — بدل رقم بلا تفسير." },
+        { title: "نسب تطابق مفهومة", body: "يوضّح كل عميل محتمل سبب تطابقه (السوق والقطاع والحجم والتوظيف والمنصب) بدل رقم بلا تفسير." },
         { title: "العربية والإنجليزية بالكامل", body: "يعمل المنتج كله من اليمين لليسار ومن اليسار لليمين، ويرد يولـياس باللغة التي تختارها." },
       ],
     },
     statement: {
       text: "يجد يولـياس الأشخاص الذين يستحقون التواصل ويؤهلهم. أما طريقة الوصول إليهم فتبقى قرارك.",
-      small: "الاكتشاف أولًا — لا يرسل يولـياس أي رسائل نيابةً عنك.",
+      small: "الاكتشاف أولًا، ولا يرسل يولـياس أي رسائل نيابةً عنك.",
+    },
+    faq: {
+      eyebrow: "إجابات مباشرة",
+      title: "أسئلة شائعة عن يولـياس",
+      items: [
+        { q: "ما هو يولـياس؟", a: "يولـياس منصة لاكتشاف العملاء بالذكاء الاصطناعي للشركات والأشخاص الذين يبيعون خدمات. تصف عميلك المثالي بلغة طبيعية، بالعربية أو الإنجليزية، فيشغّل يولـياس حملة اكتشاف تجد الشركات والأنشطة المحلية وصنّاع القرار المطابقين، ويشرح سبب تطابق كل نتيجة، ويجهّز رسائل أولى ترسلها أنت من حساباتك." },
+        { q: "لمن صُمم يولـياس؟", a: "للفرق والأشخاص الذين يبيعون خدمات لشركات أخرى: وكالات التسويق والبرمجيات، والاستشاريين، ووكالات التوظيف، والمستقلين، ومسوّقي العقارات، وفرق المبيعات B2B." },
+        { q: "عن ماذا يمكنني البحث؟", a: "عن صنّاع القرار في الشركات المطابقة لمعاييرك، أو عن الشركات وحدها، أو عن الأنشطة التجارية المحلية في مدينة أو منطقة، أو عن شركات تشبه شركات تذكرها. ما يجده يولـياس يعتمد على سوقك وعلى المعلومات المتاحة للعامة أو التي توفرها مصادر البيانات المتصلة به." },
+        { q: "هل يرسل يولـياس الرسائل نيابةً عني؟", a: "لا. يجهّز يولـياس رسالة أولى عبر البريد أو LinkedIn أو واتساب أو فيسبوك أو إنستغرام من ملف شركتك والمعلومات التي وجدها، وتراجعها وترسلها أنت من حسابك." },
+        { q: "ما اللغات التي يدعمها يولـياس؟", a: "يعمل المنتج كله بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين، ويمكن كتابة الرسائل بـ 15 لغة." },
+        { q: "كم تكلفة يولـياس؟", a: "ثلاث خطط: برو والنمو والتوسع، لكل منها تجربة مجانية لمدة 7 أيام، وتزيد العملاء المحتملين ورسائل البريد وجهات الاتصال المرفوعة شهريًا كلما ارتفعت الخطة. كل الخطط تشمل مستخدمين غير محدودين. الأسعار الحالية في صفحة الأسعار." },
+      ],
     },
     cta: {
       title: "ابدأ ببحث واحد.",
@@ -115,7 +141,7 @@ export const product: Localized<{
     sections: [
       {
         title: "Start a search",
-        body: "Start from the prompt box. Type, speak or attach a file — a CSV of accounts you like, a PDF brief, or a screenshot of a company you want more of.",
+        body: "Start from the prompt box. Type your request or attach a file: a CSV of accounts you like, a PDF brief, or a screenshot of a company you want more of.",
         points: ["Arabic or English, typed naturally", "Up to three attachments per request", "Quick-start examples for common markets"],
       },
       {
@@ -149,7 +175,7 @@ export const product: Localized<{
       eyebrow: "AROUND THE CORE",
       title: "Everything else you need to work the list.",
       tiles: [
-        { title: "Analytics", body: "Prospects found, companies discovered, decision makers and fit rate — by market, over 7, 30 or 90 days." },
+        { title: "Analytics", body: "Prospects found, companies discovered, decision makers and fit rate, by market, over 7, 30 or 90 days." },
         { title: "Export", body: "Filter saved prospects by campaign, market or match score and download them as CSV for your own tools." },
         { title: "Team", body: "Unlimited users on every plan, with owner, admin and member roles for each workspace." },
         { title: "History", body: "Pin the searches you return to, rename them, or remove the ones you no longer need." },
@@ -166,7 +192,7 @@ export const product: Localized<{
     sections: [
       {
         title: "ابدأ بحثًا",
-        body: "ابدأ من مربع الكتابة. اكتب أو تحدّث أو أرفق ملفًا — قائمة CSV بحسابات تعجبك، أو ملف PDF، أو لقطة شاشة لشركة تريد أمثالها.",
+        body: "ابدأ من مربع الكتابة. اكتب طلبك أو أرفق ملفًا: قائمة CSV بحسابات تعجبك، أو ملف PDF، أو لقطة شاشة لشركة تريد أمثالها.",
         points: ["اكتب بالعربية أو الإنجليزية بشكل طبيعي", "حتى ثلاثة مرفقات في كل طلب", "أمثلة جاهزة لأسواق شائعة"],
       },
       {
@@ -200,7 +226,7 @@ export const product: Localized<{
       eyebrow: "حول المنتج الأساسي",
       title: "كل ما تحتاجه للعمل على القائمة.",
       tiles: [
-        { title: "التحليلات", body: "العملاء المحتملون والشركات المكتشفة وصنّاع القرار ومعدل التطابق — حسب السوق، لآخر 7 أو 30 أو 90 يومًا." },
+        { title: "التحليلات", body: "العملاء المحتملون والشركات المكتشفة وصنّاع القرار ومعدل التطابق، حسب السوق، لآخر 7 أو 30 أو 90 يومًا." },
         { title: "التصدير", body: "فلتر العملاء المحفوظين حسب الحملة أو السوق أو نسبة التطابق، ونزّلهم كملف CSV لأدواتك." },
         { title: "الفريق", body: "مستخدمون غير محدودين في كل خطة، مع أدوار المالك والمسؤول والعضو لكل مساحة عمل." },
         { title: "السجل", body: "ثبّت عمليات البحث التي تعود إليها، وأعد تسميتها، أو احذف ما لم تعد تحتاجه." },
@@ -214,7 +240,6 @@ export const about: Localized<{
   eyebrow: string; title: string; lead: string;
   storyTitle: string; story: string[];
   principlesEyebrow: string; principlesTitle: string; principles: { title: string; body: string }[];
-  makerTitle: string; maker: string; makerLink: string;
   cta: { title: string; body: string; primary: string };
 }> = {
   en: {
@@ -224,7 +249,7 @@ export const about: Localized<{
     storyTitle: "Why we built it",
     story: [
       "Finding the right companies is slow work: searching directories, checking headcounts, guessing who decides, copying details into a sheet. By the time the list is ready, the market has moved and the team is tired of it.",
-      "In the Gulf and the wider region the problem is sharper. Company data is scattered across sources, and most prospecting tools treat Arabic as an afterthought. We wanted a tool that understands a brief written the way founders and sales leads actually write — in either language — and does the research part properly.",
+      "In the Gulf and the wider region the problem is sharper. Company data is scattered across sources, and most prospecting tools treat Arabic as an afterthought. We wanted a tool that understands a brief written the way founders and sales leads actually write, in either language, and does the research part properly.",
     ],
     principlesEyebrow: "WHAT WE BELIEVE",
     principlesTitle: "Four rules the product follows.",
@@ -234,10 +259,7 @@ export const about: Localized<{
       { title: "Arabic is a first language", body: "Every screen, email and answer works in Arabic and English, right-to-left and left-to-right." },
       { title: "Your data stays yours", body: "Workspaces are isolated, exports are yours, and deleting your account removes your discovered data." },
     ],
-    makerTitle: "Built by Taysonsta",
-    maker: "Yolias is a product of Taysonsta. The same team designs, builds and supports it.",
-    makerLink: "Visit Taysonsta",
-    cta: { title: "Questions about Yolias?", body: "Tell us what you are trying to sell and to whom — we read every message.", primary: "Contact us" },
+    cta: { title: "Questions about Yolias?", body: "Tell us what you are trying to sell and to whom. We read every message.", primary: "Contact us" },
   },
   ar: {
     eyebrow: "عن يولـياس",
@@ -246,7 +268,7 @@ export const about: Localized<{
     storyTitle: "لماذا بنيناه",
     story: [
       "العثور على الشركات المناسبة عمل بطيء: بحث في الأدلة، والتحقق من أعداد الموظفين، وتخمين من يملك القرار، ونسخ التفاصيل إلى جدول. وحين تجهز القائمة يكون السوق قد تغيّر والفريق قد ملّ منها.",
-      "وفي الخليج والمنطقة تكون المشكلة أوضح. بيانات الشركات موزعة على مصادر كثيرة، ومعظم أدوات البحث عن العملاء تتعامل مع العربية كأمر ثانوي. أردنا أداة تفهم الطلب كما يكتبه المؤسسون ومديرو المبيعات فعلًا — بأي من اللغتين — وتنجز جزء البحث كما يجب.",
+      "وفي الخليج والمنطقة تكون المشكلة أوضح. بيانات الشركات موزعة على مصادر كثيرة، ومعظم أدوات البحث عن العملاء تتعامل مع العربية كأمر ثانوي. أردنا أداة تفهم الطلب كما يكتبه المؤسسون ومديرو المبيعات فعلًا، بأي من اللغتين، وتنجز جزء البحث كما يجب.",
     ],
     principlesEyebrow: "ما نؤمن به",
     principlesTitle: "أربع قواعد يلتزم بها المنتج.",
@@ -256,10 +278,7 @@ export const about: Localized<{
       { title: "العربية لغة أولى", body: "كل شاشة وبريد وإجابة تعمل بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين." },
       { title: "بياناتك تبقى لك", body: "مساحات العمل معزولة، والتصدير ملكك، وحذف حسابك يحذف البيانات التي اكتشفتها." },
     ],
-    makerTitle: "من تطوير Taysonsta",
-    maker: "يولـياس منتج من Taysonsta. الفريق نفسه يصممه ويبنيه ويدعمه.",
-    makerLink: "زيارة Taysonsta",
-    cta: { title: "لديك أسئلة عن يولـياس؟", body: "أخبرنا ماذا تبيع ولمن — نقرأ كل رسالة.", primary: "تواصل معنا" },
+    cta: { title: "لديك أسئلة عن يولـياس؟", body: "أخبرنا ماذا تبيع ولمن، فنحن نقرأ كل رسالة.", primary: "تواصل معنا" },
   },
 };
 
@@ -271,22 +290,22 @@ export const contactPage: Localized<{
   en: {
     eyebrow: "CONTACT",
     title: "Talk to the Yolias team.",
-    lead: "Questions about plans, a problem in your workspace or an idea for a partnership — send it here and a person will reply.",
+    lead: "Questions about plans, a problem in your workspace or an idea for a partnership: send it here and a person will reply.",
     ways: [
       { title: "Sales & plans", body: "Choosing between plans or monthly and annual billing.", link: { label: "Compare plans", href: "/pricing" } },
       { title: "Product support", body: "Most answers are already written up step by step.", link: { label: "Open the Help Center", href: "/help-center" } },
-      { title: "Partnerships & press", body: "Data providers, agencies and media — pick the matching topic in the form." },
+      { title: "Partnerships & press", body: "Data providers, agencies and media: pick the matching topic in the form." },
     ],
     formTitle: "Send us a message",
   },
   ar: {
     eyebrow: "تواصل",
     title: "تحدّث مع فريق يولـياس.",
-    lead: "سؤال عن الخطط، أو مشكلة في مساحة عملك، أو فكرة شراكة — أرسلها هنا وسيرد عليك شخص من الفريق.",
+    lead: "سؤال عن الخطط، أو مشكلة في مساحة عملك، أو فكرة شراكة: أرسلها هنا وسيرد عليك شخص من الفريق.",
     ways: [
       { title: "المبيعات والخطط", body: "للمساعدة في الاختيار بين الخطط أو بين الفوترة الشهرية والسنوية.", link: { label: "قارن الخطط", href: "/pricing" } },
       { title: "دعم المنتج", body: "معظم الإجابات مكتوبة بالفعل خطوة بخطوة.", link: { label: "افتح مركز المساعدة", href: "/help-center" } },
-      { title: "الشراكات والإعلام", body: "مزودو البيانات والوكالات ووسائل الإعلام — اختر الموضوع المناسب في النموذج." },
+      { title: "الشراكات والإعلام", body: "مزودو البيانات والوكالات ووسائل الإعلام: اختر الموضوع المناسب في النموذج." },
     ],
     formTitle: "أرسل لنا رسالة",
   },

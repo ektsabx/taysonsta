@@ -14,6 +14,12 @@ export async function POST(request: NextRequest) {
   if (!hmacMatches(hmacStringFromTransaction(body.obj), paymob.hmacSecret, request.nextUrl.searchParams.get("hmac"))) {
     return NextResponse.json({ ok: false, error: "bad_signature" }, { status: 401 });
   }
-  await settlePayment("paymob", outcomeFromTransaction(body.obj));
+  try {
+    await settlePayment("paymob", outcomeFromTransaction(body.obj));
+  } catch {
+    // Fulfilment failed after a verified payment (already reported): an error
+    // answer makes the provider send the callback again, which retries it.
+    return NextResponse.json({ ok: false, error: "retry" }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

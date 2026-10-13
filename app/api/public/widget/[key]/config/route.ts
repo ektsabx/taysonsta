@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const { key } = await params;
   const g = await guard(req, key, { rate: [60, 120] });
   if ("response" in g) return g.response;
-  return json(publicConfig(g.widget), 200, g.origin);
+  return json({ ...publicConfig(g.widget), identified: !!g.identity }, 200, g.origin);
 }
 
 export async function OPTIONS(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {

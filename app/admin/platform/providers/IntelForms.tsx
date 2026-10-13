@@ -2,7 +2,7 @@
 
 import { ActionForm, CheckboxField, FormSection, SubmitButton, TextAreaField, TextField } from "@/components/bos/Form";
 import { Tx } from "@/components/bos/I18n";
-import { clearCredentialAction, setCredentialAction, updateProviderAction, updateSettingAction } from "./actions";
+import { clearCredentialAction, setCredentialAction, toggleProviderAction, updateProviderAction, updateSettingAction } from "./actions";
 
 export interface ProviderFormValues {
   id: string;
@@ -92,6 +92,16 @@ export function SettingForm({ settingKey, title, hint, value }: { settingKey: st
       <input type="hidden" name="key" value={settingKey} />
       <TextAreaField name="value" label={title} hint={hint} rows={Math.min(14, value.split("\n").length + 1)} dir="ltr" defaultValue={value} />
       <SubmitButton />
+    </ActionForm>
+  );
+}
+
+export function ToggleProviderForm({ id, enabled }: { id: string; enabled: boolean }) {
+  return (
+    <ActionForm action={toggleProviderAction} successMessage={enabled ? "تم إيقاف المزود" : "تم تشغيل المزود"} guardUnsaved={false} className="">
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="enabled" value={enabled ? "0" : "1"} />
+      <SubmitButton label={enabled ? "إيقاف" : "تشغيل"} pendingLabel="..." className={`admin-btn small${enabled ? " secondary" : ""}`} />
     </ActionForm>
   );
 }

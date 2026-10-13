@@ -52,10 +52,10 @@ begin
   assert (select amount from payment_schedules where deal_id = v_deal and sort_order = 1) = 10000, 'deposit 40% = 10,000';
   assert (select amount from payment_schedules where deal_id = v_deal and sort_order = 2) = 7500, '30% = 7,500';
 
-  select count(*) into v_n from invoices where deal_id = v_deal;
+  select count(*) into v_n from bos_invoices where deal_id = v_deal;
   assert v_n = 1, 'one invoice for first installment';
-  select id into v_inv from invoices where deal_id = v_deal;
-  assert (select total from invoices where id = v_inv) = 10000, 'invoice total 10,000';
+  select id into v_inv from bos_invoices where deal_id = v_deal;
+  assert (select total from bos_invoices where id = v_inv) = 10000, 'invoice total 10,000';
 
   assert (select count(*) from commissions where deal_id = v_deal) = 1, 'commission row created';
   assert (select amount from commissions where deal_id = v_deal) = 2500, '10% of 25,000';
@@ -75,11 +75,11 @@ begin
   v_pay2 := bos_record_payment(jsonb_build_object('invoice_id', v_inv, 'amount', 10000, 'currency', 'USD', 'method', 'bank_transfer',
                               'reference', 'TRX-1', 'idempotency_key', 'k-1'), '00000000-0000-0000-0000-0000000000f1');
   assert v_pay = v_pay2, 'payment idempotent';
-  assert (select count(*) from payments where deal_id = v_deal) = 1, 'one payment';
-  assert (select status from invoices where id = v_inv) = 'paid', 'invoice paid';
-  assert (select balance from invoices where id = v_inv) = 0, 'invoice outstanding 0';
+  assert (select count(*) from bos_payments where deal_id = v_deal) = 1, 'one payment';
+  assert (select status from bos_invoices where id = v_inv) = 'paid', 'invoice paid';
+  assert (select balance from bos_invoices where id = v_inv) = 0, 'invoice outstanding 0';
   assert (select payment_status from deals where id = v_deal) = 'partially_paid', 'deal partially paid';
-  select 25000 - coalesce(sum(deal_amount), 0) into v_sum from payments where deal_id = v_deal and status = 'completed';
+  select 25000 - coalesce(sum(deal_amount), 0) into v_sum from bos_payments where deal_id = v_deal and status = 'completed';
   assert v_sum = 15000, 'deal outstanding 15,000';
 
   select status, eligible_amount into v_status, v_amount from commissions where deal_id = v_deal;
@@ -101,8 +101,8 @@ begin
 
   -- Partial refund reverses effects proportionally
   perform bos_refund_payment(v_pay, 4000, 'Client dispute', '00000000-0000-0000-0000-0000000000f1');
-  assert (select status from invoices where id = v_inv) in ('partially_paid','overdue'), 'invoice back to partially paid';
-  assert (select balance from invoices where id = v_inv) = 4000, 'invoice balance 4,000 after refund';
+  assert (select status from bos_invoices where id = v_inv) in ('partially_paid','overdue'), 'invoice back to partially paid';
+  assert (select balance from bos_invoices where id = v_inv) = 4000, 'invoice balance 4,000 after refund';
   assert (select eligible_amount from commissions where deal_id = v_deal) = 600, 'commission eligible reduced to 600';
 
   -- Audit log is immutable

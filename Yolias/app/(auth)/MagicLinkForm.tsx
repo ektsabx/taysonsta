@@ -2,11 +2,12 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { ArrowRight, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
+import { Turnstile } from "@/components/Turnstile";
 import { useI18n } from "@/lib/i18n/client";
 import { sendMagicLink, type MagicLinkMode, type MagicLinkState } from "./actions";
 
-export function MagicLinkForm({ mode, initialError, plan, period }: { mode: MagicLinkMode; initialError?: string; plan?: string; period?: string }) {
+export function MagicLinkForm({ mode, initialError, plan, period, captchaSiteKey }: { mode: MagicLinkMode; initialError?: string; plan?: string; period?: string; captchaSiteKey?: string | null }) {
   const { t } = useI18n();
   const a = t.auth;
   const [state, action, pending] = useActionState<MagicLinkState, FormData>(
@@ -30,6 +31,7 @@ export function MagicLinkForm({ mode, initialError, plan, period }: { mode: Magi
         <p>{before}<b dir="ltr">{state.email}</b>{after}</p>
         <form action={action}>
           <input type="hidden" name="email" value={state.email} />
+          <input type="hidden" name="resend" value="1" />
           {plan && <input type="hidden" name="plan" value={plan} />}
           {period && <input type="hidden" name="period" value={period} />}
           <button className="link-button" type="submit" disabled={pending}>{pending ? t.common.sending : a.resend}</button>
@@ -58,10 +60,10 @@ export function MagicLinkForm({ mode, initialError, plan, period }: { mode: Magi
             autoFocus
           />
         </div>
+        {mode === "signup" && captchaSiteKey && <Turnstile siteKey={captchaSiteKey} resetKey={state} />}
         {state.status === "error" && <p className="form-error" role="alert">{state.message}</p>}
         <button className="btn-primary auth-submit" type="submit" disabled={pending}>
-          {pending ? t.common.sending : submit}
-          {!pending && <ArrowRight className="flip-rtl" />}
+          <span>{pending ? t.common.sending : submit}</span>
         </button>
       </form>
       <p className="auth-alt">{alt}</p>
