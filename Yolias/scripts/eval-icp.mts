@@ -15,7 +15,7 @@ const args = process.argv.slice(2);
 const arg = (name: string) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : undefined; };
 const min = Number(arg("min") ?? "0.9");
 const set = JSON.parse(readFileSync(new URL("../tests/evals/icp-cases.json", import.meta.url), "utf8")) as {
-  context: { companyName: string; website: string; offering: string; defaultCountry: string };
+  context: { companyName: string; website: string; offering: string; targetMarkets: string };
   cases: { id: string; lang: "ar" | "en"; dialect: string; prompt: string; expect: IcpExpect }[];
 };
 

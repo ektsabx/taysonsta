@@ -1,6 +1,6 @@
 {
   "about": "Bilingual ICP eval set (docs/07: run on every model or prompt change). Each case checks only what the request clearly states. Expectations: countries (ISO codes that must appear), target (count + unit), titlesAny (at least one title containing one of these words, any language), seniorityAny, industryAny (a word in industries/keywords), employees (min/max bounds that must be respected), hiring.",
-  "context": { "companyName": "Acme Payroll", "website": "acme-payroll.example", "offering": "Payroll and HR software for growing companies", "defaultCountry": "EG" },
+  "context": { "companyName": "Acme Payroll", "website": "acme-payroll.example", "offering": "Payroll and HR software for growing companies", "targetMarkets": "Egypt" },
   "cases": [
     { "id": "eg-1", "lang": "ar", "dialect": "Egyptian", "prompt": "عايز 50 مدير موارد بشرية في شركات سوفتوير في القاهرة من 50 لـ 200 موظف", "expect": { "countries": ["EG"], "target": [50, "prospects"], "titlesAny": ["HR", "Human", "موارد", "People"], "industryAny": ["software", "سوفتوير", "برمج", "SaaS"], "employees": [50, 200] } },
     { "id": "eg-2", "lang": "ar", "dialect": "Egyptian", "prompt": "هاتلي 30 شركة لوجستيات في اسكندرية بتوظف دلوقتي", "expect": { "countries": ["EG"], "target": [30, "companies"], "industryAny": ["logist", "لوجست", "شحن"], "hiring": true } },

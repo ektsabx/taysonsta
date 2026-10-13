@@ -65,7 +65,7 @@ try {
     return { status: 200, json: { id: "msg_1", type: "message", role: "assistant", model: "claude-opus-5-5", stop_reason: "end_turn", stop_sequence: null,
       content: [{ type: "text", text: JSON.stringify(icp) }], usage: { input_tokens: 700, output_tokens: 150, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } } };
   };
-  const r0 = await understandStrategy(`claude first ${Date.now()}`, [], { userName: null, companyName: "Acme", website: null, offering: null, defaultCountry: "SA", language: "en", workspaceId: anyWs0!.id, strategyId });
+  const r0 = await understandStrategy(`claude first ${Date.now()}`, [], { userName: null, companyName: "Acme", website: null, offering: null, language: "en", workspaceId: anyWs0!.id, strategyId });
   assert.equal(r0.model, "claude-opus-5-5");
   console.log("✓ ICP on Claude (official SDK, structured output)");
   anthropicHandler = () => ({ status: 529, json: { type: "error", error: { type: "overloaded_error", message: "Overloaded" } } });
@@ -73,7 +73,7 @@ try {
   // 1) ICP: Claude overloaded, OpenAI down (503) → Gemini answers.
   openaiHandler = () => ({ status: 503, json: { error: { message: "overloaded" } } });
   geminiHandler = () => ({ status: 200, json: { modelVersion: "gemini-test-001", candidates: [{ content: { role: "model", parts: [{ text: JSON.stringify(icp) }] }, finishReason: "STOP" }], usageMetadata: { promptTokenCount: 900, candidatesTokenCount: 120 } } });
-  const ctx = { userName: null, companyName: "Acme", website: null, offering: "Payroll software", defaultCountry: "SA", language: "en" as const, workspaceId: "", strategyId };
+  const ctx = { userName: null, companyName: "Acme", website: null, offering: "Payroll software", language: "en" as const, workspaceId: "", strategyId };
   const { data: anyWs } = await admin.from("workspaces").select("id").limit(1).single();
   wsId = anyWs!.id;
   ctx.workspaceId = wsId;

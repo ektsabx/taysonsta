@@ -29,27 +29,31 @@ interface Props {
   initialPeriod: BillingPeriod;
   canManage: boolean;
   testMode: boolean;
-  /** A payment provider is connected for this currency (lib/payments). */
-  online: boolean;
+  /** Which payment methods are connected (lib/payments). */
+  methods: Record<BillingProvider, boolean>;
   email: string;
   workspaceName: string;
   continueHref: string;
   options: Option[];
   currency: Currency;
-  /** Who bills this workspace: Polar (free trial) or Paymob (Egypt, paid up front). */
-  route: BillingProvider;
-  /** The free trial this workspace can still start (null: none). */
+  /** The provider of a running subscription; the customer can't switch it here. */
+  locked: BillingProvider | null;
+  /** The free trial this workspace can still start with the card method (null: none). */
   trial: { days: number; prospects: number; emails: number; contacts: number } | null;
   /** Error carried back from /checkout/polar. */
   initialError: string | null;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, online, email, workspaceName, continueHref, options, currency, route, trial, initialError }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
   const [period, setPeriod] = useState<BillingPeriod>(initialPeriod);
   const [error, setError] = useState<string | null>(initialError);
+  // The customer picks how to pay (D-209) — never chosen by country or IP.
+  const [route, setRoute] = useState<BillingProvider>(locked ?? (methods.polar || !methods.paymob ? "polar" : "paymob"));
+  const online = methods[route];
+  const trial = route === "polar" ? trialOffer : null;
   const [pending, start] = useTransition();
   const router = useRouter();
   // Polar's checkout embedded in this page: "opening" → Polar's window → "activating" until the webhook starts the plan.
@@ -80,7 +84,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     return () => window.removeEventListener("pageshow", restored);
   }, []);
 
-  // Polar (outside Egypt): the checkout opens inside Yolias (Polar's iframe, card
+  // Polar (card): the checkout opens inside Yolias (Polar's iframe, card
   // details stay with Polar). After Polar's success message the plan starts
   // when Polar's webhook arrives; the page waits for it, then continues.
   const subscribeEmbedded = () => {
@@ -126,7 +130,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     if (pending) return;
     start(async () => {
       setError(null);
-      const r = await callAction(() => activatePlan(selected, period));
+      const r = await callAction(() => activatePlan(selected, period, route));
       if (isNetworkFailure(r)) setError(c.errors.network);
       else if (r && !r.ok) setError(r.error);
     });
@@ -213,7 +217,21 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
-          {/* Customers see where they go and when it renews — never which provider or internal mode (owner, 2026-10-13). */}
+          {/* The customer chooses: card → Polar, card from Egypt → Paymob. Never the provider's name or internal mode (owner, 2026-10-13). */}
+          <div className="checkout-methods" role="radiogroup" aria-label={c.paymentMethod}>
+            {(["polar", "paymob"] as BillingProvider[]).map((m) => {
+              const off = (locked !== null && locked !== m) || (!methods[m] && !testMode);
+              return (
+                <button key={m} type="button" role="radio" aria-checked={route === m} disabled={off} className={`checkout-method${route === m ? " selected" : ""}`} onClick={() => { setRoute(m); setError(null); }}>
+                  <span className="checkout-radio" aria-hidden="true" />
+                  <span className="checkout-method-main">
+                    <span className="checkout-method-name">{m === "polar" ? c.methodCard : c.methodEgypt}</span>
+                    <span className="checkout-method-desc">{off && !methods[m] ? c.methodUnavailable : m === "polar" ? c.methodCardDesc : c.methodEgyptDesc}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <p className="checkout-payment-note"><span>{c.paymentRedirect}</span></p>
           <p className="checkout-payment-note"><span>{fmt(trial ? c.firstPaymentOn : c.renewsOn, { date: formatDate(renewal, locale) })}</span></p>
         </div>

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -6,19 +7,26 @@ import { createClient } from "@/lib/supabase/server";
 // partner only needs a signed-in account — no plan, no onboarding, no
 // workspace setup — so it never goes through requireSession().
 
-export interface PartnerUser { id: string; email: string; name: string | null; meta: Record<string, unknown> }
+export interface PartnerUser { id: string; email: string; name: string | null; avatarUrl: string | null; createdAt: string; meta: Record<string, unknown> }
 
 /** Cookie set by the partner sign-in / join forms: where /auth/confirm sends the user. */
 export const NEXT_COOKIE = "yolias_next";
 
-export async function partnerUser(): Promise<PartnerUser | null> {
+export const partnerUser = cache(async (): Promise<PartnerUser | null> => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data.user;
   if (!u?.email) return null;
   const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
-  return { id: u.id, email: u.email, name: typeof meta.full_name === "string" ? meta.full_name : null, meta };
-}
+  // The app profile (if this account uses Yolias too) wins over sign-up metadata.
+  const { data: profile } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", u.id).maybeSingle();
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : null);
+  return {
+    id: u.id, email: u.email, meta, createdAt: u.created_at,
+    name: str(profile?.full_name) ?? str(meta.full_name),
+    avatarUrl: str(profile?.avatar_url) ?? str(meta.avatar_url),
+  };
+});
 
 export async function requirePartner(): Promise<PartnerUser> {
   const u = await partnerUser();

@@ -154,7 +154,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
-            "**Choose a plan.** Pick Pro, Growth or Scale with an annual or monthly period. Every plan starts with a 7-day free trial (in Egypt, the first period is paid up front).",
+            "**Choose a plan.** Pick Pro, Growth or Scale with an annual or monthly period. Every plan starts with a 7-day free trial (if you choose “Card from Egypt” at checkout, the first period is paid up front).",
             "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every search, so be specific about the problem you solve.",
             "**Run your first search.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
@@ -167,7 +167,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
-            "**اختر خطة.** اختر برو أو النمو أو التوسع بفترة سنوية أو شهرية. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام (وفي مصر تُدفع أول فترة مقدمًا).",
+            "**اختر خطة.** اختر برو أو النمو أو التوسع بفترة سنوية أو شهرية. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام (وإذا اخترت «الدفع بالفيزا من مصر» تُدفع أول فترة مقدمًا).",
             "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل بحث، فكن محددًا في وصف المشكلة التي تحلها.",
             "**ابدأ أول بحث.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },

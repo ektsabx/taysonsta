@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy } from "lucide-react";
+import { Camera, Check, Copy } from "lucide-react";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatCents, type PayoutMethod } from "@/lib/affiliates/program";
-import { joinAction, requestPayoutAction, savePayoutAction } from "./actions";
+import { parsePayout, payoutFields, type PayoutValues } from "@/lib/affiliates/payout-fields";
+import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
+import { createClient } from "@/lib/supabase/client";
+import { joinAction, requestPayoutAction, savePartnerProfileAction, savePayoutAction, setPartnerAvatarAction } from "./actions";
 
 /** Start as a partner: accept the terms — approved at once, no questions (D-206). */
 export function PartnerStart({ termsVersion, terms, earn }: { termsVersion: string; terms: string; earn: string }) {
@@ -84,6 +87,7 @@ export function ReferralLink({ link, howItWorks }: { link: string; howItWorks: s
   );
 }
 
+/** Payout method: its own fields (D-210), saved before a withdrawal can be requested. */
 export function PayoutPanel({ methods, method, details, availableCents, minCents, open }: {
   methods: PayoutMethod[]; method: string | null; details: string | null; availableCents: number; minCents: number; open: boolean;
 }) {
@@ -93,23 +97,39 @@ export function PayoutPanel({ methods, method, details, availableCents, minCents
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [m, setM] = useState(method && methods.some((x) => x.id === method) ? method : methods[0]?.id ?? "");
-  const [det, setDet] = useState(details ?? "");
-  const saved = method === m && (details ?? "") === det.trim();
-  const canRequest = !open && availableCents >= minCents && saved && !!det.trim();
+  const [values, setValues] = useState<PayoutValues>(() => (method ? parsePayout(method, details) : {}));
+  const [badField, setBadField] = useState<string | null>(null);
+  const fields = payoutFields(m);
+  const savedValues = method === m ? parsePayout(m, details) : {};
+  const saved = method === m && !!details && fields.every((f) => (values[f.key] ?? "").trim() === (savedValues[f.key] ?? ""));
+  const canRequest = !open && availableCents >= minCents && !!method && !!details;
   const err = (code: string) => p.errors[code as keyof typeof p.errors] ?? p.errors.failed;
 
+  const pick = (id: string) => {
+    setM(id);
+    setValues(id === method ? parsePayout(id, details) : {});
+    setBadField(null);
+    setMsg(null);
+  };
   const save = () => start(async () => {
     setMsg(null);
-    const r = await callAction(() => savePayoutAction({ method: m, details: det }));
+    setBadField(null);
+    const r = await callAction(() => savePayoutAction({ method: m, values }));
     if (isNetworkFailure(r)) return setMsg({ ok: false, text: t.affiliate.errors.network });
-    if (!r.ok) return setMsg({ ok: false, text: err(r.error) });
+    if (!r.ok) {
+      if (r.field) {
+        setBadField(r.field);
+        return setMsg({ ok: false, text: fmt(p.fieldError, { field: p.fields[r.field as keyof typeof p.fields] ?? "" }) });
+      }
+      return setMsg({ ok: false, text: err(r.error) });
+    }
     setMsg({ ok: true, text: p.saved });
     router.refresh();
   });
   const request = () => start(async () => {
     if (!canRequest) return;
     setMsg(null);
-    const r = await callAction(() => requestPayoutAction({ method: m }));
+    const r = await callAction(() => requestPayoutAction({ method: method ?? m }));
     if (isNetworkFailure(r)) return setMsg({ ok: false, text: t.affiliate.errors.network });
     if (!r.ok) return setMsg({ ok: false, text: err(r.error) });
     setMsg({ ok: true, text: p.requested });
@@ -117,34 +137,141 @@ export function PayoutPanel({ methods, method, details, availableCents, minCents
   });
 
   return (
-    <section className="panel-card affiliate-payout">
-      <h4 className="panel-title">{p.title}</h4>
-      {methods.length === 0 ? <p className="panel-empty">{p.noMethods}</p> : (
-        <>
-          <div className="affiliate-payout-grid">
-            <div className="field">
-              <label htmlFor="aff-method">{p.method}</label>
-              <select id="aff-method" className="form-input" value={m} onChange={(e) => setM(e.target.value)} disabled={pending}>
-                {methods.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-              </select>
+    <div className="partners-two">
+      <section className="panel-card affiliate-payout">
+        <h4 className="panel-title">{p.methodsTitle}</h4>
+        <p className="cell-sub">{p.methodsLead}</p>
+        {methods.length === 0 ? <p className="panel-empty">{p.noMethods}</p> : (
+          <>
+            <div className="partners-methods" role="radiogroup" aria-label={p.method}>
+              {methods.map((x) => (
+                <button key={x.id} type="button" role="radio" aria-checked={m === x.id} className={`partners-method${m === x.id ? " selected" : ""}`} onClick={() => pick(x.id)} disabled={pending}>
+                  <span className="checkout-radio" aria-hidden="true" />
+                  <span>{x.label}</span>
+                  {method === x.id && details ? <span className="partners-saved-tag">{p.savedTag}</span> : null}
+                </button>
+              ))}
             </div>
-            <div className="field">
-              <label htmlFor="aff-details">{p.details}</label>
-              <textarea id="aff-details" className="form-input" rows={2} maxLength={1000} value={det} onChange={(e) => setDet(e.target.value)} disabled={pending} />
-              <p className="field-note">{p.detailsHint}</p>
+            <div className="partners-fields">
+              {fields.map((f) => {
+                const id = `payout-${f.key}`;
+                const common = {
+                  id, className: `form-input${badField === f.key ? " invalid" : ""}`, value: values[f.key] ?? "", disabled: pending,
+                  dir: f.ltr ? "ltr" : undefined, "aria-invalid": badField === f.key || undefined,
+                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValues((v) => ({ ...v, [f.key]: e.target.value })),
+                };
+                return (
+                  <div key={f.key} className={`field${f.kind === "textarea" ? " wide" : ""}`}>
+                    <label htmlFor={id}>{p.fields[f.key]}{!f.required ? <span className="cell-sub"> {p.optional}</span> : null}</label>
+                    {f.kind === "textarea" ? <textarea {...common} rows={3} maxLength={1000} /> : <input {...common} type={f.kind} maxLength={300} autoComplete="off" />}
+                  </div>
+                );
+              })}
             </div>
-          </div>
-          <div className="affiliate-payout-actions">
-            <button className="btn-secondary" type="button" onClick={save} disabled={pending || saved}><span>{p.save}</span></button>
-            <button className="btn-primary" type="button" onClick={request} disabled={pending || !canRequest} aria-busy={pending}>
-              <span>{pending ? p.requesting : fmt(p.request, { amount: formatCents(Math.max(0, availableCents)) })}</span>
-            </button>
-          </div>
-          {open ? <p className="field-note">{p.open}</p> : availableCents < minCents ? <p className="field-note">{fmt(p.belowMin, { min: formatCents(minCents) })}</p> : null}
-        </>
-      )}
+            <p className="field-note">{p.detailsHint}</p>
+            <div className="affiliate-payout-actions">
+              <button className="btn-primary" type="button" onClick={save} disabled={pending || saved}><span>{saved ? p.savedTag : p.save}</span></button>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="panel-card affiliate-payout">
+        <h4 className="panel-title">{p.title}</h4>
+        <div className="partners-withdraw">
+          <span className="stat-label">{t.affiliate.balance.available}</span>
+          <span className="stat-value" dir="ltr">{formatCents(Math.max(0, availableCents))}</span>
+        </div>
+        <button className="btn-primary" type="button" onClick={request} disabled={pending || !canRequest} aria-busy={pending}>
+          <span>{pending ? p.requesting : fmt(p.request, { amount: formatCents(Math.max(0, availableCents)) })}</span>
+        </button>
+        {open ? <p className="field-note">{p.open}</p> : !method || !details ? <p className="field-note">{p.noneSaved}</p> : availableCents < minCents ? <p className="field-note">{fmt(p.belowMin, { min: formatCents(minCents) })}</p> : null}
+        <p className="cell-sub affiliate-note">{p.manual}</p>
+      </section>
       {msg && <p className={msg.ok ? "form-success" : "form-error"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
-      <p className="cell-sub affiliate-note">{p.manual}</p>
+    </div>
+  );
+}
+
+/** Profile: name and photo on the partner's account. The email is the sign-in address. */
+export function PartnerProfile({ userId, name, email, avatarUrl }: { userId: string; name: string | null; email: string; avatarUrl: string | null }) {
+  const { t } = useI18n();
+  const pr = t.affiliate.profile;
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [value, setValue] = useState(name ?? "");
+  const [photo, setPhoto] = useState(avatarUrl);
+  const [uploading, setUploading] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const err = (code: string) => pr.errors[code as keyof typeof pr.errors] ?? pr.errors.failed;
+
+  const save = () => start(async () => {
+    setMsg(null);
+    const r = await callAction(() => savePartnerProfileAction({ name: value }));
+    if (isNetworkFailure(r)) return setMsg({ ok: false, text: t.affiliate.errors.network });
+    if (!r.ok) return setMsg({ ok: false, text: err(r.error) });
+    setMsg({ ok: true, text: pr.saved });
+    router.refresh();
+  });
+
+  const upload = async (file: File) => {
+    setMsg(null);
+    const bad = checkImageFile(file);
+    if (bad) return setMsg({ ok: false, text: err(bad === "size" ? "image_size" : "image_type") });
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+    const path = `${userId}/avatar-${Date.now()}.${ext}`;
+    const sb = createClient();
+    const { error } = await sb.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (error) {
+      setUploading(false);
+      return setMsg({ ok: false, text: pr.errors.failed });
+    }
+    const r = await callAction(() => setPartnerAvatarAction(path));
+    setUploading(false);
+    if (isNetworkFailure(r)) return setMsg({ ok: false, text: t.affiliate.errors.network });
+    if (!r.ok) return setMsg({ ok: false, text: err(r.error) });
+    setPhoto(sb.storage.from("avatars").getPublicUrl(path).data.publicUrl);
+    router.refresh();
+  };
+
+  return (
+    <section className="panel-card partners-profile">
+      <h4 className="panel-title">{pr.title}</h4>
+      <div className="partners-photo-row">
+        <PartnerAvatar name={value || email} url={photo} size="lg" />
+        <div>
+          <button className="btn-secondary" type="button" onClick={() => input.current?.click()} disabled={uploading}>
+            <Camera aria-hidden="true" /><span>{uploading ? pr.uploading : pr.upload}</span>
+          </button>
+          <p className="field-note">{pr.photoHint}</p>
+          <input ref={input} type="file" accept={IMAGE_ACCEPT} hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
+        </div>
+      </div>
+      <div className="field">
+        <label htmlFor="partner-name">{pr.name}</label>
+        <input id="partner-name" className="form-input" value={value} maxLength={80} onChange={(e) => setValue(e.target.value)} disabled={pending} autoComplete="name" />
+      </div>
+      <div className="field">
+        <label htmlFor="partner-email">{pr.email}</label>
+        <input id="partner-email" className="form-input" value={email} dir="ltr" readOnly disabled />
+        <p className="field-note">{pr.emailHint}</p>
+      </div>
+      <div className="affiliate-payout-actions">
+        <button className="btn-primary" type="button" onClick={save} disabled={pending || value.trim() === (name ?? "")}><span>{pending ? pr.saving : pr.save}</span></button>
+      </div>
+      {msg && <p className={msg.ok ? "form-success" : "form-error"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
     </section>
+  );
+}
+
+export function PartnerAvatar({ name, url, size }: { name: string; url: string | null; size?: "lg" }) {
+  const initials = name.split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
+  return (
+    <span className={`partners-avatar${size === "lg" ? " lg" : ""}`} aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {url ? <img src={url} alt="" /> : initials}
+    </span>
   );
 }

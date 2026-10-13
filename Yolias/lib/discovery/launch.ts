@@ -9,7 +9,6 @@ import { criteriaLine, type IcpCriteria } from "@/lib/discovery/icp";
 import { logEvent } from "@/lib/discovery/pipeline";
 import { enqueue } from "@/lib/jobs/queue";
 import { sourceLabels } from "@/lib/intel/registry";
-import { countryLabel } from "@/lib/format";
 import { dictionaries, fmt } from "@/lib/i18n/config";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
@@ -85,7 +84,6 @@ async function understand(session: Session, strategyId: string, prompt: string, 
       industry: session.workspace.industry,
       idealCustomer: session.workspace.ideal_customer,
       targetMarkets: session.workspace.target_markets,
-      defaultCountry: countryLabel(session.profile.country, "en") || session.profile.country,
       language: session.profile.language,
       workspaceId: session.workspace.id,
       strategyId,

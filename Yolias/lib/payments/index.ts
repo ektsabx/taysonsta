@@ -7,7 +7,6 @@ import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { dictionaries, fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, BillingProvider, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
-import { requestCountry } from "@/lib/geo-server";
 import { ensurePolarProducts } from "./polar-products";
 import { loadPolar } from "./polar";
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
@@ -66,23 +65,36 @@ export async function providerFor(currency: Currency): Promise<PaymobRuntime | n
 }
 
 /**
- * Who bills this workspace (owner brief 2026-10-12, D-185): Paymob for
- * Egypt (the workspace's billing country, else the visitor's country), Polar
- * for every other country. A workspace already billed by one keeps it.
+ * Who bills this workspace. The customer picks the payment method on the
+ * checkout page (owner decision 2026-10-13, D-209): an international card →
+ * Polar, a card from Egypt → Paymob — never by country or IP. A workspace
+ * already billed by one keeps it; before the first payment Polar is shown.
  */
 export async function billingRoute(ws: WorkspaceRow): Promise<BillingProvider> {
-  if (ws.billing_provider) return ws.billing_provider;
-  const country = ws.billing_country ?? (await requestCountry());
-  return country === "EG" ? "paymob" : "polar";
+  return ws.billing_provider ?? "polar";
+}
+
+/** The provider of a running subscription (trial or paid), which the checkout can't switch. */
+export function lockedProvider(ws: WorkspaceRow): BillingProvider | null {
+  if (!ws.billing_provider) return null;
+  if (ws.billing_provider === "polar") return ws.polar_subscription_id ? "polar" : null;
+  return ws.subscription_status === "active" ? "paymob" : null;
+}
+
+/** Which payment methods are connected right now. */
+export async function paymentMethods(): Promise<Record<BillingProvider, boolean>> {
+  const polar = await loadPolar();
+  const [polarReady, paymob] = await Promise.all([
+    polar ? ensurePolarProducts(polar).then((r) => Object.keys(r.cfg.products).length > 0) : Promise.resolve(false),
+    providerFor("USD"),
+  ]);
+  return { polar: polarReady, paymob: Boolean(paymob) };
 }
 
 export async function paymentsConnected(ws: WorkspaceRow): Promise<boolean> {
-  if ((await billingRoute(ws)) === "polar") {
-    // Connected = a token in the hub; the plan products are created on first use (D-191).
-    const polar = await loadPolar();
-    return Boolean(polar && Object.keys((await ensurePolarProducts(polar)).cfg.products).length);
-  }
-  return Boolean(await providerFor(await workspaceCurrency(ws)));
+  const m = await paymentMethods();
+  const locked = lockedProvider(ws);
+  return locked ? m[locked] : m.polar || m.paymob;
 }
 
 function siteUrl() {

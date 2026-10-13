@@ -270,11 +270,46 @@ html[lang="ar"] :is(.view-actions, .ws-actions, .ws-inline, .lead-msg-actions, .
 html[lang="ar"] :is(.form-select, .form-input) { line-height: 1.45; }
 
 /* Yolias Partners portal (D-206) */
-.partners-shell { min-height: 100dvh; background: var(--bg, var(--soft)); display: flex; flex-direction: column; }
-.partners-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--paper); flex-wrap: wrap; }
+/* body never scrolls (app shell); the partners portal scrolls itself. */
+.partners-shell { height: 100dvh; overflow-y: auto; background: var(--bg, var(--soft)); display: flex; flex-direction: column; }
+.partners-header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--paper); flex-wrap: wrap; }
 .partners-brand { display: inline-flex; align-items: center; gap: 10px; }
 .partners-badge { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--red-soft); color: var(--red-hover); border: 1px solid var(--red-line); }
 .partners-tools { display: inline-flex; align-items: center; gap: 8px; }
 .partners-auth { margin: 48px auto; width: calc(100% - 32px); }
 .partners-shell .page-view { height: auto; overflow: visible; }
-@media (max-width: 600px) { .partners-header { padding: 12px 16px; } }
+.partners-shell .affiliate-page { max-width: 1120px; width: 100%; margin: 0 auto; padding-bottom: 48px; }
+.partners-card { flex-direction: row !important; align-items: center; gap: 16px !important; flex-wrap: wrap; }
+.partners-card-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 220px; }
+.partners-card-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 1.05rem; }
+.partners-status { font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, #16a34a 14%, transparent); color: #15803d; }
+html[data-theme="dark"] .partners-status { color: #4ade80; }
+.partners-card-facts { display: grid; grid-template-columns: repeat(4, minmax(90px, auto)); gap: 4px 22px; margin: 0; }
+.partners-card-facts dt { font-size: .72rem; color: var(--muted); }
+.partners-card-facts dd { margin: 2px 0 0; font-weight: 700; font-size: .95rem; }
+.partners-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; flex: none; background: var(--red-soft); color: var(--red-hover); font-weight: 700; font-size: .85rem; border: 1px solid var(--red-line); }
+.partners-avatar.lg { width: 64px; height: 64px; font-size: 1.15rem; }
+.partners-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.partners-tabs { margin-bottom: 0; }
+.partners-me { display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; font-weight: 600; max-width: 200px; }
+.partners-me .partners-avatar { width: 32px; height: 32px; font-size: .74rem; }
+.partners-me-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) { .partners-me-name { display: none; } }
+.partners-two { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.partners-two > .form-error, .partners-two > .form-success { grid-column: 1 / -1; margin: 0; }
+.partners-methods { display: flex; flex-wrap: wrap; gap: 8px; }
+.partners-method { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; }
+.partners-method.selected { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.partners-method.selected .checkout-radio { border: 5px solid var(--red); }
+.partners-saved-tag { font-size: .68rem; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 6px; }
+.partners-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.partners-fields .field.wide { grid-column: 1 / -1; }
+.partners-fields .form-input.invalid { border-color: var(--red); }
+.partners-withdraw { display: flex; flex-direction: column; gap: 4px; }
+.partners-profile { max-width: 560px; }
+.partners-photo-row { display: flex; align-items: center; gap: 16px; }
+.partners-photo-row .btn-secondary { display: inline-flex; align-items: center; gap: 6px; }
+.partners-photo-row svg { width: 15px; height: 15px; }
+.partners-how { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; font-size: .86rem; line-height: 1.55; }
+@media (max-width: 900px) { .partners-two { grid-template-columns: 1fr; } .partners-card-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; } }
+@media (max-width: 600px) { .partners-header { padding: 12px 16px; } .partners-fields { grid-template-columns: 1fr; } .partners-tools .btn-secondary { padding-inline: 10px; } }

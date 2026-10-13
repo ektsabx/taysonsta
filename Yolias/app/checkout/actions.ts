@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { canManageTeam, requireSession, requireUser } from "@/lib/session";
 import { isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { billingTestMode, planCharge, startPlan, startTrial } from "@/lib/billing";
-import { billingRoute, grantPack, providerFor, startCheckout, type CheckoutResult as ProviderResult } from "@/lib/payments";
+import { grantPack, lockedProvider, providerFor, startCheckout, type CheckoutResult as ProviderResult } from "@/lib/payments";
 import { loadPolar, polarPortalUrl, productFor } from "@/lib/payments/polar";
 import { ensurePolarProducts } from "@/lib/payments/polar-products";
 import { createPolarCheckout } from "@/lib/payments/polar-checkout";
@@ -25,21 +25,22 @@ function providerError(r: Exclude<ProviderResult, { ok: true }>, t: Dictionary):
 }
 
 // Puts the workspace on the chosen plan (owner brief 2026-10-12): paid plans
-// only (no $0 plan). Egypt → Paymob: the first period is paid up front, the
-// plan starts when Paymob confirms the payment. Every other country → Polar:
-// the hosted checkout takes the card and starts the 7-day free trial
-// (/checkout/polar); a workspace already subscribed on Polar changes its plan
-// in Polar's customer portal. With no provider connected, billing test mode
-// (local/dev) starts the trial or the plan as a test — never a pretend real
-// charge.
-export async function activatePlan(plan: string, period: string): Promise<CheckoutResult> {
+// only (no $0 plan). The customer picks how to pay (D-209): "card" → Polar's
+// hosted checkout takes the card and starts the 7-day free trial
+// (/checkout/polar); "egypt" → Paymob: the first period is paid up front and
+// the plan starts when Paymob confirms the payment. A running subscription
+// keeps its provider (Polar's customer portal changes a Polar plan). With no
+// provider connected, billing test mode (local/dev) starts the trial or the
+// plan as a test — never a pretend real charge.
+export async function activatePlan(plan: string, period: string, method: string = "polar"): Promise<CheckoutResult> {
   const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
   if (!isPaidPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
+  if (method !== "polar" && method !== "paymob") return { ok: false, error: t.checkout.errors.chooseMethod };
   const payer = { userId: session.userId, email: session.email, name: session.profile.full_name };
   const ws = session.workspace;
-  const route = await billingRoute(ws);
+  const route = lockedProvider(ws) ?? method;
 
   if (route === "paymob" && (await providerFor(await workspaceCurrency(ws)))) {
     const r = await startCheckout(ws, { ...payer, country: ws.billing_country ?? (await requestCountry()) }, { kind: "subscription", plan, period });
@@ -53,7 +54,7 @@ export async function activatePlan(plan: string, period: string): Promise<Checko
     if (product) redirect(`/checkout/polar?products=${product}`);
   }
   if (!billingTestMode()) return { ok: false, error: t.checkout.errors.notConnected };
-  // Test mode: Polar countries start the trial (once), Egypt pays up front.
+  // Test mode: the card route starts the trial (once), the Egypt route pays up front.
   if (route === "polar" && canStartTrial(ws) && ws.subscription_status !== "active" && ws.subscription_status !== "test") {
     if (!(await startTrial(ws, plan, period, payer, { mode: "test", provider: "polar" }))) return { ok: false, error: t.checkout.errors.failed };
   } else {
@@ -127,7 +128,7 @@ export async function startPolarCheckout(plan: string, period: string): Promise<
   const loaded = await loadPolar();
   const polar = loaded ? (await ensurePolarProducts(loaded)).cfg : null;
   const product = polar ? productFor(polar, plan, period) : null;
-  if (!polar || !product || (await billingRoute(ws)) !== "polar") return { ok: false, error: t.checkout.errors.notConnected };
+  if (!polar || !product || (lockedProvider(ws) ?? "polar") !== "polar") return { ok: false, error: t.checkout.errors.notConnected };
   if (ws.polar_subscription_id) return { ok: false, error: t.checkout.errors.managedInPortal, portal: polarPortalUrl(polar.environment) };
   // The page that embeds the checkout (Polar only talks to this origin).
   const h = await headers();

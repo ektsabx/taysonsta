@@ -29,7 +29,6 @@ export interface StrategyContext {
   targetMarkets?: string | null;
   /** The Customer Profile chosen for this search (AI Workspace), as text. */
   customerProfile?: string | null;
-  defaultCountry: string;
   language: "en" | "ar";
   /** For cost attribution (intel.llm_calls). */
   workspaceId: string;
@@ -37,7 +36,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-13";
+export const ICP_PROMPT_VERSION = "icp-2026-10-13b";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -56,7 +55,7 @@ Rules:
 - Extract only what the user asked for. Where the request is silent, choose a sensible default for a B2B discovery mission and record it in "assumptions".
 - Use the user's own business (industry, products and services) to infer which decision-maker job titles are relevant when they don't name any.
 - When the request doesn't say who to look for, use the business's ideal customer profile; when it doesn't name a market, use its target markets. Say so in "assumptions". What the request says always wins.
-- countries are ISO 3166-1 alpha-2 codes. If no market is given and the business has no target markets, use the user's default country and say so in "assumptions".
+- countries are ISO 3166-1 alpha-2 codes. If the request names no market, use the selected customer profile's countries, else the business's target markets. If none of them names one, leave countries empty and say so in "assumptions" — never guess a country.
 - search_type: "companies" (the default) when the user wants companies, decision makers or contacts: Yolias finds the companies, then the decision makers inside them (put the titles in job_titles); "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
 - target_count is the number of companies the user asked for (default 100); target_unit is "companies".
 - campaign_name is short and specific, in the form "<Market> <Segment> — <Decision makers>".
@@ -107,12 +106,11 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
 }
 
 /** The exact request Yolias sends to understand a search (also used by the eval set). */
-export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "defaultCountry" | "language" | "customerProfile">) {
+export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "language" | "customerProfile">) {
   const business = [
     businessLines({ name: ctx.companyName, website: ctx.website, industry: ctx.industry, offering: ctx.offering, ideal_customer: ctx.idealCustomer, target_markets: ctx.targetMarkets }),
     // A chosen Customer Profile (D-195): its criteria are the defaults when the request is silent; the request always wins.
     ctx.customerProfile && `Selected customer profile (use its industries, company size, job titles, countries and include keywords as defaults when the request doesn't say; its exclude keywords go into exclusions; the request always wins):\n${ctx.customerProfile}`,
-    `Default country: ${ctx.defaultCountry}`,
   ].filter(Boolean).join("\n");
   const parts: InputPart[] = attachments.map((a): InputPart =>
     a.kind === "image" ? { kind: "image", mediaType: a.mediaType, base64: a.data }

@@ -10,7 +10,7 @@ import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice } f
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
-import { billingRoute, paymentsConnected } from "@/lib/payments";
+import { lockedProvider, paymentMethods } from "@/lib/payments";
 import { canStartTrial, trialLimits } from "@/lib/trial";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,10 +30,12 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const pending = await pendingPlan(session);
   const picked = isPaidPlan(plan) ? plan : isPaidPlan(pending) ? pending : null;
   const initial = picked ?? current ?? "growth";
-  const [online, route, trial] = await Promise.all([paymentsConnected(ws), billingRoute(ws), trialLimits()]);
+  const [methods, trial] = await Promise.all([paymentMethods(), trialLimits()]);
+  const locked = lockedProvider(ws);
   // Annual is the default choice (owner brief 2026-10-12); monthly stays available.
   const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (current ? ws.billing_period : "annual");
-  const trialOffer = route === "polar" && canStartTrial(ws) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
+  // The free trial comes with the card (Polar) method only; Egypt pays up front.
+  const trialOffer = locked !== "paymob" && canStartTrial(ws) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
   const errors = t.checkout.errors;
   const initialError = error === "admins" ? errors.admins : error === "not_connected" ? errors.notConnected : error === "plan" ? errors.choosePlan : error === "payment" ? errors.paymentFailed : null;
 
@@ -53,13 +55,13 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
-        online={online}
+        methods={methods}
         email={session.email}
         workspaceName={ws.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
         options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, prospects: plans[p].prospects, emails: plans[p].emails, contacts: plans[p].contacts }))}
         currency={currency}
-        route={route}
+        locked={locked}
         trial={trialOffer}
         initialError={initialError}
       />

@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Bot, ChevronDown, CirclePlay, IdCard, Inbox, Library, Send, SquareKanban } from "lucide-react";
+  Bot, ChevronDown, CirclePlay, FolderSearch, IdCard, Inbox, Library, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -29,6 +29,8 @@ const mainNav = [
   { href: "/", key: "yoliasAi", icon: Sparkles },
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
   { href: "/prospects", key: "prospects", icon: UserSearch },
+  // The former Campaigns page, now a view of Prospects (D-204), linked here too so it's easy to find.
+  { href: "/prospects?view=searches", key: "searchResults", icon: FolderSearch },
 ] as const;
 
 // Customer acquisition after discovery (D-193..D-195).
@@ -47,6 +49,12 @@ const aiNav = [
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+/** Prospects and its Search results view share one path; the view (or a campaign page) decides which is lit. */
+const mainActive = (pathname: string, href: string, view: string | null) => {
+  if (href === "/prospects?view=searches") return (pathname === "/prospects" && view === "searches") || pathname.startsWith("/campaigns");
+  if (href === "/prospects") return isActive(pathname, href) && view !== "searches";
+  return isActive(pathname, href);
+};
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -66,6 +74,7 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
   const pathname = usePathname();
+  const view = useSearchParams().get("view");
   const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -202,7 +211,7 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
+              <Link key={href} href={href} className={`nav-item${mainActive(pathname, href, view) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>

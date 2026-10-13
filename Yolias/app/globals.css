@@ -1367,6 +1367,15 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
 .checkout-payment-title { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; }
 .checkout-payment-title svg { width: 15px; height: 15px; color: var(--muted); }
 .checkout-payment-note { font-size: .76rem; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.checkout-methods { display: grid; gap: 8px; margin: 10px 0 4px; }
+.checkout-method { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); text-align: start; cursor: pointer; font: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+.checkout-method:hover:not(:disabled) { border-color: var(--line-strong); }
+.checkout-method.selected { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.checkout-method.selected .checkout-radio { border: 5px solid var(--red); }
+.checkout-method:disabled { opacity: .55; cursor: not-allowed; }
+.checkout-method-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.checkout-method-name { font-size: .84rem; font-weight: 700; }
+.checkout-method-desc { font-size: .74rem; color: var(--muted); line-height: 1.4; }
 .checkout-submit { width: 100%; height: 42px; font-size: .86rem; }
 .checkout-submit svg { width: 14px; height: 14px; }
 .checkout-fine { font-size: .72rem; color: var(--muted); margin-top: 12px; line-height: 1.45; }
