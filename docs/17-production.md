@@ -218,3 +218,10 @@ npx wrangler secret put WORKER_SECRET
 5. `npm run content:seed:production` من مجلد Yolias (بيحدّث السياسات اللي ما اتعدّلتش من الأدمن). لو كنت عدّلت أي سياسة من الأدمن، النص الجديد مش هيكتب فوقها، فراجعها يدويًا.
 6. في Supabase ← Authentication ← URL Configuration: مفيش رابط جديد مطلوب (صفحة الشركاء بتستخدم نفس `/auth/confirm`).
 7. الأدمن: إيميلات الدعم بتتبعت من طابور الإشعارات (Resend من مركز التكاملات). اتأكد إن Resend متصل في الأدمن على الإنتاج.
+
+## جولة 2026-10-13 (التحويلات، المستخدمون، مفاتيح التشغيل — D-212..D-215). محلي فقط
+1. نسخة احتياطية.
+2. يولياس: `Yolias/supabase/migrations/20261113000000_conversion_tracking.sql` بنفس طريقة `npx supabase db query --linked -f <الملف>` ثم تسجيله في `supabase_migrations.schema_migrations`. الأدمن مالوش migration جديد.
+3. نشر يولياس (`npm run cf:deploy` من `Yolias`) ثم الأدمن (`npm run cf:deploy:admin` من الجذر).
+4. في Polar ← Settings ← Webhooks: فعّل حدث `checkout.updated` على نفس الـ webhook (عشان فشل/انتهاء جلسات Polar يتسجل). مش إجباري، من غيره محاولات Polar الفاشلة بتظهر «انتقل للبوابة ولم تصل نتيجة».
+5. بعد النشر: الأدمن ← منصة Yolias ← تشغيل وإيقاف الخدمات: اقفل Polar لحد ما حساب Polar يتراجع ويتفعل.

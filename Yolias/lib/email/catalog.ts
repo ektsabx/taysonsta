@@ -54,6 +54,9 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   announcement: { category: "updates", pref: "notify_product" },
   // Affiliate program: statements about the affiliate's own money and status.
   affiliate_update: { category: "account", pref: null },
+  // Written by the team in Admin (D-215). Service messages are always sent;
+  // recovery / marketing ones follow "Product updates" (checked in lib/email/team.ts).
+  team_message: { category: "account", pref: null },
 };
 
 export function emailMeta(kind: EmailKind) {

@@ -83,13 +83,18 @@ export async function savePack(bos: BosUser, input: { id?: string | null; prospe
 /* ───────────────────────── Payments log ───────────────────────── */
 
 export async function recentPayments(limit = 50) {
-  const { data, error } = await ydb()
-    .from("payments")
-    .select("id, workspace_id, kind, plan, billing_period, prospects, amount, currency, provider, mode, status, provider_ref, provider_txn, failure_reason, invoice_id, created_at, paid_at, workspace:workspaces(name)")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const cols = "id, workspace_id, kind, plan, billing_period, prospects, amount, currency, provider, mode, status, provider_ref, provider_txn, failure_reason, invoice_id, created_at, paid_at, created_by, charge_amount, charge_currency, workspace:workspaces(name)";
+  const run = (extra: string) => ydb().from("payments").select(`${cols}${extra}`).order("created_at", { ascending: false }).limit(limit);
+  // payments.checkout_id comes with migration 20261113000000; a database without it still lists payments.
+  let { data, error } = await run(", checkout_id");
+  if (error) ({ data, error } = await run(""));
   if (error) throw error;
-  return (data ?? []) as unknown as (Omit<NonNullable<typeof data>[number], "workspace"> & { workspace: { name: string | null } | null })[];
+  return (data ?? []) as unknown as {
+    id: string; workspace_id: string; kind: string; plan: string | null; billing_period: string | null; prospects: number | null; amount: number; currency: string;
+    provider: string; mode: string; status: string; provider_ref: string | null; provider_txn: string | null; failure_reason: string | null; invoice_id: string | null;
+    created_at: string; paid_at: string | null; created_by: string | null; charge_amount: number | null; charge_currency: string | null; checkout_id?: string | null;
+    workspace: { name: string | null } | null;
+  }[];
 }
 
 /** Paid totals per currency and mode — never summed across currencies (D-120). */

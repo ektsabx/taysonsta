@@ -218,11 +218,10 @@
 .bos-field label, .admin-field label { font-size: .78rem; font-weight: 600; color: var(--y-text-2); }
 
 /* ── Tabs, badges, links ───────────────────────────────────────── */
-.bos-tabs { border-bottom-color: var(--y-line); }
-.bos-tabs a { font-size: .82rem; color: var(--y-muted); }
-.bos-tabs a.active { color: var(--y-ink); border-bottom-color: var(--y-red); }
+.bos-tabs a { font-size: .82rem; color: var(--y-muted); border-color: var(--y-line); }
+.bos-tabs a.active { color: #fff; background: var(--y-red); border-color: var(--y-red); }
 .bos-badge { border-radius: 4px; font-size: .68rem; }
-.bos-link:hover { text-decoration-color: var(--y-red); }
+.bos-link:hover { color: var(--y-red); }
 
 /* ── Login (Yolias auth page) ──────────────────────────────────── */
 .admin-login-shell { background: radial-gradient(circle at 92% 1%, rgba(207, 37, 37, .05), transparent 25rem), var(--y-paper); }

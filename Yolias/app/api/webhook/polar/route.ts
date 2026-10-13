@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import { webhooks } from "@polar-sh/sdk/2026-10";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadPolar } from "@/lib/payments/polar";
-import { syncCustomerState, syncOrderPaid, type SyncResult } from "@/lib/payments/polar-sync";
+import { syncCheckoutUpdated, syncCustomerState, syncOrderPaid, type SyncResult } from "@/lib/payments/polar-sync";
 import type { Json } from "@/types/database";
 
 // Polar webhooks (D-185, applied since the owner's approval of 2026-10-13):
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     throw e;
   }
 
-  const handled = event.type === "order.paid" || event.type === "customer.state_changed";
+  const handled = event.type === "order.paid" || event.type === "customer.state_changed" || event.type === "checkout.updated";
   const db = createAdminClient();
   const id = headers["webhook-id"];
   const ins = await db.from("billing_webhook_events").insert({
@@ -64,7 +64,9 @@ export async function POST(request: NextRequest) {
   // Claim (processed_at marks the attempt), then apply.
   await db.from("billing_webhook_events").update({ status: "received", processed_at: new Date().toISOString() }).eq("id", rowId);
   try {
-    const r: SyncResult = event.type === "order.paid" ? await syncOrderPaid(polar, event.data) : await syncCustomerState(polar, event.data);
+    const r: SyncResult = event.type === "order.paid" ? await syncOrderPaid(polar, event.data)
+      : event.type === "checkout.updated" ? await syncCheckoutUpdated(event.data)
+      : await syncCustomerState(polar, event.data);
     await db.from("billing_webhook_events").update({ status: r.status, note: r.note.slice(0, 1000), processed_at: new Date().toISOString() }).eq("id", rowId);
     return NextResponse.json({ received: true, duplicate: Boolean(ins.error) });
   } catch (e) {

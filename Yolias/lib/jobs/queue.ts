@@ -7,7 +7,7 @@ import type { AffiliateEmailEvent } from "@/lib/email/messages";
 // worker (/api/worker) runs them. Every job must be idempotent: it can run
 // again after a crash or timeout.
 
-export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep" | "affiliate.notify";
+export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep" | "affiliate.notify" | "email.team_message";
 
 export interface JobPayloads {
   "campaign.discover": { campaignId: string };
@@ -24,6 +24,8 @@ export interface JobPayloads {
   /** Renewal reminders, ending reminders and test-mode renewals. */
   "billing.sweep": Record<string, never>;
   /** An affiliate notice queued by Yolias Admin (decision, commission review, payout step, terms change). */
+  /** A message the Yolias team wrote to one account (account_messages row), queued by Yolias Admin. */
+  "email.team_message": { messageId: string };
   "affiliate.notify": { affiliateId: string; event: AffiliateEmailEvent; dedupeId: string; amountCents?: number | null; reason?: string | null; reference?: string | null };
 }
 

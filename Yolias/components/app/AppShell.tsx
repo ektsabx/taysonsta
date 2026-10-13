@@ -23,6 +23,7 @@ import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 import { WelcomeVideoModal } from "./WelcomeVideoModal";
+import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 
 const mainNav = [
@@ -365,6 +366,7 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
       {data.user.askReview && !welcomeOpen && <ReviewPrompt />}
+      <ActivityPing />
       {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}
     </div>
     </ToastProvider>

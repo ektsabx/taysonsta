@@ -12,7 +12,8 @@ import { ActivityTimeline } from "@/components/bos/ActivityTimeline";
 import { FileManager } from "@/components/bos/FileManager";
 import { formatDateTime } from "@/lib/bos/format";
 import { SlaIndicator } from "../../SlaIndicator";
-import { AssignSelect, MergeTicketButton, ReplyForm, TicketMetaForm, TicketStatusButtons, ticketCategories } from "../../SupportControls";
+import { AssignSelect, MergeTicketButton, ReplyForm, TicketMetaForm, TicketStatusButtons } from "../../SupportControls";
+import { ticketCategories } from "../../ticket-options";
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { bos } = await requirePermission("tickets.read");

@@ -12,23 +12,12 @@ import { searchEntitiesAction } from "@/app/admin/_actions/common";
 import {
   assignTicketAction, mergeTicketAction, replyTicketAction, ticketStatusAction, updateTicketAction,
 } from "./actions";
+import { priorities, ticketCategories } from "./ticket-options";
+
+export { priorities, ticketCategories };
 
 type Opt = { value: string; label: string };
 
-export const priorities: Opt[] = [
-  { value: "low", label: "منخفضة" },
-  { value: "medium", label: "متوسطة" },
-  { value: "high", label: "عالية" },
-  { value: "urgent", label: "عاجلة" },
-];
-export const ticketCategories: Opt[] = [
-  { value: "general", label: "عام" },
-  { value: "technical", label: "تقني" },
-  { value: "billing", label: "مالي" },
-  { value: "access", label: "وصول / حساب" },
-  { value: "content", label: "محتوى" },
-  { value: "bug", label: "خطأ" },
-];
 
 const ticketStatusLabels: Record<string, string> = { open: "مفتوحة", in_progress: "قيد المعالجة", waiting_for_client: "بانتظار العميل", resolved: "تم الحل", closed: "مغلقة" };
 const ticketNext: Record<string, string[]> = {

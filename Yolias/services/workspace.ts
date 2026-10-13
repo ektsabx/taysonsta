@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { monthWindow } from "@/lib/plans";
 import { trialLimits } from "@/lib/trial";
+import { switchOn } from "@/lib/switches";
 
 /**
  * Prospects from the usage ledger (docs/06): `prospects` = used (delivered),
@@ -90,6 +91,8 @@ export async function listInvoices(workspaceId: string) {
 
 /** Buy More Prospects packs on sale (public read, RLS: active only). */
 export async function listPacks() {
+  // Buy More switched off in Admin → Switches (D-213): no packs are offered.
+  if (!(await switchOn("buy_more"))) return [];
   const supabase = await createClient();
   const { data } = await supabase.from("prospect_packs").select("id, prospects, emails, price_usd").eq("active", true).order("sort").order("prospects");
   return data ?? [];

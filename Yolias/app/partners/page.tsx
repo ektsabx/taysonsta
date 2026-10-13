@@ -7,7 +7,7 @@ import { requirePartner } from "@/lib/partners";
 import { affiliateFor, applyAffiliate, currentProgram, dashboard } from "@/lib/affiliates";
 import { commissionLabel, formatCents } from "@/lib/affiliates/program";
 import Link from "next/link";
-import { PartnerAvatar, PartnerProfile, PartnerStart, PayoutPanel, ReferralLink } from "./AffiliateClient";
+import { PartnerProfile, PartnerStart, PayoutPanel, ReferralLink } from "./AffiliateClient";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).affiliate.title} — Yolias`, robots: { index: false } };
@@ -54,7 +54,6 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
       {actions ? <div className="view-actions">{actions}</div> : null}
     </header>
   );
-  const displayName = user.name || user.email.split("@")[0];
 
   if (!affiliate) {
     const s = program?.settings;
@@ -62,10 +61,6 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
       <div className="page-view">
         {header()}
         <div className="view-content-padding affiliate-page">
-          <section className="panel-card partners-card">
-            <PartnerAvatar name={displayName} url={user.avatarUrl} size="lg" />
-            <div className="partners-card-main"><strong>{displayName}</strong><span className="cell-sub"><bdi>{user.email}</bdi></span></div>
-          </section>
           {!program || !s?.enabled ? <p className="panel-empty">{a.closed}</p> : (
             <PartnerStart
               termsVersion={program.termsVersion}
@@ -113,21 +108,6 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
     <div className="page-view">
       {header(ranged ? <RangePicker value={range} options={(Object.keys(rangeDays) as RangeKey[]).map((k) => ({ key: k, label: a.ranges[k] }))} /> : undefined)}
       <div className="view-content-padding affiliate-page">
-        <section className="panel-card partners-card">
-          <PartnerAvatar name={displayName} url={user.avatarUrl} size="lg" />
-          <div className="partners-card-main">
-            <div className="partners-card-name"><strong>{displayName}</strong><span className="partners-status">{a.card.active}</span></div>
-            <span className="cell-sub"><bdi>{user.email}</bdi></span>
-            <span className="cell-sub">{fmt(a.card.since, { date: formatDate(affiliate.decided_at ?? affiliate.created_at, locale) })}</span>
-          </div>
-          <dl className="partners-card-facts">
-            <div><dt>{a.card.code}</dt><dd dir="ltr">{affiliate.code}</dd></div>
-            <div><dt>{a.card.rate}</dt><dd dir="ltr">{rate}</dd></div>
-            <div><dt>{a.balance.available}</dt><dd>{money(d.balances.available_cents)}</dd></div>
-            <div><dt>{a.balance.paid}</dt><dd>{money(d.balances.paid_cents)}</dd></div>
-          </dl>
-        </section>
-
         <nav className="ws-tabs partners-tabs" aria-label={a.title}>
           {TABS.map((k) => (
             <Link key={k} href={`?tab=${k}&range=${range}`} className={tab === k ? "active" : ""} aria-current={tab === k ? "page" : undefined}>{a.tabs[k]}</Link>

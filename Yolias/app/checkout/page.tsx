@@ -6,12 +6,15 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice } from "@/lib/plans";
+import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 import { lockedProvider, paymentMethods } from "@/lib/payments";
 import { canStartTrial, trialLimits } from "@/lib/trial";
+import { switches } from "@/lib/switches";
+import { openCheckout } from "@/lib/funnel";
+import type { BillingProvider } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).checkout.eyebrow} | Yolias`, robots: noindex };
@@ -37,6 +40,13 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   // The free trial comes with the card (Polar) method only; Egypt pays up front.
   const trialOffer = locked !== "paymob" && canStartTrial(ws) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
   const errors = t.checkout.errors;
+  // Methods switched off in Admin are hidden (a running subscription keeps its own, D-213).
+  const on = await switches();
+  const shown = (["polar", "paymob"] as BillingProvider[]).filter((m) => locked === m || (!locked && on[m === "polar" ? "payments_polar" : "payments_paymob"]));
+  // Journey tracking (D-212): one checkout session per visit (reloads continue it).
+  const checkoutId = canManageTeam(session) && !(current && current === initial)
+    ? await openCheckout(ws, session.userId, { plan: initial, period: initialPeriod, amountUsd: (() => { const m = planPrice(plans[initial], currency); return m == null ? null : priceFor(m, initialPeriod); })(), trialOffered: Boolean(trialOffer) })
+    : null;
   const initialError = error === "admins" ? errors.admins : error === "not_connected" ? errors.notConnected : error === "plan" ? errors.choosePlan : error === "payment" ? errors.paymentFailed : null;
 
   return (
@@ -64,6 +74,8 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         locked={locked}
         trial={trialOffer}
         initialError={initialError}
+        shown={shown}
+        checkoutId={checkoutId}
       />
     </div>
   );

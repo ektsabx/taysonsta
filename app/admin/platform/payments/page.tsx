@@ -9,9 +9,10 @@ import { getPaymobSettings, listPacks, paymentTotals, recentPayments } from "@/s
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
 import Link from "next/link";
 import { PackForm } from "./PaymentForms";
+import { getSwitches } from "@/services/yolias/switches";
 
 const statusTone: Record<string, { label: string; tone: Tone }> = {
-  pending: { label: "قيد الانتظار", tone: "info" },
+  pending: { label: "قيد الانتظار (لم يكمل الدفع لدى المزود)", tone: "info" },
   succeeded: { label: "ناجحة", tone: "success" },
   failed: { label: "فاشلة", tone: "danger" },
   refunded: { label: "مستردة", tone: "neutral" },
@@ -24,7 +25,7 @@ const money = (v: number, c: string) => `${c} ${num(Math.round(v * 100) / 100)}`
 export default async function PaymentsPage() {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="المدفوعات" /><NotConnected /></>);
-  const [s, packs, payments, totals] = await Promise.all([getPaymobSettings(), listPacks(), recentPayments(), paymentTotals(30)]);
+  const [s, packs, payments, totals, sw] = await Promise.all([getPaymobSettings(), listPacks(), recentPayments(), paymentTotals(30), getSwitches()]);
   const manage = can(bos, "platform.manage", "all");
   const site = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
 
@@ -34,6 +35,14 @@ export default async function PaymentsPage() {
       <div className="bos-kpis">
         <KpiCard label="مدفوعات ناجحة · آخر 30 يوماً" value={totals["USD:live"] ? money(totals["USD:live"].amount, "USD") : "—"} sub={totals["USD:live"] ? <Tx vars={{ n: totals["USD:live"].succeeded, f: totals["USD:live"].failed }}>{"{n} ناجحة · {f} فاشلة"}</Tx> : undefined} />
       </div>
+
+      <Card title="ظهور طرق الدفع للعملاء" actions={<Link className="admin-btn small ghost" href="/admin/platform/switches"><Tx>تشغيل / إيقاف</Tx></Link>}>
+        <KeyValues items={[
+          { label: "الدفع بالبطاقة (Polar)", value: sw.values.payments_polar ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
+          { label: "الدفع من مصر (Paymob)", value: sw.values.payments_paymob ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
+          { label: "شراء عملاء محتملين إضافيين", value: sw.values.buy_more ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
+        ]} />
+      </Card>
 
       <Card title="Paymob">
         <KeyValues items={[
@@ -80,18 +89,19 @@ export default async function PaymentsPage() {
       <Card title="آخر المدفوعات">
         {payments.length ? (
           <BosTable className="bos-table">
-            <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>البند</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المرجع</Tx></th></tr></thead>
+            <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>البند</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المرجع</Tx></th><th /></tr></thead>
             <tbody>
               {payments.map((p) => {
                 const st = statusTone[p.status] ?? { label: p.status, tone: "neutral" as Tone };
                 return (
                   <tr key={p.id}>
                     <td>{formatDateTime(p.created_at)}</td>
-                    <td>{p.workspace?.name ?? "—"}</td>
+                    <td>{p.created_by ? <Link className="bos-link" href={`/admin/platform/users/${p.created_by}`}>{p.workspace?.name || "—"}</Link> : p.workspace?.name ?? "—"}</td>
                     <td>{p.kind === "subscription" ? `${yoliasPlanLabel[p.plan as "pro" | "growth"] ?? p.plan} · ${p.billing_period === "annual" ? "سنوي" : "شهري"}` : <Tx vars={{ n: num(p.prospects ?? 0) }}>{"{n} عميل محتمل إضافي"}</Tx>}</td>
-                    <td className="bos-num">{money(Number(p.amount), p.currency)}{p.mode === "test" ? <> <StatusBadge tone="neutral" label="تجريبي" /></> : null}</td>
+                    <td className="bos-num">{money(Number(p.amount), p.currency)}{p.charge_currency && p.charge_currency !== p.currency ? <div className="bos-faint" style={{ fontSize: 12 }}>{money(Number(p.charge_amount), p.charge_currency)}</div> : null}{p.mode === "test" ? <> <StatusBadge tone="neutral" label="تجريبي" /></> : null}</td>
                     <td><StatusBadge tone={st.tone} label={st.label} />{p.failure_reason ? <div className="bos-faint" style={{ fontSize: 12 }}>{p.failure_reason}</div> : null}</td>
                     <td dir="ltr" style={{ fontSize: 12 }}>{p.provider} {p.provider_txn ?? p.provider_ref ?? ""}</td>
+                    <td>{p.checkout_id ? <Link className="bos-link" href={`/admin/platform/conversions/abandoned/${p.checkout_id}`}>Checkout</Link> : null}</td>
                   </tr>
                 );
               })}

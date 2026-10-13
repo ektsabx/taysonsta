@@ -92,8 +92,9 @@
 .admin-btn.success { background: color-mix(in srgb, var(--bos-success) 16%, transparent); color: var(--bos-success); }
 .admin-btn.success:hover { background: color-mix(in srgb, var(--bos-success) 26%, transparent); }
 .admin-btn[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
-.bos-link { color: var(--bos-text); text-decoration: underline; text-decoration-color: rgba(var(--bos-fg-rgb), 0.25); text-underline-offset: 3px; }
-.bos-link:hover { text-decoration-color: var(--bos-accent); }
+/* No underline under text anywhere (owner, 2026-10-13): links are marked by weight and colour. */
+.bos-link { color: var(--bos-strong); font-weight: 600; text-decoration: none; }
+.bos-link:hover { color: var(--bos-accent); }
 .bos-link-muted { color: var(--bos-muted); }
 .bos-link-muted:hover { color: var(--bos-strong); }
 
@@ -219,11 +220,12 @@
 .bos-repeater-row { display: grid; gap: 8px; align-items: end; margin-bottom: 8px; }
 
 /* Tabs (URL-based) */
-.bos-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--bos-border); margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+/* Tabs are pills, not underlined (owner, 2026-10-13). */
+.bos-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
 .bos-tabs::-webkit-scrollbar { display: none; }
-.bos-tabs a { padding: 9px 12px; font-size: 13px; font-weight: 600; color: var(--bos-muted); border-bottom: 2px solid transparent; white-space: nowrap; margin-bottom: -1px; }
+.bos-tabs a { padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--bos-muted); border: 1px solid var(--bos-border); border-radius: 999px; white-space: nowrap; }
 .bos-tabs a:hover { color: var(--bos-strong); }
-.bos-tabs a.active { color: var(--bos-strong); border-bottom-color: var(--bos-accent); }
+.bos-tabs a.active { color: var(--bos-on-accent); background: var(--bos-accent); border-color: var(--bos-accent); }
 .bos-tabs a .count { font-size: 11px; color: var(--bos-faint); margin-inline-start: 5px; }
 
 /* States */
@@ -680,7 +682,7 @@ a.bos-kpi.active { border-color: var(--bos-info); }
 .bos-drp-wd { text-align: center; font-size: 11px; color: var(--bos-faint); padding: 4px 0; }
 .bos-drp-day { height: 34px; border: 0; background: transparent; color: var(--bos-text); font: inherit; font-size: 12.5px; cursor: pointer; border-radius: 8px; position: relative; }
 .bos-drp-day:hover { background: rgba(var(--bos-fg-rgb), .08); }
-.bos-drp-day.today { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.bos-drp-day.today { font-weight: 800; color: var(--bos-accent); }
 .bos-drp-day.in { background: color-mix(in srgb, var(--bos-accent) 14%, transparent); border-radius: 0; color: var(--bos-strong); }
 .bos-drp-day.edge { background: var(--bos-accent); color: var(--bos-on-accent); font-weight: 700; }
 .bos-drp-day.start:not(.end) { border-start-end-radius: 0; border-end-end-radius: 0; }
@@ -913,3 +915,30 @@ a.bos-kpi.active { border-color: var(--bos-info); }
 .cx-msg.inbound .cx-avatar { margin-bottom: 20px; }
 .cx-composer { border-radius: 22px; }
 .cx-composer-box textarea { min-height: 40px; }
+.admin-btn, .bos-card-header .admin-btn { white-space: nowrap; flex-shrink: 0; }
+
+/* Phones (owner, 2026-10-13): filters line up in a 2-column grid, and
+   "stacked" tables become cards — each value under its own label, full width. */
+@media (max-width: 760px) {
+  .bos-filterbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bos-filterbar > form, .bos-filterbar > .bos-drp { grid-column: 1 / -1; }
+  .bos-filterbar .bos-drp > button { width: 100%; white-space: nowrap; }
+  .bos-filterbar > *, .bos-filterbar select, .bos-filterbar input, .bos-filterbar button { width: 100%; min-width: 0; }
+  .bos-table.responsive.stacked tr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; padding: 14px; }
+  .bos-table.responsive.stacked td { display: block; text-align: start; padding: 0; min-width: 0; overflow-wrap: anywhere; white-space: normal !important; }
+  .bos-table.responsive.stacked td::before { display: block; margin-bottom: 3px; }
+  .bos-table.responsive.stacked td.cell-main { grid-column: 1 / -1; }
+  .bos-table.responsive.stacked td.cell-main::before { display: none; }
+  .bos-table.responsive.stacked td.cell-check { grid-column: 1 / -1; }
+  .bos-table.responsive.stacked td.cell-check::before { display: none; }
+  .bos-table.responsive.stacked td.bos-num { text-align: start; }
+}
+
+/* User 360 timeline (D-214) */
+.y-tl { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.y-tl li { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--bos-border); }
+.y-tl li:first-child { border-top: none; }
+.y-tl-at { font-size: 12px; color: var(--bos-faint); }
+.y-tl-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.y-tl-meta { font-size: 12px; color: var(--bos-faint); overflow-wrap: anywhere; }
+@media (max-width: 760px) { .y-tl li { grid-template-columns: 1fr; gap: 4px; } }

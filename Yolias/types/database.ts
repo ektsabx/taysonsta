@@ -468,6 +468,46 @@ export type PaymentRow = {
   fulfil_claimed_at: string | null;
   /** Hosted checkout link while pending, reused by a repeated click. */
   checkout_url: string | null;
+  /** The checkout session that led to this payment (D-212). */
+  checkout_id: string | null;
+};
+// Subscription journey tracking + account administration (D-212..D-215).
+export type CheckoutStatus = "opened" | "details" | "payment_started" | "awaiting_result" | "payment_failed" | "abandoned" | "paid" | "activated" | "closed";
+export type CheckoutSessionRow = {
+  id: string; workspace_id: string | null; user_id: string | null; plan: string | null; billing_period: string | null; provider: string | null;
+  amount_usd: number | null; currency: string; status: CheckoutStatus; last_step: string; attempts: number; trial_offered: boolean;
+  outcome: "trial" | "paid" | null; source: string | null; campaign: string | null; device: string | null; browser: string | null; country: string | null;
+  opened_at: string; last_activity_at: string; details_at: string | null; payment_started_at: string | null; redirected_at: string | null;
+  returned_at: string | null; return_result: string | null; paid_at: string | null; activated_at: string | null; failed_at: string | null;
+  abandoned_at: string | null; closed_at: string | null; recovered_at: string | null; recovered_by: string | null; payment_id: string | null;
+  provider_checkout_id: string | null; failure_reason: string | null; reason_category: string | null;
+  review_status: "new" | "reviewed" | "excluded"; exclude_reason: string | null; assigned_to: string | null; reviewed_by: string | null; reviewed_at: string | null;
+  created_at: string; updated_at: string;
+};
+export type FunnelEventRow = {
+  id: number; event_key: string; name: string; user_id: string | null; visitor_id: string | null; workspace_id: string | null; checkout_id: string | null;
+  payment_id: string | null; provider: string | null; plan: string | null; billing_period: string | null; confirmed: boolean;
+  source: "client" | "server" | "webhook" | "worker" | "admin"; props: Json; occurred_at: string;
+};
+export type AppSessionRow = { id: string; user_id: string; workspace_id: string | null; started_at: string; last_seen_at: string; pings: number; device: string | null; browser: string | null; os: string | null };
+export type AccountStatus = "active" | "suspended" | "paused" | "banned" | "deleted";
+export type AccountModerationRow = { user_id: string; status: AccountStatus; reason: string | null; until: string | null; changed_by: string | null; changed_at: string };
+export type AccountNoteRow = { id: string; user_id: string; checkout_id: string | null; body: string; author_id: string | null; author_name: string | null; created_at: string };
+export type AccountMessageRow = {
+  id: string; user_id: string; checkout_id: string | null; channel: "email" | "in_app" | "sms"; purpose: "service" | "recovery" | "marketing";
+  subject: string; body: string; cta_url: string | null; status: "queued" | "sent" | "failed" | "skipped"; error: string | null;
+  sent_by: string | null; sent_by_name: string | null; created_at: string; sent_at: string | null;
+};
+export type AdminAccountRow = {
+  id: string; email: string; full_name: string | null; avatar_url: string | null; created_at: string; country: string; language: string;
+  acquisition_source: string | null; onboarded_at: string | null; workspace_id: string | null; workspace_name: string | null; role: WorkspaceRole | null;
+  plan: Plan; subscription_status: SubscriptionStatus; billing_period: BillingPeriod | null; current_period_end: string | null; cancel_at_period_end: boolean;
+  trial_started_at: string | null; trial_ends_at: string | null; billing_provider: BillingProvider | null; email_confirmed: boolean;
+  last_sign_in_at: string | null; banned_until: string | null; account_status: AccountStatus; status_reason: string | null; status_until: string | null;
+  status_changed_by: string | null; status_changed_at: string | null; paid_total: number; refunded_total: number; paid_count: number;
+  first_paid_at: string | null; last_paid_at: string | null; last_payment_at: string | null; last_payment_status: string | null; last_payment_provider: string | null;
+  renewals: number; last_activity_at: string | null; last_checkout_status: CheckoutStatus | null; last_checkout_at: string | null;
+  last_checkout_recovered_at: string | null; segment: string;
 };
 export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
 export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
@@ -794,11 +834,18 @@ export interface Database {
       workspace_ai_settings: Table<WorkspaceAiSettingsRow, "workspace_id">;
       automations: Table<AutomationRow, "workspace_id" | "name" | "trigger" | "actions">;
       automation_runs: Table<AutomationRunRow, "workspace_id" | "automation_id" | "event_key" | "trigger" | "status">;
+      checkout_sessions: Table<CheckoutSessionRow, never>;
+      funnel_events: Table<FunnelEventRow, "event_key" | "name">;
+      app_sessions: Table<AppSessionRow, "user_id">;
+      account_moderation: Table<AccountModerationRow, "user_id" | "status">;
+      account_notes: Table<AccountNoteRow, "user_id" | "body">;
+      account_messages: Table<AccountMessageRow, "user_id" | "channel" | "subject" | "body">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };
     Views: {
       prospect_items: { Row: ProspectItemRow; Relationships: [] };
       crm_leads: { Row: CrmLeadRow; Relationships: [] };
+      admin_accounts_v: { Row: AdminAccountRow; Relationships: [] };
       content_feedback_totals: { Row: { kind: string; slug: string; helpful: number; not_helpful: number }; Relationships: [] };
     };
     Functions: {
@@ -853,6 +900,11 @@ export interface Database {
       reserve_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
       consume_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
       release_usage: { Args: { p_ws: string; p_campaign: string; p_reason: string }; Returns: number };
+      funnel_event: { Args: { p_key: string; p_name: string; p_user: string | null; p_workspace: string | null; p_checkout: string | null; p_payment: string | null; p_provider: string | null; p_plan: string | null; p_period: string | null; p_confirmed: boolean; p_source: string; p_props?: Json }; Returns: undefined };
+      app_session_ping: { Args: { p_user: string; p_workspace: string | null; p_device: string | null; p_browser: string | null; p_os: string | null }; Returns: string };
+      checkout_classify: { Args: { p_abandon_minutes?: number; p_result_minutes?: number; p_confirm_minutes?: number }; Returns: number };
+      admin_login_history: { Args: { p_user: string; p_limit?: number }; Returns: { at: string; action: string; provider: string | null; ip: string | null }[] };
+      admin_funnel: { Args: { p_since: string; p_until: string; p_dim?: string | null }; Returns: { dim: string; stage: string; people: number; events: number }[] };
       admin_workspace_stats: {
         Args: { month_start: string };
         Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; allowance: number; last_activity_at: string | null }[];

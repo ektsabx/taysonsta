@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Calendar } from "lucide-react";
 
 export function RangePicker({ value, options }: { value: string; options: { key: string; label: string }[] }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = options.find((o) => o.key === value) ?? options[0];
@@ -18,7 +20,7 @@ export function RangePicker({ value, options }: { value: string; options: { key:
   }, [open]);
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="range-picker" style={{ position: "relative" }}>
       <button className="btn-secondary" type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <Calendar /> {current.label}
       </button>
@@ -31,7 +33,11 @@ export function RangePicker({ value, options }: { value: string; options: { key:
               className={`menu-item${o.key === value ? " selected" : ""}`}
               onClick={() => {
                 setOpen(false);
-                router.push(`?range=${o.key}`);
+                // Keep the other parameters (e.g. the Partners tab); a new range starts at page 1.
+                const next = new URLSearchParams(params.toString());
+                next.set("range", o.key);
+                next.delete("page");
+                router.push(`${pathname}?${next.toString()}`);
               }}
             >
               {o.label}

@@ -12,6 +12,7 @@ import { loadPolar } from "./polar";
 import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
+import { switches } from "@/lib/switches";
 import { capture } from "@/lib/analytics/server";
 import { affiliateNotify } from "@/lib/affiliates/notify";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
@@ -60,6 +61,9 @@ export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRu
 /** A provider that can take this workspace's (USD) prices right now: Paymob, charging EGP cards. */
 export async function providerFor(currency: Currency): Promise<PaymobRuntime | null> {
   void currency; // every price is USD (D-131); Paymob charges its EGP equivalent
+  // Switched off in Admin → Switches (D-213): no new Paymob checkouts. Its
+  // callbacks still settle payments already started (loadPaymob).
+  if (!(await switches()).payments_paymob) return null;
   const paymob = await loadPaymob();
   return paymob && (paymob.integrations.EGP?.length ?? 0) > 0 ? paymob : null;
 }
@@ -81,9 +85,10 @@ export function lockedProvider(ws: WorkspaceRow): BillingProvider | null {
   return ws.subscription_status === "active" ? "paymob" : null;
 }
 
-/** Which payment methods are connected right now. */
+/** Which payment methods are connected right now (and not switched off in Admin, D-213). */
 export async function paymentMethods(): Promise<Record<BillingProvider, boolean>> {
-  const polar = await loadPolar();
+  const on = await switches();
+  const polar = on.payments_polar ? await loadPolar() : null;
   const [polarReady, paymob] = await Promise.all([
     polar ? ensurePolarProducts(polar).then((r) => Object.keys(r.cfg.products).length > 0) : Promise.resolve(false),
     providerFor("USD"),
@@ -115,7 +120,7 @@ interface Buyer {
 }
 
 /** Creates the pending payment and returns the provider's checkout URL. */
-export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: CheckoutTarget): Promise<CheckoutResult> {
+export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: CheckoutTarget, checkoutId: string | null = null): Promise<CheckoutResult> {
   const db = createAdminClient();
   const currency = await workspaceCurrency(ws);
   const provider = await providerFor(currency);
@@ -154,7 +159,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   const charge = toEgp(row.amount, rate);
   const { data: payment, error } = await db.from("payments").insert({
     ...row, workspace_id: ws.id, currency, provider: "paymob", mode: provider.mode, created_by: buyer.userId,
-    charge_amount: charge, charge_currency: "EGP", fx_rate: rate,
+    charge_amount: charge, charge_currency: "EGP", fx_rate: rate, checkout_id: target.kind === "subscription" ? checkoutId : null,
   }).select("*").single();
   if (error || !payment) return { ok: false, error: "failed" };
 

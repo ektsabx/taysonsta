@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, Plus } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { TrustLogos } from "@/components/marketing/SocialProof";
 import { monthlyRate, planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
 import type { BillingPeriod, Currency, PaidPlan } from "@/types/database";
+import { funnelEvent } from "@/lib/funnel-client";
 
 type PricingCopy = Dictionary["pricing"];
 type PlanId = PaidPlan;
@@ -45,9 +46,12 @@ export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
 
   // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
   const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;
+  // Journey tracking (D-212): the plans were seen; a plan was picked.
+  useEffect(() => { funnelEvent("plans_viewed"); }, []);
   const card = (plan: PlanId, recommended?: string) => (
     <PlanCard
       key={plan}
+      onPick={() => funnelEvent("plan_selected", { plan, period })}
       name={planName(plan, dict)}
       price={price(plan)}
       note={t.perMonth}
@@ -179,8 +183,8 @@ export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
   );
 }
 
-function PlanCard({ name, price, note, billed, items, href, cta, foot, recommended }: {
-  name: string; price: string; note: string; billed?: string; items: string[]; href: string; cta: string; foot: string; recommended?: string;
+function PlanCard({ name, price, note, billed, items, href, cta, foot, recommended, onPick }: {
+  name: string; price: string; note: string; billed?: string; items: string[]; href: string; cta: string; foot: string; recommended?: string; onPick?: () => void;
 }) {
   return (
     <article className={`pricing-card${recommended ? " recommended" : ""}`}>
@@ -195,7 +199,7 @@ function PlanCard({ name, price, note, billed, items, href, cta, foot, recommend
           <li key={item}><Check width={17} height={17} /><span>{i === 0 ? <strong>{item}</strong> : item}</span></li>
         ))}
       </ul>
-      <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href}>{cta}</Link>
+      <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href} onClick={onPick}>{cta}</Link>
       <p className="plan-foot">{foot}</p>
     </article>
   );

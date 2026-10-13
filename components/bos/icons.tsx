@@ -8,6 +8,62 @@ const base = {
 };
 
 const paths: Record<string, React.ReactNode> = {
+  // Yolias sections (owner, 2026-10-13: each a section of its own).
+  y_users: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5" />
+      <path d="M16 4.6a3.5 3.5 0 010 6.8M18.5 14.8c1.7.8 2.7 2.5 3 5.2" />
+    </>
+  ),
+  y_workspaces: (
+    <>
+      <rect x="3" y="4" width="18" height="14" rx="2" />
+      <path d="M3 9h18M8 21h8M12 18v3" />
+    </>
+  ),
+  y_revenue: (
+    <>
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <path d="M2.5 10h19M6.5 15h4" />
+    </>
+  ),
+  y_growth: (
+    <>
+      <path d="M4 20V14M10 20V10M16 20V6" />
+      <path d="M14 4h4v4M13 9l5-5" />
+    </>
+  ),
+  y_data: (
+    <>
+      <ellipse cx="12" cy="5.5" rx="8" ry="2.5" />
+      <path d="M4 5.5v13c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-13M4 12c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5" />
+    </>
+  ),
+  y_search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l5 5" />
+    </>
+  ),
+  y_ai: (
+    <>
+      <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z" />
+      <path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" />
+    </>
+  ),
+  y_messages: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3.5 6.5L12 13l8.5-6.5" />
+    </>
+  ),
+  y_usage: (
+    <>
+      <path d="M3.5 17a8.5 8.5 0 1117 0" />
+      <path d="M12 17l4-5.5M3 20h18" />
+    </>
+  ),
   dashboard: (
     <>
       <rect x="3" y="3" width="7.5" height="9" rx="1.5" />

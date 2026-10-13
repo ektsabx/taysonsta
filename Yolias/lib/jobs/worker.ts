@@ -1,4 +1,6 @@
 import "server-only";
+import { sendTeamMessage } from "@/lib/email/team";
+import { classifyCheckouts } from "@/lib/funnel";
 import { followUpSweep } from "@/lib/outreach/sequence";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
@@ -35,6 +37,7 @@ const handlers: { [K in JobKind]: Handler<K> } = {
   },
   "email.user": (p) => securityAlert(p.userId, p.event),
   "email.announce": (p) => sendAnnouncement(p.announcementId),
+  "email.team_message": (p) => sendTeamMessage(p.messageId),
   "billing.sweep": async () => {
     await billingSweep();
     await matureCommissions();
@@ -150,6 +153,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
   // Follow-up Agent: due follow-ups, scheduled messages and meeting outcomes (D-197).
   await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
+  // Checkout journey (D-212): quiet checkouts become "abandoned".
+  await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

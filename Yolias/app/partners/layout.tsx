@@ -7,7 +7,6 @@ import { getDictionary } from "@/lib/i18n/server";
 import { partnerUser } from "@/lib/partners";
 import { noindex } from "@/lib/seo";
 import { partnerSignOut } from "./auth-actions";
-import { PartnerAvatar } from "./AffiliateClient";
 
 export const metadata: Metadata = { robots: noindex };
 
@@ -24,15 +23,8 @@ export default async function PartnersLayout({ children }: { children: React.Rea
         <div className="partners-tools">
           <ThemeMenu />
           <LanguageMenu />
-          {user && (
-            <>
-              <Link href="/partners?tab=profile" className="partners-me" aria-label={t.affiliate.profile.title}>
-                <PartnerAvatar name={user.name || user.email} url={user.avatarUrl} />
-                <span className="partners-me-name">{user.name || user.email}</span>
-              </Link>
-              <form action={partnerSignOut}><button className="btn-secondary" type="submit">{t.partners.signOut}</button></form>
-            </>
-          )}
+          {/* No profile card in the header (owner, 2026-10-13): the profile is a tab of the dashboard. */}
+          {user && <form action={partnerSignOut}><button className="btn-secondary" type="submit">{t.partners.signOut}</button></form>}
         </div>
       </header>
       {children}

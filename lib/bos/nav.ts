@@ -35,36 +35,105 @@ export const navigation: NavGroup[] = [
   { key: "dashboard", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
   // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
   { key: "assistant", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
-  // Yolias platform (docs/09-yolias-admin.md §B): the customer app's users,
-  // workspaces and searches, read from the Yolias database.
+  // Yolias (docs/09-yolias-admin.md §B), read from the Yolias database. Owner
+  // rule (2026-10-13): every Yolias area is a sidebar section of its own and a
+  // section holds pages only — no section inside a section. Same routes as before.
   {
-    key: "platform",
-    label: "منصة Yolias",
+    key: "y_overview",
+    label: "Yolias",
     icon: "platform",
     items: [
       { href: "/admin/platform", label: "نظرة عامة", perm: "platform.read" },
-      { href: "/admin/platform/users", label: "المستخدمون", perm: "platform.read" },
-      { href: "/admin/platform/workspaces", label: "مساحات العمل", perm: "platform.read" },
-      { href: "/admin/platform/onboarding", label: "الترحيب ومصادر التسجيل", perm: "platform.read" },
-      { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
+      { href: "/admin/platform/switches", label: "تشغيل وإيقاف الخدمات", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_users",
+    label: "المستخدمون",
+    icon: "y_users",
+    items: [
+      { href: "/admin/platform/users", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform/users/all", label: "كل المستخدمين", perm: "platform.read" },
+      { href: "/admin/platform/users/registered", label: "المستخدمون المسجلون", perm: "platform.read" },
+      { href: "/admin/platform/users/subscribed", label: "المستخدمون المشتركون", perm: "platform.read" },
+      { href: "/admin/platform/users/suspended", label: "المستخدمون الموقوفون", perm: "platform.read" },
+      { href: "/admin/platform/users/banned", label: "المستخدمون المحظورون", perm: "platform.read" },
+    ],
+  },
+  { key: "y_workspaces", label: "مساحات العمل", icon: "y_workspaces", href: "/admin/platform/workspaces", perm: "platform.read" },
+  {
+    key: "y_revenue",
+    label: "الاشتراكات والإيرادات",
+    icon: "y_revenue",
+    items: [
+      { href: "/admin/platform/conversions", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform/conversions/subscriptions", label: "الاشتراكات", perm: "platform.read" },
       { href: "/admin/platform/payments", label: "المدفوعات", perm: "platform.read" },
-      { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
+      { href: "/admin/platform/conversions/funnel", label: "رحلة التحويل", perm: "platform.read" },
+      { href: "/admin/platform/conversions/abandoned", label: "Abandoned Checkouts", perm: "platform.read" },
+      { href: "/admin/platform/conversions/failed", label: "فشل الدفع", perm: "platform.read" },
+      { href: "/admin/platform/conversions/trials", label: "التجارب المجانية", perm: "platform.read" },
+      { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
+      { href: "/admin/platform/profitability", label: "الربحية", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_growth",
+    label: "الاكتساب والنمو",
+    icon: "y_growth",
+    items: [
+      { href: "/admin/platform/onboarding", label: "الترحيب ومصادر التسجيل", perm: "platform.read" },
+      { href: "/admin/platform/seo", label: "تحسين محركات البحث", perm: "platform.read" },
+      { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_data",
+    label: "البيانات",
+    icon: "y_data",
+    items: [
       { href: "/admin/platform/data", label: "البيانات المشتركة", perm: "platform.read" },
       { href: "/admin/platform/data/companies", label: "الشركات والأشخاص", perm: "platform.read" },
+      { href: "/admin/platform/quality", label: "جودة البيانات", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_search",
+    label: "البحث والمزودون",
+    icon: "y_search",
+    items: [
+      { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
       { href: "/admin/platform/providers", label: "المزودون", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_ai",
+    label: "الذكاء الاصطناعي",
+    icon: "y_ai",
+    items: [
       { href: "/admin/platform/agent", label: "Yolias AI", perm: "platform.read" },
       { href: "/admin/platform/llm", label: "النماذج اللغوية", perm: "platform.read" },
-      { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
-      { href: "/admin/platform/emails", label: "رسائل البريد", perm: "platform.read" },
-      { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
-      { href: "/admin/platform/profitability", label: "الربحية", perm: "platform.read" },
+    ],
+  },
+  { key: "y_messages", label: "الرسائل والتواصل", icon: "y_messages", href: "/admin/platform/emails", perm: "platform.read" },
+  {
+    key: "y_usage",
+    label: "الاستخدام والتكاليف",
+    icon: "y_usage",
+    items: [
       { href: "/admin/platform/usage", label: "الاستخدام", perm: "platform.read" },
-      { href: "/admin/platform/quality", label: "جودة البيانات", perm: "platform.read" },
-      { href: "/admin/platform/risk", label: "المخاطر", perm: "platform.read" },
-      { href: "/admin/platform/seo", label: "تحسين محركات البحث", perm: "platform.read" },
+      { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
+    ],
+  },
+  {
+    key: "y_monitoring",
+    label: "مراقبة المنصة",
+    icon: "status",
+    items: [
       { href: "/admin/platform/health", label: "صحة المنصة", perm: "platform.read" },
       { href: "/admin/platform/status", label: "صفحة الحالة", perm: "platform.read" },
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },
+      { href: "/admin/platform/risk", label: "المخاطر", perm: "platform.read" },
     ],
   },
   // Yolias affiliate program (D-178): marketers, commissions, payouts, rules.

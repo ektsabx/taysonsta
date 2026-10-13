@@ -4,6 +4,7 @@ import { addMonths, renewalEmails, startPlan, startTrial } from "@/lib/billing";
 import { planEnded } from "@/lib/email/events";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { capture } from "@/lib/analytics/server";
+import { checkoutStep } from "@/lib/funnel";
 import { planForProduct, type PolarConfig } from "./polar";
 import type { BillingPeriod, PaidPlan, WorkspaceRow } from "@/types/database";
 
@@ -47,6 +48,14 @@ async function payerOf(db: Db, ws: WorkspaceRow, userId: string | null) {
   if (!id) id = (await db.from("workspace_members").select("user_id").eq("workspace_id", ws.id).eq("role", "owner").limit(1).maybeSingle()).data?.user_id ?? null;
   const { data: prof } = id ? await db.from("profiles").select("email, full_name").eq("id", id).maybeSingle() : { data: null };
   return { userId: id ?? "", email: prof?.email ?? "", name: prof?.full_name ?? null };
+}
+
+/** The Yolias checkout session the Polar checkout was opened from (metadata.checkout_id), if it is this workspace's (D-212). */
+async function checkoutOf(db: Db, workspaceId: string, meta: Obj): Promise<string | null> {
+  const id = str(meta.checkout_id);
+  if (!id || !uuid.test(id)) return null;
+  const { data } = await db.from("checkout_sessions").select("id").eq("id", id).eq("workspace_id", workspaceId).maybeSingle();
+  return data?.id ?? null;
 }
 
 const modeOf = (cfg: PolarConfig) => (cfg.environment === "sandbox" ? ("test" as const) : ("live" as const));
@@ -97,7 +106,7 @@ export async function syncOrderPaid(cfg: PolarConfig, data: unknown): Promise<Sy
     const ins = await db.from("payments").insert({
       workspace_id: ws.id, kind: "subscription", plan: picked.plan, billing_period: picked.period, amount, currency: "USD",
       provider: "polar", provider_ref: orderId, provider_txn: orderId, mode, status: "succeeded", paid_at: str(d.created_at) ?? new Date().toISOString(),
-      created_by: payer.userId || null,
+      created_by: payer.userId || null, checkout_id: await checkoutOf(db, ws.id, meta),
     }).select("*").single();
     payment = ins.data ?? (await db.from("payments").select("*").eq("provider", "polar").eq("provider_ref", orderId).maybeSingle()).data;
   }
@@ -179,4 +188,33 @@ export async function syncCustomerState(cfg: PolarConfig, data: unknown): Promis
     await db.from("subscription_events").insert({ workspace_id: ws.id, plan: ws.plan, status: cancel ? "canceled" : "resumed", amount: 0, currency: "USD", billing_period: ws.billing_period, mode: modeOf(cfg) });
   }
   return { status: "processed", note: `subscription ${String(sub.status)}${cancel ? " (cancels at period end)" : ""}` };
+}
+
+/**
+ * checkout.updated (D-212): what Polar says about the checkout session itself.
+ * "failed" is a confirmed failure; "expired" closes the attempt; "confirmed"
+ * means the payment is being processed. Success is applied by order.paid /
+ * customer.state_changed, never here. Only sessions opened from Yolias
+ * (metadata.checkout_id) are tracked.
+ */
+export async function syncCheckoutUpdated(data: unknown): Promise<SyncResult> {
+  const d = obj(data);
+  const meta = obj(d.metadata);
+  const db = createAdminClient();
+  const ws = str(meta.workspace_id);
+  const cid = ws ? await checkoutOf(db, ws, meta) : null;
+  if (!cid) return { status: "ignored", note: "checkout not opened from a Yolias checkout session" };
+  const status = str(d.status);
+  const key = `polar_checkout:${str(d.id) ?? "?"}:${status ?? "?"}`;
+  if (status === "failed") {
+    await checkoutStep(cid, "payment_error", { provider: "polar", reason: "polar_payment_failed", key });
+    await db.from("checkout_sessions").update({ reason_category: "payment_failed" }).eq("id", cid).eq("status", "payment_failed");
+  } else if (status === "expired") {
+    await checkoutStep(cid, "returned", { provider: "polar", result: "expired", key, signed: true });
+  } else if (status === "confirmed") {
+    await checkoutStep(cid, "returned", { provider: "polar", result: "processing", key, signed: true });
+  } else {
+    return { status: "ignored", note: `checkout ${status ?? "?"}` };
+  }
+  return { status: "processed", note: `checkout ${status}` };
 }

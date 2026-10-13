@@ -11,7 +11,7 @@ import { monthlyRate, planName, priceFor } from "@/lib/plans";
 import type { BillingPeriod, BillingProvider, Currency, PaidPlan, Plan } from "@/types/database";
 import { metaTrack, track } from "@/lib/analytics/client";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
-import { activatePlan, checkoutState, startPolarCheckout } from "./actions";
+import { activatePlan, checkoutDetails, checkoutReturned, checkoutState, startPolarCheckout } from "./actions";
 
 interface Option {
   id: PaidPlan;
@@ -42,17 +42,21 @@ interface Props {
   trial: { days: number; prospects: number; emails: number; contacts: number } | null;
   /** Error carried back from /checkout/polar. */
   initialError: string | null;
+  /** Payment methods shown (the others are switched off in Admin, D-213). */
+  shown: BillingProvider[];
+  /** This visit's checkout session (journey tracking, D-212). */
+  checkoutId: string | null;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError, shown, checkoutId }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
   const [period, setPeriod] = useState<BillingPeriod>(initialPeriod);
   const [error, setError] = useState<string | null>(initialError);
   // The customer picks how to pay (D-209) — never chosen by country or IP.
-  const [route, setRoute] = useState<BillingProvider>(locked ?? (methods.polar || !methods.paymob ? "polar" : "paymob"));
-  const online = methods[route];
+  const [route, setRoute] = useState<BillingProvider>(locked ?? (shown.find((m) => methods[m]) ?? shown[0] ?? "polar"));
+  const online = methods[route] && shown.includes(route);
   const trial = route === "polar" ? trialOffer : null;
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -75,6 +79,10 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     if (value > 0) metaTrack("InitiateCheckout", { value, currency, content_type: "product", content_ids: [`${initialPlan}_${initialPeriod}`], num_items: 1 });
   }, [initialPlan, initialPeriod, options, currency]);
 
+  // Journey tracking (D-212): changing the plan, period or method counts as
+  // filling in the checkout (the first change only moves the step forward).
+  const detail = (input: { plan?: string; period?: string; method?: string }) => { void checkoutDetails(checkoutId, input).catch(() => {}); };
+
   // Coming back from the payment page with the browser's Back button restores
   // this page from the back/forward cache with the button still "Opening
   // payment…": reload it so the button works again.
@@ -92,7 +100,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     setError(null);
     setEmbed("opening");
     start(async () => {
-      const r = await callAction(() => startPolarCheckout(selected, period));
+      const r = await callAction(() => startPolarCheckout(selected, period, checkoutId));
       if (isNetworkFailure(r)) { setEmbed("idle"); return setError(c.errors.network); }
       if (!r.ok) {
         setEmbed("idle");
@@ -104,8 +112,11 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
         const dark = document.documentElement.getAttribute("data-theme") === "dark";
         const checkout = await PolarEmbedCheckout.create(r.url, { theme: dark ? "dark" : "light" });
         setEmbed("idle");
+        checkout.addEventListener("close", () => { void checkoutReturned(checkoutId, "closed").catch(() => {}); });
         checkout.addEventListener("success", (e) => {
           e.preventDefault(); // stay in Yolias instead of Polar's success page
+          // Polar's page said "success": recorded as a claim; the plan starts only from Polar's webhook.
+          void checkoutReturned(checkoutId, "succeeded").catch(() => {});
           checkout.close();
           setEmbed("activating");
           const startedAt = Date.now();
@@ -130,7 +141,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     if (pending) return;
     start(async () => {
       setError(null);
-      const r = await callAction(() => activatePlan(selected, period, route));
+      const r = await callAction(() => activatePlan(selected, period, route, checkoutId));
       if (isNetworkFailure(r)) setError(c.errors.network);
       else if (r && !r.ok) setError(r.error);
     });
@@ -154,7 +165,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
 
         <div className="period-toggle app" role="radiogroup" aria-label={t.pricing.billingPeriod}>
           {(["monthly", "annual"] as BillingPeriod[]).map((p) => (
-            <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
+            <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => { setPeriod(p); detail({ period: p }); }}>
               {p === "monthly" ? t.plans.monthly : t.plans.annual}
               {p === "annual" && <span className="period-save">{t.plans.annualSave}</span>}
             </button>
@@ -169,7 +180,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
               role="radio"
               aria-checked={o.id === selected}
               className={`checkout-plan${o.id === selected ? " selected" : ""}`}
-              onClick={() => setSelected(o.id)}
+              onClick={() => { setSelected(o.id); detail({ plan: o.id }); }}
             >
               <span className="checkout-radio" aria-hidden="true" />
               <span className="checkout-plan-main">
@@ -219,10 +230,10 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
           {/* The customer chooses: card → Polar, card from Egypt → Paymob. Never the provider's name or internal mode (owner, 2026-10-13). */}
           <div className="checkout-methods" role="radiogroup" aria-label={c.paymentMethod}>
-            {(["polar", "paymob"] as BillingProvider[]).map((m) => {
+            {shown.map((m) => {
               const off = (locked !== null && locked !== m) || (!methods[m] && !testMode);
               return (
-                <button key={m} type="button" role="radio" aria-checked={route === m} disabled={off} className={`checkout-method${route === m ? " selected" : ""}`} onClick={() => { setRoute(m); setError(null); }}>
+                <button key={m} type="button" role="radio" aria-checked={route === m} disabled={off} className={`checkout-method${route === m ? " selected" : ""}`} onClick={() => { setRoute(m); setError(null); detail({ method: m }); }}>
                   <span className="checkout-radio" aria-hidden="true" />
                   <span className="checkout-method-main">
                     <span className="checkout-method-name">{m === "polar" ? c.methodCard : c.methodEgypt}</span>

@@ -1,60 +1,56 @@
 import Link from "next/link";
-import { requirePermission, can } from "@/lib/bos/auth";
-import { readParams, pageOf, type SearchParams } from "@/lib/bos/params";
-import { PageHeader, Card, EmptyState, StatusBadge } from "@/components/bos/ui";
-import { BosTable } from "@/components/bos/BosTable";
-import { FilterBar } from "@/components/bos/FilterBar";
+import { requirePermission } from "@/lib/bos/auth";
+import { readParams, type SearchParams } from "@/lib/bos/params";
+import { PageHeader, Card, KpiCard } from "@/components/bos/ui";
 import { Tx } from "@/components/bos/I18n";
-import { formatDate, formatDateTime } from "@/lib/bos/format";
-import { listUsers } from "@/services/yolias/platform";
-import { NotConnected, connected, PlanBadge, Pager, qsFor, num } from "@/components/yolias/PlatformUi";
-import { SuspendForm } from "./UserForms";
+import { NotConnected, MigrationNeeded, trackingReady, connected, num } from "@/components/yolias/PlatformUi";
+import { PeriodPicker } from "@/components/yolias/PeriodPicker";
+import { pct, segmentLabel } from "@/components/yolias/AccountBits";
+import { accountsOverview, segmentCounts, SEGMENTS } from "@/services/yolias/accounts";
+import { period } from "@/services/yolias/conversions";
 
-const roleLabel: Record<string, string> = { owner: "المالك", admin: "مسؤول", member: "عضو" };
-
-// Yolias users (docs/09-yolias-admin.md §B "Users"): status, suspend / restore (audited).
-export default async function PlatformUsersPage({ searchParams }: { searchParams: SearchParams }) {
-  const { bos } = await requirePermission("platform.read");
+// Users → Overview (D-214). Every number is a count over the same view the
+// user tables read, so a card and its list always agree.
+export default async function UsersOverviewPage({ searchParams }: { searchParams: SearchParams }) {
+  await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="المستخدمون" /><NotConnected /></>);
-  const manage = can(bos, "platform.manage", "all");
+  if (!(await trackingReady())) return (<><PageHeader title="المستخدمون" /><MigrationNeeded /></>);
   const sp = await readParams(searchParams);
-  const page = pageOf(sp);
-  const { rows, total, pages } = await listUsers({ q: sp.q, page });
+  const p = period(sp);
+  const [o, seg] = await Promise.all([accountsOverview(p.since, p.until), segmentCounts()]);
+  const L = "/admin/platform/users";
+  const range = sp.from ? `from=${sp.from}${sp.to ? `&to=${sp.to}` : ""}` : "";
   return (
     <>
-      <PageHeader title="المستخدمون" subtitle={<Tx vars={{ n: num(total) }}>{"{n} مستخدم في Yolias"}</Tx>} />
-      <FilterBar searchPlaceholder="بحث بالاسم أو البريد" filters={[]} />
-      <Card flush>
-        {rows.length ? (
-          <div className="bos-table-scroll">
-            <BosTable className="bos-table responsive">
-              <thead><tr><th><Tx>الاسم</Tx></th><th><Tx>البريد الإلكتروني</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>الدور</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>اللغة / الدولة</Tx></th><th><Tx>تاريخ التسجيل</Tx></th><th><Tx>آخر دخول</Tx></th><th><Tx>الحالة</Tx></th>{manage ? <th /> : null}</tr></thead>
-              <tbody>
-                {rows.map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      {u.full_name || "—"}
-                      {!u.onboarded_at ? <span className="cell-sub"><Tx>لم يكمل الإعداد</Tx></span> : null}
-                    </td>
-                    <td dir="ltr">
-                      {u.email}
-                      {!u.confirmed ? <span className="cell-sub"><StatusBadge tone="warning" label="البريد غير مؤكد" /></span> : null}
-                    </td>
-                    <td>{u.workspace ? <Link className="bos-link" href={`/admin/platform/workspaces/${u.workspace.id}`}>{u.workspace.name || "—"}</Link> : "—"}</td>
-                    <td>{u.role ? <Tx>{roleLabel[u.role] ?? u.role}</Tx> : "—"}</td>
-                    <td>{u.workspace ? <PlanBadge plan={u.workspace.plan} status={u.workspace.subscription_status} /> : "—"}</td>
-                    <td dir="ltr">{u.language.toUpperCase()} · {u.country}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>{formatDate(u.created_at)}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>{u.last_sign_in_at ? formatDateTime(u.last_sign_in_at) : "—"}</td>
-                    <td>{u.suspended ? <StatusBadge tone="danger" label="موقوف" /> : <StatusBadge tone="success" label="نشط" />}</td>
-                    {manage ? <td><SuspendForm id={u.id} suspended={u.suspended} /></td> : null}
-                  </tr>
-                ))}
-              </tbody>
-            </BosTable>
-          </div>
-        ) : <EmptyState title="لا يوجد مستخدمون" />}
-        <Pager page={page} pages={pages} href={qsFor("/admin/platform/users", sp)} />
+      <PageHeader title="المستخدمون — نظرة عامة" subtitle={<Tx vars={{ p: p.label }}>{"أرقام من البيانات الفعلية · الفترة: {p}"}</Tx>} />
+      <PeriodPicker base={L} sp={sp} />
+      <div className="bos-kpis">
+        <KpiCard label="إجمالي الحسابات" value={num(o.total)} href={`${L}/all`} />
+        <KpiCard label="مسجلون جدد في الفترة" value={num(o.newInPeriod)} href={`${L}/all?${range || `from=${p.since.slice(0, 10)}`}`} />
+        <KpiCard label="لم يشتركوا بعد" value={num(o.notSubscribed)} sub={<Tx>لا دفع ولا تجربة</Tx>} href={`${L}/registered?sub=none`} />
+        <KpiCard label="في التجربة المجانية الآن" value={num(o.trialing)} href={`${L}/subscribed?sub=trialing`} />
+        <KpiCard label="مشتركون مدفوعون نشطون" value={num(o.paidActive)} href={`${L}/subscribed?segment=paid_active`} />
+        <KpiCard label="اشتراكات منتهية" value={num(o.ended)} href={`${L}/subscribed?sub=canceled`} />
+        <KpiCard label="ملغاة وما زالت سارية" value={num(o.canceledRunning)} sub={<Tx vars={{ n: num(o.canceledInPeriod) }}>{"{n} إلغاء في الفترة"}</Tx>} />
+        <KpiCard label="موقوفون" value={num(o.suspended)} href={`${L}/suspended`} />
+        <KpiCard label="محظورون" value={num(o.banned)} href={`${L}/banned`} />
+        <KpiCard label="تجارب تنتهي خلال 3 أيام" value={num(o.trialSoon)} href={`${L}/subscribed?sub=trialing&sort=trial_end&dir=asc`} />
+        <KpiCard label="اشتراكات تنتهي خلال 7 أيام" value={num(o.periodSoon)} href={`${L}/subscribed?sub=active&sort=period_end&dir=asc`} />
+        <KpiCard label="تحويل المسجلين إلى مدفوعين" value={pct(o.conversion)} sub={<Tx vars={{ a: num(o.newPaid), b: num(o.newInPeriod) }}>{"{a} من {b} سجلوا في الفترة ودفعوا"}</Tx>} />
+      </div>
+
+      <Card title="أين يقف المستخدمون في رحلة الاشتراك">
+        <p className="bos-faint" style={{ fontSize: 12.5, marginTop: 0 }}><Tx>كل حساب في فئة واحدة حسب آخر حالة مؤكدة. اضغط على الفئة لفتح قائمة الحسابات الفعلية واتخاذ إجراء.</Tx></p>
+        <div className="bos-table-scroll"><table className="bos-table">
+          <tbody>
+            {SEGMENTS.map((s) => (
+              <tr key={s}>
+                <td><Link className="bos-link" href={`${L}/all?segment=${s}`}><Tx>{segmentLabel[s] ?? s}</Tx></Link></td>
+                <td className="bos-num">{num(seg[s] ?? 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table></div>
       </Card>
     </>
   );

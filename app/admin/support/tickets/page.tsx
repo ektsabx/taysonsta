@@ -12,7 +12,7 @@ import { statusOptions, statusDef } from "@/lib/bos/labels";
 
 const statusLabel = (s: string) => statusDef("ticket_status", s)?.label ?? s;
 import { SlaIndicator } from "../SlaIndicator";
-import { ticketCategories, priorities } from "../SupportControls";
+import { ticketCategories, priorities } from "../ticket-options";
 import { bulkAssignTicketsAction } from "../actions";
 
 export default async function TicketsPage({ searchParams }: { searchParams: SearchParams }) {

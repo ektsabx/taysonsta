@@ -805,6 +805,11 @@ a.badge-chan:hover { text-decoration: underline; }
   animation: popoverFadeIn .18s ease;
 }
 .menu-item.selected { color: var(--ink); font-weight: 700; }
+/* Phones: the range menu opens as a sheet inside the screen (it overflowed the edge before). */
+@media (max-width: 700px) {
+  .range-picker .dropdown-panel { position: fixed; top: auto; bottom: 12px; inset-inline: 12px; min-width: 0; max-height: 60dvh; overflow-y: auto; }
+  .range-picker .dropdown-panel .menu-item { width: 100%; padding-block: 12px; }
+}
 
 .filter-bar {
   display: flex;

@@ -6,8 +6,8 @@ import { yoliasConfigured } from "@/lib/yolias/db";
 
 // Shared bits for the Yolias Platform pages (docs/09-yolias-admin.md §B).
 
-const planTone: Record<string, Tone> = { free: "neutral", pro: "info", growth: "accent" };
-const planLabel: Record<string, string> = { free: "Free", pro: "Pro", growth: "Growth" };
+const planTone: Record<string, Tone> = { free: "neutral", pro: "info", growth: "accent", scale: "success" };
+const planLabel: Record<string, string> = { free: "Free", pro: "Pro", growth: "Growth", scale: "Scale" };
 
 export function PlanBadge({ plan, status }: { plan: string; status?: string }) {
   return (
@@ -87,3 +87,29 @@ export function qsFor(base: string, sp: Record<string, string>) {
 
 export const num = (n: number) => new Intl.NumberFormat("en-US").format(n);
 export const usd = (n: number) => `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(n)}`;
+
+let trackingReadyCache: { at: number; ok: boolean } | null = null;
+/**
+ * Whether the Yolias database has the 2026-10-13 tables (migration
+ * 20261113000000_conversion_tracking.sql). Production needs it applied before
+ * the Users / Conversions pages can read anything; until then they explain
+ * that instead of failing. Cached for a minute.
+ */
+export async function trackingReady(): Promise<boolean> {
+  if (trackingReadyCache && Date.now() - trackingReadyCache.at < 60_000) return trackingReadyCache.ok;
+  const { ydb } = await import("@/lib/yolias/db");
+  const { error } = await ydb().from("admin_accounts_v").select("id", { head: true, count: "exact" }).limit(1);
+  trackingReadyCache = { at: Date.now(), ok: !error };
+  return !error;
+}
+
+export function MigrationNeeded() {
+  return (
+    <Card>
+      <EmptyState
+        title="هذه الصفحة تحتاج تحديث قاعدة بيانات Yolias"
+        description="قاعدة البيانات المتصلة (الإنتاج) لم يُطبَّق عليها ملف 20261113000000_conversion_tracking.sql بعد. بعد تطبيقه تعمل الصفحة مباشرة. الخطوات في docs/17 آخر قسم."
+      />
+    </Card>
+  );
+}

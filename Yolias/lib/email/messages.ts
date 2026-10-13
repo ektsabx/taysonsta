@@ -127,6 +127,8 @@ export interface MessageData {
   prospects_added: Base & { added: number; allowance: number; reason: string | null };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
   affiliate_update: Base & { event: AffiliateEmailEvent; amountCents: number | null; reason: string | null; reference: string | null };
+  /** A message written by the Yolias team to one account (Admin → Users / Abandoned checkouts, D-215). */
+  team_message: Base & { subject: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
 }
 export type MessageKind = keyof MessageData;
 
@@ -423,6 +425,16 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     body: [`<span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:${C.red};font-weight:700">${esc(T(l, announcementEyebrow[d.type][0], announcementEyebrow[d.type][1]))}</span>`, ...paragraphs(d.body)],
     button: d.ctaLabel && d.ctaUrl ? { label: d.ctaLabel, href: d.ctaUrl } : undefined,
     footnote: T(l, `You’re receiving this because “Product updates” is on. ${link(`${d.siteUrl}/`, "Notification settings")}`, `تصلك هذه الرسالة لأن «تحديثات المنتج» مفعّلة. ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
+  }),
+
+  /* Written by the Yolias team (D-215): sent as written, links only to Yolias. */
+  team_message: (l, d) => ({
+    subject: d.subject,
+    preheader: d.subject,
+    heading: d.subject,
+    body: paragraphs(d.body),
+    button: d.ctaLabel && d.ctaUrl ? { label: d.ctaLabel, href: d.ctaUrl } : undefined,
+    footnote: T(l, `A message from the Yolias team. ${link(`${d.siteUrl}/`, "Notification settings")}`, `رسالة من فريق يولـياس. ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
 
   /* Affiliate program */
