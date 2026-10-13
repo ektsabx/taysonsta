@@ -19,7 +19,7 @@ export default async function OutreachCampaignPage({ params }: { params: Promise
   if (!detail) notFound();
   // CRM leads that can still be added (not in this campaign yet).
   const enrolled = new Set(detail.enrollments.map((e) => e.lead_id));
-  const { data: leads } = await (await createClient()).from("leads").select("id, name, company_name, stage, do_not_contact")
+  const { data: leads } = await (await createClient()).from("sales_leads").select("id, name, company_name, stage, do_not_contact")
     .eq("workspace_id", session.workspace.id).order("last_activity_at", { ascending: false }).limit(500);
   return (
     <CampaignDetailView

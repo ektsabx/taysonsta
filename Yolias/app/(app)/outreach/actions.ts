@@ -106,7 +106,7 @@ export async function addProspectsToCampaign(campaignId: string, targets: LeadTa
   const valid = (targets ?? []).filter((x) => (x?.kind === "person" || x?.kind === "company") && uuid.safeParse(x.id).success).slice(0, 500);
   if (!uuid.safeParse(campaignId).success || !valid.length) return { ok: false, error: t.errors.notFound };
   const db = await createClient();
-  const before = new Set(((await db.from("leads").select("id").eq("workspace_id", session.workspace.id).limit(10000)).data ?? []).map((l) => l.id));
+  const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", session.workspace.id).limit(10000)).data ?? []).map((l) => l.id));
   const { ids } = await addLeads(db, valid, "search");
   await leadsCreated(session.workspace.id, ids.filter((id) => !before.has(id)));
   const r = await enrollLeads(db, session.workspace.id, session.userId, campaignId, ids);

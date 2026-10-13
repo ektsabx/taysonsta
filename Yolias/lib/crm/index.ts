@@ -39,7 +39,7 @@ export async function leadsCreated(workspaceId: string, ids: string[], origin: A
  * (RLS) or the admin client for agents / automations / approved actions.
  */
 export async function changeStage(db: Db, workspaceId: string, leadId: string, stage: LeadStage, actor: ActorKind): Promise<{ ok: boolean; changed: boolean }> {
-  const { data: before } = await db.from("leads").select("stage, deal_value, workspace_id").eq("id", leadId).eq("workspace_id", workspaceId).maybeSingle();
+  const { data: before } = await db.from("sales_leads").select("stage, deal_value, workspace_id").eq("id", leadId).eq("workspace_id", workspaceId).maybeSingle();
   if (!before) return { ok: false, changed: false };
   const { data: activityId, error } = await db.rpc("set_lead_stage", { p_lead: leadId, p_stage: stage, p_actor: actor });
   if (error) return { ok: false, changed: false };
@@ -61,7 +61,7 @@ async function afterStageChange(workspaceId: string, leadId: string, from: LeadS
 /** Meeting saved: booking moves the deal forward, completion too (never backwards). */
 export async function meetingChanged(db: Db, workspaceId: string, meeting: { id: string; lead_id: string; status: MeetingStatus }, previous: MeetingStatus | null, actor: ActorKind) {
   const admin = createAdminClient();
-  const { data: lead } = await admin.from("leads").select("stage").eq("id", meeting.lead_id).single();
+  const { data: lead } = await admin.from("sales_leads").select("stage").eq("id", meeting.lead_id).single();
   const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "closed"];
   const at = (s: LeadStage | undefined) => (s ? order.indexOf(s) : -1);
   if (previous === null && meeting.status === "scheduled") {

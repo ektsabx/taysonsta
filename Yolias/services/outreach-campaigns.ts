@@ -34,7 +34,7 @@ export async function campaignStats(ids: string[]): Promise<Map<string, Campaign
   }
   const leadIds = [...new Set((enr ?? []).map((e) => e.lead_id))];
   if (leadIds.length) {
-    const { data: meetings } = await db.from("meetings").select("lead_id, created_at").in("lead_id", leadIds.slice(0, 1000)).neq("status", "canceled");
+    const { data: meetings } = await db.from("sales_meetings").select("lead_id, created_at").in("lead_id", leadIds.slice(0, 1000)).neq("status", "canceled");
     for (const m of meetings ?? []) for (const e of enr ?? []) if (e.lead_id === m.lead_id && e.created_at <= m.created_at) out.get(e.campaign_id)!.meetings++;
   }
   return out;
@@ -48,7 +48,7 @@ export async function getOutreachCampaign(workspaceId: string, id: string) {
   if (!campaign) return null;
   const [steps, enrollments, messages, stats] = await Promise.all([
     db.from("outreach_steps").select("*").eq("campaign_id", id).order("position"),
-    db.from("outreach_enrollments").select("*, lead:leads(id, name, company_name, email, stage, do_not_contact)").eq("campaign_id", id).order("created_at", { ascending: false }).limit(500),
+    db.from("outreach_enrollments").select("*, lead:sales_leads(id, name, company_name, email, stage, do_not_contact)").eq("campaign_id", id).order("created_at", { ascending: false }).limit(500),
     db.from("outreach_messages").select("id, enrollment_id, status, step_position, created_at, sent_at").eq("outreach_campaign_id", id).eq("direction", "outbound").neq("status", "canceled").order("created_at", { ascending: false }).limit(2000),
     campaignStats([id]),
   ]);

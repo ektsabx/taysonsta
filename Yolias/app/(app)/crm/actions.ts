@@ -30,7 +30,7 @@ export async function addToCrm(targets: LeadTarget[]): Promise<CrmResult<{ added
   const valid = (targets ?? []).filter((x) => (x?.kind === "person" || x?.kind === "company") && uuid.safeParse(x.id).success).slice(0, 500);
   if (!valid.length) return { ok: false, error: t.crm.errors.notFound };
   const db = await createClient();
-  const before = new Set(((await db.from("leads").select("id").eq("workspace_id", session.workspace.id).limit(10000)).data ?? []).map((l) => l.id));
+  const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", session.workspace.id).limit(10000)).data ?? []).map((l) => l.id));
   const { ids } = await addLeads(db, valid, "search");
   const fresh = ids.filter((id) => !before.has(id));
   await leadsCreated(session.workspace.id, fresh);
@@ -69,7 +69,7 @@ export async function updateLead(leadId: string, patch: z.input<typeof leadPatch
     const { data: member } = await db.from("workspace_members").select("user_id").eq("workspace_id", session.workspace.id).eq("user_id", p.data.owner_id).maybeSingle();
     if (!member) return { ok: false, error: t.common.error };
   }
-  const { data, error } = await db.from("leads").update(p.data).eq("id", leadId).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
+  const { data, error } = await db.from("sales_leads").update(p.data).eq("id", leadId).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
   if (error || !data) return { ok: false, error: t.common.error };
   refresh(leadId);
   return { ok: true };
@@ -138,12 +138,12 @@ export async function saveMeeting(input: z.input<typeof meetingInput>): Promise<
   let previous: MeetingStatus | null = null;
   let saved: { id: string; lead_id: string; status: MeetingStatus } | null = null;
   if (m.id) {
-    const { data: old } = await db.from("meetings").select("status").eq("id", m.id).eq("workspace_id", session.workspace.id).maybeSingle();
+    const { data: old } = await db.from("sales_meetings").select("status").eq("id", m.id).eq("workspace_id", session.workspace.id).maybeSingle();
     if (!old) return { ok: false, error: e.title };
     previous = old.status;
-    saved = (await db.from("meetings").update(row).eq("id", m.id).select("id, lead_id, status").single()).data;
+    saved = (await db.from("sales_meetings").update(row).eq("id", m.id).select("id, lead_id, status").single()).data;
   } else {
-    saved = (await db.from("meetings").insert({ ...row, workspace_id: session.workspace.id, lead_id: m.lead_id, created_by: session.userId }).select("id, lead_id, status").single()).data;
+    saved = (await db.from("sales_meetings").insert({ ...row, workspace_id: session.workspace.id, lead_id: m.lead_id, created_by: session.userId }).select("id, lead_id, status").single()).data;
   }
   if (!saved) return { ok: false, error: (await getDictionary()).ws.common.error };
   await meetingChanged(db, session.workspace.id, saved, previous, "user");
@@ -156,7 +156,7 @@ export async function prepareMeetingBrief(meetingId: string): Promise<CrmResult<
   const t = await getDictionary();
   if (!uuid.safeParse(meetingId).success) return { ok: false, error: t.ws.common.notFound };
   // RLS: the member can read this meeting.
-  const { data: own } = await (await createClient()).from("meetings").select("lead_id").eq("id", meetingId).maybeSingle();
+  const { data: own } = await (await createClient()).from("sales_meetings").select("lead_id").eq("id", meetingId).maybeSingle();
   if (!own) return { ok: false, error: t.ws.common.notFound };
   const r = await meetingBrief(session.workspace.id, session.userId, meetingId, session.profile.language === "ar" ? "ar" : "en");
   if (!r.ok) return { ok: false, error: r.error === "denied" ? t.ws.messages.prepareErrors.denied : r.error === "not_configured" ? t.outreach.errors.not_configured : t.ws.common.error };
@@ -189,7 +189,7 @@ export async function removeLead(leadId: string): Promise<CrmResult> {
   const session = await requireSession();
   const t = (await getDictionary()).ws;
   if (!canManageTeam(session)) return { ok: false, error: t.common.onlyManagers };
-  const { error } = await (await createClient()).from("leads").delete().eq("id", leadId).eq("workspace_id", session.workspace.id);
+  const { error } = await (await createClient()).from("sales_leads").delete().eq("id", leadId).eq("workspace_id", session.workspace.id);
   if (error) return { ok: false, error: t.common.error };
   refresh();
   return { ok: true };

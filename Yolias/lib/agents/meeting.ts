@@ -18,7 +18,7 @@ export async function meetingBrief(workspaceId: string, userId: string, meetingI
   const d = decide(s, "meeting", "prepare_messages");
   if (!d.allowed) return { ok: false, error: "denied" };
   const db = createAdminClient();
-  const { data: m } = await db.from("meetings").select("*, lead:leads(*)").eq("id", meetingId).eq("workspace_id", workspaceId).maybeSingle();
+  const { data: m } = await db.from("sales_meetings").select("*, lead:sales_leads(*)").eq("id", meetingId).eq("workspace_id", workspaceId).maybeSingle();
   if (!m || !m.lead) return { ok: false, error: "not_found" };
   const lead = m.lead as unknown as { id: string; name: string; company_name: string | null; stage: string; deal_value: number | null; deal_currency: string; prospect_id: string | null; company_id: string | null; customer_profile_id: string | null };
   const [business, { data: person }, { data: company }, { data: notes }] = await Promise.all([

@@ -299,3 +299,6 @@ AI Workspace → AI Agent: one agent (Yolias AI) with a goal and shared guidelin
 
 ## D-207 — Support (Admin) (2026-10-13)
 A customer message emails the assigned staff member (and notifies in the app) with the message text; while nobody is assigned (e.g. the AI agent answers), the conversation's support team gets it (`support_team` relation; Admin migration `20261112000000_support_email.sql`). The first message of a new conversation counts too. The widget plays a soft tone on send and on a new reply (Web Audio, `data-sound="off"` disables). The website widget moved from Settings → Integrations to Support, next to the AI agent. The Admin inbox thread uses the messenger look: soft bubbles, details under them, AI tagged, pill composer.
+
+## D-208 — CRM tables renamed for the shared database (2026-10-13)
+Production shares one Supabase project with the Admin, which already has `public.leads` and `public.meetings` (its own CRM). The Yolias CRM tables are `sales_leads` and `sales_meetings` (the view stays `crm_leads`). The first production attempt failed before changing anything (each file runs in one transaction); its wrong records are removed by `Yolias/supabase/remote/unrecord-20261111000000-20261112000000.sql`. Every name the two Yolias migrations create was checked read-only against production: no other collision.

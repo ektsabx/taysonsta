@@ -182,7 +182,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
   const db = createAdminClient();
   const leadId = input.sequence?.leadId ?? input.leadId ?? null;
   if (leadId) {
-    const { data: lead } = await db.from("leads").select("do_not_contact").eq("id", leadId).eq("workspace_id", input.workspaceId).maybeSingle();
+    const { data: lead } = await db.from("sales_leads").select("do_not_contact").eq("id", leadId).eq("workspace_id", input.workspaceId).maybeSingle();
     if (!lead) return { ok: false, error: "not_found" };
     if (lead.do_not_contact) return { ok: false, error: "do_not_contact" };
   }

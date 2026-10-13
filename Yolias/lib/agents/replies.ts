@@ -42,7 +42,7 @@ export interface LogReplyInput { leadId: string; body: string; channel: MessageC
 export async function logReply(db: Db, workspaceId: string, userId: string, input: LogReplyInput): Promise<{ ok: true; messageId: string; analysis: ReplyAnalysis | null } | { ok: false; error: "not_found" | "empty" }> {
   const body = input.body.trim().slice(0, 10000);
   if (!body) return { ok: false, error: "empty" };
-  const { data: lead } = await db.from("leads").select("id, email, stage").eq("id", input.leadId).eq("workspace_id", workspaceId).maybeSingle();
+  const { data: lead } = await db.from("sales_leads").select("id, email, stage").eq("id", input.leadId).eq("workspace_id", workspaceId).maybeSingle();
   if (!lead) return { ok: false, error: "not_found" };
   const admin = createAdminClient();
   const received = input.receivedAt && !Number.isNaN(Date.parse(input.receivedAt)) && Date.parse(input.receivedAt) <= Date.now() + 60_000 ? new Date(input.receivedAt).toISOString() : new Date().toISOString();
@@ -66,7 +66,7 @@ export async function logReply(db: Db, workspaceId: string, userId: string, inpu
 
 async function markDoNotContact(leadId: string) {
   // Opt-outs are honoured whoever recorded them (the DB stops campaigns and cancels drafts).
-  await createAdminClient().from("leads").update({ do_not_contact: true }).eq("id", leadId);
+  await createAdminClient().from("sales_leads").update({ do_not_contact: true }).eq("id", leadId);
 }
 
 /** Classifies one logged reply and acts within Rules & Permissions. Null when the Replies Agent is off or not allowed. */
@@ -128,7 +128,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
 /** CRM Agent: applies a stage suggestion as Rules & Permissions allow (auto / approval / not at all). */
 export async function suggestStage(workspaceId: string, leadId: string, stage: LeadStage, why: string, s: AiSettings, escalated: boolean) {
   const db = createAdminClient();
-  const { data: lead } = await db.from("leads").select("stage").eq("id", leadId).single();
+  const { data: lead } = await db.from("sales_leads").select("stage").eq("id", leadId).single();
   if (!lead || lead.stage === stage || lead.stage === "closed") return;
   // Suggestions only move a deal forward (or to Lost), never back.
   const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "closed"];
@@ -156,7 +156,7 @@ export async function draftReply(workspaceId: string, userId: string, leadId: st
   const d = decide(s, "replies", "prepare_messages");
   if (!d.allowed) return { ok: false, error: "denied" };
   const db = createAdminClient();
-  const { data: lead } = await db.from("leads").select("*").eq("id", leadId).eq("workspace_id", workspaceId).maybeSingle();
+  const { data: lead } = await db.from("sales_leads").select("*").eq("id", leadId).eq("workspace_id", workspaceId).maybeSingle();
   if (!lead) return { ok: false, error: "not_found" };
   if (lead.do_not_contact) return { ok: false, error: "do_not_contact" };
   const { data: last } = await db.from("outreach_messages").select("channel, language, subject, outreach_campaign_id, enrollment_id, analysis").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(1).maybeSingle();

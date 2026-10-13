@@ -143,7 +143,7 @@ create unique index customer_profiles_default_uq on public.customer_profiles (wo
 alter table public.strategies add column customer_profile_id uuid references public.customer_profiles(id) on delete set null;
 
 -- ── 4. CRM: leads, timeline, tasks, meetings ─────────────────────────────────
-create table public.leads (
+create table public.sales_leads (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
   -- One lead per real person / company: email or shared person id for people,
@@ -171,14 +171,14 @@ create table public.leads (
   updated_at timestamptz not null default now(),
   unique (workspace_id, lead_key)
 );
-create index leads_ws_stage_idx on public.leads (workspace_id, stage, last_activity_at desc);
-create index leads_prospect_idx on public.leads (prospect_id);
-create index leads_company_idx on public.leads (company_id);
+create index sales_leads_ws_stage_idx on public.sales_leads (workspace_id, stage, last_activity_at desc);
+create index sales_leads_prospect_idx on public.sales_leads (prospect_id);
+create index sales_leads_company_idx on public.sales_leads (company_id);
 
 create table public.lead_activities (
   id bigint generated always as identity primary key,
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
-  lead_id uuid not null references public.leads(id) on delete cascade,
+  lead_id uuid not null references public.sales_leads(id) on delete cascade,
   kind text not null check (kind in (
     'created', 'stage_changed', 'note', 'deal_updated', 'message_drafted', 'message_sent', 'reply_logged', 'reply_analyzed',
     'meeting_scheduled', 'meeting_updated', 'task_created', 'task_done', 'enrolled', 'enrollment_stopped', 'automation', 'agent', 'do_not_contact')),
@@ -194,7 +194,7 @@ create index lead_activities_ws_idx on public.lead_activities (workspace_id, cre
 create table public.lead_tasks (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
-  lead_id uuid not null references public.leads(id) on delete cascade,
+  lead_id uuid not null references public.sales_leads(id) on delete cascade,
   title text not null check (length(trim(title)) between 1 and 300),
   kind text not null default 'reminder' check (kind in ('reminder', 'follow_up', 'meeting_prep', 'review', 'approval')),
   due_at timestamptz,
@@ -211,10 +211,10 @@ create index lead_tasks_open_idx on public.lead_tasks (workspace_id, due_at) whe
 create index lead_tasks_lead_idx on public.lead_tasks (lead_id);
 create unique index lead_tasks_dedupe_uq on public.lead_tasks (workspace_id, dedupe_key) where dedupe_key is not null;
 
-create table public.meetings (
+create table public.sales_meetings (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
-  lead_id uuid not null references public.leads(id) on delete cascade,
+  lead_id uuid not null references public.sales_leads(id) on delete cascade,
   title text not null check (length(trim(title)) between 1 and 200),
   starts_at timestamptz not null,
   ends_at timestamptz,
@@ -226,8 +226,8 @@ create table public.meetings (
   updated_at timestamptz not null default now(),
   check (ends_at is null or ends_at >= starts_at)
 );
-create index meetings_lead_idx on public.meetings (lead_id, starts_at);
-create index meetings_ws_idx on public.meetings (workspace_id, starts_at) where status = 'scheduled';
+create index sales_meetings_lead_idx on public.sales_meetings (lead_id, starts_at);
+create index sales_meetings_ws_idx on public.sales_meetings (workspace_id, starts_at) where status = 'scheduled';
 
 -- ── 5. Outreach campaigns, steps, enrollments ────────────────────────────────
 -- Separate from discovery campaigns (public.campaigns = searches).
@@ -264,7 +264,7 @@ create table public.outreach_enrollments (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
   campaign_id uuid not null references public.outreach_campaigns(id) on delete cascade,
-  lead_id uuid not null references public.leads(id) on delete cascade,
+  lead_id uuid not null references public.sales_leads(id) on delete cascade,
   status text not null default 'active' check (status in ('active', 'paused', 'replied', 'completed', 'stopped')),
   -- Last step whose message was sent (0 = nothing sent yet).
   current_step int not null default 0 check (current_step between 0 and 10),
@@ -281,7 +281,7 @@ create index outreach_enrollments_lead_idx on public.outreach_enrollments (lead_
 -- Messages: the same table as the prospect actions, now tied to the lead,
 -- the outreach campaign / step, a direction and a planned send time.
 alter table public.outreach_messages
-  add column lead_id uuid references public.leads(id) on delete set null,
+  add column lead_id uuid references public.sales_leads(id) on delete set null,
   add column outreach_campaign_id uuid references public.outreach_campaigns(id) on delete set null,
   add column enrollment_id uuid references public.outreach_enrollments(id) on delete set null,
   add column step_position int check (step_position is null or step_position between 1 and 10),
@@ -309,7 +309,7 @@ create index outreach_messages_scheduled_idx on public.outreach_messages (worksp
 create table public.inbox_threads (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
-  lead_id uuid not null unique references public.leads(id) on delete cascade,
+  lead_id uuid not null unique references public.sales_leads(id) on delete cascade,
   status text not null default 'open' check (status in ('open', 'done', 'other')),
   last_message_at timestamptz,
   last_inbound_at timestamptz,
@@ -335,7 +335,7 @@ create table public.workspace_ai_settings (
 
 -- Agent actions waiting for the member's approval (Rules & Permissions → "Needs approval").
 alter table public.agent_pending_actions
-  add column lead_id uuid references public.leads(id) on delete cascade,
+  add column lead_id uuid references public.sales_leads(id) on delete cascade,
   add column agent text check (agent is null or agent in ('research', 'outreach', 'replies', 'follow_up', 'meeting', 'crm', 'automation'));
 create index agent_pending_actions_ws_idx on public.agent_pending_actions (workspace_id, status, created_at desc);
 
@@ -363,7 +363,7 @@ create table public.automation_runs (
   -- The event that fired it ("activity:123"): the same event never runs twice.
   event_key text not null,
   trigger text not null,
-  lead_id uuid references public.leads(id) on delete set null,
+  lead_id uuid references public.sales_leads(id) on delete set null,
   status text not null check (status in ('succeeded', 'partial', 'failed', 'skipped', 'needs_approval')),
   results jsonb not null default '[]'::jsonb,
   error text check (error is null or length(error) <= 1000),
@@ -376,13 +376,15 @@ create index automation_runs_ws_idx on public.automation_runs (workspace_id, cre
 do $$
 declare t text;
 begin
-  foreach t in array array['business_offers', 'competitors', 'customer_profiles', 'leads', 'lead_tasks', 'meetings',
+  foreach t in array array['business_offers', 'competitors', 'customer_profiles', 'sales_leads', 'lead_tasks', 'sales_meetings',
     'outreach_campaigns', 'outreach_enrollments', 'inbox_threads', 'automations'] loop
     execute format('create trigger %I before update on public.%I for each row execute function public.set_updated_at()', t || '_updated_at', t);
   end loop;
 end $$;
 
 -- ── lead identity ────────────────────────────────────────────────────────────
+-- (Tables are sales_leads / sales_meetings: the shared production database
+-- already has the Admin's own leads and meetings tables.)
 -- Adds a search result (person or company) to the CRM, or returns the lead it
 -- already is. Definer so it can link identities, but only for a member of the
 -- result's workspace (checked below); the service role passes through.
@@ -415,14 +417,14 @@ begin
   if v_ws is null then raise exception 'not found'; end if;
   if auth.role() <> 'service_role' and not public.is_workspace_member(v_ws) then raise exception 'not found'; end if;
 
-  insert into public.leads (workspace_id, lead_key, prospect_id, company_id, name, company_name, email, source, created_by)
+  insert into public.sales_leads (workspace_id, lead_key, prospect_id, company_id, name, company_name, email, source, created_by)
   values (v_ws, v_key, p_prospect, v_company, coalesce(nullif(trim(v_name), ''), v_company_name, 'Unknown'), v_company_name, v_email, p_source, auth.uid())
   on conflict (workspace_id, lead_key) do nothing
   returning id into v_id;
   if v_id is null then
-    select id into v_id from public.leads where workspace_id = v_ws and lead_key = v_key;
+    select id into v_id from public.sales_leads where workspace_id = v_ws and lead_key = v_key;
     -- A person found later for a company lead (or vice versa) fills the gap, never replaces.
-    update public.leads set prospect_id = coalesce(prospect_id, p_prospect), company_id = coalesce(company_id, v_company)
+    update public.sales_leads set prospect_id = coalesce(prospect_id, p_prospect), company_id = coalesce(company_id, v_company)
       where id = v_id and (prospect_id is null or company_id is null);
   end if;
   return v_id;
@@ -474,13 +476,13 @@ begin
   if old.do_not_contact and not new.do_not_contact and public.current_actor_kind() <> 'user' then new.do_not_contact := true; end if;
   return new;
 end $$;
-create trigger leads_stage_stamp before update on public.leads for each row execute function public.leads_stage_stamp();
-create trigger leads_timeline after insert or update on public.leads for each row execute function public.leads_timeline();
+create trigger sales_leads_stage_stamp before update on public.sales_leads for each row execute function public.leads_stage_stamp();
+create trigger sales_leads_timeline after insert or update on public.sales_leads for each row execute function public.leads_timeline();
 
 create or replace function public.lead_activity_touch() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  update public.leads set last_activity_at = new.created_at where id = new.lead_id and last_activity_at < new.created_at;
+  update public.sales_leads set last_activity_at = new.created_at where id = new.lead_id and last_activity_at < new.created_at;
   return new;
 end $$;
 create trigger lead_activity_touch after insert on public.lead_activities for each row execute function public.lead_activity_touch();
@@ -490,7 +492,7 @@ create or replace function public.lead_tasks_sync() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare v_lead uuid := coalesce(new.lead_id, old.lead_id);
 begin
-  update public.leads set next_follow_up_at = (select min(due_at) from public.lead_tasks where lead_id = v_lead and done_at is null and due_at is not null)
+  update public.sales_leads set next_follow_up_at = (select min(due_at) from public.lead_tasks where lead_id = v_lead and done_at is null and due_at is not null)
     where id = v_lead;
   if tg_op = 'INSERT' then
     insert into public.lead_activities (workspace_id, lead_id, kind, actor_id, actor_kind, body, meta)
@@ -512,7 +514,7 @@ begin
           jsonb_build_object('meeting_id', new.id, 'starts_at', new.starts_at, 'status', new.status, 'from_status', case when tg_op = 'UPDATE' then old.status end));
   return new;
 end $$;
-create trigger meetings_timeline after insert or update of status, starts_at, title on public.meetings for each row execute function public.meetings_timeline();
+create trigger sales_meetings_timeline after insert or update of status, starts_at, title on public.sales_meetings for each row execute function public.meetings_timeline();
 
 create or replace function public.enrollments_timeline() returns trigger
 language plpgsql security definer set search_path = public as $$
@@ -592,7 +594,7 @@ create or replace view public.crm_leads with (security_invoker = true) as
 select l.*,
   t.status as thread_status,
   (t.last_inbound_at is not null and t.last_inbound_at > coalesce(t.last_read_at, '-infinity'::timestamptz)) as unread,
-  (select m.starts_at from public.meetings m where m.lead_id = l.id and m.status = 'scheduled' and m.starts_at >= now() - interval '2 hours' order by m.starts_at limit 1) as next_meeting_at,
+  (select m.starts_at from public.sales_meetings m where m.lead_id = l.id and m.status = 'scheduled' and m.starts_at >= now() - interval '2 hours' order by m.starts_at limit 1) as next_meeting_at,
   (select array_agg(oc.name order by e.created_at) from public.outreach_enrollments e join public.outreach_campaigns oc on oc.id = e.campaign_id where e.lead_id = l.id) as campaign_names,
   (select count(*) from public.lead_tasks k where k.lead_id = l.id and k.done_at is null)::int as open_tasks,
   co.domain as company_domain,
@@ -601,7 +603,7 @@ select l.*,
   p.title as job_title,
   coalesce(p.match_score, co.match_score) as match_score,
   t.last_message_at as thread_last_message_at
-from public.leads l
+from public.sales_leads l
 left join public.inbox_threads t on t.lead_id = l.id
 left join public.prospects p on p.id = l.prospect_id
 left join public.companies co on co.id = l.company_id;
@@ -612,10 +614,10 @@ alter table public.workspace_knowledge enable row level security;
 alter table public.business_offers enable row level security;
 alter table public.competitors enable row level security;
 alter table public.customer_profiles enable row level security;
-alter table public.leads enable row level security;
+alter table public.sales_leads enable row level security;
 alter table public.lead_activities enable row level security;
 alter table public.lead_tasks enable row level security;
-alter table public.meetings enable row level security;
+alter table public.sales_meetings enable row level security;
 alter table public.outreach_campaigns enable row level security;
 alter table public.outreach_steps enable row level security;
 alter table public.outreach_enrollments enable row level security;
@@ -640,14 +642,14 @@ create policy "members read automation runs" on public.automation_runs for selec
 
 -- Customer profiles and the sales work itself: every member.
 create policy "members all customer profiles" on public.customer_profiles for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
-create policy "members read leads" on public.leads for select using (public.is_workspace_member(workspace_id));
-create policy "members add leads" on public.leads for insert with check (public.is_workspace_member(workspace_id));
-create policy "members edit leads" on public.leads for update using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
-create policy "managers delete leads" on public.leads for delete using (public.is_workspace_manager(workspace_id));
+create policy "members read leads" on public.sales_leads for select using (public.is_workspace_member(workspace_id));
+create policy "members add leads" on public.sales_leads for insert with check (public.is_workspace_member(workspace_id));
+create policy "members edit leads" on public.sales_leads for update using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
+create policy "managers delete leads" on public.sales_leads for delete using (public.is_workspace_manager(workspace_id));
 create policy "members read activities" on public.lead_activities for select using (public.is_workspace_member(workspace_id));
 create policy "members add notes" on public.lead_activities for insert with check (public.is_workspace_member(workspace_id) and kind = 'note' and actor_id = auth.uid() and actor_kind = 'user');
 create policy "members all tasks" on public.lead_tasks for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
-create policy "members all meetings" on public.meetings for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
+create policy "members all meetings" on public.sales_meetings for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
 create policy "members all outreach campaigns" on public.outreach_campaigns for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
 create policy "members all outreach steps" on public.outreach_steps for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
 create policy "members all enrollments" on public.outreach_enrollments for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
@@ -655,16 +657,16 @@ create policy "members read threads" on public.inbox_threads for select using (p
 create policy "members update threads" on public.inbox_threads for update using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
 
 grant select, insert, update, delete on public.workspace_knowledge, public.business_offers, public.competitors, public.workspace_ai_settings,
-  public.automations, public.customer_profiles, public.lead_tasks, public.meetings, public.outreach_campaigns, public.outreach_steps,
+  public.automations, public.customer_profiles, public.lead_tasks, public.sales_meetings, public.outreach_campaigns, public.outreach_steps,
   public.outreach_enrollments to authenticated;
-grant select, insert, update, delete on public.leads to authenticated;
+grant select, insert, update, delete on public.sales_leads to authenticated;
 grant select, insert on public.lead_activities to authenticated;
 grant select on public.automation_runs to authenticated;
 grant select on public.inbox_threads to authenticated;
 grant update (status, last_read_at) on public.inbox_threads to authenticated;
 -- The lead key, identity links and do-not-contact history are server / DB work.
-revoke update on public.leads from authenticated;
-grant update (stage, owner_id, deal_value, deal_currency, do_not_contact, customer_profile_id, name, company_name, email) on public.leads to authenticated;
+revoke update on public.sales_leads from authenticated;
+grant update (stage, owner_id, deal_value, deal_currency, do_not_contact, customer_profile_id, name, company_name, email) on public.sales_leads to authenticated;
 -- Steps reference their own workspace's campaign; enrollments their own leads.
 create or replace function public.same_workspace_check() returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -674,8 +676,8 @@ begin
       raise exception 'campaign not in workspace';
     end if;
   end if;
-  if tg_table_name in ('outreach_enrollments', 'lead_tasks', 'meetings', 'lead_activities') then
-    if not exists (select 1 from public.leads l where l.id = new.lead_id and l.workspace_id = new.workspace_id) then
+  if tg_table_name in ('outreach_enrollments', 'lead_tasks', 'sales_meetings', 'lead_activities') then
+    if not exists (select 1 from public.sales_leads l where l.id = new.lead_id and l.workspace_id = new.workspace_id) then
       raise exception 'lead not in workspace';
     end if;
   end if;
@@ -684,7 +686,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['outreach_steps', 'outreach_enrollments', 'lead_tasks', 'meetings', 'lead_activities'] loop
+  foreach t in array array['outreach_steps', 'outreach_enrollments', 'lead_tasks', 'sales_meetings', 'lead_activities'] loop
     execute format('create trigger %I before insert or update on public.%I for each row execute function public.same_workspace_check()', t || '_same_ws', t);
   end loop;
 end $$;
@@ -693,8 +695,8 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['workspace_knowledge', 'business_offers', 'competitors', 'customer_profiles', 'leads', 'lead_activities',
-    'lead_tasks', 'meetings', 'outreach_campaigns', 'outreach_steps', 'outreach_enrollments', 'inbox_threads',
+  foreach t in array array['workspace_knowledge', 'business_offers', 'competitors', 'customer_profiles', 'sales_leads', 'lead_activities',
+    'lead_tasks', 'sales_meetings', 'outreach_campaigns', 'outreach_steps', 'outreach_enrollments', 'inbox_threads',
     'workspace_ai_settings', 'automations', 'automation_runs'] loop
     execute format('create policy "second factor done" on public.%I as restrictive for all to authenticated using ((select public.mfa_ok())) with check ((select public.mfa_ok()))', t);
   end loop;
@@ -710,7 +712,7 @@ begin
   if auth.role() = 'authenticated' then p_actor := 'user'; end if;
   if p_actor not in ('user', 'agent', 'automation', 'system') then raise exception 'bad actor'; end if;
   perform set_config('app.actor_kind', p_actor, true);
-  update public.leads set stage = p_stage where id = p_lead and stage is distinct from p_stage;
+  update public.sales_leads set stage = p_stage where id = p_lead and stage is distinct from p_stage;
   if not found then return null; end if;
   select id into v_act from public.lead_activities where lead_id = p_lead and kind = 'stage_changed' order by id desc limit 1;
   return v_act;

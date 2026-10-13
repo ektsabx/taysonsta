@@ -101,7 +101,7 @@ export async function draftReplyAction(leadId: string, instruction: string): Pro
   const session = await requireSession();
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
-  const { data: own } = await (await createClient()).from("leads").select("id").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
+  const { data: own } = await (await createClient()).from("sales_leads").select("id").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!own) return { ok: false, error: t.ws.crm.errors.notFound };
   const r = await draftReply(session.workspace.id, session.userId, leadId, instruction.trim().slice(0, 1000) || null);
   if (!r.ok) {
@@ -138,7 +138,7 @@ export async function saveManualDraft(leadId: string, body: string): Promise<Msg
   if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
   const text = String(body ?? "").trim();
   if (!text) return { ok: false, error: t.ws.messages.errors.failed };
-  const { data: lead } = await (await createClient()).from("leads").select("id, prospect_id, company_id, email, do_not_contact").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
+  const { data: lead } = await (await createClient()).from("sales_leads").select("id, prospect_id, company_id, email, do_not_contact").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!lead) return { ok: false, error: t.ws.crm.errors.notFound };
   if (lead.do_not_contact) return { ok: false, error: t.ws.messages.errors.do_not_contact };
   const admin = createAdminClient();

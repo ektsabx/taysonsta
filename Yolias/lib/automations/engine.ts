@@ -88,7 +88,7 @@ async function runAction(act: AutomationAction, ctx: Ctx): Promise<ActionResult>
       return { type: act.type, ok: true };
     }
     case "notify": {
-      const { data: lead } = await db.from("leads").select("name, owner_id").eq("id", ev.leadId).single();
+      const { data: lead } = await db.from("sales_leads").select("name, owner_id").eq("id", ev.leadId).single();
       const recipients = lead?.owner_id ? [lead.owner_id]
         : ((await db.from("workspace_members").select("user_id").eq("workspace_id", ev.workspaceId)).data ?? []).map((m) => m.user_id);
       if (recipients.length) {

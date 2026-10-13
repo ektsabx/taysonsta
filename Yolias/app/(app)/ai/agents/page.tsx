@@ -19,7 +19,7 @@ export default async function AgentsPage() {
     getDictionary(),
     loadAiSettings(session.workspace.id),
     routesFor(tasks.writing).then((r) => r.length > 0).catch(() => false),
-    (await createClient()).from("agent_pending_actions").select("id, lead_id, agent, tool, input, summary, created_at, lead:leads(name)")
+    (await createClient()).from("agent_pending_actions").select("id, lead_id, agent, tool, input, summary, created_at, lead:sales_leads(name)")
       .eq("workspace_id", session.workspace.id).eq("status", "pending").not("lead_id", "is", null).order("created_at", { ascending: false }).limit(50),
   ]);
   const a = t.ws.ai.agents;

@@ -33,7 +33,7 @@ export async function listLeads(workspaceId: string, query: CrmQuery = {}): Prom
 
 export async function stageTotals(workspaceId: string): Promise<Record<LeadStage, { count: number; value: number }>> {
   const db = await createClient();
-  const { data } = await db.from("leads").select("stage, deal_value").eq("workspace_id", workspaceId).limit(10000);
+  const { data } = await db.from("sales_leads").select("stage, deal_value").eq("workspace_id", workspaceId).limit(10000);
   const out = { new: { count: 0, value: 0 }, interested: { count: 0, value: 0 }, meeting_booked: { count: 0, value: 0 }, meeting_completed: { count: 0, value: 0 }, closed: { count: 0, value: 0 }, lost: { count: 0, value: 0 } };
   for (const r of data ?? []) { out[r.stage].count++; out[r.stage].value += Number(r.deal_value ?? 0); }
   return out;
@@ -47,7 +47,7 @@ export async function getLead(workspaceId: string, id: string) {
   const [activities, tasks, meetings, messages, enrollments, approvals, profiles, person, company] = await Promise.all([
     db.from("lead_activities").select("*").eq("lead_id", id).order("created_at", { ascending: false }).limit(100),
     db.from("lead_tasks").select("*").eq("lead_id", id).order("done_at", { ascending: true, nullsFirst: true }).order("due_at", { ascending: true, nullsFirst: false }).limit(50),
-    db.from("meetings").select("*").eq("lead_id", id).order("starts_at", { ascending: false }).limit(30),
+    db.from("sales_meetings").select("*").eq("lead_id", id).order("starts_at", { ascending: false }).limit(30),
     db.from("outreach_messages").select("*").eq("lead_id", id).order("created_at", { ascending: true }).limit(100),
     db.from("outreach_enrollments").select("*, campaign:outreach_campaigns(id, name, status)").eq("lead_id", id).order("created_at"),
     db.from("agent_pending_actions").select("*").eq("lead_id", id).eq("status", "pending").order("created_at", { ascending: false }),

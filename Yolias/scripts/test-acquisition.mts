@@ -90,7 +90,7 @@ try {
   assert.equal(first.ids.length, 2);
   assert.deepEqual(new Set(again.ids), new Set(first.ids), "the same domain / email from another search is the same lead");
   const companyLead = first.ids[0], personLead = first.ids[1];
-  const { count: leadCount } = await db.from("leads").select("id", { count: "exact", head: true }).eq("workspace_id", A.wsId);
+  const { count: leadCount } = await db.from("sales_leads").select("id", { count: "exact", head: true }).eq("workspace_id", A.wsId);
   assert.equal(leadCount, 2, "no duplicate leads");
   const crossWs = await addLeads(B.client, [{ kind: "company", id: co1 }]);
   assert.equal(crossWs.ids.length, 0, "a member can't add another workspace's results");
@@ -109,20 +109,20 @@ try {
   assert.deepEqual(hist[0].meta, { from: "new", to: "interested" });
   const forged = await A.client.from("lead_activities").insert({ workspace_id: A.wsId, lead_id: personLead, kind: "stage_changed", actor_id: A.userId, actor_kind: "user" });
   assert.ok(forged.error, "members can only add notes to the history");
-  const keyEdit = await A.client.from("leads").update({ lead_key: "x" } as never).eq("id", personLead);
+  const keyEdit = await A.client.from("sales_leads").update({ lead_key: "x" } as never).eq("id", personLead);
   assert.ok(keyEdit.error, "the identity key is not editable");
   console.log("✓ stages and history");
 
   // ── 5. RLS isolation ──
   await db.from("workspace_knowledge").upsert({ workspace_id: A.wsId, about: "secret" });
   await db.from("workspace_ai_settings").upsert({ workspace_id: A.wsId, guidelines: "secret" });
-  for (const table of ["leads", "lead_activities", "workspace_knowledge", "workspace_ai_settings", "inbox_threads", "crm_leads"] as const) {
-    const { data } = await B.client.from(table as "leads").select("*").eq("workspace_id", A.wsId);
+  for (const table of ["sales_leads", "lead_activities", "workspace_knowledge", "workspace_ai_settings", "inbox_threads", "crm_leads"] as const) {
+    const { data } = await B.client.from(table as "sales_leads").select("*").eq("workspace_id", A.wsId);
     assert.equal(data?.length ?? 0, 0, `${table}: B can't read A`);
   }
   const bStage = await B.client.rpc("set_lead_stage", { p_lead: personLead, p_stage: "lost" });
   assert.equal(bStage.data ?? null, null, "B can't move A's deal");
-  assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "interested");
+  assert.equal((await db.from("sales_leads").select("stage").eq("id", personLead).single()).data!.stage, "interested");
   const bKnowledge = await B.client.from("workspace_knowledge").upsert({ workspace_id: A.wsId, about: "hacked" });
   assert.ok(bKnowledge.error, "B can't write A's knowledge");
   console.log("✓ RLS isolation");
@@ -148,7 +148,7 @@ try {
     { workspace_id: A.wsId, campaign_id: oc!.id, position: 1, delay_days: 0, objective: "introduction" },
     { workspace_id: A.wsId, campaign_id: oc!.id, position: 2, delay_days: 3, objective: "follow_up" },
   ]);
-  await db.from("leads").update({ do_not_contact: true }).eq("id", companyLead);
+  await db.from("sales_leads").update({ do_not_contact: true }).eq("id", companyLead);
   const enr = await enrollLeads(A.client, A.wsId, A.userId, oc!.id, [personLead, companyLead]);
   assert.equal(enr!.added, 1);
   assert.equal(enr!.skipped.do_not_contact, 1, "do-not-contact leads are skipped");
@@ -190,30 +190,30 @@ try {
   assert.ok(reply.ok);
   assert.equal(reply.ok && reply.analysis?.kind, "stop_request");
   assert.equal(reply.ok && reply.analysis?.by, "rules");
-  const lead = (await db.from("leads").select("do_not_contact").eq("id", personLead).single()).data!;
+  const lead = (await db.from("sales_leads").select("do_not_contact").eq("id", personLead).single()).data!;
   assert.equal(lead.do_not_contact, true, "opt-out honoured");
   assert.equal((await db.from("outreach_enrollments").select("status").eq("id", enrollment!.id).single()).data!.status, "replied", "follow-ups stop on reply");
   assert.equal((await db.from("outreach_messages").select("status").eq("id", msg2!.id).single()).data!.status, "canceled", "unsent drafts canceled");
   assert.equal((await A.client.from("crm_leads").select("unread").eq("id", personLead).single()).data!.unread, true, "unread in the Inbox");
   await A.client.from("inbox_threads").update({ last_read_at: new Date().toISOString() }).eq("lead_id", personLead);
   assert.equal((await A.client.from("crm_leads").select("unread").eq("id", personLead).single()).data!.unread, false, "read after opening");
-  const reenroll = await A.client.from("leads").update({ do_not_contact: false }).eq("id", personLead).select("do_not_contact").single();
+  const reenroll = await A.client.from("sales_leads").update({ do_not_contact: false }).eq("id", personLead).select("do_not_contact").single();
   assert.equal(reenroll.data?.do_not_contact, false, "only a member can clear it");
   console.log("✓ replies");
 
   // ── 11. Meetings ──
   await db.from("workspace_ai_settings").upsert({ workspace_id: A.wsId, permissions: {} });
-  const { data: meeting } = await A.client.from("meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "Intro", starts_at: new Date(Date.now() + 86_400_000).toISOString(), url: "https://meet.google.com/abc", created_by: A.userId }).select("id, lead_id, status").single();
+  const { data: meeting } = await A.client.from("sales_meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "Intro", starts_at: new Date(Date.now() + 86_400_000).toISOString(), url: "https://meet.google.com/abc", created_by: A.userId }).select("id, lead_id, status").single();
   await meetingChanged(A.client, A.wsId, meeting!, null, "user");
   await meetingChanged(A.client, A.wsId, meeting!, null, "user");
-  assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "meeting_booked");
-  const badUrl = await A.client.from("meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "x", starts_at: new Date().toISOString(), url: "javascript:alert(1)" });
+  assert.equal((await db.from("sales_leads").select("stage").eq("id", personLead).single()).data!.stage, "meeting_booked");
+  const badUrl = await A.client.from("sales_meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "x", starts_at: new Date().toISOString(), url: "javascript:alert(1)" });
   assert.ok(badUrl.error, "only http(s) meeting links");
-  const done = (await A.client.from("meetings").update({ status: "completed" }).eq("id", meeting!.id).select("id, lead_id, status").single()).data!;
+  const done = (await A.client.from("sales_meetings").update({ status: "completed" }).eq("id", meeting!.id).select("id, lead_id, status").single()).data!;
   await meetingChanged(A.client, A.wsId, done, "scheduled", "user");
-  assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "meeting_completed");
+  assert.equal((await db.from("sales_leads").select("stage").eq("id", personLead).single()).data!.stage, "meeting_completed");
   await changeStage(A.client, A.wsId, personLead, "lost", "user");
-  assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "lost");
+  assert.equal((await db.from("sales_leads").select("stage").eq("id", personLead).single()).data!.stage, "lost");
   console.log("✓ meetings");
 
   // ── 12. Packs add emails too; uploaded contacts are unlimited (D-203) ──

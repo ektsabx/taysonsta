@@ -32,7 +32,7 @@ export function targetOf(lead: Pick<LeadRow, "prospect_id" | "company_id">): Mes
 export async function enrollLeads(db: Db, workspaceId: string, userId: string, campaignId: string, leadIds: string[]): Promise<EnrollResult | null> {
   const { data: campaign } = await db.from("outreach_campaigns").select("id, status").eq("id", campaignId).eq("workspace_id", workspaceId).maybeSingle();
   if (!campaign || campaign.status === "archived") return null;
-  const { data: leads } = await db.from("leads").select("id, email, do_not_contact, company_id, prospect_id").eq("workspace_id", workspaceId).in("id", leadIds.slice(0, 500));
+  const { data: leads } = await db.from("sales_leads").select("id, email, do_not_contact, company_id, prospect_id").eq("workspace_id", workspaceId).in("id", leadIds.slice(0, 500));
   const settings = await loadAiSettings(workspaceId);
   const admin = createAdminClient();
   const result: EnrollResult = { added: 0, skipped: {} };
@@ -77,7 +77,7 @@ export type PrepareError = DraftError | "no_step" | "limit" | "inactive" | "exis
  */
 export async function prepareNextStep(workspaceId: string, userId: string, enrollmentId: string, actor: "user" | "agent"): Promise<{ ok: true; messageId: string } | { ok: false; error: PrepareError }> {
   const db = createAdminClient();
-  const { data: e } = await db.from("outreach_enrollments").select("*, lead:leads(*), campaign:outreach_campaigns(*)").eq("id", enrollmentId).eq("workspace_id", workspaceId).maybeSingle();
+  const { data: e } = await db.from("outreach_enrollments").select("*, lead:sales_leads(*), campaign:outreach_campaigns(*)").eq("id", enrollmentId).eq("workspace_id", workspaceId).maybeSingle();
   if (!e || !e.lead || !e.campaign) return { ok: false, error: "not_found" };
   const lead = e.lead as unknown as LeadRow;
   const campaign = e.campaign as unknown as Database["public"]["Tables"]["outreach_campaigns"]["Row"];
@@ -124,7 +124,7 @@ export async function confirmSent(db: Db, workspaceId: string, userId: string, m
   if (!m || m.direction !== "outbound" || !["draft", "approved"].includes(m.status)) return { ok: false, error: "not_ready" };
   const settings = await loadAiSettings(workspaceId);
   if (m.lead_id) {
-    const { data: lead } = await admin.from("leads").select("do_not_contact").eq("id", m.lead_id).single();
+    const { data: lead } = await admin.from("sales_leads").select("do_not_contact").eq("id", m.lead_id).single();
     if (lead?.do_not_contact) return { ok: false, error: "do_not_contact" };
     const { data: last } = await admin.from("outreach_messages").select("sent_at").eq("lead_id", m.lead_id).eq("status", "sent").order("sent_at", { ascending: false }).limit(1).maybeSingle();
     if (last?.sent_at && Date.now() - Date.parse(last.sent_at) < settings.limits.min_gap_hours * 3_600_000) return { ok: false, error: "too_soon" };
@@ -166,7 +166,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
   const db = createAdminClient();
   const now = new Date().toISOString();
   const out = { due: 0, drafted: 0, reminders: 0 };
-  const { data: due } = await db.from("outreach_enrollments").select("id, workspace_id, lead_id, current_step, campaign:outreach_campaigns(status, created_by, name), lead:leads(owner_id, do_not_contact)")
+  const { data: due } = await db.from("outreach_enrollments").select("id, workspace_id, lead_id, current_step, campaign:outreach_campaigns(status, created_by, name), lead:sales_leads(owner_id, do_not_contact)")
     .eq("status", "active").lte("next_step_at", now).order("next_step_at").limit(limit);
   for (const e of due ?? []) {
     out.due++;
@@ -204,7 +204,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
   }
 
   // Meetings that ended without an outcome.
-  const { data: meetings } = await db.from("meetings").select("id, workspace_id, lead_id, title, created_by")
+  const { data: meetings } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, created_by")
     .eq("status", "scheduled").lte("starts_at", new Date(Date.now() - 2 * 3_600_000).toISOString()).limit(limit);
   for (const m of meetings ?? []) {
     const { error } = await db.from("lead_tasks").insert({

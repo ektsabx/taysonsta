@@ -783,10 +783,10 @@ export interface Database {
       business_offers: Table<BusinessOfferRow, "workspace_id" | "name">;
       competitors: Table<CompetitorRow, "workspace_id" | "name">;
       customer_profiles: Table<CustomerProfileRow, "workspace_id" | "name">;
-      leads: Table<LeadRow, "workspace_id" | "lead_key" | "name">;
+      sales_leads: Table<LeadRow, "workspace_id" | "lead_key" | "name">;
       lead_activities: Table<LeadActivityRow, "workspace_id" | "lead_id" | "kind">;
       lead_tasks: Table<LeadTaskRow, "workspace_id" | "lead_id" | "title">;
-      meetings: Table<MeetingRow, "workspace_id" | "lead_id" | "title" | "starts_at">;
+      sales_meetings: Table<MeetingRow, "workspace_id" | "lead_id" | "title" | "starts_at">;
       outreach_campaigns: Table<OutreachCampaignRow, "workspace_id" | "name">;
       outreach_steps: Table<OutreachStepRow, "workspace_id" | "campaign_id" | "position">;
       outreach_enrollments: Table<OutreachEnrollmentRow, "workspace_id" | "campaign_id" | "lead_id">;
