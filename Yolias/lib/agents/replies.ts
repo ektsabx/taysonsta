@@ -16,7 +16,7 @@ import { messageLanguages, isMessageLanguage } from "@/lib/outreach/channels";
 import type { Database, Json, LeadStage, MessageChannel } from "@/types/database";
 
 // Replies Agent (D-197). Yolias has no connected inbox, so a reply exists
-// only when the member logs it (pasted from their email / WhatsApp / LinkedIn).
+// only when the member logs it (pasted from their email or LinkedIn).
 // Then: follow-ups stop (Rules → stop on reply), a stop request always marks
 // the lead do-not-contact, the agent classifies the reply and suggests the
 // next stage and a reply draft, escalation rules create a task for the member,

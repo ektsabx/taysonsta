@@ -15,7 +15,7 @@ const socials = [
 ];
 
 // Footer shared by every public page (from the pricing design).
-export function SiteFooter() {
+export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
   const { t } = useI18n();
   const s = t.site;
   const columns = [
@@ -28,7 +28,6 @@ export function SiteFooter() {
         { href: "/pricing#faq", label: s.faq },
         { href: "/blog", label: s.blog },
         { href: "/contact?topic=support", label: s.contactSupport },
-        { href: "/status", label: s.status },
       ],
     },
     {
@@ -38,6 +37,7 @@ export function SiteFooter() {
         { href: "/careers", label: s.careers },
         { href: "/affiliates", label: s.affiliates },
         { href: "/contact", label: s.contact },
+        { href: "/status", label: s.status },
       ],
     },
     {
@@ -57,7 +57,7 @@ export function SiteFooter() {
       <div className="site-width">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="focus-ring inline-flex rounded" aria-label={s.home}>
+            <Link href={signedIn ? "/home" : "/"} className="focus-ring inline-flex rounded" aria-label={s.home}>
               <BrandLogo tone="light" />
             </Link>
             <p className="mt-4 max-w-[320px] text-sm leading-6 text-neutral-300">{s.tagline}</p>

@@ -74,7 +74,10 @@ export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkSt
   await rememberPlan(formData);
   const plan = formData.get("plan");
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
-  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale() };
+  // Yolias Partners sign-ups (D-206) are marked, with the terms version they accepted.
+  const partner = formData.get("partner") === "1";
+  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale(),
+    ...(partner ? { partner: true, partner_terms: text("partner_terms") } : {}) };
 
   // Many link requests for one account in an hour ⇒ a security email (lib/email/events.ts).
   if (mode !== "signup") await signInRequested(email);

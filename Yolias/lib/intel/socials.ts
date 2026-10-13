@@ -1,20 +1,21 @@
 import "server-only";
 
-// Facebook page, Instagram account, WhatsApp number, public email and phone
-// of a company or local business, read from the links on its own website
+// Public email, LinkedIn company page, phone, Facebook page and Instagram
+// account of a company or local business, read from the links on its own website
 // (D-161, D-163): the home page, and its contact page when the home page has
 // no email. Only what the site itself links to; nothing is guessed. Short
 // timeouts, public hosts only; any failure just means "not found".
+// WhatsApp numbers are not collected (owner decision 2026-10-13, D-201).
 
 export interface Socials {
   facebookUrl: string | null;
   instagramUrl: string | null;
-  whatsapp: string | null;
+  linkedinUrl: string | null;
   email: string | null;
   phone: string | null;
 }
 
-const NONE: Socials = { facebookUrl: null, instagramUrl: null, whatsapp: null, email: null, phone: null };
+const NONE: Socials = { facebookUrl: null, instagramUrl: null, linkedinUrl: null, email: null, phone: null };
 const EMAIL = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 // Placeholder and service addresses that aren't the business's own inbox.
 const NOT_CONTACT = /^(noreply|no-reply|donotreply|example|test|email|user|name|you|your)@|@(example\.|sentry|wixpress|domain\.)/i;
@@ -51,11 +52,6 @@ export function socialsFromHtml(html: string, base: string): Socials {
       if (!out.phone && t.replace(/\D/g, "").length >= 6 && t.length <= 20) out.phone = t;
       continue;
     }
-    if (!out.whatsapp && /^whatsapp:/i.test(raw)) {
-      const n = new URLSearchParams(raw.split("?")[1] ?? "").get("phone")?.replace(/\D/g, "");
-      if (n && n.length >= 6 && n.length <= 20) out.whatsapp = n;
-      continue;
-    }
     let u: URL;
     try {
       u = new URL(raw, base);
@@ -70,9 +66,8 @@ export function socialsFromHtml(html: string, base: string): Socials {
       else if (seg[0] && !FB_SKIP.has(seg[0].toLowerCase()) && /^[\w.\-]{2,100}$/.test(seg[0])) out.facebookUrl = `https://www.facebook.com/${seg[0]}`;
     } else if (!out.instagramUrl && host === "instagram.com") {
       if (seg[0] && !IG_SKIP.has(seg[0].toLowerCase()) && /^[\w.]{1,30}$/.test(seg[0])) out.instagramUrl = `https://www.instagram.com/${seg[0]}`;
-    } else if (!out.whatsapp && (host === "wa.me" || host === "api.whatsapp.com" || host === "whatsapp.com")) {
-      const n = (host === "wa.me" ? seg[0] : u.searchParams.get("phone"))?.replace(/\D/g, "");
-      if (n && n.length >= 6 && n.length <= 20) out.whatsapp = n;
+    } else if (!out.linkedinUrl && host === "linkedin.com" && (seg[0] === "company" || seg[0] === "school") && seg[1] && /^[\w.\-%]{2,100}$/.test(seg[1])) {
+      out.linkedinUrl = `https://www.linkedin.com/${seg[0]}/${seg[1]}`;
     }
   }
   out.email = emails.find((e) => PREFERRED.test(e)) ?? emails[0] ?? null;
@@ -120,7 +115,7 @@ export async function findSocials(website: string | null | undefined): Promise<S
   if (!more) return found;
   const extra = socialsFromHtml(more.html, more.url);
   return {
-    facebookUrl: found.facebookUrl ?? extra.facebookUrl, instagramUrl: found.instagramUrl ?? extra.instagramUrl, whatsapp: found.whatsapp ?? extra.whatsapp,
+    facebookUrl: found.facebookUrl ?? extra.facebookUrl, instagramUrl: found.instagramUrl ?? extra.instagramUrl, linkedinUrl: found.linkedinUrl ?? extra.linkedinUrl,
     email: found.email ?? extra.email, phone: found.phone ?? extra.phone,
   };
 }

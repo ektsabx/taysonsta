@@ -71,7 +71,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
         <>
           <div className="bos-int-grid" style={{ marginBottom: 14 }}>
             {[
-              { href: "/admin/settings/integrations/widgets", title: "ويدجت الموقع", desc: "نافذة محادثة الدعم لموقعك — أكواد التضمين والنطاقات المسموحة.", show: can(bos, "conversations.manage", "all") },
+              { href: "/admin/support/widgets", title: "ويدجت الموقع", desc: "نافذة محادثة الدعم لموقعك — أكواد التضمين والنطاقات المسموحة.", show: can(bos, "conversations.manage", "all") },
             ].filter((x) => x.show).map((x) => (
               <Link key={x.href} href={x.href} className="bos-int-tile bos-report-tile">
                 <strong>{<Tx>{x.title}</Tx>}</strong>

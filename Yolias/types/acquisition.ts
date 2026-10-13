@@ -79,7 +79,7 @@ export type InboxThreadRow = {
   last_read_at: string | null; created_at: string; updated_at: string;
 };
 export type WorkspaceAiSettingsRow = {
-  workspace_id: string; agents: Json; permissions: Json; limits: Json; escalation: Json; guidelines: string | null; updated_by: string | null; updated_at: string;
+  workspace_id: string; agents: Json; permissions: Json; limits: Json; escalation: Json; guidelines: string | null; goal: string | null; updated_by: string | null; updated_at: string;
 };
 export type AutomationTrigger = "lead.created" | "lead.stage_changed" | "meeting.booked" | "meeting.completed" | "reply.received" | "enrollment.finished";
 export type AutomationRow = {

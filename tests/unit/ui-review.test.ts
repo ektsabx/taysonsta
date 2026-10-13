@@ -45,11 +45,11 @@ test("navigation: removed modules and pages gone, sub-pages nested", () => {
   for (const k of ["products", "projects", "automation", "marketing"]) assert.ok(!keys.includes(k), k);
   assert.ok(!keys.includes("website"), "website section removed");
   const hrefs = navigation.flatMap((g) => [g.href, ...(g.items ?? []).flatMap((i) => [i.href, ...(i.children ?? []).map((c) => c.href)])]).filter(Boolean) as string[];
-  for (const gone of ["/admin/settings/pricing", "/admin/settings/commission", "/admin/settings/products", "/admin/support/widgets", "/admin/social/accounts", "/admin/ads/accounts", "/admin/projects", "/admin/products", "/admin/automation", "/admin/settings/branches", "/admin/settings/cameras", "/admin/settings/it", "/admin/communication/messaging", "/admin/content/insights",
+  for (const gone of ["/admin/settings/pricing", "/admin/settings/commission", "/admin/settings/products", "/admin/settings/integrations/widgets", "/admin/social/accounts", "/admin/ads/accounts", "/admin/projects", "/admin/products", "/admin/automation", "/admin/settings/branches", "/admin/settings/cameras", "/admin/settings/it", "/admin/communication/messaging", "/admin/content/insights",
     // Removed 2026-10-12: Marketing (content studio, ads), Deal Radar, e-signature, assets.
     "/admin/content", "/admin/content/ideas", "/admin/ads", "/admin/ads/alerts", "/admin/settings/integrations/ads", "/admin/sales/radar", "/admin/documents/signatures", "/admin/team/devices"]) assert.ok(!hrefs.includes(gone), gone);
   const support = navigation.find((g) => g.key === "support")!.items!.map((i) => i.href);
-  assert.deepEqual(support, ["/admin/support", "/admin/support/inbox", "/admin/support/messages", "/admin/support/ratings", "/admin/support/profile", "/admin/support/spam", "/admin/support/ai-agents", "/admin/support/tickets", "/admin/support/knowledge"], "support shows exactly these pages in order");
-  for (const nested of ["/admin/team/payroll/loans", "/admin/settings/integrations/widgets", "/admin/support/spam", "/admin/support/knowledge", "/admin/team/attendance/corrections", "/admin/reports/bd"]) assert.ok(hrefs.includes(nested), nested);
+  assert.deepEqual(support, ["/admin/support", "/admin/support/inbox", "/admin/support/messages", "/admin/support/ratings", "/admin/support/profile", "/admin/support/spam", "/admin/support/ai-agents", "/admin/support/widgets", "/admin/support/tickets", "/admin/support/knowledge"], "support shows exactly these pages in order (widget moved here, D-207)");
+  for (const nested of ["/admin/team/payroll/loans", "/admin/support/widgets", "/admin/support/spam", "/admin/support/knowledge", "/admin/team/attendance/corrections", "/admin/reports/bd"]) assert.ok(hrefs.includes(nested), nested);
 });
 

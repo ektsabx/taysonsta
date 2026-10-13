@@ -5,15 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { routesFor } from "@/lib/ai/llm";
 import { tasks } from "@/lib/ai/orchestrator";
-import { AgentsView } from "@/components/app/ws/AgentsView";
+import { AgentSettingsView } from "@/components/app/ws/AgentSettings";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).ws.ai.agents.title} — Yolias` };
 }
 
-// AI Workspace → AI Agents (D-197): six agents built on Yolias's existing AI
-// (search understanding, message writing, the LLM router) and plain code
-// (fit checks, follow-up schedule). Each shows what it uses, produces and may do.
+// AI Workspace → AI Agent (D-205): one agent with a goal; its capabilities,
+// permissions, limits and escalation rules are its settings.
 export default async function AgentsPage() {
   const session = await requireSession();
   const [t, settings, writing, approvals] = await Promise.all([
@@ -33,11 +32,11 @@ export default async function AgentsPage() {
         </div>
       </header>
       <div className="view-content-padding">
-        <AgentsView
+        <AgentSettingsView
           settings={settings}
           manage={canManageTeam(session)}
           aiConnected={writing}
-          approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "—", agent: x.agent, tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))}
+          approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "—", tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))}
           timeZone={session.profile.timezone}
         />
       </div>

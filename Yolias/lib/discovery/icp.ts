@@ -6,7 +6,9 @@ import type { Locale } from "@/lib/i18n/config";
 // stored on the strategy and as the campaign's criteria, and is the only input
 // data providers receive — so every provider speaks the same language.
 
-export const contactMethods = ["email", "phone", "whatsapp", "linkedin"] as const;
+// Business email and LinkedIn come first; WhatsApp is no longer a contact
+// method (D-201) — older searches that asked for it simply ignore it.
+export const contactMethods = ["email", "linkedin", "phone"] as const;
 export type ContactMethod = (typeof contactMethods)[number];
 
 export const seniorities = ["founder", "c_level", "vp", "director", "head", "manager", "other"] as const;
@@ -37,7 +39,10 @@ export const IcpSchema = z.object({
   funding_stages: z.array(z.string()),
   technologies: z.array(z.string()),
   exclusions: z.array(z.string()).describe("Companies, industries or traits to exclude"),
-  contact: z.array(z.enum(contactMethods)).optional().describe("Contact methods the user requires for each company (email, phone, whatsapp, linkedin); empty or missing = any available contact"),
+  contact: z.preprocess(
+    (v) => (Array.isArray(v) ? v.filter((m) => (contactMethods as readonly unknown[]).includes(m)) : v),
+    z.array(z.enum(contactMethods)).optional(),
+  ).describe("Contact methods the user requires for each company (email, linkedin, phone); empty or missing = any available contact"),
   assumptions: z.array(z.string()).describe("Defaults Yolias assumed because the request did not say"),
 });
 

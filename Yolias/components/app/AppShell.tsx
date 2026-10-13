@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, HandCoins, MessageCircle, UsersRound,
-  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
+  ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
+  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Bot, ChevronDown, CirclePlay, IdCard, Inbox, Library, Send, ShieldCheck, SquareKanban, Workflow } from "lucide-react";
+  Bot, ChevronDown, CirclePlay, IdCard, Inbox, Library, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -28,7 +28,6 @@ import { OPEN_SETTINGS_EVENT } from "./open-settings";
 const mainNav = [
   { href: "/", key: "yoliasAi", icon: Sparkles },
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
-  { href: "/campaigns", key: "campaigns", icon: Layers },
   { href: "/prospects", key: "prospects", icon: UserSearch },
 ] as const;
 
@@ -43,9 +42,8 @@ const workNav = [
 const aiNav = [
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
   { href: "/ai/profiles", key: "profiles", icon: IdCard },
+  // One agent; its rules & permissions live in its settings (D-205). Automations removed for now.
   { href: "/ai/agents", key: "agents", icon: Bot },
-  { href: "/ai/rules", key: "rules", icon: ShieldCheck },
-  { href: "/ai/automations", key: "automations", icon: Workflow },
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -187,7 +185,10 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
         </button>
 
         <div className="brand-area">
-          <BrandLogo />
+          {/* The logo always leads home: Yolias AI with an empty prompt. */}
+          <Link href="/" className="brand-home" aria-label="Yolias" onClick={(e) => { e.preventDefault(); newStrategy(); }}>
+            <BrandLogo />
+          </Link>
           <NotificationBell unread={data.unread} />
         </div>
 
@@ -273,10 +274,6 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
                 <span>{t.ws.nav.watchVideo}</span>
               </button>
             )}
-            <Link className="menu-item" href="/affiliate" onClick={() => setMenuOpen(false)}>
-              <HandCoins />
-              <span>{t.affiliate.nav}</span>
-            </Link>
             <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
               <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}>
                 <CircleHelp />

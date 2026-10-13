@@ -7,7 +7,7 @@ import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { CompanyLogo, PersonAvatar } from "@/components/app/Media";
 import { ProspectActionButtons } from "@/components/app/ProspectActions";
 import { SaveButton } from "@/components/app/ResultActions";
-import { FacebookIcon, InstagramIcon, LinkedInIcon, WhatsAppIcon } from "@/components/app/ConnectorIcons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { messagesFor } from "@/services/outreach";
 import { formatDate, formatNumber, location } from "@/lib/format";
 import { gridPerson, sizeBand } from "@/lib/results";
@@ -74,7 +74,6 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
       : { icon: <Mail />, label: pr.colContact, value: (email || p.phone) && <ContactCell id={p.id} masked={{ email: email ? maskEmail(email) : null, phone: p.phone ? maskPhone(p.phone) : null, verified: p.email_status === "verified" }} linkedin={null} /> },
     ...(p.revealed_at ? [{ icon: <Phone />, label: pr.csv.phone, ltr: true, value: p.phone && <a className="entity-link" href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a> }] : []),
     { icon: <LinkedInIcon />, label: r.linkedin, ltr: true, value: link(p.linkedin_url) },
-    { icon: <WhatsAppIcon />, label: pr.csv.whatsapp, ltr: true, value: p.whatsapp },
     { icon: <FacebookIcon />, label: pr.csv.facebook, ltr: true, value: link(p.facebook_url) },
     { icon: <InstagramIcon />, label: pr.csv.instagram, ltr: true, value: link(p.instagram_url) },
   ];

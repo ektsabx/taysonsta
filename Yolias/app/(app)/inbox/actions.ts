@@ -81,7 +81,7 @@ export async function scheduleMessage(messageId: string, at: string | null): Pro
 const replyInput = z.object({
   leadId: z.string().uuid(),
   body: z.string().trim().min(1).max(10000),
-  channel: z.enum(["email", "linkedin", "whatsapp", "facebook", "instagram"]),
+  channel: z.enum(["email", "linkedin", "facebook", "instagram"]),
   receivedAt: z.string().nullable(),
   from: z.string().trim().max(320).nullable(),
 });

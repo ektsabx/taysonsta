@@ -52,14 +52,15 @@ export default async function PaymentsPage() {
         </p>
       </Card>
 
-      <Card title="باقات العملاء المحتملين الإضافية">
+      <Card title="باقات العملاء المحتملين ورسائل البريد">
         {packs.length ? (
           <BosTable className="bos-table">
-            <thead><tr><th><Tx>العملاء المحتملون</Tx></th><th><Tx>السعر (USD)</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر تعديل</Tx></th></tr></thead>
+            <thead><tr><th><Tx>العملاء المحتملون</Tx></th><th><Tx>رسائل البريد</Tx></th><th><Tx>السعر (USD)</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>آخر تعديل</Tx></th></tr></thead>
             <tbody>
               {packs.map((p) => (
                 <tr key={p.id}>
                   <td className="bos-num">{num(p.prospects)}</td>
+                  <td className="bos-num">{num(p.emails)}</td>
                   <td className="bos-num">{money(Number(p.price_usd), "USD")}</td>
                   <td>{p.active ? <StatusBadge tone="success" label="معروضة" /> : <StatusBadge tone="neutral" label="مخفية" />}</td>
                   <td>{p.updated_by ? `${p.updated_by} · ${formatDateTime(p.updated_at)}` : formatDateTime(p.created_at)}</td>

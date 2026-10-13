@@ -14,7 +14,11 @@ import type { AutomationRunStatus, Json } from "@/types/database";
 
 type ActionResult = { type: AutomationAction["type"]; ok: boolean; detail?: string };
 
+/** Automations are switched off for now (owner, 2026-10-13, D-205): no page, no runs. Tables and code stay for later. */
+export const AUTOMATIONS_ENABLED = false;
+
 export async function runAutomations(ev: AutomationEvent): Promise<{ ran: number }> {
+  if (!AUTOMATIONS_ENABLED) return { ran: 0 };
   // Changes made by automations never start more automations (no loops).
   if (ev.origin === "automation") return { ran: 0 };
   const db = createAdminClient();

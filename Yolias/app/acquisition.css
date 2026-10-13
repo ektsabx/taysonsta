@@ -203,3 +203,78 @@ html[data-theme="dark"] .stage-meeting_booked, html[data-theme="dark"] .stage-me
 
 /* Dates and times read left to right in both languages */
 .page-view input[type="datetime-local"], .ws-modal input[type="datetime-local"] { direction: ltr; text-align: start; }
+
+/* Theme menu next to the language menu (auth pages) */
+.auth-brand-tools { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Articles: "Copy page" and "Was this helpful?" */
+.doc-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.copy-page { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--text-2); font-size: .8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.copy-page:hover { color: var(--ink); border-color: var(--line-strong); }
+.copy-page svg { width: 14px; height: 14px; }
+.article-feedback { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 36px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--box-bg); font-size: .9rem; color: var(--ink); }
+.article-feedback-buttons { display: flex; gap: 8px; }
+.article-feedback-buttons button { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--text-2); font-weight: 600; cursor: pointer; }
+.article-feedback-buttons button svg { width: 15px; height: 15px; }
+.article-feedback-buttons button:hover, .article-feedback-buttons button.on { color: var(--ink); border-color: var(--ink); }
+
+/* Compact toolbars: a shorter search box, filters as dropdowns (D-204) */
+.prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 0 1 300px; min-width: 180px; }
+.prospect-views { padding: 0 34px; margin: 0; background: var(--paper); }
+.campaign-summary { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 16px 18px; margin-bottom: 16px; }
+.campaign-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.campaign-summary-head h3 { font-size: 1rem; font-weight: 700; color: var(--ink); }
+@media (max-width: 900px) { .prospect-views { padding: 0 16px; } .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 1 1 100%; } }
+.inbox-filters .form-select { flex: 1 1 0; min-width: 0; height: 34px; padding-block: 0; }
+
+/* One agent: capabilities as expandable rows (D-205) */
+.agent-main-title { display: flex; align-items: center; gap: 8px; font-size: 1rem; color: var(--ink); }
+.agent-main-title svg { width: 18px; height: 18px; color: var(--red); }
+.capability-list { padding: 4px 18px; }
+.capability { border-top: 1px solid var(--line-row); }
+.capability:first-child { border-top: 0; }
+.capability summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; cursor: pointer; list-style: none; }
+.capability summary::-webkit-details-marker { display: none; }
+.capability-name { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--ink); }
+.capability-chevron { width: 14px; height: 14px; color: var(--muted); transition: transform .15s ease; transform: rotate(-90deg); }
+[dir="rtl"] .capability-chevron { transform: rotate(90deg); }
+.capability[open] .capability-chevron { transform: none; }
+.capability.off .capability-name strong { color: var(--muted); }
+.capability-body { display: flex; flex-direction: column; gap: 10px; padding: 0 0 16px; }
+.agent-save { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(to top, var(--bg, var(--paper)) 70%, transparent); }
+
+/* Campaign questions in the chat: quiet and compact, like Claude's question
+   cards — small square-ish chips, a soft selected state, small controls. */
+.campaign-setup.agent-artifact-card { padding: 16px 18px; gap: 14px; border-radius: 12px; box-shadow: none; background: var(--box-bg); border-color: var(--box-line); }
+.campaign-setup .setup-head strong { font-size: .92rem; font-weight: 600; }
+.campaign-setup .setup-head .artifact-note { font-size: .8rem; }
+.campaign-setup .setup-field { gap: 6px; }
+.campaign-setup .setup-field > span, .campaign-setup .setup-field > legend { font-size: .78rem; font-weight: 600; color: var(--text-2); }
+.campaign-setup .setup-chips { gap: 6px; }
+.campaign-setup .setup-chip { border-radius: 8px; padding: 4px 10px; font-size: .78rem; line-height: 1.5; background: var(--paper); color: var(--text-2); }
+.campaign-setup .setup-chip:hover { color: var(--ink); border-color: var(--line-strong); }
+.campaign-setup .setup-chip.on { background: var(--hover); border-color: var(--ink); color: var(--ink); font-weight: 600; }
+.campaign-setup .form-input { height: 34px; font-size: .8rem; padding-block: 0; }
+.campaign-setup .setup-actions .btn-primary { height: 34px; padding: 0 14px; font-size: .8rem; border-radius: 8px; }
+
+/* Arabic: buttons keep the English size and a one-line label (owner,
+   2026-10-13). The Kufi font's tall line box made them taller and the text
+   wrapped; same line box and no wrapping fixes both. Containers wrap instead. */
+html[lang="ar"] :is(.btn-primary, .btn-secondary, .btn-danger, .btn-danger-ghost, .btn-new-chat, .type-chip, .ws-chip, .menu-item,
+  .lang-trigger, .nav-cta, .copy-page, .setup-chip, .ws-segment a, .ws-segment button, .ws-tabs a, .ws-tabs button, .checkout-submit, .auth-submit) {
+  line-height: 1.45;
+  white-space: nowrap;
+}
+html[lang="ar"] :is(.btn-primary, .btn-secondary, .btn-danger, .btn-danger-ghost) { padding-block: 7px; }
+html[lang="ar"] :is(.view-actions, .ws-actions, .ws-inline, .lead-msg-actions, .selection-actions, .setup-actions) { flex-wrap: wrap; }
+html[lang="ar"] :is(.form-select, .form-input) { line-height: 1.45; }
+
+/* Yolias Partners portal (D-206) */
+.partners-shell { min-height: 100dvh; background: var(--bg, var(--soft)); display: flex; flex-direction: column; }
+.partners-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--paper); flex-wrap: wrap; }
+.partners-brand { display: inline-flex; align-items: center; gap: 10px; }
+.partners-badge { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--red-soft); color: var(--red-hover); border: 1px solid var(--red-line); }
+.partners-tools { display: inline-flex; align-items: center; gap: 8px; }
+.partners-auth { margin: 48px auto; width: calc(100% - 32px); }
+.partners-shell .page-view { height: auto; overflow: visible; }
+@media (max-width: 600px) { .partners-header { padding: 12px 16px; } }

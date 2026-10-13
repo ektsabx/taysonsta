@@ -1,8 +1,10 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { noindex } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
+import { ThemeMenu } from "@/components/ThemeMenu";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import { hasActivePlan } from "@/lib/plans";
@@ -24,7 +26,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-brand"><BrandLogo /><LanguageMenu /></div>
+      <div className="auth-brand"><Link href="/" aria-label="Yolias"><BrandLogo /></Link><span className="auth-brand-tools"><ThemeMenu /><LanguageMenu /></span></div>
       <main className="auth-card wide">
         <h1>{t.onboarding.title}</h1>
         <p className="auth-lead">

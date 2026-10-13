@@ -91,7 +91,7 @@ export async function listInvoices(workspaceId: string) {
 /** Buy More Prospects packs on sale (public read, RLS: active only). */
 export async function listPacks() {
   const supabase = await createClient();
-  const { data } = await supabase.from("prospect_packs").select("id, prospects, price_usd").eq("active", true).order("sort").order("prospects");
+  const { data } = await supabase.from("prospect_packs").select("id, prospects, emails, price_usd").eq("active", true).order("sort").order("prospects");
   return data ?? [];
 }
 

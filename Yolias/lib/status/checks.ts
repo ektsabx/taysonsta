@@ -43,6 +43,20 @@ async function httpCheck(url: string, init: RequestInit, s: StatusSettings): Pro
   return { status: r.ms > s.slowMs ? "degraded" : "operational", latency: r.ms, detail: r.ms > s.slowMs ? "slow" : null };
 }
 
+/** Reachability only (any HTTP answer below 500 means the provider is up). No paid call is made. */
+async function reachCheck(url: string, s: StatusSettings): Promise<CheckResult> {
+  const r = await timed(() => fetch(url, { method: "GET", signal: AbortSignal.timeout(8000), cache: "no-store", redirect: "manual" }));
+  if (!r.value) return { status: "partial_outage", latency: r.ms, detail: `provider_${r.error}` };
+  if (r.value.status >= 500) return { status: "partial_outage", latency: r.ms, detail: `provider_http_${r.value.status}` };
+  return { status: r.ms > s.slowMs ? "degraded" : "operational", latency: r.ms, detail: "reachable" };
+}
+
+const LLM_HOSTS: Record<string, string> = {
+  anthropic: "https://api.anthropic.com/v1/models",
+  openai: "https://api.openai.com/v1/models",
+  gemini: "https://generativelanguage.googleapis.com/v1beta/models",
+};
+
 export async function runCheck(c: Pick<StatusComponentRow, "check_kind">, s: StatusSettings): Promise<CheckResult | null> {
   const db = createAdminClient();
   const since = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
@@ -73,7 +87,13 @@ export async function runCheck(c: Pick<StatusComponentRow, "check_kind">, s: Sta
       const { data, error } = await db.schema("intel").from("llm_calls").select("ok").gte("created_at", since(30)).limit(2000);
       if (error) return { status: "no_data", latency: null, detail: "unreadable" };
       const rows = data ?? [];
-      return { status: rateStatus(rows.filter((x) => !x.ok).length, rows.length, s), latency: null, detail: `calls:${rows.length}` };
+      const rated = rateStatus(rows.filter((x) => !x.ok).length, rows.length, s);
+      if (rated !== "no_data") return { status: rated, latency: null, detail: `calls:${rows.length}` };
+      // Quiet period: too few real calls to judge, so check the configured provider answers.
+      const { routesFor } = await import("@/lib/ai/llm");
+      const route = (await routesFor("agent").catch(() => []))[0];
+      if (!route || !LLM_HOSTS[route.provider]) return { status: "no_data", latency: null, detail: "not_configured" };
+      return reachCheck(LLM_HOSTS[route.provider], s);
     }
     case "payments": {
       const paymob = await loadPaymob(db).catch(() => null);
@@ -90,7 +110,9 @@ export async function runCheck(c: Pick<StatusComponentRow, "check_kind">, s: Sta
       if (!process.env.RESEND_API_KEY) return { status: "no_data", latency: null, detail: "not_configured" };
       const { data } = await db.from("email_log").select("status").gte("created_at", since(120)).in("status", ["sent", "failed"]).limit(5000);
       const rows = data ?? [];
-      return { status: rateStatus(rows.filter((x) => x.status === "failed").length, rows.length, s, 3), latency: null, detail: `emails:${rows.length}` };
+      const rated = rateStatus(rows.filter((x) => x.status === "failed").length, rows.length, s, 3);
+      // Quiet period: check the email provider answers instead of showing "no data".
+      return rated === "no_data" ? reachCheck("https://api.resend.com/", s) : { status: rated, latency: null, detail: `emails:${rows.length}` };
     }
     default:
       return null; // manual: only incidents change it

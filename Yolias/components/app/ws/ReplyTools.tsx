@@ -17,7 +17,7 @@ export function ReplyTools({ leadId, channel, seed, doNotContact }: { leadId: st
   const { run, pending } = useRun();
   const [tab, setTab] = useState<"log" | "draft">("log");
   const [body, setBody] = useState("");
-  const [ch, setCh] = useState<MessageChannel>(channel);
+  const [ch, setCh] = useState<"email" | "linkedin">(channel === "linkedin" ? "linkedin" : "email");
   const [at, setAt] = useState("");
   const [from, setFrom] = useState("");
   const [instruction, setInstruction] = useState(seed ?? "");
@@ -37,7 +37,7 @@ export function ReplyTools({ leadId, channel, seed, doNotContact }: { leadId: st
           <div className="ws-grid-3">
             <div className="ws-field">
               <label className="ws-label" htmlFor={`rc-${leadId}`}>{r.channel}</label>
-              <select id={`rc-${leadId}`} className="form-select" value={ch} onChange={(e) => setCh(e.target.value as MessageChannel)}>
+              <select id={`rc-${leadId}`} className="form-select" value={ch} onChange={(e) => setCh(e.target.value as "email" | "linkedin")}>
                 {channels.map((c) => <option key={c} value={c}>{t.ws.outreach.channels[c]}</option>)}
               </select>
             </div>

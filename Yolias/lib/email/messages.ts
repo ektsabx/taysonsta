@@ -438,7 +438,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       heading: T(l, c.subject[0], c.subject[1]),
       body: [T(l, c.body[0], c.body[1])],
       extra: rows.length ? table(l, rows) : undefined,
-      button: { label: T(l, "Open affiliate dashboard", "افتح لوحة الأفلييت"), href: `${d.siteUrl}/affiliate` },
+      button: { label: T(l, "Open affiliate dashboard", "افتح لوحة الأفلييت"), href: `${d.siteUrl}/partners` },
       footnote: T(l, `You’re receiving this because you joined the Yolias affiliate program. Questions? ${link(`${d.siteUrl}/contact?topic=partnerships`, "Contact us")}.`,
         `تصلك هذه الرسالة لأنك عضو في برنامج الأفلييت في يولـياس. لديك سؤال؟ ${link(`${d.siteUrl}/contact?topic=partnerships`, "تواصل معنا")}.`),
     };

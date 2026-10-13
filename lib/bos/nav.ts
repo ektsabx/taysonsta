@@ -169,7 +169,8 @@ export const navigation: NavGroup[] = [
     label: "الدعم",
     icon: "support",
     // docs/bos/37 §3 (plus Website messages, 2026-10-12): customers and teams
-    // open from the inbox, the website widget lives in Settings → Integrations.
+    // open from the inbox. The support AI agent and the website widget are
+    // controlled from here (owner, 2026-10-13, D-207).
     items: [
       { href: "/admin/support", label: "نظرة عامة", perm: "conversations.read" },
       { href: "/admin/support/inbox", label: "صندوق الوارد", perm: "conversations.read" },
@@ -178,6 +179,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/support/profile", label: "ملفي في الدعم", perm: "conversations.read" },
       { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
       { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
+      { href: "/admin/support/widgets", label: "ويدجت الموقع", perm: "conversations.manage", all: "conversations.manage" },
       { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
       { href: "/admin/support/knowledge", label: "قاعدة المعرفة", perm: "knowledge.read" },
     ],
@@ -229,7 +231,6 @@ export const navigation: NavGroup[] = [
         href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage"], hrefPerm: "integrations.manage",
         children: [
           { href: "/admin/settings/integrations", label: "الخدمات والمفاتيح", perm: "integrations.manage", all: "integrations.manage" },
-          { href: "/admin/settings/integrations/widgets", label: "ويدجت الموقع", perm: "conversations.manage" },
         ],
       },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },

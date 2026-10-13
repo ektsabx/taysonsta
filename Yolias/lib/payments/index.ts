@@ -306,16 +306,18 @@ export async function fulfil(db: Db, p: PaymentRow): Promise<void> {
     if (invoiceId) await db.from("payments").update({ invoice_id: invoiceId }).eq("id", p.id);
     return;
   }
-  await grantPack(db, ws, p.prospects!, charge, payer);
+  // The pack's emails come with its prospects (D-203).
+  const { data: pack } = p.pack_id ? await db.from("prospect_packs").select("emails").eq("id", p.pack_id).maybeSingle() : { data: null };
+  await grantPack(db, ws, p.prospects!, pack?.emails ?? 0, charge, payer);
 }
 
-/** Buy More Prospects: a grant for the current month + a paid invoice + emails. */
-export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, charge: { mode: "test" | "live"; amount: number; currency: Currency; paymentId?: string | null }, payer: { userId: string | null; email: string; name: string | null }) {
+/** Buy more: prospects + emails (never expire) + a paid invoice + confirmation emails. */
+export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, emails: number, charge: { mode: "test" | "live"; amount: number; currency: Currency; paymentId?: string | null }, payer: { userId: string | null; email: string; name: string | null }) {
   const now = new Date();
   const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const periodEnd = addMonths(periodStart, 1);
   const { error } = await db.from("usage_ledger").insert({
-    workspace_id: ws.id, kind: "grant", prospects, period_start: periodStart.toISOString().slice(0, 10),
+    workspace_id: ws.id, kind: "grant", prospects, emails, period_start: periodStart.toISOString().slice(0, 10),
     reason: `prospect_pack:${charge.paymentId ?? "test"}`, created_by: payer.email,
   });
   // 23505: this payment's grant already exists (a retried fulfilment) — never grant twice.

@@ -44,7 +44,7 @@ export interface ShellData {
   };
   invoices: { id: string; number: string; date: string; amount: number; currency: Currency; status: "paid" | "open" | "void"; test: boolean }[];
   /** Buy More Prospects: active packs priced in the workspace currency. */
-  packs: { id: string; prospects: number; price: number }[];
+  packs: { id: string; prospects: number; emails: number; price: number }[];
   /** A payment provider is connected for the workspace currency / billing test mode is on. */
   billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar"; portalUrl: string | null };
   /** Unread in-app notifications. */

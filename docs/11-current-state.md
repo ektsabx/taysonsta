@@ -1,7 +1,7 @@
 # 11 — Current State
 
 Snapshot of what exists in the code. Update with every change.
-Last updated: 2026-10-13 (customer acquisition, D-193..D-199).
+Last updated: 2026-10-13 (customer acquisition D-193..D-199; round 2 D-200..D-207: one AI agent, automations off, Campaigns inside Prospects, no WhatsApp, packs with emails, Yolias Partners portal at /partners, support emails / widget tone).
 
 ## Repository
 

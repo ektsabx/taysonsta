@@ -103,3 +103,19 @@ test("welcome video: only https links Yolias can play", () => {
   assert.equal(parseWelcomeVideo({ enabled: true, url: "https://example.com/page" }), null, "unplayable");
   assert.equal(parseWelcomeVideo({ enabled: true, url: "https://youtu.be/dQw4w9WgXcQ", title: "Tour" })?.title, "Tour");
 });
+
+test("ICP: WhatsApp is no longer a contact method; old searches that asked for it still parse", async () => {
+  const { contactMethods, parseIcp } = await import("../../lib/discovery/icp.ts");
+  assert.deepEqual([...contactMethods], ["email", "linkedin", "phone"]);
+  const icp = parseIcp({ search_type: "companies", target_unit: "companies", campaign_name: "x", summary: "x", industries: ["a"], keywords: [], countries: ["SA"], cities: [], employees_min: null, employees_max: null, job_titles: [], seniorities: [], technologies: [], exclusions: [], contact: ["whatsapp", "email"], assumptions: [], target_count: 10, lookalike_seeds: [] } as never);
+  assert.ok(icp === null || !icp.contact?.includes("whatsapp" as never), "whatsapp dropped");
+});
+
+test("articles: Copy page produces Markdown with absolute links", async () => {
+  const { toMarkdown } = await import("../../lib/content/types.ts");
+  const md = toMarkdown({ title: "T", summary: "See [docs](/docs/a).", blocks: [{ h2: "H" }, { ul: ["one", "**two**"] }, { table: { head: ["a", "b"], rows: [["1", "2"]] } }] }, "https://www.yolias.com");
+  assert.match(md, /^# T/);
+  assert.match(md, /\(https:\/\/www\.yolias\.com\/docs\/a\)/);
+  assert.match(md, /## H\n\n- one\n- \*\*two\*\*/);
+  assert.match(md, /\| a \| b \|\n\| --- \| --- \|\n\| 1 \| 2 \|/);
+});

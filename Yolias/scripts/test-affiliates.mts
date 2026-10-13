@@ -92,19 +92,20 @@ try {
   // 1) Application: one per account, terms version required, pending first.
   const aff = await newUser("aff", `T3st!${crypto.randomUUID()}`);
   assert.deepEqual(await applyAffiliate({ id: aff.id, email: aff.email! }, { answers: { website: "https://example.com", audience: "Agency owners", promotion: "Newsletter" }, acceptedTerms: "wrong", ip: "10.0.0.1" }), { ok: false, error: "terms" });
-  assert.equal((await applyAffiliate({ id: aff.id, email: aff.email! }, { answers: { website: "x" }, acceptedTerms: programBefore!.terms_version, ip: "10.0.0.1" })).ok, false, "required answers");
-  const applied = await applyAffiliate({ id: aff.id, email: aff.email! }, { answers: { website: "https://example.com", audience: "Agency owners", promotion: "Newsletter" }, acceptedTerms: programBefore!.terms_version, ip: "10.0.0.1" });
-  assert.deepEqual(applied, { ok: true, status: "pending" });
+  // No application questions and no review (D-206): accepting the terms approves at once.
+  const applied = await applyAffiliate({ id: aff.id, email: aff.email! }, { answers: {}, acceptedTerms: programBefore!.terms_version, ip: "10.0.0.1" });
+  assert.deepEqual(applied, { ok: true, status: "approved" });
   assert.deepEqual(await applyAffiliate({ id: aff.id, email: aff.email! }, { answers: { website: "https://example.com", audience: "Agency owners", promotion: "Newsletter" }, acceptedTerms: programBefore!.terms_version, ip: "10.0.0.1" }), { ok: false, error: "exists" });
   const { data: a } = await db.from("affiliates").select("*").eq("user_id", aff.id).single();
   affiliateId = a!.id;
   assert.equal(a!.terms_version, programBefore!.terms_version);
 
-  // Pending affiliates get no referrals.
+  // A suspended partner (Admin can still suspend) gets no referrals.
+  await db.from("affiliates").update({ status: "suspended" }).eq("id", a!.id);
   const early = await recordVisit(a!.id, { ip: "10.0.0.9", path: "/", campaign: null, referrer: null });
   const customer0 = await newUser("c0");
-  await attributeSignup(customer0.id, early!, "10.0.0.9");
-  assert.equal((await db.from("affiliate_referrals").select("id").eq("referred_user_id", customer0.id)).data!.length, 0, "not approved yet");
+  if (early) await attributeSignup(customer0.id, early, "10.0.0.9");
+  assert.equal((await db.from("affiliate_referrals").select("id").eq("referred_user_id", customer0.id)).data!.length, 0, "suspended: no referral");
   await db.from("affiliates").update({ status: "approved", decided_at: new Date().toISOString(), decided_by: "test" }).eq("id", a!.id);
 
   // 2) Referral link → visit (deduplicated per network) → attributed signup.

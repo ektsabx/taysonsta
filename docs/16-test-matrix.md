@@ -80,3 +80,13 @@ Test scripts never use the owner's real keys: each one injects its own (or none)
 | Browser (headless Chrome, demo account, AR): all new pages 200 without console errors; profile → Prospects "Add to CRM" → stage change → Kanban → campaign + add leads → note + meeting (stage → Meeting Booked) → log reply (AI analysis, Gemini) → Inbox filters; phone width Inbox / Kanban / Rules | ✓ |
 | Real AI draft for a campaign step (Gemini `gemini-3.8-flash`, local key from the hub) linked to lead, step and history | ✓ |
 | Admin unit (incl. English coverage of the new page) · Admin typecheck: only the pre-existing `Yolias/lib/affiliates/program.ts` path error (also at HEAD) | ✓ |
+
+## Round 2 (D-200 … D-207, 2026-10-13, local only)
+
+| Check | Result |
+| --- | --- |
+| Yolias typecheck · lint · build · unit 75 (incl. Copy page Markdown, ICP without WhatsApp, LinkedIn company page from websites) | ✓ |
+| `test:acquisition` (+ automations off, pack emails drawn after plan emails, unlimited contacts) · `test:plans-trial` (contacts unlimited) · `test:affiliates` (join approved at once, suspended gets no referral; `YOLIAS_TEST_APP_URL=http://localhost:3201`) · `test:search-types` · `test:agent` · `test:campaigns` · `test:status` | ✓ |
+| Migration `20261112000000_round2.sql` re-applied from the previous schema in a rolled-back transaction | ✓ |
+| Admin typecheck (0 errors) · unit 54 (nav test updated: widget under Support) · build · widget script syntax check | ✓ |
+| Browser (AR, demo account): home header theme menu, docs Copy page + helpful vote, status, partners join / login / dashboard, Prospects + Search results + campaign summary, CRM, Inbox dropdowns + channel, AI Agent, redirects (/campaigns, /affiliate, /ai/rules, /ai/automations), checkout notes — no console errors | ✓ |

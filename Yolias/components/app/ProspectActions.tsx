@@ -37,7 +37,7 @@ export interface MessageRecipient {
 export function personRecipient(p: GridPerson): MessageRecipient {
   return {
     kind: "person", id: p.id, name: p.name, title: p.title, company: p.company, photoUrl: p.photoUrl,
-    can: { email: p.hasEmail, linkedin: Boolean(p.linkedinUrl), whatsapp: p.hasWhatsapp, facebook: Boolean(p.facebookUrl), instagram: Boolean(p.instagramUrl) },
+    can: { email: p.hasEmail, linkedin: Boolean(p.linkedinUrl), whatsapp: false, facebook: Boolean(p.facebookUrl), instagram: Boolean(p.instagramUrl) },
   };
 }
 
@@ -98,10 +98,10 @@ export function ProspectActionButtons({ people, source, onExport }: { people: Gr
   );
 }
 
-/** Email (its public inbox) / WhatsApp / Facebook / Instagram for one company or local business (shown when it has them). */
+/** Email (its public inbox) / Facebook / Instagram for one company or local business (shown when it has them). */
 export function CompanyActionButtons({ company }: { company: MessageRecipient }) {
   const [channel, setChannel] = useState<MessageChannel | null>(null);
-  if (!company.can.email && !company.can.whatsapp && !company.can.facebook && !company.can.instagram) return null;
+  if (!company.can.email && !company.can.facebook && !company.can.instagram) return null;
   return (
     <>
       <ChannelButtons recipients={[company]} onPick={setChannel} />

@@ -6,25 +6,24 @@ import { Check, Copy } from "lucide-react";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { formatCents, type PayoutMethod, type ProgramQuestion } from "@/lib/affiliates/program";
-import { applyAction, requestPayoutAction, savePayoutAction } from "./actions";
+import { formatCents, type PayoutMethod } from "@/lib/affiliates/program";
+import { joinAction, requestPayoutAction, savePayoutAction } from "./actions";
 
-export function AffiliateApply({ questions, termsVersion, terms, earn }: { questions: ProgramQuestion[]; termsVersion: string; terms: string; earn: string }) {
+/** Start as a partner: accept the terms — approved at once, no questions (D-206). */
+export function PartnerStart({ termsVersion, terms, earn }: { termsVersion: string; terms: string; earn: string }) {
   const { t } = useI18n();
   const a = t.affiliate;
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
 
-  const submit = (form: HTMLFormElement) => {
+  const submit = () => {
     if (pending) return;
-    const fd = new FormData(form);
-    const answers = Object.fromEntries(questions.map((q) => [q.id, String(fd.get(`q_${q.id}`) ?? "")]));
-    const accepted = fd.get("accept") === "on" ? termsVersion : null;
     if (!accepted) return setError(a.errors.terms);
     setError(null);
     start(async () => {
-      const r = await callAction(() => applyAction({ answers, acceptedTerms: accepted }));
+      const r = await callAction(() => joinAction(termsVersion));
       if (isNetworkFailure(r)) return setError(a.errors.network);
       if (!r.ok) return setError(a.errors[r.error as keyof typeof a.errors] ?? a.errors.failed);
       router.refresh();
@@ -36,24 +35,16 @@ export function AffiliateApply({ questions, termsVersion, terms, earn }: { quest
       <h4 className="panel-title">{a.apply.title}</h4>
       <p>{a.apply.lead}</p>
       <p className="affiliate-earn">{earn}</p>
-      <form onSubmit={(e) => { e.preventDefault(); submit(e.currentTarget); }} noValidate>
-        {questions.map((q) => (
-          <div className="field" key={q.id}>
-            <label htmlFor={`aff-${q.id}`}>{q.label}{q.required ? null : <span className="field-optional">{t.feedback.optional}</span>}</label>
-            <textarea id={`aff-${q.id}`} name={`q_${q.id}`} className="form-input" rows={2} maxLength={1000} required={q.required} />
-          </div>
-        ))}
-        <details className="affiliate-terms">
-          <summary>{fmt(a.apply.terms, { version: termsVersion })}</summary>
-          <div className="affiliate-terms-body">{terms}</div>
-        </details>
-        <label className="affiliate-accept">
-          <input type="checkbox" name="accept" />
-          <span>{a.apply.accept}</span>
-        </label>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <div><button className="btn-primary" type="submit" disabled={pending} aria-busy={pending}><span>{pending ? a.apply.sending : a.apply.submit}</span></button></div>
-      </form>
+      <details className="affiliate-terms">
+        <summary>{fmt(a.apply.terms, { version: termsVersion })}</summary>
+        <div className="affiliate-terms-body">{terms}</div>
+      </details>
+      <label className="affiliate-accept">
+        <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+        <span>{a.apply.accept}</span>
+      </label>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <div><button className="btn-primary" type="button" onClick={submit} disabled={pending} aria-busy={pending}><span>{pending ? a.apply.sending : a.apply.submit}</span></button></div>
     </section>
   );
 }

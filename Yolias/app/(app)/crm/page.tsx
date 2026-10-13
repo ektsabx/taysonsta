@@ -62,21 +62,19 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
         </div>
       </header>
       <div className="view-content-padding">
-        {view === "table" && (
-          <nav className="type-chips campaign-filters" aria-label={c.filterStage}>
-            <Link href={href({ stage: null })} className={`type-chip${!stage ? " active" : ""}`}>{t.ws.common.all} <span className="type-chip-count">{all}</span></Link>
-            {STAGES.map((s) => (
-              <Link key={s} href={href({ stage: s })} className={`type-chip${stage === s ? " active" : ""}`}>{t.ws.stages[s]} <span className="type-chip-count">{totals[s].count}</span></Link>
-            ))}
-          </nav>
-        )}
-        <form className="ws-toolbar" method="get" action="/crm" style={{ marginTop: 14 }}>
+        <form className="ws-toolbar" method="get" action="/crm">
           {view === "kanban" && <input type="hidden" name="view" value="kanban" />}
-          {stage && view === "table" && <input type="hidden" name="stage" value={stage} />}
           <div className="toolbar-search">
             <Search />
             <input className="form-input" name="q" defaultValue={q} placeholder={t.ws.common.search} aria-label={t.ws.common.search} />
           </div>
+          {/* Stage is a dropdown like Owner (owner, 2026-10-13). */}
+          {view === "table" && (
+            <AutoSubmitSelect className="form-select" name="stage" defaultValue={stage ?? ""} aria-label={c.filterStage}>
+              <option value="">{c.filterStage}: {t.ws.common.all} ({all})</option>
+              {STAGES.map((s) => <option key={s} value={s}>{c.filterStage}: {t.ws.stages[s]} ({totals[s].count})</option>)}
+            </AutoSubmitSelect>
+          )}
           <AutoSubmitSelect className="form-select" name="owner" defaultValue={owner ?? ""} aria-label={c.filterOwner}>
             <option value="">{c.filterOwner}: {c.anyone}</option>
             <option value="none">{c.unassigned}</option>

@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, CreditCard, Lock } from "lucide-react";
-import { formatMoney, formatNumber } from "@/lib/format";
+import { formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { monthlyRate, planName, priceFor } from "@/lib/plans";
@@ -132,6 +132,15 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
     });
   };
 
+  // First charge (after the trial) or next renewal, from today.
+  const renewal = (() => {
+    const d = new Date();
+    if (trial) d.setDate(d.getDate() + trial.days);
+    else if (period === "annual") d.setFullYear(d.getFullYear() + 1);
+    else d.setMonth(d.getMonth() + 1);
+    return d;
+  })();
+
   return (
     <main className="checkout-grid">
       <section>
@@ -179,7 +188,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
             <li><Check aria-hidden="true" /> <span>{c.unlimitedUsers}</span></li>
             <li><Check aria-hidden="true" /> <span>{fmt(c.credits, { count: n(plan.prospects) })}</span></li>
             <li><Check aria-hidden="true" /> <span>{fmt(c.emails, { count: n(plan.emails) })}</span></li>
-            <li><Check aria-hidden="true" /> <span>{fmt(c.contacts, { count: n(plan.contacts) })}</span></li>
+            <li><Check aria-hidden="true" /> <span>{c.contactsUnlimited}</span></li>
             <li><Check aria-hidden="true" /> <span>{t.pricing.noCommitment}</span></li>
           </ul>
         </div>
@@ -204,12 +213,9 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
-          <p className="checkout-payment-note">
-            <span>{trial ? fmt(c.trialNote, { days: n(trial.days) }) : online ? c.paymentSecure : c.paymentNote}{testMode && !online ? ` ${c.testModeNote}` : ""}</span>
-          </p>
-          {trial && <p className="checkout-payment-note"><span>{fmt(c.trialLimits, { prospects: n(trial.prospects), emails: n(trial.emails), contacts: n(trial.contacts) })}</span></p>}
-          {!trial && route === "paymob" && <p className="checkout-payment-note"><span>{c.egyptNote}</span></p>}
-          {!trial && route === "polar" && currentPlan == null && <p className="checkout-payment-note"><span>{c.trialUsed}</span></p>}
+          {/* Customers see where they go and when it renews — never which provider or internal mode (owner, 2026-10-13). */}
+          <p className="checkout-payment-note"><span>{c.paymentRedirect}</span></p>
+          <p className="checkout-payment-note"><span>{fmt(trial ? c.firstPaymentOn : c.renewsOn, { date: formatDate(renewal, locale) })}</span></p>
         </div>
 
         {/* Each button has its own key and its text in its own <span>: browser

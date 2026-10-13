@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-// AI Workspace → AI Agents and Rules & Permissions (D-196, D-197). One row
+// AI Workspace → the AI agent (D-205: one agent; research, outreach, replies,
+// follow-up, meetings and CRM are its capabilities, not separate agents) and
+// its rules & permissions (D-196, D-197). One row
 // per workspace (public.workspace_ai_settings), validated here; anything
 // missing falls back to the safe defaults below. Every server action, agent
 // and automation asks `decide()` before acting — hiding a button is never the
@@ -68,6 +70,8 @@ export interface AiSettings {
   limits: Limits;
   escalation: Record<Escalation, boolean>;
   guidelines: string;
+  /** What the member wants the agent to achieve (customer acquisition goal). */
+  goal: string;
 }
 
 export function defaultSettings(): AiSettings {
@@ -77,13 +81,14 @@ export function defaultSettings(): AiSettings {
     limits: { ...DEFAULT_LIMITS },
     escalation: Object.fromEntries(ESCALATIONS.map((e) => [e, true])) as AiSettings["escalation"],
     guidelines: "",
+    goal: "",
   };
 }
 
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
 
 /** Reads a stored row leniently: unknown keys dropped, bad values replaced by defaults. */
-export function parseSettings(row: { agents?: unknown; permissions?: unknown; limits?: unknown; escalation?: unknown; guidelines?: string | null } | null): AiSettings {
+export function parseSettings(row: { agents?: unknown; permissions?: unknown; limits?: unknown; escalation?: unknown; guidelines?: string | null; goal?: string | null } | null): AiSettings {
   const s = defaultSettings();
   if (!row) return s;
   const agents = obj(row.agents);
@@ -107,6 +112,7 @@ export function parseSettings(row: { agents?: unknown; permissions?: unknown; li
   for (const e of ESCALATIONS) if (typeof esc[e] === "boolean") s.escalation[e] = esc[e] as boolean;
   for (const e of FORCED_ESCALATIONS) s.escalation[e] = true;
   if (typeof row.guidelines === "string") s.guidelines = row.guidelines.slice(0, 6000);
+  if (typeof row.goal === "string") s.goal = row.goal.slice(0, 2000);
   return s;
 }
 
@@ -117,6 +123,7 @@ export const settingsInput = z.object({
   limits: limitsSchema.partial().optional(),
   escalation: z.partialRecord(z.enum(ESCALATIONS), z.boolean()).optional(),
   guidelines: z.string().trim().max(6000).optional(),
+  goal: z.string().trim().max(2000).optional(),
 });
 export type SettingsInput = z.infer<typeof settingsInput>;
 
@@ -131,6 +138,7 @@ export function mergeSettings(current: AiSettings, input: SettingsInput): AiSett
   next.escalation = { ...next.escalation, ...input.escalation };
   for (const e of FORCED_ESCALATIONS) next.escalation[e] = true;
   if (input.guidelines !== undefined) next.guidelines = input.guidelines;
+  if (input.goal !== undefined) next.goal = input.goal;
   return next;
 }
 
@@ -147,6 +155,6 @@ export function decide(s: AiSettings, agent: AgentKey, action: AgentAction): Dec
 
 /** Guidelines + the agent's own instructions, for prompts (empty when none). */
 export function guidanceFor(s: AiSettings, agent: AgentKey): string {
-  return [s.guidelines && `Company rules for AI (always follow):\n${s.guidelines}`, s.agents[agent]?.instructions && `Instructions for this task:\n${s.agents[agent].instructions}`]
+  return [s.goal && `The member's customer-acquisition goal:\n${s.goal}`, s.guidelines && `Company rules for AI (always follow):\n${s.guidelines}`, s.agents[agent]?.instructions && `Instructions for this task:\n${s.agents[agent].instructions}`]
     .filter(Boolean).join("\n\n");
 }

@@ -25,6 +25,13 @@ var HIDDEN=CS&&CS.getAttribute("data-launcher")==="hidden";
 var LANGQ=CS&&CS.getAttribute("data-lang");
 var AGENTQ=CS&&CS.getAttribute("data-agent-name");
 var FONTQ=CS&&CS.getAttribute("data-font");
+var SOUND=!(CS&&CS.getAttribute("data-sound")==="off");
+// A soft tone when a message is sent and when a reply arrives (owner, 2026-10-13, D-207).
+// Web Audio, no file to load; silent if the browser blocks audio. data-sound="off" disables it.
+var AC=null;function tone(kind){if(!SOUND)return;try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=AC||new A();if(AC.state==="suspended")AC.resume();
+var notes=kind==="out"?[660]:[740,988];for(var i=0;i<notes.length;i++){var o=AC.createOscillator(),g=AC.createGain(),t0=AC.currentTime+i*0.11;o.type="sine";o.frequency.value=notes[i];
+g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.08,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.18);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+0.2)}}catch(e){}}
+var primed=false;
 var TK="bos_widget_"+API.split("/").slice(-1)[0];
 var L={
 en:{need:"Need support?",how:"How can we help?",send:"Send us a message",search:"Search for help",home:"Home",messages:"Messages",help:"Help",
@@ -225,7 +232,7 @@ function setHeader(au){cAv.textContent="";var who=au||(cfg.ai?{kind:"ai"}:null);
 cName.textContent=who&&who.kind==="agent"?(who.name||t.team):who&&who.kind==="ai"?AGENT:cfg.title;
 cSub.textContent="";if(who&&who.kind==="ai")cSub.append(el("span","tag",t.ai),document.createTextNode(" "));else if(who&&who.kind==="agent")cSub.appendChild(document.createTextNode(t.agentLabel+" · "));
 cSub.appendChild(document.createTextNode(cfg.online?t.on:t.off))}
-function resetChat(){list.textContent="";list.appendChild(typing);seen={};since=null;lastFrom=null;card2=null;extras=null;state={ai:!!cfg.ai,waitingHuman:false,canRate:false,rated:null};err.textContent="";typing.classList.remove("on");hrow.style.display="none"}
+function resetChat(){primed=false;list.textContent="";list.appendChild(typing);seen={};since=null;lastFrom=null;card2=null;extras=null;state={ai:!!cfg.ai,waitingHuman:false,canRate:false,rated:null};err.textContent="";typing.classList.remove("on");hrow.style.display="none"}
 function addMsg(mm,pending){var me=mm.from==="me";var r=el("div","row "+(me?"me":"them"));var c=el("div","col");
 var au=mm.author||{kind:mm.from};var key=au.kind+":"+(au.name||"");
 if(!me&&lastFrom!==key){var w=el("div","who");w.appendChild(document.createTextNode(au.kind==="ai"?AGENT:(au.name||t.team)));if(au.kind==="ai")w.appendChild(el("span","tag",t.ai));c.appendChild(w)}
@@ -249,7 +256,8 @@ function poll(){if(!token||!conv)return Promise.resolve();var my=conv;
 return req("/messages?c="+encodeURIComponent(conv)+(since?"&since="+encodeURIComponent(since):"")).then(function(r){if(my!==conv)return;
 for(var i=0;i<r.messages.length;i++){var mm=r.messages[i];since=mm.at;if(seen[mm.id])continue;seen[mm.id]=1;
 var pd=mm.from==="me"?list.querySelector(".pend"):null;
-if(pd){pd.classList.remove("pend");var mt=pd.querySelector(".meta");if(mt)mt.textContent=ago(mm.at);continue}addMsg(mm)}
+if(pd){pd.classList.remove("pend");var mt=pd.querySelector(".meta");if(mt)mt.textContent=ago(mm.at);continue}addMsg(mm);if(primed&&mm.from!=="me")tone("in")}
+primed=true;
 state={ai:!!r.ai,waitingHuman:!!r.waitingHuman,canRate:!!r.canRate,rated:r.rated};
 renderExtras();typing.classList.toggle("on",!!(r.ai&&lastFrom==="me"))}).catch(function(){})}
 function openChat(id){if(view!=="chat")prevView=view;resetChat();conv=id;setHeader(null);show("chat");
@@ -263,7 +271,7 @@ function grow(){ta.style.height="auto";ta.style.height=Math.min(ta.scrollHeight,
 ta.addEventListener("input",grow);
 function submit(){err.textContent="";var body=ta.value.trim();if(!body||busy)return;
 if(card2&&cfg.requireEmail&&emailI&&!emailI.value.trim()){emailI.focus();return}
-busy=true;ta.value="";grow();var bubble=addMsg({from:"me",body:body,at:null},true);
+busy=true;ta.value="";grow();var bubble=addMsg({from:"me",body:body,at:null},true);tone("out");
 withSession(function(){return req("/messages",{method:"POST",body:JSON.stringify({body:body,conversation:conv,name:nameI?nameI.value:"",email:emailI?emailI.value:""})})}).then(function(r){
 conv=r.conversation||conv;if(card2){card2.remove();card2=null}state.ai=!!r.ai;if(r.ai)typing.classList.add("on");renderExtras();return poll()})
 .catch(function(e){if(bubble){bubble.classList.remove("pend");bubble.classList.add("fail")}

@@ -3,10 +3,10 @@ import { RangePicker } from "@/components/app/RangePicker";
 import { formatDate, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { requireSession } from "@/lib/session";
-import { affiliateFor, currentProgram, dashboard } from "@/lib/affiliates";
+import { requirePartner } from "@/lib/partners";
+import { affiliateFor, applyAffiliate, currentProgram, dashboard } from "@/lib/affiliates";
 import { commissionLabel, formatCents } from "@/lib/affiliates/program";
-import { AffiliateApply, PayoutPanel, ReferralLink } from "./AffiliateClient";
+import { PartnerStart, PayoutPanel, ReferralLink } from "./AffiliateClient";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).affiliate.title} — Yolias`, robots: { index: false } };
@@ -19,15 +19,22 @@ function siteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
 }
 
-// Affiliate program, member side (D-178): apply, follow the application, and
-// once approved, the referral link, real numbers from the database, the
-// commission and payout history, and withdrawals.
-export default async function AffiliatePage({ searchParams }: PageProps<"/affiliate">) {
-  const session = await requireSession();
+// Yolias Partners (D-178, D-206): its own sign-in, no subscription and no
+// application — accept the terms and get the referral link at once; then real
+// numbers from the database, the commission and payout history, and withdrawals.
+export default async function PartnersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const user = await requirePartner();
+  const session = { userId: user.id };
   const sp = await searchParams;
   const range: RangeKey = typeof sp.range === "string" && sp.range in rangeDays ? (sp.range as RangeKey) : "90d";
   const page = Math.max(1, Math.min(500, Number(sp.page) || 1));
-  const [t, locale, program, affiliate] = await Promise.all([getDictionary(), getLocale(), currentProgram(), affiliateFor(session.userId)]);
+  const [t, locale, program, found] = await Promise.all([getDictionary(), getLocale(), currentProgram(), affiliateFor(session.userId)]);
+  // Joined from /partners/join (terms accepted there): start straight away.
+  let affiliate = found;
+  if (!affiliate && program?.settings.enabled && user.meta.partner_terms === program.termsVersion) {
+    await applyAffiliate({ id: user.id, email: user.email }, { answers: {}, acceptedTerms: program.termsVersion, ip: null });
+    affiliate = await affiliateFor(user.id);
+  }
   const a = t.affiliate;
   const n = (v: number) => formatNumber(v, locale);
   const money = (cents: number) => <span dir="ltr">{formatCents(cents)}</span>;
@@ -49,8 +56,7 @@ export default async function AffiliatePage({ searchParams }: PageProps<"/affili
         {header()}
         <div className="view-content-padding affiliate-page">
           {!program || !s?.enabled ? <p className="panel-empty">{a.closed}</p> : (
-            <AffiliateApply
-              questions={s.questions}
+            <PartnerStart
               termsVersion={program.termsVersion}
               terms={program.terms}
               earn={fmt(a.apply.earn, {

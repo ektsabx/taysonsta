@@ -192,7 +192,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
         <div className="selection-bar" role="region" aria-label={fmt(pr.selected, { count: n(count) })}>
           <span>{fmt(pr.selected, { count: n(count) })}</span>
           <span className="selection-actions">
-            {hasPeople && (["email", "linkedin", "whatsapp"] as const).map((c, k) => k === 0
+            {hasPeople && (["email", "linkedin"] as const).map((c, k) => k === 0
               ? <button key={c} type="button" className="btn-primary" disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /> {t.outreach[c]}</button>
               : <button key={c} type="button" className="btn-secondary icon-only" aria-label={t.outreach[c]} title={t.outreach[c]} disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /></button>)}
             <button type="button" className="btn-secondary" onClick={() => {

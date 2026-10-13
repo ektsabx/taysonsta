@@ -7652,6 +7652,11 @@ const en: Record<string, string> = {
  "بودكاست": "Podcast",
  "فضّل عدم الإجابة": "Preferred not to say",
  "لم يُجب (قبل إضافة السؤال أو تخطّاه)": "Not answered (before the question existed, or skipped)",
+ "باقات العملاء المحتملين ورسائل البريد": "Prospect and email packs",
+ "عدد رسائل البريد": "Number of emails",
+ "تُضاف مع العملاء المحتملين في نفس الباقة، ولا تنتهي صلاحيتها.": "Added together with the prospects in the same pack; they don’t expire.",
+ "عدد الرسائل غير صالح.": "The number of emails isn’t valid.",
+ "عدد صحيح من 0": "A whole number from 0",
 };
 
 export default en;

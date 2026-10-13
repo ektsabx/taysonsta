@@ -471,7 +471,7 @@ export type PaymentRow = {
 };
 export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
 export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
-export type ProspectPackRow = { id: string; prospects: number; price_usd: number; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
+export type ProspectPackRow = { id: string; prospects: number; emails: number; price_usd: number; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
 
 /** Emails and uploaded contacts this month (limits_summary). */
 export type LimitsSummary = { period_start: string; emails_limit: number; emails_used: number; contacts_limit: number; contacts_used: number };
@@ -540,6 +540,7 @@ export type UsageLedgerRow = {
   campaign_id: string | null;
   kind: UsageLedgerKind;
   prospects: number;
+  emails: number;
   period_start: string;
   reason: string | null;
   created_by: string | null;
@@ -793,10 +794,12 @@ export interface Database {
       workspace_ai_settings: Table<WorkspaceAiSettingsRow, "workspace_id">;
       automations: Table<AutomationRow, "workspace_id" | "name" | "trigger" | "actions">;
       automation_runs: Table<AutomationRunRow, "workspace_id" | "automation_id" | "event_key" | "trigger" | "status">;
+      content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };
     Views: {
       prospect_items: { Row: ProspectItemRow; Relationships: [] };
       crm_leads: { Row: CrmLeadRow; Relationships: [] };
+      content_feedback_totals: { Row: { kind: string; slug: string; helpful: number; not_helpful: number }; Relationships: [] };
     };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };

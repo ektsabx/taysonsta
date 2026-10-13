@@ -32,7 +32,7 @@ export default async function AiAgentsPage() {
       <div className="bos-kpis">
         <KpiCard label="مزود الذكاء الاصطناعي" value={aiConns ? <Tx>متصل</Tx> : <Tx>غير متصل</Tx>} href="/admin/settings/integrations?cat=ai" sub={aiConns ? undefined : <Tx>كل الرسائل تُحوّل للموظفين</Tx>} />
         <KpiCard label="مقالات متاحة للوكيل" value={kbRows.length} href="/admin/support/knowledge?ai=1&status=published" />
-        <KpiCard label="ويدجت مربوطة بوكيل" value={(widgets ?? []).filter((w) => w.ai_agent_id && w.is_active).length} href="/admin/settings/integrations/widgets" />
+        <KpiCard label="ويدجت مربوطة بوكيل" value={(widgets ?? []).filter((w) => w.ai_agent_id && w.is_active).length} href="/admin/support/widgets" />
       </div>
       {agents.length ? agents.map((a) => {
         const s = stats.get(a.id) ?? { total: 0, handedOff: 0, resolvedByAi: 0 };

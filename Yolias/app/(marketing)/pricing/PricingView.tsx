@@ -54,7 +54,7 @@ export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
       billed={billed(plan)}
       items={[
         fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
-        fmt(dict.plans.contactsPerMonth, { count: n(plans[plan].contacts) }),
+        dict.plans.contactsUnlimited,
         fmt(dict.plans.emailsPerMonth, { count: n(plans[plan].emails) }),
         t.features.crm,
         t.features.enrichment,
@@ -132,7 +132,7 @@ export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
                 </tr>
                 <tr>
                   <td>{t.usageContacts}</td>
-                  {tiers.map((p) => <td key={p}>{n(plans[p].contacts)}</td>)}
+                  {tiers.map((p) => <td key={p}>{dict.plans.unlimited}</td>)}
                 </tr>
                 <tr>
                   <td>{t.usageEmails}</td>

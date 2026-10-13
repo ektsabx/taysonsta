@@ -36,7 +36,7 @@ export default async function AffiliatesPublicPage() {
   ] : [];
   const rate = s ? commissionLabel(s, formatCents) : null;
   const examples = s?.enabled ? commissionExamples(s, { pro: plans.pro.priceUsd, growth: plans.growth.priceUsd, scale: plans.scale.priceUsd }) : [];
-  const cta = s?.enabled ? <Link className="btn-solid" href={session ? "/affiliate" : "/signup"}>{session ? c.cta.signedIn : c.cta.signedOut}</Link> : null;
+  const cta = s?.enabled ? <Link className="btn-solid" href={session ? "/partners" : "/partners/join"}>{session ? c.cta.signedIn : c.cta.signedOut}</Link> : null;
   return (
     <>
       <JsonLd nodes={[webPageSchema({ title: c.seoTitle, description: c.metaDescription, path: "/affiliates" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.seoTitle, path: "/affiliates" }]), faqSchema(c.faq)]} />
@@ -101,7 +101,7 @@ export default async function AffiliatesPublicPage() {
       ) : null}
 
       {facts.length ? (
-        <section className="section">
+        <section className="section" id="terms">
           <div className="site-width split">
             <h2 className="solution-h2">{c.termsTitle}</h2>
             <dl className="affiliate-facts">

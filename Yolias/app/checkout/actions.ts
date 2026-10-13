@@ -91,7 +91,7 @@ export async function buyProspectPack(packId: string): Promise<PackResult> {
   const { data: pack } = await db.from("prospect_packs").select("*").eq("id", packId).eq("active", true).maybeSingle();
   const price = pack ? pack.price_usd : null;
   if (!pack || price == null) return { ok: false, error: t.checkout.errors.notPriced };
-  await grantPack(db, ws, pack.prospects, { mode: "test", amount: Number(price), currency }, payer);
+  await grantPack(db, ws, pack.prospects, pack.emails, { mode: "test", amount: Number(price), currency }, payer);
   revalidatePath("/", "layout");
   return { ok: true, added: pack.prospects, test: true };
 }

@@ -11,7 +11,7 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { monthWindow, planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
-import { GmailIcon, LinkedInIcon, OutlookIcon, WhatsAppIcon } from "./ConnectorIcons";
+import { GmailIcon, LinkedInIcon, OutlookIcon } from "./ConnectorIcons";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
@@ -504,13 +504,14 @@ function UsageTab({ data }: { data: ShellData }) {
         </div>
         <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : pct >= 80 ? " amber" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
-          <span>{u.prospectsDesc}</span>
+          <span />
           <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : usage.trialEndsAt ? u.trialOnly : u.oneTime}</span>
         </div>
         {usage.extra > 0 && <div className="usage-extra">{fmt(t.buyMore.extraBalance, { count: n(usage.extra) })}</div>}
       </div>
 
-      {([["emails", u.emails, u.emailsDesc], ["contacts", u.contacts, u.contactsDesc]] as const).map(([k, label, desc]) => {
+      {/* Billed on what Yolias delivers: prospects and emails. Uploaded contacts are unlimited (D-203). */}
+      {([["emails", u.emails]] as const).map(([k, label]) => {
         const m = usage[k];
         const p = Math.min(100, m.limit ? (m.used / m.limit) * 100 : 100);
         return (
@@ -521,7 +522,7 @@ function UsageTab({ data }: { data: ShellData }) {
             </div>
             <div className="progress-track"><div className={`progress-fill${p >= 100 ? " red" : p >= 80 ? " amber" : ""}`} style={{ width: `${p.toFixed(1)}%` }} /></div>
             <div className="usage-meter-foot">
-              <span>{desc}</span>
+              <span />
               <span>{usage.trialEndsAt ? u.trialOnly : fmt(u.resets, { date: formatDate(monthWindow(new Date(now)).resets.toISOString(), locale, data.preferences.timezone) })}</span>
             </div>
           </div>
@@ -596,7 +597,7 @@ function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBoug
             <li key={p.id}>
               <span className="buy-more-name">
                 {fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}
-                <small><bdi dir="ltr">{`$${(p.price / p.prospects).toFixed(3).replace(/0$/, "")}`}</bdi> {bm.each}</small>
+                <small>{fmt(bm.packEmails, { count: formatNumber(p.emails, locale) })}</small>
               </span>
               <span dir="ltr" className="buy-more-price">{formatMoney(p.price, data.workspace.currency)}</span>
               <button className={state ? "btn-primary" : "btn-secondary"} type="button" disabled={busy !== null} onClick={() => buy(p.id)}>{busy === p.id ? bm.buying : bm.buy}</button>
@@ -862,7 +863,7 @@ function IntegrationTab() {
   const { t } = useI18n();
   const it = t.settings.integration;
   // Owner brief 2026-10-12: calendar / meetings and the three messaging
-  // channels (email, LinkedIn, WhatsApp). Each shows what really works today:
+  // channels (email, LinkedIn; WhatsApp removed in D-201). Each shows what really works today:
   // messages open in the member's own app; account connections (OAuth) and
   // calendars aren't built yet, so they say so (docs/21).
   const groups = [
@@ -875,7 +876,6 @@ function IntegrationTab() {
       { id: "gmail", name: "Gmail", desc: it.gmailDesc, Icon: GmailIcon, live: true },
       { id: "outlook", name: "Outlook", desc: it.outlookDesc, Icon: OutlookIcon, live: true },
       { id: "linkedin", name: "LinkedIn", desc: it.linkedinDesc, Icon: LinkedInIcon, live: true },
-      { id: "whatsapp", name: "WhatsApp", desc: it.whatsappDesc, Icon: WhatsAppIcon, live: true },
     ] },
   ];
   return (

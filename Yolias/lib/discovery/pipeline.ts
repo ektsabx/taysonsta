@@ -223,14 +223,9 @@ function companyMedia(c: CompanyCandidate) {
   return { logo_url: httpsOnly(c.logoUrl), linkedin_url: httpsOnly(c.linkedinUrl), founded_year: year(c.foundedYear) };
 }
 
-const whatsappNumber = (v: string | null | undefined) => {
-  const digits = (v ?? "").replace(/\D/g, "");
-  return digits.length >= 6 && digits.length <= 20 ? digits : null;
-};
-
-/** Facebook, Instagram and WhatsApp (D-161), as the source gave them. */
-function socialFields(c: { facebookUrl?: string | null; instagramUrl?: string | null; whatsapp?: string | null }) {
-  return { facebook_url: httpsOnly(c.facebookUrl), instagram_url: httpsOnly(c.instagramUrl), whatsapp: whatsappNumber(c.whatsapp) };
+/** Facebook and Instagram pages (D-161), as the source gave them. WhatsApp isn't collected (D-201). */
+function socialFields(c: { facebookUrl?: string | null; instagramUrl?: string | null }) {
+  return { facebook_url: httpsOnly(c.facebookUrl), instagram_url: httpsOnly(c.instagramUrl), whatsapp: null };
 }
 
 /**
@@ -238,12 +233,12 @@ function socialFields(c: { facebookUrl?: string | null; instagramUrl?: string | 
  * its own website (D-161, D-163; no provider, no cost); the source stays the website.
  */
 async function withSocials(c: CompanyCandidate): Promise<CompanyCandidate> {
-  if (c.facebookUrl && c.instagramUrl && c.whatsapp && c.email && c.phone) return c;
+  if (c.email && c.linkedinUrl && c.phone && c.facebookUrl && c.instagramUrl) return c;
   const site = c.website ?? c.domain;
   if (!site) return c;
   const found = await findSocials(site);
   const next = {
-    ...c, facebookUrl: c.facebookUrl ?? found.facebookUrl, instagramUrl: c.instagramUrl ?? found.instagramUrl, whatsapp: c.whatsapp ?? found.whatsapp,
+    ...c, facebookUrl: c.facebookUrl ?? found.facebookUrl, instagramUrl: c.instagramUrl ?? found.instagramUrl, linkedinUrl: c.linkedinUrl ?? found.linkedinUrl,
     email: c.email ?? found.email, phone: c.phone ?? found.phone,
   };
   const o = origin.get(c);
@@ -265,14 +260,15 @@ function intelligence(kind: EntityKind, row: Record<string, unknown>, source: st
 
 /**
  * A result counts as one prospect only when it is a business we can identify
- * (website, domain or map place) and reach (email, phone or WhatsApp); social
- * profiles alone are not enough (owner decision 2026-10-07, D-164).
+ * (website, domain or map place) and reach (business email, LinkedIn page or
+ * business phone). Facebook / Instagram alone aren't enough, and WhatsApp is
+ * never required or collected (D-164, D-201).
  */
 function qualifies(c: CompanyCandidate, icp: IcpCriteria): boolean {
   const identified = Boolean(c.website || c.domain || c.placeRef);
-  const has = { email: Boolean(c.email), phone: Boolean(c.phone), whatsapp: Boolean(whatsappNumber(c.whatsapp)), linkedin: Boolean(c.linkedinUrl) };
-  // The contact the member asked for in the Campaign Setup (D-167); otherwise any of email, phone or WhatsApp.
-  const wanted = icp.contact?.length ? icp.contact : (["email", "phone", "whatsapp"] as const);
+  const has = { email: Boolean(c.email), phone: Boolean(c.phone), linkedin: Boolean(c.linkedinUrl) };
+  // The contact the member asked for in the Campaign Setup (D-167); otherwise any of email, LinkedIn or phone.
+  const wanted = icp.contact?.length ? icp.contact : (["email", "linkedin", "phone"] as const);
   return identified && wanted.some((m) => has[m]);
 }
 

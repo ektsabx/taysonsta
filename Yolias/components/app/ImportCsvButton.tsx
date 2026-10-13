@@ -110,7 +110,7 @@ export function ImportCsvButton({ available }: { available: number }) {
                   <p className="import-summary" role="status">
                     <strong>{fmt(im.preview, { count: n(valid) })}</strong>
                     {skipped > 0 && <span className="cell-sub">{fmt(im.skipped, { count: n(skipped) })}</span>}
-                    <span className="cell-sub">{fmt(im.available, { count: n(available) })}</span>
+                    {/* Uploaded contacts are unlimited (D-203); only the per-file row cap applies. */}
                   </p>
                 </>
               )}

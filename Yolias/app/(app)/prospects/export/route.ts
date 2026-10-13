@@ -34,8 +34,9 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
 
   let header: string[];
   let lines: unknown[][];
-  const social = [h.facebook, h.instagram, h.whatsapp];
-  const socialOf = (r: { facebook_url: string | null; instagram_url: string | null; whatsapp: string | null }) => [r.facebook_url, r.instagram_url, r.whatsapp];
+  // WhatsApp isn't collected any more (D-201).
+  const social = [h.facebook, h.instagram];
+  const socialOf = (r: { facebook_url: string | null; instagram_url: string | null }) => [r.facebook_url, r.instagram_url];
   let people: { id: string; revealed_at: string | null }[] = [];
   if (filters.tab === "all" || filters.tab === "saved") {
     // Mixed list: one row per person, company or local business.

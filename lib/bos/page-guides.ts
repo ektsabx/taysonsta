@@ -132,7 +132,7 @@ export const pageGuides: Record<string, PageGuide> = {
     { title: "قاعدة المعرفة", purpose: "مقالات المساعدة والأسئلة الشائعة للعملاء، ومصدر إجابات الوكيل الذكي.", owner: "فريق الدعم والمحتوى.", steps: ["أنشئ «مقال مساعدة» (جمهوره عام).", "انشره بعد المعاينة.", "فعّل «للوكيل الذكي» ليستخدمه في الردود."] },
     { title: "Knowledge base", purpose: "Customer help articles and FAQs, and the AI agent's source of answers.", owner: "Support and content team.", steps: ["Create a “help article” (public audience).", "Publish it after previewing.", "Enable “For the AI agent” so it is used in replies."] },
   ),
-  "/admin/settings/integrations/widgets": g(
+  "/admin/support/widgets": g(
     { title: "ويدجت الموقع", purpose: "أدوات تضعها في موقعك: نافذة محادثة الدعم وزر واتساب.", owner: "مدير الدعم ومسؤول الرسائل.", steps: ["أنشئ الويدجت وأضف نطاق موقعك.", "انسخ كود التضمين إلى صفحات الموقع.", "اربطه بفريق ووكيل ذكاء اصطناعي عند الحاجة."] },
     { title: "Website widgets", purpose: "Tools you place on your website: the support chat window and the WhatsApp button.", owner: "Support manager and messaging owner.", steps: ["Create the widget and add your site's domain.", "Copy the embed code into your pages.", "Attach a team and an AI agent if needed."] },
   ),

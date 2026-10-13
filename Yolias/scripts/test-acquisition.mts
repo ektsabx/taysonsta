@@ -127,27 +127,14 @@ try {
   assert.ok(bKnowledge.error, "B can't write A's knowledge");
   console.log("✓ RLS isolation");
 
-  // ── 6. Automations: once per event, no chains, permissions ──
-  const { data: auto } = await A.client.from("automations").insert({
-    workspace_id: A.wsId, name: "Interested", trigger: "lead.stage_changed", conditions: { to_stages: ["interested"] } as Json,
-    actions: [{ type: "create_task", title: "Follow up", due_in_days: 1, kind: "follow_up" }, { type: "set_stage", stage: "meeting_booked" }] as Json,
-  }).select("id").single();
-  assert.ok(auto, "owners create automations");
+  // ── 6. Automations are off for now (owner, 2026-10-13, D-205) ──
   const event = { workspaceId: A.wsId, trigger: "lead.stage_changed" as const, leadId: companyLead, eventKey: "activity:test-1", data: { from: "new" as const, to: "interested" as const }, origin: "user" as const };
-  await runAutomations(event);
-  await runAutomations(event);
-  const runs = (await db.from("automation_runs").select("status").eq("automation_id", auto!.id)).data!;
-  assert.equal(runs.length, 1, "the same event runs once");
-  assert.equal(runs[0].status, "needs_approval", "set_stage waits: CRM Agent → update stage = approval by default");
-  assert.equal((await db.from("lead_tasks").select("id", { count: "exact", head: true }).eq("lead_id", companyLead)).count, 1, "one task");
-  assert.equal((await db.from("agent_pending_actions").select("id", { count: "exact", head: true }).eq("lead_id", companyLead).eq("status", "pending")).count, 1, "one approval request");
-  assert.equal((await runAutomations({ ...event, eventKey: "activity:test-2", origin: "automation" })).ran, 0, "changes made by automations don't start automations");
+  await A.client.from("automations").insert({ workspace_id: A.wsId, name: "Old", trigger: "lead.stage_changed", actions: [{ type: "create_task", title: "x", due_in_days: 1, kind: "follow_up" }] as Json });
+  assert.equal((await runAutomations(event)).ran, 0, "automations don't run while the feature is off");
+  assert.equal((await db.from("automation_runs").select("id", { count: "exact", head: true }).eq("workspace_id", A.wsId)).count, 0);
+  // CRM stage permission is still enforced for the agent.
   await db.from("workspace_ai_settings").upsert({ workspace_id: A.wsId, permissions: { crm: { update_crm_stage: "deny" } } });
-  await runAutomations({ ...event, eventKey: "activity:test-3" });
-  const denied = (await db.from("automation_runs").select("status, error").eq("automation_id", auto!.id).eq("event_key", "activity:test-3").single()).data!;
-  assert.equal(denied.status, "partial");
-  assert.match(denied.error ?? "", /denied/, "denied stage changes are logged as failures");
-  console.log("✓ automations");
+  console.log("✓ automations off");
 
   // ── 7. Rules & Permissions in the agents ──
   const s = await loadAiSettings(A.wsId);
@@ -216,12 +203,10 @@ try {
 
   // ── 11. Meetings ──
   await db.from("workspace_ai_settings").upsert({ workspace_id: A.wsId, permissions: {} });
-  const { data: bookedAuto } = await A.client.from("automations").insert({ workspace_id: A.wsId, name: "Booked", trigger: "meeting.booked", actions: [{ type: "create_task", title: "Prepare", due_in_days: 0, kind: "meeting_prep" }] as Json }).select("id").single();
   const { data: meeting } = await A.client.from("meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "Intro", starts_at: new Date(Date.now() + 86_400_000).toISOString(), url: "https://meet.google.com/abc", created_by: A.userId }).select("id, lead_id, status").single();
   await meetingChanged(A.client, A.wsId, meeting!, null, "user");
   await meetingChanged(A.client, A.wsId, meeting!, null, "user");
   assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "meeting_booked");
-  assert.equal((await db.from("automation_runs").select("id", { count: "exact", head: true }).eq("automation_id", bookedAuto!.id)).count, 1, "meeting automation once");
   const badUrl = await A.client.from("meetings").insert({ workspace_id: A.wsId, lead_id: personLead, title: "x", starts_at: new Date().toISOString(), url: "javascript:alert(1)" });
   assert.ok(badUrl.error, "only http(s) meeting links");
   const done = (await A.client.from("meetings").update({ status: "completed" }).eq("id", meeting!.id).select("id, lead_id, status").single()).data!;
@@ -230,6 +215,26 @@ try {
   await changeStage(A.client, A.wsId, personLead, "lost", "user");
   assert.equal((await db.from("leads").select("stage").eq("id", personLead).single()).data!.stage, "lost");
   console.log("✓ meetings");
+
+  // ── 12. Packs add emails too; uploaded contacts are unlimited (D-203) ──
+  const lim = async (kind: string) => Number((await db.rpc("monthly_limit" as never, { p_ws: B.wsId, p_kind: kind } as never)).data);
+  const used = async () => Number((await db.rpc("monthly_used" as never, { p_ws: B.wsId, p_kind: "emails" } as never)).data);
+  assert.ok((await lim("contacts")) >= 1_000_000_000, "contacts unlimited");
+  const base = await lim("emails");
+  await db.from("usage_ledger").insert({ workspace_id: B.wsId, kind: "grant", prospects: 10, emails: 3, period_start: new Date().toISOString().slice(0, 8) + "01", reason: "prospect_pack:test", created_by: "test" });
+  assert.equal(await lim("emails"), base + 3, "a pack's emails add to this month's limit");
+  const cB = await camp(B.wsId);
+  const coB = (await db.from("companies").insert({ workspace_id: B.wsId, campaign_id: cB, name: "Beta", source: "test" }).select("id").single()).data!.id;
+  const room = base + 3 - (await used());
+  const opened = new Date().toISOString();
+  const fill = await db.from("outreach_messages").insert(Array.from({ length: room }, () => ({ workspace_id: B.wsId, company_id: coB, channel: "email" as const, opened_at: opened, opened_via: "gmail" as const })));
+  assert.equal(fill.error, null, "plan emails + pack emails can be used");
+  const over = await db.from("outreach_messages").insert({ workspace_id: B.wsId, company_id: coB, channel: "email", opened_at: opened, opened_via: "gmail" });
+  assert.match(over.error?.message ?? "", /email_limit_reached/, "then the limit applies");
+  const extra = (await db.from("usage_ledger").select("emails").eq("workspace_id", B.wsId).eq("reason", "extra_email")).data ?? [];
+  assert.equal(extra.reduce((a, r) => a + r.emails, 0), 3, "exactly the pack's emails were drawn");
+  assert.equal(Number((await db.rpc("extra_emails_left" as never, { p_ws: B.wsId } as never)).data), 0);
+  console.log("✓ packs with emails, unlimited contacts");
 
   console.log("\nAll customer-acquisition checks passed.");
 } finally {

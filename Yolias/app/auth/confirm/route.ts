@@ -5,6 +5,7 @@ import { securityAlert, signedIn } from "@/lib/email/events";
 import { capture } from "@/lib/analytics/server";
 import { attributeSignup } from "@/lib/affiliates";
 import { AFFILIATE_COOKIE } from "@/lib/affiliates/program";
+import { NEXT_COOKIE } from "@/lib/partners";
 
 // Magic link verification. Supports both link formats Supabase can send:
 //  - token_hash + type (Yolias email templates; works across devices)
@@ -45,5 +46,17 @@ export async function GET(request: NextRequest) {
     if (ref) await attributeSignup(auth.user.id, ref, ip);
   }
 
-  return NextResponse.redirect(new URL("/", url.origin));
+  // Yolias Partners (D-206): back to the partner portal — this browser started
+  // there (cookie), or the account is a partner account without a plan.
+  const next = request.cookies.get(NEXT_COOKIE)?.value;
+  let dest = "/";
+  if (next === "/partners") dest = "/partners";
+  else if (auth.user?.user_metadata?.partner === true) {
+    const { data: prof } = await supabase.from("profiles").select("workspace:workspaces(subscription_status)").eq("id", auth.user.id).maybeSingle();
+    const status = (prof?.workspace as unknown as { subscription_status?: string } | null)?.subscription_status;
+    if (!status || status === "none" || status === "canceled") dest = "/partners";
+  }
+  const res = NextResponse.redirect(new URL(dest, url.origin));
+  if (next) res.cookies.delete(NEXT_COOKIE);
+  return res;
 }

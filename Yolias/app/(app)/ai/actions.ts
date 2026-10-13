@@ -7,7 +7,6 @@ import { canManageTeam, requireSession } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { mergeSettings, settingsInput, type SettingsInput } from "@/lib/ai-workspace/settings";
-import { automationInput, type AutomationInput } from "@/lib/automations/schema";
 import type { Json } from "@/types/database";
 
 // AI Workspace (D-196..D-198). Company Knowledge, offers, competitors, the
@@ -148,48 +147,10 @@ export async function saveAiSettings(input: SettingsInput): Promise<AiResult> {
   const next = mergeSettings(await loadAiSettings(session.workspace.id), p.data);
   const { error } = await (await createClient()).from("workspace_ai_settings").upsert({
     workspace_id: session.workspace.id, agents: next.agents as unknown as Json, permissions: next.permissions as unknown as Json,
-    limits: next.limits as unknown as Json, escalation: next.escalation as unknown as Json, guidelines: next.guidelines || null,
+    limits: next.limits as unknown as Json, escalation: next.escalation as unknown as Json, guidelines: next.guidelines || null, goal: next.goal || null,
     updated_by: session.userId, updated_at: new Date().toISOString(),
   });
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/ai", "layout");
-  return { ok: true };
-}
-
-// ── Automations ──
-export async function saveAutomation(input: AutomationInput & { id?: string }): Promise<AiResult<{ id: string }>> {
-  const { session, t, allowed } = await manager();
-  if (!allowed) return { ok: false, error: t.common.onlyManagers };
-  const p = automationInput.safeParse(input);
-  if (!p.success) {
-    const field = p.error.issues[0]?.path[0];
-    return { ok: false, error: field === "name" ? t.ai.automations.errors.name : field === "actions" && !input.actions?.length ? t.ai.automations.errors.actions : t.ai.automations.errors.invalid };
-  }
-  const row = { name: p.data.name, trigger: p.data.trigger, conditions: p.data.conditions as Json, actions: p.data.actions as unknown as Json, enabled: p.data.enabled };
-  const db = await createClient();
-  const res = input.id && uuid.safeParse(input.id).success
-    ? await db.from("automations").update(row).eq("id", input.id).eq("workspace_id", session.workspace.id).is("deleted_at", null).select("id").maybeSingle()
-    : await db.from("automations").insert({ ...row, workspace_id: session.workspace.id, created_by: session.userId }).select("id").single();
-  if (res.error || !res.data) return { ok: false, error: t.common.error };
-  revalidatePath("/ai/automations");
-  return { ok: true, id: res.data.id };
-}
-
-export async function setAutomationEnabled(id: string, enabled: boolean): Promise<AiResult> {
-  const { session, t, allowed } = await manager();
-  if (!allowed) return { ok: false, error: t.common.onlyManagers };
-  const { error } = await (await createClient()).from("automations").update({ enabled }).eq("id", id).eq("workspace_id", session.workspace.id).is("deleted_at", null);
-  if (error) return { ok: false, error: t.common.error };
-  revalidatePath("/ai/automations");
-  return { ok: true };
-}
-
-/** Soft delete: it stops running and its run history stays. */
-export async function deleteAutomation(id: string): Promise<AiResult> {
-  const { session, t, allowed } = await manager();
-  if (!allowed) return { ok: false, error: t.common.onlyManagers };
-  const { error } = await (await createClient()).from("automations").update({ deleted_at: new Date().toISOString(), enabled: false }).eq("id", id).eq("workspace_id", session.workspace.id);
-  if (error) return { ok: false, error: t.common.error };
-  revalidatePath("/ai/automations");
   return { ok: true };
 }

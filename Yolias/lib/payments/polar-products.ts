@@ -42,7 +42,7 @@ async function wanted(): Promise<Wanted[]> {
       key, plan, period,
       cents: Math.round(priceFor(t.priceUsd, period) * 100),
       name: `Yolias ${NAMES[plan]} (${period === "annual" ? "Annual" : "Monthly"})`,
-      description: `${t.prospects.toLocaleString("en-US")} prospects, ${t.emails.toLocaleString("en-US")} emails and ${t.contacts.toLocaleString("en-US")} uploaded contacts per month.`,
+      description: `${t.prospects.toLocaleString("en-US")} prospects, ${t.emails.toLocaleString("en-US")} emails per month, unlimited contact uploads.`,
     };
   });
 }

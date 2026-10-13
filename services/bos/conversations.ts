@@ -391,7 +391,9 @@ export async function receiveInbound(input: { channel: Channel; customer: Custom
       await run(); // outside a request (tests, scripts)
     }
   }
-  if (!isNew && !conv.ai_active) await emitEvent({ type: "conversation.customer_message", entityType: "conversation", entityId: conv.id, summary: `${customer.name}: ${body.slice(0, 120)}`, actorType: "client", payload: { title: conv.subject ?? customer.name, assignee_user_id: conv.assignee_id, channel: input.channel, customer_id: customer.id } });
+  // Staff hear about every new conversation and every customer message while
+  // a person handles it — in the app and by email, with the message (D-207).
+  if (isNew || !conv.ai_active) await emitEvent({ type: "conversation.customer_message", entityType: "conversation", entityId: conv.id, summary: `${customer.name}: ${body.slice(0, 120)}`, actorType: "client", payload: { title: conv.subject ?? customer.name, assignee_user_id: conv.assignee_id, team_id: conv.team_id, channel: input.channel, customer_id: customer.id, message: `${customer.name}: ${body.slice(0, 2000)}` } });
   return { conversation: conv, duplicate: false, isNew };
 }
 

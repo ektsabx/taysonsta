@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
+import { ArticleFeedback, CopyPageButton } from "@/components/marketing/ArticleTools";
+import { toMarkdown } from "@/lib/content/types";
+import { siteUrl } from "@/lib/seo";
+
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Prose } from "@/components/marketing/Prose";
@@ -47,10 +51,14 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           <span>{formatDate(post.date, locale, "UTC")}</span>
           <span>{fmt(t.site.minRead, { count: readingMinutes(doc.blocks) })}</span>
         </div>
-        <h1 className="doc-title mt-4">{doc.title}</h1>
+        <div className="doc-title-row">
+          <h1 className="doc-title mt-4">{doc.title}</h1>
+          <CopyPageButton markdown={toMarkdown(doc, siteUrl())} />
+        </div>
         <p className="doc-summary">{doc.summary}</p>
         <div className="doc-divider" />
         <Prose blocks={doc.blocks} />
+        <ArticleFeedback kind="blog" slug={slug} />
       </article>
       <section className="section alt">
         <div className="site-width post-grid">

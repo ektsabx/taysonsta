@@ -82,7 +82,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "Pipeline that doesn’t wait for referrals", body: "Describe the clients you serve best and get matching companies every week, so new business doesn’t depend on who calls you." },
         { title: "Pitch the clients you can win", body: "Each company comes with the reason it matched your industries, markets and size, so proposals go to businesses that fit your retainer." },
-        { title: "From list to first message in one place", body: "Save the companies you want, then write each first email, LinkedIn note or WhatsApp message with Yolias and send it from your own account." },
+        { title: "From list to first message in one place", body: "Save the companies you want, then write each first email or LinkedIn note with Yolias and send it from your own account." },
       ],
       problemTitle: "The problem",
       problem: [
@@ -124,7 +124,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "عملاء جدد دون انتظار الترشيحات", body: "صِف العملاء الذين تخدمهم بأفضل شكل واحصل على شركات مطابقة كل أسبوع، فلا يعتمد نمو وكالتك على من يتصل بك." },
         { title: "اعرض خدماتك على من يمكنك كسبه", body: "تأتي كل شركة مع سبب مطابقتها لقطاعاتك وأسواقك وحجم عملائك، فتذهب عروضك إلى شركات تناسب رسومك." },
-        { title: "من القائمة إلى أول رسالة في مكان واحد", body: "احفظ الشركات التي تريدها، واكتب أول بريد أو رسالة LinkedIn أو واتساب مع يولـياس وأرسلها من حسابك." },
+        { title: "من القائمة إلى أول رسالة في مكان واحد", body: "احفظ الشركات التي تريدها، واكتب أول بريد أو رسالة LinkedIn مع يولـياس وأرسلها من حسابك." },
       ],
       problemTitle: "المشكلة",
       problem: [
@@ -594,7 +594,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "One place to define target accounts", body: "Your team describes target accounts in plain words and Yolias turns them into campaigns everyone can see." },
         { title: "A shared, reviewed list", body: "Matching companies land in one Prospects table with filters, saved lists and CSV import and export, shared across the workspace." },
-        { title: "From research to outreach faster", body: "Reps prepare emails, LinkedIn notes and WhatsApp messages from each prospect and send them from their own accounts." },
+        { title: "From research to outreach faster", body: "Reps prepare emails and LinkedIn notes from each prospect and send them from their own accounts." },
       ],
       problemTitle: "The problem",
       problem: [
@@ -635,7 +635,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "مكان واحد لتحديد الحسابات المستهدفة", body: "يصف فريقك الحسابات المستهدفة بكلمات بسيطة، ويحوّلها يولـياس إلى حملات يراها الجميع." },
         { title: "قائمة مشتركة ومراجَعة", body: "تصل الشركات المطابقة إلى جدول واحد للعملاء المحتملين فيه فلاتر ومحفوظات واستيراد وتصدير CSV، مشترك في مساحة العمل." },
-        { title: "من البحث إلى التواصل أسرع", body: "يجهّز فريقك رسائل البريد وLinkedIn وواتساب من كل عميل محتمل ويرسلها من حساباته." },
+        { title: "من البحث إلى التواصل أسرع", body: "يجهّز فريقك رسائل البريد وLinkedIn من كل عميل محتمل ويرسلها من حساباته." },
       ],
       problemTitle: "المشكلة",
       problem: [

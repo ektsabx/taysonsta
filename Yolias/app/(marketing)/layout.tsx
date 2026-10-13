@@ -10,7 +10,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
     <div className="mk" id="top">
       <SiteHeader signedIn={Boolean(session)} />
       <main>{children}</main>
-      <SiteFooter />
+      <SiteFooter signedIn={Boolean(session)} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
+import { ThemeMenu } from "@/components/ThemeMenu";
 import { useI18n } from "@/lib/i18n/client";
 import { solutions, solutionSlugs } from "@/lib/content/solutions";
 
@@ -68,7 +69,8 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
   return (
     <header className="nav-shell sticky top-0 z-50" ref={navRef}>
       <nav className="site-width flex h-[68px] items-center justify-between gap-4" aria-label="Primary navigation">
-        <Link href="/" className="focus-ring flex shrink-0 items-center rounded" aria-label={s.home}>
+        {/* The public home page, also for signed-in visitors (whose "/" is the app). */}
+        <Link href={signedIn ? "/home" : "/"} className="focus-ring flex shrink-0 items-center rounded" aria-label={s.home}>
           <BrandLogo />
         </Link>
         <ul className="nav-main hidden items-center gap-6 lg:flex">
@@ -108,10 +110,12 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
           ))}
         </ul>
         <div className="hidden items-center gap-3 lg:flex">
+          <ThemeMenu />
           <LanguageMenu />
           <Link className="nav-cta focus-ring" href={cta}>{s.tryYolias}</Link>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
+          <ThemeMenu />
           <LanguageMenu />
           <button className="nav-burger focus-ring" type="button" aria-label={s.menu} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((o) => !o)}>
             {open ? <X width={20} height={20} /> : <Menu width={20} height={20} />}

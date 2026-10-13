@@ -188,18 +188,23 @@ export async function InboxView({ bos, scope, mode, sp }: { bos: BosUser; scope:
                 return (
                   <div key={m.id}>
                     {sep}
-                    <div className={`cx-msg ${m.direction}`}>
+                    {/* Same look as the customer's messenger (Intercom-style, D-207): soft bubbles, details under them. */}
+                    <div className={`cx-msg ${m.direction}${m.author_kind === "ai" ? " ai" : ""}`}>
                       {m.direction === "inbound" ? <Avatar name={detail!.customer.name} size={28} /> : null}
-                      <div className="cx-bubble">
-                        <div className="cx-bubble-body" dir="auto">{m.body}</div>
+                      <div className="cx-col">
+                        <div className="cx-bubble">
+                          <div className="cx-bubble-body" dir="auto">{m.body}</div>
+                        </div>
                         <div className="cx-bubble-meta">
                           <Tx>{author}</Tx>
+                          {m.author_kind === "ai" ? <span className="cx-ai-tag">AI</span> : null}
                           {m.direction === "internal" ? <span className="bos-tag"><Tx>ملاحظة داخلية</Tx></span> : null}
                           <span>{formatDateTime(m.created_at)}</span>
                           {m.delivery_status && m.direction === "outbound" ? <span className={m.delivery_status === "failed" ? "bos-danger" : undefined} title={m.delivery_error ?? ""}><Tx>{{ sent: "أُرسل", delivered: "وصل", read: "قُرئ", failed: "فشل الإرسال", skipped: "لم يُرسل", queued: "بالانتظار" }[m.delivery_status] ?? m.delivery_status}</Tx></span> : null}
                         </div>
                         {m.author_kind === "ai" && m.ai_sources ? <div className="cx-bubble-meta"><Tx>المصادر:</Tx> {((m.ai_sources as { sources?: { slug: string; title: string }[] }).sources ?? []).map((s) => <Link key={s.slug} href={`/admin/knowledge/articles/${s.slug}`}>{s.title}</Link>)}</div> : null}
                       </div>
+                      {m.direction !== "inbound" ? <span className={`cx-av-staff${m.author_kind === "ai" ? " bot" : ""}`} aria-hidden="true">{m.author_kind === "ai" ? "AI" : (author || "?").slice(0, 1)}</span> : null}
                     </div>
                   </div>
                 );

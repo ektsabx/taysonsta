@@ -10,7 +10,7 @@ import { findSocials } from "@/lib/intel/socials";
 // The model only proposes candidate businesses (name + official website) from
 // its own knowledge; nothing it says is stored as fact. Each candidate is kept
 // only when its website answers and publishes at least one way to reach it
-// (email, phone or WhatsApp); every stored contact detail is read from that
+// (email, LinkedIn page or phone); every stored contact detail is read from that
 // website (lib/intel/socials.ts). Name, industry and location come from the
 // search itself or the model's proposal and are scored like any provider's.
 // Runs after real data providers (priority in intel.providers).
@@ -90,13 +90,13 @@ async function verify(c: z.infer<typeof Candidate>, local: boolean, icp: IcpCrit
   const domain = domainOf(c.website);
   if (!domain) return null;
   const site = await findSocials(`https://${domain}`);
-  if (!site.email && !site.phone && !site.whatsapp) return null;
+  if (!site.email && !site.linkedinUrl && !site.phone) return null;
   return {
     name: c.name, domain, website: `https://${domain}`, industry: c.industry, description: c.description,
     city: c.city ?? icp.cities[0] ?? null, country: c.country?.toUpperCase() ?? (icp.countries.length === 1 ? icp.countries[0] : null),
     employeeCount: null, fundingStage: null, fundingTotalUsd: null, hiringRoles: null, signals: [], sourceRef: domain,
     kind: local ? "local_business" : "company", category: local ? c.industry : null,
-    email: site.email, phone: site.phone, whatsapp: site.whatsapp, facebookUrl: site.facebookUrl, instagramUrl: site.instagramUrl,
+    email: site.email, phone: site.phone, linkedinUrl: site.linkedinUrl, facebookUrl: site.facebookUrl, instagramUrl: site.instagramUrl,
     confidence: 0.6,
   };
 }

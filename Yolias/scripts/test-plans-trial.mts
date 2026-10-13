@@ -66,7 +66,7 @@ try {
   assert.ok(hasActivePlan(w));
   assert.equal((await usage(a.wsId)).quota, 50, "trial prospects");
   assert.equal((await limits(a.wsId)).emails_limit, 50);
-  assert.equal((await limits(a.wsId)).contacts_limit, 50);
+  assert.ok((await limits(a.wsId)).contacts_limit >= 1_000_000_000, "uploaded contacts are unlimited (D-203)");
   assert.equal(await startTrial(w, "growth", "monthly", payer, { mode: "test", provider: "polar" }), false, "one trial per workspace");
 
   // ── 2. Email limit trigger (first opens only) ──
@@ -126,8 +126,11 @@ try {
   const signIn = await member.auth.signInWithPassword({ email: e.email, password: "Import-Test-2026!" });
   assert.equal(signIn.error, null);
   const row = (i: number) => ({ kind: "person", name: `Person ${i}`, title: "CEO", company: `Co ${i % 3}`, domain: `co${i % 3}.example`, email: `p${i}@co${i % 3}.example` });
-  let r = (await member.rpc("import_contacts", { p_ws: e.wsId, p_name: "too-many.csv", p_rows: Array.from({ length: 51 }, (_, i) => row(i)) })).data as { ok: boolean; error?: string; available?: number };
-  assert.deepEqual([r.ok, r.error, r.available], [false, "limit", 50], "51 rows don't fit the trial's 50");
+  // Uploaded contacts are unlimited now (D-203): 51 rows fit even in a trial.
+  let r = (await member.rpc("import_contacts", { p_ws: e.wsId, p_name: "many.csv", p_rows: Array.from({ length: 51 }, (_, i) => row(i + 100)) })).data as { ok: boolean; error?: string; available?: number };
+  assert.equal(r.ok, true, "51 rows fit: no contacts limit");
+  await db.from("prospects").delete().eq("workspace_id", e.wsId);
+  await db.from("campaigns").delete().eq("workspace_id", e.wsId).eq("origin", "import");
   r = (await member.rpc("import_contacts", { p_ws: e.wsId, p_name: "people.csv", p_rows: Array.from({ length: 6 }, (_, i) => row(i)) })).data as { ok: boolean };
   assert.equal(r.ok, true);
   assert.equal((await limits(e.wsId)).contacts_used, 6);

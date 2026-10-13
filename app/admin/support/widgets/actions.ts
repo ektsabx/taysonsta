@@ -47,7 +47,7 @@ export async function saveWidgetAction(_prev: ActionState, formData: FormData): 
       working_hours: v.hours_enabled ? { tz: v.hours_tz ?? "Africa/Cairo", start: v.hours_start ?? "", end: v.hours_end ?? "", days: v.hours_days ?? [] } : {},
       ai_agent_id: v.ai_agent_id, team_id: v.team_id,
     });
-    revalidatePath("/admin/settings/integrations/widgets");
+    revalidatePath("/admin/support/widgets");
     return { ok: true, message: "تم حفظ الويدجت" };
   });
 }
@@ -57,7 +57,7 @@ export async function rotateWidgetKeyAction(id: string): Promise<ActionState> {
     const { bos } = await authorize("conversations.manage", "all");
     if (!uuid.test(id)) throw new ValidationError("قيمة غير صالحة.");
     await rotateWidgetKey(bos, id);
-    revalidatePath("/admin/settings/integrations/widgets");
+    revalidatePath("/admin/support/widgets");
     return { ok: true, message: "تم تغيير المفتاح — حدّث كود التضمين في موقعك" };
   });
 }

@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
+import { ArticleFeedback, CopyPageButton } from "@/components/marketing/ArticleTools";
+import { toMarkdown } from "@/lib/content/types";
+import { siteUrl } from "@/lib/seo";
+
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
 import { Toc } from "@/components/marketing/Toc";
@@ -51,10 +55,14 @@ export default async function DocPage({ params }: PageProps<"/docs/[slug]">) {
       </nav>
       <article className="doc-main">
         <p className="eyebrow">{docGroups.find((g) => g.id === docs[index].group)!.title[locale]}</p>
-        <h1 className="doc-title mt-3">{doc.title}</h1>
+        <div className="doc-title-row">
+          <h1 className="doc-title mt-3">{doc.title}</h1>
+          <CopyPageButton markdown={toMarkdown(doc, siteUrl())} />
+        </div>
         <p className="doc-summary">{doc.summary}</p>
         <div className="doc-divider" />
         <Prose blocks={doc.blocks} />
+        <ArticleFeedback kind="docs" slug={slug} />
         <div className="pager">
           {prev && (
             <Link href={`/docs/${prev.slug}`}>

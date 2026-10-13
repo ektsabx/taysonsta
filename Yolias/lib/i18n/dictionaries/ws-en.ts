@@ -5,7 +5,7 @@
 export const wsEn = {
   nav: {
     outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
-    knowledge: "Company Knowledge", profiles: "Customer Profiles", agents: "AI Agents", rules: "Rules & Permissions", automations: "Automations",
+    knowledge: "Company Knowledge", profiles: "Customer Profiles", agents: "AI Agent", rules: "Rules & Permissions", automations: "Automations",
     watchVideo: "Watch the intro video",
   },
   common: {
@@ -42,7 +42,7 @@ export const wsEn = {
       name: "Campaign name", goal: "Goal", goalPh: "e.g. Book intro calls with logistics managers in Riyadh",
       description: "Description", channel: "Channel", language: "Language", tone: "Tone", profile: "Customer profile", offer: "Offer", noProfile: "Default profile", noOffer: "All offers",
       steps: "Sequence", step: "Step {n}", firstMessage: "First message", followUp: "Follow-up", delay: "Wait (days)", objective: "Goal of this message", instruction: "What to say",
-      instructionPh: "Optional: the reason for writing, a point to make…", addStep: "Add a follow-up", removeStep: "Remove", maxSteps: "Up to {count} messages per lead (Rules & Permissions).",
+      instructionPh: "Optional: the reason for writing, a point to make…", addStep: "Add a follow-up", removeStep: "Remove", maxSteps: "Up to {count} messages per lead (AI Agent settings).",
     },
     tones: { conservative: "Conservative", direct: "Direct", friendly: "Friendly" },
     objectives: { introduction: "Introduction", sales: "Sales", meeting: "Book a meeting", follow_up: "Follow-up", partnership: "Partnership", referral: "Referral" },
@@ -69,12 +69,12 @@ export const wsEn = {
     sendDisabled: "Send (needs a connected mailbox)", subject: "Subject", body: "Message",
     errors: {
       not_found: "Message not found.", not_ready: "This message can’t be marked as sent.", do_not_contact: "This lead asked not to be contacted.",
-      too_soon: "Too soon after the last message (Rules & Permissions → wait between messages).", daily_limit: "Daily sending limit reached (Rules & Permissions).",
+      too_soon: "Too soon after the last message (AI Agent → wait between messages).", daily_limit: "Daily sending limit reached (AI Agent settings).",
       edit: "Only drafts can be edited.", failed: "Couldn’t save the message.",
     },
     prepareErrors: {
       no_step: "This campaign has no next step.", limit: "Message limit per lead reached.", inactive: "The campaign or enrollment isn’t active.", exists: "That step is already prepared.",
-      denied: "Rules & Permissions don’t allow the agent to prepare this message.",
+      denied: "The agent’s permissions don’t allow it to prepare this message.",
     },
   },
   inbox: {
@@ -92,7 +92,7 @@ export const wsEn = {
       },
       suggestedStage: "Suggested stage: {stage}", suggestedReply: "Suggested reply", useSuggestion: "Use as draft", byRules: "Detected by rules (AI not available)",
     },
-    reminders: "Reminders", scheduled: "Scheduled", stage: "Stage", search: "Search conversations…",
+    reminders: "Reminders", scheduled: "Scheduled", stage: "Stage", search: "Search conversations…", show: "Show", channel: "Channel",
   },
   crm: {
     title: "CRM", subtitle: "Every lead and deal in one place: stage, value, meetings, follow-ups and history.",
@@ -159,16 +159,19 @@ export const wsEn = {
       errors: { name: "Enter a profile name.", duplicate: "A profile with that name already exists.", size: "“From” must be less than “To”." },
     },
     agents: {
-      title: "AI Agents", subtitle: "The agents that work on your customer acquisition, what they need and what they produce. Turn them on or off and give them instructions.",
-      enabled: "On", disabled: "Off", instructions: "Instructions for this agent", instructionsPh: "e.g. Always mention our free trial.", inputs: "Uses", outputs: "Produces", actions: "Can do",
-      permissionsLink: "Change what it may do in Rules & Permissions", status: { live: "Working", needsAi: "Needs Yolias AI to be connected", needsIntegration: "Part of this needs an integration that isn’t connected" },
+      title: "AI Agent", subtitle: "One agent works on your customer acquisition. Give it a goal and rules, choose what it may do on its own and what needs your approval.",
+      mainName: "Yolias Agent", mainDesc: "Yolias AI is your agent: you talk to it, it searches, writes, reads replies, follows up, prepares meetings and keeps the CRM current — within the permissions below.",
+      goal: "Goal", goalHint: "What you want the agent to achieve. It uses this in every search, message and reply.", goalPh: "e.g. 10 intro calls a month with logistics companies in Saudi Arabia",
+      capabilities: "Capabilities", capabilitiesHint: "What the agent can do. Switch a capability off, give it its own instructions, and choose what it does on its own or after your approval.",
+      enabled: "On", disabled: "Off", instructions: "Instructions for this capability", instructionsPh: "e.g. Always mention our free trial.", inputs: "Uses", outputs: "Produces", actions: "Can do",
+      permissionsLink: "Change what it may do in the agent settings", status: { live: "Working", needsAi: "Needs Yolias AI to be connected", needsIntegration: "Part of this needs an integration that isn’t connected" },
       list: {
-        research: { name: "Research Agent", desc: "Understands your searches, finds companies and decision makers, and checks how well each lead fits a customer profile.", inputs: "Your request, Customer Profiles, Company Knowledge", outputs: "Search criteria, results, fit checks" },
-        outreach: { name: "Outreach Agent", desc: "Writes the first message of each campaign for each lead, from what Yolias knows about them and your offers.", inputs: "Lead data, Company Knowledge, offers, Customer Profile", outputs: "Message drafts you review" },
-        replies: { name: "Replies Agent", desc: "Reads the replies you log, classifies them, suggests the next stage and a reply, and escalates what needs you.", inputs: "Logged replies, the conversation, Company Knowledge", outputs: "Reply analysis, stage suggestions, reply drafts, escalations" },
-        follow_up: { name: "Follow-up Agent", desc: "Watches every campaign’s schedule: reminds you of due follow-ups and scheduled messages and can prepare the next follow-up.", inputs: "Campaign steps, sent messages, Rules", outputs: "Reminders, follow-up drafts" },
-        meeting: { name: "Meeting Agent", desc: "Prepares a meeting brief and reminds you to record the outcome. Creating calendar events needs a calendar integration (not connected).", inputs: "Meeting, lead history, Company Knowledge", outputs: "Meeting briefs, outcome reminders" },
-        crm: { name: "CRM Agent", desc: "Moves deals between stages when replies and meetings justify it — automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
+        research: { name: "Research", desc: "Understands your searches, finds companies and decision makers, and checks how well each lead fits a customer profile.", inputs: "Your request, Customer Profiles, Company Knowledge", outputs: "Search criteria, results, fit checks" },
+        outreach: { name: "Outreach", desc: "Writes the first message of each campaign for each lead, from what Yolias knows about them and your offers.", inputs: "Lead data, Company Knowledge, offers, Customer Profile", outputs: "Message drafts you review" },
+        replies: { name: "Replies", desc: "Reads the replies you log, classifies them, suggests the next stage and a reply, and escalates what needs you.", inputs: "Logged replies, the conversation, Company Knowledge", outputs: "Reply analysis, stage suggestions, reply drafts, escalations" },
+        follow_up: { name: "Follow-up", desc: "Watches every campaign’s schedule: reminds you of due follow-ups and scheduled messages and can prepare the next follow-up.", inputs: "Campaign steps, sent messages, Rules", outputs: "Reminders, follow-up drafts" },
+        meeting: { name: "Meetings", desc: "Prepares a meeting brief and reminds you to record the outcome. Creating calendar events needs a calendar integration (not connected).", inputs: "Meeting, lead history, Company Knowledge", outputs: "Meeting briefs, outcome reminders" },
+        crm: { name: "CRM updates", desc: "Moves deals between stages when replies and meetings justify it — automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
       },
       pending: "Waiting for approval", noPending: "Nothing waiting for approval.", approved: "Approved.", rejected: "Rejected.",
     },
@@ -190,7 +193,7 @@ export const wsEn = {
         unverified_info: "The answer needs information that isn’t verified", no_permission: "The agent doesn’t have permission (always)",
       },
       guidelines: "Guidelines", guidelinesHint: "How your company works, the tone to use, and what to avoid. Every agent follows these.", guidelinesPh: "e.g. Never promise delivery dates. Use “you” not “sir”.",
-      searchBlocked: "Searching is turned off in AI Workspace → Rules & Permissions.",
+      searchBlocked: "Searching is turned off in AI Workspace → AI Agent.",
     },
     automations: {
       title: "Automations", subtitle: "When something happens to a lead, do the next step for you. Automations never send messages.",

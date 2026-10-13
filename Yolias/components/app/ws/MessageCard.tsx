@@ -42,7 +42,7 @@ export function MessageCard({ m, timeZone, onUseSuggestion }: { m: CardMessage; 
   const analysis = inbound && m.analysis && typeof m.analysis === "object" ? (m.analysis as unknown as Analysis) : null;
   const statusCls = m.status === "sent" ? "green" : inbound ? "blue" : m.status === "canceled" || m.status === "failed" ? "red" : "";
 
-  const open = (via: "gmail" | "outlook" | "mail_app" | "linkedin" | "whatsapp" | "copy") => {
+  const open = (via: "gmail" | "outlook" | "mail_app" | "linkedin" | "copy") => {
     if (!target) return;
     const tab = via === "mail_app" || via === "copy" ? null : window.open("about:blank", "_blank");
     if (tab) tab.opener = null;
@@ -113,7 +113,6 @@ export function MessageCard({ m, timeZone, onUseSuggestion }: { m: CardMessage; 
                 <button className="btn-secondary ws-btn-sm" type="button" disabled={opening} onClick={() => open("mail_app")}><ExternalLink size={13} /> {w.openMail}</button>
               </>
             )}
-            {target && m.channel === "whatsapp" && <button className="btn-secondary ws-btn-sm" type="button" disabled={opening} onClick={() => open("whatsapp")}><ExternalLink size={13} /> WhatsApp</button>}
             {target && m.channel === "linkedin" && <button className="btn-secondary ws-btn-sm" type="button" disabled={opening} onClick={() => open("linkedin")}><ExternalLink size={13} /> LinkedIn</button>}
             <button className="btn-secondary ws-btn-sm" type="button" onClick={() => open("copy")}><Copy size={13} /> {w.copy}</button>
             <button className="btn-secondary ws-btn-sm" type="button" onClick={() => setPlanning((p) => !p)}><CalendarClock size={13} /> {w.schedule}</button>

@@ -26,12 +26,12 @@ Yolias works in English and Arabic. It finds and qualifies prospects and helps m
 - Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a discovery campaign.
 - Search types: decision makers at matching companies, companies, local businesses by category and area, and companies similar to ones you name.
 - Shows a match score with the criteria each result met, and the public business contact details a company publishes.
-- Drafts first messages for email, LinkedIn, WhatsApp, Facebook and Instagram in 15 languages; the user sends them from their own accounts.
+- Drafts first emails and LinkedIn notes in 15 languages; the user sends them from their own accounts. Business email and LinkedIn are the contact details Yolias looks for first; it doesn’t collect WhatsApp numbers, and missing details are shown as not available rather than guessed.
 - Continuous campaigns that keep adding new matching companies on a schedule; analytics; CSV export; unlimited users on every plan.
 - Outreach campaigns: a first message and follow-ups per lead, prepared by AI from the user's Company Knowledge, offers and customer profile; the user reviews each one, sends it from their own email or app and marks it sent. Yolias doesn't connect to a mailbox yet, so it doesn't send or receive email itself.
 - Inbox: one conversation per lead with prepared and sent messages, replies the user logs, reminders and planned send times; AI reads a logged reply, suggests the next stage and drafts an answer.
 - CRM: one record per person or company with deal stages (Interested, Meeting Booked, Meeting Completed, Closed, Lost), deal value, owner, meetings with links, reminders, notes and full history, as a table or Kanban.
-- AI Workspace: Company Knowledge (with offers and competitors), Customer Profiles used by searches and messages, six AI agents, Rules & Permissions that decide what needs the user's approval, and Automations for the next step after a stage change, meeting or reply (automations never send messages).
+- AI Workspace: Company Knowledge (with offers and competitors), Customer Profiles used by searches and messages, and one AI agent the user gives a customer-acquisition goal. Research, outreach, replies, follow-up, meetings and CRM updates are its capabilities; its settings decide what it does on its own and what needs the user's approval.
 
 ## Main pages
 ${line("Product", "/product", "how Yolias AI turns a brief into a campaign")}

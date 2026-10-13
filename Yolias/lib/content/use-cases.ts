@@ -65,13 +65,13 @@ export const useCasesPage: Localized<{ eyebrow: string; title: string; lead: str
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes. It doesn’t promise a personal email or phone number for every person.",
   coverage: "Results depend on your market and on the data sources connected to Yolias; a search that needs a source Yolias doesn’t have yet waits and says so.",
-  outreach: "Yolias prepares first messages but never sends them. You send from your own email, LinkedIn or WhatsApp.",
+  outreach: "Yolias prepares first messages but never sends them. You send from your own email or LinkedIn.",
   guarantee: "Yolias doesn’t guarantee a number of leads, meetings or sales.",
 };
 const limitsAr = {
   contacts: "يعرض يولـياس بيانات التواصل التي تنشرها الشركة، ولا يعد ببريد أو رقم شخصي لكل شخص.",
   coverage: "تعتمد النتائج على سوقك وعلى مصادر البيانات المتصلة بيولـياس، والبحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويوضح ذلك.",
-  outreach: "يجهّز يولـياس الرسائل الأولى ولا يرسلها أبدًا. ترسلها أنت من بريدك أو LinkedIn أو واتساب.",
+  outreach: "يجهّز يولـياس الرسائل الأولى ولا يرسلها أبدًا. ترسلها أنت من بريدك أو LinkedIn.",
   guarantee: "لا يضمن يولـياس عددًا محددًا من العملاء المحتملين أو الاجتماعات أو المبيعات.",
 };
 
@@ -390,19 +390,19 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       steps: [
         { title: "Describe category and area", body: "For example: dental clinics in Jeddah, or cafés and bakeries in Dubai Marina with a website." },
         { title: "Review the businesses", body: "Each business appears with its address, website, published phone or email and, when the source provides them, its rating and number of reviews." },
-        { title: "Contact them your way", body: "Yolias drafts a short message in the business’s language; open it in WhatsApp, Instagram, Facebook or email and send it yourself." },
+        { title: "Contact them your way", body: "Yolias drafts a short email in the business’s language from its published contact details; open it in your own email and send it yourself. Its website and social pages are linked when available." },
       ],
       exampleTitle: "An example",
       exampleNote: "An illustration of a request, not a customer story:",
       example: "Beauty salons and spas in Riyadh with an Instagram account and good reviews, and I want to reach the owner.",
       getTitle: "What you get",
-      get: ["Businesses by category and area", "Website, address and published contact details", "Rating and review count when available", "Drafted messages for WhatsApp, Instagram, Facebook or email"],
+      get: ["Businesses by category and area", "Website, address and published contact details", "Rating and review count when available", "Drafted emails, plus links to their website and social pages"],
       limitsTitle: "Limits to know",
       limits: [limitsEn.coverage, "Ratings, reviews and social accounts appear only when the data source provides them.", limitsEn.outreach],
       faq: [
         { q: "Which local business categories can I search?", a: "Any category you can name, such as clinics, restaurants, salons, gyms, schools, real estate offices or car repair shops." },
         { q: "Can I search a neighborhood rather than a whole city?", a: "Yes. Describe the area as precisely as you need, for example a district or a well-known neighborhood." },
-        { q: "Does Yolias send WhatsApp messages?", a: "No. Yolias prepares the message and opens it in your own WhatsApp; you choose whether to send it." },
+        { q: "Does Yolias send messages to local businesses?", a: "No. Yolias prepares the email and opens it in your own email app; you choose whether to send it. Yolias doesn’t collect WhatsApp numbers." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },
@@ -425,19 +425,19 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       steps: [
         { title: "صِف النوع والمنطقة", body: "مثل: عيادات الأسنان في جدة، أو المقاهي والمخابز في دبي مارينا التي لديها موقع إلكتروني." },
         { title: "راجع الأنشطة", body: "يظهر كل نشاط بعنوانه وموقعه الإلكتروني وهاتفه أو بريده المنشور، ومع التقييم وعدد المراجعات عندما يوفرها المصدر." },
-        { title: "تواصل بطريقتك", body: "يجهّز يولـياس رسالة قصيرة بلغة النشاط، تفتحها في واتساب أو إنستغرام أو فيسبوك أو البريد وترسلها بنفسك." },
+        { title: "تواصل بطريقتك", body: "يجهّز يولـياس رسالة بريد قصيرة بلغة النشاط من بيانات التواصل المنشورة، تفتحها في بريدك وترسلها بنفسك. وتظهر روابط موقعه وصفحاته على مواقع التواصل عند توفرها." },
       ],
       exampleTitle: "مثال",
       exampleNote: "مثال توضيحي لطلب، وليس قصة عميل:",
       example: "صالونات تجميل وسبا في الرياض لديها حساب على إنستغرام وتقييمات جيدة، وأريد الوصول إلى المالكة.",
       getTitle: "ما الذي تحصل عليه",
-      get: ["أنشطة حسب النوع والمنطقة", "الموقع الإلكتروني والعنوان وبيانات التواصل المنشورة", "التقييم وعدد المراجعات عند توفرها", "رسائل جاهزة لواتساب أو إنستغرام أو فيسبوك أو البريد"],
+      get: ["أنشطة حسب النوع والمنطقة", "الموقع الإلكتروني والعنوان وبيانات التواصل المنشورة", "التقييم وعدد المراجعات عند توفرها", "رسائل بريد جاهزة، وروابط موقعه وصفحاته على مواقع التواصل"],
       limitsTitle: "حدود يجب معرفتها",
       limits: [limitsAr.coverage, "التقييمات والمراجعات وحسابات التواصل تظهر فقط عندما يوفرها مصدر البيانات.", limitsAr.outreach],
       faq: [
         { q: "ما أنواع الأنشطة المحلية التي يمكنني البحث عنها؟", a: "أي نوع يمكنك تسميته، مثل العيادات والمطاعم والصالونات والصالات الرياضية والمدارس ومكاتب العقار وورش السيارات." },
         { q: "هل يمكنني البحث في حي بدل مدينة كاملة؟", a: "نعم. صِف المنطقة بالدقة التي تحتاجها، مثل حي معين أو منطقة معروفة." },
-        { q: "هل يرسل يولـياس رسائل واتساب؟", a: "لا. يجهّز يولـياس الرسالة ويفتحها في واتساب الخاص بك، وأنت تقرر إرسالها." },
+        { q: "هل يرسل يولـياس رسائل للأنشطة المحلية؟", a: "لا. يجهّز يولـياس رسالة البريد ويفتحها في تطبيق بريدك، وأنت تقرر إرسالها. ولا يجمع يولـياس أرقام واتساب." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },

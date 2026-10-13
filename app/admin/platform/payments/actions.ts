@@ -21,6 +21,7 @@ export async function savePackAction(_prev: ActionState, formData: FormData): Pr
     await savePack(bos, {
       id: id || null,
       prospects: Number(str(formData, "prospects")),
+      emails: Number(str(formData, "emails")),
       priceUsd: num(formData, "price_usd"),
       active: formData.get("active") === "on",
       sort: Number(str(formData, "sort") || 0),

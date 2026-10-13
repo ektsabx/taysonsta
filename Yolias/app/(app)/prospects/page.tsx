@@ -10,6 +10,11 @@ import { sizeBand } from "@/lib/results";
 import { requireSession } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { listCampaigns } from "@/services/campaigns";
+import { CampaignSummary } from "@/components/app/CampaignSummary";
+import { SearchResultsTable } from "@/components/app/SearchResultsTable";
+import { NewCampaignButton } from "@/components/app/NewCampaignButton";
+import type { Session } from "@/lib/session";
+import Link from "next/link";
 import { monthlyUsage } from "@/services/workspace";
 import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, tabCounts } from "@/services/prospects";
 
@@ -25,7 +30,10 @@ export async function generateMetadata(): Promise<Metadata> {
 // says whether an email / phone exists).
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
   const session = await requireSession();
-  const filters = parseFilters(await searchParams);
+  const sp = await searchParams;
+  // Prospects | Search results (the former Campaigns page, D-204).
+  if (sp.view === "searches") return <SearchesView session={session} status={typeof sp.status === "string" ? sp.status : undefined} />;
+  const filters = parseFilters(sp);
   const ws = session.workspace.id;
   const [page, counts, campaigns, funding, usage, t, locale, canCollect] = await Promise.all([
     listItems(ws, filters), tabCounts(ws), listCampaigns(ws, { imports: true }), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
@@ -78,7 +86,9 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
         </div>
       </header>
 
+      <ProspectViews current="prospects" />
       <div className="view-content-padding">
+        {filters.campaign && <CampaignSummary id={filters.campaign} workspaceId={ws} timeZone={tz} />}
         <Suspense>
           <ProspectToolbar
             key={query}
@@ -101,6 +111,36 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           empty={filtered ? pr.emptyFiltered : pr.emptyTab[filters.tab]}
           canCollect={canCollect}
         />
+      </div>
+    </div>
+  );
+}
+
+/** The two views of Prospects: the results themselves, and the searches that produced them. */
+async function ProspectViews({ current }: { current: "prospects" | "searches" }) {
+  const t = await getDictionary();
+  return (
+    <nav className="ws-tabs prospect-views" aria-label={t.prospects.title}>
+      <Link href="/prospects" className={current === "prospects" ? "active" : ""} aria-current={current === "prospects" ? "page" : undefined}>{t.prospects.title}</Link>
+      <Link href="/prospects?view=searches" className={current === "searches" ? "active" : ""} aria-current={current === "searches" ? "page" : undefined}>{t.prospects.searchResults}</Link>
+    </nav>
+  );
+}
+
+async function SearchesView({ session, status }: { session: Session; status: string | undefined }) {
+  const t = await getDictionary();
+  return (
+    <div className="page-view">
+      <header className="view-header">
+        <div className="view-title-group">
+          <h2>{t.prospects.title}</h2>
+          <p>{t.campaigns.subtitle}</p>
+        </div>
+        <div className="view-actions"><NewCampaignButton /></div>
+      </header>
+      <ProspectViews current="searches" />
+      <div className="view-content-padding">
+        <SearchResultsTable workspaceId={session.workspace.id} timeZone={session.profile.timezone} status={status} />
       </div>
     </div>
   );

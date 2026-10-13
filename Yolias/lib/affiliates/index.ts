@@ -30,20 +30,15 @@ function newCode(): string {
 
 export type ApplyResult = { ok: true; status: AffiliateRow["status"] } | { ok: false; error: "closed" | "exists" | "terms" | "answers" | "failed"; field?: string };
 
-/** One application per account. Auto-approved only if the program says so. */
+/** One partner account per user; approved at once, no application questions (owner, 2026-10-13, D-206). */
 export async function applyAffiliate(user: { id: string; email: string }, input: { answers: Record<string, string>; acceptedTerms: string | null; ip: string | null }): Promise<ApplyResult> {
   const db = createAdminClient();
   const program = await currentProgram(db);
   if (!program?.settings.enabled) return { ok: false, error: "closed" };
   if (input.acceptedTerms !== program.termsVersion) return { ok: false, error: "terms" };
   const answers: Record<string, string> = {};
-  for (const q of program.settings.questions) {
-    const v = (input.answers[q.id] ?? "").trim().slice(0, 1000);
-    if (q.required && v.length < 2) return { ok: false, error: "answers", field: q.id };
-    if (v) answers[q.id] = v;
-  }
   if (await affiliateFor(user.id, db)) return { ok: false, error: "exists" };
-  const status = program.settings.autoApprove ? "approved" : "pending";
+  const status = "approved" as const;
   for (let attempt = 0; attempt < 4; attempt++) {
     const { data, error } = await db.from("affiliates").insert({
       user_id: user.id, email: user.email, code: newCode(), status, answers, terms_version: program.termsVersion, terms_accepted_at: new Date().toISOString(),

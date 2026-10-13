@@ -83,6 +83,23 @@ async function resolveRelation(relation: string, event: ActivityEvent): Promise<
       return managerOf(event.actor_user_id);
     case "manager_of_assignee":
       return managerOf((await assignee()) ?? str(p.employee_user_id));
+    // Support (D-207): nobody assigned yet (e.g. the AI agent answers) → the
+    // conversation's support team; once assigned, the assignee rule covers it.
+    case "support_team": {
+      if (str(p.assignee_user_id)) return [];
+      let teamId = str(p.team_id);
+      if (!teamId && event.entity_type === "conversation") {
+        const { data } = await client.from("bos_conversations").select("team_id, assignee_id").eq("id", event.entity_id).maybeSingle();
+        if (data?.assignee_id) return [];
+        teamId = data?.team_id ?? null;
+      }
+      if (!teamId) return [];
+      const { data: members } = await client.from("support_team_members").select("user_id").eq("team_id", teamId);
+      const ids = (members ?? []).map((m) => m.user_id);
+      if (!ids.length) return [];
+      const { data: active } = await client.from("employees").select("user_id").in("user_id", ids).in("lifecycle_status", ["active", "onboarding", "on_leave"]);
+      return (active ?? []).map((e) => e.user_id!).filter(Boolean);
+    }
     case "escalation": {
       const e = str(p.escalation_user_id);
       return e ? [e] : [];

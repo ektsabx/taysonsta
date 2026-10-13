@@ -22,11 +22,24 @@ async function leadIdsWithMessages(workspaceId: string, kind: "scheduled" | "sen
   return [...new Set((data ?? []).map((m) => m.lead_id!))];
 }
 
-export async function listInbox(workspaceId: string, filter: InboxFilter, search: string): Promise<{ items: InboxItem[]; counts: Record<InboxFilter, number> }> {
+/** Channels that have messages in this workspace (the channel filter offers these, plus email and LinkedIn). */
+export async function inboxChannels(workspaceId: string): Promise<string[]> {
   const db = await createClient();
+  const { data } = await db.from("outreach_messages").select("channel").eq("workspace_id", workspaceId).not("lead_id", "is", null).limit(5000);
+  return [...new Set(["email", "linkedin", ...(data ?? []).map((m) => m.channel)])];
+}
+
+export async function listInbox(workspaceId: string, filter: InboxFilter, search: string, channel: string | null = null): Promise<{ items: InboxItem[]; counts: Record<InboxFilter, number> }> {
+  const db = await createClient();
+  // Channel filter: conversations with at least one message on that channel.
+  const channelIds = channel
+    ? [...new Set(((await db.from("outreach_messages").select("lead_id").eq("workspace_id", workspaceId).eq("channel", channel as never).not("lead_id", "is", null).limit(5000)).data ?? []).map((m) => m.lead_id!))]
+    : null;
+  const none = ["00000000-0000-0000-0000-000000000000"];
   const base = () => db.from("crm_leads").select("*", { count: "exact" }).eq("workspace_id", workspaceId);
   const [scheduledIds, sentIds] = await Promise.all([leadIdsWithMessages(workspaceId, "scheduled"), leadIdsWithMessages(workspaceId, "sent")]);
-  const apply = (q: ReturnType<typeof base>, f: InboxFilter) => {
+  const apply = (q0: ReturnType<typeof base>, f: InboxFilter) => {
+    const q = channelIds ? q0.in("id", channelIds.length ? channelIds.slice(0, 1000) : none) : q0;
     switch (f) {
       case "all": return q.not("thread_last_message_at", "is", null).eq("thread_status", "open");
       case "unread": return q.eq("unread", true);

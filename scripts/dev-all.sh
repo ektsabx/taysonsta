@@ -121,7 +121,9 @@ trap cleanup EXIT INT TERM
 
 prefix() { sed -u "s/^/[$1] /"; }
 (cd "$ROOT/Yolias" && exec npx next dev --port $YOLIAS_PORT 2>&1 | prefix yolias) & pids+=($!)
-(cd "$ROOT" && exec npx next dev --port $ADMIN_PORT 2>&1 | prefix admin) & pids+=($!)
+# Locally the Admin never serves the old Taysonsta website pages (same as
+# yol.yolias.com in production): "/" → /admin, other public paths → 404.
+(cd "$ROOT" && ADMIN_NOINDEX=true exec npx next dev --port $ADMIN_PORT 2>&1 | prefix admin) & pids+=($!)
 (PROXY_PORT=$PROXY_PORT YOLIAS_PORT=$YOLIAS_PORT ADMIN_PORT=$ADMIN_PORT exec node "$ROOT/scripts/dev-proxy.mjs" 2>&1 | prefix proxy) & pids+=($!)
 # Background jobs (discovery): what the Cloudflare Cron Trigger does in production.
 (WORKER_URL="http://127.0.0.1:$YOLIAS_PORT/api/worker" exec node "$ROOT/scripts/dev-worker.mjs" 2>&1 | prefix worker) & pids+=($!)

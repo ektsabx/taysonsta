@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "next/link";
+import { ArticleFeedback, CopyPageButton } from "@/components/marketing/ArticleTools";
+import { toMarkdown } from "@/lib/content/types";
+import { siteUrl } from "@/lib/seo";
+
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Prose } from "@/components/marketing/Prose";
@@ -44,10 +48,14 @@ export default async function HelpArticlePage({ params }: PageProps<"/help-cente
           <ChevronRight width={14} height={14} className="flip-rtl" />
           <Link href={`/help-center#${collection.id}`}>{collection.text[locale].title}</Link>
         </nav>
-        <h1 className="doc-title">{doc.title}</h1>
+        <div className="doc-title-row">
+          <h1 className="doc-title">{doc.title}</h1>
+          <CopyPageButton markdown={toMarkdown(doc, siteUrl())} />
+        </div>
         <p className="doc-summary">{doc.summary}</p>
         <div className="doc-divider" />
         <Prose blocks={doc.blocks} />
+        <ArticleFeedback kind="help" slug={slug} />
         <div className="help-cta">
           <strong>{t.help.stillNeed}</strong>
           <Link className="btn-ghost" href="/contact?topic=support">{t.help.contactUs}</Link>

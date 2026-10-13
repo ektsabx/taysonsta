@@ -61,10 +61,12 @@ const money = (v: number | null, field: string) => {
   return v;
 };
 
-export async function savePack(bos: BosUser, input: { id?: string | null; prospects: number; priceUsd: number | null; active: boolean; sort: number }): Promise<void> {
+export async function savePack(bos: BosUser, input: { id?: string | null; prospects: number; emails: number; priceUsd: number | null; active: boolean; sort: number }): Promise<void> {
   if (!Number.isInteger(input.prospects) || input.prospects <= 0 || input.prospects > 1_000_000) throw new ValidationError("العدد غير صالح.", { prospects: "عدد صحيح موجب" });
+  if (!Number.isInteger(input.emails) || input.emails < 0 || input.emails > 1_000_000) throw new ValidationError("عدد الرسائل غير صالح.", { emails: "عدد صحيح من 0" });
   const row = {
     prospects: input.prospects,
+    emails: input.emails,
     price_usd: money(input.priceUsd, "price_usd"),
     active: input.active,
     sort: Number.isInteger(input.sort) ? input.sort : 0,

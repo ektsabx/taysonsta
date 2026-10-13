@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Bookmark, Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -58,19 +57,15 @@ export function ProspectToolbar({ tab, counts, campaigns, countries, funding, ac
 
   return (
     <div className="prospect-toolbar-wrap">
-      <nav className="type-chips" aria-label={tb.colType}>
-        {tabs.map((type) => (
-          <Link key={type} href={qs(form, type)} className={`type-chip${type === tab ? " active" : ""}`} aria-current={type === tab ? "page" : undefined}>
-            {type === "saved" && <Bookmark aria-hidden="true" />}{pr.tabs[type]} <span className="type-chip-count">{n(counts[type])}</span>
-          </Link>
-        ))}
-      </nav>
-
       <form className="filter-bar prospect-toolbar" onSubmit={(e) => { e.preventDefault(); go(form); }}>
         <div className="filter-field toolbar-search">
           <Search aria-hidden="true" />
           <input className="form-input" value={form.q} onChange={(e) => set("q", e.target.value)} placeholder={tb.searchPlaceholder} aria-label={tb.searchPlaceholder} />
         </div>
+        {/* Type is a dropdown like Sort, not a chip row (owner, 2026-10-13). */}
+        <select className="form-select" aria-label={tb.colType} value={tab} onChange={(e) => router.push(qs(form, e.target.value as ProspectTab))}>
+          {tabs.map((type) => <option key={type} value={type}>{pr.tabs[type]} ({n(counts[type])})</option>)}
+        </select>
         <button type="button" className={`btn-secondary${active ? " has-filters" : ""}`} aria-expanded={open} aria-controls="prospect-filters" onClick={() => setOpen((o) => !o)}>
           <SlidersHorizontal /> {active ? fmt(tb.filtersActive, { count: n(active) }) : tb.filters}
         </button>
