@@ -4,8 +4,8 @@ import type { MessageChannel, MessageObjective, MessageOpenedVia, MessageTone } 
 // channels, objectives, tones, languages and the links that open the member's
 // own app. Yolias never sends; the member does (D-155, D-160).
 
-// Sending channels are email, LinkedIn and WhatsApp only (owner brief
-// 2026-10-12). Facebook / Instagram stay as profile data and as old message
+// Sending channels are email and LinkedIn only (owner brief 2026-10-12;
+// WhatsApp removed in D-202). Facebook / Instagram stay as profile data and as old message
 // rows, but Yolias no longer prepares messages for them.
 export const channels: MessageChannel[] = ["email", "linkedin"];
 export const objectives: MessageObjective[] = ["introduction", "sales", "meeting", "follow_up", "partnership", "referral"];
