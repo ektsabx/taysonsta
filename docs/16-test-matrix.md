@@ -68,3 +68,15 @@ Test scripts never use the owner's real keys: each one injects its own (or none)
 | Yolias unit (40, incl. agent policy / guardrail / cache) · test:agent (incl. disabled tools, roles, approvals, memory) · test:agent-control (eval runner, cache) · test:llm · test:emails · test:payments · test:search-types · test:campaigns · test:ai · test:outreach | ✓ all pass |
 | Admin `npm test` (types, unit 63, DB, integration 87 incl. policy draft → publish → rollback) · lint · build | ✓ |
 | Browser: widget Intercom-style opened from "Contact Support" (AR + EN), message reaches the Admin inbox; control center tabs render | ✓ |
+
+## Customer acquisition (D-193 … D-199, 2026-10-13, local only)
+
+| Check | Result |
+| --- | --- |
+| Yolias typecheck · lint · unit (73, incl. 9 new: rules, automations, fit check, opt-out, signup source, video links) | ✓ |
+| `npm run test:acquisition` (local DB, no AI keys): signup source once + DB checks, welcome video live, one lead per person / company, stage history + view, RLS isolation (6 tables), automations once / no chains / permissions, outreach enroll + confirm sent + gap rule + follow-up sweep, opt-out reply without AI, meetings → stages + automation once | ✓ |
+| Existing: test:agent · test:agent-control · test:plans-trial · test:campaigns | ✓ |
+| Migration `20261111000000` re-applied from the previous schema inside a rolled-back transaction | ✓ |
+| Browser (headless Chrome, demo account, AR): all new pages 200 without console errors; profile → Prospects "Add to CRM" → stage change → Kanban → campaign + add leads → note + meeting (stage → Meeting Booked) → log reply (AI analysis, Gemini) → Inbox filters; phone width Inbox / Kanban / Rules | ✓ |
+| Real AI draft for a campaign step (Gemini `gemini-3.8-flash`, local key from the hub) linked to lead, step and history | ✓ |
+| Admin unit (incl. English coverage of the new page) · Admin typecheck: only the pre-existing `Yolias/lib/affiliates/program.ts` path error (also at HEAD) | ✓ |

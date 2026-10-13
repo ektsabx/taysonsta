@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, Building2, CalendarDays, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, Video, X } from "lucide-react";
+import { Activity, Bell, CalendarDays, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, Video, X } from "lucide-react";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
@@ -13,7 +13,7 @@ import { monthWindow, planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { GmailIcon, LinkedInIcon, OutlookIcon, WhatsAppIcon } from "./ConnectorIcons";
 import {
-  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updateOrganization, updatePhone, updatePreferences, type ActionResult,
+  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { buyProspectPack } from "@/app/checkout/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
@@ -24,7 +24,6 @@ import type { Currency } from "@/types/database";
 const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
   { tab: "account", icon: User },
-  { tab: "organization", icon: Building2 },
   { tab: "notifications", icon: Bell },
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
@@ -71,7 +70,6 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
           <div className="modal-body-scroll">
             {tab === "general" && <GeneralTab data={data} />}
             {tab === "account" && <AccountTab data={data} />}
-            {tab === "organization" && <OrganizationTab data={data} />}
             {tab === "notifications" && <NotificationsTab data={data} />}
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
@@ -163,60 +161,6 @@ function GeneralTab({ data }: { data: ShellData }) {
 }
 
 /* ─────────────── Account ─────────────── */
-
-// The company details from onboarding (D-139). Owners and admins edit them.
-function OrganizationTab({ data }: { data: ShellData }) {
-  const { t } = useI18n();
-  const o = t.settings.organization;
-  const manage = data.role === "owner" || data.role === "admin";
-  const w = data.workspace;
-  const [form, setForm] = useState({ name: w.name, website: w.website ?? "", industry: w.industry ?? "", offering: w.offering ?? "", ideal_customer: w.idealCustomer ?? "", target_markets: w.targetMarkets ?? "" });
-  const [saved, setSaved] = useState(false);
-  const { error, run, pending } = useSave();
-  const save = () => run(async () => {
-    const r = await updateOrganization(form);
-    setSaved(r.ok);
-    return r;
-  });
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { setSaved(false); setForm({ ...form, [k]: e.target.value }); };
-  return (
-    <div className="setting-group">
-      <SettingRow label={o.name} desc={o.nameDesc}>
-        <input className="form-input" value={form.name} maxLength={160} disabled={!manage} onChange={set("name")} />
-      </SettingRow>
-      <SettingRow label={o.website} desc={o.websiteDesc}>
-        <input className="form-input" dir="ltr" value={form.website} maxLength={200} disabled={!manage} onChange={set("website")} />
-      </SettingRow>
-      <SettingRow label={o.industry} desc={o.industryDesc}>
-        <input className="form-input" value={form.industry} maxLength={120} disabled={!manage} onChange={set("industry")} />
-      </SettingRow>
-      <div className="setting-row setting-row-stack">
-        <div className="setting-label-wrap">
-          <div className="setting-label">{o.offering}</div>
-          <div className="setting-desc">{o.offeringDesc}</div>
-        </div>
-        <textarea className="form-input" rows={3} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />
-      </div>
-      <div className="setting-row setting-row-stack">
-        <div className="setting-label-wrap">
-          <div className="setting-label">{o.idealCustomer}</div>
-          <div className="setting-desc">{o.idealCustomerDesc}</div>
-        </div>
-        <textarea className="form-input" rows={3} value={form.ideal_customer} maxLength={2000} disabled={!manage} onChange={set("ideal_customer")} />
-      </div>
-      <SettingRow label={o.targetMarkets} desc={o.targetMarketsDesc}>
-        <input className="form-input" value={form.target_markets} maxLength={300} disabled={!manage} onChange={set("target_markets")} />
-      </SettingRow>
-      {manage ? (
-        <div className="setting-actions">
-          {error && <p className="form-error" role="alert">{error}</p>}
-          {saved && !error && <span className="setting-desc">{o.saved}</span>}
-          <button className="btn-primary" type="button" disabled={pending} onClick={save}>{o.save}</button>
-        </div>
-      ) : <p className="setting-desc">{o.onlyAdmins}</p>}
-    </div>
-  );
-}
 
 function AccountTab({ data }: { data: ShellData }) {
   const { t } = useI18n();

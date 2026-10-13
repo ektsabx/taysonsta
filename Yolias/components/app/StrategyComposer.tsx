@@ -16,11 +16,13 @@ const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024; // documents; images follow lib/uploads/image.ts (10 MB)
 
 
-export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: string }) {
+export function StrategyComposer({ initialPrompt = "", profiles = [] }: { initialPrompt?: string; profiles?: { id: string; name: string; is_default: boolean }[] }) {
   const { t } = useI18n();
   const c = t.composer;
   const router = useRouter();
   const [prompt, setPrompt] = useState(initialPrompt);
+  // Customer Profile for this search (AI Workspace, D-195): the default one is preselected.
+  const [profileId, setProfileId] = useState(profiles.find((p) => p.is_default)?.id ?? "");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -69,6 +71,7 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
     setError(null);
     const fd = new FormData();
     fd.set("prompt", prompt.trim());
+    if (profileId) fd.set("customer_profile_id", profileId);
     for (const f of files) fd.append("files", f);
     start(async () => {
       const r = await callAction(() => createStrategy(fd));
@@ -133,6 +136,12 @@ export function StrategyComposer({ initialPrompt = "" }: { initialPrompt?: strin
               <Paperclip />
             </button>
             <input ref={fileRef} type="file" className="hidden-input" accept=".csv,.pdf,.txt,.md,.tsv" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+            {profiles.length > 0 && (
+              <select className="composer-profile" aria-label={t.ws.ai.profiles.composerLabel} title={t.ws.ai.profiles.composerLabel} value={profileId} disabled={pending} onChange={(e) => setProfileId(e.target.value)}>
+                <option value="">{t.ws.ai.profiles.composerNone}</option>
+                {profiles.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            )}
           </div>
 
           <button className="btn-send" type="button" aria-label={c.send} onClick={submit} disabled={pending}>

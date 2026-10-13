@@ -1,4 +1,5 @@
 import "server-only";
+import { followUpSweep } from "@/lib/outreach/sequence";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -147,6 +148,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await heartbeat().catch(() => {});
   await scheduleStatusChecks().catch((e) => console.error("[jobs] status checks failed", e));
   await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
+  // Follow-up Agent: due follow-ups, scheduled messages and meeting outcomes (D-197).
+  await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

@@ -3,7 +3,7 @@
 // read defensively: a missing or broken setting falls back to a safe default
 // (program closed, nothing paid) rather than to something generous.
 
-import { priceFor } from "@/lib/plans";
+import { priceFor } from "../pricing-math";
 
 export interface ProgramQuestion {
   id: string;

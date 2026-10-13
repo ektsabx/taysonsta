@@ -9,6 +9,7 @@ import { exportedPeople, openMessage, prepareMessage } from "@/app/(app)/prospec
 import {
   channelLimit, channels, isMessageLanguage, languageLabels, messageLanguages, objectives, tones,
   DEFAULT_LANGUAGE, DEFAULT_OBJECTIVE, DEFAULT_TONE, type MessageLanguage,
+  composeUrl,
 } from "@/lib/outreach/channels";
 import type { MessageChannel, MessageObjective, MessageOpenedVia, MessageTone } from "@/types/database";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, WhatsAppIcon } from "./ConnectorIcons";
@@ -46,12 +47,6 @@ const MAIL_CLIENT_KEY = "yolias_mail_client";
 const SETTINGS_KEY = "yolias_message_settings";
 const empty: Draft = { id: null, subject: "", body: "", personalization: [], cta: null };
 
-const enc = encodeURIComponent;
-function composeUrl(client: MailClient, to: string, subject: string, body: string) {
-  if (client === "gmail") return `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
-  if (client === "outlook") return `https://outlook.office.com/mail/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
-  return `mailto:${enc(to)}?subject=${enc(subject)}&body=${enc(body)}`;
-}
 
 export function ChannelIcon({ channel }: { channel: MessageChannel }) {
   if (channel === "email") return <Mail />;

@@ -12,6 +12,7 @@ import { SupportWidget } from "@/components/SupportWidget";
 import { siteVerification } from "@/lib/seo-server";
 import { OG_IMAGE, SITE_NAME, siteUrl } from "@/lib/seo";
 import "./globals.css";
+import "./acquisition.css";
 
 // Self-hosted by next/font (same domain, cached). If a font file fails to
 // load (YOLIAS-6, flaky networks) the text stays readable in the system

@@ -20,7 +20,7 @@ export async function GET() {
 
 > ${DEFINITION}
 
-Yolias works in English and Arabic. It finds and qualifies prospects; it never sends messages on a user's behalf. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
+Yolias works in English and Arabic. It finds and qualifies prospects and helps manage outreach, replies and deals; it never sends messages on a user's behalf. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
 
 ## What Yolias does today
 - Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a discovery campaign.
@@ -28,6 +28,10 @@ Yolias works in English and Arabic. It finds and qualifies prospects; it never s
 - Shows a match score with the criteria each result met, and the public business contact details a company publishes.
 - Drafts first messages for email, LinkedIn, WhatsApp, Facebook and Instagram in 15 languages; the user sends them from their own accounts.
 - Continuous campaigns that keep adding new matching companies on a schedule; analytics; CSV export; unlimited users on every plan.
+- Outreach campaigns: a first message and follow-ups per lead, prepared by AI from the user's Company Knowledge, offers and customer profile; the user reviews each one, sends it from their own email or app and marks it sent. Yolias doesn't connect to a mailbox yet, so it doesn't send or receive email itself.
+- Inbox: one conversation per lead with prepared and sent messages, replies the user logs, reminders and planned send times; AI reads a logged reply, suggests the next stage and drafts an answer.
+- CRM: one record per person or company with deal stages (Interested, Meeting Booked, Meeting Completed, Closed, Lost), deal value, owner, meetings with links, reminders, notes and full history, as a table or Kanban.
+- AI Workspace: Company Knowledge (with offers and competitors), Customer Profiles used by searches and messages, six AI agents, Rules & Permissions that decide what needs the user's approval, and Automations for the next step after a stage change, meeting or reply (automations never send messages).
 
 ## Main pages
 ${line("Product", "/product", "how Yolias AI turns a brief into a campaign")}

@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/app/AppShell";
-import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
+import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
+import { loadWelcomeVideo } from "@/lib/welcome-video-server";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,12 @@ function maskIp(ip: string | null): string | null {
   return v4.length === 4 ? `${v4[0]}.${v4[1]}.•••.••` : null;
 }
 
+// Conversations with a reply nobody opened yet (RLS: the member's workspace).
+async function unreadThreads(workspaceId: string): Promise<number> {
+  const { count } = await (await createClient()).from("crm_leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("unread", true);
+  return count ?? 0;
+}
+
 // The user's own phone (RLS: only its owner can read it).
 async function ownPhone(userId: string): Promise<string | null> {
   const { data } = await (await createClient()).from("user_phones").select("phone").eq("user_id", userId).maybeSingle();
@@ -45,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const [route, polar] = await Promise.all([billingRoute(workspace), loadPolar()]);
   const polarEnv = polar?.environment ?? "production";
-  const [recent, usage, team, invoices, packs, online, unread, phone, askReview] = await Promise.all([
+  const [recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
@@ -55,6 +62,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     unreadNotifications(session.userId),
     ownPhone(session.userId),
     shouldAskForReview(session).catch(() => false),
+    loadWelcomeVideo(),
+    unreadThreads(session.workspace.id),
   ]);
 
   const name = profile.full_name || session.email;
@@ -116,8 +125,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
     recent,
     device: { label: deviceLabel(h.get("user-agent") ?? ""), ip: maskIp(h.get("x-forwarded-for") ?? h.get("x-real-ip")) },
+    welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
+    inboxUnread,
   };
 
-  const sidebarClosed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "closed";
-  return <AppShell data={data} initialClosed={sidebarClosed}>{children}</AppShell>;
+  const jar = await cookies();
+  const sidebarClosed = jar.get(SIDEBAR_COOKIE)?.value === "closed";
+  const aiSectionOpen = jar.get(AI_SECTION_COOKIE)?.value !== "closed";
+  return <AppShell data={data} initialClosed={sidebarClosed} initialAiOpen={aiSectionOpen}>{children}</AppShell>;
 }

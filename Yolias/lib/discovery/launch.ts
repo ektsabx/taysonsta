@@ -1,5 +1,7 @@
 import "server-only";
 import { capture } from "@/lib/analytics/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { customerProfileLines, loadCustomerProfile } from "@/lib/ai-workspace/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
@@ -73,7 +75,9 @@ export async function launchInSearch(session: Session, strategyId: string, promp
 
 async function understand(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[]) {
   try {
+    const profile = await strategyProfile(session.workspace.id, strategyId);
     const understood = await understandStrategy(prompt, attachments, {
+      customerProfile: customerProfileLines(profile) || null,
       userName: session.profile.full_name,
       companyName: session.workspace.name,
       website: session.workspace.website,
@@ -86,6 +90,11 @@ async function understand(session: Session, strategyId: string, prompt: string, 
       workspaceId: session.workspace.id,
       strategyId,
     });
+    // Exclude keywords are honoured by code too, not only by the model.
+    if (profile?.exclude_keywords.length) {
+      const have = new Set(understood.icp.exclusions.map((x) => x.toLowerCase()));
+      understood.icp.exclusions = [...understood.icp.exclusions, ...profile.exclude_keywords.filter((k) => !have.has(k.toLowerCase()))];
+    }
     await capture(session.userId, "search_started", {
       workspace_id: session.workspace.id, strategy_id: strategyId, search_type: understood.icp.search_type,
       target_count: understood.icp.target_count, attachments: attachments.length, cached: understood.cached,
@@ -95,6 +104,12 @@ async function understand(session: Session, strategyId: string, prompt: string, 
     if (!(e instanceof StrategyAiError)) console.error("understandStrategy failed", e);
     return { ok: false as const, code: e instanceof StrategyAiError ? e.code : "aiFailed" };
   }
+}
+
+/** The Customer Profile chosen for the search, else the workspace default. */
+async function strategyProfile(workspaceId: string, strategyId: string) {
+  const { data } = await createAdminClient().from("strategies").select("customer_profile_id").eq("id", strategyId).maybeSingle();
+  return loadCustomerProfile(workspaceId, data?.customer_profile_id ?? null);
 }
 
 type Icp = Awaited<ReturnType<typeof understandStrategy>>["icp"];

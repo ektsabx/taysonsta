@@ -1,3 +1,4 @@
+import type { WelcomeVideo } from "@/lib/welcome-video";
 import type { BillingPeriod, Plan, ProfileRow, SubscriptionStatus, WorkspaceRole, Currency } from "@/types/database";
 
 export interface ShellData {
@@ -54,8 +55,14 @@ export interface ShellData {
   };
   recent: { id: string; title: string; pinned: boolean }[];
   device: { label: string; ip: string | null };
+  /** The welcome video (null = off / not set); `show` = not seen yet by this user. */
+  welcome: { video: WelcomeVideo | null; show: boolean };
+  /** Inbox conversations with an unread reply (sidebar badge). */
+  inboxUnread: number;
 }
 
-export type SettingsTab = "general" | "account" | "organization" | "notifications" | "usage" | "billing" | "team" | "integration";
+export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";
+/** AI Workspace section open / closed in the sidebar. */
+export const AI_SECTION_COOKIE = "yolias_ai_section";

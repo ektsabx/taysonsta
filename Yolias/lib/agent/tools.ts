@@ -15,6 +15,18 @@ import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
 import type { AgentToolOutcome, Database, Json } from "@/types/database";
 import { AGENT_TOOLS, type AgentPolicy } from "@/lib/agent/policy-schema";
+import { loadAiSettings } from "@/lib/ai-workspace/server";
+import { decide, type AgentAction, type AgentKey } from "@/lib/ai-workspace/settings";
+
+// AI Workspace → Rules & Permissions (D-197) apply to Yolias AI's tools too:
+// which agent each acting tool belongs to. Read-only tools aren't listed.
+const WORKSPACE_RULES: Record<string, [AgentKey, AgentAction]> = {
+  createCampaign: ["research", "search_prospects"],
+  findDecisionMakers: ["research", "search_prospects"],
+  saveResults: ["research", "update_leads"],
+  enrichProspect: ["research", "update_leads"],
+  prepareOutreach: ["outreach", "prepare_messages"],
+};
 
 // Yolias AI agent tools (docs/07 "Tools", final spec phase 7: tools for every
 // area). Each one is typed (zod), authorized in code, scoped to the caller's
@@ -575,8 +587,19 @@ export async function executeTool(ctx: AgentContext, name: string, rawInput: unk
     await logCall(ctx, name, rawInput, "invalid", msg, started);
     return fail("invalid", msg);
   }
+  // The workspace's own rules can only narrow what the platform policy allows.
+  let needsApproval = Boolean(tp?.approval);
+  const rule = WORKSPACE_RULES[name];
+  if (rule) {
+    const d = decide(await loadAiSettings(ctx.session.workspace.id), rule[0], rule[1]);
+    if (!d.allowed) {
+      await logCall(ctx, name, parsed.data, "disabled", `workspace rules: ${d.reason}`, started);
+      return fail("disabled", "Your workspace's AI rules don't allow this. An owner or admin can change it in AI Workspace → Rules & Permissions.");
+    }
+    if (d.mode === "approve") needsApproval = true;
+  }
   // Human-in-the-loop: the action waits for the user's Approve in the chat.
-  if (tp?.approval && !ctx.approved) {
+  if (needsApproval && !ctx.approved) {
     const lang = ctx.session.profile.language === "ar" ? "ar" : "en";
     const { data: pa, error } = await createAdminClient().from("agent_pending_actions").insert({
       workspace_id: ctx.session.workspace.id, conversation_id: ctx.conversationId, requested_by: ctx.session.userId,

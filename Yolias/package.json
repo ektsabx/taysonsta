@@ -31,6 +31,7 @@
     "test:search-types": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-search-types.mts",
     "seed:full-demo": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/seed-full-demo.mts",
     "seed:demo-results": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/seed-demo-results.mts",
+    "test:acquisition": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-acquisition.mts",
     "test:campaigns": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-campaigns.mts",
     "test:ai": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-ai.mts",
     "content:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-content.mts",

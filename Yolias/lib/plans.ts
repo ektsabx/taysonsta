@@ -75,19 +75,9 @@ export function isBillingPeriod(v: unknown): v is BillingPeriod {
 }
 
 /** Annual billing is 20% off the monthly price (owner decision 2026-10-13, D-192). */
-export const ANNUAL_DISCOUNT = 0.2;
-
-const cents = (v: number) => Math.round(v * 100) / 100;
-
-/** The price per month: the list price, or the discounted rate on annual billing. Shown on every price. */
-export function monthlyRate(monthlyUsd: number, period: BillingPeriod): number {
-  return period === "annual" ? cents(monthlyUsd * (1 - ANNUAL_DISCOUNT)) : monthlyUsd;
-}
-
-/** What one billing period charges: the monthly price, or 12 × the discounted rate paid once a year. */
-export function priceFor(monthlyUsd: number, period: BillingPeriod): number {
-  return period === "annual" ? cents(monthlyRate(monthlyUsd, period) * 12) : monthlyUsd;
-}
+// Annual pricing math lives in a dependency-free module so the Admin app can
+// import it too (lib/affiliates/program.ts is shared with Yolias Admin).
+export { ANNUAL_DISCOUNT, monthlyRate, priceFor } from "./pricing-math";
 
 export function monthWindow(now = new Date()) {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

@@ -202,3 +202,10 @@ npx wrangler secret put WORKER_SECRET
 5. في لوحة Polar ← Webhooks: Endpoint واحد بس `https://www.yolias.com/api/webhook/polar` بالأحداث `order.paid` و `customer.state_changed`، وانسخ السر في الأدمن. (اتأكد إن مفيش Endpoint تاني بنفس الرابط.)
 6. فعّل «Prevent trial abuse» في إعدادات Polar.
 7. الربط اتوافق عليه (D-190). قبل فتح البيع: تجربة كاملة على Polar Sandbox، وحساب البنك في Polar متفعّل.
+
+## جولة اكتساب العملاء 2026-10-13 (التواصل، صندوق الوارد، إدارة العملاء، مساحة الذكاء الاصطناعي). محلي فقط — ما اتنفذش منها حاجة على الإنتاج
+1. نسخة احتياطية من الإنتاج.
+2. `Yolias/supabase/migrations/20261111000000_acquisition_workspace.sql` بأمر `db query --linked -f` ثم تسجيله في `schema_migrations` (نفس الطريقة اللي فوق). كله إضافي: جداول جديدة، وأعمدة جديدة على `profiles` و`strategies` و`outreach_messages` و`agent_pending_actions`، وصف إعداد `yolias_welcome_video` (متوقف). مفيش حذف ولا تعديل لبيانات موجودة. الرسائل القديمة كلها بتفضل `outbound` بنفس حالتها.
+3. نشر يولياس (`npm run cf:deploy`) ثم الأدمن (`npm run cf:deploy:admin`): صفحة «الترحيب ومصادر التسجيل» في الأدمن بتقرا دالة `acquisition_sources` الجديدة، فلازم الـ migration يتطبق الأول.
+4. بعد النشر: من الأدمن ← المنصة ← الترحيب ومصادر التسجيل، حط رابط فيديو الترحيب وفعّله.
+5. الـ worker (Cron) هو اللي بيعمل تذكيرات المتابعة والرسائل المجدولة والاجتماعات اللي محتاجة نتيجة. لو الـ Cron مش شغال، التذكيرات دي مش هتتعمل.

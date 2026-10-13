@@ -10,6 +10,8 @@ import { getLocale } from "@/lib/i18n/server";
 import { gridPerson } from "@/lib/results";
 import type { GridPerson } from "@/components/app/PeopleGrid";
 import type { ProspectRow } from "@/types/database";
+import { addToCrm } from "@/app/(app)/crm/actions";
+import { addProspectsToCampaign } from "@/app/(app)/outreach/actions";
 
 // Prospects workspace actions. The browser sends row keys ("person:<id>" /
 // "company:<id>") or "all rows matching these filters"; the server resolves
@@ -93,4 +95,23 @@ export async function peopleForActions(target: Target): Promise<GridPerson[]> {
   const { people } = await resolve("ids" in target ? { ids: target.ids.slice(0, 100) } : target);
   const locale = await getLocale();
   return people.slice(0, 100).map((p) => gridPerson(p as unknown as ProspectRow, p.company_id && p.company ? { id: p.company_id, name: p.company.name } : null, locale));
+}
+
+/** Selected results → CRM (one lead per person / company, never duplicated). */
+export async function addSelectionToCrm(target: Target) {
+  const { people, companies } = await resolve(target);
+  return addToCrm([...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))]);
+}
+
+/** Selected results → CRM → an Outreach campaign. */
+export async function addSelectionToCampaign(campaignId: string, target: Target) {
+  const { people, companies } = await resolve(target);
+  return addProspectsToCampaign(campaignId, [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))]);
+}
+
+/** Campaigns the selection can join (draft / active / paused). */
+export async function openOutreachCampaigns(): Promise<{ id: string; name: string; status: string }[]> {
+  const session = await requireSession();
+  const { data } = await (await createClient()).from("outreach_campaigns").select("id, name, status").eq("workspace_id", session.workspace.id).in("status", ["draft", "active", "paused"]).order("updated_at", { ascending: false }).limit(50);
+  return data ?? [];
 }

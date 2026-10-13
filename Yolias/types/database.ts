@@ -3,6 +3,13 @@
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+import type {
+  AcquisitionSource, ActorKind, AutomationRow, AutomationRunRow, BusinessOfferRow, CompetitorRow, CrmLeadRow, CustomerProfileRow,
+  InboxThreadRow, LeadActivityRow, LeadRow, LeadSource, LeadStage, LeadTaskRow, MeetingRow, OutreachCampaignRow, OutreachEnrollmentRow,
+  OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow,
+} from "./acquisition";
+export type * from "./acquisition";
+
 type Table<Row, Required extends keyof Row, Rel = []> = {
   Row: Row;
   Insert: Pick<Row, Required> & Partial<Omit<Row, Required>>;
@@ -99,6 +106,10 @@ export type ProfileRow = {
   /** Trustpilot request: when it was first shown and what the user did (once per user). */
   review_prompted_at: string | null;
   review_prompt_action: "shown" | "opened" | "dismissed" | null;
+  acquisition_source: AcquisitionSource | null;
+  acquisition_source_other: string | null;
+  acquisition_answered_at: string | null;
+  welcome_video_seen_at: string | null;
   theme: "light" | "dark";
   text_size: "compact" | "normal" | "large";
   language: "en" | "ar";
@@ -128,6 +139,7 @@ export type StrategyRow = {
   icp_prompt_version: string | null;
   interpretation_cost_usd: number | null;
   icp_cached: boolean;
+  customer_profile_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -194,7 +206,7 @@ export type MailboxRow = {
   id: string; workspace_id: string; user_id: string; provider: MailProvider; email: string; status: "connected" | "error" | "disconnected";
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
 };
-export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled";
+export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled" | "received";
 export type MessageChannel = "email" | "linkedin" | "whatsapp" | "facebook" | "instagram";
 export type MessageOpenedVia = "gmail" | "outlook" | "mail_app" | "linkedin" | "whatsapp" | "facebook" | "instagram" | "copy";
 export type MessageObjective = "introduction" | "sales" | "meeting" | "follow_up" | "partnership" | "referral";
@@ -206,6 +218,9 @@ export type OutreachMessageRow = {
   approved_by: string | null; approved_at: string | null; sent_at: string | null; created_at: string; updated_at: string;
   opened_at: string | null; opened_via: MessageOpenedVia | null;
   objective: MessageObjective | null; tone: MessageTone | null; cta: string | null; personalization: string[];
+  lead_id: string | null; outreach_campaign_id: string | null; enrollment_id: string | null; step_position: number | null;
+  direction: "outbound" | "inbound"; scheduled_for: string | null; sent_via: "manual" | "mailbox" | null; from_address: string | null;
+  received_at: string | null; analysis: Json | null;
 };
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;
@@ -236,7 +251,7 @@ export type SiteSettingRow = { key: string; value: Json; updated_at: string };
 export type AgentPolicyRow = { id: string; version: number; status: "draft" | "published" | "archived"; config: Json; note: string | null; created_by: string | null; created_at: string; published_by: string | null; published_at: string | null };
 export type AgentAnswerCacheRow = { key: string; policy_version: number; language: "ar" | "en"; question: string; answer: string; hits: number; created_at: string; last_hit_at: string | null; expires_at: string };
 export type AgentMemoryRow = { id: string; workspace_id: string; content: string; created_by: string | null; created_at: string };
-export type AgentPendingActionRow = { id: string; workspace_id: string; conversation_id: string | null; requested_by: string | null; tool: string; input: Json; summary: string; status: "pending" | "approved" | "rejected" | "expired" | "failed"; result: Json | null; decided_by: string | null; decided_at: string | null; created_at: string; expires_at: string };
+export type AgentPendingActionRow = { id: string; workspace_id: string; conversation_id: string | null; requested_by: string | null; tool: string; input: Json; summary: string; status: "pending" | "approved" | "rejected" | "expired" | "failed"; result: Json | null; decided_by: string | null; decided_at: string | null; created_at: string; expires_at: string; lead_id: string | null; agent: string | null };
 export type AgentEvalCaseRow = { id: string; name: string; prompt: string; must_include: string[]; must_not_include: string[]; active: boolean; created_by: string | null; created_at: string };
 export type AgentEvalRunRow = { id: string; policy_version: number; status: "queued" | "running" | "done" | "failed"; passed: number; total: number; cost_usd: number; results: Json; error: string | null; created_by: string | null; created_at: string; finished_at: string | null };
 export type JobFailureRow = { id: number; msg_id: number; kind: string; payload: Json; attempts: number; error: string | null; created_at: string; retried_at: string | null };
@@ -763,12 +778,32 @@ export interface Database {
       status_incident_updates: Table<StatusIncidentUpdateRow, "incident_id" | "status" | "body" | "created_by">;
       affiliate_notes: Table<{ id: string; affiliate_id: string; author: string; body: string; created_at: string }, "affiliate_id" | "author" | "body">;
       billing_webhook_events: Table<BillingWebhookEventRow, "provider" | "webhook_id" | "event_type" | "payload">;
+      workspace_knowledge: Table<WorkspaceKnowledgeRow, "workspace_id">;
+      business_offers: Table<BusinessOfferRow, "workspace_id" | "name">;
+      competitors: Table<CompetitorRow, "workspace_id" | "name">;
+      customer_profiles: Table<CustomerProfileRow, "workspace_id" | "name">;
+      leads: Table<LeadRow, "workspace_id" | "lead_key" | "name">;
+      lead_activities: Table<LeadActivityRow, "workspace_id" | "lead_id" | "kind">;
+      lead_tasks: Table<LeadTaskRow, "workspace_id" | "lead_id" | "title">;
+      meetings: Table<MeetingRow, "workspace_id" | "lead_id" | "title" | "starts_at">;
+      outreach_campaigns: Table<OutreachCampaignRow, "workspace_id" | "name">;
+      outreach_steps: Table<OutreachStepRow, "workspace_id" | "campaign_id" | "position">;
+      outreach_enrollments: Table<OutreachEnrollmentRow, "workspace_id" | "campaign_id" | "lead_id">;
+      inbox_threads: Table<InboxThreadRow, "workspace_id" | "lead_id">;
+      workspace_ai_settings: Table<WorkspaceAiSettingsRow, "workspace_id">;
+      automations: Table<AutomationRow, "workspace_id" | "name" | "trigger" | "actions">;
+      automation_runs: Table<AutomationRunRow, "workspace_id" | "automation_id" | "event_key" | "trigger" | "status">;
     };
     Views: {
       prospect_items: { Row: ProspectItemRow; Relationships: [] };
+      crm_leads: { Row: CrmLeadRow; Relationships: [] };
     };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
+      is_workspace_manager: { Args: { ws: string }; Returns: boolean };
+      upsert_lead: { Args: { p_prospect: string | null; p_company: string | null; p_source?: LeadSource }; Returns: string };
+      set_lead_stage: { Args: { p_lead: string; p_stage: LeadStage; p_actor?: ActorKind }; Returns: number | null };
+      acquisition_sources: { Args: Record<string, never>; Returns: { source: string; users: number; last_30_days: number }[] };
       consume_daily_usage: { Args: { p_user: string; p_kind: DailyUsageKind; p_limit: number }; Returns: number | null };
       release_daily_usage: { Args: { p_user: string; p_kind: DailyUsageKind }; Returns: undefined };
       email_domain_blocked: { Args: { p_email: string }; Returns: boolean };

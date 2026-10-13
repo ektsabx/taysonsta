@@ -11,6 +11,8 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import { releaseDaily, takeDaily } from "@/lib/daily-limits";
 import type { Json } from "@/types/database";
+import { loadAiSettings } from "@/lib/ai-workspace/server";
+import { decide } from "@/lib/ai-workspace/settings";
 
 export type StrategyResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -35,7 +37,16 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
   }
   if (!prompt && attachments.length === 0) return { ok: false, error: t.strategy.errors.empty };
 
+  // AI Workspace → Rules & Permissions: the Research Agent may be switched off or denied searching.
+  const research = decide(await loadAiSettings(session.workspace.id), "research", "search_prospects");
+  if (!research.allowed) return { ok: false, error: t.ws.ai.rules.searchBlocked };
+
   const supabase = await createClient();
+  // The Customer Profile picked in the composer (RLS proves it is this workspace's).
+  const profileId = String(formData.get("customer_profile_id") ?? "");
+  const customerProfileId = /^[0-9a-f-]{36}$/i.test(profileId)
+    ? (await supabase.from("customer_profiles").select("id").eq("id", profileId).eq("workspace_id", session.workspace.id).maybeSingle()).data?.id ?? null
+    : null;
   // The same request sent again within two minutes (a retry after a dropped
   // connection, a double submit) opens the search already started.
   if (prompt && attachments.length === 0) {
@@ -56,6 +67,7 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
       title: titleFrom(prompt || attachments[0].name),
       prompt: prompt || `(${attachments.map((a) => a.name).join(", ")})`,
       attachments: attachments.map((a) => ({ name: a.name, type: a.mediaType })) as Json,
+      customer_profile_id: customerProfileId,
     })
     .select("id")
     .single();

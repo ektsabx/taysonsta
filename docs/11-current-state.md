@@ -1,7 +1,7 @@
 # 11 — Current State
 
 Snapshot of what exists in the code. Update with every change.
-Last updated: 2026-10-13.
+Last updated: 2026-10-13 (customer acquisition, D-193..D-199).
 
 ## Repository
 
@@ -38,6 +38,11 @@ Admin http://admin.localhost:3200.
 | Solutions | `app/(marketing)/solutions`, `lib/content/solutions.ts` | 7 pages, header Solutions / Resources menus (D-177) |
 | Social proof | `components/marketing/SocialProof.tsx`, `lib/content/social-proof.ts` | renders only from real approved data (empty now) |
 | App shell (mobile) | `components/app/AppShell.tsx` | drawer below 900px, backdrop, Escape, closes on navigation |
+| Outreach campaigns | `app/(app)/outreach`, `lib/outreach/sequence.ts`, `outreach_campaigns` / `outreach_steps` / `outreach_enrollments` | steps + follow-ups, enroll from Prospects / CRM, AI drafts, "I sent it" confirmation, real counts; no mailbox → nothing sent by Yolias (D-193) |
+| Inbox | `app/(app)/inbox`, `services/inbox.ts`, `inbox_threads` | one conversation per lead, 7 filters from real rows, log reply, AI reply draft, done / others (D-194) |
+| CRM | `app/(app)/crm`, `lib/crm`, `services/crm.ts`, `leads`, `lead_activities`, `lead_tasks`, `meetings`, view `crm_leads` | one lead per person / company, stages with history, table + Kanban, deal value, owner, reminders, meetings, notes, fit check (D-195) |
+| AI Workspace | `app/(app)/ai/*`, `lib/ai-workspace`, `lib/agents`, `lib/automations` | Company Knowledge (moved from Settings) + offers + competitors, Customer Profiles (composer + leads), 6 agents, Rules & Permissions (server-enforced), Automations + run log (D-196..D-198) |
+| Signup source, welcome video | `app/onboarding`, `lib/onboarding/source.ts`, `lib/welcome-video*.ts`, `components/app/WelcomeVideoModal.tsx`; Admin → Platform → Welcome & signup sources | optional question saved once; video from `site_settings`, once per user, reopen from menu (D-199) |
 | Workspaces, members, invitations | `supabase/migrations/20261001000000_yolias_init.sql` | working, RLS |
 | Search composer (text only; voice removed by the final spec, D-119) | `components/app/StrategyComposer.tsx` | working |
 | ICP parsing | `lib/ai/strategy.ts`, `lib/discovery/icp.ts` | working; structured output through `lib/ai/llm` (Anthropic / OpenAI / Gemini with fallback, D-118) |

@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, HandCoins, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, Layers, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X } from "lucide-react";
+  Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
+  Bot, ChevronDown, CirclePlay, IdCard, Inbox, Library, Send, ShieldCheck, SquareKanban, Workflow } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -20,7 +21,8 @@ import { FeedbackModal } from "./FeedbackModal";
 import { ReviewPrompt } from "./ReviewPrompt";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
-import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
+import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
+import { WelcomeVideoModal } from "./WelcomeVideoModal";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 
 const mainNav = [
@@ -29,6 +31,24 @@ const mainNav = [
   { href: "/campaigns", key: "campaigns", icon: Layers },
   { href: "/prospects", key: "prospects", icon: UserSearch },
 ] as const;
+
+// Customer acquisition after discovery (D-193..D-195).
+const workNav = [
+  { href: "/outreach", key: "outreach", icon: Send },
+  { href: "/inbox", key: "inbox", icon: Inbox },
+  { href: "/crm", key: "crm", icon: SquareKanban },
+] as const;
+
+// AI Workspace (D-196): what Yolias AI knows, who it looks for, its agents, rules and automations.
+const aiNav = [
+  { href: "/ai/knowledge", key: "knowledge", icon: Library },
+  { href: "/ai/profiles", key: "profiles", icon: IdCard },
+  { href: "/ai/agents", key: "agents", icon: Bot },
+  { href: "/ai/rules", key: "rules", icon: ShieldCheck },
+  { href: "/ai/automations", key: "automations", icon: Workflow },
+] as const;
+
+const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -43,7 +63,7 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
 const NARROW = "(max-width: 900px)";
 const isNarrow = () => typeof window !== "undefined" && window.matchMedia(NARROW).matches;
 
-export function AppShell({ data, initialClosed, children }: { data: ShellData; initialClosed: boolean; children: React.ReactNode }) {
+export function AppShell({ data, initialClosed, initialAiOpen, children }: { data: ShellData; initialClosed: boolean; initialAiOpen: boolean; children: React.ReactNode }) {
   const { t } = useI18n();
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
@@ -54,6 +74,13 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const [helpOpen, setHelpOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(data.welcome.show);
+  const [aiOpen, setAiOpen] = useState(initialAiOpen);
+  const toggleAi = () => {
+    const next = !aiOpen;
+    setAiOpen(next);
+    document.cookie = `${AI_SECTION_COOKIE}=${next ? "open" : "closed"}; path=/; max-age=31536000; samesite=lax`;
+  };
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -174,13 +201,39 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? " active" : ""}`}>
+              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>
                 </div>
               </Link>
             ))}
+            {workNav.map(({ href, key, icon: Icon }) => (
+              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
+                <div className="nav-item-inner">
+                  <Icon />
+                  <span>{t.ws.nav[key]}</span>
+                  {key === "inbox" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
+                </div>
+              </Link>
+            ))}
+          </section>
+
+          <section className="nav-group">
+            <button type="button" className="nav-heading nav-section-toggle" aria-expanded={aiOpen} aria-controls="nav-ai-workspace" onClick={toggleAi}>
+              <span>{t.ws.nav.aiWorkspace}</span>
+              <ChevronDown className={`nav-section-chevron${aiOpen ? "" : " closed"}`} />
+            </button>
+            <div id="nav-ai-workspace" hidden={!aiOpen}>
+              {aiNav.map(({ href, key, icon: Icon }) => (
+                <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
+                  <div className="nav-item-inner">
+                    <Icon />
+                    <span>{t.ws.nav[key]}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {pinned.length > 0 && (
@@ -214,6 +267,12 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Plug />
               <span>{t.settings.tabs.integration}</span>
             </button>
+            {data.welcome.video && (
+              <button className="menu-item" type="button" onClick={() => { setMenuOpen(false); setWelcomeOpen(true); }}>
+                <CirclePlay />
+                <span>{t.ws.nav.watchVideo}</span>
+              </button>
+            )}
             <Link className="menu-item" href="/affiliate" onClick={() => setMenuOpen(false)}>
               <HandCoins />
               <span>{t.affiliate.nav}</span>
@@ -299,7 +358,8 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
-      {data.user.askReview && <ReviewPrompt />}
+      {data.user.askReview && !welcomeOpen && <ReviewPrompt />}
+      {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}
     </div>
     </ToastProvider>
   );

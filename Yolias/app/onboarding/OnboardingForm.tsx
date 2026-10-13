@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/client";
 import { completeOnboarding, type OnboardingState } from "./actions";
+import { ACQUISITION_SOURCES } from "@/lib/onboarding/source";
 
 export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaults: Record<string, string> }) {
   const { t } = useI18n();
@@ -12,6 +13,8 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
   const v = (k: string) => state.fields?.[k] ?? defaults[k] ?? "";
   // The device's time zone, saved on the account with the form (Settings can change it).
   const [timeZone, setTimeZone] = useState("");
+  const src = t.ws.sources;
+  const [source, setSource] = useState(v("acquisition_source"));
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""), []);
 
@@ -51,6 +54,17 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
           <p className="field-note">{o.contextNote}</p>
         </>
       )}
+      <div className="field">
+        <label htmlFor="acquisition_source">{src.question} <span className="field-optional">{o.optional}</span></label>
+        <select id="acquisition_source" name="acquisition_source" className="form-select" value={source} onChange={(e) => setSource(e.target.value)}>
+          <option value="">{src.placeholder}</option>
+          {ACQUISITION_SOURCES.map((k) => <option key={k} value={k}>{src.options[k]}</option>)}
+        </select>
+        {source === "other" && (
+          <input name="acquisition_source_other" className="form-input source-other" aria-label={src.otherLabel} placeholder={src.otherPlaceholder} defaultValue={v("acquisition_source_other")} maxLength={120} required />
+        )}
+        <p className="field-note">{src.hint}</p>
+      </div>
       {state.error && <p className="form-error" role="alert">{state.error}</p>}
       <button className="btn-primary auth-submit" type="submit" disabled={pending}>
         {pending ? t.common.saving : o.submit}

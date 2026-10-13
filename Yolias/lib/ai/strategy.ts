@@ -27,6 +27,8 @@ export interface StrategyContext {
   industry?: string | null;
   idealCustomer?: string | null;
   targetMarkets?: string | null;
+  /** The Customer Profile chosen for this search (AI Workspace), as text. */
+  customerProfile?: string | null;
   defaultCountry: string;
   language: "en" | "ar";
   /** For cost attribution (intel.llm_calls). */
@@ -35,7 +37,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-07b";
+export const ICP_PROMPT_VERSION = "icp-2026-10-13";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -105,9 +107,11 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
 }
 
 /** The exact request Yolias sends to understand a search (also used by the eval set). */
-export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "defaultCountry" | "language">) {
+export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "defaultCountry" | "language" | "customerProfile">) {
   const business = [
     businessLines({ name: ctx.companyName, website: ctx.website, industry: ctx.industry, offering: ctx.offering, ideal_customer: ctx.idealCustomer, target_markets: ctx.targetMarkets }),
+    // A chosen Customer Profile (D-195): its criteria are the defaults when the request is silent; the request always wins.
+    ctx.customerProfile && `Selected customer profile (use its industries, company size, job titles, countries and include keywords as defaults when the request doesn't say; its exclude keywords go into exclusions; the request always wins):\n${ctx.customerProfile}`,
     `Default country: ${ctx.defaultCountry}`,
   ].filter(Boolean).join("\n");
   const parts: InputPart[] = attachments.map((a): InputPart =>

@@ -3,12 +3,12 @@
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookmarkMinus, ChevronLeft, ChevronRight, Download, Eye, Mail, Phone, Trash2, UsersRound, X } from "lucide-react";
+import { BookmarkMinus, ChevronLeft, ChevronRight, Download, Eye, Mail, Phone, Send, SquareKanban, Trash2, UsersRound, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { findDecisionMakersAction, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, type Target } from "@/app/(app)/prospects/actions";
+import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
 import type { MessageChannel } from "@/types/database";
 import type { ProspectTab } from "@/services/prospects";
@@ -68,6 +68,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const [allMatching, setAllMatching] = useState(false);
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
+  const [picker, setPicker] = useState<{ id: string; name: string; status: string }[] | null>(null);
   const [compose, setCompose] = useState<{ channel: MessageChannel; people: GridPerson[] } | null>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -201,6 +202,13 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
             {hasPeople && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => ((await revealContacts(target())).ok ? pr.revealed : null))}><Eye /> {pr.revealContacts}</button>
             )}
+            {/* CRM and Outreach (D-193, D-195): the same people / companies, one lead each. */}
+            <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
+              const r = await addSelectionToCrm(target());
+              if (!r.ok) { toast(r.error, "error"); return null; }
+              return r.message;
+            })}><SquareKanban /> {t.ws.crm.addToCrm}</button>
+            <button type="button" className="btn-secondary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.pickCampaign}</button>
             {canCollect && hasCompanies && (
               <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
                 const r = await findDecisionMakersAction(target());
@@ -224,6 +232,29 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
             <input type="hidden" name="query" value={query} />
             {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
           </form>
+        </div>
+      )}
+      {picker && (
+        <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && setPicker(null)}>
+          <div className="ws-modal" role="dialog" aria-modal="true" aria-labelledby="pick-campaign-title">
+            <div className="ws-modal-head">
+              <h3 id="pick-campaign-title">{t.ws.outreach.pickCampaignTitle}</h3>
+              <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={() => setPicker(null)}><X /></button>
+            </div>
+            {!picker.length ? <p className="ws-muted">{t.ws.outreach.noCampaigns} <Link className="ws-link" href="/outreach/new">{t.ws.outreach.newCampaign}</Link></p> : (
+              <div className="ws-pick-list">
+                {picker.map((c) => (
+                  <button key={c.id} type="button" className="menu-item" disabled={pending} onClick={() => { setPicker(null); run(async () => {
+                    const r = await addSelectionToCampaign(c.id, target());
+                    if (!r.ok) { toast(r.error, "error"); return null; }
+                    return r.message ?? null;
+                  }); }}>
+                    <Send /> <span>{c.name}</span> <span className="cell-sub">{t.ws.outreach.status[c.status as keyof typeof t.ws.outreach.status]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
       {compose && <MessageComposer recipients={compose.people.map(personRecipient)} channel={compose.channel} onClose={() => setCompose(null)} />}

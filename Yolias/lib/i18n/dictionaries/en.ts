@@ -1,3 +1,4 @@
+import { wsEn } from "./ws-en";
 // English UI copy. Every key here must exist in ar.ts (enforced by the
 // Dictionary type). Placeholders use {name} and are filled with fmt().
 
@@ -130,7 +131,7 @@ export const en = {
     targetMarkets: "Target markets",
     targetMarketsPlaceholder: "e.g. Saudi Arabia, UAE, Egypt",
     optional: "Optional",
-    contextNote: "Yolias AI uses these details to understand your searches and find customers who fit. You can change them later in Settings → Organization.",
+    contextNote: "Yolias AI uses these details to understand your searches and find customers who fit. You can change them later in AI Workspace → Company Knowledge.",
     submit: "Get Started",
     errors: {
       name: "Enter your name.",
@@ -912,7 +913,7 @@ export const en = {
     errors: {
       notFound: "Prospect not found.", no_email: "This person has no usable email.", no_linkedin: "This person has no LinkedIn profile.",
       no_whatsapp: "There’s no WhatsApp or phone number.", no_facebook: "There’s no Facebook page or profile.", no_instagram: "There’s no Instagram account.",
-      suppressed: "This contact is on the do-not-contact list.", not_configured: "Yolias AI isn’t connected yet.",
+      suppressed: "This contact is on the do-not-contact list.", do_not_contact: "This lead asked not to be contacted.", not_configured: "Yolias AI isn’t connected yet.",
       failed: "That didn’t work. Please try again.", not_found: "Prospect not found.", empty: "The message can’t be empty.",
       email_limit: "You’ve used this month’s emails on your plan. Upgrade to send more, or wait for next month.",
     },
@@ -1128,6 +1129,7 @@ export const en = {
     definitions: "How we count: a commission is created only from a payment confirmed by our payment provider, once per payment. Refunded or disputed payments reverse their commission. Amounts are in US dollars.",
     errors: { closed: "The program is closed.", exists: "You already applied.", terms: "Accept the program terms to apply.", answers: "Answer the required questions.", failed: "We couldn’t submit your application. Please try again.", network: "The connection dropped. Check your connection and try again." },
   },
+  ws: wsEn,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "This page doesn’t exist",

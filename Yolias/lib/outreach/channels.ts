@@ -76,3 +76,11 @@ export function conversationUrl(channel: "whatsapp" | "facebook" | "instagram", 
   const h = handle(target.instagramUrl, /(^|\.)instagram\.com$/i);
   return h ? `https://ig.me/m/${encodeURIComponent(h)}` : target.instagramUrl ?? null;
 }
+
+const enc = encodeURIComponent;
+/** Opens a new email in the member's Gmail, Outlook or default mail app, filled in. */
+export function composeUrl(client: "gmail" | "outlook" | "mail_app", to: string, subject: string, body: string) {
+  if (client === "gmail") return `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
+  if (client === "outlook") return `https://outlook.office.com/mail/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  return `mailto:${enc(to)}?subject=${enc(subject)}&body=${enc(body)}`;
+}

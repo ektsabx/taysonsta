@@ -9,7 +9,7 @@ need breaking one, stop and ask the owner. Log the answer in `12-decisions.md`.
 2. **Don't invent requirements.** If the docs don't say it, it is an open decision.
 3. **Don't assume an API exists.** Verify endpoints, fields, pricing and terms against the provider's official docs before writing an adapter.
 4. **No fake integrations.** No mock providers presented as real, no placeholder data shown as results, no fake metrics. If something isn't connected, say "not connected".
-5. **Don't overbuild.** No outreach, sequences, WhatsApp messaging, browser automation or scraping. No speculative abstractions beyond the current phase.
+5. **Don't overbuild.** No automatic sending, WhatsApp messaging APIs, browser automation or scraping. Outreach campaigns and follow-ups are prepared and tracked, and sent only by the member from their own account until a mailbox integration is approved (D-193). No speculative abstractions beyond the current phase.
 6. **Keep the existing UI and product structure.** Change it only by decision.
 7. **Both apps stay bilingual (AR/EN, RTL).** Every user-facing string goes through the dictionaries.
 8. **Next.js in this repo is v16** with breaking changes. Check `node_modules/next/dist/docs/` before writing Next code (see `AGENTS.md`).

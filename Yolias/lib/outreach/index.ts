@@ -5,6 +5,8 @@ import { LlmNotConfiguredError, runStructured } from "@/lib/ai/llm";
 import { tasks } from "@/lib/ai/orchestrator";
 import { isSuppressed } from "@/lib/intel/shared";
 import { channelLimit, messageLanguages, whatsappDigits, type MessageLanguage } from "@/lib/outreach/channels";
+import { contextText, loadAiSettings, loadBusinessContext } from "@/lib/ai-workspace/server";
+import { guidanceFor, type AgentKey } from "@/lib/ai-workspace/settings";
 import type { MessageChannel, MessageObjective, MessageTone, OutreachMessageRow } from "@/types/database";
 
 // Prepared messages (MVP, D-155 / D-160): Yolias writes an email, a LinkedIn
@@ -93,9 +95,20 @@ export interface DraftInput {
   language: MessageLanguage;
   objective: MessageObjective;
   tone: MessageTone;
+  /** Which agent writes it (its instructions and the company's AI rules apply). Default: outreach. */
+  agent?: AgentKey;
+  /** Set for Outreach campaign steps: links the draft to the lead, campaign and step. */
+  sequence?: {
+    leadId: string; outreachCampaignId: string | null; enrollmentId: string | null; stepPosition: number | null;
+    customerProfileId: string | null; offerId: string | null;
+    /** Earlier messages with this lead, oldest first (for follow-ups). */
+    history: string;
+  };
+  /** Leads only: no message to someone who asked not to be contacted. */
+  leadId?: string | null;
 }
 
-export type DraftError = "not_found" | "no_email" | "no_linkedin" | "no_whatsapp" | "no_facebook" | "no_instagram" | "suppressed" | "not_configured" | "failed";
+export type DraftError = "not_found" | "no_email" | "no_linkedin" | "no_whatsapp" | "no_facebook" | "no_instagram" | "suppressed" | "do_not_contact" | "not_configured" | "failed";
 export type DraftResult = { ok: true; message: OutreachMessageRow } | { ok: false; error: DraftError };
 
 const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, email, whatsapp, facebook_url, instagram_url";
@@ -167,15 +180,25 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
   if (!loaded.ok) return loaded;
   const t = loaded.data;
   const db = createAdminClient();
-  const [{ data: ws }, { data: sender }] = await Promise.all([
-    db.from("workspaces").select("name, website, industry, offering, ideal_customer, target_markets").eq("id", input.workspaceId).single(),
+  const leadId = input.sequence?.leadId ?? input.leadId ?? null;
+  if (leadId) {
+    const { data: lead } = await db.from("leads").select("do_not_contact").eq("id", leadId).eq("workspace_id", input.workspaceId).maybeSingle();
+    if (!lead) return { ok: false, error: "not_found" };
+    if (lead.do_not_contact) return { ok: false, error: "do_not_contact" };
+  }
+  // The AI Workspace: company profile, Company Knowledge, offers and the
+  // customer profile (D-194..D-196), plus the company's rules for AI.
+  const [business, settings, { data: sender }] = await Promise.all([
+    loadBusinessContext(input.workspaceId, { customerProfileId: input.sequence?.customerProfileId ?? null, offerId: input.sequence?.offerId ?? null }),
+    loadAiSettings(input.workspaceId),
     db.from("profiles").select("full_name").eq("id", input.userId).single(),
   ]);
   const context = {
-    sender: { name: sender?.full_name, company: ws?.name, website: ws?.website, industry: ws?.industry, products_and_services: ws?.offering, ideal_customer: ws?.ideal_customer, target_markets: ws?.target_markets },
+    sender: { name: sender?.full_name },
     ...t.facts,
     reason_for_contacting: input.instruction,
     desired_outcome: OBJECTIVES[input.objective],
+    earlier_messages: input.sequence?.history || undefined,
   };
   const language = messageLanguages[input.language];
   const system = [
@@ -185,7 +208,10 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
     PERSONALIZATION,
     STYLE,
     `If reason_for_contacting is given, build the message around it. Write in ${language}${input.language === "ar" ? " (clear Modern Standard Arabic)" : ""}.`,
-  ].join("\n\n");
+    `What the sender's company sells and how, from their own Company Knowledge. Use only what fits this prospect; never invent prices, results, clients or claims beyond it. Never mention competitors by name.\n${contextText(business)}`,
+    input.sequence?.history ? "earlier_messages are what was already sent to this person: don't repeat them; this message continues the conversation." : "",
+    guidanceFor(settings, input.agent ?? "outreach"),
+  ].filter(Boolean).join("\n\n");
 
   const max = input.channel === "email" ? 3000 : input.channel === "linkedin" ? 300 : channelLimit[input.channel];
   const Schema = input.channel === "email" ? EmailSchema : ShortSchema(max);
@@ -212,6 +238,8 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
       subject: input.channel === "email" ? r.data.subject ?? "" : "", body: r.data.body, language: input.language, instruction: input.instruction,
       objective: input.objective, tone: input.tone, cta: r.data.cta.slice(0, 300), personalization: r.data.personalization_used,
       model: `${r.route.provider}:${r.servedModel}`, cost_usd: r.unpricedCalls ? null : r.costUsd,
+      lead_id: leadId, outreach_campaign_id: input.sequence?.outreachCampaignId ?? null, enrollment_id: input.sequence?.enrollmentId ?? null,
+      step_position: input.sequence?.stepPosition ?? null,
     }).select("*").single();
     if (error || !message) {
       console.error("[outreach] saving the draft failed", error?.message);

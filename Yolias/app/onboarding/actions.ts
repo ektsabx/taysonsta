@@ -14,6 +14,7 @@ import { communityInvite, welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
 import { detectPreferences } from "@/lib/regions";
+import { parseSource } from "@/lib/onboarding/source";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -27,10 +28,13 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
   const t = (await getDictionary()).onboarding.errors;
 
   const memberSchema = z.object({ full_name: z.string().trim().min(2, t.name).max(120) });
-  const keys = ["full_name", "company_name", "website", "industry", "offering", "ideal_customer", "target_markets"];
+  const keys = ["full_name", "company_name", "website", "industry", "offering", "ideal_customer", "target_markets", "acquisition_source", "acquisition_source_other"];
   const fields = Object.fromEntries(keys.map((k) => [k, String(formData.get(k) ?? "")]));
   const parsed = memberSchema.safeParse(fields);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
+  // How Did You Find Us? — optional; a bad value is refused, never stored.
+  const source = parseSource(fields.acquisition_source, fields.acquisition_source_other);
+  if (!source.ok) return { error: (await getDictionary()).ws.sources.errors[source.error], fields };
   const isOwner = session.role === "owner";
   let company: CompanyProfile | null = null;
   if (isOwner) {
@@ -50,6 +54,12 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString(), ...detected })
     .eq("id", session.userId);
   if (error) return { error: t.saveFailed, fields };
+  if (source.value) {
+    // Written by the server once per user: a repeated submit never replaces the first answer.
+    await createAdminClient().from("profiles")
+      .update({ acquisition_source: source.value.source, acquisition_source_other: source.value.other, acquisition_answered_at: new Date().toISOString() })
+      .eq("id", session.userId).is("acquisition_source", null);
+  }
 
   if (company) {
     // Workspace rows are written by the server only (no client write policy).
@@ -73,7 +83,7 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
   await communityInvite(session.userId, parsed.data.full_name);
   await capture(session.userId, "onboarding_completed", {
     workspace_id: session.workspace.id, role: session.role, plan: session.workspace.plan,
-    has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null,
+    has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null, acquisition_source: source.value?.source ?? null,
   });
   redirect("/");
 }
