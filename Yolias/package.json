@@ -34,6 +34,7 @@
     "test:acquisition": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-acquisition.mts",
     "test:campaigns": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-campaigns.mts",
     "test:ai": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-ai.mts",
+    "content:seed:production": "bash scripts/seed-content-production.sh",
     "content:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-content.mts",
     "eval:icp": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/eval-icp.mts",
     "test": "npm run typecheck && npm run test:unit",
