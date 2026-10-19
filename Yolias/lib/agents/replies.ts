@@ -110,6 +110,8 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
   if (analysis.kind === "stop_request") { analysis.escalate_because = [...new Set([...analysis.escalate_because, "stop_request" as const])]; await markDoNotContact(leadId); }
 
   await db.from("outreach_messages").update({ analysis: analysis as unknown as Json }).eq("id", m.id);
+  // Inbox label (D-239), from what the reply says; the member can change it.
+  await db.from("inbox_threads").update({ label: labelFor(analysis.kind) }).eq("lead_id", leadId);
   await db.from("lead_activities").insert({ workspace_id: workspaceId, lead_id: leadId, kind: "reply_analyzed", actor_kind: "agent", body: analysis.summary, meta: { message_id: m.id, kind: analysis.kind, suggested_stage: analysis.suggested_stage, by: analysis.by } });
 
   // Escalation: the agent stops and asks the member.
@@ -194,3 +196,10 @@ export async function draftReply(workspaceId: string, userId: string, leadId: st
 }
 
 export type { ReplyKind };
+
+/** Interested / Not interested / Needs follow-up, from the reply's kind (D-239). */
+export function labelFor(kind: string): "interested" | "not_interested" | "follow_up" {
+  if (kind === "interested" || kind === "meeting_request") return "interested";
+  if (kind === "not_interested" || kind === "stop_request") return "not_interested";
+  return "follow_up";
+}

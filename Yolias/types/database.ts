@@ -27,7 +27,7 @@ export type Currency = "USD";
 export type ChargeCurrency = "USD" | "EGP";
 export type SubscriptionStatus = "none" | "trialing" | "active" | "test" | "canceled" | "past_due";
 /** Who bills a workspace: Paymob in Egypt, Polar everywhere else. */
-export type BillingProvider = "paymob" | "polar";
+export type BillingProvider = "paymob" | "polar" | "kashier";
 export type StrategyStatus = "understanding" | "setup" | "ready" | "failed" | "chat";
 export type CampaignStatus =
   | "created" | "queued" | "awaiting_source" | "scheduled"
@@ -201,7 +201,7 @@ export type ConversationRow = {
   id: string; workspace_id: string; user_id: string | null; scope: ConversationScope; strategy_id: string | null; campaign_id: string | null;
   title: string; archived_at: string | null; created_at: string; updated_at: string;
 };
-export type MailProvider = "gmail" | "outlook" | "test";
+export type MailProvider = "gmail" | "outlook" | "imap" | "test";
 export type MailboxRow = {
   id: string; workspace_id: string; user_id: string; provider: MailProvider; email: string; status: "connected" | "error" | "disconnected";
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
@@ -302,6 +302,7 @@ export type CompanyRow = {
   people_status: "queued" | "running" | "done" | "no_source" | "no_quota" | "failed" | null;
   people_requested_at: string | null;
   people_found: number;
+  annual_revenue_usd: number | null; monthly_visits: number | null; traffic_geo: string | null;
   run_id: number | null;
   created_at: string;
   logo_url: string | null;
@@ -511,7 +512,12 @@ export type AdminAccountRow = {
   renewals: number; last_activity_at: string | null; last_checkout_status: CheckoutStatus | null; last_checkout_at: string | null;
   last_checkout_recovered_at: string | null; segment: string;
 };
-export type PaymentProviderRow = { id: "paymob"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
+/** A saved card (Kashier token in Vault), D-235. */
+export type BillingCardRow = {
+  id: string; workspace_id: string; provider: "kashier"; customer_reference: string; token_secret_id: string | null;
+  brand: string | null; last4: string | null; exp_month: string | null; exp_year: string | null; status: "active" | "removed"; created_at: string; updated_at: string;
+};
+export type PaymentProviderRow = { id: "paymob" | "kashier"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };
 export type PaymentProviderSecretRow = { provider: string; name: "secret_key" | "hmac_secret"; secret_id: string; hint: string | null; updated_at: string };
 export type ProspectPackRow = { id: string; prospects: number; emails: number; price_usd: number; active: boolean; sort: number; updated_by: string | null; created_at: string; updated_at: string };
 
@@ -567,9 +573,10 @@ export type ProspectItemRow = {
   revealed: boolean;
   people_titles: string | null;
   people_found: number;
+  funding_total_usd: number | null; annual_revenue_usd: number | null; monthly_visits: number | null; traffic_geo: string | null;
 };
 
-export type PlanQuotaRow = { plan: Plan; price_usd: number; prospects_per_month: number; emails_per_month: number; contacts_per_month: number; updated_by: string | null; updated_at: string };
+export type PlanQuotaRow = { plan: Plan; price_usd: number; price_egp: number | null; prospects_per_month: number; emails_per_month: number; contacts_per_month: number; updated_by: string | null; updated_at: string };
 
 /** Per-user daily counters of LLM-backed actions (daily limits, 2026-10-12). */
 export type DailyUsageKind = "search" | "ai_message";
@@ -779,6 +786,7 @@ export interface Database {
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount" | "currency" | "mode">;
       payments: Table<PaymentRow, "workspace_id" | "kind" | "amount" | "currency" | "provider" | "mode">;
       payment_providers: Table<PaymentProviderRow, "id">;
+      billing_cards: Table<BillingCardRow, "workspace_id" | "provider" | "customer_reference">;
       payment_provider_secrets: Table<PaymentProviderSecretRow, "provider" | "name" | "secret_id">;
       prospect_packs: Table<ProspectPackRow, "prospects" | "price_usd">;
       plan_quotas: Table<PlanQuotaRow, "plan" | "price_usd" | "prospects_per_month">;
@@ -894,6 +902,9 @@ export interface Database {
       set_payment_secret: { Args: { p_provider: string; p_name: string; p_secret: string }; Returns: undefined };
       clear_payment_secret: { Args: { p_provider: string; p_name: string }; Returns: undefined };
       payment_secret: { Args: { p_provider: string; p_name: string }; Returns: string | null };
+      set_card_token: { Args: { p_card: string; p_token: string }; Returns: undefined };
+      card_token: { Args: { p_card: string }; Returns: string | null };
+      clear_card_token: { Args: { p_card: string }; Returns: undefined };
       set_integration_keys: { Args: { p_provider: string; p_config: Record<string, string>; p_secrets: Record<string, string>; p_by: string | null }; Returns: undefined };
       clear_integration_keys: { Args: { p_provider: string }; Returns: undefined };
       integration_values: { Args: Record<string, never>; Returns: { provider: string; config: Record<string, string>; secrets: Record<string, string> }[] };

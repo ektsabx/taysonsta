@@ -10,6 +10,8 @@ import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/ty
 // Every paid plan starts with a free trial (lib/trial.ts) where it is offered.
 export interface PlanTerms {
   priceUsd: number;
+  /** Monthly price for Egypt, in EGP (D-237); null = Egypt pays the USD price at the day's rate. */
+  priceEgp: number | null;
   prospects: number;
   emails: number;
   contacts: number;
@@ -17,10 +19,10 @@ export interface PlanTerms {
 
 /** Fallback only — the live values come from the database (lib/plan-catalog.ts). */
 export const defaultPlans: Record<Plan, PlanTerms> = {
-  free: { priceUsd: 0, prospects: 50, emails: 50, contacts: 50 },
-  pro: { priceUsd: 50, prospects: 1000, emails: 1000, contacts: 1000 },
-  growth: { priceUsd: 100, prospects: 2000, emails: 2000, contacts: 2000 },
-  scale: { priceUsd: 200, prospects: 4000, emails: 4000, contacts: 4000 },
+  free: { priceUsd: 0, priceEgp: null, prospects: 50, emails: 50, contacts: 50 },
+  pro: { priceUsd: 50, priceEgp: 2499, prospects: 1000, emails: 1000, contacts: 1000 },
+  growth: { priceUsd: 100, priceEgp: 4999, prospects: 2000, emails: 2000, contacts: 2000 },
+  scale: { priceUsd: 200, priceEgp: 9999, prospects: 4000, emails: 4000, contacts: 4000 },
 };
 
 /** Monthly price of a plan (one USD price for every country, D-131). */
@@ -77,7 +79,7 @@ export function isBillingPeriod(v: unknown): v is BillingPeriod {
 /** Annual billing is 20% off the monthly price (owner decision 2026-10-13, D-192). */
 // Annual pricing math lives in a dependency-free module so the Admin app can
 // import it too (lib/affiliates/program.ts is shared with Yolias Admin).
-export { ANNUAL_FREE_MONTHS, ANNUAL_PAID_MONTHS, monthlyRate, priceFor } from "./pricing-math";
+export { ANNUAL_DISCOUNT, ANNUAL_DISCOUNT_PERCENT, monthlyRate, monthlyRateEgp, priceFor, priceForEgp } from "./pricing-math";
 
 export function monthWindow(now = new Date()) {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

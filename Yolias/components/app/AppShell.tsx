@@ -7,7 +7,7 @@ import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  ChevronDown, CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
+  CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -21,7 +21,7 @@ import { FeedbackModal } from "./FeedbackModal";
 import { ReviewPrompt } from "./ReviewPrompt";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
-import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
+import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 import { WelcomeVideoModal } from "./WelcomeVideoModal";
 import { PlanGateModal } from "./PlanGateModal";
 import { ActivityPing } from "./ActivityPing";
@@ -39,12 +39,8 @@ const workNav = [
   { href: "/outreach", key: "outreach", icon: Send },
   { href: "/inbox", key: "inbox", icon: Inbox },
   { href: "/crm", key: "crm", icon: SquareKanban },
-] as const;
-
-// AI Workspace (D-196): what Yolias AI knows, who it looks for, its agents, rules and automations.
-const aiNav = [
+  // Company Knowledge is a regular page (owner, 2026-10-19): no "AI Workspace" section, no AI Agent page.
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
-  // The AI Agent settings page left the member's app (D-233): the agent works from Company Knowledge.
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -65,7 +61,7 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
 const NARROW = "(max-width: 900px)";
 const isNarrow = () => typeof window !== "undefined" && window.matchMedia(NARROW).matches;
 
-export function AppShell({ data, initialClosed, initialAiOpen, children }: { data: ShellData; initialClosed: boolean; initialAiOpen: boolean; children: React.ReactNode }) {
+export function AppShell({ data, initialClosed, children }: { data: ShellData; initialClosed: boolean; children: React.ReactNode }) {
   const { t } = useI18n();
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
@@ -77,12 +73,6 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(data.welcome.show);
-  const [aiOpen, setAiOpen] = useState(initialAiOpen);
-  const toggleAi = () => {
-    const next = !aiOpen;
-    setAiOpen(next);
-    document.cookie = `${AI_SECTION_COOKIE}=${next ? "open" : "closed"}; path=/; max-age=31536000; samesite=lax`;
-  };
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -229,23 +219,6 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
                 </div>
               </Link>
             ))}
-          </section>
-
-          <section className="nav-group">
-            <button type="button" className="nav-heading nav-section-toggle" aria-expanded={aiOpen} aria-controls="nav-ai-workspace" onClick={toggleAi}>
-              <span>{t.ws.nav.aiWorkspace}</span>
-              <ChevronDown className={`nav-section-chevron${aiOpen ? "" : " closed"}`} />
-            </button>
-            <div id="nav-ai-workspace" hidden={!aiOpen}>
-              {aiNav.map(({ href, key, icon: Icon }) => (
-                <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
-                  <div className="nav-item-inner">
-                    <Icon />
-                    <span>{t.ws.nav[key]}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
           </section>
 
           {pinned.length > 0 && (

@@ -11,7 +11,7 @@ import type { Block, Doc } from "@/lib/content/types";
 import { currentProgram } from "@/lib/affiliates";
 import { fillBlocks, termsValues } from "@/lib/affiliates/terms-values";
 import { getPlanCatalog } from "@/lib/plan-catalog";
-import { ANNUAL_FREE_MONTHS, monthlyRate, offeredPlans, priceFor } from "@/lib/plans";
+import { ANNUAL_DISCOUNT_PERCENT, monthlyRate, monthlyRateEgp, offeredPlans, priceFor, priceForEgp } from "@/lib/plans";
 import { trialLimits } from "@/lib/trial";
 import { COMMUNITY_URL } from "@/lib/community";
 import { DEFINITION, siteUrl } from "@/lib/seo";
@@ -80,14 +80,14 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
     const money = (v: number) => `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
     const planLines = offeredPlans.map((p) => {
       const t = plans[p];
-      return `- ${d.plans[p]}: ${money(t.priceUsd)} / month billed monthly, or ${money(monthlyRate(t.priceUsd, "annual"))} / month billed yearly (${money(priceFor(t.priceUsd, "annual"))} per year, ${ANNUAL_FREE_MONTHS} months free). ${t.prospects.toLocaleString("en-US")} prospects and ${t.emails.toLocaleString("en-US")} emails per month, unlimited uploaded contacts, unlimited users, Team Workspace.`;
+      return `- ${d.plans[p]}: ${money(t.priceUsd)} / month billed monthly, or ${money(monthlyRate(t.priceUsd, "annual"))} / month billed yearly (${money(priceFor(t.priceUsd, "annual"))} per year, save ${ANNUAL_DISCOUNT_PERCENT}%).${t.priceEgp ? ` In Egypt: EGP ${t.priceEgp.toLocaleString("en-US")} / month, or EGP ${monthlyRateEgp(t.priceEgp, "annual").toLocaleString("en-US")} / month billed yearly (EGP ${priceForEgp(t.priceEgp, "annual").toLocaleString("en-US")} per year).` : ""} ${t.prospects.toLocaleString("en-US")} prospects and ${t.emails.toLocaleString("en-US")} emails per month, unlimited uploaded contacts, unlimited users, Team Workspace.`;
     });
     push("pricing", "plans", l, l === "ar" ? "الخطط والأسعار والتجربة المجانية" : "Plans, prices and the free trial", "/pricing", [
       d.pricing.heroSupport,
       planLines.join("\n"),
-      `Free trial: ${trial.days} days on the chosen plan, card required at checkout (card payments through Polar), with ${trial.prospects} prospects and ${trial.emails} emails during the trial. Nothing is charged until the trial ends; cancel any time before. Card payments from Egypt go through Paymob and the first period is paid up front.${trial.claim_hours ? ` The trial offer can be claimed within ${trial.claim_hours} hours of first opening the checkout.` : ""}`,
-      `Annual billing: ${d.plans.annualSave} — the year costs 10 times the monthly price, paid once.`,
-      `Prices are in USD and don’t include tax.`,
+      `Free trial (only when offered at checkout): ${trial.days} days on the chosen plan, with ${trial.prospects} prospects and ${trial.emails} emails during the trial. Card payments go through Paymob (Visa, Mastercard, Meeza), charged in Egyptian pounds: the first period is paid up front; at the end of each period a renewal invoice is issued and the plan continues once it's paid.${trial.claim_hours ? ` The trial offer can be claimed within ${trial.claim_hours} hours of first opening the checkout.` : ""}`,
+      `Annual billing: ${d.plans.annualSave} — 12 × the discounted monthly rate, paid once a year.`,
+      `Prices are in USD (EGP in Egypt) and don’t include tax.`,
       `${d.pricing.faqTitle}\n${d.pricing.faq.map(([q, a]) => `Q: ${q}\nA: ${a}`).join("\n\n")}`,
     ].join("\n\n"));
 

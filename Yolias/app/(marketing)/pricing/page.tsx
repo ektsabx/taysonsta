@@ -5,6 +5,8 @@ import { getSession } from "@/lib/session";
 import { trialLimits } from "@/lib/trial";
 import { offeredPlans } from "@/lib/plans";
 import { PricingView } from "./PricingView";
+import { requestCountry } from "@/lib/geo-server";
+import { paysInEgp } from "@/lib/payments";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { breadcrumbSchema, faqSchema, pageMetadata, softwareSchema } from "@/lib/seo";
 
@@ -23,7 +25,7 @@ export default async function PricingPage() {
   return (
     <>
       <JsonLd nodes={[softwareSchema(offers), faqSchema(t.pricing.faq.map(([q, a]) => ({ q, a }))), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: t.site.pricing, path: "/pricing" }])]} />
-      <PricingView signedIn={Boolean(session)} plans={plans} currency={currency} trialDays={trial.days} />
+      <PricingView signedIn={Boolean(session)} plans={plans} currency={currency} trialDays={trial.days} egp={paysInEgp(session?.workspace ?? { billing_country: null }, await requestCountry())} />
     </>
   );
 }

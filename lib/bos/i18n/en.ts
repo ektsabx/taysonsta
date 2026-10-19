@@ -6458,6 +6458,7 @@ const en: Record<string, string> = {
  "مغادرون": "Leavers",
  "مغلق": "Closed",
  "مغلقة": "Closed",
+ "مفاتيح كاشير تُضاف من الإعدادات ← مركز التكاملات ← Kashier.": "Kashier keys are added in Settings → Integrations hub → Kashier.",
  "مفاتيح Paymob تُضاف وتُعدّل من مكان واحد: الإعدادات ← مركز التكاملات.": "Paymob keys are added and edited in one place: Settings → Integration Hub.",
  "مفاتيح المراحل يجب أن تكون فريدة.": "Stage keys must be unique.",
  "مفاتيح المزودين في Yolias": "Provider keys in Yolias",

@@ -181,7 +181,6 @@ export async function decideApproval(id: string, approve: boolean): Promise<CrmR
     if (stage && (STAGES as readonly string[]).includes(stage)) await changeStage(db, session.workspace.id, pa.lead_id, stage as LeadStage, "user");
   }
   refresh(pa.lead_id);
-  revalidatePath("/ai/agents");
   return { ok: true };
 }
 

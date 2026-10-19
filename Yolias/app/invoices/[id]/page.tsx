@@ -9,7 +9,8 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { planName } from "@/lib/plans";
 import { canManageTeam, requireUser } from "@/lib/session";
-import { providerFor } from "@/lib/payments";
+import { egpPlanPrice, invoiceGateway, paysInEgp, providerFor } from "@/lib/payments";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { RENEWAL_GRACE_DAYS } from "@/lib/billing";
 import { getInvoice } from "@/services/workspace";
 import { PrintButton } from "./PrintButton";
@@ -20,6 +21,20 @@ export async function generateMetadata({ params }: PageProps<"/invoices/[id]">):
   const t = await getDictionary();
   const inv = /^[0-9a-f-]{36}$/i.test(id) ? await getInvoice(id) : null;
   return { title: inv ? `${t.invoice.title} ${inv.number} | Yolias` : "Yolias", robots: noindex };
+}
+
+type Inv = NonNullable<Awaited<ReturnType<typeof getInvoice>>>;
+
+/** The paid EGP charge of an invoice, or what an open Egyptian invoice will charge; else the USD amount. */
+async function shownAmount(inv: Inv, ws: Parameters<typeof paysInEgp>[0]): Promise<{ amount: number; currency: "USD" | "EGP" }> {
+  if (inv.payment_id) {
+    const { data: p } = await createAdminClient().from("payments").select("charge_amount, charge_currency").eq("id", inv.payment_id).maybeSingle();
+    if (p?.charge_currency === "EGP" && p.charge_amount != null) return { amount: Number(p.charge_amount), currency: "EGP" };
+  } else if (inv.status === "open" && inv.plan && inv.billing_period && paysInEgp(ws, null)) {
+    const egp = await egpPlanPrice(inv.plan, inv.billing_period);
+    if (egp) return { amount: egp, currency: "EGP" };
+  }
+  return { amount: Number(inv.amount), currency: "USD" };
 }
 
 // Printable invoice (Claude/Stripe style). Visible to the workspace owner and
@@ -33,13 +48,15 @@ export default async function InvoicePage({ params }: PageProps<"/invoices/[id]"
   if (!inv) notFound();
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const v = t.invoice;
-  const amount = Number(inv.amount);
-  const money = (n: number) => formatMoney(n, inv.currency, true);
+  // What the customer pays or paid: Egypt's invoices show the EGP charge (D-237).
+  const shown = await shownAmount(inv, session.workspace);
+  const amount = shown.amount;
+  const money = (n: number) => formatMoney(n, shown.currency, shown.currency === "USD");
   const date = (iso: string) => formatDate(iso, locale, session.profile.timezone);
   const name = inv.plan ? planName(inv.plan, t) : fmt(t.buyMore.packName, { count: formatNumber(inv.prospects ?? 0, locale) });
   const period = inv.kind === "prospect_pack" ? t.invoicePay.pack : inv.billing_period === "annual" ? t.plans.billedAnnually : t.plans.billedMonthly;
   const dueAt = new Date(new Date(inv.period_start).getTime() + RENEWAL_GRACE_DAYS * 86_400_000).toISOString();
-  const canPay = inv.status === "open" && canManageTeam(session) && Boolean(await providerFor(inv.currency));
+  const canPay = inv.status === "open" && canManageTeam(session) && Boolean(await providerFor(invoiceGateway(session.workspace)));
 
   return (
     <div className="invoice-page">

@@ -264,7 +264,7 @@ try {
     const scaleMonthly = fake.find((p) => p.metadata.yolias_plan === "scale" && p.metadata.yolias_period === "monthly")!;
     const scaleAnnual = fake.find((p) => p.metadata.yolias_plan === "scale" && p.metadata.yolias_period === "annual")!;
     assert.equal(scaleMonthly.prices[0].price_amount, 20000, "$200 a month");
-    assert.equal(scaleAnnual.prices[0].price_amount, 200000, "annual = 10 × $200 (2 months free)");
+    assert.equal(scaleAnnual.prices[0].price_amount, 192000, "annual = 12 × ($200 − 20%)");
     // Ids are stored; loadPolar finds them without Polar.
     const loaded = (await loadPolar())!;
     assert.equal(productFor(loaded, "scale", "monthly"), scaleMonthly.id);

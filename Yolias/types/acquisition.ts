@@ -43,7 +43,10 @@ export type CrmLeadRow = LeadRow & {
   thread_status: ThreadStatus | null; unread: boolean; next_meeting_at: string | null; campaign_names: string[] | null; open_tasks: number;
   company_domain: string | null; linkedin_url: string | null; phone: string | null; job_title: string | null; match_score: number | null;
   thread_last_message_at: string | null;
+  thread_label: InboxLabel | null; thread_last_inbound_at: string | null;
 };
+/** Inbox labels (D-239). */
+export type InboxLabel = "interested" | "not_interested" | "follow_up";
 export type LeadActivityKind =
   | "created" | "stage_changed" | "note" | "deal_updated" | "message_drafted" | "message_sent" | "reply_logged" | "reply_analyzed"
   | "meeting_scheduled" | "meeting_updated" | "task_created" | "task_done" | "enrolled" | "enrollment_stopped" | "automation" | "agent" | "do_not_contact";
@@ -79,7 +82,7 @@ export type OutreachEnrollmentRow = {
 };
 export type InboxThreadRow = {
   id: string; workspace_id: string; lead_id: string; status: ThreadStatus; last_message_at: string | null; last_inbound_at: string | null;
-  last_read_at: string | null; created_at: string; updated_at: string;
+  last_read_at: string | null; label: InboxLabel | null; created_at: string; updated_at: string;
 };
 export type WorkspaceAiSettingsRow = {
   workspace_id: string; agents: Json; permissions: Json; limits: Json; escalation: Json; guidelines: string | null; goal: string | null; updated_by: string | null; updated_at: string;

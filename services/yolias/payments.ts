@@ -111,3 +111,13 @@ export async function paymentTotals(days: number) {
   }
   return out;
 }
+
+/** Kashier (D-235): status and non-secret settings for Admin → Payments. */
+export async function getKashierSettings() {
+  const [{ data: row }, { count }] = await Promise.all([
+    ydb().from("payment_providers").select("*").eq("id", "kashier").maybeSingle(),
+    ydb().from("billing_cards").select("id", { count: "exact", head: true }).eq("provider", "kashier").eq("status", "active"),
+  ]);
+  const cfg = (row?.config ?? {}) as { merchant_id?: string; currency?: string };
+  return { enabled: Boolean(row?.enabled), mode: row?.mode ?? "test", merchantId: cfg.merchant_id ?? null, currency: cfg.currency === "EGP" ? "EGP" : "USD", savedCards: count ?? 0 };
+}

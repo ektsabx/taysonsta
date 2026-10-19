@@ -104,3 +104,54 @@ export async function launchSummary(workspaceId: string, id: string) {
   };
 }
 export type LaunchSummary = NonNullable<Awaited<ReturnType<typeof launchSummary>>>;
+
+export type EmailFinding = "verified" | "found" | "none" | "finding";
+
+/**
+ * The campaign page (D-239): every person in the campaign with their email
+ * (and how it was found), the email Yolias wrote for their current step, and
+ * what was sent (when, from which mailbox, bounced / replied).
+ */
+export async function campaignWorkspace(workspaceId: string, id: string) {
+  const db = await createClient();
+  const { data: enr } = await db.from("outreach_enrollments")
+    .select("id, status, stop_reason, current_step, lead:sales_leads(id, name, company_name, email, prospect_id, company_id, do_not_contact)")
+    .eq("campaign_id", id).eq("workspace_id", workspaceId).order("created_at").limit(500);
+  type Lead = { id: string; name: string; company_name: string | null; email: string | null; prospect_id: string | null; company_id: string | null; do_not_contact: boolean };
+  const rows = (enr ?? []).map((e) => ({ ...e, lead: e.lead as unknown as Lead | null }));
+  const prospectIds = rows.map((e) => e.lead?.prospect_id).filter((x): x is string => Boolean(x));
+  const companyIds = rows.map((e) => e.lead?.company_id).filter((x): x is string => Boolean(x));
+  const [{ data: people }, { data: companies }, { data: msgs }] = await Promise.all([
+    prospectIds.length ? db.from("prospects").select("id, title, email_status, linkedin_url").in("id", prospectIds.slice(0, 500)) : Promise.resolve({ data: [] }),
+    companyIds.length ? db.from("companies").select("id, domain, website, linkedin_url").in("id", companyIds.slice(0, 500)) : Promise.resolve({ data: [] }),
+    db.from("outreach_messages").select("id, enrollment_id, lead_id, direction, status, subject, body, to_email, from_address, sent_at, received_at, created_at, delivery_status, error, step_position")
+      .eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at").limit(3000),
+  ]);
+  const person = new Map((people ?? []).map((p) => [p.id, p]));
+  const company = new Map((companies ?? []).map((c) => [c.id, c]));
+  const replied = new Set((msgs ?? []).filter((m) => m.direction === "inbound").map((m) => m.lead_id));
+  const current = new Map<string, NonNullable<typeof msgs>[number]>();
+  for (const m of msgs ?? []) if (m.direction === "outbound" && m.enrollment_id) current.set(m.enrollment_id, m); // latest wins
+  const leads = rows.map((e) => {
+    const p = e.lead?.prospect_id ? person.get(e.lead.prospect_id) : undefined;
+    const co = e.lead?.company_id ? company.get(e.lead.company_id) : undefined;
+    const email = e.lead?.email ?? null;
+    const finding: EmailFinding = email ? (p?.email_status === "verified" ? "verified" : "found") : e.stop_reason === "no_email" || e.current_step > 0 || e.status !== "active" ? "none" : "finding";
+    const m = current.get(e.id) ?? null;
+    return {
+      enrollmentId: e.id, status: e.status, stopReason: e.stop_reason, step: e.current_step,
+      leadId: e.lead?.id ?? null, name: e.lead?.name ?? "—", title: p?.title ?? null, company: e.lead?.company_name ?? null, domain: co?.domain ?? co?.website ?? null,
+      linkedin: p?.linkedin_url ?? co?.linkedin_url ?? null, email, finding, doNotContact: e.lead?.do_not_contact ?? false, replied: e.lead ? replied.has(e.lead.id) : false,
+      message: m ? { id: m.id, subject: m.subject, body: m.body, status: m.status, to: m.to_email, sentAt: m.sent_at, error: m.error } : null,
+    };
+  });
+  const sent = (msgs ?? []).filter((m) => m.direction === "outbound" && (m.status === "sent" || m.status === "failed")).reverse().map((m) => {
+    const l = rows.find((e) => e.id === m.enrollment_id)?.lead ?? rows.find((e) => e.lead?.id === m.lead_id)?.lead ?? null;
+    return {
+      id: m.id, lead: l?.name ?? "—", leadId: m.lead_id, to: m.to_email, subject: m.subject, body: m.body, sentAt: m.sent_at, from: m.from_address, step: m.step_position,
+      status: m.status === "failed" ? ("failed" as const) : m.delivery_status === "bounced" ? ("bounced" as const) : m.lead_id && replied.has(m.lead_id) ? ("replied" as const) : ("sent" as const),
+    };
+  });
+  return { leads, sent };
+}
+export type CampaignWorkspace = Awaited<ReturnType<typeof campaignWorkspace>>;

@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/app/AppShell";
-import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
+import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
 import { loadWelcomeVideo } from "@/lib/welcome-video-server";
 import { canManageTeam, requireViewer } from "@/lib/session";
 import { initials } from "@/lib/format";
@@ -9,7 +9,7 @@ import { shouldAskForReview } from "@/lib/review-prompt";
 import { getPlanCatalog } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
-import { billingRoute, paymentsConnected } from "@/lib/payments";
+import { billingRoute, paymentMethods, paymentsConnected } from "@/lib/payments";
 import { loadPolar, polarPortalUrl } from "@/lib/payments/polar";
 import { hasActivePlan, planPrice } from "@/lib/plans";
 import { trialLimits, trialOpen } from "@/lib/trial";
@@ -128,11 +128,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     device: { label: deviceLabel(h.get("user-agent") ?? ""), ip: maskIp(h.get("x-forwarded-for") ?? h.get("x-real-ip")) },
     welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
     inboxUnread,
-    planGate: hasActivePlan(workspace) ? null : { trialDays: route !== "paymob" && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
+    // The free trial comes with Polar only; Kashier charges the first period (D-235).
+    planGate: hasActivePlan(workspace) ? null : { trialDays: (await paymentMethods()).polar && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
   };
 
   const jar = await cookies();
   const sidebarClosed = jar.get(SIDEBAR_COOKIE)?.value === "closed";
-  const aiSectionOpen = jar.get(AI_SECTION_COOKIE)?.value !== "closed";
-  return <AppShell data={data} initialClosed={sidebarClosed} initialAiOpen={aiSectionOpen}>{children}</AppShell>;
+  return <AppShell data={data} initialClosed={sidebarClosed} >{children}</AppShell>;
 }

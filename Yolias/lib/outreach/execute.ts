@@ -158,15 +158,17 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
 }
 
 /** Claims the message, sends it, records the result. "stop" = the mailbox can't send now (auth / rate). */
-async function sendOne(db: Db, c: OutreachCampaignRow, mailbox: MailboxRow, m: OutreachMessageRow, to: string): Promise<"sent" | "failed" | "retry" | "stop"> {
+async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRow, m: OutreachMessageRow, to: string): Promise<"sent" | "failed" | "retry" | "stop"> {
   const { data: claimed } = await db.from("outreach_messages").update({ status: "sending", mailbox_id: mailbox.id, attempts: m.attempts + 1 })
     .eq("id", m.id).in("status", ["draft", "approved"]).select("id").maybeSingle();
   if (!claimed) return "retry";
-  // A follow-up continues the thread of the earlier message to this lead.
+  // A follow-up (or a reply from the Inbox) continues the thread of the earlier message to this lead from this mailbox.
   const { data: prev } = m.enrollment_id
     ? await db.from("outreach_messages").select("subject, provider_message_id, provider_thread_id").eq("enrollment_id", m.enrollment_id).eq("status", "sent").order("sent_at", { ascending: false }).limit(1).maybeSingle()
-    : { data: null };
-  const subject = prev?.provider_thread_id ? (/^re:/i.test(prev.subject) ? prev.subject : `Re: ${prev.subject}`) : m.subject || c.name;
+    : m.lead_id
+      ? await db.from("outreach_messages").select("subject, provider_message_id, provider_thread_id").eq("lead_id", m.lead_id).eq("mailbox_id", mailbox.id).not("provider_thread_id", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle()
+      : { data: null };
+  const subject = prev?.provider_thread_id ? (/^re:/i.test(prev.subject) ? prev.subject : `Re: ${prev.subject}`) : m.subject || c?.name || "Hello";
   try {
     const { provider, token } = await mailboxAccess(mailbox);
     const { data: sender } = await db.from("profiles").select("full_name").eq("id", mailbox.user_id).maybeSingle();
@@ -174,21 +176,24 @@ async function sendOne(db: Db, c: OutreachCampaignRow, mailbox: MailboxRow, m: O
     const now = new Date().toISOString();
     await db.from("outreach_messages").update({
       status: "sent", sent_at: now, sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent",
-      from_address: mailbox.email, to_email: to, subject, approved_by: m.approved_by ?? c.approved_by, approved_at: m.approved_at ?? c.approved_at, error: null, next_attempt_at: null,
+      from_address: mailbox.email, to_email: to, subject, approved_by: m.approved_by ?? c?.approved_by ?? null, approved_at: m.approved_at ?? c?.approved_at ?? null, error: null, next_attempt_at: null,
     }).eq("id", m.id);
     const today = now.slice(0, 10);
     const { data: fresh } = await db.from("mailboxes").select("sent_day, sent_today").eq("id", mailbox.id).single();
     await db.from("mailboxes").update({ sent_day: today, sent_today: (fresh?.sent_day === today ? fresh.sent_today : 0) + 1 }).eq("id", mailbox.id);
-    const settings = await loadAiSettings(c.workspace_id);
+    const settings = await loadAiSettings(m.workspace_id);
     if (m.enrollment_id && m.step_position) await advanceEnrollment(m.enrollment_id, m.step_position, settings.limits.max_messages_per_lead);
+    if (m.lead_id) await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "message_sent", actor_kind: c ? "agent" : "user", body: subject.slice(0, 300), meta: { message_id: m.id, from: mailbox.email } as Json });
     return "sent";
   } catch (e) {
     const err = e instanceof MailboxError ? e : new MailboxError("unavailable", e instanceof Error ? e.message : String(e));
     if (err.kind === "auth" || err.kind === "not_configured") {
       await db.from("outreach_messages").update({ status: "approved", next_attempt_at: null }).eq("id", m.id);
       if (err.kind === "auth") await markMailboxError(mailbox.id, "The mailbox permission expired or was removed. Reconnect it in Settings, Integrations.");
-      await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-      await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
+      if (c) {
+        await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
+        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
+      }
       return "stop";
     }
     if (err.kind === "rejected" || m.attempts + 1 >= 5) {
@@ -200,6 +205,42 @@ async function sendOne(db: Db, c: OutreachCampaignRow, mailbox: MailboxRow, m: O
     await db.from("outreach_messages").update({ status: "approved", next_attempt_at: new Date(Date.now() + wait).toISOString() }).eq("id", m.id);
     return err.kind === "rate" ? "stop" : "retry";
   }
+}
+
+export type SendNowError = "not_found" | "not_draft" | "no_mailbox" | "do_not_contact" | "no_email" | "daily_limit" | "mailbox_error" | "failed";
+
+/**
+ * Sends one prepared email now from the member's own connected mailbox
+ * (D-239): a campaign email from the Outreach page or a reply from the Inbox.
+ * The member's click is the approval for this message. Threads continue
+ * (Re: subject, In-Reply-To) when the lead was already written to.
+ */
+export async function sendMessageNow(workspaceId: string, userId: string, messageId: string): Promise<{ ok: true } | { ok: false; error: SendNowError; detail?: string | null }> {
+  const db = createAdminClient();
+  const { data: raw } = await db.from("outreach_messages").select("*, lead:sales_leads(id, do_not_contact, email)").eq("id", messageId).eq("workspace_id", workspaceId).eq("direction", "outbound").maybeSingle();
+  if (!raw) return { ok: false, error: "not_found" };
+  const m = raw as unknown as OutreachMessageRow & { lead: { id: string; do_not_contact: boolean; email: string | null } | null };
+  if (!["draft", "approved", "failed"].includes(m.status) || m.channel !== "email") return { ok: false, error: "not_draft" };
+  if (!m.lead || m.lead.do_not_contact) return { ok: false, error: "do_not_contact" };
+  const to = (m.to_email ?? m.lead.email ?? "").trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return { ok: false, error: "no_email" };
+  const { data: boxes } = await db.from("mailboxes").select("*").eq("workspace_id", workspaceId).eq("user_id", userId).eq("status", "connected");
+  const mine = (boxes ?? []) as MailboxRow[];
+  if (!mine.length) return { ok: false, error: "no_mailbox" };
+  const { data: camp } = m.outreach_campaign_id ? await db.from("outreach_campaigns").select("*").eq("id", m.outreach_campaign_id).maybeSingle() : { data: null };
+  const c = camp as OutreachCampaignRow | null;
+  // The mailbox the lead already hears from, else the campaign's, else the member's first.
+  const { data: used } = await db.from("outreach_messages").select("mailbox_id").eq("lead_id", m.lead.id).eq("status", "sent").not("mailbox_id", "is", null).order("sent_at", { ascending: false }).limit(1).maybeSingle();
+  const mailbox = mine.find((b) => b.id === used?.mailbox_id) ?? mine.find((b) => b.id === c?.mailbox_id) ?? mine[0];
+  const settings = await loadAiSettings(workspaceId);
+  const today = new Date().toISOString().slice(0, 10);
+  if ((mailbox.sent_day === today ? mailbox.sent_today : 0) >= Math.min(mailbox.daily_limit, settings.limits.daily_send_limit)) return { ok: false, error: "daily_limit" };
+  const approvedAt = new Date().toISOString();
+  await db.from("outreach_messages").update({ approved_by: userId, approved_at: approvedAt, status: "approved" }).eq("id", m.id).in("status", ["draft", "approved", "failed"]);
+  const outcome = await sendOne(db, c, mailbox, { ...m, status: "approved", approved_by: userId, approved_at: approvedAt }, to);
+  if (outcome === "sent") return { ok: true };
+  const { data: after } = await db.from("outreach_messages").select("error").eq("id", m.id).maybeSingle();
+  return { ok: false, error: outcome === "stop" ? "mailbox_error" : "failed", detail: after?.error ?? null };
 }
 
 // ── Replies ─────────────────────────────────────────────────────────────────

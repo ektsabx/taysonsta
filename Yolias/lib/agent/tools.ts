@@ -8,7 +8,6 @@ import { launchInSearch, titleFrom, understandAndLaunch } from "@/lib/discovery/
 import * as control from "@/lib/discovery/campaign-control";
 import { enqueue } from "@/lib/jobs/queue";
 import { extractCompanyFacts, researchSummary } from "@/lib/ai/orchestrator";
-import { draftOutreach } from "@/lib/outreach";
 import { isMessageLanguage } from "@/lib/outreach/channels";
 import { hasActivePlan } from "@/lib/plans";
 import type { Session } from "@/lib/session";
@@ -31,7 +30,6 @@ const WORKSPACE_RULES: Record<string, [AgentKey, AgentAction]> = {
   findDecisionMakers: ["research", "search_prospects"],
   saveResults: ["research", "update_leads"],
   enrichProspect: ["research", "update_leads"],
-  prepareOutreach: ["outreach", "prepare_messages"],
 };
 
 // Yolias AI agent tools (docs/07 "Tools", final spec phase 7: tools for every
@@ -344,33 +342,6 @@ export const agentTools = [
     },
   }),
 
-  // ───────────── Outreach ─────────────
-  define({
-    name: "prepareOutreach",
-    description: "Write a message for a person: an email (subject + body) or a LinkedIn connection note. Pick the goal (introduction, sales, meeting, follow_up, partnership, referral), the tone (direct by default, conservative or friendly) and the language (ISO code, e.g. en, ar, fr). Only verified facts are used. It is saved on the person's page; the user edits it there and opens it in their own Gmail / Outlook / email app, WhatsApp or LinkedIn. Yolias never sends messages.",
-    permission: "outreach.prepare",
-    input: z.object({
-      prospectId: uuid,
-      channel: z.enum(["email", "linkedin"]).default("email"),
-      objective: z.enum(["introduction", "sales", "meeting", "follow_up", "partnership", "referral"]).default("introduction"),
-      tone: z.enum(["direct", "conservative", "friendly"]).default("direct"),
-      instruction: z.string().trim().max(1000).optional().describe("The reason for contacting, in the user's words"),
-      language: z.string().trim().max(3).optional(),
-    }),
-    async run(ctx, input) {
-      const { data: p } = await ctx.db.from("prospects").select("id, workspace_id").eq("id", input.prospectId).maybeSingle();
-      if (!p || p.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such prospect in this workspace.");
-      const r = await draftOutreach({
-        workspaceId: ctx.session.workspace.id, userId: ctx.session.userId, target: { kind: "person", id: p.id }, channel: input.channel,
-        instruction: input.instruction ?? null, language: isMessageLanguage(input.language) ? input.language : "en",
-        objective: input.objective, tone: input.tone,
-      });
-      if (!r.ok) return fail(r.error === "not_found" ? "not_found" : r.error === "not_configured" ? "not_connected" : "invalid", r.error);
-      ctx.spend?.(r.message.cost_usd);
-      return ok({ draftId: r.message.id, channel: r.message.channel, subject: r.message.subject, body: r.message.body, cta: r.message.cta, personalizationUsed: r.message.personalization, status: "draft", openAt: `/prospects/person/${p.id}` });
-    },
-  }),
-
   // ───────────── Searches & campaigns ─────────────
   define({
     name: "getCampaign",
@@ -465,10 +436,10 @@ export const agentTools = [
   // ───────────── Outreach, Inbox and CRM (D-230) ─────────────
   define({
     name: "createOutreachCampaign",
-    description: "Prepare an outreach campaign for the prospects of this search (or another search campaign): creates the campaign with a first message and follow-ups, adds the prospects as leads, and writes one real sample message. Nothing is sent. Returns a summary (recipients, how many have an email, channel, sequence, sample, which mailboxes can send it) to show the user before asking whether to start. Ask the user for the channel (email or LinkedIn) first if they didn't say.",
+    description: "Prepare an email outreach campaign for the prospects of this search (or another search campaign): creates the campaign with a first email and follow-ups, adds the prospects as leads, and writes one real sample email. Nothing is sent. Returns a summary (recipients, how many have an email, sequence, sample, which mailboxes can send it) to show the user before asking whether to start. Campaigns are email only, sent from the user's connected mailbox (Gmail, Outlook or IMAP/SMTP); LinkedIn is never messaged.",
     permission: "outreach.prepare",
     input: z.object({
-      channel: z.enum(["email", "linkedin"]),
+      channel: z.literal("email").default("email"),
       name: z.string().trim().min(1).max(160).optional(),
       goal: z.string().trim().max(1000).optional(),
       followUps: z.number().int().min(0).max(3).default(2),

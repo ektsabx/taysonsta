@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Globe, Info, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { analyzeWebsiteAction, deleteKnowledgeItem, saveCompetitor, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { analyzeWebsiteAction, deleteKnowledgeItem, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
 import { updateOrganization } from "@/app/(app)/settings/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { fmt } from "@/lib/i18n/config";
@@ -53,7 +53,10 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
             <button className="btn-primary" type="button" disabled={pending} onClick={() => run(async () => {
               const a = await updateOrganization(basics);
               if (!a.ok) return a;
-              return saveKnowledge(form);
+              const k2 = await saveKnowledge(form);
+              if (!k2.ok) return k2;
+              // The analysis also writes the ideal customer into Customer Profiles (D-241).
+              return saveCustomerFromAnalysis(analysis.customer);
             }, { success: t.ws.common.saved, onOk: () => setAnalysis(null) })}>{k.analyze.saveAll}</button>
           </div>
         </div>

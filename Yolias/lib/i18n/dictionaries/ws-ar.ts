@@ -14,7 +14,7 @@ export const wsAr: Dictionary["ws"] = {
     onlyManagers: "يستطيع المالكون والمسؤولون فقط تغيير هذا.", optional: "اختياري", confirmDelete: "حذف هذا العنصر؟ لا يمكن التراجع.",
     page: "صفحة {page} من {pages}", prev: "السابق", next: "التالي", yes: "نعم", no: "لا", open: "فتح", close: "إغلاق", done: "تم",
     notConnectedTitle: "غير متصل بعد",
-    mailboxNotConnected: "لا يوجد صندوق بريد متصل، لذلك لا يستطيع يولـياس إرسال الحملات أو قراءة الردود نيابةً عنك بعد. اربط Gmail أو Outlook من الإعدادات ← التكاملات. حتى ذلك الحين ترسل كل رسالة من تطبيقك وتسجّلها كمُرسلة.",
+    mailboxNotConnected: "لا يوجد صندوق بريد متصل بعد. اربط Gmail أو Outlook أو أي بريد IMAP/SMTP من الإعدادات ← التكاملات: يرسل يولـياس حملاتك منه ويجلب الردود إلى هنا.",
     by: { user: "أنت", agent: "وكيل ذكاء اصطناعي", automation: "أتمتة", system: "يولـياس" },
   },
   stages: { new: "جديد", interested: "مهتم", meeting_booked: "تم حجز اجتماع", meeting_completed: "تم الاجتماع", closed: "تم الإغلاق", lost: "خسارة" },
@@ -34,6 +34,17 @@ export const wsAr: Dictionary["ws"] = {
     start: "ابدأ استخدام يولـياس", videoError: "تعذّر تحميل الفيديو. يمكنك مشاهدته لاحقًا من القائمة.", openExternal: "افتح الفيديو",
   },
   outreach: {
+    workspace: {
+      tabs: { emails: "الرسائل", sent: "المُرسلة", sequence: "التسلسل" },
+      emailStatus: { verified: "بريد موثّق", found: "تم إيجاد البريد", none: "لم يُعثر على بريد", finding: "جارٍ البحث عن البريد…" },
+      writing: "يولـياس يكتب رسائل مخصصة · {done} من {total}", written: "كُتبت كل الرسائل. راجعها، ثم ابدأ الحملة.",
+      noMailboxTitle: "اربط صندوق بريدك للبدء", noMailbox: "يكتب يولـياس هذه الحملة ويرسلها من بريدك أنت. اربط Gmail أو Outlook أو أي بريد IMAP/SMTP أولًا.", connect: "ربط البريد",
+      to: "إلى", subject: "الموضوع", clickEdit: "اضغط للتعديل", send: "أرسل هذه الرسالة", sending: "جارٍ الإرسال…", sent: "أُرسلت الرسالة.",
+      noDraft: "يولـياس يكتب هذه الرسالة.", noEmailLead: "لم يُعثر على بريد لهذا الشخص، فلم تُكتب له رسالة.", selectLead: "اختر شخصًا لعرض رسالته.",
+      people: "{count} شخص", social: "الملف",
+      sentCols: { lead: "العميل", to: "البريد", subject: "الرسالة", sentAt: "أُرسلت في", sentBy: "أُرسلت من", status: "الحالة" },
+      sentStatus: { sent: "أُرسلت", bounced: "ارتدّت", replied: "ردّ", failed: "فشلت" }, noSent: "لم يُرسل شيء بعد.",
+    },
     title: "التواصل", subtitle: "حملات للتواصل مع العملاء المحتملين الذين وجدتهم: الرسالة الأولى والمتابعات وحالة كل عميل.",
     newCampaign: "حملة جديدة", empty: "لا توجد حملات تواصل بعد. أنشئ حملة ثم أضف العملاء من العملاء المحتملين أو من إدارة العملاء.",
     colName: "الحملة", colStatus: "الحالة", colLeads: "العملاء", colDrafts: "المسودات", colSent: "المُرسلة", colReplies: "الردود", colMeetings: "الاجتماعات", colUpdated: "آخر تحديث",
@@ -74,10 +85,17 @@ export const wsAr: Dictionary["ws"] = {
       recently_contacted: "{count} تم التواصل معهم مؤخرًا (قاعدة إعادة التواصل)", no_contact: "{count} بلا بيانات تواصل",
     },
     errors: { name: "أدخل اسم الحملة.", steps: "أضف الرسالة الأولى على الأقل.", notFound: "الحملة غير موجودة.", archived: "هذه الحملة مؤرشفة.", noProspects: "حملة البحث هذه ليس بها عملاء محتملون بعد." },
-    started: "بدأت الحملة. المسودات جاهزة للإرسال.",
+    started: "تم إنشاء الحملة. يولـياس يكتب الرسائل الآن.",
     source: "ابدأ من حملة بحث", sourceNone: "لا — سأضيف العملاء لاحقًا", sourceHint: "ينضم العملاء المحتملون لهذه الحملة، وتبدأ فورًا، ويجهّز يولـياس الرسائل الأولى لترسلها.",
     send: { button: "إرسال", title: "إرسال إلى {count} محددين", lead: "ينشئ يولـياس حملة بهؤلاء العملاء المحتملين، ويبدأها، ويجهّز الرسائل الأولى. تراجعها وترسلها من التواصل أو صندوق الوارد.", name: "اسم الحملة", channel: "القناة", start: "أنشئ وجهّز الرسائل", orExisting: "أو أضفهم إلى حملة موجودة", defaultName: "حملة {date}" },
     pickCampaign: "إضافة إلى حملة تواصل", pickCampaignTitle: "اختر حملة", noCampaigns: "لا توجد حملات نشطة أو مسودات. أنشئ حملة في صفحة التواصل أولًا.",
+  },
+  send: {
+    errors: {
+      not_found: "الرسالة غير موجودة.", not_draft: "هذا البريد أُرسل بالفعل.", no_mailbox: "اربط صندوق بريدك أولًا من الإعدادات ← التكاملات.",
+      do_not_contact: "هذا الشخص طلب عدم التواصل معه.", no_email: "لا يوجد عنوان بريد لهذا الشخص.", daily_limit: "وصل صندوق بريدك إلى حد الإرسال اليومي، ويكمل غدًا.",
+      mailbox_error: "رفض صندوق بريدك الإرسال. أعد ربطه من الإعدادات ← التكاملات.", failed: "لم يُرسل البريد.",
+    },
   },
   messages: {
     status: { draft: "مسودة", approved: "معتمدة", sending: "جارٍ الإرسال", sent: "مُرسلة", failed: "فشلت", canceled: "ملغاة", received: "رد" },
@@ -98,9 +116,13 @@ export const wsAr: Dictionary["ws"] = {
   inbox: {
       agentLog: "ما قام به يولـياس", viaMailbox: "أُرسلت من صندوق بريدك", bounced: "ارتدّت", autoReply: "رد تلقائي",
       activity: { message_drafted: "جهّز رسالة", message_sent: "أرسل رسالة", reply_logged: "وصل رد", reply_analyzed: "قرأ الرد", stage_changed: "غيّر المرحلة", agent: "يولـياس", automation: "أتمتة", enrolled: "أُضيف إلى حملة", enrollment_stopped: "توقفت المتابعات", do_not_contact: "عُلّم بعدم التواصل", task_created: "أضاف تذكيرًا", created: "أُنشئ العميل" },
-    title: "صندوق الوارد", subtitle: "محادثاتك مع العملاء: الرسائل والردود والتذكيرات والرسائل المجدولة.",
-    filters: { all: "الكل", unread: "غير المقروءة فقط", reminders: "التذكيرات فقط", scheduled: "الرسائل المجدولة", sent: "المُرسلة", done: "المنتهية", others: "أخرى" },
-    empty: "لا توجد محادثات هنا بعد.", emptyAll: "لا توجد محادثات بعد. تظهر هنا الرسائل التي تجهزها للعملاء.", select: "اختر محادثة.",
+    title: "صندوق الوارد", subtitle: "ردود حملاتك في مكان واحد. يولـياس يقرأها ويصنّفها ويقترح الرد.",
+    filters: { all: "الكل", unread: "غير المقروءة", interested: "مهتم", not_interested: "غير مهتم", follow_up: "يحتاج متابعة", sent: "المُرسلة", done: "المنتهية", others: "أخرى" },
+    labels: { interested: "مهتم", not_interested: "غير مهتم", follow_up: "يحتاج متابعة" }, label: "التصنيف",
+    convert: "تحويل إلى فرصة بيع", converted: "انتقل إلى مسار المبيعات.",
+    composer: { placeholder: "اكتب ردك…", send: "إرسال", sending: "جارٍ الإرسال…", suggest: "اقترح ردًا بالذكاء الاصطناعي", suggesting: "جارٍ الكتابة…", sent: "أُرسل الرد.", noMailbox: "اربط صندوق بريدك من الإعدادات ← التكاملات للرد من هنا.", draftReady: "كتب يولـياس ردًا. راجعه ثم أرسله." },
+
+    empty: "لا توجد محادثات هنا بعد.", emptyAll: "لا توجد ردود بعد. ردود حملاتك تصل هنا تلقائيًا.", select: "اختر محادثة.",
     thread: { campaign: "الحملة", openCrm: "فتح في إدارة العملاء", openCampaign: "فتح الحملة", noMessages: "لا توجد رسائل في هذه المحادثة بعد.", markDone: "تعليم كمنتهية", reopen: "إعادة فتح", markOther: "نقل إلى أخرى", markRead: "تعليم كمقروءة" },
     reply: {
       logTitle: "سجّل ردًا وصلك", logHint: "الصق الرد من بريدك أو WhatsApp أو LinkedIn. يوقف يولـياس المتابعات ويقرأ الرد ويقترح الخطوة التالية.",
@@ -175,7 +197,8 @@ export const wsAr: Dictionary["ws"] = {
       errors: { name: "أدخل الاسم.", duplicate: "هذا الاسم موجود بالفعل." },
     },
     profiles: {
-      title: "ملفات العملاء", subtitle: "من تريد أن يجده يولـياس وكيف يخاطبه. اختر ملفًا عند البحث أو عند إنشاء حملة.",
+      title: "ملفات العملاء", subtitle: "عميلك المثالي: من يبحث عنه يولـياس وكيف يخاطبه. حلّل موقعك ويكتبه يولـياس مما تبيعه شركتك.",
+      defaultName: "العميل المثالي", analyzed: "كتب يولـياس عميلك المثالي من موقعك. راجعه ثم احفظه.",
       new: "ملف جديد", empty: "لا توجد ملفات عملاء بعد.", default: "افتراضي", makeDefault: "اجعله افتراضيًا", namePh: "مثال: الشركات اللوجستية الصغيرة في السعودية",
       fields: {
         name: "اسم الملف", problems: "المشكلات التي تحلها", benefits: "الفوائد الرئيسية", usp: "ما يميزك", goals: "أهداف العميل", success_stories: "قصص النجاح",

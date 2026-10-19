@@ -62,6 +62,11 @@ export type EnsureResult = { ok: true; cfg: PolarConfig; created: number; repric
  * returns the config with their ids. Calls Polar only when something is
  * missing or a price changed since the last sync.
  */
+// A failed sync isn't retried on every page view (that made every page wait
+// for Polar, D-242): at most once every 10 minutes per server instance.
+const RETRY_MS = 10 * 60_000;
+let failedAt = 0;
+
 export async function ensurePolarProducts(cfg: PolarConfig): Promise<EnsureResult> {
   const want = await wanted();
   const stored = await readStored().catch((): Stored => ({}));
@@ -69,6 +74,7 @@ export async function ensurePolarProducts(cfg: PolarConfig): Promise<EnsureResul
   if (want.every((w) => mine[w.key]?.id && mine[w.key]!.cents === w.cents)) {
     return { ok: true, cfg: { ...cfg, products: { ...cfg.products, ...Object.fromEntries(want.map((w) => [w.key, mine[w.key]!.id])) } }, created: 0, repriced: 0 };
   }
+  if (Date.now() - failedAt < RETRY_MS) return { ok: false, cfg };
 
   const polar = polarClient(cfg);
   let created = 0;
@@ -108,6 +114,7 @@ export async function ensurePolarProducts(cfg: PolarConfig): Promise<EnsureResul
     // Never the token or the response body.
     Sentry.captureException(e, { tags: { area: "checkout", provider: "polar", step: "products", env: cfg.environment } });
     console.error("[polar] product sync failed", e instanceof Error ? e.name : "error");
+    failedAt = Date.now();
     return { ok: false, cfg };
   }
 }

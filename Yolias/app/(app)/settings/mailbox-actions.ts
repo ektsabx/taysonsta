@@ -50,3 +50,52 @@ export async function setMailboxLimit(id: string, limit: number): Promise<{ ok: 
   const { error } = await createAdminClient().from("mailboxes").update({ daily_limit: limit }).eq("id", id).eq("user_id", s.userId).eq("workspace_id", s.workspace.id);
   return { ok: !error };
 }
+
+export interface ImapInput {
+  email: string;
+  name: string;
+  user: string;
+  pass: string;
+  imapHost: string;
+  imapPort: number;
+  smtpHost: string;
+  smtpPort: number;
+}
+
+/**
+ * Connects any IMAP/SMTP mailbox (D-238). The account is checked (IMAP and
+ * SMTP login) before it's saved; the settings and password go to Vault.
+ * Ports pick the security: 993 / 465 = TLS, 143 / 587 / 2525 = STARTTLS.
+ */
+export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true } | { ok: false; error: "invalid" | "auth" | "server" | "connect" }> {
+  const s = await requireUser();
+  const parsed = z.object({
+    email: z.string().trim().toLowerCase().email().max(200),
+    name: z.string().trim().max(120),
+    user: z.string().trim().min(1).max(200),
+    pass: z.string().min(1).max(500),
+    imapHost: z.string().trim().toLowerCase().min(3).max(200),
+    imapPort: z.number().int(),
+    smtpHost: z.string().trim().toLowerCase().min(3).max(200),
+    smtpPort: z.number().int(),
+  }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+  const { verifyAccount } = await import("@/lib/mailbox/imap");
+  const { MailboxError } = await import("@/lib/mailbox/types");
+  const local = (h: string) => /^(127\.0\.0\.1|localhost)$/.test(h);
+  const account = {
+    email: v.email, name: v.name || null, user: v.user, pass: v.pass,
+    imap: { host: v.imapHost, port: v.imapPort, security: v.imapPort === 993 ? "tls" as const : local(v.imapHost) ? "none" as const : "starttls" as const },
+    smtp: { host: v.smtpHost, port: v.smtpPort, security: v.smtpPort === 465 ? "tls" as const : local(v.smtpHost) ? "none" as const : "starttls" as const },
+  };
+  try {
+    await verifyAccount(account);
+  } catch (e) {
+    const kind = e instanceof MailboxError ? e.kind : "unavailable";
+    return { ok: false, error: kind === "auth" ? "auth" : kind === "rejected" ? "server" : "connect" };
+  }
+  await saveMailbox({ workspaceId: s.workspace.id, userId: s.userId, provider: "imap", email: v.email, displayName: v.name || null, canRead: true, refreshToken: JSON.stringify(account) });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

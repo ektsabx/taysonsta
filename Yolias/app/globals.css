@@ -1702,6 +1702,15 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .connector-name { font-size: .86rem; font-weight: 600; }
 .connector-desc { margin-top: 2px; font-size: .76rem; line-height: 1.45; color: var(--muted); }
 .connector-note { margin-top: 12px; }
+/* IMAP/SMTP mailbox (D-238): the row, then its settings form under it. */
+.connector.connector-stack { flex-direction: column; align-items: stretch; gap: 12px; }
+.connector-row { display: flex; align-items: center; gap: 14px; }
+.imap-form { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line-setting); }
+.imap-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.imap-grid label { display: flex; flex-direction: column; gap: 4px; font-size: .76rem; color: var(--muted); min-width: 0; }
+.imap-grid .form-input, .imap-grid .form-select { width: 100%; }
+.imap-actions { display: flex; justify-content: flex-end; gap: 8px; }
+@media (max-width: 560px) { .imap-grid { grid-template-columns: 1fr; } .connector-row { flex-wrap: wrap; } }
 .billing-row > button, .billing-row > a, .billing-plan > a, .usage-head > a { white-space: nowrap; flex-shrink: 0; }
 .usage-updated { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 18px; font-size: .74rem; color: var(--muted); }
 .usage-refresh { display: grid; place-items: center; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
@@ -2255,3 +2264,92 @@ html[data-theme="dark"] .type-pill.type-local_business { background: #3b2416; co
 .connector-account { font-weight: 400; color: var(--muted); }
 .status-pill.failed { background: var(--danger-soft); color: var(--danger-text); }
 .an-outreach { margin: 4px 0 18px; } .an-outreach-title { font-size: .95rem; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+/* Kashier card payment inside the checkout (D-235) */
+.checkout-kashier { display: grid; gap: 12px; align-content: start; }
+.kashier-frame { display: grid; gap: 8px; }
+.kashier-frame-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .84rem; font-weight: 600; color: var(--ink); }
+.kashier-frame-head svg { width: 14px; height: 14px; vertical-align: -2px; }
+.kashier-frame-loading { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
+.kashier-frame-loading svg { width: 16px; height: 16px; }
+.kashier-frame-iframe { width: 100%; height: 640px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.checkout-pay { max-width: 560px; margin: 0 auto; padding: 8px 16px 40px; display: grid; gap: 14px; }
+@media (max-width: 560px) { .kashier-frame-iframe { height: 700px; } }
+
+/* ── Outreach campaign page (D-239): people on the left, their email on the right ── */
+.spin { animation: spin 1s linear infinite; }
+.ow-gate { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.ow-gate > svg { width: 28px; height: 28px; color: var(--red); flex-shrink: 0; }
+.ow-gate > div { flex: 1; min-width: 0; }
+.ow-gate h3 { font-size: .95rem; margin: 0 0 2px; }
+.ow-progress { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); font-size: .82rem; }
+.ow-progress svg { width: 16px; height: 16px; flex-shrink: 0; }
+.ow-progress.error { border-color: var(--red-line); background: var(--red-soft); color: var(--red); }
+.ow-progress-bar { flex: 1; min-width: 60px; height: 6px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.ow-progress-bar > span { display: block; height: 100%; background: var(--ink); transition: width .4s ease; }
+.ow-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.ow-stats > div { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: .78rem; color: var(--muted); }
+.ow-stats strong { font-size: .95rem; color: var(--ink); }
+.ow-tabs { margin-bottom: 14px; }
+.ow-split { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ow-leads { display: flex; flex-direction: column; gap: 8px; max-height: 72vh; overflow-y: auto; padding-inline-end: 2px; }
+.ow-lead { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-align: start; cursor: pointer; color: inherit; font: inherit; }
+.ow-lead:hover { border-color: var(--line-strong); }
+.ow-lead.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.ow-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--hover); color: var(--text-2); font-size: .74rem; font-weight: 600; }
+.ow-avatar.lg { width: 44px; height: 44px; font-size: .9rem; }
+.ow-lead-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.ow-lead-main strong { font-size: .86rem; }
+.ow-lead-sub { font-size: .76rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-lead-email { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-find { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--muted); }
+.ow-find svg { width: 13px; height: 13px; }
+.ow-find.verified, .ow-find.found { color: var(--green); }
+.ow-find.none { color: var(--red); }
+.ow-ready { width: 18px; height: 18px; color: var(--green); flex-shrink: 0; }
+.ow-composer { min-width: 0; }
+.ow-compose { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); overflow: hidden; }
+.ow-compose-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line-faint); }
+.ow-compose-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1rem; }
+.ow-compose-head p { margin: 2px 0 0; font-size: .8rem; }
+.ow-social { display: inline-flex; width: 18px; height: 18px; }
+.ow-social svg { width: 18px; height: 18px; }
+.ow-mail-row { display: flex; align-items: center; gap: 14px; padding: 11px 18px; border-bottom: 1px solid var(--line-faint); font-size: .86rem; }
+.ow-mail-row > span:first-child { width: 64px; flex-shrink: 0; color: var(--muted); font-size: .8rem; }
+.ow-subject { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-weight: 600; color: var(--ink); padding: 0; }
+.ow-subject:focus { outline: none; }
+.ow-body, .ow-body-view { display: block; width: 100%; min-height: 260px; padding: 16px 18px; border: 0; font: inherit; font-size: .88rem; line-height: 1.65; color: var(--ink); background: transparent; white-space: pre-wrap; resize: vertical; }
+.ow-body:focus { outline: none; background: var(--soft); }
+.ow-body-view { position: relative; }
+.ow-body-view.editable { cursor: text; }
+.ow-edit-hint { position: absolute; inset-inline-end: 14px; bottom: 10px; font-size: .74rem; color: var(--placeholder); }
+.ow-mail-foot { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line-faint); }
+.ow-sent-email details { max-width: 420px; }
+.ow-sent-email summary { cursor: pointer; font-weight: 500; }
+.ow-sent-email p { margin: 8px 0 0; white-space: pre-wrap; font-size: .8rem; color: var(--text-2); }
+@media (max-width: 900px) {
+  .ow-split { grid-template-columns: 1fr; }
+  .ow-leads { max-height: 320px; }
+  .ow-gate { flex-wrap: wrap; }
+}
+
+/* ── Inbox labels (D-239) ── */
+.inbox-labels { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; padding: 2px; gap: 2px; flex-wrap: wrap; }
+.inbox-label { border: 0; background: transparent; border-radius: 99px; padding: 4px 10px; font: inherit; font-size: .74rem; color: var(--text-2); cursor: pointer; }
+.inbox-label:hover { background: var(--hover); }
+.inbox-label.active.interested { background: var(--green-soft); color: var(--green); }
+.inbox-label.active.not_interested { background: var(--red-soft); color: var(--red); }
+.inbox-label.active.follow_up { background: var(--blue-soft); color: var(--blue); }
+.ws-chip.label-interested { background: var(--green-soft); color: var(--green); border-color: var(--green-line); }
+.ws-chip.label-not_interested { background: var(--red-soft); color: var(--red); border-color: var(--red-line); }
+.ws-chip.label-follow_up { background: var(--blue-soft); color: var(--blue); }
+.inbox-composer { display: flex; flex-direction: column; gap: 10px; }
+
+/* Prospects qualification (D-240) */
+.qual-pill { display: inline-flex; padding: 2px 8px; border-radius: 99px; font-size: .74rem; white-space: nowrap; border: 1px solid var(--line); }
+.qual-pill.qualified { background: var(--green-soft); color: var(--green); border-color: var(--green-line); }
+.qual-pill.review { background: var(--blue-soft); color: var(--blue); border-color: transparent; }
+.qual-pill.not_qualified { background: var(--red-soft); color: var(--red); border-color: var(--red-line); }
+.profiles-single { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
+/* Prospects table: one line per row, the wide table scrolls (D-240). */
+.prospects-data-table th, .prospects-data-table td { white-space: nowrap; }
+.prospects-data-table td:nth-child(7) { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }

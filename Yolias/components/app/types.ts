@@ -46,7 +46,7 @@ export interface ShellData {
   /** Buy More Prospects: active packs priced in the workspace currency. */
   packs: { id: string; prospects: number; emails: number; price: number }[];
   /** A payment provider is connected for the workspace currency / billing test mode is on. */
-  billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar"; portalUrl: string | null };
+  billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar" | "kashier"; portalUrl: string | null };
   /** Unread in-app notifications. */
   unread: number;
   team: {
@@ -66,5 +66,3 @@ export interface ShellData {
 export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";
-/** AI Workspace section open / closed in the sidebar. */
-export const AI_SECTION_COOKIE = "yolias_ai_section";

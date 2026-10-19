@@ -154,3 +154,54 @@ export async function saveManualDraft(leadId: string, body: string): Promise<Msg
   refresh(leadId);
   return { ok: true, messageId: msg.id };
 }
+
+/** Sends a prepared email now from the member's own mailbox (D-239): the click is the approval. */
+export async function sendNow(messageId: string): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(messageId).success) return { ok: false, error: t.ws.messages.errors.not_found };
+  const { sendMessageNow } = await import("@/lib/outreach/execute");
+  const r = await sendMessageNow(session.workspace.id, session.userId, messageId);
+  const { data } = await createAdminClient().from("outreach_messages").select("lead_id").eq("id", messageId).maybeSingle();
+  refresh(data?.lead_id);
+  if (!r.ok) return { ok: false, error: t.ws.send.errors[r.error] + (r.detail ? ` ${r.detail}` : "") };
+  return { ok: true };
+}
+
+/** Writes and sends a reply in the conversation, from the member's mailbox. */
+export async function sendReply(leadId: string, body: string): Promise<MsgResult> {
+  const saved = await saveManualDraft(leadId, body);
+  if (!saved.ok) return saved;
+  const sent = await sendNow(saved.messageId);
+  // Not sent (no mailbox, limit…): the reply stays as a draft in the conversation.
+  return sent;
+}
+
+/** Interested / Not interested / Needs follow-up (D-239). */
+export async function setThreadLabel(leadId: string, label: "interested" | "not_interested" | "follow_up" | null): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(leadId).success || (label !== null && !["interested", "not_interested", "follow_up"].includes(label))) return { ok: false, error: t.ws.common.error };
+  const { data, error } = await (await createClient()).from("inbox_threads").update({ label }).eq("lead_id", leadId).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
+  if (error || !data) return { ok: false, error: t.ws.common.error };
+  refresh(leadId);
+  return { ok: true };
+}
+
+/** The conversation becomes a sales opportunity: the lead moves to Interested in the pipeline (CRM). */
+export async function convertToOpportunity(leadId: string): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
+  const db = await createClient();
+  const { data: lead } = await db.from("sales_leads").select("id, stage").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!lead) return { ok: false, error: t.ws.crm.errors.notFound };
+  if (lead.stage === "new" || lead.stage === "lost") {
+    const { error } = await db.from("sales_leads").update({ stage: "interested" }).eq("id", lead.id);
+    if (error) return { ok: false, error: t.ws.common.error };
+    // The stage change is logged by the database (trigger on sales_leads).
+  }
+  await db.from("inbox_threads").update({ label: "interested" }).eq("lead_id", lead.id);
+  refresh(leadId);
+  return { ok: true };
+}

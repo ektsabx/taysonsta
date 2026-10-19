@@ -42,7 +42,7 @@ export const guidePosts: BlogPost[] = [
             "Honour opt-outs immediately and keep a do-not-contact list.",
             "Only contact people with a lawful reason to do so, and follow the rules that apply to you and to them (for example personal data laws in Saudi Arabia, the UAE and the EU).",
           ] },
-          { note: "Yolias follows this model: it finds and researches prospects and prepares your messages; you review and send them from your own accounts, and Yolias tracks replies and follow-ups." },
+          { note: "Yolias follows this model: it finds and researches prospects, writes your emails and, once you approve, sends them from your own mailbox; replies come to your Inbox and Yolias handles the follow-ups." },
           { h2: "A 30-day rollout plan" },
           { h3: "Week 1 — Define the customer" },
           { p: "Write one paragraph that describes your best customers: industry, country and city, company size, the signals that show they need you now, and the job titles of the people who buy. Add what you sell, your offer and two or three competitors. In Yolias this is your [Company Knowledge](/docs/quickstart) and Customer Profiles; the AI uses only what you write there." },

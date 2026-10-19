@@ -10,7 +10,8 @@ import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice, pr
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
-import { lockedProvider, paymentMethods } from "@/lib/payments";
+import { lockedProvider, paymentMethods, paysInEgp } from "@/lib/payments";
+import { requestCountry } from "@/lib/geo-server";
 import { trialLimits, trialOpen } from "@/lib/trial";
 import { switches } from "@/lib/switches";
 import { openCheckout } from "@/lib/funnel";
@@ -37,12 +38,14 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const locked = lockedProvider(ws);
   // Annual is the default choice (owner brief 2026-10-12); monthly stays available.
   const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (current ? ws.billing_period : "annual");
-  // The free trial comes with the card (Polar) method only; Egypt pays up front.
-  const trialOffer = locked !== "paymob" && (await trialOpen(ws)) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
-  const errors = t.checkout.errors;
-  // Methods switched off in Admin are hidden (a running subscription keeps its own, D-213).
+  // Methods switched off in Admin are hidden (a running subscription keeps its
+  // own, D-213). Kashier shows once its account is connected (D-236).
   const on = await switches();
-  const shown = (["polar", "paymob"] as BillingProvider[]).filter((m) => locked === m || (!locked && on[m === "polar" ? "payments_polar" : "payments_paymob"]));
+  const switchOf = { polar: "payments_polar", paymob: "payments_paymob", kashier: "payments_kashier" } as const;
+  const shown = (["paymob", "kashier", "polar"] as BillingProvider[]).filter((m) => locked === m || (!locked && on[switchOf[m]] && (m !== "kashier" || methods.kashier)));
+  // The free trial comes with the Polar method only; the card gateways pay up front.
+  const trialOffer = (!locked || locked === "polar") && shown.includes("polar") && (await trialOpen(ws)) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
+  const errors = t.checkout.errors;
   // Journey tracking (D-212): one checkout session per visit (reloads continue it).
   const checkoutId = canManageTeam(session) && !(current && current === initial)
     ? await openCheckout(ws, session.userId, { plan: initial, period: initialPeriod, amountUsd: (() => { const m = planPrice(plans[initial], currency); return m == null ? null : priceFor(m, initialPeriod); })(), trialOffered: Boolean(trialOffer) })
@@ -69,13 +72,14 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         email={session.email}
         workspaceName={ws.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
-        options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, prospects: plans[p].prospects, emails: plans[p].emails, contacts: plans[p].contacts }))}
+        options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, priceEgp: plans[p].priceEgp, prospects: plans[p].prospects, emails: plans[p].emails, contacts: plans[p].contacts }))}
         currency={currency}
         locked={locked}
         trial={trialOffer}
         initialError={initialError}
         shown={shown}
         checkoutId={checkoutId}
+        egp={paysInEgp(ws, await requestCountry())}
       />
     </div>
   );

@@ -14,6 +14,10 @@ export interface CompanyCandidate {
   employeeCount: number | null;
   fundingStage: string | null;
   fundingTotalUsd: number | null;
+  /** Annual revenue, website visits a month and where the visitors are (D-240), when a source has them. */
+  annualRevenueUsd?: number | null;
+  monthlyVisits?: number | null;
+  trafficGeo?: string | null;
   hiringRoles: number | null;
   signals: string[];                  // e.g. "Hiring 12+ roles in GCC"
   sourceRef: string | null;           // provider's own id

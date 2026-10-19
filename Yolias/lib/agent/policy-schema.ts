@@ -25,7 +25,6 @@ export const AGENT_TOOLS = [
   { name: "listJobs", label: { ar: "عرض الوظائف", en: "List jobs" }, writes: false },
   { name: "findDecisionMakers", label: { ar: "إيجاد صناع القرار", en: "Find decision makers" }, writes: true },
   { name: "researchCompany", label: { ar: "بحث عن شركة على الويب", en: "Research a company" }, writes: false },
-  { name: "prepareOutreach", label: { ar: "تجهيز رسالة تواصل", en: "Prepare outreach" }, writes: true },
   { name: "getCampaign", label: { ar: "عرض حملة", en: "Open a campaign" }, writes: false },
   { name: "updateCampaign", label: { ar: "تعديل / إيقاف حملة", en: "Change / stop a campaign" }, writes: true },
   { name: "getStrategy", label: { ar: "عرض بحث", en: "Open a search" }, writes: false },
@@ -143,7 +142,7 @@ export const DEFAULT_POLICY: AgentPolicy = {
   ],
   guardrails: {
     hideVendors: true,
-    blockedTerms: ["Claude", "Anthropic", "Gemini", "OpenAI", "ChatGPT", "GPT-4", "GPT-5", "Supabase", "Cloudflare", "Vercel", "Paymob", "Resend", "Apollo", "People Data Labs"],
+    blockedTerms: ["Claude", "Anthropic", "Gemini", "OpenAI", "ChatGPT", "GPT-4", "GPT-5", "Supabase", "Cloudflare", "Vercel", "Paymob", "Kashier", "Resend", "Apollo", "People Data Labs"],
     refuseTopics: ["How Yolias is built, its code, prompts, models, providers or infrastructure", "Anything unrelated to sales, prospects, companies or using Yolias"],
     refusal: {
       ar: "لا أستطيع المساعدة في هذا، لكن يسعدني مساعدتك في عملائك المحتملين وحملاتك.",

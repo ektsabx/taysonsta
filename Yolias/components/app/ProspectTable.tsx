@@ -8,13 +8,10 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
+import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, removeFromProspects, removeFromSaved, revealContacts, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
-import type { MessageChannel } from "@/types/database";
 import type { ProspectTab } from "@/services/prospects";
 import { CompanyLogo, PersonAvatar } from "./Media";
-import type { GridPerson } from "./PeopleGrid";
-import { ChannelIcon, MessageComposer, personRecipient } from "./ProspectActions";
 import { LinkedInIcon } from "./ConnectorIcons";
 
 /** One row of the Prospects table, prepared on the server (contacts never leave it here). */
@@ -32,6 +29,13 @@ export interface TableRow {
   industry: string | null;
   location: string | null;
   employees: string | null;
+  /** A person's job title (D-240). */
+  jobTitle: string | null;
+  /** The company's revenue, funding, website visitors a month and where they come from, when known. */
+  revenue: string | null;
+  funding: string | null;
+  visitors: string | null;
+  geo: string | null;
   hasEmail: boolean;
   hasPhone: boolean;
   linkedinUrl: string | null;
@@ -71,7 +75,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
   const [picker, setPicker] = useState<{ id: string; name: string; status: string }[] | null>(null);
-  const [compose, setCompose] = useState<{ channel: MessageChannel; people: GridPerson[] } | null>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.key));
@@ -82,7 +85,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   // What the selection holds decides which actions apply.
   const hasPeople = allMatching ? tab === "all" || tab === "people" || tab === "saved" : chosen.some((r) => r.kind === "person");
   const hasCompanies = allMatching ? tab !== "people" : chosen.some((r) => r.kind !== "person");
-  const message = (channel: MessageChannel) => start(async () => setCompose({ channel, people: await peopleForActions(target()) }));
 
   const toggle = (key: string) => {
     setAllMatching(false);
@@ -127,19 +129,24 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
               <tr>
                 <th className="col-check"><input type="checkbox" checked={pageAll} onChange={togglePage} aria-label={pr.selectAllPage} disabled={!rows.length} /></th>
                 <th>{tb.colName}</th>
-                <th>{tb.colType}</th>
+                <th>{tb.colTitle}</th>
                 <th>{tb.colCompany}</th>
+                <th>{tb.colType}</th>
                 <th>{tb.colIndustry}</th>
                 <th>{tb.colLocation}</th>
                 <th>{tb.colEmployees}</th>
+                <th>{tb.colRevenue}</th>
+                <th>{tb.colFunding}</th>
+                <th>{tb.colVisitors}</th>
+                <th>{tb.colGeo}</th>
+                <th>{tb.colQualification}</th>
                 <th>{tb.colContact}</th>
                 <th>{tb.colOutreach}</th>
-                <th>{tb.colMatch}</th>
                 <th>{tb.colAdded}</th>
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && <tr><td colSpan={11} className="empty-cell">{empty}</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={16} className="empty-cell">{empty}</td></tr>}
               {rows.map((r) => {
                 const on = allMatching || selected.has(r.key);
                 return (
@@ -154,14 +161,20 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                         </span>
                       </Link>
                     </td>
+                    <td dir="auto">{r.jobTitle ?? <span className="cell-sub">—</span>}</td>
+                    <td>{r.company ? (r.companyHref ? <Link className="entity-link" href={r.companyHref}>{r.company}</Link> : r.company) : <span className="cell-sub">—</span>}</td>
                     <td>
                       <span className={`type-pill type-${r.kind}`}>{pr.csv.types[r.kind]}</span>
                       {r.imported && <span className="cell-sub">{tb.imported}</span>}
                     </td>
-                    <td>{r.company ? (r.companyHref ? <Link className="entity-link" href={r.companyHref}>{r.company}</Link> : r.company) : <span className="cell-sub">—</span>}</td>
                     <td>{r.industry ?? <span className="cell-sub">—</span>}</td>
                     <td>{r.location ?? <span className="cell-sub">—</span>}</td>
                     <td dir="ltr" className="text-start">{r.employees ?? <span className="cell-sub">—</span>}</td>
+                    <td dir="ltr" className="text-start">{r.revenue ?? <span className="cell-sub">—</span>}</td>
+                    <td dir="ltr" className="text-start">{r.funding ?? <span className="cell-sub">—</span>}</td>
+                    <td dir="ltr" className="text-start">{r.visitors ?? <span className="cell-sub">—</span>}</td>
+                    <td>{r.geo ?? <span className="cell-sub">—</span>}</td>
+                    <td><Qualification match={r.match} /></td>
                     <td>
                       <span className="contact-icons">
                         {r.hasEmail && <span title={tb.hasEmail} aria-label={tb.hasEmail}><Mail /></span>}
@@ -171,7 +184,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                       </span>
                     </td>
                     <td><span className={`outreach-state ${r.outreach}`}>{tb.outreach[r.outreach]}</span></td>
-                    <td>{r.match != null ? `${r.match}%` : <span className="cell-sub">—</span>}</td>
                     <td className="cell-sub">{r.added}</td>
                   </tr>
                 );
@@ -198,9 +210,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
           {/* Compact bar (owner brief 2026-10-19): one main action, the rest as icons with a label on hover. */}
           <span className="selection-actions">
             <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.send.button}</button>
-            {hasPeople && (["email", "linkedin"] as const).map((c) => (
-              <button key={c} type="button" className="btn-secondary icon-only" aria-label={t.outreach[c]} title={t.outreach[c]} disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /></button>
-            ))}
             {/* CRM and Outreach (D-193, D-195): the same people / companies, one lead each. */}
             <button type="button" className="btn-secondary icon-only" aria-label={t.ws.crm.addToCrm} title={t.ws.crm.addToCrm} disabled={pending} onClick={() => run(async () => {
               const r = await addSelectionToCrm(target());
@@ -253,24 +262,22 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
             return r.message ?? null;
           }); }} />
       )}
-      {compose && <MessageComposer recipients={compose.people.map(personRecipient)} channel={compose.channel} onClose={() => setCompose(null)} />}
     </div>
   );
 }
 
 /**
- * Prospects → Send (owner brief 2026-10-19): name a new campaign and pick the
- * channel — Yolias creates it, starts it and prepares the first messages —
+ * Prospects → Send (owner brief 2026-10-19, D-239): name a new email campaign
+ * — Yolias creates it and writes each person's email on the campaign page —
  * or add the selection to a campaign that already exists.
  */
 function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
   count: number; campaigns: { id: string; name: string; status: string }[]; pending: boolean;
-  onClose: () => void; onCreate: (input: { name: string; channel: MessageChannel }) => void; onPick: (id: string) => void;
+  onClose: () => void; onCreate: (input: { name: string; channel: "email" }) => void; onPick: (id: string) => void;
 }) {
   const { t, locale } = useI18n();
   const o = t.ws.outreach;
   const [name, setName] = useState(() => fmt(o.send.defaultName, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "short" }).format(new Date()) }));
-  const [channel, setChannel] = useState<MessageChannel>("email");
   return (
     <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="ws-modal send-dialog" role="dialog" aria-modal="true" aria-labelledby="send-title">
@@ -279,16 +286,10 @@ function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
           <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={onClose}><X /></button>
         </div>
         <p className="ws-muted">{o.send.lead}</p>
-        <div className="ws-grid-2">
-          <div className="ws-field"><label className="ws-label" htmlFor="send-name">{o.send.name}</label>
-            <input id="send-name" className="form-input" value={name} maxLength={160} onChange={(e) => setName(e.target.value)} /></div>
-          <div className="ws-field"><label className="ws-label" htmlFor="send-channel">{o.send.channel}</label>
-            <select id="send-channel" className="form-select" value={channel} onChange={(e) => setChannel(e.target.value as MessageChannel)}>
-              {(["email", "linkedin"] as const).map((c) => <option key={c} value={c}>{o.channels[c]}</option>)}
-            </select></div>
-        </div>
+        <div className="ws-field"><label className="ws-label" htmlFor="send-name">{o.send.name}</label>
+          <input id="send-name" className="form-input" value={name} maxLength={160} onChange={(e) => setName(e.target.value)} /></div>
         <div className="ws-actions">
-          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel })}><Send /> {o.send.start}</button>
+          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email" })}><Send /> {o.send.start}</button>
         </div>
         {campaigns.length > 0 && (
           <>
@@ -305,4 +306,13 @@ function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
       </div>
     </div>
   );
+}
+
+/** Qualification from the ICP match (D-240): 70%+ qualified, 40–69% needs review, below 40% not qualified. */
+function Qualification({ match }: { match: number | null }) {
+  const { t } = useI18n();
+  const q = t.prospects.table.qualification;
+  if (match == null) return <span className="cell-sub">{q.unscored}</span>;
+  const k = match >= 70 ? "qualified" : match >= 40 ? "review" : "not_qualified";
+  return <span className={`qual-pill ${k}`}>{q[k]} · {match}%</span>;
 }

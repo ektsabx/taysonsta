@@ -82,7 +82,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "Pipeline that doesn’t wait for referrals", body: "Describe the clients you serve best and get matching companies every week, so new business doesn’t depend on who calls you." },
         { title: "Pitch the clients you can win", body: "Each company comes with the reason it matched your industries, markets and size, so proposals go to businesses that fit your retainer." },
-        { title: "From list to first message in one place", body: "Save the companies you want, then write each first email or LinkedIn note with Yolias and send it from your own account." },
+        { title: "From list to first message in one place", body: "Save the companies you want, then Yolias writes each first email and sends it from your own mailbox once you approve." },
       ],
       problemTitle: "The problem",
       problem: [
@@ -94,7 +94,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "Your ideal client in one sentence", body: "Write the industries, markets and company sizes you serve, in Arabic or English. Yolias turns it into criteria and a discovery campaign." },
         { title: "Companies with a reason", body: "Each company shows why it matched your criteria, so you can decide quickly who is worth a proposal." },
         { title: "Public contact details", body: "Where a company publishes a business email or phone number on its website, Yolias shows it with the result." },
-        { title: "A first message to adapt", body: "Yolias drafts an email or LinkedIn message from your company profile and the facts it holds. You edit it and send it from your own account." },
+        { title: "A first message to adapt", body: "Yolias writes an email from your company profile and the facts it holds. You review it and Yolias sends it from your own mailbox." },
       ],
       useCasesTitle: "Use cases",
       useCases: [
@@ -107,7 +107,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Private dental and dermatology clinics in Riyadh and Jeddah with their own website and 10 to 100 employees, where I can reach the owner or marketing manager.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Complete your Company Knowledge (AI Workspace): what your agency offers and who it serves.",
+        "Complete your Company Knowledge: what your agency offers and who it serves.",
         "Describe your ideal client in Yolias AI and confirm the campaign setup.",
         "Review the matched companies, save the ones you want and remove the rest.",
         "Prepare a message for each company, then send it yourself or export the list to CSV.",
@@ -124,7 +124,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "عملاء جدد دون انتظار الترشيحات", body: "صِف العملاء الذين تخدمهم بأفضل شكل واحصل على شركات مطابقة كل أسبوع، فلا يعتمد نمو وكالتك على من يتصل بك." },
         { title: "اعرض خدماتك على من يمكنك كسبه", body: "تأتي كل شركة مع سبب مطابقتها لقطاعاتك وأسواقك وحجم عملائك، فتذهب عروضك إلى شركات تناسب رسومك." },
-        { title: "من القائمة إلى أول رسالة في مكان واحد", body: "احفظ الشركات التي تريدها، واكتب أول بريد أو رسالة LinkedIn مع يولـياس وأرسلها من حسابك." },
+        { title: "من القائمة إلى أول رسالة في مكان واحد", body: "احفظ الشركات التي تريدها، ويكتب يولـياس أول بريد لكل منها ويرسله من بريدك بعد موافقتك." },
       ],
       problemTitle: "المشكلة",
       problem: [
@@ -149,7 +149,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "عيادات أسنان وجلدية خاصة في الرياض وجدة لديها موقع إلكتروني ومن 10 إلى 100 موظف، وأريد الوصول إلى المالك أو مدير التسويق.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "أكمل معرفة الشركة (مساحة الذكاء الاصطناعي): ما تقدمه وكالتك ومن تخدم.",
+        "أكمل معرفة الشركة: ما تقدمه وكالتك ومن تخدم.",
         "صِف عميلك المثالي في Yolias AI وأكّد إعداد الحملة.",
         "راجع الشركات المطابقة، واحفظ ما تريد واستبعد الباقي.",
         "جهّز رسالة لكل شركة ثم أرسلها بنفسك، أو صدّر القائمة إلى ملف CSV.",
@@ -180,7 +180,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "Criteria from your own words", body: "Describe the industries, company sizes and markets you serve and the services you offer. Yolias builds the search from it." },
         { title: "Explained matches", body: "Every company shows which criteria it meets, so you can prioritise the best fits before writing a proposal." },
         { title: "Website research", body: "Yolias reads each company’s own website to understand what it does and to find public business contact details." },
-        { title: "Messages you control", body: "Draft a first email or LinkedIn message based on your offer, review it and send it from your own account." },
+        { title: "Messages you control", body: "Yolias writes a first email based on your offer; you review it and it goes out from your own mailbox." },
       ],
       useCasesTitle: "Use cases",
       useCases: [
@@ -193,7 +193,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Retail and e-commerce companies in the UAE and Saudi Arabia with 50 to 500 employees that sell online but don’t have their own mobile app, and I want to reach the CTO or head of digital.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Add your services and the clients you serve to your Company Knowledge (AI Workspace).",
+        "Add your services and the clients you serve to your Company Knowledge.",
         "Describe the companies that need your work and set the campaign goal.",
         "Review the companies and their match explanations; save the strongest fits.",
         "Prepare messages from the results or export the list to your CRM through CSV.",
@@ -235,7 +235,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "شركات تجزئة وتجارة إلكترونية في الإمارات والسعودية من 50 إلى 500 موظف تبيع عبر الإنترنت وليس لديها تطبيق جوال خاص بها، وأريد الوصول إلى المدير التقني أو رئيس القسم الرقمي.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "أضف خدماتك والعملاء الذين تخدمهم إلى معرفة الشركة (مساحة الذكاء الاصطناعي).",
+        "أضف خدماتك والعملاء الذين تخدمهم إلى معرفة الشركة.",
         "صِف الشركات التي تحتاج عملك وحدد هدف الحملة.",
         "راجع الشركات وأسباب تطابقها، واحفظ الأنسب منها.",
         "جهّز الرسائل من النتائج أو صدّر القائمة إلى نظام CRM عبر ملف CSV.",
@@ -279,10 +279,10 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Logistics and distribution companies in Egypt with 100 to 1,000 employees that operate their own warehouses, and I want to reach the COO or operations director.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Describe your expertise and the clients you serve in your Company Knowledge (AI Workspace).",
+        "Describe your expertise and the clients you serve in your Company Knowledge.",
         "Write the kind of organization you want to work with and start a campaign.",
         "Read the match explanations and keep the organizations worth approaching.",
-        "Prepare a personal introduction for each, then send it from your own email or LinkedIn.",
+        "Yolias writes a personal introduction for each and sends it from your own mailbox once you approve.",
       ],
       valueTitle: "What you can expect",
       value: "Prospecting time spent on organizations that fit your expertise, and more of your week left for client work.",
@@ -296,7 +296,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "خبرتك مع المؤسسات المناسبة لها", body: "صِف المؤسسات التي تناسبها خبرتك أكثر، ويجد يولـياس المؤسسات المطابقة مع أسباب المطابقة." },
         { title: "بحث أقل ومحادثات أكثر", body: "وفّر ساعات البحث. راجع قائمة مبنية على معاييرك واحتفظ بالمؤسسات التي تستحق اتصالًا." },
-        { title: "رسائل تشبه أسلوبك", body: "يكتب يولـياس مسودة أول رسالة من ملفك ومن المعلومات المتاحة عن المؤسسة، وتعدّلها وترسلها بنفسك." },
+        { title: "رسائل تشبه أسلوبك", body: "يكتب يولـياس مسودة أول رسالة من ملفك ومن المعلومات المتاحة عن المؤسسة، وتراجعها ثم يرسلها من بريدك بعد موافقتك." },
       ],
       problemTitle: "المشكلة",
       problem: [
@@ -321,7 +321,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "شركات لوجستيات وتوزيع في مصر من 100 إلى 1,000 موظف تدير مستودعاتها بنفسها، وأريد الوصول إلى مدير العمليات أو الرئيس التنفيذي للعمليات.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "صِف خبرتك والعملاء الذين تخدمهم في معرفة الشركة (مساحة الذكاء الاصطناعي).",
+        "صِف خبرتك والعملاء الذين تخدمهم في معرفة الشركة.",
         "اكتب نوع المؤسسة التي تريد العمل معها وابدأ حملة.",
         "اقرأ أسباب التطابق واحتفظ بالمؤسسات التي تستحق التواصل.",
         "جهّز تعريفًا شخصيًا لكل منها، ثم أرسله من بريدك أو حسابك على LinkedIn.",
@@ -352,7 +352,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "Target the sectors and roles you know", body: "Describe the industries, company sizes and markets that hire the roles you place." },
         { title: "Matched companies", body: "Yolias finds companies that meet your criteria and explains each match. Where hiring information is available from its sources, it appears with the result." },
         { title: "Public contact details", body: "Business emails and phone numbers that companies publish on their own websites are shown with each company." },
-        { title: "A tailored first message", body: "Draft an introduction about the roles you fill and send it from your own email or LinkedIn." },
+        { title: "A tailored first message", body: "Yolias writes an introduction about the roles you fill and sends it from your own mailbox once you approve." },
       ],
       useCasesTitle: "Use cases",
       useCases: [
@@ -365,7 +365,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Fintech and payments companies in Saudi Arabia and the UAE with 50 to 300 employees that are growing their finance and compliance teams, and I want to reach the HR manager or CFO.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Describe the roles you place and your markets in your Company Knowledge (AI Workspace).",
+        "Describe the roles you place and your markets in your Company Knowledge.",
         "Write the companies you want to work with and set the campaign goal and schedule.",
         "Review matched companies and save the ones to approach this week.",
         "Prepare introductions and send them yourself, or export the list to your CRM.",
@@ -407,7 +407,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "شركات التقنية المالية والمدفوعات في السعودية والإمارات من 50 إلى 300 موظف توسّع فرق المالية والامتثال، وأريد الوصول إلى مدير الموارد البشرية أو المدير المالي.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "صِف الوظائف التي تعمل عليها وأسواقك في معرفة الشركة (مساحة الذكاء الاصطناعي).",
+        "صِف الوظائف التي تعمل عليها وأسواقك في معرفة الشركة.",
         "اكتب الشركات التي تريد العمل معها وحدد هدف الحملة وجدولها.",
         "راجع الشركات المطابقة واحفظ ما ستتواصل معه هذا الأسبوع.",
         "جهّز رسائل التعريف وأرسلها بنفسك، أو صدّر القائمة إلى نظام CRM.",
@@ -450,7 +450,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Restaurants, cafés and bakeries in Dubai with a website and good customer reviews, and I want to reach the owner.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Add your service and your ideal clients to your Company Knowledge (AI Workspace).",
+        "Add your service and your ideal clients to your Company Knowledge.",
         "Describe the businesses you want to work with and start a campaign.",
         "Review the businesses and keep the best fits.",
         "Prepare a message for each one and send it yourself.",
@@ -491,7 +491,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "مطاعم ومقاهٍ ومخابز في دبي لديها موقع إلكتروني وتقييمات جيدة من العملاء، وأريد الوصول إلى المالك.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "أضف خدمتك وعملاءك المثاليين إلى معرفة الشركة (مساحة الذكاء الاصطناعي).",
+        "أضف خدمتك وعملاءك المثاليين إلى معرفة الشركة.",
         "صِف الأنشطة التي تريد العمل معها وابدأ حملة.",
         "راجع الأنشطة واحتفظ بالأنسب منها.",
         "جهّز رسالة لكل منها وأرسلها بنفسك.",
@@ -534,10 +534,10 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Technology and professional services companies in Riyadh with 30 to 300 employees that could need new office space, and I want to reach the CEO or operations manager.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Describe the properties or services you offer in your Company Knowledge (AI Workspace).",
+        "Describe the properties or services you offer in your Company Knowledge.",
         "Write the organizations you want to reach, with the city or district.",
         "Review the companies or local businesses that match and save the relevant ones.",
-        "Prepare introductions and send them from your own email or LinkedIn, or export to CSV.",
+        "Let Yolias write introductions and send them from your own mailbox, or export to CSV.",
       ],
       valueTitle: "What you can expect",
       value: "Faster market research and a clear list of organizations to approach for each project.",
@@ -562,7 +562,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "صِف مؤسسات سوقك", body: "القطاع والحجم والموقع للشركات أو الأنشطة المحلية التي تريد الوصول إليها." },
         { title: "شركات وأنشطة محلية", body: "يمكن ليولـياس البحث عن الشركات أو عن الأنشطة المحلية في مدينة ما، مع العنوان والموقع والفئة عند توفرها." },
         { title: "بيانات تواصل عامة", body: "يظهر البريد والهاتف المنشوران على مواقع الشركات مع كل نتيجة." },
-        { title: "رسائل ترسلها أنت", body: "اكتب مسودة تعريف قصيرة بعقار أو خدمة وأرسلها من حسابك." },
+        { title: "رسائل من بريدك", body: "يكتب يولـياس تعريفًا قصيرًا بعقار أو خدمة ويرسله من بريدك بعد موافقتك." },
       ],
       useCasesTitle: "حالات الاستخدام",
       useCases: [
@@ -575,7 +575,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "شركات التقنية والخدمات المهنية في الرياض من 30 إلى 300 موظف قد تحتاج مساحات مكتبية جديدة، وأريد الوصول إلى الرئيس التنفيذي أو مدير العمليات.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "صِف العقارات أو الخدمات التي تقدمها في معرفة الشركة (مساحة الذكاء الاصطناعي).",
+        "صِف العقارات أو الخدمات التي تقدمها في معرفة الشركة.",
         "اكتب المؤسسات التي تريد الوصول إليها مع المدينة أو الحي.",
         "راجع الشركات أو الأنشطة المحلية المطابقة واحفظ المناسب منها.",
         "جهّز رسائل التعريف وأرسلها من بريدك أو حسابك على LinkedIn، أو صدّرها إلى ملف CSV.",
@@ -594,7 +594,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       pillars: [
         { title: "One place to define target accounts", body: "Your team describes target accounts in plain words and Yolias turns them into campaigns everyone can see." },
         { title: "A shared, reviewed list", body: "Matching companies land in one Prospects table with filters, saved lists and CSV import and export, shared across the workspace." },
-        { title: "From research to outreach faster", body: "Reps prepare emails and LinkedIn notes from each prospect and send them from their own accounts." },
+        { title: "From research to outreach faster", body: "Yolias writes an email for each prospect and sends it from the rep's own mailbox once approved." },
       ],
       problemTitle: "The problem",
       problem: [
@@ -618,7 +618,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "Manufacturing companies in Egypt and Saudi Arabia with 200 to 2,000 employees that run their own production plants, and I want to reach the plant manager or head of operations.",
       stepsTitle: "How to use Yolias",
       steps: [
-        "Set up your Company Knowledge (AI Workspace) with your offer, ideal customer and target markets.",
+        "Set up your Company Knowledge with your offer, ideal customer and target markets.",
         "Describe the accounts you want and set the campaign goal, deadline and schedule.",
         "Review the companies with your team, save the right ones and remove the rest.",
         "Export to CSV for your CRM or prepare messages that each rep sends from their own account.",
@@ -659,7 +659,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       icp: "شركات تصنيع في مصر والسعودية من 200 إلى 2,000 موظف تدير مصانعها بنفسها، وأريد الوصول إلى مدير المصنع أو رئيس العمليات.",
       stepsTitle: "كيف تستخدم يولـياس",
       steps: [
-        "أعدّ معرفة الشركة (مساحة الذكاء الاصطناعي) بعرضك وعميلك المثالي وأسواقك المستهدفة.",
+        "أعدّ معرفة الشركة بعرضك وعميلك المثالي وأسواقك المستهدفة.",
         "صِف الحسابات التي تريدها وحدد هدف الحملة وموعدها وجدولها.",
         "راجع الشركات مع فريقك، واحفظ المناسب منها واستبعد الباقي.",
         "صدّر إلى ملف CSV لنظام CRM، أو جهّز رسائل يرسلها كل مندوب من حسابه.",

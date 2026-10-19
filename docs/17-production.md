@@ -240,7 +240,7 @@ npx wrangler secret put WORKER_SECRET
 5. بعد النشر: الأدمن ← الدعم ← قاعدة المعرفة ← «مزامنة محتوى Yolias» (مرة، وبعد أي تحديث كبير في المحتوى).
 6. Polar: أسعار الخطط السنوية هتتغير لوحدها أول checkout بعد النشر (10 × الشهري). المشتركين الحاليين بيفضلوا على سعرهم.
 
-## جولة الوكيل الذاتي 2026-10-19 (D-228..D-234). محلي فقط — ما اتنفذش منها حاجة على الإنتاج
+## جولة الوكيل الذاتي 2026-10-19 (D-228..D-234). اتنشرت 2026-10-19 (الخطوات 1–4 اتعملت؛ 5–6 لسه على المالك)
 1. نسخة احتياطية.
 2. يولياس: `Yolias/supabase/migrations/20261115000000_autonomous_agent.sql` بنفس طريقة `npx supabase db query --linked -f <الملف>` ثم تسجيله في `supabase_migrations.schema_migrations`. لازم قبل النشر (الكود بيقرأ الأعمدة الجديدة).
 3. نشر يولياس ثم الأدمن.
@@ -248,3 +248,20 @@ npx wrangler secret put WORKER_SECRET
 5. Gmail: في Google Cloud ← مشروع OAuth: فعّل Gmail API، أضف الصلاحيات gmail.send و gmail.readonly، رابط الرجوع `https://www.yolias.com/api/integrations/gmail/callback`، وابدأ مراجعة Google (الصلاحيات دي «restricted» ومحتاجة تقييم أمني قبل ما أي حد بره قائمة المختبرين يربط). حط client id / secret في الأدمن ← الإعدادات ← التكاملات ← «Google OAuth — Yolias (Gmail)».
 6. Outlook: في Microsoft Entra سجّل تطبيق (أي مؤسسة + حسابات شخصية)، صلاحيات Mail.Send و Mail.ReadWrite و User.Read و offline_access، رابط الرجوع `https://www.yolias.com/api/integrations/outlook/callback`، وحط المفاتيح في «Microsoft OAuth — Yolias (Outlook)».
 7. ما تحطش `YOLIAS_TEST_MAILBOX` في Cloudflare أبدًا (صندوق الاختبار مرفوض في الإنتاج على أي حال).
+
+## جولة كاشير 2026-10-19 (D-235). محلي فقط — ما اتنفذش منها حاجة على الإنتاج (كاشير مقفول لحد تفعيل الحساب، D-236)
+1. نسخة احتياطية.
+2. يولياس: `Yolias/supabase/migrations/20261116000000_kashier.sql` (بنفس الطريقة) وتسجيله في `schema_migrations`. لازم قبل النشر.
+3. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` (السياسات والمساعدة اتغيرت).
+4. الأدمن ← الإعدادات ← مركز التكاملات ← Kashier: الوضع Test، و MID، و Payment API Key، و Secret Key، والعملة USD، وحفظ البطاقة «إجباري».
+5. لوحة كاشير ← Webhook: `https://www.yolias.com/api/payments/kashier`.
+6. تجربة كاملة ببطاقة كاشير التجريبية: اشتراك من صفحة الدفع، وتأكد إن الخطة اتفعلت، وإن البطاقة ظهرت في الأدمن ← المدفوعات (عدد البطاقات المحفوظة).
+7. بعد نجاح التجربة: نفس الخطوة 4 بمفاتيح Live والوضع «حقيقي».
+
+## جولة Outreach / Inbox / IMAP / الجنيه 2026-10-19 (D-236..D-242). محلي فقط
+1. نسخة احتياطية.
+2. الـ migrations بالترتيب: `20261116000000_kashier.sql` ثم `20261117000000_paymob_egp_outreach.sql`، وتسجيلهم في `schema_migrations`. لازم قبل النشر.
+3. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production`.
+4. الأدمن ← الخطط: راجع أسعار الجنيه (2,499 / 4,999 / 9,999).
+5. Gmail وOutlook: مفاتيح OAuth في الأدمن (القسم السابق 5–6). وIMAP/SMTP مش محتاج أي حاجة من الأدمن.
+6. جرّب على الإنتاج بصندوق IMAP حقيقي: اربطه، وابعت حملة لنفسك، وردّ عليها، واتأكد إن الرد وصل صندوق الوارد خلال 5 دقايق.

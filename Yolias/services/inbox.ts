@@ -2,12 +2,12 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CrmLeadRow } from "@/types/database";
 
-// Inbox (D-194): one conversation per lead. Every filter reads real rows:
-// unread = a logged reply after the conversation was last opened; reminders =
-// open tasks; scheduled = drafts with a planned send time; sent = a message
-// confirmed sent; done / others = the conversation's own status.
+// Inbox (D-194, D-239): one conversation per lead. Every filter reads real
+// rows: unread = a reply after the conversation was last opened; interested /
+// not interested / needs follow-up = the conversation's label (from the reply
+// analysis or the member); sent = a message sent; done = closed conversations.
 
-export const INBOX_FILTERS = ["all", "unread", "reminders", "scheduled", "sent", "done", "others"] as const;
+export const INBOX_FILTERS = ["all", "unread", "interested", "not_interested", "follow_up", "sent", "done"] as const;
 export type InboxFilter = (typeof INBOX_FILTERS)[number];
 const LIMIT = 100;
 const term = (s: string) => s.replace(/[%,()*\\]/g, " ").trim();
@@ -37,17 +37,15 @@ export async function listInbox(workspaceId: string, filter: InboxFilter, search
     : null;
   const none = ["00000000-0000-0000-0000-000000000000"];
   const base = () => db.from("crm_leads").select("*", { count: "exact" }).eq("workspace_id", workspaceId);
-  const [scheduledIds, sentIds] = await Promise.all([leadIdsWithMessages(workspaceId, "scheduled"), leadIdsWithMessages(workspaceId, "sent")]);
+  const sentIds = await leadIdsWithMessages(workspaceId, "sent");
   const apply = (q0: ReturnType<typeof base>, f: InboxFilter) => {
     const q = channelIds ? q0.in("id", channelIds.length ? channelIds.slice(0, 1000) : none) : q0;
     switch (f) {
       case "all": return q.not("thread_last_message_at", "is", null).eq("thread_status", "open");
       case "unread": return q.eq("unread", true);
-      case "reminders": return q.gt("open_tasks", 0);
-      case "scheduled": return q.in("id", scheduledIds.length ? scheduledIds : ["00000000-0000-0000-0000-000000000000"]);
+      case "interested": case "not_interested": case "follow_up": return q.eq("thread_label", f).eq("thread_status", "open");
       case "sent": return q.in("id", sentIds.length ? sentIds.slice(0, 500) : ["00000000-0000-0000-0000-000000000000"]);
-      case "done": return q.eq("thread_status", "done");
-      case "others": return q.eq("thread_status", "other");
+      case "done": return q.in("thread_status", ["done", "other"]);
     }
   };
   const counts = Object.fromEntries(await Promise.all(INBOX_FILTERS.map(async (f) => {

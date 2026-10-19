@@ -9,11 +9,10 @@ import { fmt } from "@/lib/i18n/config";
 import { addNote, addTask, decideApproval, prepareMeetingBrief, removeLead, saveMeeting, setTaskDone, updateLead } from "@/app/(app)/crm/actions";
 import { StageSelect, useRun } from "./bits";
 import { MessageCard, type CardMessage } from "./MessageCard";
-import { ReplyTools } from "./ReplyTools";
 import { dateTime, fromLocalInput, money, toLocalInput } from "./format";
 import type { LeadDetail } from "@/services/crm";
 import type { Fit } from "@/lib/agents/research";
-import type { LeadActivityRow, MeetingRow, MeetingStatus, MessageChannel } from "@/types/database";
+import type { LeadActivityRow, MeetingRow, MeetingStatus } from "@/types/database";
 
 interface Props {
   detail: LeadDetail;
@@ -37,8 +36,6 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
   const [due, setDue] = useState("");
   const [meeting, setMeeting] = useState<Partial<MeetingRow> | null>(null);
   const [brief, setBrief] = useState<string | null>(null);
-  const [seed, setSeed] = useState<string | undefined>(undefined);
-  const lastChannel = (detail.messages.at(-1)?.channel ?? "email") as MessageChannel;
   const activityText = (a: LeadActivityRow) => {
     const meta = (a.meta ?? {}) as Record<string, unknown>;
     if (a.kind === "stage_changed") return fmt(c.activity.stage_changed, { from: t.ws.stages[meta.from as keyof typeof t.ws.stages] ?? "", to: t.ws.stages[meta.to as keyof typeof t.ws.stages] ?? "" });
@@ -84,8 +81,9 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
             <section className="ws-section" style={{ marginTop: detail.approvals.length ? 16 : 0 }}>
               <div className="ws-section-head"><h3>{d.messages}</h3></div>
               {!detail.messages.length && <div className="ws-empty">{d.noMessages}</div>}
-              {detail.messages.map((m) => <MessageCard key={m.id} m={m as unknown as CardMessage} timeZone={timeZone} onUseSuggestion={setSeed} />)}
-              <div style={{ marginTop: 12 }}><ReplyTools leadId={lead.id} channel={lastChannel} seed={seed} doNotContact={lead.do_not_contact} /></div>
+              {detail.messages.map((m) => <MessageCard key={m.id} m={m as unknown as CardMessage} timeZone={timeZone} />)}
+              {/* Replies are written in the Inbox (D-239); the CRM shows the conversation. */}
+              {detail.messages.length > 0 && <div style={{ marginTop: 12 }}><Link className="btn-secondary ws-btn-sm" href={`/inbox?lead=${lead.id}`}><Inbox size={13} /> {t.ws.inbox.title}</Link></div>}
             </section>
 
             <section className="ws-section">

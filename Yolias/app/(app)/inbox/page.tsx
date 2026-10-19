@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Info, Search } from "lucide-react";
 import { requireViewer } from "@/lib/session";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { INBOX_FILTERS, inboxChannels, inboxThread, listInbox, type InboxFilter } from "@/services/inbox";
+import { INBOX_FILTERS, inboxThread, listInbox, type InboxFilter } from "@/services/inbox";
 import { StatusFilter } from "@/components/app/StatusFilter";
 import { InboxThreadView } from "@/components/app/ws/InboxThread";
 import { StageBadge } from "@/components/app/ws/bits";
@@ -16,8 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).ws.inbox.title} — Yolias` };
 }
 
-// Unified Inbox (D-194): every conversation with a lead, its messages and
-// replies, reminders and planned sends. Filters come from real rows.
+// Inbox (D-194, D-239): the replies to the campaigns, one conversation per
+// lead, labelled Interested / Not interested / Needs follow-up. The member or
+// Yolias answers from here; filters come from real rows.
 export default async function InboxPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const session = await requireViewer();
   const sp = await searchParams;
@@ -25,10 +26,8 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const filter = (INBOX_FILTERS as readonly string[]).includes(one(sp.filter)) ? (one(sp.filter) as InboxFilter) : "all";
   const q = one(sp.q).slice(0, 100);
   const leadId = /^[0-9a-f-]{36}$/i.test(one(sp.lead)) ? one(sp.lead) : null;
-  const channels = await inboxChannels(session.workspace.id);
-  const channel = channels.includes(one(sp.channel)) ? one(sp.channel) : null;
   const [t, locale, list, thread, boxes, approvals] = await Promise.all([
-    getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q, channel), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
+    getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
     memberMailboxes(session.workspace.id, session.userId),
     // What the agent is waiting for the member to approve (moved here from the AI Agent page, D-233).
     (await createClient()).from("agent_pending_actions").select("id, lead_id, tool, input, summary, created_at, lead:sales_leads(name)")
@@ -39,7 +38,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const tz = session.profile.timezone;
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams();
-    const cur: Record<string, string | null> = { filter: filter === "all" ? null : filter, channel, q: q || null, lead: leadId, ...patch };
+    const cur: Record<string, string | null> = { filter: filter === "all" ? null : filter, q: q || null, lead: leadId, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `/inbox?${s}` : "/inbox";
@@ -62,16 +61,13 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           <div className="inbox-list-head">
             <form method="get" action="/inbox" className="toolbar-search">
               {filter !== "all" && <input type="hidden" name="filter" value={filter} />}
-              {channel && <input type="hidden" name="channel" value={channel} />}
               <Search />
               <input className="form-input" name="q" defaultValue={q} placeholder={w.search} aria-label={w.search} />
             </form>
-            {/* Two dropdowns instead of chip rows (owner, 2026-10-13): what to show, and which channel. */}
+            {/* What to show: all, unread, or a label (D-239). */}
             <div className="inbox-filters">
               <StatusFilter param="filter" base={link({ filter: null, lead: null })} value={filter === "all" ? "" : filter} label={w.show}
                 options={INBOX_FILTERS.map((f) => ({ value: f === "all" ? "" : f, label: `${w.filters[f]} (${list.counts[f]})` }))} />
-              <StatusFilter param="channel" base={link({ channel: null, lead: null })} value={channel ?? ""} label={w.channel}
-                options={[{ value: "", label: t.ws.common.all }, ...channels.map((ch) => ({ value: ch, label: t.ws.outreach.channels[ch as keyof typeof t.ws.outreach.channels] ?? ch }))]} />
             </div>
           </div>
           <div className="inbox-items">
@@ -85,16 +81,16 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                 {l.company_name && l.company_name !== l.name && <div className="cell-sub">{l.company_name}</div>}
                 <div className="inbox-item-preview" dir="auto">{l.preview ?? "—"}</div>
                 <div className="ws-inline">
+                  {l.thread_label && <span className={`ws-chip label-${l.thread_label}`}>{w.labels[l.thread_label]}</span>}
                   <StageBadge stage={l.stage} />
-                  {l.open_tasks > 0 && <span className="ws-chip">{w.reminders}: {l.open_tasks}</span>}
-                  {l.thread_status && l.thread_status !== "open" && <span className="ws-chip">{w.filters[l.thread_status === "done" ? "done" : "others"]}</span>}
+                  {l.thread_status && l.thread_status !== "open" && <span className="ws-chip">{w.filters.done}</span>}
                 </div>
               </Link>
             ))}
           </div>
         </aside>
         <section className="inbox-thread">
-          {thread ? <InboxThreadView thread={thread} backHref={link({ lead: null })} timeZone={tz} /> : <div className="inbox-placeholder">{w.select}</div>}
+          {thread ? <InboxThreadView thread={thread} backHref={link({ lead: null })} timeZone={tz} hasMailbox={hasMailbox} /> : <div className="inbox-placeholder">{w.select}</div>}
         </section>
       </div>
     </div>

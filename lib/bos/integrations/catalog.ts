@@ -124,6 +124,21 @@ export const providers: ProviderDef[] = [
     yolias: "ربط Outlook وإرسال حملات التواصل وقراءة الردود.",
   },
   {
+    key: "kashier", name: "Kashier (كاشير)", category: "payments", phase: 0, testable: false,
+    description: "بوابة دفع إضافية بجانب Paymob (تظهر للعميل كخيار «الدفع بالكارت من هذه الصفحة» بمجرد الربط). العميل يدفع داخل صفحة الدفع في يولياس نفسها (Payment Session مدمجة)، والسعر بالدولار، والبطاقة تُحفظ مع أول دفعة ويُجدد منها الاشتراك تلقائيًا. من لوحة كاشير ← Integrate now: انسخ Merchant ID و Payment API Key و Secret Key للوضع المناسب. في الإعدادات ← Webhook ضع https://<دومين يولياس>/api/payments/kashier. واطلب من كاشير تفعيل: العملة USD على الحساب، وحفظ البطاقات والدفع المتكرر (Recurring / Tokenization)، والسماح بعرض صفحة الدفع داخل iframe على دومين يولياس.",
+    fields: [
+      { key: "mode", label: "الوضع", required: true, options: [{ value: "test", label: "تجريبي (Test)" }, { value: "live", label: "حقيقي (Live)" }] },
+      { key: "merchant_id", label: "Merchant ID", required: true, placeholder: "MID-XXXX-XXX" },
+      { key: "api_key", label: "Payment API Key", secret: true, required: true, hint: "يُستخدم لتوقيع الطلبات والتحقق من الـ Webhook" },
+      { key: "secret_key", label: "Secret Key", secret: true, required: true, hint: "يُرسل في ترويسة Authorization لواجهات كاشير" },
+      { key: "currency", label: "عملة الخصم", required: true, options: [{ value: "USD", label: "دولار (USD) — لازم تكون مفعّلة على حسابك" }, { value: "EGP", label: "جنيه (EGP) — يحوّل يولياس السعر بسعر اليوم" }] },
+      { key: "save_card", label: "حفظ البطاقة للتجديد", required: true, options: [{ value: "forced", label: "إجباري (موصى به للاشتراكات)" }, { value: "optional", label: "اختياري للعميل" }] },
+    ],
+    capabilities: ["payments.checkout"],
+    docs: "https://developers.kashier.io",
+    yolias: "الدفع بالبطاقة داخل يولياس، والتجديد التلقائي من البطاقة المحفوظة.",
+  },
+  {
     key: "paymob", name: "Paymob", category: "payments", phase: 0, testable: false,
     description: "بوابة الدفع لاشتراكات يولياس وباقات العملاء المحتملين الإضافية (السعر بالدولار، والخصم من البطاقة بالجنيه). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return.",
     fields: [

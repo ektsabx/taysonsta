@@ -1,58 +1,43 @@
 // End-to-end test of the subscription journey tracking (D-212..D-215)
 // against the local Supabase and the running app, with a local stand-in for
-// Paymob (nothing is charged, nothing leaves this machine):
+// Kashier (D-235; nothing is charged, nothing leaves this machine):
 //   YOLIAS_TEST_APP_URL=http://localhost:3201 npm run test:conversions
 // Scenarios (owner brief 2026-10-13 §19): 1 success, 2 open then leave,
 // 3 failed payment, 4 payment still processing, 5 come back and subscribe,
 // 6 repeated webhook, plus the payment switches and data protection.
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
 import { createClient } from "@supabase/supabase-js";
 import { startCheckout, providerFor, paymentMethods } from "@/lib/payments/index.ts";
-import { hmacStringFromTransaction, signPaymob } from "@/lib/payments/paymob.ts";
+import { NextRequest } from "next/server";
 import { checkoutStep, classifyCheckouts, openCheckout } from "@/lib/funnel.ts";
 import { resetSwitchCache } from "@/lib/switches.ts";
 import type { Database, WorkspaceRow } from "@/types/database.ts";
+import { KASHIER, signedWebhook, startKashierStandIn } from "./kashier-standin.mts";
 (await import("@/lib/integrations.ts")).setIntegrationsForTests({});
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!, svc = process.env.SUPABASE_SERVICE_ROLE_KEY!, anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 assert.match(url, /127\.0\.0\.1|localhost/, "local database only");
 const app = process.env.YOLIAS_TEST_APP_URL ?? "http://localhost:3200";
 const db = createClient<Database>(url, svc, { auth: { persistSession: false } });
-const HMAC = "local-test-hmac-secret";
+const kashier = await startKashierStandIn();
+const webhook = (await import("@/app/api/payments/kashier/route.ts")).POST;
 
-let orderSeq = 7_000_000 + Math.floor(Math.random() * 1_000_000);
-const server = createServer((req, res) => {
-  let body = "";
-  req.on("data", (c) => (body += c));
-  req.on("end", () => {
-    if (req.method !== "POST" || req.url !== "/v1/intention/" || req.headers.authorization !== "Token local-secret-key") return void res.writeHead(401).end();
-    res.writeHead(201, { "content-type": "application/json" }).end(JSON.stringify({ id: `pi_${orderSeq}`, intention_order_id: ++orderSeq, client_secret: `csk_${orderSeq}` }));
-  });
-});
-await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
-const port = (server.address() as AddressInfo).port;
-
-const { data: providerBefore } = await db.from("payment_providers").select("*").eq("id", "paymob").single();
+const { data: providerBefore } = await db.from("payment_providers").select("*").eq("id", "kashier").single();
 const saved = {
-  secret_key: (await db.rpc("payment_secret", { p_provider: "paymob", p_name: "secret_key" })).data as string | null,
-  hmac_secret: (await db.rpc("payment_secret", { p_provider: "paymob", p_name: "hmac_secret" })).data as string | null,
+  api_key: (await db.rpc("payment_secret", { p_provider: "kashier", p_name: "api_key" })).data as string | null,
+  secret_key: (await db.rpc("payment_secret", { p_provider: "kashier", p_name: "secret_key" })).data as string | null,
 };
 const { data: fxBefore } = await db.from("site_settings").select("value").eq("key", "yolias_fx_usd_egp").maybeSingle();
 const { data: switchesBefore } = await db.from("site_settings").select("value").eq("key", "platform_switches").maybeSingle();
 const users: string[] = [];
 
-function txn(paymentId: string, order: string, cents: number, over: Record<string, unknown> = {}) {
-  return {
-    id: Math.floor(Math.random() * 1e9), pending: false, amount_cents: cents, success: true, is_auth: false, is_capture: false, is_standalone_payment: true,
-    is_voided: false, is_refunded: false, is_3d_secure: true, integration_id: 222, has_parent_transaction: false, created_at: new Date().toISOString(),
-    currency: "EGP", error_occured: false, owner: 1, order: { id: Number(order), merchant_order_id: paymentId },
-    source_data: { pan: "2346", type: "card", sub_type: "MasterCard" }, data: { message: "Approved" }, ...over,
-  };
+function txn(paymentId: string, sessionId: string, amount: number, over: Record<string, unknown> = {}) {
+  return { merchantOrderId: paymentId, kashierOrderId: `KO-${sessionId}`, transactionId: `TX-${Math.floor(Math.random() * 1e9)}`, amount: amount.toFixed(2), currency: "USD", status: "SUCCESS", method: "card", ...over };
 }
-const callback = (obj: Record<string, unknown>) =>
-  fetch(`${app}/api/payments/paymob?hmac=${signPaymob(hmacStringFromTransaction(obj), HMAC)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "TRANSACTION", obj }) });
+const callback = (data: Record<string, unknown>) => {
+  const w = signedWebhook("pay", data);
+  return webhook(new NextRequest("http://localhost/api/payments/kashier", { method: "POST", headers: { "content-type": "application/json", "x-kashier-signature": w.signature }, body: w.body }));
+};
 const ws = async (id: string) => (await db.from("workspaces").select("*").eq("id", id).single()).data as WorkspaceRow;
 const session = async (id: string) => (await db.from("checkout_sessions").select("*").eq("id", id).single()).data!;
 const events = async (checkoutId: string) => (await db.from("funnel_events").select("name, confirmed").eq("checkout_id", checkoutId)).data!.map((e) => e.name);
@@ -66,18 +51,18 @@ async function member(tag: string) {
 }
 const backdate = (id: string, minutes: number) => db.from("checkout_sessions").update({ last_activity_at: new Date(Date.now() - minutes * 60_000).toISOString() }).eq("id", id);
 async function pay(m: Awaited<ReturnType<typeof member>>, cid: string, plan: "pro" | "growth" = "pro") {
-  await checkoutStep(cid, "payment_started", { userId: m.userId, workspaceId: m.wsId, provider: "paymob", plan, period: "monthly" });
-  const r = await startCheckout(await ws(m.wsId), m.buyer, { kind: "subscription", plan, period: "monthly" }, cid);
+  await checkoutStep(cid, "payment_started", { userId: m.userId, workspaceId: m.wsId, provider: "kashier", plan, period: "monthly" });
+  const r = await startCheckout(await ws(m.wsId), m.buyer, { kind: "subscription", plan, period: "monthly" }, cid, "kashier");
   assert.ok(r.ok, `checkout opens at the provider: ${JSON.stringify(r)}`);
-  await checkoutStep(cid, "redirected", { provider: "paymob" });
+  await checkoutStep(cid, "redirected", { provider: "kashier" });
   const { data: p } = await db.from("payments").select("*").eq("checkout_id", cid).order("created_at", { ascending: false }).limit(1).single();
   return p!;
 }
 
 try {
-  await db.from("payment_providers").update({ enabled: true, mode: "test", config: { base_url: `http://127.0.0.1:${port}`, public_key: "pk_test_local", integrations: { USD: [222] } } }).eq("id", "paymob");
-  await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: "secret_key", p_secret: "local-secret-key" });
-  await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: "hmac_secret", p_secret: HMAC });
+  await db.from("payment_providers").update({ enabled: true, mode: "test", config: { merchant_id: KASHIER.merchantId, currency: "USD", save_card: "forced" } }).eq("id", "kashier");
+  await db.rpc("set_payment_secret", { p_provider: "kashier", p_name: "api_key", p_secret: KASHIER.apiKey });
+  await db.rpc("set_payment_secret", { p_provider: "kashier", p_name: "secret_key", p_secret: KASHIER.secretKey });
   await db.from("site_settings").upsert({ key: "yolias_fx_usd_egp", value: { fixed: 50 } });
   await db.from("site_settings").upsert({ key: "platform_switches", value: {} });
   resetSwitchCache();
@@ -89,11 +74,11 @@ try {
     assert.ok(cid, "checkout session created");
     const again = await openCheckout(await ws(m.wsId), m.userId, { plan: "pro", period: "monthly", amountUsd: 50, trialOffered: false });
     assert.equal(again, cid, "a reload continues the same checkout");
-    await checkoutStep(cid, "details", { provider: "paymob" });
+    await checkoutStep(cid, "details", { provider: "kashier" });
     const p = await pay(m, cid);
     assert.equal(p.status, "pending");
     assert.equal((await session(cid)).status, "awaiting_result");
-    const ok = txn(p.id, p.provider_ref!, Math.round(Number(p.charge_amount) * 100));
+    const ok = txn(p.id, p.provider_ref!, Number(p.charge_amount));
     assert.equal((await callback(ok)).status, 200);
     const c = await session(cid);
     assert.equal(c.status, "activated"); assert.equal(c.outcome, "paid"); assert.ok(c.paid_at && c.activated_at); assert.equal(c.abandoned_at, null);
@@ -139,7 +124,7 @@ try {
     const cid2 = (await openCheckout(await ws(m.wsId), m.userId, { plan: "pro", period: "monthly", amountUsd: 50, trialOffered: false }))!;
     assert.notEqual(cid2, cid, "a checkout after abandonment is a new one");
     const p = await pay(m, cid2);
-    assert.equal((await callback(txn(p.id, p.provider_ref!, Math.round(Number(p.charge_amount) * 100)))).status, 200);
+    assert.equal((await callback(txn(p.id, p.provider_ref!, Number(p.charge_amount)))).status, 200);
     const old = await session(cid);
     assert.equal(old.status, "abandoned", "the abandoned checkout keeps its history");
     assert.ok(old.recovered_at); assert.equal(old.recovered_by, cid2);
@@ -156,7 +141,7 @@ try {
     const m = await member("fail");
     const cid = (await openCheckout(await ws(m.wsId), m.userId, { plan: "pro", period: "monthly", amountUsd: 50, trialOffered: false }))!;
     const p = await pay(m, cid);
-    await callback(txn(p.id, p.provider_ref!, Math.round(Number(p.charge_amount) * 100), { success: false, data: { message: "Do not honour" } }));
+    await callback(txn(p.id, p.provider_ref!, Number(p.charge_amount), { status: "FAILURE", transactionResponseMessage: "Do not honour" }));
     const c = await session(cid);
     assert.equal(c.status, "payment_failed"); assert.equal(c.failure_reason, "Do not honour"); assert.equal(c.reason_category, "payment_failed");
     assert.equal((await ws(m.wsId)).subscription_status, "none");
@@ -178,7 +163,7 @@ try {
     assert.equal((await session(cid)).status, "awaiting_result", "not abandoned while the payment can still land");
     const { data: acc } = await db.from("admin_accounts_v").select("segment").eq("id", m.userId).single();
     assert.equal(acc!.segment, "payment_pending");
-    assert.equal((await callback(txn(p.id, p.provider_ref!, Math.round(Number(p.charge_amount) * 100)))).status, 200);
+    assert.equal((await callback(txn(p.id, p.provider_ref!, Number(p.charge_amount)))).status, 200);
     assert.equal((await session(cid)).status, "activated");
     // After the window without any result it is abandoned with the gateway as the last place seen.
     const m2 = await member("pending2");
@@ -191,18 +176,18 @@ try {
     console.log("✔ 4 payment still processing");
   }
 
-  // Switches: Paymob off → no new Paymob checkout and the method is hidden; back on → available.
+  // Switches: Kashier off → no new card checkout and the method is hidden; back on → available.
   {
-    await db.from("site_settings").upsert({ key: "platform_switches", value: { payments_paymob: false } });
+    await db.from("site_settings").upsert({ key: "platform_switches", value: { payments_kashier: false } });
     resetSwitchCache();
-    assert.equal(await providerFor("USD"), null, "Paymob refused while switched off");
-    assert.equal((await paymentMethods()).paymob, false);
+    assert.equal(await providerFor("kashier"), null, "Kashier refused while switched off");
+    assert.equal((await paymentMethods()).kashier, false);
     const m = await member("switch");
-    const r = await startCheckout(await ws(m.wsId), m.buyer, { kind: "subscription", plan: "pro", period: "monthly" });
+    const r = await startCheckout(await ws(m.wsId), m.buyer, { kind: "subscription", plan: "pro", period: "monthly" }, null, "kashier");
     assert.ok(!r.ok && r.error === "not_connected");
     await db.from("site_settings").upsert({ key: "platform_switches", value: {} });
     resetSwitchCache();
-    assert.ok(await providerFor("USD"), "available again when switched on");
+    assert.ok(await providerFor("kashier"), "available again when switched on");
     console.log("✔ switches");
   }
 
@@ -231,14 +216,14 @@ try {
   }
   console.log("\nAll conversion-tracking scenarios passed.");
 } finally {
-  await db.from("payment_providers").update({ enabled: providerBefore!.enabled, mode: providerBefore!.mode, config: providerBefore!.config }).eq("id", "paymob");
+  await db.from("payment_providers").update({ enabled: providerBefore!.enabled, mode: providerBefore!.mode, config: providerBefore!.config }).eq("id", "kashier");
   for (const [k, v] of Object.entries(saved)) {
-    if (v) await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: k, p_secret: v });
-    else await db.rpc("clear_payment_secret", { p_provider: "paymob", p_name: k });
+    if (v) await db.rpc("set_payment_secret", { p_provider: "kashier", p_name: k, p_secret: v });
+    else await db.rpc("clear_payment_secret", { p_provider: "kashier", p_name: k });
   }
   if (fxBefore) await db.from("site_settings").upsert({ key: "yolias_fx_usd_egp", value: fxBefore.value });
   else await db.from("site_settings").delete().eq("key", "yolias_fx_usd_egp");
   await db.from("site_settings").upsert({ key: "platform_switches", value: switchesBefore?.value ?? {} });
   for (const id of users) await db.auth.admin.deleteUser(id).catch(() => {});
-  server.close();
+  kashier.close();
 }

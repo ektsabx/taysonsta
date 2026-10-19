@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { MailboxRow, MailProvider } from "@/types/database";
 import { gmail } from "./gmail";
 import { outlook } from "./outlook";
+import { imapProvider } from "./imap";
 import { testMailboxAllowed, testProvider } from "./test-provider";
 import { MailboxError, type MailboxProvider } from "./types";
 
@@ -14,7 +15,7 @@ export type { IncomingMail, OutgoingMail, SentMail } from "./types";
 // (set_mailbox_token / mailbox_token, service role only) and never reaches
 // the browser. Access tokens are kept in memory for their lifetime.
 
-const providers: Record<MailProvider, MailboxProvider> = { gmail, outlook, test: testProvider };
+const providers: Record<MailProvider, MailboxProvider> = { gmail, outlook, imap: imapProvider, test: testProvider };
 
 export function mailboxProvider(id: MailProvider): MailboxProvider {
   if (id === "test" && !testMailboxAllowed()) throw new MailboxError("not_configured", "the test mailbox is only for local tests");
@@ -26,6 +27,8 @@ export async function availableProviders(): Promise<MailProvider[]> {
   const out: MailProvider[] = [];
   if (await gmail.configured()) out.push("gmail");
   if (await outlook.configured()) out.push("outlook");
+  // Any IMAP/SMTP mailbox (D-238): nothing to set up in Admin.
+  out.push("imap");
   if (testMailboxAllowed()) out.push("test");
   return out;
 }

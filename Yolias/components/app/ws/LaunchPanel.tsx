@@ -14,8 +14,9 @@ export interface MailboxOption { id: string; email: string; provider: string }
 
 // Approve and run a campaign (D-229). Shows exactly what will happen —
 // recipients, channel, the first message, the sequence and the daily limit —
-// and sends nothing until the member presses Approve. With no mailbox the
-// campaign runs in manual mode: drafts are prepared, the member sends them.
+// and sends nothing until the member presses Approve. A connected mailbox is
+// required (D-239): Yolias sends from it and, by default, answers simple
+// replies itself.
 export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { summary: LaunchSummary; mailboxes: MailboxOption[]; mailboxName: string | null; dailyLimit: number }) {
   const { t } = useI18n();
   const o = t.ws.outreach;
@@ -24,7 +25,7 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
   const c = summary.campaign;
   const email = c.channel === "email";
   const [mailbox, setMailbox] = useState<string>(email && mailboxes[0] ? mailboxes[0].id : "");
-  const [autoReply, setAutoReply] = useState(false);
+  const [autoReply, setAutoReply] = useState(true);
   const approved = Boolean(c.approved_at);
   const archived = c.status === "archived";
 
@@ -77,26 +78,23 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
               <label className="ws-label" htmlFor="launch-mailbox">{l.sendFrom}</label>
               <select id="launch-mailbox" className="form-select" value={mailbox} onChange={(e) => setMailbox(e.target.value)}>
                 {mailboxes.map((m) => <option key={m.id} value={m.id}>{m.email}</option>)}
-                <option value="">{l.manualOption}</option>
               </select>
             </div>
-            {mailbox ? (
-              <label className="affiliate-accept launch-autoreply">
-                <input type="checkbox" checked={autoReply} onChange={(e) => setAutoReply(e.target.checked)} />
-                <span><strong>{l.autoReply}</strong><br /><span className="ws-muted">{l.autoReplyHint}</span></span>
-              </label>
-            ) : null}
+            <label className="affiliate-accept launch-autoreply">
+              <input type="checkbox" checked={autoReply} onChange={(e) => setAutoReply(e.target.checked)} />
+              <span><strong>{l.autoReply}</strong><br /><span className="ws-muted">{l.autoReplyHint}</span></span>
+            </label>
           </div>
         ) : (
           <p className="ws-note launch-note">{l.noMailbox} <button type="button" className="link-button" onClick={() => openSettingsTab("integration")}>{l.connectMailbox}</button></p>
         )
-      ) : <p className="ws-note launch-note">{l.linkedinManual}</p>}
+      ) : null}
 
       <div className="ws-actions">
-        <button className="btn-primary" type="button" disabled={pending || !summary.recipients} onClick={() => {
-          if (!confirm(mailbox ? fmt(l.confirmSend, { count: summary.withEmail }) : l.confirmManual)) return;
-          run(() => approveOutreach(c.id, mailbox || null, autoReply));
-        }}><Rocket size={14} /> {mailbox ? l.approveSend : l.approveManual}</button>
+        <button className="btn-primary" type="button" disabled={pending || !summary.recipients || !mailbox} onClick={() => {
+          if (!confirm(fmt(l.confirmSend, { count: summary.withEmail }))) return;
+          run(() => approveOutreach(c.id, mailbox, autoReply));
+        }}><Rocket size={14} /> {l.approveSend}</button>
       </div>
     </section>
   );

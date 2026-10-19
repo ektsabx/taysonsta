@@ -65,7 +65,7 @@ export const useCasesPage: Localized<{ eyebrow: string; title: string; lead: str
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes. It doesn’t promise a personal email or phone number for every person.",
   coverage: "Results depend on your market and on the data sources connected to Yolias; a search that needs a source Yolias doesn’t have yet waits and says so.",
-  outreach: "Yolias sends a campaign from your own Gmail or Outlook only after you approve it; without a connected mailbox, and always on LinkedIn, you send each message yourself.",
+  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail, Outlook or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
   guarantee: "Yolias doesn’t guarantee a number of leads, meetings or sales.",
 };
 const limitsAr = {
@@ -97,7 +97,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
         { title: "Describe the customer", body: "Write who you want to sell to the way you would brief a colleague: market, industry, company size, signals and the roles you need to reach." },
         { title: "Confirm the campaign", body: "Yolias shows the criteria it understood and the assumptions it made from your company profile, then opens a campaign with a target number of prospects." },
         { title: "Review the matches", body: "Companies and decision makers arrive with a match score that lists what matched. Keep the good ones, remove the rest and export to CSV." },
-        { title: "Prepare the first message", body: "For each prospect Yolias can draft an email or LinkedIn message from your profile and the facts it found. You edit and send it yourself." },
+        { title: "Prepare the first message", body: "For each prospect Yolias writes an email from your profile and the facts it found, and sends it from your own mailbox once you approve." },
       ],
       exampleTitle: "An example brief",
       exampleNote: "An illustration of how a request can be written, not a customer story:",
@@ -109,7 +109,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "Is AI prospecting the same as buying a lead list?", a: "No. A lead list is a fixed file someone else built. In Yolias each search is built from your own brief and business context, and every result shows why it matched." },
         { q: "Do I need to know industry codes or filters?", a: "No. You describe the customer in plain language. Yolias turns it into criteria and shows them to you before the campaign runs." },
-        { q: "Does Yolias contact prospects for me?", a: "No. Yolias researches and drafts; you decide who to contact and send messages from your own accounts." },
+        { q: "Does Yolias contact prospects for me?", a: "Only after you approve. You choose who to contact; Yolias writes the emails and sends them from your own connected mailbox, then brings the replies to your Inbox." },
       ],
       solutions: ["sales-teams", "marketing-agencies", "consultants"],
     },
@@ -133,7 +133,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
         { title: "صِف العميل", body: "اكتب لمن تريد أن تبيع كما تشرح المهمة لزميل: السوق والقطاع وحجم الشركة والمؤشرات والمناصب التي تريد الوصول إليها." },
         { title: "أكّد الحملة", body: "يعرض يولـياس المعايير التي فهمها والافتراضات التي أخذها من ملف شركتك، ثم يفتح حملة بعدد مستهدف من العملاء المحتملين." },
         { title: "راجع النتائج", body: "تصل الشركات وصنّاع القرار مع نسبة تطابق توضّح ما تطابق. احتفظ بالمناسب واحذف الباقي وصدّر إلى CSV." },
-        { title: "جهّز الرسالة الأولى", body: "لكل عميل محتمل يمكن أن يجهّز يولـياس رسالة بريد أو LinkedIn من ملفك والمعلومات التي وجدها، وتعدّلها وترسلها أنت." },
+        { title: "جهّز الرسالة الأولى", body: "لكل عميل محتمل يكتب يولـياس رسالة بريد من ملفك والمعلومات التي وجدها، ويرسلها من بريدك بعد موافقتك." },
       ],
       exampleTitle: "مثال على وصف",
       exampleNote: "مثال توضيحي لطريقة كتابة الطلب، وليس قصة عميل:",
@@ -171,7 +171,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
         { title: "1. Define who you serve best", body: "Look at your best past clients: industry, size, location and who hired you. Write it as one sentence. In Yolias this becomes your company profile and your first search." },
         { title: "2. Build a researched shortlist", body: "Yolias finds companies that match the sentence, with industry, size and location, and explains why each one fits." },
         { title: "3. Find the right person", body: "Name the roles that buy your service. Yolias looks for people with those titles at each company, and shows the business contact details the company publishes." },
-        { title: "4. Send a relevant first message", body: "Yolias drafts a short message from what it found and your profile. Edit it, then send it from your own email or LinkedIn." },
+        { title: "4. Send a relevant first message", body: "Yolias writes a short email from what it found and your profile, and sends it from your own mailbox once you approve." },
         { title: "5. Keep it running", body: "A campaign can run on a schedule and keep adding new matching companies, so prospecting doesn’t stop when you get busy." },
       ],
       exampleTitle: "An example",
@@ -195,7 +195,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       metaDescription: "طريقة عملية لإيجاد عملاء لنشاط خدمي: حدّد من تخدمه، وابنِ قائمة مختصرة مدروسة، وتواصل مع كل شركة برسالة مناسبة.",
       lead: "عملاء الترشيحات هم الأفضل، حتى تتباطأ الترشيحات. يعرض هذا الدليل طريقة متكررة لإيجاد عملاء جدد لوكالة أو مكتب استشارات أو عمل حر، وأين يوفر عليك يولـياس وقت البحث.",
       answerTitle: "الإجابة المختصرة",
-      answer: "اكتب نوع الشركة التي تخدمها بأفضل شكل، وابحث عن الشركات المطابقة، وتحقق من مناسبة كل منها، ثم تواصل مع الشخص المناسب برسالة عن وضعه. يتولى يولـياس البحث والتحقق من وصف بلغة طبيعية، ويجهّز الرسالة الأولى لترسلها أنت.",
+      answer: "اكتب نوع الشركة التي تخدمها بأفضل شكل، وابحث عن الشركات المطابقة، وتحقق من مناسبة كل منها، ثم تواصل مع الشخص المناسب برسالة عن وضعه. يتولى يولـياس البحث والتحقق من وصف بلغة طبيعية، ويكتب الرسالة الأولى ويرسلها من بريدك بعد موافقتك.",
       forTitle: "لمن هذا",
       forWho: ["وكالات التسويق والتصميم والبرمجيات", "الاستشاريون ومكاتب الاستشارات", "المستقلون والاستوديوهات الصغيرة", "وكالات التوظيف التي تبحث عن شركات عميلة جديدة"],
       problemTitle: "أين تتعثر معظم الأنشطة الخدمية",
@@ -425,7 +425,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       steps: [
         { title: "صِف النوع والمنطقة", body: "مثل: عيادات الأسنان في جدة، أو المقاهي والمخابز في دبي مارينا التي لديها موقع إلكتروني." },
         { title: "راجع الأنشطة", body: "يظهر كل نشاط بعنوانه وموقعه الإلكتروني وهاتفه أو بريده المنشور، ومع التقييم وعدد المراجعات عندما يوفرها المصدر." },
-        { title: "تواصل بطريقتك", body: "يجهّز يولـياس رسالة بريد قصيرة بلغة النشاط من بيانات التواصل المنشورة، تفتحها في بريدك وترسلها بنفسك. وتظهر روابط موقعه وصفحاته على مواقع التواصل عند توفرها." },
+        { title: "تواصل بطريقتك", body: "يكتب يولـياس رسالة بريد قصيرة بلغة النشاط إلى بريده المنشور، ويرسلها من بريدك بعد موافقتك. وتظهر روابط موقعه وصفحاته على مواقع التواصل عند توفرها." },
       ],
       exampleTitle: "مثال",
       exampleNote: "مثال توضيحي لطلب، وليس قصة عميل:",

@@ -7,7 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // changes until the owner switches something off. Off = hidden from
 // customers and refused on the server (not only hidden).
 
-export const SWITCHES = ["payments_polar", "payments_paymob", "buy_more"] as const;
+// payments_kashier: card payments through Kashier (D-235), replacing Paymob (payments_paymob is kept so old links stay off).
+export const SWITCHES = ["payments_polar", "payments_paymob", "payments_kashier", "buy_more"] as const;
 export type SwitchKey = (typeof SWITCHES)[number];
 
 const TTL_MS = 15_000;

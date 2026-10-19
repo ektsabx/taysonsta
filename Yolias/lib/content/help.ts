@@ -116,9 +116,9 @@ export const articles: HelpArticle[] = [
         title: "Choosing a plan and billing period",
         summary: "All plans have the same features; they differ in how much discovery you can run each month.",
         blocks: [
-          { p: "Pro, Growth and Scale include the same Yolias features and unlimited users. They differ in their monthly limits: prospects, emails and uploaded contacts. Every plan starts with a 7-day free trial (a card is required; if you choose “Card from Egypt” at checkout, the first period is paid up front through Paymob). Pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Pro, Growth and Scale include the same Yolias features and unlimited users. They differ in their monthly limits: prospects, emails and uploaded contacts. You pay by card through Paymob and the first period is paid up front (a 7-day free trial applies only when checkout offers it). Pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
-          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing gives you 2 months free (you pay for 10 months a year): prices show the monthly rate, the year is paid upfront, and your usage limits still reset every month." },
+          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing saves 20%: prices show the monthly rate, the year is paid upfront, and your usage limits still reset every month. In Egypt, prices are in Egyptian pounds: Pro EGP 2,499, Growth EGP 4,999 and Scale EGP 9,999 a month (EGP 1,999, 3,999 and 7,999 a month billed yearly)." },
           { h2: "Not sure yet?" },
           { p: "Start with the plan closest to your current needs. You can change plan or billing period later from Settings → Billing." },
         ],
@@ -127,9 +127,9 @@ export const articles: HelpArticle[] = [
         title: "اختيار الخطة وفترة الفوترة",
         summary: "كل الخطط تشمل الميزات نفسها، وتختلف في حجم الاكتشاف الذي يمكنك تشغيله شهريًا.",
         blocks: [
-          { p: "تشمل خطط برو والنمو والتوسع ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق في حدودها الشهرية: العملاء المحتملون ورسائل البريد وجهات الاتصال المرفوعة. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام (البطاقة مطلوبة، وإذا اخترت «الدفع بالفيزا من مصر» عند الدفع تُدفع أول فترة مقدمًا عبر Paymob). اختر ما يناسب الحجم الذي تتوقعه، وتجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "تشمل خطط برو والنمو والتوسع ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق في حدودها الشهرية: العملاء المحتملون ورسائل البريد وجهات الاتصال المرفوعة. تدفع بالبطاقة عبر Paymob وتُدفع أول فترة مقدمًا (والتجربة المجانية لمدة 7 أيام تنطبق فقط عندما تظهر في صفحة الدفع). اختر ما يناسب الحجم الذي تتوقعه، وتجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
-          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تمنحك شهرين مجانًا (تدفع 10 أشهر في السنة): الأسعار تظهر بالشهر، والسنة تُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
+          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية توفّر 20%: الأسعار تظهر بالشهر، والسنة تُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر. في مصر الأسعار بالجنيه المصري: برو 2,499 جنيه، والنمو 4,999 جنيه، والتوسع 9,999 جنيه في الشهر (1,999 و3,999 و7,999 جنيه في الشهر مع الفوترة السنوية)." },
           { h2: "لم تقرر بعد؟" },
           { p: "ابدأ بالخطة الأقرب لاحتياجك الحالي. يمكنك تغيير الخطة أو فترة الفوترة لاحقًا من الإعدادات ← الفوترة." },
         ],

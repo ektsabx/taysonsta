@@ -16,16 +16,17 @@ export default async function PlansPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="الخطط والحصص" subtitle="الأسعار وحصة العملاء المحتملين لكل خطة. سعر واحد بالدولار لكل الدول. التغيير يسري فوراً على كل مساحات العمل في الخطة، بما فيها صفحة الأسعار." />
+      <PageHeader title="الخطط والحصص" subtitle="الأسعار وحصة العملاء المحتملين لكل خطة. سعر بالدولار، وسعر بالجنيه لعملاء مصر. التغيير يسري فوراً على كل مساحات العمل في الخطة، بما فيها صفحة الأسعار." />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         {yoliasPlanIds.map((p) => (
           <Card key={p} title={yoliasPlanLabel[p]}>
             <KeyValues items={[
               { label: "السعر الشهري", value: usd(terms[p].priceUsd) },
+              { label: "السعر الشهري لمصر", value: terms[p].priceEgp == null ? "—" : <span dir="ltr">EGP {num(terms[p].priceEgp)}</span> },
               { label: "العملاء المحتملون شهرياً", value: num(terms[p].prospects) },
               { label: "آخر تعديل", value: terms[p].updatedBy ? `${terms[p].updatedBy} · ${formatDateTime(terms[p].updatedAt)}` : "—" },
             ]} />
-            {manage ? <PlanQuotaForm plan={p} prospects={terms[p].prospects} priceUsd={terms[p].priceUsd} /> : null}
+            {manage ? <PlanQuotaForm plan={p} prospects={terms[p].prospects} priceUsd={terms[p].priceUsd} priceEgp={terms[p].priceEgp} /> : null}
           </Card>
         ))}
       </div>

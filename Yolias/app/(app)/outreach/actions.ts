@@ -13,6 +13,8 @@ import { loadAiSettings } from "@/lib/ai-workspace/server";
 import type { OutreachCampaignStatus } from "@/types/database";
 import { parseFilters, selectItems } from "@/services/prospects";
 import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
+import { memberMailboxes } from "@/lib/mailbox";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Outreach campaigns (D-193): create / edit with steps, add and remove leads,
 // prepare drafts, change status. All as the member (RLS); drafting checks
@@ -50,7 +52,8 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
   const steps = c.steps.slice(0, limits.max_messages_per_lead);
   const db = await createClient();
   const row = {
-    name: c.name, goal: c.goal || null, description: c.description || null, channel: c.channel as never, language: c.language, tone: c.tone as never,
+    // Email only (D-239): Yolias sends from the member's mailbox; no LinkedIn or chat messages.
+    name: c.name, goal: c.goal || null, description: c.description || null, channel: "email" as never, language: c.language, tone: c.tone as never,
     customer_profile_id: c.customer_profile_id, offer_id: c.offer_id,
   };
   let id = c.id;
@@ -80,20 +83,52 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
 }
 
 /**
- * Starts a campaign in one go (owner brief 2026-10-19): the prospects join it
- * (CRM → enrollment), it becomes active, and the first drafts are prepared so
- * they're ready to send. Sending stays the member's (D-193): Yolias has no
- * mailbox connected, so "sent" is confirmed by the member.
+ * Puts the prospects in a new campaign (CRM → enrollment). The campaign page
+ * then writes each person's email live (writeNextEmails) and the member
+ * approves sending from their mailbox (D-239).
  */
 export async function launchCampaign(campaignId: string, targets: LeadTarget[]): Promise<OutreachResult> {
   const t = (await getDictionary()).ws.outreach;
   if (!targets.length) return { ok: false, error: t.errors.noProspects };
-  const added = await addProspectsToCampaign(campaignId, targets);
-  if (!added.ok) return added;
-  const active = await setOutreachStatus(campaignId, "active");
-  if (!active.ok) return active;
-  const drafts = await prepareCampaignDrafts(campaignId);
-  return { ok: true, message: [added.message, drafts.ok ? drafts.message : drafts.error].filter(Boolean).join(" ") };
+  return addProspectsToCampaign(campaignId, targets);
+}
+
+/**
+ * The campaign page writes the first email of each person, a couple at a
+ * time, while the member watches (D-239). Writing needs the member's
+ * connected mailbox. People without an email address leave the campaign.
+ */
+export async function writeNextEmails(campaignId: string): Promise<OutreachResult<{ prepared: number; remaining: number }>> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  const o = t.ws.outreach;
+  if (!uuid.safeParse(campaignId).success) return { ok: false, error: o.errors.notFound };
+  if (!(await memberMailboxes(session.workspace.id, session.userId)).some((m) => m.status === "connected")) return { ok: false, error: o.workspace.noMailbox };
+  const db = await createClient();
+  const { data: camp } = await db.from("outreach_campaigns").select("id, status").eq("id", campaignId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!camp || camp.status === "archived") return { ok: false, error: o.errors.notFound };
+  const [{ data: enr }, { data: written }] = await Promise.all([
+    db.from("outreach_enrollments").select("id").eq("campaign_id", campaignId).eq("status", "active").eq("current_step", 0).order("created_at").limit(500),
+    db.from("outreach_messages").select("enrollment_id").eq("outreach_campaign_id", campaignId).eq("step_position", 1).eq("direction", "outbound").neq("status", "canceled").limit(1000),
+  ]);
+  const done = new Set((written ?? []).map((m) => m.enrollment_id));
+  const todo = (enr ?? []).filter((e) => !done.has(e.id));
+  let prepared = 0, handled = 0;
+  for (const e of todo.slice(0, 2)) {
+    handled++;
+    const r = await prepareNextStep(session.workspace.id, session.userId, e.id, "user");
+    if (r.ok) { prepared++; continue; }
+    if (r.error === "no_email" || r.error === "do_not_contact" || r.error === "suppressed") {
+      await createAdminClient().from("outreach_enrollments").update({ status: "stopped", stop_reason: r.error, next_step_at: null }).eq("id", e.id).eq("status", "active");
+      continue;
+    }
+    if (r.error === "not_configured" || r.error === "denied") {
+      const reason = r.error in t.ws.messages.prepareErrors ? t.ws.messages.prepareErrors[r.error as keyof typeof t.ws.messages.prepareErrors] : t.outreach.errors[r.error as keyof typeof t.outreach.errors];
+      return { ok: false, error: reason ?? t.ws.common.error };
+    }
+  }
+  revalidatePath(`/outreach/${campaignId}`);
+  return { ok: true, prepared, remaining: Math.max(0, todo.length - handled) };
 }
 
 /** Selected prospects → a new campaign with the usual two steps, started at once (Prospects → Send). */
@@ -102,7 +137,7 @@ export async function quickCampaign(input: { name: string; channel: string; targ
   const t = (await getDictionary()).ws.outreach;
   const settings = await loadAiSettings(session.workspace.id);
   const saved = await saveOutreachCampaign({
-    name: input.name, goal: "", description: "", channel: input.channel as never, language: session.profile.language === "ar" ? "ar" : "en", tone: "direct",
+    name: input.name, goal: "", description: "", channel: "email" as never, language: session.profile.language === "ar" ? "ar" : "en", tone: "direct",
     customer_profile_id: null, offer_id: null,
     steps: [{ delay_days: 0, objective: "introduction", instruction: "" }, { delay_days: 3, objective: "follow_up", instruction: "" }].slice(0, Math.max(1, settings.limits.max_messages_per_lead)) as never,
   });

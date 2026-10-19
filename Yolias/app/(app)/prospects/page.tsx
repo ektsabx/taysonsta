@@ -50,7 +50,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       kind: r.item_type,
       href: person ? `/prospects/person/${r.id}` : `/prospects/company/${r.id}`,
       name: r.name,
-      sub: person ? r.title : r.domain,
+      sub: person ? null : r.domain,
       imageUrl: r.image_url,
       domain: r.domain,
       company: person ? r.company_name : null,
@@ -58,6 +58,11 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       industry: r.industry,
       location: location(r.city, r.country, locale) || null,
       employees,
+      jobTitle: person ? r.title : null,
+      revenue: r.annual_revenue_usd != null ? compactUsd(r.annual_revenue_usd) : null,
+      funding: r.funding_total_usd != null ? compactUsd(r.funding_total_usd) : r.funding_stage,
+      visitors: r.monthly_visits != null ? new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(r.monthly_visits) : null,
+      geo: r.traffic_geo,
       hasEmail: Boolean(r.email) && r.email_status !== "invalid",
       hasPhone: Boolean(r.phone),
       linkedinUrl: r.linkedin_url,
@@ -110,4 +115,9 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       </div>
     </div>
   );
+}
+
+/** $1.2M, $850K — revenue and funding in the Prospects table (D-240). */
+function compactUsd(v: number): string {
+  return `$${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(v)}`;
 }

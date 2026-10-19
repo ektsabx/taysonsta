@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Star, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { deleteProfile, saveProfile, setDefaultProfile } from "@/app/(app)/ai/actions";
+import { saveProfile } from "@/app/(app)/ai/actions";
+import { AnalyzeWebsite } from "./KnowledgeView";
+import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { useRun } from "./bits";
 import type { CustomerProfileRow, CustomerType } from "@/types/database";
 
@@ -22,12 +23,26 @@ const toForm = (p: CustomerProfileRow): Form => ({
 const split = (s: string) => s.split(/[,،\n]/).map((x) => x.trim()).filter(Boolean);
 const num = (s: string) => (s.trim() === "" ? null : Math.max(0, Math.round(Number(s))) || 0);
 
-export function ProfilesView({ profiles }: { profiles: CustomerProfileRow[] }) {
+// Customer Profiles (owner brief 2026-10-19, D-241): one form, like the
+// Company tab: the workspace's ideal customer. "Analyze website" writes it
+// from what the company sells; the member reviews and saves.
+export function ProfilesView({ profiles, website, manage }: { profiles: CustomerProfileRow[]; website: string; manage: boolean }) {
   const { t } = useI18n();
   const p = t.ws.ai.profiles;
   const f = p.fields;
   const { run, pending } = useRun();
-  const [form, setForm] = useState<Form | null>(profiles[0] ? toForm(profiles[0]) : null);
+  const [form, setForm] = useState<Form | null>(profiles[0] ? toForm(profiles[0]) : { ...empty, name: p.defaultName });
+  const [analyzed, setAnalyzed] = useState(false);
+  const fromAnalysis = (a: WebsiteAnalysis) => {
+    const c = a.customer;
+    setForm((cur) => {
+      const f0 = cur ?? { ...empty, name: p.defaultName };
+      const keep = (v: string | null, old: string) => (v ? v : old);
+      const join = (v: string[], old: string) => (v.length ? v.join(", ") : old);
+      return { ...f0, problems: keep(c.problems, f0.problems), benefits: keep(c.benefits, f0.benefits), goals: keep(c.goals, f0.goals), industries: join(c.industries, f0.industries), job_titles: join(c.job_titles, f0.job_titles), countries: join(c.countries, f0.countries), company_size_min: c.company_size_min?.toString() ?? f0.company_size_min, company_size_max: c.company_size_max?.toString() ?? f0.company_size_max, customer_type: c.customer_type ?? f0.customer_type };
+    });
+    setAnalyzed(true);
+  };
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => form && setForm({ ...form, [k]: e.target.value });
   const area = (k: keyof Form, label: string, hint?: string, rows = 3) => (
     <div className="ws-field">
@@ -51,24 +66,12 @@ export function ProfilesView({ profiles }: { profiles: CustomerProfileRow[] }) {
   }), { success: t.ws.common.saved, onOk: (r) => setForm({ ...form, id: r.id }) });
 
   return (
-    <div className="lead-layout profiles-layout">
-      <aside>
-        <div className="ws-card ws-list">
-          <button className="btn-primary" type="button" style={{ marginBottom: 10 }} onClick={() => setForm({ ...empty })}><Plus size={14} /> {p.new}</button>
-          {!profiles.length && <p className="ws-muted">{p.empty}</p>}
-          {profiles.map((x) => (
-            <button key={x.id} type="button" className={`menu-item${form?.id === x.id ? " selected" : ""}`} onClick={() => setForm(toForm(x))}>
-              <span>{x.name}</span>
-              {x.is_default && <span className="ws-chip green"><Star /> {p.default}</span>}
-            </button>
-          ))}
-        </div>
-        <p className="ws-hint" style={{ marginTop: 10 }}>{p.usedIn}</p>
-      </aside>
+    <div className="profiles-single">
+      {manage && <AnalyzeWebsite initialUrl={website} onResult={fromAnalysis} />}
+      {analyzed && <div className="ws-card analyze-result" role="status"><p>{p.analyzed}</p></div>}
       {form ? (
         <div className="ws-form">
           <div className="ws-card ws-form">
-            {input("name", f.name, undefined, { maxLength: 120, placeholder: p.namePh })}
             <div className="ws-grid-2">
               {area("problems", f.problems)}
               {area("benefits", f.benefits)}
@@ -105,9 +108,7 @@ export function ProfilesView({ profiles }: { profiles: CustomerProfileRow[] }) {
             </div>
           </div>
           <div className="ws-actions">
-            {form.id && !profiles.find((x) => x.id === form.id)?.is_default && <button className="btn-secondary" type="button" disabled={pending} onClick={() => run(() => setDefaultProfile(form.id!), { success: t.ws.common.saved })}><Star size={14} /> {p.makeDefault}</button>}
-            {form.id && <button className="btn-danger-ghost" type="button" disabled={pending} onClick={() => { if (confirm(t.ws.common.confirmDelete)) run(() => deleteProfile(form.id!), { onOk: () => setForm(null) }); }}><Trash2 size={13} /> {t.ws.common.delete}</button>}
-            <button className="btn-primary" type="button" disabled={pending || !form.name.trim()} onClick={save}>{t.ws.common.save}</button>
+            <button className="btn-primary" type="button" disabled={pending || !manage || !form.name.trim()} onClick={() => { setAnalyzed(false); save(); }}>{t.ws.common.save}</button>
           </div>
         </div>
       ) : <div className="ws-empty">{p.empty}</div>}

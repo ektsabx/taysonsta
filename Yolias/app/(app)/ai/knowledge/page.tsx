@@ -35,7 +35,7 @@ export default async function KnowledgePage({ searchParams }: PageProps<"/ai/kno
         <Link href="/ai/knowledge?tab=profiles" className={tab === "profiles" ? "active" : ""} aria-current={tab === "profiles" ? "page" : undefined}>{p.title}</Link>
       </nav>
       <div className="view-content-padding">
-        {tab === "profiles" ? <Profiles workspaceId={w.id} db={db} /> : <Company session={session} db={db} />}
+        {tab === "profiles" ? <Profiles workspaceId={w.id} db={db} website={w.website ?? ""} manage={canManageTeam(session)} /> : <Company session={session} db={db} />}
       </div>
     </div>
   );
@@ -61,7 +61,7 @@ async function Company({ session, db }: { session: Awaited<ReturnType<typeof req
   );
 }
 
-async function Profiles({ workspaceId, db }: { workspaceId: string; db: Db }) {
+async function Profiles({ workspaceId, db, website, manage }: { workspaceId: string; db: Db; website: string; manage: boolean }) {
   const { data: profiles } = await db.from("customer_profiles").select("*").eq("workspace_id", workspaceId).order("is_default", { ascending: false }).order("name");
-  return <ProfilesView profiles={profiles ?? []} />;
+  return <ProfilesView profiles={profiles ?? []} website={website} manage={manage} />;
 }

@@ -36,11 +36,12 @@ export function location(city: string | null | undefined, country: string | null
  * "$20" in both languages (shown inside dir="ltr", as in the design). One
  * USD price for every country (D-131).
  */
-export function formatMoney(amount: number, currency: "USD", cents = false): string {
+export function formatMoney(amount: number, currency: "USD" | "EGP", cents = false): string {
+  // EGP (Egypt's prices, D-237) reads "EGP 2,499"; USD keeps "$50".
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    currencyDisplay: "narrowSymbol",
+    currencyDisplay: currency === "EGP" ? "code" : "narrowSymbol",
     minimumFractionDigits: cents ? 2 : 0,
     maximumFractionDigits: cents ? 2 : Number.isInteger(amount) ? 0 : 2,
   }).format(amount);

@@ -93,8 +93,8 @@ try {
   assert.equal(pays!.length, 1);
   const sub = pays![0];
   assert.equal(sub.status, "pending"); assert.equal(Number(sub.amount), 9.99); assert.equal(sub.currency, "USD");
-  assert.equal(Number(sub.charge_amount), 500); assert.equal(sub.charge_currency, "EGP"); assert.equal(Number(sub.fx_rate), 50);
-  assert.equal((intentions.at(-1) as { amount: number }).amount, 50000);
+  assert.equal(Number(sub.charge_amount), 2499, "Egypt pays the plan's EGP price (D-237)"); assert.equal(sub.charge_currency, "EGP"); assert.equal(Number(sub.fx_rate), 250.1502);
+  assert.equal((intentions.at(-1) as { amount: number }).amount, 249900);
   assert.equal((intentions.at(-1) as { currency: string }).currency, "EGP", "the EGP card integration is charged in EGP (D-142)");
   assert.deepEqual((intentions.at(-1) as { payment_methods: number[] }).payment_methods, [222]);
 
@@ -106,14 +106,14 @@ try {
   assert.equal((await db.from("payments").select("id").eq("workspace_id", wsId)).data!.length, 1);
 
   // 2) Bad signature / wrong amount change nothing.
-  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 50000), "wrong-secret")).status, 401);
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 249900), "wrong-secret")).status, 401);
   assert.equal((await callback(txn(sub.id, sub.provider_ref!, 999))).status, 200, "the USD amount is not what was charged");
-  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 50000, { currency: "USD" }))).status, 200);
+  assert.equal((await callback(txn(sub.id, sub.provider_ref!, 249900, { currency: "USD" }))).status, 200);
   assert.equal((await payment(sub.id)).status, "pending");
   assert.equal((await ws(wsId)).subscription_status, "none");
 
   // 3) Signed success → plan starts, USD invoice, replay is a no-op.
-  const ok = txn(sub.id, sub.provider_ref!, 50000);
+  const ok = txn(sub.id, sub.provider_ref!, 249900);
   assert.equal((await callback(ok)).status, 200);
   assert.equal((await callback(ok)).status, 200);
   const paid = await payment(sub.id);
@@ -128,8 +128,8 @@ try {
   assert.ok(r.ok);
   ({ data: pays } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("plan", "growth"));
   const bad = pays![0];
-  assert.equal(Number(bad.amount), 249.9, "annual = 10 × 24.99 (2 months free)");
-  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(249.9 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
+  assert.equal(Number(bad.amount), 239.88, "annual = 12 × (24.99 − 20%)");
+  await callback(txn(bad.id, bad.provider_ref!, 4_798_800, { success: false, data: { message: "Do not honour" } }));
   assert.equal((await payment(bad.id)).status, "failed");
   assert.equal((await payment(bad.id)).failure_reason, "Do not honour");
   assert.equal((await ws(wsId)).plan, "pro");
@@ -193,7 +193,7 @@ try {
   r = await startCheckout(await ws(wsId), buyer, { kind: "subscription", plan: "pro", period: "monthly", invoiceId: open!.id });
   assert.ok(r.ok);
   const { data: renewal } = await db.from("payments").select("*").eq("invoice_id", open!.id).single();
-  await callback(txn(renewal!.id, renewal!.provider_ref!, 50000));
+  await callback(txn(renewal!.id, renewal!.provider_ref!, 249900));
   const renewed = await ws(wsId);
   assert.equal(renewed.subscription_status, "active");
   assert.equal(new Date(renewed.current_period_end!).getTime(), new Date(open!.period_end).getTime());

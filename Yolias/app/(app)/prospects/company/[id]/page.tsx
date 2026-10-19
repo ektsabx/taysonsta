@@ -56,7 +56,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   ];
   const recipient: MessageRecipient = {
     kind: "company", id: c.id, name: c.name, title: local ? c.category : c.industry, company: null, photoUrl: null, logo: { logoUrl: c.logo_url, domain: c.domain },
-    can: { email: Boolean(c.email), linkedin: false, whatsapp: false, facebook: Boolean(c.facebook_url), instagram: Boolean(c.instagram_url) },
+    can: { email: Boolean(c.email) },
   };
   const info: { icon: React.ReactNode; label: string; value: React.ReactNode; ltr?: boolean }[] = local
     ? [

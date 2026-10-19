@@ -274,6 +274,14 @@ export async function billingSweep(now = new Date()): Promise<{ reminders: numbe
     // Billed by Polar: Polar charges, reminds and renews; its webhooks update the workspace.
     if (ws.billing_provider === "polar" && ws.polar_subscription_id) continue;
     if (ws.subscription_status === "past_due") {
+      // Kashier: the saved card is tried again once a day during the grace period (D-235).
+      if (ws.billing_provider === "kashier") {
+        const { data: open } = await db.from("invoices").select("id").eq("workspace_id", ws.id).eq("status", "open").eq("kind", "subscription").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (open) {
+          const { chargeRenewal } = await import("@/lib/payments");
+          if ((await chargeRenewal(ws, open.id)) === "charged") { out.renewed++; continue; }
+        }
+      }
       if ((await settleSubscription(ws, now)).subscription_status === "canceled") out.ended++;
       continue;
     }
@@ -311,6 +319,11 @@ export async function billingSweep(now = new Date()): Promise<{ reminders: numbe
         period_start: end.toISOString(), period_end: nextEnd.toISOString(), ...billTo,
       }).select("id, number").single();
       await db.from("subscription_events").insert({ workspace_id: ws.id, plan: ws.plan, status: "past_due", amount, currency, billing_period: ws.billing_period, mode: "live" });
+      // A saved Kashier card pays the renewal now (D-235); the invoice email only goes out if it couldn't.
+      if (invoice && (ws.billing_provider === "kashier")) {
+        const { chargeRenewal } = await import("@/lib/payments");
+        if ((await chargeRenewal({ ...ws, subscription_status: "past_due" }, invoice.id)) === "charged") { out.renewed++; continue; }
+      }
       if (invoice) {
         const dueAt = new Date(end.getTime() + RENEWAL_GRACE_DAYS * DAY).toISOString();
         await notify("invoice_ready", admins, (l) => ({ invoiceId: invoice.id, invoiceNumber: invoice.number, planName: name(l), amount, currency, dueAt, test: false }), { workspaceId: ws.id, dedupe: invoice.id });

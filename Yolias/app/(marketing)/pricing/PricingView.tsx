@@ -9,7 +9,7 @@ import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { TrustLogos } from "@/components/marketing/SocialProof";
-import { monthlyRate, planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
+import { monthlyRate, monthlyRateEgp, planName, planPrice, priceFor, priceForEgp, type PlanTerms } from "@/lib/plans";
 import type { BillingPeriod, Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
 
@@ -33,17 +33,25 @@ interface Props {
   currency: Currency;
   /** Free trial length in days (lib/trial.ts). */
   trialDays: number;
+  /** The visitor is in Egypt: show the EGP prices (D-237). */
+  egp: boolean;
 }
 
-export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
+export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   const n = (v: number) => formatNumber(v, locale);
   // Every price is per month; annual shows the discounted rate and the yearly charge under it.
+  // Visitors from Egypt see the EGP prices they are charged (D-237).
   const list = (plan: PlanId) => planPrice(plans[plan], currency) ?? 0;
-  const price = (plan: PlanId) => formatMoney(monthlyRate(list(plan), period), currency);
-  const billed = (plan: PlanId) => (period === "annual" ? fmt(dict.plans.billedYearlyAt, { amount: formatMoney(priceFor(list(plan), period), currency) }) : undefined);
+  const egpOf = (plan: PlanId) => (egp ? plans[plan].priceEgp : null);
+  const price = (plan: PlanId) => { const e = egpOf(plan); return e ? formatMoney(monthlyRateEgp(e, period), "EGP") : formatMoney(monthlyRate(list(plan), period), currency); };
+  const billed = (plan: PlanId) => {
+    if (period !== "annual") return undefined;
+    const e = egpOf(plan);
+    return fmt(dict.plans.billedYearlyAt, { amount: e ? formatMoney(priceForEgp(e, period), "EGP") : formatMoney(priceFor(list(plan), period), currency) });
+  };
 
   // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
   const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;

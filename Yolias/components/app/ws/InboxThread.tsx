@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCheck, RotateCcw, Archive } from "lucide-react";
+import { ArrowLeft, CheckCheck, RotateCcw, TrendingUp } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { markThreadRead, setThreadStatus } from "@/app/(app)/inbox/actions";
+import { convertToOpportunity, markThreadRead, setThreadLabel, setThreadStatus } from "@/app/(app)/inbox/actions";
 import { setTaskDone } from "@/app/(app)/crm/actions";
 import { StageSelect, useRun } from "./bits";
 import { MessageCard, type CardMessage } from "./MessageCard";
 import { ReplyTools } from "./ReplyTools";
 import { dateTime, money } from "./format";
 import type { InboxThread } from "@/services/inbox";
-import type { MessageChannel } from "@/types/database";
 
-export function InboxThreadView({ thread, backHref, timeZone }: { thread: InboxThread; backHref: string; timeZone: string | null }) {
+export function InboxThreadView({ thread, backHref, timeZone, hasMailbox }: { thread: InboxThread; backHref: string; timeZone: string | null; hasMailbox: boolean }) {
   const { t, locale } = useI18n();
   const w = t.ws.inbox;
   const { run, pending } = useRun();
@@ -21,8 +20,8 @@ export function InboxThreadView({ thread, backHref, timeZone }: { thread: InboxT
   const [seed, setSeed] = useState<string | undefined>(undefined);
   // Opening an unread conversation marks it read.
   useEffect(() => { if (lead.unread) void markThreadRead(lead.id); }, [lead.id, lead.unread]);
-  const channel = (thread.messages.at(-1)?.channel ?? "email") as MessageChannel;
   const status = lead.thread_status ?? "open";
+  const labels = ["interested", "follow_up", "not_interested"] as const;
 
   return (
     <>
@@ -34,11 +33,16 @@ export function InboxThreadView({ thread, backHref, timeZone }: { thread: InboxT
         </div>
         <div className="ws-inline">
           <StageSelect leadId={lead.id} stage={lead.stage} label={w.stage} />
+          {/* Interested / Needs follow-up / Not interested (D-239): set from the reply, changeable here. */}
+          <div className="inbox-labels" role="radiogroup" aria-label={w.label}>
+            {labels.map((l) => (
+              <button key={l} type="button" role="radio" aria-checked={lead.thread_label === l} className={`inbox-label ${l}${lead.thread_label === l ? " active" : ""}`} disabled={pending}
+                onClick={() => run(() => setThreadLabel(lead.id, lead.thread_label === l ? null : l))}>{w.labels[l]}</button>
+            ))}
+          </div>
+          <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => convertToOpportunity(lead.id), { success: w.converted })}><TrendingUp size={13} /> {w.convert}</button>
           {status === "open" ? (
-            <>
-              <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "done"))}><CheckCheck size={13} /> {w.thread.markDone}</button>
-              <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "other"))}><Archive size={13} /> {w.thread.markOther}</button>
-            </>
+            <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "done"))}><CheckCheck size={13} /> {w.thread.markDone}</button>
           ) : (
             <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "open"))}><RotateCcw size={13} /> {w.thread.reopen}</button>
           )}
@@ -49,7 +53,7 @@ export function InboxThreadView({ thread, backHref, timeZone }: { thread: InboxT
         <div>
           {!thread.messages.length && <div className="ws-empty">{w.thread.noMessages}</div>}
           {thread.messages.map((m) => <MessageCard key={m.id} m={m as unknown as CardMessage} timeZone={timeZone} onUseSuggestion={setSeed} />)}
-          <div style={{ marginTop: 12 }}><ReplyTools leadId={lead.id} channel={channel} seed={seed} doNotContact={lead.do_not_contact} /></div>
+          <div style={{ marginTop: 12 }}><ReplyTools leadId={lead.id} seed={seed} doNotContact={lead.do_not_contact} hasMailbox={hasMailbox} /></div>
         </div>
         <aside className="inbox-side">
           <div className="ws-card">

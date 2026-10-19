@@ -6,10 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 import { parseFilters, selectItems } from "@/services/prospects";
-import { getLocale } from "@/lib/i18n/server";
-import { gridPerson } from "@/lib/results";
-import type { GridPerson } from "@/components/app/PeopleGrid";
-import type { ProspectRow } from "@/types/database";
 import { addToCrm } from "@/app/(app)/crm/actions";
 import { addProspectsToCampaign, quickCampaign } from "@/app/(app)/outreach/actions";
 
@@ -90,13 +86,6 @@ export async function removeFromSaved(target: Target): Promise<{ ok: boolean; re
   return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
 }
 
-/** The selected people as cards, for the Email / LinkedIn / WhatsApp actions (at most 100). */
-export async function peopleForActions(target: Target): Promise<GridPerson[]> {
-  const { people } = await resolve("ids" in target ? { ids: target.ids.slice(0, 100) } : target);
-  const locale = await getLocale();
-  return people.slice(0, 100).map((p) => gridPerson(p as unknown as ProspectRow, p.company_id && p.company ? { id: p.company_id, name: p.company.name } : null, locale));
-}
-
 /** Selected results → CRM (one lead per person / company, never duplicated). */
 export async function addSelectionToCrm(target: Target) {
   const { people, companies } = await resolve(target);
@@ -120,4 +109,9 @@ export async function openOutreachCampaigns(): Promise<{ id: string; name: strin
   const session = await requireSession();
   const { data } = await (await createClient()).from("outreach_campaigns").select("id, name, status").eq("workspace_id", session.workspace.id).in("status", ["draft", "active", "paused"]).order("updated_at", { ascending: false }).limit(50);
   return data ?? [];
+}
+
+/** A person or company page → a new outreach campaign with them; the campaign page writes the email (D-239). */
+export async function startCampaignFor(targets: { kind: "person" | "company"; id: string }[], name: string) {
+  return quickCampaign({ name: name.trim().slice(0, 160) || "Campaign", channel: "email", targets: targets.slice(0, 500) });
 }

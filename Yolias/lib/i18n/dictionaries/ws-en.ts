@@ -14,7 +14,7 @@ export const wsEn = {
     onlyManagers: "Only owners and admins can change this.", optional: "Optional", confirmDelete: "Delete this? This can't be undone.",
     page: "Page {page} of {pages}", prev: "Previous", next: "Next", yes: "Yes", no: "No", open: "Open", close: "Close", done: "Done",
     notConnectedTitle: "Not connected yet",
-    mailboxNotConnected: "No mailbox is connected, so Yolias can’t send campaigns or read replies for you yet. Connect Gmail or Outlook in Settings, Integrations. Until then you send each message from your own app and mark it as sent.",
+    mailboxNotConnected: "No mailbox is connected yet. Connect Gmail, Outlook or any IMAP/SMTP mailbox in Settings → Integrations: Yolias sends your campaigns from it and brings the replies here.",
     by: { user: "You", agent: "AI agent", automation: "Automation", system: "Yolias" },
   },
   stages: { new: "New", interested: "Interested", meeting_booked: "Meeting Booked", meeting_completed: "Meeting Completed", closed: "Closed", lost: "Lost" },
@@ -34,6 +34,17 @@ export const wsEn = {
     start: "Start using Yolias", videoError: "The video couldn’t load. You can watch it later from the menu.", openExternal: "Open the video",
   },
   outreach: {
+    workspace: {
+      tabs: { emails: "Emails", sent: "Sent", sequence: "Sequence" },
+      emailStatus: { verified: "Verified email", found: "Email found", none: "No email found", finding: "Finding email…" },
+      writing: "Yolias is writing personalized emails · {done} of {total}", written: "Every email is written. Review them, then start the campaign.",
+      noMailboxTitle: "Connect your mailbox to start", noMailbox: "Yolias writes and sends this campaign from your own email. Connect Gmail, Outlook or any IMAP/SMTP mailbox first.", connect: "Connect mailbox",
+      to: "To", subject: "Subject", clickEdit: "Click to edit", send: "Send this email", sending: "Sending…", sent: "Email sent.",
+      noDraft: "Yolias is writing this email.", noEmailLead: "No email address was found for this person, so no email is written.", selectLead: "Select a person to see their email.",
+      people: "{count} people", social: "Profile",
+      sentCols: { lead: "Lead", to: "Email address", subject: "Email", sentAt: "Sent at", sentBy: "Sent by", status: "Status" },
+      sentStatus: { sent: "Sent", bounced: "Bounced", replied: "Replied", failed: "Failed" }, noSent: "Nothing sent yet.",
+    },
     title: "Outreach", subtitle: "Campaigns that reach the prospects you found: first message, follow-ups and their status.",
     newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Prospects or the CRM.",
     colName: "Campaign", colStatus: "Status", colLeads: "Leads", colDrafts: "Drafts", colSent: "Sent", colReplies: "Replies", colMeetings: "Meetings", colUpdated: "Updated",
@@ -74,10 +85,17 @@ export const wsEn = {
       recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details",
     },
     errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no prospects yet." },
-    started: "Campaign started. Drafts are ready to send.",
+    started: "Campaign created. Yolias is writing the emails.",
     source: "Start from a search campaign", sourceNone: "No — I’ll add leads later", sourceHint: "Its prospects join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
     send: { button: "Send", title: "Send to {count} selected", lead: "Yolias creates a campaign with these prospects, starts it and prepares the first messages. You review and send them from Outreach or the Inbox.", name: "Campaign name", channel: "Channel", start: "Create and prepare messages", orExisting: "Or add them to an existing campaign", defaultName: "Campaign {date}" },
     pickCampaign: "Add to outreach campaign", pickCampaignTitle: "Choose a campaign", noCampaigns: "No active or draft campaigns. Create one in Outreach first.",
+  },
+  send: {
+    errors: {
+      not_found: "Message not found.", not_draft: "This email was already sent.", no_mailbox: "Connect your mailbox in Settings → Integrations first.",
+      do_not_contact: "This person asked not to be contacted.", no_email: "There’s no email address for this person.", daily_limit: "Your mailbox reached today’s sending limit. It continues tomorrow.",
+      mailbox_error: "Your mailbox refused to send. Reconnect it in Settings → Integrations.", failed: "The email wasn’t sent.",
+    },
   },
   messages: {
     status: { draft: "Draft", approved: "Approved", sending: "Sending", sent: "Sent", failed: "Failed", canceled: "Canceled", received: "Reply" },
@@ -98,9 +116,13 @@ export const wsEn = {
   inbox: {
       agentLog: "What Yolias did", viaMailbox: "Sent from your mailbox", bounced: "Bounced", autoReply: "Auto-reply",
       activity: { message_drafted: "Prepared a message", message_sent: "Sent a message", reply_logged: "Reply received", reply_analyzed: "Read the reply", stage_changed: "Moved the stage", agent: "Yolias", automation: "Automation", enrolled: "Added to a campaign", enrollment_stopped: "Follow-ups stopped", do_not_contact: "Marked do not contact", task_created: "Added a reminder", created: "Lead created" },
-    title: "Inbox", subtitle: "Conversations with your leads: messages, replies, reminders and scheduled messages.",
-    filters: { all: "All", unread: "Unread only", reminders: "Reminders only", scheduled: "Scheduled emails", sent: "Sent", done: "Done", others: "Others" },
-    empty: "No conversations here yet.", emptyAll: "No conversations yet. Messages you prepare for leads appear here.", select: "Select a conversation.",
+    title: "Inbox", subtitle: "Replies to your campaigns in one place. Yolias reads them, sorts them and suggests the answer.",
+    filters: { all: "All", unread: "Unread", interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up", sent: "Sent", done: "Done", others: "Others" },
+    labels: { interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up" }, label: "Label",
+    convert: "Convert to opportunity", converted: "Moved to the sales pipeline.",
+    composer: { placeholder: "Write your reply…", send: "Send", sending: "Sending…", suggest: "Suggest a reply with AI", suggesting: "Writing…", sent: "Reply sent.", noMailbox: "Connect your mailbox in Settings → Integrations to reply from here.", draftReady: "Yolias wrote a reply. Review it, then send." },
+
+    empty: "No conversations here yet.", emptyAll: "No replies yet. Replies to your campaigns arrive here automatically.", select: "Select a conversation.",
     thread: { campaign: "Campaign", openCrm: "Open in CRM", openCampaign: "Open campaign", noMessages: "No messages in this conversation yet.", markDone: "Mark done", reopen: "Reopen", markOther: "Move to Others", markRead: "Mark read" },
     reply: {
       logTitle: "Log a reply you received", logHint: "Paste the reply from your email, WhatsApp or LinkedIn. Yolias stops the follow-ups, reads it and suggests the next step.",
@@ -174,7 +196,8 @@ export const wsEn = {
       errors: { name: "Enter a name.", duplicate: "That name already exists." },
     },
     profiles: {
-      title: "Customer Profiles", subtitle: "Who you want Yolias to find and how to talk to them. Pick a profile when you search or create a campaign.",
+      title: "Customer Profiles", subtitle: "Your ideal customer: who Yolias looks for and how it talks to them. Analyze your website and Yolias writes it from what your company sells.",
+      defaultName: "Ideal customer", analyzed: "Yolias wrote your ideal customer from your website. Review it, then save.",
       new: "New profile", empty: "No customer profiles yet.", default: "Default", makeDefault: "Make default", namePh: "e.g. Logistics SMEs in KSA",
       fields: {
         name: "Profile name", problems: "Problems You Solve", benefits: "Key Benefits", usp: "Unique Selling Proposition", goals: "Customer Goals", success_stories: "Success Stories",
