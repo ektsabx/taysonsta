@@ -249,7 +249,7 @@ npx wrangler secret put WORKER_SECRET
 6. Outlook: في Microsoft Entra سجّل تطبيق (أي مؤسسة + حسابات شخصية)، صلاحيات Mail.Send و Mail.ReadWrite و User.Read و offline_access، رابط الرجوع `https://www.yolias.com/api/integrations/outlook/callback`، وحط المفاتيح في «Microsoft OAuth — Yolias (Outlook)».
 7. ما تحطش `YOLIAS_TEST_MAILBOX` في Cloudflare أبدًا (صندوق الاختبار مرفوض في الإنتاج على أي حال).
 
-## جولة كاشير 2026-10-19 (D-235). محلي فقط — ما اتنفذش منها حاجة على الإنتاج (كاشير مقفول لحد تفعيل الحساب، D-236)
+## جولة كاشير 2026-10-19 (D-235). اتنشرت 2026-10-20 مع الجولة التالية (كاشير مقفول لحد تفعيل الحساب وربطه، D-236)
 1. نسخة احتياطية.
 2. يولياس: `Yolias/supabase/migrations/20261116000000_kashier.sql` (بنفس الطريقة) وتسجيله في `schema_migrations`. لازم قبل النشر.
 3. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` (السياسات والمساعدة اتغيرت).
@@ -258,7 +258,7 @@ npx wrangler secret put WORKER_SECRET
 6. تجربة كاملة ببطاقة كاشير التجريبية: اشتراك من صفحة الدفع، وتأكد إن الخطة اتفعلت، وإن البطاقة ظهرت في الأدمن ← المدفوعات (عدد البطاقات المحفوظة).
 7. بعد نجاح التجربة: نفس الخطوة 4 بمفاتيح Live والوضع «حقيقي».
 
-## جولة Outreach / Inbox / IMAP / الجنيه 2026-10-19 (D-236..D-242). محلي فقط
+## جولة Outreach / Inbox / IMAP / الجنيه 2026-10-19 (D-236..D-242). اتنشرت 2026-10-20: commit 980ccfa، يولياس 26257182، الأدمن 7df8af3b، الـ migrations اتطبقت واتسجلت، والمحتوى اتحدّث. الباقي: الخطوات 5–6
 1. نسخة احتياطية.
 2. الـ migrations بالترتيب: `20261116000000_kashier.sql` ثم `20261117000000_paymob_egp_outreach.sql`، وتسجيلهم في `schema_migrations`. لازم قبل النشر.
 3. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production`.
