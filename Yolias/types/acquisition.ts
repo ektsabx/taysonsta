@@ -14,6 +14,7 @@ export type ActorKind = "user" | "agent" | "automation" | "system";
 export type WorkspaceKnowledgeRow = {
   workspace_id: string; about: string | null; services: string | null; products: string | null; pricing: string | null;
   differentiators: string | null; case_studies: string | null; faqs: string | null; reply_policy: string | null;
+  value_proposition: string | null; contact: string | null;
   updated_by: string | null; updated_at: string;
 };
 export type BusinessOfferRow = {
@@ -65,6 +66,8 @@ export type OutreachCampaignRow = {
   id: string; workspace_id: string; name: string; goal: string | null; description: string | null; channel: MessageChannel; language: string;
   tone: MessageTone; customer_profile_id: string | null; offer_id: string | null; status: OutreachCampaignStatus; created_by: string | null;
   created_at: string; updated_at: string;
+  send_mode: "manual" | "mailbox"; mailbox_id: string | null; approved_at: string | null; approved_by: string | null; auto_reply: boolean;
+  source_campaign_id: string | null; strategy_id: string | null; started_at: string | null;
 };
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;

@@ -6,7 +6,7 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
 import { firstName } from "@/lib/format";
 import { Greeting } from "@/components/app/Greeting";
-import { discoveryAnalytics, parseRange, ranges } from "@/services/analytics";
+import { discoveryAnalytics, outreachAnalytics, parseRange, ranges } from "@/services/analytics";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.analytics} — Yolias` };
@@ -44,7 +44,7 @@ function Panel({ title, children, wide = false }: { title: string; children: Rea
 export default async function AnalyticsPage({ searchParams }: PageProps<"/analytics">) {
   const session = await requireViewer();
   const range = parseRange((await searchParams).range);
-  const a = await discoveryAnalytics(session.workspace.id, range);
+  const [a, o] = await Promise.all([discoveryAnalytics(session.workspace.id, range), outreachAnalytics(session.workspace.id, range)]);
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const an = t.analytics;
   const csv = t.prospects.csv as unknown as Record<string, string>;
@@ -95,6 +95,27 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
             </div>
           ))}
         </div>
+
+        {/* Outreach and sales (D-234): real campaign, message and CRM rows only. */}
+        <section className="an-outreach" aria-label={an.outreach.title}>
+          <h3 className="an-outreach-title">{an.outreach.title}</h3>
+          <div className="stat-grid">
+            {([
+              [an.outreach.campaigns, n(o.campaignsStarted), fmt(an.outreach.created, { count: n(o.campaignsCreated) })],
+              [an.outreach.sent, n(o.sent), fmt(an.outreach.fromMailbox, { count: n(o.sentFromMailbox) })],
+              [an.outreach.failed, n(o.failed + o.bounced), fmt(an.outreach.bouncedNote, { count: n(o.bounced) })],
+              [an.outreach.replies, n(o.replies), o.contactedLeads ? fmt(an.outreach.replyRate, { pct: Math.round((o.repliedLeads / o.contactedLeads) * 100) }) : an.outreach.noSends],
+              [an.outreach.interested, n(o.interested), fmt(an.outreach.optedOut, { count: n(o.optedOut) })],
+              [an.outreach.meetings, n(o.meetings), fmt(an.outreach.won, { count: n(o.won) })],
+            ] as const).map(([label, value, note]) => (
+              <div key={label} className="stat-card">
+                <div className="stat-label">{label}</div>
+                <div className="stat-value">{value}</div>
+                <div className="stat-note">{note}</div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <div className="analytics-grid">
           <Panel title={an.sections.trend} wide>

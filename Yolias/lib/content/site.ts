@@ -46,7 +46,7 @@ export const home: Localized<{
     },
     statement: {
       text: "Yolias finds and qualifies the people worth talking to. How you reach them stays your decision.",
-      small: "Discovery first. Yolias never sends messages on your behalf.",
+      small: "Nothing is sent without your approval, and only from your own account.",
     },
     faq: {
       eyebrow: "QUESTIONS, ANSWERED",
@@ -101,7 +101,7 @@ export const home: Localized<{
     },
     statement: {
       text: "يجد يولـياس الأشخاص الذين يستحقون التواصل ويؤهلهم. أما طريقة الوصول إليهم فتبقى قرارك.",
-      small: "الاكتشاف أولًا، ولا يرسل يولـياس أي رسائل نيابةً عنك.",
+      small: "لا يُرسل شيء بدون موافقتك، ومن حسابك أنت فقط.",
     },
     faq: {
       eyebrow: "إجابات مباشرة",
@@ -256,7 +256,7 @@ export const about: Localized<{
     principlesEyebrow: "WHAT WE BELIEVE",
     principlesTitle: "Four rules the product follows.",
     principles: [
-      { title: "Discovery before outreach", body: "Yolias finds and qualifies. It does not send messages, run sequences or contact anyone in your name." },
+      { title: "You approve before anything goes out", body: "Yolias finds and qualifies, prepares the campaign and shows it to you. It sends only after you approve, from your own mailbox, and stops when someone replies or asks not to be contacted." },
       { title: "Fewer, better-matched prospects", body: "A short list with clear reasons beats a long one you have to clean. Match scores always show their evidence." },
       { title: "Arabic is a first language", body: "Every screen, email and answer works in Arabic and English, right-to-left and left-to-right." },
       { title: "Your data stays yours", body: "Workspaces are isolated, exports are yours, and deleting your account removes your discovered data." },
@@ -275,7 +275,7 @@ export const about: Localized<{
     principlesEyebrow: "ما نؤمن به",
     principlesTitle: "أربع قواعد يلتزم بها المنتج.",
     principles: [
-      { title: "الاكتشاف قبل التواصل", body: "يجد يولـياس العملاء ويؤهلهم. لا يرسل رسائل ولا يدير حملات بريدية ولا يتواصل مع أحد باسمك." },
+      { title: "موافقتك قبل أي إرسال", body: "يجد يولـياس العملاء ويؤهلهم، ويجهّز الحملة ويعرضها عليك. لا يرسل إلا بعد موافقتك، ومن صندوق بريدك أنت، ويتوقف عندما يرد أحد أو يطلب عدم التواصل." },
       { title: "عدد أقل ومطابقة أدق", body: "قائمة قصيرة بأسباب واضحة أفضل من قائمة طويلة تحتاج إلى تنظيف. نسب التطابق تعرض أدلتها دائمًا." },
       { title: "العربية لغة أولى", body: "كل شاشة وبريد وإجابة تعمل بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين." },
       { title: "بياناتك تبقى لك", body: "مساحات العمل معزولة، والتصدير ملكك، وحذف حسابك يحذف البيانات التي اكتشفتها." },

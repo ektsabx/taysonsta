@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-// The Campaigns page moved into Prospects → Search results (D-204).
-export default async function CampaignsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const { status } = await searchParams;
-  redirect(typeof status === "string" && status ? `/prospects?view=searches&status=${encodeURIComponent(status)}` : "/prospects?view=searches");
+// The Campaigns page and the Search results view were removed (owner, 2026-10-19):
+// searches live in Yolias AI (Recent searches); their prospects in Prospects.
+export default function CampaignsPage() {
+  redirect("/prospects");
 }

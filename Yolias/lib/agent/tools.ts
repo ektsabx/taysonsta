@@ -15,6 +15,12 @@ import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
 import type { AgentToolOutcome, Database, Json } from "@/types/database";
 import { AGENT_TOOLS, type AgentPolicy } from "@/lib/agent/policy-schema";
+import { parseFilters, selectItems } from "@/services/prospects";
+import { addLeads, changeStage, leadsCreated } from "@/lib/crm";
+import { enrollLeads, prepareNextStep } from "@/lib/outreach/sequence";
+import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
+import { memberMailboxes } from "@/lib/mailbox";
+import { campaignStats } from "@/services/outreach-campaigns";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { decide, type AgentAction, type AgentKey } from "@/lib/ai-workspace/settings";
 
@@ -68,6 +74,7 @@ interface AgentTool<S extends z.ZodType = z.ZodType> {
 }
 
 const LIST_MAX = 25;
+const ALWAYS_APPROVE = new Set(["startOutreachCampaign"]);
 const ok = (data: unknown): ToolResult => ({ ok: true, data });
 const fail = (outcome: Exclude<AgentToolOutcome, "ok">, message: string): ToolResult => ({ ok: false, outcome, message });
 const uuid = z.string().uuid();
@@ -455,6 +462,156 @@ export const agentTools = [
     },
   }),
 
+  // ───────────── Outreach, Inbox and CRM (D-230) ─────────────
+  define({
+    name: "createOutreachCampaign",
+    description: "Prepare an outreach campaign for the prospects of this search (or another search campaign): creates the campaign with a first message and follow-ups, adds the prospects as leads, and writes one real sample message. Nothing is sent. Returns a summary (recipients, how many have an email, channel, sequence, sample, which mailboxes can send it) to show the user before asking whether to start. Ask the user for the channel (email or LinkedIn) first if they didn't say.",
+    permission: "outreach.prepare",
+    input: z.object({
+      channel: z.enum(["email", "linkedin"]),
+      name: z.string().trim().min(1).max(160).optional(),
+      goal: z.string().trim().max(1000).optional(),
+      followUps: z.number().int().min(0).max(3).default(2),
+      tone: z.enum(["direct", "conservative", "friendly"]).default("direct"),
+      language: z.string().refine(isMessageLanguage).optional(),
+      searchCampaignId: uuid.optional(),
+      excludeIds: z.array(uuid).max(500).default([]),
+    }),
+    async run(ctx, input) {
+      const { session, db } = ctx;
+      const ws = session.workspace.id;
+      const { data: source } = input.searchCampaignId
+        ? await db.from("campaigns").select("id, name, strategy_id").eq("id", input.searchCampaignId).eq("workspace_id", ws).maybeSingle()
+        : ctx.strategyId ? await db.from("campaigns").select("id, name, strategy_id").eq("strategy_id", ctx.strategyId).order("created_at").limit(1).maybeSingle() : { data: null };
+      if (!source) return fail("not_found", "No search campaign to take the prospects from. Run a search first.");
+      const { rows } = await selectItems(ws, parseFilters({ campaign: source.id }), "all", 10_000, db);
+      const skip = new Set(input.excludeIds);
+      const targets = rows.filter((i) => !skip.has(i.row.id)).map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id })).slice(0, 500);
+      if (!targets.length) return fail("not_found", "That search has no prospects yet.");
+      const settings = await loadAiSettings(ws);
+      const steps = Math.min(1 + input.followUps, settings.limits.max_messages_per_lead);
+      const { data: camp, error } = await db.from("outreach_campaigns").insert({
+        workspace_id: ws, created_by: session.userId, name: (input.name ?? source.name).slice(0, 160), goal: input.goal || null, channel: input.channel,
+        language: input.language ?? (session.profile.language === "ar" ? "ar" : "en"), tone: input.tone, source_campaign_id: source.id, strategy_id: source.strategy_id,
+      }).select("id").single();
+      if (error || !camp) throw error ?? new Error("campaign insert failed");
+      await db.from("outreach_steps").insert(Array.from({ length: steps }, (_, i) => ({
+        workspace_id: ws, campaign_id: camp.id, position: i + 1, delay_days: i === 0 ? 0 : 3 * i, objective: (i === 0 ? "introduction" : "follow_up") as never,
+      })));
+      const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", ws).limit(10000)).data ?? []).map((l) => l.id));
+      const { ids } = await addLeads(db, targets, "search");
+      await leadsCreated(ws, ids.filter((id) => !before.has(id)), "agent");
+      const enrolled = await enrollLeads(db, ws, session.userId, camp.id, ids);
+      // One real sample message (the rest are written when the campaign runs).
+      // Prefer a lead the channel can reach (an email for email campaigns).
+      const { data: firsts } = await db.from("outreach_enrollments").select("id, lead:sales_leads(email)").eq("campaign_id", camp.id).eq("status", "active").order("created_at").limit(20);
+      const first = (firsts ?? []).find((e) => input.channel !== "email" || (e.lead as unknown as { email: string | null } | null)?.email) ?? firsts?.[0];
+      if (first) await prepareNextStep(ws, session.userId, first.id, "user").catch(() => null);
+      return ok({ ...(await launchFacts(ctx, camp.id)), added: enrolled?.added ?? 0, skipped: enrolled?.skipped ?? {} });
+    },
+  }),
+  define({
+    name: "getOutreachCampaign",
+    description: "An outreach campaign's status and real numbers (leads, drafts, sent, failed, bounced, replies, interested, opted out, meetings) and how it sends. Without an id: the outreach campaigns of this search, newest first.",
+    permission: "read",
+    input: z.object({ id: uuid.optional() }),
+    async run(ctx, input) {
+      const ws = ctx.session.workspace.id;
+      if (!input.id) {
+        let q = ctx.db.from("outreach_campaigns").select("id, name, status, channel, send_mode, approved_at, created_at").eq("workspace_id", ws).order("created_at", { ascending: false }).limit(10);
+        if (ctx.strategyId) q = q.eq("strategy_id", ctx.strategyId);
+        const { data } = await q;
+        return ok({ campaigns: data ?? [] });
+      }
+      const facts = await launchFacts(ctx, input.id);
+      if (!facts.campaign) return fail("not_found", "No such outreach campaign in this workspace.");
+      const stats = (await campaignStats([input.id], ctx.db)).get(input.id);
+      return ok({ ...facts, stats });
+    },
+  }),
+  define({
+    name: "startOutreachCampaign",
+    description: "Start an outreach campaign after the user said yes. Always asks for the user's approval first (an Approve / Reject card). sendFromMailbox=true sends from the user's connected Gmail / Outlook; false runs it manually (Yolias prepares, the user sends). autoReply lets Yolias answer simple replies itself — only when the user asked for it.",
+    permission: "outreach.run",
+    input: z.object({ id: uuid, sendFromMailbox: z.boolean().default(true), autoReply: z.boolean().default(false) }),
+    async run(ctx, input) {
+      const s = ctx.session;
+      const boxes = (await memberMailboxes(s.workspace.id, s.userId)).filter((m) => m.status === "connected");
+      const mailbox = input.sendFromMailbox ? boxes[0] ?? null : null;
+      if (input.sendFromMailbox && !mailbox) return fail("not_connected", "No mailbox is connected. The user can connect Gmail or Outlook in Settings, Integrations, or start the campaign in manual mode.");
+      const r = await approveCampaign({ workspaceId: s.workspace.id, userId: s.userId, role: s.role, campaignId: input.id, mailboxId: mailbox?.id ?? null, autoReply: input.autoReply });
+      if (!r.ok) return fail(r.error === "not_found" ? "not_found" : "denied", `Couldn't start it: ${r.error}.`);
+      if (!mailbox) await prepareFirstDrafts(s.workspace.id, s.userId, input.id);
+      return ok({ started: true, sendsFrom: mailbox?.email ?? null, mode: mailbox ? "mailbox" : "manual", note: mailbox ? "Sending starts within a minute, within the daily limit. Messages count as sent only once the mailbox accepts them." : "Drafts are being prepared; the user sends each one from Outreach or the Inbox." });
+    },
+  }),
+  define({
+    name: "controlOutreachCampaign",
+    description: "Pause, resume or cancel an outreach campaign. Cancel stops every lead and drops unsent messages.",
+    permission: "outreach.run",
+    input: z.object({ id: uuid, action: z.enum(["pause", "resume", "cancel"]) }),
+    async run(ctx, input) {
+      const done = await setCampaignRun(ctx.session.workspace.id, input.id, input.action);
+      return done ? ok({ id: input.id, action: input.action }) : fail("not_found", "No such active campaign, or it was never approved to run.");
+    },
+  }),
+  define({
+    name: "listReplies",
+    description: "Replies received from leads (newest first) with Yolias's classification (interested, meeting_request, question, objection, not_interested, stop_request, out_of_office, asks_for_human, unclear), a one-line summary, the suggested next step, the lead and the campaign.",
+    permission: "read",
+    input: z.object({ kind: z.string().max(40).optional(), days: z.number().int().min(1).max(90).default(14) }),
+    async run(ctx, input) {
+      const since = new Date(Date.now() - input.days * 86_400_000).toISOString();
+      const { data } = await ctx.db.from("outreach_messages").select("id, body, received_at, analysis, lead:sales_leads(id, name, company_name, stage), campaign:outreach_campaigns(id, name)")
+        .eq("workspace_id", ctx.session.workspace.id).eq("direction", "inbound").gte("received_at", since).order("received_at", { ascending: false }).limit(50);
+      const rows = (data ?? []).map((m) => {
+        const a = m.analysis as { kind?: string; summary?: string; suggested_stage?: string | null; needs_human?: boolean } | null;
+        return { id: m.id, receivedAt: m.received_at, lead: m.lead, campaign: m.campaign, kind: a?.kind ?? null, summary: a?.summary ?? null, suggestedStage: a?.suggested_stage ?? null, needsYou: a?.needs_human ?? null, excerpt: m.body.slice(0, 300) };
+      }).filter((r) => !input.kind || r.kind === input.kind).slice(0, LIST_MAX);
+      return ok({ replies: rows, inboxUrl: "/inbox" });
+    },
+  }),
+  define({
+    name: "listLeads",
+    description: "CRM leads, optionally by stage (new, interested, meeting_booked, meeting_completed, closed = won, lost) or a name search.",
+    permission: "read",
+    input: z.object({ stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"]).optional(), q: z.string().trim().max(100).optional() }),
+    async run(ctx, input) {
+      let q = ctx.db.from("sales_leads").select("id, name, company_name, stage, do_not_contact, deal_value, last_activity_at").eq("workspace_id", ctx.session.workspace.id).order("last_activity_at", { ascending: false }).limit(LIST_MAX);
+      if (input.stage) q = q.eq("stage", input.stage);
+      if (input.q) q = q.ilike("name", `%${term(input.q)}%`);
+      const { data } = await q;
+      return ok({ leads: data ?? [], crmUrl: "/crm" });
+    },
+  }),
+  define({
+    name: "updateLeadStage",
+    description: "Move a CRM lead to a stage the user asked for. 'closed' means won — only when the user says the deal was won, never because someone showed interest.",
+    permission: "crm.update",
+    input: z.object({ leadId: uuid, stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"]) }),
+    async run(ctx, input) {
+      const r = await changeStage(ctx.db, ctx.session.workspace.id, input.leadId, input.stage, "agent");
+      return r.ok ? ok({ leadId: input.leadId, stage: input.stage, changed: r.changed }) : fail("not_found", "No such lead in this workspace.");
+    },
+  }),
+  define({
+    name: "excludeLead",
+    description: "Take a lead out of an outreach campaign (or out of all of them), and optionally mark them do-not-contact so no campaign ever reaches them.",
+    permission: "outreach.run",
+    input: z.object({ leadId: uuid, campaignId: uuid.optional(), doNotContact: z.boolean().default(false) }),
+    async run(ctx, input) {
+      const ws = ctx.session.workspace.id;
+      const { data: lead } = await ctx.db.from("sales_leads").select("id").eq("id", input.leadId).eq("workspace_id", ws).maybeSingle();
+      if (!lead) return fail("not_found", "No such lead in this workspace.");
+      let q = createAdminClient().from("outreach_enrollments").update({ status: "stopped", stop_reason: "excluded", next_step_at: null }).eq("lead_id", lead.id).eq("workspace_id", ws).in("status", ["active", "paused"]);
+      if (input.campaignId) q = q.eq("campaign_id", input.campaignId);
+      const { data: stopped } = await q.select("id");
+      if (stopped?.length) await createAdminClient().from("outreach_messages").update({ status: "canceled" }).in("enrollment_id", stopped.map((e) => e.id)).eq("direction", "outbound").in("status", ["draft", "approved", "failed"]);
+      if (input.doNotContact) await createAdminClient().from("sales_leads").update({ do_not_contact: true }).eq("id", lead.id);
+      return ok({ stopped: stopped?.length ?? 0, doNotContact: input.doNotContact });
+    },
+  }),
+
   // ───────────── Long-term memory (D-141) ─────────────
   define({
     name: "rememberFact",
@@ -539,6 +696,35 @@ async function logCall(ctx: AgentContext, tool: string, input: unknown, outcome:
   }).then(({ error: e }) => e && console.error("agent audit failed", e.message));
 }
 
+/** What the user approves (D-229): recipients, channel, sequence, a real sample and which mailbox can send. */
+async function launchFacts(ctx: AgentContext, id: string) {
+  const db = createAdminClient();
+  const ws = ctx.session.workspace.id;
+  const { data: c } = await db.from("outreach_campaigns").select("id, name, status, channel, send_mode, approved_at, auto_reply").eq("id", id).eq("workspace_id", ws).maybeSingle();
+  if (!c) return { campaign: null };
+  const [{ data: enr }, { data: steps }, { data: sample }, boxes] = await Promise.all([
+    db.from("outreach_enrollments").select("status, lead:sales_leads(email, do_not_contact)").eq("campaign_id", id).limit(5000),
+    db.from("outreach_steps").select("position, delay_days, objective").eq("campaign_id", id).order("position"),
+    db.from("outreach_messages").select("subject, body").eq("outreach_campaign_id", id).eq("direction", "outbound").eq("step_position", 1).neq("status", "canceled").order("created_at").limit(1).maybeSingle(),
+    memberMailboxes(ws, ctx.session.userId),
+  ]);
+  const active = (enr ?? []).filter((e) => e.status === "active").map((e) => e.lead as unknown as { email: string | null; do_not_contact: boolean } | null);
+  return {
+    campaign: c, url: `/outreach/${id}`,
+    recipients: active.length, withEmail: active.filter((l) => l?.email && !l.do_not_contact).length,
+    sequence: (steps ?? []).map((s) => ({ step: s.position, goal: s.objective, waitDays: s.delay_days })),
+    sample: sample ? { subject: sample.subject, body: sample.body.slice(0, 1500) } : null,
+    mailboxes: boxes.filter((m) => m.status === "connected").map((m) => m.email),
+    dailyLimit: (await loadAiSettings(ws)).limits.daily_send_limit,
+  };
+}
+
+/** Manual mode: the first messages are prepared for the member to send (a few at a time; the rest from the campaign page). */
+async function prepareFirstDrafts(workspaceId: string, userId: string, campaignId: string) {
+  const { data } = await createAdminClient().from("outreach_enrollments").select("id").eq("campaign_id", campaignId).eq("status", "active").eq("current_step", 0).order("created_at").limit(10);
+  for (const e of data ?? []) await prepareNextStep(workspaceId, userId, e.id, "user").catch(() => null);
+}
+
 /** Validates, authorizes, runs and audits one tool call (with what it cost). Never throws. */
 /** Source governance (D-141): blocked domains out, allowed-only when a list is set, preferred first. */
 function governSources<T extends { url: string }>(list: T[], rp: AgentPolicy["research"] | undefined): T[] {
@@ -552,6 +738,15 @@ function governSources<T extends { url: string }>(list: T[], rp: AgentPolicy["re
     return !rp.allowedDomains.length || any(h, rp.allowedDomains);
   });
   return [...kept.filter((s) => any(host(s.url), rp.preferredDomains)), ...kept.filter((s) => !any(host(s.url), rp.preferredDomains))];
+}
+
+/** The approval card for starting a campaign says exactly what will be sent, from where. */
+async function launchApprovalSummary(ctx: AgentContext, input: { id: string; sendFromMailbox: boolean; autoReply: boolean }, lang: "ar" | "en"): Promise<string> {
+  const f = await launchFacts(ctx, input.id);
+  if (!f.campaign) return lang === "ar" ? "بدء حملة تواصل" : "Start an outreach campaign";
+  const from = input.sendFromMailbox ? f.mailboxes?.[0] ?? null : null;
+  if (lang === "ar") return `بدء «${f.campaign.name}»: ${f.recipients} عميل، ${from ? `إرسال من ${from}` : "يدويًا (أنت ترسل)"}${input.autoReply ? "، مع الرد التلقائي" : ""}`;
+  return `Start "${f.campaign.name}": ${f.recipients} leads, ${from ? `sending from ${from}` : "manual (you send)"}${input.autoReply ? ", auto-replies on" : ""}`;
 }
 
 /** One line for the approval card: what will happen. */
@@ -588,13 +783,14 @@ export async function executeTool(ctx: AgentContext, name: string, rawInput: unk
     return fail("invalid", msg);
   }
   // The workspace's own rules can only narrow what the platform policy allows.
-  let needsApproval = Boolean(tp?.approval);
+  // Starting a campaign (it sends messages) always needs the user's explicit approval, whatever the policy says (D-229).
+  let needsApproval = Boolean(tp?.approval) || ALWAYS_APPROVE.has(name);
   const rule = WORKSPACE_RULES[name];
   if (rule) {
     const d = decide(await loadAiSettings(ctx.session.workspace.id), rule[0], rule[1]);
     if (!d.allowed) {
       await logCall(ctx, name, parsed.data, "disabled", `workspace rules: ${d.reason}`, started);
-      return fail("disabled", "Your workspace's AI rules don't allow this. An owner or admin can change it in AI Workspace → AI Agent.");
+      return fail("disabled", "Your workspace's AI rules don't allow this.");
     }
     if (d.mode === "approve") needsApproval = true;
   }
@@ -603,7 +799,7 @@ export async function executeTool(ctx: AgentContext, name: string, rawInput: unk
     const lang = ctx.session.profile.language === "ar" ? "ar" : "en";
     const { data: pa, error } = await createAdminClient().from("agent_pending_actions").insert({
       workspace_id: ctx.session.workspace.id, conversation_id: ctx.conversationId, requested_by: ctx.session.userId,
-      tool: name, input: parsed.data as Json, summary: approvalSummary(name, parsed.data as Record<string, unknown>, lang),
+      tool: name, input: parsed.data as Json, summary: name === "startOutreachCampaign" ? await launchApprovalSummary(ctx, parsed.data as { id: string; sendFromMailbox: boolean; autoReply: boolean }, lang) : approvalSummary(name, parsed.data as Record<string, unknown>, lang),
     }).select("id").single();
     if (error || !pa) throw error ?? new Error("approval request failed");
     ctx.pending?.push(pa.id);

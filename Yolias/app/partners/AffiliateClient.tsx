@@ -225,7 +225,7 @@ export function PartnerProfile({ userId, name, email, avatarUrl, listing }: { us
     const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
     const path = `${userId}/avatar-${Date.now()}.${ext}`;
     const sb = createClient();
-    const { error } = await sb.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    const { error } = await sb.storage.from("avatars").upload(path, file, { upsert: false, contentType: file.type });
     if (error) {
       setUploading(false);
       return setMsg({ ok: false, text: pr.errors.failed });

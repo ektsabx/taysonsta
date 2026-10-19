@@ -1,5 +1,6 @@
 "use server";
 
+import { analyzeWebsite, type WebsiteAnalysis } from "@/lib/website-analysis";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -27,7 +28,7 @@ const dup = (e: { code?: string; message?: string } | null) => e?.code === "2350
 // ── Company Knowledge ──
 const knowledgeInput = z.object({
   about: text(4000), services: text(4000), products: text(4000), pricing: text(4000), differentiators: text(4000),
-  case_studies: text(6000), faqs: text(6000), reply_policy: text(4000),
+  case_studies: text(6000), faqs: text(6000), reply_policy: text(4000), value_proposition: text(4000), contact: text(2000),
 });
 export async function saveKnowledge(input: z.input<typeof knowledgeInput>): Promise<AiResult> {
   const { session, t, allowed } = await manager();
@@ -153,4 +154,12 @@ export async function saveAiSettings(input: SettingsInput): Promise<AiResult> {
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/ai", "layout");
   return { ok: true };
+}
+
+/** Company Knowledge → Analyze website (D-232): returns the filled fields for review; saves nothing. */
+export async function analyzeWebsiteAction(url: string): Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }> {
+  const { session, t, allowed } = await manager();
+  if (!allowed) return { ok: false, error: t.common.onlyManagers };
+  const r = await analyzeWebsite(String(url ?? "").slice(0, 300), session.workspace.id);
+  return r.ok ? r : { ok: false, error: t.ai.knowledge.analyze.errors[r.error] };
 }

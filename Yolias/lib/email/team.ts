@@ -1,4 +1,5 @@
 import "server-only";
+import { cleanNotificationText } from "@/lib/notification-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notify, siteUrl, userRecipient } from "@/lib/email/notify";
 
@@ -24,7 +25,7 @@ export async function sendTeamMessage(messageId: string): Promise<void> {
 
   if (m.channel === "in_app") {
     const { error } = await db.from("notifications").upsert({
-      user_id: m.user_id, kind: "team_message", title: m.subject.slice(0, 300), body: m.body.slice(0, 2000),
+      user_id: m.user_id, kind: "team_message", title: cleanNotificationText(m.subject).slice(0, 300), body: cleanNotificationText(m.body).slice(0, 2000),
       link: cta ? cta.replace(siteUrl(), "") || "/" : null, dedupe_key: `team_message:${m.id}`,
     }, { onConflict: "dedupe_key", ignoreDuplicates: true });
     return void (await done(error ? "failed" : "sent", error?.message ?? null));

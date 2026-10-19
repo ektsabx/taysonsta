@@ -28,7 +28,7 @@ export type ChargeCurrency = "USD" | "EGP";
 export type SubscriptionStatus = "none" | "trialing" | "active" | "test" | "canceled" | "past_due";
 /** Who bills a workspace: Paymob in Egypt, Polar everywhere else. */
 export type BillingProvider = "paymob" | "polar";
-export type StrategyStatus = "understanding" | "setup" | "ready" | "failed";
+export type StrategyStatus = "understanding" | "setup" | "ready" | "failed" | "chat";
 export type CampaignStatus =
   | "created" | "queued" | "awaiting_source" | "scheduled"
   | "discovering_companies" | "matching_companies" | "discovering_people" | "enriching" | "verifying"
@@ -201,10 +201,11 @@ export type ConversationRow = {
   id: string; workspace_id: string; user_id: string | null; scope: ConversationScope; strategy_id: string | null; campaign_id: string | null;
   title: string; archived_at: string | null; created_at: string; updated_at: string;
 };
-export type MailProvider = "gmail" | "outlook";
+export type MailProvider = "gmail" | "outlook" | "test";
 export type MailboxRow = {
   id: string; workspace_id: string; user_id: string; provider: MailProvider; email: string; status: "connected" | "error" | "disconnected";
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
+  display_name: string | null; can_read: boolean; sync_cursor: string | null; last_synced_at: string | null;
 };
 export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled" | "received";
 export type MessageChannel = "email" | "linkedin" | "whatsapp" | "facebook" | "instagram";
@@ -221,6 +222,7 @@ export type OutreachMessageRow = {
   lead_id: string | null; outreach_campaign_id: string | null; enrollment_id: string | null; step_position: number | null;
   direction: "outbound" | "inbound"; scheduled_for: string | null; sent_via: "manual" | "mailbox" | null; from_address: string | null;
   received_at: string | null; analysis: Json | null;
+  provider_thread_id: string | null; delivery_status: "sent" | "bounced" | null; attempts: number; next_attempt_at: string | null;
 };
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;

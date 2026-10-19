@@ -7,7 +7,7 @@ import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Bot, ChevronDown, CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
+  ChevronDown, CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -44,8 +44,7 @@ const workNav = [
 // AI Workspace (D-196): what Yolias AI knows, who it looks for, its agents, rules and automations.
 const aiNav = [
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
-  // One agent; its rules & permissions live in its settings (D-205). Automations removed for now.
-  { href: "/ai/agents", key: "agents", icon: Bot },
+  // The AI Agent settings page left the member's app (D-233): the agent works from Company Knowledge.
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -150,6 +149,13 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
     setMenuOpen(false);
     setSettingsTab(tab);
   };
+
+  // ?settings=<tab> opens that tab (e.g. back from connecting a mailbox).
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("settings");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (tab === "integration" || tab === "usage" || tab === "billing" || tab === "account") setSettingsTab(tab);
+  }, []);
 
   // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
   useEffect(() => {

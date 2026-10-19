@@ -1,9 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/client";
-import { completeOnboarding, type OnboardingState } from "./actions";
+import { fmt } from "@/lib/i18n/config";
+import { analyzeOnboardingWebsite, completeOnboarding, type OnboardingState } from "./actions";
+import { AnalyzeWebsite } from "@/components/app/ws/KnowledgeView";
+import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { ACQUISITION_SOURCES } from "@/lib/onboarding/source";
 
 export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaults: Record<string, string> }) {
@@ -17,10 +20,28 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
   const [source, setSource] = useState(v("acquisition_source"));
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""), []);
+  // Analyze website (D-232): the site fills the company fields; the owner reviews them before continuing.
+  const formRef = useRef<HTMLFormElement>(null);
+  const [website, setWebsite] = useState(v("website"));
+  const [knowledge, setKnowledge] = useState("");
+  const [analyzed, setAnalyzed] = useState<number | null>(null);
+  const fill = (a: WebsiteAnalysis) => {
+    const f = formRef.current;
+    const put = (name: string, value: string | null) => {
+      const el = f?.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (el && value) el.value = value;
+    };
+    put("company_name", a.profile.name); put("industry", a.profile.industry); put("offering", a.profile.offering);
+    put("ideal_customer", a.profile.ideal_customer); put("target_markets", a.profile.target_markets);
+    setWebsite(a.url);
+    setKnowledge(JSON.stringify(a.knowledge));
+    setAnalyzed(a.pages.length);
+  };
 
   return (
-    <form className="auth-form" action={action}>
+    <form className="auth-form" action={action} ref={formRef}>
       <input type="hidden" name="timezone" value={timeZone} />
+      <input type="hidden" name="knowledge_json" value={knowledge} />
       <div className="field">
         <label htmlFor="full_name">{o.name}</label>
         <input id="full_name" name="full_name" className="form-input" placeholder={o.namePlaceholder} defaultValue={v("full_name")} autoComplete="name" required autoFocus />
@@ -33,7 +54,9 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
           </div>
           <div className="field">
             <label htmlFor="website">{o.website}</label>
-            <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} defaultValue={v("website")} autoComplete="url" required />
+            <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} value={website} onChange={(e) => setWebsite(e.target.value)} autoComplete="url" required />
+            <AnalyzeWebsite compact initialUrl={website} url={website} onUrl={setWebsite} onResult={fill} action={analyzeOnboardingWebsite} />
+            {analyzed != null && <p className="field-note">{fmt(t.ws.ai.knowledge.analyze.done, { count: analyzed })}</p>}
           </div>
           <div className="field">
             <label htmlFor="industry">{o.industry}</label>

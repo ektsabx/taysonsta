@@ -11,11 +11,8 @@ import { requireViewer } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { listCampaigns } from "@/services/campaigns";
 import { CampaignSummary } from "@/components/app/CampaignSummary";
-import { SearchResultsTable } from "@/components/app/SearchResultsTable";
-import { NewCampaignButton } from "@/components/app/NewCampaignButton";
-import type { Session } from "@/lib/session";
-import Link from "next/link";
 import { monthlyUsage } from "@/services/workspace";
+import { outreachStates } from "@/services/outreach-status";
 import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -31,8 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
   const session = await requireViewer();
   const sp = await searchParams;
-  // Prospects | Search results (the former Campaigns page, D-204).
-  if (sp.view === "searches") return <SearchesView session={session} status={typeof sp.status === "string" ? sp.status : undefined} />;
   const filters = parseFilters(sp);
   const ws = session.workspace.id;
   const [page, counts, campaigns, funding, usage, t, locale, canCollect] = await Promise.all([
@@ -45,6 +40,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     ...page.rows.map((r) => r.country).filter((c): c is string => Boolean(c)),
   ])].map((code) => ({ code, name: countryLabel(code, locale) }));
   const active = activeFilterCount(filters);
+  const states = await outreachStates(ws, page.rows.map((r) => ({ id: r.id, kind: r.item_type === "person" ? ("person" as const) : ("company" as const) })));
 
   const rows: TableRow[] = page.rows.map((r) => {
     const person = r.item_type === "person";
@@ -68,6 +64,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       match: r.match_score,
       added: formatDate(filters.tab === "saved" && r.bookmarked_at ? r.bookmarked_at : r.created_at, locale, tz),
       imported: r.campaign_origin === "import",
+      outreach: states.get(r.id) ?? "new",
     };
   });
 
@@ -86,7 +83,6 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
         </div>
       </header>
 
-      <ProspectViews current="prospects" />
       <div className="view-content-padding">
         {filters.campaign && <CampaignSummary id={filters.campaign} workspaceId={ws} timeZone={tz} />}
         <Suspense>
@@ -111,36 +107,6 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           empty={filtered ? pr.emptyFiltered : pr.emptyTab[filters.tab]}
           canCollect={canCollect}
         />
-      </div>
-    </div>
-  );
-}
-
-/** The two views of Prospects: the results themselves, and the searches that produced them. */
-async function ProspectViews({ current }: { current: "prospects" | "searches" }) {
-  const t = await getDictionary();
-  return (
-    <nav className="ws-tabs prospect-views" aria-label={t.prospects.title}>
-      <Link href="/prospects" className={current === "prospects" ? "active" : ""} aria-current={current === "prospects" ? "page" : undefined}>{t.prospects.title}</Link>
-      <Link href="/prospects?view=searches" className={current === "searches" ? "active" : ""} aria-current={current === "searches" ? "page" : undefined}>{t.prospects.searchResults}</Link>
-    </nav>
-  );
-}
-
-async function SearchesView({ session, status }: { session: Session; status: string | undefined }) {
-  const t = await getDictionary();
-  return (
-    <div className="page-view">
-      <header className="view-header">
-        <div className="view-title-group">
-          <h2>{t.prospects.title}</h2>
-          <p>{t.campaigns.subtitle}</p>
-        </div>
-        <div className="view-actions"><NewCampaignButton /></div>
-      </header>
-      <ProspectViews current="searches" />
-      <div className="view-content-padding">
-        <SearchResultsTable workspaceId={session.workspace.id} timeZone={session.profile.timezone} status={status} />
       </div>
     </div>
   );

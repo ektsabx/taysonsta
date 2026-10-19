@@ -20,7 +20,7 @@ export async function GET() {
 
 > ${DEFINITION}
 
-Yolias works in English and Arabic. It finds and qualifies prospects and helps manage outreach, replies and deals; it never sends messages on a user's behalf. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
+Yolias works in English and Arabic. It finds and qualifies prospects, prepares outreach campaigns, sends them from the user's own Gmail or Outlook only after the user approves, reads replies and keeps the CRM up to date; LinkedIn messages are always sent by the user. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
 
 ## What Yolias does today
 - Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a discovery campaign.

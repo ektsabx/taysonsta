@@ -1206,15 +1206,21 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
 .notif-button:hover { background: var(--hover); color: var(--ink); }
 .notif-button svg { width: 18px; height: 18px; }
 .notif-count { position: absolute; top: 2px; inset-inline-end: 1px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--red); color: #fff; font-size: .62rem; font-weight: 700; line-height: 16px; text-align: center; }
-.notif-panel { position: absolute; top: calc(100% + 6px); inset-inline-start: 0; z-index: 60; width: min(320px, calc(100vw - 32px)); max-height: 420px; overflow-y: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.14); }
-.notif-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.notif-panel { position: absolute; top: calc(100% + 6px); inset-inline-start: 0; z-index: 60; width: min(360px, calc(100vw - 32px)); max-height: 440px; overflow-y: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.14); text-align: left; }
+.notif-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--paper); border-bottom: 1px solid var(--line); font-size: .85rem; color: var(--ink); }
+.notif-head .link-button { font-size: .76rem; color: var(--muted); }
+.notif-head .link-button:hover { color: var(--ink); }
 .notif-panel ul { list-style: none; margin: 0; padding: 4px; }
-.notif-panel li button { display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 9px 10px; border-radius: 8px; text-align: start; font-size: .8rem; color: var(--muted); }
-.notif-panel li button.unread { color: var(--ink); font-weight: 600; }
-.notif-panel li button.unread::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-bottom: 2px; }
+.notif-panel li button { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: start; gap: 10px; width: 100%; padding: 10px; border-radius: 8px; text-align: left; font-size: .82rem; color: var(--muted); }
 .notif-panel li button:hover { background: var(--hover); }
-.notif-panel time { font-size: .7rem; color: var(--muted); font-weight: 400; }
-.notif-empty { padding: 18px 14px; font-size: .8rem; color: var(--muted); text-align: center; }
+.notif-dot { width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; }
+.notif-panel li button.unread .notif-dot { background: var(--red); }
+.notif-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.notif-title { color: var(--text-2); line-height: 1.4; overflow-wrap: anywhere; }
+.notif-panel li button.unread .notif-title { color: var(--ink); font-weight: 600; }
+.notif-body { font-size: .76rem; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.notif-panel time { font-size: .72rem; color: var(--muted); white-space: nowrap; margin-top: 1px; }
+.notif-empty { padding: 22px 14px; font-size: .8rem; color: var(--muted); text-align: center; }
 .buy-more { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .buy-more-packs { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .buy-more-packs li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: .86rem; }
@@ -2244,3 +2250,8 @@ html[data-theme="dark"] .type-pill.type-local_business { background: #3b2416; co
 .partner-listing { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
 .partner-listing h5 { font-size: .95rem; font-weight: 600; color: var(--ink); }
 .partner-listing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+/* Settings → Integrations: connected mailboxes (D-228) */
+.connector-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.connector-account { font-weight: 400; color: var(--muted); }
+.status-pill.failed { background: var(--danger-soft); color: var(--danger-text); }
+.an-outreach { margin: 4px 0 18px; } .an-outreach-title { font-size: .95rem; font-weight: 700; color: var(--ink); margin-bottom: 10px; }

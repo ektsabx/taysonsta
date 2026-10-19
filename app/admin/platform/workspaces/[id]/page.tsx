@@ -10,6 +10,8 @@ import { workspaceUsage } from "@/services/yolias/usage";
 import { AdjustUsageForm } from "../../UsageForms";
 import { can } from "@/lib/bos/auth";
 import { getWorkspace } from "@/services/yolias/platform";
+import { workspaceAiRules } from "@/services/yolias/ai-rules";
+import { AiRulesForm } from "./AiRulesForm";
 import { NotConnected, connected, PlanBadge, SearchStatus, CampaignStatus, num, usd } from "@/components/yolias/PlatformUi";
 
 const roleLabel: Record<string, string> = { owner: "المالك", admin: "مسؤول", member: "عضو" };
@@ -21,7 +23,7 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
   if (!connected()) return (<><PageHeader title="مساحة العمل" /><NotConnected /></>);
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [d, usage] = await Promise.all([getWorkspace(id), workspaceUsage(id)]);
+  const [d, usage, aiRules] = await Promise.all([getWorkspace(id), workspaceUsage(id), workspaceAiRules(id)]);
   if (!d) notFound();
   const w = d.workspace;
   const u = usage.summary;
@@ -77,6 +79,10 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
           </BosTable>
         ) : null}
         {can(bos, "platform.manage", "all") ? <AdjustUsageForm workspaceId={w.id} /> : null}
+      </Card>
+
+      <Card title="قواعد وكيل الذكاء الاصطناعي">
+        {can(bos, "platform.manage", "all") ? <AiRulesForm workspaceId={w.id} settings={aiRules} /> : <EmptyState title="تحتاج صلاحية إدارة المنصة لتعديل القواعد." />}
       </Card>
 
       <Card title="الأعضاء">

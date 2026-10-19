@@ -266,7 +266,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "Describe the organizations you help", body: "Industry, size, market and the situation you solve, written in plain language." },
         { title: "A shortlist, not a database", body: "Yolias returns matching organizations with an explanation of each match, so you review a short list instead of filtering a large one." },
         { title: "Know before you reach out", body: "Each result links to the company’s website and the public business contact details Yolias found there." },
-        { title: "Your voice, your account", body: "Draft a short introduction based on your expertise; Yolias never sends anything for you." },
+        { title: "Your voice, your account", body: "Draft a short introduction based on your expertise. Nothing goes out until you approve it, and it goes from your own account." },
       ],
       useCasesTitle: "Use cases",
       useCases: [
@@ -308,7 +308,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
         { title: "صِف المؤسسات التي تساعدها", body: "القطاع والحجم والسوق والمشكلة التي تحلها، بلغة طبيعية." },
         { title: "قائمة مختصرة لا قاعدة بيانات", body: "يعيد يولـياس المؤسسات المطابقة مع توضيح كل تطابق، لتراجع قائمة قصيرة بدل تصفية قائمة كبيرة." },
         { title: "اعرف قبل أن تتواصل", body: "ترتبط كل نتيجة بموقع الشركة وبيانات التواصل العامة للعمل التي وجدها يولـياس فيه." },
-        { title: "أسلوبك وحسابك", body: "اكتب مسودة تعريف قصيرة بناءً على خبرتك، ويولـياس لا يرسل شيئًا نيابةً عنك." },
+        { title: "أسلوبك وحسابك", body: "اكتب مسودة تعريف قصيرة بناءً على خبرتك. لا يُرسل شيء قبل موافقتك، ويُرسل من حسابك أنت." },
       ],
       useCasesTitle: "حالات الاستخدام",
       useCases: [

@@ -93,3 +93,44 @@ export async function discoveryAnalytics(workspaceId: string, range: RangeKey) {
   };
   return computeDiscovery(rows, companiesFound.count ?? 0, { leads: (prevPeople.count ?? 0) + (prevDelivered.count ?? 0), companies: prevCompanies.count ?? 0, decisionMakers: prevPeople.count ?? 0 }, activity, since, days);
 }
+
+/**
+ * Outreach and sales results for the period (D-234), from real rows only:
+ * campaigns created / started, messages the mailbox accepted ("sent") vs
+ * confirmed by hand, failed, bounced (the provider returned them), replies,
+ * interested replies, meetings and won deals. "Delivered" isn't claimed: the
+ * only delivery signal we have is a bounce.
+ */
+export async function outreachAnalytics(workspaceId: string, range: RangeKey, client?: Client) {
+  const db: Client = client ?? (await createClient());
+  const s = new Date(Date.now() - ranges[range] * 86_400_000).toISOString();
+  const [campaigns, out, inbound, meetings, won, leads] = await Promise.all([
+    all<{ id: string; approved_at: string | null; created_at: string }>(() => db.from("outreach_campaigns").select("id, approved_at, created_at").eq("workspace_id", workspaceId).gte("created_at", s)),
+    all<{ status: string; sent_via: string | null; delivery_status: string | null; sent_at: string | null; lead_id: string | null }>(() => db.from("outreach_messages").select("status, sent_via, delivery_status, sent_at, lead_id")
+      .eq("workspace_id", workspaceId).eq("direction", "outbound").in("status", ["sent", "failed"]).gte("updated_at", s)),
+    all<{ analysis: unknown; lead_id: string | null }>(() => db.from("outreach_messages").select("analysis, lead_id").eq("workspace_id", workspaceId).eq("direction", "inbound").gte("received_at", s)),
+    db.from("sales_meetings").select("id", head).eq("workspace_id", workspaceId).gte("created_at", s).neq("status", "canceled"),
+    db.from("sales_leads").select("id", head).eq("workspace_id", workspaceId).eq("stage", "closed").gte("stage_changed_at", s),
+    db.from("sales_leads").select("id", head).eq("workspace_id", workspaceId).gte("created_at", s),
+  ]);
+  const sent = out.filter((m) => m.status === "sent" && m.sent_at && m.sent_at >= s);
+  const kinds = inbound.map((m) => (m.analysis as { kind?: string } | null)?.kind);
+  const contactedLeads = new Set(sent.map((m) => m.lead_id).filter(Boolean));
+  const repliedLeads = new Set(inbound.map((m) => m.lead_id).filter((id) => id && contactedLeads.has(id))).size;
+  return {
+    campaignsCreated: campaigns.length,
+    campaignsStarted: campaigns.filter((c) => c.approved_at).length,
+    leadsAdded: leads.count ?? 0,
+    sent: sent.length,
+    sentFromMailbox: sent.filter((m) => m.sent_via === "mailbox").length,
+    failed: out.filter((m) => m.status === "failed").length,
+    bounced: sent.filter((m) => m.delivery_status === "bounced").length,
+    replies: inbound.length,
+    repliedLeads,
+    contactedLeads: contactedLeads.size,
+    interested: kinds.filter((k) => k === "interested" || k === "meeting_request").length,
+    optedOut: kinds.filter((k) => k === "stop_request").length,
+    meetings: meetings.count ?? 0,
+    won: won.count ?? 0,
+  };
+}

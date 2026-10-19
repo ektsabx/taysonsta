@@ -38,6 +38,8 @@ export interface TableRow {
   match: number | null;
   added: string;
   imported: boolean;
+  /** Where this prospect stands in outreach (D-234). */
+  outreach: "new" | "in_campaign" | "contacted" | "replied" | "do_not_contact";
 }
 
 interface Props {
@@ -131,12 +133,13 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                 <th>{tb.colLocation}</th>
                 <th>{tb.colEmployees}</th>
                 <th>{tb.colContact}</th>
+                <th>{tb.colOutreach}</th>
                 <th>{tb.colMatch}</th>
                 <th>{tb.colAdded}</th>
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && <tr><td colSpan={10} className="empty-cell">{empty}</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={11} className="empty-cell">{empty}</td></tr>}
               {rows.map((r) => {
                 const on = allMatching || selected.has(r.key);
                 return (
@@ -167,6 +170,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                         {!r.hasEmail && !r.hasPhone && !r.linkedinUrl && <span className="cell-sub">—</span>}
                       </span>
                     </td>
+                    <td><span className={`outreach-state ${r.outreach}`}>{tb.outreach[r.outreach]}</span></td>
                     <td>{r.match != null ? `${r.match}%` : <span className="cell-sub">—</span>}</td>
                     <td className="cell-sub">{r.added}</td>
                   </tr>

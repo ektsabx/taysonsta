@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Info, Pause, Play, Sparkles, Trash2, UserPlus, Archive, X } from "lucide-react";
+import { ArrowLeft, Info, Sparkles, Trash2, UserPlus, Archive, X } from "lucide-react";
+import { LaunchPanel, type MailboxOption } from "./LaunchPanel";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { enrollInCampaign, prepareCampaignDrafts, removeEnrollment, setOutreachStatus } from "@/app/(app)/outreach/actions";
 import { StageBadge, useRun } from "./bits";
 import { CampaignForm } from "./CampaignForm";
 import { dateTime } from "./format";
-import type { OutreachDetail } from "@/services/outreach-campaigns";
+import type { LaunchSummary, OutreachDetail } from "@/services/outreach-campaigns";
 import type { LeadStage, MessageObjective } from "@/types/database";
 
 interface Props {
@@ -18,9 +19,13 @@ interface Props {
   maxSteps: number;
   candidates: { id: string; name: string; company_name: string | null; stage: LeadStage; do_not_contact: boolean }[];
   timeZone: string | null;
+  launch: LaunchSummary;
+  mailboxes: MailboxOption[];
+  mailboxName: string | null;
+  dailyLimit: number;
 }
 
-export function CampaignDetailView({ detail, options, maxSteps, candidates, timeZone }: Props) {
+export function CampaignDetailView({ detail, options, maxSteps, candidates, timeZone, launch, mailboxes, mailboxName, dailyLimit }: Props) {
   const { t, locale } = useI18n();
   const o = t.ws.outreach;
   const { run, pending } = useRun();
@@ -38,17 +43,15 @@ export function CampaignDetailView({ detail, options, maxSteps, candidates, time
           <p>{[o.status[c.status], o.channels[c.channel], c.goal].filter(Boolean).join(" · ")}</p>
         </div>
         <div className="view-actions">
-          {!archived && (c.status === "active"
-            ? <button className="btn-secondary" type="button" disabled={pending} onClick={() => run(() => setOutreachStatus(c.id, "paused"))}><Pause size={14} /> {o.actions.pause}</button>
-            : <button className="btn-primary" type="button" disabled={pending} onClick={() => run(() => setOutreachStatus(c.id, "active"))}><Play size={14} /> {c.status === "paused" ? o.actions.resume : o.actions.activate}</button>)}
           {!archived && <button className="btn-secondary" type="button" onClick={() => setEditing((e) => !e)}>{t.ws.common.edit}</button>}
           {!archived && <button className="btn-secondary" type="button" disabled={pending} onClick={() => { if (confirm(t.ws.common.confirmDelete)) run(() => setOutreachStatus(c.id, "archived")); }}><Archive size={14} /> {o.actions.archive}</button>}
         </div>
       </header>
       <div className="view-content-padding">
-        <div className="ws-note"><Info /><span>{t.ws.common.mailboxNotConnected}</span></div>
+        {c.send_mode !== "mailbox" && <div className="ws-note"><Info /><span>{t.ws.common.mailboxNotConnected}</span></div>}
+        <LaunchPanel summary={launch} mailboxes={mailboxes} mailboxName={mailboxName} dailyLimit={dailyLimit} />
         <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
-          {(["leads", "drafts", "sent", "replies", "meetings"] as const).map((k) => (
+          {(["leads", "drafts", "sent", "failed", "bounced", "replies", "interested", "notInterested", "optedOut", "meetings"] as const).map((k) => (
             <div key={k} className="stat-card"><div className="stat-label">{o.stats[k]}</div><div className="stat-value">{stats[k]}</div></div>
           ))}
         </div>

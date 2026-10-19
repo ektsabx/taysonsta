@@ -12,6 +12,7 @@ import { channels, isMessageLanguage, objectives, tones } from "@/lib/outreach/c
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import type { OutreachCampaignStatus } from "@/types/database";
 import { parseFilters, selectItems } from "@/services/prospects";
+import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
 
 // Outreach campaigns (D-193): create / edit with steps, add and remove leads,
 // prepare drafts, change status. All as the member (RLS); drafting checks
@@ -203,4 +204,28 @@ export async function prepareCampaignDrafts(campaignId: string): Promise<Outreac
   // The most common reason a lead was skipped (e.g. no email for an email campaign).
   const top = [...reasons.entries()].sort((a, b) => b[1] - a[1])[0];
   return { ok: true, message: [fmt(t.ws.outreach.prepared, { count: prepared }), skipped ? `${fmt(t.ws.outreach.prepareSkipped, { count: skipped })}${top ? ` — ${reasonText(top[0])}` : ""}` : null].filter(Boolean).join(" ") };
+}
+
+/**
+ * The member approves running the campaign (D-229): from their connected
+ * mailbox (Yolias sends the sequence) or, without one, in manual mode (Yolias
+ * prepares, they send). Explicit: nothing is sent before this.
+ */
+export async function approveOutreach(campaignId: string, mailboxId: string | null, autoReply: boolean): Promise<OutreachResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).ws.outreach;
+  if (!uuid.safeParse(campaignId).success || (mailboxId !== null && !uuid.safeParse(mailboxId).success)) return { ok: false, error: t.errors.notFound };
+  const r = await approveCampaign({ workspaceId: session.workspace.id, userId: session.userId, role: session.role, campaignId, mailboxId, autoReply: autoReply === true });
+  if (!r.ok) return { ok: false, error: t.launch.errors[r.error] };
+  revalidatePath("/outreach", "layout");
+  return { ok: true, message: mailboxId ? t.launch.started : t.launch.startedManual };
+}
+
+export async function runOutreach(campaignId: string, action: "pause" | "resume" | "cancel"): Promise<OutreachResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).ws.outreach;
+  if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel"].includes(action)) return { ok: false, error: t.errors.notFound };
+  if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
+  revalidatePath("/outreach", "layout");
+  return { ok: true };
 }

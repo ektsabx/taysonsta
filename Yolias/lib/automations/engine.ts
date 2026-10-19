@@ -1,4 +1,5 @@
 import "server-only";
+import { cleanNotificationText } from "@/lib/notification-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { decide } from "@/lib/ai-workspace/settings";
@@ -93,7 +94,7 @@ async function runAction(act: AutomationAction, ctx: Ctx): Promise<ActionResult>
         : ((await db.from("workspace_members").select("user_id").eq("workspace_id", ev.workspaceId)).data ?? []).map((m) => m.user_id);
       if (recipients.length) {
         await db.from("notifications").insert(recipients.map((user_id) => ({
-          user_id, workspace_id: ev.workspaceId, kind: "automation", title: act.title.slice(0, 300), body: lead?.name ?? null,
+          user_id, workspace_id: ev.workspaceId, kind: "automation", title: cleanNotificationText(act.title).slice(0, 300), body: lead?.name ?? null,
           link: `/crm/${ev.leadId}`, dedupe_key: `auto:${ctx.automationId}:${ev.eventKey}:${ctx.index}:${user_id}`,
         })));
       }

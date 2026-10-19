@@ -1,5 +1,6 @@
 "use server";
 
+import { classifyIntent } from "@/lib/ai/intent";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
@@ -56,6 +57,16 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
       .order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (recent) return { ok: true, id: recent.id };
   }
+  // Not a search (replies, campaigns, CRM, analytics…): a conversation with Yolias AI (D-231).
+  if (prompt && attachments.length === 0 && (await classifyIntent(prompt, session.workspace.id)) === "assistant") {
+    const { data: chat, error: chatError } = await supabase.from("strategies").insert({
+      workspace_id: session.workspace.id, created_by: session.userId, title: titleFrom(prompt), prompt, attachments: [] as Json, status: "chat", customer_profile_id: customerProfileId,
+    }).select("id").single();
+    if (chatError || !chat) return { ok: false, error: t.strategy.errors.startFailed };
+    revalidatePath("/", "layout");
+    return { ok: true, id: chat.id };
+  }
+
   const slot = await takeDaily(session.userId, session.workspace.plan, "search");
   if (!slot.ok) return { ok: false, error: fmt(t.strategy.errors.dailyLimit, { count: slot.limit }) };
 

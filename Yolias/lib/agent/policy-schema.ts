@@ -30,6 +30,14 @@ export const AGENT_TOOLS = [
   { name: "updateCampaign", label: { ar: "تعديل / إيقاف حملة", en: "Change / stop a campaign" }, writes: true },
   { name: "getStrategy", label: { ar: "عرض بحث", en: "Open a search" }, writes: false },
   { name: "createCampaign", label: { ar: "بدء حملة", en: "Start a campaign" }, writes: true },
+  { name: "createOutreachCampaign", label: { ar: "تجهيز حملة تواصل", en: "Prepare an outreach campaign" }, writes: true },
+  { name: "getOutreachCampaign", label: { ar: "عرض حملة تواصل", en: "Open an outreach campaign" }, writes: false },
+  { name: "startOutreachCampaign", label: { ar: "بدء حملة تواصل", en: "Start an outreach campaign" }, writes: true },
+  { name: "controlOutreachCampaign", label: { ar: "إيقاف / استئناف / إلغاء حملة تواصل", en: "Pause / resume / cancel outreach" }, writes: true },
+  { name: "listReplies", label: { ar: "الردود الواردة", en: "Replies" }, writes: false },
+  { name: "listLeads", label: { ar: "عملاء CRM", en: "CRM leads" }, writes: false },
+  { name: "updateLeadStage", label: { ar: "تحديث مرحلة عميل", en: "Update a lead's stage" }, writes: true },
+  { name: "excludeLead", label: { ar: "استبعاد عميل", en: "Exclude a lead" }, writes: true },
   { name: "getAnalytics", label: { ar: "التحليلات", en: "Analytics" }, writes: false },
   { name: "getUsage", label: { ar: "الاستخدام", en: "Usage" }, writes: false },
   { name: "getBilling", label: { ar: "الفوترة", en: "Billing" }, writes: false },
@@ -114,7 +122,7 @@ const toolDefaults = Object.fromEntries(AGENT_TOOLS.map((t) => [t.name, {
   enabled: t.name !== "listJobs",
   // Actions that use prospects or change a campaign wait for the user's OK.
   // Finding decision makers is free (D-146), so it runs without one (owner, 2026-10-07).
-  approval: ["createCampaign", "enrichProspect"].includes(t.name),
+  approval: ["createCampaign", "enrichProspect", "startOutreachCampaign"].includes(t.name),
   roles: t.name === "getBilling" ? (["owner", "admin"] as ToolPolicy["roles"]) : ALL,
 }])) as Record<string, ToolPolicy>;
 

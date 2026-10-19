@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-13";
+export const LEGAL_UPDATED = "2026-10-19";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -32,6 +32,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "Conversations with Yolias AI, and facts you ask it to remember about your business.",
           "Email and LinkedIn messages Yolias writes for you, your edits, and where and when you opened them (Gmail, Outlook, your email app or LinkedIn). Yolias doesn’t send them; you do, from your own account.",
         ] },
+        { h3: "Connected mailboxes (Gmail, Outlook)" },
+        { p: "If you connect your Gmail or Outlook, we keep an access permission (an OAuth refresh token) encrypted in our database vault; it never reaches your browser. Yolias uses it only to send campaigns you approved and to read the replies in the email threads Yolias started, so it can show them in your Inbox, classify them and stop follow-ups. Yolias doesn’t read, store or analyse any other email in your mailbox, doesn’t use mailbox data for advertising, doesn’t sell it, and doesn’t use it to train AI models. Yolias’s use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. You can disconnect at any time in Settings, Integrations, which deletes the stored permission; you can also remove Yolias’s access from your Google or Microsoft account." },
         { h3: "Payments" },
         { p: "Payments are made on our payment partners’ secure pages: Polar, which sells Yolias subscriptions as merchant of record when you pay by card, and Paymob when you choose to pay with a card from Egypt. You choose the method at checkout. We receive the payment result, amount, subscription status and a reference. We never receive your card number or security code." },
         { h3: "Business contact data about prospects" },
@@ -95,6 +97,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "محادثاتك مع Yolias AI، والمعلومات التي تطلب منه تذكّرها عن عملك.",
           "رسائل الإيميل ولينكدإن التي يكتبها يولـياس لك، وتعديلاتك عليها، وأين ومتى فتحتها (Gmail أو Outlook أو تطبيق البريد أو لينكدإن). يولـياس لا يرسلها، بل ترسلها أنت من حسابك.",
         ] },
+        { h3: "صناديق البريد المتصلة (Gmail وOutlook)" },
+        { p: "إذا ربطت Gmail أو Outlook، نحتفظ بإذن الوصول (رمز OAuth للتجديد) مشفّرًا في خزنة قاعدة البيانات، ولا يصل إلى متصفحك أبدًا. يستخدمه يولـياس فقط لإرسال الحملات التي وافقت عليها ولقراءة الردود في محادثات البريد التي بدأها يولـياس، ليعرضها في صندوق الوارد ويصنفها ويوقف المتابعات. لا يقرأ يولـياس أي رسالة أخرى في صندوق بريدك ولا يخزنها ولا يحللها، ولا يستخدم بيانات البريد للإعلانات، ولا يبيعها، ولا يستخدمها لتدريب نماذج الذكاء الاصطناعي. يلتزم استخدام يولـياس للمعلومات الواردة من واجهات Google بسياسة بيانات المستخدم لخدمات Google API، بما في ذلك متطلبات الاستخدام المحدود. يمكنك فصل الحساب في أي وقت من الإعدادات ← التكاملات، فيُحذف الإذن المخزّن، ويمكنك أيضًا إزالة وصول يولـياس من حساب Google أو Microsoft الخاص بك." },
         { h3: "المدفوعات" },
         { p: "يتم الدفع في صفحات الدفع الآمنة لشركائنا: Polar، الذي يبيع اشتراكات يولـياس بصفته التاجر المسجّل (Merchant of Record) عند الدفع بالبطاقة، وPaymob عند اختيار الدفع بالفيزا من مصر. أنت تختار طريقة الدفع في صفحة الدفع. نستلم نتيجة الدفع والمبلغ وحالة الاشتراك ومرجعًا للعملية فقط، ولا نستلم رقم بطاقتك أو رمز الأمان أبدًا." },
         { h3: "بيانات التواصل المهنية للعملاء المحتملين" },
@@ -172,7 +176,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "Prospect data and your obligations" },
         { p: "Yolias helps you discover businesses and professional contacts. How you use that information is your decision and your responsibility: you must have a lawful basis to contact people, honor opt-out requests, and follow the laws that apply to you and to them, such as personal data protection laws in Saudi Arabia, the UAE and the EU." },
         { h2: "Messages you send" },
-        { p: "Yolias can write an email or a LinkedIn message for a prospect. You edit it and send it yourself from your own email or LinkedIn account; Yolias doesn’t send messages. You are responsible for their content and recipients, and for following the rules of your email provider and of LinkedIn." },
+        { p: "Yolias can write emails and LinkedIn messages for prospects. If you connect your Gmail or Outlook, Yolias sends a campaign from it only after you approve that campaign, and reads only the replies in the threads it started; you can pause, cancel or disconnect at any time. LinkedIn messages are always sent by you. You are responsible for the content and recipients of your messages, for having a lawful reason to contact them, for honouring opt-outs, and for following the rules of your email provider and of LinkedIn." },
         { h2: "AI output" },
         { p: "Customer profiles, match scores, enriched data and message drafts are produced automatically and can be incomplete or wrong. Review results before relying on them." },
         { h2: "Your content" },
@@ -225,7 +229,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "بيانات العملاء المحتملين والتزاماتك" },
         { p: "يساعدك يولـياس على اكتشاف الشركات وجهات الاتصال المهنية. أما طريقة استخدامك لهذه المعلومات فقرارك ومسؤوليتك: يجب أن يكون لديك أساس قانوني للتواصل، وأن تحترم طلبات إلغاء الاشتراك، وأن تلتزم بالقوانين المطبقة عليك وعليهم، مثل قوانين حماية البيانات الشخصية في السعودية والإمارات والاتحاد الأوروبي." },
         { h2: "الرسائل التي ترسلها" },
-        { p: "يمكن ليولـياس كتابة رسالة إيميل أو لينكدإن لعميل محتمل. تعدّلها وترسلها أنت من بريدك أو حسابك على لينكدإن؛ يولـياس لا يرسل الرسائل. وأنت مسؤول عن محتواها ومستلميها، وعن الالتزام بقواعد مزود بريدك ولينكدإن." },
+        { p: "يمكن ليولـياس كتابة رسائل إيميل ولينكدإن للعملاء المحتملين. إذا ربطت Gmail أو Outlook، يرسل يولـياس الحملة منه فقط بعد موافقتك عليها، ولا يقرأ إلا الردود في المحادثات التي بدأها، ويمكنك الإيقاف أو الإلغاء أو فصل الحساب في أي وقت. رسائل لينكدإن ترسلها أنت دائمًا. وأنت مسؤول عن محتوى رسائلك ومستلميها، وعن وجود سبب مشروع للتواصل معهم، واحترام طلبات الإيقاف، والالتزام بقواعد مزود بريدك ولينكدإن." },
         { h2: "مخرجات الذكاء الاصطناعي" },
         { p: "ملفات العملاء ونسب التطابق والبيانات المُثراة ومسودات الرسائل تُنتج تلقائيًا وقد تكون ناقصة أو غير دقيقة. راجع النتائج قبل الاعتماد عليها." },
         { h2: "محتواك" },

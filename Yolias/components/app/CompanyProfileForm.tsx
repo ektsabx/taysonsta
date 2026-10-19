@@ -10,7 +10,8 @@ export interface CompanyProfileValues { name: string; website: string; industry:
 // The company details from onboarding (D-139), now under AI Workspace →
 // Company Knowledge (moved from Settings → Organization, same data on
 // workspaces). Owners and admins edit them.
-export function CompanyProfileForm({ initial, manage }: { initial: CompanyProfileValues; manage: boolean }) {
+// `onChange` reports edits to a parent that saves more than this form (Company Knowledge → Save everything).
+export function CompanyProfileForm({ initial, manage, onChange }: { initial: CompanyProfileValues; manage: boolean; onChange?: (v: CompanyProfileValues) => void }) {
   const { t } = useI18n();
   const o = t.settings.organization;
   const [form, setForm] = useState(initial);
@@ -24,7 +25,7 @@ export function CompanyProfileForm({ initial, manage }: { initial: CompanyProfil
     else if (!r.ok) setError(r.error);
     else setSaved(true);
   });
-  const set = (k: keyof CompanyProfileValues) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { setSaved(false); setForm({ ...form, [k]: e.target.value }); };
+  const set = (k: keyof CompanyProfileValues) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { setSaved(false); const next = { ...form, [k]: e.target.value }; setForm(next); onChange?.(next); };
   const row = (k: keyof CompanyProfileValues, label: string, desc: string, input: React.ReactNode) => (
     <div className="ws-field" key={k}>
       <label className="ws-label" htmlFor={`cp-${k}`}>{label}</label>

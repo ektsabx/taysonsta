@@ -16,6 +16,7 @@ import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { buyProspectPack } from "@/app/checkout/actions";
+import { connectTestMailbox, mailboxState, removeMailbox } from "@/app/(app)/settings/mailbox-actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
@@ -211,7 +212,7 @@ function AccountTab({ data }: { data: ShellData }) {
     setUploading(true);
     const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
     const path = `${data.user.id}/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await createClient().storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    const { error: upErr } = await createClient().storage.from("avatars").upload(path, file, { upsert: false, contentType: file.type });
     if (upErr) {
       setUploading(false);
       return setLocalError(a.uploadFailed);
@@ -862,42 +863,92 @@ function TeamTab({ data }: { data: ShellData }) {
 function IntegrationTab() {
   const { t } = useI18n();
   const it = t.settings.integration;
-  // Owner brief 2026-10-12: calendar / meetings and the three messaging
-  // channels (email, LinkedIn; WhatsApp removed in D-201). Each shows what really works today:
-  // messages open in the member's own app; account connections (OAuth) and
-  // calendars aren't built yet, so they say so (docs/21).
-  const groups = [
-    { title: it.calendar, items: [
-      { id: "google_calendar", name: "Google Calendar", desc: it.googleCalendarDesc, Icon: CalendarDays, live: false },
-      { id: "google_meet", name: "Google Meet", desc: it.googleMeetDesc, Icon: Video, live: false },
-      { id: "zoom", name: "Zoom", desc: it.zoomDesc, Icon: Video, live: false },
-    ] },
-    { title: it.channels, items: [
-      { id: "gmail", name: "Gmail", desc: it.gmailDesc, Icon: GmailIcon, live: true },
-      { id: "outlook", name: "Outlook", desc: it.outlookDesc, Icon: OutlookIcon, live: true },
-      { id: "linkedin", name: "LinkedIn", desc: it.linkedinDesc, Icon: LinkedInIcon, live: true },
-    ] },
+  const toast = useToast();
+  const [state, setState] = useState<Awaited<ReturnType<typeof mailboxState>> | null>(null);
+  const [pending, start] = useTransition();
+  const load = () => mailboxState().then(setState).catch(() => setState({ mailboxes: [], available: [] }));
+  useEffect(() => { void load(); }, []);
+  // Coming back from Google / Microsoft: say what happened.
+  useEffect(() => {
+    const status = new URLSearchParams(window.location.search).get("mailbox");
+    if (!status) return;
+    const msg = { connected: it.mailboxConnected, denied: it.mailboxDenied, not_configured: it.mailboxNotConfigured }[status] ?? it.mailboxFailed;
+    toast(msg, status === "connected" ? undefined : "error");
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Mailboxes (D-228): connect your own Gmail / Outlook to send approved
+  // campaigns and read the replies. LinkedIn has no official messaging API
+  // for this, so it stays "write here, send from your account". Calendars
+  // aren't built yet and say so.
+  const mailboxRow = (provider: "gmail" | "outlook" | "test", name: string, desc: string, Icon: React.ComponentType) => {
+    const m = state?.mailboxes.find((x) => x.provider === provider && x.status !== "disconnected");
+    const can = state?.available.includes(provider);
+    return (
+      <div className="connector" key={provider}>
+        <div className="connector-icon"><Icon /></div>
+        <div className="connector-main">
+          <div className="connector-name">{name}{m ? <span className="connector-account" dir="ltr"> · {m.email}</span> : null}</div>
+          <div className="connector-desc">{m?.status === "error" ? (m.lastError ?? it.needsReconnect) : desc}</div>
+          {m?.status === "connected" ? <div className="connector-desc">{fmt(it.sentToday, { count: m.sentToday, limit: m.dailyLimit })}</div> : null}
+        </div>
+        {m ? (
+          <span className="connector-actions">
+            <span className={m.status === "connected" ? "status-pill paid" : "status-pill failed"}>{m.status === "connected" ? it.connected : it.needsReconnect}</span>
+            {m.status === "error" && provider !== "test" ? <a className="btn-secondary" href={`/api/integrations/${provider}/start`}>{it.reconnect}</a> : null}
+            <button type="button" className="btn-secondary" disabled={pending} onClick={() => {
+              if (!window.confirm(fmt(it.disconnectConfirm, { email: m.email }))) return;
+              start(async () => { await removeMailbox(m.id); await load(); });
+            }}>{it.disconnect}</button>
+          </span>
+        ) : can ? (
+          provider === "test"
+            ? <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => { await connectTestMailbox(); await load(); })}>{it.connect}</button>
+            : <a className="btn-primary" href={`/api/integrations/${provider}/start`}>{it.connect}</a>
+        ) : <span className="coming-soon">{state ? it.notSetUp : "…"}</span>}
+      </div>
+    );
+  };
+  const calendar = [
+    { id: "google_calendar", name: "Google Calendar", desc: it.googleCalendarDesc, Icon: CalendarDays },
+    { id: "google_meet", name: "Google Meet", desc: it.googleMeetDesc, Icon: Video },
+    { id: "zoom", name: "Zoom", desc: it.zoomDesc, Icon: Video },
   ];
   return (
     <div className="setting-group">
       <p className="setting-intro">{it.intro}</p>
-      {groups.map((g) => (
-        <div key={g.title} className="connector-group">
-          <div className="setting-label">{g.title}</div>
-          <div className="connector-list">
-            {g.items.map(({ id, name, desc, Icon, live }) => (
-              <div className="connector" key={id}>
-                <div className="connector-icon"><Icon /></div>
-                <div className="connector-main">
-                  <div className="connector-name">{name}</div>
-                  <div className="connector-desc">{desc}</div>
-                </div>
-                <span className={live ? "status-pill paid" : "coming-soon"}>{live ? it.viaYourApp : it.notConnected}</span>
-              </div>
-            ))}
+      <div className="connector-group">
+        <div className="setting-label">{it.channels}</div>
+        <div className="connector-list">
+          {mailboxRow("gmail", "Gmail", it.gmailDesc, GmailIcon)}
+          {mailboxRow("outlook", "Outlook", it.outlookDesc, OutlookIcon)}
+          {state?.available.includes("test") || state?.mailboxes.some((m) => m.provider === "test") ? mailboxRow("test", "Test mailbox", it.testDesc, Plug) : null}
+          <div className="connector">
+            <div className="connector-icon"><LinkedInIcon /></div>
+            <div className="connector-main">
+              <div className="connector-name">LinkedIn</div>
+              <div className="connector-desc">{it.linkedinDesc}</div>
+            </div>
+            <span className="status-pill paid">{it.viaYourApp}</span>
           </div>
         </div>
-      ))}
+      </div>
+      <div className="connector-group">
+        <div className="setting-label">{it.calendar}</div>
+        <div className="connector-list">
+          {calendar.map(({ id, name, desc, Icon }) => (
+            <div className="connector" key={id}>
+              <div className="connector-icon"><Icon /></div>
+              <div className="connector-main">
+                <div className="connector-name">{name}</div>
+                <div className="connector-desc">{desc}</div>
+              </div>
+              <span className="coming-soon">{it.notConnected}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

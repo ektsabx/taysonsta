@@ -142,7 +142,7 @@ export async function confirmSent(db: Db, workspaceId: string, userId: string, m
   return { ok: true };
 }
 
-async function advanceEnrollment(enrollmentId: string, sentStep: number, maxPerLead: number) {
+export async function advanceEnrollment(enrollmentId: string, sentStep: number, maxPerLead: number) {
   const db = createAdminClient();
   const { data: e } = await db.from("outreach_enrollments").select("id, campaign_id, workspace_id, lead_id, status, current_step").eq("id", enrollmentId).single();
   if (!e || e.status !== "active" || sentStep <= e.current_step) return;
@@ -166,14 +166,16 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
   const db = createAdminClient();
   const now = new Date().toISOString();
   const out = { due: 0, drafted: 0, reminders: 0 };
-  const { data: due } = await db.from("outreach_enrollments").select("id, workspace_id, lead_id, current_step, campaign:outreach_campaigns(status, created_by, name), lead:sales_leads(owner_id, do_not_contact)")
+  const { data: due } = await db.from("outreach_enrollments").select("id, workspace_id, lead_id, current_step, campaign:outreach_campaigns(status, created_by, name, send_mode), lead:sales_leads(owner_id, do_not_contact)")
     .eq("status", "active").lte("next_step_at", now).order("next_step_at").limit(limit);
   for (const e of due ?? []) {
     out.due++;
-    const camp = e.campaign as unknown as { status: string; created_by: string | null; name: string } | null;
+    const camp = e.campaign as unknown as { status: string; created_by: string | null; name: string; send_mode: string } | null;
     const lead = e.lead as unknown as { owner_id: string | null; do_not_contact: boolean } | null;
     // Paused campaigns keep their schedule until resumed.
     if (!camp || camp.status !== "active") continue;
+    // Campaigns approved to send from a mailbox are run by dispatchCampaigns (lib/outreach/execute.ts).
+    if (camp.send_mode === "mailbox") continue;
     await db.from("outreach_enrollments").update({ next_step_at: null }).eq("id", e.id).eq("status", "active");
     if (!lead || lead.do_not_contact) continue;
     const settings = await loadAiSettings(e.workspace_id);

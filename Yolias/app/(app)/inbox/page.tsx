@@ -1,3 +1,6 @@
+import { memberMailboxes } from "@/lib/mailbox";
+import { createClient } from "@/lib/supabase/server";
+import { PendingApprovals } from "@/components/app/ws/PendingApprovals";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Info, Search } from "lucide-react";
@@ -24,9 +27,14 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const leadId = /^[0-9a-f-]{36}$/i.test(one(sp.lead)) ? one(sp.lead) : null;
   const channels = await inboxChannels(session.workspace.id);
   const channel = channels.includes(one(sp.channel)) ? one(sp.channel) : null;
-  const [t, locale, list, thread] = await Promise.all([
+  const [t, locale, list, thread, boxes, approvals] = await Promise.all([
     getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q, channel), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
+    memberMailboxes(session.workspace.id, session.userId),
+    // What the agent is waiting for the member to approve (moved here from the AI Agent page, D-233).
+    (await createClient()).from("agent_pending_actions").select("id, lead_id, tool, input, summary, created_at, lead:sales_leads(name)")
+      .eq("workspace_id", session.workspace.id).eq("status", "pending").not("lead_id", "is", null).order("created_at", { ascending: false }).limit(50),
   ]);
+  const hasMailbox = boxes.some((m) => m.status === "connected");
   const w = t.ws.inbox;
   const tz = session.profile.timezone;
   const link = (patch: Record<string, string | null>) => {
@@ -45,7 +53,10 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           <p>{w.subtitle}</p>
         </div>
       </header>
-      <div className="ws-note" style={{ margin: "14px 34px 0" }}><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>
+      {!hasMailbox && <div className="ws-note" style={{ margin: "14px 34px 0" }}><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>}
+      <div className="inbox-approvals">
+        <PendingApprovals timeZone={tz} approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "—", tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))} />
+      </div>
       <div className={`inbox${thread ? " has-thread" : ""}`} style={{ marginTop: 14 }}>
         <aside className="inbox-list">
           <div className="inbox-list-head">

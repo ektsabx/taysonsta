@@ -30,6 +30,8 @@ interface Props {
   cards?: Record<number, ReactNode>;
   /** Plan badge + Upgrade in the composer. */
   plan?: { label: string; canUpgrade: boolean };
+  /** A request typed in the home box that isn't a search: sent to Yolias AI as soon as the thread opens. */
+  autoSend?: string;
 }
 
 // Yolias AI conversation, Claude-style (final spec phase 7): one thread per
@@ -37,7 +39,7 @@ interface Props {
 // same thread — with live thinking / tool states while Yolias works, actions
 // on each reply (copy, like, dislike, time), and one composer at the bottom.
 // Every turn is saved on the server; history is read from there.
-export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
+export function AgentThread({ strategyId, initial, lead, cards, plan, autoSend }: Props) {
   const { t, locale } = useI18n();
   const a = t.agent;
   const router = useRouter();
@@ -114,6 +116,14 @@ export function AgentThread({ strategyId, initial, lead, cards, plan }: Props) {
       inputRef.current?.focus();
     }
   };
+
+  const autoSent = useRef(false);
+  useEffect(() => {
+    if (!autoSend || autoSent.current || initial.length) return;
+    autoSent.current = true;
+    void send(autoSend);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const intl = locale === "ar" ? "ar-u-nu-latn" : "en-US";
   const time = (iso?: string) => (iso ? new Intl.DateTimeFormat(intl, { hour: "numeric", minute: "2-digit" }).format(new Date(iso)) : "");

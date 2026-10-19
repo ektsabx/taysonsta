@@ -71,6 +71,19 @@ export function InboxThreadView({ thread, backHref, timeZone }: { thread: InboxT
               </div>
             ))}
           </div>
+          {thread.activity.length > 0 && (
+            <div className="ws-card">
+              <h4 className="ws-label" style={{ marginBottom: 8 }}>{w.agentLog}</h4>
+              <ol className="agent-log">
+                {thread.activity.map((x) => (
+                  <li key={x.id}>
+                    <span>{w.activity[x.kind as keyof typeof w.activity] ?? x.kind}{x.body ? `: ${x.body.slice(0, 160)}` : ""}</span>
+                    <span className="cell-sub">{dateTime(x.created_at, locale, timeZone)}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           <div className="ws-card">
             <h4 className="ws-label" style={{ marginBottom: 8 }}>{w.reminders}</h4>
             {!thread.tasks.length ? <p className="ws-muted">{t.ws.crm.detail.noTasks}</p> : thread.tasks.map((k) => (

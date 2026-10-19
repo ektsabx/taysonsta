@@ -2,6 +2,7 @@ import "server-only";
 import { sendTeamMessage } from "@/lib/email/team";
 import { classifyCheckouts } from "@/lib/funnel";
 import { followUpSweep } from "@/lib/outreach/sequence";
+import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -153,6 +154,9 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
   // Follow-up Agent: due follow-ups, scheduled messages and meeting outcomes (D-197).
   await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
+  // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
+  await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
+  await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".
   await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {

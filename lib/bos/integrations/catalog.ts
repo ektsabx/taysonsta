@@ -103,14 +103,25 @@ export const providers: ProviderDef[] = [
   },
   {
     key: "yolias_google", name: "Google OAuth — Yolias (Gmail)", category: "google", phase: 0, testable: true,
-    description: "يربط به عملاء يولياس بريد Gmail الخاص بهم لإرسال الرسائل بعد موافقتهم. في Google Cloud: فعّل Gmail API، وأضف صلاحية gmail.send، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/gmail/callback. (الدخول بحساب Google يُضبط في Supabase Auth.)",
+    description: "يربط به عملاء يولياس بريد Gmail الخاص بهم: إرسال الحملات بعد موافقتهم وقراءة الردود في المحادثات التي بدأها يولياس فقط. في Google Cloud: فعّل Gmail API، وأضف الصلاحيات gmail.send و gmail.readonly في شاشة الموافقة (تحتاج مراجعة Google قبل الاستخدام العام)، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/gmail/callback. (الدخول بحساب Google يُضبط في Supabase Auth.)",
     fields: [
       { key: "client_id", label: "OAuth client ID", required: true },
       { key: "client_secret", label: "OAuth client secret", secret: true, required: true },
     ],
     capabilities: ["mail.send"],
     docs: "https://developers.google.com/workspace/gmail/api/guides/sending",
-    yolias: "ربط Gmail وإرسال رسائل التواصل.",
+    yolias: "ربط Gmail وإرسال حملات التواصل وقراءة الردود.",
+  },
+  {
+    key: "yolias_microsoft", name: "Microsoft OAuth — Yolias (Outlook)", category: "email", phase: 0, testable: false,
+    description: "يربط به عملاء يولياس بريد Outlook / Microsoft 365: إرسال الحملات بعد موافقتهم وقراءة الردود في المحادثات التي بدأها يولياس فقط. في Microsoft Entra: سجّل تطبيقًا (حسابات أي مؤسسة وحسابات Microsoft الشخصية)، وأضف الصلاحيات المفوّضة Mail.Send و Mail.ReadWrite و User.Read و offline_access، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/outlook/callback، وأنشئ client secret.",
+    fields: [
+      { key: "client_id", label: "Application (client) ID", required: true },
+      { key: "client_secret", label: "Client secret", secret: true, required: true },
+    ],
+    capabilities: ["mail.send"],
+    docs: "https://learn.microsoft.com/graph/outlook-mail-concept-overview",
+    yolias: "ربط Outlook وإرسال حملات التواصل وقراءة الردود.",
   },
   {
     key: "paymob", name: "Paymob", category: "payments", phase: 0, testable: false,

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { verifyImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireSession, requireUser } from "@/lib/session";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
 import { THEME_COOKIE, themeCookieOptions } from "@/lib/theme";
@@ -38,7 +38,7 @@ const preferencesSchema = z
   .partial();
 
 export async function updatePreferences(input: z.input<typeof preferencesSchema>): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = (await getDictionary()).settings.errors;
   const parsed = preferencesSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].path[0] === "full_name" ? t.nameRequired : t.saveFailed };
@@ -62,7 +62,7 @@ export async function updatePreferences(input: z.input<typeof preferencesSchema>
 // Account → Phone: an international number (E.164) only the user can read
 // (public.user_phones, RLS). Empty removes it.
 export async function updatePhone(input: string): Promise<ActionResult & { phone?: string | null }> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = (await getDictionary()).settings.errors;
   const supabase = await createClient();
   if (!input.trim()) {
@@ -79,7 +79,7 @@ export async function updatePhone(input: string): Promise<ActionResult & { phone
 // Trustpilot request (lib/review-prompt.ts): the first call marks it as asked,
 // so it never shows again on any device; later calls record the choice.
 export async function recordReviewPrompt(action: "shown" | "opened" | "dismissed"): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   if (!["shown", "opened", "dismissed"].includes(action)) return { ok: false, error: "invalid" };
   const supabase = await createClient();
   const { error } = await supabase.from("profiles")
@@ -90,7 +90,7 @@ export async function recordReviewPrompt(action: "shown" | "opened" | "dismissed
 
 // Settings → Usage "refresh": recounts this month's prospects.
 export async function refreshUsage(): Promise<{ prospects: number; allowance: number; extra: number; resetsAt: string | null; emails: { used: number; limit: number }; contacts: { used: number; limit: number }; trialEndsAt: string | null; checkedAt: string }> {
-  const session = await requireSession();
+  const session = await requireUser();
   const usage = await monthlyUsage(session.workspace.id);
   return { prospects: usage.prospects, allowance: usage.allowance, extra: usage.extra, resetsAt: usage.resetsAt, emails: usage.emails, contacts: usage.contacts, trialEndsAt: usage.trialEndsAt, checkedAt: new Date().toISOString() };
 }
@@ -109,7 +109,7 @@ export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
 // Called after the browser uploaded the image to avatars/<uid>/… (storage policy
 // restricts uploads to the user's own folder).
 export async function setAvatar(path: string): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = (await getDictionary()).settings.errors;
   if (!path.startsWith(`${session.userId}/`) || path.includes("..") || path.length > 300) return { ok: false, error: t.invalidAvatar };
   // The browser uploaded it: check the stored file itself (PNG, JPEG or WebP
@@ -140,7 +140,7 @@ export async function signOut(scope: "local" | "global" = "local") {
 }
 
 export async function deleteAccount(): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = (await getDictionary()).settings.errors;
   const admin = createAdminClient();
   const { count } = await admin.from("workspace_members").select("user_id", { count: "exact", head: true }).eq("workspace_id", session.workspace.id);
@@ -232,7 +232,7 @@ const emailChangeSchema = z.object({ email: z.string().trim().toLowerCase().emai
 // link to both addresses (double_confirm_changes) and, once done, a notice to
 // the old one (auth.email.notification.email_changed).
 export async function changeEmail(input: z.input<typeof emailChangeSchema>): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = (await getDictionary()).settings.errors;
   const parsed = emailChangeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: t.invalidEmail };

@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Info, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Globe, Info, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { deleteKnowledgeItem, saveCompetitor, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { analyzeWebsiteAction, deleteKnowledgeItem, saveCompetitor, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { updateOrganization } from "@/app/(app)/settings/actions";
+import { callAction, isNetworkFailure } from "@/lib/action-client";
+import { fmt } from "@/lib/i18n/config";
+import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { CompanyProfileForm, type CompanyProfileValues } from "../CompanyProfileForm";
 import { useRun } from "./bits";
 import type { BusinessOfferRow, CompetitorRow, WorkspaceKnowledgeRow } from "@/types/database";
 
-const SECTIONS = ["about", "services", "products", "pricing", "differentiators", "case_studies", "faqs", "reply_policy"] as const;
+const SECTIONS = ["about", "value_proposition", "services", "products", "pricing", "differentiators", "case_studies", "faqs", "contact", "reply_policy"] as const;
 const OFFER_FIELDS = ["description", "problem", "audience", "benefits", "price", "terms"] as const;
 const COMPETITOR_FIELDS = ["website", "description", "strengths", "weaknesses", "differences", "notes"] as const;
 
@@ -19,13 +23,44 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
   const k = t.ws.ai.knowledge;
   const { run, pending } = useRun();
   const [form, setForm] = useState(Object.fromEntries(SECTIONS.map((s) => [s, knowledge?.[s] ?? ""])) as Record<(typeof SECTIONS)[number], string>);
+  const [basics, setBasics] = useState(profile);
+  const [basicsKey, setBasicsKey] = useState(0);
+  const [analysis, setAnalysis] = useState<WebsiteAnalysis | null>(null);
+
+  // Analyze website (D-232): what the site supports fills the fields; the rest stays as it was.
+  const applyAnalysis = (a: WebsiteAnalysis) => {
+    setAnalysis(a);
+    const next = { ...basics, website: a.url };
+    for (const [key, v] of Object.entries(a.profile)) if (v) (next as Record<string, string>)[key] = v;
+    setBasics(next);
+    setBasicsKey((n) => n + 1);
+    setForm((cur) => {
+      const f = { ...cur };
+      for (const [key, v] of Object.entries(a.knowledge)) if (v && key in f) f[key as (typeof SECTIONS)[number]] = v;
+      return f;
+    });
+  };
 
   return (
     <>
       {!manage && <div className="ws-note"><Info /><span>{t.ws.common.onlyManagers}</span></div>}
+      {manage && <AnalyzeWebsite initialUrl={basics.website} onResult={applyAnalysis} />}
+      {analysis && (
+        <div className="ws-card analyze-result" role="status">
+          <p>{fmt(k.analyze.done, { count: analysis.pages.length })}</p>
+          {analysis.notFound.length ? <p className="ws-muted">{k.analyze.notFound} {analysis.notFound.map((f) => (f in k.fields ? k.fields[f as keyof typeof k.fields] : fieldLabel(t, f))).join(", ")}</p> : null}
+          <div className="ws-actions">
+            <button className="btn-primary" type="button" disabled={pending} onClick={() => run(async () => {
+              const a = await updateOrganization(basics);
+              if (!a.ok) return a;
+              return saveKnowledge(form);
+            }, { success: t.ws.common.saved, onOk: () => setAnalysis(null) })}>{k.analyze.saveAll}</button>
+          </div>
+        </div>
+      )}
       <section className="ws-section">
         <div className="ws-section-head"><h3>{k.basics}</h3></div>
-        <div className="ws-card"><CompanyProfileForm initial={profile} manage={manage} /></div>
+        <div className="ws-card"><CompanyProfileForm key={basicsKey} initial={basics} manage={manage} onChange={setBasics} /></div>
       </section>
 
       <section className="ws-section">
@@ -127,5 +162,43 @@ function ItemSection({ title, empty, addLabel, manage, note, items, fields, name
         </div>
       )}
     </section>
+  );
+}
+
+type Dict = ReturnType<typeof useI18n>["t"];
+function fieldLabel(t: Dict, f: string): string {
+  const o = t.settings.organization;
+  return ({ name: o.name, industry: o.industry, offering: o.offering, ideal_customer: o.idealCustomer, target_markets: o.targetMarkets } as Record<string, string>)[f] ?? f;
+}
+
+/** The website box at the top of Company Knowledge (also used in onboarding). */
+export function AnalyzeWebsite({ initialUrl, onResult, compact = false, action = analyzeWebsiteAction, url: controlled, onUrl }: {
+  initialUrl: string; onResult: (a: WebsiteAnalysis) => void; compact?: boolean; action?: (url: string) => Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }>;
+  /** Controlled address (onboarding uses its own website field). */
+  url?: string; onUrl?: (v: string) => void;
+}) {
+  const { t } = useI18n();
+  const a = t.ws.ai.knowledge.analyze;
+  const [own, setOwn] = useState(initialUrl);
+  const url = controlled ?? own;
+  const setUrl = onUrl ?? setOwn;
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const go = () => start(async () => {
+    setError(null);
+    const r = await callAction(() => action(url));
+    if (isNetworkFailure(r)) return setError(t.feedback.errors.network);
+    if (!r.ok) return setError(r.error);
+    onResult(r.data);
+  });
+  return (
+    <div className={compact ? "analyze-box compact" : "ws-card analyze-box"}>
+      {!compact && <div><h3 className="ws-label">{a.title}</h3><p className="ws-hint">{a.lead}</p></div>}
+      <div className="analyze-row">
+        {controlled === undefined && <input className="form-input" dir="ltr" aria-label={a.url} placeholder="yourcompany.com" value={url} maxLength={200} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); go(); } }} />}
+        <button className="btn-secondary" type="button" disabled={pending || !url.trim()} onClick={go}>{pending ? <LoaderCircle className="spin" size={14} /> : <Globe size={14} />} {pending ? a.running : a.run}</button>
+      </div>
+      {error && <p className="form-error" role="alert">{error}</p>}
+    </div>
   );
 }

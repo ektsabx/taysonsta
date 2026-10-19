@@ -220,11 +220,11 @@ html[data-theme="dark"] .stage-meeting_booked, html[data-theme="dark"] .stage-me
 
 /* Compact toolbars: a shorter search box, filters as dropdowns (D-204) */
 .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 0 1 300px; min-width: 180px; }
-.prospect-views, .knowledge-tabs { padding: 0 34px; margin: 0; background: var(--paper); }
+.prospect-views { padding: 0 34px; margin: 0; background: var(--paper); }
 .campaign-summary { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 16px 18px; margin-bottom: 16px; }
 .campaign-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .campaign-summary-head h3 { font-size: 1rem; font-weight: 700; color: var(--ink); }
-@media (max-width: 900px) { .prospect-views, .knowledge-tabs { padding: 0 16px; } .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 1 1 100%; } }
+@media (max-width: 900px) { .prospect-views { padding: 0 16px; } .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 1 1 100%; } }
 .inbox-filters .form-select { flex: 1 1 0; min-width: 0; height: 34px; padding-block: 0; }
 
 /* One agent: capabilities as expandable rows (D-205) */
@@ -313,3 +313,38 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 .send-dialog-or { margin-top: 4px; }
 .profiles-layout { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); }
 @media (max-width: 900px) { .profiles-layout { grid-template-columns: 1fr; } }
+
+/* Company Knowledge: Company | Customer Profiles as a clear pill switch (owner, 2026-10-19). */
+.knowledge-tabs { display: inline-flex; gap: 4px; margin: 18px 34px 0; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); align-self: flex-start; overflow: visible; }
+.knowledge-tabs a { padding: 8px 16px; border: 0; border-radius: 9px; margin: 0; font-size: .86rem; font-weight: 600; color: var(--muted); }
+.knowledge-tabs a.active { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); border: 0; }
+@media (max-width: 900px) { .knowledge-tabs { margin: 14px 16px 0; } }
+/* Outreach: approve and run (D-229) */
+.launch-panel { margin-bottom: 16px; display: grid; gap: 14px; }
+.launch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.launch-head h3 { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.launch-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.launch-facts > div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.launch-facts dt { font-size: .74rem; color: var(--muted); }
+.launch-facts dd { margin-top: 3px; font-size: .88rem; font-weight: 600; color: var(--ink); }
+.launch-sample { padding: 12px 14px; border-radius: 10px; background: var(--soft); display: grid; gap: 6px; }
+.launch-sample p { white-space: pre-wrap; font-size: .86rem; line-height: 1.55; color: var(--text-2); max-height: 220px; overflow: auto; }
+.launch-autoreply { align-self: end; }
+.launch-note { margin: 0; }
+/* Company Knowledge: analyze website (D-232) */
+.analyze-box { display: grid; gap: 10px; margin-bottom: 16px; }
+.analyze-box.compact { margin: 0; }
+.analyze-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.analyze-row .form-input { flex: 1 1 220px; min-width: 0; }
+.analyze-result { margin-bottom: 16px; display: grid; gap: 6px; border-color: color-mix(in srgb, var(--green, #10b981) 40%, var(--line)); }
+.inbox-approvals { padding: 0 34px; } .inbox-approvals .pending-approvals { margin: 14px 0 0; }
+@media (max-width: 900px) { .inbox-approvals { padding: 0 16px; } }
+.agent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: .8rem; color: var(--text-2); }
+.agent-log li { display: grid; gap: 2px; }
+/* Prospects: outreach state (D-234) */
+.outreach-state { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 600; white-space: nowrap; background: var(--hover); color: var(--muted); }
+.outreach-state.in_campaign { background: var(--blue-soft); color: var(--blue); }
+.outreach-state.contacted { background: color-mix(in srgb, #d97706 14%, transparent); color: #b45309; }
+.outreach-state.replied { background: var(--green-soft); color: var(--green); }
+.outreach-state.do_not_contact { background: var(--danger-soft); color: var(--danger-text); }
+.launch-facts .launch-sub { display: block; margin-top: 2px; font-weight: 400; }

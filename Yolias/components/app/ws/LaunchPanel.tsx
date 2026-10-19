@@ -1,0 +1,103 @@
+"use client";
+
+import { useState } from "react";
+import { Pause, Play, Rocket, XCircle } from "lucide-react";
+import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
+import { approveOutreach, runOutreach } from "@/app/(app)/outreach/actions";
+import { openSettingsTab } from "@/components/app/open-settings";
+import { useRun } from "./bits";
+import type { LaunchSummary } from "@/services/outreach-campaigns";
+import type { MessageObjective } from "@/types/database";
+
+export interface MailboxOption { id: string; email: string; provider: string }
+
+// Approve and run a campaign (D-229). Shows exactly what will happen —
+// recipients, channel, the first message, the sequence and the daily limit —
+// and sends nothing until the member presses Approve. With no mailbox the
+// campaign runs in manual mode: drafts are prepared, the member sends them.
+export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { summary: LaunchSummary; mailboxes: MailboxOption[]; mailboxName: string | null; dailyLimit: number }) {
+  const { t } = useI18n();
+  const o = t.ws.outreach;
+  const l = o.launch;
+  const { run, pending } = useRun();
+  const c = summary.campaign;
+  const email = c.channel === "email";
+  const [mailbox, setMailbox] = useState<string>(email && mailboxes[0] ? mailboxes[0].id : "");
+  const [autoReply, setAutoReply] = useState(false);
+  const approved = Boolean(c.approved_at);
+  const archived = c.status === "archived";
+
+  if (approved && !archived) {
+    return (
+      <section className="ws-card launch-panel">
+        <div className="launch-head">
+          <div>
+            <h3>{c.status === "active" ? l.running : l.paused}</h3>
+            <p className="ws-muted">{c.send_mode === "mailbox" ? fmt(l.sendingFrom, { email: mailboxName ?? "" }) : l.manualMode}{c.auto_reply ? ` · ${l.autoReplyOn}` : ""}</p>
+          </div>
+          <div className="ws-inline">
+            {c.status === "active"
+              ? <button className="btn-secondary" type="button" disabled={pending} onClick={() => run(() => runOutreach(c.id, "pause"))}><Pause size={14} /> {o.actions.pause}</button>
+              : <button className="btn-primary" type="button" disabled={pending} onClick={() => run(() => runOutreach(c.id, "resume"))}><Play size={14} /> {o.actions.resume}</button>}
+            <button className="btn-secondary" type="button" disabled={pending} onClick={() => { if (confirm(l.cancelConfirm)) run(() => runOutreach(c.id, "cancel")); }}><XCircle size={14} /> {l.cancel}</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  if (archived) return null;
+
+  return (
+    <section className="ws-card launch-panel">
+      <div className="launch-head">
+        <div>
+          <h3>{l.title}</h3>
+          <p className="ws-muted">{l.lead}</p>
+        </div>
+      </div>
+      <dl className="launch-facts">
+        <div><dt>{l.recipients}</dt><dd>{summary.recipients}{email && summary.withEmail < summary.recipients ? <span className="cell-sub launch-sub">{fmt(l.withEmail, { count: summary.withEmail })}</span> : null}</dd></div>
+        <div><dt>{o.form.channel}</dt><dd>{o.channels[c.channel]}</dd></div>
+        <div><dt>{o.form.steps}</dt><dd>{summary.steps.map((s) => `${o.objectives[s.objective as MessageObjective]}${s.position > 1 ? ` (${fmt(l.after, { days: s.delay_days })})` : ""}`).join(" → ") || "—"}</dd></div>
+        <div><dt>{l.dailyLimit}</dt><dd>{fmt(l.perDay, { count: dailyLimit })}</dd></div>
+      </dl>
+      {summary.sample ? (
+        <div className="launch-sample">
+          <div className="ws-label">{l.sample}</div>
+          {summary.sample.subject ? <strong dir="auto">{summary.sample.subject}</strong> : null}
+          <p dir="auto">{summary.sample.body}</p>
+        </div>
+      ) : <p className="ws-muted">{l.noSample}</p>}
+
+      {email ? (
+        mailboxes.length ? (
+          <div className="ws-grid-2">
+            <div className="ws-field">
+              <label className="ws-label" htmlFor="launch-mailbox">{l.sendFrom}</label>
+              <select id="launch-mailbox" className="form-select" value={mailbox} onChange={(e) => setMailbox(e.target.value)}>
+                {mailboxes.map((m) => <option key={m.id} value={m.id}>{m.email}</option>)}
+                <option value="">{l.manualOption}</option>
+              </select>
+            </div>
+            {mailbox ? (
+              <label className="affiliate-accept launch-autoreply">
+                <input type="checkbox" checked={autoReply} onChange={(e) => setAutoReply(e.target.checked)} />
+                <span><strong>{l.autoReply}</strong><br /><span className="ws-muted">{l.autoReplyHint}</span></span>
+              </label>
+            ) : null}
+          </div>
+        ) : (
+          <p className="ws-note launch-note">{l.noMailbox} <button type="button" className="link-button" onClick={() => openSettingsTab("integration")}>{l.connectMailbox}</button></p>
+        )
+      ) : <p className="ws-note launch-note">{l.linkedinManual}</p>}
+
+      <div className="ws-actions">
+        <button className="btn-primary" type="button" disabled={pending || !summary.recipients} onClick={() => {
+          if (!confirm(mailbox ? fmt(l.confirmSend, { count: summary.withEmail }) : l.confirmManual)) return;
+          run(() => approveOutreach(c.id, mailbox || null, autoReply));
+        }}><Rocket size={14} /> {mailbox ? l.approveSend : l.approveManual}</button>
+      </div>
+    </section>
+  );
+}

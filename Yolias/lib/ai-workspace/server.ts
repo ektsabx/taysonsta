@@ -67,7 +67,7 @@ export function contextText(c: BusinessContext, opts: { competitors?: boolean } 
   const k = c.knowledge;
   const knowledge = k ? [
     line("About the company", k.about), line("Services", k.services), line("Products", k.products), line("Pricing", k.pricing),
-    line("Competitive advantages", k.differentiators), line("Case studies (real)", k.case_studies), line("FAQ", k.faqs), line("Reply policy", k.reply_policy),
+    line("Value proposition", k.value_proposition), line("Competitive advantages", k.differentiators), line("Case studies (real)", k.case_studies), line("FAQ", k.faqs), line("Reply policy", k.reply_policy), line("Public contact details", k.contact),
   ].filter(Boolean).join("\n") : "";
   const offers = c.offers.map((o) => [
     `- Offer: ${o.name}`, line("  What it is", o.description), line("  Problem it solves", o.problem), line("  For", o.audience),

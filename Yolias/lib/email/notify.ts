@@ -1,4 +1,5 @@
 import "server-only";
+import { cleanNotificationText } from "@/lib/notification-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueue } from "@/lib/jobs/queue";
 import { emailMeta, renderEmail, type EmailData, type EmailKind, type Pref } from "@/lib/email/catalog";
@@ -86,13 +87,13 @@ async function eventSwitch(kind: EmailKind): Promise<{ email: boolean; inApp: bo
   return settingsCache.map.get(kind) ?? { email: true, inApp: true };
 }
 
-/** One in-app notice in the recipient's language (title = the email's subject). Never throws. */
+/** One in-app notice, always in English (owner, 2026-10-19): title = the English email subject, cleaned. Never throws. */
 async function notifyInApp<K extends EmailKind>(kind: K, r: Recipient, payload: Payload<K>, opts: { workspaceId?: string | null; dedupe?: string }) {
   if (!r.userId) return;
   try {
-    const { subject } = renderEmail(kind, r.locale, { ...(payload as object), siteUrl: siteUrl() } as EmailData[K]);
+    const { subject } = renderEmail(kind, "en", { ...(payload as object), siteUrl: siteUrl() } as EmailData[K]);
     const row = {
-      user_id: r.userId, workspace_id: opts.workspaceId ?? null, kind, title: subject.slice(0, 300),
+      user_id: r.userId, workspace_id: opts.workspaceId ?? null, kind, title: cleanNotificationText(subject).slice(0, 300),
       link: linkFor(kind, payload as unknown as Record<string, unknown>), dedupe_key: opts.dedupe ? `${kind}:${opts.dedupe}:${r.userId}` : null,
     };
     const db = createAdminClient();

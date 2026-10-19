@@ -239,3 +239,12 @@ npx wrangler secret put WORKER_SECRET
 4. `npm run content:seed:production` من `Yolias`: لو صفحات المساعدة/التوثيق/القانونية متخزنة في قاعدة البيانات، النص القديم «خصم 20%» هيفضل ظاهر لحد ما يتعمل seed.
 5. بعد النشر: الأدمن ← الدعم ← قاعدة المعرفة ← «مزامنة محتوى Yolias» (مرة، وبعد أي تحديث كبير في المحتوى).
 6. Polar: أسعار الخطط السنوية هتتغير لوحدها أول checkout بعد النشر (10 × الشهري). المشتركين الحاليين بيفضلوا على سعرهم.
+
+## جولة الوكيل الذاتي 2026-10-19 (D-228..D-234). محلي فقط — ما اتنفذش منها حاجة على الإنتاج
+1. نسخة احتياطية.
+2. يولياس: `Yolias/supabase/migrations/20261115000000_autonomous_agent.sql` بنفس طريقة `npx supabase db query --linked -f <الملف>` ثم تسجيله في `supabase_migrations.schema_migrations`. لازم قبل النشر (الكود بيقرأ الأعمدة الجديدة).
+3. نشر يولياس ثم الأدمن.
+4. `npm run content:seed:production` (صفحات المساعدة والتوثيق والقانونية اتغيرت).
+5. Gmail: في Google Cloud ← مشروع OAuth: فعّل Gmail API، أضف الصلاحيات gmail.send و gmail.readonly، رابط الرجوع `https://www.yolias.com/api/integrations/gmail/callback`، وابدأ مراجعة Google (الصلاحيات دي «restricted» ومحتاجة تقييم أمني قبل ما أي حد بره قائمة المختبرين يربط). حط client id / secret في الأدمن ← الإعدادات ← التكاملات ← «Google OAuth — Yolias (Gmail)».
+6. Outlook: في Microsoft Entra سجّل تطبيق (أي مؤسسة + حسابات شخصية)، صلاحيات Mail.Send و Mail.ReadWrite و User.Read و offline_access، رابط الرجوع `https://www.yolias.com/api/integrations/outlook/callback`، وحط المفاتيح في «Microsoft OAuth — Yolias (Outlook)».
+7. ما تحطش `YOLIAS_TEST_MAILBOX` في Cloudflare أبدًا (صندوق الاختبار مرفوض في الإنتاج على أي حال).

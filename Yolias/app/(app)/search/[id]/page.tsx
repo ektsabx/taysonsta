@@ -52,7 +52,9 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
           initial={turns}
           cards={cards}
           plan={{ label: planLabel(session.workspace.plan, t), canUpgrade: session.workspace.plan !== topPlan && canManageTeam(session) }}
-          lead={
+          // A conversation that isn't a search (D-231): the request goes to Yolias AI right away.
+          autoSend={view.strategy.status === "chat" && turns.length === 0 ? view.strategy.prompt : undefined}
+          lead={view.strategy.status === "chat" ? undefined : (
             <>
               <li className="agent-turn user">
                 <div className="agent-turn-body"><div className="agent-turn-text" dir="auto">{view.strategy.prompt}</div></div>
@@ -62,7 +64,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
                 <div className="agent-turn-body search-card-turn"><DiscoveryCard view={view} /></div>
               </li>
             </>
-          }
+          )}
         />
       </div>
     </div>

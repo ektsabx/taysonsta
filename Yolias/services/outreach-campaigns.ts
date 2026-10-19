@@ -6,8 +6,9 @@ import type { LeadStage, OutreachCampaignRow } from "@/types/database";
 // from real rows: enrollments, drafts, messages confirmed sent, logged
 // replies and meetings booked after the lead joined the campaign.
 
-export interface CampaignStats { leads: number; drafts: number; sent: number; replies: number; meetings: number }
-const zero = (): CampaignStats => ({ leads: 0, drafts: 0, sent: 0, replies: 0, meetings: 0 });
+/** Real counts only: sent = the member confirmed it or the mailbox accepted it; bounced = the provider returned it. */
+export interface CampaignStats { leads: number; drafts: number; sent: number; failed: number; bounced: number; replies: number; interested: number; notInterested: number; optedOut: number; meetings: number }
+const zero = (): CampaignStats => ({ leads: 0, drafts: 0, sent: 0, failed: 0, bounced: 0, replies: 0, interested: 0, notInterested: 0, optedOut: 0, meetings: 0 });
 
 export async function listOutreachCampaigns(workspaceId: string): Promise<(OutreachCampaignRow & { stats: CampaignStats })[]> {
   const db = await createClient();
@@ -17,19 +18,26 @@ export async function listOutreachCampaigns(workspaceId: string): Promise<(Outre
   return campaigns.map((c) => ({ ...c, stats: stats.get(c.id) ?? zero() }));
 }
 
-export async function campaignStats(ids: string[]): Promise<Map<string, CampaignStats>> {
-  const db = await createClient();
+/** `client`: a member's client other than the request's (scripts, tools); RLS applies either way. */
+export async function campaignStats(ids: string[], client?: Awaited<ReturnType<typeof createClient>>): Promise<Map<string, CampaignStats>> {
+  const db = client ?? (await createClient());
   const out = new Map<string, CampaignStats>(ids.map((id) => [id, zero()]));
   const [{ data: enr }, { data: msgs }] = await Promise.all([
     db.from("outreach_enrollments").select("campaign_id, lead_id, created_at").in("campaign_id", ids).limit(20000),
-    db.from("outreach_messages").select("outreach_campaign_id, status, direction").in("outreach_campaign_id", ids).limit(50000),
+    db.from("outreach_messages").select("outreach_campaign_id, status, direction, delivery_status, analysis").in("outreach_campaign_id", ids).limit(50000),
   ]);
   for (const e of enr ?? []) out.get(e.campaign_id)!.leads++;
   for (const m of msgs ?? []) {
     const s = m.outreach_campaign_id ? out.get(m.outreach_campaign_id) : undefined;
     if (!s) continue;
-    if (m.direction === "inbound") s.replies++;
-    else if (m.status === "sent") s.sent++;
+    if (m.direction === "inbound") {
+      s.replies++;
+      const kind = (m.analysis as { kind?: string } | null)?.kind;
+      if (kind === "interested" || kind === "meeting_request") s.interested++;
+      else if (kind === "not_interested") s.notInterested++;
+      else if (kind === "stop_request") s.optedOut++;
+    } else if (m.status === "sent") { s.sent++; if (m.delivery_status === "bounced") s.bounced++; }
+    else if (m.status === "failed") s.failed++;
     else if (m.status === "draft" || m.status === "approved") s.drafts++;
   }
   const leadIds = [...new Set((enr ?? []).map((e) => e.lead_id))];
@@ -73,3 +81,26 @@ export async function outreachOptions(workspaceId: string) {
   ]);
   return { profiles: profiles.data ?? [], offers: offers.data ?? [], campaigns: campaigns.data ?? [] };
 }
+
+/** What the member approves before a campaign sends (D-229): who, how many, which channel, the first message and the sequence. */
+export async function launchSummary(workspaceId: string, id: string) {
+  const db = await createClient();
+  const { data: c } = await db.from("outreach_campaigns").select("*").eq("workspace_id", workspaceId).eq("id", id).maybeSingle();
+  if (!c) return null;
+  const [{ data: enr }, { data: steps }, { data: sample }] = await Promise.all([
+    db.from("outreach_enrollments").select("id, status, lead:sales_leads(email, do_not_contact)").eq("campaign_id", id).limit(5000),
+    db.from("outreach_steps").select("position, delay_days, objective").eq("campaign_id", id).order("position"),
+    db.from("outreach_messages").select("subject, body, to_email").eq("outreach_campaign_id", id).eq("direction", "outbound").eq("step_position", 1).in("status", ["draft", "approved", "sent"]).order("created_at").limit(1).maybeSingle(),
+  ]);
+  const active = (enr ?? []).filter((e) => e.status === "active");
+  const lead = (e: (typeof active)[number]) => e.lead as unknown as { email: string | null; do_not_contact: boolean } | null;
+  return {
+    campaign: c,
+    recipients: active.length,
+    withEmail: active.filter((e) => lead(e)?.email && !lead(e)?.do_not_contact).length,
+    excluded: active.filter((e) => lead(e)?.do_not_contact).length,
+    steps: steps ?? [],
+    sample: sample ?? null,
+  };
+}
+export type LaunchSummary = NonNullable<Awaited<ReturnType<typeof launchSummary>>>;

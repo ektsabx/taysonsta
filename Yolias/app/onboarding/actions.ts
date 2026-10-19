@@ -9,7 +9,9 @@ import { capture } from "@/lib/analytics/server";
 import { companyProfileSchema, type CompanyProfile } from "@/lib/company-profile";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSession } from "@/lib/session";
+import { getSession, requireUser } from "@/lib/session";
+import { hasActivePlan } from "@/lib/plans";
+import { analyzeWebsite, type WebsiteAnalysis } from "@/lib/website-analysis";
 import { communityInvite, welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
@@ -61,6 +63,14 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
       .eq("id", session.userId).is("acquisition_source", null);
   }
 
+  // What "Analyze website" found and the owner kept (D-232): Company Knowledge starts filled.
+  if (company) {
+    const k = KnowledgeFromSite.safeParse((() => { try { return JSON.parse(String(formData.get("knowledge_json") ?? "null")); } catch { return null; } })());
+    if (k.success && Object.values(k.data).some(Boolean)) {
+      await createAdminClient().from("workspace_knowledge").upsert({ workspace_id: session.workspace.id, ...k.data, updated_by: session.userId, updated_at: new Date().toISOString() });
+    }
+  }
+
   if (company) {
     // Workspace rows are written by the server only (no client write policy).
     const { error: wsError } = await createAdminClient()
@@ -86,4 +96,19 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null, acquisition_source: source.value?.source ?? null,
   });
   redirect("/");
+}
+
+const fromSite = (max: number) => z.string().trim().max(max).nullable().optional().transform((v) => v || null);
+const KnowledgeFromSite = z.object({
+  about: fromSite(4000), value_proposition: fromSite(4000), services: fromSite(4000), products: fromSite(4000), pricing: fromSite(4000),
+  differentiators: fromSite(4000), faqs: fromSite(6000), contact: fromSite(2000),
+}).strict();
+
+/** Onboarding → Analyze website (D-232): the owner's own site fills the form for review. */
+export async function analyzeOnboardingWebsite(url: string): Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }> {
+  const session = await requireUser();
+  const t = (await getDictionary()).ws.ai.knowledge.analyze.errors;
+  if (session.role !== "owner" || !hasActivePlan(session.workspace)) return { ok: false, error: t.failed };
+  const r = await analyzeWebsite(String(url ?? "").slice(0, 300), session.workspace.id);
+  return r.ok ? r : { ok: false, error: t[r.error] };
 }

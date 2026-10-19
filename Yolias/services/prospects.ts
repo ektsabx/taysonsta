@@ -179,8 +179,9 @@ export function itemKey(i: SelectedItem) {
  * Rows to export or act on: the given keys, or every row matching the
  * filters (capped), as full records, in the table's order.
  */
-export async function selectItems(workspaceId: string, f: ProspectFilters, keys: string[] | "all", cap = 10_000): Promise<{ rows: SelectedItem[]; total: number }> {
-  const db = await createClient();
+/** `client`: a member's client other than the request's (agent tools in scripts); RLS applies either way. */
+export async function selectItems(workspaceId: string, f: ProspectFilters, keys: string[] | "all", cap = 10_000, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ rows: SelectedItem[]; total: number }> {
+  const db = client ?? (await createClient());
   let q = query(db, f, workspaceId, "key, item_type, id");
   if (keys !== "all") q = q.in("key", keys.filter((k) => /^(person|company):[0-9a-f-]{36}$/i.test(k)).slice(0, cap));
   const { data, count } = await sorted(q, f).range(0, cap - 1);
