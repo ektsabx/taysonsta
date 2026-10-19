@@ -24,10 +24,7 @@ export const customerCount: { label: string; basis: Localized<string>; checkedOn
 /** Public Product Hunt page of Yolias, once it exists. */
 export const PRODUCT_HUNT_URL: string | null = null;
 
-/**
- * Customer reviews ("Loved by marketers around the world"). Real reviews
- * only, with the person's permission to show their name (and photo).
- */
+/** Customer reviews: removed from the site for now (owner, 2026-10-19). */
 export interface Testimonial {
   name: string;
   /** Job title and company, only when confirmed. */
@@ -35,5 +32,22 @@ export interface Testimonial {
   quote: Localized<string>;
   /** Optional photo in public/brand/testimonials/, used with permission. */
   photo?: string;
+  /** Star rating the customer gave (1–5), when it comes from a real review. */
+  rating?: number;
 }
 export const testimonials: Testimonial[] = [];
+
+/**
+ * A message from the founder on the home page (owner brief 2026-10-19):
+ * photo, name, job title and a short note. Shown only once filled in; the
+ * photo goes in public/brand/team/.
+ */
+export const founderNote: { name: string; title: Localized<string>; photo: string; message: Localized<string> } | null = {
+  name: "Youseef Waleed",
+  title: { en: "Founder", ar: "المؤسس" },
+  photo: "/brand/team/youseef-waleed.jpg",
+  message: {
+    en: "I lived this problem myself: hours every week building lists, guessing who the right decision maker was, and writing messages that never got a reply. I built Yolias so you can skip that part and spend your time talking to the customers who actually need what you sell.",
+    ar: "عشتُ هذه المشكلة بنفسي: ساعات كل أسبوع في بناء القوائم، وتخمين من هو صاحب القرار الصحيح، وكتابة رسائل لا يرد عليها أحد. بنيتُ يولـياس لتتجاوز هذا الجزء وتقضي وقتك في الحديث مع العملاء الذين يحتاجون فعلًا ما تبيعه.",
+  },
+};

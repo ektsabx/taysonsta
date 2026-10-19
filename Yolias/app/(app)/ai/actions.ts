@@ -112,7 +112,7 @@ export async function saveProfile(input: z.input<typeof profileInput>): Promise<
     ? await db.from("customer_profiles").update(row).eq("id", id).eq("workspace_id", session.workspace.id).select("id").maybeSingle()
     : await db.from("customer_profiles").insert({ ...row, workspace_id: session.workspace.id, created_by: session.userId, is_default: !count }).select("id").single();
   if (res.error || !res.data) return { ok: false, error: dup(res.error) ? t.duplicate : (await getDictionary()).ws.common.error };
-  revalidatePath("/ai/profiles");
+  revalidatePath("/ai/knowledge");
   return { ok: true, id: res.data.id };
 }
 
@@ -124,7 +124,7 @@ export async function setDefaultProfile(id: string): Promise<AiResult> {
   await db.from("customer_profiles").update({ is_default: false }).eq("workspace_id", session.workspace.id).eq("is_default", true);
   const { error } = await db.from("customer_profiles").update({ is_default: true }).eq("id", id).eq("workspace_id", session.workspace.id);
   if (error) return { ok: false, error: t.common.error };
-  revalidatePath("/ai/profiles");
+  revalidatePath("/ai/knowledge");
   return { ok: true };
 }
 
@@ -134,7 +134,7 @@ export async function deleteProfile(id: string): Promise<AiResult> {
   if (!uuid.safeParse(id).success) return { ok: false, error: t.common.notFound };
   const { error } = await (await createClient()).from("customer_profiles").delete().eq("id", id).eq("workspace_id", session.workspace.id);
   if (error) return { ok: false, error: t.common.error };
-  revalidatePath("/ai/profiles");
+  revalidatePath("/ai/knowledge");
   return { ok: true };
 }
 

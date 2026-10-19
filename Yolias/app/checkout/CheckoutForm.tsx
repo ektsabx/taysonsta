@@ -200,6 +200,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
           <div className="checkout-included-title">{fmt(c.includedIn, { plan: name })}</div>
           <ul>
             <li><Check aria-hidden="true" /> <span>{c.sameFeatures}</span></li>
+            <li><Check aria-hidden="true" /> <span>{c.teamWorkspace}</span></li>
             <li><Check aria-hidden="true" /> <span>{c.unlimitedUsers}</span></li>
             <li><Check aria-hidden="true" /> <span>{fmt(c.credits, { count: n(plan.prospects) })}</span></li>
             <li><Check aria-hidden="true" /> <span>{fmt(c.emails, { count: n(plan.emails) })}</span></li>
@@ -228,7 +229,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
-          {/* The customer chooses: card → Polar, card from Egypt → Paymob. Never the provider's name or internal mode (owner, 2026-10-13). */}
+          {/* The customer chooses: card → Polar, card payment → Paymob (labelled plain "Card payment" since 2026-10-19). Never the provider's name or internal mode (owner, 2026-10-13). */}
           <div className="checkout-methods" role="radiogroup" aria-label={c.paymentMethod}>
             {shown.map((m) => {
               const off = (locked !== null && locked !== m) || (!methods[m] && !testMode);

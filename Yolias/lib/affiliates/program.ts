@@ -120,7 +120,7 @@ export interface CommissionExample {
 /**
  * Worked examples for the public page, from the live settings and the live
  * plan prices (same rounding as the database). Only eligible plans and
- * periods; annual = one yearly payment at the annual discount.
+ * periods; annual = one yearly payment (10 × monthly, "2 months free").
  */
 export function commissionExamples(s: ProgramSettings, monthlyUsd: Record<"pro" | "growth" | "scale", number>): CommissionExample[] {
   const out: CommissionExample[] = [];

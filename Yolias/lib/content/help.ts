@@ -118,7 +118,7 @@ export const articles: HelpArticle[] = [
         blocks: [
           { p: "Pro, Growth and Scale include the same Yolias features and unlimited users. They differ in their monthly limits: prospects, emails and uploaded contacts. Every plan starts with a 7-day free trial (a card is required; if you choose “Card from Egypt” at checkout, the first period is paid up front through Paymob). Pick the one that matches the volume you expect. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Monthly or annual" },
-          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing is 20% off: prices show the monthly rate, the year is paid upfront, and your usage limits still reset every month." },
+          { p: "Switch between **Monthly** and **Annual** above the plans. Annual billing gives you 2 months free (you pay for 10 months a year): prices show the monthly rate, the year is paid upfront, and your usage limits still reset every month." },
           { h2: "Not sure yet?" },
           { p: "Start with the plan closest to your current needs. You can change plan or billing period later from Settings → Billing." },
         ],
@@ -129,7 +129,7 @@ export const articles: HelpArticle[] = [
         blocks: [
           { p: "تشمل خطط برو والنمو والتوسع ميزات يولـياس نفسها ومستخدمين غير محدودين. الفرق في حدودها الشهرية: العملاء المحتملون ورسائل البريد وجهات الاتصال المرفوعة. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام (البطاقة مطلوبة، وإذا اخترت «الدفع بالفيزا من مصر» عند الدفع تُدفع أول فترة مقدمًا عبر Paymob). اختر ما يناسب الحجم الذي تتوقعه، وتجد الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "شهري أم سنوي" },
-          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية بخصم 20%: الأسعار تظهر بالشهر، والسنة تُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
+          { p: "بدّل بين **شهري** و**سنوي** أعلى الخطط. الفوترة السنوية تمنحك شهرين مجانًا (تدفع 10 أشهر في السنة): الأسعار تظهر بالشهر، والسنة تُدفع مقدمًا، وتبقى حدود الاستخدام تتجدد كل شهر." },
           { h2: "لم تقرر بعد؟" },
           { p: "ابدأ بالخطة الأقرب لاحتياجك الحالي. يمكنك تغيير الخطة أو فترة الفوترة لاحقًا من الإعدادات ← الفوترة." },
         ],

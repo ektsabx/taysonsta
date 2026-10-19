@@ -2,21 +2,21 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Building2, Image as ImageIcon, LoaderCircle, Paperclip, Search, Sparkles, X } from "lucide-react";
+import { ArrowUp, Image as ImageIcon, LoaderCircle, Paperclip, X } from "lucide-react";
 import { createStrategy } from "@/app/(app)/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { YoliasThinking } from "@/components/YoliasMark";
+import { Greeting } from "@/components/app/Greeting";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { shrinkForAi } from "@/lib/uploads/shrink";
 
-const pillIcons = [Search, Sparkles, Building2];
 const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024; // documents; images follow lib/uploads/image.ts (10 MB)
 
 
-export function StrategyComposer({ initialPrompt = "", profiles = [] }: { initialPrompt?: string; profiles?: { id: string; name: string; is_default: boolean }[] }) {
+export function StrategyComposer({ initialPrompt = "", profiles = [], firstName = null }: { initialPrompt?: string; profiles?: { id: string; name: string; is_default: boolean }[]; firstName?: string | null }) {
   const { t } = useI18n();
   const c = t.composer;
   const router = useRouter();
@@ -90,6 +90,7 @@ export function StrategyComposer({ initialPrompt = "", profiles = [] }: { initia
 
   return (
     <div className="center-hero">
+      <Greeting name={firstName} />
       <h1>{c.title}</h1>
       <p>{c.subtitle}</p>
 
@@ -159,26 +160,6 @@ export function StrategyComposer({ initialPrompt = "", profiles = [] }: { initia
 
       {error && <p className="prompt-error" role="alert">{error}</p>}
 
-      <div className="quick-actions-bar">
-        {c.pills.map(({ label, prompt: p }, i) => {
-          const Icon = pillIcons[i % pillIcons.length];
-          return (
-          <button
-            key={label}
-            className="action-pill"
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              setPrompt(p);
-              inputRef.current?.focus();
-            }}
-          >
-            <Icon />
-            <span>{label}</span>
-          </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

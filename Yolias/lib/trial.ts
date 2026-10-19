@@ -19,9 +19,15 @@ export interface TrialLimits {
   prospects: number;
   emails: number;
   contacts: number;
+  /**
+   * Hours to claim the trial, counted from the first time the workspace opened
+   * the checkout. After that the plans are paid without a trial. 0 = no limit
+   * (the default since the countdown banner was removed, owner 2026-10-19).
+   */
+  claim_hours: number;
 }
 
-export const DEFAULT_TRIAL: TrialLimits = { days: 7, prospects: 50, emails: 50, contacts: 50 };
+export const DEFAULT_TRIAL: TrialLimits = { days: 7, prospects: 50, emails: 50, contacts: 50, claim_hours: 0 };
 
 export function parseTrial(raw: unknown): TrialLimits {
   const out = { ...DEFAULT_TRIAL };
@@ -51,4 +57,28 @@ export function canStartTrial(ws: Pick<WorkspaceRow, "trial_started_at">): boole
 export function trialDaysLeft(ws: Pick<WorkspaceRow, "subscription_status" | "trial_ends_at">, now = new Date()): number | null {
   if (ws.subscription_status !== "trialing" || !ws.trial_ends_at) return null;
   return Math.max(0, Math.ceil((new Date(ws.trial_ends_at).getTime() - now.getTime()) / 86_400_000));
+}
+
+/**
+ * When the trial offer ends for this workspace: the first checkout it opened
+ * + claim_hours (none yet = the window starts now). null = no deadline
+ * (claim_hours 0). Only new checkouts are refused after it; a trial checkout
+ * already started at the provider still settles.
+ */
+export async function trialClaimDeadline(ws: Pick<WorkspaceRow, "id">, limits?: TrialLimits): Promise<Date | null> {
+  const { claim_hours } = limits ?? (await trialLimits());
+  if (!claim_hours) return null;
+  let start = Date.now();
+  try {
+    const { data } = await createAdminClient().from("checkout_sessions").select("opened_at").eq("workspace_id", ws.id).order("opened_at", { ascending: true }).limit(1).maybeSingle();
+    if (data?.opened_at) start = new Date(data.opened_at).getTime();
+  } catch { /* no history readable: the window starts now */ }
+  return new Date(start + claim_hours * 3_600_000);
+}
+
+/** One trial per workspace, and only inside the claim window. */
+export async function trialOpen(ws: Pick<WorkspaceRow, "id" | "trial_started_at">, now = new Date()): Promise<boolean> {
+  if (!canStartTrial(ws)) return false;
+  const deadline = await trialClaimDeadline(ws);
+  return !deadline || now < deadline;
 }

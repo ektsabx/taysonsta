@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SquareKanban, Search, Table2 } from "lucide-react";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { CRM_PAGE, CRM_SORTS, listLeads, stageTotals, type CrmSort } from "@/services/crm";
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // CRM (D-195): one lead per person / company, real stages, deal value,
 // meetings and follow-ups. Table (default) and Kanban show the same rows.
 export default async function CrmPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const view = one(sp.view) === "kanban" ? "kanban" : "table";

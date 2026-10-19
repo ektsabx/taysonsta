@@ -11,7 +11,7 @@ import { gridPerson } from "@/lib/results";
 import type { GridPerson } from "@/components/app/PeopleGrid";
 import type { ProspectRow } from "@/types/database";
 import { addToCrm } from "@/app/(app)/crm/actions";
-import { addProspectsToCampaign } from "@/app/(app)/outreach/actions";
+import { addProspectsToCampaign, quickCampaign } from "@/app/(app)/outreach/actions";
 
 // Prospects workspace actions. The browser sends row keys ("person:<id>" /
 // "company:<id>") or "all rows matching these filters"; the server resolves
@@ -107,6 +107,12 @@ export async function addSelectionToCrm(target: Target) {
 export async function addSelectionToCampaign(campaignId: string, target: Target) {
   const { people, companies } = await resolve(target);
   return addProspectsToCampaign(campaignId, [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))]);
+}
+
+/** Selected results → a new outreach campaign, started with drafts ready (Prospects → Send, owner brief 2026-10-19). */
+export async function sendSelectionAsCampaign(target: Target, input: { name: string; channel: string }) {
+  const { people, companies } = await resolve(target);
+  return quickCampaign({ ...input, targets: [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))].slice(0, 500) });
 }
 
 /** Campaigns the selection can join (draft / active / paused). */

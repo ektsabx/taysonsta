@@ -11,7 +11,7 @@ import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 import { lockedProvider, paymentMethods } from "@/lib/payments";
-import { canStartTrial, trialLimits } from "@/lib/trial";
+import { trialLimits, trialOpen } from "@/lib/trial";
 import { switches } from "@/lib/switches";
 import { openCheckout } from "@/lib/funnel";
 import type { BillingProvider } from "@/types/database";
@@ -38,7 +38,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   // Annual is the default choice (owner brief 2026-10-12); monthly stays available.
   const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (current ? ws.billing_period : "annual");
   // The free trial comes with the card (Polar) method only; Egypt pays up front.
-  const trialOffer = locked !== "paymob" && canStartTrial(ws) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
+  const trialOffer = locked !== "paymob" && (await trialOpen(ws)) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
   const errors = t.checkout.errors;
   // Methods switched off in Admin are hidden (a running subscription keeps its own, D-213).
   const on = await switches();
@@ -52,7 +52,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   return (
     <div className="checkout-page">
       <header className="checkout-top">
-        <Link href={active ? "/" : "/pricing"} aria-label="Yolias"><BrandLogo /></Link>
+        <Link href="/" aria-label="Yolias"><BrandLogo /></Link>
         <div className="checkout-top-actions">
           <LanguageMenu />
           <Link href="/pricing" className="checkout-back"><ArrowLeft className="flip-rtl" /> {t.checkout.back}</Link>

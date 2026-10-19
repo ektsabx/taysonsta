@@ -10,10 +10,11 @@ function saveThemeCookie(v: ThemePref) {
   document.cookie = `${THEME_COOKIE}=${v}; path=/; max-age=31536000; samesite=lax`;
 }
 
-// Theme switcher in the header, next to the language menu and built the same
+// Theme switcher (public footer, sign-in pages), next to the language menu and built the same
 // way (quiet trigger + small popover with a check). Applies at once, then
 // saves the choice (cookie, and the profile when signed in).
-export function ThemeMenu({ align = "end" }: { align?: "start" | "end" }) {
+// `up` opens the popover above the trigger (the footer, at the page bottom).
+export function ThemeMenu({ align = "end", up = false }: { align?: "start" | "end"; up?: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -54,7 +55,7 @@ export function ThemeMenu({ align = "end" }: { align?: "start" | "end" }) {
         <ChevronDown className="lang-chevron" />
       </button>
       {open && (
-        <div className={`lang-popover ${align}`} role="menu">
+        <div className={`lang-popover ${align}${up ? " up" : ""}`} role="menu">
           {(["light", "dark"] as const).map((v) => (
             <button key={v} type="button" role="menuitemradio" aria-checked={v === theme} className="lang-option" onClick={() => choose(v)}>
               <span>{labels[v]}</span>

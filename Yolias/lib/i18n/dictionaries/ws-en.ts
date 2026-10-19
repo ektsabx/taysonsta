@@ -58,7 +58,10 @@ export const wsEn = {
       do_not_contact: "{count} asked not to be contacted", suppressed: "{count} on the do-not-contact list", already_enrolled: "{count} already in this campaign",
       recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details",
     },
-    errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived." },
+    errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no prospects yet." },
+    started: "Campaign started. Drafts are ready to send.",
+    source: "Start from a search campaign", sourceNone: "No — I’ll add leads later", sourceHint: "Its prospects join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
+    send: { button: "Send", title: "Send to {count} selected", lead: "Yolias creates a campaign with these prospects, starts it and prepares the first messages. You review and send them from Outreach or the Inbox.", name: "Campaign name", channel: "Channel", start: "Create and prepare messages", orExisting: "Or add them to an existing campaign", defaultName: "Campaign {date}" },
     pickCampaign: "Add to outreach campaign", pickCampaignTitle: "Choose a campaign", noCampaigns: "No active or draft campaigns. Create one in Outreach first.",
   },
   messages: {
@@ -131,6 +134,7 @@ export const wsEn = {
   ai: {
     knowledge: {
       title: "Company Knowledge", subtitle: "What Yolias AI knows about your company. It uses only what you write here — in searches, messages and replies.",
+      tabCompany: "Company",
       basics: "Company profile", sections: "Company information", offers: "Business Offers", competitors: "Competitors",
       fields: {
         about: "About the company", services: "Services", products: "Products", pricing: "Pricing", differentiators: "Competitive advantages",

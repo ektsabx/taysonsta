@@ -128,8 +128,8 @@ try {
   assert.ok(r.ok);
   ({ data: pays } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("plan", "growth"));
   const bad = pays![0];
-  assert.equal(Number(bad.amount), 239.88, "annual = 12 × (24.99 − 20%)");
-  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(239.88 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
+  assert.equal(Number(bad.amount), 249.9, "annual = 10 × 24.99 (2 months free)");
+  await callback(txn(bad.id, bad.provider_ref!, Math.ceil(249.9 * 50) * 100, { success: false, data: { message: "Do not honour" } }));
   assert.equal((await payment(bad.id)).status, "failed");
   assert.equal((await payment(bad.id)).failure_reason, "Do not honour");
   assert.equal((await ws(wsId)).plan, "pro");

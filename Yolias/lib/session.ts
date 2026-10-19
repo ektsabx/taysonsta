@@ -67,6 +67,19 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
+/**
+ * App pages (not actions): a signed-in member may look around Yolias before
+ * choosing a plan (owner brief 2026-10-19). The shell then asks them to pick
+ * a plan and add a card to start the free trial; every action still calls
+ * requireSession(), so nothing runs without a plan. With a plan, onboarding
+ * comes first as before.
+ */
+export async function requireViewer(): Promise<Session> {
+  const session = await requireUser();
+  if (hasActivePlan(session.workspace) && !session.profile.onboarded_at) redirect("/onboarding");
+  return session;
+}
+
 /** Where a signed-in user should continue to next. */
 export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
   if (!hasActivePlan(session.workspace)) return "/checkout";

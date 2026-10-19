@@ -15,6 +15,9 @@ export const affiliatesPage: Localized<{
   rulesTitle: string; rules: string[];
   faqTitle: string; faq: { q: string; a: string }[];
   cta: { title: string; body: string; signedOut: string; signedIn: string };
+  become: string; haveAccount: string; fullTerms: string;
+  network: { title: string; lead: string; level: string; success: string; newPartner: string; empty: string; tiers: Record<"partner" | "silver" | "gold" | "platinum", string>; tiersNote: string };
+  calculator: { title: string; lead: string; plan: string; period: string; customers: string; perMonth: string; perYear: string; note: string };
 }> = {
   en: {
     eyebrow: "AFFILIATE PROGRAM",
@@ -70,6 +73,22 @@ export const affiliatesPage: Localized<{
       { q: "How are payouts sent?", a: "You choose an enabled payout method and enter your details. The team reviews each request, sends the money and records the transfer reference, and you get an email at every step." },
     ],
     cta: { title: "Ready to join?", body: "Join Yolias Partners and get your referral link right away.", signedOut: "Join Yolias Partners", signedIn: "Open my partner dashboard" },
+    become: "Become a partner", haveAccount: "Already a partner? Log in", fullTerms: "Read the full partner terms",
+    network: {
+      title: "Our certified partner network",
+      lead: "Creators, entrepreneurs and agencies who recommend Yolias. Levels and success rates come from real referrals and confirmed payments.",
+      level: "Partnership level", success: "Success rate", newPartner: "New partner",
+      empty: "Our first partners are joining now. Join and be among the first in the network.",
+      tiers: { partner: "Partner", silver: "Silver", gold: "Gold", platinum: "Platinum" },
+      tiersNote: "Levels: Silver from 3 paying customers, Gold from 10, Platinum from 25. Success rate = referrals who became paying customers (shown from 5 referrals).",
+    },
+    calculator: {
+      title: "Estimate your earnings",
+      lead: "Move the slider to see what you could earn with today’s commission and prices.",
+      plan: "Plan", period: "Billing", customers: "Paying customers you refer",
+      perMonth: "Estimated commission per month", perYear: "Estimated commission in the first year",
+      note: "An estimate from current list prices before tax and the current commission. Real commissions follow confirmed payments; refunds reverse them.",
+    },
   },
   ar: {
     eyebrow: "برنامج الأفلييت",
@@ -125,5 +144,21 @@ export const affiliatesPage: Localized<{
       { q: "كيف تُرسل المبالغ؟", a: "تختار طريقة سحب مفعّلة وتدخل بياناتك. يراجع الفريق كل طلب ويرسل المبلغ ويسجّل مرجع التحويل، وتصلك رسالة في كل خطوة." },
     ],
     cta: { title: "مستعد للانضمام؟", body: "انضم إلى شركاء يولـياس واحصل على رابط الإحالة فورًا.", signedOut: "انضم إلى شركاء يولـياس", signedIn: "افتح لوحة الشريك" },
+    become: "كن شريكًا", haveAccount: "شريك بالفعل؟ سجّل الدخول", fullTerms: "اقرأ شروط الشركاء كاملة",
+    network: {
+      title: "شبكة شركائنا المعتمدين",
+      lead: "صنّاع محتوى ورواد أعمال ووكالات يرشّحون يولـياس. المستويات ومعدلات النجاح محسوبة من إحالات حقيقية ودفعات مؤكدة.",
+      level: "مستوى الشراكة", success: "معدل النجاح", newPartner: "شريك جديد",
+      empty: "أوائل شركائنا ينضمون الآن. انضم وكن من أوائل أعضاء الشبكة.",
+      tiers: { partner: "شريك", silver: "فضي", gold: "ذهبي", platinum: "بلاتيني" },
+      tiersNote: "المستويات: فضي من 3 عملاء دافعين، ذهبي من 10، بلاتيني من 25. معدل النجاح = نسبة الإحالات التي أصبحت عملاء دافعين (يظهر من 5 إحالات).",
+    },
+    calculator: {
+      title: "احسب أرباحك المتوقعة",
+      lead: "حرّك المؤشر لترى ما يمكنك ربحه بالعمولة والأسعار الحالية.",
+      plan: "الخطة", period: "الفوترة", customers: "العملاء الدافعون الذين تحيلهم",
+      perMonth: "العمولة المتوقعة شهريًا", perYear: "العمولة المتوقعة في السنة الأولى",
+      note: "تقدير بأسعار القائمة الحالية قبل الضرائب والعمولة الحالية. العمولات الفعلية تتبع الدفعات المؤكدة، والاسترداد يعكسها.",
+    },
   },
 };

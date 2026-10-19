@@ -51,7 +51,7 @@ export function ProfilesView({ profiles }: { profiles: CustomerProfileRow[] }) {
   }), { success: t.ws.common.saved, onOk: (r) => setForm({ ...form, id: r.id }) });
 
   return (
-    <div className="lead-layout" style={{ gridTemplateColumns: "minmax(220px, 300px) minmax(0, 1fr)" }}>
+    <div className="lead-layout profiles-layout">
       <aside>
         <div className="ws-card ws-list">
           <button className="btn-primary" type="button" style={{ marginBottom: 10 }} onClick={() => setForm({ ...empty })}><Plus size={14} /> {p.new}</button>

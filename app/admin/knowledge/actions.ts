@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { authorize } from "@/lib/bos/auth";
 import { assertCanAccess } from "@/lib/bos/access";
 import { handleAction, parseForm, zf, type ActionState } from "@/lib/bos/action";
+import { syncYoliasKnowledge } from "@/services/bos/yolias-knowledge";
 import { createArticle, markRead, saveSteps, setArticleStatus, updateArticle, type ArticleInput, setArticleAiAllowed } from "@/services/bos/knowledge";
 
 const articleSchema = z.object({
@@ -102,5 +103,17 @@ export async function setArticleAiAction(id: string, allowed: boolean): Promise<
     revalidatePath("/admin/knowledge", "layout");
     revalidatePath("/admin/support/knowledge");
     return { ok: true, message: allowed ? "أصبح المقال متاحاً لوكيل الذكاء الاصطناعي" : "لم يعد المقال متاحاً للوكيل" };
+  });
+}
+
+/** Support → Knowledge: bring the Yolias website content into the AI agent's knowledge (owner brief 2026-10-19). */
+export async function syncYoliasKnowledgeAction(): Promise<ActionState> {
+  return handleAction("syncYoliasKnowledge", async () => {
+    const { bos } = await authorize("knowledge.manage");
+    const r = await syncYoliasKnowledge(bos);
+    if (!r.ok) return { ok: false, error: r.error };
+    revalidatePath("/admin/knowledge", "layout");
+    revalidatePath("/admin/support/knowledge");
+    return { ok: true, message: `تمت المزامنة: ${r.total} صفحة — ${r.added} جديدة، ${r.updated} محدّثة، ${r.archived} مؤرشفة` };
   });
 }

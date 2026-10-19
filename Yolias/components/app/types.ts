@@ -59,6 +59,8 @@ export interface ShellData {
   welcome: { video: WelcomeVideo | null; show: boolean };
   /** Inbox conversations with an unread reply (sidebar badge). */
   inboxUnread: number;
+  /** No active plan yet: the member is looking around; null = has a plan. trialDays = null when no trial is offered. */
+  planGate: { trialDays: number | null } | null;
 }
 
 export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";

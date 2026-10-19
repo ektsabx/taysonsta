@@ -13,7 +13,7 @@ import { formatNumber, location } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { gridPerson, sizeBand } from "@/lib/results";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getCompany } from "@/services/prospects";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/company/[id]">): Promise<Metadata> {
@@ -29,7 +29,7 @@ const bare = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/,
 // company information, its decision makers as cards (reveal, select, start
 // outreach), open roles and the data intelligence behind it.
 export default async function CompanyPage({ params }: PageProps<"/prospects/company/[id]">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await getCompany(id);

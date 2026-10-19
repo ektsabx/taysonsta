@@ -61,6 +61,8 @@ export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkSt
   // New accounts only: a human check (Turnstile) and no disposable inboxes.
   // Both are enforced on the server; the database refuses disposable domains too.
   if (mode === "signup") {
+    // Terms of Use, Privacy Policy and 18+ (owner brief 2026-10-19); partners accept their own box.
+    if (formData.get("consent") !== "1" && formData.get("accept") !== "on") return { status: "error", email, message: t.consentRequired };
     if (await isDisposableEmail(email)) return { status: "error", email, message: t.disposableEmail };
     const h = await headers();
     const token = formData.get("cf-turnstile-response");
@@ -76,7 +78,7 @@ export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkSt
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   // Yolias Partners sign-ups (D-206) are marked, with the terms version they accepted.
   const partner = formData.get("partner") === "1";
-  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale(),
+  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale(), terms_accepted_at: new Date().toISOString(),
     ...(partner ? { partner: true, partner_terms: text("partner_terms") } : {}) };
 
   // Many link requests for one account in an hour ⇒ a security email (lib/email/events.ts).

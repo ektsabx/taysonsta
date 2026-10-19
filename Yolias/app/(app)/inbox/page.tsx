@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Info, Search } from "lucide-react";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { INBOX_FILTERS, inboxChannels, inboxThread, listInbox, type InboxFilter } from "@/services/inbox";
 import { StatusFilter } from "@/components/app/StatusFilter";
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Unified Inbox (D-194): every conversation with a lead, its messages and
 // replies, reminders and planned sends. Filters come from real rows.
 export default async function InboxPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const filter = (INBOX_FILTERS as readonly string[]).includes(one(sp.filter)) ? (one(sp.filter) as InboxFilter) : "all";

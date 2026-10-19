@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireViewer } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { getLead } from "@/services/crm";
 import { teamMembers } from "@/services/workspace";
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // deal, campaigns, messages and replies, reminders, meetings, notes and the
 // full history. Same lead the Inbox and Outreach show.
 export default async function LeadPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const [detail, team] = await Promise.all([getLead(session.workspace.id, id), teamMembers(session.workspace.id)]);

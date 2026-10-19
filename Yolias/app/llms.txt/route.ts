@@ -57,6 +57,9 @@ ${posts.map((p) => line(p.doc.en.title, `/blog/${p.slug}`, p.doc.en.summary)).jo
 ${line("About", "/about")}
 ${line("Contact", "/contact")}
 ${line("Affiliate program", "/affiliates")}
+${line("Partner program terms", "/partners/terms", "Commission, referral window, waiting period, payouts and promotion rules of the Yolias affiliate program.")}
+${line("Full site text for AI assistants", "/llms-full.txt", "Every public page of Yolias as plain text: product, pricing, help, docs, guides, legal and the partner program.")}
+${line("Community", "/community", "The Yolias community of founders, marketers and sales teams (a Facebook group, free, English and Arabic).")}
 ${line("Service status", "/status")}
 ${line("Privacy policy", "/legal/privacy")}
 ${line("Terms of service", "/legal/terms")}

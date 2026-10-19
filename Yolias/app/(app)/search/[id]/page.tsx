@@ -4,7 +4,7 @@ import { AgentThread } from "@/components/app/AgentThread";
 import { DiscoveryCard } from "@/components/app/DiscoveryCard";
 import { YoliasMark } from "@/components/YoliasMark";
 import { ApprovalCard } from "@/components/app/ApprovalCard";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireViewer } from "@/lib/session";
 import { planLabel, topPlan } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
 import { getStrategyView } from "@/services/strategies";
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps<"/search/[id]">): P
 }
 
 export default async function StrategyPage({ params }: PageProps<"/search/[id]">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const view = await getStrategyView(id);

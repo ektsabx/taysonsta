@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireViewer } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // AI Workspace → AI Agent (D-205): one agent with a goal; its capabilities,
 // permissions, limits and escalation rules are its settings.
 export default async function AgentsPage() {
-  const session = await requireSession();
+  const session = await requireViewer();
   const [t, settings, writing, approvals] = await Promise.all([
     getDictionary(),
     loadAiSettings(session.workspace.id),

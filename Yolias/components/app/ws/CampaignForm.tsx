@@ -13,10 +13,13 @@ import type { MessageChannel, MessageObjective, MessageTone } from "@/types/data
 export interface CampaignFormValues {
   id?: string; name: string; goal: string; description: string; channel: MessageChannel; language: string; tone: MessageTone;
   customer_profile_id: string | null; offer_id: string | null; steps: { delay_days: number; objective: MessageObjective; instruction: string }[];
+  /** New campaigns: the search campaign to start from (owner brief 2026-10-19). */
+  source_campaign_id?: string | null;
 }
 
-export function CampaignForm({ initial, profiles, offers, maxSteps, onSaved }: {
+export function CampaignForm({ initial, profiles, offers, maxSteps, onSaved, searchCampaigns = [] }: {
   initial: CampaignFormValues; profiles: { id: string; name: string; is_default: boolean }[]; offers: { id: string; name: string }[]; maxSteps: number; onSaved?: () => void;
+  searchCampaigns?: { id: string; name: string }[];
 }) {
   const { t } = useI18n();
   const o = t.ws.outreach;
@@ -28,13 +31,29 @@ export function CampaignForm({ initial, profiles, offers, maxSteps, onSaved }: {
   const setStep = (i: number, patch: Partial<CampaignFormValues["steps"][number]>) => set("steps", v.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
 
   const save = () => run(() => saveOutreachCampaign(v), {
-    success: t.ws.common.saved,
+    success: v.id || !v.source_campaign_id ? t.ws.common.saved : undefined,
     onOk: (r) => { if (!v.id) router.push(`/outreach/${r.id}`); onSaved?.(); },
+    // A new campaign opens its own page; a refresh here would cancel that navigation.
+    refresh: Boolean(v.id),
   });
 
   return (
     <div className="ws-form">
       <div className="ws-card ws-form">
+        {!v.id && searchCampaigns.length > 0 && (
+          <div className="ws-field">
+            <label className="ws-label" htmlFor="oc-source">{o.source}</label>
+            <select id="oc-source" className="form-select" value={v.source_campaign_id ?? ""} onChange={(e) => {
+              const id = e.target.value || null;
+              const picked = searchCampaigns.find((c) => c.id === id);
+              setV({ ...v, source_campaign_id: id, name: v.name.trim() || !picked ? v.name : picked.name });
+            }}>
+              <option value="">{o.sourceNone}</option>
+              {searchCampaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <p className="field-note">{o.sourceHint}</p>
+          </div>
+        )}
         <div className="ws-grid-2">
           <div className="ws-field"><label className="ws-label" htmlFor="oc-name">{f.name}</label><input id="oc-name" className="form-input" value={v.name} maxLength={160} onChange={(e) => set("name", e.target.value)} /></div>
           <div className="ws-field"><label className="ws-label" htmlFor="oc-goal">{f.goal}</label><input id="oc-goal" className="form-input" placeholder={f.goalPh} value={v.goal} maxLength={1000} onChange={(e) => set("goal", e.target.value)} /></div>

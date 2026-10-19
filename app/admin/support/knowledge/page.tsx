@@ -7,7 +7,7 @@ import { PageHeader, Card, KpiCard, EmptyState, StatusBadge, Tabs } from "@/comp
 import { FilterBar } from "@/components/bos/FilterBar";
 import { BosTable } from "@/components/bos/BosTable";
 import { formatDate } from "@/lib/bos/format";
-import { KbRowActions } from "./KbControls";
+import { KbRowActions, SyncYoliasButton } from "./KbControls";
 
 // Support knowledge base (docs/bos/37 §7.6): the existing KB (same articles,
 // categories, versions, editor), focused on customer-facing help content and
@@ -27,7 +27,10 @@ export default async function SupportKnowledgePage({ searchParams }: { searchPar
   return (
     <>
       <PageHeader title="قاعدة المعرفة" subtitle="مقالات المساعدة والأسئلة الشائعة للعملاء، ومصدر إجابات وكيل الذكاء الاصطناعي"
-        actions={can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?audience=public&ai=1"><Tx>+ مقال مساعدة</Tx></Link> : null} />
+        actions={<span className="bos-row" style={{ gap: 8, flexWrap: "wrap" }}>
+          {canPublish ? <SyncYoliasButton /> : null}
+          {can(bos, "knowledge.create") ? <Link className="admin-btn small" href="/admin/knowledge/new?audience=public&ai=1"><Tx>+ مقال مساعدة</Tx></Link> : null}
+        </span>} />
       <div className="bos-kpis">
         <KpiCard label="منشورة للعملاء" value={live.length} />
         <KpiCard label="متاحة للوكيل الذكي" value={live.filter((a) => a.ai_allowed).length} href="/admin/support/knowledge?ai=1&status=published" />

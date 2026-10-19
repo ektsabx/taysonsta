@@ -56,6 +56,13 @@ export async function proxy(request: NextRequest) {
     }
   );
 
+  // /partners/terms is a public website page (owner brief 2026-10-19), built
+  // in the marketing layout under /affiliates/terms.
+  if (request.nextUrl.pathname === "/partners/terms") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/affiliates/terms";
+    return NextResponse.rewrite(url, { request });
+  }
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
   const { pathname } = request.nextUrl;

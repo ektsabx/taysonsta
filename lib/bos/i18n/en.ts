@@ -8181,6 +8181,10 @@ const en: Record<string, string> = {
  "حاول التسجيل مرة أخرى بنفس البريد": "Tried to sign up again with the same email",
  "طلب تأكيد البريد": "Requested email confirmation",
  "دُعي إلى مساحة عمل": "Invited to a workspace",
+ "مزامنة محتوى Yolias": "Sync Yolias content",
+ "جارٍ المزامنة…": "Syncing…",
+ "تعذر الاتصال بموقع Yolias": "Couldn’t reach the Yolias website",
+ "لم يرجع موقع Yolias أي محتوى": "The Yolias website returned no content",
 };
 
 export default en;

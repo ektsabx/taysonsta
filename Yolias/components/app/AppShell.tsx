@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Bot, ChevronDown, CirclePlay, FolderSearch, IdCard, Inbox, Library, Send, SquareKanban } from "lucide-react";
+  Bot, ChevronDown, CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -23,15 +23,15 @@ import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 import { WelcomeVideoModal } from "./WelcomeVideoModal";
+import { PlanGateModal } from "./PlanGateModal";
 import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 
 const mainNav = [
   { href: "/", key: "yoliasAi", icon: Sparkles },
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
+  // Search results is a tab inside Prospects (owner, 2026-10-19), not its own sidebar page.
   { href: "/prospects", key: "prospects", icon: UserSearch },
-  // The former Campaigns page, now a view of Prospects (D-204), linked here too so it's easy to find.
-  { href: "/prospects?view=searches", key: "searchResults", icon: FolderSearch },
 ] as const;
 
 // Customer acquisition after discovery (D-193..D-195).
@@ -44,18 +44,14 @@ const workNav = [
 // AI Workspace (D-196): what Yolias AI knows, who it looks for, its agents, rules and automations.
 const aiNav = [
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
-  { href: "/ai/profiles", key: "profiles", icon: IdCard },
   // One agent; its rules & permissions live in its settings (D-205). Automations removed for now.
   { href: "/ai/agents", key: "agents", icon: Bot },
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
-/** Prospects and its Search results view share one path; the view (or a campaign page) decides which is lit. */
-const mainActive = (pathname: string, href: string, view: string | null) => {
-  if (href === "/prospects?view=searches") return (pathname === "/prospects" && view === "searches") || pathname.startsWith("/campaigns");
-  if (href === "/prospects") return isActive(pathname, href) && view !== "searches";
-  return isActive(pathname, href);
-};
+/** Prospects stays lit on its Search results tab and on a search campaign's page. */
+const mainActive = (pathname: string, href: string) =>
+  href === "/prospects" ? isActive(pathname, href) || pathname.startsWith("/campaigns") : isActive(pathname, href);
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -75,7 +71,6 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
   const pathname = usePathname();
-  const view = useSearchParams().get("view");
   const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -212,7 +207,7 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${mainActive(pathname, href, view) ? " active" : ""}`}>
+              <Link key={href} href={href} className={`nav-item${mainActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>
@@ -346,6 +341,12 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
             <Plus />
           </button>
         </div>
+        {data.planGate && (
+          <div className="plan-gate-banner" role="status">
+            <span>{data.planGate.trialDays ? fmt(t.planGate.bannerTrial, { days: data.planGate.trialDays }) : t.planGate.banner}</span>
+            <Link href="/checkout">{t.planGate.cta}</Link>
+          </div>
+        )}
         {pastDue && (
           <div className="past-due-banner" role="status">
             <span>{t.invoicePay.pastDue}</span>
@@ -367,6 +368,7 @@ export function AppShell({ data, initialClosed, initialAiOpen, children }: { dat
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
       {data.user.askReview && !welcomeOpen && <ReviewPrompt />}
       <ActivityPing />
+      {data.planGate && !welcomeOpen && <PlanGateModal trialDays={data.planGate.trialDays} />}
       {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}
     </div>
     </ToastProvider>

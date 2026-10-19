@@ -7,7 +7,7 @@ import { ImportCsvButton } from "@/components/app/ImportCsvButton";
 import { countryLabel, formatDate, location } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { sizeBand } from "@/lib/results";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { listCampaigns } from "@/services/campaigns";
 import { CampaignSummary } from "@/components/app/CampaignSummary";
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Export CSV. Contacts reach the browser only once revealed (the table only
 // says whether an email / phone exists).
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const sp = await searchParams;
   // Prospects | Search results (the former Campaigns page, D-204).
   if (sp.view === "searches") return <SearchesView session={session} status={typeof sp.status === "string" ? sp.status : undefined} />;

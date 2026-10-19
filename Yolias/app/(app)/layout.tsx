@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/app/AppShell";
 import { AI_SECTION_COOKIE, SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
 import { loadWelcomeVideo } from "@/lib/welcome-video-server";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireViewer } from "@/lib/session";
 import { initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { shouldAskForReview } from "@/lib/review-prompt";
@@ -11,7 +11,8 @@ import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
 import { billingRoute, paymentsConnected } from "@/lib/payments";
 import { loadPolar, polarPortalUrl } from "@/lib/payments/polar";
-import { planPrice } from "@/lib/plans";
+import { hasActivePlan, planPrice } from "@/lib/plans";
+import { trialLimits, trialOpen } from "@/lib/trial";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
 import type { Metadata as NoindexMetadata } from "next";
@@ -45,7 +46,7 @@ async function ownPhone(userId: string): Promise<string | null> {
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { profile, workspace } = session;
   const plan = (await getPlanCatalog())[workspace.plan];
   const h = await headers();
@@ -127,6 +128,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     device: { label: deviceLabel(h.get("user-agent") ?? ""), ip: maskIp(h.get("x-forwarded-for") ?? h.get("x-real-ip")) },
     welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
     inboxUnread,
+    planGate: hasActivePlan(workspace) ? null : { trialDays: route !== "paymob" && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
   };
 
   const jar = await cookies();

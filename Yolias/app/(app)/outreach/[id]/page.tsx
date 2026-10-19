@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { getOutreachCampaign, outreachOptions } from "@/services/outreach-campaigns";
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function OutreachCampaignPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const [detail, options, settings] = await Promise.all([getOutreachCampaign(session.workspace.id, id), outreachOptions(session.workspace.id), loadAiSettings(session.workspace.id)]);

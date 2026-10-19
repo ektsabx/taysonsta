@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Tx } from "@/components/bos/I18n";
-import { setArticleAiAction, setArticleStatusAction } from "@/app/admin/knowledge/actions";
+import { setArticleAiAction, setArticleStatusAction, syncYoliasKnowledgeAction } from "@/app/admin/knowledge/actions";
 
 // Row actions for the support knowledge base — existing KB actions, server-authorised.
 export function KbRowActions({ id, status, ai, canPublish, canEdit }: { id: string; status: string; ai: boolean; canPublish: boolean; canEdit: boolean }) {
@@ -18,6 +18,24 @@ export function KbRowActions({ id, status, ai, canPublish, canEdit }: { id: stri
         ? <button type="button" className="admin-btn small ghost" disabled={pending} onClick={() => run(() => setArticleStatusAction(id, "draft"))}><Tx>إلغاء النشر</Tx></button>
         : <button type="button" className="admin-btn small secondary" disabled={pending} onClick={() => run(() => setArticleStatusAction(id, "published"))}><Tx>نشر</Tx></button>) : null}
       {err ? <span className="bos-field-error" style={{ fontSize: 11.5 }}><Tx>{err}</Tx></span> : null}
+    </span>
+  );
+}
+
+/** "Sync Yolias content": help, docs, pricing, affiliates, legal… → the AI agent's knowledge. */
+export function SyncYoliasButton() {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  return (
+    <span className="bos-row" style={{ gap: 8, flexWrap: "wrap" }}>
+      <button type="button" className="admin-btn small secondary" disabled={pending} onClick={() => start(async () => {
+        setMsg(null);
+        const r = await syncYoliasKnowledgeAction();
+        setMsg({ ok: r.ok, text: (r.ok ? r.message : r.error) ?? "" });
+        if (r.ok) router.refresh();
+      })}><Tx>{pending ? "جارٍ المزامنة…" : "مزامنة محتوى Yolias"}</Tx></button>
+      {msg ? <span className={msg.ok ? "cell-sub" : "bos-field-error"} style={{ fontSize: 12 }}><Tx>{msg.text}</Tx></span> : null}
     </span>
   );
 }

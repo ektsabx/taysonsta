@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, Plus } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
+import { ConsentText } from "@/app/(auth)/ConsentText";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
@@ -23,7 +24,7 @@ const tiers: PlanId[] = ["pro", "growth", "scale"];
 
 // Features on every plan. CRM, pipelines and deals are listed at the owner's
 // request ahead of the CRM module (docs/21).
-const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "crm", "enrichment", "analytics", "integrations", "chatSupport", "unlimitedUsers"] as const;
+const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "teamWorkspace", "crm", "enrichment", "analytics", "integrations", "chatSupport", "unlimitedUsers"] as const;
 
 interface Props {
   signedIn: boolean;
@@ -60,6 +61,7 @@ export function PricingView({ signedIn, plans, currency, trialDays }: Props) {
         fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
         dict.plans.contactsUnlimited,
         fmt(dict.plans.emailsPerMonth, { count: n(plans[plan].emails) }),
+        t.features.teamWorkspace,
         t.features.crm,
         t.features.enrichment,
         t.features.chatSupport,
@@ -221,6 +223,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 // Final-section form: creates a real Yolias account (magic link). Name and
 // company are stored and pre-fill onboarding.
 function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
+  const dict = useI18n().t;
   const [status, setStatus] = useState<{ kind: "error" | "success" | "loading"; text: string } | null>(null);
   const [pending, start] = useTransition();
 
@@ -269,6 +272,10 @@ function SignupPanel({ t, signedIn }: { t: PricingCopy; signedIn: boolean }) {
           <label className="mb-2 block text-sm font-bold" htmlFor="company-name">{t.companyLabel}</label>
           <input className="form-field" id="company-name" name="company" type="text" required autoComplete="organization" />
         </div>
+        <input type="hidden" name="consent" value="1" />
+        <p className="signup-consent">
+          <ConsentText text={dict.auth.consent} links={{ terms: { href: "/legal/terms", label: dict.auth.consentTerms }, privacy: { href: "/legal/privacy", label: dict.auth.consentPrivacy } }} />
+        </p>
         <button className="primary-button focus-ring w-full" type="submit" disabled={pending}>
           <span>{pending ? t.loading : t.submit}</span>
         </button>

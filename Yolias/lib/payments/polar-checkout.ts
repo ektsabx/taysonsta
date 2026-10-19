@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import * as Sentry from "@sentry/nextjs";
 import { capture } from "@/lib/analytics/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canStartTrial, trialLimits } from "@/lib/trial";
+import { trialLimits, trialOpen } from "@/lib/trial";
 import { planForProduct, polarClient, type PolarConfig } from "./polar";
 import type { WorkspaceRow } from "@/types/database";
 
@@ -35,7 +35,7 @@ export async function createPolarCheckout(cfg: PolarConfig, ws: WorkspaceRow, bu
   const picked = planForProduct(cfg, productId);
   if (!picked) return { ok: false, error: "plan" };
   const trial = await trialLimits();
-  const allowTrial = canStartTrial(ws);
+  const allowTrial = await trialOpen(ws);
   const body = {
     products: [productId],
     external_customer_id: ws.id,

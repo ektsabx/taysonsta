@@ -58,7 +58,10 @@ export const wsAr: Dictionary["ws"] = {
       do_not_contact: "{count} طلبوا عدم التواصل", suppressed: "{count} في قائمة عدم التواصل", already_enrolled: "{count} موجودون في الحملة",
       recently_contacted: "{count} تم التواصل معهم مؤخرًا (قاعدة إعادة التواصل)", no_contact: "{count} بلا بيانات تواصل",
     },
-    errors: { name: "أدخل اسم الحملة.", steps: "أضف الرسالة الأولى على الأقل.", notFound: "الحملة غير موجودة.", archived: "هذه الحملة مؤرشفة." },
+    errors: { name: "أدخل اسم الحملة.", steps: "أضف الرسالة الأولى على الأقل.", notFound: "الحملة غير موجودة.", archived: "هذه الحملة مؤرشفة.", noProspects: "حملة البحث هذه ليس بها عملاء محتملون بعد." },
+    started: "بدأت الحملة. المسودات جاهزة للإرسال.",
+    source: "ابدأ من حملة بحث", sourceNone: "لا — سأضيف العملاء لاحقًا", sourceHint: "ينضم العملاء المحتملون لهذه الحملة، وتبدأ فورًا، ويجهّز يولـياس الرسائل الأولى لترسلها.",
+    send: { button: "إرسال", title: "إرسال إلى {count} محددين", lead: "ينشئ يولـياس حملة بهؤلاء العملاء المحتملين، ويبدأها، ويجهّز الرسائل الأولى. تراجعها وترسلها من التواصل أو صندوق الوارد.", name: "اسم الحملة", channel: "القناة", start: "أنشئ وجهّز الرسائل", orExisting: "أو أضفهم إلى حملة موجودة", defaultName: "حملة {date}" },
     pickCampaign: "إضافة إلى حملة تواصل", pickCampaignTitle: "اختر حملة", noCampaigns: "لا توجد حملات نشطة أو مسودات. أنشئ حملة في صفحة التواصل أولًا.",
   },
   messages: {
@@ -130,6 +133,7 @@ export const wsAr: Dictionary["ws"] = {
   },
   ai: {
     knowledge: {
+      tabCompany: "الشركة",
       title: "معرفة الشركة", subtitle: "ما يعرفه Yolias AI عن شركتك. يستخدم فقط ما تكتبه هنا — في البحث والرسائل والردود.",
       basics: "ملف الشركة", sections: "معلومات الشركة", offers: "عروض الأعمال", competitors: "المنافسون",
       fields: {

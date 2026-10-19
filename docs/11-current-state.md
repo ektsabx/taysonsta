@@ -108,3 +108,6 @@ images and a font).
 - Search-understanding eval, Arabic dialects + English (needs a provider key): `cd Yolias && npm run eval:icp`
 - End-to-end in a browser, both apps (with `npm run local` running): `npm run e2e` at the root (first time: `npx playwright install chromium`)
 - Admin: `npm run lint`, `npm test` at the root.
+
+### 2026-10-19 round (local, not deployed) — D-217..D-226
+Header Log in / Sign up + Community; theme switch in the footer; sign-up consent (server-checked); browse the app without a plan (actions still gated); annual = 2 months free; trial-claim countdown with an enforced 48 h window; affiliate page (side-by-side buttons, partner network, calculator, /partners/terms); /community; home testimonials + founder message (hidden until real content); Customer Profiles as a Company Knowledge tab; compact selection bar + Prospects → Send creates and starts a campaign; Outreach campaign from a search campaign; greeting on Yolias AI / Analytics; composer suggestions removed; two SEO guides; `/api/knowledge` + `/llms-full.txt`; Admin "Sync Yolias content" for the support AI agent. Migration `20261114000000_partner_network.sql`. Report: docs/24-report-2026-10-19-ar.md.

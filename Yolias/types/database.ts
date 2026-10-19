@@ -719,7 +719,11 @@ export type AffiliateRow = {
   id: string; user_id: string | null; email: string; code: string; status: AffiliateStatus; answers: Json; terms_version: string; terms_accepted_at: string;
   program_version_id: number | null; payout_method: string | null; payout_details: string | null; decision_reason: string | null; decided_at: string | null;
   decided_by: string | null; ip_hash: string | null; risk_flags: string[]; created_at: string; updated_at: string;
+  /** Partner network (20261114000000): listed on /affiliates, role and country. */
+  listed: boolean; partner_role: PartnerRole | null; country: string | null;
 };
+export type PartnerRole = "influencer" | "creator" | "entrepreneur" | "agency" | "consultant" | "educator" | "community";
+export type PartnerDirectoryRow = { id: string; user_id: string | null; partner_role: PartnerRole | null; country: string | null; created_at: string; full_name: string | null; avatar_url: string | null; referrals: number; paying: number };
 export type AffiliateVisitRow = { id: string; affiliate_id: string; ip_hash: string | null; landing_path: string | null; campaign: string | null; referrer_host: string | null; created_at: string };
 export type AffiliateReferralRow = {
   id: string; affiliate_id: string; referred_user_id: string | null; workspace_id: string | null; visit_id: string | null; visit_at: string | null; attributed_at: string;
@@ -846,6 +850,7 @@ export interface Database {
       prospect_items: { Row: ProspectItemRow; Relationships: [] };
       crm_leads: { Row: CrmLeadRow; Relationships: [] };
       admin_accounts_v: { Row: AdminAccountRow; Relationships: [] };
+      partner_directory_v: { Row: PartnerDirectoryRow; Relationships: [] };
       content_feedback_totals: { Row: { kind: string; slug: string; helpful: number; not_helpful: number }; Relationships: [] };
     };
     Functions: {

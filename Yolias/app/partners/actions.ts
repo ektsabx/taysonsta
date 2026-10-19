@@ -9,6 +9,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { verifyImageFile } from "@/lib/uploads/image";
 import { checkPayout, type PayoutValues } from "@/lib/affiliates/payout-fields";
+import { isPartnerRole } from "@/lib/affiliates/directory";
+import { isCountryCode } from "@/lib/country-codes";
 
 // Yolias Partners actions (D-206). Any signed-in account can be a partner (no
 // plan needed). Everything is checked here, on the server: the affiliate row
@@ -92,5 +94,24 @@ export async function requestPayoutAction(input: { method: string }): Promise<Af
   const { data: p } = await db.from("affiliate_payouts").select("amount_cents").eq("id", r.payoutId).maybeSingle();
   await affiliateNotify(a.id, "payout_requested", r.payoutId, { amountCents: p ? Number(p.amount_cents) : null });
   revalidatePath("/partners");
+  return { ok: true };
+}
+
+/** Partner network (owner brief 2026-10-19): show me on /affiliates, with my role and country. */
+export async function savePartnerListingAction(input: { listed: boolean; role: string | null; country: string | null }): Promise<AffiliateActionResult> {
+  const user = await requirePartner();
+  const a = await affiliateFor(user.id);
+  if (!a || a.status !== "approved") return { ok: false, error: "not_approved" };
+  const role = input.role ? String(input.role) : null;
+  const country = input.country ? String(input.country).toUpperCase() : null;
+  if (role !== null && !isPartnerRole(role)) return { ok: false, error: "failed" };
+  if (country !== null && !isCountryCode(country)) return { ok: false, error: "failed" };
+  const listed = input.listed === true;
+  // Listed partners need a name, a role and a country on their card.
+  if (listed && (!user.name || !role || !country)) return { ok: false, error: "listing_incomplete" };
+  const { error } = await createAdminClient().from("affiliates").update({ listed, partner_role: role, country }).eq("id", a.id);
+  if (error) return { ok: false, error: "failed" };
+  revalidatePath("/partners");
+  revalidatePath("/affiliates");
   return { ok: true };
 }

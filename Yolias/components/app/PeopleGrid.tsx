@@ -76,7 +76,7 @@ export function PeopleGrid({ people, showCompany = false }: Props) {
       {chosen.length > 0 && (
         <div className="selection-bar" role="region" aria-label={fmt(r.selected, { count: chosen.length })}>
           <AvatarStack people={chosen.map((p) => ({ name: p.name, photoUrl: p.photoUrl }))} max={3} size={30} />
-          <span>{fmt(r.selected, { count: chosen.length })}</span>
+          <span className="selection-count">{fmt(r.selected, { count: chosen.length })}</span>
           <span className="selection-actions"><ProspectActionButtons people={chosen} source="results" /></span>
         </div>
       )}

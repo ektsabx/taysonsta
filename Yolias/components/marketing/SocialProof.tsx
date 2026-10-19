@@ -1,13 +1,13 @@
 import { TRUSTPILOT_REVIEW_URL } from "@/lib/community";
-import { customerCount, PRODUCT_HUNT_URL, testimonials, trustLogos } from "@/lib/content/social-proof";
+import { customerCount, founderNote, PRODUCT_HUNT_URL, trustLogos } from "@/lib/content/social-proof";
 import type { Locale } from "@/lib/i18n/config";
 
 // Social proof sections (lib/content/social-proof.ts). Each renders nothing
 // until real, approved data exists there.
 
 const copy = {
-  en: { trusted: "Trusted by businesses that are serious about growth.", customers: "Customers", loved: "Loved by marketers around the world", reviewUs: "Review us on Trustpilot", productHunt: "Yolias on Product Hunt" },
-  ar: { trusted: "موثوق من الشركات الجادة في النمو.", customers: "عميل", loved: "يحبّه المسوّقون حول العالم", reviewUs: "قيّمنا على Trustpilot", productHunt: "يولـياس على Product Hunt" },
+  en: { trusted: "Trusted by businesses that are serious about growth.", customers: "Customers", founder: "A message from our founder", reviewUs: "Review us on Trustpilot", productHunt: "Yolias on Product Hunt" },
+  ar: { trusted: "موثوق من الشركات الجادة في النمو.", customers: "عميل", founder: "رسالة من المؤسس", reviewUs: "قيّمنا على Trustpilot", productHunt: "يولـياس على Product Hunt" },
 };
 
 /** Official marks (Simple Icons, CC0): used only to link to Yolias on these services. */
@@ -58,25 +58,20 @@ export function CustomerCount({ locale }: { locale: Locale }) {
   );
 }
 
-/** Real customer reviews only. */
-export function Testimonials({ locale }: { locale: Locale }) {
-  if (!testimonials.length) return null;
+/** "A message from our founder": photo, name, job title and the note. */
+export function FounderNote({ locale }: { locale: Locale }) {
+  if (!founderNote) return null;
+  const f = founderNote;
   return (
-    <section className="section alt">
-      <div className="site-width">
-        <div className="section-head"><h2 className="display-font">{copy[locale].loved}</h2></div>
-        <ul className="testimonials">
-          {testimonials.map((t) => (
-            <li key={t.name} className="testimonial">
-              <blockquote>{t.quote[locale]}</blockquote>
-              <div className="testimonial-person">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {t.photo ? <img src={t.photo} alt="" width={40} height={40} loading="lazy" /> : <span className="customer-avatar a0" aria-hidden="true">{t.name.slice(0, 1)}</span>}
-                <span><strong>{t.name}</strong>{t.role && <small>{t.role[locale]}</small>}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <section className="section">
+      <div className="site-width founder-note">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="founder-photo" src={f.photo} alt={f.name} width={120} height={120} loading="lazy" />
+        <div>
+          <p className="eyebrow">{copy[locale].founder}</p>
+          <blockquote className="founder-message">{f.message[locale]}</blockquote>
+          <p className="founder-sign"><strong>{f.name}</strong><span>{f.title[locale]}</span></p>
+        </div>
       </div>
     </section>
   );

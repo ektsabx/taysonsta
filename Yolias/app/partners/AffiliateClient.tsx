@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Copy } from "lucide-react";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
@@ -10,7 +10,9 @@ import { formatCents, type PayoutMethod } from "@/lib/affiliates/program";
 import { parsePayout, payoutFields, type PayoutValues } from "@/lib/affiliates/payout-fields";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
-import { joinAction, requestPayoutAction, savePartnerProfileAction, savePayoutAction, setPartnerAvatarAction } from "./actions";
+import { joinAction, requestPayoutAction, savePartnerListingAction, savePartnerProfileAction, savePayoutAction, setPartnerAvatarAction } from "./actions";
+import { COUNTRY_CODES } from "@/lib/country-codes";
+import type { PartnerRole } from "@/types/database";
 
 /** Start as a partner: accept the terms — approved at once, no questions (D-206). */
 export function PartnerStart({ termsVersion, terms, earn }: { termsVersion: string; terms: string; earn: string }) {
@@ -194,7 +196,7 @@ export function PayoutPanel({ methods, method, details, availableCents, minCents
 }
 
 /** Profile: name and photo on the partner's account. The email is the sign-in address. */
-export function PartnerProfile({ userId, name, email, avatarUrl }: { userId: string; name: string | null; email: string; avatarUrl: string | null }) {
+export function PartnerProfile({ userId, name, email, avatarUrl, listing }: { userId: string; name: string | null; email: string; avatarUrl: string | null; listing: PartnerListingValue | null }) {
   const { t } = useI18n();
   const pr = t.affiliate.profile;
   const router = useRouter();
@@ -262,7 +264,63 @@ export function PartnerProfile({ userId, name, email, avatarUrl }: { userId: str
         <button className="btn-primary" type="button" onClick={save} disabled={pending || value.trim() === (name ?? "")}><span>{pending ? pr.saving : pr.save}</span></button>
       </div>
       {msg && <p className={msg.ok ? "form-success" : "form-error"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
+      {listing && <PartnerListing initial={listing} />}
     </section>
+  );
+}
+
+type PartnerListingValue = { listed: boolean; role: PartnerRole | null; country: string | null };
+
+/** "Show me in the partner network" on /affiliates, with a role and a country (owner brief 2026-10-19). */
+function PartnerListing({ initial }: { initial: PartnerListingValue }) {
+  const { t, locale } = useI18n();
+  const l = t.affiliate.listing;
+  const router = useRouter();
+  const [v, setV] = useState(initial);
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const names = useMemo(() => {
+    const d = new Intl.DisplayNames([locale === "ar" ? "ar" : "en"], { type: "region" });
+    return COUNTRY_CODES.map((c) => ({ c, n: d.of(c) ?? c })).sort((a, b) => a.n.localeCompare(b.n, locale));
+  }, [locale]);
+  const changed = v.listed !== initial.listed || v.role !== initial.role || v.country !== initial.country;
+  const save = () => start(async () => {
+    setMsg(null);
+    const r = await callAction(() => savePartnerListingAction(v));
+    if (isNetworkFailure(r)) return setMsg({ ok: false, text: t.affiliate.errors.network });
+    if (!r.ok) return setMsg({ ok: false, text: r.error === "listing_incomplete" ? l.incomplete : t.affiliate.profile.errors.failed });
+    setMsg({ ok: true, text: t.affiliate.profile.saved });
+    router.refresh();
+  });
+  return (
+    <div className="partner-listing">
+      <h5>{l.title}</h5>
+      <p className="field-note">{l.lead}</p>
+      <div className="partner-listing-grid">
+        <div className="field">
+          <label htmlFor="partner-role">{l.role}</label>
+          <select id="partner-role" className="form-select" value={v.role ?? ""} onChange={(e) => setV({ ...v, role: (e.target.value || null) as PartnerRole | null })} disabled={pending}>
+            <option value="">{l.choose}</option>
+            {(Object.keys(l.roles) as PartnerRole[]).map((r) => <option key={r} value={r}>{l.roles[r]}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="partner-country">{l.country}</label>
+          <select id="partner-country" className="form-select" value={v.country ?? ""} onChange={(e) => setV({ ...v, country: e.target.value || null })} disabled={pending}>
+            <option value="">{l.choose}</option>
+            {names.map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
+          </select>
+        </div>
+      </div>
+      <label className="affiliate-accept">
+        <input type="checkbox" checked={v.listed} onChange={(e) => setV({ ...v, listed: e.target.checked })} disabled={pending} />
+        <span>{l.show}</span>
+      </label>
+      <div className="affiliate-payout-actions">
+        <button className="btn-primary" type="button" onClick={save} disabled={pending || !changed}><span>{pending ? t.affiliate.profile.saving : t.affiliate.profile.save}</span></button>
+      </div>
+      {msg && <p className={msg.ok ? "form-success" : "form-error"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
+    </div>
   );
 }
 

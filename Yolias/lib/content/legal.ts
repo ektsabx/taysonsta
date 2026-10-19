@@ -153,7 +153,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "Plans and billing" },
         { ul: [
           "Plans differ by monthly usage limits; every plan includes unlimited users.",
-          "You can pay monthly or annually. The annual price is the monthly price less 20%, times twelve, and is charged upfront.",
+          "You can pay monthly or annually. The annual price is ten times the monthly price (two months free) and is charged upfront.",
           "When you pay by card, subscriptions are sold by Polar as merchant of record and renew automatically at the end of each period, charging the saved card, until you cancel from the billing portal. When you choose to pay with a card from Egypt, Paymob charges each period: at the end of a period we issue a renewal invoice and the plan continues once it’s paid. Prices exclude applicable taxes.",
           "Free trial (where offered): 7 days with trial limits. Your card is saved but not charged; unless you cancel before the trial ends, the plan starts and the card is charged on the last day. One trial per workspace.",
           "Each plan includes a number of results (prospects) per month. One prospect is one company or local business that matches your search, can be identified (website, domain or map listing) and has at least one way to reach it (business email, LinkedIn page or business phone). It counts once, when it is delivered, however much data comes with it; its decision makers are included. Results without a way to reach them are not delivered and not counted.",
@@ -206,7 +206,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "الخطط والفوترة" },
         { ul: [
           "تختلف الخطط في حدود الاستخدام الشهرية، وتشمل كل خطة مستخدمين غير محدودين.",
-          "يمكنك الدفع شهريًا أو سنويًا. السعر السنوي يساوي السعر الشهري بعد خصم 20% مضروبًا في اثني عشر، ويُدفع مقدمًا.",
+          "يمكنك الدفع شهريًا أو سنويًا. السعر السنوي يساوي عشرة أضعاف السعر الشهري (شهران مجانًا)، ويُدفع مقدمًا.",
           "عند الدفع بالبطاقة، يبيع Polar الاشتراكات بصفته التاجر المسجّل، ويتجدد الاشتراك تلقائيًا في نهاية كل فترة بخصم البطاقة المحفوظة حتى تلغيه من بوابة الفوترة. وعند اختيار الدفع بالفيزا من مصر يتم الدفع عبر Paymob لكل فترة: نُصدر فاتورة تجديد في نهاية الفترة وتستمر الخطة بعد دفعها. الأسعار لا تشمل الضرائب المطبقة.",
           "التجربة المجانية (حيث تتوفر): 7 أيام بحدود التجربة. تُحفظ بطاقتك دون خصم، وما لم تلغِ قبل نهاية التجربة تبدأ الخطة وتُخصم البطاقة في آخر يوم. تجربة واحدة لكل مساحة عمل.",
           "تتضمن كل خطة عددًا من النتائج (العملاء المحتملين) شهريًا. العميل المحتمل الواحد هو شركة أو نشاط محلي يطابق بحثك، وله هوية واضحة (موقع أو دومين أو مكان على الخريطة)، ووسيلة تواصل واحدة على الأقل (بريد مهني أو صفحة LinkedIn أو هاتف العمل). ويُحتسب مرة واحدة عند تسليمه مهما كانت كمية البيانات معه، وصنّاع القرار فيه مشمولون. والنتائج التي ليس لها وسيلة تواصل لا تُسلَّم ولا تُحتسب.",

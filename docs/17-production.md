@@ -231,3 +231,11 @@ npx wrangler secret put WORKER_SECRET
 - `20261113000000_conversion_tracking.sql` اتطبق واتسجل (6 جداول + view، 279 حساب ظاهرين).
 - النشر: يولياس `1b3b9418`، والأدمن `b95de7ca`.
 - لسه من المالك: حدث `checkout.updated` في Polar (اختياري)، وقفل Polar من «تشغيل وإيقاف الخدمات» لحد ما الحساب يتراجع.
+
+## جولة 2026-10-19 (D-217..D-226). محلي فقط — ما اتنفذش منها حاجة على الإنتاج
+1. نسخة احتياطية.
+2. يولياس: `Yolias/supabase/migrations/20261114000000_partner_network.sql` بنفس طريقة `npx supabase db query --linked -f <الملف>` ثم تسجيله في `supabase_migrations.schema_migrations`. الأدمن مالوش migration.
+3. نشر يولياس (`npm run cf:deploy` من `Yolias`) ثم الأدمن (`npm run cf:deploy:admin` من الجذر).
+4. `npm run content:seed:production` من `Yolias`: لو صفحات المساعدة/التوثيق/القانونية متخزنة في قاعدة البيانات، النص القديم «خصم 20%» هيفضل ظاهر لحد ما يتعمل seed.
+5. بعد النشر: الأدمن ← الدعم ← قاعدة المعرفة ← «مزامنة محتوى Yolias» (مرة، وبعد أي تحديث كبير في المحتوى).
+6. Polar: أسعار الخطط السنوية هتتغير لوحدها أول checkout بعد النشر (10 × الشهري). المشتركين الحاليين بيفضلوا على سعرهم.

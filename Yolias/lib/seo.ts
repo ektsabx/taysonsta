@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 // are no separate language URLs, hence no hreflang.
 
 export const SITE_NAME = "Yolias";
-export const HOME_TITLE = "Yolias is Your AI Agents for Business Growth";
+export const HOME_TITLE = "Yolias: Your AI Sales Agent for Business Growth";
 /** The one-line definition used everywhere Yolias is described (site, llms.txt, schema). */
 export const DEFINITION = "Yolias is an AI customer discovery platform for businesses that sell services. You describe your ideal customer in plain language, in English or Arabic, and Yolias runs a discovery campaign that finds matching companies, local businesses and decision makers, explains why each one fits, and prepares first messages that you send from your own accounts.";
 export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: AI customer discovery for businesses that sell services" };

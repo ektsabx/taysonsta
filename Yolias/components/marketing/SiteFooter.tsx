@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { SupportLink } from "@/components/SupportLink";
+import { ThemeMenu } from "@/components/ThemeMenu";
 import { useI18n } from "@/lib/i18n/client";
 
 // Official Yolias accounts.
@@ -23,6 +24,7 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
       title: s.resources,
       links: [
         { href: "/use-cases", label: s.useCases },
+        { href: "/community", label: s.community },
         { href: "/help-center", label: s.helpCenter },
         { href: "/docs", label: s.documentation },
         { href: "/pricing#faq", label: s.faq },
@@ -82,7 +84,11 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
             </div>
           ))}
         </div>
-        <div className="mt-10 border-t border-white/10 pt-6 text-sm text-neutral-500">{s.copyright}</div>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-sm text-neutral-500">
+          <span>{s.copyright}</span>
+          {/* Theme switch lives here, not in the header (owner brief 2026-10-19). */}
+          <div className="footer-theme"><ThemeMenu up /></div>
+        </div>
       </div>
     </footer>
   );

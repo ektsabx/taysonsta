@@ -6,8 +6,7 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import { isBillingPeriod, isPaidPlan, monthlyRate, planName, planPrice, priceFor } from "@/lib/plans";
 import { currencyFor, getPlanCatalog } from "@/lib/plan-catalog";
-import { MagicLinkForm } from "../MagicLinkForm";
-import { GoogleButton } from "../GoogleButton";
+import { SignupForms } from "../SignupForms";
 import { googleSignInEnabled } from "@/lib/auth/providers";
 import { captchaConfig } from "@/lib/auth/captcha";
 
@@ -35,8 +34,7 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
           <Link href="/pricing">{t.auth.change}</Link>
         </div>
       )}
-      {(await googleSignInEnabled()) && <GoogleButton label={t.auth.google} or={t.auth.orEmail} plan={picked} period={picked ? period : undefined} />}
-      <MagicLinkForm mode="signup" plan={picked} period={picked ? period : undefined} captchaSiteKey={(await captchaConfig())?.siteKey ?? null} />
+      <SignupForms google={await googleSignInEnabled()} plan={picked} period={picked ? period : undefined} captchaSiteKey={(await captchaConfig())?.siteKey ?? null} />
     </>
   );
 }

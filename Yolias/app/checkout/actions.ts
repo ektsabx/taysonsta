@@ -10,7 +10,7 @@ import { grantPack, lockedProvider, providerFor, startCheckout, type CheckoutRes
 import { loadPolar, polarPortalUrl, productFor } from "@/lib/payments/polar";
 import { ensurePolarProducts } from "@/lib/payments/polar-products";
 import { createPolarCheckout } from "@/lib/payments/polar-checkout";
-import { canStartTrial } from "@/lib/trial";
+import { trialOpen } from "@/lib/trial";
 import { workspaceCurrency } from "@/lib/plan-catalog";
 import { requestCountry } from "@/lib/geo-server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -73,7 +73,7 @@ export async function activatePlan(plan: string, period: string, method: string 
     return { ok: false, error: t.checkout.errors.notConnected };
   }
   // Test mode: the card route starts the trial (once), the Egypt route pays up front.
-  if (route === "polar" && canStartTrial(ws) && ws.subscription_status !== "active" && ws.subscription_status !== "test") {
+  if (route === "polar" && (await trialOpen(ws)) && ws.subscription_status !== "active" && ws.subscription_status !== "test") {
     if (!(await startTrial(ws, plan, period, payer, { mode: "test", provider: "polar" }))) return { ok: false, error: t.checkout.errors.failed };
   } else {
     const charge = await planCharge(ws, plan, period);

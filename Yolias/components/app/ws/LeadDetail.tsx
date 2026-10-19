@@ -156,7 +156,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
 
             <section className="ws-card">
               <h3 className="ws-label" style={{ marginBottom: 10 }}>{d.fit}</h3>
-              {!fit ? <p className="ws-muted">{d.noFit} <Link className="ws-link" href="/ai/profiles">{t.ws.nav.profiles}</Link></p> : (
+              {!fit ? <p className="ws-muted">{d.noFit} <Link className="ws-link" href="/ai/knowledge?tab=profiles">{t.ws.nav.profiles}</Link></p> : (
                 <>
                   <p className="ws-muted" style={{ marginBottom: 6 }}>{fit.profileName}</p>
                   <strong>{fit.score == null ? d.fitUnknown : fmt(d.fitScore, { score: fit.score })}</strong>

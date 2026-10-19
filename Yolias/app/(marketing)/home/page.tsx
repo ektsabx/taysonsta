@@ -6,10 +6,10 @@ import { getLocale } from "@/lib/i18n/server";
 import { HOME_TITLE, faqSchema, organizationSchema, pageMetadata, websiteSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
-import { CustomerCount, Testimonials } from "@/components/marketing/SocialProof";
+import { CustomerCount, FounderNote } from "@/components/marketing/SocialProof";
 import { getSession } from "@/lib/session";
 
-// The home title is fixed by the owner (2026-10-12), word for word, in both languages.
+// The home title is fixed by the owner (2026-10-19), word for word, in both languages.
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   return pageMetadata({ title: HOME_TITLE, absoluteTitle: true, description: home[locale].lead, path: "/" });
@@ -108,7 +108,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <Testimonials locale={locale} />
+      <FounderNote locale={locale} />
 
       <Faq eyebrow={c.faq.eyebrow} title={c.faq.title} items={c.faq.items} />
 

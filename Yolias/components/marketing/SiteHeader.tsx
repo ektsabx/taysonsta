@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
-import { ThemeMenu } from "@/components/ThemeMenu";
 import { useI18n } from "@/lib/i18n/client";
 import { solutions, solutionSlugs } from "@/lib/content/solutions";
 
@@ -14,7 +13,7 @@ type Item = { href: string; label: string; note?: string };
 type Entry = { key: string; label: string; href?: string; items?: Item[] };
 
 // Header shared by every public page: Yolias | Product | Solutions | Pricing |
-// Resources. Solutions and Resources open a menu (click or keyboard; Escape
+// Community | Resources. Solutions and Resources open a menu (click or keyboard; Escape
 // or a click outside closes it). On phones the menu is a full-width panel
 // with the same groups as expandable sections.
 export function SiteHeader({ signedIn }: { signedIn: boolean }) {
@@ -35,6 +34,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
       ],
     },
     { key: "pricing", label: s.pricing, href: "/pricing" },
+    { key: "community", label: s.community, href: "/community" },
     {
       key: "resources", label: s.resources,
       items: [
@@ -48,7 +48,6 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
   ];
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const groupActive = (e: Entry) => (e.href ? isActive(e.href) : (e.items ?? []).some((i) => isActive(i.href)));
-  const cta = signedIn ? "/" : "/signup";
 
   // Close menus on navigation, Escape and outside clicks.
   const [seenPath, setSeenPath] = useState(pathname);
@@ -110,12 +109,10 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
           ))}
         </ul>
         <div className="hidden items-center gap-3 lg:flex">
-          <ThemeMenu />
           <LanguageMenu />
-          <Link className="nav-cta focus-ring" href={cta}>{s.tryYolias}</Link>
+          <AuthButtons signedIn={signedIn} />
         </div>
         <div className="flex items-center gap-2 lg:hidden">
-          <ThemeMenu />
           <LanguageMenu />
           <button className="nav-burger focus-ring" type="button" aria-label={s.menu} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((o) => !o)}>
             {open ? <X width={20} height={20} /> : <Menu width={20} height={20} />}
@@ -138,9 +135,22 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
               </details>
             ),
           )}
-          <Link className="nav-cta focus-ring mt-3" href={cta}>{s.tryYolias}</Link>
+          <div className="mobile-auth mt-3"><AuthButtons signedIn={signedIn} /></div>
         </div>
       </div>
     </header>
+  );
+}
+
+// Signed out: "Log in" + "Sign up" (owner brief 2026-10-19, replaces "Try
+// Yolias"). Signed in: one button back to the dashboard.
+function AuthButtons({ signedIn }: { signedIn: boolean }) {
+  const s = useI18n().t.site;
+  if (signedIn) return <Link className="nav-cta focus-ring" href="/">{s.dashboard}</Link>;
+  return (
+    <>
+      <Link className="nav-login focus-ring" href="/login">{s.logIn}</Link>
+      <Link className="nav-cta focus-ring" href="/signup">{s.signUp}</Link>
+    </>
   );
 }

@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 // A search's results live on its campaign page (D-166): one page, no
 // duplicate. Old links and the browser's Back land there.
 export default async function SearchResultsPage({ params, searchParams }: PageProps<"/search/[id]/results">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const db = await createClient();

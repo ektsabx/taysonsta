@@ -45,6 +45,8 @@ export function MagicLinkForm({ mode, initialError, plan, period, captchaSiteKey
       <form className="auth-form" action={action}>
         {plan && <input type="hidden" name="plan" value={plan} />}
         {period && <input type="hidden" name="period" value={period} />}
+        {/* Signing up is the agreement shown under the form (SignupForms). */}
+        {mode === "signup" && <input type="hidden" name="consent" value="1" />}
         <div className="field">
           <label htmlFor="email">{a.workEmail}</label>
           <input

@@ -17,14 +17,14 @@ test("plans: no $0 plan offered, Scale is the top plan, trialing counts as a pla
   assert.equal(hasActivePlan({ subscription_status: "none" }), false);
 });
 
-test("plans: annual is 20% off, shown per month and charged once a year", () => {
-  assert.equal(monthlyRate(100, "annual"), 80);
-  assert.equal(priceFor(100, "annual"), 960);
+test("plans: annual is 2 months free (10 × monthly), shown per month and charged once a year", () => {
+  assert.equal(priceFor(100, "annual"), 1000);
+  assert.equal(monthlyRate(100, "annual"), 83.33);
   assert.equal(monthlyRate(100, "monthly"), 100);
   assert.equal(priceFor(100, "monthly"), 100);
-  assert.equal(priceFor(50, "annual"), 480);
-  assert.equal(priceFor(200, "annual"), 1920);
-  assert.equal(priceFor(24.99, "annual"), 239.88, "rounded to cents per month first");
+  assert.equal(priceFor(50, "annual"), 500);
+  assert.equal(priceFor(200, "annual"), 2000);
+  assert.equal(priceFor(24.99, "annual"), 249.9);
 });
 
 test("csv: quotes, escaped quotes, CRLF, BOM, semicolons and blank lines", () => {
@@ -65,7 +65,7 @@ test("affiliates: worked examples follow the live rate, eligibility and rounding
   const growthMonthly = ex.find((e) => e.plan === "growth" && e.period === "monthly")!;
   assert.equal(growthMonthly.perPaymentCents, 1500, "15% of $100");
   assert.equal(growthMonthly.maxCents, 18000, "12 payments");
-  assert.equal(ex.find((e) => e.plan === "scale" && e.period === "annual")!.perPaymentCents, 28800, "15% of $1,920 (annual at 20% off)");
+  assert.equal(ex.find((e) => e.plan === "scale" && e.period === "annual")!.perPaymentCents, 30000, "15% of $2,000 (annual = 10 × monthly)");
   const once = parseProgramSettings({ enabled: true, commission: { type: "percent", percent_bps: 1500 }, eligible: { plans: ["pro"], periods: ["monthly"] }, recurring: { enabled: false } });
   assert.deepEqual(commissionExamples(once, { pro: 50, growth: 100, scale: 200 }).map((e) => [e.plan, e.maxCents]), [["pro", 750]]);
 });

@@ -14,7 +14,7 @@ import { gridPerson, sizeBand } from "@/lib/results";
 import type { ProspectRow } from "@/types/database";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getPerson, maskEmail, maskPhone } from "@/services/prospects";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/person/[id]">): Promise<Metadata> {
@@ -49,7 +49,7 @@ function Tiles({ items, empty }: { items: Tile[]; empty: string }) {
 // until revealed), their company, the messages Yolias prepared and the data
 // intelligence behind the record.
 export default async function PersonPage({ params }: PageProps<"/prospects/person/[id]">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await getPerson(id);

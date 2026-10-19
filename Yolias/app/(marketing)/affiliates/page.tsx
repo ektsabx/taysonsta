@@ -11,6 +11,9 @@ import { getSession } from "@/lib/session";
 import { breadcrumbSchema, faqSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
+import { PartnerNetwork } from "@/components/marketing/PartnerNetwork";
+import { AffiliateCalculator } from "@/components/marketing/AffiliateCalculator";
+import { partnerDirectory } from "@/lib/affiliates/directory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const c = affiliatesPage[await getLocale()];
@@ -23,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // plan prices), how to join, the rules and the terms. Every number shown is
 // the live program setting (Yolias Admin → Affiliates → Program settings).
 export default async function AffiliatesPublicPage() {
-  const [locale, program, session, plans, t] = await Promise.all([getLocale(), currentProgram(), getSession(), getPlanCatalog(), getDictionary()]);
+  const [locale, program, session, plans, t, partners] = await Promise.all([getLocale(), currentProgram(), getSession(), getPlanCatalog(), getDictionary(), partnerDirectory()]);
   const c = affiliatesPage[locale];
   const s = program?.settings;
   const n = (v: number) => new Intl.NumberFormat("en-US").format(v);
@@ -36,7 +39,11 @@ export default async function AffiliatesPublicPage() {
   ] : [];
   const rate = s ? commissionLabel(s, formatCents) : null;
   const examples = s?.enabled ? commissionExamples(s, { pro: plans.pro.priceUsd, growth: plans.growth.priceUsd, scale: plans.scale.priceUsd }) : [];
-  const cta = s?.enabled ? <Link className="btn-solid" href={session ? "/partners" : "/partners/join"}>{session ? c.cta.signedIn : c.cta.signedOut}</Link> : null;
+  // Two buttons side by side (owner brief 2026-10-19): join, or sign in to the partner dashboard.
+  const cta = s?.enabled ? (session
+    ? <Link className="btn-solid" href="/partners">{c.cta.signedIn}</Link>
+    : <><Link className="btn-solid" href="/partners/join">{c.become}</Link><Link className="btn-ghost" href="/partners/login">{c.haveAccount}</Link></>) : null;
+  const calcOptions = examples.map((e) => ({ key: `${e.plan}_${e.period}`, planLabel: t.plans[e.plan], period: e.period, periodLabel: e.period === "annual" ? c.annual : c.monthly, perPaymentCents: e.perPaymentCents }));
   return (
     <>
       <JsonLd nodes={[webPageSchema({ title: c.seoTitle, description: c.metaDescription, path: "/affiliates" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.seoTitle, path: "/affiliates" }]), faqSchema(c.faq)]} />
@@ -62,6 +69,8 @@ export default async function AffiliatesPublicPage() {
           </div>
         </div>
       </section>
+
+      <PartnerNetwork partners={partners} locale={locale} c={c} roles={t.affiliate.listing.roles} />
 
       <section className="section alt">
         <div className="site-width">
@@ -96,6 +105,9 @@ export default async function AffiliatesPublicPage() {
               </table>
             </div>
             <p className="solution-note">{c.calcNote}</p>
+            <div className="section-head mt-12"><h3 className="display-font">{c.calculator.title}</h3><p>{c.calculator.lead}</p></div>
+            <AffiliateCalculator options={calcOptions} maxRecurring={!s.recurring.enabled ? 1 : s.recurring.maxPayments} copy={c.calculator} />
+            <p className="solution-note">{c.calculator.note}</p>
           </div>
         </section>
       ) : null}
@@ -104,11 +116,14 @@ export default async function AffiliatesPublicPage() {
         <section className="section" id="terms">
           <div className="site-width split">
             <h2 className="solution-h2">{c.termsTitle}</h2>
-            <dl className="affiliate-facts">
-              {facts.map(([k, v]) => (
-                <div key={k}><dt>{k}</dt><dd dir="auto">{v}</dd></div>
-              ))}
-            </dl>
+            <div>
+              <dl className="affiliate-facts">
+                {facts.map(([k, v]) => (
+                  <div key={k}><dt>{k}</dt><dd dir="auto">{v}</dd></div>
+                ))}
+              </dl>
+              <p className="mt-4"><Link className="affiliate-terms-link" href="/partners/terms">{c.fullTerms}</Link></p>
+            </div>
           </div>
         </section>
       ) : null}

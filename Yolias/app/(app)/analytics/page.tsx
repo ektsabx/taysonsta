@@ -3,7 +3,9 @@ import { RangePicker } from "@/components/app/RangePicker";
 import { countryLabel, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
+import { firstName } from "@/lib/format";
+import { Greeting } from "@/components/app/Greeting";
 import { discoveryAnalytics, parseRange, ranges } from "@/services/analytics";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,7 +42,7 @@ function Panel({ title, children, wide = false }: { title: string; children: Rea
 // trend, the results pipeline, data quality, ICP performance, distribution,
 // decision makers, top markets and user activity — one visual style (D-166).
 export default async function AnalyticsPage({ searchParams }: PageProps<"/analytics">) {
-  const session = await requireSession();
+  const session = await requireViewer();
   const range = parseRange((await searchParams).range);
   const a = await discoveryAnalytics(session.workspace.id, range);
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
@@ -69,6 +71,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
     <div className="page-view">
       <header className="view-header">
         <div className="view-title-group">
+          <Greeting name={firstName(session.profile.full_name)} className="view-greeting" />
           <h2>{an.title}</h2>
           <p>{an.subtitle}</p>
         </div>

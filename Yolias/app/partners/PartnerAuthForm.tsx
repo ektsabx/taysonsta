@@ -7,6 +7,7 @@ import { Turnstile } from "@/components/Turnstile";
 import { useI18n } from "@/lib/i18n/client";
 import type { MagicLinkState } from "@/app/(auth)/actions";
 import { partnerMagicLink } from "./auth-actions";
+import { ConsentText } from "@/app/(auth)/ConsentText";
 
 export function PartnerAuthForm({ mode, captchaSiteKey }: { mode: "login" | "signup"; captchaSiteKey?: string | null }) {
   const { t } = useI18n();
@@ -39,10 +40,11 @@ export function PartnerAuthForm({ mode, captchaSiteKey }: { mode: "login" | "sig
             defaultValue={state.status === "error" ? state.email : undefined} autoFocus={mode === "login"} />
         </div>
         {mode === "signup" && (
-          <label className="affiliate-accept">
-            <input type="checkbox" name="accept" />
-            <span>{p.accept} <Link href="/affiliates#terms" target="_blank">{p.terms}</Link></span>
-          </label>
+          <p className="signup-consent">
+            {/* Joining is the agreement (owner, 2026-10-19): a sentence, not a box. */}
+            <input type="hidden" name="accept" value="on" />
+            <ConsentText text={p.accept} links={{ partnerTerms: { href: "/partners/terms", label: p.terms }, terms: { href: "/legal/terms", label: t.auth.consentTerms }, privacy: { href: "/legal/privacy", label: t.auth.consentPrivacy } }} />
+          </p>
         )}
         {mode === "signup" && captchaSiteKey && <Turnstile siteKey={captchaSiteKey} resetKey={state} />}
         {state.status === "error" && <p className="form-error" role="alert">{state.message}</p>}

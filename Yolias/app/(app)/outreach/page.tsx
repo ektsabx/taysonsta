@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Info, Plus } from "lucide-react";
-import { requireSession } from "@/lib/session";
+import { requireViewer } from "@/lib/session";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { listOutreachCampaigns } from "@/services/outreach-campaigns";
 import { shortDate } from "@/components/app/ws/format";
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Outreach (D-193): campaigns that reach the prospects Yolias found.
 export default async function OutreachPage() {
-  const session = await requireSession();
+  const session = await requireViewer();
   const [t, locale, campaigns] = await Promise.all([getDictionary(), getLocale(), listOutreachCampaigns(session.workspace.id)]);
   const o = t.ws.outreach;
   const tz = session.profile.timezone;

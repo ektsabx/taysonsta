@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, type Target } from "@/app/(app)/prospects/actions";
+import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, peopleForActions, removeFromProspects, removeFromSaved, revealContacts, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
 import type { MessageChannel } from "@/types/database";
 import type { ProspectTab } from "@/services/prospects";
@@ -190,30 +190,31 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
 
       {count > 0 && (
         <div className="selection-bar" role="region" aria-label={fmt(pr.selected, { count: n(count) })}>
-          <span>{fmt(pr.selected, { count: n(count) })}</span>
+          <span className="selection-count">{fmt(pr.selected, { count: n(count) })}</span>
+          {/* Compact bar (owner brief 2026-10-19): one main action, the rest as icons with a label on hover. */}
           <span className="selection-actions">
-            {hasPeople && (["email", "linkedin"] as const).map((c, k) => k === 0
-              ? <button key={c} type="button" className="btn-primary" disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /> {t.outreach[c]}</button>
-              : <button key={c} type="button" className="btn-secondary icon-only" aria-label={t.outreach[c]} title={t.outreach[c]} disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /></button>)}
-            <button type="button" className="btn-secondary" onClick={() => {
-              exportForm.current?.requestSubmit();
-              if (hasPeople) void exportedPeople(count, "prospects");
-            }}><Download /> {t.outreach.exportCsv}</button>
-            {hasPeople && (
-              <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => ((await revealContacts(target())).ok ? pr.revealed : null))}><Eye /> {pr.revealContacts}</button>
-            )}
+            <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.send.button}</button>
+            {hasPeople && (["email", "linkedin"] as const).map((c) => (
+              <button key={c} type="button" className="btn-secondary icon-only" aria-label={t.outreach[c]} title={t.outreach[c]} disabled={pending} onClick={() => message(c)}><ChannelIcon channel={c} /></button>
+            ))}
             {/* CRM and Outreach (D-193, D-195): the same people / companies, one lead each. */}
-            <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
+            <button type="button" className="btn-secondary icon-only" aria-label={t.ws.crm.addToCrm} title={t.ws.crm.addToCrm} disabled={pending} onClick={() => run(async () => {
               const r = await addSelectionToCrm(target());
               if (!r.ok) { toast(r.error, "error"); return null; }
               return r.message;
-            })}><SquareKanban /> {t.ws.crm.addToCrm}</button>
-            <button type="button" className="btn-secondary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.pickCampaign}</button>
+            })}><SquareKanban /></button>
+            <button type="button" className="btn-secondary icon-only" aria-label={t.outreach.exportCsv} title={t.outreach.exportCsv} onClick={() => {
+              exportForm.current?.requestSubmit();
+              if (hasPeople) void exportedPeople(count, "prospects");
+            }}><Download /></button>
+            {hasPeople && (
+              <button type="button" className="btn-secondary icon-only" aria-label={pr.revealContacts} title={pr.revealContacts} disabled={pending} onClick={() => run(async () => ((await revealContacts(target())).ok ? pr.revealed : null))}><Eye /></button>
+            )}
             {canCollect && hasCompanies && (
-              <button type="button" className="btn-secondary" disabled={pending} onClick={() => run(async () => {
+              <button type="button" className="btn-secondary icon-only" aria-label={pr.findPeople} title={pr.findPeople} disabled={pending} onClick={() => run(async () => {
                 const r = await findDecisionMakersAction(target());
                 return r.ok ? fmt(pr.findPeopleQueued, { count: n(r.queued) }) : null;
-              })}><UsersRound /> {pr.findPeople}</button>
+              })}><UsersRound /></button>
             )}
             {tab === "saved" ? (
               <button type="button" className="btn-danger-ghost" disabled={pending} onClick={() => run(async () => {
@@ -226,8 +227,8 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                 return r.ok ? fmt(pr.removed, { count: n(r.removed) }) : null;
               })} aria-label={pr.remove} title={pr.remove}><Trash2 /></button>
             )}
-            <button type="button" className="icon-btn" aria-label={pr.clearSelection} title={pr.clearSelection} onClick={clear}><X /></button>
           </span>
+          <button type="button" className="icon-btn selection-clear" aria-label={pr.clearSelection} title={pr.clearSelection} onClick={clear}><X /></button>
           <form ref={exportForm} method="post" action="/prospects/export" hidden>
             <input type="hidden" name="query" value={query} />
             {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
@@ -235,29 +236,69 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
         </div>
       )}
       {picker && (
-        <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && setPicker(null)}>
-          <div className="ws-modal" role="dialog" aria-modal="true" aria-labelledby="pick-campaign-title">
-            <div className="ws-modal-head">
-              <h3 id="pick-campaign-title">{t.ws.outreach.pickCampaignTitle}</h3>
-              <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={() => setPicker(null)}><X /></button>
-            </div>
-            {!picker.length ? <p className="ws-muted">{t.ws.outreach.noCampaigns} <Link className="ws-link" href="/outreach/new">{t.ws.outreach.newCampaign}</Link></p> : (
-              <div className="ws-pick-list">
-                {picker.map((c) => (
-                  <button key={c.id} type="button" className="menu-item" disabled={pending} onClick={() => { setPicker(null); run(async () => {
-                    const r = await addSelectionToCampaign(c.id, target());
-                    if (!r.ok) { toast(r.error, "error"); return null; }
-                    return r.message ?? null;
-                  }); }}>
-                    <Send /> <span>{c.name}</span> <span className="cell-sub">{t.ws.outreach.status[c.status as keyof typeof t.ws.outreach.status]}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <SendDialog count={count} campaigns={picker} pending={pending} onClose={() => setPicker(null)}
+          onCreate={(input) => { setPicker(null); run(async () => {
+            const r = await sendSelectionAsCampaign(target(), input);
+            if (!r.ok) { toast(r.error, "error"); return null; }
+            router.push(`/outreach/${r.id}`);
+            return r.message ?? null;
+          }); }}
+          onPick={(id) => { setPicker(null); run(async () => {
+            const r = await addSelectionToCampaign(id, target());
+            if (!r.ok) { toast(r.error, "error"); return null; }
+            return r.message ?? null;
+          }); }} />
       )}
       {compose && <MessageComposer recipients={compose.people.map(personRecipient)} channel={compose.channel} onClose={() => setCompose(null)} />}
+    </div>
+  );
+}
+
+/**
+ * Prospects → Send (owner brief 2026-10-19): name a new campaign and pick the
+ * channel — Yolias creates it, starts it and prepares the first messages —
+ * or add the selection to a campaign that already exists.
+ */
+function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
+  count: number; campaigns: { id: string; name: string; status: string }[]; pending: boolean;
+  onClose: () => void; onCreate: (input: { name: string; channel: MessageChannel }) => void; onPick: (id: string) => void;
+}) {
+  const { t, locale } = useI18n();
+  const o = t.ws.outreach;
+  const [name, setName] = useState(() => fmt(o.send.defaultName, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "short" }).format(new Date()) }));
+  const [channel, setChannel] = useState<MessageChannel>("email");
+  return (
+    <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="ws-modal send-dialog" role="dialog" aria-modal="true" aria-labelledby="send-title">
+        <div className="ws-modal-head">
+          <h3 id="send-title">{fmt(o.send.title, { count: formatNumber(count, locale) })}</h3>
+          <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={onClose}><X /></button>
+        </div>
+        <p className="ws-muted">{o.send.lead}</p>
+        <div className="ws-grid-2">
+          <div className="ws-field"><label className="ws-label" htmlFor="send-name">{o.send.name}</label>
+            <input id="send-name" className="form-input" value={name} maxLength={160} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="ws-field"><label className="ws-label" htmlFor="send-channel">{o.send.channel}</label>
+            <select id="send-channel" className="form-select" value={channel} onChange={(e) => setChannel(e.target.value as MessageChannel)}>
+              {(["email", "linkedin"] as const).map((c) => <option key={c} value={c}>{o.channels[c]}</option>)}
+            </select></div>
+        </div>
+        <div className="ws-actions">
+          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel })}><Send /> {o.send.start}</button>
+        </div>
+        {campaigns.length > 0 && (
+          <>
+            <p className="ws-label send-dialog-or">{o.send.orExisting}</p>
+            <div className="ws-pick-list">
+              {campaigns.map((c) => (
+                <button key={c.id} type="button" className="menu-item" disabled={pending} onClick={() => onPick(c.id)}>
+                  <Send /> <span>{c.name}</span> <span className="cell-sub">{o.status[c.status as keyof typeof o.status]}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

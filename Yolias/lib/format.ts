@@ -45,3 +45,9 @@ export function formatMoney(amount: number, currency: "USD", cents = false): str
     maximumFractionDigits: cents ? 2 : Number.isInteger(amount) ? 0 : 2,
   }).format(amount);
 }
+
+/** First word of a full name ("Sara Ali" → "Sara"), for greetings. */
+export function firstName(fullName: string | null | undefined): string | null {
+  const first = fullName?.trim().split(/\s+/)[0];
+  return first ? first.slice(0, 40) : null;
+}

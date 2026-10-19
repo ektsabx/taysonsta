@@ -1,4 +1,5 @@
 import type { Doc, Localized } from "./types";
+import { guidePosts } from "./blog-guides";
 
 export interface BlogPost {
   slug: string;
@@ -13,6 +14,8 @@ export const blogHero: Localized<{ eyebrow: string; title: string; lead: string 
 };
 
 export const posts: BlogPost[] = [
+  // Newest first: long-form guides (lib/content/blog-guides.ts).
+  ...guidePosts,
   {
     slug: "introducing-yolias",
     date: "2026-10-01",

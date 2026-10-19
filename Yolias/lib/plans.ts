@@ -77,7 +77,7 @@ export function isBillingPeriod(v: unknown): v is BillingPeriod {
 /** Annual billing is 20% off the monthly price (owner decision 2026-10-13, D-192). */
 // Annual pricing math lives in a dependency-free module so the Admin app can
 // import it too (lib/affiliates/program.ts is shared with Yolias Admin).
-export { ANNUAL_DISCOUNT, monthlyRate, priceFor } from "./pricing-math";
+export { ANNUAL_FREE_MONTHS, ANNUAL_PAID_MONTHS, monthlyRate, priceFor } from "./pricing-math";
 
 export function monthWindow(now = new Date()) {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

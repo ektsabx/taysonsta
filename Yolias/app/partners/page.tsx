@@ -272,7 +272,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
           </div>
         )}
 
-        {tab === "profile" && <PartnerProfile userId={user.id} name={user.name} email={user.email} avatarUrl={user.avatarUrl} />}
+        {tab === "profile" && <PartnerProfile userId={user.id} name={user.name} email={user.email} avatarUrl={user.avatarUrl} listing={affiliate ? { listed: affiliate.listed, role: affiliate.partner_role, country: affiliate.country } : null} />}
       </div>
     </div>
   );

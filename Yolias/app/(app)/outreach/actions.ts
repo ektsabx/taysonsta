@@ -11,6 +11,7 @@ import { enrollLeads, prepareNextStep, type EnrollResult } from "@/lib/outreach/
 import { channels, isMessageLanguage, objectives, tones } from "@/lib/outreach/channels";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import type { OutreachCampaignStatus } from "@/types/database";
+import { parseFilters, selectItems } from "@/services/prospects";
 
 // Outreach campaigns (D-193): create / edit with steps, add and remove leads,
 // prepare drafts, change status. All as the member (RLS); drafting checks
@@ -34,6 +35,8 @@ const campaignInput = z.object({
     objective: z.enum(objectives as [string, ...string[]]),
     instruction: z.string().trim().max(1000).optional().default(""),
   })).min(1).max(10),
+  /** New campaigns only: start from a search campaign — its prospects join, drafts are prepared (owner brief 2026-10-19). */
+  source_campaign_id: z.string().uuid().nullable().optional(),
 });
 
 export async function saveOutreachCampaign(input: z.input<typeof campaignInput>): Promise<OutreachResult<{ id: string }>> {
@@ -64,8 +67,48 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
     workspace_id: session.workspace.id, campaign_id: id!, position: i + 1, delay_days: i === 0 ? 0 : s.delay_days, objective: s.objective as never, instruction: s.instruction || null,
   })));
   if (stepsError) return { ok: false, error: e.steps };
+  if (!c.id && c.source_campaign_id) {
+    const { rows } = await selectItems(session.workspace.id, parseFilters({ campaign: c.source_campaign_id }), "all");
+    const targets = rows.map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id }));
+    const launched = await launchCampaign(id!, targets);
+    revalidatePath("/outreach", "layout");
+    return launched.ok ? { ok: true, id: id!, message: launched.message } : { ok: true, id: id!, message: launched.error };
+  }
   revalidatePath("/outreach", "layout");
   return { ok: true, id: id! };
+}
+
+/**
+ * Starts a campaign in one go (owner brief 2026-10-19): the prospects join it
+ * (CRM → enrollment), it becomes active, and the first drafts are prepared so
+ * they're ready to send. Sending stays the member's (D-193): Yolias has no
+ * mailbox connected, so "sent" is confirmed by the member.
+ */
+export async function launchCampaign(campaignId: string, targets: LeadTarget[]): Promise<OutreachResult> {
+  const t = (await getDictionary()).ws.outreach;
+  if (!targets.length) return { ok: false, error: t.errors.noProspects };
+  const added = await addProspectsToCampaign(campaignId, targets);
+  if (!added.ok) return added;
+  const active = await setOutreachStatus(campaignId, "active");
+  if (!active.ok) return active;
+  const drafts = await prepareCampaignDrafts(campaignId);
+  return { ok: true, message: [added.message, drafts.ok ? drafts.message : drafts.error].filter(Boolean).join(" ") };
+}
+
+/** Selected prospects → a new campaign with the usual two steps, started at once (Prospects → Send). */
+export async function quickCampaign(input: { name: string; channel: string; targets: LeadTarget[] }): Promise<OutreachResult<{ id: string }>> {
+  const session = await requireSession();
+  const t = (await getDictionary()).ws.outreach;
+  const settings = await loadAiSettings(session.workspace.id);
+  const saved = await saveOutreachCampaign({
+    name: input.name, goal: "", description: "", channel: input.channel as never, language: session.profile.language === "ar" ? "ar" : "en", tone: "direct",
+    customer_profile_id: null, offer_id: null,
+    steps: [{ delay_days: 0, objective: "introduction", instruction: "" }, { delay_days: 3, objective: "follow_up", instruction: "" }].slice(0, Math.max(1, settings.limits.max_messages_per_lead)) as never,
+  });
+  if (!saved.ok) return saved;
+  const launched = await launchCampaign(saved.id, input.targets);
+  if (!launched.ok) return { ok: false, error: launched.error };
+  return { ok: true, id: saved.id, message: launched.message ?? t.started };
 }
 
 export async function setOutreachStatus(id: string, status: OutreachCampaignStatus): Promise<OutreachResult> {

@@ -453,6 +453,7 @@ a { color: inherit; text-decoration: none; }
 }
 .view-title-group h2 { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 600; color: var(--ink); line-height: 1.2; }
 .view-title-group p { font-size: .84rem; color: var(--muted); margin-top: 3px; }
+.view-title-group .view-greeting { margin: 0 0 2px; font-size: .9rem; font-weight: 600; color: var(--text-2); }
 .view-actions { display: flex; align-items: center; gap: 10px; position: relative; }
 
 .btn-secondary {
@@ -524,7 +525,8 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.05;
   color: var(--ink);
 }
-.center-hero p {
+.center-hero .app-greeting { margin: 0 0 12px; max-width: none; color: var(--text-2); font-size: 1.05rem; font-weight: 600; }
+.center-hero p:not(.app-greeting) {
   margin: 14px auto 30px;
   color: var(--muted);
   font-size: .95rem;
@@ -837,9 +839,10 @@ a.badge-chan:hover { text-decoration: underline; }
 }
 
 .modal-window {
-  width: 92%;
-  max-width: 780px;
-  height: 570px;
+  /* Settings: Claude-sized window (owner, 2026-10-19). */
+  width: calc(100vw - 48px);
+  max-width: 1040px;
+  height: min(760px, calc(100dvh - 48px));
   background: var(--paper);
   border-radius: 14px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.18);
@@ -850,7 +853,7 @@ a.badge-chan:hover { text-decoration: underline; }
 }
 
 .modal-sidebar {
-  width: 210px;
+  width: 240px;
   flex: 0 0 210px;
   background: var(--table-head);
   border-inline-end: 1px solid var(--line);
@@ -1272,7 +1275,7 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
   .view-content-padding { padding: 18px 16px; }
   .chat-view { padding: 16px 16px 40px; }
   .stat-grid { grid-template-columns: 1fr; }
-  .modal-window { flex-direction: column; height: 90vh; }
+  .modal-window { flex-direction: column; width: calc(100vw - 24px); height: calc(100dvh - 24px); }
   .modal-sidebar { width: 100%; flex: 0 0 auto; flex-direction: row; overflow-x: auto; padding: 10px; border-inline-end: none; border-bottom: 1px solid var(--line); }
   .modal-sidebar-title { display: none; }
   .setting-row { flex-direction: column; align-items: stretch; }
@@ -1310,7 +1313,8 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
   align-items: center;
   justify-content: space-between;
 }
-.checkout-back { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+@media (max-width: 560px) { .checkout-top { padding: 14px 16px; gap: 10px; } .checkout-top-actions { gap: 4px; } .checkout-top .lang-trigger { padding: 0 6px; } }
+.checkout-back { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .checkout-back:hover { color: var(--ink); }
 .checkout-back svg { width: 14px; height: 14px; }
 .checkout-grid {
@@ -1425,6 +1429,7 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
 }
 .lang-popover.end { inset-inline-end: 0; }
 .lang-popover.start { inset-inline-start: 0; }
+.lang-popover.up { top: auto; bottom: calc(100% + 6px); }
 .lang-option {
   display: flex;
   align-items: center;
@@ -1790,8 +1795,21 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .person-card-actions > * { justify-content: center; }
 .revealed-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 7px; background: var(--green-soft); color: var(--green); font-size: .8rem; font-weight: 600; }
 .revealed-pill svg { width: 15px; height: 15px; }
-.selection-bar { position: sticky; bottom: 16px; z-index: 30; align-self: center; display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 10px 30px rgba(0,0,0,.12); font-size: .84rem; font-weight: 600; color: var(--ink); }
-.selection-bar .btn-primary { border-radius: 999px; padding: 9px 18px; }
+/* Selection bar (owner brief 2026-10-19): as wide as its content, one row on
+   desktop; on phones a bar pinned to the bottom with the count on top and the
+   actions in one scrollable row. Buttons share one height. */
+.selection-bar { position: sticky; bottom: 16px; z-index: 30; align-self: center; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100% - 24px); margin-inline: auto; padding: 6px; padding-inline-start: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.12); font-size: .84rem; font-weight: 600; color: var(--ink); }
+.selection-count { white-space: nowrap; }
+.selection-bar :is(.btn-primary, .btn-secondary, .btn-danger-ghost) { height: 34px; padding: 0 12px; border-radius: 10px; font-size: .8rem; flex-shrink: 0; white-space: nowrap; }
+.selection-bar svg { width: 16px; height: 16px; flex-shrink: 0; }
+.selection-bar .selection-clear { flex-shrink: 0; }
+@media (max-width: 720px) {
+  .selection-bar { position: fixed; bottom: 12px; inset-inline: 12px; width: auto; max-width: none; flex-wrap: wrap; gap: 8px; padding: 10px; border-radius: 16px; }
+  .selection-bar .selection-count { flex: 1; }
+  .selection-bar .selection-actions { order: 3; flex-basis: 100%; }
+  /* The support button sits in the same corner: hidden while something is selected. */
+  body:has(.selection-bar) [data-bos-widget] { display: none; }
+}
 
 /* Outreach drawer */
 .drawer-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(20,20,19,.4); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -1917,7 +1935,8 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 @media (max-width: 560px) { .consent-banner { flex-direction: column; align-items: stretch; } .consent-actions > * { flex: 1; } }
 
 /* Prospect actions: Email / LinkedIn composer (D-155) */
-.selection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.selection-actions { display: flex; gap: 6px; flex-wrap: nowrap; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.selection-actions::-webkit-scrollbar { display: none; }
 .composer .drawer-personalize .form-input { flex: 1; min-width: 0; }
 .composer-foot { margin: 6px -22px -18px; padding: 12px 22px; position: sticky; bottom: -18px; background: var(--paper); flex-wrap: wrap; align-items: center; }
 .composer-nav { display: flex; gap: 4px; margin-inline-end: auto; }
@@ -1958,9 +1977,7 @@ html[data-theme="dark"] .toast { background: #2b2b29; border: 1px solid #3a3a37;
 .prospect-grid-head { justify-content: flex-start; align-items: center; gap: 14px; flex-wrap: wrap; font-size: .84rem; }
 .prospect-grid-empty { padding: 32px; text-align: center; }
 .prospect-pager { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
-.prospect-grid .selection-bar { flex-wrap: wrap; justify-content: center; max-width: calc(100% - 16px); }
-.selection-actions .icon-only, .selection-actions .btn-danger-ghost { padding-inline: 10px; border-radius: 999px; }
-@media (max-width: 900px) { .prospect-grid .selection-bar { border-radius: 18px; } }
+.selection-actions .icon-only, .selection-actions .btn-danger-ghost { width: 34px; padding: 0; justify-content: center; }
 .skeleton-card { height: 236px; border-radius: 14px; border: 1px solid var(--line); background: linear-gradient(90deg, var(--paper) 0%, var(--line-faint) 50%, var(--paper) 100%); background-size: 200% 100%; animation: skeleton 1.2s ease-in-out infinite; }
 @keyframes skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .skeleton-card { animation: none; } }
@@ -2213,3 +2230,17 @@ html[data-theme="dark"] .type-pill.type-local_business { background: #3b2416; co
   .menu-flyout::before { display: none; }
   .menu-flyout .menu-item { min-height: 44px; }
 }
+.signup-consent { margin: 12px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.55; text-align: center; }
+.signup-consent a { color: var(--ink); font-weight: 600; }
+/* No plan yet: looking around (owner brief 2026-10-19) */
+.plan-gate-banner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; padding: 9px 16px; background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--ink); font-size: .84rem; text-align: center; }
+.plan-gate-banner a { color: var(--red); font-weight: 600; white-space: nowrap; }
+.plan-gate-modal { position: relative; width: min(440px, calc(100vw - 32px)); padding: 28px 24px 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+.plan-gate-modal .modal-close-btn { position: absolute; top: 12px; inset-inline-end: 12px; }
+.plan-gate-modal h2 { font-family: var(--font-serif); font-size: 1.45rem; font-weight: 600; color: var(--ink); }
+.plan-gate-modal p { margin: 10px 0 20px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
+.plan-gate-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.plan-gate-actions > * { flex: 1 1 160px; justify-content: center; }
+.partner-listing { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
+.partner-listing h5 { font-size: .95rem; font-weight: 600; color: var(--ink); }
+.partner-listing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
