@@ -65,7 +65,7 @@ test("affiliates: permissions, transitions, settings validation, payouts and pri
   const before = await program();
   const base: ProgramInput = {
     enabled: before!.settings.enabled, autoApprove: false, questions: before!.settings.questions, commissionType: "percent", percent: 20, fixedUsd: 0,
-    plans: ["pro", "growth"], periods: ["monthly", "annual"], packs: false, recurring: true, maxPayments: 12, attributionDays: 60, model: "first_touch",
+    plans: ["pro", "growth"], periods: ["monthly", "annual"], packs: false, recurring: true, maxPayments: 12, packMonths: 12, attributionDays: 60, model: "first_touch",
     minPaymentUsd: 1, holdDays: 30, minPayoutUsd: 50, excludedWorkspaces: [], excludedEmails: [], holdSameIp: true, maxSignupsPerIpDay: 3,
     payoutMethods: before!.settings.payoutMethods, includeTestPayments: false, notifyAffiliates: true, termsVersion: before!.termsVersion, terms: before!.terms, note: "test", notifyTermsChange: false,
   };

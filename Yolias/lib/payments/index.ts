@@ -417,7 +417,7 @@ export async function fulfil(db: Db, p: PaymentRow): Promise<void> {
   await grantPack(db, ws, p.prospects!, pack?.emails ?? 0, charge, payer);
 }
 
-/** Buy more: prospects + emails (never expire) + a paid invoice + confirmation emails. */
+/** A top-up (Pay As You Go credit, D-247): prospects that never expire + a paid invoice + confirmation emails. */
 export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, emails: number, charge: { mode: "test" | "live"; amount: number; currency: Currency; paymentId?: string | null }, payer: { userId: string | null; email: string; name: string | null }) {
   const now = new Date();
   const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
@@ -426,8 +426,10 @@ export async function grantPack(db: Db, ws: WorkspaceRow, prospects: number, ema
     workspace_id: ws.id, kind: "grant", prospects, emails, period_start: periodStart.toISOString().slice(0, 10),
     reason: `prospect_pack:${charge.paymentId ?? "test"}`, created_by: payer.email,
   });
-  // 23505: this payment's grant already exists (a retried fulfilment) — never grant twice.
+  // 23505: this payment's grant already exists (a retried fulfilment): never grant twice.
   if (error && !(charge.paymentId && error.code === "23505")) throw error;
+  // Pay As You Go (D-247): the first top-up opens Yolias without a subscription. It never starts one.
+  await db.from("workspaces").update({ credit_started_at: now.toISOString() }).eq("id", ws.id).is("credit_started_at", null);
   const { data: invoice } = await db.from("invoices").insert({
     workspace_id: ws.id, kind: "prospect_pack", prospects, amount: charge.amount, currency: charge.currency, status: "paid", mode: charge.mode,
     period_start: now.toISOString(), period_end: periodEnd.toISOString(), bill_to_name: payer.name, bill_to_email: payer.email, bill_to_company: ws.name,

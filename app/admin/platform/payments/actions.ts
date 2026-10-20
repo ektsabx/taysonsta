@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { authorize } from "@/lib/bos/auth";
 import { handleAction, type ActionState } from "@/lib/bos/action";
 import { ValidationError } from "@/lib/bos/errors";
-import { savePack } from "@/services/yolias/payments";
+import { saveCreditRate, savePack } from "@/services/yolias/payments";
 
-// Buy More Prospects packs (final spec phase 3); Paymob keys live in the Integration Hub (D-132).
+// Pay As You Go (D-247): the price of one prospect and the top-up amounts; Paymob keys live in the Integration Hub (D-132).
 // platform.manage (scope all) only; every change is audited in the service.
 
 const PATH = "/admin/platform/payments";
@@ -20,12 +20,19 @@ export async function savePackAction(_prev: ActionState, formData: FormData): Pr
     if (id && !/^[0-9a-f-]{36}$/.test(id)) throw new ValidationError("باقة غير معروفة.");
     await savePack(bos, {
       id: id || null,
-      prospects: Number(str(formData, "prospects")),
-      emails: Number(str(formData, "emails")),
       priceUsd: num(formData, "price_usd"),
       active: formData.get("active") === "on",
       sort: Number(str(formData, "sort") || 0),
     });
+    revalidatePath(PATH);
+    return { ok: true };
+  });
+}
+
+export async function saveCreditRateAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return handleAction("yolias.saveCreditRate", async () => {
+    const { bos } = await authorize("platform.manage", "all");
+    await saveCreditRate(bos, num(formData, "usd_per_prospect"));
     revalidatePath(PATH);
     return { ok: true };
   });

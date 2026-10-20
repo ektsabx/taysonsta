@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasActivePlan, isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
+import { canUseApp, isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 import { settleSubscription } from "@/lib/billing";
 import type { BillingPeriod, Plan, ProfileRow, WorkspaceRole, WorkspaceRow } from "@/types/database";
@@ -58,10 +58,9 @@ export async function requireUser(): Promise<Session> {
 // onboarding → Yolias. App pages and actions require all of it.
 export async function requireSession(): Promise<Session> {
   const session = await requireUser();
-  if (!hasActivePlan(session.workspace)) {
+  if (!canUseApp(session.workspace)) {
     const plan = await pendingPlan(session);
-    const period = await pendingPeriod();
-    redirect(plan ? `/checkout?plan=${plan}${period ? `&period=${period}` : ""}` : "/checkout");
+    redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
   }
   if (!session.profile.onboarded_at) redirect("/onboarding");
   return session;
@@ -76,13 +75,13 @@ export async function requireSession(): Promise<Session> {
  */
 export async function requireViewer(): Promise<Session> {
   const session = await requireUser();
-  if (hasActivePlan(session.workspace) && !session.profile.onboarded_at) redirect("/onboarding");
+  if (canUseApp(session.workspace) && !session.profile.onboarded_at) redirect("/onboarding");
   return session;
 }
 
 /** Where a signed-in user should continue to next. */
 export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
-  if (!hasActivePlan(session.workspace)) return "/checkout";
+  if (!canUseApp(session.workspace)) return "/checkout";
   if (!session.profile.onboarded_at) return "/onboarding";
   return "/";
 }
@@ -107,11 +106,11 @@ async function isSignedIn() {
   return Boolean(data?.claims?.sub);
 }
 
-/** The plan the user picked on /pricing before signing up. */
-export async function pendingPlan(session: Session): Promise<Plan | null> {
+/** The plan the user picked on /pricing before signing up ("payg": Pay As You Go, D-247). */
+export async function pendingPlan(session: Session): Promise<Plan | "payg" | null> {
   const fromCookie = (await cookies()).get(PLAN_COOKIE)?.value;
   const plan = fromCookie ?? session.signupMeta.plan_intent;
-  return isPlan(plan) ? plan : null;
+  return plan === "payg" ? "payg" : isPlan(plan) ? plan : null;
 }
 
 /** The billing period picked on /pricing before signing up. */

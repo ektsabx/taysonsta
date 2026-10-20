@@ -165,6 +165,36 @@ try {
   assert.equal((await commissionsOf(p3.id)).length, 0, "recurring limit");
   assert.ok((await db.from("affiliate_events").select("after").eq("target_id", p3.id).eq("action", "commission.skipped")).data!.length, "skip is logged");
 
+  // 4b) Pay As You Go top-ups (D-247): each top-up earns during the customer's
+  // first 12 months (the subscription limit above doesn't apply), none after.
+  const { data: topPack } = await db.from("prospect_packs").select("id, price_usd").eq("active", true).order("price_usd").limit(1).single();
+  const topUp = async () => {
+    const t = await startCheckout(await ws(wsId), buyer, { kind: "prospect_pack", packId: topPack!.id });
+    assert.ok(t.ok, "top-up checkout starts");
+    const { data: tp } = await db.from("payments").select("*").eq("workspace_id", wsId).eq("kind", "prospect_pack").eq("status", "pending").order("created_at", { ascending: false }).limit(1).single();
+    await callback(txn(tp!.id, tp!.provider_ref!, Math.round(Number(tp!.charge_amount) * 100)));
+    return tp!.id;
+  };
+  await setProgram({ include_test_payments: true, commission: { type: "percent", percent_bps: 2000, fixed_cents: 0 }, hold_days: 30, eligible: { plans: ["pro", "growth"], periods: ["monthly", "annual"], packs: false }, recurring: { enabled: true, max_payments: 2 } });
+  const tOff = await topUp();
+  assert.equal((await commissionsOf(tOff)).length, 0, "top-ups off: no commission");
+  await setProgram({ include_test_payments: true, commission: { type: "percent", percent_bps: 2000, fixed_cents: 0 }, hold_days: 30, eligible: { plans: ["pro", "growth"], periods: ["monthly", "annual"], packs: true }, recurring: { enabled: true, max_payments: 2, pack_months: 12 } });
+  const t1 = await topUp();
+  const ct1 = await commissionsOf(t1);
+  assert.equal(ct1.length, 1, "a top-up within 12 months earns");
+  assert.equal(Number(ct1[0].amount_cents), Math.round(Number(topPack!.price_usd) * 100 * 0.2), "20% of the top-up");
+  assert.equal(ct1[0].payment_kind, "prospect_pack");
+  const t2 = await topUp();
+  assert.equal((await commissionsOf(t2)).length, 1, "every top-up in the window earns, not limited by the 2 subscription payments");
+  const firstAt = c1[0].created_at;
+  await db.from("affiliate_commissions").update({ created_at: new Date(Date.now() - 13 * 30 * 86_400_000).toISOString() }).eq("id", c1[0].id);
+  const t3 = await topUp();
+  assert.equal((await commissionsOf(t3)).length, 0, "no commission after 12 months");
+  assert.ok((await db.from("affiliate_events").select("after").eq("target_id", t3).eq("action", "commission.skipped")).data!.some((e) => (e.after as { why?: string } | null)?.why === "pack_window_over"));
+  await db.from("affiliate_commissions").update({ created_at: firstAt }).eq("id", c1[0].id);
+  // Out of the way of the balance checks below (the ledger is never deleted).
+  for (const c of [...ct1, ...(await commissionsOf(t2))]) await db.rpc("affiliate_set_commission", { p_commission: c.id, p_action: "reject", p_actor: "test", p_reason: "test cleanup" });
+
   // 5) Refund reverses the commission of that payment.
   await callback(txn(p1.id, p1.order, p1.cents, { is_refunded: true }));
   c1 = await commissionsOf(p1.id);

@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-19";
+export const LEGAL_UPDATED = "2026-10-20";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -156,12 +156,12 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         ] },
         { h2: "Plans and billing" },
         { ul: [
-          "Plans differ by monthly usage limits; every plan includes unlimited users.",
-          "You can pay monthly or annually. Annual billing is 20% less than paying monthly and is charged upfront.",
+          "Yolias offers Pay As You Go credit and monthly plans; every option includes unlimited users.",
+          "Pay As You Go is prepaid credit bought in one payment. It is not a subscription, never renews and doesn’t expire. Credit is added only once the payment provider confirms the payment. Monthly plans are billed monthly; annual billing is no longer offered for new subscriptions, and existing annual subscriptions continue until the end of their year.",
           "Paymob charges each period: at the end of a period we issue a renewal invoice and the plan continues once it’s paid. When Polar is offered at checkout and you pay through it, Polar sells the subscription as merchant of record and renews it automatically until you cancel from the billing portal. Prices exclude applicable taxes.",
           "Free trial (where offered): 7 days with trial limits. Your card is saved but not charged; unless you cancel before the trial ends, the plan starts and the card is charged on the last day. One trial per workspace.",
           "Each plan includes a number of results (prospects) per month. One prospect is one company or local business that matches your search, can be identified (website, domain or map listing) and has at least one way to reach it (business email, LinkedIn page or business phone). It counts once, when it is delivered, however much data comes with it; its decision makers are included. Results without a way to reach them are not delivered and not counted.",
-          "Plans are counted on prospects and emails. Usage beyond your plan’s limits is not available until the next period, an upgrade or the purchase of a pack, which adds prospects and emails together. Pack prospects and emails don’t expire. Uploading your own contacts is unlimited.",
+          "Usage is counted in prospects only, and the same prospect is never counted twice. Writing and sending emails is not charged or limited, and uploading your own contacts is unlimited. On a plan, its monthly prospects are used first, then your credit. When none are left, discovery pauses until you top up or the plan renews.",
           "Prices are in US dollars, except in Egypt, where checkout shows and charges prices in Egyptian pounds. Paymob charges cards in Egyptian pounds: the Egyptian price in Egypt, otherwise the US-dollar price at the day’s exchange rate.",
           "Refunds follow the [Refund Policy](/legal/refunds).",
         ] },
@@ -176,7 +176,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "Prospect data and your obligations" },
         { p: "Yolias helps you discover businesses and professional contacts. How you use that information is your decision and your responsibility: you must have a lawful basis to contact people, honor opt-out requests, and follow the laws that apply to you and to them, such as personal data protection laws in Saudi Arabia, the UAE and the EU." },
         { h2: "Messages you send" },
-        { p: "Yolias writes emails for prospects. When you connect your mailbox (Gmail, Outlook or an IMAP/SMTP account), Yolias sends a campaign or a message from it only after you approve it, and reads only the replies in the threads it started; you can pause, cancel or disconnect at any time. For an IMAP/SMTP mailbox, its server settings and password are stored encrypted and used only to send your approved emails and read those replies. Yolias doesn’t send messages on LinkedIn. You are responsible for the content and recipients of your messages, for having a lawful reason to contact them, for honouring opt-outs, and for following the rules of your email provider." },
+        { p: "Yolias writes emails for prospects. When you connect your mailbox (Gmail or an IMAP/SMTP account), Yolias sends a campaign or a message from it only after you approve it, and reads only the replies in the threads it started; you can pause, cancel or disconnect at any time. For an IMAP/SMTP mailbox, its server settings and password are stored encrypted and used only to send your approved emails and read those replies. Yolias doesn’t send messages on LinkedIn. You are responsible for the content and recipients of your messages, for having a lawful reason to contact them, for honouring opt-outs, and for following the rules of your email provider." },
         { h2: "AI output" },
         { p: "Customer profiles, match scores, enriched data and message drafts are produced automatically and can be incomplete or wrong. Review results before relying on them." },
         { h2: "Your content" },
@@ -209,12 +209,12 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         ] },
         { h2: "الخطط والفوترة" },
         { ul: [
-          "تختلف الخطط في حدود الاستخدام الشهرية، وتشمل كل خطة مستخدمين غير محدودين.",
-          "يمكنك الدفع شهريًا أو سنويًا. الفوترة السنوية أقل بنسبة 20% من الدفع الشهري، وتُدفع مقدمًا.",
+          "يقدّم يولـياس رصيد الدفع حسب الاستخدام وخططًا شهرية، ويشمل كل خيار مستخدمين غير محدودين.",
+          "الدفع حسب الاستخدام رصيد مسبق يُشترى بدفعة واحدة، وليس اشتراكًا، ولا يتجدد ولا تنتهي صلاحيته. يُضاف الرصيد فقط بعد أن يؤكد مزوّد الدفع العملية. الخطط الشهرية تُدفع شهريًا، والفوترة السنوية لم تعد متاحة للاشتراكات الجديدة، والاشتراكات السنوية القائمة تستمر حتى نهاية سنتها.",
           "يتم الدفع عبر Paymob لكل فترة: نُصدر فاتورة تجديد في نهاية الفترة وتستمر الخطة بعد دفعها. وعندما يظهر Polar كخيار وتدفع من خلاله، يبيع Polar الاشتراك بصفته التاجر المسجّل ويجدده تلقائيًا حتى تلغيه من بوابة الفوترة. الأسعار لا تشمل الضرائب المطبقة.",
           "التجربة المجانية (حيث تتوفر): 7 أيام بحدود التجربة. تُحفظ بطاقتك دون خصم، وما لم تلغِ قبل نهاية التجربة تبدأ الخطة وتُخصم البطاقة في آخر يوم. تجربة واحدة لكل مساحة عمل.",
           "تتضمن كل خطة عددًا من النتائج (العملاء المحتملين) شهريًا. العميل المحتمل الواحد هو شركة أو نشاط محلي يطابق بحثك، وله هوية واضحة (موقع أو دومين أو مكان على الخريطة)، ووسيلة تواصل واحدة على الأقل (بريد مهني أو صفحة LinkedIn أو هاتف العمل). ويُحتسب مرة واحدة عند تسليمه مهما كانت كمية البيانات معه، وصنّاع القرار فيه مشمولون. والنتائج التي ليس لها وسيلة تواصل لا تُسلَّم ولا تُحتسب.",
-          "تُحتسب الخطط على العملاء المحتملين ورسائل البريد. لا يتوفر استخدام يتجاوز حدود خطتك حتى الفترة التالية أو الترقية أو شراء باقة تضيف عملاء محتملين ورسائل بريد معًا. عملاء الباقة ورسائلها لا تنتهي صلاحيتها. ورفع جهات الاتصال الخاصة بك غير محدود.",
+          "يُحتسب الاستخدام بالعملاء المحتملين فقط، ولا يُحتسب العميل نفسه مرتين. كتابة الرسائل وإرسالها بدون رسوم وبدون حد، ورفع جهات الاتصال الخاصة بك غير محدود. مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم رصيدك، وعندما لا يتبقى شيء يتوقف الاكتشاف حتى تشحن رصيدك أو تتجدد الخطة.",
           "الأسعار بالدولار الأمريكي، ما عدا في مصر حيث تُعرض الأسعار وتُخصم بالجنيه المصري. يخصم Paymob من البطاقة بالجنيه المصري: السعر المصري داخل مصر، وإلا السعر بالدولار بسعر صرف اليوم.",
           "تخضع المبالغ المستردة لـ[سياسة الاسترداد](/legal/refunds).",
         ] },
@@ -229,7 +229,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "بيانات العملاء المحتملين والتزاماتك" },
         { p: "يساعدك يولـياس على اكتشاف الشركات وجهات الاتصال المهنية. أما طريقة استخدامك لهذه المعلومات فقرارك ومسؤوليتك: يجب أن يكون لديك أساس قانوني للتواصل، وأن تحترم طلبات إلغاء الاشتراك، وأن تلتزم بالقوانين المطبقة عليك وعليهم، مثل قوانين حماية البيانات الشخصية في السعودية والإمارات والاتحاد الأوروبي." },
         { h2: "الرسائل التي ترسلها" },
-        { p: "يكتب يولـياس رسائل بريد للعملاء المحتملين. عندما تربط صندوق بريدك (Gmail أو Outlook أو حساب IMAP/SMTP)، يرسل يولـياس الحملة أو الرسالة منه فقط بعد موافقتك، ولا يقرأ إلا الردود في المحادثات التي بدأها، ويمكنك الإيقاف أو الإلغاء أو فصل الحساب في أي وقت. وفي بريد IMAP/SMTP تُحفظ إعدادات الخادم وكلمة المرور مشفّرة، ولا تُستخدم إلا لإرسال رسائلك الموافق عليها وقراءة تلك الردود. ولا يرسل يولـياس رسائل على LinkedIn. وأنت مسؤول عن محتوى رسائلك ومستلميها، وعن وجود سبب مشروع للتواصل معهم، واحترام طلبات الإيقاف، والالتزام بقواعد مزود بريدك." },
+        { p: "يكتب يولـياس رسائل بريد للعملاء المحتملين. عندما تربط صندوق بريدك (Gmail أو حساب IMAP/SMTP)، يرسل يولـياس الحملة أو الرسالة منه فقط بعد موافقتك، ولا يقرأ إلا الردود في المحادثات التي بدأها، ويمكنك الإيقاف أو الإلغاء أو فصل الحساب في أي وقت. وفي بريد IMAP/SMTP تُحفظ إعدادات الخادم وكلمة المرور مشفّرة، ولا تُستخدم إلا لإرسال رسائلك الموافق عليها وقراءة تلك الردود. ولا يرسل يولـياس رسائل على LinkedIn. وأنت مسؤول عن محتوى رسائلك ومستلميها، وعن وجود سبب مشروع للتواصل معهم، واحترام طلبات الإيقاف، والالتزام بقواعد مزود بريدك." },
         { h2: "مخرجات الذكاء الاصطناعي" },
         { p: "ملفات العملاء ونسب التطابق والبيانات المُثراة ومسودات الرسائل تُنتج تلقائيًا وقد تكون ناقصة أو غير دقيقة. راجع النتائج قبل الاعتماد عليها." },
         { h2: "محتواك" },
@@ -264,10 +264,10 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "With Paymob, a renewal is paid only when you pay its invoice. With Polar, the subscription renews automatically until you cancel; cancelling stops the next renewal.",
           "Free trial: nothing is charged during the trial. Cancel before it ends and you’re never charged; the first charge after it follows the rules above.",
         ] },
-        { h2: "Packs (prospects and emails)" },
+        { h2: "Pay As You Go credit" },
         { ul: [
-          "A pack is refundable within 7 days of the purchase if none of its prospects or emails were used.",
-          "Prospects and emails that were used are not refundable. Packs don’t expire, so there is no refund for unused time.",
+          "A top-up is refundable within 7 days of the purchase if none of its prospects were used.",
+          "Prospects that were used are not refundable. Credit doesn’t expire, so there is no refund for unused time.",
         ] },
         { h2: "Always refunded" },
         { ul: [
@@ -296,10 +296,10 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "مع Paymob يُدفع التجديد فقط عندما تدفع فاتورته. ومع Polar يتجدد الاشتراك تلقائيًا حتى تلغيه، والإلغاء يوقف التجديد التالي.",
           "التجربة المجانية: لا يُخصم شيء خلال التجربة. ألغِ قبل نهايتها ولن يُخصم منك شيء، وأول خصم بعدها يخضع للقواعد أعلاه.",
         ] },
-        { h2: "الباقات (عملاء محتملون ورسائل بريد)" },
+        { h2: "رصيد الدفع حسب الاستخدام" },
         { ul: [
-          "تُسترد الباقة خلال 7 أيام من الشراء إذا لم يُستخدم أي عميل محتمل أو رسالة بريد منها.",
-          "العملاء المحتملون ورسائل البريد المستخدمة لا تُسترد. والباقات لا تنتهي صلاحيتها، فلا يوجد استرداد مقابل وقت غير مستخدم.",
+          "يُسترد الشحن خلال 7 أيام من الشراء إذا لم يُستخدم أي عميل محتمل منه.",
+          "العملاء المحتملون المستخدمون لا يُستردون. والرصيد لا تنتهي صلاحيته، فلا يوجد استرداد مقابل وقت غير مستخدم.",
         ] },
         { h2: "يُسترد دائمًا" },
         { ul: [

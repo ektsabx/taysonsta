@@ -53,7 +53,7 @@ export const docs: DocPage[] = [
           { h2: "4. Ask Yolias AI" },
           { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or write a message. The reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
           { h2: "5. Reach out from your own mailbox" },
-          { p: "Connect your mailbox (Gmail, Outlook or any IMAP/SMTP account) in Settings → Integrations. Select people in Prospects and choose Send: Yolias creates a campaign and writes a personal email for each person on the campaign page. Review them, then approve sending: Yolias sends from your mailbox and replies arrive in your Inbox. Or export to CSV." },
+          { p: "Connect your mailbox (Gmail or any IMAP/SMTP account) in Settings → Integrations. Select people in Prospects and choose Send: Yolias creates a campaign and writes a personal email for each person on the campaign page. Review them, then approve sending: Yolias sends from your mailbox and replies arrive in your Inbox. Or export to CSV." },
           { p: "To reach many people at once, select them in Prospects and choose **Send**: name the campaign and pick the channel, and Yolias creates an outreach campaign, starts it and prepares the first messages for you to review and send. You can also start a campaign in Outreach from one of your searches: its prospects join and the first messages are prepared." },
         ],
       },
@@ -84,7 +84,7 @@ export const docs: DocPage[] = [
           { h2: "4. اسأل Yolias AI" },
           { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو كتابة رسالة، ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
           { h2: "5. تواصل من بريدك" },
-          { p: "اربط بريدك (Gmail أو Outlook أو أي بريد IMAP/SMTP) من الإعدادات ← التكاملات. حدّد الأشخاص في العملاء المحتملين واختر إرسال: ينشئ يولـياس حملة تواصل ويكتب رسالة شخصية لكل شخص في صفحة الحملة. راجعها ثم وافق على الإرسال، فيرسلها يولـياس من بريدك وتصل الردود إلى صندوق الوارد. أو صدّرهم كملف CSV." },
+          { p: "اربط بريدك (Gmail أو أي بريد IMAP/SMTP) من الإعدادات ← التكاملات. حدّد الأشخاص في العملاء المحتملين واختر إرسال: ينشئ يولـياس حملة تواصل ويكتب رسالة شخصية لكل شخص في صفحة الحملة. راجعها ثم وافق على الإرسال، فيرسلها يولـياس من بريدك وتصل الردود إلى صندوق الوارد. أو صدّرهم كملف CSV." },
           { p: "للتواصل مع كثيرين مرة واحدة، حدّدهم في العملاء المحتملين واختر **إرسال**: سمِّ الحملة واختر القناة، فينشئ يولـياس حملة تواصل ويبدأها ويجهّز الرسائل الأولى لتراجعها وترسلها. ويمكنك أيضًا بدء حملة من صفحة التواصل انطلاقًا من أحد عمليات البحث: ينضم عملاؤها المحتملون وتُجهَّز الرسائل الأولى." },
         ],
       },
@@ -107,7 +107,7 @@ export const docs: DocPage[] = [
             ["Prospects", "Matched decision makers you choose to keep", "Prospects"],
           ] } },
           { h2: "What Yolias does and doesn’t do" },
-          { p: "Yolias finds prospects, prepares campaigns, sends them from your own mailbox (Gmail, Outlook or any IMAP/SMTP account) once you approve, reads the replies in the threads it started, sorts them and keeps your CRM up to date. It never sends without your approval, never sends from an account you didn’t connect, and never messages anyone on LinkedIn." },
+          { p: "Yolias finds prospects, prepares campaigns, sends them from your own mailbox (Gmail or any IMAP/SMTP account) once you approve, reads the replies in the threads it started, sorts them and keeps your CRM up to date. It never sends without your approval, never sends from an account you didn’t connect, and never messages anyone on LinkedIn." },
           { p: "Next: [Quickstart](/docs/quickstart)." },
         ],
       },
@@ -124,7 +124,7 @@ export const docs: DocPage[] = [
             ["العملاء المحتملون", "صنّاع القرار المطابقون الذين تختار الاحتفاظ بهم", "العملاء المحتملون"],
           ] } },
           { h2: "ما لا يفعله يولـياس" },
-          { p: "يجد يولـياس العملاء المحتملين، ويجهّز الحملات، ويرسلها من بريدك (Gmail أو Outlook أو أي بريد IMAP/SMTP) بعد موافقتك، ويقرأ الردود في المحادثات التي بدأها ويصنّفها، ويحدّث إدارة العملاء. لا يرسل أبدًا بدون موافقتك، ولا من حساب لم تربطه، ولا يرسل رسائل على LinkedIn." },
+          { p: "يجد يولـياس العملاء المحتملين، ويجهّز الحملات، ويرسلها من بريدك (Gmail أو أي بريد IMAP/SMTP) بعد موافقتك، ويقرأ الردود في المحادثات التي بدأها ويصنّفها، ويحدّث إدارة العملاء. لا يرسل أبدًا بدون موافقتك، ولا من حساب لم تربطه، ولا يرسل رسائل على LinkedIn." },
           { p: "التالي: [البدء السريع](/docs/quickstart)." },
         ],
       },
@@ -140,7 +140,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
-            "**Choose a plan.** Pick Pro, Growth or Scale with an annual or monthly period. You pay by card through Paymob and the first period is paid up front. There is no free trial.",
+            "**Top up or choose a plan.** Pick Pay As You Go and a top-up of $5, $20, $50 or $100 (no subscription), or the monthly plan Pro or Growth. You pay by card through Paymob. There is no free trial.",
             "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every search, so be specific about the problem you solve.",
             "**Run your first search.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
@@ -153,7 +153,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
-            "**اختر خطة.** اختر برو أو النمو أو التوسع بفترة سنوية أو شهرية. تدفع بالبطاقة عبر Paymob وتُدفع أول فترة مقدمًا، ولا توجد تجربة مجانية.",
+            "**اشحن رصيدك أو اختر خطة.** اختر الدفع حسب الاستخدام بمبلغ 5 أو 20 أو 50 أو 100 دولار (بدون اشتراك)، أو الخطة الشهرية برو أو النمو. تدفع بالبطاقة عبر Paymob، ولا توجد تجربة مجانية.",
             "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل بحث، فكن محددًا في وصف المشكلة التي تحلها.",
             "**ابدأ أول بحث.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },
@@ -416,34 +416,36 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "Plans and usage",
-        summary: "Monthly limits per plan and how they are counted.",
+        summary: "Pay As You Go, the monthly plans, and how prospects are counted.",
         blocks: [
-          { table: { head: ["Plan", "Monthly price", "Prospects / month"], rows: [
-            ["Free", "$0", "50 (to get started)"], ["Pro", "$50", "1,000"], ["Growth", "$100", "2,000"],
+          { table: { head: ["Option", "Price", "Prospects"], rows: [
+            ["Pay As You Go", "$5 / $20 / $50 / $100 top-up", "100 / 400 / 1,000 / 2,000, no expiry"], ["Pro", "$50 / month", "1,000 / month"], ["Growth", "$100 / month", "2,000 / month"],
           ] } },
           { ul: [
-            "Plans count prospects, emails opened from Yolias and contacts uploaded by CSV, each with a new allowance every month.",
+            "The prospect is the only unit. Writing and sending emails is never charged or limited, uploaded contacts are unlimited, and viewing your prospects again is free.",
+            "The same prospect is never counted twice: a company or person already in your workspace is skipped, not charged.",
             "Companies, searches and AI work are not counted.",
-            "When the month’s prospects are used up, discovery pauses until the reset or an upgrade.",
-            "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
-            "Annual billing saves 20%: the year costs 12 × the discounted monthly rate, paid once a year.",
+            "On a plan, its monthly prospects are used first, then any credit you topped up. Plan prospects reset on the first day of every month (UTC); credit doesn’t expire.",
+            "When no prospects are left, discovery pauses until you top up or the plan renews.",
+            "No annual billing and no free trial.",
           ] },
           { p: "Current usage is in Settings → Usage." },
         ],
       },
       ar: {
         title: "الخطط والاستخدام",
-        summary: "الحدود الشهرية لكل خطة وطريقة احتسابها.",
+        summary: "الدفع حسب الاستخدام والخطط الشهرية وطريقة احتساب العملاء المحتملين.",
         blocks: [
-          { table: { head: ["الخطة", "السعر الشهري", "العملاء المحتملون شهريًا"], rows: [
-            ["المجانية", "$0", "50 (للبداية)"], ["برو", "$50", "1,000"], ["النمو", "$100", "2,000"],
+          { table: { head: ["الخيار", "السعر", "العملاء المحتملون"], rows: [
+            ["الدفع حسب الاستخدام", "شحن $5 / $20 / $50 / $100", "100 / 400 / 1,000 / 2,000 بدون انتهاء"], ["برو", "$50 شهريًا", "1,000 شهريًا"], ["النمو", "$100 شهريًا", "2,000 شهريًا"],
           ] } },
           { ul: [
-            "تحسب الخطط العملاء المحتملين ورسائل البريد المفتوحة من يولـياس وجهات الاتصال المرفوعة بملفات CSV، ولكل منها رصيد جديد كل شهر.",
+            "العميل المحتمل هو الوحدة الوحيدة. كتابة الرسائل وإرسالها بدون رسوم وبدون حد، وجهات الاتصال المرفوعة غير محدودة، وعرض عملائك مرة أخرى مجاني.",
+            "لا يُحسب العميل نفسه مرتين: الشركة أو الشخص الموجود في مساحة عملك يُتخطى ولا يُحسب.",
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
-            "عند استخدام كل العملاء المحتملين للشهر، يتوقف الاكتشاف حتى التجديد أو الترقية.",
-            "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",
-            "الفوترة السنوية توفّر 20%: السنة تكلّف 12 ضعف السعر الشهري المخفّض، وتُدفع مرة واحدة في السنة.",
+            "مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم الرصيد الذي شحنته. يتجدد عملاء الخطة في أول كل شهر (بتوقيت UTC)، والرصيد لا تنتهي صلاحيته.",
+            "عندما لا يتبقى عملاء محتملون، يتوقف الاكتشاف حتى تشحن رصيدك أو تتجدد الخطة.",
+            "لا توجد فوترة سنوية ولا تجربة مجانية.",
           ] },
           { p: "تجد استخدامك الحالي في الإعدادات ← الاستخدام." },
         ],

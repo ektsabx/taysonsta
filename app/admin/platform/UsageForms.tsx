@@ -10,7 +10,7 @@ export function PlanQuotaForm({ plan, prospects, priceUsd, priceEgp }: { plan: s
       <FormSection>
         <TextField name="prospects" label="العملاء المحتملون شهرياً" type="number" min={0} step={1} required defaultValue={String(prospects)} />
         <TextField name="price_usd" label="السعر الشهري (USD)" type="number" min={0} step={0.01} required defaultValue={String(priceUsd)} readOnly={plan === "free"} />
-        {plan !== "free" && <TextField name="price_egp" label="السعر الشهري لمصر (جنيه)" type="number" min={1} step={1} defaultValue={priceEgp == null ? "" : String(priceEgp)} hint="يظهر ويُخصم لعملاء مصر عبر Paymob. السنوي = خصم 20% مقرّب لأقل جنيه. فارغ = السعر بالدولار بسعر اليوم." />}
+        {plan !== "free" && <TextField name="price_egp" label="السعر الشهري لمصر (جنيه)" type="number" min={1} step={1} defaultValue={priceEgp == null ? "" : String(priceEgp)} hint="يظهر ويُخصم لعملاء مصر عبر Paymob. فارغ = السعر بالدولار بسعر اليوم." />}
       </FormSection>
       <SubmitButton />
     </ActionForm>

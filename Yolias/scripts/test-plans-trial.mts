@@ -65,19 +65,19 @@ try {
   assert.equal(Math.round((Date.parse(w.trial_ends_at!) - Date.parse(w.trial_started_at!)) / 86_400_000), 7, "7 days");
   assert.ok(hasActivePlan(w));
   assert.equal((await usage(a.wsId)).quota, 50, "trial prospects");
-  assert.equal((await limits(a.wsId)).emails_limit, 50);
+  assert.equal((await limits(a.wsId)).emails_limit, 50, "the legacy trial setting (shown nowhere, not enforced since D-247)");
   assert.ok((await limits(a.wsId)).contacts_limit >= 1_000_000_000, "uploaded contacts are unlimited (D-203)");
   assert.equal(await startTrial(w, "growth", "monthly", payer, { mode: "test", provider: "polar" }), false, "one trial per workspace");
 
-  // ── 2. Email limit trigger (first opens only) ──
+  // ── 2. Emails are never limited or counted (D-247: the limit trigger is gone) ──
   const { data: camp } = await db.from("campaigns").insert({ workspace_id: a.wsId, name: "t", criteria: {}, status: "completed", search_type: "companies" }).select("id").single();
   const { data: co } = await db.from("companies").insert({ workspace_id: a.wsId, campaign_id: camp!.id, name: "Acme", source: "test" }).select("id").single();
   const now = new Date().toISOString();
   const rows = Array.from({ length: 50 }, () => ({ workspace_id: a.wsId, company_id: co!.id, channel: "email" as const, opened_at: now, opened_via: "gmail" as const }));
   const ins = await db.from("outreach_messages").insert(rows);
-  assert.equal(ins.error, null, "50 emails fit the trial");
+  assert.equal(ins.error, null, "50 emails");
   const over = await db.from("outreach_messages").insert({ workspace_id: a.wsId, company_id: co!.id, channel: "email", opened_at: now, opened_via: "gmail" });
-  assert.match(over.error?.message ?? "", /email_limit_reached/, "the 51st email is refused");
+  assert.equal(over.error, null, "the 51st email is sent too: no email limit");
   const draft = await db.from("outreach_messages").insert({ workspace_id: a.wsId, company_id: co!.id, channel: "email" });
   assert.equal(draft.error, null, "a draft that isn't opened doesn't count");
   const { data: one } = await db.from("outreach_messages").select("id").eq("workspace_id", a.wsId).not("opened_at", "is", null).limit(1).single();
@@ -99,7 +99,7 @@ try {
   assert.equal(w.subscription_status, "test");
   assert.deepEqual(w.trial_carry, { period: monthStart().toISOString().slice(0, 10), prospects: 30, emails: 0, contacts: 0 });
   assert.equal((await usage(b.wsId)).quota, 1970, "2,000 − the 30 the trial used");
-  assert.equal((await limits(b.wsId)).emails_limit, 2000);
+  assert.ok((await limits(b.wsId)).emails_limit >= 1_000_000, "emails aren't limited (D-247)");
   const ev = (await db.from("subscription_events").select("status").eq("workspace_id", b.wsId)).data!.map((e) => e.status);
   assert.deepEqual(ev.sort(), ["trial_converted", "trial_started"]);
 

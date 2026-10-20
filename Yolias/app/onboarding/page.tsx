@@ -7,7 +7,7 @@ import { LanguageMenu } from "@/components/LanguageMenu";
 import { ThemeMenu } from "@/components/ThemeMenu";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan } from "@/lib/plans";
+import { canUseApp } from "@/lib/plans";
 import { requireUser } from "@/lib/session";
 import { OnboardingForm } from "./OnboardingForm";
 
@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OnboardingPage() {
   const session = await requireUser();
-  if (!hasActivePlan(session.workspace)) redirect("/checkout");
+  if (!canUseApp(session.workspace)) redirect("/checkout");
   if (session.profile.onboarded_at) redirect("/");
   const t = await getDictionary();
 

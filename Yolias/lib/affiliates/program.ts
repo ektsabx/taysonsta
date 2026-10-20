@@ -23,7 +23,8 @@ export interface ProgramSettings {
   questions: ProgramQuestion[];
   commission: { type: "percent" | "fixed"; percentBps: number; fixedCents: number };
   eligible: { plans: ("pro" | "growth" | "scale")[]; periods: ("monthly" | "annual")[]; packs: boolean };
-  recurring: { enabled: boolean; maxPayments: number | null };
+  /** packMonths: top-ups earn commission for this many months after the first commissioned payment (D-247). */
+  recurring: { enabled: boolean; maxPayments: number | null; packMonths: number };
   attribution: { days: number; model: "first_touch" | "last_touch" };
   minPaymentCents: number;
   holdDays: number;
@@ -77,7 +78,7 @@ export function parseProgramSettings(raw: unknown): ProgramSettings {
       periods: (Array.isArray(e.periods) ? e.periods : []).filter((p): p is "monthly" | "annual" => p === "monthly" || p === "annual"),
       packs: bool(e.packs, false),
     },
-    recurring: { enabled: bool(r.enabled, false), maxPayments: max },
+    recurring: { enabled: bool(r.enabled, false), maxPayments: max, packMonths: int(r.pack_months, 1, 120, 12) },
     attribution: { days: int(a.days, 1, 365, 30), model: a.model === "last_touch" ? "last_touch" : "first_touch" },
     minPaymentCents: int(s.min_payment_cents, 0, 100_000_000, 0),
     holdDays: int(s.hold_days, 0, 365, 30),
@@ -124,8 +125,9 @@ export interface CommissionExample {
  */
 export function commissionExamples(s: ProgramSettings, monthlyUsd: Record<"pro" | "growth" | "scale", number>): CommissionExample[] {
   const out: CommissionExample[] = [];
-  for (const plan of s.eligible.plans) {
-    for (const period of s.eligible.periods) {
+  // Only what is sold today (D-247): Pro and Growth, monthly.
+  for (const plan of s.eligible.plans.filter((p) => p !== "scale")) {
+    for (const period of s.eligible.periods.filter((p) => p === "monthly")) {
       const paymentCents = Math.round(priceFor(monthlyUsd[plan] ?? 0, period) * 100);
       if (paymentCents <= 0 || paymentCents < s.minPaymentCents) continue;
       const perPaymentCents = commissionFor(s, paymentCents);

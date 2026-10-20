@@ -27,9 +27,7 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
         { href: "/community", label: s.community },
         { href: "/help-center", label: s.helpCenter },
         { href: "/docs", label: s.documentation },
-        { href: "/pricing#faq", label: s.faq },
         { href: "/blog", label: s.blog },
-        { href: "/contact?topic=support", label: s.contactSupport },
       ],
     },
     {
@@ -38,7 +36,8 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
         { href: "/about", label: s.about },
         { href: "/careers", label: s.careers },
         { href: "/affiliates", label: s.affiliates },
-        { href: "/contact", label: s.contact },
+        // Contact = Contact Support: opens the support messenger (owner, 2026-10-20).
+        { href: "/contact?topic=support", label: s.contactSupport },
         { href: "/status", label: s.status },
       ],
     },

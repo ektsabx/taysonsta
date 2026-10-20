@@ -1433,6 +1433,13 @@ html[dir="rtl"] .notif-panel { left: auto; right: 0; }
 .checkout-method-desc { font-size: .74rem; color: var(--muted); line-height: 1.4; }
 .checkout-submit { width: 100%; height: 42px; font-size: .86rem; }
 .checkout-submit svg { width: 14px; height: 14px; }
+.checkout-topups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.checkout-topup { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); text-align: start; cursor: pointer; font: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+.checkout-topup:hover { border-color: var(--line-strong); }
+.checkout-topup.selected { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.checkout-topup-amount { font-size: 1.1rem; font-weight: 700; }
+.checkout-topup-prospects { font-size: .76rem; color: var(--muted); }
+.checkout-topup-result { font-size: .9rem; font-weight: 600; margin: 0 0 12px; }
 .checkout-fine { font-size: .72rem; color: var(--muted); margin-top: 12px; line-height: 1.45; }
 @media (max-width: 860px) {
   .checkout-grid { grid-template-columns: 1fr; gap: 28px; }

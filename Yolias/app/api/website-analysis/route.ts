@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { canManageTeam, getSession } from "@/lib/session";
-import { hasActivePlan } from "@/lib/plans";
+import { canUseApp } from "@/lib/plans";
 import { getDictionary } from "@/lib/i18n/server";
 import { analyzeWebsite, type AnalysisProgress, type WebsiteAnalysis } from "@/lib/website-analysis";
 
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
   const t = (await getDictionary()).ws;
   const errors = t.ai.knowledge.analyze.errors;
   const allowed = body.data.context === "onboarding"
-    ? session.role === "owner" && hasActivePlan(session.workspace)
-    : hasActivePlan(session.workspace) && Boolean(session.profile.onboarded_at) && canManageTeam(session);
+    ? session.role === "owner" && canUseApp(session.workspace)
+    : canUseApp(session.workspace) && Boolean(session.profile.onboarded_at) && canManageTeam(session);
   if (!allowed) return NextResponse.json({ error: body.data.context === "onboarding" ? errors.failed : t.common.onlyManagers }, { status: 403 });
 
   const encoder = new TextEncoder();

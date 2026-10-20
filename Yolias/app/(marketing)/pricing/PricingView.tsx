@@ -9,19 +9,19 @@ import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { TrustLogos } from "@/components/marketing/SocialProof";
-import { monthlyRate, monthlyRateEgp, planName, planPrice, priceFor, priceForEgp, type PlanTerms } from "@/lib/plans";
-import type { BillingPeriod, Currency, PaidPlan } from "@/types/database";
+import { planName, planPrice, type PlanTerms } from "@/lib/plans";
+import type { Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
 import { pricingFaq } from "@/lib/pricing-copy";
 
 type PricingCopy = Dictionary["pricing"];
 type PlanId = PaidPlan;
 
-// Pro, Growth and Scale (owner brief 2026-10-12): no $0 plan, a free trial
-// on every plan, annual billing selected by default. Every number on a card
-// and in the table comes from the plan configuration (plan_quotas), the same
-// values the limits are enforced with.
-const tiers: PlanId[] = ["pro", "growth", "scale"];
+// Pay As You Go, Pro and Growth (owner brief 2026-10-20, D-247): prepaid
+// credit or one of two monthly plans, no annual billing, no free credit. The
+// prospect is the only unit. Every number comes from the configuration the
+// limits are enforced with (plan_quotas, prospect_packs).
+const tiers: PlanId[] = ["pro", "growth"];
 
 // Features on every plan. CRM, pipelines and deals are listed at the owner's
 // request ahead of the CRM module (docs/21).
@@ -36,40 +36,53 @@ interface Props {
   trialDays: number | null;
   /** The visitor is in Egypt: show the EGP prices (D-237). */
   egp: boolean;
+  /** Pay As You Go top-up amounts and the prospects each gives (lib/credits). */
+  topUps: { id: string; priceUsd: number; prospects: number }[];
 }
 
-export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props) {
+export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
-  const [period, setPeriod] = useState<BillingPeriod>("annual");
   const n = (v: number) => formatNumber(v, locale);
-  // Every price is per month; annual shows the discounted rate and the yearly charge under it.
-  // Visitors from Egypt see the EGP prices they are charged (D-237).
+  // Monthly prices only. Visitors from Egypt see the EGP prices they are charged (D-237).
   const list = (plan: PlanId) => planPrice(plans[plan], currency) ?? 0;
   const egpOf = (plan: PlanId) => (egp ? plans[plan].priceEgp : null);
-  const price = (plan: PlanId) => { const e = egpOf(plan); return e ? formatMoney(monthlyRateEgp(e, period), "EGP") : formatMoney(monthlyRate(list(plan), period), currency); };
-  const billed = (plan: PlanId) => {
-    if (period !== "annual") return undefined;
-    const e = egpOf(plan);
-    return fmt(dict.plans.billedYearlyAt, { amount: e ? formatMoney(priceForEgp(e, period), "EGP") : formatMoney(priceFor(list(plan), period), currency) });
-  };
+  const price = (plan: PlanId) => { const e = egpOf(plan); return e ? formatMoney(e, "EGP") : formatMoney(list(plan), currency); };
+  const usd = (v: number) => formatMoney(v, "USD");
 
-  // Picking a plan → signup (new visitors) or checkout (signed in), keeping the period.
-  const href = (plan: PlanId) => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}&period=${period}`;
+  // Picking a plan → signup (new visitors) or checkout (signed in).
+  const href = (plan: PlanId | "payg") => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}`;
   // Journey tracking (D-212): the plans were seen; a plan was picked.
   useEffect(() => { funnelEvent("plans_viewed"); }, []);
+  const min = topUps[0];
+  const paygCard = min ? (
+    <PlanCard
+      key="payg"
+      onPick={() => funnelEvent("plan_selected", { plan: "payg" })}
+      name={t.payg.name}
+      price={usd(min.priceUsd)}
+      note={t.payg.note}
+      items={[
+        t.payg.unit,
+        ...topUps.map((x) => fmt(t.payg.option, { amount: usd(x.priceUsd), count: n(x.prospects) })),
+        t.payg.noRenewal,
+        t.payg.sameFeatures,
+      ]}
+      href={href("payg")}
+      cta={t.payg.cta}
+      foot={t.payg.foot}
+    />
+  ) : null;
   const card = (plan: PlanId, recommended?: string) => (
     <PlanCard
       key={plan}
-      onPick={() => funnelEvent("plan_selected", { plan, period })}
+      onPick={() => funnelEvent("plan_selected", { plan, period: "monthly" })}
       name={planName(plan, dict)}
       price={price(plan)}
       note={t.perMonth}
-      billed={billed(plan)}
       items={[
         fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
         dict.plans.contactsUnlimited,
-        fmt(dict.plans.emailsPerMonth, { count: n(plans[plan].emails) }),
         t.features.teamWorkspace,
         t.features.crm,
         t.features.enrichment,
@@ -91,14 +104,6 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
             <p className="eyebrow">{t.heroEyebrow}</p>
             <h1 className="display-font hero-title mt-5">{t.heroTitle}</h1>
             <p className="hero-copy">{t.heroSupport}{trialDays ? ` ${fmt(t.heroTrial, { days: n(trialDays) })}` : ""}</p>
-            <div className="period-toggle" role="radiogroup" aria-label={t.billingPeriod}>
-              {(["monthly", "annual"] as BillingPeriod[]).map((p) => (
-                <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
-                  {p === "monthly" ? dict.plans.monthly : dict.plans.annual}
-                  {p === "annual" && <span className="period-save">{dict.plans.annualSave}</span>}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -106,9 +111,9 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
       <section className="bg-[var(--paper)] py-16 lg:py-20">
         <div className="site-width">
           <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
+            {paygCard}
             {card("pro")}
             {card("growth", dict.plans.recommended)}
-            {card("scale")}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
           <TrustLogos locale={locale} />
@@ -127,41 +132,41 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
               <thead>
                 <tr>
                   <th>{t.feature}</th>
+                  {min && <th>{t.payg.name}</th>}
                   {tiers.map((p) => <th key={p}>{planName(p, dict)}</th>)}
                 </tr>
               </thead>
               <tbody>
-                <tr className="section-row"><td colSpan={4}>{t.coreFeatures}</td></tr>
+                <tr className="section-row"><td colSpan={tiers.length + 2}>{t.coreFeatures}</td></tr>
                 {featureKeys.map((k) => (
                   <tr key={k}>
                     <td>{t.features[k]}</td>
+                    {min && <td><span className="included"><Check width={16} height={16} /><span>{t.included}</span></span></td>}
                     {tiers.map((i) => (
                       <td key={i}><span className="included"><Check width={16} height={16} /><span>{t.included}</span></span></td>
                     ))}
                   </tr>
                 ))}
-                <tr className="section-row"><td colSpan={4}>{t.usageCapacity}</td></tr>
+                <tr className="section-row"><td colSpan={tiers.length + 2}>{t.usageCapacity}</td></tr>
                 <tr>
                   <td>{t.usageProspects}</td>
+                  {min && <td>{t.payg.byCredit}</td>}
                   {tiers.map((p) => <td key={p}>{n(plans[p].prospects)}</td>)}
                 </tr>
                 <tr>
                   <td>{t.usageContacts}</td>
+                  {min && <td>{dict.plans.unlimited}</td>}
                   {tiers.map((p) => <td key={p}>{dict.plans.unlimited}</td>)}
                 </tr>
                 <tr>
                   <td>{t.usageEmails}</td>
-                  {tiers.map((p) => <td key={p}>{n(plans[p].emails)}</td>)}
+                  {min && <td>{dict.plans.unlimited}</td>}
+                  {tiers.map((p) => <td key={p}>{dict.plans.unlimited}</td>)}
                 </tr>
-                {trialDays ? (
-                  <tr>
-                    <td>{t.freeTrial}</td>
-                    {tiers.map((p) => <td key={p}>{fmt(t.trialDays, { days: n(trialDays) })}</td>)}
-                  </tr>
-                ) : null}
                 <tr>
                   <td>{t.price}</td>
-                  {tiers.map((p) => <td key={p} dir="ltr" className="text-start">{price(p)}</td>)}
+                  {min && <td dir="auto" className="text-start">{fmt(t.payg.from, { amount: usd(min.priceUsd) })}</td>}
+                  {tiers.map((p) => <td key={p} className="text-start"><span dir="ltr">{price(p)}</span> {t.perMonth}</td>)}
                 </tr>
               </tbody>
             </table>

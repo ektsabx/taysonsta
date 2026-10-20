@@ -75,6 +75,7 @@ export interface ProgramInput {
   packs: boolean;
   recurring: boolean;
   maxPayments: number | null;
+  packMonths: number;
   attributionDays: number;
   model: "first_touch" | "last_touch";
   minPaymentUsd: number;
@@ -105,6 +106,7 @@ export async function saveProgram(bos: BosUser, i: ProgramInput): Promise<number
   if (!Number.isInteger(i.attributionDays) || i.attributionDays < 1 || i.attributionDays > 365) throw bad("مدة الإسناد بين 1 و365 يومًا.", "attributionDays");
   if (!Number.isInteger(i.holdDays) || i.holdDays < 0 || i.holdDays > 365) throw bad("فترة الانتظار بين 0 و365 يومًا.", "holdDays");
   if (i.maxPayments !== null && (!Number.isInteger(i.maxPayments) || i.maxPayments < 1 || i.maxPayments > 1200)) throw bad("عدد الدفعات بين 1 و1200، أو اتركه فارغًا لكامل مدة الاشتراك.", "maxPayments");
+  if (!Number.isInteger(i.packMonths) || i.packMonths < 1 || i.packMonths > 120) throw bad("مدة عمولة الشحن بين 1 و120 شهرًا.", "packMonths");
   if (!(i.minPayoutUsd >= 1 && i.minPayoutUsd <= 1000000)) throw bad("الحد الأدنى للسحب دولار واحد على الأقل.", "minPayoutUsd");
   if (!(i.minPaymentUsd >= 0 && i.minPaymentUsd <= 1000000)) throw bad("قيمة غير صالحة.", "minPaymentUsd");
   if (!Number.isInteger(i.maxSignupsPerIpDay) || i.maxSignupsPerIpDay < 1 || i.maxSignupsPerIpDay > 1000) throw bad("قيمة غير صالحة.", "maxSignupsPerIpDay");
@@ -129,7 +131,7 @@ export async function saveProgram(bos: BosUser, i: ProgramInput): Promise<number
     enabled: i.enabled, auto_approve: i.autoApprove, questions,
     commission: { type: i.commissionType, percent_bps: Math.round(i.percent * 100), fixed_cents: cents(i.fixedUsd) },
     eligible: { plans, periods, packs: i.packs },
-    recurring: { enabled: i.recurring, max_payments: i.maxPayments },
+    recurring: { enabled: i.recurring, max_payments: i.maxPayments, pack_months: i.packMonths },
     attribution: { days: i.attributionDays, model: i.model },
     min_payment_cents: cents(i.minPaymentUsd), hold_days: i.holdDays, min_payout_cents: cents(i.minPayoutUsd),
     currencies: ["USD"], refund_policy: "reverse", dispute_policy: "reverse",

@@ -11,7 +11,7 @@ import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
 import { billingRoute, paymentMethods, paymentsConnected } from "@/lib/payments";
 import { loadPolar, polarPortalUrl } from "@/lib/payments/polar";
-import { hasActivePlan, planPrice } from "@/lib/plans";
+import { canUseApp, planPrice } from "@/lib/plans";
 import { trialLimits, trialOpen } from "@/lib/trial";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
@@ -129,7 +129,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
     inboxUnread,
     // The free trial comes with Polar only; Kashier charges the first period (D-235).
-    planGate: hasActivePlan(workspace) ? null : { trialDays: (await paymentMethods()).polar && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
+    planGate: canUseApp(workspace) ? null : { trialDays: (await paymentMethods()).polar && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
   };
 
   const jar = await cookies();

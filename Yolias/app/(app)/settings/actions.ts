@@ -260,3 +260,32 @@ export async function updateOrganization(input: Record<"name" | "website" | "ind
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+export interface CreditEntry { at: string; kind: "topup" | "used" | "adjust"; prospects: number; search: string | null }
+
+/**
+ * Credit history (D-247): top-ups (one row per confirmed payment) and the
+ * prospects used, newest first. Read from the same ledger the balance comes from.
+ */
+export async function creditHistory(): Promise<CreditEntry[]> {
+  const session = await requireUser();
+  const db = createAdminClient();
+  const { data } = await db.from("usage_ledger").select("kind, prospects, reason, created_at, campaign_id")
+    .eq("workspace_id", session.workspace.id).in("kind", ["grant", "consume", "adjust"])
+    .order("created_at", { ascending: false }).limit(50);
+  const rows = data ?? [];
+  const ids = [...new Set(rows.map((r) => r.campaign_id).filter(Boolean))] as string[];
+  const names = new Map<string, string>();
+  if (ids.length) {
+    const { data: cs } = await db.from("campaigns").select("id, name").in("id", ids);
+    for (const c of cs ?? []) names.set(c.id, c.name);
+  }
+  return rows
+    .filter((r) => r.kind !== "grant" || (r.reason ?? "").startsWith("prospect_pack:"))
+    .map((r) => ({
+      at: r.created_at,
+      kind: r.kind === "grant" ? "topup" : r.kind === "consume" ? "used" : "adjust",
+      prospects: r.prospects,
+      search: r.campaign_id ? names.get(r.campaign_id) ?? null : null,
+    }));
+}

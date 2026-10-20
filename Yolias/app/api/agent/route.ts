@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
-import { hasActivePlan } from "@/lib/plans";
+import { canUseApp } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AgentNotConfiguredError, runAgent, type AgentEvent, type AgentFocus } from "@/lib/agent/run";
@@ -28,7 +28,7 @@ const BodySchema = z.object({
 export async function POST(request: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  if (!hasActivePlan(session.workspace) || !session.profile.onboarded_at) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!canUseApp(session.workspace) || !session.profile.onboarded_at) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const body = BodySchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
 

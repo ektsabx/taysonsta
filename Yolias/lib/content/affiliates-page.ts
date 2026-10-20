@@ -10,7 +10,7 @@ export const affiliatesPage: Localized<{
   audienceTitle: string; audienceLead: string; audiences: { title: string; body: string }[];
   whyTitle: string; why: { title: string; body: string }[];
   calcTitle: string; calcLead: string; calcCols: { plan: string; payment: string; perPayment: string; perCustomer: string }; monthly: string; annual: string; noLimit: string; calcNote: string;
-  termsTitle: string; facts: { rate: string; recurring: string; recurringFor: string; recurringAlways: string; firstOnly: string; hold: string; minPayout: string; window: string };
+  termsTitle: string; facts: { rate: string; recurring: string; recurringFor: string; recurringAlways: string; firstOnly: string; topups: string; noTopups: string; hold: string; minPayout: string; window: string };
   stepsTitle: string; steps: { title: string; body: string }[];
   rulesTitle: string; rules: string[];
   faqTitle: string; faq: { q: string; a: string }[];
@@ -48,7 +48,7 @@ export const affiliatesPage: Localized<{
     monthly: "monthly", annual: "yearly", noLimit: "No limit",
     calcNote: "Examples use current list prices before tax. Discounts, refunds and disputes change the amount; refunded payments reverse their commission.",
     termsTitle: "The current terms",
-    facts: { rate: "Commission", recurring: "Recurring payments", recurringFor: "Up to {count} payments per customer", recurringAlways: "For as long as the customer pays", firstOnly: "First payment only", hold: "Waiting period", minPayout: "Minimum payout", window: "Referral window" },
+    facts: { rate: "Commission", recurring: "Recurring payments", recurringFor: "Up to {count} payments per customer", recurringAlways: "For as long as the customer pays", firstOnly: "First payment only", topups: "every top-up during the customer’s first {count} months, from their first payment", noTopups: "not eligible", hold: "Waiting period", minPayout: "Minimum payout", window: "Referral window" },
     stepsTitle: "How it works",
     steps: [
       { title: "Join", body: "Enter your name and email on Yolias Partners and accept the terms. No application, no review and no Yolias subscription needed." },
@@ -119,7 +119,7 @@ export const affiliatesPage: Localized<{
     monthly: "شهريًا", annual: "سنويًا", noLimit: "بلا حد",
     calcNote: "الأمثلة بأسعار القائمة الحالية قبل الضرائب. الخصومات والاسترداد والاعتراضات تغيّر المبلغ، والدفعات المستردة تعكس عمولتها.",
     termsTitle: "الشروط الحالية",
-    facts: { rate: "العمولة", recurring: "الدفعات المتكررة", recurringFor: "حتى {count} دفعات لكل عميل", recurringAlways: "طالما استمر العميل في الدفع", firstOnly: "الدفعة الأولى فقط", hold: "فترة الانتظار", minPayout: "الحد الأدنى للسحب", window: "مدة الإحالة" },
+    facts: { rate: "العمولة", recurring: "الدفعات المتكررة", recurringFor: "حتى {count} دفعات لكل عميل", recurringAlways: "طالما استمر العميل في الدفع", firstOnly: "الدفعة الأولى فقط", topups: "كل شحن خلال أول {count} شهرًا من أول دفعة للعميل", noTopups: "غير مؤهل", hold: "فترة الانتظار", minPayout: "الحد الأدنى للسحب", window: "مدة الإحالة" },
     stepsTitle: "كيف يعمل",
     steps: [
       { title: "انضم", body: "أدخل اسمك وبريدك في شركاء يولـياس ووافق على الشروط. بدون طلب انضمام ولا مراجعة ولا اشتراك في يولـياس." },

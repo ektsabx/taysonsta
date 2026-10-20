@@ -6,14 +6,15 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
+import { hasActivePlan, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
-import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
+import { canManageTeam, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 import { lockedProvider, paymentMethods, paysInEgp } from "@/lib/payments";
 import { requestCountry } from "@/lib/geo-server";
 import { trialLimits, trialOpen } from "@/lib/trial";
 import { switches } from "@/lib/switches";
+import { topUps } from "@/lib/credits";
 import { openCheckout } from "@/lib/funnel";
 import type { BillingProvider } from "@/types/database";
 
@@ -26,18 +27,18 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const session = await requireUser();
   const plans = await getPlanCatalog();
   const t = await getDictionary();
-  const { plan, period, error } = await searchParams;
+  const { plan, error } = await searchParams;
   const ws = session.workspace;
   const active = hasActivePlan(ws);
   const currency = await workspaceCurrency(ws);
   const current = active && isPaidPlan(ws.plan) ? ws.plan : null;
   const pending = await pendingPlan(session);
   const picked = isPaidPlan(plan) ? plan : isPaidPlan(pending) ? pending : null;
-  const initial = picked ?? current ?? "growth";
+  const initial = picked ?? current ?? "pro";
   const [methods, trial] = await Promise.all([paymentMethods(), trialLimits()]);
   const locked = lockedProvider(ws);
-  // Annual is the default choice (owner brief 2026-10-12); monthly stays available.
-  const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? (current ? ws.billing_period : "annual");
+  // Monthly only for new subscriptions (D-247); a running annual one keeps going.
+  const initialPeriod = "monthly" as const;
   // Methods switched off in Admin are hidden (a running subscription keeps its
   // own, D-213). Kashier shows once its account is connected (D-236).
   const on = await switches();
@@ -65,14 +66,13 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPlan={initial}
         currentPlan={current}
         currentPeriod={current ? ws.billing_period : null}
-        initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
         methods={methods}
         email={session.email}
         workspaceName={ws.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
-        options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, priceEgp: plans[p].priceEgp, prospects: plans[p].prospects, emails: plans[p].emails, contacts: plans[p].contacts }))}
+        options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, priceEgp: plans[p].priceEgp, prospects: plans[p].prospects }))}
         currency={currency}
         locked={locked}
         trial={trialOffer}
@@ -80,6 +80,8 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         shown={shown}
         checkoutId={checkoutId}
         egp={paysInEgp(ws, await requestCountry())}
+        topUps={on.buy_more ? await topUps() : []}
+        initialPayg={plan === "payg" || (!isPaidPlan(plan) && pending === "payg")}
       />
     </div>
   );

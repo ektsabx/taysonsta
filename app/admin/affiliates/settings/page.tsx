@@ -26,7 +26,7 @@ export default async function AffiliateSettingsPage() {
           enabled: s.enabled, autoApprove: s.autoApprove, questions: s.questions,
           commissionType: s.commission.type, percent: s.commission.percentBps / 100, fixedUsd: s.commission.fixedCents / 100,
           plans: s.eligible.plans, periods: s.eligible.periods, packs: s.eligible.packs,
-          recurring: s.recurring.enabled, maxPayments: s.recurring.maxPayments, attributionDays: s.attribution.days, model: s.attribution.model,
+          recurring: s.recurring.enabled, maxPayments: s.recurring.maxPayments, packMonths: s.recurring.packMonths, attributionDays: s.attribution.days, model: s.attribution.model,
           minPaymentUsd: s.minPaymentCents / 100, holdDays: s.holdDays, minPayoutUsd: s.minPayoutCents / 100,
           excludedWorkspaces: raw.excluded_workspaces ?? [], excludedEmails: raw.excluded_emails ?? [],
           holdSameIp: raw.risk?.hold_same_ip ?? true, maxSignupsPerIpDay: raw.risk?.max_signups_per_ip_day ?? 3,

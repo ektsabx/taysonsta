@@ -13,8 +13,8 @@ import type { Block, Doc } from "@/lib/content/types";
 import { currentProgram } from "@/lib/affiliates";
 import { fillBlocks, termsValues } from "@/lib/affiliates/terms-values";
 import { getPlanCatalog } from "@/lib/plan-catalog";
-import { ANNUAL_DISCOUNT_PERCENT, monthlyRate, monthlyRateEgp, offeredPlans, priceFor, priceForEgp } from "@/lib/plans";
-import { trialLimits } from "@/lib/trial";
+import { offeredPlans } from "@/lib/plans";
+import { topUps } from "@/lib/credits";
 import { COMMUNITY_URL } from "@/lib/community";
 import { DEFINITION, siteUrl } from "@/lib/seo";
 import { en } from "@/lib/i18n/dictionaries/en";
@@ -59,7 +59,7 @@ const qa = (items: { q: string; a: string }[]) => items.map((f) => `Q: ${f.q}\nA
 
 export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
   const base = siteUrl();
-  const [help, docs, posts, legal, plans, trial, program, trialDays] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), trialLimits(), currentProgram().catch(() => null), trialAvailable().catch(() => null)]);
+  const [help, docs, posts, legal, plans, packs, program, trialDays] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), topUps().catch(() => []), currentProgram().catch(() => null), trialAvailable().catch(() => null)]);
   const out: KnowledgeItem[] = [];
   const push = (kind: KnowledgeItem["kind"], slug: string, language: Locale, title: string, path: string, content: string) =>
     out.push({ key: `${kind}:${slug}:${language}`, kind, language, title, url: base + path, content: content.trim() });
@@ -78,17 +78,19 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
       `${h.faq.title}\n${qa(h.faq.items)}`,
     ].join("\n\n"));
 
-    // Plans and prices (live), the free trial, annual billing, pricing FAQ.
+    // Pay As You Go, the two monthly plans (live), pricing FAQ (D-247).
     const money = (v: number) => `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
     const planLines = offeredPlans.map((p) => {
       const t = plans[p];
-      return `- ${d.plans[p]}: ${money(t.priceUsd)} / month billed monthly, or ${money(monthlyRate(t.priceUsd, "annual"))} / month billed yearly (${money(priceFor(t.priceUsd, "annual"))} per year, save ${ANNUAL_DISCOUNT_PERCENT}%).${t.priceEgp ? ` In Egypt: EGP ${t.priceEgp.toLocaleString("en-US")} / month, or EGP ${monthlyRateEgp(t.priceEgp, "annual").toLocaleString("en-US")} / month billed yearly (EGP ${priceForEgp(t.priceEgp, "annual").toLocaleString("en-US")} per year).` : ""} ${t.prospects.toLocaleString("en-US")} prospects and ${t.emails.toLocaleString("en-US")} emails per month, unlimited uploaded contacts, unlimited users, Team Workspace.`;
+      return `- ${d.plans[p]}: ${money(t.priceUsd)} / month, billed monthly (no annual billing).${t.priceEgp ? ` In Egypt: EGP ${t.priceEgp.toLocaleString("en-US")} / month.` : ""} ${t.prospects.toLocaleString("en-US")} prospects per month, unlimited users, Team Workspace.`;
     });
-    push("pricing", "plans", l, l === "ar" ? "الخطط والأسعار والتجربة المجانية" : "Plans, prices and the free trial", "/pricing", [
+    const payg = packs.length
+      ? `- Pay As You Go: prepaid credit, no subscription and no renewal, no free credit. Top-ups: ${packs.map((x) => `${money(x.priceUsd)} = ${x.prospects.toLocaleString("en-US")} prospects`).join(", ")}. The amount is chosen in Checkout, the credit is added after the payment is confirmed and doesn't expire.`
+      : "- Pay As You Go: not available right now.";
+    push("pricing", "plans", l, l === "ar" ? "الخطط والأسعار" : "Plans and prices", "/pricing", [
       d.pricing.heroSupport,
-      planLines.join("\n"),
-      `Free trial: ${trialDays ? "offered at checkout right now" : "not offered at checkout right now"}. When offered: ${trial.days} days on the chosen plan, with ${trial.prospects} prospects and ${trial.emails} emails during the trial. Card payments go through Paymob (Visa, Mastercard, Meeza), charged in Egyptian pounds: the first period is paid up front; at the end of each period a renewal invoice is issued and the plan continues once it's paid.${trial.claim_hours ? ` The trial offer can be claimed within ${trial.claim_hours} hours of first opening the checkout.` : ""}`,
-      `Annual billing: ${d.plans.annualSave}: 12 × the discounted monthly rate, paid once a year.`,
+      `${payg}\n${planLines.join("\n")}`,
+      `The prospect is the only unit: writing and sending emails is never charged or limited, uploaded contacts are unlimited, and the same prospect is never counted twice. No free trial. Card payments go through Paymob (Visa, Mastercard, Meeza).`,
       `Prices are in USD (EGP in Egypt) and don’t include tax.`,
       `${d.pricing.faqTitle}\n${pricingFaq(d.pricing, trialDays).map(([q, a]) => `Q: ${q}\nA: ${a}`).join("\n\n")}`,
     ].join("\n\n"));

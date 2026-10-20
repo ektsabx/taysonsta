@@ -18,12 +18,12 @@ export interface SolutionSeo {
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes (for example on its website). It doesn’t promise a personal email or phone number for every decision maker.",
   coverage: "What Yolias finds depends on your market and on the data sources connected to it. A search that needs a source Yolias doesn’t have yet waits and tells you so.",
-  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail, Outlook or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
+  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
 };
 const limitsAr = {
   contacts: "يعرض يولـياس بيانات التواصل التي تنشرها الشركة (على موقعها مثلًا). ولا يعد ببريد أو رقم شخصي لكل صانع قرار.",
   coverage: "ما يجده يولـياس يعتمد على سوقك وعلى مصادر البيانات المتصلة به. البحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويخبرك بذلك.",
-  outreach: "يرسل يولـياس الحملة من Gmail أو Outlook الخاص بك فقط بعد موافقتك؛ وبدون صندوق بريد متصل، ودائمًا على LinkedIn، ترسل كل رسالة بنفسك.",
+  outreach: "يرسل يولـياس الحملة من Gmail أو بريد IMAP الخاص بك فقط بعد موافقتك؛ وبدون صندوق بريد متصل، ودائمًا على LinkedIn، ترسل كل رسالة بنفسك.",
 };
 
 const common = {

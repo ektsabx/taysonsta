@@ -26,7 +26,7 @@ async function siteUrl() {
 async function rememberPlan(formData: FormData) {
   const plan = formData.get("plan");
   const period = formData.get("period");
-  if (!isPlan(plan)) return;
+  if (!isPlan(plan) && plan !== "payg") return;
   const jar = await cookies();
   const opts = { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" as const, httpOnly: true };
   jar.set(PLAN_COOKIE, plan, opts);
@@ -78,7 +78,7 @@ export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkSt
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   // Yolias Partners sign-ups (D-206) are marked, with the terms version they accepted.
   const partner = formData.get("partner") === "1";
-  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) ? plan : undefined, locale: await getLocale(), terms_accepted_at: new Date().toISOString(),
+  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) || plan === "payg" ? plan : undefined, locale: await getLocale(), terms_accepted_at: new Date().toISOString(),
     ...(partner ? { partner: true, partner_terms: text("partner_terms") } : {}) };
 
   // Many link requests for one account in an hour ⇒ a security email (lib/email/events.ts).

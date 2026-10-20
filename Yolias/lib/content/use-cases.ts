@@ -65,13 +65,13 @@ export const useCasesPage: Localized<{ eyebrow: string; title: string; lead: str
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes. It doesn’t promise a personal email or phone number for every person.",
   coverage: "Results depend on your market and on the data sources connected to Yolias; a search that needs a source Yolias doesn’t have yet waits and says so.",
-  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail, Outlook or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
+  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
   guarantee: "Yolias doesn’t guarantee a number of leads, meetings or sales.",
 };
 const limitsAr = {
   contacts: "يعرض يولـياس بيانات التواصل التي تنشرها الشركة، ولا يعد ببريد أو رقم شخصي لكل شخص.",
   coverage: "تعتمد النتائج على سوقك وعلى مصادر البيانات المتصلة بيولـياس، والبحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويوضح ذلك.",
-  outreach: "يرسل يولـياس الحملة من Gmail أو Outlook الخاص بك فقط بعد موافقتك؛ وبدون صندوق بريد متصل، ودائمًا على LinkedIn، ترسل كل رسالة بنفسك.",
+  outreach: "يرسل يولـياس الحملة من Gmail أو بريد IMAP الخاص بك فقط بعد موافقتك؛ وبدون صندوق بريد متصل، ودائمًا على LinkedIn، ترسل كل رسالة بنفسك.",
   guarantee: "لا يضمن يولـياس عددًا محددًا من العملاء المحتملين أو الاجتماعات أو المبيعات.",
 };
 

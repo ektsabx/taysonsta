@@ -2,21 +2,26 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { guessKind, guessMapping, normalizeSite, parseCsv, toImportRow } from "../../lib/csv-import.ts";
 import { commissionExamples, parseProgramSettings } from "../../lib/affiliates/program.ts";
-import { defaultPlans, hasActivePlan, monthlyRate, monthlyRateEgp, offeredPlans, priceFor, priceForEgp, topPlan } from "../../lib/plans.ts";
+import { canUseApp, defaultPlans, hasActivePlan, monthlyRate, monthlyRateEgp, offeredPlans, priceFor, priceForEgp, topPlan } from "../../lib/plans.ts";
 
 // Owner brief 2026-10-12: plans, trial, CSV import, affiliate examples.
 
-test("plans: no $0 plan offered, Scale is the top plan, trialing counts as a plan", () => {
-  assert.deepEqual(offeredPlans, ["pro", "growth", "scale"]);
-  assert.equal(topPlan, "scale");
-  assert.deepEqual(defaultPlans.scale, { priceUsd: 200, priceEgp: 9999, prospects: 4000, emails: 4000, contacts: 4000 });
-  assert.equal(defaultPlans.growth.emails, 2000);
+test("plans: Pro and Growth monthly are offered (no Scale), Growth is the top plan, credit opens the app", () => {
+  assert.deepEqual(offeredPlans, ["pro", "growth"]);
+  assert.equal(topPlan, "growth");
+  assert.equal(defaultPlans.pro.priceUsd, 50);
+  assert.equal(defaultPlans.growth.priceUsd, 100);
   assert.equal(hasActivePlan({ subscription_status: "trialing" }), true);
   assert.equal(hasActivePlan({ subscription_status: "canceled" }), false, "an ended plan or trial gives no access");
   assert.equal(hasActivePlan({ subscription_status: "none" }), false);
+  // Pay As You Go (D-247): a workspace that bought credit uses Yolias without a subscription.
+  assert.equal(canUseApp({ subscription_status: "none", credit_started_at: null }), false);
+  assert.equal(canUseApp({ subscription_status: "none", credit_started_at: "2026-10-20T00:00:00Z" }), true);
+  assert.equal(canUseApp({ subscription_status: "canceled", credit_started_at: "2026-10-20T00:00:00Z" }), true, "credit outlives a canceled plan");
+  assert.equal(canUseApp({ subscription_status: "active", credit_started_at: null }), true);
 });
 
-test("plans: annual is 20% off, shown per month and charged once a year; EGP rounds down to the pound", () => {
+test("plans: legacy annual math (running annual subscriptions only) stays 20% off; EGP rounds down", () => {
   assert.equal(priceFor(100, "annual"), 960);
   assert.equal(monthlyRate(100, "annual"), 80);
   assert.equal(monthlyRate(100, "monthly"), 100);
@@ -69,7 +74,7 @@ test("affiliates: worked examples follow the live rate, eligibility and rounding
   const growthMonthly = ex.find((e) => e.plan === "growth" && e.period === "monthly")!;
   assert.equal(growthMonthly.perPaymentCents, 1500, "15% of $100");
   assert.equal(growthMonthly.maxCents, 18000, "12 payments");
-  assert.equal(ex.find((e) => e.plan === "scale" && e.period === "annual")!.perPaymentCents, 28800, "15% of $1,920 (annual = 12 × ($200 − 20%))");
+  assert.equal(ex.some((e) => e.plan === "scale" || e.period === "annual"), false, "examples show only what is sold today (D-247)");
   const once = parseProgramSettings({ enabled: true, commission: { type: "percent", percent_bps: 1500 }, eligible: { plans: ["pro"], periods: ["monthly"] }, recurring: { enabled: false } });
   assert.deepEqual(commissionExamples(once, { pro: 50, growth: 100, scale: 200 }).map((e) => [e.plan, e.maxCents]), [["pro", 750]]);
 });

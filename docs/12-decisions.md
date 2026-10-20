@@ -416,3 +416,15 @@ Owner: no email needs consent; the "marketing" class no longer requires the Prod
 
 ## D-246 — No free trial (2026-10-20)
 Owner: every plan is paid up front; no new free trial starts (`FREE_TRIAL_ENABLED = false` in `Yolias/lib/trial.ts`, which `trialOpen()` and `trialAvailable()` read). Workspaces already in a trial keep it until it ends. Docs, help and llms.txt say there is no free trial; pricing and home pages already follow `trialAvailable()`.
+
+## D-247: Pay As You Go + two monthly plans (2026-10-20)
+Owner brief: three options only. **Pay As You Go**: prepaid credit bought in $5 / $20 / $50 / $100 top-ups chosen in Checkout, never a subscription, never renews, no free credit, credit doesn't expire. **Pro $50 / month** and **Growth $100 / month** (existing names kept). No annual billing and no Scale ($200) for new subscriptions; running annual or Scale subscriptions, payments and invoices are untouched. The prospect is the only unit: emails are not counted, limited or charged (the `outreach_email_limit` trigger is dropped), uploaded contacts are unlimited, and a prospect already in the workspace is skipped, not charged (existing dedupe in `lib/discovery/pipeline.ts`).
+- Rate: `site_settings.credits.usd_per_prospect` = 0.05, the rate the old packs and plans already used ($50 = 1,000). Top-up prospects = amount ÷ rate, set in Admin → Payments (the rate and the amounts; prospects are never typed in) and shown live in Checkout before paying.
+- Credit is the existing `prospect_pack:<paymentId>` grant (idempotent per payment, only after the provider confirms it). A first top-up sets `workspaces.credit_started_at`, which opens the app without a subscription (`canUseApp()` in `lib/plans.ts`).
+- On a plan its monthly prospects are used first, then credit; switching PAYG ↔ monthly keeps the balance.
+- The legacy Free plan quota is 0 (no free credit). Old packs are deactivated, not deleted.
+- Admin: Plans shows Pro and Growth only; Payments has the rate and the top-up amounts; User → Billing shows the balance and top-up / usage history.
+- Tests: `npm run test:payg` (each amount, failed payment, duplicate webhook, consumption, no email charge, PAYG ↔ monthly, no annual / $200 on /pricing).
+- Outlook is hidden from Settings and public copy (owner: Gmail and IMAP only); the backend stays for existing connections.
+- Affiliates (owner 2026-10-20): top-ups earn the commission rate on every top-up during the referred customer's first 12 months from their first commissioned payment (`recurring.pack_months`, Admin → Affiliates → Settings), like the 12 payments of a monthly plan; subscription renewals are counted on subscription payments only. Migration `20261119000100_affiliate_topups.sql`.
+- Deployed 2026-10-20: backup prod-20261020-2206, migrations 20261119000000 and 20261119000100 applied and recorded, Yolias 5042d489, Admin c6fba106, content seeded.

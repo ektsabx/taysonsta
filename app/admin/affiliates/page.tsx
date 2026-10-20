@@ -50,6 +50,7 @@ export default async function AffiliatesOverviewPage({ searchParams }: { searchP
           <KeyValues items={[
             { label: "حالة البرنامج", value: <Tx>{p.settings.enabled ? "مفتوح" : "متوقف"}</Tx> },
             { label: "العمولة", value: <span dir="ltr">{p.settings.commission.type === "percent" ? `${p.settings.commission.percentBps / 100}%` : cents(p.settings.commission.fixedCents)}</span> },
+            { label: "شحن الرصيد", value: p.settings.eligible.packs ? <Tx vars={{ n: p.settings.recurring.packMonths }}>{"كل شحن خلال {n} شهرًا"}</Tx> : <Tx>غير مؤهل</Tx> },
             { label: "متكررة", value: <Tx vars={{ n: p.settings.recurring.maxPayments ?? "∞" }}>{p.settings.recurring.enabled ? "نعم، حتى {n} دفعة" : "الدفعة الأولى فقط"}</Tx> },
             { label: "مدة الإسناد", value: <Tx vars={{ n: p.settings.attribution.days }}>{p.settings.attribution.model === "first_touch" ? "{n} يومًا، أول رابط" : "{n} يومًا، آخر رابط"}</Tx> },
             { label: "فترة الانتظار", value: <Tx vars={{ n: p.settings.holdDays }}>{"{n} يومًا"}</Tx> },

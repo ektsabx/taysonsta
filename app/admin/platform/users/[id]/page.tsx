@@ -13,6 +13,7 @@ import { REASONS, STEP_LABEL } from "@/services/yolias/conversions";
 import { CheckoutStatus } from "@/app/admin/platform/conversions/_shared/CheckoutBits";
 import { AccountActions } from "../_shared/AccountActions";
 import { NoteForm } from "../_shared/NoteForm";
+import { workspaceCredit } from "@/services/yolias/payments";
 
 // User 360° (D-214): everything about one Yolias account in one place. Only
 // recorded data is shown; what Yolias doesn't record says so.
@@ -50,6 +51,8 @@ export default async function User360Page({ params, searchParams }: { params: Pr
   const base = `/admin/platform/users/${id}`;
   const firstPaid = [...d.payments].reverse().find((p) => (p.status === "succeeded" || p.status === "refunded") && p.mode === "live");
   const lastRenewal = d.subEvents.find((e) => e.status === "renewed");
+  // Pay As You Go balance and history (D-247), shown on the billing tab.
+  const credit = tab === "billing" && a.workspace_id ? await workspaceCredit(a.workspace_id) : null;
 
   return (
     <>
@@ -145,6 +148,31 @@ export default async function User360Page({ params, searchParams }: { params: Pr
 
       {tab === "billing" && (
         <>
+          <Card title="رصيد الدفع حسب الاستخدام">
+            {credit ? (
+              <>
+                <div className="bos-kpis">
+                  <KpiCard label="الرصيد الحالي" value={<Tx vars={{ n: num(credit.balance) }}>{"{n} عميل محتمل"}</Tx>} />
+                  <KpiCard label="إجمالي الشحن" value={num(credit.toppedUp)} sub={<Tx>عميل محتمل من مدفوعات مؤكدة</Tx>} />
+                  <KpiCard label="المستخدم من الرصيد" value={num(credit.fromCredit)} sub={<Tx vars={{ n: num(credit.delivered) }}>{"من {n} عميل محتمل مُسلَّم إجمالًا"}</Tx>} />
+                </div>
+                <KeyValues items={[{ label: "أول شحن", value: dt(credit.startedAt) }]} />
+                {credit.history.length ? (
+                  <div className="bos-table-scroll"><table className="bos-table">
+                    <thead><tr><th><Tx>الوقت</Tx></th><th><Tx>النشاط</Tx></th><th><Tx>العملاء المحتملون</Tx></th><th><Tx>بواسطة</Tx></th></tr></thead>
+                    <tbody>{credit.history.map((h, i) => (
+                      <tr key={`${h.at}-${i}`}>
+                        <td>{dt(h.at)}</td>
+                        <td>{h.kind === "topup" ? <Tx>شحن رصيد</Tx> : h.kind === "adjust" ? <Tx vars={{ r: h.reason ?? "" }}>{"تعديل إداري {r}"}</Tx> : h.search ? <Tx vars={{ s: h.search }}>{"تسليم في «{s}»"}</Tx> : <Tx>تسليم عملاء محتملين</Tx>}{h.kind === "used" && h.reason === "extra" ? <> <StatusBadge tone="neutral" label="من الرصيد" /></> : null}</td>
+                        <td className="bos-num" dir="ltr">{h.kind === "used" ? "-" : "+"}{num(h.prospects)}</td>
+                        <td>{h.by ?? "—"}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table></div>
+                ) : <EmptyState title="لا يوجد شحن أو استخدام" />}
+              </>
+            ) : <EmptyState title="لا توجد مساحة عمل" />}
+          </Card>
           <Card title="سجل الاشتراك">
             {d.subEvents.length ? (
               <div className="bos-table-scroll"><table className="bos-table"><thead><tr><th><Tx>الوقت</Tx></th><th><Tx>الحدث</Tx></th><th><Tx>الخطة</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الوضع</Tx></th></tr></thead>

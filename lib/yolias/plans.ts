@@ -5,7 +5,8 @@ export type YoliasPlan = "free" | "pro" | "growth";
 
 export const yoliasPlanIds: YoliasPlan[] = ["free", "pro", "growth"];
 
-export const yoliasPlanLabel: Record<YoliasPlan, string> = { free: "Free", pro: "Pro", growth: "Growth" };
+// "free" = no subscription: Pay As You Go credit only (D-247).
+export const yoliasPlanLabel: Record<YoliasPlan, string> = { free: "Pay As You Go", pro: "Pro", growth: "Growth" };
 
 export function isYoliasPlan(v: unknown): v is YoliasPlan {
   return typeof v === "string" && (yoliasPlanIds as string[]).includes(v);

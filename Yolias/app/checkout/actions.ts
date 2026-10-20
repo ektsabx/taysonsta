@@ -3,8 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { canManageTeam, requireSession, requireUser } from "@/lib/session";
-import { isBillingPeriod, isPaidPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
+import { canManageTeam, requireUser } from "@/lib/session";
+import { isBillingPeriod, isPaidPlan, offeredPlans, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
 import { billingTestMode, planCharge, startPlan, startTrial } from "@/lib/billing";
 import { grantPack, invoiceGateway, lockedProvider, providerFor, startCheckout, type CardGateway, type CheckoutResult as ProviderResult } from "@/lib/payments";
 import { loadPolar, polarPortalUrl, productFor } from "@/lib/payments/polar";
@@ -51,7 +51,8 @@ export async function activatePlan(plan: string, period: string, method: string 
   const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  if (!isPaidPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
+  // New subscriptions: Pro or Growth, monthly only (D-247). Renewals of older plans go through payInvoice.
+  if (!isPaidPlan(plan) || !offeredPlans.includes(plan) || period !== "monthly") return { ok: false, error: t.checkout.errors.choosePlan };
   if (method !== "polar" && method !== "paymob" && method !== "kashier") return { ok: false, error: t.checkout.errors.chooseMethod };
   const payer = { userId: session.userId, email: session.email, name: session.profile.full_name };
   const ws = session.workspace;
@@ -104,8 +105,9 @@ export async function activatePlan(plan: string, period: string, method: string 
 export type PackResult = { ok: true; added: number; test: true } | { ok: false; error: string };
 
 /** Buy More Prospects: provider checkout, or an immediate test grant in billing test mode. */
+/** Pay As You Go top-up (D-247). Works with or without a subscription. */
 export async function buyProspectPack(packId: string): Promise<PackResult> {
-  const session = await requireSession();
+  const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.buyMore.onlyAdmins };
   if (!/^[0-9a-f-]{36}$/i.test(packId)) return { ok: false, error: t.checkout.errors.failed };
@@ -156,7 +158,8 @@ export async function startPolarCheckout(plan: string, period: string, checkoutI
   const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  if (!isPaidPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
+  // New subscriptions: Pro or Growth, monthly only (D-247). Renewals of older plans go through payInvoice.
+  if (!isPaidPlan(plan) || !offeredPlans.includes(plan) || period !== "monthly") return { ok: false, error: t.checkout.errors.choosePlan };
   const ws = session.workspace;
   if (!(await switches()).payments_polar) return { ok: false, error: t.checkout.errors.notConnected };
   const cid = await ownCheckout(checkoutId, ws.id, session.userId);
@@ -225,7 +228,8 @@ export async function startKashierCheckout(plan: string, period: string, checkou
   const session = await requireUser();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
-  if (!isPaidPlan(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
+  // New subscriptions: Pro or Growth, monthly only (D-247). Renewals of older plans go through payInvoice.
+  if (!isPaidPlan(plan) || !offeredPlans.includes(plan) || period !== "monthly") return { ok: false, error: t.checkout.errors.choosePlan };
   const ws = session.workspace;
   const locked = lockedProvider(ws);
   if (locked && locked !== "kashier") return { ok: false, error: t.checkout.errors.notConnected };

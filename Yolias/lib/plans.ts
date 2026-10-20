@@ -2,12 +2,10 @@ import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
-// Plans from the Yolias pricing page: Pro, Growth and Scale (owner brief
-// 2026-10-12; the $0 Free plan is no longer offered, workspaces already on it
-// keep it). Every plan has the same features and unlimited users; they differ
-// in their monthly limits: prospects delivered (D-164), emails prepared and
-// opened in the member's own mailbox (D-155), and contacts uploaded by CSV.
-// Every paid plan starts with a free trial (lib/trial.ts) where it is offered.
+// Pricing (owner brief 2026-10-20, D-247): Pay As You Go credit (top-ups,
+// lib/credits.ts) or a monthly plan, Pro ($50) or Growth ($100). No annual
+// billing, no Scale for new customers (existing subscriptions keep running).
+// The only unit is the prospect; emails and uploaded contacts are not limited.
 export interface PlanTerms {
   priceUsd: number;
   /** Monthly price for Egypt, in EGP (D-237); null = Egypt pays the USD price at the day's rate. */
@@ -33,10 +31,10 @@ export function planPrice(terms: PlanTerms, currency: Currency): number | null {
 
 export const allPlans: Plan[] = ["free", "pro", "growth", "scale"];
 export const paidPlans: PaidPlan[] = ["pro", "growth", "scale"];
-/** The plans a workspace can choose (no $0 plan). */
-export const offeredPlans: PaidPlan[] = paidPlans;
-/** The biggest plan: nothing to upgrade to. */
-export const topPlan: PaidPlan = "scale";
+/** The monthly plans a workspace can choose (D-247: Scale is no longer offered). */
+export const offeredPlans: PaidPlan[] = ["pro", "growth"];
+/** The biggest plan on offer: nothing to upgrade to. */
+export const topPlan: PaidPlan = "growth";
 
 /** Localized plan name: "Free" / "Yolias Pro" / "Yolias Growth". */
 export function planName(plan: Plan, t: Dictionary): string {
@@ -58,6 +56,15 @@ export function planUsage(prospects: number, t: Dictionary, locale: Locale, plan
 /** A workspace has a plan it can use: paid, in its free trial, test, or the legacy Free plan. */
 export function hasActivePlan(ws: Pick<WorkspaceRow, "subscription_status">): boolean {
   return ws.subscription_status === "active" || ws.subscription_status === "trialing" || ws.subscription_status === "test" || ws.subscription_status === "past_due";
+}
+
+/**
+ * Can use Yolias: a plan as above, or Pay As You Go credit bought at least
+ * once (D-247). The prospect balance decides what can run; this only opens
+ * the app.
+ */
+export function canUseApp(ws: Pick<WorkspaceRow, "subscription_status"> & { credit_started_at?: string | null }): boolean {
+  return hasActivePlan(ws) || Boolean(ws.credit_started_at);
 }
 
 export function isPaidPlan(v: unknown): v is PaidPlan {

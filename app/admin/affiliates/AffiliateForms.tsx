@@ -104,7 +104,7 @@ export function PayoutForm({ id, status }: { id: string; status: string }) {
 export interface ProgramFormValues {
   enabled: boolean; autoApprove: boolean; questions: { id: string; label: string; required: boolean }[];
   commissionType: "percent" | "fixed"; percent: number; fixedUsd: number; plans: string[]; periods: string[]; packs: boolean;
-  recurring: boolean; maxPayments: number | null; attributionDays: number; model: string; minPaymentUsd: number; holdDays: number; minPayoutUsd: number;
+  recurring: boolean; maxPayments: number | null; packMonths: number; attributionDays: number; model: string; minPaymentUsd: number; holdDays: number; minPayoutUsd: number;
   excludedWorkspaces: string[]; excludedEmails: string[]; holdSameIp: boolean; maxSignupsPerIpDay: number;
   payoutMethods: { id: string; label: string; enabled: boolean }[]; includeTestPayments: boolean; notifyAffiliates: boolean; termsVersion: string; terms: string;
 }
@@ -137,7 +137,8 @@ export function ProgramForm({ v, canEdit }: { v: ProgramFormValues; canEdit: boo
             <label className="bos-check"><input type="checkbox" name="periods" value="monthly" defaultChecked={v.periods.includes("monthly")} /> {t("شهري")}</label>
             <label className="bos-check"><input type="checkbox" name="periods" value="annual" defaultChecked={v.periods.includes("annual")} /> {t("سنوي")}</label>
           </div>
-          <CheckboxField name="packs" label="باقات العملاء الإضافية مؤهلة" defaultChecked={v.packs} />
+          <CheckboxField name="packs" label="شحن الرصيد (الدفع حسب الاستخدام) مؤهل" defaultChecked={v.packs} />
+          <TextField name="packMonths" label="مدة عمولة الشحن (بالشهور)" hint="كل شحن يدفعه العميل خلال هذه المدة من أول دفعة له يأخذ عمولة." inputMode="numeric" defaultValue={String(v.packMonths)} />
           <CheckboxField name="recurring" label="عمولات متكررة على التجديدات" defaultChecked={v.recurring} />
           <TextField name="maxPayments" label="أقصى عدد دفعات لكل عميل" hint="فارغ = طوال مدة الاشتراك. 1 = الدفعة الأولى فقط." inputMode="numeric" defaultValue={v.maxPayments == null ? "" : String(v.maxPayments)} />
           <TextField name="holdDays" label="فترة انتظار الاعتماد (أيام)" hint="بعدها تصبح العمولة متاحة للسحب، إن لم تكن قيد المراجعة." inputMode="numeric" defaultValue={String(v.holdDays)} required />

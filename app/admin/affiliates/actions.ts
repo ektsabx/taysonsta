@@ -82,6 +82,7 @@ export async function programAction(_prev: ActionState, fd: FormData): Promise<A
       packs: fd.get("packs") === "on",
       recurring: fd.get("recurring") === "on",
       maxPayments: max === "" ? null : Number(max),
+      packMonths: Number(s(fd, "packMonths") || 12),
       attributionDays: n(fd, "attributionDays"),
       model: s(fd, "model") === "last_touch" ? "last_touch" : "first_touch",
       minPaymentUsd: n(fd, "minPaymentUsd") || 0,

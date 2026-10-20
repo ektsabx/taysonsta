@@ -15,6 +15,7 @@ export function termsValues(s: ProgramSettings | undefined, locale: Locale): Rec
   return {
     rate: commissionLabel(s, formatCents),
     recurring: !s.recurring.enabled ? facts.firstOnly : s.recurring.maxPayments ? fmt(facts.recurringFor, { count: n(s.recurring.maxPayments) }) : facts.recurringAlways,
+    topups: s.eligible.packs ? fmt(facts.topups, { count: n(s.recurring.packMonths) }) : facts.noTopups,
     hold: days(s.holdDays),
     minPayout: formatCents(s.minPayoutCents),
     window: days(s.attribution.days),

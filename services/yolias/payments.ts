@@ -61,13 +61,44 @@ const money = (v: number | null, field: string) => {
   return v;
 };
 
-export async function savePack(bos: BosUser, input: { id?: string | null; prospects: number; emails: number; priceUsd: number | null; active: boolean; sort: number }): Promise<void> {
-  if (!Number.isInteger(input.prospects) || input.prospects <= 0 || input.prospects > 1_000_000) throw new ValidationError("العدد غير صالح.", { prospects: "عدد صحيح موجب" });
-  if (!Number.isInteger(input.emails) || input.emails < 0 || input.emails > 1_000_000) throw new ValidationError("عدد الرسائل غير صالح.", { emails: "عدد صحيح من 0" });
+/* ───────────────────────── Pay As You Go (D-247) ───────────────────────── */
+
+/** The price of one prospect (site_settings.credits): the only rate top-ups are converted with. */
+export async function getCreditRate(): Promise<{ usdPerProspect: number; updatedAt: string | null }> {
+  const { data } = await ydb().from("site_settings").select("value, updated_at").eq("key", "credits").maybeSingle();
+  const v = Number((data?.value as { usd_per_prospect?: number } | null)?.usd_per_prospect);
+  return { usdPerProspect: Number.isFinite(v) && v > 0 ? v : 0.05, updatedAt: data?.updated_at ?? null };
+}
+
+const prospectsFor = (priceUsd: number, rate: number) => Math.floor(Math.round((priceUsd / rate) * 1e6) / 1e6);
+
+/** Changes the rate and recalculates every top-up option from it. Past top-ups keep what they gave. */
+export async function saveCreditRate(bos: BosUser, usdPerProspect: number | null): Promise<void> {
+  if (usdPerProspect == null || !Number.isFinite(usdPerProspect) || usdPerProspect <= 0 || usdPerProspect > 100 || Math.round(usdPerProspect * 10000) !== usdPerProspect * 10000)
+    throw new ValidationError("السعر غير صالح.", { usd_per_prospect: "رقم أكبر من 0 بحد أقصى 4 منازل عشرية" });
+  const before = await getCreditRate();
+  const { error } = await ydb().from("site_settings").upsert({ key: "credits", value: { usd_per_prospect: usdPerProspect }, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  for (const p of await listPacks()) {
+    const prospects = prospectsFor(Number(p.price_usd), usdPerProspect);
+    if (prospects !== p.prospects) await ydb().from("prospect_packs").update({ prospects: Math.max(prospects, 1), updated_by: bos.email, updated_at: new Date().toISOString() }).eq("id", p.id);
+  }
+  await audit({ actorId: bos.userId, action: "yolias.payments.credit_rate", entityType: "yolias_site_setting", entityId: null, oldValue: { usd_per_prospect: before.usdPerProspect }, newValue: { usd_per_prospect: usdPerProspect }, metadata: {} });
+}
+
+/**
+ * A top-up option: the amount is set here, the prospects always come from the
+ * rate (never typed in). Emails are not sold (D-247).
+ */
+export async function savePack(bos: BosUser, input: { id?: string | null; priceUsd: number | null; active: boolean; sort: number }): Promise<void> {
+  const price = money(input.priceUsd, "price_usd");
+  const { usdPerProspect } = await getCreditRate();
+  const prospects = prospectsFor(price, usdPerProspect);
+  if (prospects < 1) throw new ValidationError("المبلغ أقل من سعر عميل محتمل واحد.", { price_usd: "مبلغ أكبر" });
   const row = {
-    prospects: input.prospects,
-    emails: input.emails,
-    price_usd: money(input.priceUsd, "price_usd"),
+    prospects,
+    emails: 0,
+    price_usd: price,
     active: input.active,
     sort: Number.isInteger(input.sort) ? input.sort : 0,
     updated_by: bos.email,
@@ -78,6 +109,34 @@ export async function savePack(bos: BosUser, input: { id?: string | null; prospe
   if (error) throw error;
   if (!data) throw new NotFoundError();
   await audit({ actorId: bos.userId, action: input.id ? "yolias.payments.pack_update" : "yolias.payments.pack_create", entityType: "yolias_prospect_pack", entityId: null, newValue: row, metadata: { pack: data.id } });
+}
+
+export interface CreditEntry { at: string; kind: "topup" | "used" | "adjust"; prospects: number; search: string | null; by: string | null; reason: string | null }
+
+/**
+ * A workspace's Pay As You Go credit: what was topped up (confirmed payments
+ * only), what was drawn from it, the balance, and the history of top-ups and
+ * prospects delivered. Same ledger and rules as Yolias usage_summary.
+ */
+export async function workspaceCredit(workspaceId: string) {
+  const db = ydb();
+  const [{ data: all, error }, { data: recent }, { data: ws }] = await Promise.all([
+    db.from("usage_ledger").select("kind, prospects, reason").eq("workspace_id", workspaceId).in("kind", ["grant", "consume"]),
+    db.from("usage_ledger").select("kind, prospects, reason, created_at, created_by, campaign_id").eq("workspace_id", workspaceId).in("kind", ["grant", "consume", "adjust"]).order("created_at", { ascending: false }).limit(60),
+    db.from("workspaces").select("credit_started_at").eq("id", workspaceId).maybeSingle(),
+  ]);
+  if (error) throw error;
+  const rows = all ?? [];
+  const toppedUp = rows.filter((r) => r.kind === "grant" && (r.reason ?? "").startsWith("prospect_pack:")).reduce((n, r) => n + r.prospects, 0);
+  const fromCredit = rows.filter((r) => r.kind === "consume" && r.reason === "extra").reduce((n, r) => n + r.prospects, 0);
+  const delivered = rows.filter((r) => r.kind === "consume").reduce((n, r) => n + r.prospects, 0);
+  const ids = [...new Set((recent ?? []).map((r) => r.campaign_id).filter(Boolean))] as string[];
+  const names = new Map<string, string>();
+  if (ids.length) for (const c of (await db.from("campaigns").select("id, name").in("id", ids)).data ?? []) names.set(c.id, c.name);
+  const history: CreditEntry[] = (recent ?? [])
+    .filter((r) => r.kind !== "grant" || (r.reason ?? "").startsWith("prospect_pack:"))
+    .map((r) => ({ at: r.created_at, kind: r.kind === "grant" ? "topup" : r.kind === "consume" ? "used" : "adjust", prospects: r.prospects, search: r.campaign_id ? names.get(r.campaign_id) ?? null : null, by: r.created_by, reason: r.reason }));
+  return { toppedUp, fromCredit, delivered, balance: Math.max(toppedUp - fromCredit, 0), startedAt: (ws as { credit_started_at?: string | null } | null)?.credit_started_at ?? null, history };
 }
 
 /* ───────────────────────── Payments log ───────────────────────── */

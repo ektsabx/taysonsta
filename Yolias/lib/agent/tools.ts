@@ -9,7 +9,7 @@ import * as control from "@/lib/discovery/campaign-control";
 import { enqueue } from "@/lib/jobs/queue";
 import { extractCompanyFacts, researchSummary } from "@/lib/ai/orchestrator";
 import { isMessageLanguage } from "@/lib/outreach/channels";
-import { hasActivePlan } from "@/lib/plans";
+import { canUseApp } from "@/lib/plans";
 import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
 import type { AgentToolOutcome, Database, Json } from "@/types/database";
@@ -83,7 +83,7 @@ export function actorOf(session: Session): AgentActor {
     userId: session.userId,
     workspaceId: session.workspace.id,
     role: session.role,
-    active: hasActivePlan(session.workspace) && Boolean(session.profile.onboarded_at),
+    active: canUseApp(session.workspace) && Boolean(session.profile.onboarded_at),
   };
 }
 

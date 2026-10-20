@@ -54,7 +54,7 @@ export const home: Localized<{
       tiles: [
         { title: "Search in plain language", body: "No filter panels to learn. Say who you sell to, and Yolias fills what you left open from what it knows about your business, listed as assumptions you can see." },
         { title: "Reasons, not just a score", body: "Each prospect shows why it matched (market, industry, size, hiring, role), so you decide quickly who is worth a message." },
-        { title: "Outreach you approve", body: "Personal first emails and follow-ups from your own Gmail, Outlook or IMAP mailbox. Nothing is sent without your approval." },
+        { title: "Outreach you approve", body: "Personal first emails and follow-ups from your own Gmail or IMAP mailbox. Nothing is sent without your approval." },
         { title: "Arabic and English, end to end", body: "The whole product works right-to-left and left-to-right, and Yolias answers in the language you choose." },
       ],
     },
@@ -71,11 +71,11 @@ export const home: Localized<{
         { q: "Who is Yolias for?", a: "Teams and people who sell services to other businesses: marketing and software agencies, consultants, recruitment agencies, freelancers, real estate sales professionals and B2B sales teams." },
         { q: "What can I search for?", a: "Decision makers at companies that match your criteria, companies on their own, local businesses in a city or area, and companies similar to ones you name." },
         { q: "Where does the data come from, and how accurate is it?", a: "From the data sources connected to Yolias and from public information such as company websites. Every record keeps the source it came from, contact details are labelled by verification state, and anything Yolias couldn’t find is shown as not available instead of being guessed. What Yolias finds depends on your market and on what those sources cover." },
-        { q: "Does Yolias send messages for me?", a: "Yes, after you approve. Yolias writes a first email and follow-ups from your Company Knowledge and the facts it found, and sends them from your own connected mailbox (Gmail, Outlook or any IMAP/SMTP account). Yolias never messages anyone on LinkedIn." },
+        { q: "Does Yolias send messages for me?", a: "Yes, after you approve. Yolias writes a first email and follow-ups from your Company Knowledge and the facts it found, and sends them from your own connected mailbox (Gmail or any IMAP/SMTP account). Yolias never messages anyone on LinkedIn." },
         { q: "Can I manage replies and deals in Yolias?", a: "Yes. Replies to the emails Yolias sent from your mailbox come into the Inbox, sorted, with a suggested answer. Every lead has one record in the CRM with its stage (Interested, Meeting Booked, Meeting Completed, Closed or Lost), deal value, meetings, reminders, notes and history, as a table or Kanban." },
         { q: "What do I need to get started?", a: "A work email, a plan, and a few lines about your company (or your website address, which Yolias can read to fill them in). Connect your mailbox when you are ready to send." },
         { q: "Which languages does Yolias support?", a: "The whole product works in Arabic and English, right-to-left and left-to-right. Messages can be drafted in 15 languages." },
-        { q: "How much does Yolias cost?", a: "Three plans, Pro, Growth and Scale. Every plan has all the features and unlimited users; they differ in how many prospects, emails and uploaded contacts you get each month. You can cancel any time. See the pricing page for current prices." },
+        { q: "How much does Yolias cost?", a: "Three options: Pay As You Go (prepaid credit from $5, no subscription), or the monthly plans Pro and Growth. Every option has all the features and unlimited users. You pay for prospects only: emails are never charged. Monthly plans cancel any time. See the pricing page for current prices." },
       ],
     },
     cta: {
@@ -122,7 +122,7 @@ export const home: Localized<{
       tiles: [
         { title: "بحث بلغة طبيعية", body: "لا لوحات فلاتر لتتعلمها. قل لمن تبيع، ويكمل يولـياس ما تركته مفتوحًا مما يعرفه عن عملك، ويعرضه كافتراضات تراها بوضوح." },
         { title: "أسباب، لا مجرد رقم", body: "يوضّح كل عميل محتمل سبب تطابقه (السوق والقطاع والحجم والتوظيف والمنصب)، فتقرر بسرعة من يستحق رسالة." },
-        { title: "تواصل توافق عليه", body: "رسائل أولى ومتابعات شخصية من بريدك على Gmail أو Outlook أو IMAP. لا يُرسل شيء بدون موافقتك." },
+        { title: "تواصل توافق عليه", body: "رسائل أولى ومتابعات شخصية من بريدك على Gmail أو IMAP. لا يُرسل شيء بدون موافقتك." },
         { title: "العربية والإنجليزية بالكامل", body: "يعمل المنتج كله من اليمين لليسار ومن اليسار لليمين، ويرد يولـياس باللغة التي تختارها." },
       ],
     },
@@ -139,11 +139,11 @@ export const home: Localized<{
         { q: "لمن صُمم يولـياس؟", a: "للفرق والأشخاص الذين يبيعون خدمات لشركات أخرى: وكالات التسويق والبرمجيات، والاستشاريين، ووكالات التوظيف، والمستقلين، ومسوّقي العقارات، وفرق المبيعات B2B." },
         { q: "عن ماذا يمكنني البحث؟", a: "عن صنّاع القرار في الشركات المطابقة لمعاييرك، أو عن الشركات وحدها، أو عن الأنشطة التجارية المحلية في مدينة أو منطقة، أو عن شركات تشبه شركات تذكرها." },
         { q: "من أين تأتي البيانات، وما مدى دقتها؟", a: "من مصادر البيانات المتصلة بيولـياس ومن المعلومات العامة مثل مواقع الشركات. يحتفظ كل سجل بالمصدر الذي جاء منه، وتُصنَّف بيانات التواصل حسب حالة التحقق، وما لم يعثر عليه يولـياس يظهر كغير متوفر بدل تخمينه. ما يجده يولـياس يعتمد على سوقك وعلى ما تغطيه هذه المصادر." },
-        { q: "هل يرسل يولـياس الرسائل نيابةً عني؟", a: "نعم، بعد موافقتك. يكتب يولـياس رسالة أولى ومتابعات من معرفة شركتك والمعلومات التي وجدها، ويرسلها من صندوق بريدك المتصل (Gmail أو Outlook أو أي بريد IMAP/SMTP). ولا يرسل يولـياس رسائل على LinkedIn أبدًا." },
+        { q: "هل يرسل يولـياس الرسائل نيابةً عني؟", a: "نعم، بعد موافقتك. يكتب يولـياس رسالة أولى ومتابعات من معرفة شركتك والمعلومات التي وجدها، ويرسلها من صندوق بريدك المتصل (Gmail أو أي بريد IMAP/SMTP). ولا يرسل يولـياس رسائل على LinkedIn أبدًا." },
         { q: "هل يمكنني إدارة الردود والصفقات في يولـياس؟", a: "نعم. تصل الردود على الرسائل التي أرسلها يولـياس من بريدك إلى صندوق الوارد مصنّفة مع رد مقترح. ولكل عميل سجل واحد في إدارة العملاء بمرحلته (مهتم، تم حجز اجتماع، تم الاجتماع، تم الإغلاق، خسارة) وقيمة الصفقة والاجتماعات والتذكيرات والملاحظات والسجل، كجدول أو كانبان." },
         { q: "ماذا أحتاج لأبدأ؟", a: "بريد عمل، وخطة، وبضعة أسطر عن شركتك (أو عنوان موقعك ليقرأه يولـياس ويملأها). واربط بريدك عندما تكون جاهزًا للإرسال." },
         { q: "ما اللغات التي يدعمها يولـياس؟", a: "يعمل المنتج كله بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين، ويمكن كتابة الرسائل بـ 15 لغة." },
-        { q: "كم تكلفة يولـياس؟", a: "ثلاث خطط: برو والنمو والتوسع. كل خطة فيها كل الميزات ومستخدمون غير محدودين، والفرق في عدد العملاء المحتملين ورسائل البريد وجهات الاتصال المرفوعة كل شهر. يمكنك الإلغاء في أي وقت. الأسعار الحالية في صفحة الأسعار." },
+        { q: "كم تكلفة يولـياس؟", a: "ثلاثة خيارات: الدفع حسب الاستخدام (رصيد مسبق من 5 دولارات بدون اشتراك)، أو الخطتان الشهريتان برو والنمو. كل خيار فيه كل الميزات ومستخدمون غير محدودين. تدفع مقابل العملاء المحتملين فقط، والرسائل بدون رسوم. الخطط الشهرية تُلغى في أي وقت. الأسعار الحالية في صفحة الأسعار." },
       ],
     },
     cta: {
@@ -192,7 +192,7 @@ export const product: Localized<{
       {
         title: "Outreach, replies and deals",
         body: "Pick the prospects you want and Yolias writes a personal first email and follow-ups from your Company Knowledge. They are sent from your own mailbox only after you approve.",
-        points: ["Gmail, Outlook or any IMAP/SMTP mailbox", "Replies arrive in the Inbox, sorted, with a suggested answer", "Every lead’s stage, deal value and meetings in the CRM"],
+        points: ["Gmail or any IMAP/SMTP mailbox", "Replies arrive in the Inbox, sorted, with a suggested answer", "Every lead’s stage, deal value and meetings in the CRM"],
       },
     ],
     icp: [
@@ -244,7 +244,7 @@ export const product: Localized<{
       {
         title: "التواصل والردود والصفقات",
         body: "اختر العملاء المحتملين الذين تريدهم، ويكتب يولـياس رسالة أولى ومتابعات شخصية من معرفة شركتك. ولا تُرسل من بريدك إلا بعد موافقتك.",
-        points: ["Gmail أو Outlook أو أي بريد IMAP/SMTP", "تصل الردود إلى صندوق الوارد مصنّفة مع رد مقترح", "مرحلة كل عميل وقيمة صفقته واجتماعاته في إدارة العملاء"],
+        points: ["Gmail أو أي بريد IMAP/SMTP", "تصل الردود إلى صندوق الوارد مصنّفة مع رد مقترح", "مرحلة كل عميل وقيمة صفقته واجتماعاته في إدارة العملاء"],
       },
     ],
     icp: [
@@ -327,7 +327,7 @@ export const contactPage: Localized<{
     title: "Talk to the Yolias team.",
     lead: "Questions about plans, a problem in your workspace or an idea for a partnership: send it here and a person will reply.",
     ways: [
-      { title: "Sales & plans", body: "Choosing between plans or monthly and annual billing.", link: { label: "Compare plans", href: "/pricing" } },
+      { title: "Sales & plans", body: "Choosing between Pay As You Go and the monthly plans.", link: { label: "Compare plans", href: "/pricing" } },
       { title: "Product support", body: "Most answers are already written up step by step.", link: { label: "Open the Help Center", href: "/help-center" } },
       { title: "Partnerships & press", body: "Data providers, agencies and media: pick the matching topic in the form." },
     ],
@@ -338,7 +338,7 @@ export const contactPage: Localized<{
     title: "تحدّث مع فريق يولـياس.",
     lead: "سؤال عن الخطط، أو مشكلة في مساحة عملك، أو فكرة شراكة: أرسلها هنا وسيرد عليك شخص من الفريق.",
     ways: [
-      { title: "المبيعات والخطط", body: "للمساعدة في الاختيار بين الخطط أو بين الفوترة الشهرية والسنوية.", link: { label: "قارن الخطط", href: "/pricing" } },
+      { title: "المبيعات والخطط", body: "للمساعدة في الاختيار بين الدفع حسب الاستخدام والخطط الشهرية.", link: { label: "قارن الخطط", href: "/pricing" } },
       { title: "دعم المنتج", body: "معظم الإجابات مكتوبة بالفعل خطوة بخطوة.", link: { label: "افتح مركز المساعدة", href: "/help-center" } },
       { title: "الشراكات والإعلام", body: "مزودو البيانات والوكالات ووسائل الإعلام: اختر الموضوع المناسب في النموذج." },
     ],
