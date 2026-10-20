@@ -4,9 +4,13 @@
 
 export const wsEn = {
   nav: {
-    outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
+    conversations: "Conversations", outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
     knowledge: "Company Knowledge", profiles: "Customer Profiles", agents: "AI Agent", rules: "Rules & Permissions", automations: "Automations",
     watchVideo: "Watch the intro video",
+  },
+  conversations: {
+    title: "Conversations", subtitle: "Every conversation with a prospect in one place: what was sent, the replies and the next step, with the campaigns that start them.",
+    tabs: { threads: "Conversations", campaigns: "Campaigns" },
   },
   common: {
     save: "Save", saved: "Saved", saving: "Saving…", cancel: "Cancel", delete: "Delete", edit: "Edit", add: "Add", create: "Create", back: "Back",
@@ -14,7 +18,7 @@ export const wsEn = {
     onlyManagers: "Only owners and admins can change this.", optional: "Optional", confirmDelete: "Delete this? This can't be undone.",
     page: "Page {page} of {pages}", prev: "Previous", next: "Next", yes: "Yes", no: "No", open: "Open", close: "Close", done: "Done",
     notConnectedTitle: "Not connected yet",
-    mailboxNotConnected: "No mailbox is connected yet. Connect Gmail, Outlook or any IMAP/SMTP mailbox in Settings → Integrations: Yolias sends your campaigns from it and brings the replies here.",
+    mailboxNotConnected: "No mailbox is connected yet. Connect Gmail or any IMAP/SMTP mailbox in Settings → Integrations: Yolias sends your campaigns from it and brings the replies here.",
     by: { user: "You", agent: "AI agent", automation: "Automation", system: "Yolias" },
   },
   stages: { new: "New", interested: "Interested", meeting_booked: "Meeting Booked", meeting_completed: "Meeting Completed", closed: "Closed", lost: "Lost" },
@@ -38,7 +42,7 @@ export const wsEn = {
       tabs: { emails: "Emails", sent: "Sent", sequence: "Sequence" },
       emailStatus: { verified: "Verified email", found: "Email found", none: "No email found", finding: "Finding email…" },
       writing: "Yolias is writing personalized emails · {done} of {total}", written: "Every email is written. Review them, then start the campaign.",
-      noMailboxTitle: "Connect your mailbox to start", noMailbox: "Yolias writes and sends this campaign from your own email. Connect Gmail, Outlook or any IMAP/SMTP mailbox first.", connect: "Connect mailbox",
+      noMailboxTitle: "Connect your mailbox to start", noMailbox: "Yolias writes and sends this campaign from your own email. Connect Gmail or any IMAP/SMTP mailbox first.", connect: "Connect mailbox",
       to: "To", subject: "Subject", clickEdit: "Click to edit", send: "Send this email", sending: "Sending…", sent: "Email sent.",
       noDraft: "Yolias is writing this email.", noEmailLead: "No email address was found for this person, so no email is written.", selectLead: "Select a person to see their email.",
       people: "{count} people", social: "Profile",
@@ -65,7 +69,7 @@ export const wsEn = {
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",
       sendFrom: "Send from", manualOption: "Don’t send: I’ll send each message myself",
       autoReply: "Let Yolias answer simple replies", autoReplyHint: "Only questions and positive replies it can answer from Company Knowledge. Anything unclear, a complaint or a stop request comes to you.",
-      noMailbox: "Connect your Gmail or Outlook to let Yolias send this campaign. Without it, Yolias prepares the messages and you send them.", connectMailbox: "Connect a mailbox",
+      noMailbox: "Connect your Gmail or IMAP mailbox to let Yolias send this campaign. Without it, Yolias prepares the messages and you send them.", connectMailbox: "Connect a mailbox",
       linkedinManual: "LinkedIn doesn’t allow apps to send messages for you. Yolias prepares each message; you send it from LinkedIn.",
       approveSend: "Approve and start sending", approveManual: "Approve and prepare messages",
       confirmSend: "Start sending this campaign from your mailbox to {count} people?", confirmManual: "Start this campaign? Yolias prepares the messages and you send them yourself.",

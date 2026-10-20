@@ -819,6 +819,62 @@ export type StatusIncidentUpdateRow = { id: string; incident_id: string; status:
 
 type Rel = [];
 
+/** A dataset imported in Yolias Admin (D-248). */
+export type IntelDatasetRow = {
+  id: string;
+  name: string;
+  source_kind: "purchased" | "open_data" | "registry" | "crawl" | "partner" | "other";
+  vendor: string | null;
+  source_url: string | null;
+  license_name: string | null;
+  license_scope: "yolias_shared" | "internal";
+  customer_facing: boolean;
+  redistributable: boolean;
+  attribution: string | null;
+  retention_days: number | null;
+  purchased_at: string | null;
+  cost_usd: number | null;
+  countries: string[];
+  default_country: string | null;
+  notes: string | null;
+  entity: "company" | "person";
+  status: "mapping" | "importing" | "ready" | "deleted";
+  file_name: string | null;
+  file_rows: number | null;
+  headers: string[];
+  sample: Json;
+  mapping: Json;
+  mapping_source: "ai" | "rules" | "manual" | null;
+  enrich: boolean;
+  enrich_state: Json;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  imported_at: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+};
+export type IntelDatasetRowRow = {
+  id: number;
+  dataset_id: string;
+  row_no: number;
+  raw: Json;
+  data: Json;
+  status: "staged" | "invalid" | "new" | "merged" | "duplicate";
+  problems: string[];
+  company_id: string | null;
+  person_id: string | null;
+  created_at: string;
+};
+export type IntelDatasetRecordRow = {
+  dataset_id: string;
+  entity_type: "company" | "person";
+  entity_id: string;
+  created: boolean;
+  enriched_at: string | null;
+  created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -1014,6 +1070,9 @@ export interface Database {
       contacts: Table<IntelContactRow, "person_id" | "kind" | "value" | "source", Rel>;
       field_values: Table<IntelFieldValueRow, "entity_type" | "entity_id" | "field" | "source", Rel>;
       possible_duplicates: Table<IntelDuplicateRow, "entity_type" | "a" | "b", Rel>;
+      datasets: Table<IntelDatasetRow, "name", Rel>;
+      dataset_rows: Table<IntelDatasetRowRow, "dataset_id" | "row_no" | "raw" | "data", Rel>;
+      dataset_records: Table<IntelDatasetRecordRow, "dataset_id" | "entity_type" | "entity_id", Rel>;
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -1023,6 +1082,13 @@ export interface Database {
       provider_spend: {
         Args: { p_day_start: string; p_month_start: string };
         Returns: { provider: string; spent_today: number; spent_month: number; calls_today: number }[];
+      };
+      dataset_merge: { Args: { p_dataset: string; p_limit?: number }; Returns: Json };
+      dataset_report: { Args: { p_dataset: string }; Returns: Json };
+      dataset_delete: { Args: { p_dataset: string; p_actor: string }; Returns: Json };
+      dataset_search: {
+        Args: { p_countries: string[]; p_cities: string[]; p_terms: string[]; p_emp_min: number | null; p_emp_max: number | null; p_local: boolean; p_limit: number; p_offset: number };
+        Returns: { id: string; name: string; domain: string | null; website: string | null; industry: string | null; description: string | null; city: string | null; country: string | null; employee_count: number | null; email: string | null; phone: string | null; address: string | null; category: string | null; linkedin_url: string | null; dataset_id: string }[];
       };
       cost_summary: {
         Args: { p_since: string };

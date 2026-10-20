@@ -2329,3 +2329,11 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 /* Prospects table: one line per row, the wide table scrolls (D-240). */
 .prospects-data-table th, .prospects-data-table td { white-space: nowrap; }
 .prospects-data-table td:nth-child(7) { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Conversations (D-249): Conversations / Campaigns tabs. */
+.conv-tabs { display: flex; gap: 4px; padding: 0 34px; border-bottom: 1px solid var(--line); }
+.conv-tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 12px; font-size: .86rem; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; text-decoration: none; }
+.conv-tabs a.active { color: var(--ink); border-bottom-color: var(--red); }
+.conv-count { min-width: 18px; padding: 0 6px; border-radius: 999px; background: var(--red); color: #fff; font-size: .7rem; line-height: 18px; text-align: center; }
+.conv-count.muted { background: var(--soft, rgba(127,127,127,.15)); color: var(--muted); }
+@media (max-width: 720px) { .conv-tabs { padding: 0 16px; } }

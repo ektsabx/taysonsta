@@ -74,7 +74,7 @@ try {
   if (error) throw error;
   userId = created.user.id;
   wsId = (await db.from("profiles").select("workspace_id").eq("id", userId).single()).data!.workspace_id!;
-  await db.from("workspaces").update({ plan: "free", subscription_status: "active" }).eq("id", wsId);
+  await db.from("workspaces").update({ plan: "pro", subscription_status: "active" }).eq("id", wsId);
 
   async function run(type: IcpCriteria["search_type"], over: Partial<IcpCriteria> = {}) {
     const criteria = icp(type, over);

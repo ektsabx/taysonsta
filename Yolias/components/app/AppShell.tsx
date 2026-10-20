@@ -7,7 +7,7 @@ import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  CirclePlay, Inbox, Library, Send, SquareKanban } from "lucide-react";
+  CirclePlay, Library, MessagesSquare, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -36,14 +36,14 @@ const mainNav = [
 
 // Customer acquisition after discovery (D-193..D-195).
 const workNav = [
-  { href: "/outreach", key: "outreach", icon: Send },
-  { href: "/inbox", key: "inbox", icon: Inbox },
+  // Outreach and the Inbox are one page (D-249); a campaign's own page stays under /outreach.
+  { href: "/conversations", key: "conversations", icon: MessagesSquare },
   { href: "/crm", key: "crm", icon: SquareKanban },
   // Company Knowledge is a regular page (owner, 2026-10-19): no "AI Workspace" section, no AI Agent page.
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
 ] as const;
 
-const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) || (href === "/conversations" && (pathname.startsWith("/outreach") || pathname.startsWith("/inbox")));
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -212,7 +212,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.ws.nav[key]}</span>
-                  {key === "inbox" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
+                  {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>
             ))}

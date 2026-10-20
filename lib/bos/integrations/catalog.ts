@@ -4,7 +4,7 @@
 // `phase` = the upgrade phase whose features use the connection (the hub can
 // store and test credentials before that phase lands).
 
-export type ProviderCategory = "email" | "ai" | "google" | "social" | "ads" | "esign" | "payments" | "maps" | "security";
+export type ProviderCategory = "email" | "ai" | "google" | "social" | "ads" | "esign" | "payments" | "maps" | "security" | "data";
 
 export interface ProviderField {
   key: string;
@@ -41,9 +41,26 @@ export const categoryLabels: Record<ProviderCategory, string> = {
   payments: "الدفع",
   maps: "الخرائط والموقع",
   security: "الحماية",
+  data: "مصادر البيانات",
 };
 
 export const providers: ProviderDef[] = [
+  // Data sources (D-248): registries and verification for the companies database.
+  {
+    key: "companies_house", name: "UK Companies House", category: "data", phase: 0, testable: false,
+    description: "السجل التجاري البريطاني الرسمي (مجاني). يُستخدم في استيراد البيانات ← المصادر المفتوحة لسحب الشركات النشطة حسب النشاط (SIC) والمدينة.",
+    fields: [{ key: "api_key", label: "مفتاح API (REST)", secret: true, required: true, hint: "من developer.company-information.service.gov.uk ← Your applications ← Create an application (Live) ← Create new key (REST)" }],
+    capabilities: ["company.search"],
+    docs: "https://developer-specs.company-information.service.gov.uk/",
+  },
+  {
+    key: "millionverifier", name: "MillionVerifier", category: "data", phase: 0, testable: false,
+    description: "التحقق من صحة البريد الإلكتروني قبل الإرسال (مدفوع بالرصيد).",
+    fields: [{ key: "api_key", label: "مفتاح API", secret: true, required: true, hint: "من لوحة MillionVerifier ← API" }],
+    capabilities: ["email.verify"],
+    docs: "https://developer.millionverifier.com/",
+    yolias: "التحقق من بريد العملاء المحتملين قبل تسليمهم (مزود email.verify).",
+  },
   {
     key: "resend", name: "Resend", category: "email", phase: 4, testable: true,
     description: "إرسال البريد (الإشعارات، الدعوات، رسائل العملاء) مع تتبع التسليم عبر Webhook.",

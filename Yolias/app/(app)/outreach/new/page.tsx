@@ -23,7 +23,7 @@ export default async function NewOutreachPage({ searchParams }: PageProps<"/outr
     <div className="page-view">
       <header className="view-header">
         <div className="view-title-group">
-          <Link className="detail-back" href="/outreach"><ArrowLeft className="flip-rtl" /> {t.ws.outreach.title}</Link>
+          <Link className="detail-back" href="/conversations?tab=campaigns"><ArrowLeft className="flip-rtl" /> {t.ws.outreach.title}</Link>
           <h2>{t.ws.outreach.newCampaign}</h2>
         </div>
       </header>

@@ -54,7 +54,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
         <div className="view-actions">
           {lead.do_not_contact && <span className="ws-chip red"><ShieldAlert /> {d.dnc}</span>}
           <StageSelect leadId={lead.id} stage={lead.stage} />
-          <Link className="btn-secondary" href={`/inbox?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
+          <Link className="btn-secondary" href={`/conversations?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
         </div>
       </header>
       <div className="view-content-padding">
@@ -83,7 +83,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
               {!detail.messages.length && <div className="ws-empty">{d.noMessages}</div>}
               {detail.messages.map((m) => <MessageCard key={m.id} m={m as unknown as CardMessage} timeZone={timeZone} />)}
               {/* Replies are written in the Inbox (D-239); the CRM shows the conversation. */}
-              {detail.messages.length > 0 && <div style={{ marginTop: 12 }}><Link className="btn-secondary ws-btn-sm" href={`/inbox?lead=${lead.id}`}><Inbox size={13} /> {t.ws.inbox.title}</Link></div>}
+              {detail.messages.length > 0 && <div style={{ marginTop: 12 }}><Link className="btn-secondary ws-btn-sm" href={`/conversations?lead=${lead.id}`}><Inbox size={13} /> {t.ws.inbox.title}</Link></div>}
             </section>
 
             <section className="ws-section">

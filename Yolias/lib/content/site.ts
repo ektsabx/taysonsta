@@ -36,7 +36,7 @@ export const home: Localized<{
         { before: "Hours on Google, maps and LinkedIn looking for companies that might fit.", after: "One sentence. Yolias finds companies that match your market, industry, size and signals." },
         { before: "Guessing who decides, then copying names into a spreadsheet.", after: "The decision makers at each company, with the contact details that exist. Missing ones are marked, never guessed." },
         { before: "A generic first email that ignores what the company does.", after: "A first email and follow-ups written from your company knowledge and what Yolias found, sent only after you approve." },
-        { before: "Replies scattered across inboxes and sheets.", after: "Replies in one Inbox, and every lead’s stage, deal value and next step in the CRM." },
+        { before: "Replies scattered across inboxes and sheets.", after: "Replies in one place, Conversations, and every lead’s stage, deal value and next step in the CRM." },
       ],
     },
     how: {
@@ -45,7 +45,7 @@ export const home: Localized<{
       steps: [
         { title: "Describe the customer", body: "Write it the way you would brief a colleague, in Arabic or English. Add a screenshot or an ICP document if that is easier." },
         { title: "Yolias finds and explains", body: "It turns your request into criteria (market, industry, size, signals, job titles), searches, and returns matching companies and decision makers with the reasons each one fits." },
-        { title: "Approve outreach, follow replies", body: "Keep the prospects you want. Yolias writes the emails, sends them from your connected mailbox once you approve, and brings the replies to your Inbox." },
+        { title: "Approve outreach, follow replies", body: "Keep the prospects you want. Yolias writes the emails, sends them from your connected mailbox once you approve, and brings the replies to Conversations." },
       ],
     },
     features: {
@@ -72,7 +72,7 @@ export const home: Localized<{
         { q: "What can I search for?", a: "Decision makers at companies that match your criteria, companies on their own, local businesses in a city or area, and companies similar to ones you name." },
         { q: "Where does the data come from, and how accurate is it?", a: "From the data sources connected to Yolias and from public information such as company websites. Every record keeps the source it came from, contact details are labelled by verification state, and anything Yolias couldn’t find is shown as not available instead of being guessed. What Yolias finds depends on your market and on what those sources cover." },
         { q: "Does Yolias send messages for me?", a: "Yes, after you approve. Yolias writes a first email and follow-ups from your Company Knowledge and the facts it found, and sends them from your own connected mailbox (Gmail or any IMAP/SMTP account). Yolias never messages anyone on LinkedIn." },
-        { q: "Can I manage replies and deals in Yolias?", a: "Yes. Replies to the emails Yolias sent from your mailbox come into the Inbox, sorted, with a suggested answer. Every lead has one record in the CRM with its stage (Interested, Meeting Booked, Meeting Completed, Closed or Lost), deal value, meetings, reminders, notes and history, as a table or Kanban." },
+        { q: "Can I manage replies and deals in Yolias?", a: "Yes. Replies to the emails Yolias sent from your mailbox come into Conversations, sorted, with a suggested answer. Every lead has one record in the CRM with its stage (Interested, Meeting Booked, Meeting Completed, Closed or Lost), deal value, meetings, reminders, notes and history, as a table or Kanban." },
         { q: "What do I need to get started?", a: "A work email, a plan, and a few lines about your company (or your website address, which Yolias can read to fill them in). Connect your mailbox when you are ready to send." },
         { q: "Which languages does Yolias support?", a: "The whole product works in Arabic and English, right-to-left and left-to-right. Messages can be drafted in 15 languages." },
         { q: "How much does Yolias cost?", a: "Three options: Pay As You Go (prepaid credit from $5, no subscription), or the monthly plans Pro and Growth. Every option has all the features and unlimited users. You pay for prospects only: emails are never charged. Monthly plans cancel any time. See the pricing page for current prices." },
@@ -113,7 +113,7 @@ export const home: Localized<{
       steps: [
         { title: "صِف العميل", body: "اكتبه كما تشرح المهمة لزميل، بالعربية أو الإنجليزية. أضف لقطة شاشة أو مستند ICP إن كان ذلك أسهل." },
         { title: "يجد يولـياس ويشرح", body: "يحوّل طلبك إلى معايير (السوق والقطاع والحجم والمؤشرات والمسميات الوظيفية)، ويبحث، ويعيد لك الشركات وصنّاع القرار المطابقين مع سبب تطابق كل منهم." },
-        { title: "وافق على التواصل وتابع الردود", body: "احتفظ بمن تريد. يكتب يولـياس الرسائل، ويرسلها من بريدك المتصل بعد موافقتك، ويجلب الردود إلى صندوق الوارد." },
+        { title: "وافق على التواصل وتابع الردود", body: "احتفظ بمن تريد. يكتب يولـياس الرسائل، ويرسلها من بريدك المتصل بعد موافقتك، ويجلب الردود إلى المحادثات." },
       ],
     },
     features: {
@@ -140,7 +140,7 @@ export const home: Localized<{
         { q: "عن ماذا يمكنني البحث؟", a: "عن صنّاع القرار في الشركات المطابقة لمعاييرك، أو عن الشركات وحدها، أو عن الأنشطة التجارية المحلية في مدينة أو منطقة، أو عن شركات تشبه شركات تذكرها." },
         { q: "من أين تأتي البيانات، وما مدى دقتها؟", a: "من مصادر البيانات المتصلة بيولـياس ومن المعلومات العامة مثل مواقع الشركات. يحتفظ كل سجل بالمصدر الذي جاء منه، وتُصنَّف بيانات التواصل حسب حالة التحقق، وما لم يعثر عليه يولـياس يظهر كغير متوفر بدل تخمينه. ما يجده يولـياس يعتمد على سوقك وعلى ما تغطيه هذه المصادر." },
         { q: "هل يرسل يولـياس الرسائل نيابةً عني؟", a: "نعم، بعد موافقتك. يكتب يولـياس رسالة أولى ومتابعات من معرفة شركتك والمعلومات التي وجدها، ويرسلها من صندوق بريدك المتصل (Gmail أو أي بريد IMAP/SMTP). ولا يرسل يولـياس رسائل على LinkedIn أبدًا." },
-        { q: "هل يمكنني إدارة الردود والصفقات في يولـياس؟", a: "نعم. تصل الردود على الرسائل التي أرسلها يولـياس من بريدك إلى صندوق الوارد مصنّفة مع رد مقترح. ولكل عميل سجل واحد في إدارة العملاء بمرحلته (مهتم، تم حجز اجتماع، تم الاجتماع، تم الإغلاق، خسارة) وقيمة الصفقة والاجتماعات والتذكيرات والملاحظات والسجل، كجدول أو كانبان." },
+        { q: "هل يمكنني إدارة الردود والصفقات في يولـياس؟", a: "نعم. تصل الردود على الرسائل التي أرسلها يولـياس من بريدك إلى المحادثات مصنّفة مع رد مقترح. ولكل عميل سجل واحد في إدارة العملاء بمرحلته (مهتم، تم حجز اجتماع، تم الاجتماع، تم الإغلاق، خسارة) وقيمة الصفقة والاجتماعات والتذكيرات والملاحظات والسجل، كجدول أو كانبان." },
         { q: "ماذا أحتاج لأبدأ؟", a: "بريد عمل، وخطة، وبضعة أسطر عن شركتك (أو عنوان موقعك ليقرأه يولـياس ويملأها). واربط بريدك عندما تكون جاهزًا للإرسال." },
         { q: "ما اللغات التي يدعمها يولـياس؟", a: "يعمل المنتج كله بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين، ويمكن كتابة الرسائل بـ 15 لغة." },
         { q: "كم تكلفة يولـياس؟", a: "ثلاثة خيارات: الدفع حسب الاستخدام (رصيد مسبق من 5 دولارات بدون اشتراك)، أو الخطتان الشهريتان برو والنمو. كل خيار فيه كل الميزات ومستخدمون غير محدودين. تدفع مقابل العملاء المحتملين فقط، والرسائل بدون رسوم. الخطط الشهرية تُلغى في أي وقت. الأسعار الحالية في صفحة الأسعار." },
@@ -192,7 +192,7 @@ export const product: Localized<{
       {
         title: "Outreach, replies and deals",
         body: "Pick the prospects you want and Yolias writes a personal first email and follow-ups from your Company Knowledge. They are sent from your own mailbox only after you approve.",
-        points: ["Gmail or any IMAP/SMTP mailbox", "Replies arrive in the Inbox, sorted, with a suggested answer", "Every lead’s stage, deal value and meetings in the CRM"],
+        points: ["Gmail or any IMAP/SMTP mailbox", "Replies arrive in Conversations, sorted, with a suggested answer", "Every lead’s stage, deal value and meetings in the CRM"],
       },
     ],
     icp: [
@@ -244,7 +244,7 @@ export const product: Localized<{
       {
         title: "التواصل والردود والصفقات",
         body: "اختر العملاء المحتملين الذين تريدهم، ويكتب يولـياس رسالة أولى ومتابعات شخصية من معرفة شركتك. ولا تُرسل من بريدك إلا بعد موافقتك.",
-        points: ["Gmail أو أي بريد IMAP/SMTP", "تصل الردود إلى صندوق الوارد مصنّفة مع رد مقترح", "مرحلة كل عميل وقيمة صفقته واجتماعاته في إدارة العملاء"],
+        points: ["Gmail أو أي بريد IMAP/SMTP", "تصل الردود إلى المحادثات مصنّفة مع رد مقترح", "مرحلة كل عميل وقيمة صفقته واجتماعاته في إدارة العملاء"],
       },
     ],
     icp: [

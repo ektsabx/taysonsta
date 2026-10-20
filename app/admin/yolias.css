@@ -241,3 +241,8 @@
 .llm-task { display: grid; gap: 8px; padding: 12px; border: 1px solid rgba(var(--bos-fg-rgb), 0.08); border-radius: 10px; }
 .llm-route-row { display: grid; grid-template-columns: 24px 140px 1fr auto auto; gap: 8px; align-items: center; }
 .content-langs { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+
+/* Data import (D-248) */
+.ds-subtitle { font-size: 13px; font-weight: 700; margin: 18px 0 8px; }
+.ds-mapping select { max-width: 100%; }
+.ds-progress { display: grid; gap: 8px; }

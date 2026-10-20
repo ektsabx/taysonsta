@@ -764,7 +764,7 @@ export const ar: Dictionary = {
     subject: "الموضوع", message: "الرسالة", placeholders: "استخدم {first_name} و {company}، وكل شخص تصله رسالته باسمه.",
     personalize: "تخصيص مع يولـياس", personalizeHint: "يكتب يولـياس رسالة لكل شخص من ملفه وبيانات شركته.",
     personalizing: "جارٍ التخصيص {done}/{total}…", personalized: "خصّصها يولـياس", sharedMessage: "نفس الرسالة للجميع",
-    delivery: "طريقة الإرسال", sendFrom: "إرسال بالبريد من", noMailbox: "اربط Gmail أو Outlook لإرسال الرسائل.", connect: "ربط بريد",
+    delivery: "طريقة الإرسال", sendFrom: "إرسال بالبريد من", noMailbox: "اربط Gmail أو بريد IMAP لإرسال الرسائل.", connect: "ربط بريد",
     linkedinNote: "يرسل يولـياس بريداً من بريدك أنت. رسائل LinkedIn غير متاحة.",
     noEmail: "سيتم تخطّي {count} بدون بريد.", cancel: "إلغاء", start: "بدء التواصل", starting: "جارٍ البدء…",
     progressTitle: "جارٍ بدء التواصل…", progressLead: "يتواصل يولـياس مع {count} شخص.",

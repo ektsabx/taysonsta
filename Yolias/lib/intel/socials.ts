@@ -102,13 +102,38 @@ async function page(url: string | URL): Promise<{ html: string; url: string } | 
   }
 }
 
+const ent = (v: string) => v.replace(/\u2014/g, "-").replace(/&mdash;/g, "-").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ");
+const meta = (html: string, key: string) => {
+  const m = html.match(new RegExp(`<meta[^>]+(?:property|name)\\s*=\\s*["']${key}["'][^>]*>`, "i"))?.[0];
+  return m ? ent(m.match(/content\s*=\s*["']([^"']*)["']/i)?.[1] ?? "").trim() || null : null;
+};
+
+/**
+ * The business's own name and description as its home page states them
+ * (og:site_name, then the title without the page part), for datasets that
+ * only have a domain (D-248). Null when the page doesn't say.
+ */
+export function siteFactsFromHtml(html: string): { name: string | null; description: string | null } {
+  const title = ent(html.match(/<title[^>]*>([\s\S]{1,300}?)<\/title>/i)?.[1] ?? "").replace(/\s+/g, " ").trim();
+  const fromTitle = title.split(/\s[|\-–:·•]\s/).map((x) => x.trim()).filter((x) => x.length >= 2).sort((a, b) => a.length - b.length)[0] ?? null;
+  const name = (meta(html, "og:site_name") ?? fromTitle)?.slice(0, 120) ?? null;
+  const description = (meta(html, "description") ?? meta(html, "og:description"))?.slice(0, 500) ?? null;
+  return { name: name && !/^(home|homepage|welcome|index|الرئيسية|الصفحة الرئيسية)$/i.test(name) ? name : null, description };
+}
+
 /** The social profiles and public contact details a company's website links to. */
 export async function findSocials(website: string | null | undefined): Promise<Socials> {
+  return (await readSite(website)) ?? NONE;
+}
+
+/** findSocials plus the name and description the home page states. */
+export async function readSite(website: string | null | undefined): Promise<(Socials & { name: string | null; description: string | null }) | null> {
   const url = website ? publicUrl(website) : null;
-  if (!url) return NONE;
+  if (!url) return null;
   const home = await page(url);
-  if (!home) return NONE;
-  const found = socialsFromHtml(home.html, home.url);
+  if (!home) return null;
+  const facts = siteFactsFromHtml(home.html);
+  const found = { ...socialsFromHtml(home.html, home.url), ...facts };
   if (found.email && found.phone) return found;
   const contact = contactPage(home.html, home.url);
   const more = contact ? await page(contact) : null;
@@ -116,6 +141,6 @@ export async function findSocials(website: string | null | undefined): Promise<S
   const extra = socialsFromHtml(more.html, more.url);
   return {
     facebookUrl: found.facebookUrl ?? extra.facebookUrl, instagramUrl: found.instagramUrl ?? extra.instagramUrl, linkedinUrl: found.linkedinUrl ?? extra.linkedinUrl,
-    email: found.email ?? extra.email, phone: found.phone ?? extra.phone,
+    email: found.email ?? extra.email, phone: found.phone ?? extra.phone, name: facts.name, description: facts.description,
   };
 }

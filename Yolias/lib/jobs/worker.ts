@@ -14,6 +14,7 @@ import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
 import { billingSweep } from "@/lib/billing";
+import { enrichDataset } from "@/lib/datasets/enrich";
 import { affiliateNotify, matureCommissions } from "@/lib/affiliates/notify";
 import { runStatusChecks, statusSettings } from "@/lib/status/checks";
 import type { JobKind, JobPayloads } from "@/lib/jobs/queue";
@@ -43,6 +44,9 @@ const handlers: { [K in JobKind]: Handler<K> } = {
   "billing.sweep": async () => {
     await billingSweep();
     await matureCommissions();
+  },
+  "dataset.enrich": async (p) => {
+    await enrichDataset(p.datasetId);
   },
   "affiliate.notify": async (p) => {
     await affiliateNotify(p.affiliateId, p.event, p.dedupeId, { amountCents: p.amountCents, reason: p.reason, reference: p.reference });

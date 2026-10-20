@@ -308,7 +308,7 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   await runAutomations({ workspaceId: mb.workspace_id, trigger: "reply.received", leadId, eventKey: `message:${messageId}`, data: { replyKind: analysis?.kind }, origin: "system" })
     .catch((e) => console.error("[automations] reply.received", e));
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
-  await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${lead?.name ?? "a lead"}${lead?.company_name ? ` at ${lead.company_name}` : ""}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `reply:${messageId}`);
+  await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${lead?.name ?? "a lead"}${lead?.company_name ? ` at ${lead.company_name}` : ""}`, analysis?.summary ?? null, `/conversations?lead=${leadId}`, `reply:${messageId}`);
 
   // Auto-reply: only if the member turned it on for this campaign, only for
   // simple positive replies the agent can answer from company knowledge, never

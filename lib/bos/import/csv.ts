@@ -1,6 +1,6 @@
 // CSV parsing for imports (moved from the removed Ads module, 2026-10-12).
 // RFC 4180: quoted fields, doubled quotes, commas and newlines inside quotes.
-export function parseCsv(text: string): string[][] {
+export function parseCsv(text: string, delimiter = ","): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";
@@ -12,7 +12,7 @@ export function parseCsv(text: string): string[][] {
       else if (ch === '"') q = false;
       else cell += ch;
     } else if (ch === '"') q = true;
-    else if (ch === ",") { row.push(cell); cell = ""; }
+    else if (ch === delimiter) { row.push(cell); cell = ""; }
     else if (ch === "\n" || ch === "\r") {
       if (ch === "\r" && text[i + 1] === "\n") i++;
       row.push(cell); cell = "";

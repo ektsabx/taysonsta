@@ -86,7 +86,7 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
     <div className="page-view">
       <header className="view-header">
         <div className="view-title-group">
-          <Link className="detail-back" href="/outreach"><ArrowLeft className="flip-rtl" /> {o.title}</Link>
+          <Link className="detail-back" href="/conversations?tab=campaigns"><ArrowLeft className="flip-rtl" /> {o.title}</Link>
           <h2>{c.name}</h2>
           <p>{[o.status[c.status], fmt(w.people, { count: work.leads.length }), c.goal].filter(Boolean).join(" · ")}</p>
         </div>
@@ -168,7 +168,7 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
                   {!work.sent.length && <tr><td colSpan={6} className="empty-cell">{w.noSent}</td></tr>}
                   {work.sent.map((m) => (
                     <tr key={m.id}>
-                      <td>{m.leadId ? <Link className="entity-link" href={`/inbox?lead=${m.leadId}`}><strong>{m.lead}</strong></Link> : m.lead}</td>
+                      <td>{m.leadId ? <Link className="entity-link" href={`/conversations?lead=${m.leadId}`}><strong>{m.lead}</strong></Link> : m.lead}</td>
                       <td dir="ltr">{m.to ?? "-"}</td>
                       <td className="ow-sent-email"><details><summary dir="auto">{m.subject || "-"}</summary><p dir="auto">{m.body}</p></details></td>
                       <td className="cell-sub">{dateTime(m.sentAt, locale, timeZone)}</td>

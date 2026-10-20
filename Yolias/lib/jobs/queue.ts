@@ -7,7 +7,7 @@ import type { AffiliateEmailEvent } from "@/lib/email/messages";
 // worker (/api/worker) runs them. Every job must be idempotent: it can run
 // again after a crash or timeout.
 
-export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep" | "affiliate.notify" | "email.team_message";
+export type JobKind = "campaign.discover" | "company.people" | "email.send" | "email.workspace" | "email.user" | "email.announce" | "billing.sweep" | "affiliate.notify" | "email.team_message" | "dataset.enrich";
 
 export interface JobPayloads {
   "campaign.discover": { campaignId: string };
@@ -26,6 +26,8 @@ export interface JobPayloads {
   /** An affiliate notice queued by Yolias Admin (decision, commission review, payout step, terms change). */
   /** A message the Yolias team wrote to one account (account_messages row), queued by Yolias Admin. */
   "email.team_message": { messageId: string };
+  /** Website enrichment of an imported dataset (D-248), a few companies per run. */
+  "dataset.enrich": { datasetId: string };
   "affiliate.notify": { affiliateId: string; event: AffiliateEmailEvent; dedupeId: string; amountCents?: number | null; reason?: string | null; reference?: string | null };
 }
 

@@ -83,7 +83,7 @@ function colIndex(ref: string) {
 
 // Excel serial date → YYYY-MM-DD for cells formatted as dates is not
 // guessed: values are returned as stored; the date field parser accepts serials.
-export async function parseXlsx(buf: Uint8Array): Promise<Parsed> {
+export async function parseXlsx(buf: Uint8Array, maxRows = MAX_ROWS): Promise<Parsed> {
   const files = await unzip(buf, (n) => n === "xl/sharedStrings.xml" || n === "xl/workbook.xml" || /^xl\/worksheets\/sheet\d+\.xml$/.test(n));
   const dec = new TextDecoder();
   const shared: string[] = [];
@@ -109,7 +109,7 @@ export async function parseXlsx(buf: Uint8Array): Promise<Parsed> {
       cells[idx] = v;
     }
     table.push(Array.from(cells, (x) => (x ?? "").trim()));
-    if (table.length > MAX_ROWS + 1) break;
+    if (table.length > maxRows + 1) break;
   }
   if (!table.length) return { headers: [], rows: [] };
   const width = Math.max(...table.map((r) => r.length));

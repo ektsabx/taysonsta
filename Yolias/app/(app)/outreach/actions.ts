@@ -76,9 +76,11 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
     const targets = rows.map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id }));
     const launched = await launchCampaign(id!, targets);
     revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
     return launched.ok ? { ok: true, id: id!, message: launched.message } : { ok: true, id: id!, message: launched.error };
   }
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   return { ok: true, id: id! };
 }
 
@@ -158,6 +160,7 @@ export async function setOutreachStatus(id: string, status: OutreachCampaignStat
     await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "campaign_archived", next_step_at: null }).eq("campaign_id", id).in("status", ["active", "paused"]);
   }
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   return { ok: true };
 }
 
@@ -174,6 +177,7 @@ export async function enrollInCampaign(campaignId: string, leadIds: string[]): P
   const r = await enrollLeads(await createClient(), session.workspace.id, session.userId, campaignId, ids);
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   revalidatePath("/crm");
   return { ok: true, message: enrollMessage(t, r) };
 }
@@ -191,6 +195,7 @@ export async function addProspectsToCampaign(campaignId: string, targets: LeadTa
   const r = await enrollLeads(db, session.workspace.id, session.userId, campaignId, ids);
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   revalidatePath("/crm");
   return { ok: true, message: enrollMessage(t, r) };
 }
@@ -209,6 +214,7 @@ export async function removeEnrollment(enrollmentId: string): Promise<OutreachRe
     : await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "removed", next_step_at: null }).eq("id", e.id);
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   return { ok: true };
 }
 
@@ -234,7 +240,8 @@ export async function prepareCampaignDrafts(campaignId: string): Promise<Outreac
     ? t.ws.messages.prepareErrors[key as keyof typeof t.ws.messages.prepareErrors]
     : t.outreach.errors[key as keyof typeof t.outreach.errors] ?? t.ws.common.error;
   revalidatePath("/outreach", "layout");
-  revalidatePath("/inbox");
+    revalidatePath("/conversations");
+  revalidatePath("/conversations");
   if (!prepared && blocking) return { ok: false, error: reasonText(blocking) };
   // The most common reason a lead was skipped (e.g. no email for an email campaign).
   const top = [...reasons.entries()].sort((a, b) => b[1] - a[1])[0];
@@ -253,6 +260,7 @@ export async function approveOutreach(campaignId: string, mailboxId: string | nu
   const r = await approveCampaign({ workspaceId: session.workspace.id, userId: session.userId, role: session.role, campaignId, mailboxId, autoReply: autoReply === true });
   if (!r.ok) return { ok: false, error: t.launch.errors[r.error] };
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   return { ok: true, message: mailboxId ? t.launch.started : t.launch.startedManual };
 }
 
@@ -262,5 +270,6 @@ export async function runOutreach(campaignId: string, action: "pause" | "resume"
   if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel"].includes(action)) return { ok: false, error: t.errors.notFound };
   if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
   revalidatePath("/outreach", "layout");
+    revalidatePath("/conversations");
   return { ok: true };
 }

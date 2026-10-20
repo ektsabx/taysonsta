@@ -4,9 +4,13 @@ import type { Dictionary } from "./en";
 
 export const wsAr: Dictionary["ws"] = {
   nav: {
-    outreach: "التواصل", inbox: "صندوق الوارد", crm: "إدارة العملاء", aiWorkspace: "مساحة الذكاء الاصطناعي",
+    conversations: "المحادثات", outreach: "التواصل", inbox: "صندوق الوارد", crm: "إدارة العملاء", aiWorkspace: "مساحة الذكاء الاصطناعي",
     knowledge: "معرفة الشركة", profiles: "ملفات العملاء", agents: "وكيل الذكاء الاصطناعي", rules: "القواعد والصلاحيات", automations: "الأتمتة",
     watchVideo: "شاهد الفيديو التعريفي",
+  },
+  conversations: {
+    title: "المحادثات", subtitle: "كل محادثة مع عميل محتمل في مكان واحد: ما أُرسل، والردود، والخطوة التالية، مع الحملات التي تبدأ هذه المحادثات.",
+    tabs: { threads: "المحادثات", campaigns: "الحملات" },
   },
   common: {
     save: "حفظ", saved: "تم الحفظ", saving: "جارٍ الحفظ…", cancel: "إلغاء", delete: "حذف", edit: "تعديل", add: "إضافة", create: "إنشاء", back: "رجوع",
@@ -14,7 +18,7 @@ export const wsAr: Dictionary["ws"] = {
     onlyManagers: "يستطيع المالكون والمسؤولون فقط تغيير هذا.", optional: "اختياري", confirmDelete: "حذف هذا العنصر؟ لا يمكن التراجع.",
     page: "صفحة {page} من {pages}", prev: "السابق", next: "التالي", yes: "نعم", no: "لا", open: "فتح", close: "إغلاق", done: "تم",
     notConnectedTitle: "غير متصل بعد",
-    mailboxNotConnected: "لا يوجد صندوق بريد متصل بعد. اربط Gmail أو Outlook أو أي بريد IMAP/SMTP من الإعدادات ← التكاملات: يرسل يولـياس حملاتك منه ويجلب الردود إلى هنا.",
+    mailboxNotConnected: "لا يوجد صندوق بريد متصل بعد. اربط Gmail أو أي بريد IMAP/SMTP من الإعدادات ← التكاملات: يرسل يولـياس حملاتك منه ويجلب الردود إلى هنا.",
     by: { user: "أنت", agent: "وكيل ذكاء اصطناعي", automation: "أتمتة", system: "يولـياس" },
   },
   stages: { new: "جديد", interested: "مهتم", meeting_booked: "تم حجز اجتماع", meeting_completed: "تم الاجتماع", closed: "تم الإغلاق", lost: "خسارة" },
@@ -38,7 +42,7 @@ export const wsAr: Dictionary["ws"] = {
       tabs: { emails: "الرسائل", sent: "المُرسلة", sequence: "التسلسل" },
       emailStatus: { verified: "بريد موثّق", found: "تم إيجاد البريد", none: "لم يُعثر على بريد", finding: "جارٍ البحث عن البريد…" },
       writing: "يولـياس يكتب رسائل مخصصة · {done} من {total}", written: "كُتبت كل الرسائل. راجعها، ثم ابدأ الحملة.",
-      noMailboxTitle: "اربط صندوق بريدك للبدء", noMailbox: "يكتب يولـياس هذه الحملة ويرسلها من بريدك أنت. اربط Gmail أو Outlook أو أي بريد IMAP/SMTP أولًا.", connect: "ربط البريد",
+      noMailboxTitle: "اربط صندوق بريدك للبدء", noMailbox: "يكتب يولـياس هذه الحملة ويرسلها من بريدك أنت. اربط Gmail أو أي بريد IMAP/SMTP أولًا.", connect: "ربط البريد",
       to: "إلى", subject: "الموضوع", clickEdit: "اضغط للتعديل", send: "أرسل هذه الرسالة", sending: "جارٍ الإرسال…", sent: "أُرسلت الرسالة.",
       noDraft: "يولـياس يكتب هذه الرسالة.", noEmailLead: "لم يُعثر على بريد لهذا الشخص، فلم تُكتب له رسالة.", selectLead: "اختر شخصًا لعرض رسالته.",
       people: "{count} شخص", social: "الملف",
@@ -64,7 +68,7 @@ export const wsAr: Dictionary["ws"] = {
       sample: "الرسالة الأولى (مثال)", noSample: "تُجهَّز الرسائل الأولى عند موافقتك.",
       sendFrom: "الإرسال من", manualOption: "لا ترسل: سأرسل كل رسالة بنفسي",
       autoReply: "دَع يولـياس يرد على الردود البسيطة", autoReplyHint: "فقط الأسئلة والردود الإيجابية التي يستطيع الإجابة عنها من معرفة الشركة. أي شيء غير واضح أو شكوى أو طلب إيقاف يصلك أنت.",
-      noMailbox: "اربط Gmail أو Outlook ليرسل يولـياس هذه الحملة. بدونه يجهّز يولـياس الرسائل وأنت ترسلها.", connectMailbox: "ربط صندوق بريد",
+      noMailbox: "اربط Gmail أو بريد IMAP ليرسل يولـياس هذه الحملة. بدونه يجهّز يولـياس الرسائل وأنت ترسلها.", connectMailbox: "ربط صندوق بريد",
       linkedinManual: "لا يسمح LinkedIn للتطبيقات بإرسال الرسائل نيابةً عنك. يجهّز يولـياس كل رسالة وأنت ترسلها من LinkedIn.",
       approveSend: "وافِق وابدأ الإرسال", approveManual: "وافِق وجهّز الرسائل",
       confirmSend: "بدء إرسال هذه الحملة من صندوق بريدك إلى {count} شخص؟", confirmManual: "بدء هذه الحملة؟ يجهّز يولـياس الرسائل وأنت ترسلها بنفسك.",

@@ -11,7 +11,7 @@ import type { ResolvedConnection } from "@/services/bos/integrations";
 // secrets in Supabase Vault. Yolias never reads these keys from anywhere else.
 
 /** Hub provider → what it becomes in Yolias. */
-const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", yolias_microsoft: "microsoft_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar" };
+const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", yolias_microsoft: "microsoft_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", millionverifier: "intel:millionverifier" };
 
 export function usedByYolias(provider: string): boolean {
   return provider in targets;
@@ -88,6 +88,20 @@ export async function syncToYolias(provider: string, conn: ResolvedConnection | 
       updated_by: by,
       updated_at: new Date().toISOString(),
     }).eq("id", "paymob"));
+    return;
+  }
+
+  // Data providers of the intelligence layer (D-248): the key goes to the
+  // provider's Vault credential and the provider is switched on (or off).
+  if (target.startsWith("intel:")) {
+    const id = target.slice("intel:".length);
+    if (!conn) {
+      await run(ydb().schema("intel").rpc("clear_provider_credential", { p_provider: id }));
+      await run(ydb().schema("intel").from("providers").update({ enabled: false, updated_at: new Date().toISOString() }).eq("id", id));
+      return;
+    }
+    await run(ydb().schema("intel").rpc("set_provider_credential", { p_provider: id, p_secret: conn.secrets.api_key }));
+    await run(ydb().schema("intel").from("providers").update({ enabled: true, updated_at: new Date().toISOString() }).eq("id", id));
     return;
   }
 

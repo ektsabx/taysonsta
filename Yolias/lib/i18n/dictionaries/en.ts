@@ -762,7 +762,7 @@ export const en = {
     subject: "Subject", message: "Message", placeholders: "Use {first_name} and {company}; each person gets their own.",
     personalize: "Personalize with Yolias", personalizeHint: "Yolias writes a message for each person from their profile and company.",
     personalizing: "Personalizing {done}/{total}…", personalized: "Personalized by Yolias", sharedMessage: "Same message for everyone",
-    delivery: "Delivery", sendFrom: "Send by email from", noMailbox: "Connect your Gmail or Outlook to send outreach.", connect: "Connect a mailbox",
+    delivery: "Delivery", sendFrom: "Send by email from", noMailbox: "Connect your Gmail or IMAP mailbox to send outreach.", connect: "Connect a mailbox",
     linkedinNote: "Yolias sends an email from your own mailbox. LinkedIn messages aren’t available.",
     noEmail: "{count} without an email will be skipped.", cancel: "Cancel", start: "Start outreach", starting: "Starting…",
     progressTitle: "Starting your outreach…", progressLead: "Yolias is reaching out to {count} people.",

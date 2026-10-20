@@ -62,7 +62,7 @@ try {
   if (error) throw error;
   userId = created.user.id;
   wsId = (await db.from("profiles").select("workspace_id").eq("id", userId).single()).data!.workspace_id!;
-  await db.from("workspaces").update({ plan: "free", subscription_status: "active" }).eq("id", wsId);
+  await db.from("workspaces").update({ plan: "pro", subscription_status: "active" }).eq("id", wsId);
 
   // Goal 5, continuous daily: 2 per run → scheduled, scheduled, completed.
   const { data: c } = await db.from("campaigns").insert({

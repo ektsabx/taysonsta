@@ -97,6 +97,17 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/quality", label: "جودة البيانات", perm: "platform.read" },
     ],
   },
+  // Data import (D-248): bought lists, open data, registries, our crawler.
+  {
+    key: "y_import",
+    label: "استيراد البيانات",
+    icon: "y_data",
+    items: [
+      { href: "/admin/platform/datasets", label: "البيانات المستوردة", perm: "platform.read" },
+      { href: "/admin/platform/datasets/new", label: "استيراد بيانات", perm: "platform.manage" },
+      { href: "/admin/platform/datasets/sources", label: "المصادر المفتوحة", perm: "platform.read" },
+    ],
+  },
   {
     key: "y_search",
     label: "البحث والمزودون",

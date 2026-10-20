@@ -38,6 +38,7 @@ export async function runCapability<C extends Capability>(capability: C, input: 
   const db = intel();
   const errors: { provider: string; error: string }[] = [];
   const first = providers.get(decision.usable[0].id)!.row;
+  let empty: Extract<CapabilityResult<C>, { ok: true }> | null = null;
 
   for (const state of decision.usable) {
     const { row, adapter } = providers.get(state.id)!;
@@ -73,10 +74,17 @@ export async function runCapability<C extends Capability>(capability: C, input: 
         cost_usd: cost, // null = unpriced (D-114)
       }).select("id").single();
       await db.from("providers").update({ health: asJson(nextHealth(row.health as object, true, null, breaker)) }).eq("id", row.id);
+      // An empty list moves on to the next provider (e.g. no imported dataset
+      // covers this search yet, D-248); the last one's answer is returned as is.
       const license: SourceLicense = {
         scope: row.license_scope, redistributable: row.redistribution_allowed, customerFacing: row.customer_facing_allowed, retentionDays: row.retention_days,
       };
-      return { ok: true, provider: row.id, data: result.data, costUsd: cost, license, callId: call?.id ?? null };
+      const answer = { ok: true as const, provider: row.id, data: result.data, costUsd: cost, license, callId: call?.id ?? null };
+      if (Array.isArray(result.data) && result.data.length === 0) {
+        empty ??= answer;
+        continue;
+      }
+      return answer;
     } catch (e) {
       const error = e instanceof Error ? e.message.slice(0, 500) : "adapter failed";
       errors.push({ provider: row.id, error });
@@ -87,5 +95,6 @@ export async function runCapability<C extends Capability>(capability: C, input: 
       await db.from("providers").update({ health: asJson(nextHealth(row.health as object, false, error, breaker)) }).eq("id", row.id);
     }
   }
+  if (empty) return empty;
   return { ok: false, reason: "all_failed", skipped: decision.skipped, errors };
 }

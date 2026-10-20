@@ -65,6 +65,15 @@ export function MessagingNotReady() {
   );
 }
 
+export function DatasetsNotReady() {
+  return (
+    <div className="bos-card" style={{ padding: 18 }}>
+      <strong><Tx>قسم استيراد البيانات يحتاج تحديث قاعدة البيانات</Tx></strong>
+      <p className="bos-faint" style={{ marginTop: 6 }}><Tx>قاعدة بيانات يولياس المتصلة لا تحتوي جداول البيانات المستوردة بعد. طبّق migration البيانات (20261120000000_datasets.sql) ثم أعد تحميل الصفحة.</Tx></p>
+    </div>
+  );
+}
+
 export function NotConnected() {
   return (
     <Card>
