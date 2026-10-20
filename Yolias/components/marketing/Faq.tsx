@@ -4,7 +4,8 @@ export function Faq({ eyebrow, title, items }: { eyebrow?: string; title: string
   if (!items.length) return null;
   return (
     <section className="section">
-      <div className="site-width">
+      {/* Centered on every page, like the pricing FAQ (owner, 2026-10-21). */}
+      <div className="site-width faq-centered">
         <div className="section-head">
           {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
           <h2 className="display-font">{title}</h2>

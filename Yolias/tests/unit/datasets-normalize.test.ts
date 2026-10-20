@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { companyKey, guessDatasetMapping, guessEntity, normalizeCountry, normalizePhoneFor, normalizeRow, usable } from "../../lib/datasets/normalize.ts";
+import { canonicalCity, companyKey, guessDatasetMapping, guessEntity, normalizeCountry, normalizePhoneFor, normalizeRow, usable } from "../../lib/datasets/normalize.ts";
 
 // Data import (D-248): rows are cleaned the same way in Admin and in tests.
 
@@ -79,4 +79,17 @@ test("person rows need a name and a company", () => {
   assert.equal(r.company.country, "AE");
   assert.ok(usable(r));
   assert.equal(usable(normalizeRow(["Sara", "", "", "", "", ""], m, "person")), false, "no company");
+});
+
+test("cities: Arabic and English names meet on one name; unknown cities stay as written", () => {
+  assert.equal(canonicalCity("القاهرة"), "Cairo");
+  assert.equal(canonicalCity("CAIRO"), "Cairo");
+  assert.equal(canonicalCity("محافظة الجيزة"), "Giza");
+  assert.equal(canonicalCity("الرياض"), "Riyadh");
+  assert.equal(canonicalCity("Jeddah"), "Jeddah");
+  assert.equal(canonicalCity("جدة"), "Jeddah");
+  assert.equal(canonicalCity("أبو ظبي"), "Abu Dhabi");
+  assert.equal(canonicalCity("مدينة الكويت"), "Kuwait City");
+  assert.equal(canonicalCity("Mit Ghamr"), "Mit Ghamr");
+  assert.equal(canonicalCity(""), null);
 });

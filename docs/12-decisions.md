@@ -443,3 +443,11 @@ Owner brief 2026-10-20: a full Admin section for every dataset Yolias buys or co
 
 ## D-249: Conversations (2026-10-21)
 Outreach and the Inbox are one page, **Conversations** (`/conversations`): tab "Conversations" (one thread per lead, replies, labels, approvals) and tab "Campaigns". `/inbox` and `/outreach` redirect with their filters; a campaign's own page stays at `/outreach/<id>`. One sidebar item with the unread badge. Outlook is no longer offered for connection (owner: Gmail and IMAP only).
+
+## D-250: Owner round 2026-10-21
+- Pay As You Go rate 4 cents a prospect (owner): $5 = 125, $20 = 500, $50 = 1,250, $100 = 2,500. Checkout lists "no expiry date", "lifetime credit", "only 4 cents per prospect" (the number comes from the rate).
+- Pricing cards: the same features on every card, no top-up lines; prices in USD everywhere. Checkout shows the USD price and, for buyers in Egypt paying by card (Paymob), "You'll pay in Egyptian pounds" with the EGP amount (plan EGP price, or the top-up at today's rate).
+- The Usage tab is back to its earlier design for every plan (no email meter: emails aren't counted).
+- Yolias AI home: the message shows in the chat at once and Yolias thinks inside the chat until the search page opens.
+- FAQ sections are centered on every page. Cities are stored under one name (Arabic/English, `canonicalCity`) for imports and searches. Outlook removed from the Admin Integration Hub.
+- Deployed: Yolias 4ca9b054, Admin f3840cc7, content seeded, rate set in production.

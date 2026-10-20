@@ -14,7 +14,8 @@ import { lockedProvider, paymentMethods, paysInEgp } from "@/lib/payments";
 import { requestCountry } from "@/lib/geo-server";
 import { trialLimits, trialOpen } from "@/lib/trial";
 import { switches } from "@/lib/switches";
-import { topUps } from "@/lib/credits";
+import { creditRate, topUps } from "@/lib/credits";
+import { toEgp, usdToEgp } from "@/lib/payments/fx";
 import { openCheckout } from "@/lib/funnel";
 import type { BillingProvider } from "@/types/database";
 
@@ -46,6 +47,10 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const shown = (["paymob", "kashier", "polar"] as BillingProvider[]).filter((m) => locked === m || (!locked && on[switchOf[m]] && (m !== "kashier" || methods.kashier)));
   // The free trial comes with the Polar method only; the card gateways pay up front.
   const trialOffer = (!locked || locked === "polar") && shown.includes("polar") && (await trialOpen(ws)) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
+  // Top-ups in USD; in Egypt the EGP charge at today's rate is shown under the total.
+  const egpBuyer = paysInEgp(ws, await requestCountry());
+  const fx = egpBuyer ? await usdToEgp() : null;
+  const packs = on.buy_more ? (await topUps()).map((p) => ({ ...p, priceEgp: fx ? toEgp(p.priceUsd, fx) : null })) : [];
   const errors = t.checkout.errors;
   // Journey tracking (D-212): one checkout session per visit (reloads continue it).
   const checkoutId = canManageTeam(session) && !(current && current === initial)
@@ -79,8 +84,9 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialError={initialError}
         shown={shown}
         checkoutId={checkoutId}
-        egp={paysInEgp(ws, await requestCountry())}
-        topUps={on.buy_more ? await topUps() : []}
+        egp={egpBuyer}
+        topUps={packs}
+        centsPerProspect={Math.round((await creditRate()) * 10000) / 100}
         initialPayg={plan === "payg" || (!isPaidPlan(plan) && pending === "payg")}
       />
     </div>

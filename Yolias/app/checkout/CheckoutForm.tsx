@@ -7,7 +7,7 @@ import { Check, CreditCard, Lock } from "lucide-react";
 import { formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { monthlyRate, monthlyRateEgp, planName, priceFor, priceForEgp } from "@/lib/plans";
+import { monthlyRate, planName, priceFor, priceForEgp } from "@/lib/plans";
 import type { BillingPeriod, BillingProvider, Currency, PaidPlan, Plan } from "@/types/database";
 import { metaTrack, track } from "@/lib/analytics/client";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
@@ -49,12 +49,14 @@ interface Props {
   /** The buyer is in Egypt: Paymob shows and charges the EGP prices (D-237). */
   egp: boolean;
   /** Pay As You Go top-up amounts and the prospects each one gives (D-247). */
-  topUps: { id: string; priceUsd: number; prospects: number }[];
+  topUps: { id: string; priceUsd: number; prospects: number; priceEgp: number | null }[];
+  /** US cents one prospect costs from credit (lib/credits). */
+  centsPerProspect: number;
   /** Open on Pay As You Go (/checkout?plan=payg). */
   initialPayg: boolean;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError, shown, checkoutId, egp, topUps, initialPayg }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError, shown, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
@@ -80,10 +82,12 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
   const n = (v: number) => formatNumber(v, locale);
   // Egypt pays Paymob in EGP at the plan's EGP price (D-237); every other route is USD.
   const inEgp = egp && route === "paymob";
-  const price = (o: Option) => (inEgp && o.priceEgp ? priceForEgp(o.priceEgp, period) : priceFor(o.price, period));
+  // Prices are shown in USD (owner, 2026-10-21); in Egypt the EGP charge is shown under the total.
+  const price = (o: Option) => priceFor(o.price, period);
+  const egpOf = (o: Option) => (inEgp && o.priceEgp ? priceForEgp(o.priceEgp, period) : null);
   // Plan rows show the price per month (annual: the discounted rate); the summary shows the charge.
-  const rate = (o: Option) => (inEgp && o.priceEgp ? monthlyRateEgp(o.priceEgp, period) : monthlyRate(o.price, period));
-  const shownCurrency = inEgp ? "EGP" : currency;
+  const rate = (o: Option) => monthlyRate(o.price, period);
+  const shownCurrency = currency;
   const money = (n: number) => formatMoney(n, shownCurrency, shownCurrency === "USD");
 
   // Meta "InitiateCheckout" once, when the checkout page opens with a paid plan.
@@ -229,6 +233,9 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
             <ul>
               <li><Check aria-hidden="true" /> <span>{c.sameFeatures}</span></li>
               <li><Check aria-hidden="true" /> <span>{c.payg.unit}</span></li>
+              <li><Check aria-hidden="true" /> <span>{c.payg.noExpiry}</span></li>
+              <li><Check aria-hidden="true" /> <span>{c.payg.lifetime}</span></li>
+              <li><Check aria-hidden="true" /> <span>{fmt(c.payg.perProspect, { cents: formatNumber(centsPerProspect, locale) })}</span></li>
               <li><Check aria-hidden="true" /> <span>{c.payg.noRenewal}</span></li>
               <li><Check aria-hidden="true" /> <span>{c.unlimitedUsers}</span></li>
             </ul>
@@ -249,7 +256,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
       </section>
 
       {payg ? (
-        <TopUpSummary topUps={topUps} value={topUp} onChange={setTopUp} canManage={canManage} continueHref={continueHref} email={email} />
+        <TopUpSummary topUps={topUps} value={topUp} onChange={setTopUp} canManage={canManage} continueHref={continueHref} email={email} egp={egp} />
       ) : kashier ? (
         <aside className="checkout-summary checkout-kashier">
           <div className="checkout-line"><span><span>{name}</span><small>{t.plans.billedMonthly}</small></span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
@@ -273,6 +280,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         )}
         <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
         <div className="checkout-line total"><span>{trial ? c.dueToday : c.total}</span><span dir="ltr" translate="no">{money(trial ? 0 : price(plan))}</span></div>
+        {egpOf(plan) != null && !trial && <p className="checkout-egp">{c.payInEgp} <strong dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</strong></p>}
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
@@ -331,7 +339,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
  * Pay As You Go (D-247): pick an amount, see the prospects it gives, pay.
  * The credit is added only after the payment provider confirms the payment.
  */
-function TopUpSummary({ topUps, value, onChange, canManage, continueHref, email }: { topUps: Props["topUps"]; value: string; onChange: (id: string) => void; canManage: boolean; continueHref: string; email: string }) {
+function TopUpSummary({ topUps, value, onChange, canManage, continueHref, email, egp }: { topUps: Props["topUps"]; value: string; onChange: (id: string) => void; canManage: boolean; continueHref: string; email: string; egp: boolean }) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const router = useRouter();
@@ -362,6 +370,7 @@ function TopUpSummary({ topUps, value, onChange, canManage, continueHref, email 
       <p className="checkout-topup-result" role="status">{fmt(c.payg.youGet, { amount: money(picked.priceUsd), count: n(picked.prospects) })}</p>
       <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
       <div className="checkout-line total"><span>{c.total}</span><span dir="ltr" translate="no">{money(picked.priceUsd)}</span></div>
+      {egp && picked.priceEgp != null && <p className="checkout-egp">{c.payInEgp} <strong dir="ltr" translate="no">{formatMoney(picked.priceEgp, "EGP")}</strong></p>}
       {canManage ? (
         <button key="topup" className="btn-primary checkout-submit" type="button" onClick={pay} disabled={pending} aria-busy={pending}>
           <Lock aria-hidden="true" /><span>{pending ? c.redirecting : fmt(c.payg.pay, { amount: money(picked.priceUsd) })}</span>

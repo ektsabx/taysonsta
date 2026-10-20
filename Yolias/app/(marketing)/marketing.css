@@ -570,3 +570,10 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .founder-sign span { font-size: .88rem; color: var(--muted); }
 @media (max-width: 640px) { .mk .founder-note { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 16px; } }
 .mk #network .solution-note { margin-top: 20px; }
+
+/* FAQ sections are centered on every page (owner, 2026-10-21). */
+.mk .site-width.faq-centered { max-width: 960px; }
+.mk .faq-centered .section-head { text-align: center; margin-inline: auto; align-items: center; }
+.mk .faq-centered .section-head .eyebrow { justify-content: center; }
+.mk .faq-centered .faq-list { margin-inline: auto; }
+.mk .faq-centered .faq-list dd { max-width: none; }

@@ -26,6 +26,9 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  // What was just sent: shown at once as the first message of the chat, with
+  // Yolias thinking inside the chat (like Claude) until the search page opens.
+  const [sent, setSent] = useState<{ text: string; files: string[] } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -73,13 +76,20 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
     fd.set("prompt", prompt.trim());
     if (profileId) fd.set("customer_profile_id", profileId);
     for (const f of files) fd.append("files", f);
+    const typed = prompt;
+    setSent({ text: prompt.trim(), files: files.map((f) => f.name) });
+    setPrompt("");
     start(async () => {
       const r = await callAction(() => createStrategy(fd));
       if (isNetworkFailure(r)) {
+        setSent(null);
+        setPrompt(typed);
         setError(t.strategy.errors.network);
         return;
       }
       if (!r.ok) {
+        setSent(null);
+        setPrompt(typed);
         setError(r.error);
         return;
       }
@@ -89,10 +99,26 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
   };
 
   return (
-    <div className="center-hero">
-      <Greeting name={firstName} />
-      <h1>{c.title}</h1>
-      <p>{c.subtitle}</p>
+    <div className={`center-hero${sent ? " hero-sent" : ""}`}>
+      {sent ? (
+        <ol className="agent-turns home-turns">
+          <li className="agent-turn user">
+            <div className="agent-turn-body">
+              {sent.text && <div className="agent-turn-text" dir="auto">{sent.text}</div>}
+              {sent.files.length > 0 && <div className="cell-sub">{sent.files.join(" · ")}</div>}
+            </div>
+          </li>
+          <li className="agent-turn assistant">
+            <ThinkingSteps steps={c.thinking} />
+          </li>
+        </ol>
+      ) : (
+        <>
+          <Greeting name={firstName} />
+          <h1>{c.title}</h1>
+          <p>{c.subtitle}</p>
+        </>
+      )}
 
       <div className="prompt-container">
         <textarea
@@ -152,11 +178,6 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
       </div>
       <p className="ai-disclaimer">{t.agent.disclaimer}</p>
 
-      {pending && (
-        <div className="composer-thinking">
-          <ThinkingSteps steps={c.thinking} />
-        </div>
-      )}
 
       {error && <p className="prompt-error" role="alert">{error}</p>}
 

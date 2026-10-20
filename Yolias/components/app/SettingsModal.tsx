@@ -11,13 +11,14 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
+import { buyProspectPack } from "@/app/checkout/actions";
 import { GmailIcon } from "./ConnectorIcons";
 import {
-  changeEmail, deleteAccount, inviteMember, creditHistory, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult, type CreditEntry,
+  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
 import { connectImapMailbox, connectTestMailbox, mailboxState, removeMailbox } from "@/app/(app)/settings/mailbox-actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
-import { track } from "@/lib/analytics/client";
+import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
 import { searchSettings } from "./settings-search";
 import type { Currency } from "@/types/database";
@@ -538,7 +539,6 @@ function UsageTab({ data }: { data: ShellData }) {
   const [now, setNow] = useState(() => Date.now());
   const n = (v: number) => formatNumber(v, locale);
   const pct = Math.min(100, usage.allowance ? (usage.prospects / usage.allowance) * 100 : 0);
-  const payg = workspace.plan === "free";
 
   const refresh = () =>
     startRefresh(async () => {
@@ -568,16 +568,6 @@ function UsageTab({ data }: { data: ShellData }) {
         )}
       </div>
 
-      {payg ? (
-        // Pay As You Go (D-247): no monthly allowance, only the prepaid credit.
-        <div className="usage-meter">
-          <div className="usage-meter-row">
-            <span className="usage-meter-label">{u.credit}</span>
-            <span className="usage-meter-value">{fmt(u.creditValue, { count: n(usage.extra) })}</span>
-          </div>
-          <div className="usage-meter-foot"><span />{u.creditNote}</div>
-        </div>
-      ) : (
       <div className="usage-meter">
         <div className="usage-meter-row">
           <span className="usage-meter-label">{u.prospects}</span>
@@ -590,11 +580,8 @@ function UsageTab({ data }: { data: ShellData }) {
         </div>
         {usage.extra > 0 && <div className="usage-extra">{fmt(t.buyMore.extraBalance, { count: n(usage.extra) })}</div>}
       </div>
-      )}
 
-      {/* The prospect is the only unit (D-247): emails and uploaded contacts aren't counted. */}
-      <BuyMore data={data} pct={payg ? (usage.extra > 0 ? 0 : 100) : pct} />
-      <CreditHistory />
+      <BuyMore data={data} pct={pct} onBought={refresh} />
 
       <div className="usage-updated">
         <span>{fmt(u.lastUpdated, { when: relativeTime(usage.checkedAt, now, locale, u.justNow) })}</span>
@@ -616,14 +603,35 @@ function relativeTime(ms: number, now: number, locale: string, justNow: string):
 
 /* ─────────────── Buy More Prospects ─────────────── */
 
-function BuyMore({ data, pct }: { data: ShellData; pct: number }) {
+function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBought: () => void }) {
   const { t, locale } = useI18n();
   const bm = t.buyMore;
+  const toast = useToast();
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const canManage = data.role === "owner" || data.role === "admin";
   const available = data.billing.online || data.billing.testMode;
   if (!available || data.packs.length === 0) return null;
 
-  // Top-ups are chosen and paid in Checkout (D-247); this lists what each amount gives.
+  const buy = async (id: string) => {
+    setBusy(id);
+    setError(null);
+    const pack = data.packs.find((p) => p.id === id);
+    if (pack) {
+      track("buy_more_opened", { prospects: pack.prospects, value: pack.price, currency: data.workspace.currency });
+      metaTrack("InitiateCheckout", { value: pack.price, currency: data.workspace.currency, content_type: "product", content_ids: [`prospects_${pack.prospects}`], num_items: 1 });
+    }
+    const r = await callAction(() => buyProspectPack(id)).finally(() => setBusy(null));
+    if (!r) return; // redirected to the payment page
+    if (isNetworkFailure(r)) return setError(t.checkout.errors.network);
+    if (!r.ok) return setError(r.error);
+    toast(`${fmt(bm.added, { count: formatNumber(r.added, locale) })} ${bm.testMode}`);
+    onBought();
+    router.refresh();
+  };
+
+  // Like a usage limit: a callout when it's close or reached, packs right under it.
   const state = pct >= 100 ? "out" : pct >= 80 ? "near" : null;
   return (
     <section className="buy-more" data-setting="buy-more">
@@ -635,45 +643,20 @@ function BuyMore({ data, pct }: { data: ShellData; pct: number }) {
       )}
       <div className="setting-label">{bm.title}</div>
       <div className="setting-desc">{bm.lead}</div>
-      <ul className="buy-more-packs">
-        {data.packs.map((p) => (
-          <li key={p.id}>
-            <span dir="ltr" className="buy-more-price">{formatMoney(p.price, "USD")}</span>
-            <span className="buy-more-name">{fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}</span>
-          </li>
-        ))}
-      </ul>
-      {canManage
-        ? <a className={state ? "btn-primary" : "btn-secondary"} href="/checkout?plan=payg" onClick={() => track("buy_more_opened", {})}>{bm.cta}</a>
-        : <p className="billing-empty">{bm.onlyAdmins}</p>}
-    </section>
-  );
-}
-
-/** Top-ups and prospects used, newest first (D-247). */
-function CreditHistory() {
-  const { t, locale } = useI18n();
-  const h = t.settings.usage.history;
-  const [rows, setRows] = useState<CreditEntry[] | null>(null);
-  useEffect(() => { creditHistory().then(setRows, () => setRows([])); }, []);
-  if (!rows) return null;
-  return (
-    <section className="billing-section" data-setting="credit-history">
-      <h4>{h.title}</h4>
-      {rows.length === 0 ? <p className="billing-empty">{h.empty}</p> : (
-        <table className="billing-table">
-          <thead><tr><th>{h.colDate}</th><th>{h.colWhat}</th><th>{h.colProspects}</th></tr></thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={`${r.at}-${i}`}>
-                <td>{formatDate(r.at, locale)}</td>
-                <td>{r.kind === "topup" ? h.topup : r.kind === "adjust" ? h.adjust : r.search ? fmt(h.usedIn, { search: r.search }) : h.used}</td>
-                <td dir="ltr" className="text-start">{r.kind === "used" ? "−" : r.prospects >= 0 ? "+" : ""}{formatNumber(r.prospects, locale)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {canManage ? (
+        <ul className="buy-more-packs">
+          {data.packs.map((p) => (
+            <li key={p.id}>
+              <span className="buy-more-name">
+                {fmt(bm.packName, { count: formatNumber(p.prospects, locale) })}
+              </span>
+              <span dir="ltr" className="buy-more-price">{formatMoney(p.price, data.workspace.currency)}</span>
+              <button className={state ? "btn-primary" : "btn-secondary"} type="button" disabled={busy !== null} onClick={() => buy(p.id)}>{busy === p.id ? bm.buying : bm.buy}</button>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="billing-empty">{bm.onlyAdmins}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
     </section>
   );
 }

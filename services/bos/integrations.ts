@@ -21,7 +21,8 @@ export async function listConnections(provider?: string): Promise<Connection[]> 
   let q = db().from("integration_connections").select(PUBLIC_COLUMNS).order("provider").order("is_default", { ascending: false }).order("created_at");
   if (provider) q = q.eq("provider", provider);
   const { data } = await q;
-  return (data ?? []) as Connection[];
+  // Connections of a provider removed from the catalogue (e.g. Outlook) aren't listed.
+  return ((data ?? []) as Connection[]).filter((c) => providerMap.has(c.provider));
 }
 
 function def(provider: string): ProviderDef {

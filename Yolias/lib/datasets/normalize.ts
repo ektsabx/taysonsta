@@ -99,6 +99,44 @@ export function normalizeCountry(v: string | null | undefined, fallback: string 
   return countries().get(fold(s)) ?? fallback;
 }
 
+// ───────────────────────── Cities ─────────────────────────
+
+/**
+ * One name per city, so a file that says «القاهرة» and a search for "Cairo"
+ * meet (owner, 2026-10-21). Known cities of Yolias markets map to their
+ * English name; any other city is kept as written.
+ */
+const CITY_NAMES: Record<string, string[]> = {
+  Cairo: ["cairo", "القاهره", "القاهرة الكبرى", "le caire", "new cairo", "القاهره الجديده"],
+  Giza: ["giza", "الجيزه", "gizeh", "6th of october", "6 october", "السادس من اكتوبر", "6 اكتوبر", "sheikh zayed", "الشيخ زايد"],
+  Alexandria: ["alexandria", "الاسكندريه", "alex", "اسكندريه"],
+  Mansoura: ["mansoura", "المنصوره"], Tanta: ["tanta", "طنطا"], Zagazig: ["zagazig", "الزقازيق"], Port_Said: ["port said", "بورسعيد", "بور سعيد"],
+  Suez: ["suez", "السويس"], Ismailia: ["ismailia", "الاسماعيليه"], Luxor: ["luxor", "الاقصر"], Aswan: ["aswan", "اسوان"], Hurghada: ["hurghada", "الغردقه"], Asyut: ["asyut", "assiut", "اسيوط"],
+  Riyadh: ["riyadh", "الرياض", "ar riyadh", "riyad"], Jeddah: ["jeddah", "jedda", "jiddah", "جده"], Mecca: ["mecca", "makkah", "مكه", "مكه المكرمه"],
+  Medina: ["medina", "madinah", "al madinah", "المدينه المنوره"], Dammam: ["dammam", "الدمام"], Khobar: ["khobar", "al khobar", "الخبر"], Dhahran: ["dhahran", "الظهران"],
+  Taif: ["taif", "الطائف"], Tabuk: ["tabuk", "تبوك"], Abha: ["abha", "ابها"], Buraydah: ["buraydah", "بريده"], Jubail: ["jubail", "الجبيل"], Hail: ["hail", "حائل"], Al_Ahsa: ["al ahsa", "al hasa", "الاحساء", "الهفوف", "hofuf"],
+  Dubai: ["dubai", "دبي"], Abu_Dhabi: ["abu dhabi", "abudhabi", "ابوظبي", "ابو ظبي"], Sharjah: ["sharjah", "الشارقه"], Ajman: ["ajman", "عجمان"], Ras_Al_Khaimah: ["ras al khaimah", "رأس الخيمه", "راس الخيمه"],
+  Fujairah: ["fujairah", "الفجيره"], Al_Ain: ["al ain", "العين"], Umm_Al_Quwain: ["umm al quwain", "ام القيوين"],
+  Kuwait_City: ["kuwait city", "مدينه الكويت"], Hawalli: ["hawalli", "حولي"], Salmiya: ["salmiya", "السالميه"], Farwaniya: ["farwaniya", "الفروانيه"], Jahra: ["jahra", "الجهراء"], Ahmadi: ["ahmadi", "الاحمدي"],
+  Doha: ["doha", "الدوحه"], Al_Rayyan: ["al rayyan", "الريان"], Manama: ["manama", "المنامه"], Muscat: ["muscat", "مسقط"], Salalah: ["salalah", "صلاله"],
+  Beirut: ["beirut", "بيروت"], Casablanca: ["casablanca", "الدار البيضاء"], Rabat: ["rabat", "الرباط"], Marrakesh: ["marrakesh", "marrakech", "مراكش"], Algiers: ["algiers", "الجزائر العاصمه"],
+  Baghdad: ["baghdad", "بغداد"], Erbil: ["erbil", "اربيل"], Basra: ["basra", "البصره"], Khartoum: ["khartoum", "الخرطوم"], Tripoli: ["tripoli", "طرابلس"], Istanbul: ["istanbul", "اسطنبول"],
+  London: ["london", "لندن"], Paris: ["paris", "باريس"],
+};
+let cityIndex: Map<string, string> | null = null;
+
+/** "القاهرة", "cairo", "CAIRO" → "Cairo"; unknown cities are kept as written. */
+export function canonicalCity(v: string | null | undefined): string | null {
+  const s = (v ?? "").replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  if (!cityIndex) {
+    cityIndex = new Map();
+    for (const [name, aliases] of Object.entries(CITY_NAMES)) for (const a of [name.replace(/_/g, " "), ...aliases]) cityIndex.set(fold(a), name.replace(/_/g, " "));
+  }
+  const key = fold(s).replace(/^(مدينه|محافظه|city of)\s+/, "").replace(/\s+(city|governorate|محافظه)$/, "");
+  return cityIndex.get(key) ?? cityIndex.get(fold(s)) ?? s.slice(0, 120);
+}
+
 // ───────────────────────── Phones ─────────────────────────
 
 /** Calling code and whether local numbers start with a trunk 0. */
@@ -201,7 +239,7 @@ export function normalizeRow(cells: string[], m: DatasetMapping, entity: Dataset
   const company = {
     name: companyName, key: companyName ? companyKey(companyName) || null : null, domain, website,
     email: entity === "company" ? email : null, phone: entity === "company" ? phone : null,
-    country, city: get("city"), address: get("address"), industry: get("industry"), category: get("category"), description: clean(cells[m.description ?? -1], 2000),
+    country, city: canonicalCity(get("city")), address: get("address"), industry: get("industry"), category: get("category"), description: clean(cells[m.description ?? -1], 2000),
     employee_count, linkedin_url: companyLinkedin && linkedinKey(companyLinkedin) ? `https://www.${linkedinKey(companyLinkedin)}` : null, registry_id: get("registry_id"),
   };
   let person: NormalizedRow["person"] = null;

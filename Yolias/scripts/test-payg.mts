@@ -122,7 +122,7 @@ try {
     const inv = (await db.from("invoices").select("*").eq("payment_id", pay.id).single()).data!;
     assert.equal(inv.kind, "prospect_pack"); assert.equal(inv.prospects, p.prospects);
   }
-  assert.equal(expected, 3500);
+  assert.equal(expected, packs!.reduce((n, p) => n + p.prospects, 0));
 
   // ── 3. Consumption: a delivered prospect uses one; reserved but undelivered gives it back ──
   const { data: camp } = await db.from("campaigns").insert({ workspace_id: wsId, name: "payg", criteria: {}, status: "completed", search_type: "companies" }).select("id").single();
@@ -157,7 +157,7 @@ try {
   const html = await (await fetch(`${app}/pricing`, { headers: { "accept-language": "en" } })).text();
   assert.match(html, /Pay As You Go/);
   for (const banned of [/Annual/i, /billed yearly/i, /Scale/, /\$200/, /emails \/ month/i, /1,000 emails/i]) assert.doesNotMatch(html, banned, `pricing page has no ${banned}`);
-  for (const p of packs!) assert.match(html, new RegExp(`\\$${Number(p.price_usd)} = ${p.prospects.toLocaleString("en-US")} prospects`), `pricing shows $${p.price_usd} = ${p.prospects}`);
+  assert.doesNotMatch(html, /\$5 = /, "the cards don't list the top-up amounts (owner, 2026-10-21)");
 
   console.log("✓ payg: four amounts at the configured rate, failed payment adds nothing, duplicate webhooks credit once, no subscription, consumption, no email charge, PAYG ↔ monthly keeps the balance, no annual / $200 on the pricing page");
 } finally {

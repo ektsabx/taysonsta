@@ -3,6 +3,7 @@ import type { ProviderAdapter } from "@/lib/intel/adapter";
 import type { CompanyCandidate } from "@/lib/discovery/types";
 import type { IcpCriteria } from "@/lib/discovery/icp";
 import { intel } from "@/lib/intel/db";
+import { canonicalCity } from "@/lib/datasets/normalize";
 
 // Imported datasets (D-248): the companies and local businesses uploaded in
 // Yolias Admin → Data import from datasets marked "may be shown to
@@ -14,7 +15,7 @@ const words = (icp: IcpCriteria) => [...new Set([...icp.industries, ...icp.keywo
 
 async function search(icp: IcpCriteria, local: boolean, limit: number, offset: number) {
   const { data, error } = await intel().rpc("dataset_search", {
-    p_countries: icp.countries.map((c) => c.toUpperCase()), p_cities: icp.cities, p_terms: words(icp),
+    p_countries: icp.countries.map((c) => c.toUpperCase()), p_cities: [...new Set(icp.cities.flatMap((c) => [c, canonicalCity(c) ?? c]))], p_terms: words(icp),
     p_emp_min: icp.employees_min, p_emp_max: icp.employees_max, p_local: local, p_limit: limit, p_offset: offset,
   });
   if (error) throw new Error(`dataset search failed: ${error.message}`);

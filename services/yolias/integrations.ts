@@ -11,7 +11,7 @@ import type { ResolvedConnection } from "@/services/bos/integrations";
 // secrets in Supabase Vault. Yolias never reads these keys from anywhere else.
 
 /** Hub provider → what it becomes in Yolias. */
-const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", yolias_microsoft: "microsoft_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", millionverifier: "intel:millionverifier" };
+const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", millionverifier: "intel:millionverifier" };
 
 export function usedByYolias(provider: string): boolean {
   return provider in targets;

@@ -46,9 +46,12 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
   const n = (v: number) => formatNumber(v, locale);
   // Monthly prices only. Visitors from Egypt see the EGP prices they are charged (D-237).
   const list = (plan: PlanId) => planPrice(plans[plan], currency) ?? 0;
-  const egpOf = (plan: PlanId) => (egp ? plans[plan].priceEgp : null);
-  const price = (plan: PlanId) => { const e = egpOf(plan); return e ? formatMoney(e, "EGP") : formatMoney(list(plan), currency); };
+  // USD everywhere (owner, 2026-10-21); visitors from Egypt see the EGP charge in checkout.
+  void egp;
+  const price = (plan: PlanId) => formatMoney(list(plan), currency);
   const usd = (v: number) => formatMoney(v, "USD");
+  // The same features on every card (owner, 2026-10-21).
+  const shared = [dict.plans.contactsUnlimited, t.features.teamWorkspace, t.features.crm, t.features.enrichment, t.features.chatSupport, t.unlimitedUsers];
 
   // Picking a plan → signup (new visitors) or checkout (signed in).
   const href = (plan: PlanId | "payg") => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}`;
@@ -62,12 +65,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       name={t.payg.name}
       price={usd(min.priceUsd)}
       note={t.payg.note}
-      items={[
-        t.payg.unit,
-        ...topUps.map((x) => fmt(t.payg.option, { amount: usd(x.priceUsd), count: n(x.prospects) })),
-        t.payg.noRenewal,
-        t.payg.sameFeatures,
-      ]}
+      items={[t.payg.noExpiry, ...shared]}
       href={href("payg")}
       cta={t.payg.cta}
       foot={t.payg.foot}
@@ -82,12 +80,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       note={t.perMonth}
       items={[
         fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
-        dict.plans.contactsUnlimited,
-        t.features.teamWorkspace,
-        t.features.crm,
-        t.features.enrichment,
-        t.features.chatSupport,
-        t.unlimitedUsers,
+        ...shared,
       ]}
       href={href(plan)}
       cta={trialDays ? t.startTrial : t.getStarted}

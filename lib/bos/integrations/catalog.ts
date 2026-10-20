@@ -129,17 +129,7 @@ export const providers: ProviderDef[] = [
     docs: "https://developers.google.com/workspace/gmail/api/guides/sending",
     yolias: "ربط Gmail وإرسال حملات التواصل وقراءة الردود.",
   },
-  {
-    key: "yolias_microsoft", name: "Microsoft OAuth — Yolias (Outlook)", category: "email", phase: 0, testable: false,
-    description: "يربط به عملاء يولياس بريد Outlook / Microsoft 365: إرسال الحملات بعد موافقتهم وقراءة الردود في المحادثات التي بدأها يولياس فقط. في Microsoft Entra: سجّل تطبيقًا (حسابات أي مؤسسة وحسابات Microsoft الشخصية)، وأضف الصلاحيات المفوّضة Mail.Send و Mail.ReadWrite و User.Read و offline_access، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/outlook/callback، وأنشئ client secret.",
-    fields: [
-      { key: "client_id", label: "Application (client) ID", required: true },
-      { key: "client_secret", label: "Client secret", secret: true, required: true },
-    ],
-    capabilities: ["mail.send"],
-    docs: "https://learn.microsoft.com/graph/outlook-mail-concept-overview",
-    yolias: "ربط Outlook وإرسال حملات التواصل وقراءة الردود.",
-  },
+  // Outlook removed by the owner (2026-10-21): Gmail and IMAP only.
   {
     key: "kashier", name: "Kashier (كاشير)", category: "payments", phase: 0, testable: false,
     description: "بوابة دفع إضافية بجانب Paymob (تظهر للعميل كخيار «الدفع بالكارت من هذه الصفحة» بمجرد الربط). العميل يدفع داخل صفحة الدفع في يولياس نفسها (Payment Session مدمجة)، والسعر بالدولار، والبطاقة تُحفظ مع أول دفعة ويُجدد منها الاشتراك تلقائيًا. من لوحة كاشير ← Integrate now: انسخ Merchant ID و Payment API Key و Secret Key للوضع المناسب. في الإعدادات ← Webhook ضع https://<دومين يولياس>/api/payments/kashier. واطلب من كاشير تفعيل: العملة USD على الحساب، وحفظ البطاقات والدفع المتكرر (Recurring / Tokenization)، والسماح بعرض صفحة الدفع داخل iframe على دومين يولياس.",
