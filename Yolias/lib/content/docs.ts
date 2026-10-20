@@ -140,7 +140,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
-            "**Choose a plan.** Pick Pro, Growth or Scale with an annual or monthly period. You pay by card through Paymob and the first period is paid up front (a 7-day free trial applies only when checkout offers it).",
+            "**Choose a plan.** Pick Pro, Growth or Scale with an annual or monthly period. You pay by card through Paymob and the first period is paid up front. There is no free trial.",
             "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every search, so be specific about the problem you solve.",
             "**Run your first search.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
@@ -153,7 +153,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
-            "**اختر خطة.** اختر برو أو النمو أو التوسع بفترة سنوية أو شهرية. تدفع بالبطاقة عبر Paymob وتُدفع أول فترة مقدمًا (والتجربة المجانية لمدة 7 أيام تنطبق فقط عندما تظهر في صفحة الدفع).",
+            "**اختر خطة.** اختر برو أو النمو أو التوسع بفترة سنوية أو شهرية. تدفع بالبطاقة عبر Paymob وتُدفع أول فترة مقدمًا، ولا توجد تجربة مجانية.",
             "**عرّف يولـياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل بحث، فكن محددًا في وصف المشكلة التي تحلها.",
             "**ابدأ أول بحث.** في يولـياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },
@@ -422,7 +422,7 @@ export const docs: DocPage[] = [
             ["Free", "$0", "50 (to get started)"], ["Pro", "$50", "1,000"], ["Growth", "$100", "2,000"],
           ] } },
           { ul: [
-            "Plans count prospects, emails opened from Yolias and contacts uploaded by CSV, each with a new allowance every month. During the free trial the limits are 50 prospects and 50 emails.",
+            "Plans count prospects, emails opened from Yolias and contacts uploaded by CSV, each with a new allowance every month.",
             "Companies, searches and AI work are not counted.",
             "When the month’s prospects are used up, discovery pauses until the reset or an upgrade.",
             "Counters reset on the first day of every month (UTC), for monthly and annual billing alike.",
@@ -439,7 +439,7 @@ export const docs: DocPage[] = [
             ["المجانية", "$0", "50 (للبداية)"], ["برو", "$50", "1,000"], ["النمو", "$100", "2,000"],
           ] } },
           { ul: [
-            "تحسب الخطط العملاء المحتملين ورسائل البريد المفتوحة من يولـياس وجهات الاتصال المرفوعة بملفات CSV، ولكل منها رصيد جديد كل شهر. وخلال التجربة المجانية الحدود 50 عميلًا محتملًا و50 رسالة بريد.",
+            "تحسب الخطط العملاء المحتملين ورسائل البريد المفتوحة من يولـياس وجهات الاتصال المرفوعة بملفات CSV، ولكل منها رصيد جديد كل شهر.",
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
             "عند استخدام كل العملاء المحتملين للشهر، يتوقف الاكتشاف حتى التجديد أو الترقية.",
             "تتجدد العدادات في أول يوم من كل شهر (بتوقيت UTC)، للفوترة الشهرية والسنوية على حد سواء.",

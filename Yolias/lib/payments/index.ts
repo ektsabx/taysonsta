@@ -16,7 +16,7 @@ import { chargeToken, createSession, customerReference, kashierAmount, loadKashi
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { switches } from "@/lib/switches";
-import { trialLimits } from "@/lib/trial";
+import { FREE_TRIAL_ENABLED, trialLimits } from "@/lib/trial";
 import { capture } from "@/lib/analytics/server";
 import { affiliateNotify } from "@/lib/affiliates/notify";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
@@ -131,6 +131,7 @@ export const paymentMethods = cache(async function paymentMethods(): Promise<Rec
  * (owner brief 2026-10-20: no claims the product can't keep).
  */
 export const trialAvailable = cache(async function trialAvailable(): Promise<number | null> {
+  if (!FREE_TRIAL_ENABLED) return null;
   const [on, methods, trial] = await Promise.all([switches(), paymentMethods(), trialLimits()]);
   return on.payments_polar && methods.polar && trial.days > 0 ? trial.days : null;
 });

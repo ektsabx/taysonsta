@@ -413,3 +413,6 @@ Settings search (Claude-style, index built from the dictionary strings, partial 
 
 ## D-245 — Follow-up to D-243/D-244 (2026-10-20)
 Owner: no email needs consent; the "marketing" class no longer requires the Product updates opt-in (an explicit unsubscribe is still honoured: Gmail/Yahoo bulk-sender rules). The product screenshot was removed from the home page (product page keeps its screens). Every remaining orange/amber (local business pill, status page degraded/partial, CRM meeting stages, rating stars, an avatar colour) was replaced by tokens; the copy-rules test now rejects them. Messaging pages show a "database needs the messaging migration" notice instead of an error while the tables are missing.
+
+## D-246 — No free trial (2026-10-20)
+Owner: every plan is paid up front; no new free trial starts (`FREE_TRIAL_ENABLED = false` in `Yolias/lib/trial.ts`, which `trialOpen()` and `trialAvailable()` read). Workspaces already in a trial keep it until it ends. Docs, help and llms.txt say there is no free trial; pricing and home pages already follow `trialAvailable()`.

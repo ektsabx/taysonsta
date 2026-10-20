@@ -35,7 +35,7 @@ Yolias works in English and Arabic. It finds and qualifies prospects, prepares o
 
 ## Main pages
 ${line("Product", "/product", "how Yolias AI turns a brief into a list of matching companies and decision makers")}
-${line("Pricing", "/pricing", "Pro, Growth and Scale with every feature; unlimited users; the free trial is shown there when checkout offers it")}
+${line("Pricing", "/pricing", "Pro, Growth and Scale with every feature and unlimited users, paid up front by card (no free trial)")}
 ${line("Solutions", "/solutions", "how Yolias fits different service businesses")}
 ${solutionSlugs.map((s) => line(solutionSeo[s].en.seoTitle, `/solutions/${s}`, solutions[s].en.metaDescription)).join("\n")}
 

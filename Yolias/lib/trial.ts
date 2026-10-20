@@ -76,9 +76,15 @@ export async function trialClaimDeadline(ws: Pick<WorkspaceRow, "id">, limits?: 
   return new Date(start + claim_hours * 3_600_000);
 }
 
+/**
+ * No free trial: every plan is paid up front (owner, 2026-10-20, D-246).
+ * Workspaces already in a trial keep it until it ends; no new one starts.
+ */
+export const FREE_TRIAL_ENABLED = false;
+
 /** One trial per workspace, and only inside the claim window. */
 export async function trialOpen(ws: Pick<WorkspaceRow, "id" | "trial_started_at">, now = new Date()): Promise<boolean> {
-  if (!canStartTrial(ws)) return false;
+  if (!FREE_TRIAL_ENABLED || !canStartTrial(ws)) return false;
   const deadline = await trialClaimDeadline(ws);
   return !deadline || now < deadline;
 }
