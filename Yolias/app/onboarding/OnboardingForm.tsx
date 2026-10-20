@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { analyzeOnboardingWebsite, completeOnboarding, type OnboardingState } from "./actions";
+import { completeOnboarding, type OnboardingState } from "./actions";
 import { AnalyzeWebsite } from "@/components/app/ws/KnowledgeView";
 import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { ACQUISITION_SOURCES } from "@/lib/onboarding/source";
@@ -55,7 +55,7 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
           <div className="field">
             <label htmlFor="website">{o.website}</label>
             <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} value={website} onChange={(e) => setWebsite(e.target.value)} autoComplete="url" required />
-            <AnalyzeWebsite compact initialUrl={website} url={website} onUrl={setWebsite} onResult={fill} action={analyzeOnboardingWebsite} />
+            <AnalyzeWebsite compact initialUrl={website} url={website} onUrl={setWebsite} onResult={fill} context="onboarding" />
             {analyzed != null && <p className="field-note">{fmt(t.ws.ai.knowledge.analyze.done, { count: analyzed })}</p>}
           </div>
           <div className="field">

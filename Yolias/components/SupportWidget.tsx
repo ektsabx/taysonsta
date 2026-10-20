@@ -19,6 +19,9 @@ export async function SupportWidget() {
       // Same fonts as the site (Noto Kufi Arabic in Arabic, DM Sans in English).
       data-font="inherit"
       data-lang={locale}
+      // Arabic pages put the app sidebar (and its account row) on the right:
+      // the launcher sits on the left so it never covers them.
+      data-position={locale === "ar" ? "left" : "right"}
     />
   );
 }

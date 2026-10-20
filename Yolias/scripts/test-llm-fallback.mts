@@ -49,7 +49,7 @@ const { understandStrategy } = await import("@/lib/ai/strategy.ts");
 const { runAgent } = await import("@/lib/agent/run.ts");
 
 const icp = {
-  search_type: "people", lookalike_seeds: [], campaign_name: "Riyadh Fintech — Heads of Sales", summary: "Fintechs in Riyadh", countries: ["SA"], cities: ["Riyadh"], industries: ["Fintech"],
+  search_type: "people", lookalike_seeds: [], campaign_name: "Riyadh Fintech: Heads of Sales", summary: "Fintechs in Riyadh", countries: ["SA"], cities: ["Riyadh"], industries: ["Fintech"],
   keywords: [], employees_min: 11, employees_max: 200, job_titles: ["Head of Sales"], seniorities: ["head"], target_count: 50, target_unit: "prospects",
   hiring: null, hiring_roles: [], funding_stages: [], technologies: [], exclusions: [], assumptions: [],
 };

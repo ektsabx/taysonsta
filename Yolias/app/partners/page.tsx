@@ -10,7 +10,7 @@ import Link from "next/link";
 import { PartnerProfile, PartnerStart, PayoutPanel, ReferralLink } from "./AffiliateClient";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).affiliate.title} — Yolias`, robots: { index: false } };
+  return { title: `${(await getDictionary()).affiliate.title} | Yolias`, robots: { index: false } };
 }
 
 const rangeDays = { "30d": 30, "90d": 90, "365d": 365, all: null } as const;
@@ -96,13 +96,13 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
   const since = days ? new Date(Date.now() - days * 86_400_000).toISOString() : "2020-01-01T00:00:00Z";
   const d = await dashboard(affiliate.id, { since, page });
   const s = program?.settings;
-  const pct = (num: number, den: number) => (den ? `${Math.round((num / den) * 1000) / 10}%` : "—");
+  const pct = (num: number, den: number) => (den ? `${Math.round((num / den) * 1000) / 10}%` : "-");
   const link = `${siteUrl()}/r/${affiliate.code}`;
   const openPayout = d.payouts.some((p) => ["requested", "approved", "processing"].includes(p.status));
 
   const qs = (p: number) => `?tab=${tab}&range=${range}&page=${p}`;
   const ranged = tab === "overview" || tab === "referrals" || tab === "commissions";
-  const rate = s ? commissionLabel(s, formatCents) : "—";
+  const rate = s ? commissionLabel(s, formatCents) : "-";
 
   return (
     <div className="page-view">
@@ -174,7 +174,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
                       <tr key={c.id}>
                         <td>{formatDate(c.created_at, locale)}</td>
                         <td>{c.kind === "payment" ? fmt(a.tables.paymentN, { n: c.payment_seq ?? 1 }) : c.kind === "reversal" ? a.tables.reversal : a.tables.adjustment}</td>
-                        <td>{c.base_cents ? money(c.base_cents) : "—"}</td>
+                        <td>{c.base_cents ? money(c.base_cents) : "-"}</td>
                         <td>{money(c.amount_cents)}</td>
                         <td>
                           {a.commissionStatus[c.status]}
@@ -226,7 +226,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
                             {a.payoutStatus[p.status]}
                             {p.reason && (p.status === "rejected" || p.status === "failed") ? <span className="cell-sub">{p.reason}</span> : null}
                           </td>
-                          <td dir="ltr">{p.status === "paid" ? p.reference ?? "—" : "—"}</td>
+                          <td dir="ltr">{p.status === "paid" ? p.reference ?? "-" : "-"}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -49,7 +49,7 @@ export function CrmKanban({ leads, timeZone }: { leads: KanbanLead[]; timeZone: 
               <span dir="ltr">{Object.entries(totals).map(([cur, v]) => money(v, cur, locale)).join(" + ")}</span>
             </header>
             <div className="kanban-cards">
-              {!col.length && <div className="kanban-empty">—</div>}
+              {!col.length && <div className="kanban-empty">-</div>}
               {col.map((l) => (
                 <article key={l.id} className="kanban-card" draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", l.id)}>
                   <Link href={`/crm/${l.id}`}>{l.name}</Link>

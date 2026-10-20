@@ -218,7 +218,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
               <h3 className="ws-label" style={{ marginBottom: 10 }}>{d.campaigns}</h3>
               {!detail.enrollments.length ? <p className="ws-muted">{d.noCampaigns}</p> : detail.enrollments.map((e) => (
                 <div key={e.id} className="ws-list-row">
-                  {e.campaign ? <Link className="ws-link" href={`/outreach/${e.campaign.id}`}>{e.campaign.name}</Link> : <span>—</span>}
+                  {e.campaign ? <Link className="ws-link" href={`/outreach/${e.campaign.id}`}>{e.campaign.name}</Link> : <span>-</span>}
                   <span className="ws-chip">{t.ws.outreach.enrollStatus[e.status]}</span>
                 </div>
               ))}

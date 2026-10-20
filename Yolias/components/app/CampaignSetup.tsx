@@ -126,7 +126,7 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
         </div>
         <div className="setup-row">
           <input className="form-input" value={otherCountries} onChange={(e) => setOtherCountries(e.target.value)} placeholder={s.otherCountries} dir="ltr" />
-          <input className="form-input" value={cities} onChange={(e) => setCities(e.target.value)} placeholder={`${s.cities} — ${s.citiesHint}`} dir="auto" />
+          <input className="form-input" value={cities} onChange={(e) => setCities(e.target.value)} placeholder={`${s.cities}: ${s.citiesHint}`} dir="auto" />
         </div>
         {note("where")}
       </fieldset>

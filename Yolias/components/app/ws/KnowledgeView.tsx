@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Globe, Info, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Globe, Info, LoaderCircle, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { analyzeWebsiteAction, deleteKnowledgeItem, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { deleteKnowledgeItem, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
 import { updateOrganization } from "@/app/(app)/settings/actions";
-import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { fmt } from "@/lib/i18n/config";
 import type { WebsiteAnalysis } from "@/lib/website-analysis";
+import type { AnalysisStreamEvent } from "@/app/api/website-analysis/route";
 import { CompanyProfileForm, type CompanyProfileValues } from "../CompanyProfileForm";
 import { useRun } from "./bits";
 import type { BusinessOfferRow, CompetitorRow, WorkspaceKnowledgeRow } from "@/types/database";
@@ -84,7 +84,7 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
 
       <ItemSection
         title={k.offers} empty={k.offer.empty} addLabel={k.offer.add} manage={manage}
-        items={offers.map((o) => ({ id: o.id, name: o.name, sub: [o.price, o.active ? null : "—"].filter(Boolean).join(" · "), values: o as unknown as Record<string, string | boolean | null> }))}
+        items={offers.map((o) => ({ id: o.id, name: o.name, sub: [o.price, o.active ? null : "-"].filter(Boolean).join(" · "), values: o as unknown as Record<string, string | boolean | null> }))}
         fields={OFFER_FIELDS.map((f) => ({ key: f, label: k.offer[f], long: f !== "price" }))}
         nameLabel={k.offer.name} activeLabel={k.offer.active}
         onSave={(v) => saveOffer(v as Parameters<typeof saveOffer>[0])}
@@ -174,9 +174,21 @@ function fieldLabel(t: Dict, f: string): string {
   return ({ name: o.name, industry: o.industry, offering: o.offering, ideal_customer: o.idealCustomer, target_markets: o.targetMarkets } as Record<string, string>)[f] ?? f;
 }
 
-/** The website box at the top of Company Knowledge (also used in onboarding). */
-export function AnalyzeWebsite({ initialUrl, onResult, compact = false, action = analyzeWebsiteAction, url: controlled, onUrl }: {
-  initialUrl: string; onResult: (a: WebsiteAnalysis) => void; compact?: boolean; action?: (url: string) => Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }>;
+type Step = "open" | "pages" | "extract" | "result";
+const STEPS: Step[] = ["open", "pages", "extract", "result"];
+interface Run { step: Step; read: number; total: number; pages: { url: string; ok: boolean }[] }
+
+/**
+ * The website box at the top of Company Knowledge (also used in onboarding).
+ * While it runs it shows what is really happening (owner brief 2026-10-20):
+ * each step lights up when the server reports it, the pages count up as they
+ * are read (the only step with a real total, so the only bar), and the page
+ * addresses appear as they come in. No step is shown before it happens.
+ */
+export function AnalyzeWebsite({ initialUrl, onResult, compact = false, context = "knowledge", url: controlled, onUrl }: {
+  initialUrl: string; onResult: (a: WebsiteAnalysis) => void; compact?: boolean;
+  /** Who is asking: Company Knowledge / Customer Profiles, or onboarding (checked again on the server). */
+  context?: "knowledge" | "onboarding";
   /** Controlled address (onboarding uses its own website field). */
   url?: string; onUrl?: (v: string) => void;
 }) {
@@ -186,22 +198,106 @@ export function AnalyzeWebsite({ initialUrl, onResult, compact = false, action =
   const url = controlled ?? own;
   const setUrl = onUrl ?? setOwn;
   const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  const go = () => start(async () => {
+  const [run, setRun] = useState<Run | null>(null);
+  const busy = useRef<AbortController | null>(null);
+  // Leaving the page stops reading the answer; nothing restarts on its own.
+  useEffect(() => () => busy.current?.abort(), []);
+
+  const go = async () => {
+    if (busy.current || !url.trim()) return; // one analysis at a time
+    const ctrl = new AbortController();
+    busy.current = ctrl;
     setError(null);
-    const r = await callAction(() => action(url));
-    if (isNetworkFailure(r)) return setError(t.feedback.errors.network);
-    if (!r.ok) return setError(r.error);
-    onResult(r.data);
-  });
+    setRun({ step: "open", read: 0, total: 0, pages: [] });
+    try {
+      const res = await fetch("/api/website-analysis", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url, context }), signal: ctrl.signal });
+      if (!res.ok || !res.body) {
+        const j = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(j?.error && j.error.length > 12 ? j.error : a.errors.failed);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let finished = false;
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const e = JSON.parse(line) as AnalysisStreamEvent;
+          if (e.type === "progress") {
+            setRun((r) => {
+              const cur = r ?? { step: "open" as Step, read: 0, total: 0, pages: [] };
+              if (e.stage === "pages") return { ...cur, step: "pages", total: e.total };
+              if (e.stage === "page") return { ...cur, step: "pages", read: e.read, total: e.total, pages: [...cur.pages, { url: e.url, ok: e.ok }] };
+              return { ...cur, step: e.stage };
+            });
+          } else if (e.type === "done") {
+            finished = true;
+            setRun(null);
+            onResult(e.data);
+          } else {
+            finished = true;
+            setRun(null);
+            setError(e.error);
+          }
+        }
+      }
+      if (!finished) throw new Error(a.errors.failed);
+    } catch (e) {
+      setRun(null);
+      if (!ctrl.signal.aborted) setError(e instanceof TypeError ? t.feedback.errors.network : e instanceof Error ? e.message : a.errors.failed);
+    } finally {
+      busy.current = null;
+    }
+  };
+
+  const pending = run !== null;
+  const at = run ? STEPS.indexOf(run.step) : -1;
   return (
     <div className={compact ? "analyze-box compact" : "ws-card analyze-box"}>
       {!compact && <div><h3 className="ws-label">{a.title}</h3><p className="ws-hint">{a.lead}</p></div>}
       <div className="analyze-row">
-        {controlled === undefined && <input className="form-input" dir="ltr" aria-label={a.url} placeholder="yourcompany.com" value={url} maxLength={200} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); go(); } }} />}
-        <button className="btn-secondary" type="button" disabled={pending || !url.trim()} onClick={go}>{pending ? <LoaderCircle className="spin" size={14} /> : <Globe size={14} />} {pending ? a.running : a.run}</button>
+        {controlled === undefined && <input className="form-input" dir="ltr" aria-label={a.url} placeholder="yourcompany.com" value={url} maxLength={200} disabled={pending} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void go(); } }} />}
+        {pending
+          ? <button className="btn-secondary" type="button" onClick={() => busy.current?.abort()}><X size={14} /> {a.stop}</button>
+          : <button className="btn-secondary" type="button" disabled={!url.trim()} onClick={() => void go()}><Globe size={14} /> {error ? a.retry : a.run}</button>}
       </div>
+      {run && (
+        <ol className="analyze-steps" aria-live="polite">
+          {STEPS.map((s, i) => {
+            const state = i < at ? "done" : i === at ? "current" : "todo";
+            if (state === "todo") return null; // only steps that have started are shown
+            return (
+              <li key={s} className={`analyze-step ${state}`}>
+                <span className="analyze-step-icon" aria-hidden="true">{state === "done" ? <Check size={13} /> : <LoaderCircle className="spin" size={13} />}</span>
+                <span className="analyze-step-text">
+                  {a.steps[s]}
+                  {s === "pages" && run.total > 0 && <span className="analyze-step-count">{fmt(a.pagesCount, { read: run.read, total: run.total })}</span>}
+                </span>
+                {s === "pages" && run.total > 0 && (
+                  <span className="analyze-bar" role="progressbar" aria-valuemin={0} aria-valuemax={run.total} aria-valuenow={run.read} aria-label={a.steps.pages}>
+                    <span style={{ width: `${(run.read / run.total) * 100}%` }} />
+                  </span>
+                )}
+                {s === "pages" && run.pages.length > 0 && (
+                  <ul className="analyze-pages">
+                    {run.pages.map((p) => <li key={p.url} className={p.ok ? "" : "missed"} dir="ltr">{pathOf(p.url)}{p.ok ? "" : <span dir="auto"> · {a.pageMissed}</span>}</li>)}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
       {error && <p className="form-error" role="alert">{error}</p>}
     </div>
   );
+}
+
+function pathOf(u: string): string {
+  try { const x = new URL(u); return `${x.hostname.replace(/^www\./, "")}${x.pathname === "/" ? "" : x.pathname}`; } catch { return u; }
 }

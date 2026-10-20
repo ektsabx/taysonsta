@@ -75,13 +75,13 @@ const base: Omit<IcpCriteria, "search_type" | "campaign_name" | "summary" | "tar
 };
 type Search = { prompt: string; icp: IcpCriteria };
 const searches: Search[] = [
-  { prompt: "عايز مؤسسين ومديري مبيعات في شركات SaaS وفينتك في السعودية والإمارات ومصر", icp: { ...base, target_count: 20, search_type: "people", campaign_name: "السعودية والإمارات ومصر — مؤسسون ومديرو مبيعات", summary: "مؤسسون ومديرو مبيعات في شركات SaaS وفينتك", assumptions: ["شركات من 20 إلى 500 موظف."] } },
-  { prompt: "شركات SaaS في السعودية", icp: { ...base, target_count: 8, target_unit: "companies", search_type: "companies", countries: ["SA"], campaign_name: "السعودية — شركات SaaS", summary: "شركات SaaS في السعودية" } },
-  { prompt: "عيادات وسبا وجيم في الرياض", icp: { ...base, target_count: 5, target_unit: "companies", search_type: "local_businesses", cities: ["Riyadh"], countries: ["SA"], industries: ["Clinic", "Spa", "Gym", "Restaurant", "Pharmacy"], campaign_name: "الرياض — عيادات وسبا وجيم", summary: "أنشطة محلية في الرياض" } },
+  { prompt: "عايز مؤسسين ومديري مبيعات في شركات SaaS وفينتك في السعودية والإمارات ومصر", icp: { ...base, target_count: 20, search_type: "people", campaign_name: "السعودية والإمارات ومصر: مؤسسون ومديرو مبيعات", summary: "مؤسسون ومديرو مبيعات في شركات SaaS وفينتك", assumptions: ["شركات من 20 إلى 500 موظف."] } },
+  { prompt: "شركات SaaS في السعودية", icp: { ...base, target_count: 8, target_unit: "companies", search_type: "companies", countries: ["SA"], campaign_name: "السعودية: شركات SaaS", summary: "شركات SaaS في السعودية" } },
+  { prompt: "عيادات وسبا وجيم في الرياض", icp: { ...base, target_count: 5, target_unit: "companies", search_type: "local_businesses", cities: ["Riyadh"], countries: ["SA"], industries: ["Clinic", "Spa", "Gym", "Restaurant", "Pharmacy"], campaign_name: "الرياض: عيادات وسبا وجيم", summary: "أنشطة محلية في الرياض" } },
   { prompt: "شركات شبه Tabby و Tamara", icp: { ...base, target_count: 4, target_unit: "companies", search_type: "company_lookalikes", lookalike_seeds: ["tabby.ai", "tamara.co"], campaign_name: "شركات شبيهة بـ Tabby و Tamara", summary: "شركات شبيهة بـ Tabby و Tamara" } },
-  { prompt: "مديرين تسويق في شركات تجارة إلكترونية في مصر", icp: { ...base, target_count: 30, search_type: "people", countries: ["EG"], industries: ["E-commerce"], job_titles: ["Marketing Director", "Head of Marketing"], seniorities: ["director", "head"], campaign_name: "مصر — مديرو تسويق في التجارة الإلكترونية", summary: "مديرو تسويق في شركات التجارة الإلكترونية في مصر" } },
+  { prompt: "مديرين تسويق في شركات تجارة إلكترونية في مصر", icp: { ...base, target_count: 30, search_type: "people", countries: ["EG"], industries: ["E-commerce"], job_titles: ["Marketing Director", "Head of Marketing"], seniorities: ["director", "head"], campaign_name: "مصر: مديرو تسويق في التجارة الإلكترونية", summary: "مديرو تسويق في شركات التجارة الإلكترونية في مصر" } },
   // Runs after the Free prospects are gone: paused, "Buy more prospects".
-  { prompt: "أصحاب شركات لوجستيات في الإمارات", icp: { ...base, target_count: 15, search_type: "people", countries: ["AE"], industries: ["Logistics"], job_titles: ["Owner", "CEO"], campaign_name: "الإمارات — أصحاب شركات لوجستيات", summary: "أصحاب ومديرو شركات اللوجستيات في الإمارات" } },
+  { prompt: "أصحاب شركات لوجستيات في الإمارات", icp: { ...base, target_count: 15, search_type: "people", countries: ["AE"], industries: ["Logistics"], job_titles: ["Owner", "CEO"], campaign_name: "الإمارات: أصحاب شركات لوجستيات", summary: "أصحاب ومديرو شركات اللوجستيات في الإمارات" } },
 ];
 
 const made: { strategyId: string; campaignId: string; conversationId: string; icp: IcpCriteria }[] = [];
@@ -113,7 +113,7 @@ const { data: top } = await db.from("prospects").select("id, full_name, title, e
   .then((r) => ({ data: (r.data ?? []).filter((p, k, all) => all.findIndex((x) => x.full_name === p.full_name) === k).slice(0, 3) }));
 const line = (p: NonNullable<typeof top>[number], k: number) => {
   const co = p.companies as unknown as { name: string; city: string | null } | null;
-  return `${k + 1}. ${p.full_name} — ${p.title ?? ""} في ${co?.name ?? ""}${co?.city ? ` (${co.city})` : ""} · تطابق ${p.match_score ?? "—"}%`;
+  return `${k + 1}. ${p.full_name}، ${p.title ?? ""} في ${co?.name ?? ""}${co?.city ? ` (${co.city})` : ""} · تطابق ${p.match_score ?? "-"}%`;
 };
 await say(0, "user", "مين أقوى 3 أشخاص في النتايج دي وليه؟");
 await say(0, "assistant", `دول أعلى 3 من حيث التطابق مع طلبك:\n${(top ?? []).map(line).join("\n")}\n\nالسبب: مناصبهم قرار مباشر في الشراء، وشركاتهم في المجال والحجم اللي طلبتهم. تحب أظهرلك بيانات التواصل لحد منهم؟`, { toolCalls: 1 });
@@ -143,14 +143,14 @@ await say(0, "user", "اعمل نفس البحث بس في السعودية بس
 const request = "مؤسسون ومديرو مبيعات في شركات SaaS وفينتك في السعودية فقط، 100 شخص";
 const { data: pa } = await db.from("agent_pending_actions").insert({
   workspace_id: ws, conversation_id: made[0].conversationId, requested_by: userId, tool: "createCampaign", input: { request } as never,
-  summary: `بدء حملة — «${request}»`,
+  summary: `بدء بحث: «${request}»`,
 }).select("id").single();
 await say(0, "assistant", "هبدأ حملة جديدة لنفس البحث في السعودية بس بهدف 100 شخص. الحملة دي محتاجة موافقتك من الكارت اللي تحت.", { approvals: [pa!.id], toolCalls: 1 });
 
 // 2) Companies search: a simple follow-up.
 const { data: cos } = await db.from("companies").select("name, employee_count, city").eq("campaign_id", made[1].campaignId).order("employee_count", { ascending: false }).limit(5);
 await say(1, "user", "رتبهم حسب عدد الموظفين");
-await say(1, "assistant", `من الأكبر للأصغر:\n${(cos ?? []).map((c, k) => `${k + 1}. ${c.name} — ${c.employee_count ?? "؟"} موظف${c.city ? ` · ${c.city}` : ""}`).join("\n")}\n\nتحب أدوّرلك على صناع القرار في أول شركتين؟`, { toolCalls: 1 });
+await say(1, "assistant", `من الأكبر للأصغر:\n${(cos ?? []).map((c, k) => `${k + 1}. ${c.name}: ${c.employee_count ?? "؟"} موظف${c.city ? ` · ${c.city}` : ""}`).join("\n")}\n\nتحب أدوّرلك على صناع القرار في أول شركتين؟`, { toolCalls: 1 });
 
 // 6) The paused search: why it stopped.
 const last = made.length - 1;
@@ -179,4 +179,4 @@ const u = usage?.[0];
 console.log(`\nUsage: ${u?.consumed ?? 0} used of ${u?.allowance ?? 0} · available ${u?.available ?? 0}`);
 console.log(`Results page: ${SITE}/search/${made[0].strategyId}/results · Outreach progress: ${SITE}/outreach/progress?ids=${progressIds.join(",")}`);
 if (!INTO) console.log(`\nSign in as ${EMAIL} (open in the browser, one use; npm run seed:full-demo -- --login for a new one):\n${await loginLink()}\n`);
-else console.log(`\nAdded to ${INTO} — open http://localhost:3200 as usual.`);
+else console.log(`\nAdded to ${INTO}. Open http://localhost:3200 as usual.`);

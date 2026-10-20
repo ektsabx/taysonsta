@@ -27,8 +27,8 @@ const base: Omit<IcpCriteria, "search_type" | "campaign_name" | "summary"> = {
   funding_stages: [], technologies: [], exclusions: [], assumptions: ["Demo data"],
 };
 const searches: [string, IcpCriteria][] = [
-  ["Fintech and SaaS founders in the Gulf and Egypt", { ...base, search_type: "people", hiring: true, campaign_name: "GCC & Egypt SaaS — Founders", summary: "Founders and sales leaders of SaaS and fintech companies" }],
-  ["SaaS companies in Saudi Arabia", { ...base, search_type: "companies", campaign_name: "Saudi SaaS — Companies", summary: "SaaS companies in Saudi Arabia" }],
+  ["Fintech and SaaS founders in the Gulf and Egypt", { ...base, search_type: "people", hiring: true, campaign_name: "GCC & Egypt SaaS: Founders", summary: "Founders and sales leaders of SaaS and fintech companies" }],
+  ["SaaS companies in Saudi Arabia", { ...base, search_type: "companies", campaign_name: "Saudi SaaS: Companies", summary: "SaaS companies in Saudi Arabia" }],
   ["Companies like Tabby and Tamara", { ...base, search_type: "company_lookalikes", lookalike_seeds: ["tabby.ai", "tamara.co"], campaign_name: "Lookalikes of Tabby & Tamara", summary: "Companies similar to Tabby and Tamara" }],
   ["Clinics, spas and gyms in Riyadh", { ...base, search_type: "local_businesses", cities: ["Riyadh"], industries: ["Clinic", "Spa", "Gym", "Restaurant", "Pharmacy"], campaign_name: "Riyadh local businesses", summary: "Local businesses in Riyadh" }],
 ];

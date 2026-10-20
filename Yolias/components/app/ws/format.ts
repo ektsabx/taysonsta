@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n/config";
 const intl = (l: Locale) => (l === "ar" ? "ar-EG" : "en-US");
 
 export function money(value: number | null | undefined, currency: string, locale: Locale): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   try {
     return new Intl.NumberFormat(intl(locale), { style: "currency", currency, maximumFractionDigits: Number.isInteger(value) ? 0 : 2, numberingSystem: "latn" }).format(value);
   } catch {
@@ -14,12 +14,12 @@ export function money(value: number | null | undefined, currency: string, locale
 }
 
 export function dateTime(iso: string | null | undefined, locale: Locale, timeZone?: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   return new Intl.DateTimeFormat(intl(locale), { dateStyle: "medium", timeStyle: "short", timeZone: timeZone || undefined, numberingSystem: "latn" }).format(new Date(iso));
 }
 
 export function shortDate(iso: string | null | undefined, locale: Locale, timeZone?: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   return new Intl.DateTimeFormat(intl(locale), { month: "short", day: "numeric", timeZone: timeZone || undefined, numberingSystem: "latn" }).format(new Date(iso));
 }
 

@@ -407,7 +407,7 @@ export const agentTools = [
   }),
   define({
     name: "createCampaign",
-    description: "Prepare a new search from a natural-language request (Arabic or English), exactly like typing it in the search box: companies (with their decision makers), local businesses or company lookalikes. It opens a Campaign Setup with the understood criteria; the user reviews it and presses Start search there — nothing runs or is charged before that. Delivered results count against the monthly prospects.",
+    description: "Prepare a new search from a natural-language request (Arabic or English), exactly like typing it in the search box: companies (with their decision makers), local businesses or company lookalikes. It opens a Campaign Setup with the understood criteria; the user reviews it and presses Start search there. Nothing runs or is charged before that. Delivered results count against the monthly prospects.",
     permission: "campaign.create",
     input: z.object({ request: z.string().trim().min(3).max(4000) }),
     async run(ctx, input) {
@@ -502,7 +502,7 @@ export const agentTools = [
   }),
   define({
     name: "startOutreachCampaign",
-    description: "Start an outreach campaign after the user said yes. Always asks for the user's approval first (an Approve / Reject card). sendFromMailbox=true sends from the user's connected Gmail / Outlook; false runs it manually (Yolias prepares, the user sends). autoReply lets Yolias answer simple replies itself — only when the user asked for it.",
+    description: "Start an outreach campaign after the user said yes. Always asks for the user's approval first (an Approve / Reject card). sendFromMailbox=true sends from the user's connected Gmail / Outlook; false runs it manually (Yolias prepares, the user sends). autoReply lets Yolias answer simple replies itself, only when the user asked for it.",
     permission: "outreach.run",
     input: z.object({ id: uuid, sendFromMailbox: z.boolean().default(true), autoReply: z.boolean().default(false) }),
     async run(ctx, input) {
@@ -557,7 +557,7 @@ export const agentTools = [
   }),
   define({
     name: "updateLeadStage",
-    description: "Move a CRM lead to a stage the user asked for. 'closed' means won — only when the user says the deal was won, never because someone showed interest.",
+    description: "Move a CRM lead to a stage the user asked for. 'closed' means won, only when the user says the deal was won, never because someone showed interest.",
     permission: "crm.update",
     input: z.object({ leadId: uuid, stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"]) }),
     async run(ctx, input) {
@@ -725,7 +725,7 @@ function approvalSummary(name: string, input: Record<string, unknown>, lang: "ar
   const label = AGENT_TOOLS.find((t) => t.name === name)?.label[lang] ?? name;
   const detail = [input.request, input.action, input.instruction, input.want].find((v) => typeof v === "string" && v) as string | undefined;
   const count = Array.isArray(input.companyIds) ? input.companyIds.length : null;
-  return [label, detail ? `«${detail.slice(0, 200)}»` : null, count ? (lang === "ar" ? `${count} شركة` : `${count} companies`) : null].filter(Boolean).join(" — ");
+  return [label, detail ? `«${detail.slice(0, 200)}»` : null, count ? (lang === "ar" ? `${count} شركة` : `${count} companies`) : null].filter(Boolean).join(" · ");
 }
 
 export async function executeTool(ctx: AgentContext, name: string, rawInput: unknown): Promise<ToolResult> {

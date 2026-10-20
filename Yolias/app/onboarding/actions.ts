@@ -9,9 +9,7 @@ import { capture } from "@/lib/analytics/server";
 import { companyProfileSchema, type CompanyProfile } from "@/lib/company-profile";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSession, requireUser } from "@/lib/session";
-import { hasActivePlan } from "@/lib/plans";
-import { analyzeWebsite, type WebsiteAnalysis } from "@/lib/website-analysis";
+import { getSession } from "@/lib/session";
 import { communityInvite, welcome } from "@/lib/email/events";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
@@ -104,11 +102,3 @@ const KnowledgeFromSite = z.object({
   differentiators: fromSite(4000), faqs: fromSite(6000), contact: fromSite(2000),
 }).strict();
 
-/** Onboarding → Analyze website (D-232): the owner's own site fills the form for review. */
-export async function analyzeOnboardingWebsite(url: string): Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }> {
-  const session = await requireUser();
-  const t = (await getDictionary()).ws.ai.knowledge.analyze.errors;
-  if (session.role !== "owner" || !hasActivePlan(session.workspace)) return { ok: false, error: t.failed };
-  const r = await analyzeWebsite(String(url ?? "").slice(0, 300), session.workspace.id);
-  return r.ok ? r : { ok: false, error: t[r.error] };
-}

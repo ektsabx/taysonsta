@@ -115,7 +115,24 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/llm", label: "النماذج اللغوية", perm: "platform.read" },
     ],
   },
-  { key: "y_messages", label: "الرسائل والتواصل", icon: "y_messages", href: "/admin/platform/emails", perm: "platform.read" },
+  // Messaging & Automation (D-243): one section, pages only.
+  {
+    key: "y_messages",
+    label: "الرسائل والأتمتة",
+    icon: "y_messages",
+    items: [
+      { href: "/admin/platform/messaging", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform/messaging/automations", label: "الأتمتة", perm: "platform.read" },
+      { href: "/admin/platform/messaging/sequences", label: "تسلسلات الإيميلات", perm: "platform.read" },
+      { href: "/admin/platform/messaging/campaigns", label: "الحملات", perm: "platform.read" },
+      { href: "/admin/platform/messaging/templates", label: "القوالب", perm: "platform.read" },
+      { href: "/admin/platform/messaging/segments", label: "الجمهور والشرائح", perm: "platform.read" },
+      { href: "/admin/platform/messaging/activity", label: "سجل الأحداث والتنفيذ", perm: "platform.read" },
+      { href: "/admin/platform/messaging/analytics", label: "التحليلات", perm: "platform.read" },
+      { href: "/admin/platform/emails", label: "رسائل النظام", perm: "platform.read" },
+      { href: "/admin/platform/messaging/settings", label: "الإعدادات", perm: "platform.read" },
+    ],
+  },
   {
     key: "y_usage",
     label: "الاستخدام والتكاليف",

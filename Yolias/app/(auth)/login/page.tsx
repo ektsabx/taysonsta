@@ -6,7 +6,7 @@ import { googleSignInEnabled } from "@/lib/auth/providers";
 import { errorFrom } from "../errors";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).auth.loginTitle} — Yolias` };
+  return { title: `${(await getDictionary()).auth.loginTitle} | Yolias` };
 }
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

@@ -9,7 +9,7 @@ import { CampaignForm } from "@/components/app/ws/CampaignForm";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.outreach.newCampaign} — Yolias` };
+  return { title: `${(await getDictionary()).ws.outreach.newCampaign} | Yolias` };
 }
 
 export default async function NewOutreachPage({ searchParams }: PageProps<"/outreach/new">) {

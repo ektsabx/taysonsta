@@ -169,7 +169,7 @@ export async function draftReply(workspaceId: string, userId: string, leadId: st
       system: [
         `You write the next reply in a sales conversation on behalf of ${sender?.full_name ?? "the sender"}, who reviews it and sends it from their own app.`,
         `Answer what they actually said, briefly and naturally, in ${language}. One clear next step. Plain text, no placeholders, no stock AI phrases.`,
-        "Use only the company knowledge below. If they ask something it doesn't cover, say you'll check and come back — never guess prices, features, dates or results, and never make claims about competitors.",
+        "Use only the company knowledge below. If they ask something it doesn't cover, say you'll check and come back. Never guess prices, features, dates or results, and never make claims about competitors.",
         `subject: "Re: " + the previous subject for email, or "" for other channels.`,
         contextText(business),
         guidanceFor(s, "replies"),

@@ -9,7 +9,7 @@ export function ChannelBadges({ prospect }: { prospect: Pick<ProspectRow, "email
   const { t } = useI18n();
   const c = t.channels;
   const { email, email_status, phone, linkedin_url } = prospect;
-  if (!email && !phone && !linkedin_url) return <span className="cell-sub">—</span>;
+  if (!email && !phone && !linkedin_url) return <span className="cell-sub">-</span>;
   return (
     <div className="channel-badges">
       {email && email_status !== "invalid" && (

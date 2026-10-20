@@ -27,15 +27,8 @@ async function all<T>(make: () => any): Promise<T[]> {
 
 const head = { count: "exact" as const, head: true };
 
-type PersonQ = {
-  id: string; company_id: string | null; title: string | null; seniority: string | null; email: string | null; email_status: string; phone: string | null;
-  country: string | null; city: string | null; match_score: number | null; confidence: number | null; missing_fields: string[]; source: string; created_at: string;
-  revealed_at: string | null; bookmarked_at: string | null; company: { industry: string | null; employee_count: number | null; country: string | null; city: string | null } | null;
-};
-type CompanyQ = {
-  id: string; kind: "company" | "local_business"; industry: string | null; category: string | null; employee_count: number | null; country: string | null; city: string | null;
-  match_score: number | null; confidence: number | null; missing_fields: string[]; source: string; created_at: string; bookmarked_at: string | null; phone: string | null;
-};
+type PersonQ = { company_id: string | null; title: string | null; email: string | null; email_status: string; match_score: number | null };
+type CompanyQ = { id: string; kind: "company" | "local_business"; match_score: number | null };
 
 /**
  * Discovery analytics for one workspace and period (D-162). Leads are what a
@@ -51,12 +44,11 @@ export async function discoveryAnalytics(workspaceId: string, range: RangeKey) {
   const s = since.toISOString();
 
   const [people, companies, messages, companiesFound, prevPeople, prevDelivered, prevCompanies, searches, collections, enrichCalls, exports] = await Promise.all([
-    all<PersonQ>(() => db.from("prospects").select("id, company_id, title, seniority, email, email_status, phone, country, city, match_score, confidence, missing_fields, source, created_at, revealed_at, bookmarked_at, company:companies(industry, employee_count, country, city)")
+    all<PersonQ>(() => db.from("prospects").select("company_id, title, email, email_status, match_score")
       .eq("workspace_id", workspaceId).gte("created_at", s).order("created_at")),
-    all<CompanyQ>(() => db.from("companies").select("id, kind, industry, category, employee_count, country, city, match_score, confidence, missing_fields, source, created_at, bookmarked_at, phone")
+    all<CompanyQ>(() => db.from("companies").select("id, kind, match_score")
       .eq("workspace_id", workspaceId).gte("created_at", s).not("delivered_at", "is", null).order("created_at")),
-    all<{ prospect_id: string | null; company_id: string | null; channel: string; opened_at: string | null }>(() => db.from("outreach_messages").select("prospect_id, company_id, channel, opened_at")
-      .eq("workspace_id", workspaceId).gte("created_at", s)),
+    all<{ channel: string }>(() => db.from("outreach_messages").select("channel").eq("workspace_id", workspaceId).gte("created_at", s)),
     db.from("companies").select("id", head).eq("workspace_id", workspaceId).gte("created_at", s),
     db.from("prospects").select("id", head).eq("workspace_id", workspaceId).gte("created_at", before).lt("created_at", s),
     db.from("companies").select("id", head).eq("workspace_id", workspaceId).gte("created_at", before).lt("created_at", s).not("delivered_at", "is", null),
@@ -67,21 +59,11 @@ export async function discoveryAnalytics(workspaceId: string, range: RangeKey) {
     all<{ format: string | null }>(() => db.from("workspace_activity").select("format").eq("workspace_id", workspaceId).eq("kind", "export").gte("created_at", s)),
   ]);
 
-  const contacted = new Set(messages.filter((m) => m.opened_at).flatMap((m) => [m.prospect_id, m.company_id]).filter(Boolean));
   const rows: LeadRow[] = [
     ...people.map((p): LeadRow => ({
-      kind: "person", companyId: p.company_id, country: p.country ?? p.company?.country ?? null, city: p.city ?? p.company?.city ?? null,
-      industry: p.company?.industry ?? null, employees: p.company?.employee_count ?? null, title: p.title, seniority: p.seniority,
-      match: p.match_score, confidence: p.confidence, emailFound: Boolean(p.email) && p.email_status !== "invalid", emailVerified: p.email_status === "verified",
-      phoneFound: Boolean(p.phone), missing: p.missing_fields ?? [], source: p.source, createdAt: p.created_at,
-      selected: Boolean(p.revealed_at || p.bookmarked_at || contacted.has(p.id)), contacted: contacted.has(p.id),
+      kind: "person", companyId: p.company_id, title: p.title, match: p.match_score, emailFound: Boolean(p.email) && p.email_status !== "invalid",
     })),
-    ...companies.map((c): LeadRow => ({
-      kind: c.kind, companyId: c.id, country: c.country, city: c.city, industry: c.kind === "local_business" ? c.category ?? c.industry : c.industry ?? c.category,
-      employees: c.employee_count, title: null, seniority: null, match: c.match_score, confidence: c.confidence, emailFound: false, emailVerified: false,
-      phoneFound: Boolean(c.phone), missing: c.missing_fields ?? [], source: c.source, createdAt: c.created_at,
-      selected: Boolean(c.bookmarked_at || contacted.has(c.id)), contacted: contacted.has(c.id),
-    })),
+    ...companies.map((c): LeadRow => ({ kind: c.kind, companyId: c.id, title: null, match: c.match_score, emailFound: false })),
   ];
   const activity: ActivityCounts = {
     searches: searches.count ?? 0,
@@ -91,7 +73,7 @@ export async function discoveryAnalytics(workspaceId: string, range: RangeKey) {
     emailsPrepared: messages.filter((m) => m.channel === "email").length,
     messagesPrepared: messages.length,
   };
-  return computeDiscovery(rows, companiesFound.count ?? 0, { leads: (prevPeople.count ?? 0) + (prevDelivered.count ?? 0), companies: prevCompanies.count ?? 0, decisionMakers: prevPeople.count ?? 0 }, activity, since, days);
+  return computeDiscovery(rows, companiesFound.count ?? 0, { leads: (prevPeople.count ?? 0) + (prevDelivered.count ?? 0), companies: prevCompanies.count ?? 0, decisionMakers: prevPeople.count ?? 0 }, activity);
 }
 
 /**

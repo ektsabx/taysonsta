@@ -126,7 +126,7 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
       seoTitle: "Find Clients as a Freelancer with AI Prospecting",
       limits: [limitsEn.contacts, "Ratings and reviews appear only when the data source provides them.", limitsEn.outreach],
       faq: [
-        { q: "Is Yolias worth it for one person?", a: "Yes. Every plan starts with a 7-day free trial, enough to try a first search, and the plans differ only in their monthly limits." },
+        { q: "Is Yolias worth it for one person?", a: "Yes. Every plan includes every feature and unlimited users, the plans differ only in their monthly limits, and you can start with Pro and upgrade when you need more." },
         { q: "Can I look for small local businesses?", a: "Yes. Describe the type of business and the city, for example restaurants and cafés in Dubai, and Yolias runs a local business search." },
         { q: "Can my first message be in my client’s language?", a: "Yes. Yolias can draft messages in 15 languages, including Arabic and English." },
       ],
@@ -136,7 +136,7 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
       seoTitle: "اعثر على عملاء كمستقل بالذكاء الاصطناعي",
       limits: [limitsAr.contacts, "يظهر التقييم وعدد المراجعات فقط عندما يوفرها مصدر البيانات.", limitsAr.outreach],
       faq: [
-        { q: "هل يناسب يولـياس شخصًا يعمل وحده؟", a: "نعم. كل خطة تبدأ بتجربة مجانية لمدة 7 أيام تكفي لتجربة أول بحث، والخطط تختلف فقط في حدودها الشهرية." },
+        { q: "هل يناسب يولـياس شخصًا يعمل وحده؟", a: "نعم. كل خطة تشمل كل الميزات ومستخدمين غير محدودين، والخطط تختلف فقط في حدودها الشهرية، ويمكنك البدء بخطة برو والترقية عندما تحتاج المزيد." },
         { q: "هل يمكنني البحث عن أنشطة محلية صغيرة؟", a: "نعم. صِف نوع النشاط والمدينة، مثل المطاعم والمقاهي في دبي، ويشغّل يولـياس بحثًا عن الأنشطة المحلية." },
         { q: "هل يمكن أن تكون رسالتي الأولى بلغة العميل؟", a: "نعم. يجهّز يولـياس الرسائل بـ 15 لغة منها العربية والإنجليزية." },
       ],

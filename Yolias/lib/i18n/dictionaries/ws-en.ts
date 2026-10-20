@@ -10,7 +10,7 @@ export const wsEn = {
   },
   common: {
     save: "Save", saved: "Saved", saving: "Saving…", cancel: "Cancel", delete: "Delete", edit: "Edit", add: "Add", create: "Create", back: "Back",
-    search: "Search…", all: "All", none: "—", loading: "Loading…", error: "Something went wrong. Please try again.", notFound: "Not found.",
+    search: "Search…", all: "All", none: "-", loading: "Loading…", error: "Something went wrong. Please try again.", notFound: "Not found.",
     onlyManagers: "Only owners and admins can change this.", optional: "Optional", confirmDelete: "Delete this? This can't be undone.",
     page: "Page {page} of {pages}", prev: "Previous", next: "Next", yes: "Yes", no: "No", open: "Open", close: "Close", done: "Done",
     notConnectedTitle: "Not connected yet",
@@ -21,7 +21,7 @@ export const wsEn = {
   stageNote: "New = added to the CRM, not in the pipeline yet.",
   sources: {
     question: "How did you find us?", placeholder: "Choose one", otherLabel: "Tell us where", otherPlaceholder: "e.g. a conference",
-    hint: "Optional — it helps us know what works.",
+    hint: "Optional. It helps us know what works.",
     options: {
       google: "Google", youtube: "YouTube", tiktok: "TikTok", friend: "Through a Friend", x: "X", instagram: "Instagram", review_site: "G2 / Any Review Website",
       blog: "Blog / Article", facebook: "Facebook", ai_chat: "ChatGPT / Any AI Chat", linkedin: "LinkedIn", email: "Email", reddit: "Reddit", podcast: "Podcast",
@@ -86,7 +86,7 @@ export const wsEn = {
     },
     errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no prospects yet." },
     started: "Campaign created. Yolias is writing the emails.",
-    source: "Start from a search campaign", sourceNone: "No — I’ll add leads later", sourceHint: "Its prospects join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
+    source: "Start from a search campaign", sourceNone: "No, I’ll add leads later", sourceHint: "Its prospects join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
     send: { button: "Send", title: "Send to {count} selected", lead: "Yolias creates a campaign with these prospects, starts it and prepares the first messages. You review and send them from Outreach or the Inbox.", name: "Campaign name", channel: "Channel", start: "Create and prepare messages", orExisting: "Or add them to an existing campaign", defaultName: "Campaign {date}" },
     pickCampaign: "Add to outreach campaign", pickCampaignTitle: "Choose a campaign", noCampaigns: "No active or draft campaigns. Create one in Outreach first.",
   },
@@ -127,7 +127,7 @@ export const wsEn = {
     reply: {
       logTitle: "Log a reply you received", logHint: "Paste the reply from your email, WhatsApp or LinkedIn. Yolias stops the follow-ups, reads it and suggests the next step.",
       body: "Their reply", channel: "Received on", receivedAt: "Received at", from: "From (optional)", save: "Log reply", logged: "Reply logged.",
-      draftTitle: "Write a reply", draftAi: "Draft with AI", drafting: "Writing…", instruction: "What should the reply say? (optional)", drafted: "Draft ready below — review it before sending.", saveDraft: "Save as draft", manualHint: "Write the reply yourself and save it as a draft, or let the AI draft it from what you wrote (optional).",
+      draftTitle: "Write a reply", draftAi: "Draft with AI", drafting: "Writing…", instruction: "What should the reply say? (optional)", drafted: "Draft ready below. Review it before sending.", saveDraft: "Save as draft", manualHint: "Write the reply yourself and save it as a draft, or let the AI draft it from what you wrote (optional).",
       analysis: "AI read the reply", kind: {
         interested: "Interested", meeting_request: "Wants a meeting", question: "Has a question", objection: "Objection", not_interested: "Not interested",
         stop_request: "Asked to stop", out_of_office: "Out of office", asks_for_human: "Wants a person", unclear: "Unclear",
@@ -172,7 +172,7 @@ export const wsEn = {
   },
   ai: {
     knowledge: {
-      title: "Company Knowledge", subtitle: "What Yolias AI knows about your company. It uses only what you write here — in searches, messages and replies.",
+      title: "Company Knowledge", subtitle: "What Yolias AI knows about your company. It uses only what you write here, in searches, messages and replies.",
       tabCompany: "Company",
       basics: "Company profile", sections: "Company information", offers: "Business Offers", competitors: "Competitors",
       fields: {
@@ -187,7 +187,9 @@ export const wsEn = {
       },
       analyze: {
         title: "Fill this in from your website", lead: "Yolias reads your public pages (home, about, services, products, pricing, contact, FAQ) and fills the fields below. You review everything before saving.",
-        url: "Website", run: "Analyze website", running: "Reading your website…",
+        url: "Website", run: "Analyze website", running: "Reading your website…", retry: "Try again", stop: "Stop",
+        steps: { open: "Opening your website", pages: "Finding and reading your pages", extract: "Reading your company details, services, products and customers", result: "Preparing the result" },
+        pagesCount: "{read} of {total} pages", pageMissed: "couldn’t be opened",
         done: "Filled from {count} pages of your website. Review the fields below, then save.", saveAll: "Save everything", notFound: "Not found on the website:",
         errors: { url: "Enter your website address (e.g. yourcompany.com).", unreachable: "We couldn’t open that website. Check the address and try again.", empty: "We couldn’t find enough text on that website.", not_configured: "Website analysis isn’t available right now.", failed: "The analysis didn’t work. Please try again." },
       },
@@ -204,14 +206,14 @@ export const wsEn = {
         include_keywords: "Include Keywords", exclude_keywords: "Exclude Keywords", icp: "Ideal Customer Profile (ICP)", industries: "Industries", size: "Company size (employees)",
         sizeMin: "From", sizeMax: "To", job_titles: "Job titles", countries: "Countries", regions: "Regions or cities", budget: "Budget or buying power", customer_type: "Customer type", extra_criteria: "Other criteria",
       },
-      hints: { keywords: "Separate with commas.", countries: "Country codes or names, separated with commas (e.g. SA, AE, EG).", success: "Real results only — AI quotes them." },
+      hints: { keywords: "Separate with commas.", countries: "Country codes or names, separated with commas (e.g. SA, AE, EG).", success: "Real results only. AI quotes them." },
       types: { b2b: "B2B", b2c: "B2C", both: "Both" },
       usedIn: "Used for searches (pick it in the composer) and campaigns.", composerLabel: "Customer profile", composerNone: "No profile",
       errors: { name: "Enter a profile name.", duplicate: "A profile with that name already exists.", size: "“From” must be less than “To”." },
     },
     agents: {
       title: "AI Agent", subtitle: "One agent works on your customer acquisition. Give it a goal and rules, choose what it may do on its own and what needs your approval.",
-      mainName: "Yolias Agent", mainDesc: "Yolias AI is your agent: you talk to it, it searches, writes, reads replies, follows up, prepares meetings and keeps the CRM current — within the permissions below.",
+      mainName: "Yolias Agent", mainDesc: "Yolias AI is your agent: you talk to it, it searches, writes, reads replies, follows up, prepares meetings and keeps the CRM current, within the permissions below.",
       goal: "Goal", goalHint: "What you want the agent to achieve. It uses this in every search, message and reply.", goalPh: "e.g. 10 intro calls a month with logistics companies in Saudi Arabia",
       capabilities: "Capabilities", capabilitiesHint: "What the agent can do. Switch a capability off, give it its own instructions, and choose what it does on its own or after your approval.",
       enabled: "On", disabled: "Off", instructions: "Instructions for this capability", instructionsPh: "e.g. Always mention our free trial.", inputs: "Uses", outputs: "Produces", actions: "Can do",
@@ -222,7 +224,7 @@ export const wsEn = {
         replies: { name: "Replies", desc: "Reads the replies you log, classifies them, suggests the next stage and a reply, and escalates what needs you.", inputs: "Logged replies, the conversation, Company Knowledge", outputs: "Reply analysis, stage suggestions, reply drafts, escalations" },
         follow_up: { name: "Follow-up", desc: "Watches every campaign’s schedule: reminds you of due follow-ups and scheduled messages and can prepare the next follow-up.", inputs: "Campaign steps, sent messages, Rules", outputs: "Reminders, follow-up drafts" },
         meeting: { name: "Meetings", desc: "Prepares a meeting brief and reminds you to record the outcome. Creating calendar events needs a calendar integration (not connected).", inputs: "Meeting, lead history, Company Knowledge", outputs: "Meeting briefs, outcome reminders" },
-        crm: { name: "CRM updates", desc: "Moves deals between stages when replies and meetings justify it — automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
+        crm: { name: "CRM updates", desc: "Moves deals between stages when replies and meetings justify it, automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
       },
       pending: "Waiting for approval", noPending: "Nothing waiting for approval.", approved: "Approved.", rejected: "Rejected.",
     },
@@ -239,7 +241,7 @@ export const wsEn = {
         no_recontact_days: "Don’t re-contact a lead for (days)", stop_on_reply: "Stop follow-ups when the lead replies", stop_on_meeting: "Stop follow-ups when a meeting is booked",
       },
       optOut: "Requests to stop are always honoured: the lead is marked do-not-contact and every campaign stops.",
-      escalation: "Escalation — stop and ask me when", escalations: {
+      escalation: "Escalation: stop and ask me when", escalations: {
         unclear_reply: "A reply is unclear", objection: "There’s an objection or complaint", asks_for_human: "They ask to talk to a person", stop_request: "They ask to stop (always)",
         unverified_info: "The answer needs information that isn’t verified", no_permission: "The agent doesn’t have permission (always)",
       },
@@ -256,7 +258,7 @@ export const wsEn = {
       actionFields: { title: "Text", due: "Due in (days)", stage: "Stage", text: "Note" }, addAction: "Add action",
       runStatus: { succeeded: "Done", partial: "Partly done", failed: "Failed", skipped: "Skipped", needs_approval: "Waiting for approval" },
       templateNames: { interested: "Interested → follow up", booked: "Meeting booked → stop follow-ups", completed: "Meeting completed → next step", lost: "Lost → stop outreach" },
-      setStageNote: "Moving a stage follows Rules & Permissions → CRM Agent.", deleted: "Deleted — history kept.",
+      setStageNote: "Moving a stage follows Rules & Permissions → CRM Agent.", deleted: "Deleted. History kept.",
       errors: { name: "Enter a name.", actions: "Add at least one action.", invalid: "Check the fields of each action." },
     },
   },

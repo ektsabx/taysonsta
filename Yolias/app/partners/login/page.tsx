@@ -5,7 +5,7 @@ import { partnerUser } from "@/lib/partners";
 import { PartnerAuthForm } from "../PartnerAuthForm";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).partners.loginTitle} — Yolias Partners` };
+  return { title: `${(await getDictionary()).partners.loginTitle} | Yolias Partners` };
 }
 
 export default async function PartnerLoginPage() {

@@ -7,7 +7,7 @@ import { listOutreachCampaigns } from "@/services/outreach-campaigns";
 import { shortDate } from "@/components/app/ws/format";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.outreach.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.outreach.title} | Yolias` };
 }
 
 // Outreach (D-193): campaigns that reach the prospects Yolias found.

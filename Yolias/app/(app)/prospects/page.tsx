@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
@@ -9,14 +10,12 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { sizeBand } from "@/lib/results";
 import { requireViewer } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
-import { listCampaigns } from "@/services/campaigns";
-import { CampaignSummary } from "@/components/app/CampaignSummary";
 import { monthlyUsage } from "@/services/workspace";
 import { outreachStates } from "@/services/outreach-status";
-import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, tabCounts } from "@/services/prospects";
+import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, prospectCountries, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).nav.prospects} — Yolias` };
+  return { title: `${(await getDictionary()).nav.prospects} | Yolias` };
 }
 
 // Prospects (owner brief 2026-10-12): one table for companies, local
@@ -29,16 +28,19 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
   const session = await requireViewer();
   const sp = await searchParams;
   const filters = parseFilters(sp);
+  // Old discovery-campaign links (/prospects?campaign=…, D-204) carry a
+  // parameter Prospects no longer reads (owner, 2026-10-20): drop it from the URL.
+  if ("campaign" in sp) {
+    const q = filterQuery(filters);
+    redirect(`/prospects${q ? `?${q}` : ""}`);
+  }
   const ws = session.workspace.id;
-  const [page, counts, campaigns, funding, usage, t, locale, canCollect] = await Promise.all([
-    listItems(ws, filters), tabCounts(ws), listCampaigns(ws, { imports: true }), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
+  const [page, counts, countryCodes, funding, usage, t, locale, canCollect] = await Promise.all([
+    listItems(ws, filters), tabCounts(ws), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
   ]);
   const pr = t.prospects;
   const tz = session.profile.timezone;
-  const countries = [...new Set([
-    ...campaigns.flatMap((c) => (((c.criteria as { countries?: string[] })?.countries ?? []) as string[])),
-    ...page.rows.map((r) => r.country).filter((c): c is string => Boolean(c)),
-  ])].map((code) => ({ code, name: countryLabel(code, locale) }));
+  const countries = countryCodes.map((code) => ({ code, name: countryLabel(code, locale) }));
   const active = activeFilterCount(filters);
   const states = await outreachStates(ws, page.rows.map((r) => ({ id: r.id, kind: r.item_type === "person" ? ("person" as const) : ("company" as const) })));
 
@@ -89,13 +91,11 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       </header>
 
       <div className="view-content-padding">
-        {filters.campaign && <CampaignSummary id={filters.campaign} workspaceId={ws} timeZone={tz} />}
         <Suspense>
           <ProspectToolbar
             key={query}
             tab={filters.tab}
             counts={counts}
-            campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
             countries={countries}
             funding={funding}
             active={active}

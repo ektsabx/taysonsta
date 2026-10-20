@@ -13,7 +13,7 @@ import { StageBadge } from "@/components/app/ws/bits";
 import { shortDate } from "@/components/app/ws/format";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.inbox.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.inbox.title} | Yolias` };
 }
 
 // Inbox (D-194, D-239): the replies to the campaigns, one conversation per
@@ -54,7 +54,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
       </header>
       {!hasMailbox && <div className="ws-note" style={{ margin: "14px 34px 0" }}><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>}
       <div className="inbox-approvals">
-        <PendingApprovals timeZone={tz} approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "—", tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))} />
+        <PendingApprovals timeZone={tz} approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "-", tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))} />
       </div>
       <div className={`inbox${thread ? " has-thread" : ""}`} style={{ marginTop: 14 }}>
         <aside className="inbox-list">
@@ -79,7 +79,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                   <time>{shortDate(l.previewAt ?? l.last_activity_at, locale, tz)}</time>
                 </div>
                 {l.company_name && l.company_name !== l.name && <div className="cell-sub">{l.company_name}</div>}
-                <div className="inbox-item-preview" dir="auto">{l.preview ?? "—"}</div>
+                <div className="inbox-item-preview" dir="auto">{l.preview ?? "-"}</div>
                 <div className="ws-inline">
                   {l.thread_label && <span className={`ws-chip label-${l.thread_label}`}>{w.labels[l.thread_label]}</span>}
                   <StageBadge stage={l.stage} />

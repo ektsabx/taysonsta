@@ -18,7 +18,7 @@ const company = (i: number): CompanyCandidate => {
   const name = `${names[i % names.length]}${suffixes[Math.floor(i / names.length) % suffixes.length]}`;
   return {
   name, domain: `${name.toLowerCase().replace(/\s+/g, "")}.example`, industry: i % 2 ? "Fintech" : "SaaS",
-  description: `${name} builds ${i % 2 ? "payments and lending" : "cloud software"} products for growing businesses across Saudi Arabia, the UAE and Egypt. The team focuses on fast onboarding, local support and integrations with the tools sales and finance teams already use. (Local demo data — not a real company.)`,
+  description: `${name} builds ${i % 2 ? "payments and lending" : "cloud software"} products for growing businesses across Saudi Arabia, the UAE and Egypt. The team focuses on fast onboarding, local support and integrations with the tools sales and finance teams already use. (Local demo data, not a real company.)`,
   logoUrl: `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(name)}`,
   linkedinUrl: `https://www.linkedin.com/company/demo-${name.toLowerCase().replace(/\s+/g, "-")}`,
   foundedYear: 2012 + (i % 11), city: cities[i % 4], country: i % 4 === 3 ? "EG" : i % 4 === 2 ? "AE" : "SA",

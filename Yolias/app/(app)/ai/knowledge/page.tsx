@@ -7,7 +7,7 @@ import { KnowledgeView } from "@/components/app/ws/KnowledgeView";
 import { ProfilesView } from "@/components/app/ws/ProfilesView";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.ai.knowledge.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.ai.knowledge.title} | Yolias` };
 }
 
 // AI Workspace → Company Knowledge (moved from Settings → Organization,

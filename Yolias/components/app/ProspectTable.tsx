@@ -161,26 +161,26 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
                         </span>
                       </Link>
                     </td>
-                    <td dir="auto">{r.jobTitle ?? <span className="cell-sub">—</span>}</td>
-                    <td>{r.company ? (r.companyHref ? <Link className="entity-link" href={r.companyHref}>{r.company}</Link> : r.company) : <span className="cell-sub">—</span>}</td>
+                    <td dir="auto">{r.jobTitle ?? <span className="cell-sub">-</span>}</td>
+                    <td>{r.company ? (r.companyHref ? <Link className="entity-link" href={r.companyHref}>{r.company}</Link> : r.company) : <span className="cell-sub">-</span>}</td>
                     <td>
                       <span className={`type-pill type-${r.kind}`}>{pr.csv.types[r.kind]}</span>
                       {r.imported && <span className="cell-sub">{tb.imported}</span>}
                     </td>
-                    <td>{r.industry ?? <span className="cell-sub">—</span>}</td>
-                    <td>{r.location ?? <span className="cell-sub">—</span>}</td>
-                    <td dir="ltr" className="text-start">{r.employees ?? <span className="cell-sub">—</span>}</td>
-                    <td dir="ltr" className="text-start">{r.revenue ?? <span className="cell-sub">—</span>}</td>
-                    <td dir="ltr" className="text-start">{r.funding ?? <span className="cell-sub">—</span>}</td>
-                    <td dir="ltr" className="text-start">{r.visitors ?? <span className="cell-sub">—</span>}</td>
-                    <td>{r.geo ?? <span className="cell-sub">—</span>}</td>
+                    <td>{r.industry ?? <span className="cell-sub">-</span>}</td>
+                    <td>{r.location ?? <span className="cell-sub">-</span>}</td>
+                    <td dir="ltr" className="text-start">{r.employees ?? <span className="cell-sub">-</span>}</td>
+                    <td dir="ltr" className="text-start">{r.revenue ?? <span className="cell-sub">-</span>}</td>
+                    <td dir="ltr" className="text-start">{r.funding ?? <span className="cell-sub">-</span>}</td>
+                    <td dir="ltr" className="text-start">{r.visitors ?? <span className="cell-sub">-</span>}</td>
+                    <td>{r.geo ?? <span className="cell-sub">-</span>}</td>
                     <td><Qualification match={r.match} /></td>
                     <td>
                       <span className="contact-icons">
                         {r.hasEmail && <span title={tb.hasEmail} aria-label={tb.hasEmail}><Mail /></span>}
                         {r.hasPhone && <span title={tb.hasPhone} aria-label={tb.hasPhone}><Phone /></span>}
                         {r.linkedinUrl && <a href={r.linkedinUrl} target="_blank" rel="noreferrer" title={tb.hasLinkedin} aria-label={tb.hasLinkedin}><LinkedInIcon /></a>}
-                        {!r.hasEmail && !r.hasPhone && !r.linkedinUrl && <span className="cell-sub">—</span>}
+                        {!r.hasEmail && !r.hasPhone && !r.linkedinUrl && <span className="cell-sub">-</span>}
                       </span>
                     </td>
                     <td><span className={`outreach-state ${r.outreach}`}>{tb.outreach[r.outreach]}</span></td>

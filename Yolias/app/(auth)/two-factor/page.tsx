@@ -3,7 +3,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { TwoFactorForm } from "./TwoFactorForm";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).auth.twoFactorTitle} — Yolias` };
+  return { title: `${(await getDictionary()).auth.twoFactorTitle} | Yolias` };
 }
 
 // Second sign-in step for accounts with two-factor authentication.

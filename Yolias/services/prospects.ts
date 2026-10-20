@@ -25,7 +25,6 @@ export interface ProspectFilters {
   tab: ProspectTab;
   /** Keywords: name, title, company, industry, description, domain, signals. */
   q?: string;
-  campaign?: string;
   country?: string;
   city?: string;
   minMatch?: number;
@@ -46,7 +45,6 @@ export interface ProspectFilters {
   page: number;
 }
 
-const uuid = /^[0-9a-f-]{36}$/i;
 const text = (v: string, max: number) => v.slice(0, max) || undefined;
 
 export function parseFilters(sp: Record<string, string | string[] | undefined>): ProspectFilters {
@@ -58,7 +56,6 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   return {
     tab,
     q: text(one("q"), 120),
-    campaign: uuid.test(one("campaign")) ? one("campaign") : undefined,
     country: /^[a-z]{2}$/i.test(one("country")) ? one("country").toUpperCase() : undefined,
     city: text(one("city"), 80),
     minMatch: Number.isFinite(min) && min > 0 ? Math.min(min, 100) : undefined,
@@ -77,7 +74,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
 }
 
 const QUERY_KEYS: [keyof ProspectFilters, string][] = [
-  ["tab", "tab"], ["q", "q"], ["campaign", "campaign"], ["country", "country"], ["city", "city"], ["minMatch", "min"], ["verified", "verified"],
+  ["tab", "tab"], ["q", "q"], ["country", "country"], ["city", "city"], ["minMatch", "min"], ["verified", "verified"],
   ["titles", "titles"], ["industry", "industry"], ["employees", "employees"], ["domain", "domain"], ["company", "company"], ["hiring", "hiring"],
   ["signals", "signals"], ["funding", "funding"], ["sort", "sort"], ["page", "page"],
 ];
@@ -119,7 +116,6 @@ function query(db: Client, f: ProspectFilters, workspaceId: string, columns = "*
     if (f.tab === "local") q = q.eq("item_type", "local_business");
     if (f.tab === "people") q = q.eq("item_type", "person");
   }
-  if (f.campaign) q = q.eq("campaign_id", f.campaign);
   if (f.country) q = q.eq("country", f.country);
   if (f.city) q = q.ilike("city", `%${safe(f.city)}%`);
   if (f.minMatch) q = q.gte("match_score", f.minMatch);
@@ -217,6 +213,13 @@ export async function tabCounts(workspaceId: string): Promise<Record<ProspectTab
 }
 
 /** Funding stages present in the workspace (the Funding type filter offers only real values). */
+/** Countries the workspace's saved prospects are in (the Location filter). */
+export async function prospectCountries(workspaceId: string): Promise<string[]> {
+  const db = await createClient();
+  const { data } = await db.from("prospect_items").select("country").eq("workspace_id", workspaceId).not("saved_at", "is", null).not("country", "is", null).limit(5000);
+  return [...new Set((data ?? []).map((r: { country: string | null }) => r.country as string))].sort();
+}
+
 export async function fundingStages(workspaceId: string): Promise<string[]> {
   const db = await createClient();
   const { data } = await db.from("companies").select("funding_stage").eq("workspace_id", workspaceId).not("funding_stage", "is", null).limit(2000);

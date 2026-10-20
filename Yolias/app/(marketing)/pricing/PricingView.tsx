@@ -12,6 +12,7 @@ import { TrustLogos } from "@/components/marketing/SocialProof";
 import { monthlyRate, monthlyRateEgp, planName, planPrice, priceFor, priceForEgp, type PlanTerms } from "@/lib/plans";
 import type { BillingPeriod, Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
+import { pricingFaq } from "@/lib/pricing-copy";
 
 type PricingCopy = Dictionary["pricing"];
 type PlanId = PaidPlan;
@@ -31,8 +32,8 @@ interface Props {
   /** Monthly prices and limits per plan (lib/plan-catalog.ts). */
   plans: Record<PlanId, PlanTerms>;
   currency: Currency;
-  /** Free trial length in days (lib/trial.ts). */
-  trialDays: number;
+  /** Free trial length in days when checkout offers one today, else null (lib/payments trialAvailable). */
+  trialDays: number | null;
   /** The visitor is in Egypt: show the EGP prices (D-237). */
   egp: boolean;
 }
@@ -76,8 +77,8 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
         t.unlimitedUsers,
       ]}
       href={href(plan)}
-      cta={t.startTrial}
-      foot={fmt(t.trialFoot, { days: n(trialDays) })}
+      cta={trialDays ? t.startTrial : t.getStarted}
+      foot={trialDays ? fmt(t.trialFoot, { days: n(trialDays) }) : t.paidFoot}
       recommended={recommended}
     />
   );
@@ -89,7 +90,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
           <div className="site-width text-center">
             <p className="eyebrow">{t.heroEyebrow}</p>
             <h1 className="display-font hero-title mt-5">{t.heroTitle}</h1>
-            <p className="hero-copy">{t.heroSupport}</p>
+            <p className="hero-copy">{t.heroSupport}{trialDays ? ` ${fmt(t.heroTrial, { days: n(trialDays) })}` : ""}</p>
             <div className="period-toggle" role="radiogroup" aria-label={t.billingPeriod}>
               {(["monthly", "annual"] as BillingPeriod[]).map((p) => (
                 <button key={p} type="button" role="radio" aria-checked={period === p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
@@ -152,10 +153,12 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
                   <td>{t.usageEmails}</td>
                   {tiers.map((p) => <td key={p}>{n(plans[p].emails)}</td>)}
                 </tr>
-                <tr>
-                  <td>{t.freeTrial}</td>
-                  {tiers.map((p) => <td key={p}>{fmt(t.trialDays, { days: n(trialDays) })}</td>)}
-                </tr>
+                {trialDays ? (
+                  <tr>
+                    <td>{t.freeTrial}</td>
+                    {tiers.map((p) => <td key={p}>{fmt(t.trialDays, { days: n(trialDays) })}</td>)}
+                  </tr>
+                ) : null}
                 <tr>
                   <td>{t.price}</td>
                   {tiers.map((p) => <td key={p} dir="ltr" className="text-start">{price(p)}</td>)}
@@ -173,7 +176,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp }: Props
             <h2 className="display-font mt-4 text-[clamp(2.45rem,5vw,4.2rem)] font-semibold leading-[1.04] tracking-[-.05em]">{t.faqTitle}</h2>
           </div>
           <div className="mt-10">
-            {t.faq.map(([q, a]) => <FaqItem key={q} q={q} a={a} />)}
+            {pricingFaq(t, trialDays).map(([q, a]) => <FaqItem key={q} q={q} a={a} />)}
           </div>
         </div>
       </section>

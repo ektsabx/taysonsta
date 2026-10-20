@@ -141,7 +141,7 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
                     <span className="ow-avatar" aria-hidden="true">{initials(l.name)}</span>
                     <span className="ow-lead-main">
                       <strong>{l.name}</strong>
-                      <span className="ow-lead-sub">{[l.title, l.domain ?? l.company].filter(Boolean).join(" · ") || "—"}</span>
+                      <span className="ow-lead-sub">{[l.title, l.domain ?? l.company].filter(Boolean).join(" · ") || "-"}</span>
                       <span className={`ow-find ${l.finding}`}>
                         {l.finding === "finding" ? <Loader2 className="spin" /> : l.finding === "none" ? <CircleX /> : <CircleCheck />}
                         {w.emailStatus[l.finding]}
@@ -169,10 +169,10 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
                   {work.sent.map((m) => (
                     <tr key={m.id}>
                       <td>{m.leadId ? <Link className="entity-link" href={`/inbox?lead=${m.leadId}`}><strong>{m.lead}</strong></Link> : m.lead}</td>
-                      <td dir="ltr">{m.to ?? "—"}</td>
-                      <td className="ow-sent-email"><details><summary dir="auto">{m.subject || "—"}</summary><p dir="auto">{m.body}</p></details></td>
+                      <td dir="ltr">{m.to ?? "-"}</td>
+                      <td className="ow-sent-email"><details><summary dir="auto">{m.subject || "-"}</summary><p dir="auto">{m.body}</p></details></td>
                       <td className="cell-sub">{dateTime(m.sentAt, locale, timeZone)}</td>
-                      <td dir="ltr" className="cell-sub">{m.from ?? "—"}</td>
+                      <td dir="ltr" className="cell-sub">{m.from ?? "-"}</td>
                       <td><span className={`ws-chip ${m.status === "replied" ? "blue" : m.status === "sent" ? "green" : "red"}`}>{w.sentStatus[m.status]}</span></td>
                     </tr>
                   ))}
@@ -251,7 +251,7 @@ function Composer({ lead, hasMailbox, writing, timeZone }: { lead: Lead; hasMail
       ) : !m ? (
         !hasMailbox ? <div className="ws-empty">{w.noMailbox}</div>
           : writing ? <div className="ws-empty"><Loader2 className="spin" /> {w.noDraft}</div>
-          : <div className="ws-empty">—</div>
+          : <div className="ws-empty">-</div>
       ) : (
         <div className="ow-mail">
           <div className="ow-mail-row"><span>{w.to}</span><span dir="ltr">{m.to ?? lead.email}</span></div>

@@ -6,7 +6,7 @@ import { partnerUser } from "@/lib/partners";
 import { PartnerAuthForm } from "../PartnerAuthForm";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).partners.joinTitle} — Yolias Partners` };
+  return { title: `${(await getDictionary()).partners.joinTitle} | Yolias Partners` };
 }
 
 // Join in one step: name, email, terms — no application, no subscription (D-206).

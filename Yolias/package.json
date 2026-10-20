@@ -17,6 +17,7 @@
     "test:agent-control": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-control.mts",
     "test:agent": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-tools.mts",
     "test:emails": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-emails.mts",
+    "test:messaging": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-messaging.mts",
     "test:llm": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-llm-fallback.mts",
     "test:payments": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-payments.mts",
     "test:kashier": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-kashier.mts",

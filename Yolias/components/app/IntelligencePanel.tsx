@@ -18,7 +18,7 @@ export function IntelligencePanel({ t, locale, timeZone, row }: {
     <section className="detail-card">
       <h3>{d.intelligence}</h3>
       <dl className="detail-grid">
-        <dt>{d.match}</dt><dd>{row.match_score != null ? `${row.match_score}%` : "—"}{reasons.length > 0 && <span className="cell-sub">{d.reasons}: {reasons.join(" · ")}</span>}</dd>
+        <dt>{d.match}</dt><dd>{row.match_score != null ? `${row.match_score}%` : "-"}{reasons.length > 0 && <span className="cell-sub">{d.reasons}: {reasons.join(" · ")}</span>}</dd>
         <dt>{d.lastUpdated}</dt><dd>{formatDate(row.last_updated, locale, timeZone)}</dd>
         <dt>{d.missing}</dt><dd>{row.missing_fields.length ? row.missing_fields.map(label).join(" · ") : d.noneMissing}</dd>
       </dl>

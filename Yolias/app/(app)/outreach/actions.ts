@@ -238,7 +238,7 @@ export async function prepareCampaignDrafts(campaignId: string): Promise<Outreac
   if (!prepared && blocking) return { ok: false, error: reasonText(blocking) };
   // The most common reason a lead was skipped (e.g. no email for an email campaign).
   const top = [...reasons.entries()].sort((a, b) => b[1] - a[1])[0];
-  return { ok: true, message: [fmt(t.ws.outreach.prepared, { count: prepared }), skipped ? `${fmt(t.ws.outreach.prepareSkipped, { count: skipped })}${top ? ` — ${reasonText(top[0])}` : ""}` : null].filter(Boolean).join(" ") };
+  return { ok: true, message: [fmt(t.ws.outreach.prepared, { count: prepared }), skipped ? `${fmt(t.ws.outreach.prepareSkipped, { count: skipped })}${top ? `: ${reasonText(top[0])}` : ""}` : null].filter(Boolean).join(" ") };
 }
 
 /**

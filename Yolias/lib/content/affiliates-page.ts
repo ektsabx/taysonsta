@@ -23,7 +23,7 @@ export const affiliatesPage: Localized<{
     eyebrow: "AFFILIATE PROGRAM",
     title: "Earn by introducing Yolias to businesses that sell services.",
     seoTitle: "Yolias Affiliate Program",
-    lead: "Join in a minute — no application and no subscription. Share your referral link and earn a commission on the payments of the customers you refer.",
+    lead: "Join in a minute. No application and no subscription. Share your referral link and earn a commission on the payments of the customers you refer.",
     metaDescription: "Join the Yolias affiliate program: share your link, earn a commission on qualifying payments of the customers you refer, and follow every commission and payout in your dashboard.",
     closed: "The affiliate program isn’t open right now.",
     heroRate: "{rate} commission",
@@ -38,7 +38,7 @@ export const affiliatesPage: Localized<{
     whyTitle: "Why Yolias is easy to recommend",
     why: [
       { title: "A clear problem, a clear result", body: "Businesses describe who they sell to; Yolias finds matching companies with a way to reach them. People understand it in one sentence." },
-      { title: "A free trial on every plan", body: "Your referrals can try the plan they choose for 7 days before the first payment, which makes the first step easier." },
+      { title: "Every feature on every plan", body: "Your referrals get the whole product on any plan, with unlimited users, so the choice is only how much they need each month." },
       { title: "Unlimited users", body: "Teams don’t pay per seat, so a whole sales team can use one plan." },
       { title: "Your own dashboard", body: "See visits, signups, paying customers and every commission and payout in your affiliate dashboard inside Yolias." },
     ],
@@ -67,7 +67,7 @@ export const affiliatesPage: Localized<{
     faqTitle: "Questions",
     faq: [
       { q: "Do I need a Yolias subscription to join?", a: "No. Yolias Partners has its own sign-in and dashboard. Join with your name and email; if you already use Yolias, the same email works." },
-      { q: "Do I earn while my referral is on the free trial?", a: "No. The trial is free, so there is no payment yet. The commission is created from the first real payment after the trial." },
+      { q: "Do I earn if my referral starts on a free trial?", a: "Not during the trial: it is free, so there is no payment yet. The commission is created from the first real payment after it." },
       { q: "What happens if a visitor clicks two affiliate links?", a: "The program settings decide: either the first or the most recent valid link keeps the referral. The current rule is shown in your dashboard." },
       { q: "Can I see who I referred?", a: "You see each referral with a short reference, its signup date and whether it became a paying customer. Customers’ names and emails stay private." },
       { q: "How are payouts sent?", a: "You choose an enabled payout method and enter your details. The team reviews each request, sends the money and records the transfer reference, and you get an email at every step." },
@@ -94,7 +94,7 @@ export const affiliatesPage: Localized<{
     eyebrow: "برنامج الأفلييت",
     title: "اربح بتعريف الشركات التي تبيع خدمات بيولـياس.",
     seoTitle: "برنامج الأفلييت في يولـياس",
-    lead: "انضم في دقيقة — بدون طلب انضمام وبدون اشتراك. شارك رابط الإحالة الخاص بك واربح عمولة على مدفوعات العملاء الذين تحيلهم.",
+    lead: "انضم في دقيقة. بدون طلب انضمام وبدون اشتراك. شارك رابط الإحالة الخاص بك واربح عمولة على مدفوعات العملاء الذين تحيلهم.",
     metaDescription: "انضم إلى برنامج الأفلييت في يولـياس: شارك رابطك، واربح عمولة على الدفعات المؤهلة للعملاء الذين تحيلهم، وتابع كل عمولة وطلب سحب في لوحتك.",
     closed: "برنامج الأفلييت غير متاح حاليًا.",
     heroRate: "عمولة {rate}",
@@ -109,7 +109,7 @@ export const affiliatesPage: Localized<{
     whyTitle: "لماذا يسهل ترشيح يولـياس",
     why: [
       { title: "مشكلة واضحة ونتيجة واضحة", body: "تصف الشركة لمن تبيع، ويجد يولـياس شركات مطابقة لديها وسيلة تواصل. يفهمها الناس في جملة واحدة." },
-      { title: "تجربة مجانية في كل خطة", body: "يستطيع من تحيلهم تجربة الخطة التي يختارونها 7 أيام قبل أول دفعة، وهذا يسهّل الخطوة الأولى." },
+      { title: "كل الميزات في كل خطة", body: "يحصل من تحيلهم على المنتج كاملًا في أي خطة مع مستخدمين غير محدودين، فيبقى الاختيار فقط في حجم ما يحتاجونه كل شهر." },
       { title: "مستخدمون غير محدودين", body: "لا يدفع الفريق مقابل كل مستخدم، فيستطيع فريق المبيعات كله استخدام خطة واحدة." },
       { title: "لوحتك الخاصة", body: "تابع الزيارات والتسجيلات والعملاء الدافعين وكل عمولة وطلب سحب من لوحة الأفلييت داخل يولـياس." },
     ],
@@ -138,7 +138,7 @@ export const affiliatesPage: Localized<{
     faqTitle: "أسئلة شائعة",
     faq: [
       { q: "هل أحتاج اشتراكًا في يولـياس للانضمام؟", a: "لا. لشركاء يولـياس تسجيل دخول ولوحة خاصة. انضم باسمك وبريدك، وإن كنت تستخدم يولـياس فنفس البريد يعمل." },
-      { q: "هل أربح أثناء التجربة المجانية لمن أحلته؟", a: "لا. التجربة مجانية فلا توجد دفعة بعد، وتُنشأ العمولة من أول دفعة حقيقية بعد التجربة." },
+      { q: "هل أربح إذا بدأ من أحلته بتجربة مجانية؟", a: "ليس أثناء التجربة، فهي مجانية ولا توجد دفعة بعد. وتُنشأ العمولة من أول دفعة حقيقية بعدها." },
       { q: "ماذا يحدث إذا ضغط الزائر على رابطي أفلييت؟", a: "تحدد إعدادات البرنامج ذلك: إما أول رابط صالح أو آخر رابط صالح يحتفظ بالإحالة، والقاعدة الحالية معروضة في لوحتك." },
       { q: "هل أرى من أحلتهم؟", a: "ترى كل إحالة برقم مرجعي قصير وتاريخ التسجيل وهل أصبحت عميلًا دافعًا. أسماء العملاء وبريدهم يبقيان خاصين." },
       { q: "كيف تُرسل المبالغ؟", a: "تختار طريقة سحب مفعّلة وتدخل بياناتك. يراجع الفريق كل طلب ويرسل المبلغ ويسجّل مرجع التحويل، وتصلك رسالة في كل خطوة." },

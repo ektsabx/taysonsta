@@ -4,7 +4,7 @@ import { MagicLinkForm } from "../MagicLinkForm";
 import { errorFrom } from "../errors";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).auth.recoverTitle} — Yolias` };
+  return { title: `${(await getDictionary()).auth.recoverTitle} | Yolias` };
 }
 
 // Yolias has no passwords, so recovery means getting a fresh sign-in link

@@ -14,6 +14,7 @@
 //   data-launcher="hidden"             no floating button; open with window.bosWidget.open()
 //   data-lang="ar|en"                  interface language (default: widget setting)
 //   data-agent-name="Yolias Agent"     the AI's name (default: "<widget title> Agent")
+//   data-position="left|right"         launcher side on this page (default: widget setting)
 // The API base is the script's own address, so a site can serve the widget
 // from its own domain through a proxy (Yolias does, D-134).
 // __FALLBACK_API__ is replaced by the server. No template literals or "${" in here.
@@ -23,6 +24,7 @@ var API=(CS&&CS.src&&CS.src.replace(/\/embed\.js(?:\?.*)?$/,""))||__FALLBACK_API
 var ICON=CS&&CS.getAttribute("data-icon");if(ICON){try{ICON=new URL(ICON,CS.src).href}catch(e){ICON=null}}
 var HIDDEN=CS&&CS.getAttribute("data-launcher")==="hidden";
 var LANGQ=CS&&CS.getAttribute("data-lang");
+var POSQ=CS&&CS.getAttribute("data-position");
 var AGENTQ=CS&&CS.getAttribute("data-agent-name");
 var FONTQ=CS&&CS.getAttribute("data-font");
 var SOUND=!(CS&&CS.getAttribute("data-sound")==="off");
@@ -91,7 +93,7 @@ if(s<3600)return rtf.format(-Math.round(s/60),"minute");if(s<86400)return rtf.fo
 try{return new Date(iso).toLocaleDateString(LOC)}catch(e){return""}}
 function init(n){n=typeof n==="number"?n:0;req("/config").then(function(c){cfg=c;build()}).catch(function(e){if(n<3&&!(e&&e.status&&e.status<500))setTimeout(function(){init(n+1)},[2e3,8e3,3e4][n])})}
 function build(){if(built)return;built=true;
-var lang=LANGQ==="ar"||LANGQ==="en"?LANGQ:cfg.language;t=L[lang]||L.en;LOC=lang==="ar"?"ar":"en";var rtl=lang==="ar";var side=cfg.position==="left"?"left":"right";
+var lang=LANGQ==="ar"||LANGQ==="en"?LANGQ:cfg.language;t=L[lang]||L.en;LOC=lang==="ar"?"ar":"en";var rtl=lang==="ar";var side=POSQ==="left"||POSQ==="right"?POSQ:cfg.position==="left"?"left":"right";
 var AGENT=AGENTQ||((cfg.title||"AI").replace(/\s*(support|الدعم)\s*$/i,"")+" Agent");
 var host=el("div");host.setAttribute("data-bos-widget","");host.style.cssText="position:fixed;z-index:2147483000;bottom:0;"+side+":0;width:0;height:0";document.body.appendChild(host);
 var root=host.attachShadow({mode:"open"});var C=cfg.color;var B=(cfg.bottom||20);

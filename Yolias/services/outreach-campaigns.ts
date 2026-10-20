@@ -140,7 +140,7 @@ export async function campaignWorkspace(workspaceId: string, id: string) {
     const m = current.get(e.id) ?? null;
     return {
       enrollmentId: e.id, status: e.status, stopReason: e.stop_reason, step: e.current_step,
-      leadId: e.lead?.id ?? null, name: e.lead?.name ?? "—", title: p?.title ?? null, company: e.lead?.company_name ?? null, domain: co?.domain ?? co?.website ?? null,
+      leadId: e.lead?.id ?? null, name: e.lead?.name ?? "-", title: p?.title ?? null, company: e.lead?.company_name ?? null, domain: co?.domain ?? co?.website ?? null,
       linkedin: p?.linkedin_url ?? co?.linkedin_url ?? null, email, finding, doNotContact: e.lead?.do_not_contact ?? false, replied: e.lead ? replied.has(e.lead.id) : false,
       message: m ? { id: m.id, subject: m.subject, body: m.body, status: m.status, to: m.to_email, sentAt: m.sent_at, error: m.error } : null,
     };
@@ -148,7 +148,7 @@ export async function campaignWorkspace(workspaceId: string, id: string) {
   const sent = (msgs ?? []).filter((m) => m.direction === "outbound" && (m.status === "sent" || m.status === "failed")).reverse().map((m) => {
     const l = rows.find((e) => e.id === m.enrollment_id)?.lead ?? rows.find((e) => e.lead?.id === m.lead_id)?.lead ?? null;
     return {
-      id: m.id, lead: l?.name ?? "—", leadId: m.lead_id, to: m.to_email, subject: m.subject, body: m.body, sentAt: m.sent_at, from: m.from_address, step: m.step_position,
+      id: m.id, lead: l?.name ?? "-", leadId: m.lead_id, to: m.to_email, subject: m.subject, body: m.body, sentAt: m.sent_at, from: m.from_address, step: m.step_position,
       status: m.status === "failed" ? ("failed" as const) : m.delivery_status === "bounced" ? ("bounced" as const) : m.lead_id && replied.has(m.lead_id) ? ("replied" as const) : ("sent" as const),
     };
   });

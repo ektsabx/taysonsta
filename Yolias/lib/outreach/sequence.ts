@@ -64,7 +64,7 @@ export async function historyFor(leadId: string, max = 6): Promise<string> {
   return (data ?? []).reverse().map((m) => {
     const who = m.direction === "inbound" ? "Them" : "Us";
     const at = (m.received_at ?? m.sent_at ?? m.created_at).slice(0, 10);
-    return `[${at}] ${who}: ${m.subject ? `${m.subject} — ` : ""}${m.body.slice(0, 800)}`;
+    return `[${at}] ${who}: ${m.subject ? `${m.subject}: ` : ""}${m.body.slice(0, 800)}`;
   }).join("\n");
 }
 
@@ -184,7 +184,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     const step = e.current_step + 1;
     const owner = lead.owner_id ?? camp.created_by;
     const { error } = await db.from("lead_tasks").insert({
-      workspace_id: e.workspace_id, lead_id: e.lead_id, title: `Follow-up ${step} is due — ${camp.name}`.slice(0, 300), kind: "follow_up",
+      workspace_id: e.workspace_id, lead_id: e.lead_id, title: `Follow-up ${step} is due: ${camp.name}`.slice(0, 300), kind: "follow_up",
       due_at: now, source: "agent", assignee_id: owner, dedupe_key: `followup:${e.id}:${step}`,
     });
     if (!error) out.reminders++;

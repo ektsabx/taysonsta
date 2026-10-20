@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { emailNames, sampleEmail, type EmailName } from "./samples";
 
-export const metadata: Metadata = { title: "Emails — Yolias" };
+export const metadata: Metadata = { title: "Emails | Yolias" };
 
 // Preview of every Yolias email in both languages. Development only.
 export default async function EmailsPreview({ searchParams }: PageProps<"/dev/emails">) {

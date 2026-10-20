@@ -28,7 +28,7 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "A tour of Yolias",
-        summary: "Real screens of Yolias, step by step: a search, its results, Prospects, a person, campaigns, Yolias AI and outreach.",
+        summary: "Real screens of Yolias, step by step: a search, its results, Prospects, a person, Yolias AI and outreach.",
         blocks: [
           { p: "These are real screenshots of Yolias with example data. The numbers on each picture match the list under it." },
           { h2: "1. Describe who you want to sell to" },
@@ -43,31 +43,23 @@ export const docs: DocPage[] = [
           { h2: "2. Work your results in Prospects" },
           { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Prospects: one tab per kind of result.", marks: [
             { x: 30, y: 14, label: "People, Companies and Local Businesses, with counts." },
-            { x: 36, y: 24, label: "Search, filter by campaign, market and match, and sort." },
+            { x: 36, y: 24, label: "Search, filter by type, market and match, and sort." },
             { x: 25, y: 38, label: "Select rows, or every matching row across pages, to export, reveal contacts or prepare emails." },
             { x: 67, y: 45, label: "Email, phone and LinkedIn when they were found." },
             { x: 93, y: 6, label: "Export the tab as CSV, exactly as filtered." },
           ] } },
           { h2: "3. Open a person" },
           { figure: { src: "/docs/shots/en-person.png", alt: "A person's page", caption: "A person: who they are, their company, outreach, and where every field came from (source, date, confidence, missing data)." } },
-          { h2: "4. Keep a campaign running" },
-          { figure: { src: "/docs/shots/en-campaign.png", alt: "A campaign dashboard", caption: "A campaign: progress toward its goal, schedule and every run.", marks: [
-            { x: 83, y: 6, label: "Run now, pause, stop, or change the goal, deadline and schedule." },
-            { x: 37, y: 20, label: "Overview, results, runs, activity and the campaign's chat." },
-            { x: 37, y: 27, label: "Progress toward the goal and the prospects used." },
-            { x: 97, y: 24, label: "The deadline and the days left." },
-            { x: 25, y: 70, label: "What each day delivered." },
-          ] } },
-          { h2: "5. Ask Yolias AI" },
+          { h2: "4. Ask Yolias AI" },
           { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or write a message. The reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
-          { h2: "6. Reach out from your own mailbox" },
+          { h2: "5. Reach out from your own mailbox" },
           { p: "Connect your mailbox (Gmail, Outlook or any IMAP/SMTP account) in Settings → Integrations. Select people in Prospects and choose Send: Yolias creates a campaign and writes a personal email for each person on the campaign page. Review them, then approve sending: Yolias sends from your mailbox and replies arrive in your Inbox. Or export to CSV." },
-          { p: "To reach many people at once, select them in Prospects and choose **Send**: name the campaign and pick the channel, and Yolias creates an outreach campaign, starts it and prepares the first messages for you to review and send. You can also start a campaign in Outreach from one of your search campaigns: its prospects join and the first messages are prepared." },
+          { p: "To reach many people at once, select them in Prospects and choose **Send**: name the campaign and pick the channel, and Yolias creates an outreach campaign, starts it and prepares the first messages for you to review and send. You can also start a campaign in Outreach from one of your searches: its prospects join and the first messages are prepared." },
         ],
       },
       ar: {
         title: "جولة في يولـياس",
-        summary: "شاشات يولـياس الحقيقية خطوة بخطوة: البحث ونتائجه والعملاء المحتملون والشخص والحملات و Yolias AI والتواصل.",
+        summary: "شاشات يولـياس الحقيقية خطوة بخطوة: البحث ونتائجه والعملاء المحتملون والشخص و Yolias AI والتواصل.",
         blocks: [
           { p: "هذه صور حقيقية من يولـياس ببيانات مثال. الأرقام على كل صورة تطابق القائمة تحتها." },
           { h2: "1. صِف من تريد أن تبيع له" },
@@ -82,26 +74,18 @@ export const docs: DocPage[] = [
           { h2: "2. اعمل على نتائجك في العملاء المحتملين" },
           { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "العملاء المحتملون: تبويب لكل نوع من النتائج.", marks: [
             { x: 30, y: 14, label: "الأشخاص والشركات والأنشطة المحلية مع أعدادها." },
-            { x: 36, y: 24, label: "ابحث وصفِّ حسب الحملة والسوق والتطابق ورتّب." },
+            { x: 36, y: 24, label: "ابحث وصفِّ حسب النوع والسوق والتطابق ورتّب." },
             { x: 25, y: 38, label: "حدّد الصفوف، أو كل الصفوف المطابقة في كل الصفحات، للتصدير أو إظهار بيانات التواصل أو تجهيز الرسائل." },
             { x: 67, y: 45, label: "البريد والهاتف ولينكدإن عند العثور عليها." },
             { x: 93, y: 6, label: "صدّر التبويب كملف CSV كما هو مصفّى." },
           ] } },
           { h2: "3. افتح صفحة شخص" },
           { figure: { src: "/docs/shots/ar-person.png", alt: "صفحة شخص", caption: "الشخص: من هو وشركته والتواصل معه ومصدر كل حقل (المصدر والتاريخ والثقة والبيانات الناقصة)." } },
-          { h2: "4. حملة تعمل باستمرار" },
-          { figure: { src: "/docs/shots/ar-campaign.png", alt: "لوحة حملة", caption: "الحملة: التقدم نحو الهدف والجدولة وكل تشغيل.", marks: [
-            { x: 83, y: 6, label: "شغّل الآن أو أوقف مؤقتًا أو أنهِ، أو غيّر الهدف والموعد والجدولة." },
-            { x: 37, y: 20, label: "نظرة عامة والنتائج والتشغيلات والنشاط ومحادثة الحملة." },
-            { x: 37, y: 27, label: "التقدم نحو الهدف والعملاء المحتملون المستخدمون." },
-            { x: 97, y: 24, label: "الموعد النهائي والأيام المتبقية." },
-            { x: 25, y: 70, label: "ما تم تسليمه كل يوم." },
-          ] } },
-          { h2: "5. اسأل Yolias AI" },
+          { h2: "4. اسأل Yolias AI" },
           { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو كتابة رسالة، ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
-          { h2: "6. تواصل من بريدك أو لينكدإن" },
-          { p: "حدّد الأشخاص في النتائج أو في العملاء المحتملين، ثم اختر إيميل أو لينكدإن أو تصدير CSV. يكتب يولـياس رسالة شخصية لكل شخص، تعدّلها ثم تفتحها في Gmail أو Outlook أو تطبيق البريد، أو تنسخها وتفتح صفحته على لينكدإن. يولـياس لا يرسل أي شيء، أنت ترسلها من حسابك." },
-          { p: "للتواصل مع كثيرين مرة واحدة، حدّدهم في العملاء المحتملين واختر **إرسال**: سمِّ الحملة واختر القناة، فينشئ يولـياس حملة تواصل ويبدأها ويجهّز الرسائل الأولى لتراجعها وترسلها. ويمكنك أيضًا بدء حملة من صفحة التواصل انطلاقًا من إحدى حملات البحث: ينضم عملاؤها المحتملون وتُجهَّز الرسائل الأولى." },
+          { h2: "5. تواصل من بريدك" },
+          { p: "اربط بريدك (Gmail أو Outlook أو أي بريد IMAP/SMTP) من الإعدادات ← التكاملات. حدّد الأشخاص في العملاء المحتملين واختر إرسال: ينشئ يولـياس حملة تواصل ويكتب رسالة شخصية لكل شخص في صفحة الحملة. راجعها ثم وافق على الإرسال، فيرسلها يولـياس من بريدك وتصل الردود إلى صندوق الوارد. أو صدّرهم كملف CSV." },
+          { p: "للتواصل مع كثيرين مرة واحدة، حدّدهم في العملاء المحتملين واختر **إرسال**: سمِّ الحملة واختر القناة، فينشئ يولـياس حملة تواصل ويبدأها ويجهّز الرسائل الأولى لتراجعها وترسلها. ويمكنك أيضًا بدء حملة من صفحة التواصل انطلاقًا من أحد عمليات البحث: ينضم عملاؤها المحتملون وتُجهَّز الرسائل الأولى." },
         ],
       },
     },
@@ -114,12 +98,12 @@ export const docs: DocPage[] = [
         title: "Introduction",
         summary: "What Yolias is, and the path every request takes through it.",
         blocks: [
-          { p: "Yolias is an autonomous customer-discovery product for B2B teams. You describe the customers you want; Yolias turns that into structured criteria, runs a discovery campaign and returns matching companies and decision makers." },
+          { p: "Yolias is an autonomous customer-discovery product for B2B teams. You describe the customers you want; Yolias turns that into structured criteria, runs a search and returns matching companies and decision makers." },
           { h2: "The flow" },
           { table: { head: ["Step", "What happens", "Where you see it"], rows: [
             ["Search", "You write a request in plain language", "Yolias AI"],
             ["Customer profile", "Yolias extracts criteria and assumptions", "The result card under the prompt"],
-            ["Campaign", "A discovery mission with a target and activity log", "Campaigns"],
+            ["Results", "Matching companies and decision makers, each with why it fits", "The result card in the conversation"],
             ["Prospects", "Matched decision makers you choose to keep", "Prospects"],
           ] } },
           { h2: "What Yolias does and doesn’t do" },
@@ -131,12 +115,12 @@ export const docs: DocPage[] = [
         title: "مقدمة",
         summary: "ما هو يولـياس، والمسار الذي يمر به كل طلب.",
         blocks: [
-          { p: "يولـياس منتج لاكتشاف العملاء بشكل مستقل لفرق B2B. تصف العملاء الذين تريدهم، فيحوّل يولـياس الوصف إلى معايير منظمة، ويشغّل حملة اكتشاف، ويعيد الشركات وصنّاع القرار المطابقين." },
+          { p: "يولـياس منتج لاكتشاف العملاء بشكل مستقل لفرق B2B. تصف العملاء الذين تريدهم، فيحوّل يولـياس الوصف إلى معايير منظمة، ويشغّل بحث، ويعيد الشركات وصنّاع القرار المطابقين." },
           { h2: "المسار" },
           { table: { head: ["المرحلة", "ما يحدث", "أين تراه"], rows: [
             ["البحث", "تكتب طلبك بلغة طبيعية", "يولـياس AI"],
             ["ملف العميل المثالي", "يستخرج يولـياس المعايير والافتراضات", "بطاقة النتيجة أسفل مربع الكتابة"],
-            ["الحملة", "مهمة اكتشاف لها هدف وسجل نشاط", "الحملات"],
+            ["النتائج", "الشركات وصنّاع القرار المطابقون مع سبب تطابق كل منهم", "بطاقة النتيجة في المحادثة"],
             ["العملاء المحتملون", "صنّاع القرار المطابقون الذين تختار الاحتفاظ بهم", "العملاء المحتملون"],
           ] } },
           { h2: "ما لا يفعله يولـياس" },
@@ -152,7 +136,7 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "Quickstart",
-        summary: "From a new account to your first campaign in four steps.",
+        summary: "From a new account to your first search in four steps.",
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
@@ -165,7 +149,7 @@ export const docs: DocPage[] = [
       },
       ar: {
         title: "البدء السريع",
-        summary: "من حساب جديد إلى أول حملة في أربع خطوات.",
+        summary: "من حساب جديد إلى أول بحث في أربع خطوات.",
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
@@ -186,7 +170,7 @@ export const docs: DocPage[] = [
         title: "Searches",
         summary: "How to write requests Yolias understands, and what you can attach.",
         blocks: [
-          { p: "A search is one request in Yolias AI. Each search creates one campaign and appears in the sidebar history, where you can pin, rename or delete it." },
+          { p: "A search is one request in Yolias AI. Each search appears in the sidebar history, where you can pin, rename or delete it." },
           { h2: "What to include" },
           { table: { head: ["Detail", "Example"], rows: [
             ["How many", "“Find 80 companies…”"],
@@ -209,7 +193,7 @@ export const docs: DocPage[] = [
         title: "عمليات البحث",
         summary: "كيف تكتب طلبات يفهمها يولـياس، وما الذي يمكنك إرفاقه.",
         blocks: [
-          { p: "البحث طلب واحد في يولـياس AI. ينشئ كل بحث حملة واحدة ويظهر في سجل الشريط الجانبي، حيث يمكنك تثبيته أو إعادة تسميته أو حذفه." },
+          { p: "البحث طلب واحد في يولـياس AI. يظهر كل بحث في سجل الشريط الجانبي، حيث يمكنك تثبيته أو إعادة تسميته أو حذفه." },
           { h2: "ما الذي تكتبه" },
           { table: { head: ["التفصيل", "مثال"], rows: [
             ["العدد", "«ابحث عن 80 شركة…»"],
@@ -238,10 +222,10 @@ export const docs: DocPage[] = [
         title: "Customer profile (ICP)",
         summary: "The criteria Yolias extracts from a search, and how it fills gaps.",
         blocks: [
-          { p: "Yolias AI reads your search together with your onboarding context and produces an ideal customer profile. The campaign uses it as its criteria." },
+          { p: "Yolias AI reads your search together with your onboarding context and produces an ideal customer profile. The search uses it as its criteria." },
           { h2: "Fields" },
           { table: { head: ["Field", "Notes"], rows: [
-            ["Campaign name & summary", "Written in your interface language"],
+            ["Search name & summary", "Written in your interface language"],
             ["Target", "A number of companies or prospects; 100 when not stated"],
             ["Countries & cities", "Countries default to your Settings country when not stated"],
             ["Industries & keywords", "What matching companies do"],
@@ -258,10 +242,10 @@ export const docs: DocPage[] = [
         title: "ملف العميل المثالي (ICP)",
         summary: "المعايير التي يستخرجها يولـياس من البحث، وكيف يكمل الناقص.",
         blocks: [
-          { p: "يقرأ يولـياس AI بحثك مع سياق الإعداد الأولي وينتج ملف العميل المثالي. وتستخدمه الحملة معاييرَ لها." },
+          { p: "يقرأ يولـياس AI بحثك مع سياق الإعداد الأولي وينتج ملف العميل المثالي. ويستخدمه البحث معاييرَ له." },
           { h2: "الحقول" },
           { table: { head: ["الحقل", "ملاحظات"], rows: [
-            ["اسم الحملة والملخص", "يُكتبان بلغة الواجهة"],
+            ["اسم البحث والملخص", "يُكتبان بلغة الواجهة"],
             ["الهدف", "عدد شركات أو عملاء محتملين؛ 100 إذا لم يُحدد"],
             ["الدول والمدن", "الدولة الافتراضية هي دولة الإعدادات إذا لم تُحدد"],
             ["القطاعات والكلمات المفتاحية", "ما تعمل فيه الشركات المطابقة"],
@@ -277,21 +261,21 @@ export const docs: DocPage[] = [
     },
   },
   {
-    slug: "campaigns",
+    slug: "search-status",
     group: "core",
     doc: {
       en: {
-        title: "Campaigns",
-        summary: "Discovery missions: their stages, statuses and activity log.",
+        title: "Search progress and status",
+        summary: "What Yolias does while a search runs, and what each status means.",
         blocks: [
-          { p: "A campaign is the mission created from a search: the criteria, a target quota, the results and a log of what Yolias did. Open **Campaigns** to see them all; selecting one opens its search." },
+          { p: "Every search has its criteria, a target number of prospects and a log of what Yolias did. Its progress and status show on the result card in its Yolias AI conversation; its results join Prospects." },
           { h2: "Stages" },
-          { ol: ["Understand the request", "Plan the mission", "Find companies", "Find decision makers", "Enrich & verify contact details", "Qualify, score and deliver"] },
+          { ol: ["Understand the request", "Plan the search", "Find companies", "Find decision makers", "Enrich & verify contact details", "Qualify, score and deliver"] },
           { h2: "Statuses" },
           { table: { head: ["Status", "Meaning"], rows: [
             ["Active", "Queued or running. Results are being collected"],
             ["Awaiting data source", "Criteria are ready; no company data source is connected yet"],
-            ["Completed", "The mission finished and delivered its results"],
+            ["Completed", "The search finished and delivered its results"],
             ["Paused", "Stopped for now; criteria and results are kept"],
             ["Failed", "Discovery stopped with an error shown in the activity log"],
           ] } },
@@ -299,17 +283,17 @@ export const docs: DocPage[] = [
         ],
       },
       ar: {
-        title: "الحملات",
-        summary: "مهام الاكتشاف: مراحلها وحالاتها وسجل نشاطها.",
+        title: "تقدّم البحث وحالته",
+        summary: "ما يفعله يولـياس أثناء البحث، ومعنى كل حالة.",
         blocks: [
-          { p: "الحملة هي المهمة التي تُنشأ من البحث: المعايير وحصة مستهدفة والنتائج وسجل لما فعله يولـياس. افتح **الحملات** لرؤيتها كلها؛ واختيار إحداها يفتح استراتيجيتها." },
+          { p: "لكل بحث معاييره وعدد مستهدف من العملاء المحتملين وسجل لما فعله يولـياس. يظهر تقدّمه وحالته في بطاقة النتيجة داخل محادثته في يولـياس AI، وتنضم نتائجه إلى العملاء المحتملين." },
           { h2: "المراحل" },
-          { ol: ["فهم الطلب", "تخطيط المهمة", "العثور على الشركات", "العثور على صنّاع القرار", "إثراء بيانات التواصل والتحقق منها", "التأهيل والتقييم والتسليم"] },
+          { ol: ["فهم الطلب", "تخطيط البحث", "العثور على الشركات", "العثور على صنّاع القرار", "إثراء بيانات التواصل والتحقق منها", "التأهيل والتقييم والتسليم"] },
           { h2: "الحالات" },
           { table: { head: ["الحالة", "المعنى"], rows: [
             ["نشطة", "في الانتظار أو قيد التشغيل، تُجمع النتائج"],
             ["بانتظار مصدر بيانات", "المعايير جاهزة؛ ولا يوجد مصدر بيانات للشركات متصل بعد"],
-            ["مكتملة", "انتهت المهمة وسلّمت نتائجها"],
+            ["مكتملة", "انتهى البحث وسلّم نتائجه"],
             ["متوقفة مؤقتًا", "متوقفة حاليًا؛ مع الاحتفاظ بالمعايير والنتائج"],
             ["فشلت", "توقف الاكتشاف بخطأ يظهر في سجل النشاط"],
           ] } },
@@ -326,7 +310,7 @@ export const docs: DocPage[] = [
         title: "Prospects",
         summary: "What a prospect record contains, how the match score works, and the export format.",
         blocks: [
-          { p: "Prospects are the decision makers a campaign delivers. They join your **Prospects** list when you press **Save to Prospects** on the search." },
+          { p: "Prospects are the companies and decision makers a search delivers. They join your **Prospects** list when you press **Save to Prospects** on the search." },
           { h2: "Match score" },
           { p: "The score (0–100%) compares a prospect and their company with the criteria you actually specified. Criteria you left open are skipped, so they never lower the score." },
           { table: { head: ["Criterion", "Weight"], rows: [
@@ -336,14 +320,14 @@ export const docs: DocPage[] = [
           { h2: "Contact channels" },
           { p: "Email, phone and LinkedIn appear only when found. Email shows a ✓ when verified; unverified emails are labelled as such, and invalid ones are hidden." },
           { h2: "CSV columns" },
-          { p: "Name, Title, Company, Employees, City, Country, Campaign, Email, Email status, Phone, LinkedIn, ICP match %." },
+          { p: "Name, Title, Company, Employees, City, Country, Search, Email, Email status, Phone, LinkedIn, ICP match %." },
         ],
       },
       ar: {
         title: "العملاء المحتملون",
         summary: "محتوى سجل العميل المحتمل، وطريقة حساب نسبة التطابق، وصيغة التصدير.",
         blocks: [
-          { p: "العملاء المحتملون هم صنّاع القرار الذين تسلّمهم الحملة. ينضمون إلى قائمة **العملاء المحتملون** عند الضغط على **حفظ في العملاء المحتملين** في البحث." },
+          { p: "العملاء المحتملون هم الشركات وصنّاع القرار الذين يسلّمهم البحث. ينضمون إلى قائمة **العملاء المحتملون** عند الضغط على **حفظ في العملاء المحتملين** في البحث." },
           { h2: "نسبة التطابق" },
           { p: "تقارن النسبة (0–100%) العميل المحتمل وشركته بالمعايير التي حددتها فعلًا. المعايير التي تركتها مفتوحة لا تُحتسب، فلا تخفض النسبة أبدًا." },
           { table: { head: ["المعيار", "الوزن"], rows: [
@@ -353,7 +337,7 @@ export const docs: DocPage[] = [
           { h2: "قنوات التواصل" },
           { p: "يظهر البريد والهاتف ولينكدإن فقط عند العثور عليها. يحمل البريد علامة ✓ عند التحقق منه، ويُوصف البريد غير المتحقق منه بذلك، ويُخفى البريد غير الصالح." },
           { h2: "أعمدة ملف CSV" },
-          { p: "الاسم، المسمى الوظيفي، الشركة، عدد الموظفين، المدينة، الدولة، الحملة، البريد، حالة البريد، الهاتف، لينكدإن، نسبة تطابق ICP." },
+          { p: "الاسم، المسمى الوظيفي، الشركة، عدد الموظفين، المدينة، الدولة، البحث، البريد، حالة البريد، الهاتف، لينكدإن، نسبة تطابق ICP." },
         ],
       },
     },
@@ -364,30 +348,30 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "Analytics",
-        summary: "The four discovery metrics and the market breakdown.",
+        summary: "The discovery, outreach and activity numbers for your workspace.",
         blocks: [
           { p: "Analytics covers the last 7, 30 or 90 days for the whole workspace." },
           { table: { head: ["Metric", "Definition"], rows: [
-            ["Prospects found", "Prospects discovered in the period, with the share whose email is verified"],
-            ["Companies discovered", "Companies added to campaigns in the period"],
-            ["Decision makers extracted", "Prospects at founder, C-level, VP, director or head level"],
-            ["Qualified fit rate", "Share of scored prospects with a match of 70% or more"],
+            ["Companies discovered", "Companies your searches found in the period, against the previous period"],
+            ["Decision makers extracted", "People found at those companies, against the previous period"],
+            ["Average ICP match", "The average match score of the prospects Yolias scored"],
+            ["Email", "Prospects with a usable email, and their share of all prospects"],
           ] } },
-          { p: "**Discovery volume by market** groups prospects by country, largest first." },
+          { p: "**Outreach and sales** counts campaigns started, messages sent, not delivered, replies, interested replies, meetings and deals won. **Decision makers** groups the people found by role, and **User activity** counts searches, qualifications, emails prepared and exports." },
         ],
       },
       ar: {
         title: "التحليلات",
-        summary: "مؤشرات الاكتشاف الأربعة وتوزيع الأسواق.",
+        summary: "أرقام الاكتشاف والتواصل والنشاط في مساحة عملك.",
         blocks: [
           { p: "تغطي التحليلات آخر 7 أو 30 أو 90 يومًا لمساحة العمل كلها." },
           { table: { head: ["المؤشر", "التعريف"], rows: [
-            ["العملاء المحتملون", "العملاء المكتشفون في الفترة، مع نسبة من تم التحقق من بريدهم"],
-            ["الشركات المكتشفة", "الشركات المضافة إلى الحملات في الفترة"],
-            ["صنّاع القرار المستخرجون", "العملاء بمستوى مؤسس أو إدارة تنفيذية أو نائب رئيس أو مدير أو رئيس قسم"],
-            ["معدل التطابق المؤهل", "نسبة العملاء المقيّمين الذين بلغ تطابقهم 70% أو أكثر"],
+            ["الشركات المكتشفة", "الشركات التي وجدتها عمليات البحث في الفترة، مقارنة بالفترة السابقة"],
+            ["صنّاع القرار المستخرجون", "الأشخاص الذين وُجدوا في هذه الشركات، مقارنة بالفترة السابقة"],
+            ["متوسط مطابقة ICP", "متوسط نسبة تطابق العملاء المحتملين الذين قيّمهم يولـياس"],
+            ["البريد", "العملاء المحتملون الذين لديهم بريد صالح ونسبتهم من الإجمالي"],
           ] } },
-          { p: "**حجم الاكتشاف حسب السوق** يجمع العملاء المحتملين حسب الدولة، من الأكبر إلى الأصغر." },
+          { p: "يعرض قسم **التواصل والمبيعات** الحملات التي بدأت والرسائل المرسلة وغير الواصلة والردود والمهتمين والاجتماعات والصفقات الرابحة. ويجمع قسم **صنّاع القرار** الأشخاص حسب المنصب، ويعدّ **نشاط المستخدم** عمليات البحث والتأهيل والرسائل المجهزة والتصدير." },
         ],
       },
     },
@@ -401,11 +385,11 @@ export const docs: DocPage[] = [
         summary: "Who can do what inside a workspace.",
         blocks: [
           { table: { head: ["Action", "Owner", "Admin", "Member"], rows: [
-            ["Run searches, view campaigns and prospects", "✓", "✓", "✓"],
+            ["Run searches and view prospects", "✓", "✓", "✓"],
             ["Save and export prospects", "✓", "✓", "✓"],
-            ["Invite and remove members", "✓", "✓", "—"],
-            ["Choose or change the plan", "✓", "✓", "—"],
-            ["Be removed by others", "—", "✓", "✓"],
+            ["Invite and remove members", "✓", "✓", "-"],
+            ["Choose or change the plan", "✓", "✓", "-"],
+            ["Be removed by others", "-", "✓", "✓"],
           ] } },
           { p: "Every plan includes unlimited users. The person who creates the workspace is its owner." },
         ],
@@ -415,11 +399,11 @@ export const docs: DocPage[] = [
         summary: "من يستطيع فعل ماذا داخل مساحة العمل.",
         blocks: [
           { table: { head: ["الإجراء", "المالك", "المسؤول", "العضو"], rows: [
-            ["إجراء عمليات البحث وعرض الحملات والعملاء", "✓", "✓", "✓"],
+            ["إجراء عمليات البحث وعرض العملاء", "✓", "✓", "✓"],
             ["حفظ العملاء المحتملين وتصديرهم", "✓", "✓", "✓"],
-            ["دعوة الأعضاء وإزالتهم", "✓", "✓", "—"],
-            ["اختيار الخطة أو تغييرها", "✓", "✓", "—"],
-            ["إمكانية إزالته من الآخرين", "—", "✓", "✓"],
+            ["دعوة الأعضاء وإزالتهم", "✓", "✓", "-"],
+            ["اختيار الخطة أو تغييرها", "✓", "✓", "-"],
+            ["إمكانية إزالته من الآخرين", "-", "✓", "✓"],
           ] } },
           { p: "كل الخطط تشمل مستخدمين غير محدودين. ومن ينشئ مساحة العمل هو مالكها." },
         ],

@@ -13,7 +13,7 @@ import { approvalCards, conversationFor } from "@/services/conversations";
 export async function generateMetadata({ params }: PageProps<"/search/[id]">): Promise<Metadata> {
   const { id } = await params;
   const view = /^[0-9a-f-]{36}$/i.test(id) ? await getStrategyView(id) : null;
-  return { title: view ? `${view.strategy.title} — Yolias` : "Yolias" };
+  return { title: view ? `${view.strategy.title} | Yolias` : "Yolias" };
 }
 
 export default async function StrategyPage({ params }: PageProps<"/search/[id]">) {

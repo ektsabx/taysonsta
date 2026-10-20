@@ -3,7 +3,9 @@ import { cleanNotificationText } from "@/lib/notification-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueue } from "@/lib/jobs/queue";
 import { emailMeta, renderEmail, type EmailData, type EmailKind, type Pref } from "@/lib/email/catalog";
-import { sendEmail } from "@/lib/email/send";
+import { sendEmail, type SendOptions } from "@/lib/email/send";
+import { afterCancel, afterSend, beforeSend } from "@/lib/messaging/engine";
+import { messagingSettings } from "@/lib/messaging/settings";
 import type { Json, WorkspaceRole } from "@/types/database";
 
 // Product email pipeline (docs/05 "Emails"): notify() writes one email_log
@@ -144,18 +146,55 @@ export async function notify<K extends EmailKind>(kind: K, to: Recipient[], data
 export async function deliverEmail(logId: number): Promise<void> {
   const db = createAdminClient();
   const { data: row } = await db.from("email_log").select("*").eq("id", logId).maybeSingle();
-  if (!row || row.status === "sent" || row.status === "skipped") return;
-  const kind = row.kind as EmailKind;
-  const email = renderEmail(kind, "en", { ...(row.data as object), siteUrl: siteUrl() } as EmailData[typeof kind]);
-  const result = await sendEmail(row.to_email, email, row.category);
+  if (!row || row.status === "sent" || row.status === "skipped" || row.status === "canceled") return;
+  let email: { subject: string; html: string };
+  let text: string | null = null;
+  let opts: SendOptions = {};
+  if (row.kind === "custom") {
+    // Written in Admin (flows, campaigns, tests, D-243): content was rendered
+    // when it was queued; the user's state is checked once more right now.
+    const cancel = await beforeSend(db, row);
+    if (cancel) {
+      await db.from("email_log").update({ status: "canceled", error: cancel.slice(0, 500), attempts: row.attempts }).eq("id", logId);
+      await afterCancel(db, row, cancel);
+      return;
+    }
+    email = { subject: row.subject ?? "", html: row.html ?? "" };
+    text = row.text_body;
+    const s = await messagingSettings(db);
+    const promo = row.email_class !== "transactional";
+    const unsubscribe = promo && row.user_id ? await unsubscribeUrl(row.user_id) : null;
+    opts = {
+      from: promo ? s.marketing_from || null : null,
+      replyTo: s.reply_to || null,
+      text,
+      headers: unsubscribe ? { "List-Unsubscribe": `<${siteUrl()}/api/unsubscribe?t=${unsubscribe.token}>, <${unsubscribe.url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : undefined,
+    };
+  } else {
+    const kind = row.kind as EmailKind;
+    email = renderEmail(kind, "en", { ...(row.data as object), siteUrl: siteUrl() } as EmailData[typeof kind]);
+  }
+  const result = await sendEmail(row.to_email, email, row.category, opts);
   const attempts = row.attempts + 1;
   if (result.status === "sent") {
     await db.from("email_log").update({ status: "sent", provider_id: result.id, attempts, sent_at: new Date().toISOString(), error: null }).eq("id", logId);
+    if (row.kind === "custom") await afterSend(db, row, result.id);
   } else if (result.status === "skipped") {
     // Not configured or invalid address: retrying won't help, and nothing is faked.
     await db.from("email_log").update({ status: "skipped", error: result.reason, attempts }).eq("id", logId);
+    if (row.kind === "custom") await afterCancel(db, row, result.reason);
   } else {
     await db.from("email_log").update({ status: "failed", error: result.error, attempts }).eq("id", logId);
+    // A request Resend rejects outright (bad address, invalid sender) is not retried.
+    if (!result.retry) {
+      if (row.kind === "custom") await afterCancel(db, row, `Resend rejected: ${result.error}`);
+      return;
+    }
     throw new Error(`email ${logId} failed: ${result.error}`);
   }
+}
+
+async function unsubscribeUrl(userId: string): Promise<{ token: string; url: string } | null> {
+  const { data } = await createAdminClient().from("profiles").select("email_token").eq("id", userId).maybeSingle();
+  return data?.email_token ? { token: data.email_token, url: `${siteUrl()}/unsubscribe/${data.email_token}` } : null;
 }

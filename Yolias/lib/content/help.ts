@@ -14,8 +14,8 @@ export const collections: HelpCollection[] = [
     ar: { title: "البداية", description: "تسجيل الدخول واختيار الخطة وضبط اللغة." },
   } },
   { id: "using-yolias", icon: "sparkles", text: {
-    en: { title: "Using Yolias AI", description: "Searches, campaign statuses and exporting results." },
-    ar: { title: "استخدام يولـياس AI", description: "عمليات البحث وحالات الحملات وتصدير النتائج." },
+    en: { title: "Using Yolias AI", description: "Searches, their statuses and exporting results." },
+    ar: { title: "استخدام يولـياس AI", description: "عمليات البحث وحالاتها وتصدير النتائج." },
   } },
   { id: "account", icon: "users", text: {
     en: { title: "Account & team", description: "Teammates, plan changes and deleting your account." },
@@ -145,7 +145,7 @@ export const articles: HelpArticle[] = [
         summary: "Change the interface language, and the language Yolias answers in, in one place.",
         blocks: [
           { p: "On public pages, use the language menu in the header. Inside the app, open your name at the bottom of the sidebar, choose **General**, and set **Languages**." },
-          { p: "The whole interface switches direction: right-to-left for Arabic, left-to-right for English. Campaign names and summaries that Yolias writes from then on follow the same language." },
+          { p: "The whole interface switches direction: right-to-left for Arabic, left-to-right for English. Search names and summaries that Yolias writes from then on follow the same language." },
           { note: "Data that came from your sources, such as company names, stays as it was found." },
         ],
       },
@@ -154,7 +154,7 @@ export const articles: HelpArticle[] = [
         summary: "غيّر لغة الواجهة، واللغة التي يرد بها يولـياس، من مكان واحد.",
         blocks: [
           { p: "في الصفحات العامة استخدم قائمة اللغة في أعلى الصفحة. وداخل التطبيق اضغط على اسمك أسفل الشريط الجانبي، واختر **عام**، ثم اضبط **اللغة**." },
-          { p: "يتغير اتجاه الواجهة كلها: من اليمين لليسار للعربية، ومن اليسار لليمين للإنجليزية. وتتبع أسماء الحملات والملخصات التي يكتبها يولـياس بعد ذلك اللغة نفسها." },
+          { p: "يتغير اتجاه الواجهة كلها: من اليمين لليسار للعربية، ومن اليسار لليمين للإنجليزية. وتتبع أسماء عمليات البحث والملخصات التي يكتبها يولـياس بعد ذلك اللغة نفسها." },
           { note: "البيانات القادمة من المصادر، مثل أسماء الشركات، تبقى كما وُجدت." },
         ],
       },
@@ -165,21 +165,21 @@ export const articles: HelpArticle[] = [
     collection: "using-yolias",
     doc: {
       en: {
-        title: "Why a campaign says “Awaiting data source”",
+        title: "Why a search says “Awaiting data source”",
         summary: "Yolias understood your search, but no company data source is connected to collect results yet.",
         blocks: [
-          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and opens the campaign. That part is complete when you see the target criteria and the decision makers to find. Then the campaign searches connected data sources for matching companies and people." },
-          { p: "**Awaiting data source** means the first half finished and the second is waiting for a source to be connected to your workspace. Nothing is lost: the campaign keeps its criteria and will collect results once a source is available." },
-          { p: "See [Campaigns](/docs/campaigns) for every status a campaign can have." },
+          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and sets up the search. That part is complete when you see the target criteria and the decision makers to find. Then the search looks through connected data sources for matching companies and people." },
+          { p: "**Awaiting data source** means the first half finished and the second is waiting for a source to be connected to your workspace. Nothing is lost: the search keeps its criteria and will collect results once a source is available." },
+          { p: "See [Search progress and status](/docs/search-status) for every status a search can have." },
         ],
       },
       ar: {
-        title: "لماذا تظهر الحملة «بانتظار مصدر بيانات»",
+        title: "لماذا يظهر البحث «بانتظار مصدر بيانات»",
         summary: "فهم يولـياس بحثك، لكن لا يوجد مصدر بيانات للشركات متصل بعد لجمع النتائج.",
         blocks: [
-          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويفتح الحملة، وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم تبحث الحملة في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
-          { p: "**بانتظار مصدر بيانات** يعني أن المرحلة الأولى اكتملت وأن الثانية تنتظر ربط مصدر بمساحة عملك. لا يضيع شيء: تحتفظ الحملة بمعاييرها وستجمع النتائج بمجرد توفر مصدر." },
-          { p: "راجع [الحملات](/docs/campaigns) لمعرفة كل الحالات الممكنة للحملة." },
+          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولـياس AI طلبك إلى معايير ويجهّز البحث، وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم يبحث البحث في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
+          { p: "**بانتظار مصدر بيانات** يعني أن المرحلة الأولى اكتملت وأن الثانية تنتظر ربط مصدر بمساحة عملك. لا يضيع شيء: يحتفظ البحث بمعاييره وسيجمع النتائج بمجرد توفر مصدر." },
+          { p: "راجع [تقدّم البحث وحالته](/docs/search-status) لمعرفة كل الحالات الممكنة للبحث." },
         ],
       },
     },
@@ -226,7 +226,7 @@ export const articles: HelpArticle[] = [
         blocks: [
           { ol: [
             "On a search with results, press **Save to Prospects** to add its decision makers to your list.",
-            "Open **Prospects**. Use **Add Search Filter** to narrow by name or title, campaign, market or minimum match.",
+            "Open **Prospects**. Use **Filters** to narrow by name or title, type, market or minimum match.",
             "Press **Export CSV**. The file contains exactly the rows your filters show.",
           ] },
           { p: "The file opens in Excel, Numbers or Google Sheets, and column headers follow your interface language. The full column list is in [Prospects](/docs/prospects)." },
@@ -238,7 +238,7 @@ export const articles: HelpArticle[] = [
         blocks: [
           { ol: [
             "في بحث به نتائج، اضغط **حفظ في العملاء المحتملين** لإضافة صنّاع القرار إلى قائمتك.",
-            "افتح **العملاء المحتملون**. استخدم **إضافة فلتر بحث** للتصفية حسب الاسم أو المسمى أو الحملة أو السوق أو أدنى نسبة تطابق.",
+            "افتح **العملاء المحتملون**. استخدم **الفلاتر** للتصفية حسب الاسم أو المسمى أو النوع أو السوق أو أدنى نسبة تطابق.",
             "اضغط **تصدير CSV**. يحتوي الملف بالضبط على الصفوف التي تظهرها الفلاتر.",
           ] },
           { p: "يفتح الملف في Excel أو Numbers أو Google Sheets، وتتبع عناوين الأعمدة لغة الواجهة. تجد قائمة الأعمدة كاملة في [العملاء المحتملون](/docs/prospects)." },
@@ -335,6 +335,6 @@ export const articles: HelpArticle[] = [
 ];
 
 export const helpHero: Localized<{ title: string; lead: string; collectionsTitle: string; popularTitle: string }> = {
-  en: { title: "How can we help?", lead: "Short answers about signing in, plans, searches, campaigns, prospects and your team.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
-  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن تسجيل الدخول والخطط وعمليات البحث والحملات والعملاء المحتملين وفريقك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
+  en: { title: "How can we help?", lead: "Short answers about signing in, plans, searches, outreach, prospects and your team.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
+  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن تسجيل الدخول والخطط وعمليات البحث والتواصل والعملاء المحتملين وفريقك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
 };

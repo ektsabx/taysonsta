@@ -8,6 +8,7 @@ import { anthropicAdapter } from "./anthropic";
 import { geminiAdapter } from "./gemini";
 import { openaiAdapter } from "./openai";
 import { LlmProviderError, type ChatRequest, type ChatResult, type LlmAdapter, type LlmProvider, type LlmRoute, type LlmUsageCount, type StructuredRequest } from "./types";
+import { plainDashes, plainDashesDeep } from "@/lib/text";
 
 // LLM routing with fallback across providers (rule 25, D-118). The order per
 // task is configuration (intel.settings "llm_routing", edited in Yolias
@@ -80,6 +81,10 @@ export interface StructuredOutcome<T> {
  * Structured extraction with fallback. `validate` returns the typed value or
  * null; null counts as a bad output and the next provider is tried.
  */
+// House style for everything a model writes (owner, 2026-10-20): no em dash.
+// Asked for in the prompt and enforced on the output.
+const STYLE = "\n\nWriting style: never use the em dash character (\u2014). Use a comma, a colon, parentheses or a new sentence instead.";
+
 export async function runStructured<T>(task: string, req: StructuredRequest, validate: (data: unknown) => T | null, log: Omit<LlmLog, "task">, only?: LlmRoute[]): Promise<StructuredOutcome<T>> {
   // `only`: a fixed route list (evals); still limited to providers with a key.
   if (only) await loadIntegrations();
@@ -91,8 +96,8 @@ export async function runStructured<T>(task: string, req: StructuredRequest, val
   for (const [i, route] of routes.entries()) {
     const started = Date.now();
     try {
-      const r = await adapters[route.provider].structured(route.model, req);
-      const value = r.refused ? null : validate(r.data);
+      const r = await adapters[route.provider].structured(route.model, { ...req, system: req.system + STYLE });
+      const value = r.refused ? null : validate(plainDashesDeep(r.data));
       const error = r.refused ? "refusal" : value === null ? "invalid output" : null;
       const step = await logStep({ ...log, task }, route, r.servedModel, r.usage, !error, error, Date.now() - started);
       if (step === null) unpricedCalls++;
@@ -126,7 +131,7 @@ export async function runChat(task: string, req: ChatRequest, log: Omit<LlmLog, 
   for (const route of routes) {
     if (last && !canFallBack()) break;
     try {
-      const r = await adapters[route.provider].chat(route.model, req);
+      const r = await adapters[route.provider].chat(route.model, { ...req, system: req.system + STYLE });
       let costUsd = 0;
       let unpricedCalls = 0;
       for (const s of r.steps) {
@@ -138,7 +143,7 @@ export async function runChat(task: string, req: ChatRequest, log: Omit<LlmLog, 
         last = new LlmProviderError(`${route.provider}: no reply`, "bad_output");
         continue;
       }
-      return { ...r, route, costUsd, unpricedCalls };
+      return { ...r, reply: plainDashes(r.reply), route, costUsd, unpricedCalls };
     } catch (e) {
       last = e instanceof LlmProviderError ? e : new LlmProviderError(e instanceof Error ? e.message : "failed", "unavailable");
       for (const s of last.steps) await logStep({ ...log, task }, route, s.servedModel, s.usage, !s.refused, s.refused ? "refusal" : null, s.latencyMs);

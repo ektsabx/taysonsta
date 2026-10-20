@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, AtSign, Bell, CreditCard, Plug, Plus, RotateCw, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, AtSign, Bell, ChevronRight, CreditCard, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
@@ -20,6 +20,7 @@ import { connectImapMailbox, connectTestMailbox, mailboxState, removeMailbox } f
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
+import { searchSettings } from "./settings-search";
 import type { Currency } from "@/types/database";
 
 const tabs: { tab: SettingsTab; icon: typeof User }[] = [
@@ -41,11 +42,36 @@ interface Props {
 
 export function SettingsModal({ data, tab, onTab, onClose }: Props) {
   const { t } = useI18n();
+  const [query, setQuery] = useState("");
+  const [focus, setFocus] = useState<string | null>(null);
+  const searching = query.trim().length > 0;
+  const hits = searching ? searchSettings(query, t, tabs.map((x) => x.tab)) : [];
+  // Escape clears the search first, then closes the window.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (query) setQuery("");
+      else onClose();
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, query]);
+
+  const open = (hit: { tab: SettingsTab; id: string }) => {
+    setQuery("");
+    onTab(hit.tab);
+    setFocus(hit.id);
+  };
+  // After a result opens its tab, bring the setting into view and mark it briefly.
+  useEffect(() => {
+    if (!focus) return;
+    const el = document.querySelector<HTMLElement>(`[data-setting="${focus}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.classList.add("setting-found");
+    const id = window.setTimeout(() => { el.classList.remove("setting-found"); setFocus(null); }, 1800);
+    return () => window.clearTimeout(id);
+  }, [focus, tab]);
 
 
   return (
@@ -53,22 +79,65 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
       <div className="modal-window" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <aside className="modal-sidebar">
           <div className="modal-sidebar-title">{t.settings.title}</div>
-          {tabs.map(({ tab: id, icon: Icon }) => (
-            <button key={id} className={`modal-nav-item${id === tab ? " active" : ""}`} type="button" onClick={() => onTab(id)}>
-              <Icon />
-              <span>{t.settings.tabs[id]}</span>
-            </button>
-          ))}
+          <div className="settings-search">
+            <Search aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && hits[0]) { e.preventDefault(); open(hits[0]); } }}
+              placeholder={t.settings.search.placeholder}
+              aria-label={t.settings.search.placeholder}
+              aria-controls="settings-results"
+              autoComplete="off"
+            />
+            {searching && <button type="button" className="settings-search-clear" onClick={() => setQuery("")} aria-label={t.settings.search.clear}><X /></button>}
+          </div>
+          <nav className="modal-nav-list">
+            {tabs.map(({ tab: id, icon: Icon }) => (
+              <button key={id} className={`modal-nav-item${id === tab && !searching ? " active" : ""}`} type="button" onClick={() => { setQuery(""); onTab(id); }}>
+                <Icon />
+                <span>{t.settings.tabs[id]}</span>
+              </button>
+            ))}
+          </nav>
         </aside>
 
         <div className="modal-content-area">
           <div className="modal-header-clean">
-            <h3 id="settings-title">{t.settings.titles[tab]}</h3>
+            <h3 id="settings-title">{searching ? t.settings.search.placeholder : t.settings.titles[tab]}</h3>
             <button className="modal-close-btn" type="button" onClick={onClose} aria-label={t.common.close}>
               <X />
             </button>
           </div>
           <div className="modal-body-scroll">
+            {searching ? (
+              hits.length ? (
+                <ul className="settings-results" id="settings-results">
+                  {hits.map((h) => {
+                    const Icon = tabs.find((x) => x.tab === h.tab)!.icon;
+                    return (
+                      <li key={`${h.tab}:${h.id}`}>
+                        <button type="button" onClick={() => open(h)}>
+                          <Icon aria-hidden="true" />
+                          <span className="settings-result-main">
+                            <span className="settings-result-label">{h.label}</span>
+                            {h.desc && <span className="settings-result-desc">{h.desc}</span>}
+                          </span>
+                          <span className="settings-result-tab">{t.settings.tabs[h.tab]}</span>
+                          <ChevronRight className="settings-result-go" aria-hidden="true" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="settings-results-empty" id="settings-results" role="status">
+                  <strong>{fmt(t.settings.search.empty, { q: query.trim() })}</strong>
+                  <span>{t.settings.search.hint}</span>
+                </div>
+              )
+            ) : <>
             {tab === "general" && <GeneralTab data={data} />}
             {tab === "account" && <AccountTab data={data} />}
             {tab === "notifications" && <NotificationsTab data={data} />}
@@ -76,6 +145,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
             {tab === "integration" && <IntegrationTab />}
+            </>}
           </div>
         </div>
       </div>
@@ -127,31 +197,31 @@ function GeneralTab({ data }: { data: ShellData }) {
 
   return (
     <div className="setting-group">
-      <SettingRow label={g.theme} desc={g.themeDesc}>
+      <SettingRow id="theme" label={g.theme} desc={g.themeDesc}>
         <select className="form-select" value={prefs.theme} onChange={(e) => change("theme", e.target.value as typeof prefs.theme)}>
           <option value="light">{g.light}</option>
           <option value="dark">{g.dark}</option>
         </select>
       </SettingRow>
-      <SettingRow label={g.textSize} desc={g.textSizeDesc}>
+      <SettingRow id="text-size" label={g.textSize} desc={g.textSizeDesc}>
         <select className="form-select" value={prefs.text_size} onChange={(e) => change("text_size", e.target.value as typeof prefs.text_size)}>
           <option value="compact">{g.compact}</option>
           <option value="normal">{g.normal}</option>
           <option value="large">{g.large}</option>
         </select>
       </SettingRow>
-      <SettingRow label={g.languages} desc={g.languagesDesc}>
+      <SettingRow id="language" label={g.languages} desc={g.languagesDesc}>
         <select className="form-select" value={prefs.language} onChange={(e) => change("language", e.target.value as typeof prefs.language)}>
           <option value="en">{t.language.en}</option>
           <option value="ar">{t.language.ar}</option>
         </select>
       </SettingRow>
-      <SettingRow label={g.timezone} desc={g.timezoneDesc}>
+      <SettingRow id="timezone" label={g.timezone} desc={g.timezoneDesc}>
         <select className="form-select" value={prefs.timezone} onChange={(e) => change("timezone", e.target.value)}>
           {timeZoneChoices(prefs.timezone).map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
         </select>
       </SettingRow>
-      <SettingRow label={g.country} desc={g.countryDesc}>
+      <SettingRow id="country" label={g.country} desc={g.countryDesc}>
         <select className="form-select" value={prefs.country} onChange={(e) => change("country", e.target.value)}>
           {COUNTRIES.map((c) => <option key={c} value={c}>{countryLabel(c, locale)}</option>)}
         </select>
@@ -230,7 +300,7 @@ function AccountTab({ data }: { data: ShellData }) {
 
   return (
     <div className="setting-group">
-      <SettingRow label={a.avatar} desc={a.avatarDesc}>
+      <SettingRow id="avatar" label={a.avatar} desc={a.avatarDesc}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div className="avatar" style={{ width: 40, height: 40, fontSize: ".8rem" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -257,7 +327,7 @@ function AccountTab({ data }: { data: ShellData }) {
         </div>
       </SettingRow>
 
-      <SettingRow label={a.fullName} desc={a.fullNameDesc}>
+      <SettingRow id="full-name" label={a.fullName} desc={a.fullNameDesc}>
         <div style={{ width: 200 }}>
           <input
             type="text"
@@ -270,7 +340,7 @@ function AccountTab({ data }: { data: ShellData }) {
         </div>
       </SettingRow>
 
-      <SettingRow label={a.phone} desc={a.phoneDesc}>
+      <SettingRow id="phone" label={a.phone} desc={a.phoneDesc}>
         <div style={{ width: 200 }}>
           <input
             type="tel"
@@ -289,7 +359,7 @@ function AccountTab({ data }: { data: ShellData }) {
         </div>
       </SettingRow>
 
-      <SettingRow label={a.email} desc={a.emailDesc}>
+      <SettingRow id="email" label={a.email} desc={a.emailDesc}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input type="email" dir="ltr" className="form-input" value={data.user.email} style={{ width: 190 }} readOnly />
           {data.user.emailConfirmed && <span className="setting-ok">{a.verified}</span>}
@@ -311,7 +381,7 @@ function AccountTab({ data }: { data: ShellData }) {
 
       <TwoFactorSetting />
 
-      <div className="setting-section">
+      <div className="setting-section" data-setting="devices">
         <div className="setting-label">{a.devices}</div>
         <div className="setting-desc" style={{ marginBottom: 12 }}>{a.devicesDesc}</div>
         <div className="device-card">
@@ -328,7 +398,7 @@ function AccountTab({ data }: { data: ShellData }) {
 
       {(error || localError) && <p className="form-error">{error ?? localError}</p>}
 
-      <div className="danger-zone-box">
+      <div className="danger-zone-box" data-setting="delete-account">
         <div>
           <div className="danger-title">{a.deleteTitle}</div>
           <div className="danger-desc">{a.deleteDesc}</div>
@@ -393,7 +463,7 @@ function TwoFactorSetting() {
 
   return (
     <>
-      <SettingRow label={a.twoFactor} desc={a.twoFactorDesc}>
+      <SettingRow id="two-factor" label={a.twoFactor} desc={a.twoFactorDesc}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {factorId ? (
             <>
@@ -431,10 +501,10 @@ function NotificationsTab({ data }: { data: ShellData }) {
   const [prefs, setPrefs] = useState(data.preferences);
   const { error, run } = useSave();
   const items = [
-    { key: "notify_campaign_done", label: nt.discovery, desc: nt.discoveryDesc },
-    { key: "notify_usage", label: nt.usage, desc: nt.usageDesc },
-    { key: "notify_billing", label: nt.billing, desc: nt.billingDesc },
-    { key: "notify_product", label: nt.product, desc: nt.productDesc },
+    { key: "notify_campaign_done", id: "notify-discovery", label: nt.discovery, desc: nt.discoveryDesc },
+    { key: "notify_usage", id: "notify-usage", label: nt.usage, desc: nt.usageDesc },
+    { key: "notify_billing", id: "notify-billing", label: nt.billing, desc: nt.billingDesc },
+    { key: "notify_product", id: "notify-product", label: nt.product, desc: nt.productDesc },
   ] as const;
 
   const toggle = (key: (typeof items)[number]["key"], value: boolean) => {
@@ -446,7 +516,7 @@ function NotificationsTab({ data }: { data: ShellData }) {
     <div className="setting-group">
       <p className="setting-intro">{fmt(nt.intro, { email: data.user.email })}</p>
       {items.map((it) => (
-        <SettingRow key={it.key} label={it.label} desc={it.desc}>
+        <SettingRow key={it.key} id={it.id} label={it.label} desc={it.desc}>
           <label className="switch">
             <input type="checkbox" checked={prefs[it.key]} onChange={(e) => toggle(it.key, e.target.checked)} aria-label={it.label} />
             <span className="slider" />
@@ -486,7 +556,7 @@ function UsageTab({ data }: { data: ShellData }) {
 
   return (
     <div className="setting-group">
-      <div className="usage-head">
+      <div className="usage-head" data-setting="plan-usage">
         <div>
           <div className="setting-label">{u.title}</div>
           <div className="setting-desc">{usage.trialEndsAt
@@ -503,7 +573,7 @@ function UsageTab({ data }: { data: ShellData }) {
           <span className="usage-meter-label">{u.prospects}</span>
           <span className="usage-meter-value">{fmt(u.value, { used: n(usage.prospects), total: n(usage.allowance) })}</span>
         </div>
-        <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : pct >= 80 ? " amber" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
+        <div className="progress-track"><div className={`progress-fill${pct >= 100 ? " red" : pct >= 80 ? " near" : ""}`} style={{ width: `${pct.toFixed(1)}%` }} /></div>
         <div className="usage-meter-foot">
           <span />
           <span>{usage.resetsAt ? fmt(u.resets, { date: formatDate(usage.resetsAt, locale, data.preferences.timezone) }) : usage.trialEndsAt ? u.trialOnly : u.oneTime}</span>
@@ -521,7 +591,7 @@ function UsageTab({ data }: { data: ShellData }) {
               <span className="usage-meter-label">{label}</span>
               <span className="usage-meter-value">{fmt(u.value, { used: n(m.used), total: n(m.limit) })}</span>
             </div>
-            <div className="progress-track"><div className={`progress-fill${p >= 100 ? " red" : p >= 80 ? " amber" : ""}`} style={{ width: `${p.toFixed(1)}%` }} /></div>
+            <div className="progress-track"><div className={`progress-fill${p >= 100 ? " red" : p >= 80 ? " near" : ""}`} style={{ width: `${p.toFixed(1)}%` }} /></div>
             <div className="usage-meter-foot">
               <span />
               <span>{usage.trialEndsAt ? u.trialOnly : fmt(u.resets, { date: formatDate(monthWindow(new Date(now)).resets.toISOString(), locale, data.preferences.timezone) })}</span>
@@ -583,7 +653,7 @@ function BuyMore({ data, pct, onBought }: { data: ShellData; pct: number; onBoug
   // Like a usage limit: a callout when it's close or reached, packs right under it.
   const state = pct >= 100 ? "out" : pct >= 80 ? "near" : null;
   return (
-    <section className="buy-more">
+    <section className="buy-more" data-setting="buy-more">
       {state && (
         <div className={`buy-more-callout ${state}`} role="status">
           <strong>{state === "out" ? bm.outTitle : fmt(bm.nearTitle, { pct: Math.floor(pct) })}</strong>
@@ -648,7 +718,7 @@ function BillingTab({ data }: { data: ShellData }) {
 
   return (
     <div className="billing">
-      <section className="billing-plan">
+      <section className="billing-plan" data-setting="plan">
         <div className="billing-plan-icon"><YoliasMarkStatic /></div>
         <div className="billing-plan-main">
           <div className="billing-plan-name">
@@ -669,7 +739,7 @@ function BillingTab({ data }: { data: ShellData }) {
 
       {canManage && (
         <>
-          <section className="billing-section">
+          <section className="billing-section" data-setting="payment">
             <h4>{b.payment}</h4>
             <div className="billing-row">
               <div className="billing-card">
@@ -679,7 +749,7 @@ function BillingTab({ data }: { data: ShellData }) {
             </div>
           </section>
 
-          <section className="billing-section">
+          <section className="billing-section" data-setting="invoices">
             <h4>{b.invoices}</h4>
             {data.invoices.length === 0 ? (
               <p className="billing-empty">{b.noInvoices}</p>
@@ -706,7 +776,7 @@ function BillingTab({ data }: { data: ShellData }) {
           </section>
 
           {paid && (
-            <section className="billing-section">
+            <section className="billing-section" data-setting="cancellation">
               <h4>{b.cancellation}</h4>
               {data.billing.portalUrl ? (
                 // Polar subscriptions are canceled or resumed in Polar's portal; its webhook updates Yolias.
@@ -774,7 +844,7 @@ function TeamTab({ data }: { data: ShellData }) {
 
   return (
     <div className="setting-group">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12 }}>
+      <div data-setting="members" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12 }}>
         <div>
           <div className="setting-label">{tm.members}</div>
           <div className="setting-desc">{tm.membersDesc}</div>
@@ -886,7 +956,7 @@ function IntegrationTab() {
     const m = state?.mailboxes.find((x) => x.provider === provider && x.status !== "disconnected");
     const can = state?.available.includes(provider);
     return (
-      <div className="connector" key={provider}>
+      <div className="connector" key={provider} data-setting={provider}>
         <div className="connector-icon"><Icon /></div>
         <div className="connector-main">
           <div className="connector-name">{name}{m ? <span className="connector-account" dir="ltr"> · {m.email}</span> : null}</div>
@@ -959,7 +1029,7 @@ function ImapRow({ mailbox, loaded, pending, onDisconnect, onConnected }: { mail
     });
   };
   return (
-    <div className="connector connector-stack">
+    <div className="connector connector-stack" data-setting="imap">
       <div className="connector-row">
         <div className="connector-icon"><AtSign /></div>
         <div className="connector-main">
@@ -999,9 +1069,9 @@ function ImapRow({ mailbox, loaded, pending, onDisconnect, onConnected }: { mail
   );
 }
 
-function SettingRow({ label, desc, children }: { label: string; desc: string; children: React.ReactNode }) {
+function SettingRow({ id, label, desc, children }: { id?: string; label: string; desc: string; children: React.ReactNode }) {
   return (
-    <div className="setting-row">
+    <div className="setting-row" data-setting={id}>
       <div className="setting-label-wrap">
         <div className="setting-label">{label}</div>
         <div className="setting-desc">{desc}</div>

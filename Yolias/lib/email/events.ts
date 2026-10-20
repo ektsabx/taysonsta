@@ -7,6 +7,7 @@ import { dictionaries } from "@/lib/i18n/config";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { COMMUNITY_URL } from "@/lib/community";
 import type { BillingPeriod, Currency, Plan, WorkspaceRow } from "@/types/database";
+import { plainDashes } from "@/lib/text";
 
 // Email triggers: one function per real event. Callers never await email
 // success; every function here swallows its own errors (notify does too).
@@ -22,7 +23,7 @@ export async function campaignFinished(campaignId: string) {
   if (!c || !c.strategy_id || (c.status !== "completed" && c.status !== "partial")) return;
   const { data: s } = await db.from("strategies").select("title").eq("id", c.strategy_id).maybeSingle();
   await notify("discovery_ready", await userRecipient(c.created_by), {
-    strategyId: c.strategy_id, strategyTitle: s?.title ?? c.name, prospects: c.prospects_found, companies: c.companies_found,
+    strategyId: c.strategy_id, strategyTitle: plainDashes(s?.title ?? c.name, ": "), prospects: c.prospects_found, companies: c.companies_found,
   }, { workspaceId: c.workspace_id, dedupe: campaignId });
 }
 

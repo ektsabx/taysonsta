@@ -6,22 +6,22 @@ import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
 import { emailEventStats, emailOverview, listAnnouncements } from "@/services/yolias/emails";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
-import { AnnouncementForm, EmailEventForm, SendAnnouncementButton } from "./EmailForms";
+import { EmailEventForm, SendAnnouncementButton } from "./EmailForms";
 
-const statusTone = { queued: "info", sent: "success", skipped: "warning", failed: "danger", draft: "neutral", sending: "info" } as const;
-const statusLabel: Record<string, string> = { queued: "في الطابور", sent: "أُرسل", skipped: "لم يُرسل (غير مُعدّ)", failed: "فشل", draft: "مسودة", sending: "جارٍ الإرسال" };
+const statusTone = { queued: "info", sent: "success", skipped: "warning", failed: "danger", draft: "neutral", sending: "info", canceled: "neutral" } as const;
+const statusLabel: Record<string, string> = { queued: "في الطابور", sent: "أُرسل", skipped: "لم يُرسل (غير مُعدّ)", failed: "فشل", draft: "مسودة", sending: "جارٍ الإرسال", canceled: "أُلغي قبل الإرسال" };
 const categoryLabel: Record<string, string> = { account: "الحساب", subscription: "الاشتراك", billing: "الفوترة", usage: "الاستخدام", updates: "تحديثات المنتج", security: "الأمان" };
 
 // Yolias emails (docs/05 "Emails", docs/09 §B): send log and product update
 // announcements. Last 30 days for the counts.
 export default async function EmailsPage() {
   const { bos } = await requirePermission("platform.read");
-  if (!connected()) return (<><PageHeader title="رسائل البريد" /><NotConnected /></>);
+  if (!connected()) return (<><PageHeader title="رسائل النظام" /><NotConnected /></>);
   const [{ recent, counts }, announcements, events] = await Promise.all([emailOverview(30), listAnnouncements(), emailEventStats(30)]);
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="رسائل البريد" subtitle="كل رسالة يرسلها Yolias مسجّلة بحالتها — آخر 30 يومًا" />
+      <PageHeader title="رسائل النظام" subtitle="الإيصالات والأمان والاستخدام ونتائج البحث: تشغيل وإيقاف كل حدث، وسجل كل رسالة. آخر 30 يومًا." />
       <div className="bos-kpis">
         <KpiCard label="أُرسلت" value={num(counts.sent)} />
         <KpiCard label="في الطابور" value={num(counts.queued)} />
@@ -70,7 +70,7 @@ export default async function EmailsPage() {
 
       {canManage && (
         <Card title="إعلان جديد">
-          <AnnouncementForm />
+          <p><Tx>الإعلانات الجديدة تُكتب كحملة (شريحة، معاينة، إرسال اختباري، جدولة، نتائج).</Tx> <Link className="bos-link" href="/admin/platform/messaging/campaigns"><Tx>الحملات</Tx></Link></p>
         </Card>
       )}
 

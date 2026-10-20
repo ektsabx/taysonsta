@@ -13,7 +13,7 @@ import { dateTime, money, shortDate } from "@/components/app/ws/format";
 import type { LeadStage } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.crm.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.crm.title} | Yolias` };
 }
 
 // CRM (D-195): one lead per person / company, real stages, deal value,
@@ -35,7 +35,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
   ]);
   const c = t.ws.crm;
   const tz = session.profile.timezone;
-  const names = new Map(team.members.map((m) => [m.user_id, m.profile?.full_name || m.profile?.email || "—"]));
+  const names = new Map(team.members.map((m) => [m.user_id, m.profile?.full_name || m.profile?.email || "-"]));
   const pages = Math.max(1, Math.ceil(list.total / CRM_PAGE));
   const href = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams();
@@ -111,14 +111,14 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
                         <td>
                           <Link className="entity-link" href={`/crm/${l.id}`}>
                             <strong>{l.name}</strong>
-                            <span className="cell-sub">{[l.job_title, l.company_name !== l.name ? l.company_name : null].filter(Boolean).join(" · ") || "—"}</span>
+                            <span className="cell-sub">{[l.job_title, l.company_name !== l.name ? l.company_name : null].filter(Boolean).join(" · ") || "-"}</span>
                           </Link>
                           {l.do_not_contact && <span className="ws-chip red">{t.ws.crm.detail.dnc}</span>}
                         </td>
-                        <td className="cell-sub" dir="ltr">{l.email ?? l.phone ?? (l.linkedin_url ? "LinkedIn" : "—")}</td>
+                        <td className="cell-sub" dir="ltr">{l.email ?? l.phone ?? (l.linkedin_url ? "LinkedIn" : "-")}</td>
                         <td className="cell-sub">{c.sources[l.source]}</td>
-                        <td className="cell-sub">{l.campaign_names?.join(", ") || "—"}</td>
-                        <td className="cell-sub">{l.owner_id ? names.get(l.owner_id) ?? "—" : c.unassigned}</td>
+                        <td className="cell-sub">{l.campaign_names?.join(", ") || "-"}</td>
+                        <td className="cell-sub">{l.owner_id ? names.get(l.owner_id) ?? "-" : c.unassigned}</td>
                         <td><StageSelect leadId={l.id} stage={l.stage} /></td>
                         <td dir="ltr">{money(l.deal_value, l.deal_currency, locale)}</td>
                         <td className="cell-sub">{dateTime(l.next_follow_up_at, locale, tz)}</td>

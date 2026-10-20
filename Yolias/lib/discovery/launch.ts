@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 import { StrategyAiError, understandStrategy, type StrategyAttachment } from "@/lib/ai/strategy";
 import { criteriaLine, type IcpCriteria } from "@/lib/discovery/icp";
+import { plainDashes } from "@/lib/text";
 import { logEvent } from "@/lib/discovery/pipeline";
 import { enqueue } from "@/lib/jobs/queue";
 import { sourceLabels } from "@/lib/intel/registry";
@@ -123,7 +124,7 @@ async function startCampaign(session: Session, supabase: Db, strategyId: string,
       workspace_id: session.workspace.id,
       strategy_id: strategyId,
       created_by: session.userId,
-      name: icp.campaign_name,
+      name: plainDashes(icp.campaign_name, ": "),
       criteria: icp as unknown as Json,
       search_type: icp.search_type,
       quota: icp.target_count,
@@ -159,6 +160,6 @@ async function startCampaign(session: Session, supabase: Db, strategyId: string,
 }
 
 export function titleFrom(text: string) {
-  const s = text.replace(/\s+/g, " ").trim();
+  const s = plainDashes(text, ": ").replace(/\s+/g, " ").trim();
   return s.length > 60 ? `${s.slice(0, 57)}…` : s;
 }

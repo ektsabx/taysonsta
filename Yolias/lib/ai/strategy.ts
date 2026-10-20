@@ -55,10 +55,10 @@ Rules:
 - Extract only what the user asked for. Where the request is silent, choose a sensible default for a B2B discovery mission and record it in "assumptions".
 - Use the user's own business (industry, products and services) to infer which decision-maker job titles are relevant when they don't name any.
 - When the request doesn't say who to look for, use the business's ideal customer profile; when it doesn't name a market, use its target markets. Say so in "assumptions". What the request says always wins.
-- countries are ISO 3166-1 alpha-2 codes. If the request names no market, use the selected customer profile's countries, else the business's target markets. If none of them names one, leave countries empty and say so in "assumptions" — never guess a country.
+- countries are ISO 3166-1 alpha-2 codes. If the request names no market, use the selected customer profile's countries, else the business's target markets. If none of them names one, leave countries empty and say so in "assumptions". Never guess a country.
 - search_type: "companies" (the default) when the user wants companies, decision makers or contacts: Yolias finds the companies, then the decision makers inside them (put the titles in job_titles); "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
 - target_count is the number of companies the user asked for (default 100); target_unit is "companies".
-- campaign_name is short and specific, in the form "<Market> <Segment> — <Decision makers>".
+- campaign_name is short and specific, in the form "<Market> <Segment>: <Decision makers>". Never use the em dash character (—) anywhere in the output.
 - Attached files or images may describe the ICP; use them.
 - Write campaign_name, summary and assumptions in {LANGUAGE}.`;
 

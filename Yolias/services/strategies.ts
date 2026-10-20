@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CampaignEventRow, CampaignRow, CompanyRow, ProspectRow, StrategyRow } from "@/types/database";
+import { plainDashes } from "@/lib/text";
 
 // Sidebar history: all pinned strategies, then the most recent unpinned ones.
 export async function recentStrategies(workspaceId: string, limit = 12) {
@@ -11,7 +12,7 @@ export async function recentStrategies(workspaceId: string, limit = 12) {
     supabase.from("strategies").select("id, title, pinned_at").eq("workspace_id", workspaceId)
       .is("pinned_at", null).order("created_at", { ascending: false }).limit(limit),
   ]);
-  return [...(pinned ?? []), ...(recent ?? [])].map((s) => ({ id: s.id, title: s.title, pinned: s.pinned_at !== null }));
+  return [...(pinned ?? []), ...(recent ?? [])].map((s) => ({ id: s.id, title: plainDashes(s.title, ": "), pinned: s.pinned_at !== null }));
 }
 
 export interface StrategyView {
@@ -31,9 +32,11 @@ export async function getStrategyView(id: string, campaignId?: string): Promise<
   const supabase = await createClient();
   const { data: strategy } = await supabase.from("strategies").select("*").eq("id", id).maybeSingle();
   if (!strategy) return null;
+  strategy.title = plainDashes(strategy.title, ": ");
 
   const q = supabase.from("campaigns").select("*").eq("strategy_id", id);
   const { data: campaign } = await (campaignId ? q.eq("id", campaignId) : q.order("created_at").limit(1)).maybeSingle();
+  if (campaign) campaign.name = plainDashes(campaign.name, ": ");
   if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], topResults: [], lastEvent: null, savedCount: 0 };
   if (campaign.search_type !== "people") {
     const [{ data: results }, { data: lastEvent }, { count: savedCount }] = await Promise.all([

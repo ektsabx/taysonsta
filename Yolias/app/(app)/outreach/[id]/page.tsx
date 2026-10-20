@@ -9,7 +9,7 @@ import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { CampaignWorkspaceView } from "@/components/app/ws/CampaignWorkspace";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.outreach.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.outreach.title} | Yolias` };
 }
 
 export default async function OutreachCampaignPage({ params }: { params: Promise<{ id: string }> }) {

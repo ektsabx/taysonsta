@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { rateReply } from "@/app/(app)/actions";
 import { isNetworkError } from "@/lib/action-client";
+import { plainDashes } from "@/lib/text";
 
 export interface ThreadTurn {
   id: number;
@@ -138,7 +139,7 @@ export function AgentThread({ strategyId, initial, lead, cards, plan, autoSend }
             <li key={m.id} className={`agent-turn ${m.role}`}>
               {m.role === "assistant" && <YoliasMark size={18} />}
               <div className="agent-turn-body">
-                <div className="agent-turn-text" dir="auto"><Rich text={m.content} /></div>
+                <div className="agent-turn-text" dir="auto"><Rich text={plainDashes(m.content)} /></div>
                 {m.role === "assistant" && cards?.[m.id]}
                 {m.role === "assistant" ? (
                   <ReplyActions turn={m} time={time(m.created_at)} title={fullTime(m.created_at)} />

@@ -11,7 +11,6 @@ import type { EmployeeBand, ProspectTab } from "@/services/prospects";
 interface Props {
   tab: ProspectTab;
   counts: Record<ProspectTab, number>;
-  campaigns: { id: string; name: string }[];
   countries: { code: string; name: string }[];
   /** Funding stages present in the workspace (only real values are offered). */
   funding: string[];
@@ -21,13 +20,13 @@ interface Props {
 
 const tabs: ProspectTab[] = ["all", "companies", "local", "people", "saved"];
 const bands: EmployeeBand[] = ["1-10", "11-50", "51-200", "201-1000", "1001-5000", "5000+"];
-const KEYS = ["q", "campaign", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "sort"] as const;
+const KEYS = ["q", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "sort"] as const;
 type Key = (typeof KEYS)[number];
 
 // Type filters, search, sort and the search-filter panel of the Prospects
 // table. Everything lives in the URL, so a view can be shared, reloaded and
 // exported as shown. Changing the type keeps the other filters.
-export function ProspectToolbar({ tab, counts, campaigns, countries, funding, active }: Props) {
+export function ProspectToolbar({ tab, counts, countries, funding, active }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
   const pr = t.prospects;
@@ -118,12 +117,6 @@ export function ProspectToolbar({ tab, counts, campaigns, countries, funding, ac
               </select>
             </label>
           )}
-          <label className="filter-item"><span>{pr.filterCampaign}</span>
-            <select className="form-select" value={form.campaign} onChange={(e) => set("campaign", e.target.value)}>
-              <option value="">{pr.allCampaigns}</option>
-              {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
           <label className="filter-item"><span>{pr.filterMatch}</span>
             <select className="form-select" value={form.min} onChange={(e) => set("min", e.target.value)}>
               <option value="">{pr.any}</option>

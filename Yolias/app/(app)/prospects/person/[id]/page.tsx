@@ -20,7 +20,7 @@ import { getPerson, maskEmail, maskPhone } from "@/services/prospects";
 export async function generateMetadata({ params }: PageProps<"/prospects/person/[id]">): Promise<Metadata> {
   const { id } = await params;
   const p = /^[0-9a-f-]{36}$/i.test(id) ? await getPerson(id) : null;
-  return { title: p ? `${p.full_name} — Yolias` : "Yolias" };
+  return { title: p ? `${p.full_name} | Yolias` : "Yolias" };
 }
 
 const href = (u: string) => (u.startsWith("http") ? u : `https://${u}`);

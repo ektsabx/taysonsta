@@ -2,10 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { guessKind, guessMapping, normalizeSite, parseCsv, toImportRow } from "../../lib/csv-import.ts";
 import { commissionExamples, parseProgramSettings } from "../../lib/affiliates/program.ts";
-import { campaignFilterOf } from "../../lib/discovery/campaign-view.ts";
 import { defaultPlans, hasActivePlan, monthlyRate, monthlyRateEgp, offeredPlans, priceFor, priceForEgp, topPlan } from "../../lib/plans.ts";
 
-// Owner brief 2026-10-12: plans, trial, CSV import, affiliate examples, campaign filters.
+// Owner brief 2026-10-12: plans, trial, CSV import, affiliate examples.
 
 test("plans: no $0 plan offered, Scale is the top plan, trialing counts as a plan", () => {
   assert.deepEqual(offeredPlans, ["pro", "growth", "scale"]);
@@ -73,14 +72,4 @@ test("affiliates: worked examples follow the live rate, eligibility and rounding
   assert.equal(ex.find((e) => e.plan === "scale" && e.period === "annual")!.perPaymentCents, 28800, "15% of $1,920 (annual = 12 × ($200 − 20%))");
   const once = parseProgramSettings({ enabled: true, commission: { type: "percent", percent_bps: 1500 }, eligible: { plans: ["pro"], periods: ["monthly"] }, recurring: { enabled: false } });
   assert.deepEqual(commissionExamples(once, { pro: 50, growth: 100, scale: 200 }).map((e) => [e.plan, e.maxCents]), [["pro", 750]]);
-});
-
-test("campaigns: every status belongs to exactly one filter", () => {
-  assert.equal(campaignFilterOf("discovering_companies"), "active");
-  assert.equal(campaignFilterOf("scheduled"), "active");
-  assert.equal(campaignFilterOf("awaiting_source"), "active");
-  assert.equal(campaignFilterOf("paused"), "paused");
-  assert.equal(campaignFilterOf("partial"), "completed");
-  assert.equal(campaignFilterOf("completed"), "completed");
-  assert.equal(campaignFilterOf("failed"), "error");
 });

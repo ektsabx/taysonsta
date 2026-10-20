@@ -634,7 +634,7 @@ a.bos-kpi.active { border-color: var(--bos-info); }
 .bos-cal-week .bos-cal-item, .bos-cal-day .bos-cal-item { white-space: normal; }
 .bos-cal-item.tone-success { border-inline-start-color: var(--bos-success, #16a34a); }
 .bos-cal-item.tone-danger { border-inline-start-color: var(--bos-danger, #dc2626); }
-.bos-cal-item.tone-warning { border-inline-start-color: var(--bos-warning, #d97706); }
+.bos-cal-item.tone-warning { border-inline-start-color: var(--bos-warning); }
 .bos-cal-item.tone-accent { border-inline-start-color: var(--bos-violet); }
 .bos-cal-item.tone-info { border-inline-start-color: var(--bos-info); }
 @media (max-width: 720px) { .bos-cal-month .bos-cal-cell { min-height: 64px; } .bos-cal-month .bos-cal-item { font-size: 10px; } }

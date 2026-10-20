@@ -22,5 +22,5 @@ const polar = createPolar({ accessToken: cfg.accessToken, environment: cfg.envir
 for (const k of productKeys) {
   const p = await polar.products.get(r.cfg.products[k]!);
   const price = p.prices.find((x) => (x as { amount_type?: string; is_archived?: boolean }).amount_type === "fixed" && !(x as { is_archived?: boolean }).is_archived) as { price_amount?: number } | undefined;
-  console.log(`${k.padEnd(15)} ${p.name} — $${((price?.price_amount ?? 0) / 100).toLocaleString("en-US")}/${p.recurring_interval}`);
+  console.log(`${k.padEnd(15)} ${p.name}: $${((price?.price_amount ?? 0) / 100).toLocaleString("en-US")}/${p.recurring_interval}`);
 }

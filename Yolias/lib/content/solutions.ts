@@ -2,7 +2,7 @@ import type { Localized } from "./types";
 
 // Solutions pages (2026-10-12): how Yolias helps one kind of team with one
 // business problem. Written around what Yolias does today: a plain-language
-// description of the ideal customer becomes a discovery campaign; matching
+// description of the ideal customer becomes a search; matching
 // companies (or local businesses) arrive with a match explanation and the
 // public business contact details found on their websites; Yolias drafts
 // messages that the user sends from their own accounts; prospects export to
@@ -55,7 +55,7 @@ export const solutionsPage: Localized<{ eyebrow: string; title: string; lead: st
     cta: { title: "Describe your first ideal customer.", body: "Create an account, write who you want to reach and review the campaign Yolias builds from it.", primary: "Try Yolias", secondary: "See pricing" },
     note: "Results depend on your market and on the public information available about each company. Yolias doesn’t guarantee a number of leads, meetings or sales.",
     learnMore: "Learn more",
-    heroChecks: ["7-day free trial on every plan", "Set up in minutes", "Unlimited users"],
+    heroChecks: ["Every feature on every plan", "Set up in minutes", "Unlimited users"],
     pillarsTitle: "What changes for your team",
   },
   ar: {
@@ -66,7 +66,7 @@ export const solutionsPage: Localized<{ eyebrow: string; title: string; lead: st
     cta: { title: "صِف أول عميل مثالي لك.", body: "أنشئ حسابًا، واكتب من تريد الوصول إليه، وراجع الحملة التي يبنيها يولـياس من وصفك.", primary: "جرّب يولـياس", secondary: "عرض الأسعار" },
     note: "تعتمد النتائج على سوقك وعلى المعلومات العامة المتاحة عن كل شركة. ولا يضمن يولـياس عددًا محددًا من العملاء المحتملين أو الاجتماعات أو المبيعات.",
     learnMore: "اعرف المزيد",
-    heroChecks: ["تجربة مجانية 7 أيام في كل خطة", "الإعداد في دقائق", "مستخدمون غير محدودين"],
+    heroChecks: ["كل الميزات في كل خطة", "الإعداد في دقائق", "مستخدمون غير محدودين"],
     pillarsTitle: "ما الذي يتغير لفريقك",
   },
 };
@@ -91,7 +91,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       ],
       helpsTitle: "How Yolias helps",
       helps: [
-        { title: "Your ideal client in one sentence", body: "Write the industries, markets and company sizes you serve, in Arabic or English. Yolias turns it into criteria and a discovery campaign." },
+        { title: "Your ideal client in one sentence", body: "Write the industries, markets and company sizes you serve, in Arabic or English. Yolias turns it into criteria and a search." },
         { title: "Companies with a reason", body: "Each company shows why it matched your criteria, so you can decide quickly who is worth a proposal." },
         { title: "Public contact details", body: "Where a company publishes a business email or phone number on its website, Yolias shows it with the result." },
         { title: "A first message to adapt", body: "Yolias writes an email from your company profile and the facts it holds. You review it and Yolias sends it from your own mailbox." },
@@ -133,7 +133,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       ],
       helpsTitle: "كيف يساعدك يولـياس",
       helps: [
-        { title: "عميلك المثالي في جملة واحدة", body: "اكتب القطاعات والأسواق وأحجام الشركات التي تخدمها، بالعربية أو الإنجليزية، ويحوّلها يولـياس إلى معايير وحملة اكتشاف." },
+        { title: "عميلك المثالي في جملة واحدة", body: "اكتب القطاعات والأسواق وأحجام الشركات التي تخدمها، بالعربية أو الإنجليزية، ويحوّلها يولـياس إلى معايير وبحث." },
         { title: "شركات مع سبب واضح", body: "توضح كل شركة سبب مطابقتها لمعاييرك، لتقرر بسرعة من يستحق عرضًا." },
         { title: "بيانات تواصل عامة", body: "عندما تنشر الشركة بريدًا أو هاتفًا للعمل على موقعها، يعرضه يولـياس مع النتيجة." },
         { title: "رسالة أولى قابلة للتعديل", body: "يكتب يولـياس مسودة رسالة بريد أو LinkedIn من ملف شركتك والمعلومات المتاحة لديه، وتعدّلها وترسلها من حسابك أنت." },
@@ -602,10 +602,10 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       ],
       helpsTitle: "How Yolias helps",
       helps: [
-        { title: "One description, one campaign", body: "Describe the accounts you want and Yolias turns it into criteria and a discovery campaign the whole team can follow." },
+        { title: "One description, one search", body: "Describe the accounts you want and Yolias turns it into criteria and a search the whole team can follow." },
         { title: "Shared prospects", body: "Every plan includes unlimited users. Results land in your workspace’s Prospects, where the team can filter, save and export them." },
         { title: "Explained matches", body: "Each company shows which criteria it meets, so reps agree on why an account is on the list." },
-        { title: "Analytics", body: "See companies discovered, prospects found and fit rate by market over time." },
+        { title: "Analytics", body: "See companies and decision makers found, average ICP match, emails sent, replies and meetings over time." },
       ],
       useCasesTitle: "Use cases",
       useCases: [
@@ -643,7 +643,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       ],
       helpsTitle: "كيف يساعدك يولـياس",
       helps: [
-        { title: "وصف واحد وحملة واحدة", body: "صِف الحسابات التي تريدها، ويحوّلها يولـياس إلى معايير وحملة اكتشاف يتابعها الفريق كله." },
+        { title: "وصف واحد وحملة واحدة", body: "صِف الحسابات التي تريدها، ويحوّلها يولـياس إلى معايير وبحث يتابعها الفريق كله." },
         { title: "عملاء محتملون مشتركون", body: "كل الخطط تشمل عددًا غير محدود من المستخدمين. تصل النتائج إلى قسم العملاء المحتملين في مساحة عملك، حيث يمكن للفريق التصفية والحفظ والتصدير." },
         { title: "تطابق موضّح", body: "توضح كل شركة المعايير التي تحققها، ليتفق الفريق على سبب وجود الحساب في القائمة." },
         { title: "التحليلات", body: "اطّلع على الشركات المكتشفة والعملاء المحتملين ومعدل التطابق حسب السوق بمرور الوقت." },

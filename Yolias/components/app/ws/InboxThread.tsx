@@ -58,7 +58,7 @@ export function InboxThreadView({ thread, backHref, timeZone, hasMailbox }: { th
         <aside className="inbox-side">
           <div className="ws-card">
             <dl className="ws-kv">
-              <dt>{t.ws.crm.cols.company}</dt><dd>{lead.company_name ?? "—"}</dd>
+              <dt>{t.ws.crm.cols.company}</dt><dd>{lead.company_name ?? "-"}</dd>
               {lead.email && <><dt>{t.setup.contactNames.email}</dt><dd dir="ltr">{lead.email}</dd></>}
               {lead.phone && <><dt>{t.setup.contactNames.phone}</dt><dd dir="ltr">{lead.phone}</dd></>}
               <dt>{t.ws.crm.cols.value}</dt><dd dir="ltr">{money(lead.deal_value, lead.deal_currency, locale)}</dd>

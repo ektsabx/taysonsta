@@ -15,7 +15,7 @@ export function ContactCell({ id, masked, linkedin }: { id: string; masked: { em
   const c = t.channels;
   const [shown, setShown] = useState<{ email: string | null; phone: string | null } | null>(null);
   const [pending, start] = useTransition();
-  if (!masked.email && !masked.phone && !linkedin) return <span className="cell-sub">—</span>;
+  if (!masked.email && !masked.phone && !linkedin) return <span className="cell-sub">-</span>;
   const email = shown ? shown.email : masked.email;
   const phone = shown ? shown.phone : masked.phone;
   return (
@@ -37,7 +37,7 @@ export function ContactCell({ id, masked, linkedin }: { id: string; masked: { em
 export function PeopleStatus({ status, found, requested }: { status: string | null; found: number; requested: boolean }) {
   const { t, locale } = useI18n();
   const s = t.prospects.peopleStatus;
-  if (!status) return requested ? <span className="cell-sub">{s.queued}</span> : <span className="cell-sub">—</span>;
+  if (!status) return requested ? <span className="cell-sub">{s.queued}</span> : <span className="cell-sub">-</span>;
   const label = status === "done" ? fmt(s.done, { count: formatNumber(found, locale) }) : s[status as keyof typeof s];
   return <span className={`cell-sub people-${status}`}>{label}</span>;
 }

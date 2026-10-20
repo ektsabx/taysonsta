@@ -90,7 +90,7 @@ const merged = [...new Set([...allow, ...redirects])];
 if (merged.length !== allow.length) payload.uri_allow_list = merged.join(",");
 
 const changed = Object.keys(payload).filter((k) => k === "smtp_pass" || now[k] !== payload[k]);
-console.log(`Project ${REF} — site URL: ${String(now.site_url)}`);
+console.log(`Project ${REF}, site URL: ${String(now.site_url)}`);
 console.log(changed.length ? `Will change:\n  ${changed.join("\n  ")}` : "Nothing to change.");
 if (!apply || !changed.length) {
   if (!apply) console.log("\nDry run. Add --apply to change it.");

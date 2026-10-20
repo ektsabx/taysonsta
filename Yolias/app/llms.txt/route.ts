@@ -23,19 +23,19 @@ export async function GET() {
 Yolias works in English and Arabic. It finds and qualifies prospects, prepares outreach campaigns, writes and sends them from the user's own mailbox (Gmail, Outlook or any IMAP/SMTP account) only after the user approves, reads and sorts replies in the Inbox and keeps the CRM up to date; it never messages anyone on LinkedIn. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
 
 ## What Yolias does today
-- Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a discovery campaign.
+- Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a search.
 - Search types: decision makers at matching companies, companies, local businesses by category and area, and companies similar to ones you name.
 - Shows a match score with the criteria each result met, and the public business contact details a company publishes.
 - Writes personalized first emails and follow-ups in 15 languages and sends them from the user's own connected mailbox after approval. Business email and LinkedIn are the contact details Yolias looks for first; it doesn’t collect WhatsApp numbers, and missing details are shown as not available rather than guessed.
-- Continuous campaigns that keep adding new matching companies on a schedule; analytics; CSV export; unlimited users on every plan.
-- Outreach campaigns: a first message and follow-ups per lead, prepared by AI from the user's Company Knowledge, offers and customer profile; the user reviews each one, sends it from their own email or app and marks it sent. Yolias doesn't connect to a mailbox yet, so it doesn't send or receive email itself.
-- Inbox: one conversation per lead with prepared and sent messages, replies the user logs, reminders and planned send times; AI reads a logged reply, suggests the next stage and drafts an answer.
+- Searches that keep adding new matching companies on a schedule; analytics on discovery, outreach and activity; CSV export; unlimited users on every plan.
+- Outreach campaigns: a first message and follow-ups per lead, prepared by AI from the user's Company Knowledge, offers and customer profile; the user reviews and approves them, and Yolias sends them from the user's connected mailbox (or the user sends them from their own app and marks them sent).
+- Inbox: one conversation per lead with prepared and sent messages, replies that arrive in the connected mailbox (or that the user logs), reminders and planned send times; AI reads a reply, suggests the next stage and drafts an answer.
 - CRM: one record per person or company with deal stages (Interested, Meeting Booked, Meeting Completed, Closed, Lost), deal value, owner, meetings with links, reminders, notes and full history, as a table or Kanban.
 - Company Knowledge (with offers and competitors) and a Customer Profile that Yolias writes from the company's website; they guide searches, emails and replies. Outreach (campaign emails, written per person and sent from the user's mailbox) and the Inbox (replies labelled interested, not interested or needs follow-up, with AI-suggested answers) are separate.
 
 ## Main pages
-${line("Product", "/product", "how Yolias AI turns a brief into a campaign")}
-${line("Pricing", "/pricing", "Pro, Growth and Scale, each with a 7-day free trial; unlimited users")}
+${line("Product", "/product", "how Yolias AI turns a brief into a list of matching companies and decision makers")}
+${line("Pricing", "/pricing", "Pro, Growth and Scale with every feature; unlimited users; the free trial is shown there when checkout offers it")}
 ${line("Solutions", "/solutions", "how Yolias fits different service businesses")}
 ${solutionSlugs.map((s) => line(solutionSeo[s].en.seoTitle, `/solutions/${s}`, solutions[s].en.metaDescription)).join("\n")}
 

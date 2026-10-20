@@ -16,6 +16,7 @@ import { chargeToken, createSession, customerReference, kashierAmount, loadKashi
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { switches } from "@/lib/switches";
+import { trialLimits } from "@/lib/trial";
 import { capture } from "@/lib/analytics/server";
 import { affiliateNotify } from "@/lib/affiliates/notify";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
@@ -123,6 +124,17 @@ export const paymentMethods = cache(async function paymentMethods(): Promise<Rec
   return { polar: polarReady, paymob: Boolean(paymob), kashier: Boolean(kashier) };
 });
 
+/**
+ * The free trial's length when new visitors can start one, else null. The
+ * trial comes only with the Polar method (checkout/page.tsx), so public pages
+ * promise it only while that method is switched on and connected
+ * (owner brief 2026-10-20: no claims the product can't keep).
+ */
+export const trialAvailable = cache(async function trialAvailable(): Promise<number | null> {
+  const [on, methods, trial] = await Promise.all([switches(), paymentMethods(), trialLimits()]);
+  return on.payments_polar && methods.polar && trial.days > 0 ? trial.days : null;
+});
+
 export async function paymentsConnected(ws: WorkspaceRow): Promise<boolean> {
   const m = await paymentMethods();
   const locked = lockedProvider(ws);
@@ -199,7 +211,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
       if (!charge) return { ok: false, error: "not_priced" };
       row = { kind: "subscription", plan: target.plan, billing_period: target.period, amount: charge.amount };
     }
-    description = `${t.plans[row.plan!]} — ${row.billing_period === "annual" ? t.plans.annual : t.plans.monthly}`;
+    description = `${t.plans[row.plan!]} · ${row.billing_period === "annual" ? t.plans.annual : t.plans.monthly}`;
   } else {
     const { data: pack } = await db.from("prospect_packs").select("*").eq("id", target.packId).eq("active", true).maybeSingle();
     if (!pack) return { ok: false, error: "not_found" };

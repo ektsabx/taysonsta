@@ -84,8 +84,7 @@ html[data-theme="dark"] .ws-chip.green { color: #6ee7b7; }
 .ws-stage { font-weight: 700; font-size: .78rem; }
 .stage-new { color: var(--muted); }
 .stage-interested { color: var(--blue); }
-.stage-meeting_booked, .stage-meeting_completed { color: #b45309; }
-html[data-theme="dark"] .stage-meeting_booked, html[data-theme="dark"] .stage-meeting_completed { color: #fbbf24; }
+.stage-meeting_booked, .stage-meeting_completed { color: var(--ink); }
 .stage-closed { color: var(--green); }
 .stage-lost { color: var(--red); }
 .ws-stage-select { height: 30px; font-size: .76rem; font-weight: 700; padding-inline: 8px 24px; }
@@ -221,9 +220,6 @@ html[data-theme="dark"] .stage-meeting_booked, html[data-theme="dark"] .stage-me
 /* Compact toolbars: a shorter search box, filters as dropdowns (D-204) */
 .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 0 1 300px; min-width: 180px; }
 .prospect-views { padding: 0 34px; margin: 0; background: var(--paper); }
-.campaign-summary { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 16px 18px; margin-bottom: 16px; }
-.campaign-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.campaign-summary-head h3 { font-size: 1rem; font-weight: 700; color: var(--ink); }
 @media (max-width: 900px) { .prospect-views { padding: 0 16px; } .prospect-toolbar .toolbar-search, .ws-toolbar .toolbar-search { flex: 1 1 100%; } }
 .inbox-filters .form-select { flex: 1 1 0; min-width: 0; height: 34px; padding-block: 0; }
 
@@ -244,7 +240,7 @@ html[data-theme="dark"] .stage-meeting_booked, html[data-theme="dark"] .stage-me
 .agent-save { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(to top, var(--bg, var(--paper)) 70%, transparent); }
 
 /* Campaign questions in the chat: quiet and compact, like Claude's question
-   cards — small square-ish chips, a soft selected state, small controls. */
+   cards: small square-ish chips, a soft selected state, small controls. */
 .campaign-setup.agent-artifact-card { padding: 16px 18px; gap: 14px; border-radius: 12px; box-shadow: none; background: var(--box-bg); border-color: var(--box-line); }
 .campaign-setup .setup-head strong { font-size: .92rem; font-weight: 600; }
 .campaign-setup .setup-head .artifact-note { font-size: .8rem; }
@@ -336,6 +332,20 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 .analyze-box.compact { margin: 0; }
 .analyze-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .analyze-row .form-input { flex: 1 1 220px; min-width: 0; }
+/* Analyze website progress (owner brief 2026-10-20): real steps only. */
+.analyze-steps { list-style: none; margin: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+.analyze-step { display: grid; grid-template-columns: 18px minmax(0, 1fr); column-gap: 10px; row-gap: 6px; align-items: center; font-size: .82rem; color: var(--ink); }
+.analyze-step.done { color: var(--muted); }
+.analyze-step-icon { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; color: var(--ink); }
+.analyze-step.done .analyze-step-icon { background: var(--green-soft); color: var(--green); }
+.analyze-step-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.analyze-step-count { font-size: .76rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.analyze-bar, .analyze-pages { grid-column: 2; }
+.analyze-bar { display: block; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.analyze-bar > span { display: block; height: 100%; background: var(--ink); border-radius: inherit; transition: width .25s ease; }
+.analyze-pages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: .74rem; color: var(--muted); }
+.analyze-pages li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; }
+.analyze-pages li.missed { opacity: .7; }
 .analyze-result { margin-bottom: 16px; display: grid; gap: 6px; border-color: color-mix(in srgb, var(--green, #10b981) 40%, var(--line)); }
 .inbox-approvals { padding: 0 34px; } .inbox-approvals .pending-approvals { margin: 14px 0 0; }
 @media (max-width: 900px) { .inbox-approvals { padding: 0 16px; } }
@@ -344,7 +354,7 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 /* Prospects: outreach state (D-234) */
 .outreach-state { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 600; white-space: nowrap; background: var(--hover); color: var(--muted); }
 .outreach-state.in_campaign { background: var(--blue-soft); color: var(--blue); }
-.outreach-state.contacted { background: color-mix(in srgb, #d97706 14%, transparent); color: #b45309; }
+.outreach-state.contacted { background: var(--soft); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .outreach-state.replied { background: var(--green-soft); color: var(--green); }
 .outreach-state.do_not_contact { background: var(--danger-soft); color: var(--danger-text); }
 .launch-facts .launch-sub { display: block; margin-top: 2px; font-weight: 400; }

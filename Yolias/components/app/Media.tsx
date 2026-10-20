@@ -7,7 +7,7 @@ import { initials } from "@/lib/format";
 // image when there is one, else the company's domain icon, else initials
 // on a colour picked from the name.
 
-const PALETTE = ["#1f2937", "#7c3aed", "#0f766e", "#b45309", "#be123c", "#1d4ed8", "#4d7c0f", "#9333ea"];
+const PALETTE = ["#1f2937", "#7c3aed", "#0f766e", "#475569", "#be123c", "#1d4ed8", "#4d7c0f", "#9333ea"];
 const colour = (s: string) => PALETTE[[...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
 
 function Fallback({ name, size, round }: { name: string; size: number; round: boolean }) {

@@ -121,6 +121,10 @@ export type ProfileRow = {
   notify_product: boolean;
   created_at: string;
   updated_at: string;
+  /** Unsubscribe links carry this token (D-243). */
+  email_token: string;
+  /** Set when the user unsubscribed from lifecycle and marketing email (D-243). */
+  unsubscribed_at: string | null;
 };
 
 export type StrategyRow = {
@@ -232,14 +236,59 @@ export type ContentEntryRow = {
   id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "published" | "hidden"; sort: number;
   updated_by: string | null; published_at: string | null; created_at: string; updated_at: string;
 };
-export type NotificationRow = { id: number; user_id: string; workspace_id: string | null; kind: string; title: string; body: string | null; link: string | null; dedupe_key: string | null; read_at: string | null; created_at: string };
+export type NotificationRow = { id: number; user_id: string; workspace_id: string | null; kind: string; title: string; body: string | null; link: string | null; dedupe_key: string | null; read_at: string | null; created_at: string; source: "system" | "flow" | "campaign"; flow_id: string | null; enrollment_id: string | null; campaign_id: string | null };
 export type EmailSettingRow = { kind: string; email_enabled: boolean; in_app_enabled: boolean; updated_by: string | null; updated_at: string };
 export type AgentFeedbackRow = { message_id: number; user_id: string; rating: -1 | 1; created_at: string };
-export type EmailCategory = "account" | "subscription" | "billing" | "usage" | "updates" | "security";
+export type EmailCategory = "account" | "subscription" | "billing" | "usage" | "updates" | "security" | "marketing";
 export type EmailLogRow = {
   id: number; kind: string; category: EmailCategory; to_email: string; user_id: string | null; workspace_id: string | null;
-  locale: "en" | "ar"; data: Json; dedupe_key: string | null; status: "queued" | "sent" | "skipped" | "failed";
+  locale: "en" | "ar"; data: Json; dedupe_key: string | null; status: "queued" | "sent" | "skipped" | "failed" | "canceled";
   provider_id: string | null; error: string | null; attempts: number; created_at: string; sent_at: string | null;
+  // Messaging & Automation (D-243)
+  source: "system" | "flow" | "campaign" | "test"; email_class: MsgClass; flow_id: string | null; enrollment_id: string | null; step_id: string | null;
+  campaign_id: string | null; template_id: string | null; template_version: number | null; subject: string | null; html: string | null; text_body: string | null;
+  delivery_status: "delivered" | "delayed" | "bounced" | "complained" | null; delivered_at: string | null; opened_at: string | null; clicked_at: string | null;
+  bounced_at: string | null; complained_at: string | null;
+};
+
+// ── Messaging & Automation (D-243, migration 20261118000000_messaging.sql) ──
+export type MsgClass = "transactional" | "lifecycle" | "marketing";
+export type MsgTemplateRow = {
+  id: string; name: string; description: string | null; category: MsgClass; subject: string; preview_text: string | null; html: string; text_body: string | null;
+  status: "active" | "archived"; version: number; created_by: string | null; updated_by: string | null; created_at: string; updated_at: string;
+};
+export type MsgTemplateVersionRow = { template_id: string; version: number; subject: string; preview_text: string | null; html: string; text_body: string | null; created_by: string | null; created_at: string };
+export type MsgSegmentRow = { id: string; name: string; description: string | null; rules: Json; archived_at: string | null; created_by: string | null; updated_by: string | null; created_at: string; updated_at: string };
+export type MsgFlowStatus = "draft" | "active" | "paused" | "archived";
+export type MsgFlowRow = {
+  id: string; kind: "automation" | "sequence"; name: string; description: string | null; status: MsgFlowStatus; category: MsgClass; trigger_event: string;
+  entry_rules: Json; segment_id: string | null; steps: Json; exit_events: string[]; exit_rules: Json; goal_event: string | null; exit_on_goal: boolean;
+  reentry: "never" | "after_exit" | "always"; reentry_days: number | null; send_window: Json | null; test_mode: boolean; test_emails: string[]; version: number;
+  created_by: string | null; updated_by: string | null; created_at: string; updated_at: string; activated_at: string | null;
+};
+export type MsgFlowVersionRow = { flow_id: string; version: number; definition: Json; created_by: string | null; created_at: string };
+export type MsgEnrollmentStatus = "active" | "completed" | "exited" | "goal_reached" | "failed";
+export type MsgEnrollmentRow = {
+  id: string; flow_id: string; flow_version: number; user_id: string; workspace_id: string | null; email: string | null; trigger_event_id: number | null; trigger_key: string;
+  test: boolean; status: MsgEnrollmentStatus; current_step: string | null; next_run_at: string | null; locked_until: string | null; attempts: number;
+  entered_at: string; finished_at: string | null; exit_reason: string | null; goal_at: string | null; context: Json;
+};
+export type MsgActivityKind = "entered" | "step" | "queued" | "sent" | "skipped" | "waiting" | "branch" | "notification" | "exited" | "goal" | "completed" | "error" | "retry" | "test";
+export type MsgActivityRow = { id: number; enrollment_id: string | null; flow_id: string | null; campaign_id: string | null; user_id: string | null; step_id: string | null; kind: MsgActivityKind; detail: string | null; data: Json; email_log_id: number | null; created_at: string };
+export type MsgCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "canceled" | "failed";
+export type MsgCampaignRow = {
+  id: string; name: string; description: string | null; category: MsgClass; template_id: string | null; template_version: number | null; subject: string; preview_text: string | null;
+  html: string; text_body: string | null; segment_id: string | null; audience_rules: Json; status: MsgCampaignStatus; scheduled_at: string | null; started_at: string | null;
+  finished_at: string | null; estimated: number | null; recipients: number; skipped: number; cursor_user: string | null; confirmed_by: string | null; test_sent_at: string | null;
+  created_by: string | null; updated_by: string | null; created_at: string; updated_at: string;
+};
+export type MsgProviderEventRow = { id: number; provider: string; event_id: string; type: string; email_id: string | null; email_log_id: number | null; payload: Json; received_at: string };
+export type MsgSuppressionRow = { email: string; reason: "bounced" | "complained" | "unsubscribed" | "manual"; source: string | null; created_at: string };
+export type MsgUserFactsRow = {
+  user_id: string; email: string; full_name: string | null; language: string | null; country: string | null; timezone: string | null; created_at: string; onboarded_at: string | null;
+  marketing_opt_in: boolean; unsubscribed: boolean; suppressed: boolean; email_token: string; workspace_id: string | null; workspace_name: string | null; role: string | null;
+  plan: string | null; subscription_status: string | null; billing_period: string | null; trial_ends_at: string | null; current_period_end: string | null; cancel_at_period_end: boolean | null;
+  searches: number; prospects: number; last_seen_at: string | null; open_checkout: boolean; checkout_plan: string | null; failed_payments_7d: number; banned: boolean;
 };
 export type KnownDeviceRow = { user_id: string; device_hash: string; label: string; first_seen: string; last_seen: string };
 export type SignInRequestRow = { id: number; email: string; created_at: string };
@@ -854,6 +903,16 @@ export interface Database {
       account_moderation: Table<AccountModerationRow, "user_id" | "status">;
       account_notes: Table<AccountNoteRow, "user_id" | "body">;
       account_messages: Table<AccountMessageRow, "user_id" | "channel" | "subject" | "body">;
+      msg_templates: Table<MsgTemplateRow, "name" | "subject" | "html">;
+      msg_template_versions: Table<MsgTemplateVersionRow, "template_id" | "version" | "subject" | "html">;
+      msg_segments: Table<MsgSegmentRow, "name">;
+      msg_flows: Table<MsgFlowRow, "kind" | "name" | "trigger_event">;
+      msg_flow_versions: Table<MsgFlowVersionRow, "flow_id" | "version" | "definition">;
+      msg_enrollments: Table<MsgEnrollmentRow, "flow_id" | "flow_version" | "user_id" | "trigger_key">;
+      msg_activity: Table<MsgActivityRow, "kind">;
+      msg_campaigns: Table<MsgCampaignRow, "name">;
+      msg_provider_events: Table<MsgProviderEventRow, "event_id" | "type" | "payload">;
+      msg_suppressions: Table<MsgSuppressionRow, "email" | "reason">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };
     Views: {
@@ -923,6 +982,10 @@ export interface Database {
       checkout_classify: { Args: { p_abandon_minutes?: number; p_result_minutes?: number; p_confirm_minutes?: number }; Returns: number };
       admin_login_history: { Args: { p_user: string; p_limit?: number }; Returns: { at: string; action: string; provider: string | null; ip: string | null }[] };
       admin_funnel: { Args: { p_since: string; p_until: string; p_dim?: string | null }; Returns: { dim: string; stage: string; people: number; events: number }[] };
+      msg_user_facts: { Args: { p_ids: string[] }; Returns: MsgUserFactsRow[] };
+      msg_user_page: { Args: { p_after: string | null; p_limit: number }; Returns: { user_id: string }[] };
+      msg_claim_due: { Args: { p_limit: number }; Returns: MsgEnrollmentRow[] };
+      msg_time_events: { Args: { p_days: number; p_stopped_days: number; p_trial_days: number }; Returns: number };
       admin_workspace_stats: {
         Args: { month_start: string };
         Returns: { workspace_id: string; members: number; searches: number; campaigns: number; prospects_total: number; prospects_month: number; allowance: number; last_activity_at: string | null }[];

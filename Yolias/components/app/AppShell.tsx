@@ -44,9 +44,6 @@ const workNav = [
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
-/** Prospects stays lit on its Search results tab and on a search campaign's page. */
-const mainActive = (pathname: string, href: string) =>
-  href === "/prospects" ? isActive(pathname, href) || pathname.startsWith("/campaigns") : isActive(pathname, href);
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },
@@ -203,7 +200,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${mainActive(pathname, href) ? " active" : ""}`}>
+              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>

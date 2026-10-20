@@ -22,7 +22,7 @@ export const IcpSchema = z.object({
     'companies = matching companies and the decision makers inside them (default; people is legacy, treated as companies); local_businesses = shops, clinics, restaurants and other places on a map in a city; company_lookalikes = companies similar to the ones the user names',
   ),
   lookalike_seeds: z.array(z.string()).describe("For company_lookalikes: the companies (names or websites) to find lookalikes of; otherwise empty"),
-  campaign_name: z.string().describe('Short mission name, e.g. "Saudi SaaS Companies — Founders"'),
+  campaign_name: z.string().describe('Short mission name, e.g. "Saudi SaaS Companies: Founders". Never use the em dash character.'),
   summary: z.string().describe("One sentence restating who the user wants to sell to"),
   target_count: z.number().int().describe("How many companies or prospects were asked for; 100 if not stated"),
   target_unit: z.enum(["companies", "prospects"]),

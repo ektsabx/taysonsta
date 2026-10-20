@@ -1,4 +1,6 @@
 import "server-only";
+import { pricingFaq } from "@/lib/pricing-copy";
+import { trialAvailable } from "@/lib/payments";
 import { blogPosts, docPages, helpArticles, legalDocs } from "@/lib/content/store";
 import { legalSlugs } from "@/lib/content/legal";
 import { home, about } from "@/lib/content/site";
@@ -57,7 +59,7 @@ const qa = (items: { q: string; a: string }[]) => items.map((f) => `Q: ${f.q}\nA
 
 export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
   const base = siteUrl();
-  const [help, docs, posts, legal, plans, trial, program] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), trialLimits(), currentProgram().catch(() => null)]);
+  const [help, docs, posts, legal, plans, trial, program, trialDays] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), trialLimits(), currentProgram().catch(() => null), trialAvailable().catch(() => null)]);
   const out: KnowledgeItem[] = [];
   const push = (kind: KnowledgeItem["kind"], slug: string, language: Locale, title: string, path: string, content: string) =>
     out.push({ key: `${kind}:${slug}:${language}`, kind, language, title, url: base + path, content: content.trim() });
@@ -85,10 +87,10 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
     push("pricing", "plans", l, l === "ar" ? "الخطط والأسعار والتجربة المجانية" : "Plans, prices and the free trial", "/pricing", [
       d.pricing.heroSupport,
       planLines.join("\n"),
-      `Free trial (only when offered at checkout): ${trial.days} days on the chosen plan, with ${trial.prospects} prospects and ${trial.emails} emails during the trial. Card payments go through Paymob (Visa, Mastercard, Meeza), charged in Egyptian pounds: the first period is paid up front; at the end of each period a renewal invoice is issued and the plan continues once it's paid.${trial.claim_hours ? ` The trial offer can be claimed within ${trial.claim_hours} hours of first opening the checkout.` : ""}`,
-      `Annual billing: ${d.plans.annualSave} — 12 × the discounted monthly rate, paid once a year.`,
+      `Free trial: ${trialDays ? "offered at checkout right now" : "not offered at checkout right now"}. When offered: ${trial.days} days on the chosen plan, with ${trial.prospects} prospects and ${trial.emails} emails during the trial. Card payments go through Paymob (Visa, Mastercard, Meeza), charged in Egyptian pounds: the first period is paid up front; at the end of each period a renewal invoice is issued and the plan continues once it's paid.${trial.claim_hours ? ` The trial offer can be claimed within ${trial.claim_hours} hours of first opening the checkout.` : ""}`,
+      `Annual billing: ${d.plans.annualSave}: 12 × the discounted monthly rate, paid once a year.`,
       `Prices are in USD (EGP in Egypt) and don’t include tax.`,
-      `${d.pricing.faqTitle}\n${d.pricing.faq.map(([q, a]) => `Q: ${q}\nA: ${a}`).join("\n\n")}`,
+      `${d.pricing.faqTitle}\n${pricingFaq(d.pricing, trialDays).map(([q, a]) => `Q: ${q}\nA: ${a}`).join("\n\n")}`,
     ].join("\n\n"));
 
     for (const a of help) push("help", a.slug, l, a.doc[l].title, `/help-center/${a.slug}`, docText(a.doc[l], base));

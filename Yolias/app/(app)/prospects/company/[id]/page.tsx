@@ -19,7 +19,7 @@ import { getCompany } from "@/services/prospects";
 export async function generateMetadata({ params }: PageProps<"/prospects/company/[id]">): Promise<Metadata> {
   const { id } = await params;
   const c = /^[0-9a-f-]{36}$/i.test(id) ? await getCompany(id) : null;
-  return { title: c ? `${c.company.name} — Yolias` : "Yolias" };
+  return { title: c ? `${c.company.name} | Yolias` : "Yolias" };
 }
 
 const href = (u: string) => (u.startsWith("http") ? u : `https://${u}`);

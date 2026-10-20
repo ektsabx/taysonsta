@@ -1,6 +1,7 @@
 import "server-only";
 import { sendTeamMessage } from "@/lib/email/team";
 import { classifyCheckouts } from "@/lib/funnel";
+import { messagingTick } from "@/lib/messaging/engine";
 import { followUpSweep } from "@/lib/outreach/sequence";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
@@ -159,6 +160,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".
   await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
+  // Messaging & Automation (D-243): events → flows, due steps, campaigns, time-based events.
+  await messagingTick().catch((e) => console.error("[jobs] messaging failed", e));
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);

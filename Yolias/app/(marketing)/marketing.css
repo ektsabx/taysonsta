@@ -147,6 +147,33 @@ html[data-theme="dark"] .period-save { color: #4ade80; }
 .mk .page-hero.center .lead { margin-inline: auto; }
 .mk .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2rem; }
 .mk .page-hero.center .hero-actions { justify-content: center; }
+/* Conversion pass (owner brief 2026-10-20): reassurance line, real product screen, manual vs Yolias. */
+.mk .hero-reassure { margin-top: .9rem; font-size: .84rem; color: var(--muted); }
+.mk .product-shot { margin: 0; }
+.mk .product-shot-frame { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 24px 60px rgba(0,0,0,.12); }
+.mk .product-shot-frame img { display: block; width: 100%; height: auto; }
+.mk .product-shot .shot-dark { display: none; }
+html[data-theme="dark"] .mk .product-shot .shot-dark { display: block; }
+html[data-theme="dark"] .mk .product-shot .shot-light { display: none; }
+.mk .product-shot figcaption { margin-top: .75rem; font-size: .78rem; color: var(--muted); text-align: center; }
+.mk .compare-table { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--paper); }
+.mk .compare-row { display: grid; grid-template-columns: 1fr 1fr; }
+.mk .compare-row + .compare-row { border-top: 1px solid var(--line); }
+.mk .compare-row > span { display: flex; align-items: flex-start; gap: 10px; padding: 1.1rem 1.3rem; font-size: .95rem; line-height: 1.6; text-align: start; }
+.mk .compare-row > span + span { border-inline-start: 1px solid var(--line); }
+.mk .compare-head > span { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-block: .8rem; }
+html[lang="ar"] .mk .compare-head > span { letter-spacing: 0; }
+.mk .compare-before { color: var(--muted); }
+.mk .compare-after { color: var(--ink); font-weight: 500; }
+.mk .compare-row svg { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; }
+.mk .compare-before svg { color: var(--muted); }
+.mk .compare-after svg { color: var(--green); }
+@media (max-width: 720px) {
+  .mk .compare-row { grid-template-columns: 1fr; }
+  .mk .compare-row > span + span { border-inline-start: 0; border-top: 1px dashed var(--line); }
+  .mk .compare-head { display: none; }
+  .mk .compare-row + .compare-row { border-top: 1px solid var(--line); }
+}
 .mk .btn-solid, .mk .btn-ghost { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 8px; font-size: .88rem; font-weight: 600; transition: background .15s, border-color .15s; }
 .mk .btn-solid { background: var(--red); color: #fff; }
 .mk .btn-solid:hover { background: var(--red-dark); }
@@ -441,12 +468,12 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .status-overall span { font-size: .85rem; color: var(--muted); }
 .mk .is-operational svg, .mk .status-component.is-operational .svc-pill { color: #15803d; }
 .mk .is-maintenance svg, .mk .status-component.is-maintenance .svc-pill { color: #2563eb; }
-.mk .is-degraded svg, .mk .status-component.is-degraded .svc-pill { color: #b45309; }
-.mk .is-partial_outage svg, .mk .status-component.is-partial_outage .svc-pill { color: #c2410c; }
+.mk .is-degraded svg, .mk .status-component.is-degraded .svc-pill { color: color-mix(in srgb, var(--red) 45%, var(--paper)); }
+.mk .is-partial_outage svg, .mk .status-component.is-partial_outage .svc-pill { color: color-mix(in srgb, var(--red) 72%, var(--paper)); }
 .mk .is-major_outage svg, .mk .status-component.is-major_outage .svc-pill { color: #b91c1c; }
 .mk .is-no_data svg, .mk .status-component.is-no_data .svc-pill { color: var(--muted); }
 .mk .status-overall.is-operational { border-color: rgba(21,128,61,.35); }
-.mk .status-overall.is-degraded, .mk .status-overall.is-partial_outage { border-color: rgba(194,65,12,.4); }
+.mk .status-overall.is-degraded, .mk .status-overall.is-partial_outage { border-color: color-mix(in srgb, var(--red) 40%, transparent); }
 .mk .status-overall.is-major_outage { border-color: rgba(185,28,28,.45); }
 .mk .status-components { list-style: none; margin: 0 0 2.5rem; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .mk .status-component { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--line); }
@@ -459,16 +486,16 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .status-bars { display: flex; gap: 2px; height: 30px; margin-top: .8rem; }
 .mk .status-bar { flex: 1; border-radius: 2px; min-width: 2px; background: var(--line); }
 .mk .status-bar.day-operational { background: #22c55e; }
-.mk .status-bar.day-degraded { background: #f59e0b; }
-.mk .status-bar.day-partial_outage { background: #ea580c; }
+.mk .status-bar.day-degraded { background: color-mix(in srgb, var(--red) 45%, var(--paper)); }
+.mk .status-bar.day-partial_outage { background: color-mix(in srgb, var(--red) 72%, var(--paper)); }
 .mk .status-bar.day-major_outage { background: #dc2626; }
 .mk .status-bars-foot { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); margin-top: .35rem; }
 .mk .status-block { margin-bottom: 2.5rem; }
 .mk .status-block h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 1rem; color: var(--black); }
 .mk .status-incident { border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem; }
 .mk .status-incident.impact-major_outage { border-inline-start: 4px solid #dc2626; }
-.mk .status-incident.impact-partial_outage { border-inline-start: 4px solid #ea580c; }
-.mk .status-incident.impact-degraded { border-inline-start: 4px solid #f59e0b; }
+.mk .status-incident.impact-partial_outage { border-inline-start: 4px solid color-mix(in srgb, var(--red) 72%, var(--paper)); }
+.mk .status-incident.impact-degraded { border-inline-start: 4px solid color-mix(in srgb, var(--red) 45%, var(--paper)); }
 .mk .status-incident.impact-maintenance { border-inline-start: 4px solid #2563eb; }
 .mk .status-incident header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
 .mk .status-incident h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--black); }

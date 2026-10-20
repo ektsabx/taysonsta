@@ -11,7 +11,7 @@ import { googleSignInEnabled } from "@/lib/auth/providers";
 import { captchaConfig } from "@/lib/auth/captcha";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).auth.signupSubmit} — Yolias` };
+  return { title: `${(await getDictionary()).auth.signupSubmit} | Yolias` };
 }
 
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
@@ -35,6 +35,11 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
         </div>
       )}
       <SignupForms google={await googleSignInEnabled()} plan={picked} period={picked ? period : undefined} captchaSiteKey={(await captchaConfig())?.siteKey ?? null} />
+      {/* What signing up leads to (owner brief 2026-10-20): no surprises between this form and the first search. */}
+      <section className="signup-next" aria-labelledby="signup-next-title">
+        <h2 id="signup-next-title">{t.auth.signupNextTitle}</h2>
+        <ol>{t.auth.signupNext.map((step) => <li key={step}>{step}</li>)}</ol>
+      </section>
     </>
   );
 }

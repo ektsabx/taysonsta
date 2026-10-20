@@ -8,7 +8,7 @@ import { fitCheck } from "@/lib/agents/research";
 import { LeadDetailView } from "@/components/app/ws/LeadDetail";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).ws.crm.title} — Yolias` };
+  return { title: `${(await getDictionary()).ws.crm.title} | Yolias` };
 }
 
 // One lead (D-195): contact and company, fit with the customer profile,
@@ -32,7 +32,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
     <LeadDetailView
       detail={detail}
       fit={fit ? { ...fit, profileName: profile!.name } : null}
-      members={team.members.map((m) => ({ id: m.user_id, name: m.profile?.full_name || m.profile?.email || "—" }))}
+      members={team.members.map((m) => ({ id: m.user_id, name: m.profile?.full_name || m.profile?.email || "-" }))}
       canDelete={canManageTeam(session)}
       timeZone={session.profile.timezone}
     />

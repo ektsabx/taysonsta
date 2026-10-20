@@ -6,6 +6,7 @@ import { ArrowUp, BarChart3, Check, Download, History, Image as ImageIcon, Mic, 
 import { product } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
 import { getSession } from "@/lib/session";
+import { ProductShot } from "@/components/marketing/ProductShot";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -19,7 +20,7 @@ const moreIcons = [BarChart3, Download, Users, History];
 export default async function ProductPage() {
   const [locale, session] = await Promise.all([getLocale(), getSession()]);
   const c = product[locale];
-  const [write, icp, campaign, prospects] = c.sections;
+  const [write, icp, campaign, prospects, outreach] = c.sections;
 
   return (
     <>
@@ -31,7 +32,7 @@ export default async function ProductPage() {
           <p className="lead">{c.lead}</p>
           <div className="hero-actions">
             <Link className="btn-solid" href={session ? "/" : "/signup"}>{c.primary}</Link>
-            <Link className="btn-ghost" href="/docs">{c.secondary}</Link>
+            <Link className="btn-ghost" href="/pricing">{c.secondary}</Link>
           </div>
         </div>
       </section>
@@ -101,24 +102,20 @@ export default async function ProductPage() {
           </div>
 
           <div className="split">
-            <div className="preview" aria-hidden="true">
-              <div className="preview-bar"><i /><i /><i /></div>
-              <div className="preview-body wide">
-                {c.prospects.map((p) => (
-                  <div className="preview-row" key={p.name}>
-                    <div>
-                      <strong>{p.name}</strong>
-                      <div className="muted">{p.role} · {p.company}</div>
-                    </div>
-                    <span className="font-bold text-[#10b981]" dir="ltr">{p.match}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ProductShot name="prospects" locale={locale} alt={prospects.title} caption={c.shotCaption} />
             <div>
               <h3>{prospects.title}</h3>
               <p>{prospects.body}</p>
             </div>
+          </div>
+
+          <div className="split">
+            <div>
+              <h3>{outreach.title}</h3>
+              <p>{outreach.body}</p>
+              <ul className="checklist">{outreach.points?.map((p) => <li key={p}><Check />{p}</li>)}</ul>
+            </div>
+            <ProductShot name="search" locale={locale} alt={c.title} caption={c.shotCaption} />
           </div>
         </div>
       </section>

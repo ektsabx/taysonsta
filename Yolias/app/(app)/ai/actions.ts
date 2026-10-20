@@ -1,6 +1,6 @@
 "use server";
 
-import { analyzeWebsite, type WebsiteAnalysis } from "@/lib/website-analysis";
+import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -154,14 +154,6 @@ export async function saveAiSettings(input: SettingsInput): Promise<AiResult> {
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/ai", "layout");
   return { ok: true };
-}
-
-/** Company Knowledge → Analyze website (D-232): returns the filled fields for review; saves nothing. */
-export async function analyzeWebsiteAction(url: string): Promise<{ ok: true; data: WebsiteAnalysis } | { ok: false; error: string }> {
-  const { session, t, allowed } = await manager();
-  if (!allowed) return { ok: false, error: t.common.onlyManagers };
-  const r = await analyzeWebsite(String(url ?? "").slice(0, 300), session.workspace.id);
-  return r.ok ? r : { ok: false, error: t.ai.knowledge.analyze.errors[r.error] };
 }
 
 /**

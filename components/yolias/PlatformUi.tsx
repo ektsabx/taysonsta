@@ -55,6 +55,16 @@ export function CampaignStatus({ value }: { value: string }) {
 export const campaignStatusLabel = (v: string) => campaignStatus[v]?.label ?? v;
 
 /** Shown instead of the page when the admin has no connection to the Yolias database. */
+/** The messaging tables aren't in the Yolias database yet (migration not applied). */
+export function MessagingNotReady() {
+  return (
+    <div className="bos-card" style={{ padding: 18 }}>
+      <strong><Tx>نظام الرسائل يحتاج تحديث قاعدة البيانات</Tx></strong>
+      <p className="bos-faint" style={{ marginTop: 6 }}><Tx>قاعدة بيانات يولياس المتصلة لا تحتوي جداول الرسائل والأتمتة بعد. طبّق migration الرسائل (20261118000000_messaging.sql) ثم أعد تحميل الصفحة.</Tx></p>
+    </div>
+  );
+}
+
 export function NotConnected() {
   return (
     <Card>
