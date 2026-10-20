@@ -266,7 +266,7 @@ npx wrangler secret put WORKER_SECRET
 5. Gmail وOutlook: مفاتيح OAuth في الأدمن (القسم السابق 5–6). وIMAP/SMTP مش محتاج أي حاجة من الأدمن.
 6. جرّب على الإنتاج بصندوق IMAP حقيقي: اربطه، وابعت حملة لنفسك، وردّ عليها، واتأكد إن الرد وصل صندوق الوارد خلال 5 دقايق.
 
-## جولة 2026-10-20 (D-243 الرسائل والأتمتة، D-244 تحسينات المنتج). محلي فقط، ما اتنشرش
+## جولة 2026-10-20 (D-243..D-245). اتنشرت 2026-10-20: commit 2bf5e6b، يولياس f491859c، الأدمن f40bfccb، الـ migration اتطبقت واتسجلت (نسخة احتياطية prod-20261020-1949)، والمحتوى اتحدّث. الباقي: الخطوات 4 إلى 6 على المالك
 1. نسخة احتياطية.
 2. migration واحدة: `Yolias/supabase/migrations/20261118000000_messaging.sql` (`npx supabase db query --linked -f …` ثم تسجيلها في `supabase_migrations.schema_migrations`). لازم قبل نشر يولياس والأدمن.
 3. نشر يولياس (`npm run cf:deploy` من Yolias/) ثم الأدمن (`npm run cf:deploy:admin`)، ثم `npm run content:seed:production`.
