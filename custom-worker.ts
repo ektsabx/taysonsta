@@ -16,6 +16,8 @@ const worker = {
     if (!env.CRON_SECRET || !env.ADMIN_URL) return;
     const req = new Request(`${env.ADMIN_URL.replace(/\/$/, "")}/api/bos/cron`, { method: "POST", headers: { authorization: `Bearer ${env.CRON_SECRET}` } });
     ctx.waitUntil(handler.fetch(req, env, ctx));
+    // Keep Yolias Admin warm (owner 2026-10-21: slow first page after a quiet spell). A public request, so it lands where people's requests run.
+    ctx.waitUntil(fetch(`${env.ADMIN_URL.replace(/\/$/, "")}/admin/login`, { headers: { "user-agent": "YoliasWarmup/1" } }).then((r) => r.body?.cancel()).catch(() => {}));
   },
 };
 

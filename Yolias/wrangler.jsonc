@@ -8,10 +8,11 @@
   "main": "custom-worker.ts",
   "compatibility_date": "2026-09-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  // Smart Placement (owner 2026-10-21, lag): pages make several database calls
+  // Placement (owner 2026-10-21, lag): pages make several database calls
   // to Supabase in eu-west-1, so the Worker runs near the database, not near
-  // the visitor (Egypt was served from Marseille).
-  "placement": { "mode": "smart" },
+  // the visitor (Egypt was served from Marseille). Targeted at the database host:
+  // Smart mode had not moved it after hours.
+  "placement": { "mode": "targeted", "hostname": "iudasrzqjnsutvanjrvn.supabase.co" },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

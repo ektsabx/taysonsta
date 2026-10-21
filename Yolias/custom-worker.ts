@@ -23,6 +23,11 @@ const worker = {
     // the app's handler directly can fail before it reaches /api/worker.
     const run = env.WORKER_SELF_REFERENCE ? env.WORKER_SELF_REFERENCE.fetch(req) : handler.fetch(req, env, ctx);
     ctx.waitUntil(run.then(async (res: Response) => { if (!res.ok) console.error("[cron] /api/worker", res.status, await res.text()); }).catch((e: unknown) => console.error("[cron]", e)));
+    // Keep the site warm (owner 2026-10-21: the first visit after a quiet spell
+    // took ~2 s while a fresh instance started). A public request, so it lands
+    // where visitors' requests run (placement next to the database).
+    const site = (env.NEXT_PUBLIC_SITE_URL ?? "https://www.yolias.com").replace(/\/$/, "");
+    ctx.waitUntil(fetch(`${site}/home`, { headers: { "user-agent": "YoliasWarmup/1" } }).then((r) => r.body?.cancel()).catch(() => {}));
   },
 };
 
