@@ -6,7 +6,7 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { CRM_PAGE, CRM_SORTS, listLeads, stageTotals, type CrmSort } from "@/services/crm";
 import { teamMembers } from "@/services/workspace";
-import { STAGES } from "@/lib/automations/schema";
+import { PIPELINE_STAGES } from "@/lib/automations/schema";
 import { AutoSubmitSelect, StageSelect } from "@/components/app/ws/bits";
 import { CrmKanban } from "@/components/app/ws/CrmKanban";
 import { dateTime, money, shortDate } from "@/components/app/ws/format";
@@ -25,7 +25,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const view = one(sp.view) === "kanban" ? "kanban" : "table";
-  const stage = (STAGES as readonly string[]).includes(one(sp.stage)) ? (one(sp.stage) as LeadStage) : null;
+  const stage = (PIPELINE_STAGES as readonly string[]).includes(one(sp.stage)) ? (one(sp.stage) as LeadStage) : null;
   const owner = one(sp.owner) || null;
   const q = one(sp.q).slice(0, 100);
   const sort = (CRM_SORTS as readonly string[]).includes(one(sp.sort)) ? (one(sp.sort) as CrmSort) : "last_activity_at";
@@ -55,7 +55,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
     const s = p.toString();
     return s ? `/crm?${s}` : "/crm";
   };
-  const all = Object.values(totals).reduce((a, b) => a + b.count, 0);
+  const all = PIPELINE_STAGES.reduce((a, s) => a + totals[s].count, 0);
 
   return (
     <div className="page-view">
@@ -69,7 +69,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
             <Link href={href({ view: null })} className={view === "table" ? "active" : ""} aria-current={view === "table" ? "page" : undefined}><Table2 />{c.table}</Link>
             <Link href={href({ view: "kanban", stage: null })} className={view === "kanban" ? "active" : ""} aria-current={view === "kanban" ? "page" : undefined}><SquareKanban />{c.kanban}</Link>
           </div>
-          <Link className="btn-secondary" href="/prospects">{c.addFromProspects}</Link>
+          <Link className="btn-secondary" href="/conversations">{c.fromConversations}</Link>
         </div>
       </header>
       <div className="view-content-padding">
@@ -83,7 +83,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
           {view === "table" && (
             <AutoSubmitSelect className="form-select" name="stage" defaultValue={stage ?? ""} aria-label={c.filterStage}>
               <option value="">{c.filterStage}: {t.ws.common.all} ({all})</option>
-              {STAGES.map((s) => <option key={s} value={s}>{c.filterStage}: {t.ws.stages[s]} ({totals[s].count})</option>)}
+              {PIPELINE_STAGES.map((s) => <option key={s} value={s}>{c.filterStage}: {t.ws.stages[s]} ({totals[s].count})</option>)}
             </AutoSubmitSelect>
           )}
           <AutoSubmitSelect className="form-select" name="owner" defaultValue={owner ?? ""} aria-label={c.filterOwner}>
@@ -97,7 +97,7 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
             </AutoSubmitSelect>
           )}
         </form>
-        <p className="ws-muted" style={{ marginBottom: 12 }}>{t.ws.stageNote}</p>
+        <p className="ws-muted" style={{ marginBottom: 12 }}>{c.dealsNote}</p>
 
         {view === "kanban" ? (
           <CrmKanban

@@ -4,6 +4,9 @@ import type { CrmLeadRow, LeadStage } from "@/types/database";
 
 // CRM reads (D-195), always as the member (RLS). The table and the Kanban
 // read the same view (crm_leads), so both show the same leads and stages.
+// The CRM holds deals only (owner 2026-10-21): a lead enters it when it is
+// moved from a conversation (Interested or later). "New" leads live in
+// Conversations and campaigns.
 
 export const CRM_PAGE = 50;
 export const CRM_SORTS = ["last_activity_at", "created_at", "deal_value", "next_follow_up_at", "name"] as const;
@@ -15,7 +18,7 @@ const term = (s: string) => s.replace(/[%,()*\\]/g, " ").trim();
 
 export async function listLeads(workspaceId: string, query: CrmQuery = {}): Promise<{ rows: CrmLeadRow[]; total: number }> {
   const db = await createClient();
-  let q = db.from("crm_leads").select("*", { count: "exact" }).eq("workspace_id", workspaceId);
+  let q = db.from("crm_leads").select("*", { count: "exact" }).eq("workspace_id", workspaceId).neq("stage", "new");
   if (query.stage) q = q.eq("stage", query.stage);
   if (query.owner === "none") q = q.is("owner_id", null);
   else if (query.owner) q = q.eq("owner_id", query.owner);

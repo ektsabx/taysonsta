@@ -14,8 +14,8 @@ Categories: **1** free for this use, no paid plan; **2** free with technical lim
 | [UK Companies House](https://developer.company-information.service.gov.uk/) | Active UK companies by SIC and location: name, number, registered address | UK | API | Yes, free | 600 requests per 5 minutes | [Open Government Licence v3](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/): attribution | 2 | Integrated (needs the key in the Integration Hub) |
 | [Common Crawl index](https://index.commoncrawl.org/) | Websites seen under a domain suffix (e.g. com.eg) | World | API (CDX) | No | Shared, often overloaded (504 on 2026-10-20/21) | [Terms of use](https://commoncrawl.org/terms-of-use) | 2 | Integrated, not tested live (index down) |
 | Yolias crawler | Name, description, email, phone, social profiles a company's own website publishes | Any site | Fetch (home + contact page) | No | One site at a time, 5 s timeout, public sites only | Facts published by the company itself | 1 | Integrated (dataset enrichment) |
-| [Foursquare Open Source Places](https://opensource.foursquare.com/os-places/) | 100M+ places: name, category, address, phone, website | World | Parquet download (Hugging Face) | Free account | Very large files | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0): keep the notice | 3 | File import (DuckDB export to CSV, steps in Admin) |
-| [Overture Maps places](https://docs.overturemaps.org/guides/places/) | Places with categories, websites, phones (Meta / Microsoft / Foursquare data) | World | GeoParquet download (S3 / Azure) | No | Very large files | [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/) | 3 | File import, same path as Foursquare |
+| [Foursquare Open Source Places](https://opensource.foursquare.com/os-places/) | 100M+ places: name, category, address, phone, website | World | Parquet download (Hugging Face) | Free account | Very large files; gated on Hugging Face since 2026 (free account and accepting the terms); the old public S3 bucket is empty | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0): keep the notice | 3 | File import, needs the owner's Hugging Face account. Overture already carries Foursquare rows (30,665 in the region) |
+| [Overture Maps places](https://docs.overturemaps.org/guides/places/) | Places with categories, websites, phones (Meta / Microsoft / Foursquare data) | World; 366,417 places with a contact in Egypt and the Gulf (release 2026-09-23.1) | GeoParquet on a public S3 bucket, read by region with DuckDB | No | Very large files; a region pull takes about 2.5 minutes | [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/); Foursquare rows Apache 2.0, AllThePlaces rows CC0 | 3 | Converted to one CSV per country (`scripts/overture-places.py`); upload waits for the owner (database size) |
 | [OpenCorporates](https://opencorporates.com/plug-in-our-data/) | Company registers of 140+ jurisdictions | World | API | Yes | Free only for open-data / public-benefit projects | Commercial use needs a paid licence | 5 | Not integrated |
 | Business directories (Yellow Pages, Kompass, chambers of commerce) | Listings | Varies | Websites | - | Their terms forbid scraping and reuse | All rights reserved | 4 | Not integrated |
 | LinkedIn | People and companies | World | - | - | Scraping is forbidden by its terms | All rights reserved | 4 | Not integrated |
@@ -35,3 +35,22 @@ Categories: **1** free for this use, no paid plan; **2** free with technical lim
 - Cross-source matches: 15 of 892 rows (1.7%); in-file duplicates: 102 (11%), all merged.
 - Freshness: Wikidata and OpenStreetMap are live (pulled today); GLEIF's golden copy was published 2026-10-20.
 - Search over these datasets: about 12 ms in the database, no AI cost. Website discovery (Gemini) still runs when the datasets have nothing for a search.
+
+## Overture places, Egypt and the Gulf (release 2026-09-23.1, converted 2026-10-21)
+
+Open places with confidence 0.5 or more and a website, email or phone. Files in `~/Desktop/taysonsta-data/overture-2026-09-23/`, columns named for the importer (external id, company name, website, email, phone, country, city, address, category, confidence, sources).
+
+| Country | Rows | Website | Email | Phone |
+| --- | --- | --- | --- | --- |
+| Egypt | 162,807 | 75,893 | 76,504 | 154,216 |
+| UAE | 93,928 | 70,774 | 49,142 | 87,560 |
+| Saudi Arabia | 64,933 | 44,885 | 17,813 | 56,145 |
+| Qatar | 14,806 | 10,290 | 7,352 | 13,281 |
+| Kuwait | 12,122 | 8,296 | 3,980 | 10,622 |
+| Oman | 9,026 | 5,640 | 4,202 | 8,149 |
+| Bahrain | 8,795 | 5,360 | 4,146 | 8,209 |
+
+- Mostly local businesses: the largest Egyptian categories are restaurants, clothing stores, dental clinics, hardware stores and hospitals; B2B services and offices are a smaller share.
+- Quality in Egypt: 8,201 websites (5%) are social pages (Facebook, Instagram, WhatsApp, Linktree); 54,228 emails (33%) are free mailboxes (Gmail, Yahoo, Hotmail).
+- Sources of the region's rows: Overture's own merge, Meta, Foursquare, Microsoft, AllThePlaces, PinMeTo.
+- Size: about 2 KB per imported company in the database (raw row, record and company), so all seven files add about 730 MB.

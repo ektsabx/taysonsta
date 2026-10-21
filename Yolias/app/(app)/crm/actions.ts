@@ -23,7 +23,9 @@ const refresh = (leadId?: string) => {
   if (leadId) revalidatePath(`/crm/${leadId}`);
 };
 
-/** Prospects → CRM. People or companies already in the CRM keep their single lead. */
+/** Prospects → CRM. People or companies already in the CRM keep their single lead.
+ *  Adding by hand is the member choosing the deal, so new ones enter the CRM
+ *  as Interested (the CRM shows deals only, owner 2026-10-21). */
 export async function addToCrm(targets: LeadTarget[]): Promise<CrmResult<{ added: number; existing: number; ids: string[]; message: string }>> {
   const session = await requireSession();
   const t = (await getDictionary()).ws;
@@ -34,6 +36,7 @@ export async function addToCrm(targets: LeadTarget[]): Promise<CrmResult<{ added
   const { ids } = await addLeads(db, valid, "search");
   const fresh = ids.filter((id) => !before.has(id));
   await leadsCreated(session.workspace.id, fresh);
+  for (const id of fresh) await changeStage(db, session.workspace.id, id, "interested", "user");
   refresh();
   const existing = ids.length - fresh.length;
   const message = [fresh.length ? fmt(t.crm.added, { count: fresh.length }) : null, existing ? fmt(t.crm.alreadyIn, { count: existing }) : null].filter(Boolean).join(" ");

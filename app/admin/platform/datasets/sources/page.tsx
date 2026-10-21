@@ -59,11 +59,20 @@ export default async function OpenSourcesPage() {
         <p className="bos-hint"><Tx>عندك قائمة دومينات من أي مصدر؟ استوردها كملف من «استيراد بيانات» (عمود واحد للموقع) وفعّل الإثراء.</Tx></p>
       </Card>
 
+      <Card title="Overture Maps: الأماكن">
+        <p className="bos-faint"><Tx>أماكن ونشاطات تجارية من Meta وMicrosoft وFoursquare وغيرها، بالاسم والتصنيف والعنوان والهاتف والموقع والبريد. بدون حساب. يُستورد كملف:</Tx></p>
+        <ol className="bos-faint" style={{ paddingInlineStart: 18, lineHeight: 1.9 }}>
+          <li><Tx>شغّل scripts/overture-places.py بآخر إصدار، فيطلع ملف CSV لكل دولة (مصر والخليج) بأسماء الأعمدة التي يفهمها الاستيراد.</Tx></li>
+          <li><Tx>ارفع الملف من «استيراد بيانات» بنوع «بيانات مفتوحة» والترخيص CDLA Permissive 2.0، وفعّل «مسموح عرضها للعملاء».</Tx></li>
+        </ol>
+        {licence("CDLA Permissive 2.0 · Overture Maps Foundation", "مسموح للعملاء مع ذكر المصدر.")}
+      </Card>
+
       <Card title="Foursquare Open Source Places">
         <p className="bos-faint"><Tx>أكثر من 100 مليون مكان حول العالم بالاسم والتصنيف والعنوان والهاتف والموقع. يُنشر كملفات Parquet ضخمة، فيُستورد كملف:</Tx></p>
         <ol className="bos-faint" style={{ paddingInlineStart: 18, lineHeight: 1.9 }}>
           <li><Tx>سجّل في Hugging Face واقبل شروط مجموعة foursquare/fsq-os-places.</Tx></li>
-          <li><Tx>صدّر دولة واحدة إلى CSV بـ DuckDB، مثال: select name, website, email, tel, locality, address, fsq_category_labels from read_parquet(…) where country = 'EG'.</Tx></li>
+          <li><Tx>صدّر دولة واحدة إلى CSV بـ DuckDB، مثال: select name, website, email, tel, locality, address, fsq_category_labels from read_parquet(…) where country = &apos;EG&apos;.</Tx></li>
           <li><Tx>ارفع الملف من «استيراد بيانات» بنوع «بيانات مفتوحة» والترخيص Apache 2.0، وفعّل «مسموح عرضها للعملاء».</Tx></li>
         </ol>
         {licence("Apache 2.0 · Foursquare", "مسموح للعملاء مع ذكر المصدر.")}

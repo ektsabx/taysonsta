@@ -40,13 +40,13 @@ export function InboxThreadView({ thread, backHref, timeZone, hasMailbox }: { th
                 onClick={() => run(() => setThreadLabel(lead.id, lead.thread_label === l ? null : l))}>{w.labels[l]}</button>
             ))}
           </div>
-          <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => convertToOpportunity(lead.id), { success: w.converted })}><TrendingUp size={13} /> {w.convert}</button>
+          {(lead.stage === "new" || lead.stage === "lost") && <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => convertToOpportunity(lead.id), { success: w.converted })}><TrendingUp size={13} /> {w.convert}</button>}
           {status === "open" ? (
             <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "done"))}><CheckCheck size={13} /> {w.thread.markDone}</button>
           ) : (
             <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setThreadStatus(lead.id, "open"))}><RotateCcw size={13} /> {w.thread.reopen}</button>
           )}
-          <Link className="btn-secondary ws-btn-sm" href={`/crm/${lead.id}`}>{w.thread.openCrm}</Link>
+          {lead.stage !== "new" && <Link className="btn-secondary ws-btn-sm" href={`/crm/${lead.id}`}>{w.thread.openCrm}</Link>}
         </div>
       </div>
       <div className="inbox-thread-body">

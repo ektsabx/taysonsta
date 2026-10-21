@@ -23,7 +23,6 @@ export const wsEn = {
     by: { user: "You", agent: "AI agent", automation: "Automation", system: "Yolias" },
   },
   stages: { new: "New", interested: "Interested", meeting_booked: "Meeting Booked", meeting_completed: "Meeting Completed", closed: "Closed", lost: "Lost" },
-  stageNote: "New = added to the CRM, not in the pipeline yet.",
   sources: {
     question: "How did you find us?", placeholder: "Choose one", otherLabel: "Tell us where", otherPlaceholder: "e.g. a conference",
     hint: "Optional. It helps us know what works.",
@@ -124,7 +123,7 @@ export const wsEn = {
     title: "Inbox", subtitle: "Replies to your campaigns in one place. Yolias reads them, sorts them and suggests the answer.",
     filters: { all: "All", unread: "Unread", interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up", sent: "Sent", done: "Done", others: "Others" },
     labels: { interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up" }, label: "Label",
-    convert: "Convert to opportunity", converted: "Moved to the sales pipeline.",
+    convert: "Move to CRM", converted: "Moved to the CRM as Interested.",
     composer: { placeholder: "Write your reply…", send: "Send", sending: "Sending…", suggest: "Suggest a reply with AI", suggesting: "Writing…", sent: "Reply sent.", noMailbox: "Connect your mailbox in Settings → Integrations to reply from here.", draftReady: "Yolias wrote a reply. Review it, then send." },
 
     empty: "No conversations here yet.", emptyAll: "No replies yet. Replies to your campaigns arrive here automatically.", select: "Select a conversation.",
@@ -142,8 +141,8 @@ export const wsEn = {
     reminders: "Reminders", scheduled: "Scheduled", stage: "Stage", search: "Search conversations…", show: "Show", channel: "Channel",
   },
   crm: {
-    title: "CRM", subtitle: "Every lead and deal in one place: stage, value, meetings, follow-ups and history.",
-    table: "Table", kanban: "Kanban", addFromProspects: "Add from Prospects", empty: "No leads yet. Select results in Prospects and choose “Add to CRM”.",
+    title: "CRM", subtitle: "Your deals: leads moved from Conversations, with stage, value, meetings, follow-ups and history.",
+    table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", dealsNote: "A lead enters the CRM when you choose “Move to CRM” in its conversation, or add it from Prospects. Leads still being contacted stay in Conversations.", empty: "No deals yet. Open a conversation with an interested lead and choose “Move to CRM”.",
     emptyFiltered: "No leads match these filters.",
     cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", campaignDate: "Campaign date", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
     sources: { search: "Yolias search", import: "CSV import", manual: "Added manually" },

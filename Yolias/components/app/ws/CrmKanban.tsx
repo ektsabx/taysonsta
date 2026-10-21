@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CalendarClock } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { STAGES } from "@/lib/automations/schema";
+import { PIPELINE_STAGES } from "@/lib/automations/schema";
 import { setStage } from "@/app/(app)/crm/actions";
 import { StageSelect, useRun } from "./bits";
 import { money, shortDate } from "./format";
@@ -32,7 +32,7 @@ export function CrmKanban({ leads, timeZone }: { leads: KanbanLead[]; timeZone: 
 
   return (
     <div className="kanban">
-      {STAGES.map((stage) => {
+      {PIPELINE_STAGES.map((stage) => {
         const col = items.filter((l) => l.stage === stage);
         const totals = col.reduce<Record<string, number>>((acc, l) => { if (l.value != null) acc[l.currency] = (acc[l.currency] ?? 0) + Number(l.value); return acc; }, {});
         return (

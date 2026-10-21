@@ -463,3 +463,9 @@ Outreach and the Inbox are one page, **Conversations** (`/conversations`): tab "
 - **Conversations**: a campaign opens the same Conversations, filtered (`?campaign=`), with a clear filter; the campaign page's "Sent" copy became a link there. **CRM**: the lead page shows the deal (stage, value, last contact, next step) and links to the conversation instead of showing it; campaign column shows the short name, the date in its own column.
 - **Data sources**: Wikidata (CC0) and GLEIF (CC0) added; Overpass retries with backoff and public mirrors. Registry and measurements: `docs/27-data-sources.md`.
 - Settings menu: "Watch the video" removed (the video still shows after signup). Bug report: the data note removed from the form (what is sent is unchanged).
+
+## D-252: CRM holds deals only; Overture places converted (2026-10-21)
+- **CRM = deals** (owner chose option a): the CRM table and Kanban show Interested and later stages only; "New" leads stay in Conversations and campaigns. "Move to CRM" in a conversation (shown while the lead is New or Lost) moves it to Interested through `changeStage()`, so the timeline and the workspace's automations run. Adding from Prospects by hand is the member choosing the deal, so new leads added there enter as Interested. No database change.
+- **Overture places** for Egypt and the Gulf converted to one CSV per country (`scripts/overture-places.py`, 366,417 places with a contact). Not uploaded yet: about 730 MB in the database, waiting for the owner. Foursquare is gated on Hugging Face (needs the owner's account); Overture already carries Foursquare rows.
+- **People provider**: postponed by the owner.
+- `test:acquisition` hung on step 12: plans now allow 1,000,000 emails a month, and the test inserted that many rows. The fill runs only when a plan still has a real cap.
