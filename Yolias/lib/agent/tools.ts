@@ -688,7 +688,7 @@ async function launchFacts(ctx: AgentContext, id: string) {
   ]);
   const active = (enr ?? []).filter((e) => e.status === "active").map((e) => e.lead as unknown as { email: string | null; do_not_contact: boolean } | null);
   return {
-    campaign: c, url: `/outreach/${id}`,
+    campaign: c, url: `/conversations?campaign=${id}`,
     recipients: active.length, withEmail: active.filter((l) => l?.email && !l.do_not_contact).length,
     sequence: (steps ?? []).map((s) => ({ step: s.position, goal: s.objective, waitDays: s.delay_days })),
     sample: sample ? { subject: sample.subject, body: sample.body.slice(0, 1500) } : null,

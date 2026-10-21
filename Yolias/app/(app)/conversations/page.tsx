@@ -12,7 +12,8 @@ import { InboxThreadView } from "@/components/app/ws/InboxThread";
 import { LaunchPanel } from "@/components/app/ws/LaunchPanel";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { shortDate } from "@/components/app/ws/format";
-import { launchSummary, listOutreachCampaigns } from "@/services/outreach-campaigns";
+import { campaignWorkspace, getOutreachCampaign, launchSummary, listOutreachCampaigns, outreachOptions } from "@/services/outreach-campaigns";
+import { CampaignWorkspaceView } from "@/components/app/ws/CampaignWorkspace";
 
 const LABEL_FILTERS = new Set<InboxFilter>(["interested", "not_interested", "follow_up"]);
 import { Plus } from "lucide-react";
@@ -36,6 +37,8 @@ export default async function ConversationsPage({ searchParams }: { searchParams
   const tab = one(sp.tab) === "threads" || leadId || /^[0-9a-f-]{36}$/i.test(one(sp.campaign)) || one(sp.filter) || q ? "threads" : "campaigns";
   // A campaign opens these same conversations, filtered to its leads (D-252).
   const campaignId = /^[0-9a-f-]{36}$/i.test(one(sp.campaign)) ? one(sp.campaign) : null;
+  // A campaign has one place (owner 2026-10-21): its conversations, its emails and its sequence, as sub-tabs here.
+  const view = campaignId && (one(sp.view) === "emails" || one(sp.view) === "sequence") ? (one(sp.view) as "emails" | "sequence") : "threads";
   const [t, locale, list, thread, boxes, approvals, campaigns, launch, settings] = await Promise.all([
     getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q, null, campaignId), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
     memberMailboxes(session.workspace.id, session.userId),
@@ -47,6 +50,10 @@ export default async function ConversationsPage({ searchParams }: { searchParams
     campaignId ? launchSummary(session.workspace.id, campaignId) : Promise.resolve(null),
     loadAiSettings(session.workspace.id),
   ]);
+  const work = campaignId && view !== "threads"
+    ? await Promise.all([getOutreachCampaign(session.workspace.id, campaignId), outreachOptions(session.workspace.id), campaignWorkspace(session.workspace.id, campaignId),
+        (await createClient()).from("sales_leads").select("id, name, company_name, stage, do_not_contact").eq("workspace_id", session.workspace.id).order("last_activity_at", { ascending: false }).limit(500)])
+    : null;
   const hasMailbox = boxes.some((m) => m.status === "connected");
   const mailboxEmail = boxes.find((m) => m.status === "connected")?.email ?? null;
   const w = t.ws.inbox;
@@ -96,7 +103,6 @@ export default async function ConversationsPage({ searchParams }: { searchParams
                           <strong>{x.name}</strong>
                           <span className="cell-sub">{[o.channels[x.channel], x.goal].filter(Boolean).join(" · ")}</span>
                         </Link>
-                        <Link className="cell-sub conv-settings-link" href={`/outreach/${x.id}`}>{c.campaignSettings}</Link>
                       </td>
                       <td><span className={statusCls[x.status]}>{o.status[x.status]}</span></td>
                       <td>{x.stats.leads}</td><td>{x.stats.drafts}</td><td>{x.stats.sent}</td>
@@ -114,10 +120,31 @@ export default async function ConversationsPage({ searchParams }: { searchParams
       {campaignId && (
         <div className="conv-filter" role="status">
           <span>{c.filteredBy} <strong>{filtered?.name ?? "-"}</strong></span>
-          {filtered && <Link className="cell-sub" href={`/outreach/${filtered.id}`}>{c.campaignSettings}</Link>}
           <Link className="btn-secondary ws-btn-sm" href={link({ campaign: null, lead: null })}>{c.clearFilter}</Link>
         </div>
       )}
+      {campaignId && (
+        <nav className="conv-subtabs" aria-label={filtered?.name ?? c.title}>
+          {(["threads", "emails", "sequence"] as const).map((v) => (
+            <Link key={v} href={`/conversations?campaign=${campaignId}${v === "threads" ? "" : `&view=${v}`}`} className={view === v ? "active" : ""} aria-current={view === v ? "page" : undefined}>
+              {v === "threads" ? c.tabs.threads : o.workspace.tabs[v]}
+            </Link>
+          ))}
+        </nav>
+      )}
+      {work && work[0] && launch ? (
+        <div className="view-content-padding">
+          <CampaignWorkspaceView
+            embedded={{ view: view as "emails" | "sequence" }}
+            detail={work[0]} options={work[1]} work={work[2]} maxSteps={settings.limits.max_messages_per_lead}
+            candidates={(work[3].data ?? []).filter((l) => !work[0]!.enrollments.some((e) => e.lead_id === l.id))}
+            timeZone={tz} launch={launch}
+            mailboxes={boxes.filter((m) => m.status === "connected").map((m) => ({ id: m.id, email: m.email, provider: m.provider }))}
+            mailboxName={boxes.find((m) => m.id === launch.campaign.mailbox_id)?.email ?? null}
+            dailyLimit={settings.limits.daily_send_limit}
+          />
+        </div>
+      ) : (<>
       {launch && launch.campaign.status !== "archived" && (
         <div className="conv-launch">
           {hasMailbox || launch.campaign.approved_at
@@ -163,6 +190,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
           {thread ? <InboxThreadView thread={thread} backHref={link({ lead: null })} timeZone={tz} hasMailbox={hasMailbox} mailboxEmail={mailboxEmail} /> : <div className="inbox-placeholder">{w.select}</div>}
         </section>
       </div>
+      </>)}
       </>)}
     </div>
   );

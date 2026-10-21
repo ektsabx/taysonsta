@@ -30,6 +30,8 @@ interface Props {
   mailboxes: MailboxOption[];
   mailboxName: string | null;
   dailyLimit: number;
+  /** Inside Conversations (owner 2026-10-21: one place for a campaign): no page header or tabs, the view comes from the URL. */
+  embedded?: { view: "emails" | "sequence" };
 }
 
 const initials = (name: string) => name.replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "·";
@@ -40,7 +42,7 @@ const initials = (name: string) => name.replace(/[^\p{L}\s]/gu, " ").split(/\s+/
 // send from the member's mailbox. Yolias writes the emails by itself as soon
 // as the page opens (a mailbox must be connected), then the member approves
 // sending the whole campaign. "Sent" lists what went out, when and from where.
-export function CampaignWorkspaceView({ detail, work, options, maxSteps, candidates, timeZone, launch, mailboxes, mailboxName, dailyLimit }: Props) {
+export function CampaignWorkspaceView({ detail, work, options, maxSteps, candidates, timeZone, launch, mailboxes, mailboxName, dailyLimit, embedded }: Props) {
   const { t } = useI18n();
   const o = t.ws.outreach;
   const w = o.workspace;
@@ -49,7 +51,8 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
   const c = detail.campaign;
   const archived = c.status === "archived";
   const hasMailbox = mailboxes.length > 0;
-  const [tab, setTab] = useState<"emails" | "sent" | "sequence">("emails");
+  const [ownTab, setTab] = useState<"emails" | "sent" | "sequence">("emails");
+  const tab = embedded?.view ?? ownTab;
   const [selected, setSelected] = useState<string | null>(work.leads[0]?.enrollmentId ?? null);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -82,21 +85,25 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
   const lead = work.leads.find((l) => l.enrollmentId === selected) ?? null;
   const stats = detail.stats;
 
+  const actions = (
+    <>
+      {!archived && <button className="btn-secondary" type="button" onClick={() => setAdding(true)}><UserPlus size={14} /> {o.actions.addLeads}</button>}
+      {!archived && <button className="btn-secondary" type="button" disabled={pending} onClick={() => { if (confirm(t.ws.common.confirmDelete)) run(() => setOutreachStatus(c.id, "archived")); }}><Archive size={14} /> {o.actions.archive}</button>}
+    </>
+  );
+
   return (
-    <div className="page-view">
-      <header className="view-header">
+    <div className={embedded ? "conv-campaign" : "page-view"}>
+      {embedded ? <div className="conv-campaign-actions">{actions}</div> : <header className="view-header">
         <div className="view-title-group">
           <Link className="detail-back" href="/conversations?tab=campaigns"><ArrowLeft className="flip-rtl" /> {o.title}</Link>
           <h2>{c.name}</h2>
           <p>{[o.status[c.status], fmt(w.people, { count: work.leads.length }), c.goal].filter(Boolean).join(" · ")}</p>
         </div>
-        <div className="view-actions">
-          {!archived && <button className="btn-secondary" type="button" onClick={() => setAdding(true)}><UserPlus size={14} /> {o.actions.addLeads}</button>}
-          {!archived && <button className="btn-secondary" type="button" disabled={pending} onClick={() => { if (confirm(t.ws.common.confirmDelete)) run(() => setOutreachStatus(c.id, "archived")); }}><Archive size={14} /> {o.actions.archive}</button>}
-        </div>
-      </header>
+        <div className="view-actions">{actions}</div>
+      </header>}
 
-      <div className="view-content-padding">
+      <div className={embedded ? undefined : "view-content-padding"}>
         {!hasMailbox ? (
           <section className="ws-card ow-gate">
             <Mail />
@@ -124,7 +131,7 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
           ))}
         </div>
 
-        <div className="ws-tabs ow-tabs" role="tablist">
+        {!embedded && <div className="ws-tabs ow-tabs" role="tablist">
           {(["emails", "sent", "sequence"] as const).map((k) => k === "sent" ? (
             // Sent emails and replies live in one place, Conversations, filtered to this campaign (D-252).
             <Link key={k} role="tab" aria-selected={false} href={`/conversations?campaign=${c.id}`}>
@@ -135,7 +142,7 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
               {w.tabs[k]}
             </button>
           ))}
-        </div>
+        </div>}
 
         {tab === "emails" && (
           !work.leads.length ? <div className="ws-empty">{o.noLeads}</div> : (

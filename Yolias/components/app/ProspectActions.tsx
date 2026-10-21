@@ -39,7 +39,7 @@ function StartCampaign({ targets, disabled }: { targets: { kind: "person" | "com
     <button className="btn-primary" type="button" disabled={pending || disabled || !targets.length} onClick={() => start(async () => {
       const r = await startCampaignFor(targets, name());
       if (!r.ok) { toast(r.error, "error"); return; }
-      router.push(`/outreach/${r.id}`);
+      router.push(`/conversations?campaign=${r.id}`);
     })}><Send /> {o.send.button}</button>
   );
 }

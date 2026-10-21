@@ -32,7 +32,7 @@ export function CampaignForm({ initial, profiles, offers, maxSteps, onSaved, sea
 
   const save = () => run(() => saveOutreachCampaign(v), {
     success: v.id || !v.source_campaign_id ? t.ws.common.saved : undefined,
-    onOk: (r) => { if (!v.id) router.push(`/outreach/${r.id}`); onSaved?.(); },
+    onOk: (r) => { if (!v.id) router.push(`/conversations?campaign=${r.id}&view=emails`); onSaved?.(); },
     // A new campaign opens its own page; a refresh here would cancel that navigation.
     refresh: Boolean(v.id),
   });
