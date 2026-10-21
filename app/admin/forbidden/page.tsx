@@ -38,7 +38,7 @@ export default async function ForbiddenPage() {
     <div className="admin-login-shell">
       <div className="admin-login-card" style={{ maxWidth: 420 }}>
         <h1><Tx>لا يمكن الوصول</Tx></h1>
-        <p style={{ color: "rgba(var(--bos-fg-rgb), 0.7)", fontSize: 13.5, lineHeight: 1.7, marginBottom: 16 }}><Tx>{message}</Tx></p>
+        <p style={{ color: "rgba(var(--bos-fg-rgb), 0.7)", fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}><Tx>{message}</Tx></p>
         <div className="bos-row">
           {session.status === "not_staff" ? (
             <Link href="/portal" className="admin-btn secondary">

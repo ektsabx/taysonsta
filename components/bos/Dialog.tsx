@@ -160,7 +160,7 @@ export function ConfirmButton({
         }
       >
         <div className="bos-stack">
-          <div style={{ fontSize: 13.5 }}><Tx>{message}</Tx></div>
+          <div style={{ fontSize: 13 }}><Tx>{message}</Tx></div>
           {requireReason ? (
             <div className="bos-field">
               <label htmlFor="confirm-reason">

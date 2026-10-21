@@ -101,7 +101,7 @@ export function InvoiceForm({
             <div><div className="bos-kv-label"><Tx>المجموع</Tx></div><div className="bos-num">{fmt(totals.subtotal)}</div></div>
             <div><div className="bos-kv-label"><Tx>الخصم</Tx></div><div className="bos-num">{fmt(totals.discount)}</div></div>
             <div><div className="bos-kv-label"><Tx>الضريبة</Tx></div><div className="bos-num">{fmt(totals.taxAmount)}</div></div>
-            <div><div className="bos-kv-label"><Tx>الإجمالي</Tx></div><div className="bos-num" style={{ fontWeight: 800 }}>{fmt(totals.total)}</div></div>
+            <div><div className="bos-kv-label"><Tx>الإجمالي</Tx></div><div className="bos-num" style={{ fontWeight: 700 }}>{fmt(totals.total)}</div></div>
           </div>
         </div>
       </FormSection>

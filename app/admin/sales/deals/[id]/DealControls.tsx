@@ -76,7 +76,7 @@ export function DealStageControl({ dealId, currentStageId, stages, canReopen }: 
           </button>
         }
       >
-        <p style={{ fontSize: 13.5, lineHeight: 1.8 }}><Tx>سيقوم النظام تلقائياً وفي عملية واحدة بـ:</Tx></p>
+        <p style={{ fontSize: 13, lineHeight: 1.8 }}><Tx>سيقوم النظام تلقائياً وفي عملية واحدة بـ:</Tx></p>
         <ul style={{ fontSize: 13, lineHeight: 1.9, paddingInlineStart: 18 }}>
           <li><Tx>تفعيل الحساب وربط جهة الاتصال</Tx></li>
           <li><Tx>إنشاء جدول الدفعات والفاتورة الأولى</Tx></li>

@@ -284,7 +284,7 @@ export function ProposalContentForm({
                 >
                   <input type="checkbox" checked={checked} onChange={() => toggleProject(cs.id)} style={{ marginTop: 3 }} />
                   <div>
-                    <strong style={{ display: "block", fontSize: 13.5 }}><Tx>{cs.title}</Tx></strong>
+                    <strong style={{ display: "block", fontSize: 13 }}><Tx>{cs.title}</Tx></strong>
                     <span style={{ fontSize: 12, color: "rgba(var(--bos-fg-rgb), 0.5)" }}>
                       {cs.client_name ?? ""} {cs.industry_ar ? `· ${cs.industry_ar}` : ""}
                     </span>

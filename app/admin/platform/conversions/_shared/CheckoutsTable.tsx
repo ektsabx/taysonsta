@@ -118,7 +118,7 @@ export function CheckoutsTable({ rows, total, filters, canManage, labels }: {
         <form className="bos-form" action={(fd) => { setSubmitted(true); return formAction(fd); }}>
           <input type="hidden" name="action" value={action} />
           {allMatching ? (<><input type="hidden" name="all" value="1" /><input type="hidden" name="filters" value={JSON.stringify(filters)} /></>) : [...selected].map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
-          <p style={{ fontSize: 13.5 }}><Tx vars={{ n: count }}>{"سيُطبَّق على {n} حالة."}</Tx></p>
+          <p style={{ fontSize: 13 }}><Tx vars={{ n: count }}>{"سيُطبَّق على {n} حالة."}</Tx></p>
           {(action === "email" || action === "in_app") && (
             <>
               <div className="bos-field"><label htmlFor="c-subject"><Tx>العنوان</Tx></label><input id="c-subject" name="subject" required maxLength={200} defaultValue="Complete your Yolias subscription" /></div>

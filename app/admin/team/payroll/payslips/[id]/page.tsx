@@ -40,11 +40,11 @@ export default async function PayslipPage({ params }: { params: Promise<{ id: st
         <div className="bos-payslip">
           <div className="bos-row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>{company.name}</div>
+              <div style={{ fontSize: 18, fontWeight: 700 }}>{company.name}</div>
               <div className="bos-faint" style={{ fontSize: 12 }}>{company.address}</div>
             </div>
             <div style={{ textAlign: "end" }}>
-              <div style={{ fontWeight: 800 }}><Tx vars={{ v: run.period_start.slice(0, 7) }}>{"قسيمة راتب — {v}"}</Tx></div>
+              <div style={{ fontWeight: 700 }}><Tx vars={{ v: run.period_start.slice(0, 7) }}>{"قسيمة راتب — {v}"}</Tx></div>
               <div className="bos-faint" style={{ fontSize: 12 }}>{run.run_number} · <StatusBadge map="payslip_status" value={s.status} /></div>
             </div>
           </div>

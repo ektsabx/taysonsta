@@ -119,7 +119,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
                 <div><Tx>المجموع:</Tx> <Money value={inv.subtotal} currency={inv.currency} /></div>
                 {Number(inv.discount_amount) > 0 ? <div><Tx>الخصم: -</Tx><Money value={inv.discount_amount} currency={inv.currency} /></div> : null}
                 {Number(inv.tax_rate) > 0 ? <div><Tx vars={{ tax_rate: inv.tax_rate }}>{"الضريبة ({tax_rate}%):"}</Tx> <Money value={inv.tax_amount} currency={inv.currency} /></div> : null}
-                <div style={{ fontSize: 15, fontWeight: 800 }}><Tx>الإجمالي:</Tx> <Money value={inv.total} currency={inv.currency} /></div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}><Tx>الإجمالي:</Tx> <Money value={inv.total} currency={inv.currency} /></div>
               </div>
             </Card>
             <Card title="المدفوعات">

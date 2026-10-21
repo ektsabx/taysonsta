@@ -62,7 +62,7 @@ export function AccountActionDialog({ open, onClose, action, count, ids, all, em
               <input type="hidden" name="filters" value={JSON.stringify(all.filters)} />
             </>
           ) : ids.map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
-          <p style={{ fontSize: 13.5 }}>
+          <p style={{ fontSize: 13 }}>
             <Tx vars={{ n: count.toLocaleString("en-US") }}>{"سيُطبَّق الإجراء على {n} حساب."}</Tx>
             {def?.danger ? <> <strong><Tx>إجراء حساس: راجع التحديد قبل التأكيد.</Tx></strong></> : null}
           </p>

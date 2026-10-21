@@ -27,7 +27,7 @@ export function SignatureForm({ contractId, contacts }: { contractId: string; co
   const selected = contacts.find((c) => c.value === contactId);
   return (
     <ActionForm action={recordSignatureAction.bind(null, contractId)} resetOnSuccess guardUnsaved={false}>
-      <h3 style={{ fontSize: 13, fontWeight: 800 }}><Tx>تسجيل توقيع</Tx></h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700 }}><Tx>تسجيل توقيع</Tx></h3>
       <div className="bos-form-grid">
         <SelectField name="contact_id" label="جهة الاتصال (اختياري)" options={contacts.map((c) => ({ value: c.value, label: c.label }))} placeholder="—" value={contactId} onChange={(e) => setContactId(e.target.value)} />
         <TextField name="signer_name" label="اسم الموقّع" required key={`n-${contactId}`} defaultValue={selected?.label ?? ""} />

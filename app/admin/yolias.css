@@ -137,30 +137,30 @@
 .admin-sidebar.collapsed { width: 60px; }
 .admin-sidebar-brand { gap: 9px; padding: 18px 14px 14px; border-bottom: 0; }
 .admin-sidebar-brand img { display: block; flex-shrink: 0; }
-.admin-sidebar-brand-text { display: flex; align-items: center; gap: 8px; font-size: 1.32rem; font-weight: 700; letter-spacing: .06em; color: var(--y-ink); line-height: 1; }
-.admin-sidebar-brand-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: var(--y-red-soft); border: 1px solid var(--y-red-line); color: var(--y-red); font-size: .6rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.admin-sidebar-brand-text { display: flex; align-items: center; gap: 8px; font-size: 1.3rem; font-weight: 600; letter-spacing: .06em; color: var(--y-ink); line-height: 1; }
+.admin-sidebar-brand-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: var(--y-red-soft); border: 1px solid var(--y-red-line); color: var(--y-red); font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .admin-shell[lang="ar"] .admin-sidebar-brand-badge { letter-spacing: 0; }
 .admin-sidebar-nav { padding: 4px 10px 14px; }
-.admin-sidebar-section-label { color: var(--y-heading); font-size: .65rem; letter-spacing: .08em; padding: 0 10px 5px; }
+.admin-sidebar-section-label { color: var(--y-heading); font-size: .74rem; letter-spacing: .08em; padding: 0 10px 5px; }
 .admin-sidebar-link,
 .bos-nav-group-btn {
   min-height: 34px; gap: 9px; padding: 0 10px; margin: 1px 0;
   border: 1px solid transparent; border-radius: 6px;
-  color: var(--y-text-2); font-size: .81rem; font-weight: 500;
+  color: var(--y-text-2); font-size: .8rem; font-weight: 500;
 }
 .admin-sidebar-icon { width: 15px; height: 15px; color: var(--y-icon); }
 .admin-sidebar-link:hover, .bos-nav-group-btn:hover { background: var(--y-hover); color: var(--y-ink); }
 .admin-sidebar-link:hover .admin-sidebar-icon, .bos-nav-group-btn:hover .admin-sidebar-icon { color: var(--y-ink); }
-.admin-sidebar-link.active { border-color: var(--y-red-line); background: var(--y-red-soft); color: var(--y-red-hover); font-weight: 700; }
+.admin-sidebar-link.active { border-color: var(--y-red-line); background: var(--y-red-soft); color: var(--y-red-hover); font-weight: 600; }
 .admin-sidebar-link.active .admin-sidebar-icon, .bos-nav-group-btn.active .admin-sidebar-icon { color: var(--y-red); }
 .bos-nav-group-btn.active { color: var(--y-ink); font-weight: 600; }
 .bos-nav-sub { padding-inline-start: 26px; }
-.bos-nav-sub a { padding: 6px 10px; border-radius: 6px; font-size: .78rem; font-weight: 500; color: var(--y-text-2); border: 1px solid transparent; }
+.bos-nav-sub a { padding: 6px 10px; border-radius: 6px; font-size: .8rem; font-weight: 500; color: var(--y-text-2); border: 1px solid transparent; }
 .bos-nav-sub a:hover { background: var(--y-hover); color: var(--y-ink); }
-.bos-nav-sub a.active { background: var(--y-red-soft); border-color: var(--y-red-line); color: var(--y-red-hover); font-weight: 700; }
+.bos-nav-sub a.active { background: var(--y-red-soft); border-color: var(--y-red-line); color: var(--y-red-hover); font-weight: 600; }
 .bos-nav-sub a.open { color: var(--y-ink); font-weight: 600; }
 .bos-nav-sub3 { border-inline-start-color: var(--y-line); }
-.bos-nav-sub .bos-nav-sub3 a { font-size: .75rem; }
+.bos-nav-sub .bos-nav-sub3 a { font-size: .74rem; }
 
 /* ── Header ────────────────────────────────────────────────────── */
 .admin-topheader { background: color-mix(in srgb, var(--y-paper) 92%, transparent); border-bottom: 1px solid var(--y-line); padding: 12px 24px; }
@@ -174,10 +174,10 @@
 /* ── Page structure (Yolias .view-header / serif titles) ───────── */
 .admin-main { padding: 28px 34px 80px; }
 .bos-page-header { padding-bottom: 18px; border-bottom: 1px solid var(--y-line); margin-bottom: 22px; }
-.bos-page-header h1, .admin-title-row h1 { font-family: var(--y-serif); font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--y-ink); }
-.bos-page-header .bos-subtitle { color: var(--y-muted); font-size: .84rem; margin-top: 3px; }
-.admin-shell h2, .admin-shell h3 { font-weight: 700; }
-.bos-card-header h2, .bos-card-header h3, .bos-form-section h2, .admin-card h2 { font-size: .9rem; font-weight: 700; }
+.bos-page-header h1, .admin-title-row h1 { font-family: var(--y-serif); font-size: 1.45rem; font-weight: 600; line-height: 1.2; color: var(--y-ink); }
+.bos-page-header .bos-subtitle { color: var(--y-muted); font-size: .86rem; margin-top: 3px; }
+.admin-shell h2, .admin-shell h3 { font-weight: 600; }
+.bos-card-header h2, .bos-card-header h3, .bos-form-section h2, .admin-card h2 { font-size: .92rem; font-weight: 600; }
 
 /* ── Buttons (Yolias .btn-primary / .btn-secondary) ───────────── */
 .admin-btn { height: auto; min-height: 34px; padding: 7px 16px; border-radius: 7px; font-size: .8rem; font-weight: 600; background: var(--y-red); color: #fff; }
@@ -186,7 +186,7 @@
 .admin-btn.secondary:hover, .admin-btn.ghost:hover { background: var(--y-soft); border-color: var(--y-line-strong); color: var(--y-ink); }
 .admin-btn.danger { background: var(--y-paper); color: var(--bos-danger); border: 1px solid var(--bos-danger); }
 .admin-btn.danger:hover { background: var(--bos-danger); color: #fff; }
-.admin-btn.small { min-height: 30px; padding: 4px 11px; font-size: .76rem; border-radius: 6px; }
+.admin-btn.small { min-height: 30px; padding: 4px 11px; font-size: .74rem; border-radius: 6px; }
 .admin-btn:disabled { opacity: .55; }
 
 /* ── Cards, KPIs ───────────────────────────────────────────────── */
@@ -194,33 +194,33 @@
 .bos-summary { background: var(--y-line); }
 .bos-summary-item { background: var(--y-paper); }
 .bos-kpi { padding: 18px; }
-.bos-kpi-label, .admin-stat-label { font-size: .75rem; font-weight: 600; color: var(--y-muted); }
-.bos-kpi-value, .admin-stat-value { font-family: var(--y-serif); font-size: 1.55rem; font-weight: 600; margin-top: 6px; letter-spacing: -.01em; }
+.bos-kpi-label, .admin-stat-label { font-size: .74rem; font-weight: 600; color: var(--y-muted); }
+.bos-kpi-value, .admin-stat-value { font-family: var(--y-serif); font-size: 1.45rem; font-weight: 600; margin-top: 6px; letter-spacing: -.01em; }
 
 /* ── Tables (Yolias table.data-table) ──────────────────────────── */
-.bos-table, .admin-table { font-size: .82rem; }
-.bos-table th, .admin-table th { padding: 12px 18px; background: var(--y-table-head); border-bottom: 1px solid var(--y-line); color: var(--y-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.bos-table, .admin-table { font-size: .8rem; }
+.bos-table th, .admin-table th { padding: 12px 18px; background: var(--y-table-head); border-bottom: 1px solid var(--y-line); color: var(--y-muted); font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 .admin-shell[lang="ar"] .bos-table th, .admin-shell[lang="ar"] .admin-table th { letter-spacing: 0; }
 .bos-table td, .admin-table td { padding: 14px 18px; border-bottom: 1px solid var(--y-line-faint); color: var(--y-text-4); }
 .bos-table tbody tr:hover td, .admin-table tr:hover td { background: var(--y-soft); }
 .bos-table .cell-primary { font-weight: 600; color: var(--y-ink); }
-.bos-table .cell-sub { font-size: .72rem; color: var(--y-muted); }
+.bos-table .cell-sub { font-size: .74rem; color: var(--y-muted); }
 
 /* ── Forms (Yolias .form-input / .form-select) ─────────────────── */
 .bos-field input, .bos-field select, .bos-field textarea,
 .admin-field input, .admin-field select, .admin-field textarea,
 .bos-filterbar input, .bos-filterbar select, .admin-filters input, .admin-filters select {
-  border: 1px solid var(--y-line); border-radius: 6px; background: var(--y-paper); color: var(--y-ink); font-size: .82rem;
+  border: 1px solid var(--y-line); border-radius: 6px; background: var(--y-paper); color: var(--y-ink); font-size: .8rem;
 }
 .bos-field input:focus, .bos-field select:focus, .bos-field textarea:focus,
 .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus,
 .bos-filterbar input:focus, .bos-filterbar select:focus { border-color: var(--y-line-focus); }
-.bos-field label, .admin-field label { font-size: .78rem; font-weight: 600; color: var(--y-text-2); }
+.bos-field label, .admin-field label { font-size: .8rem; font-weight: 600; color: var(--y-text-2); }
 
 /* ── Tabs, badges, links ───────────────────────────────────────── */
-.bos-tabs a { font-size: .82rem; color: var(--y-muted); border-color: var(--y-line); }
+.bos-tabs a { font-size: .8rem; color: var(--y-muted); border-color: var(--y-line); }
 .bos-tabs a.active { color: #fff; background: var(--y-red); border-color: var(--y-red); }
-.bos-badge { border-radius: 4px; font-size: .68rem; }
+.bos-badge { border-radius: 4px; font-size: .74rem; }
 .bos-link:hover { color: var(--y-red); }
 
 /* ── Login (Yolias auth page) ──────────────────────────────────── */
@@ -243,6 +243,6 @@
 .content-langs { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
 
 /* Data import (D-248) */
-.ds-subtitle { font-size: 13px; font-weight: 700; margin: 18px 0 8px; }
+.ds-subtitle { font-size: 13px; font-weight: 600; margin: 18px 0 8px; }
 .ds-mapping select { max-width: 100%; }
 .ds-progress { display: grid; gap: 8px; }
