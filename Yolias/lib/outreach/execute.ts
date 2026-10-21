@@ -246,7 +246,11 @@ export async function sendMessageNow(workspaceId: string, userId: string, messag
 // ── Replies ─────────────────────────────────────────────────────────────────
 
 const SYNC_EVERY = 5 * MINUTE;
-const AUTO_REPLY_KINDS = new Set(["interested", "question", "meeting_request"]);
+// Yolias answers simple questions by itself. Interest and meeting requests are
+// the member's to take on (owner 2026-10-21, this version): Yolias stops, moves
+// the lead to Interested and tells them; its suggested reply waits in the thread.
+const AUTO_REPLY_KINDS = new Set(["question"]);
+const HANDOFF_KINDS = new Set(["interested", "meeting_request"]);
 
 /** Worker step: reads new replies in the threads Yolias started, per connected mailbox. */
 export async function syncReplies(limit = 10, force = false): Promise<{ mailboxes: number; replies: number; bounces: number }> {
@@ -309,7 +313,22 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   await runAutomations({ workspaceId: mb.workspace_id, trigger: "reply.received", leadId, eventKey: `message:${messageId}`, data: { replyKind: analysis?.kind }, origin: "system" })
     .catch((e) => console.error("[automations] reply.received", e));
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
-  await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${lead?.name ?? "a lead"}${lead?.company_name ? ` at ${lead.company_name}` : ""}`, analysis?.summary ?? null, `/conversations?lead=${leadId}`, `reply:${messageId}`);
+  const who = `${lead?.name ?? "a lead"}${lead?.company_name ? ` (${lead.company_name})` : ""}`;
+  if (analysis && HANDOFF_KINDS.has(analysis.kind)) {
+    // Hand-off: the member continues the deal (and sends the meeting link) themselves.
+    const { data: owner } = await db.from("profiles").select("language").eq("id", mb.user_id).maybeSingle();
+    const ar = owner?.language === "ar";
+    const meeting = analysis.kind === "meeting_request";
+    const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
+    const body = ar ? `${analysis.summary}\nيولـياس وقف المتابعات ونقله لإدارة العملاء. كمّل انت من المحادثة${meeting ? " وابعتله لينك الاجتماع" : ""}.` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM. Take it from the conversation${meeting ? " and send your meeting link" : ""}.`;
+    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/conversations?lead=${leadId}`, `reply:${messageId}`);
+    await db.from("lead_tasks").insert({
+      workspace_id: mb.workspace_id, lead_id: leadId, title: (ar ? `كمّل مع ${who}: ${meeting ? "ابعت لينك الاجتماع" : "مهتم"}` : `Take over ${who}: ${meeting ? "send your meeting link" : "interested"}`).slice(0, 300),
+      kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
+    });
+  } else {
+    await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/conversations?lead=${leadId}`, `reply:${messageId}`);
+  }
 
   // Auto-reply: only if the member turned it on for this campaign, only for
   // simple positive replies the agent can answer from company knowledge, never

@@ -1,3 +1,4 @@
+import { NavProgress } from "@/components/bos/NavProgress";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { defaultLocale, directionForLocale, isLocale, type Locale } from "@/lib/i18n";
@@ -51,6 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={topbar ? "has-topbar" : undefined} suppressHydrationWarning>
         <DirectionSync />
+        <NavProgress color="#e11d2a" />
         {children}
       </body>
     </html>

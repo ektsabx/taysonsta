@@ -1,3 +1,4 @@
+import { NavProgress } from "@/components/NavProgress";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { resolveTheme, THEME_COOKIE } from "@/lib/theme";
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React loads. */}
       <body suppressHydrationWarning>
+        <NavProgress />
         <I18nProvider locale={locale}>{children}</I18nProvider>
         {session && <ThemeCookieSync theme={theme} />}
         <I18nProvider locale={locale}>

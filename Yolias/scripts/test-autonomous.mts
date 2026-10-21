@@ -235,7 +235,9 @@ try {
   const { data: crmAsk } = await admin.from("agent_pending_actions").select("tool, input").eq("lead_id", lead0.lead_id!).eq("status", "pending");
   assert.ok(crmAsk!.some((x) => x.tool === "crm.set_stage" && (x.input as { stage: string }).stage === "interested"), "the CRM change waits for approval (default rules)");
   const { data: notes } = await admin.from("notifications").select("title").eq("user_id", A.userId).eq("kind", "outreach");
-  assert.ok(notes!.some((n) => /^New reply from [A-Z]/.test(n.title)), `the member is notified, in English: ${JSON.stringify(notes)}`);
+  // Hand-off (owner 2026-10-21): an interested lead is the member's to take on.
+  assert.ok(notes!.some((n) => / is interested$/.test(n.title)), `the member is told the lead is interested, in English: ${JSON.stringify(notes)}`);
+  assert.ok(((await admin.from("lead_tasks").select("title").eq("lead_id", lead0.lead_id!).like("dedupe_key", "handoff:%")).data ?? []).length === 1, "and gets a task to take over");
   await syncReplies(10, true);
   assert.equal((await admin.from("outreach_messages").select("id", { count: "exact", head: true }).eq("workspace_id", A.wsId).eq("direction", "inbound")).count, 1, "a second sync stores nothing twice");
   console.log("✓ replies");
@@ -268,6 +270,13 @@ try {
     await syncReplies(10, true);
     assert.equal(testOutbox().length, before + 1, "auto-reply on: the simple question was answered once");
     assert.ok(testOutbox().at(-1)!.body.includes("7-day free trial"));
+    // Interest is never answered by Yolias, even with auto-replies on: the member takes over.
+    const lead5 = (await admin.from("outreach_messages").select("provider_thread_id, to_email, lead_id").eq("outreach_campaign_id", campId).eq("status", "sent").not("lead_id", "in", `(${[lead0, lead1, lead2, lead3].map((l) => l.lead_id).join(",")})`).neq("provider_thread_id", lead4Thread!.provider_thread_id!).limit(1).maybeSingle()).data;
+    if (lead5) {
+      pushTestReply({ threadId: lead5.provider_thread_id!, from: lead5.to_email!, fromName: null, subject: "Re:", body: "Sounds interesting, tell me more" });
+      await syncReplies(10, true);
+      assert.equal(testOutbox().length, before + 1, "an interested reply is handed to the member, not answered");
+    }
   }
   console.log("✓ auto-reply");
 

@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookmarkMinus, ChevronLeft, ChevronRight, Download, Eye, Mail, Phone, Send, SquareKanban, Trash2, UsersRound, X } from "lucide-react";
-import { AIMS } from "@/lib/outreach/aim";
+import { AIMS, aimUsesLink } from "@/lib/outreach/aim";
 import type { CampaignAim } from "@/types/acquisition";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
@@ -299,10 +299,10 @@ function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
             {AIMS.map((a) => <option key={a} value={a}>{l.aims[a]}</option>)}
           </select>
           <span className="cell-sub">{l.aimHints[aim]}</span></div>
-        <div className="ws-field"><label className="ws-label" htmlFor="send-cta">{l.ctaUrl[aim]}</label>
-          <input id="send-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} /></div>
+        {aimUsesLink(aim) && <div className="ws-field"><label className="ws-label" htmlFor="send-cta">{l.ctaUrl[aim]}</label>
+          <input id="send-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} /></div>}
         <div className="ws-actions">
-          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email", aim, ctaUrl: cta.trim() || null })}><Send /> {o.send.start}</button>
+          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email", aim, ctaUrl: aimUsesLink(aim) ? cta.trim() || null : null })}><Send /> {o.send.start}</button>
         </div>
         {campaigns.length > 0 && (
           <>

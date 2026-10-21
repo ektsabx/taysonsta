@@ -20,10 +20,14 @@ export function cleanCtaUrl(v: unknown): string | null {
 }
 
 /** One paragraph for the model: the campaign's aim and its link. */
+/** Aims that use a link in the emails (a meeting link is sent by the member, not the agent). */
+export const aimUsesLink = (aim: CampaignAim) => aim !== "meeting";
+
 export function aimGuidance(aim: CampaignAim, ctaUrl: string | null): string {
   const link = ctaUrl ? ` Use exactly this link when it fits: ${ctaUrl}` : "";
   if (aim === "meeting") {
-    return `Campaign aim: book a short meeting. The call to action is a meeting.${ctaUrl ? ` Offer this booking link so they pick a time themselves: ${ctaUrl}` : " Propose a short call and ask which time suits them."} When they agree, confirm and share the link again; never invent a date or time.`;
+    // The member sends the meeting link themselves once the lead is interested (owner 2026-10-21).
+    return "Campaign aim: a short meeting. The call to action is to ask whether they are open to a short call. Do not include a booking link and never propose a date or time; the sender follows up personally.";
   }
   if (aim === "sell") {
     return `Campaign aim: direct sale, no meeting. Do not ask for a call or a meeting. The call to action is to sign up, try or buy.${link || " Invite them to reply for the sign-up link."} Answer questions so they can decide on their own.`;

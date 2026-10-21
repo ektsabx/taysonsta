@@ -26,7 +26,9 @@ export function useRun() {
       const msg = opts.success ?? ok.message;
       if (msg) toast(msg);
       opts.onOk?.(ok);
-      if (opts.refresh !== false) router.refresh();
+      // Outside the transition: the button is free as soon as the action
+      // answers (owner 2026-10-21, lag); the refresh lands in the background.
+      if (opts.refresh !== false) setTimeout(() => router.refresh(), 0);
     });
   return { run, pending };
 }

@@ -5,7 +5,7 @@ import { Pause, Play, Rocket, XCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { approveOutreach, runOutreach, setCampaignAim } from "@/app/(app)/outreach/actions";
-import { AIMS } from "@/lib/outreach/aim";
+import { AIMS, aimUsesLink } from "@/lib/outreach/aim";
 import type { CampaignAim } from "@/types/acquisition";
 import { openSettingsTab } from "@/components/app/open-settings";
 import { useRun } from "./bits";
@@ -77,10 +77,10 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
           </select>
           <span className="cell-sub">{l.aimHints[aim]}</span>
         </div>
-        <div className="ws-field">
+        {aimUsesLink(aim) && <div className="ws-field">
           <label className="ws-label" htmlFor="launch-cta">{l.ctaUrl[aim]}</label>
           <input id="launch-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} />
-        </div>
+        </div>}
         {aimChanged && <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setCampaignAim(c.id, aim, cta.trim() || null))}>{l.saveAim}</button>}
       </div>
       {summary.sample ? (

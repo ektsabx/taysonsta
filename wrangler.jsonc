@@ -32,6 +32,8 @@
   "env": {
     "admin": {
       "name": "yolias-admin",
+      // Smart Placement (2026-10-21): near the database (Supabase eu-west-1). Not on taysonsta.net.
+      "placement": { "mode": "smart" },
       "services": [
         {
           "binding": "WORKER_SELF_REFERENCE",
