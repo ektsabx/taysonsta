@@ -131,6 +131,9 @@ html[data-theme="dark"] .ws-chip.green { color: #6ee7b7; }
 .lead-msg-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
 .lead-msg-body { white-space: pre-wrap; font-size: .84rem; color: var(--text-3); line-height: 1.55; overflow-wrap: anywhere; }
 .lead-msg-subject { font-size: .84rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.lead-msg-meta { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: .78rem; }
+.lead-msg-meta dt { color: var(--muted); }
+.lead-msg-meta dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
 .lead-msg-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .fit-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8rem; padding: 4px 0; }
 

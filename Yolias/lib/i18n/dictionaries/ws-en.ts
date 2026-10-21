@@ -106,7 +106,7 @@ export const wsEn = {
     edit: "Edit", approve: "Approve", unapprove: "Back to draft", cancel: "Discard", markSent: "I sent it", markSentHint: "Send it from your own app first, then confirm here.",
     openGmail: "Open in Gmail", openOutlook: "Open in Outlook", openMail: "Open in mail app", copy: "Copy", copied: "Copied",
     schedule: "Plan send time", scheduledFor: "Planned for {date}", clearSchedule: "Clear", scheduleHint: "No mailbox is connected, so Yolias reminds you at this time instead of sending.",
-    sendDisabled: "Send (needs a connected mailbox)", subject: "Subject", body: "Message",
+    sendDisabled: "Send (needs a connected mailbox)", subject: "Subject", body: "Message", from: "From", to: "To",
     errors: {
       not_found: "Message not found.", not_ready: "This message can’t be marked as sent.", do_not_contact: "This lead asked not to be contacted.",
       too_soon: "Too soon after the last message (AI Agent → wait between messages).", daily_limit: "Daily sending limit reached (AI Agent settings).",
@@ -142,7 +142,7 @@ export const wsEn = {
   },
   crm: {
     title: "CRM", subtitle: "Your deals: leads moved from Conversations, with stage, value, meetings, follow-ups and history.",
-    table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", dealsNote: "A lead enters the CRM when you choose “Move to CRM” in its conversation, or add it from Prospects. Leads still being contacted stay in Conversations.", empty: "No deals yet. Open a conversation with an interested lead and choose “Move to CRM”.",
+    table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", empty: "No deals yet. Open a conversation with an interested lead and choose “Move to CRM”.",
     emptyFiltered: "No leads match these filters.",
     cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", campaignDate: "Campaign date", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
     sources: { search: "Yolias search", import: "CSV import", manual: "Added manually" },

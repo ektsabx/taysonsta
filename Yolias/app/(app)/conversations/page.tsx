@@ -41,6 +41,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
     listOutreachCampaigns(session.workspace.id),
   ]);
   const hasMailbox = boxes.some((m) => m.status === "connected");
+  const mailboxEmail = boxes.find((m) => m.status === "connected")?.email ?? null;
   const w = t.ws.inbox;
   const c = t.ws.conversations;
   const o = t.ws.outreach;
@@ -149,7 +150,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
           </div>
         </aside>
         <section className="inbox-thread">
-          {thread ? <InboxThreadView thread={thread} backHref={link({ lead: null })} timeZone={tz} hasMailbox={hasMailbox} /> : <div className="inbox-placeholder">{w.select}</div>}
+          {thread ? <InboxThreadView thread={thread} backHref={link({ lead: null })} timeZone={tz} hasMailbox={hasMailbox} mailboxEmail={mailboxEmail} /> : <div className="inbox-placeholder">{w.select}</div>}
         </section>
       </div>
       </>)}

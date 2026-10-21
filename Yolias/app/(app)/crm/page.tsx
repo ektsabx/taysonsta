@@ -97,7 +97,6 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
             </AutoSubmitSelect>
           )}
         </form>
-        <p className="ws-muted" style={{ marginBottom: 12 }}>{c.dealsNote}</p>
 
         {view === "kanban" ? (
           <CrmKanban

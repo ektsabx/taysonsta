@@ -12,7 +12,7 @@ import type { Json, MessageChannel, OutreachStatus } from "@/types/database";
 export interface CardMessage {
   id: string; direction: "outbound" | "inbound"; status: OutreachStatus; channel: MessageChannel; subject: string; body: string; language: string;
   prospect_id: string | null; company_id: string | null; created_at: string; sent_at: string | null; received_at: string | null; opened_at: string | null;
-  scheduled_for: string | null; step_position: number | null; sent_via?: string | null; delivery_status?: string | null; error?: string | null; instruction?: string | null; from_address: string | null; analysis: Json | null; personalization: string[] | null;
+  to_email?: string | null; scheduled_for: string | null; step_position: number | null; sent_via?: string | null; delivery_status?: string | null; error?: string | null; instruction?: string | null; from_address: string | null; analysis: Json | null; personalization: string[] | null;
 }
 
 type Analysis = { kind: string; summary: string; suggested_stage: string | null; suggested_reply: string | null; by: "ai" | "rules" };
@@ -20,7 +20,7 @@ type Analysis = { kind: string; summary: string; suggested_stage: string | null;
 // One message in a conversation (Inbox, lead page). Drafts can be edited and
 // sent from the member's connected mailbox (D-239); replies show what the
 // Replies Agent read in them.
-export function MessageCard({ m, timeZone, onUseSuggestion }: { m: CardMessage; timeZone: string | null; onUseSuggestion?: (text: string) => void }) {
+export function MessageCard({ m, timeZone, onUseSuggestion, mailboxEmail, leadEmail }: { m: CardMessage; timeZone: string | null; onUseSuggestion?: (text: string) => void; mailboxEmail?: string | null; leadEmail?: string | null }) {
   const { t, locale } = useI18n();
   const w = t.ws.messages;
   const { run, pending } = useRun();
@@ -30,23 +30,27 @@ export function MessageCard({ m, timeZone, onUseSuggestion }: { m: CardMessage; 
   const draft = m.status === "draft" || m.status === "approved" || m.status === "failed";
   const inbound = m.direction === "inbound";
   const analysis = inbound && m.analysis && typeof m.analysis === "object" ? (m.analysis as unknown as Analysis) : null;
-  const statusCls = m.status === "sent" ? "green" : inbound ? "blue" : m.status === "canceled" || m.status === "failed" ? "red" : "";
+  // Shown like an email (owner 2026-10-21): from, to, subject, then the message.
+  const from = inbound ? m.from_address : m.from_address ?? mailboxEmail ?? null;
+  const to = inbound ? mailboxEmail ?? null : m.to_email ?? leadEmail ?? null;
 
   return (
     <article className={`lead-msg${inbound ? " inbound" : ""}`}>
       <div className="lead-msg-head">
         <span className="ws-inline">
-          <span className={`ws-chip ${statusCls}`}>{w.status[m.status]}</span>
-          <span className="ws-chip">{t.ws.outreach.channels[m.channel]}</span>
-          {m.step_position && <span className="ws-chip">{fmt(t.ws.outreach.form.step, { n: m.step_position })}</span>}
-          {!inbound && m.status === "sent" && m.sent_via === "mailbox" && <span className="ws-chip green">{t.ws.inbox.viaMailbox}</span>}
+          {m.status === "failed" && <span className="ws-chip red">{w.status.failed}</span>}
           {!inbound && m.delivery_status === "bounced" && <span className="ws-chip red">{t.ws.inbox.bounced}</span>}
           {!inbound && m.instruction === "auto-reply" && <span className="ws-chip blue">{t.ws.inbox.autoReply}</span>}
           {m.scheduled_for && draft && <span className="ws-chip blue"><CalendarClock />{fmt(w.scheduledFor, { date: dateTime(m.scheduled_for, locale, timeZone) })}</span>}
         </span>
         <time className="ws-muted">{dateTime(m.received_at ?? m.sent_at ?? m.created_at, locale, timeZone)}</time>
       </div>
-      {inbound && m.from_address && <p className="ws-muted" dir="ltr">{m.from_address}</p>}
+      {m.channel === "email" && (from || to) && (
+        <dl className="lead-msg-meta">
+          {from && <><dt>{w.from}</dt><dd dir="ltr">{from}</dd></>}
+          {to && <><dt>{w.to}</dt><dd dir="ltr">{to}</dd></>}
+        </dl>
+      )}
       {!inbound && m.status === "failed" && m.error && <p className="form-error">{m.error}</p>}
       {editing ? (
         <div className="ws-form">
@@ -59,7 +63,7 @@ export function MessageCard({ m, timeZone, onUseSuggestion }: { m: CardMessage; 
         </div>
       ) : (
         <>
-          {m.subject && <div className="lead-msg-subject">{m.subject}</div>}
+          {m.subject && <div className="lead-msg-subject"><span className="ws-muted">{w.subject}: </span>{m.subject}</div>}
           <div className="lead-msg-body" dir="auto">{m.body}</div>
         </>
       )}
