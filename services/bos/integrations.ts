@@ -252,9 +252,6 @@ function testRequest(r: ResolvedConnection): { url: string; init?: RequestInit }
       return { url: "https://oauth2.googleapis.com/token", init: { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "authorization_code", code: "connection-test", redirect_uri: "https://localhost/connection-test", client_id: c.client_id ?? "", client_secret: s.client_secret ?? "" }).toString() } };
     case "meta":
       return { url: "https://graph.facebook.com/v21.0/me?fields=id,name", init: { headers: { Authorization: `Bearer ${s.access_token}` } } };
-    case "polar":
-      // Read-only: one product. Redirects are not followed, so the token is never sent anywhere else.
-      return { url: `https://${c.server === "sandbox" ? "sandbox-api" : "api"}.polar.sh/v1/products/?limit=1`, init: { headers: { Authorization: `Bearer ${s.access_token}`, Accept: "application/json" }, redirect: "manual" } };
     default:
       return null;
   }

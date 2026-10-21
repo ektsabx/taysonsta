@@ -15,6 +15,8 @@ export interface PaymobConfig {
   hmacSecret: string;
   /** Integration ids (payment methods) per currency — the card integration, sent USD amounts (D-142). */
   integrations: Partial<Record<ChargeCurrency, number[]>>;
+  /** Paymob's MOTO integration for renewals from a saved card (D-254), when Paymob enabled it. */
+  motoIntegration?: number | null;
 }
 
 /** POST /v1/intention/ body. Amounts are in minor units (cents / piasters). */
@@ -49,6 +51,28 @@ export function checkoutUrl(baseUrl: string, publicKey: string, clientSecret: st
 
 export function toMinor(amount: number): number {
   return Math.round(amount * 100);
+}
+
+/** The renewal intention (D-254): the same body on the MOTO integration only (merchant-initiated, a saved card). */
+export function motoIntentionBody(req: CheckoutRequest, motoIntegration: number) {
+  return { ...intentionBody(req, { integrations: { [req.currency]: [motoIntegration] } }), payment_methods: [motoIntegration] };
+}
+
+// Card token callback (Paymob docs, "HMAC for card tokens"): these fields of
+// obj, in this order, concatenated and signed with HMAC-SHA512.
+const TOKEN_HMAC_KEYS = ["card_subtype", "created_at", "email", "id", "masked_pan", "merchant_id", "order_id", "token"] as const;
+
+/** The string Paymob signs for a TOKEN callback. */
+export function hmacStringFromToken(obj: Record<string, unknown>): string {
+  return TOKEN_HMAC_KEYS.map((k) => (obj[k] == null ? "" : String(obj[k]))).join("");
+}
+
+/** The saved card a verified TOKEN callback carries, or null. */
+export function cardFromToken(obj: Record<string, unknown>): { token: string; orderId: string; maskedPan: string | null; brand: string | null } | null {
+  const token = typeof obj.token === "string" ? obj.token.trim() : "";
+  const orderId = obj.order_id == null ? "" : String(obj.order_id);
+  if (!token || !orderId) return null;
+  return { token, orderId, maskedPan: typeof obj.masked_pan === "string" ? obj.masked_pan : null, brand: typeof obj.card_subtype === "string" ? obj.card_subtype : null };
 }
 
 const HMAC_KEYS = [

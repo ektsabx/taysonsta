@@ -5,7 +5,7 @@ import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
 import type { Tone } from "@/lib/bos/labels";
 import { yoliasPlanLabel } from "@/lib/yolias/plans";
-import { getCreditRate, getKashierSettings, getPaymobSettings, listPacks, paymentTotals, recentPayments } from "@/services/yolias/payments";
+import { getCreditRate, getPaymobSettings, listPacks, paymentTotals, recentPayments, savedCards } from "@/services/yolias/payments";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
 import Link from "next/link";
 import { CreditRateForm, PackForm } from "./PaymentForms";
@@ -25,7 +25,7 @@ const money = (v: number, c: string) => `${c} ${num(Math.round(v * 100) / 100)}`
 export default async function PaymentsPage() {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="المدفوعات" /><NotConnected /></>);
-  const [s, k, packs, payments, totals, sw, rate] = await Promise.all([getPaymobSettings(), getKashierSettings(), listPacks(), recentPayments(), paymentTotals(30), getSwitches(), getCreditRate()]);
+  const [s, cards, packs, payments, totals, sw, rate] = await Promise.all([getPaymobSettings(), savedCards(), listPacks(), recentPayments(), paymentTotals(30), getSwitches(), getCreditRate()]);
   const manage = can(bos, "platform.manage", "all");
   // Active top-up amounts first; retired ones (kept for past payments) are folded away.
   const shown = packs.filter((p) => p.active).sort((a, b) => Number(a.price_usd) - Number(b.price_usd));
@@ -41,25 +41,9 @@ export default async function PaymentsPage() {
 
       <Card title="ظهور طرق الدفع للعملاء" actions={<Link className="admin-btn small ghost" href="/admin/platform/switches"><Tx>تشغيل / إيقاف</Tx></Link>}>
         <KeyValues items={[
-          { label: "الدفع بالبطاقة (Polar)", value: sw.values.payments_polar ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
-          { label: "الدفع بالبطاقة (كاشير)", value: sw.values.payments_kashier ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
+          { label: "الدفع بالكارت (Paymob)", value: sw.values.payments_paymob ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
           { label: "الدفع حسب الاستخدام (شحن الرصيد)", value: sw.values.buy_more ? <StatusBadge tone="success" label="ظاهر للعملاء" /> : <StatusBadge tone="neutral" label="موقوف ومخفي" /> },
         ]} />
-      </Card>
-
-      <Card title="كاشير (Kashier)">
-        <KeyValues items={[
-          { label: "الحالة", value: k.enabled ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="neutral" label="غير متصل" /> },
-          { label: "الوضع", value: k.mode === "live" ? <Tx>حقيقي</Tx> : <Tx>تجريبي</Tx> },
-          { label: "Merchant ID", value: k.merchantId ? <span dir="ltr">{k.merchantId}</span> : <Tx>غير محدد</Tx> },
-          { label: "عملة الخصم", value: <span dir="ltr">{k.currency}</span> },
-          { label: "رابط الـ Webhook", value: <span dir="ltr">{site ? `${site}/api/payments/kashier` : "—"}</span> },
-          { label: "البطاقات المحفوظة للتجديد", value: num(k.savedCards) },
-        ]} />
-        <p className="bos-faint" style={{ fontSize: 12.5, marginTop: 12 }}>
-          <Tx>مفاتيح كاشير تُضاف من الإعدادات ← مركز التكاملات ← Kashier.</Tx>{" "}
-          <Link className="bos-link" href="/admin/settings/integrations?tab=connections&cat=payments"><Tx>فتح مركز التكاملات</Tx></Link>
-        </p>
       </Card>
 
       <Card title="Paymob">
@@ -71,6 +55,8 @@ export default async function PaymentsPage() {
           { label: "رابط الإشعارات (Transaction processed callback)", value: <span dir="ltr">{site ? `${site}/api/payments/paymob` : "—"}</span> },
           { label: "رابط العودة (Transaction response callback)", value: <span dir="ltr">{site ? `${site}/api/payments/paymob/return` : "—"}</span> },
           { label: "أرقام التكامل (USD)", value: s.integrations.USD.length ? <span dir="ltr">{s.integrations.USD.join(", ")}</span> : <Tx>غير محدد</Tx> },
+          { label: "تكامل MOTO (التجديد التلقائي)", value: s.motoIntegration ? <span dir="ltr">{s.motoIntegration}</span> : <Tx>غير مفعّل: التجديد فاتورة يدفعها العميل</Tx> },
+          { label: "البطاقات المحفوظة للتجديد", value: num(cards) },
           { label: "آخر تعديل", value: s.updatedBy ? `${s.updatedBy} · ${formatDateTime(s.updatedAt)}` : "—" },
         ]} />
         <p className="bos-faint" style={{ fontSize: 12.5, marginTop: 12 }}>

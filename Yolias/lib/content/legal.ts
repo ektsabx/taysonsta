@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-20";
+export const LEGAL_UPDATED = "2026-10-21";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -35,7 +35,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h3: "Connected mailboxes (Gmail, Outlook)" },
         { p: "If you connect your Gmail or Outlook, we keep an access permission (an OAuth refresh token) encrypted in our database vault; it never reaches your browser. Yolias uses it only to send campaigns you approved and to read the replies in the email threads Yolias started, so it can show them in your Inbox, classify them and stop follow-ups. Yolias doesn’t read, store or analyse any other email in your mailbox, doesn’t use mailbox data for advertising, doesn’t sell it, and doesn’t use it to train AI models. Yolias’s use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. You can disconnect at any time in Settings, Integrations, which deletes the stored permission; you can also remove Yolias’s access from your Google or Microsoft account." },
         { h3: "Payments" },
-        { p: "Payments are made on our payment partner’s secure page: Paymob, where you pay by card (Visa, Mastercard or Meeza). Polar, which sells subscriptions as merchant of record, is used only when it’s offered at checkout. We receive the payment result, amount, subscription status and a reference. We never receive your card number or security code." },
+        { p: "Payments are made on our payment partner’s secure page: Paymob, where you pay by card (Visa, Mastercard or Meeza). If you choose to save your card there, Paymob keeps it and gives us a reference to it (a token) so renewals can be charged; we store that reference encrypted and see only the card brand and last four digits. We receive the payment result, amount, subscription status and a reference. We never receive your card number or security code." },
         { h3: "Business contact data about prospects" },
         { p: "Campaigns collect professional information about companies and their decision makers, such as name, job title, company, location and business contact channels, from the data sources Yolias connects to. Each record keeps the source it came from." },
         { h3: "Technical and usage data" },
@@ -58,7 +58,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["Business data providers", "Finding companies, decision makers and their business contact details"],
           ["Email delivery", "Sending sign-in links, invitations, receipts and alerts"],
           ["Hosting", "Serving the website and app"],
-          ["Payment providers (Polar, Paymob)", "Subscriptions and card payments; Polar is the merchant of record for card payments and handles sales tax"],
+          ["Payment provider (Paymob)", "Card payments, subscriptions and renewals from a card you chose to save"],
           ["Product analytics (PostHog)", "Understanding how Yolias is used, to improve it"],
           ["Error monitoring (Sentry)", "Finding and fixing errors"],
           ["Session analytics (Microsoft Clarity), with your consent", "Seeing where pages are hard to use"],
@@ -100,7 +100,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h3: "صناديق البريد المتصلة (Gmail وOutlook)" },
         { p: "إذا ربطت Gmail أو Outlook، نحتفظ بإذن الوصول (رمز OAuth للتجديد) مشفّرًا في خزنة قاعدة البيانات، ولا يصل إلى متصفحك أبدًا. يستخدمه يولـياس فقط لإرسال الحملات التي وافقت عليها ولقراءة الردود في محادثات البريد التي بدأها يولـياس، ليعرضها في صندوق الوارد ويصنفها ويوقف المتابعات. لا يقرأ يولـياس أي رسالة أخرى في صندوق بريدك ولا يخزنها ولا يحللها، ولا يستخدم بيانات البريد للإعلانات، ولا يبيعها، ولا يستخدمها لتدريب نماذج الذكاء الاصطناعي. يلتزم استخدام يولـياس للمعلومات الواردة من واجهات Google بسياسة بيانات المستخدم لخدمات Google API، بما في ذلك متطلبات الاستخدام المحدود. يمكنك فصل الحساب في أي وقت من الإعدادات ← التكاملات، فيُحذف الإذن المخزّن، ويمكنك أيضًا إزالة وصول يولـياس من حساب Google أو Microsoft الخاص بك." },
         { h3: "المدفوعات" },
-        { p: "يتم الدفع في صفحة الدفع الآمنة لشريكنا Paymob، وتدفع بالبطاقة (فيزا أو ماستركارد أو ميزة). ويُستخدم Polar، الذي يبيع الاشتراكات بصفته التاجر المسجّل، فقط عندما يظهر كخيار في صفحة الدفع. نستلم نتيجة الدفع والمبلغ وحالة الاشتراك ومرجعًا للعملية فقط، ولا نستلم رقم بطاقتك أو رمز الأمان أبدًا." },
+        { p: "يتم الدفع في صفحة الدفع الآمنة لشريكنا Paymob، وتدفع بالبطاقة (فيزا أو ماستركارد أو ميزة). إذا اخترت حفظ بطاقتك هناك، يحتفظ بها Paymob ويعطينا مرجعًا لها (رمزًا) لخصم التجديدات؛ نخزّن هذا المرجع مشفّرًا ولا نرى إلا نوع البطاقة وآخر أربعة أرقام. نستلم نتيجة الدفع والمبلغ وحالة الاشتراك ومرجعًا للعملية فقط، ولا نستلم رقم بطاقتك أو رمز الأمان أبدًا." },
         { h3: "بيانات التواصل المهنية للعملاء المحتملين" },
         { p: "تجمع الحملات معلومات مهنية عن الشركات وصنّاع القرار فيها، مثل الاسم والمسمى الوظيفي والشركة والموقع وقنوات التواصل المهنية، من مصادر البيانات التي يتصل بها يولـياس. ويحتفظ كل سجل بالمصدر الذي جاء منه." },
         { h3: "البيانات التقنية وبيانات الاستخدام" },
@@ -123,7 +123,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["مزودو بيانات الشركات", "إيجاد الشركات وصنّاع القرار وبيانات التواصل المهنية"],
           ["إرسال البريد الإلكتروني", "إرسال روابط الدخول والدعوات والإيصالات والتنبيهات"],
           ["الاستضافة", "تشغيل الموقع والتطبيق"],
-          ["مزودو الدفع (Polar وPaymob)", "الاشتراكات والدفع بالبطاقة؛ وPolar هو التاجر المسجّل للدفع بالبطاقة ويتولى ضريبة المبيعات"],
+          ["مزوّد الدفع (Paymob)", "الدفع بالبطاقة والاشتراكات والتجديد من بطاقة اخترت حفظها"],
           ["تحليلات المنتج (PostHog)", "فهم طريقة استخدام يولـياس لتحسينه"],
           ["مراقبة الأخطاء (Sentry)", "اكتشاف الأخطاء وإصلاحها"],
           ["تحليل الجلسات (Microsoft Clarity) بموافقتك", "معرفة الأماكن الصعبة الاستخدام في الصفحات"],
@@ -158,7 +158,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { ul: [
           "Yolias offers Pay As You Go credit and monthly plans; every option includes unlimited users.",
           "Pay As You Go is prepaid credit bought in one payment. It is not a subscription, never renews and doesn’t expire. Credit is added only once the payment provider confirms the payment. Monthly plans are billed monthly; annual billing is no longer offered for new subscriptions, and existing annual subscriptions continue until the end of their year.",
-          "Paymob charges each period: at the end of a period we issue a renewal invoice and the plan continues once it’s paid. When Polar is offered at checkout and you pay through it, Polar sells the subscription as merchant of record and renews it automatically until you cancel from the billing portal. Prices exclude applicable taxes.",
+          "Paymob charges each period: at the end of a period we issue a renewal invoice and the plan continues once it’s paid. If you saved your card at checkout, the renewal may be charged to it automatically; if it isn’t charged, the invoice stays open for you to pay. Prices exclude applicable taxes.",
           "Free trial (where offered): 7 days with trial limits. Your card is saved but not charged; unless you cancel before the trial ends, the plan starts and the card is charged on the last day. One trial per workspace.",
           "Each plan includes a number of results (prospects) per month. One prospect is one company or local business that matches your search, can be identified (website, domain or map listing) and has at least one way to reach it (business email, LinkedIn page or business phone). It counts once, when it is delivered, however much data comes with it; its decision makers are included. Results without a way to reach them are not delivered and not counted.",
           "Usage is counted in prospects only, and the same prospect is never counted twice. Writing and sending emails is not charged or limited, and uploading your own contacts is unlimited. On a plan, its monthly prospects are used first, then your credit. When none are left, discovery pauses until you top up or the plan renews.",
@@ -211,7 +211,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { ul: [
           "يقدّم يولـياس رصيد الدفع حسب الاستخدام وخططًا شهرية، ويشمل كل خيار مستخدمين غير محدودين.",
           "الدفع حسب الاستخدام رصيد مسبق يُشترى بدفعة واحدة، وليس اشتراكًا، ولا يتجدد ولا تنتهي صلاحيته. يُضاف الرصيد فقط بعد أن يؤكد مزوّد الدفع العملية. الخطط الشهرية تُدفع شهريًا، والفوترة السنوية لم تعد متاحة للاشتراكات الجديدة، والاشتراكات السنوية القائمة تستمر حتى نهاية سنتها.",
-          "يتم الدفع عبر Paymob لكل فترة: نُصدر فاتورة تجديد في نهاية الفترة وتستمر الخطة بعد دفعها. وعندما يظهر Polar كخيار وتدفع من خلاله، يبيع Polar الاشتراك بصفته التاجر المسجّل ويجدده تلقائيًا حتى تلغيه من بوابة الفوترة. الأسعار لا تشمل الضرائب المطبقة.",
+          "يتم الدفع عبر Paymob لكل فترة: نُصدر فاتورة تجديد في نهاية الفترة وتستمر الخطة بعد دفعها. وإذا حفظت بطاقتك عند الدفع، قد يُخصم التجديد منها تلقائيًا؛ وإن لم يُخصم تبقى الفاتورة مفتوحة لتدفعها. الأسعار لا تشمل الضرائب المطبقة.",
           "التجربة المجانية (حيث تتوفر): 7 أيام بحدود التجربة. تُحفظ بطاقتك دون خصم، وما لم تلغِ قبل نهاية التجربة تبدأ الخطة وتُخصم البطاقة في آخر يوم. تجربة واحدة لكل مساحة عمل.",
           "تتضمن كل خطة عددًا من النتائج (العملاء المحتملين) شهريًا. العميل المحتمل الواحد هو شركة أو نشاط محلي يطابق بحثك، وله هوية واضحة (موقع أو دومين أو مكان على الخريطة)، ووسيلة تواصل واحدة على الأقل (بريد مهني أو صفحة LinkedIn أو هاتف العمل). ويُحتسب مرة واحدة عند تسليمه مهما كانت كمية البيانات معه، وصنّاع القرار فيه مشمولون. والنتائج التي ليس لها وسيلة تواصل لا تُسلَّم ولا تُحتسب.",
           "يُحتسب الاستخدام بالعملاء المحتملين فقط، ولا يُحتسب العميل نفسه مرتين. كتابة الرسائل وإرسالها بدون رسوم وبدون حد، ورفع جهات الاتصال الخاصة بك غير محدود. مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم رصيدك، وعندما لا يتبقى شيء يتوقف الاكتشاف حتى تشحن رصيدك أو تتجدد الخطة.",
@@ -261,7 +261,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "First payment or renewal: a full refund if you ask within 7 days of the payment and no prospects were delivered in that period.",
           "If prospects were delivered in that period, the payment is not refundable, but you can cancel so the plan doesn’t renew.",
           "Annual plans: within 7 days of the payment under the same condition; after that, the plan stays active until the end of the year.",
-          "With Paymob, a renewal is paid only when you pay its invoice. With Polar, the subscription renews automatically until you cancel; cancelling stops the next renewal.",
+          "A renewal is paid when you pay its invoice, or charged to the card you saved at checkout. Cancelling stops the next renewal.",
           "Free trial: nothing is charged during the trial. Cancel before it ends and you’re never charged; the first charge after it follows the rules above.",
         ] },
         { h2: "Pay As You Go credit" },
@@ -277,7 +277,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "How to ask" },
         { p: "Send a request through the [Contact page](/contact?topic=sales) from the workspace’s owner or admin email, with the invoice number. We answer within 3 business days." },
         { h2: "How refunds are paid" },
-        { p: "Refunds go back to the original payment method through the provider that charged it, usually within 5–14 business days depending on your bank. Polar refunds the amount it charged, in the same currency. Paymob refunds in Egyptian pounds the amount that was charged, so your bank’s exchange rate may make it differ slightly. A refunded payment’s invoice is voided, and the plan or pack it paid for is removed." },
+        { p: "Refunds go back to the original payment method through Paymob, usually within 5–14 business days depending on your bank. Paymob refunds in Egyptian pounds the amount that was charged, so your bank’s exchange rate may make it differ slightly. A refunded payment’s invoice is voided, and the plan or pack it paid for is removed." },
         { h2: "Changes" },
         { p: "We may update this policy; the date at the top shows the latest version. Payments made before a change follow the policy in force when they were made." },
       ],
@@ -293,7 +293,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "الدفعة الأولى أو التجديد: استرداد كامل إذا طلبته خلال 7 أيام من الدفع ولم يُسلَّم أي عميل محتمل في تلك الفترة.",
           "إذا سُلِّم عملاء محتملون في تلك الفترة فلا يُسترد المبلغ، ويمكنك الإلغاء حتى لا تتجدد الخطة.",
           "الخطط السنوية: خلال 7 أيام من الدفع بالشرط نفسه، وبعد ذلك تبقى الخطة فعّالة حتى نهاية السنة.",
-          "مع Paymob يُدفع التجديد فقط عندما تدفع فاتورته. ومع Polar يتجدد الاشتراك تلقائيًا حتى تلغيه، والإلغاء يوقف التجديد التالي.",
+          "يُدفع التجديد عندما تدفع فاتورته، أو يُخصم من البطاقة التي حفظتها عند الدفع. والإلغاء يوقف التجديد التالي.",
           "التجربة المجانية: لا يُخصم شيء خلال التجربة. ألغِ قبل نهايتها ولن يُخصم منك شيء، وأول خصم بعدها يخضع للقواعد أعلاه.",
         ] },
         { h2: "رصيد الدفع حسب الاستخدام" },
@@ -309,7 +309,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { h2: "كيف تطلب الاسترداد" },
         { p: "أرسل طلبك عبر [صفحة التواصل](/contact?topic=sales) من بريد مالك مساحة العمل أو المسؤول، مع رقم الفاتورة. نرد خلال 3 أيام عمل." },
         { h2: "كيف يُعاد المبلغ" },
-        { p: "يُعاد المبلغ إلى وسيلة الدفع الأصلية عبر المزوّد الذي خصمه، عادةً خلال 5–14 يوم عمل حسب البنك. يعيد Polar المبلغ الذي خصمه بنفس العملة، ويعيد Paymob بالجنيه المصري المبلغ الذي خُصم، وقد يختلف قليلاً بسبب سعر صرف البنك. تُلغى فاتورة الدفعة المستردة، وتُزال الخطة أو الباقة التي دُفعت مقابلها." },
+        { p: "يُعاد المبلغ إلى وسيلة الدفع الأصلية عبر Paymob، عادةً خلال 5–14 يوم عمل حسب البنك. يعيد Paymob بالجنيه المصري المبلغ الذي خُصم، وقد يختلف قليلاً بسبب سعر صرف البنك. تُلغى فاتورة الدفعة المستردة، وتُزال الخطة أو الباقة التي دُفعت مقابلها." },
         { h2: "التغييرات" },
         { p: "قد نحدّث هذه السياسة، ويوضح التاريخ في أعلى الصفحة آخر إصدار. تخضع المدفوعات السابقة لأي تغيير للسياسة السارية وقت الدفع." },
       ],

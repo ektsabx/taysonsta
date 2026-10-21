@@ -133,23 +133,8 @@ export const providers: ProviderDef[] = [
   },
   // Outlook removed by the owner (2026-10-21): Gmail and IMAP only.
   {
-    key: "kashier", name: "Kashier (كاشير)", category: "payments", phase: 0, testable: false,
-    description: "بوابة دفع إضافية بجانب Paymob (تظهر للعميل كخيار «الدفع بالكارت من هذه الصفحة» بمجرد الربط). العميل يدفع داخل صفحة الدفع في يولياس نفسها (Payment Session مدمجة)، والسعر بالدولار، والبطاقة تُحفظ مع أول دفعة ويُجدد منها الاشتراك تلقائيًا. من لوحة كاشير ← Integrate now: انسخ Merchant ID و Payment API Key و Secret Key للوضع المناسب. في الإعدادات ← Webhook ضع https://<دومين يولياس>/api/payments/kashier. واطلب من كاشير تفعيل: العملة USD على الحساب، وحفظ البطاقات والدفع المتكرر (Recurring / Tokenization)، والسماح بعرض صفحة الدفع داخل iframe على دومين يولياس.",
-    fields: [
-      { key: "mode", label: "الوضع", required: true, options: [{ value: "test", label: "تجريبي (Test)" }, { value: "live", label: "حقيقي (Live)" }] },
-      { key: "merchant_id", label: "Merchant ID", required: true, placeholder: "MID-XXXX-XXX" },
-      { key: "api_key", label: "Payment API Key", secret: true, required: true, hint: "يُستخدم لتوقيع الطلبات والتحقق من الـ Webhook" },
-      { key: "secret_key", label: "Secret Key", secret: true, required: true, hint: "يُرسل في ترويسة Authorization لواجهات كاشير" },
-      { key: "currency", label: "عملة الخصم", required: true, options: [{ value: "USD", label: "دولار (USD) — لازم تكون مفعّلة على حسابك" }, { value: "EGP", label: "جنيه (EGP) — يحوّل يولياس السعر بسعر اليوم" }] },
-      { key: "save_card", label: "حفظ البطاقة للتجديد", required: true, options: [{ value: "forced", label: "إجباري (موصى به للاشتراكات)" }, { value: "optional", label: "اختياري للعميل" }] },
-    ],
-    capabilities: ["payments.checkout"],
-    docs: "https://developers.kashier.io",
-    yolias: "الدفع بالبطاقة داخل يولياس، والتجديد التلقائي من البطاقة المحفوظة.",
-  },
-  {
     key: "paymob", name: "Paymob", category: "payments", phase: 0, testable: false,
-    description: "بوابة الدفع لاشتراكات يولياس وباقات العملاء المحتملين الإضافية (السعر بالدولار، والخصم من البطاقة بالجنيه). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return.",
+    description: "بوابة الدفع الوحيدة في يولياس (Polar وكاشير اتشالوا): الاشتراكات وباقات الرصيد (السعر بالدولار، والخصم من البطاقة بالجنيه). في لوحة Paymob ضع رابط الإشعارات https://<دومين يولياس>/api/payments/paymob ورابط العودة https://<دومين يولياس>/api/payments/paymob/return. للتجديد التلقائي من البطاقة المحفوظة: اطلب من دعم Paymob تفعيل حفظ البطاقات (Card tokenization) على تكامل البطاقة، وتكامل MOTO للخصم بدون العميل، واكتب رقم تكامل MOTO هنا. من غيره يفضل التجديد فاتورة يدفعها العميل.",
     fields: [
       { key: "mode", label: "الوضع", required: true, options: [{ value: "test", label: "تجريبي (مفاتيح Paymob التجريبية)" }, { value: "live", label: "حقيقي" }] },
       { key: "base_url", label: "رابط Paymob", required: true, placeholder: "https://accept.paymob.com", hint: "حسب منطقة الحساب: مصر https://accept.paymob.com" },
@@ -157,22 +142,11 @@ export const providers: ProviderDef[] = [
       { key: "secret_key", label: "المفتاح السري (Secret key)", secret: true, required: true },
       { key: "hmac_secret", label: "سر HMAC", secret: true, required: true },
       { key: "integrations_usd", label: "رقم تكامل البطاقة (Integration ID)", required: true, hint: "رقم Integration ID الخاص بالدفع بالبطاقة (بالجنيه) من لوحة Paymob، وافصل بين الأرقام بفواصل إن كانت أكثر من رقم. الأسعار بالدولار، ويحوّلها يولياس إلى الجنيه بسعر اليوم عند الدفع." },
+      { key: "moto_integration", label: "رقم تكامل MOTO (التجديد التلقائي)", hint: "اختياري: رقم Integration ID من نوع MOTO اللي يفعّله دعم Paymob. يولياس يخصم منه التجديد من البطاقة المحفوظة. فارغ = التجديد فاتورة يدفعها العميل." },
     ],
     capabilities: ["payments.checkout"],
     docs: "https://developers.paymob.com",
-    yolias: "الدفع أونلاين للاشتراكات والباقات.",
-  },
-  {
-    key: "polar", name: "Polar", category: "payments", phase: 0, testable: true,
-    description: "الدفع والاشتراكات في يولياس لكل الدول ما عدا مصر (مصر على Paymob). Polar هو التاجر المسجّل: صفحة الدفع المستضافة تأخذ البطاقة وتبدأ التجربة المجانية 7 أيام، وتخصم في نهايتها وتجدد تلقائيًا، والعميل يدير بطاقته وفواتيره من بوابة العملاء في Polar. أنشئ Organization Access Token من لوحة Polar ← Settings (بدون تاريخ انتهاء) والصقه هنا واختر البيئة نفسها التي أنشأته فيها. لا تحتاج لإنشاء منتجات: يولياس ينشئ منتجات الخطط الست (شهري وسنوي) بنفسه من أسعار الخطط، ويحدّث السعر في Polar عند تغييره هنا في الأدمن (المشتركون الحاليون يبقون على سعرهم). رابط الـ Webhook وقت النشر: https://www.yolias.com/api/webhook/polar (الأحداث order.paid و customer.state_changed).",
-    fields: [
-      { key: "server", label: "البيئة", required: true, options: [{ value: "production", label: "حقيقي (production)" }, { value: "sandbox", label: "تجريبي (sandbox)" }] },
-      { key: "access_token", label: "Organization Access Token", secret: true, required: true, hint: "يبقى على الخادم فقط" },
-      { key: "webhook_secret", label: "سر الـ Webhook", secret: true, hint: "يظهر مرة واحدة عند إنشاء الـ Webhook في Polar" },
-    ],
-    capabilities: ["payments.checkout", "payments.subscriptions"],
-    docs: "https://polar.sh/docs",
-    yolias: "الاشتراكات والتجربة المجانية خارج مصر.",
+    yolias: "الدفع أونلاين للاشتراكات والباقات، والتجديد من البطاقة المحفوظة.",
   },
   {
     key: "turnstile", name: "Cloudflare Turnstile", category: "security", phase: 0, testable: false,

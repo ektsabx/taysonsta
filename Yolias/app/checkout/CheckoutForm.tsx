@@ -8,11 +8,10 @@ import { formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { monthlyRate, planName, priceFor, priceForEgp } from "@/lib/plans";
-import type { BillingPeriod, BillingProvider, Currency, PaidPlan, Plan } from "@/types/database";
+import type { BillingPeriod, Currency, PaidPlan, Plan } from "@/types/database";
 import { metaTrack, track } from "@/lib/analytics/client";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
-import { activatePlan, buyProspectPack, checkoutDetails, checkoutReturned, checkoutState, startKashierCheckout, startPolarCheckout } from "./actions";
-import { KashierFrame } from "@/components/app/KashierFrame";
+import { activatePlan, buyProspectPack, checkoutDetails } from "./actions";
 
 interface Option {
   id: PaidPlan;
@@ -29,21 +28,15 @@ interface Props {
   currentPeriod: BillingPeriod | null;
   canManage: boolean;
   testMode: boolean;
-  /** Which payment methods are connected (lib/payments). */
-  methods: Record<BillingProvider, boolean>;
+  /** Paymob, the only payment method (D-254), is connected and switched on. */
+  online: boolean;
   email: string;
   workspaceName: string;
   continueHref: string;
   options: Option[];
   currency: Currency;
-  /** The provider of a running subscription; the customer can't switch it here. */
-  locked: BillingProvider | null;
-  /** The free trial this workspace can still start with the card method (null: none). */
-  trial: { days: number; prospects: number; emails: number; contacts: number } | null;
-  /** Error carried back from /checkout/polar. */
+  /** Error carried back from the payment page. */
   initialError: string | null;
-  /** Payment methods shown (the others are switched off in Admin, D-213). */
-  shown: BillingProvider[];
   /** This visit's checkout session (journey tracking, D-212). */
   checkoutId: string | null;
   /** The buyer is in Egypt: Paymob shows and charges the EGP prices (D-237). */
@@ -56,7 +49,7 @@ interface Props {
   initialPayg: boolean;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManage, testMode, methods, email, workspaceName, continueHref, options, currency, locked, trial: trialOffer, initialError, shown, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManage, testMode, online, email, workspaceName, continueHref, options, currency, initialError, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
@@ -66,22 +59,13 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
   const [payg, setPayg] = useState(initialPayg && topUps.length > 0);
   const [topUp, setTopUp] = useState(topUps[0]?.id ?? "");
   const [error, setError] = useState<string | null>(initialError);
-  // The customer picks how to pay (D-209) — never chosen by country or IP.
-  const [route, setRoute] = useState<BillingProvider>(locked ?? (shown.find((m) => methods[m]) ?? shown[0] ?? "polar"));
-  const online = methods[route] && shown.includes(route);
-  const trial = route === "polar" ? trialOffer : null;
   const [pending, start] = useTransition();
-  const router = useRouter();
-  // Polar's checkout embedded in this page: "opening" → Polar's window → "activating" until the webhook starts the plan.
-  const [embed, setEmbed] = useState<"idle" | "opening" | "activating" | "slow">("idle");
-  // Kashier (card payment, D-235): its payment form opens here, in place of the summary.
-  const [kashier, setKashier] = useState<{ url: string; paymentId: string } | null>(null);
   const plan = options.find((o) => o.id === selected) ?? options[0];
   const name = planName(selected, t);
   const isCurrent = currentPlan === selected && currentPeriod === period;
   const n = (v: number) => formatNumber(v, locale);
-  // Egypt pays Paymob in EGP at the plan's EGP price (D-237); every other route is USD.
-  const inEgp = egp && route === "paymob";
+  // Egypt pays Paymob in EGP at the plan's EGP price (D-237).
+  const inEgp = egp;
   // Prices are shown in USD (owner, 2026-10-21); in Egypt the EGP charge is shown under the total.
   const price = (o: Option) => priceFor(o.price, period);
   const egpOf = (o: Option) => (inEgp && o.priceEgp ? priceForEgp(o.priceEgp, period) : null);
@@ -111,78 +95,20 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
     return () => window.removeEventListener("pageshow", restored);
   }, []);
 
-  // Polar (card): the checkout opens inside Yolias (Polar's iframe, card
-  // details stay with Polar). After Polar's success message the plan starts
-  // when Polar's webhook arrives; the page waits for it, then continues.
-  const subscribeEmbedded = () => {
-    if (pending || embed !== "idle") return;
-    setError(null);
-    setEmbed("opening");
-    start(async () => {
-      const r = await callAction(() => startPolarCheckout(selected, period, checkoutId));
-      if (isNetworkFailure(r)) { setEmbed("idle"); return setError(c.errors.network); }
-      if (!r.ok) {
-        setEmbed("idle");
-        if (r.portal) window.location.assign(r.portal);
-        return setError(r.error);
-      }
-      try {
-        const { PolarEmbedCheckout } = await import("@polar-sh/checkout/embed");
-        const dark = document.documentElement.getAttribute("data-theme") === "dark";
-        const checkout = await PolarEmbedCheckout.create(r.url, { theme: dark ? "dark" : "light" });
-        setEmbed("idle");
-        checkout.addEventListener("close", () => { void checkoutReturned(checkoutId, "closed").catch(() => {}); });
-        checkout.addEventListener("success", (e) => {
-          e.preventDefault(); // stay in Yolias instead of Polar's success page
-          // Polar's page said "success": recorded as a claim; the plan starts only from Polar's webhook.
-          void checkoutReturned(checkoutId, "succeeded").catch(() => {});
-          checkout.close();
-          setEmbed("activating");
-          const startedAt = Date.now();
-          const poll = async () => {
-            const s = await checkoutState().catch(() => ({ active: false }));
-            if (s.active) return router.push(continueHref);
-            if (Date.now() - startedAt > 60_000) return setEmbed("slow");
-            window.setTimeout(poll, 2000);
-          };
-          void poll();
-        });
-      } catch {
-        setEmbed("idle");
-        // The embedded window couldn't open: use Polar's page instead.
-        window.location.assign(r.url);
-      }
-    });
-  };
-
-  const subscribeKashier = () => {
-    if (pending) return;
-    setError(null);
-    start(async () => {
-      const r = await callAction(() => startKashierCheckout(selected, period, checkoutId));
-      if (isNetworkFailure(r)) return setError(c.errors.network);
-      if (!r.ok) return setError(r.error);
-      setKashier({ url: r.url, paymentId: r.paymentId });
-    });
-  };
-
   const subscribe = () => {
-    if (route === "polar" && online) return subscribeEmbedded();
-    if (route === "kashier" && online) return subscribeKashier();
     if (pending) return;
     start(async () => {
       setError(null);
-      const r = await callAction(() => activatePlan(selected, period, route, checkoutId));
+      const r = await callAction(() => activatePlan(selected, period, "paymob", checkoutId));
       if (isNetworkFailure(r)) setError(c.errors.network);
       else if (r && !r.ok) setError(r.error);
     });
   };
 
-  // First charge (after the trial) or next renewal, from today.
+  // Next renewal, from today.
   const renewal = (() => {
     const d = new Date();
-    if (trial) d.setDate(d.getDate() + trial.days);
-    else d.setMonth(d.getMonth() + 1);
+    d.setMonth(d.getMonth() + 1);
     return d;
   })();
 
@@ -190,7 +116,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
     <main className="checkout-grid">
       <section>
         <p className="checkout-eyebrow">{payg ? c.payg.eyebrow : c.eyebrow}</p>
-        <h1 className="checkout-title">{payg ? c.payg.title : trial ? fmt(c.startTrial, { days: n(trial.days) }) : fmt(c.title, { plan: name })}</h1>
+        <h1 className="checkout-title">{payg ? c.payg.title : fmt(c.title, { plan: name })}</h1>
         <p className="checkout-lead">{payg ? c.payg.lead : c.lead}</p>
 
         <div className="checkout-plans" role="radiogroup" aria-label={c.eyebrow}>
@@ -257,12 +183,6 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
 
       {payg ? (
         <TopUpSummary topUps={topUps} value={topUp} onChange={setTopUp} canManage={canManage} continueHref={continueHref} email={email} egp={egp} />
-      ) : kashier ? (
-        <aside className="checkout-summary checkout-kashier">
-          <div className="checkout-line"><span><span>{name}</span><small>{t.plans.billedMonthly}</small></span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
-          <KashierFrame url={kashier.url} paymentId={kashier.paymentId} onCancel={() => setKashier(null)} />
-          <p className="checkout-fine">{c.savedCardNote}</p>
-        </aside>
       ) : (
       <aside className="checkout-summary">
         <div className="checkout-summary-title">{c.orderSummary}</div>
@@ -273,34 +193,22 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
           </span>
           <span dir="ltr" translate="no">{money(price(plan))}</span>
         </div>
-        {trial ? (
-          <div className="checkout-line muted"><span>{fmt(c.afterTrial, { days: n(trial.days) })}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
-        ) : (
-          <div className="checkout-line muted"><span>{c.subtotal}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
-        )}
+        <div className="checkout-line muted"><span>{c.subtotal}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
         <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
-        <div className="checkout-line total"><span>{trial ? c.dueToday : c.total}</span><span dir="ltr" translate="no">{money(trial ? 0 : price(plan))}</span></div>
-        {egpOf(plan) != null && !trial && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</span></div>}
+        <div className="checkout-line total"><span>{c.total}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
+        {egpOf(plan) != null && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</span></div>}
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
-          {/* The customer chooses: card payment → Paymob, card on this page → Kashier (D-236), card with trial → Polar. Never the provider's name or internal mode (owner, 2026-10-13). */}
-          <div className="checkout-methods" role="radiogroup" aria-label={c.paymentMethod}>
-            {shown.map((m) => {
-              const off = (locked !== null && locked !== m) || (!methods[m] && !testMode);
-              return (
-                <button key={m} type="button" role="radio" aria-checked={route === m} disabled={off} className={`checkout-method${route === m ? " selected" : ""}`} onClick={() => { setRoute(m); setError(null); detail({ method: m }); }}>
-                  <span className="checkout-radio" aria-hidden="true" />
-                  <span className="checkout-method-main">
-                    <span className="checkout-method-name">{m === "polar" ? c.methodCard : m === "kashier" ? c.methodKashier : c.methodEgypt}</span>
-                    <span className="checkout-method-desc">{off && !methods[m] ? c.methodUnavailable : m === "polar" ? c.methodCardDesc : m === "kashier" ? c.methodKashierDesc : c.methodEgyptDesc}</span>
-                  </span>
-                </button>
-              );
-            })}
+          {/* One method (D-254): card payment on Paymob's secure page. Never the provider's name (owner, 2026-10-13). */}
+          <div className="checkout-method selected" aria-disabled={!online && !testMode}>
+            <span className="checkout-method-main">
+              <span className="checkout-method-name">{c.methodEgypt}</span>
+              <span className="checkout-method-desc">{online || testMode ? c.methodEgyptDesc : c.methodUnavailable}</span>
+            </span>
           </div>
-          <p className="checkout-payment-note"><span>{route === "kashier" ? c.paymentHere : c.paymentRedirect}</span></p>
-          <p className="checkout-payment-note"><span>{fmt(trial ? c.firstPaymentOn : c.renewsOn, { date: formatDate(renewal, locale) })}</span></p>
+          <p className="checkout-payment-note"><span>{c.paymentRedirect}</span></p>
+          <p className="checkout-payment-note"><span>{fmt(c.renewsOn, { date: formatDate(renewal, locale) })}</span></p>
         </div>
 
         {/* Each button has its own key and its text in its own <span>: browser
@@ -312,12 +220,12 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         ) : isCurrent ? (
           <Link key="current" className="btn-primary checkout-submit" href={continueHref}><span>{c.onThisPlan}</span></Link>
         ) : online ? (
-          <button key={trial ? "trial" : "pay"} className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending || embed !== "idle"} aria-busy={pending || embed !== "idle"}>
-            <Lock aria-hidden="true" /><span>{embed === "opening" ? c.openingPayment : embed === "activating" || embed === "slow" ? c.activatingTrial : pending ? c.redirecting : trial ? fmt(c.startTrial, { days: n(trial.days) }) : c.pay}</span>
+          <button key="pay" className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending} aria-busy={pending}>
+            <Lock aria-hidden="true" /><span>{pending ? c.redirecting : c.pay}</span>
           </button>
         ) : testMode ? (
-          <button key={trial ? "test-trial" : "test"} className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending} aria-busy={pending}>
-            <Lock aria-hidden="true" /><span>{pending ? c.activating : trial ? c.startTrialTest : fmt(c.activate, { plan: name })}</span>
+          <button key="test" className="btn-primary checkout-submit" type="button" onClick={subscribe} disabled={pending} aria-busy={pending}>
+            <Lock aria-hidden="true" /><span>{pending ? c.activating : fmt(c.activate, { plan: name })}</span>
           </button>
         ) : (
           <button key="soon" className="btn-primary checkout-submit" type="button" disabled>
@@ -325,10 +233,8 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
           </button>
         )}
         {error && <p className="form-error" role="alert"><span>{error}</span></p>}
-        {embed === "activating" && <p className="checkout-payment-note" role="status"><span>{c.activatingTrial}</span></p>}
-        {embed === "slow" && <p className="checkout-payment-note" role="status"><span>{c.activationSlow}</span></p>}
 
-        <p className="checkout-fine">{fmt(trial ? c.fineTrial : c.fine, { email, days: n(trial?.days ?? 0) })}</p>
+        <p className="checkout-fine">{fmt(c.fine, { email, days: "0" })}</p>
       </aside>
       )}
     </main>

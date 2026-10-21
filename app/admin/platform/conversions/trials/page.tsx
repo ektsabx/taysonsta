@@ -73,7 +73,7 @@ export default async function TrialsPage({ searchParams }: { searchParams: Searc
         ) : <EmptyState title="لا توجد تجارب" />}
         <Pager page={page} pages={d.pages} href={qsFor(B, sp)} />
       </Card>
-      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>التجربة متاحة مع الدفع بالبطاقة (Polar) فقط: البطاقة تُحفظ عند Polar ويُخصم أول دفع بعد التجربة إذا لم يُلغِ المستخدم. الدفع من مصر (Paymob) بلا تجربة.</Tx></p>
+      <p className="bos-faint" style={{ fontSize: 12 }}><Tx>لا توجد تجربة مجانية حاليًا: الدفع عبر Paymob فقط ويُدفع أول شهر مقدمًا. هذه الصفحة تعرض التجارب القديمة.</Tx></p>
     </>
   );
 }

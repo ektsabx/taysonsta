@@ -9,14 +9,10 @@ import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
 import { dictionaries, fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, BillingProvider, Currency, PaidPlan, PaymentRow, WorkspaceRow } from "@/types/database";
-import { ensurePolarProducts } from "./polar-products";
-import { loadPolar } from "./polar";
-import { checkoutUrl, intentionBody, toMinor, type PaymobConfig } from "./paymob";
-import { chargeToken, createSession, customerReference, kashierAmount, loadKashier, savedCards, type KashierRuntime } from "./kashier";
+import { checkoutUrl, intentionBody, motoIntentionBody, outcomeFromTransaction, toMinor, type PaymobConfig } from "./paymob";
 import { toEgp, usdToEgp } from "./fx";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { switches } from "@/lib/switches";
-import { FREE_TRIAL_ENABLED, trialLimits } from "@/lib/trial";
 import { capture } from "@/lib/analytics/server";
 import { affiliateNotify } from "@/lib/affiliates/notify";
 import type { CheckoutRequest, PaymentOutcome } from "./types";
@@ -34,10 +30,12 @@ import type { CheckoutRequest, PaymentOutcome } from "./types";
 // integration only accepts EGP, so the checkout converts the USD price at
 // the day's rate (fx.ts) and the payment keeps both amounts
 // (charge_amount / charge_currency / fx_rate). The site shows USD only.
-// Gateways (D-236): Paymob is the live card gateway (hosted page, EGP).
-// Kashier sits alongside it as a second choice once its account is active
-// (D-235): an embedded Payment Session on our checkout, USD (or EGP), the
-// card saved with the first payment and charged by Yolias for renewals.
+// Gateway (owner 2026-10-21, D-254): Paymob only. Polar and Kashier were
+// removed; Kashier's renewals from a saved card now run on Paymob: the card
+// the customer saves at the first payment (Paymob's TOKEN callback) is
+// charged for renewals through Paymob's MOTO integration (merchant-initiated).
+// Without a saved card or a MOTO integration, a renewal is an open invoice the
+// customer pays from the invoice page.
 // Egypt (D-237): plans bought from Egypt are charged their EGP price.
 
 type Db = ReturnType<typeof createAdminClient>;
@@ -50,7 +48,7 @@ export interface PaymobRuntime extends PaymobConfig {
 export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRuntime | null> {
   const { data: row } = await db.from("payment_providers").select("*").eq("id", "paymob").maybeSingle();
   if (!row?.enabled) return null;
-  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: Partial<Record<"USD" | "EGP", number[]>> };
+  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: Partial<Record<"USD" | "EGP", number[]>>; moto_integration?: number | null };
   const [{ data: secretKey }, { data: hmacSecret }] = await Promise.all([
     db.rpc("payment_secret", { p_provider: "paymob", p_name: "secret_key" }),
     db.rpc("payment_secret", { p_provider: "paymob", p_name: "hmac_secret" }),
@@ -64,82 +62,48 @@ export async function loadPaymob(db: Db = createAdminClient()): Promise<PaymobRu
     hmacSecret,
     // The card integration ids (Admin hub → Paymob). The integration charges EGP.
     integrations: { EGP: cfg.integrations?.EGP?.length ? cfg.integrations.EGP : (cfg.integrations?.USD ?? []) },
+    // Renewals from a saved card: Paymob's MOTO integration (asked from Paymob support).
+    motoIntegration: Number(cfg.moto_integration) > 0 ? Number(cfg.moto_integration) : null,
   };
 }
 
-/** The card gateways a checkout can use: Paymob (live) and Kashier (added alongside it, D-236). */
-export type CardGateway = "paymob" | "kashier";
-
-export type Gateway = { id: "paymob"; mode: "test" | "live"; paymob: PaymobRuntime } | { id: "kashier"; mode: "test" | "live"; kashier: KashierRuntime };
+export type Gateway = { id: "paymob"; mode: "test" | "live"; paymob: PaymobRuntime };
 
 /**
  * A gateway that can take new payments right now: connected in Admin →
  * Integrations and not switched off in Admin → Switches (D-213). Callbacks of
  * a gateway switched off still settle payments already started.
  */
-export async function providerFor(method: CardGateway = "paymob"): Promise<Gateway | null> {
+export async function providerFor(): Promise<Gateway | null> {
   const on = await switches();
-  if (method === "kashier") {
-    if (!on.payments_kashier) return null;
-    const k = await loadKashier();
-    return k ? { id: "kashier", mode: k.mode, kashier: k } : null;
-  }
   if (!on.payments_paymob) return null;
   const p = await loadPaymob();
   return p && (p.integrations.EGP?.length ?? 0) > 0 ? { id: "paymob", mode: p.mode, paymob: p } : null;
 }
 
-/**
- * Who bills this workspace. The customer picks the payment method on the
- * checkout page (owner decision 2026-10-13, D-209), never by country or IP. A
- * workspace already billed by one keeps it.
- */
+/** Who bills this workspace: Paymob, the only gateway (D-254). */
 export async function billingRoute(ws: WorkspaceRow): Promise<BillingProvider> {
-  return ws.billing_provider ?? "paymob";
+  void ws;
+  return "paymob";
 }
 
-/** The provider of a running subscription (trial or paid), which the checkout can't switch. */
-export function lockedProvider(ws: WorkspaceRow): BillingProvider | null {
-  if (!ws.billing_provider) return null;
-  if (ws.billing_provider === "polar") return ws.polar_subscription_id ? "polar" : null;
-  // Kashier renews from the saved card, so a past-due plan stays on it too (D-235).
-  if (ws.billing_provider === "kashier") return ws.subscription_status === "active" || ws.subscription_status === "past_due" ? "kashier" : null;
-  return ws.subscription_status === "active" ? "paymob" : null;
-}
-
-/** The card gateway an open invoice of this workspace is paid with. */
-export function invoiceGateway(ws: WorkspaceRow): CardGateway {
-  return ws.billing_provider === "kashier" ? "kashier" : "paymob";
-}
-
-/** Which payment methods are connected right now (and not switched off in Admin, D-213). Once per request (D-242). */
-export const paymentMethods = cache(async function paymentMethods(): Promise<Record<BillingProvider, boolean>> {
-  const on = await switches();
-  const polar = on.payments_polar ? await loadPolar() : null;
-  const [polarReady, paymob, kashier] = await Promise.all([
-    polar ? ensurePolarProducts(polar).then((r) => Object.keys(r.cfg.products).length > 0) : Promise.resolve(false),
-    providerFor("paymob"),
-    providerFor("kashier"),
-  ]);
-  return { polar: polarReady, paymob: Boolean(paymob), kashier: Boolean(kashier) };
+/** Whether Paymob can take payments right now (connected and not switched off in Admin, D-213). Once per request (D-242). */
+export const paymentMethods = cache(async function paymentMethods(): Promise<{ paymob: boolean }> {
+  return { paymob: Boolean(await providerFor()) };
 });
 
 /**
  * The free trial's length when new visitors can start one, else null. The
- * trial comes only with the Polar method (checkout/page.tsx), so public pages
- * promise it only while that method is switched on and connected
- * (owner brief 2026-10-20: no claims the product can't keep).
+ * trial came only with Polar (D-235), removed with it (D-254), and there is no
+ * free trial (D-246), so public pages never promise one.
  */
 export const trialAvailable = cache(async function trialAvailable(): Promise<number | null> {
-  if (!FREE_TRIAL_ENABLED) return null;
-  const [on, methods, trial] = await Promise.all([switches(), paymentMethods(), trialLimits()]);
-  return on.payments_polar && methods.polar && trial.days > 0 ? trial.days : null;
+  return null;
 });
 
 export async function paymentsConnected(ws: WorkspaceRow): Promise<boolean> {
-  const m = await paymentMethods();
-  const locked = lockedProvider(ws);
-  return locked ? m[locked] : m.polar || m.paymob || m.kashier;
+  void ws;
+  return (await paymentMethods()).paymob;
 }
 
 function siteUrl() {
@@ -150,11 +114,8 @@ export type CheckoutTarget =
   | { kind: "subscription"; plan: PaidPlan; period: BillingPeriod; invoiceId?: string }
   | { kind: "prospect_pack"; packId: string };
 
-/**
- * `url`: Paymob's hosted page (the browser goes there) or Kashier's payment
- * form, framed inside our checkout (`embed`). `paymentId` lets the page confirm it.
- */
-export type CheckoutResult = { ok: true; url: string; embed: boolean; paymentId: string } | { ok: false; error: "not_connected" | "not_priced" | "not_found" | "failed" };
+/** `url`: Paymob's hosted page (the browser goes there). `paymentId` lets the page confirm it. */
+export type CheckoutResult = { ok: true; url: string; paymentId: string } | { ok: false; error: "not_connected" | "not_priced" | "not_found" | "failed" };
 
 interface Buyer {
   userId: string;
@@ -170,12 +131,10 @@ export function paysInEgp(ws: Pick<WorkspaceRow, "billing_country">, country: st
 }
 
 /**
- * What the gateway charges for this purchase. Kashier in USD charges the USD
- * price. Otherwise the charge is EGP: a plan bought from Egypt uses its EGP
- * price (Admin → Pricing), anything else the USD price at the day's rate (D-142).
+ * What Paymob charges for this purchase, in EGP: a plan bought from Egypt uses
+ * its EGP price (Admin → Pricing), anything else the USD price at the day's rate (D-142).
  */
-async function chargeFor(db: Db, gw: Gateway, ws: WorkspaceRow, buyer: Buyer, row: Partial<PaymentRow> & { amount: number }): Promise<{ charge: number; currency: "USD" | "EGP"; rate: number | null } | null> {
-  if (gw.id === "kashier" && gw.kashier.currency === "USD") return { charge: row.amount, currency: "USD", rate: null };
+async function chargeFor(db: Db, ws: WorkspaceRow, buyer: Buyer, row: Partial<PaymentRow> & { amount: number }): Promise<{ charge: number; currency: "USD" | "EGP"; rate: number | null } | null> {
   if (row.kind === "subscription" && row.plan && row.billing_period && paysInEgp(ws, buyer.country)) {
     const egp = await egpPlanPrice(row.plan as PaidPlan, row.billing_period);
     if (egp) return { charge: egp, currency: "EGP", rate: row.amount > 0 ? Math.round((egp / row.amount) * 10_000) / 10_000 : null };
@@ -191,10 +150,10 @@ export async function egpPlanPrice(plan: PaidPlan, period: BillingPeriod): Promi
 }
 
 /** Creates the pending payment and returns where the customer pays. */
-export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: CheckoutTarget, checkoutId: string | null = null, method: CardGateway = "paymob"): Promise<CheckoutResult> {
+export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: CheckoutTarget, checkoutId: string | null = null): Promise<CheckoutResult> {
   const db = createAdminClient();
   const currency = await workspaceCurrency(ws);
-  const gw = await providerFor(method);
+  const gw = await providerFor();
   if (!gw) return { ok: false, error: "not_connected" };
 
   // What is bought and its price — always from configuration on the server.
@@ -223,9 +182,9 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   // A second click, or coming back from the provider's page, reuses the
   // checkout opened minutes ago for the same purchase instead of a new one.
   const reuse = await reusableCheckout(db, ws.id, buyer.userId, gw, row);
-  if (reuse) return { ok: true, url: reuse.url, embed: gw.id === "kashier", paymentId: reuse.id };
+  if (reuse) return { ok: true, url: reuse.url, paymentId: reuse.id };
 
-  const priced = await chargeFor(db, gw, ws, buyer, row);
+  const priced = await chargeFor(db, ws, buyer, row);
   if (!priced) return { ok: false, error: "not_priced" };
   const { data: payment, error } = await db.from("payments").insert({
     ...row, workspace_id: ws.id, currency, provider: gw.id, mode: gw.mode, created_by: buyer.userId,
@@ -234,44 +193,29 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   if (error || !payment) return { ok: false, error: "failed" };
 
   try {
-    let url: string;
-    let ref: string | null;
-    if (gw.id === "paymob") {
-      const req: CheckoutRequest = {
-        paymentId: payment.id,
-        amount: priced.charge,
-        currency: "EGP",
-        description,
-        customer: { email: buyer.email, name: buyer.name, country: buyer.country },
-        returnUrl: `${siteUrl()}/api/payments/paymob/return`,
-        notifyUrl: `${siteUrl()}/api/payments/paymob`,
-      };
-      const res = await fetch(new URL("/v1/intention/", gw.paymob.baseUrl), {
-        method: "POST",
-        headers: { Authorization: `Token ${gw.paymob.secretKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(intentionBody(req, gw.paymob)),
-        signal: AbortSignal.timeout(15_000),
-      });
-      const body = (await res.json().catch(() => null)) as { client_secret?: string; intention_order_id?: number; id?: string } | null;
-      if (!res.ok || !body?.client_secret) throw new Error(`paymob intention ${res.status}`);
-      url = checkoutUrl(gw.paymob.baseUrl, gw.paymob.publicKey, body.client_secret);
-      ref = String(body.intention_order_id ?? body.id ?? "") || null;
-    } else {
-      const session = await createSession(gw.kashier, {
-        order: payment.id, amount: kashierAmount(priced.charge), currency: priced.currency, customerRef: customerReference(ws.id),
-        email: buyer.email, name: buyer.name, language: buyer.language ?? "en",
-        redirectUrl: `${siteUrl()}/api/payments/kashier/return?payment=${payment.id}`,
-        webhookUrl: `${siteUrl()}/api/payments/kashier`,
-        // Subscriptions save the card so Yolias can charge the renewals.
-        saveCard: row.kind === "subscription",
-        expiresAt: new Date(Date.now() + 60 * 60_000),
-      });
-      url = session.url;
-      ref = session.id;
-    }
+    const req: CheckoutRequest = {
+      paymentId: payment.id,
+      amount: priced.charge,
+      currency: "EGP",
+      description,
+      customer: { email: buyer.email, name: buyer.name, country: buyer.country },
+      returnUrl: `${siteUrl()}/api/payments/paymob/return`,
+      notifyUrl: `${siteUrl()}/api/payments/paymob`,
+    };
+    const res = await fetch(new URL("/v1/intention/", gw.paymob.baseUrl), {
+      method: "POST",
+      headers: { Authorization: `Token ${gw.paymob.secretKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(intentionBody(req, gw.paymob)),
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = (await res.json().catch(() => null)) as { client_secret?: string; intention_order_id?: number; id?: string } | null;
+    if (!res.ok || !body?.client_secret) throw new Error(`paymob intention ${res.status}`);
+    const url = checkoutUrl(gw.paymob.baseUrl, gw.paymob.publicKey, body.client_secret);
+    // Paymob's order id: its card-token callback names it, which ties a saved card to this workspace.
+    const ref = String(body.intention_order_id ?? body.id ?? "") || null;
     await db.from("payments").update({ provider_ref: ref, checkout_url: url }).eq("id", payment.id);
     await capture(buyer.userId, "checkout_started", { workspace_id: ws.id, payment_id: payment.id, kind: row.kind, plan: row.plan ?? null, billing_period: row.billing_period ?? null, prospects: row.prospects ?? null, value: row.amount, currency: "USD", mode: gw.mode, provider: gw.id });
-    return { ok: true, url, embed: gw.id === "kashier", paymentId: payment.id };
+    return { ok: true, url, paymentId: payment.id };
   } catch (e) {
     console.error("[payments] checkout", e instanceof Error ? e.message : e);
     // Ids, kind and mode only: never the buyer, the amount sent or provider secrets.
@@ -301,7 +245,7 @@ async function reusableCheckout(db: Db, workspaceId: string, userId: string, gw:
  * `pending` (or `succeeded` → `refunded`), so repeated callbacks are no-ops.
  * Returns the payment (or null if it isn't ours / doesn't match).
  */
-export async function settlePayment(provider: "paymob" | "kashier", o: PaymentOutcome): Promise<PaymentRow | null> {
+export async function settlePayment(provider: "paymob", o: PaymentOutcome): Promise<PaymentRow | null> {
   const db = createAdminClient();
   let payment: PaymentRow | null = null;
   if (o.merchantRef && /^[0-9a-f-]{36}$/i.test(o.merchantRef)) {
@@ -344,8 +288,6 @@ export async function settlePayment(provider: "paymob" | "kashier", o: PaymentOu
   });
   if (moved.status === "succeeded") {
     await fulfilOnce(db, moved, true);
-    // The card Kashier saved with this payment pays the renewals (D-235).
-    if (moved.provider === "kashier" && moved.kind === "subscription") await rememberKashierCard(moved.workspace_id).catch((e) => console.error("[payments] save card", e instanceof Error ? e.message : e));
   } else await failed(db, moved);
   return moved;
 }
@@ -396,7 +338,7 @@ export async function fulfil(db: Db, p: PaymentRow): Promise<void> {
     }
   }
   const payer = await payerOf(db, p);
-  const charge = { mode: p.mode, amount: Number(p.amount), currency: p.currency, paymentId: p.id, provider: (p.provider === "kashier" ? "kashier" : "paymob") as "kashier" | "paymob" };
+  const charge = { mode: p.mode, amount: Number(p.amount), currency: p.currency, paymentId: p.id, provider: "paymob" as const };
 
   if (p.kind === "subscription" && p.invoice_id) {
     // Paying an open renewal invoice: the period it covers starts.
@@ -479,70 +421,91 @@ async function refunded(db: Db, p: PaymentRow) {
 }
 
 
-// ── Saved cards and renewals (Kashier, D-235) ───────────────────────────────
+// ── Saved cards and renewals (Paymob, D-254; was Kashier, D-235) ───────────
 
-/** Saves (or refreshes) the card Kashier keeps for this workspace. Best effort; the token goes to Vault. */
-export async function rememberKashierCard(workspaceId: string): Promise<boolean> {
-  const k = await loadKashier();
-  if (!k) return false;
-  const ref = customerReference(workspaceId);
-  const cards = await savedCards(k, ref);
-  const card = cards[0];
-  if (!card) return false;
+/** The workspace a Paymob order belongs to (the payment that opened it). */
+async function workspaceOfOrder(db: Db, orderId: string): Promise<string | null> {
+  const { data } = await db.from("payments").select("workspace_id").eq("provider", "paymob").eq("provider_ref", orderId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  return data?.workspace_id ?? null;
+}
+
+/**
+ * Saves the card the customer chose to keep at a Paymob payment (the verified
+ * TOKEN callback). The token goes to Vault; members see brand, last 4 and nothing else.
+ */
+export async function rememberPaymobCard(card: { token: string; orderId: string; maskedPan: string | null; brand: string | null }): Promise<boolean> {
   const db = createAdminClient();
+  const workspaceId = await workspaceOfOrder(db, card.orderId);
+  if (!workspaceId) return false;
+  const last4 = (card.maskedPan ?? "").replace(/\D/g, "").slice(-4);
   const { data: row, error } = await db.from("billing_cards").upsert({
-    workspace_id: workspaceId, provider: "kashier", customer_reference: ref, brand: card.brand, last4: card.last4,
-    exp_month: card.expMonth, exp_year: card.expYear, status: "active",
+    workspace_id: workspaceId, provider: "paymob", customer_reference: `ws_${workspaceId.replace(/-/g, "").slice(0, 24)}`,
+    brand: card.brand?.slice(0, 40) ?? null, last4: /^[0-9]{4}$/.test(last4) ? last4 : null, status: "active",
   }, { onConflict: "workspace_id,provider" }).select("id").single();
   if (error || !row) return false;
-  const { error: e2 } = await db.rpc("set_card_token", { p_card: row.id, p_token: card.cardToken });
+  const { error: e2 } = await db.rpc("set_card_token", { p_card: row.id, p_token: card.token });
   return !e2;
 }
 
 export type RenewalResult = "charged" | "declined" | "no_card" | "not_connected" | "error";
 
 /**
- * Charges the saved card for an open renewal invoice. The payment row is
- * created first (pending), so the webhook and this call settle the same row
- * once; a declined card leaves the invoice open (the member pays from the
- * invoice page, the grace period applies).
+ * Charges the saved card for an open renewal invoice through Paymob's MOTO
+ * integration. The payment row is created first (pending), so the callback and
+ * this call settle the same row once; a declined card leaves the invoice open
+ * (the member pays from the invoice page, the grace period applies).
  */
 export async function chargeRenewal(ws: WorkspaceRow, invoiceId: string): Promise<RenewalResult> {
   const db = createAdminClient();
-  const gw = await providerFor("kashier");
-  if (!gw || gw.id !== "kashier") return "not_connected";
-  const k = gw.kashier;
-  const { data: card } = await db.from("billing_cards").select("id, customer_reference").eq("workspace_id", ws.id).eq("provider", "kashier").eq("status", "active").maybeSingle();
+  const gw = await providerFor();
+  const moto = gw?.paymob.motoIntegration;
+  if (!gw || !moto) return "not_connected";
+  const p = gw.paymob;
+  const { data: card } = await db.from("billing_cards").select("id").eq("workspace_id", ws.id).eq("provider", "paymob").eq("status", "active").maybeSingle();
   const { data: token } = card ? await db.rpc("card_token", { p_card: card.id }) : { data: null };
   if (!card || !token) return "no_card";
   const { data: inv } = await db.from("invoices").select("*").eq("id", invoiceId).eq("workspace_id", ws.id).eq("status", "open").maybeSingle();
   if (!inv || !inv.plan || !inv.billing_period) return "error";
   // One automatic attempt a day per invoice.
-  const { count } = await db.from("payments").select("id", { count: "exact", head: true }).eq("invoice_id", inv.id).eq("provider", "kashier").gte("created_at", new Date(Date.now() - 20 * 3_600_000).toISOString());
+  const { count } = await db.from("payments").select("id", { count: "exact", head: true }).eq("invoice_id", inv.id).eq("provider", "paymob").gte("created_at", new Date(Date.now() - 20 * 3_600_000).toISOString());
   if ((count ?? 0) > 0) return "declined";
-  let charge = Number(inv.amount);
-  let rate: number | null = null;
-  if (k.currency === "EGP") {
-    rate = await usdToEgp(db);
-    if (!rate) return "error";
-    charge = toEgp(charge, rate);
-  }
+  const rate = await usdToEgp(db);
+  if (!rate) return "error";
+  const charge = toEgp(Number(inv.amount), rate);
   const { data: owner } = await db.from("workspace_members").select("user_id").eq("workspace_id", ws.id).eq("role", "owner").limit(1).maybeSingle();
+  const { data: prof } = owner ? await db.from("profiles").select("email, full_name").eq("id", owner.user_id).maybeSingle() : { data: null };
   const { data: payment } = await db.from("payments").insert({
     workspace_id: ws.id, kind: "subscription", plan: inv.plan, billing_period: inv.billing_period, amount: Number(inv.amount), currency: inv.currency,
-    invoice_id: inv.id, provider: "kashier", mode: k.mode, created_by: owner?.user_id ?? null, charge_amount: charge, charge_currency: k.currency, fx_rate: rate,
+    invoice_id: inv.id, provider: "paymob", mode: gw.mode, created_by: owner?.user_id ?? null, charge_amount: charge, charge_currency: "EGP", fx_rate: rate,
   }).select("*").single();
   if (!payment) return "error";
   try {
-    const r = await chargeToken(k, {
-      order: payment.id, amount: kashierAmount(charge), currency: k.currency, customerRef: card.customer_reference, cardToken: token,
-      webhookUrl: `${siteUrl()}/api/payments/kashier`, description: `Yolias ${inv.plan} renewal`,
+    // 1) An intention on the MOTO integration (merchant-initiated, no customer, no 3-D Secure).
+    const intent = await fetch(new URL("/v1/intention/", p.baseUrl), {
+      method: "POST",
+      headers: { Authorization: `Token ${p.secretKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(motoIntentionBody({
+        paymentId: payment.id, amount: charge, currency: "EGP", description: `Yolias ${inv.plan} renewal`,
+        customer: { email: prof?.email ?? "", name: prof?.full_name ?? null, country: "EG" },
+        returnUrl: `${siteUrl()}/api/payments/paymob/return`, notifyUrl: `${siteUrl()}/api/payments/paymob`,
+      }, moto)),
+      signal: AbortSignal.timeout(15_000),
     });
-    await settlePayment("kashier", {
-      providerRef: r.orderId, merchantRef: payment.id, providerTxn: r.transactionId ?? `renewal-${payment.id}`,
-      status: r.ok ? "succeeded" : r.status === "PENDING" ? "pending" : "failed", amountMinor: toMinor(charge), currency: k.currency, reason: r.ok ? null : r.message ?? r.status,
+    const ib = (await intent.json().catch(() => null)) as { payment_keys?: { key?: string }[]; intention_order_id?: number } | null;
+    const key = ib?.payment_keys?.[0]?.key;
+    if (!intent.ok || !key) throw new Error(`paymob moto intention ${intent.status}`);
+    await db.from("payments").update({ provider_ref: ib?.intention_order_id ? String(ib.intention_order_id) : null }).eq("id", payment.id);
+    // 2) Pay with the saved card token.
+    const pay = await fetch(new URL("/api/acceptance/payments/pay", p.baseUrl), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: { identifier: token, subtype: "TOKEN" }, payment_token: key }),
+      signal: AbortSignal.timeout(20_000),
     });
-    return r.ok ? "charged" : "declined";
+    const txn = (await pay.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!txn) throw new Error(`paymob token pay ${pay.status}`);
+    const o = outcomeFromTransaction(txn);
+    await settlePayment("paymob", { ...o, merchantRef: payment.id });
+    return o.status === "succeeded" ? "charged" : "declined";
   } catch (e) {
     console.error("[payments] renewal", e instanceof Error ? e.message : e);
     await db.from("payments").update({ status: "failed", failure_reason: "renewal_error" }).eq("id", payment.id).eq("status", "pending");

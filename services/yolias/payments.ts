@@ -18,6 +18,8 @@ export interface PaymobSettings {
   baseUrl: string;
   publicKey: string;
   integrations: { USD: number[] };
+  /** Paymob MOTO integration for renewals from a saved card (D-254), or null. */
+  motoIntegration: number | null;
   secrets: Record<PaymentSecretName, { set: boolean; hint: string | null; updatedAt: string | null }>;
   updatedBy: string | null;
   updatedAt: string | null;
@@ -30,7 +32,7 @@ export async function getPaymobSettings(): Promise<PaymobSettings> {
   ]);
   if (error) throw error;
   if (!row) throw new NotFoundError();
-  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: { USD?: number[] } };
+  const cfg = (row.config ?? {}) as { base_url?: string; public_key?: string; integrations?: { USD?: number[] }; moto_integration?: number | null };
   const s = Object.fromEntries(paymentSecretNames.map((n) => {
     const hit = secrets?.find((x) => x.name === n);
     return [n, { set: Boolean(hit), hint: hit?.hint ?? null, updatedAt: hit?.updated_at ?? null }];
@@ -41,6 +43,7 @@ export async function getPaymobSettings(): Promise<PaymobSettings> {
     baseUrl: cfg.base_url ?? "https://accept.paymob.com",
     publicKey: cfg.public_key ?? "",
     integrations: { USD: cfg.integrations?.USD ?? [] },
+    motoIntegration: Number(cfg.moto_integration) > 0 ? Number(cfg.moto_integration) : null,
     secrets: s,
     updatedBy: row.updated_by,
     updatedAt: row.updated_at,
@@ -171,12 +174,8 @@ export async function paymentTotals(days: number) {
   return out;
 }
 
-/** Kashier (D-235): status and non-secret settings for Admin → Payments. */
-export async function getKashierSettings() {
-  const [{ data: row }, { count }] = await Promise.all([
-    ydb().from("payment_providers").select("*").eq("id", "kashier").maybeSingle(),
-    ydb().from("billing_cards").select("id", { count: "exact", head: true }).eq("provider", "kashier").eq("status", "active"),
-  ]);
-  const cfg = (row?.config ?? {}) as { merchant_id?: string; currency?: string };
-  return { enabled: Boolean(row?.enabled), mode: row?.mode ?? "test", merchantId: cfg.merchant_id ?? null, currency: cfg.currency === "EGP" ? "EGP" : "USD", savedCards: count ?? 0 };
+/** Cards saved on Paymob for renewals (D-254). */
+export async function savedCards(): Promise<number> {
+  const { count } = await ydb().from("billing_cards").select("id", { count: "exact", head: true }).eq("provider", "paymob").eq("status", "active");
+  return count ?? 0;
 }

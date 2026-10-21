@@ -10,14 +10,12 @@ import { hasActivePlan, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { canManageTeam, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
-import { lockedProvider, paymentMethods, paysInEgp } from "@/lib/payments";
+import { paymentMethods, paysInEgp } from "@/lib/payments";
 import { requestCountry } from "@/lib/geo-server";
-import { trialLimits, trialOpen } from "@/lib/trial";
 import { switches } from "@/lib/switches";
 import { creditRate, topUps } from "@/lib/credits";
 import { toEgp, usdToEgp } from "@/lib/payments/fx";
 import { openCheckout } from "@/lib/funnel";
-import type { BillingProvider } from "@/types/database";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).checkout.eyebrow} | Yolias`, robots: noindex };
@@ -36,17 +34,12 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const pending = await pendingPlan(session);
   const picked = isPaidPlan(plan) ? plan : isPaidPlan(pending) ? pending : null;
   const initial = picked ?? current ?? "pro";
-  const [methods, trial] = await Promise.all([paymentMethods(), trialLimits()]);
-  const locked = lockedProvider(ws);
+  const methods = await paymentMethods();
   // Monthly only for new subscriptions (D-247); a running annual one keeps going.
   const initialPeriod = "monthly" as const;
-  // Methods switched off in Admin are hidden (a running subscription keeps its
-  // own, D-213). Kashier shows once its account is connected (D-236).
+  // Paymob only (D-254), hidden when switched off in Admin (D-213).
   const on = await switches();
-  const switchOf = { polar: "payments_polar", paymob: "payments_paymob", kashier: "payments_kashier" } as const;
-  const shown = (["paymob", "kashier", "polar"] as BillingProvider[]).filter((m) => locked === m || (!locked && on[switchOf[m]] && (m !== "kashier" || methods.kashier)));
-  // The free trial comes with the Polar method only; the card gateways pay up front.
-  const trialOffer = (!locked || locked === "polar") && shown.includes("polar") && (await trialOpen(ws)) && !(ws.subscription_status === "active" || ws.subscription_status === "test") ? trial : null;
+  const online = on.payments_paymob && methods.paymob;
   // Top-ups in USD; in Egypt the EGP charge at today's rate is shown under the total.
   const egpBuyer = paysInEgp(ws, await requestCountry());
   const fx = egpBuyer ? await usdToEgp() : null;
@@ -54,7 +47,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const errors = t.checkout.errors;
   // Journey tracking (D-212): one checkout session per visit (reloads continue it).
   const checkoutId = canManageTeam(session) && !(current && current === initial)
-    ? await openCheckout(ws, session.userId, { plan: initial, period: initialPeriod, amountUsd: (() => { const m = planPrice(plans[initial], currency); return m == null ? null : priceFor(m, initialPeriod); })(), trialOffered: Boolean(trialOffer) })
+    ? await openCheckout(ws, session.userId, { plan: initial, period: initialPeriod, amountUsd: (() => { const m = planPrice(plans[initial], currency); return m == null ? null : priceFor(m, initialPeriod); })(), trialOffered: false })
     : null;
   const initialError = error === "admins" ? errors.admins : error === "not_connected" ? errors.notConnected : error === "plan" ? errors.choosePlan : error === "payment" ? errors.paymentFailed : null;
 
@@ -73,16 +66,13 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         currentPeriod={current ? ws.billing_period : null}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
-        methods={methods}
+        online={online}
         email={session.email}
         workspaceName={ws.name ?? ""}
         continueHref={session.profile.onboarded_at ? "/" : "/onboarding"}
         options={offeredPlans.map((p) => ({ id: p, price: planPrice(plans[p], currency) ?? 0, priceEgp: plans[p].priceEgp, prospects: plans[p].prospects }))}
         currency={currency}
-        locked={locked}
-        trial={trialOffer}
         initialError={initialError}
-        shown={shown}
         checkoutId={checkoutId}
         egp={egpBuyer}
         topUps={packs}

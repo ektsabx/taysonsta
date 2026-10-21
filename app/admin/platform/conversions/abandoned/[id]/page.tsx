@@ -84,7 +84,7 @@ export default async function CheckoutDetailPage({ params }: { params: Promise<{
           <div className="bos-table-scroll"><table className="bos-table"><thead><tr><th><Tx>الوقت</Tx></th><th><Tx>المزود</Tx></th><th><Tx>المرجع</Tx></th><th><Tx>المبلغ</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
             <tbody>{d.payments.map((p) => <tr key={p.id}><td>{dt(p.created_at)}</td><td>{p.provider}</td><td dir="ltr" style={{ fontSize: 12 }}>{p.provider_txn ?? p.provider_ref ?? p.id}</td><td className="bos-num">{p.currency} {Number(p.amount)}{p.charge_currency && p.charge_currency !== p.currency ? <span className="cell-sub">{p.charge_currency} {Number(p.charge_amount)}</span> : null}</td><td>{p.status}{p.failure_reason ? <span className="cell-sub">{p.failure_reason}</span> : null}</td></tr>)}</tbody>
           </table></div>
-        ) : <EmptyState title="لا توجد محاولات دفع مسجلة لهذه العملية" description="Polar يسجّل الدفعة بعد تأكيده فقط؛ المحاولات الفاشلة على Polar تظهر في سجل الأحداث إذا كان حدث checkout.updated مفعّلًا." />}
+        ) : <EmptyState title="لا توجد محاولات دفع مسجلة لهذه العملية" description="محاولات الدفع على Paymob تظهر هنا بعد إنشاء صفحة الدفع." />}
       </Card>
       <Card title="ما حدث بعد ذلك">
         {d.later.length ? (

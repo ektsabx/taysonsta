@@ -288,7 +288,7 @@ export const articles: HelpArticle[] = [
         title: "Changing your plan",
         summary: "Move between Pay As You Go, Pro and Growth, or cancel.",
         blocks: [
-          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan** (or **Manage billing** when your subscription is with Polar, which opens its customer portal). Pick the plan and confirm. To top up credit instead, choose **Pay As You Go** in Checkout." },
+          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan**. Pick the plan and confirm. To top up credit instead, choose **Pay As You Go** in Checkout." },
           { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period; after that new searches stop until you subscribe again, and everything stays saved. You can resume before then." },
           { p: "Your new limits apply right away. A plan’s prospects reset on the first day of each month; credit you topped up stays until you use it." },
         ],
@@ -297,7 +297,7 @@ export const articles: HelpArticle[] = [
         title: "تغيير خطتك",
         summary: "انتقل بين الدفع حسب الاستخدام وبرو والنمو، أو ألغِ الاشتراك.",
         blocks: [
-          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة** (أو **إدارة الفوترة** إذا كان اشتراكك عبر Polar، فتفتح بوابة العملاء الخاصة به). اختر الخطة وأكّد. ولشحن الرصيد بدلًا من ذلك، اختر **الدفع حسب الاستخدام** في صفحة الدفع." },
+          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة**. اختر الخطة وأكّد. ولشحن الرصيد بدلًا من ذلك، اختر **الدفع حسب الاستخدام** في صفحة الدفع." },
           { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، وبعدها تتوقف عمليات البحث الجديدة حتى تشترك من جديد مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },
           { p: "تُطبق الحدود الجديدة فورًا. يتجدد عملاء الخطة في أول يوم من كل شهر، ويبقى الرصيد الذي شحنته حتى تستخدمه." },
         ],

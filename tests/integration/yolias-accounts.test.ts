@@ -133,9 +133,9 @@ test("conversions: checkout follow-up, funnel and switches", { skip: skip && "ne
 
   // Switches: audited, read back.
   switchesBefore = (await ydb().from("site_settings").select("value").eq("key", "platform_switches").maybeSingle()).data?.value ?? {};
-  await setSwitch(admin, "payments_polar", false);
-  assert.equal((await getSwitches()).values.payments_polar, false);
-  await setSwitch(admin, "payments_polar", true);
-  assert.equal((await getSwitches()).values.payments_polar, true);
+  await setSwitch(admin, "buy_more", false);
+  assert.equal((await getSwitches()).values.buy_more, false);
+  await setSwitch(admin, "buy_more", true);
+  assert.equal((await getSwitches()).values.buy_more, true);
   await assert.rejects(setSwitch(admin, "everything", false), ValidationError);
 });

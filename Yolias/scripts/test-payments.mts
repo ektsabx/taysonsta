@@ -6,14 +6,17 @@
 // webhook starts the plan with an invoice in the workspace currency, replays
 // are no-ops, bad signatures and wrong amounts change nothing, failed
 // payments don't start anything, packs grant prospects, refunds void the
-// invoice, and the signed redirect settles too.
+// invoice, and the signed redirect settles too. Renewals from a saved card
+// (D-254, was Kashier): a signed TOKEN callback saves the card (a bad
+// signature saves nothing), and the renewal is charged through the MOTO
+// integration with the saved token.
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createClient } from "@supabase/supabase-js";
 import { startCheckout } from "@/lib/payments/index.ts";
 import { billingSweep, settleSubscription } from "@/lib/billing.ts";
-import { hmacStringFromTransaction, signPaymob } from "@/lib/payments/paymob.ts";
+import { hmacStringFromToken, hmacStringFromTransaction, signPaymob } from "@/lib/payments/paymob.ts";
 import type { Database, WorkspaceRow } from "@/types/database.ts";
 // Never the owner's real keys from Yolias Admin → Integrations (D-132): no LLM keys in this test.
 (await import("@/lib/integrations.ts")).setIntegrationsForTests({});
@@ -26,16 +29,32 @@ const HMAC = "local-test-hmac-secret";
 // ── Paymob stand-in: POST /v1/intention/ ──
 let orderSeq = 9_000_000 + Math.floor(Math.random() * 1_000_000);
 const intentions: Record<string, unknown>[] = [];
+// Payment keys of MOTO intentions → what they charge (the token payment step).
+const keys = new Map<string, { ref: string; order: number; cents: number }>();
+const tokenPays: Record<string, unknown>[] = [];
 const server = createServer((req, res) => {
   let body = "";
   req.on("data", (c) => (body += c));
   req.on("end", () => {
+    // Pay with a saved card token (no auth header: the payment key authorizes it).
+    if (req.method === "POST" && req.url === "/api/acceptance/payments/pay") {
+      const b = JSON.parse(body) as { source?: { identifier?: string; subtype?: string }; payment_token?: string };
+      tokenPays.push(b);
+      const k = keys.get(b.payment_token ?? "");
+      if (!k || b.source?.subtype !== "TOKEN" || b.source?.identifier !== "tok_local_card") { res.writeHead(400).end("{}"); return; }
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(txn(k.ref, String(k.order), k.cents, { is_3d_secure: false, integration_id: 333 })));
+      return;
+    }
     if (req.method !== "POST" || req.url !== "/v1/intention/" || req.headers.authorization !== "Token local-secret-key") {
       res.writeHead(401).end();
       return;
     }
-    intentions.push(JSON.parse(body));
-    res.writeHead(201, { "content-type": "application/json" }).end(JSON.stringify({ id: `pi_test_${orderSeq}`, intention_order_id: ++orderSeq, client_secret: `csk_test_${orderSeq}` }));
+    const intent = JSON.parse(body) as { special_reference?: string; amount?: number; payment_methods?: number[] };
+    intentions.push(intent);
+    const order = ++orderSeq;
+    const key = `pk_local_${order}`;
+    keys.set(key, { ref: intent.special_reference ?? "", order, cents: intent.amount ?? 0 });
+    res.writeHead(201, { "content-type": "application/json" }).end(JSON.stringify({ id: `pi_test_${order}`, intention_order_id: order, client_secret: `csk_test_${order}`, payment_keys: [{ key, integration: intent.payment_methods?.[0] ?? null }] }));
   });
 });
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
@@ -199,6 +218,32 @@ try {
   assert.equal(new Date(renewed.current_period_end!).getTime(), new Date(open!.period_end).getTime());
   assert.equal((await db.from("invoices").select("status").eq("id", open!.id).single()).data!.status, "paid");
 
+  // 6b) A saved card pays the renewal by itself (D-254): TOKEN callback → card in Vault → MOTO charge.
+  const tokenObj = { id: 77, token: "tok_local_card", masked_pan: "xxxx-xxxx-xxxx-2346", card_subtype: "MasterCard", order_id: Number(renewal!.provider_ref), email, merchant_id: 1, created_at: new Date().toISOString() };
+  const tokenCallback = (secret = HMAC) => fetch(`${app}/api/payments/paymob?hmac=${signPaymob(hmacStringFromToken(tokenObj), secret)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "TOKEN", obj: tokenObj }) });
+  assert.equal((await tokenCallback("wrong-secret")).status, 401, "a TOKEN callback with a bad signature is refused");
+  assert.equal((await db.from("billing_cards").select("id").eq("workspace_id", wsId)).data!.length, 0, "and saves nothing");
+  assert.equal((await tokenCallback()).status, 200);
+  const { data: card } = await db.from("billing_cards").select("*").eq("workspace_id", wsId).single();
+  assert.equal(card!.provider, "paymob"); assert.equal(card!.last4, "2346"); assert.equal(card!.status, "active");
+  assert.equal((await db.rpc("card_token", { p_card: card!.id })).data, "tok_local_card", "the token is kept in Vault");
+  // Without Paymob's MOTO integration the renewal stays an open invoice.
+  await db.from("workspaces").update({ subscription_status: "active", current_period_end: new Date(Date.now() - 86_400_000).toISOString() }).eq("id", wsId);
+  await billingSweep();
+  assert.equal((await ws(wsId)).subscription_status, "past_due", "no MOTO integration: the invoice waits for the member");
+  assert.equal(tokenPays.length, 0);
+  // With it, the next sweep charges the saved card.
+  await db.from("payment_providers").update({ config: { base_url: `http://127.0.0.1:${port}`, public_key: "pk_test_local", integrations: { USD: [222] }, moto_integration: 333 } }).eq("id", "paymob");
+  const { data: due } = await db.from("invoices").select("*").eq("workspace_id", wsId).eq("status", "open").single();
+  const sweep2 = await billingSweep();
+  assert.ok(sweep2.renewed >= 1, `renewed from the saved card: ${JSON.stringify(sweep2)}`);
+  assert.equal(tokenPays.length, 1, "one token payment");
+  assert.deepEqual(intentions.at(-1)!.payment_methods, [333], "on the MOTO integration only");
+  assert.equal((await ws(wsId)).subscription_status, "active");
+  assert.equal((await db.from("invoices").select("status").eq("id", due!.id).single()).data!.status, "paid");
+  await billingSweep();
+  assert.equal(tokenPays.length, 1, "never charged twice");
+
   // 7) Unpaid past the grace period → the plan ends (no Free since 2026-10-12), open invoice voided.
   const longAgo = new Date(Date.now() - 10 * 86_400_000).toISOString();
   await db.from("workspaces").update({ subscription_status: "past_due", current_period_end: longAgo }).eq("id", wsId);
@@ -208,7 +253,7 @@ try {
   assert.equal(ended.plan, "pro", "the plan isn't swapped for Free");
   assert.equal((await db.from("invoices").select("status").eq("id", unpaid!.id).single()).data!.status, "void");
 
-  console.log("✓ payments: checkout, reuse on repeat click, signature, interrupted fulfilment retried once, amount check, idempotency, failure, pack, redirect, refund, live renewal, grace period ends the plan");
+  console.log("✓ payments: checkout, reuse on repeat click, signature, interrupted fulfilment retried once, amount check, idempotency, failure, pack, redirect, refund, live renewal, saved card (TOKEN) and renewal charged from it (MOTO), grace period ends the plan");
 } finally {
   if (userId) {
     const { data: prof } = await db.from("profiles").select("workspace_id").eq("id", userId).maybeSingle();

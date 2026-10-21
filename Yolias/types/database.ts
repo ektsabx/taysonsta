@@ -565,7 +565,7 @@ export type AdminAccountRow = {
 };
 /** A saved card (Kashier token in Vault), D-235. */
 export type BillingCardRow = {
-  id: string; workspace_id: string; provider: "kashier"; customer_reference: string; token_secret_id: string | null;
+  id: string; workspace_id: string; provider: "kashier" | "paymob"; customer_reference: string; token_secret_id: string | null;
   brand: string | null; last4: string | null; exp_month: string | null; exp_year: string | null; status: "active" | "removed"; created_at: string; updated_at: string;
 };
 export type PaymentProviderRow = { id: "paymob" | "kashier"; enabled: boolean; mode: "test" | "live"; config: Json; updated_by: string | null; updated_at: string };

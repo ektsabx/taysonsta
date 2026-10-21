@@ -11,7 +11,7 @@ import type { ResolvedConnection } from "@/services/bos/integrations";
 // secrets in Supabase Vault. Yolias never reads these keys from anywhere else.
 
 /** Hub provider → what it becomes in Yolias. */
-const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", resend: "resend", millionverifier: "intel:millionverifier" };
+const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", turnstile: "turnstile", search_console: "search_console", resend: "resend", millionverifier: "intel:millionverifier" };
 
 export function usedByYolias(provider: string): boolean {
   return provider in targets;
@@ -25,19 +25,13 @@ function integrationIds(v: string | undefined): number[] {
 
 /** Checks what Yolias needs before the hub saves a connection. */
 export function checkForYolias(provider: string, config: Record<string, string>) {
-  if (provider === "kashier") {
-    if (config.mode !== "test" && config.mode !== "live") throw new ValidationError("الوضع غير صالح.", { mode: "تجريبي أو حقيقي" });
-    if (!/^MID-[0-9]{1,8}-[0-9]{1,8}$/.test((config.merchant_id ?? "").trim())) throw new ValidationError("Merchant ID غير صالح.", { merchant_id: "كما يظهر في لوحة كاشير، مثل MID-1234-567" });
-    if (config.currency !== "USD" && config.currency !== "EGP") throw new ValidationError("العملة غير صالحة.", { currency: "USD أو EGP" });
-    if (config.save_card !== "forced" && config.save_card !== "optional") throw new ValidationError("اختيار حفظ البطاقة غير صالح.", { save_card: "إجباري أو اختياري" });
-    return;
-  }
   if (provider !== "paymob") return;
   if (config.mode !== "test" && config.mode !== "live") throw new ValidationError("الوضع غير صالح.", { mode: "تجريبي أو حقيقي" });
   const base = (config.base_url ?? "").replace(/\/+$/, "");
   if (!/^https:\/\/[a-z0-9.-]+\.paymob\.com$/i.test(base)) throw new ValidationError("الرابط غير صالح.", { base_url: "رابط Paymob لمنطقة الحساب، مثل https://accept.paymob.com" });
   if (!/^[A-Za-z0-9_-]{8,200}$/.test(config.public_key ?? "")) throw new ValidationError("المفتاح العام غير صالح.", { public_key: "كما يظهر في لوحة Paymob" });
   if (!integrationIds(config.integrations_usd).length) throw new ValidationError("أضف رقم تكامل واحداً على الأقل.", { integrations_usd: "مطلوب" });
+  if ((config.moto_integration ?? "").trim() && !/^\d{1,12}$/.test(config.moto_integration.trim())) throw new ValidationError("رقم تكامل MOTO غير صالح.", { moto_integration: "رقم واحد" });
 }
 
 /**
@@ -53,24 +47,6 @@ export async function syncToYolias(provider: string, conn: ResolvedConnection | 
     if (error) throw new ValidationError(`حُفظ الحساب لكن تعذّر نقله إلى يولياس: ${error.message}`);
   };
 
-  if (target === "kashier") {
-    if (!conn) {
-      await run(ydb().from("payment_providers").update({ enabled: false, updated_by: by, updated_at: new Date().toISOString() }).eq("id", "kashier"));
-      await run(ydb().rpc("clear_payment_secret", { p_provider: "kashier", p_name: "api_key" }));
-      await run(ydb().rpc("clear_payment_secret", { p_provider: "kashier", p_name: "secret_key" }));
-      return;
-    }
-    const c = conn.connection.config as Record<string, string>;
-    await run(ydb().rpc("set_payment_secret", { p_provider: "kashier", p_name: "api_key", p_secret: conn.secrets.api_key }));
-    await run(ydb().rpc("set_payment_secret", { p_provider: "kashier", p_name: "secret_key", p_secret: conn.secrets.secret_key }));
-    await run(ydb().from("payment_providers").upsert({
-      id: "kashier", enabled: true, mode: c.mode === "live" ? "live" : "test",
-      config: { merchant_id: (c.merchant_id ?? "").trim(), currency: c.currency === "EGP" ? "EGP" : "USD", save_card: c.save_card === "optional" ? "optional" : "forced" },
-      updated_by: by, updated_at: new Date().toISOString(),
-    }));
-    return;
-  }
-
   if (target === "paymob") {
     if (!conn) {
       await run(ydb().from("payment_providers").update({ enabled: false, updated_by: by, updated_at: new Date().toISOString() }).eq("id", "paymob"));
@@ -84,7 +60,7 @@ export async function syncToYolias(provider: string, conn: ResolvedConnection | 
     await run(ydb().from("payment_providers").update({
       enabled: true,
       mode: c.mode === "live" ? "live" : "test",
-      config: { base_url: (c.base_url ?? "").replace(/\/+$/, ""), public_key: c.public_key ?? "", integrations: { USD: integrationIds(c.integrations_usd) } },
+      config: { base_url: (c.base_url ?? "").replace(/\/+$/, ""), public_key: c.public_key ?? "", integrations: { USD: integrationIds(c.integrations_usd) }, moto_integration: /^\d{1,12}$/.test((c.moto_integration ?? "").trim()) ? Number(c.moto_integration.trim()) : null },
       updated_by: by,
       updated_at: new Date().toISOString(),
     }).eq("id", "paymob"));

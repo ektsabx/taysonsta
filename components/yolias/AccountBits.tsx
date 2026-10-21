@@ -72,7 +72,7 @@ export const sourceLabel: Record<string, string> = {
   podcast: "بودكاست", other: "أخرى", prefer_not_to_say: "فضّل عدم الإجابة",
 };
 
-export const providerLabel: Record<string, string> = { polar: "Polar (بطاقة)", paymob: "Paymob (مصر)" };
+export const providerLabel: Record<string, string> = { paymob: "Paymob", polar: "Polar (قديم)", kashier: "Kashier (قديم)" };
 
 export const money = (n: number | null | undefined) => (n == null ? "—" : `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(Number(n))}`);
 export const pct = (v: number | null | undefined) => (v == null ? "—" : `${Math.round(v * 1000) / 10}%`);

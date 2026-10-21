@@ -9,7 +9,7 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { planName } from "@/lib/plans";
 import { canManageTeam, requireUser } from "@/lib/session";
-import { egpPlanPrice, invoiceGateway, paysInEgp, providerFor } from "@/lib/payments";
+import { egpPlanPrice, paysInEgp, providerFor } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { RENEWAL_GRACE_DAYS } from "@/lib/billing";
 import { getInvoice } from "@/services/workspace";
@@ -56,7 +56,7 @@ export default async function InvoicePage({ params }: PageProps<"/invoices/[id]"
   const name = inv.plan ? planName(inv.plan, t) : fmt(t.buyMore.packName, { count: formatNumber(inv.prospects ?? 0, locale) });
   const period = inv.kind === "prospect_pack" ? t.invoicePay.pack : inv.billing_period === "annual" ? t.plans.billedAnnually : t.plans.billedMonthly;
   const dueAt = new Date(new Date(inv.period_start).getTime() + RENEWAL_GRACE_DAYS * 86_400_000).toISOString();
-  const canPay = inv.status === "open" && canManageTeam(session) && Boolean(await providerFor(invoiceGateway(session.workspace)));
+  const canPay = inv.status === "open" && canManageTeam(session) && Boolean(await providerFor());
 
   return (
     <div className="invoice-page">

@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loadKashier } from "@/lib/payments/kashier";
+import { loadPaymob } from "@/lib/payments";
 import { loadIntegrations } from "@/lib/integrations";
 import { resendKey } from "@/lib/email/send";
 import type { ServiceStatus, StatusComponentRow } from "@/types/database";
@@ -98,9 +98,9 @@ export async function runCheck(c: Pick<StatusComponentRow, "check_kind">, s: Sta
       return reachCheck(LLM_HOSTS[route.provider], s);
     }
     case "payments": {
-      const kashier = await loadKashier(db).catch(() => null);
-      if (!kashier) return { status: "no_data", latency: null, detail: "not_connected" };
-      const reach = await httpCheck(kashier.mode === "live" ? "https://api.kashier.io" : "https://test-api.kashier.io", { method: "HEAD" }, s);
+      const paymob = await loadPaymob(db).catch(() => null);
+      if (!paymob) return { status: "no_data", latency: null, detail: "not_connected" };
+      const reach = await httpCheck(paymob.baseUrl, { method: "HEAD" }, s);
       if (reach.status === "major_outage") return { ...reach, status: "partial_outage", detail: `provider_${reach.detail}` };
       const { data } = await db.from("payments").select("status, failure_reason").gte("created_at", since(120)).limit(2000);
       const rows = data ?? [];

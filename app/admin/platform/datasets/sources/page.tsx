@@ -72,7 +72,7 @@ export default async function OpenSourcesPage() {
         <p className="bos-faint"><Tx>أكثر من 100 مليون مكان حول العالم بالاسم والتصنيف والعنوان والهاتف والموقع. يُنشر كملفات Parquet ضخمة، فيُستورد كملف:</Tx></p>
         <ol className="bos-faint" style={{ paddingInlineStart: 18, lineHeight: 1.9 }}>
           <li><Tx>سجّل في Hugging Face واقبل شروط مجموعة foursquare/fsq-os-places.</Tx></li>
-          <li><Tx>صدّر دولة واحدة إلى CSV بـ DuckDB، مثال: select name, website, email, tel, locality, address, fsq_category_labels from read_parquet(…) where country = &apos;EG&apos;.</Tx></li>
+          <li><Tx>{"صدّر دولة واحدة إلى CSV بـ DuckDB، مثال: select name, website, email, tel, locality, address, fsq_category_labels from read_parquet(…) where country = 'EG'."}</Tx></li>
           <li><Tx>ارفع الملف من «استيراد بيانات» بنوع «بيانات مفتوحة» والترخيص Apache 2.0، وفعّل «مسموح عرضها للعملاء».</Tx></li>
         </ol>
         {licence("Apache 2.0 · Foursquare", "مسموح للعملاء مع ذكر المصدر.")}

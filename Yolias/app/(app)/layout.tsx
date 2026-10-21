@@ -9,10 +9,8 @@ import { shouldAskForReview } from "@/lib/review-prompt";
 import { getPlanCatalog } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
-import { billingRoute, paymentMethods, paymentsConnected } from "@/lib/payments";
-import { loadPolar, polarPortalUrl } from "@/lib/payments/polar";
+import { billingRoute, paymentsConnected } from "@/lib/payments";
 import { canUseApp, planPrice } from "@/lib/plans";
-import { trialLimits, trialOpen } from "@/lib/trial";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
 import type { Metadata as NoindexMetadata } from "next";
@@ -51,10 +49,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const h = await headers();
 
   // Everything the shell needs, at once (D-251: no step waits for another it doesn't need).
-  const [catalog, route, polar, recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
+  const [catalog, route, recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
     getPlanCatalog(),
     billingRoute(workspace),
-    loadPolar(),
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
@@ -69,7 +66,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   const plan = catalog[workspace.plan];
-  const polarEnv = polar?.environment ?? "production";
   const name = profile.full_name || session.email;
   const data: ShellData = {
     user: {
@@ -114,7 +110,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     usage,
     invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
     packs: packs.map((p) => ({ id: p.id, prospects: p.prospects, emails: p.emails, price: Number(p.price_usd) })),
-    billing: { online, testMode: billingTestMode(), provider: route, portalUrl: route === "polar" && workspace.polar_subscription_id ? polarPortalUrl(polarEnv) : null },
+    billing: { online, testMode: billingTestMode(), provider: route, portalUrl: null },
     unread,
     team: {
       members: team.members.map((m) => ({
@@ -131,8 +127,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     device: { label: deviceLabel(h.get("user-agent") ?? ""), ip: maskIp(h.get("x-forwarded-for") ?? h.get("x-real-ip")) },
     welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
     inboxUnread,
-    // The free trial comes with Polar only; Kashier charges the first period (D-235).
-    planGate: canUseApp(workspace) ? null : { trialDays: (await paymentMethods()).polar && (await trialOpen(workspace)) ? (await trialLimits()).days : null },
+    // No free trial (D-246, D-254): the gate never offers one.
+    planGate: canUseApp(workspace) ? null : { trialDays: null },
   };
 
   const jar = await cookies();
