@@ -178,7 +178,7 @@ export const en = {
     orderSummary: "Order summary",
     billedMonthly: "Billed monthly",
     subtotal: "Subtotal",
-    payInEgp: "You’ll pay in Egyptian pounds:",
+    payInEgp: "You’ll pay in Egyptian pounds",
     tax: "Tax",
     taxNotIncluded: "Not included",
     total: "Total due today",
@@ -306,6 +306,8 @@ export const en = {
   },
   searchTypes: { people: "People search", companies: "Company search", local_businesses: "Local business search", company_lookalikes: "Company lookalikes" },
   setup: {
+    blocked: { noPlan: "The search didn’t start: top up credit or choose a plan first.", noCredit: "The search didn’t start: you have no prospects left." },
+    blockedCta: { noPlan: "Top up or choose a plan", noCredit: "Buy more prospects" },
     title: "Search setup",
     intro: "Here is what Yolias understood. Check it, fill in anything missing, then start the search.",
     target: "What are you looking for?",

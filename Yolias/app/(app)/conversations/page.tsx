@@ -30,8 +30,10 @@ export default async function ConversationsPage({ searchParams }: { searchParams
   const q = one(sp.q).slice(0, 100);
   const leadId = /^[0-9a-f-]{36}$/i.test(one(sp.lead)) ? one(sp.lead) : null;
   const tab = one(sp.tab) === "campaigns" ? "campaigns" : "threads";
+  // A campaign opens these same conversations, filtered to its leads (D-252).
+  const campaignId = /^[0-9a-f-]{36}$/i.test(one(sp.campaign)) ? one(sp.campaign) : null;
   const [t, locale, list, thread, boxes, approvals, campaigns] = await Promise.all([
-    getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
+    getDictionary(), getLocale(), listInbox(session.workspace.id, filter, q, null, campaignId), leadId ? inboxThread(session.workspace.id, leadId) : Promise.resolve(null),
     memberMailboxes(session.workspace.id, session.userId),
     // What the agent is waiting for the member to approve (moved here from the AI Agent page, D-233).
     (await createClient()).from("agent_pending_actions").select("id, lead_id, tool, input, summary, created_at, lead:sales_leads(name)")
@@ -45,13 +47,14 @@ export default async function ConversationsPage({ searchParams }: { searchParams
   const tz = session.profile.timezone;
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams();
-    const cur: Record<string, string | null> = { filter: filter === "all" ? null : filter, q: q || null, lead: leadId, ...patch };
+    const cur: Record<string, string | null> = { campaign: campaignId, filter: filter === "all" ? null : filter, q: q || null, lead: leadId, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `/conversations?${s}` : "/conversations";
   };
   const statusCls = { draft: "status-muted", active: "status-active", paused: "status-muted", archived: "status-muted" } as const;
   const unread = list.counts.unread ?? 0;
+  const filtered = campaignId ? campaigns.find((x) => x.id === campaignId) ?? null : null;
 
   return (
     <div className="page-view">
@@ -82,14 +85,15 @@ export default async function ConversationsPage({ searchParams }: { searchParams
                   {campaigns.map((x) => (
                     <tr key={x.id}>
                       <td>
-                        <Link className="entity-link" href={`/outreach/${x.id}`}>
+                        <Link className="entity-link" href={`/conversations?campaign=${x.id}`}>
                           <strong>{x.name}</strong>
                           <span className="cell-sub">{[o.channels[x.channel], x.goal].filter(Boolean).join(" · ")}</span>
                         </Link>
+                        <Link className="cell-sub conv-settings-link" href={`/outreach/${x.id}`}>{c.campaignSettings}</Link>
                       </td>
                       <td><span className={statusCls[x.status]}>{o.status[x.status]}</span></td>
                       <td>{x.stats.leads}</td><td>{x.stats.drafts}</td><td>{x.stats.sent}</td>
-                      <td>{x.stats.replies ? <Link className="entity-link" href="/conversations">{x.stats.replies}</Link> : 0}</td>
+                      <td>{x.stats.replies ? <Link className="entity-link" href={`/conversations?campaign=${x.id}`}>{x.stats.replies}</Link> : 0}</td>
                       <td>{x.stats.meetings}</td>
                       <td className="cell-sub">{shortDate(x.updated_at, locale, tz)}</td>
                     </tr>
@@ -100,6 +104,13 @@ export default async function ConversationsPage({ searchParams }: { searchParams
           </div>
         </div>
       ) : (<>
+      {campaignId && (
+        <div className="conv-filter" role="status">
+          <span>{c.filteredBy} <strong>{filtered?.name ?? "-"}</strong></span>
+          {filtered && <Link className="cell-sub" href={`/outreach/${filtered.id}`}>{c.campaignSettings}</Link>}
+          <Link className="btn-secondary ws-btn-sm" href={link({ campaign: null, lead: null })}>{c.clearFilter}</Link>
+        </div>
+      )}
       <div className="inbox-approvals">
         <PendingApprovals timeZone={tz} approvals={(approvals.data ?? []).map((x) => ({ id: x.id, leadId: x.lead_id!, leadName: (x.lead as unknown as { name: string } | null)?.name ?? "-", tool: x.tool, input: x.input, summary: x.summary, createdAt: x.created_at }))} />
       </div>
@@ -108,6 +119,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
           <div className="inbox-list-head">
             <form method="get" action="/conversations" className="toolbar-search">
               {filter !== "all" && <input type="hidden" name="filter" value={filter} />}
+              {campaignId && <input type="hidden" name="campaign" value={campaignId} />}
               <Search />
               <input className="form-input" name="q" defaultValue={q} placeholder={w.search} aria-label={w.search} />
             </form>

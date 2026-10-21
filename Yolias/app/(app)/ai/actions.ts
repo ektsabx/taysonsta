@@ -176,3 +176,15 @@ export async function saveCustomerFromAnalysis(c: WebsiteAnalysis["customer"]): 
     regions: cur?.regions ?? "", budget: cur?.budget ?? "", customer_type: c.customer_type ?? cur?.customer_type ?? "b2b", extra_criteria: cur?.extra_criteria ?? "",
   });
 }
+
+/** Yolias AI finds real competitors (Google-grounded, websites checked) and adds the new ones (D-251). */
+export async function discoverCompetitorsAction(): Promise<AiResult & { added?: number }> {
+  const { session, t, allowed } = await manager();
+  if (!allowed) return { ok: false, error: t.common.onlyManagers };
+  const { discoverCompetitors } = await import("@/lib/ai-workspace/competitors");
+  const r = await discoverCompetitors(session.workspace, session.userId);
+  const k = t.ai.knowledge.competitor;
+  if (!r.ok) return { ok: false, error: r.error === "no_profile" ? k.findNoProfile : r.error === "not_configured" ? k.findUnavailable : k.findFailed };
+  revalidatePath("/ai/knowledge");
+  return { ok: true, added: r.added };
+}

@@ -31,7 +31,9 @@ export async function classifyIntent(text: string, workspaceId: string): Promise
   const quick = ruleIntent(text);
   if (quick === "search") return "search";
   try {
-    const r = await runStructured(tasks.extraction, {
+    // A slow model must not hold the first message (D-251): after 12 s the rules decide.
+    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("intent timeout")), 12_000));
+    const r = await Promise.race([timeout, runStructured(tasks.extraction, {
       system: [
         "Classify one message typed into a B2B customer-acquisition assistant.",
         'intent = "search" when the user wants to find new companies, local businesses or people to sell to (a new prospect search), even if they also mention a campaign afterwards.',
@@ -41,7 +43,7 @@ export async function classifyIntent(text: string, workspaceId: string): Promise
       schema: { type: "object", properties: { intent: { type: "string", enum: ["search", "assistant"] } }, required: ["intent"], additionalProperties: false },
       schemaName: "intent",
       maxTokens: 50,
-    }, (x) => { const v = Schema.safeParse(x); return v.success ? v.data.intent : null; }, { workspaceId, campaignId: null, promptVersion: INTENT_PROMPT_VERSION });
+    }, (x) => { const v = Schema.safeParse(x); return v.success ? v.data.intent : null; }, { workspaceId, campaignId: null, promptVersion: INTENT_PROMPT_VERSION })]);
     return r.data;
   } catch (e) {
     if (!(e instanceof LlmNotConfiguredError)) console.error("[intent]", e instanceof Error ? e.message : e);

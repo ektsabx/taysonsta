@@ -29,15 +29,23 @@ export async function inboxChannels(workspaceId: string): Promise<string[]> {
   return [...new Set(["email", "linkedin", ...(data ?? []).map((m) => m.channel)])];
 }
 
-export async function listInbox(workspaceId: string, filter: InboxFilter, search: string, channel: string | null = null): Promise<{ items: InboxItem[]; counts: Record<InboxFilter, number> }> {
+export async function listInbox(workspaceId: string, filter: InboxFilter, search: string, channel: string | null = null, campaignId: string | null = null): Promise<{ items: InboxItem[]; counts: Record<InboxFilter, number> }> {
   const db = await createClient();
-  // Channel filter: conversations with at least one message on that channel.
-  const channelIds = channel
-    ? [...new Set(((await db.from("outreach_messages").select("lead_id").eq("workspace_id", workspaceId).eq("channel", channel as never).not("lead_id", "is", null).limit(5000)).data ?? []).map((m) => m.lead_id!))]
-    : null;
+  // The id lists the filters need, fetched together (D-251: fewer round trips).
+  const [byChannel, byCampaign, sentIds] = await Promise.all([
+    // Channel filter: conversations with at least one message on that channel.
+    channel
+      ? db.from("outreach_messages").select("lead_id").eq("workspace_id", workspaceId).eq("channel", channel as never).not("lead_id", "is", null).limit(5000).then((r) => [...new Set((r.data ?? []).map((m) => m.lead_id!))])
+      : Promise.resolve(null),
+    // Campaign filter (D-252): the same conversations, only the leads of that campaign.
+    campaignId
+      ? db.from("outreach_enrollments").select("lead_id").eq("workspace_id", workspaceId).eq("campaign_id", campaignId).limit(5000).then((r) => [...new Set((r.data ?? []).map((e) => e.lead_id))])
+      : Promise.resolve(null),
+    leadIdsWithMessages(workspaceId, "sent"),
+  ]);
+  const channelIds = byChannel && byCampaign ? byChannel.filter((id) => byCampaign.includes(id)) : byChannel ?? byCampaign;
   const none = ["00000000-0000-0000-0000-000000000000"];
   const base = () => db.from("crm_leads").select("*", { count: "exact" }).eq("workspace_id", workspaceId);
-  const sentIds = await leadIdsWithMessages(workspaceId, "sent");
   const apply = (q0: ReturnType<typeof base>, f: InboxFilter) => {
     const q = channelIds ? q0.in("id", channelIds.length ? channelIds.slice(0, 1000) : none) : q0;
     switch (f) {
@@ -48,15 +56,18 @@ export async function listInbox(workspaceId: string, filter: InboxFilter, search
       case "done": return q.in("thread_status", ["done", "other"]);
     }
   };
-  const counts = Object.fromEntries(await Promise.all(INBOX_FILTERS.map(async (f) => {
-    const { count } = await apply(db.from("crm_leads").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId), f);
-    return [f, count ?? 0];
-  }))) as Record<InboxFilter, number>;
-
   let q = apply(base(), filter);
   const s = term(search);
   if (s) q = q.or(`name.ilike.%${s}%,company_name.ilike.%${s}%,email.ilike.%${s}%`);
-  const { data } = await q.order("thread_last_message_at", { ascending: false, nullsFirst: false }).order("last_activity_at", { ascending: false }).limit(LIMIT);
+  // The counts and the list together, not one after the other.
+  const [countPairs, { data }] = await Promise.all([
+    Promise.all(INBOX_FILTERS.map(async (f) => {
+      const { count } = await apply(db.from("crm_leads").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId), f);
+      return [f, count ?? 0] as const;
+    })),
+    q.order("thread_last_message_at", { ascending: false, nullsFirst: false }).order("last_activity_at", { ascending: false }).limit(LIMIT),
+  ]);
+  const counts = Object.fromEntries(countPairs) as Record<InboxFilter, number>;
   const rows = (data ?? []) as CrmLeadRow[];
   const previews = new Map<string, { body: string; at: string }>();
   if (rows.length) {

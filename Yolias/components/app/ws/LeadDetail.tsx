@@ -8,7 +8,6 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { addNote, addTask, decideApproval, prepareMeetingBrief, removeLead, saveMeeting, setTaskDone, updateLead } from "@/app/(app)/crm/actions";
 import { StageSelect, useRun } from "./bits";
-import { MessageCard, type CardMessage } from "./MessageCard";
 import { dateTime, fromLocalInput, money, toLocalInput } from "./format";
 import type { LeadDetail } from "@/services/crm";
 import type { Fit } from "@/lib/agents/research";
@@ -78,12 +77,25 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
               </section>
             )}
 
+            {/* The CRM manages the deal (owner, 2026-10-21, D-252): the conversation
+                itself stays in Conversations, linked from here, never copied. */}
             <section className="ws-section" style={{ marginTop: detail.approvals.length ? 16 : 0 }}>
-              <div className="ws-section-head"><h3>{d.messages}</h3></div>
-              {!detail.messages.length && <div className="ws-empty">{d.noMessages}</div>}
-              {detail.messages.map((m) => <MessageCard key={m.id} m={m as unknown as CardMessage} timeZone={timeZone} />)}
-              {/* Replies are written in the Inbox (D-239); the CRM shows the conversation. */}
-              {detail.messages.length > 0 && <div style={{ marginTop: 12 }}><Link className="btn-secondary ws-btn-sm" href={`/conversations?lead=${lead.id}`}><Inbox size={13} /> {t.ws.inbox.title}</Link></div>}
+              <div className="ws-section-head"><h3>{d.summary}</h3></div>
+              <div className="ws-card lead-summary">
+                <div><span className="ws-label">{c.cols.stage}</span><strong>{t.ws.stages[lead.stage]}</strong></div>
+                <div><span className="ws-label">{d.value}</span><strong dir="ltr">{money(lead.deal_value, lead.deal_currency, locale)}</strong></div>
+                <div><span className="ws-label">{d.lastContact}</span><strong>{lead.thread_last_message_at ? dateTime(lead.thread_last_message_at, locale, timeZone) : "-"}</strong></div>
+                <div><span className="ws-label">{d.nextStep}</span><strong>{lead.next_meeting_at ? `${d.meetings}: ${dateTime(lead.next_meeting_at, locale, timeZone)}` : lead.next_follow_up_at ? `${c.cols.followUp}: ${dateTime(lead.next_follow_up_at, locale, timeZone)}` : "-"}</strong></div>
+              </div>
+              <div className="ws-card lead-conversation">
+                <div>
+                  <strong>{d.conversation}</strong>
+                  <span className="cell-sub">{detail.messages.length
+                    ? fmt(d.conversationCounts, { sent: detail.messages.filter((m) => m.direction === "outbound" && m.status === "sent").length, replies: detail.messages.filter((m) => m.direction === "inbound").length })
+                    : d.noMessages}</span>
+                </div>
+                <Link className="btn-secondary ws-btn-sm" href={`/conversations?lead=${lead.id}`}><Inbox size={13} /> {d.openConversation}</Link>
+              </div>
             </section>
 
             <section className="ws-section">

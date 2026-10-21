@@ -11,6 +11,8 @@ import { AutoSubmitSelect, StageSelect } from "@/components/app/ws/bits";
 import { CrmKanban } from "@/components/app/ws/CrmKanban";
 import { dateTime, money, shortDate } from "@/components/app/ws/format";
 import type { LeadStage } from "@/types/database";
+import { createClient } from "@/lib/supabase/server";
+import { shortCampaignName } from "@/lib/outreach/campaign-name";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).ws.crm.title} | Yolias` };
@@ -35,6 +37,15 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
   ]);
   const c = t.ws.crm;
   const tz = session.profile.timezone;
+  // Each lead's outreach campaigns (short name + date in its own column, owner 2026-10-21).
+  const { data: enrolled } = list.rows.length
+    ? await (await createClient()).from("outreach_enrollments").select("lead_id, created_at, campaign:outreach_campaigns(id, name, created_at)").in("lead_id", list.rows.map((l) => l.id)).order("created_at")
+    : { data: [] };
+  const campaignsOf = new Map<string, { id: string; name: string; created_at: string }[]>();
+  for (const e of enrolled ?? []) {
+    const camp = e.campaign as unknown as { id: string; name: string; created_at: string } | null;
+    if (camp) campaignsOf.set(e.lead_id, [...(campaignsOf.get(e.lead_id) ?? []), camp]);
+  }
   const names = new Map(team.members.map((m) => [m.user_id, m.profile?.full_name || m.profile?.email || "-"]));
   const pages = Math.max(1, Math.ceil(list.total / CRM_PAGE));
   const href = (patch: Record<string, string | null>) => {
@@ -100,12 +111,12 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>{c.cols.name}</th><th>{c.cols.contact}</th><th>{c.cols.source}</th><th>{c.cols.campaign}</th><th>{c.cols.owner}</th>
+                      <th>{c.cols.name}</th><th>{c.cols.contact}</th><th>{c.cols.source}</th><th>{c.cols.campaign}</th><th>{c.cols.campaignDate}</th><th>{c.cols.owner}</th>
                       <th>{c.cols.stage}</th><th>{c.cols.value}</th><th>{c.cols.followUp}</th><th>{c.cols.meeting}</th><th>{c.cols.lastActivity}</th><th>{c.cols.added}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {!list.rows.length && <tr><td colSpan={11} className="empty-cell">{all ? c.emptyFiltered : c.empty}</td></tr>}
+                    {!list.rows.length && <tr><td colSpan={12} className="empty-cell">{all ? c.emptyFiltered : c.empty}</td></tr>}
                     {list.rows.map((l) => (
                       <tr key={l.id}>
                         <td>
@@ -117,7 +128,19 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
                         </td>
                         <td className="cell-sub" dir="ltr">{l.email ?? l.phone ?? (l.linkedin_url ? "LinkedIn" : "-")}</td>
                         <td className="cell-sub">{c.sources[l.source]}</td>
-                        <td className="cell-sub">{l.campaign_names?.join(", ") || "-"}</td>
+                        {(() => {
+                          const list = campaignsOf.get(l.id) ?? [];
+                          const first = list[0];
+                          return (
+                            <>
+                              <td className="cell-sub crm-campaign" title={list.map((x) => x.name).join("\n") || undefined}>
+                                {first ? <Link className="entity-link" href={`/conversations?campaign=${first.id}`}>{shortCampaignName(first.name)}</Link> : "-"}
+                                {list.length > 1 && <span className="ws-chip">+{list.length - 1}</span>}
+                              </td>
+                              <td className="cell-sub">{first ? shortDate(first.created_at, locale, tz) : "-"}</td>
+                            </>
+                          );
+                        })()}
                         <td className="cell-sub">{l.owner_id ? names.get(l.owner_id) ?? "-" : c.unassigned}</td>
                         <td><StageSelect leadId={l.id} stage={l.stage} /></td>
                         <td dir="ltr">{money(l.deal_value, l.deal_currency, locale)}</td>

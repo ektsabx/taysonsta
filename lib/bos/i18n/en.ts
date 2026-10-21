@@ -8856,6 +8856,12 @@ const en: Record<string, string> = {
  "مصدر غير معروف.": "Unknown source.",
  "المصدر لم يرجع نتائج لهذه الاختيارات.": "The source returned nothing for these choices.",
  "مصادر البيانات": "Data sources",
+ "الشركات المعروفة في أي دولة بموقعها الرسمي، وقطاعها ومقرها وعدد موظفيها عند توفره. أقوى مصدر مجاني لشركات لها مواقع في مصر والسعودية (أكثر من ألف شركة في مصر).": "Known companies in any country with their official website, and their industry, headquarters and headcount where available. The strongest free source of companies with websites in Egypt and Saudi Arabia (over a thousand in Egypt).",
+ "مسموح للعملاء بدون قيود.": "Allowed for customers without restrictions.",
+ "GLEIF (سجل الكيانات القانونية)": "GLEIF (legal entity register)",
+ "كل الشركات التي لها رقم LEI حول العالم: الاسم القانوني والعنوان والمدينة (آلاف الكيانات في السعودية والإمارات). بدون مواقع، فيفيد في المطابقة والتحقق من الاسم القانوني.": "Every company with an LEI worldwide: legal name, address and city (thousands in Saudi Arabia and the UAE). No websites, so it serves matching and legal-name checks.",
+ "اسحب من Wikidata": "Pull from Wikidata",
+ "اسحب من GLEIF": "Pull from GLEIF",
 };
 
 export default en;

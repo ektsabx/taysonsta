@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
-import { executeTool } from "@/lib/agent/tools";
+import { START_BLOCKED, executeTool } from "@/lib/agent/tools";
 import { activePolicy } from "@/lib/agent/policy";
 import { AGENT_TOOLS } from "@/lib/agent/policy-schema";
 import { getDictionary } from "@/lib/i18n/server";
@@ -45,7 +45,8 @@ export async function decideAgentAction(id: string, approve: boolean): Promise<{
     const { policy } = await activePolicy();
     const result = await executeTool({ session, db, conversationId: pa.conversation_id, strategyId: conv?.strategy_id ?? null, launched, policy, approved: true }, pa.tool, pa.input);
     await admin.from("agent_pending_actions").update({ status: result.ok ? "approved" : "failed", result: (result.ok ? { ok: true } : { ok: false, outcome: result.outcome, message: result.message }) as Json }).eq("id", id);
-    content = result.ok ? fmt(a.doneNote, { action: label }) : fmt(a.failedNote, { action: label, reason: result.message });
+    const blocked = !result.ok && result.message === START_BLOCKED.noPlan ? "noPlan" : !result.ok && result.message === START_BLOCKED.noCredit ? "noCredit" : null;
+    content = result.ok ? fmt(a.doneNote, { action: label }) : fmt(a.failedNote, { action: label, reason: blocked ? t.setup.blocked[blocked] : result.message });
     if (launched.length) meta.campaigns = launched;
   }
   if (conv) {

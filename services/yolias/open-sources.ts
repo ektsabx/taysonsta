@@ -13,7 +13,7 @@ import type { DatasetMapping } from "../../Yolias/lib/datasets/normalize";
 
 const UA = "YoliasBot/1.0 (+https://www.yolias.com; data@yolias.com)";
 
-export type OpenSourceId = "osm" | "sirene" | "companies_house" | "common_crawl";
+export type OpenSourceId = "osm" | "sirene" | "companies_house" | "common_crawl" | "wikidata" | "gleif";
 
 interface Pulled { headers: string[]; rows: string[][]; mapping: DatasetMapping; note: string }
 
@@ -27,6 +27,33 @@ async function getJson(url: string, init: RequestInit = {}, timeoutMs = 60_000):
 }
 
 // ───────────────────────── OpenStreetMap (Overpass) ─────────────────────────
+
+// Public Overpass instances (wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances).
+// A busy server answers 429 / 502 / 504 and asks for exponential backoff; we
+// try the next instance after a growing wait, within one overall time budget.
+const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+
+async function overpass(query: string): Promise<unknown> {
+  const deadline = Date.now() + 240_000;
+  let wait = 2_000;
+  let last = "";
+  for (let attempt = 0; attempt < 6 && Date.now() < deadline; attempt++) {
+    const url = OVERPASS[attempt % OVERPASS.length];
+    const res = await fetch(url, {
+      method: "POST", headers: { "User-Agent": UA, Accept: "application/json", "content-type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(query)}`, signal: AbortSignal.timeout(Math.max(10_000, Math.min(130_000, deadline - Date.now()))),
+    }).catch((e) => { last = e instanceof Error ? e.message : "network"; return null; });
+    if (res?.ok) {
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { last = "invalid answer"; }
+    } else if (res && ![429, 502, 503, 504].includes(res.status)) {
+      throw new ValidationError(`OpenStreetMap رد بخطأ ${res.status}.`);
+    } else if (res) last = `HTTP ${res.status}`;
+    await sleep(Math.min(wait, Math.max(0, deadline - Date.now())));
+    wait *= 2;
+  }
+  throw new ValidationError(`خوادم OpenStreetMap مشغولة الآن (${last}). حاول بعد دقائق أو قلّل المنطقة أو الحد الأقصى.`);
+}
 
 export const OSM_KEYS = ["shop", "office", "amenity", "craft", "healthcare", "tourism", "industrial"] as const;
 
@@ -42,7 +69,7 @@ async function osm(p: { country: string; city: string; key: string; value: strin
   const tag = value ? `["${p.key}"="${value}"]` : `["${p.key}"]`;
   const contact = p.contactOnly ? `[~"^(website|contact:website|url|phone|contact:phone|contact:mobile|email|contact:email)$"~"."]` : "";
   const q = `[out:json][timeout:120];${area}nwr(area.a)["name"]${tag}${contact};out center tags ${p.limit};`;
-  const body = (await getJson("https://overpass-api.de/api/interpreter", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: `data=${encodeURIComponent(q)}` }, 150_000)) as { elements?: { type: string; id: number; tags?: Record<string, string> }[]; remark?: string };
+  const body = (await overpass(q)) as { elements?: { type: string; id: number; tags?: Record<string, string> }[]; remark?: string };
   if (body.remark && /error|timed out/i.test(body.remark)) throw new ValidationError(`OpenStreetMap: ${body.remark.slice(0, 200)}`);
   const rows = (body.elements ?? []).map((e) => {
     const t = e.tags ?? {};
@@ -128,12 +155,58 @@ async function commonCrawl(p: { suffix: string; country: string; limit: number }
   return { headers: ["website", "country"], rows, mapping: { website: 0, country: 1 }, note: `${rows.length} موقع من Common Crawl` };
 }
 
+// ───────────────────────── Wikidata (CC0) ─────────────────────────
+
+/** Companies in a country that Wikidata lists with their official website (CC0, free SPARQL endpoint). */
+async function wikidata(p: { country: string; limit: number }): Promise<Pulled> {
+  if (!/^[A-Z]{2}$/.test(p.country)) throw new ValidationError("رمز الدولة حرفان (مثل EG).", { country: "ISO" });
+  const q = `SELECT ?c ?cLabel ?site ?indLabel ?emp ?cityLabel WHERE {
+    ?country wdt:P297 "${p.country}".
+    ?c wdt:P31/wdt:P279* wd:Q4830453; wdt:P17 ?country; wdt:P856 ?site.
+    FILTER NOT EXISTS { ?c wdt:P576 ?dissolved }
+    OPTIONAL { ?c wdt:P452 ?ind } OPTIONAL { ?c wdt:P1128 ?emp } OPTIONAL { ?c wdt:P159 ?city }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en,ar,fr". }
+  } LIMIT ${p.limit * 3}`;
+  const body = (await getJson(`https://query.wikidata.org/sparql?query=${encodeURIComponent(q)}`, { headers: { Accept: "application/sparql-results+json" } }, 120_000)) as { results?: { bindings?: Record<string, { value: string }>[] } };
+  const seen = new Map<string, string[]>();
+  for (const b of body.results?.bindings ?? []) {
+    const id = b.c?.value.split("/").pop() ?? "";
+    if (!id || seen.has(id) || /^Q\d+$/.test(b.cLabel?.value ?? "")) continue;
+    seen.set(id, [b.cLabel?.value ?? "", b.site?.value ?? "", b.indLabel?.value ?? "", b.emp?.value ?? "", b.cityLabel?.value ?? "", p.country, `wikidata:${id}`]);
+    if (seen.size >= p.limit) break;
+  }
+  const rows = [...seen.values()];
+  return { headers: ["name", "website", "industry", "employees", "city", "country", "wikidata_id"], rows, mapping: { company_name: 0, website: 1, industry: 2, employee_count: 3, city: 4, country: 5, registry_id: 6 }, note: `${rows.length} شركة من Wikidata` };
+}
+
+// ───────────────────────── GLEIF (CC0) ─────────────────────────
+
+/** Active legal entities with an LEI in a country (GLEIF Golden Copy, CC0, free API). */
+async function gleif(p: { country: string; limit: number }): Promise<Pulled> {
+  if (!/^[A-Z]{2}$/.test(p.country)) throw new ValidationError("رمز الدولة حرفان (مثل EG).", { country: "ISO" });
+  const rows: string[][] = [];
+  for (let page = 1; rows.length < p.limit; page++) {
+    const qs = `filter%5Bentity.legalAddress.country%5D=${p.country}&filter%5Bentity.status%5D=ACTIVE&page%5Bsize%5D=200&page%5Bnumber%5D=${page}`;
+    const body = (await getJson(`https://api.gleif.org/api/v1/lei-records?${qs}`)) as { data?: { attributes?: { lei?: string; entity?: { legalName?: { name?: string }; legalAddress?: { addressLines?: string[]; city?: string }; registeredAs?: string | null; category?: string | null } } }[]; meta?: { pagination?: { lastPage?: number } } };
+    for (const r of body.data ?? []) {
+      const e = r.attributes?.entity;
+      if (!e?.legalName?.name || !r.attributes?.lei) continue;
+      rows.push([e.legalName.name, (e.legalAddress?.addressLines ?? []).join(", "), e.legalAddress?.city ?? "", p.country, `lei:${r.attributes.lei}`]);
+    }
+    if (!body.data?.length || page >= (body.meta?.pagination?.lastPage ?? page)) break;
+    await sleep(300); // 60 requests a minute
+  }
+  return { headers: ["name", "address", "city", "country", "lei"], rows: rows.slice(0, p.limit), mapping: { company_name: 0, address: 1, city: 2, country: 3, registry_id: 4 }, note: `${Math.min(rows.length, p.limit)} كيان من GLEIF` };
+}
+
 // ───────────────────────── Run ─────────────────────────
 
 const licences: Record<OpenSourceId, Pick<DatasetInput, "sourceKind" | "vendor" | "sourceUrl" | "licenseName" | "customerFacing" | "redistributable" | "attribution">> = {
   osm: { sourceKind: "open_data", vendor: "OpenStreetMap", sourceUrl: "https://www.openstreetmap.org/copyright", licenseName: "ODbL 1.0", customerFacing: true, redistributable: true, attribution: "© OpenStreetMap contributors" },
   sirene: { sourceKind: "registry", vendor: "INSEE (Sirene)", sourceUrl: "https://recherche-entreprises.api.gouv.fr", licenseName: "Licence Ouverte 2.0 (Etalab)", customerFacing: true, redistributable: true, attribution: "Source : INSEE, base Sirene" },
   companies_house: { sourceKind: "registry", vendor: "Companies House", sourceUrl: "https://find-and-update.company-information.service.gov.uk", licenseName: "Open Government Licence v3.0", customerFacing: true, redistributable: true, attribution: "Contains public sector information licensed under the Open Government Licence v3.0." },
+  wikidata: { sourceKind: "open_data", vendor: "Wikidata", sourceUrl: "https://www.wikidata.org/wiki/Wikidata:Licensing", licenseName: "CC0 1.0", customerFacing: true, redistributable: true, attribution: "Wikidata (CC0)" },
+  gleif: { sourceKind: "registry", vendor: "GLEIF", sourceUrl: "https://www.gleif.org/en/meta/lei-data-terms-of-use", licenseName: "CC0 1.0 (LEI data)", customerFacing: true, redistributable: true, attribution: "GLEIF LEI data (CC0)" },
   common_crawl: { sourceKind: "crawl", vendor: "Common Crawl + Yolias crawler", sourceUrl: "https://commoncrawl.org/terms-of-use", licenseName: "Common Crawl Terms of Use; public website facts", customerFacing: true, redistributable: true, attribution: null },
 };
 
@@ -160,11 +233,17 @@ export async function runOpenSource(bos: BosUser, id: OpenSourceId, f: FormData)
   } else if (id === "common_crawl") {
     pulled = await commonCrawl({ suffix: s("suffix"), country: s("country").toUpperCase(), limit: int(f.get("limit"), 10, 3000, 500) });
     label = `Common Crawl *.${s("suffix").replace(/^\*?\.+/, "")}`;
+  } else if (id === "wikidata") {
+    pulled = await wikidata({ country: s("country").toUpperCase(), limit: int(f.get("limit"), 10, 3000, 1000) });
+    label = `Wikidata · ${s("country").toUpperCase()}`;
+  } else if (id === "gleif") {
+    pulled = await gleif({ country: s("country").toUpperCase(), limit: int(f.get("limit"), 10, 10000, 2000) });
+    label = `GLEIF · ${s("country").toUpperCase()}`;
   } else {
     throw new ValidationError("مصدر غير معروف.");
   }
   if (!pulled.rows.length) throw new ValidationError("المصدر لم يرجع نتائج لهذه الاختيارات.");
-  const country = id === "osm" || id === "common_crawl" ? s("country").toUpperCase() || null : id === "sirene" ? "FR" : "GB";
+  const country = id === "osm" || id === "common_crawl" || id === "wikidata" || id === "gleif" ? s("country").toUpperCase() || null : id === "sirene" ? "FR" : "GB";
   const input: DatasetInput = {
     ...licences[id], name: `${label} · ${new Date().toISOString().slice(0, 10)}`, retentionDays: null, purchasedAt: new Date().toISOString().slice(0, 10), costUsd: 0,
     countries: country ? [country] : [], defaultCountry: country, notes: pulled.note, enrich: id === "common_crawl" || f.get("enrich") === "on",

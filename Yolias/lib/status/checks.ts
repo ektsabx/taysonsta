@@ -1,6 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadKashier } from "@/lib/payments/kashier";
+import { loadIntegrations } from "@/lib/integrations";
+import { resendKey } from "@/lib/email/send";
 import type { ServiceStatus, StatusComponentRow } from "@/types/database";
 import { parseStatusSettings, STATUS_SETTINGS_KEY, type StatusSettings } from "./checks-config";
 
@@ -107,7 +109,8 @@ export async function runCheck(c: Pick<StatusComponentRow, "check_kind">, s: Sta
       return { status: rate === "no_data" ? reach.status : rate, latency: reach.latency, detail: `checkouts:${rows.length}` };
     }
     case "email": {
-      if (!process.env.RESEND_API_KEY) return { status: "no_data", latency: null, detail: "not_configured" };
+      await loadIntegrations();
+      if (!resendKey()) return { status: "no_data", latency: null, detail: "not_configured" };
       const { data } = await db.from("email_log").select("status").gte("created_at", since(120)).in("status", ["sent", "failed"]).limit(5000);
       const rows = data ?? [];
       const rated = rateStatus(rows.filter((x) => x.status === "failed").length, rows.length, s, 3);

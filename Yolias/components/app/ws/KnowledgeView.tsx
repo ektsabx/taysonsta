@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Globe, Info, LoaderCircle, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Globe, Info, LoaderCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { deleteKnowledgeItem, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { deleteKnowledgeItem, discoverCompetitorsAction, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
 import { updateOrganization } from "@/app/(app)/settings/actions";
 import { fmt } from "@/lib/i18n/config";
 import type { WebsiteAnalysis } from "@/lib/website-analysis";
@@ -92,8 +92,14 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
       />
 
       <ItemSection
-        title={k.competitors} empty={k.competitor.empty} addLabel={k.competitor.add} manage={manage} note={k.competitor.note}
-        items={competitors.map((c) => ({ id: c.id, name: c.name, sub: c.website ?? "", values: c as unknown as Record<string, string | boolean | null> }))}
+        title={k.competitors} empty={k.competitor.empty} addLabel={k.competitor.add} manage={manage}
+        action={manage ? <FindCompetitors /> : null}
+        items={competitors.map((c) => ({
+          id: c.id, name: c.name, sub: c.website ?? "", values: c as unknown as Record<string, string | boolean | null>,
+          // Found by Yolias AI (D-251): direct / indirect, how sure, and the source.
+          badges: c.source === "ai_research" ? [c.kind === "direct" ? k.competitor.direct : k.competitor.indirect, c.confidence === "high" ? k.competitor.high : k.competitor.medium] : [],
+          link: c.source === "ai_research" && c.source_url ? { href: c.source_url, label: k.competitor.source } : null,
+        }))}
         fields={COMPETITOR_FIELDS.map((f) => ({ key: f, label: k.competitor[f], long: f !== "website" }))}
         nameLabel={k.competitor.name}
         onSave={(v) => saveCompetitor(v as Parameters<typeof saveCompetitor>[0])}
@@ -105,9 +111,9 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
 
 type Values = Record<string, string | boolean | null>;
 
-function ItemSection({ title, empty, addLabel, manage, note, items, fields, nameLabel, activeLabel, onSave, onDelete }: {
-  title: string; empty: string; addLabel: string; manage: boolean; note?: string;
-  items: { id: string; name: string; sub: string; values: Values }[];
+function ItemSection({ title, empty, addLabel, manage, note, action, items, fields, nameLabel, activeLabel, onSave, onDelete }: {
+  title: string; empty: string; addLabel: string; manage: boolean; note?: string; action?: React.ReactNode;
+  items: { id: string; name: string; sub: string; values: Values; badges?: string[]; link?: { href: string; label: string } | null }[];
   fields: { key: string; label: string; long: boolean }[]; nameLabel: string; activeLabel?: string;
   onSave: (v: Values) => Promise<{ ok: true } | { ok: false; error: string }>; onDelete: (id: string) => Promise<{ ok: true } | { ok: false; error: string }>;
 }) {
@@ -119,7 +125,7 @@ function ItemSection({ title, empty, addLabel, manage, note, items, fields, name
     <section className="ws-section">
       <div className="ws-section-head">
         <h3>{title}</h3>
-        {manage && !editing && <button className="btn-secondary ws-btn-sm" type="button" onClick={() => setEditing(blank())}><Plus size={13} /> {addLabel}</button>}
+        {manage && !editing && <span className="ws-inline">{action}<button className="btn-secondary ws-btn-sm" type="button" onClick={() => setEditing(blank())}><Plus size={13} /> {addLabel}</button></span>}
       </div>
       {note && <div className="ws-note"><Info /><span>{note}</span></div>}
       {editing && (
@@ -152,6 +158,7 @@ function ItemSection({ title, empty, addLabel, manage, note, items, fields, name
               <div>
                 <strong>{it.name}</strong>
                 {it.sub && <span className="cell-sub">{it.sub}</span>}
+                {(it.badges?.length || it.link) ? <span className="ws-inline">{it.badges?.map((b) => <span key={b} className="ws-chip">{b}</span>)}{it.link && <a className="cell-sub" href={it.link.href} target="_blank" rel="noopener noreferrer">{it.link.label}</a>}</span> : null}
                 {fields.filter((f) => f.long && it.values[f.key]).slice(0, 2).map((f) => <span key={f.key} className="cell-sub">{f.label}: {String(it.values[f.key]).slice(0, 160)}</span>)}
               </div>
               {manage && (
@@ -300,4 +307,25 @@ export function AnalyzeWebsite({ initialUrl, onResult, compact = false, context 
 
 function pathOf(u: string): string {
   try { const x = new URL(u); return `${x.hostname.replace(/^www\./, "")}${x.pathname === "/" ? "" : x.pathname}`; } catch { return u; }
+}
+
+/** Yolias AI finds the company's real competitors (D-251); new ones are added to the list. */
+function FindCompetitors() {
+  const { t } = useI18n();
+  const k = t.ws.ai.knowledge.competitor;
+  const { run, pending } = useRun();
+  const [note, setNote] = useState<string | null>(null);
+  return (
+    <>
+      <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => {
+        setNote(null);
+        run(async () => {
+          const r = await discoverCompetitorsAction();
+          if (r.ok) setNote(fmt(k.foundAdded, { count: r.added ?? 0 }));
+          return r;
+        });
+      }}>{pending ? <LoaderCircle size={13} className="spin" /> : <Search size={13} />} {pending ? k.finding : k.find}</button>
+      {note && <span className="cell-sub" role="status">{note}</span>}
+    </>
+  );
 }

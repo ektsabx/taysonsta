@@ -2342,5 +2342,13 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 .center-hero.hero-sent { margin: 0; flex: 1; text-align: start; justify-content: flex-end; }
 .center-hero.hero-sent .home-turns { width: 100%; flex: 1; padding: 24px 0 16px; }
 .center-hero.hero-sent .prompt-container { width: 100%; }
-.checkout-egp { margin: 6px 0 0; font-size: .8rem; color: var(--muted); text-align: end; }
-.checkout-egp strong { color: var(--ink); font-weight: 700; }
+
+/* CRM: the short campaign name stays on one line (full names in the tooltip). */
+.crm-campaign { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-filter { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 14px 34px 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: .86rem; }
+.conv-settings-link { display: inline-block; margin-top: 2px; }
+@media (max-width: 720px) { .conv-filter { margin: 12px 16px 0; } }
+.lead-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+.lead-summary > div { display: flex; flex-direction: column; gap: 4px; }
+.lead-conversation { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.lead-conversation > div { display: flex; flex-direction: column; gap: 2px; }

@@ -11,6 +11,7 @@ export const wsEn = {
   conversations: {
     title: "Conversations", subtitle: "Every conversation with a prospect in one place: what was sent, the replies and the next step, with the campaigns that start them.",
     tabs: { threads: "Conversations", campaigns: "Campaigns" },
+    filteredBy: "Conversations of the campaign", clearFilter: "All conversations", campaignSettings: "Campaign settings",
   },
   common: {
     save: "Save", saved: "Saved", saving: "Saving…", cancel: "Cancel", delete: "Delete", edit: "Edit", add: "Add", create: "Create", back: "Back",
@@ -144,13 +145,14 @@ export const wsEn = {
     title: "CRM", subtitle: "Every lead and deal in one place: stage, value, meetings, follow-ups and history.",
     table: "Table", kanban: "Kanban", addFromProspects: "Add from Prospects", empty: "No leads yet. Select results in Prospects and choose “Add to CRM”.",
     emptyFiltered: "No leads match these filters.",
-    cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
+    cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", campaignDate: "Campaign date", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
     sources: { search: "Yolias search", import: "CSV import", manual: "Added manually" },
     filterStage: "Stage", filterOwner: "Owner", anyone: "Anyone", unassigned: "Unassigned", sort: "Sort",
     sorts: { last_activity_at: "Last activity", created_at: "Date added", deal_value: "Deal value", next_follow_up_at: "Next follow-up", name: "Name" },
     added: "{count} added to the CRM.", alreadyIn: "{count} were already in the CRM.", addToCrm: "Add to CRM",
     moveTo: "Move to", total: "{count} leads · {value}", stageChanged: "Stage updated.",
     detail: {
+      summary: "Deal", lastContact: "Last contact", nextStep: "Next step", conversation: "Conversation", conversationCounts: "{sent} sent · {replies} replies", openConversation: "Open the conversation",
       overview: "Overview", contact: "Contact & company", fit: "Fit with customer profile", campaigns: "Outreach campaigns", messages: "Messages", timeline: "History",
       notes: "Notes", addNote: "Add a note", notePh: "Write a note…", tasks: "Reminders & follow-ups", addTask: "Add reminder", taskTitle: "Reminder", due: "Due",
       meetings: "Meetings", addMeeting: "Add meeting", deal: "Deal", value: "Value", currency: "Currency", owner: "Owner", stage: "Stage", dnc: "Do not contact",
@@ -198,7 +200,7 @@ export const wsEn = {
         errors: { url: "Enter your website address (e.g. yourcompany.com).", unreachable: "We couldn’t open that website. Check the address and try again.", empty: "We couldn’t find enough text on that website.", not_configured: "Website analysis isn’t available right now.", failed: "The analysis didn’t work. Please try again." },
       },
       offer: { name: "Offer name", description: "Description", problem: "Problem it solves", audience: "Who it’s for", benefits: "Value and benefits", price: "Price or range", terms: "Terms or limits", active: "Used by AI", add: "Add offer", empty: "No offers yet. Add what you sell so messages can mention the right one." },
-      competitor: { name: "Competitor", website: "Website", description: "What they sell", strengths: "Known strengths", weaknesses: "Verified weaknesses or gaps", differences: "How you differ", notes: "Notes", add: "Add competitor", empty: "No competitors yet.", note: "Only facts you verified. Yolias AI never invents claims about competitors and never names them in messages." },
+      competitor: { name: "Competitor", website: "Website", description: "What they sell", strengths: "Known strengths", weaknesses: "Verified weaknesses or gaps", differences: "How you differ", notes: "Notes", add: "Add competitor", empty: "No competitors yet.", note: "Only facts you verified. Yolias AI never invents claims about competitors and never names them in messages.", find: "Find competitors", finding: "Searching…", foundAdded: "{count} competitors added.", findNoProfile: "Add your website or what you sell first, so Yolias knows your market.", findUnavailable: "Competitor search isn’t available right now.", findFailed: "Couldn’t search for competitors. Please try again.", direct: "Direct", indirect: "Indirect", high: "Confirmed in search", medium: "Website checked", source: "Source" },
       errors: { name: "Enter a name.", duplicate: "That name already exists." },
     },
     profiles: {

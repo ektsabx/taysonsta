@@ -11,7 +11,7 @@ import type { ResolvedConnection } from "@/services/bos/integrations";
 // secrets in Supabase Vault. Yolias never reads these keys from anywhere else.
 
 /** Hub provider → what it becomes in Yolias. */
-const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", millionverifier: "intel:millionverifier" };
+const targets: Record<string, string> = { anthropic: "anthropic", openai: "openai", gemini: "gemini", yolias_google: "google_oauth", paymob: "paymob", kashier: "kashier", turnstile: "turnstile", search_console: "search_console", polar: "polar", resend: "resend", millionverifier: "intel:millionverifier" };
 
 export function usedByYolias(provider: string): boolean {
   return provider in targets;
@@ -119,5 +119,11 @@ export async function syncToYolias(provider: string, conn: ResolvedConnection | 
     return;
   }
   const config = Object.fromEntries(Object.entries(conn.connection.config as Record<string, string>).filter(([k]) => k !== "model"));
+  // Resend: Yolias needs the API key and senders only (its webhook secret is set in Messaging → Settings).
+  if (target === "resend") {
+    if (!conn.secrets.api_key) throw new ValidationError("مفتاح Resend مطلوب.");
+    await run(ydb().rpc("set_integration_keys", { p_provider: "resend", p_config: config, p_secrets: { api_key: conn.secrets.api_key }, p_by: by }));
+    return;
+  }
   await run(ydb().rpc("set_integration_keys", { p_provider: target, p_config: config, p_secrets: conn.secrets, p_by: by }));
 }

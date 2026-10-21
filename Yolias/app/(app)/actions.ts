@@ -168,12 +168,14 @@ export async function rateReply(messageId: number, rating: 1 | -1 | null): Promi
 }
 
 /** The member confirmed the Campaign Setup (D-167): the search starts on these criteria. */
-export async function confirmCampaignSetup(strategyId: string, criteria: unknown): Promise<{ ok: boolean }> {
+export async function confirmCampaignSetup(strategyId: string, criteria: unknown): Promise<{ ok: boolean; blocked?: "noPlan" | "noCredit" }> {
   const session = await requireSession();
   if (!/^[0-9a-f-]{36}$/i.test(strategyId)) return { ok: false };
   const icp = parseIcp(criteria);
   if (!icp) return { ok: false };
-  const campaignId = await confirmSetup(session, strategyId, icp);
+  const result = await confirmSetup(session, strategyId, icp);
+  // No plan or no prospects left: nothing started (D-251).
+  if (result === "noPlan" || result === "noCredit") return { ok: false, blocked: result };
   revalidatePath("/", "layout");
-  return { ok: Boolean(campaignId) };
+  return { ok: Boolean(result) };
 }

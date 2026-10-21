@@ -41,7 +41,7 @@ const initials = (name: string) => name.replace(/[^\p{L}\s]/gu, " ").split(/\s+/
 // as the page opens (a mailbox must be connected), then the member approves
 // sending the whole campaign. "Sent" lists what went out, when and from where.
 export function CampaignWorkspaceView({ detail, work, options, maxSteps, candidates, timeZone, launch, mailboxes, mailboxName, dailyLimit }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const o = t.ws.outreach;
   const w = o.workspace;
   const router = useRouter();
@@ -125,9 +125,14 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
         </div>
 
         <div className="ws-tabs ow-tabs" role="tablist">
-          {(["emails", "sent", "sequence"] as const).map((k) => (
+          {(["emails", "sent", "sequence"] as const).map((k) => k === "sent" ? (
+            // Sent emails and replies live in one place, Conversations, filtered to this campaign (D-252).
+            <Link key={k} role="tab" aria-selected={false} href={`/conversations?campaign=${c.id}`}>
+              {t.ws.conversations.tabs.threads}{work.sent.length ? ` (${work.sent.length})` : ""}
+            </Link>
+          ) : (
             <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => setTab(k)}>
-              {w.tabs[k]}{k === "sent" && work.sent.length ? ` (${work.sent.length})` : ""}
+              {w.tabs[k]}
             </button>
           ))}
         </div>
@@ -157,29 +162,6 @@ export function CampaignWorkspaceView({ detail, work, options, maxSteps, candida
               </section>
             </div>
           )
-        )}
-
-        {tab === "sent" && (
-          <div className="data-table-card">
-            <div className="data-table-scroll">
-              <table className="data-table ow-sent">
-                <thead><tr><th>{w.sentCols.lead}</th><th>{w.sentCols.to}</th><th>{w.sentCols.subject}</th><th>{w.sentCols.sentAt}</th><th>{w.sentCols.sentBy}</th><th>{w.sentCols.status}</th></tr></thead>
-                <tbody>
-                  {!work.sent.length && <tr><td colSpan={6} className="empty-cell">{w.noSent}</td></tr>}
-                  {work.sent.map((m) => (
-                    <tr key={m.id}>
-                      <td>{m.leadId ? <Link className="entity-link" href={`/conversations?lead=${m.leadId}`}><strong>{m.lead}</strong></Link> : m.lead}</td>
-                      <td dir="ltr">{m.to ?? "-"}</td>
-                      <td className="ow-sent-email"><details><summary dir="auto">{m.subject || "-"}</summary><p dir="auto">{m.body}</p></details></td>
-                      <td className="cell-sub">{dateTime(m.sentAt, locale, timeZone)}</td>
-                      <td dir="ltr" className="cell-sub">{m.from ?? "-"}</td>
-                      <td><span className={`ws-chip ${m.status === "replied" ? "blue" : m.status === "sent" ? "green" : "red"}`}>{w.sentStatus[m.status]}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         )}
 
         {tab === "sequence" && (

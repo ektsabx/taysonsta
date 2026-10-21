@@ -179,7 +179,7 @@ export const ar: Dictionary = {
     orderSummary: "ملخص الطلب",
     billedMonthly: "فوترة شهرية",
     subtotal: "المجموع الفرعي",
-    payInEgp: "ستدفع بالجنيه المصري:",
+    payInEgp: "ستدفع بالجنيه المصري",
     tax: "الضريبة",
     taxNotIncluded: "غير مشمولة",
     total: "المستحق اليوم",
@@ -307,6 +307,8 @@ export const ar: Dictionary = {
   },
   searchTypes: { people: "بحث عن أشخاص", companies: "بحث عن شركات", local_businesses: "بحث عن أنشطة محلية", company_lookalikes: "شركات مشابهة" },
   setup: {
+    blocked: { noPlan: "لم يبدأ البحث: اشحن رصيدك أو اختر خطة أولًا.", noCredit: "لم يبدأ البحث: لا يتبقى لديك عملاء محتملون." },
+    blockedCta: { noPlan: "اشحن رصيدك أو اختر خطة", noCredit: "شراء عملاء محتملين" },
     title: "إعداد البحث",
     intro: "هذا ما فهمه يولياس من طلبك. راجعه وأكمل الناقص، ثم ابدأ البحث.",
     target: "عمّ تبحث؟",

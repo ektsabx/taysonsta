@@ -104,8 +104,14 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   // result, release the rest at the end (rule 27).
   // A continuous campaign reserves only what's left of its goal.
   const left = Math.max(campaign.quota - campaign.prospects_found, 0);
-  const { data: reservedRaw } = left ? await db.rpc("reserve_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_n: left }) : { data: 0 };
-  const reserved = Number(reservedRaw ?? 0);
+  // What the campaign reserved when it was started this month (D-251) counts
+  // first; only the rest is reserved now, so nothing is held twice.
+  const { data: held } = await db.rpc("usage_outstanding", { p_campaign: campaignId });
+  const month = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
+  const already = held?.[0] && held[0].period_start === month ? Math.max(Number(held[0].outstanding ?? 0), 0) : 0;
+  const need = Math.max(left - already, 0);
+  const { data: reservedRaw } = need ? await db.rpc("reserve_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_n: need }) : { data: 0 };
+  const reserved = left ? Math.min(already + Number(reservedRaw ?? 0), left) : 0;
   if (reserved === 0) {
     const { data: summary } = await db.rpc("usage_summary", { p_ws: campaign.workspace_id });
     // "quota": resumed by itself when prospects are bought or the plan is upgraded (resumeQuotaPaused).

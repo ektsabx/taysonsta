@@ -101,7 +101,6 @@ export function FeedbackModal({ onClose }: { onClose: () => void }) {
               <label htmlFor="fb-website">Website</label>
               <input id="fb-website" name="website" tabIndex={-1} autoComplete="off" />
             </div>
-            <p className="field-note">{f.privacy}</p>
             {error && <p className="form-error" role="alert">{error}</p>}
             <div className="feedback-actions">
               <button className="btn-secondary" type="button" onClick={onClose} disabled={pending}>{f.cancel}</button>

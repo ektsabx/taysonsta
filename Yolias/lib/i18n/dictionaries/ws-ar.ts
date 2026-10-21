@@ -11,6 +11,7 @@ export const wsAr: Dictionary["ws"] = {
   conversations: {
     title: "المحادثات", subtitle: "كل محادثة مع عميل محتمل في مكان واحد: ما أُرسل، والردود، والخطوة التالية، مع الحملات التي تبدأ هذه المحادثات.",
     tabs: { threads: "المحادثات", campaigns: "الحملات" },
+    filteredBy: "محادثات الحملة", clearFilter: "كل المحادثات", campaignSettings: "إعدادات الحملة",
   },
   common: {
     save: "حفظ", saved: "تم الحفظ", saving: "جارٍ الحفظ…", cancel: "إلغاء", delete: "حذف", edit: "تعديل", add: "إضافة", create: "إنشاء", back: "رجوع",
@@ -144,13 +145,14 @@ export const wsAr: Dictionary["ws"] = {
     title: "إدارة العملاء", subtitle: "كل العملاء والصفقات في مكان واحد: المرحلة والقيمة والاجتماعات والمتابعات والسجل.",
     table: "جدول", kanban: "كانبان", addFromProspects: "إضافة من العملاء المحتملين", empty: "لا يوجد عملاء بعد. حدد نتائج في العملاء المحتملين واختر «إضافة إلى إدارة العملاء».",
     emptyFiltered: "لا يوجد عملاء يطابقون هذه الفلاتر.",
-    cols: { name: "العميل", company: "الشركة", contact: "التواصل", source: "المصدر", campaign: "الحملة", owner: "المسؤول", stage: "المرحلة", value: "قيمة الصفقة", followUp: "المتابعة القادمة", meeting: "الاجتماع القادم", lastActivity: "آخر تفاعل", added: "تاريخ الإضافة" },
+    cols: { name: "العميل", company: "الشركة", contact: "التواصل", source: "المصدر", campaign: "الحملة", campaignDate: "تاريخ الحملة", owner: "المسؤول", stage: "المرحلة", value: "قيمة الصفقة", followUp: "المتابعة القادمة", meeting: "الاجتماع القادم", lastActivity: "آخر تفاعل", added: "تاريخ الإضافة" },
     sources: { search: "بحث يولـياس", import: "استيراد CSV", manual: "إضافة يدوية" },
     filterStage: "المرحلة", filterOwner: "المسؤول", anyone: "أي شخص", unassigned: "بدون مسؤول", sort: "الترتيب",
     sorts: { last_activity_at: "آخر تفاعل", created_at: "تاريخ الإضافة", deal_value: "قيمة الصفقة", next_follow_up_at: "المتابعة القادمة", name: "الاسم" },
     added: "تمت إضافة {count} إلى إدارة العملاء.", alreadyIn: "{count} موجودون مسبقًا في إدارة العملاء.", addToCrm: "إضافة إلى إدارة العملاء",
     moveTo: "نقل إلى", total: "{count} عميل · {value}", stageChanged: "تم تحديث المرحلة.",
     detail: {
+      summary: "الصفقة", lastContact: "آخر تواصل", nextStep: "الخطوة التالية", conversation: "المحادثة", conversationCounts: "{sent} مرسلة · {replies} ردود", openConversation: "فتح المحادثة",
       overview: "نظرة عامة", contact: "التواصل والشركة", fit: "التوافق مع ملف العميل", campaigns: "حملات التواصل", messages: "الرسائل", timeline: "السجل",
       notes: "الملاحظات", addNote: "إضافة ملاحظة", notePh: "اكتب ملاحظة…", tasks: "التذكيرات والمتابعات", addTask: "إضافة تذكير", taskTitle: "التذكير", due: "الموعد",
       meetings: "الاجتماعات", addMeeting: "إضافة اجتماع", deal: "الصفقة", value: "القيمة", currency: "العملة", owner: "المسؤول", stage: "المرحلة", dnc: "عدم التواصل",
@@ -199,7 +201,7 @@ export const wsAr: Dictionary["ws"] = {
         errors: { url: "أدخل عنوان موقعك (مثل yourcompany.com).", unreachable: "تعذّر فتح هذا الموقع. تأكد من العنوان وحاول مرة أخرى.", empty: "لم نجد نصًا كافيًا في هذا الموقع.", not_configured: "تحليل المواقع غير متاح حاليًا.", failed: "لم ينجح التحليل. حاول مرة أخرى." },
       },
       offer: { name: "اسم العرض", description: "الوصف", problem: "المشكلة التي يعالجها", audience: "لمن", benefits: "القيمة والفوائد", price: "السعر أو النطاق", terms: "الشروط أو القيود", active: "يستخدمه الذكاء الاصطناعي", add: "إضافة عرض", empty: "لا توجد عروض بعد. أضف ما تبيعه لتذكر الرسائل العرض المناسب." },
-      competitor: { name: "المنافس", website: "الموقع", description: "ماذا يبيع", strengths: "نقاط القوة المعروفة", weaknesses: "نقاط الضعف أو الفجوات المتحقق منها", differences: "أوجه الاختلاف عنكم", notes: "ملاحظات", add: "إضافة منافس", empty: "لا يوجد منافسون بعد.", note: "الحقائق التي تحققت منها فقط. لا يختلق Yolias AI ادعاءات عن المنافسين ولا يذكرهم في الرسائل." },
+      competitor: { name: "المنافس", website: "الموقع", description: "ماذا يبيع", strengths: "نقاط القوة المعروفة", weaknesses: "نقاط الضعف أو الفجوات المتحقق منها", differences: "أوجه الاختلاف عنكم", notes: "ملاحظات", add: "إضافة منافس", empty: "لا يوجد منافسون بعد.", note: "الحقائق التي تحققت منها فقط. لا يختلق Yolias AI ادعاءات عن المنافسين ولا يذكرهم في الرسائل.", find: "اكتشف المنافسين", finding: "يبحث…", foundAdded: "أُضيف {count} منافس.", findNoProfile: "أضف موقعك أو ما تبيعه أولًا ليعرف يولياس سوقك.", findUnavailable: "البحث عن المنافسين غير متاح حاليًا.", findFailed: "تعذّر البحث عن المنافسين. حاول مرة أخرى.", direct: "مباشر", indirect: "غير مباشر", high: "مؤكد في البحث", medium: "تم التحقق من الموقع", source: "المصدر" },
       errors: { name: "أدخل الاسم.", duplicate: "هذا الاسم موجود بالفعل." },
     },
     profiles: {

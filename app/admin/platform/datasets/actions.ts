@@ -89,7 +89,7 @@ export async function openSourceAction(_prev: ActionState, fd: FormData): Promis
   const r = await handleAction("yolias.datasets.open_source", async () => {
     const { bos } = await authorize("platform.manage", "all");
     const { runOpenSource } = await import("@/services/yolias/open-sources");
-    const id = await runOpenSource(bos, s(fd, "source") as "osm" | "sirene" | "companies_house" | "common_crawl", fd);
+    const id = await runOpenSource(bos, s(fd, "source") as "osm" | "sirene" | "companies_house" | "common_crawl" | "wikidata" | "gleif", fd);
     revalidatePath(PATH);
     return { ok: true, data: { id } } as ActionState<{ id: string }>;
   });

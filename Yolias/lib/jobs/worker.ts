@@ -14,6 +14,7 @@ import { deliverEmail, notify, workspaceRecipients } from "@/lib/email/notify";
 import { sendAnnouncement } from "@/lib/email/announce";
 import { securityAlert } from "@/lib/email/events";
 import { billingSweep } from "@/lib/billing";
+import { emailConfigured } from "@/lib/email/send";
 import { enrichDataset } from "@/lib/datasets/enrich";
 import { affiliateNotify, matureCommissions } from "@/lib/affiliates/notify";
 import { runStatusChecks, statusSettings } from "@/lib/status/checks";
@@ -63,7 +64,7 @@ async function heartbeat() {
   await loadIntegrations();
   const configured = {
     llm: { anthropic: Boolean(integrationSecret("anthropic", "api_key")), openai: Boolean(integrationSecret("openai", "api_key")), gemini: Boolean(integrationSecret("gemini", "api_key")) },
-    email: Boolean(process.env.RESEND_API_KEY),
+    email: emailConfigured(),
     billingTestMode: process.env.BILLING_TEST_MODE === "true",
   };
   await createAdminClient().from("worker_state").upsert({ key: "heartbeat", value: { at: new Date().toISOString(), configured }, updated_at: new Date().toISOString() });

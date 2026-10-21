@@ -7,7 +7,7 @@ import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  CirclePlay, Library, MessagesSquare, SquareKanban } from "lucide-react";
+  Library, MessagesSquare, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -249,12 +249,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Plug />
               <span>{t.settings.tabs.integration}</span>
             </button>
-            {data.welcome.video && (
-              <button className="menu-item" type="button" onClick={() => { setMenuOpen(false); setWelcomeOpen(true); }}>
-                <CirclePlay />
-                <span>{t.ws.nav.watchVideo}</span>
-              </button>
-            )}
+            {/* The welcome video shows to new accounts after signup; not repeated in this menu (owner, 2026-10-21). */}
             <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
               <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}>
                 <CircleHelp />

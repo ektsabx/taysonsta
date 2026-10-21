@@ -11,6 +11,7 @@ import { logEvent } from "@/lib/discovery/pipeline";
 import { enqueue } from "@/lib/jobs/queue";
 import { sourceLabels } from "@/lib/intel/registry";
 import { dictionaries, fmt } from "@/lib/i18n/config";
+import { canUseApp } from "@/lib/plans";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 
@@ -48,8 +49,24 @@ export function setupMissing(icp: IcpCriteria): ("target" | "where" | "count" | 
   return out;
 }
 
+/** Why a search can't start: no plan or credit, or no prospects left (checked on the server, D-251). */
+export type StartBlock = "noPlan" | "noCredit";
+
+/**
+ * Before anything that uses prospects: the workspace may use Yolias (a plan
+ * or bought credit) and has prospects left. The campaign then reserves its
+ * prospects atomically (startCampaign), so concurrent starts can't overspend.
+ */
+export async function startBlock(session: Session): Promise<StartBlock | null> {
+  if (!canUseApp(session.workspace)) return "noPlan";
+  const { data } = await createAdminClient().rpc("usage_summary", { p_ws: session.workspace.id });
+  return Number(data?.[0]?.available ?? 0) > 0 ? null : "noCredit";
+}
+
 /** The member confirmed the Campaign Setup: save the criteria as edited and start the campaign. */
-export async function confirmSetup(session: Session, strategyId: string, icp: IcpCriteria): Promise<string | null> {
+export async function confirmSetup(session: Session, strategyId: string, icp: IcpCriteria): Promise<string | StartBlock | null> {
+  const block = await startBlock(session);
+  if (block) return block;
   const supabase = await createClient();
   const { data: strategy } = await supabase.from("strategies").select("id, status").eq("id", strategyId).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!strategy || strategy.status !== "setup" || setupMissing(icp).length) return null;
@@ -57,6 +74,11 @@ export async function confirmSetup(session: Session, strategyId: string, icp: Ic
     .eq("id", strategyId).eq("status", "setup").select("id").maybeSingle();
   if (!claimed) return null;
   const id = await startCampaign(session, supabase, strategyId, icp);
+  if (id === "noCredit") {
+    // Nothing started: the setup stays open to start again after buying prospects.
+    await supabase.from("strategies").update({ status: "setup" }).eq("id", strategyId);
+    return id;
+  }
   if (!id) await supabase.from("strategies").update({ status: "failed", error: "campaignFailed" }).eq("id", strategyId);
   return id;
 }
@@ -67,9 +89,13 @@ export async function confirmSetup(session: Session, strategyId: string, icp: Ic
  * own request and criteria unchanged (D-133).
  */
 export async function launchInSearch(session: Session, strategyId: string, prompt: string, db: Db): Promise<{ campaignId: string | null; error: string | null }> {
+  // Checked before the request is even read by AI: nothing runs without prospects.
+  const block = await startBlock(session);
+  if (block) return { campaignId: null, error: block };
   const r = await understand(session, strategyId, prompt, []);
   if (!r.ok) return { campaignId: null, error: r.code };
   const campaignId = await startCampaign(session, db, strategyId, r.understood.icp);
+  if (campaignId === "noCredit") return { campaignId: null, error: "noCredit" };
   return campaignId ? { campaignId, error: null } : { campaignId: null, error: "campaignFailed" };
 }
 
@@ -113,8 +139,13 @@ async function strategyProfile(workspaceId: string, strategyId: string) {
 
 type Icp = Awaited<ReturnType<typeof understandStrategy>>["icp"];
 
-/** Campaign row + plan events + the queued discovery job. Returns the campaign id, or null if it couldn't be created. */
-async function startCampaign(session: Session, supabase: Db, strategyId: string, understoodIcp: Icp): Promise<string | null> {
+/**
+ * Campaign row + its reserved prospects + plan events + the queued discovery
+ * job. Returns the campaign id, "noCredit" when no prospect could be reserved
+ * (the row is removed again, nothing was queued or shown as started), or
+ * null if it couldn't be created.
+ */
+export async function startCampaign(session: Session, supabase: Db, strategyId: string, understoodIcp: Icp): Promise<string | "noCredit" | null> {
   // Yolias searches companies and finds the decision makers inside them (D-166):
   // a request for people becomes a company search that keeps its job titles.
   const icp = understoodIcp.search_type === "people" ? { ...understoodIcp, search_type: "companies" as const, target_unit: "companies" as const } : understoodIcp;
@@ -133,6 +164,14 @@ async function startCampaign(session: Session, supabase: Db, strategyId: string,
     .select("id")
     .single();
   if (!campaign) return null;
+  // Reserve before anything else (D-251): under the workspace's usage lock,
+  // so two searches started at once can't use the same prospects.
+  const admin = createAdminClient();
+  const { data: reservedRaw } = await admin.rpc("reserve_usage", { p_ws: session.workspace.id, p_campaign: campaign.id, p_n: icp.target_count });
+  if (Number(reservedRaw ?? 0) <= 0) {
+    await admin.from("campaigns").delete().eq("id", campaign.id);
+    return "noCredit";
+  }
   await capture(session.userId, "campaign_started", {
     workspace_id: session.workspace.id, campaign_id: campaign.id, strategy_id: strategyId, search_type: icp.search_type,
     target_count: icp.target_count, countries: icp.countries?.length ?? 0, titles: icp.job_titles.length,

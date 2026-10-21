@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // environment variables. Values are cached for a short time per server
 // process, so a key changed in Admin applies within seconds.
 
-export type IntegrationProvider = "anthropic" | "openai" | "gemini" | "google_oauth" | "microsoft_oauth" | "turnstile" | "support_widget" | "polar" | "resend_webhook";
+export type IntegrationProvider = "anthropic" | "openai" | "gemini" | "google_oauth" | "microsoft_oauth" | "turnstile" | "support_widget" | "polar" | "resend_webhook" | "resend";
 
 interface Values {
   config: Record<string, string>;

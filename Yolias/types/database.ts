@@ -1032,6 +1032,8 @@ export interface Database {
       jobs_retry_later: { Args: { p_msg_id: number; p_delay: number }; Returns: undefined };
       jobs_dead: { Args: { p_msg_id: number; p_kind: string; p_payload: Json; p_attempts: number; p_error: string }; Returns: undefined };
       jobs_metrics: { Args: Record<string, never>; Returns: { queue_length: number; oldest_age_sec: number | null; total_messages: number; dead: number }[] };
+      usage_outstanding: { Args: { p_campaign: string }; Returns: { period_start: string; outstanding: number }[] };
+      session_context: { Args: Record<string, never>; Returns: Json };
       reserve_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
       consume_usage: { Args: { p_ws: string; p_campaign: string; p_n: number }; Returns: number };
       release_usage: { Args: { p_ws: string; p_campaign: string; p_reason: string }; Returns: number };

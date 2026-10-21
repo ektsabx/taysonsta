@@ -280,7 +280,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         )}
         <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
         <div className="checkout-line total"><span>{trial ? c.dueToday : c.total}</span><span dir="ltr" translate="no">{money(trial ? 0 : price(plan))}</span></div>
-        {egpOf(plan) != null && !trial && <p className="checkout-egp">{c.payInEgp} <strong dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</strong></p>}
+        {egpOf(plan) != null && !trial && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</span></div>}
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>
@@ -367,10 +367,9 @@ function TopUpSummary({ topUps, value, onChange, canManage, continueHref, email,
           </button>
         ))}
       </div>
-      <p className="checkout-topup-result" role="status">{fmt(c.payg.youGet, { amount: money(picked.priceUsd), count: n(picked.prospects) })}</p>
       <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
       <div className="checkout-line total"><span>{c.total}</span><span dir="ltr" translate="no">{money(picked.priceUsd)}</span></div>
-      {egp && picked.priceEgp != null && <p className="checkout-egp">{c.payInEgp} <strong dir="ltr" translate="no">{formatMoney(picked.priceEgp, "EGP")}</strong></p>}
+      {egp && picked.priceEgp != null && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(picked.priceEgp, "EGP")}</span></div>}
       {canManage ? (
         <button key="topup" className="btn-primary checkout-submit" type="button" onClick={pay} disabled={pending} aria-busy={pending}>
           <Lock aria-hidden="true" /><span>{pending ? c.redirecting : fmt(c.payg.pay, { amount: money(picked.priceUsd) })}</span>

@@ -24,6 +24,9 @@ export type BusinessOfferRow = {
 export type CompetitorRow = {
   id: string; workspace_id: string; name: string; website: string | null; description: string | null; strengths: string | null;
   weaknesses: string | null; differences: string | null; notes: string | null; created_by: string | null; created_at: string; updated_at: string;
+  /** Found by Yolias AI (D-251): direct or indirect, its source and how sure. Manual rows leave these empty. */
+  kind: "direct" | "indirect" | null; source: "manual" | "ai_research"; source_url: string | null; confidence: "high" | "medium" | null;
+  discovered_at: string | null; verified_at: string | null;
 };
 export type CustomerType = "b2b" | "b2c" | "both";
 export type CustomerProfileRow = {

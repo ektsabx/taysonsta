@@ -69,10 +69,12 @@ export const providers: ProviderDef[] = [
       { key: "from", label: "عنوان المرسل", required: true, placeholder: "Taysonsta <no-reply@taysonsta.com>" },
       { key: "reply_to", label: "الرد إلى", placeholder: "support@taysonsta.com" },
       { key: "webhook_secret", label: "سر Webhook (whsec_…)", secret: true, hint: "من إعدادات Webhooks في Resend — للتحقق من توقيع أحداث التسليم" },
+      { key: "yolias_from", label: "عنوان المرسل في يولياس", placeholder: "Yolias <no-reply@yolias.com>", hint: "على نطاق موثّق في Resend. فارغ = عنوان المرسل أعلاه." },
     ],
     capabilities: ["email.send", "email.status"],
     webhook: { kind: "svix", secretField: "webhook_secret" },
     docs: "https://resend.com/docs",
+    yolias: "إيميلات يولياس للعملاء: الإيصالات والتنبيهات ورسائل الترحيب والأتمتة.",
   },
   {
     key: "support_email", name: "بريد الدعم الوارد", category: "email", phase: 7, testable: false,

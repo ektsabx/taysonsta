@@ -48,12 +48,13 @@ async function ownPhone(userId: string): Promise<string | null> {
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await requireViewer();
   const { profile, workspace } = session;
-  const plan = (await getPlanCatalog())[workspace.plan];
   const h = await headers();
 
-  const [route, polar] = await Promise.all([billingRoute(workspace), loadPolar()]);
-  const polarEnv = polar?.environment ?? "production";
-  const [recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
+  // Everything the shell needs, at once (D-251: no step waits for another it doesn't need).
+  const [catalog, route, polar, recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
+    getPlanCatalog(),
+    billingRoute(workspace),
+    loadPolar(),
     recentStrategies(workspace.id),
     monthlyUsage(workspace.id),
     teamMembers(workspace.id),
@@ -67,6 +68,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     unreadThreads(session.workspace.id),
   ]);
 
+  const plan = catalog[workspace.plan];
+  const polarEnv = polar?.environment ?? "production";
   const name = profile.full_name || session.email;
   const data: ShellData = {
     user: {

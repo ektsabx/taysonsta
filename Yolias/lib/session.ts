@@ -19,31 +19,27 @@ export interface Session {
 }
 
 // Resolves the signed-in user, their profile and active workspace once per request.
+// One round trip (D-251): the token is verified on the server (getClaims with
+// the project's ES256 keys, no Auth call), then public.session_context()
+// returns the profile, workspace and role, and refuses deleted or banned users
+// and a second factor that wasn't entered, as getUser did.
 export const getSession = cache(async (): Promise<Session | null> => {
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth.user;
-  if (!user) return null;
-  // Two-factor users must finish the code step before anything else works.
-  if (await needsSecondFactor(supabase)) return null;
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  if (!profile?.workspace_id) return null;
-
-  const [{ data: workspace }, { data: member }] = await Promise.all([
-    supabase.from("workspaces").select("*").eq("id", profile.workspace_id).maybeSingle(),
-    supabase.from("workspace_members").select("role").eq("workspace_id", profile.workspace_id).eq("user_id", user.id).maybeSingle(),
-  ]);
-  if (!workspace || !member) return null;
+  const { data: claims } = await supabase.auth.getClaims();
+  const userId = claims?.claims?.sub;
+  if (!userId) return null;
+  const { data } = await supabase.rpc("session_context");
+  const ctx = data as unknown as { needs_mfa?: boolean; email: string; email_confirmed: boolean; user_metadata: Session["signupMeta"]; profile: ProfileRow; workspace: WorkspaceRow; role: WorkspaceRole } | null;
+  if (!ctx || ctx.needs_mfa) return null;
 
   return {
-    userId: user.id,
-    email: user.email ?? profile.email,
-    emailConfirmed: Boolean(user.email_confirmed_at),
-    profile,
-    workspace: await settleSubscription(workspace),
-    role: member.role,
-    signupMeta: (user.user_metadata ?? {}) as Session["signupMeta"],
+    userId,
+    email: ctx.email ?? ctx.profile.email,
+    emailConfirmed: ctx.email_confirmed,
+    profile: ctx.profile,
+    workspace: await settleSubscription(ctx.workspace),
+    role: ctx.role,
+    signupMeta: ctx.user_metadata ?? {},
   };
 });
 

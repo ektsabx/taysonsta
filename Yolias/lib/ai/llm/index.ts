@@ -152,3 +152,27 @@ export async function runChat(task: string, req: ChatRequest, log: Omit<LlmLog, 
   }
   throw last ?? new LlmProviderError("no provider answered", "unavailable");
 }
+
+/**
+ * A Gemini answer grounded in Google Search, with its sources (D-251). Only
+ * Gemini routes of the task are used (Gemini is the Yolias model); logged and
+ * priced like every call.
+ */
+export async function runGrounded(task: string, system: string, prompt: string, log: Omit<LlmLog, "task">) {
+  const routes = (await routesFor(task)).filter((r) => r.provider === "gemini");
+  if (!routes.length) throw new LlmNotConfiguredError(task);
+  let last: LlmProviderError | null = null;
+  for (const route of routes) {
+    const started = Date.now();
+    try {
+      const { geminiGrounded } = await import("./gemini");
+      const r = await geminiGrounded(route.model, system + STYLE, prompt);
+      await logStep({ ...log, task }, route, r.servedModel, r.usage, true, null, Date.now() - started);
+      return { text: plainDashes(r.text), sources: r.sources, route };
+    } catch (e) {
+      last = e instanceof LlmProviderError ? e : new LlmProviderError(e instanceof Error ? e.message : "failed", "unavailable");
+      await logStep({ ...log, task }, route, null, null, false, last.message.slice(0, 500), Date.now() - started);
+    }
+  }
+  throw last ?? new LlmProviderError("no provider answered", "unavailable");
+}

@@ -75,6 +75,12 @@ const LIST_MAX = 25;
 const ALWAYS_APPROVE = new Set(["startOutreachCampaign"]);
 const ok = (data: unknown): ToolResult => ({ ok: true, data });
 const fail = (outcome: Exclude<AgentToolOutcome, "ok">, message: string): ToolResult => ({ ok: false, outcome, message });
+
+/** What the model is told when a search can't start (D-251); the approval card shows the member's own wording. */
+export const START_BLOCKED = {
+  noPlan: "NOT STARTED: this workspace has no plan and no credit. Tell the user plainly that the search did not start and that they can top up credit or choose a plan at /checkout. Never say a campaign started.",
+  noCredit: "NOT STARTED: no prospects are left. Tell the user plainly that the search did not start and that they can buy more prospects at /checkout?plan=payg or upgrade. Never say a campaign started.",
+} as const;
 const uuid = z.string().uuid();
 const term = (s: string) => s.replace(/[%,()*]/g, " ").trim();
 
@@ -416,6 +422,8 @@ export const agentTools = [
       // shows in the same thread — no new search (D-133).
       if (ctx.strategyId) {
         const r = await launchInSearch(session, ctx.strategyId, input.request, db);
+        // No plan or no prospects left (D-251): nothing started. Say so and point to the right page.
+        if (r.error === "noPlan" || r.error === "noCredit") return fail("denied", START_BLOCKED[r.error]);
         if (r.campaignId) ctx.launched?.push(r.campaignId);
         const { data: campaign } = r.campaignId ? await db.from("campaigns").select("id, status, quota, search_type").eq("id", r.campaignId).maybeSingle() : { data: null };
         return ok({ strategyId: ctx.strategyId, error: r.error, campaign });

@@ -119,6 +119,12 @@ export async function syncYoliasWidget() {
   if (!yoliasConfigured()) return;
   const { data: w } = await db().from("support_widgets").select("id, public_key, identity_secret_enc").eq("on_yolias", true).eq("is_active", true).maybeSingle();
   const origin = (process.env.ADMIN_URL ?? "").replace(/\/+$/, "");
+  // A local Admin (localhost) connected to the production Yolias database
+  // must not point the live website at itself, or remove its widget: that
+  // broke the chat on yolias.com on 2026-10-19. Local origins are only
+  // written to a local Yolias database.
+  const local = (u: string) => /^https?:\/\/(localhost|127\.|0\.0\.0\.0|\[::1\]|10\.|192\.168\.)/i.test(u);
+  if ((!origin || local(origin)) && !local(process.env.YOLIAS_SUPABASE_URL ?? "")) return;
   const { error } = w && origin
     ? await ydb().from("site_settings").upsert({ key: "support_widget", value: { key: w.public_key, origin }, updated_at: new Date().toISOString() })
     : await ydb().from("site_settings").delete().eq("key", "support_widget");

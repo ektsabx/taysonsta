@@ -129,3 +129,21 @@ export const geminiAdapter: LlmAdapter = {
     return { reply: "", steps };
   },
 };
+
+/**
+ * A Gemini answer grounded in Google Search (tools: google_search): the text
+ * and the web sources Google returned for it (groundingMetadata). Used where
+ * facts about other companies must come with a source (D-251 competitors).
+ */
+export async function geminiGrounded(model: string, system: string, prompt: string): Promise<{ text: string; sources: { uri: string; title: string }[]; usage: ReturnType<typeof usageOf>; servedModel: string }> {
+  const g = (await call(model, {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    tools: [{ google_search: {} }],
+    generationConfig: { maxOutputTokens: 4096 + THINKING_HEADROOM, temperature: 0.2 },
+  })) as Generated & { candidates?: { groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] } }[] };
+  if (blocked(g)) throw new LlmProviderError("gemini: blocked", "refused");
+  const text = (g.candidates?.[0]?.content?.parts ?? []).filter((p) => p.text && !p.thought).map((p) => p.text).join("");
+  const sources = (g.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((c) => ({ uri: c.web?.uri ?? "", title: c.web?.title ?? "" })).filter((s) => s.uri);
+  return { text, sources, usage: usageOf(g), servedModel: g.modelVersion ?? model };
+}

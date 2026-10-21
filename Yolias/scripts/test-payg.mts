@@ -81,6 +81,9 @@ try {
   assert.deepEqual(packs!.map((p) => Number(p.price_usd)), [5, 20, 50, 100], "top-ups: $5, $20, $50, $100");
   for (const p of packs!) assert.equal(p.prospects, Math.floor(Number(p.price_usd) / rate), `$${p.price_usd} = price / rate prospects`);
   assert.deepEqual(offeredPlans, ["pro", "growth"], "no $200 plan offered");
+  // The reference price (owner, 2026-10-21): $50 = 1,000 prospects, i.e. $0.05 each.
+  assert.equal(rate, 0.05, "5 cents a prospect");
+  assert.equal(packs!.find((p) => Number(p.price_usd) === 50)!.prospects, 1000, "$50 = 1,000 prospects");
 
   const { data: created, error } = await db.auth.admin.createUser({ email, email_confirm: true });
   if (error) throw error;

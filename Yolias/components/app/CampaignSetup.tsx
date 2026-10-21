@@ -31,6 +31,7 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<"noPlan" | "noCredit" | null>(null);
   const [tried, setTried] = useState(false);
 
   const [target, setTarget] = useState<Target>(icp.search_type === "people" ? "companies" : icp.search_type);
@@ -81,7 +82,11 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
     };
     start(async () => {
       const r = await confirmCampaignSetup(strategyId, next);
-      if (!r.ok) setError(s.failed);
+      if (!r.ok) {
+        setBlocked(r.blocked ?? null);
+        setError(r.blocked ? s.blocked[r.blocked] : s.failed);
+        if (r.blocked) return;
+      }
       router.refresh();
     });
   };
@@ -172,7 +177,7 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
         <input className="form-input" value={exclusions} onChange={(e) => setExclusions(e.target.value)} placeholder={s.exclusionsHint} dir="auto" />
       </label>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}{blocked && <> <a className="composer-upgrade" href={blocked === "noPlan" ? "/checkout" : "/checkout?plan=payg"}>{s.blockedCta[blocked]}</a></>}</p>}
       <div className="setup-actions">
         <button className="btn-primary" type="button" disabled={pending} onClick={submit}>
           {pending ? s.starting : s.start}

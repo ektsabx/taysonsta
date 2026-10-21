@@ -68,3 +68,17 @@ export function CommonCrawlForm() {
     </ActionForm>
   );
 }
+
+export function CountryPullForm({ source, label, max, def, enrich }: { source: "wikidata" | "gleif"; label: string; max: number; def: number; enrich?: boolean }) {
+  return (
+    <ActionForm action={openSourceAction} successMessage="تم الاستيراد">
+      <input type="hidden" name="source" value={source} />
+      <FormSection>
+        <TextField name="country" label="الدولة (رمز ISO)" required placeholder="EG" dir="ltr" maxLength={2} />
+        <TextField name="limit" label="الحد الأقصى" type="number" min={10} max={max} defaultValue={String(def)} />
+        {enrich && <CheckboxField name="enrich" label="إثراء من مواقعها بعد الاستيراد" defaultChecked />}
+      </FormSection>
+      <SubmitButton label={label} pendingLabel="جارٍ السحب…" />
+    </ActionForm>
+  );
+}
