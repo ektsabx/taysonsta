@@ -14,7 +14,7 @@ import type { Session } from "@/lib/session";
 import { auditInput, authorize, type AgentActor, type AgentPermission } from "@/lib/agent/authz";
 import type { AgentToolOutcome, Database, Json } from "@/types/database";
 import { AGENT_TOOLS, type AgentPolicy } from "@/lib/agent/policy-schema";
-import { parseFilters, selectItems } from "@/services/prospects";
+import { searchTargets } from "@/services/prospects";
 import { addLeads, changeStage, leadsCreated } from "@/lib/crm";
 import { enrollLeads, prepareNextStep } from "@/lib/outreach/sequence";
 import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
@@ -463,9 +463,8 @@ export const agentTools = [
         ? await db.from("campaigns").select("id, name, strategy_id").eq("id", input.searchCampaignId).eq("workspace_id", ws).maybeSingle()
         : ctx.strategyId ? await db.from("campaigns").select("id, name, strategy_id").eq("strategy_id", ctx.strategyId).order("created_at").limit(1).maybeSingle() : { data: null };
       if (!source) return fail("not_found", "No search campaign to take the prospects from. Run a search first.");
-      const { rows } = await selectItems(ws, parseFilters({ campaign: source.id }), "all", 10_000, db);
       const skip = new Set(input.excludeIds);
-      const targets = rows.filter((i) => !skip.has(i.row.id)).map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id })).slice(0, 500);
+      const targets = (await searchTargets(ws, source.id, db)).filter((x) => !skip.has(x.id));
       if (!targets.length) return fail("not_found", "That search has no prospects yet.");
       const settings = await loadAiSettings(ws);
       const steps = Math.min(1 + input.followUps, settings.limits.max_messages_per_lead);

@@ -11,7 +11,7 @@ import { enrollLeads, prepareNextStep, type EnrollResult } from "@/lib/outreach/
 import { channels, isMessageLanguage, objectives, tones } from "@/lib/outreach/channels";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import type { OutreachCampaignStatus } from "@/types/database";
-import { parseFilters, selectItems } from "@/services/prospects";
+import { searchTargets } from "@/services/prospects";
 import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
 import { memberMailboxes } from "@/lib/mailbox";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -78,8 +78,7 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
   })));
   if (stepsError) return { ok: false, error: e.steps };
   if (!c.id && c.source_campaign_id) {
-    const { rows } = await selectItems(session.workspace.id, parseFilters({ campaign: c.source_campaign_id }), "all");
-    const targets = rows.map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id }));
+    const targets = await searchTargets(session.workspace.id, c.source_campaign_id);
     const launched = await launchCampaign(id!, targets);
     revalidatePath("/outreach", "layout");
     revalidatePath("/conversations");

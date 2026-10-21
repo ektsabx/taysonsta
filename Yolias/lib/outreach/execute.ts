@@ -356,7 +356,7 @@ async function pauseOnBounces(db: Db, campaignId: string) {
   await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/conversations?campaign=${campaignId}`, `paused-bounces:${campaignId}`);
 }
 
-async function notifyUser(workspaceId: string, userId: string | null, title: string, body: string | null, link: string, dedupe: string) {
+export async function notifyUser(workspaceId: string, userId: string | null, title: string, body: string | null, link: string, dedupe: string) {
   if (!userId) return;
   await createAdminClient().from("notifications").upsert({
     user_id: userId, workspace_id: workspaceId, kind: "outreach", title: cleanNotificationText(title).slice(0, 300), body: body ? cleanNotificationText(body).slice(0, 1000) : null, link, dedupe_key: `outreach:${dedupe}:${userId}`,

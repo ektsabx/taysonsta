@@ -4,6 +4,7 @@ import { classifyCheckouts } from "@/lib/funnel";
 import { messagingTick } from "@/lib/messaging/engine";
 import { followUpSweep } from "@/lib/outreach/sequence";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
+import { autopilotSweep } from "@/lib/outreach/autopilot";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -163,6 +164,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
   await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
+  // Autopilot (D-253): finished searches get a campaign waiting for one approval; continuous ones top it up.
+  await autopilotSweep().catch((e) => console.error("[jobs] autopilot failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".
   await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
   // Messaging & Automation (D-243): events → flows, due steps, campaigns, time-based events.

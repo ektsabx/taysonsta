@@ -23,6 +23,8 @@ export const PAGE_SIZE = 50;
 
 export interface ProspectFilters {
   tab: ProspectTab;
+  /** Server code only: the prospects one search found (never read from the URL, owner 2026-10-20). */
+  campaign?: string;
   /** Keywords: name, title, company, industry, description, domain, signals. */
   q?: string;
   country?: string;
@@ -116,6 +118,7 @@ function query(db: Client, f: ProspectFilters, workspaceId: string, columns = "*
     if (f.tab === "local") q = q.eq("item_type", "local_business");
     if (f.tab === "people") q = q.eq("item_type", "person");
   }
+  if (f.campaign) q = q.eq("campaign_id", f.campaign);
   if (f.country) q = q.eq("country", f.country);
   if (f.city) q = q.ilike("city", `%${safe(f.city)}%`);
   if (f.minMatch) q = q.gte("match_score", f.minMatch);
@@ -176,6 +179,19 @@ export function itemKey(i: SelectedItem) {
  * filters (capped), as full records, in the table's order.
  */
 /** `client`: a member's client other than the request's (agent tools in scripts); RLS applies either way. */
+/**
+ * Who one search's campaign writes to: its people, and its companies that have
+ * no person in the list (a company is never emailed twice, D-253).
+ */
+export async function searchTargets(workspaceId: string, searchId: string, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ kind: "person" | "company"; id: string }[]> {
+  const { rows } = await selectItems(workspaceId, { ...parseFilters({}), campaign: searchId }, "all", 10_000, client);
+  const withPerson = new Set(rows.filter((i) => i.kind === "person").map((i) => (i.row as { company_id?: string | null }).company_id).filter(Boolean));
+  return rows
+    .filter((i) => i.kind === "person" || !withPerson.has(i.row.id))
+    .map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id }))
+    .slice(0, 500);
+}
+
 export async function selectItems(workspaceId: string, f: ProspectFilters, keys: string[] | "all", cap = 10_000, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ rows: SelectedItem[]; total: number }> {
   const db = client ?? (await createClient());
   let q = query(db, f, workspaceId, "key, item_type, id");
