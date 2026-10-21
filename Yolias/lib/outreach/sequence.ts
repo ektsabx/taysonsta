@@ -7,6 +7,7 @@ import { decide } from "@/lib/ai-workspace/settings";
 import { runAutomations } from "@/lib/automations/engine";
 import { draftOutreach, type DraftError, type MessageTarget } from "@/lib/outreach";
 import { isMessageLanguage, DEFAULT_LANGUAGE } from "@/lib/outreach/channels";
+import { aimGuidance } from "@/lib/outreach/aim";
 import type { Database, LeadRow } from "@/types/database";
 
 // Outreach campaigns (D-193): a campaign holds steps (first message +
@@ -96,7 +97,7 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   if (!target) return { ok: false, error: "not_found" };
 
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: campaign.channel, instruction: [campaign.goal, step.instruction].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: campaign.channel, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null), campaign.goal, step.instruction].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     sequence: {
       leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position,

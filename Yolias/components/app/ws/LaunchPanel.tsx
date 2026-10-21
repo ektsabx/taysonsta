@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Pause, Play, Rocket, XCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { approveOutreach, runOutreach } from "@/app/(app)/outreach/actions";
+import { approveOutreach, runOutreach, setCampaignAim } from "@/app/(app)/outreach/actions";
+import { AIMS } from "@/lib/outreach/aim";
+import type { CampaignAim } from "@/types/acquisition";
 import { openSettingsTab } from "@/components/app/open-settings";
 import { useRun } from "./bits";
 import type { LaunchSummary } from "@/services/outreach-campaigns";
@@ -26,6 +28,9 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
   const email = c.channel === "email";
   const [mailbox, setMailbox] = useState<string>(email && mailboxes[0] ? mailboxes[0].id : "");
   const [autoReply, setAutoReply] = useState(true);
+  const [aim, setAim] = useState<CampaignAim>((c.aim as CampaignAim | undefined) ?? "meeting");
+  const [cta, setCta] = useState<string>(c.cta_url ?? "");
+  const aimChanged = aim !== (c.aim ?? "meeting") || cta.trim() !== (c.cta_url ?? "");
   const approved = Boolean(c.approved_at);
   const archived = c.status === "archived";
 
@@ -35,7 +40,7 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
         <div className="launch-head">
           <div>
             <h3>{c.status === "active" ? l.running : l.paused}</h3>
-            <p className="ws-muted">{c.send_mode === "mailbox" ? fmt(l.sendingFrom, { email: mailboxName ?? "" }) : l.manualMode}{c.auto_reply ? ` · ${l.autoReplyOn}` : ""}</p>
+            <p className="ws-muted">{c.send_mode === "mailbox" ? fmt(l.sendingFrom, { email: mailboxName ?? "" }) : l.manualMode}{c.auto_reply ? ` · ${l.autoReplyOn}` : ""} · {l.aims[(c.aim as CampaignAim | undefined) ?? "meeting"]}</p>
           </div>
           <div className="ws-inline">
             {c.status === "active"
@@ -63,6 +68,21 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
         <div><dt>{o.form.steps}</dt><dd>{summary.steps.map((s) => `${o.objectives[s.objective as MessageObjective]}${s.position > 1 ? ` (${fmt(l.after, { days: s.delay_days })})` : ""}`).join(" → ") || "-"}</dd></div>
         <div><dt>{l.dailyLimit}</dt><dd>{fmt(l.perDay, { count: dailyLimit })}</dd></div>
       </dl>
+      {/* What the campaign is for (D-253): the agent writes and answers for this aim. */}
+      <div className="launch-aim">
+        <div className="ws-field">
+          <label className="ws-label" htmlFor="launch-aim">{l.aim}</label>
+          <select id="launch-aim" className="form-select" value={aim} onChange={(e) => setAim(e.target.value as CampaignAim)}>
+            {AIMS.map((a) => <option key={a} value={a}>{l.aims[a]}</option>)}
+          </select>
+          <span className="cell-sub">{l.aimHints[aim]}</span>
+        </div>
+        <div className="ws-field">
+          <label className="ws-label" htmlFor="launch-cta">{l.ctaUrl[aim]}</label>
+          <input id="launch-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} />
+        </div>
+        {aimChanged && <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => setCampaignAim(c.id, aim, cta.trim() || null))}>{l.saveAim}</button>}
+      </div>
       {summary.sample ? (
         <div className="launch-sample">
           <div className="ws-label">{l.sample}</div>
@@ -90,8 +110,9 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
         )
       ) : null}
 
+      <p className="ws-note launch-note">{l.autopilot}</p>
       <div className="ws-actions">
-        <button className="btn-primary" type="button" disabled={pending || !summary.recipients || !mailbox} onClick={() => {
+        <button className="btn-primary" type="button" disabled={pending || !summary.recipients || !mailbox || aimChanged} onClick={() => {
           if (!confirm(fmt(l.confirmSend, { count: summary.withEmail }))) return;
           run(() => approveOutreach(c.id, mailbox, autoReply));
         }}><Rocket size={14} /> {l.approveSend}</button>

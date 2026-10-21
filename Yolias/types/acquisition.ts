@@ -74,7 +74,10 @@ export type OutreachCampaignRow = {
   created_at: string; updated_at: string;
   send_mode: "manual" | "mailbox"; mailbox_id: string | null; approved_at: string | null; approved_by: string | null; auto_reply: boolean;
   source_campaign_id: string | null; strategy_id: string | null; started_at: string | null;
+  /** What the campaign is for (D-253) and the link the agent offers. */
+  aim: CampaignAim; cta_url: string | null;
 };
+export type CampaignAim = "meeting" | "introduce" | "sell";
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;
 };

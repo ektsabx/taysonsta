@@ -1,5 +1,6 @@
 "use server";
 
+import type { CampaignAim } from "@/types/acquisition";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -99,7 +100,7 @@ export async function addSelectionToCampaign(campaignId: string, target: Target)
 }
 
 /** Selected results → a new outreach campaign, started with drafts ready (Prospects → Send, owner brief 2026-10-19). */
-export async function sendSelectionAsCampaign(target: Target, input: { name: string; channel: string }) {
+export async function sendSelectionAsCampaign(target: Target, input: { name: string; channel: string; aim?: CampaignAim; ctaUrl?: string | null }) {
   const { people, companies } = await resolve(target);
   return quickCampaign({ ...input, targets: [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))].slice(0, 500) });
 }

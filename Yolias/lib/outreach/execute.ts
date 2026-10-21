@@ -284,6 +284,7 @@ async function syncMailbox(db: Db, mb: MailboxRow) {
         res.bounces++;
         if (ours.enrollment_id) await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "bounced", next_step_at: null }).eq("id", ours.enrollment_id).in("status", ["active", "paused"]);
         await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: ours.lead_id, kind: "agent", actor_kind: "system", body: "The email bounced. Follow-ups for this lead stopped.", meta: { message_id: ours.id } });
+        if (ours.outreach_campaign_id) await pauseOnBounces(db, ours.outreach_campaign_id);
       }
       continue;
     }
@@ -337,6 +338,22 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   } catch (e) {
     await db.from("outreach_messages").update({ status: "draft", error: `Auto-reply not sent: ${e instanceof Error ? e.message.slice(0, 200) : "error"}` }).eq("id", draft.id);
   }
+}
+
+// Too many bounces hurt the mailbox's reputation: the campaign pauses itself
+// (owner 2026-10-21, D-253) once 20 emails went out and 5% or more bounced.
+export const BOUNCE_PAUSE = { minSent: 20, rate: 0.05 };
+
+async function pauseOnBounces(db: Db, campaignId: string) {
+  const [{ count: sent }, { count: bounced }] = await Promise.all([
+    db.from("outreach_messages").select("id", { count: "exact", head: true }).eq("outreach_campaign_id", campaignId).eq("direction", "outbound").eq("status", "sent"),
+    db.from("outreach_messages").select("id", { count: "exact", head: true }).eq("outreach_campaign_id", campaignId).eq("direction", "outbound").eq("delivery_status", "bounced"),
+  ]);
+  if (!sent || sent < BOUNCE_PAUSE.minSent || (bounced ?? 0) / sent < BOUNCE_PAUSE.rate) return;
+  const { data: paused } = await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", campaignId).eq("status", "active").select("id, workspace_id, name, approved_by").maybeSingle();
+  if (!paused) return;
+  const pct = Math.round(((bounced ?? 0) / sent) * 100);
+  await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/conversations?campaign=${campaignId}`, `paused-bounces:${campaignId}`);
 }
 
 async function notifyUser(workspaceId: string, userId: string | null, title: string, body: string | null, link: string, dedupe: string) {

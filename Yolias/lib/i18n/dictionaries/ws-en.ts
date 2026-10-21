@@ -64,6 +64,11 @@ export const wsEn = {
     channels: { email: "Email", linkedin: "LinkedIn", whatsapp: "WhatsApp", facebook: "Messenger", instagram: "Instagram" },
     stats: { leads: "Leads", drafts: "Drafts ready", sent: "Sent", failed: "Failed", bounced: "Bounced", replies: "Replies", interested: "Interested", notInterested: "Not interested", optedOut: "Opted out", meetings: "Meetings", noData: "Numbers appear as messages are sent and replies come in." },
     launch: {
+      aim: "Campaign aim", aims: { meeting: "Book meetings", introduce: "Introduce the company", sell: "Direct sale (sign-up or purchase)" },
+      aimHints: { meeting: "Yolias offers your booking link and follows up until they book, then moves them to the CRM.", introduce: "Introduces your company and starts a conversation, without asking for a meeting.", sell: "No meetings: Yolias sends your sign-up or purchase link and answers questions." },
+      ctaUrl: { meeting: "Booking link (Calendly or Google Calendar)", introduce: "Link for more information (optional)", sell: "Sign-up or purchase link" },
+      ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
+      autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, answers replies, follows up with those who don't reply and moves interested leads to the CRM. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
       title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",
       recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",

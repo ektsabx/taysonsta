@@ -1,4 +1,5 @@
 import "server-only";
+import { aimGuidance, isAim } from "@/lib/outreach/aim";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -73,13 +74,15 @@ async function markDoNotContact(leadId: string) {
 export async function analyzeReply(workspaceId: string, userId: string, messageId: string, settings?: AiSettings): Promise<ReplyAnalysis | null> {
   const s = settings ?? (await loadAiSettings(workspaceId));
   const db = createAdminClient();
-  const { data: m } = await db.from("outreach_messages").select("id, lead_id, body, direction").eq("id", messageId).eq("workspace_id", workspaceId).single();
+  const { data: m } = await db.from("outreach_messages").select("id, lead_id, body, direction, outreach_campaign_id").eq("id", messageId).eq("workspace_id", workspaceId).single();
   if (!m || m.direction !== "inbound" || !m.lead_id) return null;
   const leadId = m.lead_id;
   const d = decide(s, "replies", "analyze_replies");
   let analysis: ReplyAnalysis | null = null;
   if (d.allowed) {
     const business = await loadBusinessContext(workspaceId);
+    // The campaign's aim decides what the suggested reply asks for (D-253).
+    const { data: camp } = m.outreach_campaign_id ? await db.from("outreach_campaigns").select("aim, cta_url").eq("id", m.outreach_campaign_id).maybeSingle() : { data: null };
     try {
       const r = await runStructured(tasks.extraction, {
         system: [
@@ -89,6 +92,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "needs_human: true when a person should answer (complaints, objections, legal or pricing negotiations, unclear meaning, requests to talk to a person).",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
           "suggested_reply: a short reply in the reply's language using only the company knowledge given, or null for stop requests and out-of-office. Never invent prices, features, results, dates or claims about competitors.",
+          camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", camp.cta_url) : "",
           `Sender's company:\n${contextText(business)}`,
           guidanceFor(s, "replies"),
         ].filter(Boolean).join("\n\n"),
@@ -137,8 +141,12 @@ export async function suggestStage(workspaceId: string, leadId: string, stage: L
   if (stage !== "lost" && order.indexOf(stage) <= order.indexOf(lead.stage)) return;
   const d = decide(s, "crm", "update_crm_stage");
   if (!d.allowed) return;
+  // A lead in a campaign the member approved to run by itself (auto-replies
+  // on) moves on its own: that approval covers the campaign (owner 2026-10-21, D-253).
+  const { data: auto } = await db.from("outreach_enrollments").select("id, campaign:outreach_campaigns!inner(status, auto_reply, approved_at)")
+    .eq("lead_id", leadId).eq("campaign.auto_reply", true).not("campaign.approved_at", "is", null).limit(1).maybeSingle();
   // An escalated reply is never acted on automatically.
-  if (d.mode === "auto" && !escalated) {
+  if ((d.mode === "auto" || auto) && !escalated) {
     await changeStage(db, workspaceId, leadId, stage, "agent");
     return;
   }

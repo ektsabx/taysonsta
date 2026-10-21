@@ -4,6 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookmarkMinus, ChevronLeft, ChevronRight, Download, Eye, Mail, Phone, Send, SquareKanban, Trash2, UsersRound, X } from "lucide-react";
+import { AIMS } from "@/lib/outreach/aim";
+import type { CampaignAim } from "@/types/acquisition";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -253,7 +255,8 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
           onCreate={(input) => { setPicker(null); run(async () => {
             const r = await sendSelectionAsCampaign(target(), input);
             if (!r.ok) { toast(r.error, "error"); return null; }
-            router.push(`/outreach/${r.id}`);
+            // Straight to Conversations for this campaign: one approval there, then Yolias runs it (D-253).
+            router.push(`/conversations?campaign=${r.id}`);
             return r.message ?? null;
           }); }}
           onPick={(id) => { setPicker(null); run(async () => {
@@ -273,10 +276,13 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
  */
 function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
   count: number; campaigns: { id: string; name: string; status: string }[]; pending: boolean;
-  onClose: () => void; onCreate: (input: { name: string; channel: "email" }) => void; onPick: (id: string) => void;
+  onClose: () => void; onCreate: (input: { name: string; channel: "email"; aim: CampaignAim; ctaUrl: string | null }) => void; onPick: (id: string) => void;
 }) {
   const { t, locale } = useI18n();
   const o = t.ws.outreach;
+  const l = o.launch;
+  const [aim, setAim] = useState<CampaignAim>("meeting");
+  const [cta, setCta] = useState("");
   const [name, setName] = useState(() => fmt(o.send.defaultName, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "short" }).format(new Date()) }));
   return (
     <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -288,8 +294,15 @@ function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
         <p className="ws-muted">{o.send.lead}</p>
         <div className="ws-field"><label className="ws-label" htmlFor="send-name">{o.send.name}</label>
           <input id="send-name" className="form-input" value={name} maxLength={160} onChange={(e) => setName(e.target.value)} /></div>
+        <div className="ws-field"><label className="ws-label" htmlFor="send-aim">{l.aim}</label>
+          <select id="send-aim" className="form-select" value={aim} onChange={(e) => setAim(e.target.value as CampaignAim)}>
+            {AIMS.map((a) => <option key={a} value={a}>{l.aims[a]}</option>)}
+          </select>
+          <span className="cell-sub">{l.aimHints[aim]}</span></div>
+        <div className="ws-field"><label className="ws-label" htmlFor="send-cta">{l.ctaUrl[aim]}</label>
+          <input id="send-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} /></div>
         <div className="ws-actions">
-          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email" })}><Send /> {o.send.start}</button>
+          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email", aim, ctaUrl: cta.trim() || null })}><Send /> {o.send.start}</button>
         </div>
         {campaigns.length > 0 && (
           <>

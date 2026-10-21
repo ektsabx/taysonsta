@@ -15,6 +15,8 @@ import { parseFilters, selectItems } from "@/services/prospects";
 import { approveCampaign, setCampaignRun } from "@/lib/outreach/execute";
 import { memberMailboxes } from "@/lib/mailbox";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { AIMS, cleanCtaUrl } from "@/lib/outreach/aim";
+import type { CampaignAim } from "@/types/acquisition";
 
 // Outreach campaigns (D-193): create / edit with steps, add and remove leads,
 // prepare drafts, change status. All as the member (RLS); drafting checks
@@ -38,6 +40,9 @@ const campaignInput = z.object({
     objective: z.enum(objectives as [string, ...string[]]),
     instruction: z.string().trim().max(1000).optional().default(""),
   })).min(1).max(10),
+  /** What the campaign is for and the link the agent offers (D-253). */
+  aim: z.enum(AIMS).optional(),
+  cta_url: z.string().trim().max(500).nullable().optional(),
   /** New campaigns only: start from a search campaign — its prospects join, drafts are prepared (owner brief 2026-10-19). */
   source_campaign_id: z.string().uuid().nullable().optional(),
 });
@@ -55,6 +60,7 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
     // Email only (D-239): Yolias sends from the member's mailbox; no LinkedIn or chat messages.
     name: c.name, goal: c.goal || null, description: c.description || null, channel: "email" as never, language: c.language, tone: c.tone as never,
     customer_profile_id: c.customer_profile_id, offer_id: c.offer_id,
+    ...(c.aim ? { aim: c.aim } : {}), ...(c.cta_url !== undefined ? { cta_url: cleanCtaUrl(c.cta_url) } : {}),
   };
   let id = c.id;
   if (id) {
@@ -134,19 +140,54 @@ export async function writeNextEmails(campaignId: string): Promise<OutreachResul
 }
 
 /** Selected prospects → a new campaign with the usual two steps, started at once (Prospects → Send). */
-export async function quickCampaign(input: { name: string; channel: string; targets: LeadTarget[] }): Promise<OutreachResult<{ id: string }>> {
+export async function quickCampaign(input: { name: string; channel: string; targets: LeadTarget[]; aim?: CampaignAim; ctaUrl?: string | null }): Promise<OutreachResult<{ id: string }>> {
   const session = await requireSession();
   const t = (await getDictionary()).ws.outreach;
   const settings = await loadAiSettings(session.workspace.id);
+  // The aim and link default to the workspace's last campaign (D-253).
+  const { data: last } = await (await createClient()).from("outreach_campaigns").select("aim, cta_url").eq("workspace_id", session.workspace.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
   const saved = await saveOutreachCampaign({
     name: input.name, goal: "", description: "", channel: "email" as never, language: session.profile.language === "ar" ? "ar" : "en", tone: "direct",
     customer_profile_id: null, offer_id: null,
+    aim: input.aim ?? ((last?.aim as CampaignAim | undefined) ?? "meeting"), cta_url: input.ctaUrl !== undefined ? input.ctaUrl : last?.cta_url ?? null,
     steps: [{ delay_days: 0, objective: "introduction", instruction: "" }, { delay_days: 3, objective: "follow_up", instruction: "" }].slice(0, Math.max(1, settings.limits.max_messages_per_lead)) as never,
   });
   if (!saved.ok) return saved;
   const launched = await launchCampaign(saved.id, input.targets);
   if (!launched.ok) return { ok: false, error: launched.error };
+  // The first email is written now, so the approval shows exactly what goes out;
+  // the rest are written by the server after approval, with the site closed (D-253).
+  await writeSample(session.workspace.id, session.userId, saved.id);
   return { ok: true, id: saved.id, message: launched.message ?? t.started };
+}
+
+async function writeSample(workspaceId: string, userId: string, campaignId: string) {
+  const { data: first } = await createAdminClient().from("outreach_enrollments").select("id, lead:sales_leads!inner(email)").eq("campaign_id", campaignId).eq("status", "active").eq("current_step", 0)
+    .not("lead.email", "is", null).order("created_at").limit(1).maybeSingle();
+  if (first) await prepareNextStep(workspaceId, userId, first.id, "user").catch(() => null);
+}
+
+/**
+ * Changes what the campaign is for (meeting / introduce / sell) and its link
+ * before it starts. Unsent first emails are written again for the new aim.
+ */
+export async function setCampaignAim(campaignId: string, aim: CampaignAim, ctaUrl: string | null): Promise<OutreachResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).ws.outreach;
+  if (!uuid.safeParse(campaignId).success || !(AIMS as readonly string[]).includes(aim)) return { ok: false, error: t.errors.notFound };
+  const link = cleanCtaUrl(ctaUrl);
+  if (ctaUrl && ctaUrl.trim() && !link) return { ok: false, error: t.launch.badLink };
+  const db = await createClient();
+  const { data: c } = await db.from("outreach_campaigns").update({ aim, cta_url: link }).eq("id", campaignId).eq("workspace_id", session.workspace.id).neq("status", "archived").select("id, approved_at").maybeSingle();
+  if (!c) return { ok: false, error: t.errors.notFound };
+  if (!c.approved_at) {
+    const admin = createAdminClient();
+    const { data: drafts } = await admin.from("outreach_messages").update({ status: "canceled" }).eq("outreach_campaign_id", campaignId).eq("direction", "outbound").in("status", ["draft", "approved"]).select("id");
+    if (drafts?.length) await writeSample(session.workspace.id, session.userId, campaignId);
+  }
+  revalidatePath("/conversations");
+  revalidatePath(`/outreach/${campaignId}`);
+  return { ok: true, message: t.launch.aimSaved };
 }
 
 export async function setOutreachStatus(id: string, status: OutreachCampaignStatus): Promise<OutreachResult> {
