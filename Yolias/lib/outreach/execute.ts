@@ -1,11 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
-import { analyzeReply } from "@/lib/agents/replies";
+import { analyzeReply, type ReplyAnalysis } from "@/lib/agents/replies";
 import { isStopRequest } from "@/lib/agents/stop";
 import { runAutomations } from "@/lib/automations/engine";
-import { stopFollowUps } from "@/lib/crm/follow-ups";
-import { mailboxAccess, markMailboxError, MailboxError } from "@/lib/mailbox";
+import { postponeFollowUps, stopEnrollments } from "@/lib/crm/follow-ups";
+import { loadSendingRules, mailboxAccess, markMailboxError, MailboxError } from "@/lib/mailbox";
+import { mailboxWindow, nextGapMs, withinWindow } from "@/lib/outreach/sending-rules";
 import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
 import type { Json, MailboxRow, OutreachMessageRow } from "@/types/database";
@@ -81,9 +82,12 @@ export async function dispatchCampaigns(limit = 10): Promise<{ campaigns: number
   const db = createAdminClient();
   const out = { campaigns: 0, sent: 0, failed: 0, prepared: 0 };
   await recoverInterrupted(db);
-  const { data: camps } = await db.from("outreach_campaigns").select("*").eq("status", "active").eq("send_mode", "mailbox").not("approved_at", "is", null).limit(limit);
+  // The campaigns that waited longest go first, so every active campaign gets its turn (D-256).
+  const { data: camps } = await db.from("outreach_campaigns").select("*").eq("status", "active").eq("send_mode", "mailbox").not("approved_at", "is", null)
+    .order("dispatched_at", { ascending: true, nullsFirst: true }).limit(limit);
   for (const c of (camps ?? []) as OutreachCampaignRow[]) {
     out.campaigns++;
+    await db.from("outreach_campaigns").update({ dispatched_at: new Date().toISOString() }).eq("id", c.id);
     const r = await runCampaign(db, c).catch((e) => { console.error("[outreach] campaign", c.id, e); return null; });
     if (r) { out.sent += r.sent; out.failed += r.failed; out.prepared += r.prepared; }
   }
@@ -105,7 +109,7 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   // Only the approver's own, connected mailbox in this workspace.
   if (!mailbox || mailbox.user_id !== c.approved_by || mailbox.workspace_id !== c.workspace_id || mailbox.status !== "connected") {
     await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Settings, Integrations, then resume the campaign.", `/conversations?campaign=${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
+    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
     return res;
   }
   const settings = await loadAiSettings(c.workspace_id);
@@ -128,7 +132,13 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
     }
   }
 
-  // 2) Send the prepared messages of the current step.
+  // 2) Send the prepared messages of the current step, only inside the
+  // mailbox's sending hours and one email per random gap (D-256).
+  const rules = await loadSendingRules(c.workspace_id);
+  const { data: member } = await db.from("profiles").select("timezone").eq("id", mailbox.user_id).maybeSingle();
+  if (!withinWindow(mailboxWindow(mailbox, rules, member?.timezone ?? null))) return res;
+  if (mailbox.next_send_at && Date.parse(mailbox.next_send_at) > Date.now()) return res;
+  if (rules.gap_max > 0) room = Math.min(room, 1);
   const { data: msgs } = await db.from("outreach_messages").select("*, enrollment:outreach_enrollments(id, status, current_step), lead:sales_leads(id, do_not_contact, email, name)")
     .eq("outreach_campaign_id", c.id).eq("direction", "outbound").in("status", ["draft", "approved"]).order("created_at").limit(room * 2);
   for (const raw of msgs ?? []) {
@@ -150,7 +160,11 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
     if (last?.sent_at && Date.now() - Date.parse(last.sent_at) < settings.limits.min_gap_hours * 3_600_000) continue;
 
     const outcome = await sendOne(db, c, mailbox, m, to);
-    if (outcome === "sent") { res.sent++; room--; }
+    if (outcome === "sent") {
+      res.sent++; room--;
+      const gap = nextGapMs(rules);
+      if (gap) await db.from("mailboxes").update({ next_send_at: new Date(Date.now() + gap).toISOString() }).eq("id", mailbox.id);
+    }
     else if (outcome === "failed") res.failed++;
     else if (outcome === "stop") break;
   }
@@ -192,7 +206,7 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
       if (err.kind === "auth") await markMailboxError(mailbox.id, "The mailbox permission expired or was removed. Reconnect it in Settings, Integrations.");
       if (c) {
         await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Settings, Integrations, then resume the campaign.", `/conversations?campaign=${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
+        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
       }
       return "stop";
     }
@@ -258,7 +272,7 @@ export async function syncReplies(limit = 10, force = false): Promise<{ mailboxe
   const out = { mailboxes: 0, replies: 0, bounces: 0 };
   const before = new Date(Date.now() - (force ? 0 : SYNC_EVERY)).toISOString();
   const { data: boxes } = await db.from("mailboxes").select("*").eq("status", "connected").eq("can_read", true)
-    .or(`last_synced_at.is.null,last_synced_at.lte.${before}`).limit(limit);
+    .or(`last_synced_at.is.null,last_synced_at.lte.${before}`).order("last_synced_at", { ascending: true, nullsFirst: true }).limit(limit);
   for (const mb of (boxes ?? []) as MailboxRow[]) {
     out.mailboxes++;
     const r = await syncMailbox(db, mb).catch((e) => { console.error("[outreach] sync", mb.id, e instanceof Error ? e.message : e); return null; });
@@ -298,18 +312,41 @@ async function syncMailbox(db: Db, mb: MailboxRow) {
       outreach_campaign_id: ours.outreach_campaign_id, enrollment_id: ours.enrollment_id, mailbox_id: mb.id, provider_message_id: inc.providerMessageId, provider_thread_id: inc.threadId,
     }).select("id").maybeSingle();
     if (error || !saved) continue; // already stored (unique per provider message id)
+    if (inc.autoReply) { await handleAutoReply(db, mb, ours.lead_id, saved.id); continue; }
     res.replies++;
     await handleReply(db, mb, ours.lead_id, saved.id, ours.outreach_campaign_id, inc.body);
   }
   return res;
 }
 
+// An out-of-office reply is not the lead answering: the sequence waits this
+// many days instead of stopping (AgentSDR's "Bump after out-of-office").
+const OUT_OF_OFFICE_DAYS = 7;
+
+/** A reply its headers or subject mark as automatic: no AI, no hand-off, the next follow-up waits. */
+async function handleAutoReply(db: Db, mb: MailboxRow, leadId: string, messageId: string) {
+  const analysis: ReplyAnalysis = { kind: "out_of_office", summary: "Automatic reply (out of office).", suggested_stage: null, needs_human: false, escalate_because: [], suggested_reply: null, by: "rules" };
+  await db.from("outreach_messages").update({ analysis: analysis as unknown as Json }).eq("id", messageId);
+  const moved = await postponeFollowUps(leadId, OUT_OF_OFFICE_DAYS);
+  await db.from("lead_activities").insert({
+    workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "system",
+    body: moved ? `Automatic reply (out of office). The next follow-up waits ${OUT_OF_OFFICE_DAYS} days.` : "Automatic reply (out of office).",
+    meta: { message_id: messageId, kind: "out_of_office", by: "rules" },
+  });
+}
+
 /** Same steps as a reply the member logs by hand (lib/agents/replies.ts), plus the optional auto-reply. */
 async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: string, campaignId: string | null, body: string) {
   const settings = await loadAiSettings(mb.workspace_id);
-  if (settings.limits.stop_on_reply) await stopFollowUps(leadId, "replied", "replied");
+  const stopped = settings.limits.stop_on_reply ? await stopEnrollments(leadId, "replied", "replied") : [];
   if (isStopRequest(body)) await db.from("sales_leads").update({ do_not_contact: true }).eq("id", leadId);
   const analysis = await analyzeReply(mb.workspace_id, mb.user_id, messageId, settings).catch((e) => { console.error("[outreach] analyze", e); return null; });
+  // The AI found an out-of-office the headers didn't show: the follow-ups it just stopped come back, later.
+  if (analysis?.kind === "out_of_office") {
+    const moved = await postponeFollowUps(leadId, OUT_OF_OFFICE_DAYS, stopped);
+    if (moved) await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "system", body: `Out of office. The next follow-up waits ${OUT_OF_OFFICE_DAYS} days.`, meta: { message_id: messageId, kind: "out_of_office", by: analysis.by } });
+    return;
+  }
   await runAutomations({ workspaceId: mb.workspace_id, trigger: "reply.received", leadId, eventKey: `message:${messageId}`, data: { replyKind: analysis?.kind }, origin: "system" })
     .catch((e) => console.error("[automations] reply.received", e));
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
@@ -321,13 +358,13 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     const meeting = analysis.kind === "meeting_request";
     const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
     const body = ar ? `${analysis.summary}\nيولـياس وقف المتابعات ونقله لإدارة العملاء. كمّل انت من المحادثة${meeting ? " وابعتله لينك الاجتماع" : ""}.` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM. Take it from the conversation${meeting ? " and send your meeting link" : ""}.`;
-    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/conversations?lead=${leadId}`, `reply:${messageId}`);
+    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/inbox?lead=${leadId}`, `reply:${messageId}`);
     await db.from("lead_tasks").insert({
       workspace_id: mb.workspace_id, lead_id: leadId, title: (ar ? `كمّل مع ${who}: ${meeting ? "ابعت لينك الاجتماع" : "مهتم"}` : `Take over ${who}: ${meeting ? "send your meeting link" : "interested"}`).slice(0, 300),
       kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
     });
   } else {
-    await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/conversations?lead=${leadId}`, `reply:${messageId}`);
+    await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `reply:${messageId}`);
   }
 
   // Auto-reply: only if the member turned it on for this campaign, only for
@@ -372,7 +409,7 @@ async function pauseOnBounces(db: Db, campaignId: string) {
   const { data: paused } = await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", campaignId).eq("status", "active").select("id, workspace_id, name, approved_by").maybeSingle();
   if (!paused) return;
   const pct = Math.round(((bounced ?? 0) / sent) * 100);
-  await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/conversations?campaign=${campaignId}`, `paused-bounces:${campaignId}`);
+  await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/outreach/${campaignId}`, `paused-bounces:${campaignId}`);
 }
 
 export async function notifyUser(workspaceId: string, userId: string | null, title: string, body: string | null, link: string, dedupe: string) {

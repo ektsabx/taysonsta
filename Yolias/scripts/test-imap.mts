@@ -119,9 +119,13 @@ try {
   inbox.push({ uid: 8, raw: "Message-ID: <news@shop.test>\r\nFrom: news@shop.test\r\nSubject: Sale\r\n\r\nBuy now\r\n" });
   inbox.push({ uid: 9, raw: `Message-ID: <self@acme.test>\r\nIn-Reply-To: ${first.providerMessageId}\r\nFrom: ${USER}\r\nSubject: note\r\n\r\nmine\r\n` });
   inbox.push({ uid: 10, raw: `Message-ID: <dsn-1@mx.test>\r\nFrom: Mail Delivery Subsystem <mailer-daemon@mx.test>\r\nSubject: Undeliverable: Quick idea\r\n\r\nYour message ${first.providerMessageId} could not be delivered to lost@client.test\r\n` });
+  inbox.push({ uid: 11, raw: `Message-ID: <ooo-1@client.test>\r\nIn-Reply-To: ${first.providerMessageId}\r\nFrom: Laila <laila@client.test>\r\nSubject: Re: Quick idea\r\nAuto-Submitted: auto-replied\r\n\r\nAway until Monday.\r\n` });
   const replies = await imapProvider.replies(token, USER, [first.threadId]);
-  const reply = replies.find((r) => !r.bounce)!;
-  assert.equal(replies.filter((r) => !r.bounce).length, 1, "only the reply to our thread, not our own message or the newsletter");
+  const away = replies.find((r) => r.providerMessageId === "<ooo-1@client.test>");
+  assert.ok(away?.autoReply && !away.bounce, "an Auto-Submitted reply is marked automatic");
+  const reply = replies.find((r) => !r.bounce && !r.autoReply)!;
+  assert.equal(replies.filter((r) => !r.bounce && !r.autoReply).length, 1, "only the reply to our thread, not our own message or the newsletter");
+  assert.ok(!reply.autoReply, "a person's reply is not automatic");
   assert.equal(reply.threadId, first.threadId);
   assert.equal(reply.from, "omar@client.test"); assert.equal(reply.fromName, "Omar");
   assert.equal(reply.subject, "رد: فكرة");

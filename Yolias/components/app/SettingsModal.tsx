@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, AtSign, Bell, ChevronRight, CreditCard, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, ChevronRight, CreditCard, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
@@ -12,11 +12,10 @@ import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
-import { GmailIcon } from "./ConnectorIcons";
+import { EmailSettings } from "./settings/EmailSettings";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
-import { connectImapMailbox, connectTestMailbox, mailboxState, removeMailbox } from "@/app/(app)/settings/mailbox-actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
@@ -910,142 +909,9 @@ function TeamTab({ data }: { data: ShellData }) {
 
 /* ─────────────── Integrations ─────────────── */
 
+// Integrations → Email (D-256): Mailboxes, Connection and Sending rules, after AgentSDR.
 function IntegrationTab() {
-  const { t } = useI18n();
-  const it = t.settings.integration;
-  const toast = useToast();
-  const [state, setState] = useState<Awaited<ReturnType<typeof mailboxState>> | null>(null);
-  const [pending, start] = useTransition();
-  const load = () => mailboxState().then(setState).catch(() => setState({ mailboxes: [], available: [] }));
-  useEffect(() => { void load(); }, []);
-  // Coming back from Google / Microsoft: say what happened.
-  useEffect(() => {
-    const status = new URLSearchParams(window.location.search).get("mailbox");
-    if (!status) return;
-    const msg = { connected: it.mailboxConnected, denied: it.mailboxDenied, not_configured: it.mailboxNotConfigured }[status] ?? it.mailboxFailed;
-    toast(msg, status === "connected" ? undefined : "error");
-    window.history.replaceState(null, "", window.location.pathname);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Mailboxes (D-228; Outlook hidden by the owner 2026-10-20): connect your own Gmail or IMAP to send approved
-  // campaigns and read the replies. LinkedIn has no official messaging API
-  // for this, so it stays "write here, send from your account". Calendars
-  // aren't built yet and say so.
-  const mailboxRow = (provider: "gmail" | "outlook" | "test", name: string, desc: string, Icon: React.ComponentType) => {
-    const m = state?.mailboxes.find((x) => x.provider === provider && x.status !== "disconnected");
-    const can = state?.available.includes(provider);
-    return (
-      <div className="connector" key={provider} data-setting={provider}>
-        <div className="connector-icon"><Icon /></div>
-        <div className="connector-main">
-          <div className="connector-name">{name}{m ? <span className="connector-account" dir="ltr"> · {m.email}</span> : null}</div>
-          <div className="connector-desc">{m?.status === "error" ? (m.lastError ?? it.needsReconnect) : desc}</div>
-          {m?.status === "connected" ? <div className="connector-desc">{fmt(it.sentToday, { count: m.sentToday, limit: m.dailyLimit })}</div> : null}
-        </div>
-        {m ? (
-          <span className="connector-actions">
-            <span className={m.status === "connected" ? "status-pill paid" : "status-pill failed"}>{m.status === "connected" ? it.connected : it.needsReconnect}</span>
-            {m.status === "error" && provider !== "test" ? <a className="btn-secondary" href={`/api/integrations/${provider}/start`}>{it.reconnect}</a> : null}
-            <button type="button" className="btn-secondary" disabled={pending} onClick={() => {
-              if (!window.confirm(fmt(it.disconnectConfirm, { email: m.email }))) return;
-              start(async () => { await removeMailbox(m.id); await load(); });
-            }}>{it.disconnect}</button>
-          </span>
-        ) : can ? (
-          provider === "test"
-            ? <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => { await connectTestMailbox(); await load(); })}>{it.connect}</button>
-            : <a className="btn-primary" href={`/api/integrations/${provider}/start`}>{it.connect}</a>
-        ) : <span className="coming-soon">{state ? it.notSetUp : "…"}</span>}
-      </div>
-    );
-  };
-  return (
-    <div className="setting-group">
-      <p className="setting-intro">{it.intro}</p>
-      <div className="connector-group">
-        <div className="setting-label">{it.channels}</div>
-        <div className="connector-list">
-          {mailboxRow("gmail", "Gmail", it.gmailDesc, GmailIcon)}
-          <ImapRow mailbox={state?.mailboxes.find((x) => x.provider === "imap" && x.status !== "disconnected") ?? null} loaded={Boolean(state)} pending={pending} onDisconnect={(id) => start(async () => { await removeMailbox(id); await load(); })} onConnected={() => { toast(it.mailboxConnected); void load(); }} />
-          {state?.available.includes("test") || state?.mailboxes.some((m) => m.provider === "test") ? mailboxRow("test", "Test mailbox", it.testDesc, Plug) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Any mailbox with IMAP/SMTP (D-238): connected with its server settings and an app password. */
-function ImapRow({ mailbox, loaded, pending, onDisconnect, onConnected }: { mailbox: Awaited<ReturnType<typeof mailboxState>>["mailboxes"][number] | null; loaded: boolean; pending: boolean; onDisconnect: (id: string) => void; onConnected: () => void }) {
-  const { t } = useI18n();
-  const it = t.settings.integration;
-  const im = it.imap;
-  const [open, setOpen] = useState(false);
-  const [busy, startBusy] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [f, setF] = useState({ email: "", name: "", user: "", pass: "", imapHost: "", imapPort: "993", smtpHost: "", smtpPort: "465" });
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setF((o) => {
-      const next = { ...o, [k]: v };
-      // Typing the address suggests the usual server names; the member can change them.
-      if (k === "email") {
-        const domain = v.split("@")[1] ?? "";
-        if (!o.user || o.user === o.email) next.user = v;
-        if (domain && (!o.imapHost || o.imapHost === `imap.${o.email.split("@")[1] ?? ""}`)) next.imapHost = `imap.${domain}`;
-        if (domain && (!o.smtpHost || o.smtpHost === `smtp.${o.email.split("@")[1] ?? ""}`)) next.smtpHost = `smtp.${domain}`;
-      }
-      return next;
-    });
-  };
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    startBusy(async () => {
-      const r = await connectImapMailbox({ ...f, imapPort: Number(f.imapPort), smtpPort: Number(f.smtpPort) });
-      if (r.ok) { setOpen(false); setF((o) => ({ ...o, pass: "" })); onConnected(); }
-      else setError(im.errors[r.error]);
-    });
-  };
-  return (
-    <div className="connector connector-stack" data-setting="imap">
-      <div className="connector-row">
-        <div className="connector-icon"><AtSign /></div>
-        <div className="connector-main">
-          <div className="connector-name">{im.name}{mailbox ? <span className="connector-account" dir="ltr"> · {mailbox.email}</span> : null}</div>
-          <div className="connector-desc">{mailbox?.status === "error" ? (mailbox.lastError ?? it.needsReconnect) : im.desc}</div>
-          {mailbox?.status === "connected" ? <div className="connector-desc">{fmt(it.sentToday, { count: mailbox.sentToday, limit: mailbox.dailyLimit })}</div> : null}
-        </div>
-        {mailbox ? (
-          <span className="connector-actions">
-            <span className={mailbox.status === "connected" ? "status-pill paid" : "status-pill failed"}>{mailbox.status === "connected" ? it.connected : it.needsReconnect}</span>
-            {mailbox.status === "error" ? <button type="button" className="btn-secondary" onClick={() => setOpen(true)}>{it.reconnect}</button> : null}
-            <button type="button" className="btn-secondary" disabled={pending} onClick={() => { if (window.confirm(fmt(it.disconnectConfirm, { email: mailbox.email }))) onDisconnect(mailbox.id); }}>{it.disconnect}</button>
-          </span>
-        ) : loaded ? <button type="button" className="btn-primary" onClick={() => setOpen((o) => !o)}>{it.connect}</button> : <span className="coming-soon">…</span>}
-      </div>
-      {open && (
-        <form className="imap-form" onSubmit={submit}>
-          <p className="connector-desc">{im.help}</p>
-          <div className="imap-grid">
-            <label><span>{im.email}</span><input className="form-input" dir="ltr" type="email" required autoComplete="email" value={f.email} onChange={set("email")} /></label>
-            <label><span>{im.senderName}</span><input className="form-input" value={f.name} onChange={set("name")} /></label>
-            <label><span>{im.user}</span><input className="form-input" dir="ltr" required autoComplete="username" value={f.user} onChange={set("user")} /></label>
-            <label><span>{im.pass}</span><input className="form-input" dir="ltr" type="password" required autoComplete="current-password" value={f.pass} onChange={set("pass")} /></label>
-            <label><span>{im.imapHost}</span><input className="form-input" dir="ltr" required value={f.imapHost} onChange={set("imapHost")} /></label>
-            <label><span>{im.port}</span><select className="form-select" value={f.imapPort} onChange={(e) => setF((o) => ({ ...o, imapPort: e.target.value }))}><option value="993">993 (SSL/TLS)</option><option value="143">143 (STARTTLS)</option></select></label>
-            <label><span>{im.smtpHost}</span><input className="form-input" dir="ltr" required value={f.smtpHost} onChange={set("smtpHost")} /></label>
-            <label><span>{im.port}</span><select className="form-select" value={f.smtpPort} onChange={(e) => setF((o) => ({ ...o, smtpPort: e.target.value }))}><option value="465">465 (SSL/TLS)</option><option value="587">587 (STARTTLS)</option><option value="2525">2525 (STARTTLS)</option></select></label>
-          </div>
-          {error && <p className="form-error">{error}</p>}
-          <div className="imap-actions">
-            <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>{im.cancel}</button>
-            <button type="submit" className="btn-primary" disabled={busy}>{busy ? im.checking : im.save}</button>
-          </div>
-        </form>
-      )}
-    </div>
-  );
+  return <EmailSettings />;
 }
 
 function SettingRow({ id, label, desc, children }: { id?: string; label: string; desc: string; children: React.ReactNode }) {

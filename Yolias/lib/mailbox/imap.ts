@@ -1,5 +1,5 @@
 import "server-only";
-import { buildMessage, isBounce, messageIds, parseAddress, parseHeaders, parseMessage, replyText } from "./mime";
+import { buildMessage, isAutoReply, isBounce, messageIds, parseAddress, parseHeaders, parseMessage, replyText } from "./mime";
 import { checkEndpoint, LineConn, type Endpoint } from "./socket";
 import { MailboxError, type IncomingMail, type MailboxProvider, type OutgoingMail } from "./types";
 
@@ -203,7 +203,7 @@ async function imapReplies(a: ImapAccount, ownAddress: string, threadIds: string
       const [body] = await i.run(`UID FETCH ${m.uid} (BODY.PEEK[])`);
       const parsed = parseMessage(body?.literals[0]?.toString("latin1") ?? "");
       const who = parseAddress(m.from);
-      out.push({ providerMessageId: m.messageId, threadId: m.thread, from: who.email, fromName: who.name, subject: m.subject, body: replyText(parsed.text), receivedAt: new Date(Date.parse(m.date) || Date.now()).toISOString(), bounce: isBounce(m.from, m.subject) });
+      out.push({ providerMessageId: m.messageId, threadId: m.thread, from: who.email, fromName: who.name, subject: m.subject, body: replyText(parsed.text), receivedAt: new Date(Date.parse(m.date) || Date.now()).toISOString(), bounce: isBounce(m.from, m.subject), autoReply: isAutoReply((n) => parsed.headers[n] ?? "", m.subject) });
     }
     // A bounce quotes our message: it belongs to the thread whose id appears in it.
     for (const uid of bounces.slice(-20)) {

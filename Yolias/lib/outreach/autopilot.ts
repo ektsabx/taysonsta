@@ -117,7 +117,7 @@ async function propose(db: Db, s: Search, userId: string) {
     summary: ar ? `بدء «${s.name}»: ${recipients} عميل، مع الرد التلقائي` : `Start "${s.name}": ${recipients} leads, auto-replies on`,
     expires_at: new Date(Date.now() + 7 * DAY).toISOString(),
   }).select("id").single();
-  const link = `/conversations?campaign=${camp.id}`;
+  const link = `/outreach/${camp.id}`;
   const text = ar
     ? [`لقيت ${s.prospects_found} عميل محتمل، وجهّزت حملة «${s.name}» لـ ${recipients} منهم، هدفها ${aimText}: إيميل أول ومتابعتين. ما اتبعتش أي حاجة لسه.`,
        sample ? `أول إيميل:\n\n**${sample.subject}**\n\n${sample.body.slice(0, 1500)}` : "",

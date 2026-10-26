@@ -1,6 +1,6 @@
 import "server-only";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
-import { buildRawEmail, decodeBase64Url, isBounce, parseAddress, replyText } from "./mime";
+import { buildRawEmail, decodeBase64Url, isAutoReply, isBounce, parseAddress, replyText } from "./mime";
 import { MailboxError, type IncomingMail, type MailboxProvider } from "./types";
 
 // Gmail through the Gmail API with the member's consent (D-228). Keys: Yolias
@@ -90,6 +90,7 @@ export const gmail: MailboxProvider = {
           body: replyText(textOf(m.payload)).slice(0, 10_000),
           receivedAt: m.internalDate ? new Date(Number(m.internalDate)).toISOString() : new Date().toISOString(),
           bounce: isBounce(from.email, subject),
+          autoReply: isAutoReply(h, subject),
         });
       }
     }

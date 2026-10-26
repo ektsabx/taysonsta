@@ -59,7 +59,7 @@ async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
     lines = companies0.map((c) => [c.name, c.category, c.address, c.city, c.country, c.email, c.phone, c.website ?? c.domain, c.rating, c.reviews_count, c.maps_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   } else {
     header = [h.name, h.domain, h.industry, h.employees, h.city, h.country, h.email, h.phone, h.linkedin, ...social, h.campaign, ...intel];
-    lines = companies0.map((c) => [c.name, c.domain, c.industry, c.employee_count, c.city, c.country, c.email, c.phone, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
+    lines = companies0.map((c) => [c.name, c.domain, c.industry ?? c.category, c.employee_count, c.city, c.country, c.email, c.phone, c.linkedin_url, ...socialOf(c), c.campaign?.name, ...intelOf(c)]);
   }
   {
     const unrevealed = people.filter((p) => !p.revealed_at).map((p) => p.id);

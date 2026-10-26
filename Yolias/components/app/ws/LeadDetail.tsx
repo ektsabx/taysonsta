@@ -53,7 +53,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
         <div className="view-actions">
           {lead.do_not_contact && <span className="ws-chip red"><ShieldAlert /> {d.dnc}</span>}
           <StageSelect leadId={lead.id} stage={lead.stage} />
-          <Link className="btn-secondary" href={`/conversations?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
+          <Link className="btn-secondary" href={`/inbox?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
         </div>
       </header>
       <div className="view-content-padding">
@@ -94,7 +94,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                     ? fmt(d.conversationCounts, { sent: detail.messages.filter((m) => m.direction === "outbound" && m.status === "sent").length, replies: detail.messages.filter((m) => m.direction === "inbound").length })
                     : d.noMessages}</span>
                 </div>
-                <Link className="btn-secondary ws-btn-sm" href={`/conversations?lead=${lead.id}`}><Inbox size={13} /> {d.openConversation}</Link>
+                <Link className="btn-secondary ws-btn-sm" href={`/inbox?lead=${lead.id}`}><Inbox size={13} /> {d.openConversation}</Link>
               </div>
             </section>
 
@@ -230,7 +230,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
               <h3 className="ws-label" style={{ marginBottom: 10 }}>{d.campaigns}</h3>
               {!detail.enrollments.length ? <p className="ws-muted">{d.noCampaigns}</p> : detail.enrollments.map((e) => (
                 <div key={e.id} className="ws-list-row">
-                  {e.campaign ? <Link className="ws-link" href={`/conversations?campaign=${e.campaign.id}`}>{e.campaign.name}</Link> : <span>-</span>}
+                  {e.campaign ? <Link className="ws-link" href={`/outreach/${e.campaign.id}`}>{e.campaign.name}</Link> : <span>-</span>}
                   <span className="ws-chip">{t.ws.outreach.enrollStatus[e.status]}</span>
                 </div>
               ))}

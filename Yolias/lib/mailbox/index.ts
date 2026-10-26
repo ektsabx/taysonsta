@@ -6,6 +6,7 @@ import { outlook } from "./outlook";
 import { imapProvider } from "./imap";
 import { testMailboxAllowed, testProvider } from "./test-provider";
 import { MailboxError, type MailboxProvider } from "./types";
+import { parseSendingRules, type SendingRules } from "@/lib/outreach/sending-rules";
 
 export { MailboxError } from "./types";
 export type { IncomingMail, OutgoingMail, SentMail } from "./types";
@@ -33,12 +34,21 @@ export async function availableProviders(): Promise<MailProvider[]> {
   return out;
 }
 
-/** Saves a connected account (and its refresh token) for this member. */
+/** The workspace's email sending rules (D-256), defaults for what isn't set. */
+export async function loadSendingRules(workspaceId: string): Promise<SendingRules> {
+  const { data } = await createAdminClient().from("workspaces").select("sending_rules").eq("id", workspaceId).maybeSingle();
+  return parseSendingRules(data?.sending_rules);
+}
+
+/** Saves a connected account (and its refresh token) for this member. A new mailbox starts with the workspace's sending rules. */
 export async function saveMailbox(input: { workspaceId: string; userId: string; provider: MailProvider; email: string; displayName: string | null; canRead: boolean; refreshToken: string }): Promise<MailboxRow> {
   const db = createAdminClient();
+  const { data: existing } = await db.from("mailboxes").select("id").eq("workspace_id", input.workspaceId).eq("user_id", input.userId).eq("provider", input.provider).maybeSingle();
+  const rules = existing ? null : await loadSendingRules(input.workspaceId);
   const { data, error } = await db.from("mailboxes").upsert({
     workspace_id: input.workspaceId, user_id: input.userId, provider: input.provider, email: input.email, display_name: input.displayName,
     can_read: input.canRead, status: "connected", last_error: null, connected_at: new Date().toISOString(), sync_cursor: null,
+    ...(rules ? { daily_limit: rules.daily_per_mailbox, send_days: rules.days, send_start: rules.start, send_end: rules.end, time_zone: rules.timezone } : {}),
   }, { onConflict: "workspace_id,user_id,provider" }).select("*").single();
   if (error || !data) throw error ?? new Error("mailbox not saved");
   const { error: tokenError } = await db.rpc("set_mailbox_token", { p_mailbox: data.id, p_token: input.refreshToken });

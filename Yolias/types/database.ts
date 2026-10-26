@@ -79,6 +79,8 @@ export type WorkspaceRow = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Email sending rules (D-256), read with parseSendingRules. */
+  sending_rules: Json;
 };
 
 export type WorkspaceMemberRow = {
@@ -212,6 +214,8 @@ export type MailboxRow = {
   id: string; workspace_id: string; user_id: string; provider: MailProvider; email: string; status: "connected" | "error" | "disconnected";
   token_secret_id: string | null; daily_limit: number; sent_day: string | null; sent_today: number; last_error: string | null; connected_at: string; updated_at: string;
   display_name: string | null; can_read: boolean; sync_cursor: string | null; last_synced_at: string | null;
+  /** Sending hours (D-256): days 0 = Sunday … 6, "HH:MM" start / end, in time_zone (null = the workspace's rules). */
+  send_days: number[]; send_start: string; send_end: string; time_zone: string | null; next_send_at: string | null;
 };
 export type OutreachStatus = "draft" | "approved" | "sending" | "sent" | "failed" | "canceled" | "received";
 export type MessageChannel = "email" | "linkedin" | "whatsapp" | "facebook" | "instagram";

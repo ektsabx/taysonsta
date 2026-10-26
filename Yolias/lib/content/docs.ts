@@ -54,7 +54,7 @@ export const docs: DocPage[] = [
           { p: "Every search is a conversation with Yolias AI. Ask it to refine the search, explain a result, check progress, find decision makers or write a message. The reply appears in the same thread, with what Yolias is doing while it works. Your conversations are your Recent searches in the sidebar." },
           { h2: "5. Reach out from your own mailbox" },
           { p: "Connect your mailbox (Gmail or any IMAP/SMTP account) in Settings → Integrations. Select people in Prospects and choose Send: Yolias creates a campaign and writes a personal email for each person on the campaign page. Review them, then approve sending: Yolias sends from your mailbox and every reply arrives in **Conversations**, in the same thread as what you sent. Or export to CSV." },
-          { p: "To reach many people at once, select them in Prospects and choose **Send**: name the campaign and pick the channel, and Yolias creates an outreach campaign, starts it and prepares the first messages for you to review and send. You can also start a campaign from **Conversations → Campaigns** from one of your searches: its prospects join and the first messages are prepared." },
+          { p: "To reach many people at once, select them in Prospects and choose **Send**: name the campaign and pick the channel, and Yolias creates an outreach campaign, starts it and prepares the first messages for you to review and send. You can also create one from **Campaigns → Create campaign**: name it, add people or everyone from a search, build the sequence, then review and launch. Emails go out inside each mailbox’s sending hours, a few minutes apart (Settings → Integrations → Sending rules)." },
         ],
       },
       ar: {
@@ -85,7 +85,7 @@ export const docs: DocPage[] = [
           { p: "كل بحث محادثة مع Yolias AI. اطلب منه تعديل البحث، أو شرح نتيجة، أو متابعة التقدّم، أو إيجاد صناع القرار، أو كتابة رسالة، ويظهر الرد في نفس المحادثة مع ما يفعله يولـياس أثناء العمل. محادثاتك هي «عمليات البحث الأخيرة» في القائمة الجانبية." },
           { h2: "5. تواصل من بريدك" },
           { p: "اربط بريدك (Gmail أو أي بريد IMAP/SMTP) من الإعدادات ← التكاملات. حدّد الأشخاص في العملاء المحتملين واختر إرسال: ينشئ يولـياس حملة تواصل ويكتب رسالة شخصية لكل شخص في صفحة الحملة. راجعها ثم وافق على الإرسال، فيرسلها يولـياس من بريدك ويصل كل رد إلى **المحادثات** في نفس المحادثة مع ما أرسلته. أو صدّرهم كملف CSV." },
-          { p: "للتواصل مع كثيرين مرة واحدة، حدّدهم في العملاء المحتملين واختر **إرسال**: سمِّ الحملة واختر القناة، فينشئ يولـياس حملة تواصل ويبدأها ويجهّز الرسائل الأولى لتراجعها وترسلها. ويمكنك أيضًا بدء حملة من **المحادثات ← الحملات** انطلاقًا من أحد عمليات البحث: ينضم عملاؤها المحتملون وتُجهَّز الرسائل الأولى." },
+          { p: "للتواصل مع كثيرين مرة واحدة، حدّدهم في العملاء المحتملين واختر **إرسال**: سمِّ الحملة واختر القناة، فينشئ يولـياس حملة تواصل ويبدأها ويجهّز الرسائل الأولى لتراجعها وترسلها. ويمكنك أيضًا إنشاؤها من **الحملات ← إنشاء حملة**: سمِّها، وأضف أشخاصًا أو كل نتائج بحث، وابنِ التسلسل، ثم راجع وأطلق. تُرسل الرسائل داخل ساعات إرسال كل بريد وبفاصل دقائق بينها (الإعدادات ← التكاملات ← قواعد الإرسال)." },
         ],
       },
     },

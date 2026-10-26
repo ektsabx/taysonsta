@@ -15,7 +15,7 @@ import { importContacts } from "@/app/(app)/prospects/import-actions";
 // the column mapping and the type, see how many rows will be imported and how
 // many uploaded contacts the plan has left, then import. The server checks
 // everything again; the database enforces the limit.
-export function ImportCsvButton({ available }: { available: number }) {
+export function ImportCsvButton({ available, primary, label }: { available: number; primary?: boolean; label?: string }) {
   const { t, locale } = useI18n();
   const im = t.prospects.import;
   const toast = useToast();
@@ -71,7 +71,7 @@ export function ImportCsvButton({ available }: { available: number }) {
 
   return (
     <>
-      <button type="button" className="btn-secondary" onClick={() => setOpen(true)}><Upload /> {t.prospects.importCsv}</button>
+      <button type="button" className={primary ? "sdr-btn primary" : "btn-secondary"} onClick={() => setOpen(true)}><Upload /> {label ?? t.prospects.importCsv}</button>
       {open && (
         <div className="drawer-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
           <div className="drawer import-drawer" role="dialog" aria-modal="true" aria-labelledby="import-title">

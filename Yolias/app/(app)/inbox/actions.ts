@@ -20,6 +20,7 @@ import type { MessageChannel, ThreadStatus } from "@/types/database";
 export type MsgResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const uuid = z.string().uuid();
 const refresh = (leadId?: string | null) => {
+  revalidatePath("/inbox");
   revalidatePath("/conversations");
   revalidatePath("/outreach", "layout");
   revalidatePath("/crm");
@@ -203,6 +204,28 @@ export async function convertToOpportunity(leadId: string): Promise<MsgResult> {
     if (!r.ok) return { ok: false, error: t.ws.common.error };
   }
   await db.from("inbox_threads").update({ label: "interested" }).eq("lead_id", lead.id);
+  refresh(leadId);
+  return { ok: true };
+}
+
+/**
+ * The member corrects how Yolias read the latest reply (D-256, the Inbox's
+ * classification dropdown). The thread's label follows, as with Yolias's own reading.
+ */
+export async function setReplyKind(leadId: string, kind: string): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  const { REPLY_KINDS } = await import("@/lib/automations/schema");
+  const { labelFor } = await import("@/lib/agents/replies");
+  if (!uuid.safeParse(leadId).success || !(REPLY_KINDS as readonly string[]).includes(kind)) return { ok: false, error: t.ws.common.error };
+  const db = await createClient();
+  const { data: m } = await db.from("outreach_messages").select("id, analysis").eq("workspace_id", session.workspace.id).eq("lead_id", leadId).eq("direction", "inbound")
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!m) return { ok: false, error: t.ws.common.notFound };
+  const prev = m.analysis && typeof m.analysis === "object" && !Array.isArray(m.analysis) ? (m.analysis as Record<string, unknown>) : {};
+  const { error } = await db.from("outreach_messages").update({ analysis: { ...prev, kind, summary: typeof prev.summary === "string" ? prev.summary : "", by: "user" } }).eq("id", m.id);
+  if (error) return { ok: false, error: t.ws.common.error };
+  await db.from("inbox_threads").update({ label: labelFor(kind) }).eq("lead_id", leadId).eq("workspace_id", session.workspace.id);
   refresh(leadId);
   return { ok: true };
 }

@@ -290,3 +290,9 @@ npx wrangler secret put WORKER_SECRET
 1. الأدمن على الإنتاج (yol.yolias.com) ← الإعدادات ← التكاملات ← Resend ← «حفظ» (وحط «عنوان المرسل في يولياس» على دومين موثّق في Resend). ده اللي ينقل المفتاح ليولياس.
 2. نفس المكان ← ويدجت الموقع «Yolias Support» ← «حفظ» مرة واحدة، عشان مفتاح هوية المستخدمين يرجع صح.
 3. بعد 1: أنا أبعت الإيميلات التجريبية وأفعّل المسارات الثلاثة (scripts/ops-messaging-live.mts … --activate).
+
+## جولة صفحات AgentSDR 2026-10-26 (D-255, D-256). لسه ما اتنشرتش
+1. نسخة احتياطية (schema + data).
+2. migration واحدة: `Yolias/supabase/migrations/20261122000000_email_sending_rules.sql` (`npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261122000000_email_sending_rules.sql`) وتسجيلها في `supabase_migrations.schema_migrations`. لازم قبل نشر يولياس: العامل بيقرأ `mailboxes.send_days` و`outreach_campaigns.dispatched_at`.
+3. بعد التطبيق: صناديق البريد الحالية هتاخد ساعات الإرسال الافتراضية (الاتنين للجمعة، 9 لـ 6، بالمنطقة الزمنية بتاعة صاحب البريد) وفاصل 18 لـ 24 دقيقة. غيّرها من الإعدادات ← التكاملات ← قواعد الإرسال لو محتاج.
+4. نشر يولياس، ثم `npm run content:seed:production` (نصوص المساعدة اتغيرت).

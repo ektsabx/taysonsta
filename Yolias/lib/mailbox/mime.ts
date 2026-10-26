@@ -56,6 +56,20 @@ export function isBounce(from: string, subject: string): boolean {
   return /mailer-daemon|postmaster/i.test(from) || /delivery status notification|undeliverable|delivery has failed|mail delivery failed|returned mail/i.test(subject);
 }
 
+/**
+ * A vacation responder or another machine-written reply, from its headers
+ * (RFC 3834 Auto-Submitted, the common X- headers, Precedence) or its subject.
+ * Ask isBounce first: a delivery failure is auto-submitted too. Rules after
+ * openoutsend's emails/classify.py (MIT, github.com/eracle/OpenOutSend).
+ */
+export function isAutoReply(header: (name: string) => string, subject: string): boolean {
+  const submitted = header("auto-submitted").trim().toLowerCase();
+  if (submitted && submitted !== "no") return true;
+  if (header("x-autoreply") || header("x-autorespond")) return true;
+  if (["auto_reply", "bulk", "junk"].includes(header("precedence").trim().toLowerCase())) return true;
+  return /out of (the )?office|automatic reply|auto[- ]?reply|autoresponse|abwesenheit|رد تلقائي|خارج المكتب/i.test(subject);
+}
+
 /** Very small HTML → text for Outlook bodies that come back as HTML. */
 export function htmlToText(html: string): string {
   return html

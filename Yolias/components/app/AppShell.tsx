@@ -7,7 +7,7 @@ import {
   ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
   Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
   Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Library, MessagesSquare, SquareKanban } from "lucide-react";
+  Library, MessagesSquare, Send, SquareKanban } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -36,14 +36,15 @@ const mainNav = [
 
 // Customer acquisition after discovery (D-193..D-195).
 const workNav = [
-  // Outreach and the Inbox are one page (D-249); a campaign's own page stays under /outreach.
-  { href: "/conversations", key: "conversations", icon: MessagesSquare },
+  // Campaigns and Conversations are two pages again (D-256, after AgentSDR's Campaigns and Inbox).
+  { href: "/outreach", key: "campaigns", icon: Send },
+  { href: "/inbox", key: "conversations", icon: MessagesSquare },
   { href: "/crm", key: "crm", icon: SquareKanban },
   // Company Knowledge is a regular page (owner, 2026-10-19): no "AI Workspace" section, no AI Agent page.
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
 ] as const;
 
-const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) || (href === "/conversations" && (pathname.startsWith("/outreach") || pathname.startsWith("/inbox")));
+const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
 const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "general", icon: SlidersHorizontal },

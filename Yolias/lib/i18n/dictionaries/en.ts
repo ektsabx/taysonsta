@@ -1,3 +1,4 @@
+import { sdrEn } from "./sdr-en";
 import { wsEn } from "./ws-en";
 // English UI copy. Every key here must exist in ar.ts (enforced by the
 // Dictionary type). Placeholders use {name} and are filled with fmt().
@@ -1137,6 +1138,7 @@ export const en = {
     errors: { name: "Enter your name.", terms: "Accept the partner terms to continue.", closed: "The partner program isn’t open right now." },
   },
   ws: wsEn,
+  sdr: sdrEn,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "This page doesn’t exist",

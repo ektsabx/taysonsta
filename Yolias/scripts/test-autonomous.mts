@@ -46,8 +46,11 @@ const server = http.createServer((req, res) => {
     if (system.includes("classify it for the sender's team")) {
       const stop = /remove me|unsubscribe/i.test(user);
       const question = /trial/i.test(user);
+      const away = /on holiday|back on/i.test(user);
       return res.end(reply(stop
         ? { kind: "stop_request", summary: "Asked not to be contacted.", suggested_stage: "lost", needs_human: false, escalate_because: ["stop_request"], suggested_reply: null }
+        : away
+        ? { kind: "out_of_office", summary: "On holiday, back next week.", suggested_stage: null, needs_human: false, escalate_because: [], suggested_reply: null }
         : question
           ? { kind: "question", summary: "Asks about a free trial.", suggested_stage: null, needs_human: false, escalate_because: [], suggested_reply: "Yes, every plan starts with a 7-day free trial. Want me to set it up?" }
           : { kind: "interested", summary: "Interested and asks for pricing.", suggested_stage: "interested", needs_human: false, escalate_because: [], suggested_reply: "Thanks! Pricing depends on fleet size. Could we do a 15-minute call?" }));
@@ -177,6 +180,8 @@ try {
   // ── 5. Starting needs approval; no mailbox → said plainly ──
   const noBox = await executeTool(ctxFor(A, strat!.id, true), "startOutreachCampaign", { id: campId, sendFromMailbox: true });
   assert.equal(!noBox.ok && noBox.outcome, "not_connected", "no mailbox: not started");
+  // Sending rules wide open here (every day, all day, no gap); test:sending-rules checks the hours and the gap.
+  await admin.from("workspaces").update({ sending_rules: { gap_min: 0, gap_max: 0, days: [0, 1, 2, 3, 4, 5, 6], start: "00:00", end: "00:00" } }).eq("id", A.wsId);
   await saveMailbox({ workspaceId: A.wsId, userId: A.userId, provider: "test", email: "mona@nile-test.example", displayName: "Mona", canRead: true, refreshToken: "test" });
   const ask = await executeTool(ctxFor(A, strat!.id), "startOutreachCampaign", { id: campId, sendFromMailbox: true, autoReply: false });
   assert.equal(!ask.ok && ask.outcome, "awaiting_approval", "starting always asks for approval");
@@ -280,6 +285,39 @@ try {
   }
   console.log("✓ auto-reply");
 
+  // ── 10b. Out of office: the follow-up waits a week, it does not stop ──
+  {
+    const lead = sentRows![3];
+    const enr = () => admin.from("outreach_enrollments").select("status, stop_reason, next_step_at").eq("campaign_id", campId).eq("lead_id", lead.lead_id!).single().then((r) => r.data!);
+    const soon = () => admin.from("outreach_enrollments").update({ status: "active", stop_reason: null, current_step: 1, next_step_at: new Date(Date.now() + 3_600_000).toISOString() }).eq("campaign_id", campId).eq("lead_id", lead.lead_id!);
+    const week = Date.now() + 6.9 * 86_400_000;
+    const notes0 = (await admin.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", A.userId)).count;
+
+    // Told by its headers: no AI, not counted as a reply, nobody is notified.
+    await soon();
+    const sent0 = testOutbox().length;
+    pushTestReply({ threadId: lead.provider_thread_id!, from: lead.to_email!, fromName: null, subject: "Automatic reply: Fleet tracking for your drivers", body: "I'm out of the office until Monday.", autoReply: true });
+    const s = await syncReplies(10, true);
+    assert.equal(s.replies, 0, "an automatic reply is not counted as a reply");
+    const e1 = await enr();
+    assert.equal(e1.status, "active", `the sequence keeps going: ${JSON.stringify(e1)}`);
+    assert.ok(Date.parse(e1.next_step_at!) > week, "the next follow-up waits a week");
+    const { data: ooo } = await admin.from("outreach_messages").select("analysis").eq("lead_id", lead.lead_id!).eq("direction", "inbound").order("created_at", { ascending: false }).limit(1).single();
+    assert.deepEqual([(ooo!.analysis as { kind: string; by: string }).kind, (ooo!.analysis as { by: string }).by], ["out_of_office", "rules"], "stored as out of office, by the header rules");
+    assert.equal(testOutbox().length, sent0, "nothing is sent back to an auto-reply");
+
+    // Missed by the headers, caught by the AI: the follow-up a reply had stopped comes back, a week later.
+    await soon();
+    pushTestReply({ threadId: lead.provider_thread_id!, from: lead.to_email!, fromName: null, subject: "Re: Fleet tracking for your drivers", body: "I am on holiday, back on the 3rd." });
+    await syncReplies(10, true);
+    const e2 = await enr();
+    assert.deepEqual([e2.status, e2.stop_reason], ["active", null], `resumed after the AI saw out of office: ${JSON.stringify(e2)}`);
+    assert.ok(Date.parse(e2.next_step_at!) > week, "and waits a week");
+    assert.equal((await admin.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", A.userId)).count, notes0, "no reply notification for out of office");
+    assert.equal(testOutbox().length, sent0, "and nothing sent");
+  }
+  console.log("✓ out of office");
+
   // ── 11. Numbers match the events ──
   const stats = (await campaignStats([campId], A.client)).get(campId)!;
   const { count: sentCount } = await admin.from("outreach_messages").select("id", { count: "exact", head: true }).eq("outreach_campaign_id", campId).eq("direction", "outbound").eq("status", "sent");
@@ -323,6 +361,11 @@ try {
 
   console.log("\nAll autonomous-agent checks passed.");
 } finally {
-  for (const id of users) await admin.auth.admin.deleteUser(id).catch(() => {});
+  // Workspaces too, so their campaigns don't share the sending worker with later runs.
+  for (const id of users) {
+    const { data: prof } = await admin.from("profiles").select("workspace_id").eq("id", id).maybeSingle();
+    if (prof?.workspace_id) await admin.from("workspaces").delete().eq("id", prof.workspace_id);
+    await admin.auth.admin.deleteUser(id).catch(() => {});
+  }
   server.close();
 }

@@ -81,11 +81,11 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
     const targets = await searchTargets(session.workspace.id, c.source_campaign_id);
     const launched = await launchCampaign(id!, targets);
     revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
     return launched.ok ? { ok: true, id: id!, message: launched.message } : { ok: true, id: id!, message: launched.error };
   }
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   return { ok: true, id: id! };
 }
 
@@ -184,7 +184,7 @@ export async function setCampaignAim(campaignId: string, aim: CampaignAim, ctaUr
     const { data: drafts } = await admin.from("outreach_messages").update({ status: "canceled" }).eq("outreach_campaign_id", campaignId).eq("direction", "outbound").in("status", ["draft", "approved"]).select("id");
     if (drafts?.length) await writeSample(session.workspace.id, session.userId, campaignId);
   }
-  revalidatePath("/conversations");
+  revalidatePath("/inbox");
   revalidatePath(`/outreach/${campaignId}`);
   return { ok: true, message: t.launch.aimSaved };
 }
@@ -200,7 +200,7 @@ export async function setOutreachStatus(id: string, status: OutreachCampaignStat
     await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "campaign_archived", next_step_at: null }).eq("campaign_id", id).in("status", ["active", "paused"]);
   }
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   return { ok: true };
 }
 
@@ -217,7 +217,7 @@ export async function enrollInCampaign(campaignId: string, leadIds: string[]): P
   const r = await enrollLeads(await createClient(), session.workspace.id, session.userId, campaignId, ids);
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   revalidatePath("/crm");
   return { ok: true, message: enrollMessage(t, r) };
 }
@@ -235,9 +235,18 @@ export async function addProspectsToCampaign(campaignId: string, targets: LeadTa
   const r = await enrollLeads(db, session.workspace.id, session.userId, campaignId, ids);
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   revalidatePath("/crm");
   return { ok: true, message: enrollMessage(t, r) };
+}
+
+/** The campaign wizard (D-256): everyone one search found joins the campaign (its people, and companies with no person listed). */
+export async function addSearchToCampaign(campaignId: string, searchId: string): Promise<OutreachResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).ws.outreach;
+  if (!uuid.safeParse(campaignId).success || !uuid.safeParse(searchId).success) return { ok: false, error: t.errors.notFound };
+  const targets = await searchTargets(session.workspace.id, searchId);
+  return launchCampaign(campaignId, targets);
 }
 
 /** Removes a lead from a campaign: deleted when nothing was sent yet, otherwise stopped (history kept). */
@@ -254,7 +263,7 @@ export async function removeEnrollment(enrollmentId: string): Promise<OutreachRe
     : await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "removed", next_step_at: null }).eq("id", e.id);
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   return { ok: true };
 }
 
@@ -280,8 +289,8 @@ export async function prepareCampaignDrafts(campaignId: string): Promise<Outreac
     ? t.ws.messages.prepareErrors[key as keyof typeof t.ws.messages.prepareErrors]
     : t.outreach.errors[key as keyof typeof t.outreach.errors] ?? t.ws.common.error;
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
-  revalidatePath("/conversations");
+    revalidatePath("/inbox");
+  revalidatePath("/inbox");
   if (!prepared && blocking) return { ok: false, error: reasonText(blocking) };
   // The most common reason a lead was skipped (e.g. no email for an email campaign).
   const top = [...reasons.entries()].sort((a, b) => b[1] - a[1])[0];
@@ -300,7 +309,7 @@ export async function approveOutreach(campaignId: string, mailboxId: string | nu
   const r = await approveCampaign({ workspaceId: session.workspace.id, userId: session.userId, role: session.role, campaignId, mailboxId, autoReply: autoReply === true });
   if (!r.ok) return { ok: false, error: t.launch.errors[r.error] };
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   return { ok: true, message: mailboxId ? t.launch.started : t.launch.startedManual };
 }
 
@@ -310,6 +319,6 @@ export async function runOutreach(campaignId: string, action: "pause" | "resume"
   if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel"].includes(action)) return { ok: false, error: t.errors.notFound };
   if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
   revalidatePath("/outreach", "layout");
-    revalidatePath("/conversations");
+    revalidatePath("/inbox");
   return { ok: true };
 }

@@ -1,221 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Archive, ArrowLeft, CircleCheck, CircleX, Loader2, Mail, Pencil, Send, UserPlus, X } from "lucide-react";
+import { Loader2, Send, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { enrollInCampaign, setOutreachStatus, writeNextEmails } from "@/app/(app)/outreach/actions";
+import { enrollInCampaign } from "@/app/(app)/outreach/actions";
 import { sendNow, updateDraft } from "@/app/(app)/inbox/actions";
-import { openSettingsTab } from "@/components/app/open-settings";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
-import { LaunchPanel, type MailboxOption } from "./LaunchPanel";
-import { CampaignForm } from "./CampaignForm";
 import { useRun } from "./bits";
 import { dateTime } from "./format";
-import type { CampaignWorkspace, LaunchSummary, OutreachDetail } from "@/services/outreach-campaigns";
-import type { LeadStage, MessageObjective } from "@/types/database";
+import type { CampaignWorkspace } from "@/services/outreach-campaigns";
+import type { LeadStage } from "@/types/database";
 
 type Lead = CampaignWorkspace["leads"][number];
 
-interface Props {
-  detail: OutreachDetail;
-  work: CampaignWorkspace;
-  options: { profiles: { id: string; name: string; is_default: boolean }[]; offers: { id: string; name: string }[] };
-  maxSteps: number;
-  candidates: { id: string; name: string; company_name: string | null; stage: LeadStage; do_not_contact: boolean }[];
-  timeZone: string | null;
-  launch: LaunchSummary;
-  mailboxes: MailboxOption[];
-  mailboxName: string | null;
-  dailyLimit: number;
-  /** Inside Conversations (owner 2026-10-21: one place for a campaign): no page header or tabs, the view comes from the URL. */
-  embedded?: { view: "emails" | "sequence" };
-}
+type Candidate = { id: string; name: string; company_name: string | null; stage: LeadStage; do_not_contact: boolean };
 
 const initials = (name: string) => name.replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "·";
 
-// The Outreach campaign page (owner brief 2026-10-19, D-239): every person in
-// the campaign on the left with their email and how it was found; the email
-// Yolias wrote for the selected person on the right, editable and ready to
-// send from the member's mailbox. Yolias writes the emails by itself as soon
-// as the page opens (a mailbox must be connected), then the member approves
-// sending the whole campaign. "Sent" lists what went out, when and from where.
-export function CampaignWorkspaceView({ detail, work, options, maxSteps, candidates, timeZone, launch, mailboxes, mailboxName, dailyLimit, embedded }: Props) {
-  const { t } = useI18n();
-  const o = t.ws.outreach;
-  const w = o.workspace;
-  const router = useRouter();
-  const { run, pending } = useRun();
-  const c = detail.campaign;
-  const archived = c.status === "archived";
-  const hasMailbox = mailboxes.length > 0;
-  const [ownTab, setTab] = useState<"emails" | "sent" | "sequence">("emails");
-  const tab = embedded?.view ?? ownTab;
-  const [selected, setSelected] = useState<string | null>(work.leads[0]?.enrollmentId ?? null);
-  const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [writing, setWriting] = useState(false);
-  const [writeError, setWriteError] = useState<string | null>(null);
-  const toWrite = work.leads.filter((l) => l.status === "active" && l.step === 0 && !l.message).length;
-  const done = work.leads.length - toWrite;
-
-  // Yolias writes the emails while the page is open, two at a time.
-  const started = useRef(false);
-  useEffect(() => {
-    if (!hasMailbox || archived || !toWrite || started.current) return;
-    started.current = true;
-    let stop = false;
-    (async () => {
-      setWriting(true);
-      for (let i = 0; i < 300 && !stop; i++) {
-        const r = await writeNextEmails(c.id).catch(() => null);
-        if (stop) break;
-        if (!r || !r.ok) { setWriteError(r && !r.ok ? r.error : t.ws.common.error); break; }
-        router.refresh();
-        if (r.remaining === 0) break;
-      }
-      setWriting(false);
-      started.current = false;
-    })();
-    return () => { stop = true; };
-  }, [hasMailbox, archived, toWrite, c.id, router, t.ws.common.error]);
-
-  const lead = work.leads.find((l) => l.enrollmentId === selected) ?? null;
-  const stats = detail.stats;
-
-  const actions = (
-    <>
-      {!archived && <button className="btn-secondary" type="button" onClick={() => setAdding(true)}><UserPlus size={14} /> {o.actions.addLeads}</button>}
-      {!archived && <button className="btn-secondary" type="button" disabled={pending} onClick={() => { if (confirm(t.ws.common.confirmDelete)) run(() => setOutreachStatus(c.id, "archived")); }}><Archive size={14} /> {o.actions.archive}</button>}
-    </>
-  );
-
-  return (
-    <div className={embedded ? "conv-campaign" : "page-view"}>
-      {embedded ? <div className="conv-campaign-actions">{actions}</div> : <header className="view-header">
-        <div className="view-title-group">
-          <Link className="detail-back" href="/conversations?tab=campaigns"><ArrowLeft className="flip-rtl" /> {o.title}</Link>
-          <h2>{c.name}</h2>
-          <p>{[o.status[c.status], fmt(w.people, { count: work.leads.length }), c.goal].filter(Boolean).join(" · ")}</p>
-        </div>
-        <div className="view-actions">{actions}</div>
-      </header>}
-
-      <div className={embedded ? undefined : "view-content-padding"}>
-        {!hasMailbox ? (
-          <section className="ws-card ow-gate">
-            <Mail />
-            <div>
-              <h3>{w.noMailboxTitle}</h3>
-              <p className="ws-muted">{w.noMailbox}</p>
-            </div>
-            <button className="btn-primary" type="button" onClick={() => openSettingsTab("integration")}>{w.connect}</button>
-          </section>
-        ) : (
-          <LaunchPanel summary={launch} mailboxes={mailboxes} mailboxName={mailboxName} dailyLimit={dailyLimit} />
-        )}
-
-        {(writing || writeError || (hasMailbox && toWrite > 0)) && (
-          <div className={`ow-progress${writeError ? " error" : ""}`} role="status">
-            {writeError ? <CircleX /> : <Loader2 className="spin" />}
-            <span>{writeError ?? fmt(w.writing, { done, total: work.leads.length })}</span>
-            {!writeError && <span className="ow-progress-bar"><span style={{ width: `${work.leads.length ? Math.round((done / work.leads.length) * 100) : 0}%` }} /></span>}
-          </div>
-        )}
-
-        <div className="ow-stats">
-          {(["leads", "sent", "replies", "interested", "bounced", "meetings"] as const).map((k) => (
-            <div key={k}><span>{o.stats[k]}</span><strong>{stats[k]}</strong></div>
-          ))}
-        </div>
-
-        {!embedded && <div className="ws-tabs ow-tabs" role="tablist">
-          {(["emails", "sent", "sequence"] as const).map((k) => k === "sent" ? (
-            // Sent emails and replies live in one place, Conversations, filtered to this campaign (D-252).
-            <Link key={k} role="tab" aria-selected={false} href={`/conversations?campaign=${c.id}`}>
-              {t.ws.conversations.tabs.threads}{work.sent.length ? ` (${work.sent.length})` : ""}
-            </Link>
-          ) : (
-            <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => setTab(k)}>
-              {w.tabs[k]}
-            </button>
-          ))}
-        </div>}
-
-        {tab === "emails" && (
-          !work.leads.length ? <div className="ws-empty">{o.noLeads}</div> : (
-            <div className="ow-split">
-              <aside className="ow-leads" aria-label={o.leadsTitle}>
-                {work.leads.map((l) => (
-                  <button key={l.enrollmentId} type="button" className={`ow-lead${l.enrollmentId === selected ? " active" : ""}`} onClick={() => setSelected(l.enrollmentId)}>
-                    <span className="ow-avatar" aria-hidden="true">{initials(l.name)}</span>
-                    <span className="ow-lead-main">
-                      <strong>{l.name}</strong>
-                      <span className="ow-lead-sub">{[l.title, l.domain ?? l.company].filter(Boolean).join(" · ") || "-"}</span>
-                      <span className={`ow-find ${l.finding}`}>
-                        {l.finding === "finding" ? <Loader2 className="spin" /> : l.finding === "none" ? <CircleX /> : <CircleCheck />}
-                        {w.emailStatus[l.finding]}
-                      </span>
-                      {l.email && <span className="ow-lead-email" dir="ltr">{l.email}</span>}
-                    </span>
-                    <LeadState lead={l} />
-                  </button>
-                ))}
-              </aside>
-              <section className="ow-composer">
-                {lead ? <Composer key={`${lead.enrollmentId}:${lead.message?.id ?? ""}:${lead.message?.status ?? ""}`} lead={lead} hasMailbox={hasMailbox} writing={!archived && lead.status === "active"} timeZone={timeZone} /> : <div className="ws-empty">{w.selectLead}</div>}
-              </section>
-            </div>
-          )
-        )}
-
-        {tab === "sequence" && (
-          <section className="ws-section">
-            {editing ? (
-              <CampaignForm profiles={options.profiles} offers={options.offers} maxSteps={maxSteps} onSaved={() => setEditing(false)}
-                initial={{
-                  id: c.id, name: c.name, goal: c.goal ?? "", description: c.description ?? "", channel: c.channel, language: c.language, tone: c.tone,
-                  customer_profile_id: c.customer_profile_id, offer_id: c.offer_id,
-                  steps: detail.steps.map((s) => ({ delay_days: s.delay_days, objective: s.objective as MessageObjective, instruction: s.instruction ?? "" })),
-                }} />
-            ) : (
-              <div className="ws-card">
-                <div className="ws-section-head">
-                  <h3 className="ws-label">{o.form.steps}</h3>
-                  {!archived && <button className="btn-secondary ws-btn-sm" type="button" onClick={() => setEditing(true)}><Pencil size={13} /> {t.ws.common.edit}</button>}
-                </div>
-                <ol className="ws-timeline">
-                  {detail.steps.map((s) => (
-                    <li key={s.id}>
-                      <strong>{fmt(o.form.step, { n: s.position })} · {o.objectives[s.objective as MessageObjective]}</strong>
-                      {s.position > 1 && <span className="ws-muted"> · +{s.delay_days} {o.form.delay}</span>}
-                      {s.instruction && <div className="ws-tl-body">{s.instruction}</div>}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-          </section>
-        )}
-      </div>
-      {adding && <AddLeadsDialog campaignId={c.id} candidates={candidates} onClose={() => setAdding(false)} />}
-    </div>
-  );
-}
-
-function LeadState({ lead }: { lead: Lead }) {
-  const { t } = useI18n();
-  const w = t.ws.outreach.workspace;
-  if (lead.replied) return <span className="ws-chip blue">{w.sentStatus.replied}</span>;
-  if (lead.message?.status === "sent") return <span className="ws-chip green">{w.sentStatus.sent}</span>;
-  if (lead.message?.status === "failed") return <span className="ws-chip red">{w.sentStatus.failed}</span>;
-  if (lead.message) return <CircleCheck className="ow-ready" aria-hidden="true" />;
-  return null;
-}
-
-function Composer({ lead, hasMailbox, writing, timeZone }: { lead: Lead; hasMailbox: boolean; writing: boolean; timeZone: string | null }) {
+// Pieces of the old campaign page kept for the new one (D-256): the email
+// Yolias wrote for one lead (editable, sent from the member's mailbox) and
+// the dialog that adds CRM leads to a campaign.
+export function Composer({ lead, hasMailbox, writing, timeZone }: { lead: Lead; hasMailbox: boolean; writing: boolean; timeZone: string | null }) {
   const { t, locale } = useI18n();
   const w = t.ws.outreach.workspace;
   const { run, pending } = useRun();
@@ -276,7 +83,7 @@ function Composer({ lead, hasMailbox, writing, timeZone }: { lead: Lead; hasMail
 }
 
 /** Adds CRM leads to the campaign. */
-function AddLeadsDialog({ campaignId, candidates, onClose }: { campaignId: string; candidates: Props["candidates"]; onClose: () => void }) {
+export function AddLeadsDialog({ campaignId, candidates, onClose }: { campaignId: string; candidates: Candidate[]; onClose: () => void }) {
   const { t } = useI18n();
   const o = t.ws.outreach;
   const { run, pending } = useRun();

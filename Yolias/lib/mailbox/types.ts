@@ -30,6 +30,8 @@ export interface IncomingMail {
   receivedAt: string;
   /** A delivery failure notice (the provider bounced our message). */
   bounce: boolean;
+  /** An out-of-office or other automatic reply, told by its headers or subject (isAutoReply). */
+  autoReply?: boolean;
 }
 
 export interface ConnectedAccount {

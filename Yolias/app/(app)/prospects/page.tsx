@@ -1,123 +1,131 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Building2, UserRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
 import { ImportCsvButton } from "@/components/app/ImportCsvButton";
-import { countryLabel, formatDate, location } from "@/lib/format";
+import { countryLabel, formatDate, formatNumber } from "@/lib/format";
+import { fmt } from "@/lib/i18n/config";
+import { createClient } from "@/lib/supabase/server";
+import { companyOutreach, statusesForProspects } from "@/services/pipeline";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { sizeBand } from "@/lib/results";
 import { requireViewer } from "@/lib/session";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { monthlyUsage } from "@/services/workspace";
-import { outreachStates } from "@/services/outreach-status";
 import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, prospectCountries, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.prospects} | Yolias` };
 }
 
-// Prospects (owner brief 2026-10-12): one table for companies, local
-// businesses and people, with type filters (All, Companies, Local businesses,
-// People, Saved) instead of tabs, keyword search, search filters on real
-// columns, sort, selection (also "all matching" across pages), Import CSV and
-// Export CSV. Contacts reach the browser only once revealed (the table only
-// says whether an email / phone exists).
+// Prospects (D-256, after AgentSDR Leads): two tabs, People and Companies
+// (companies and local businesses), each a panel with search, filters and the
+// table; bulk actions, import and export stay. Contacts reach the browser only
+// once revealed (the table only says whether an email / phone exists).
 export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
   const session = await requireViewer();
   const sp = await searchParams;
   const filters = parseFilters(sp);
-  // Old discovery-campaign links (/prospects?campaign=…, D-204) carry a
-  // parameter Prospects no longer reads (owner, 2026-10-20): drop it from the URL.
-  if ("campaign" in sp) {
-    const q = filterQuery(filters);
+  // Old links: discovery campaigns (D-204), and the type filters before the two tabs.
+  if ("campaign" in sp || filters.tab === "local" || filters.tab === "saved") {
+    const q = filterQuery({ ...filters, tab: filters.tab === "local" ? "companies" : filters.tab === "saved" ? "people" : filters.tab, bookmarked: filters.tab === "saved" || filters.bookmarked });
     redirect(`/prospects${q ? `?${q}` : ""}`);
   }
   const ws = session.workspace.id;
-  const [page, counts, countryCodes, funding, usage, t, locale, canCollect] = await Promise.all([
-    listItems(ws, filters), tabCounts(ws), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
+  const counts = await tabCounts(ws);
+  // No tab chosen: People, unless only companies were found so far.
+  const tab: "people" | "companies" = filters.tab === "companies" || (filters.tab !== "people" && !counts.people && counts.companies > 0) ? "companies" : "people";
+  const f = { ...filters, tab };
+  const [page, countryCodes, funding, usage, t, locale, canCollect] = await Promise.all([
+    listItems(ws, f), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
   ]);
   const pr = t.prospects;
+  const L = t.sdr.leads;
   const tz = session.profile.timezone;
   const countries = countryCodes.map((code) => ({ code, name: countryLabel(code, locale) }));
-  const active = activeFilterCount(filters);
-  const states = await outreachStates(ws, page.rows.map((r) => ({ id: r.id, kind: r.item_type === "person" ? ("person" as const) : ("company" as const) })));
+  const active = activeFilterCount(f);
+  const items = page.rows.map((r) => ({ id: r.id, kind: r.item_type === "person" ? ("person" as const) : ("company" as const) }));
+  const [statuses, companyInfo] = await Promise.all([
+    statusesForProspects(ws, items),
+    tab === "companies" ? companyOutreach(ws, page.rows.map((r) => r.id)) : Promise.resolve(new Map()),
+  ]);
+  const companyLogos = tab === "people" ? await logosFor(ws, page.rows.map((r) => r.company_id).filter((x): x is string => Boolean(x))) : new Map<string, string | null>();
 
   const rows: TableRow[] = page.rows.map((r) => {
     const person = r.item_type === "person";
-    const employees = r.item_type === "local_business" ? null : r.employee_count != null ? sizeBand(r.employee_count) : null;
+    const s = statuses.get(r.id);
+    const c = companyInfo.get(r.id);
     return {
       key: r.key,
       kind: r.item_type,
       href: person ? `/prospects/person/${r.id}` : `/prospects/company/${r.id}`,
       name: r.name,
-      sub: person ? null : r.domain,
+      title: person ? r.title : null,
       imageUrl: r.image_url,
       domain: r.domain,
       company: person ? r.company_name : null,
       companyHref: person && r.company_id ? `/prospects/company/${r.company_id}` : null,
-      industry: r.industry,
-      location: location(r.city, r.country, locale) || null,
-      employees,
-      jobTitle: person ? r.title : null,
-      revenue: r.annual_revenue_usd != null ? compactUsd(r.annual_revenue_usd) : null,
-      funding: r.funding_total_usd != null ? compactUsd(r.funding_total_usd) : r.funding_stage,
-      visitors: r.monthly_visits != null ? new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(r.monthly_visits) : null,
-      geo: r.traffic_geo,
+      companyDomain: person ? r.domain : null,
+      companyLogo: person && r.company_id ? companyLogos.get(r.company_id) ?? null : null,
       hasEmail: Boolean(r.email) && r.email_status !== "invalid",
       hasPhone: Boolean(r.phone),
-      linkedinUrl: r.linkedin_url,
-      match: r.match_score,
-      added: formatDate(filters.tab === "saved" && r.bookmarked_at ? r.bookmarked_at : r.created_at, locale, tz),
-      imported: r.campaign_origin === "import",
-      outreach: states.get(r.id) ?? "new",
+      linkedinUrl: c?.linkedinUrl ?? r.linkedin_url,
+      website: c?.website ?? r.website ?? (r.domain ? `https://${r.domain}` : null),
+      campaigns: c?.campaigns ?? s?.campaigns ?? [],
+      crm: s ? { stage: s.stage, kind: s.lastInbound?.kind ?? null, bucket: s.bucket, followUpAt: s.followUp?.at ?? null, doNotContact: s.doNotContact, contacted: Boolean(s.lastOutbound) } : null,
+      people: c?.people ?? 0,
+      updated: formatDate(c?.updatedAt ?? r.created_at, locale, tz),
     };
   });
 
-  const query = filterQuery(filters, { page: undefined });
-  const filtered = active > 0 || Boolean(filters.q);
+  const query = filterQuery(f, { page: undefined });
+  const filtered = active > 0 || Boolean(f.q);
+  const tabHref = (k: "people" | "companies") => `/prospects?tab=${k}`;
   return (
-    <div className="page-view">
-      <header className="view-header">
-        <div className="view-title-group">
+    <div className="sdr-page">
+      <header className="sdr-head">
+        <div>
           <h2>{pr.title}</h2>
-          <p>{pr.subtitle}</p>
+          <p>{L.subtitle}</p>
         </div>
-        <div className="view-actions">
-          <ImportCsvButton available={Math.max(usage.contacts.limit - usage.contacts.used, 0)} />
-          <a className="btn-secondary" href={`/prospects/export${query ? `?${query}` : ""}`}><Download /> {pr.export}</a>
+        <div className="sdr-head-actions">
+          <ImportCsvButton available={Math.max(usage.contacts.limit - usage.contacts.used, 0)} primary label={L.importPeople} />
         </div>
       </header>
 
-      <div className="view-content-padding">
+      <nav className="sdr-tabs" aria-label={pr.title}>
+        <Link href={tabHref("people")} className={tab === "people" ? "active" : ""} aria-current={tab === "people" ? "page" : undefined}><UserRound />{L.tabs.people}<span className="sdr-count">{formatNumber(counts.people, locale)}</span></Link>
+        <Link href={tabHref("companies")} className={tab === "companies" ? "active" : ""} aria-current={tab === "companies" ? "page" : undefined}><Building2 />{L.tabs.companies}<span className="sdr-count">{formatNumber(counts.companies, locale)}</span></Link>
+      </nav>
+
+      <section className="sdr-panel">
         <Suspense>
-          <ProspectToolbar
-            key={query}
-            tab={filters.tab}
-            counts={counts}
-            countries={countries}
-            funding={funding}
-            active={active}
-          />
+          <ProspectToolbar key={query} tab={tab} total={page.total} countries={countries} funding={funding} active={active} exportHref={`/prospects/export${query ? `?${query}` : ""}`} />
         </Suspense>
-        <ProspectTable
-          key={`${query}:${filters.page}`}
-          tab={filters.tab}
-          rows={rows}
-          total={page.total}
-          page={filters.page}
-          pageSize={PAGE_SIZE}
-          query={query}
-          empty={filtered ? pr.emptyFiltered : pr.emptyTab[filters.tab]}
-          canCollect={canCollect}
-        />
-      </div>
+        <div className="sdr-panel-body">
+          <ProspectTable
+            key={`${query}:${f.page}`}
+            tab={tab}
+            rows={rows}
+            total={page.total}
+            page={f.page}
+            pageSize={PAGE_SIZE}
+            query={query}
+            empty={filtered ? L.emptyFiltered : tab === "people" ? (counts.companies ? fmt(L.peopleHint, { n: formatNumber(counts.companies, locale) }) : L.emptyPeople) : L.emptyCompanies}
+            canCollect={canCollect}
+          />
+        </div>
+      </section>
     </div>
   );
 }
 
-/** $1.2M, $850K — revenue and funding in the Prospects table (D-240). */
-function compactUsd(v: number): string {
-  return `$${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(v)}`;
+/** Company logos for the people on this page. */
+async function logosFor(workspaceId: string, ids: string[]): Promise<Map<string, string | null>> {
+  if (!ids.length) return new Map();
+  const db = await createClient();
+  const { data } = await db.from("companies").select("id, logo_url").eq("workspace_id", workspaceId).in("id", [...new Set(ids)]);
+  return new Map((data ?? []).map((c) => [c.id, c.logo_url]));
 }

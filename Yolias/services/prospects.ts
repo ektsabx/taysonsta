@@ -43,6 +43,8 @@ export interface ProspectFilters {
   /** Text in the company's signals. */
   signals?: string;
   funding?: string;
+  /** Saved (bookmarked) only, inside the People or Companies tab. */
+  bookmarked?: boolean;
   sort: ProspectSort;
   page: number;
 }
@@ -70,6 +72,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
     hiring: one("hiring") === "1" || undefined,
     signals: text(one("signals"), 80),
     funding: text(one("funding"), 60),
+    bookmarked: one("saved") === "1" || undefined,
     sort,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 10_000) : 1,
   };
@@ -78,7 +81,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
 const QUERY_KEYS: [keyof ProspectFilters, string][] = [
   ["tab", "tab"], ["q", "q"], ["country", "country"], ["city", "city"], ["minMatch", "min"], ["verified", "verified"],
   ["titles", "titles"], ["industry", "industry"], ["employees", "employees"], ["domain", "domain"], ["company", "company"], ["hiring", "hiring"],
-  ["signals", "signals"], ["funding", "funding"], ["sort", "sort"], ["page", "page"],
+  ["signals", "signals"], ["funding", "funding"], ["bookmarked", "saved"], ["sort", "sort"], ["page", "page"],
 ];
 
 /** Same filters as a query string (for links, export and "all matching"). */
@@ -114,9 +117,11 @@ function query(db: Client, f: ProspectFilters, workspaceId: string, columns = "*
   if (f.tab === "saved") q = q.not("bookmarked_at", "is", null);
   else {
     q = q.not("saved_at", "is", null);
-    if (f.tab === "companies") q = q.eq("item_type", "company");
+    // Companies holds companies and local businesses (D-256: two tabs, People and Companies, after AgentSDR).
+    if (f.tab === "companies") q = q.in("item_type", ["company", "local_business"]);
     if (f.tab === "local") q = q.eq("item_type", "local_business");
     if (f.tab === "people") q = q.eq("item_type", "person");
+    if (f.bookmarked) q = q.not("bookmarked_at", "is", null);
   }
   if (f.campaign) q = q.eq("campaign_id", f.campaign);
   if (f.country) q = q.eq("country", f.country);
@@ -225,7 +230,8 @@ export async function tabCounts(workspaceId: string): Promise<Record<ProspectTab
     db.from("companies").select("id", head).eq("workspace_id", workspaceId).not("bookmarked_at", "is", null),
   ]);
   const p = people.count ?? 0, c = companies.count ?? 0, l = local.count ?? 0;
-  return { all: p + c + l, people: p, companies: c, local: l, saved: (savedPeople.count ?? 0) + (savedCompanies.count ?? 0) };
+  // "companies" counts local businesses too: the Companies tab shows both.
+  return { all: p + c + l, people: p, companies: c + l, local: l, saved: (savedPeople.count ?? 0) + (savedCompanies.count ?? 0) };
 }
 
 /** Funding stages present in the workspace (the Funding type filter offers only real values). */

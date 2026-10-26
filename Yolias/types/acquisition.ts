@@ -76,6 +76,8 @@ export type OutreachCampaignRow = {
   source_campaign_id: string | null; strategy_id: string | null; started_at: string | null;
   /** What the campaign is for (D-253) and the link the agent offers. */
   aim: CampaignAim; cta_url: string | null;
+  /** When the sending worker last gave it a turn (D-256: oldest first). */
+  dispatched_at: string | null;
 };
 export type CampaignAim = "meeting" | "introduce" | "sell";
 export type OutreachStepRow = {

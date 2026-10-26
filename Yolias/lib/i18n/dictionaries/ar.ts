@@ -1,3 +1,4 @@
+import { sdrAr } from "./sdr-ar";
 import { wsAr } from "./ws-ar";
 import type { Dictionary } from "./en";
 
@@ -1139,6 +1140,7 @@ export const ar: Dictionary = {
     errors: { name: "أدخل اسمك.", terms: "وافق على شروط الشركاء للمتابعة.", closed: "برنامج الشركاء غير متاح حاليًا." },
   },
   ws: wsAr,
+  sdr: sdrAr,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "هذه الصفحة غير موجودة",

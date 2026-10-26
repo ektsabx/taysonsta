@@ -2,45 +2,49 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Download, ListFilter, Search, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
-import type { EmployeeBand, ProspectTab } from "@/services/prospects";
+import type { EmployeeBand } from "@/services/prospects";
+import { RowMenu } from "./sdr/bits";
 
 interface Props {
-  tab: ProspectTab;
-  counts: Record<ProspectTab, number>;
+  tab: "people" | "companies";
+  /** Rows matching the filters (the panel's count). */
+  total: number;
   countries: { code: string; name: string }[];
   /** Funding stages present in the workspace (only real values are offered). */
   funding: string[];
   /** Number of search filters in use. */
   active: number;
+  /** Export link with the filters applied. */
+  exportHref: string;
 }
 
-const tabs: ProspectTab[] = ["all", "companies", "local", "people", "saved"];
 const bands: EmployeeBand[] = ["1-10", "11-50", "51-200", "201-1000", "1001-5000", "5000+"];
-const KEYS = ["q", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "sort"] as const;
+const KEYS = ["q", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "saved", "sort"] as const;
 type Key = (typeof KEYS)[number];
 
-// Type filters, search, sort and the search-filter panel of the Prospects
-// table. Everything lives in the URL, so a view can be shared, reloaded and
-// exported as shown. Changing the type keeps the other filters.
-export function ProspectToolbar({ tab, counts, countries, funding, active }: Props) {
+// The head of the Prospects panel (D-256, after AgentSDR Leads): title and
+// count, search, Filter (the search-filter panel) and ⋯ (export). Everything
+// lives in the URL, so a view can be shared, reloaded and exported as shown.
+export function ProspectToolbar({ tab, total, countries, funding, active, exportHref }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
   const pr = t.prospects;
   const tb = pr.table;
+  const L = t.sdr.leads;
   const sp = useSearchParams();
   const [form, setForm] = useState(() => Object.fromEntries(KEYS.map((k) => [k, sp.get(k) ?? ""])) as Record<Key, string>);
   const [open, setOpen] = useState(false);
   const n = (v: number) => formatNumber(v, locale);
 
-  const qs = (next: Record<Key, string>, type: ProspectTab = tab) => {
+  const qs = (next: Record<Key, string>) => {
     const q = new URLSearchParams();
-    if (type !== "all") q.set("tab", type);
+    q.set("tab", tab);
     for (const k of KEYS) if (next[k]) q.set(k, next[k]);
-    return q.size ? `/prospects?${q}` : "/prospects";
+    return `/prospects?${q}`;
   };
   const go = (next: Record<Key, string>) => router.push(qs(next));
   const set = (k: Key, v: string, now = false) => {
@@ -53,32 +57,28 @@ export function ProspectToolbar({ tab, counts, countries, funding, active }: Pro
     setForm(next);
     go(next);
   };
+  const people = tab === "people";
 
   return (
-    <div className="prospect-toolbar-wrap">
-      <form className="filter-bar prospect-toolbar" onSubmit={(e) => { e.preventDefault(); go(form); }}>
-        <div className="filter-field toolbar-search">
-          <Search aria-hidden="true" />
-          <input className="form-input" value={form.q} onChange={(e) => set("q", e.target.value)} placeholder={tb.searchPlaceholder} aria-label={tb.searchPlaceholder} />
+    <>
+      <div className="sdr-panel-head">
+        <div>
+          <div className="sdr-panel-title">{people ? L.peopleTitle : L.companiesTitle}</div>
+          <div className="sdr-panel-sub">{fmt(people ? L.peopleCount : L.companiesCount, { n: n(total) })}</div>
         </div>
-        {/* Type is a dropdown like Sort, not a chip row (owner, 2026-10-13). */}
-        <select className="form-select" aria-label={tb.colType} value={tab} onChange={(e) => router.push(qs(form, e.target.value as ProspectTab))}>
-          {tabs.map((type) => <option key={type} value={type}>{pr.tabs[type]} ({n(counts[type])})</option>)}
-        </select>
-        <button type="button" className={`btn-secondary${active ? " has-filters" : ""}`} aria-expanded={open} aria-controls="prospect-filters" onClick={() => setOpen((o) => !o)}>
-          <SlidersHorizontal /> {active ? fmt(tb.filtersActive, { count: n(active) }) : tb.filters}
-        </button>
-        <select className="form-select" aria-label={pr.sortBy} value={form.sort || "match"} onChange={(e) => set("sort", e.target.value === "match" ? "" : e.target.value, true)}>
-          <option value="match">{pr.sort.match}</option>
-          <option value="newest">{tab === "saved" ? pr.colSavedAt : pr.sort.newest}</option>
-          <option value="name">{pr.sort.name}</option>
-        </select>
-        <button className="btn-primary" type="submit">{pr.apply}</button>
-        {active > 0 && <button className="btn-secondary" type="button" onClick={clearAll}><X /> {pr.clear}</button>}
-      </form>
-
+        <form className="sdr-panel-tools" onSubmit={(e) => { e.preventDefault(); go(form); }}>
+          <label className="sdr-search" style={{ minWidth: 260 }}><Search /><input value={form.q} onChange={(e) => set("q", e.target.value)} placeholder={people ? L.searchPeople : L.searchCompanies} aria-label={people ? L.searchPeople : L.searchCompanies} /></label>
+          <button type="button" className={`sdr-btn${active ? " has-filters" : ""}`} aria-expanded={open} aria-controls="prospect-filters" onClick={() => setOpen((o) => !o)}>
+            <ListFilter /> {active ? `${t.sdr.common.filter} (${n(active)})` : t.sdr.common.filter}
+          </button>
+          {active > 0 && <button className="sdr-btn ghost" type="button" onClick={clearAll}><X /> {pr.clear}</button>}
+          <RowMenu label={t.sdr.common.more}>{(close) => (
+            <a href={exportHref} onClick={close}><Download />{L.menu.exportCsv}</a>
+          )}</RowMenu>
+        </form>
+      </div>
       {open && (
-        <form id="prospect-filters" className="prospect-filter-panel" onSubmit={(e) => { e.preventDefault(); go(form); setOpen(false); }}>
+        <form id="prospect-filters" className="prospect-filter-panel sdr-filter-panel" onSubmit={(e) => { e.preventDefault(); go(form); setOpen(false); }}>
           <label className="filter-item"><span>{tb.titles}</span>
             <input className="form-input" value={form.titles} onChange={(e) => set("titles", e.target.value)} placeholder={tb.titlesPh} />
           </label>
@@ -129,6 +129,17 @@ export function ProspectToolbar({ tab, counts, countries, funding, active }: Pro
             <input type="checkbox" checked={form.hiring === "1"} onChange={(e) => set("hiring", e.target.checked ? "1" : "")} />
             <span><strong>{tb.hiring}</strong> · {tb.hiringOnly}</span>
           </label>
+          <label className="filter-item"><span>{L.sort}</span>
+            <select className="form-select" value={form.sort || "match"} onChange={(e) => set("sort", e.target.value === "match" ? "" : e.target.value)}>
+              <option value="match">{L.sortMatch}</option>
+              <option value="newest">{L.sortNewest}</option>
+              <option value="name">{L.sortName}</option>
+            </select>
+          </label>
+          <label className="toolbar-check filter-item-check">
+            <input type="checkbox" checked={form.saved === "1"} onChange={(e) => set("saved", e.target.checked ? "1" : "")} />
+            <span>{L.savedOnly}</span>
+          </label>
           <label className="toolbar-check filter-item-check">
             <input type="checkbox" checked={form.verified === "1"} onChange={(e) => set("verified", e.target.checked ? "1" : "")} />
             <span>{pr.verifiedOnly}</span>
@@ -139,6 +150,6 @@ export function ProspectToolbar({ tab, counts, countries, funding, active }: Pro
           </div>
         </form>
       )}
-    </div>
+    </>
   );
 }
