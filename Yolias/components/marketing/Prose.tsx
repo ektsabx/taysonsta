@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Info } from "lucide-react";
 import { slugify, type Block } from "@/lib/content/types";
 

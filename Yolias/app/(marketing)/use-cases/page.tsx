@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCases, useCaseSlugs, useCasesPage } from "@/lib/content/use-cases";
 import { getLocale } from "@/lib/i18n/server";
 import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";

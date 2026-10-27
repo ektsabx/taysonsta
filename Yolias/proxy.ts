@@ -2,6 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
 import { encodeFirstTouch, firstTouch, FIRST_TOUCH_COOKIE, FIRST_TOUCH_MAX_AGE, isLandingPath } from "@/lib/attribution";
+import { isLocalizedPath, localizedHref, LOCALE_HEADER, splitLocale } from "@/lib/i18n/paths";
+import { LOCALE_COOKIE } from "@/lib/i18n/config";
+import { localeForCountry, normalizeCountry } from "@/lib/geo";
 
 // Refreshes the Supabase session cookie on every request and keeps signed-out
 // visitors on the auth pages. Onboarding and workspace checks happen in the
@@ -62,23 +65,51 @@ function keepFirstTouch(request: NextRequest, response: NextResponse) {
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (request.method === "GET" && isLandingPath(pathname) && pathname !== "/") {
-    const r = await seoRedirect(pathname);
+  // Language URLs (D-258): /ar/… is the Arabic version of a website page.
+  const { locale: urlLocale, path } = splitLocale(request.nextUrl.pathname);
+  if (urlLocale && !isLocalizedPath(path)) {
+    // The app, sign-in and APIs have one URL: /ar/login → /login.
+    const url = request.nextUrl.clone();
+    url.pathname = path;
+    return NextResponse.redirect(url, 308);
+  }
+  if (request.method === "GET" && isLandingPath(path) && path !== "/") {
+    const r = await seoRedirect(path);
     if (r) {
       const url = request.nextUrl.clone();
-      const [to, query] = r.to.split("?");
+      const [to, query] = localizedHref(r.to, urlLocale ?? "en").split("?");
       url.pathname = to;
       if (query) url.search = `?${query}`;
       return NextResponse.redirect(url, r.code);
     }
   }
-  const response = await route(request);
+  const response = await route(request, path, urlLocale);
   keepFirstTouch(request, response);
   return response;
 }
 
-async function route(request: NextRequest): Promise<NextResponse> {
+/** Arabic visitors on an English website URL: chose Arabic, or (no choice yet) browsing from an Arabic-speaking country. */
+function prefersArabic(request: NextRequest): boolean {
+  const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
+  if (chosen) return chosen === "ar";
+  return localeForCountry(normalizeCountry(request.headers.get("cf-ipcountry"))) === "ar";
+}
+
+async function route(request: NextRequest, pathname: string, urlLocale: "ar" | null): Promise<NextResponse> {
+  // Website pages are served in the language of their URL; the app follows
+  // the cookie. lang is set once we know whether "/" is the website or the app.
+  let lang: "ar" | "en" | null = null;
+  let rewriteTo: URL | null = null;
+  if (urlLocale) {
+    rewriteTo = request.nextUrl.clone();
+    rewriteTo.pathname = pathname;
+  }
+  const forward = () => {
+    const headers = new Headers(request.headers);
+    if (lang) headers.set(LOCALE_HEADER, lang);
+    return { request: { headers } };
+  };
+  const pass = () => (rewriteTo ? NextResponse.rewrite(rewriteTo, forward()) : NextResponse.next(forward()));
   // One address for the site: yolias.com → www.yolias.com (D-135).
   if ((request.headers.get("host") ?? "").toLowerCase() === "yolias.com") {
     const url = request.nextUrl.clone();
@@ -89,7 +120,7 @@ async function route(request: NextRequest): Promise<NextResponse> {
   }
   const misrouted = misroutedAdmin(request);
   if (misrouted) return misrouted;
-  let response = NextResponse.next({ request });
+  let response = pass();
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,30 +132,44 @@ async function route(request: NextRequest): Promise<NextResponse> {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = pass();
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },
     }
   );
 
-  // /partners/terms is a public website page (owner brief 2026-10-19), built
-  // in the marketing layout under /affiliates/terms.
-  if (request.nextUrl.pathname === "/partners/terms") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/affiliates/terms";
-    return NextResponse.rewrite(url, { request });
-  }
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
-  const { pathname } = request.nextUrl;
+  const website = isLocalizedPath(pathname) && !(pathname === "/" && signedIn);
+  if (website) lang = urlLocale ?? "en";
+  if (urlLocale === "ar" && pathname === "/" && signedIn) {
+    // Signed in, "/" is Yolias AI (one URL).
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+  // Someone reading in Arabic who follows an English website link gets the Arabic page.
+  const pageLoad = request.method === "GET" && !request.headers.has("next-action");
+  if (website && !urlLocale && pageLoad && prefersArabic(request)) {
+    const url = request.nextUrl.clone();
+    url.pathname = localizedHref(pathname, "ar");
+    return NextResponse.redirect(url, 307);
+  }
+  // /partners/terms is a public website page (owner brief 2026-10-19), built
+  // in the marketing layout under /affiliates/terms.
+  if (pathname === "/partners/terms") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/affiliates/terms";
+    return withLocaleCookie(NextResponse.rewrite(url, forward()), request, urlLocale);
+  }
   // Server actions check access themselves and must get an action response,
   // never a redirect (a redirected action fails with "unexpected response").
   if (request.headers.has("next-action")) {
     if (!signedIn && pathname === "/") {
       const url = request.nextUrl.clone();
       url.pathname = "/home";
-      return NextResponse.rewrite(url, { request });
+      return NextResponse.rewrite(url, forward());
     }
     return response;
   }
@@ -151,7 +196,7 @@ async function route(request: NextRequest): Promise<NextResponse> {
     // Visitors see the public home page at "/"; signed-in users get Yolias AI.
     const url = request.nextUrl.clone();
     url.pathname = "/home";
-    return NextResponse.rewrite(url, { request });
+    return withLocaleCookie(NextResponse.rewrite(url, forward()), request, urlLocale);
   }
   if (!signedIn && pathname === "/checkout") {
     // Picked a plan while signed out: create the account first, keep the plan.
@@ -170,6 +215,14 @@ async function route(request: NextRequest): Promise<NextResponse> {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url);
+  }
+  return withLocaleCookie(response, request, urlLocale);
+}
+
+// Opening an Arabic website URL is choosing Arabic: sign-up and the app follow it.
+function withLocaleCookie(response: NextResponse, request: NextRequest, urlLocale: "ar" | null): NextResponse {
+  if (urlLocale && request.cookies.get(LOCALE_COOKIE)?.value !== urlLocale && request.method === "GET") {
+    response.cookies.set(LOCALE_COOKIE, urlLocale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
   }
   return response;
 }

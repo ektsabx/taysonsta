@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { BrandLogo } from "@/components/BrandLogo";
 import { SupportLink } from "@/components/SupportLink";
 import { ThemeMenu } from "@/components/ThemeMenu";

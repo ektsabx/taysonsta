@@ -179,7 +179,9 @@ export async function seoAudit(extraPaths: string[] = []) {
   if (!base) return { base: null, pages: [], robots: null, sitemapUrls: null };
   const get = async (path: string, locale: "en" | "ar") => {
     try {
-      const res = await fetch(`${base}${path}`, { headers: { cookie: `yolias_locale=${locale}` }, cache: "no-store", signal: AbortSignal.timeout(15_000), redirect: "follow" });
+      // Arabic website pages have their own URL under /ar (D-258).
+      const url = locale === "ar" && !/^\/(robots\.txt|sitemap\.xml|llms\.txt|login|signup|preview)/.test(path) ? `${base}/ar${path === "/" ? "" : path}` : `${base}${path}`;
+      const res = await fetch(url, { headers: { cookie: `yolias_locale=${locale}` }, cache: "no-store", signal: AbortSignal.timeout(15_000), redirect: "follow" });
       return { status: res.status, html: await res.text() };
     } catch {
       return { status: 0, html: "" };

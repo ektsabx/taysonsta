@@ -31,7 +31,8 @@ export default async function SeoSettingsPage() {
   const manage = can(bos, "platform.manage", "all");
   const [cfg, runs, src, pages, { data: verification }] = await Promise.all([googleSeoConfig(), lastRuns(), sourcesState(), listSeoPages(), ydb().from("site_settings").select("value").eq("key", "search_console").maybeSingle()]);
   const base = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
-  const live = pages.filter((p) => p.status === "published").map((p) => `${base}${seoPath(p.kind, p.slug)}`);
+  // Both language URLs of each page (D-258).
+  const live = pages.filter((p) => p.status === "published").flatMap((p) => [`${base}${seoPath(p.kind, p.slug)}`, `${base}/ar${seoPath(p.kind, p.slug)}`]);
   const verified = Boolean((verification?.value as { google?: string } | null)?.google);
   const runInfo = (k: "gsc" | "ga4" | "inspection") => {
     const r = runs[k];

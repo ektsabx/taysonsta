@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { pageMetadata, webPageSchema } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { contactPage } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
 import { ContactForm } from "./ContactForm";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { notFound } from "next/navigation";
 import { isSolutionSlug, solutions, solutionSlugs, solutionsPage } from "@/lib/content/solutions";
 import { home } from "@/lib/content/site";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { blogHero } from "@/lib/content/blog";
 import { blogPosts } from "@/lib/content/store";
 import { readingMinutes } from "@/lib/content/types";

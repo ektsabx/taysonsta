@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Check, Languages, ListChecks, MessageSquareText, Send, X } from "lucide-react";
 import { home } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ExternalLink } from "lucide-react";
 import { Faq } from "@/components/marketing/Faq";
 import { JsonLd } from "@/components/marketing/JsonLd";

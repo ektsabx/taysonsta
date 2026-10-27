@@ -12,6 +12,9 @@ import { seoBase, seoKinds, type SeoKind } from "@/lib/yolias/seo-pages";
 // cookies (otherwise it is "unknown"). One visit, first touch; a magic link
 // opened on another device loses it. Trials and payments follow the account.
 
+/** "/ar/compare/apollo" and "/compare/apollo" are one page in two languages (D-258): numbers add up. */
+export const basePath = (p: string) => (p === "/ar" ? "/" : p.startsWith("/ar/") ? p.slice(3) : p);
+
 export interface Period { days: number; from: string; to: string; prevFrom: string; prevTo: string }
 
 export function period(days: number, now = Date.now()): Period {
@@ -45,9 +48,10 @@ export interface PageStat { page: string; clicks: number; impressions: number; c
 function byPage(rows: PageDay[]): Map<string, PageStat> {
   const m = new Map<string, { clicks: number; impressions: number; pos: number }>();
   for (const r of rows) {
-    const a = m.get(r.page) ?? { clicks: 0, impressions: 0, pos: 0 };
+    const page = basePath(r.page);
+    const a = m.get(page) ?? { clicks: 0, impressions: 0, pos: 0 };
     a.clicks += r.clicks; a.impressions += r.impressions; a.pos += (r.position ?? 0) * r.impressions;
-    m.set(r.page, a);
+    m.set(page, a);
   }
   return new Map([...m].map(([page, a]) => [page, { page, clicks: a.clicks, impressions: a.impressions, ctr: a.impressions ? a.clicks / a.impressions : null, position: a.impressions ? a.pos / a.impressions : null }]));
 }
@@ -61,7 +65,8 @@ function totals(rows: PageDay[]) {
 type Signup = { user_id: string; landing_path: string | null; channel: string; created_at: string };
 
 async function signups(from: string, to: string): Promise<Signup[]> {
-  return all((a, b) => ydb().from("signup_attribution").select("user_id, landing_path, channel, created_at").gte("created_at", `${from}T00:00:00Z`).lte("created_at", `${to}T23:59:59Z`).range(a, b));
+  const rows = await all<Signup>((a, b) => ydb().from("signup_attribution").select("user_id, landing_path, channel, created_at").gte("created_at", `${from}T00:00:00Z`).lte("created_at", `${to}T23:59:59Z`).range(a, b));
+  return rows.map((r) => ({ ...r, landing_path: r.landing_path ? basePath(r.landing_path) : null }));
 }
 
 /** Trials, paid accounts and revenue (live USD payments) of the given users. */
@@ -145,7 +150,7 @@ export async function overview(days: number) {
     period: p,
     sources: src,
     gsc: src.gsc ? { ...t, prev: tp } : null,
-    ga4: src.ga4 ? { sessions, prev: sessionsPrev, landingPages: new Set(gaNow.map((r) => r.landing_page)).size } : null,
+    ga4: src.ga4 ? { sessions, prev: sessionsPrev, landingPages: new Set(gaNow.map((r) => basePath(r.landing_page))).size } : null,
     signups: { organic: organic.length, organicPrev: organicPrev.length, all: sNow.length, unknown: sNow.filter((s) => s.channel === "unknown").length },
     trials: out.trial.size, trialsPrev: outPrev.trial.size,
     paid: out.paid.size, paidPrev: outPrev.paid.size,
@@ -224,7 +229,7 @@ export async function reports(days: number) {
   for (const r of queries) {
     const a = q.get(r.query) ?? { query: r.query, impressions: 0, clicks: 0, pos: 0, pages: new Set<string>() };
     a.impressions += r.impressions; a.clicks += r.clicks; a.pos += (r.position ?? 0) * r.impressions;
-    if (r.impressions > 0) a.pages.add(r.page);
+    if (r.impressions > 0) a.pages.add(basePath(r.page));
     q.set(r.query, a);
   }
   const qs = [...q.values()].map((a) => ({ query: a.query, impressions: a.impressions, clicks: a.clicks, position: a.impressions ? a.pos / a.impressions : null, pages: [...a.pages] }));

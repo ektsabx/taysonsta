@@ -297,10 +297,14 @@ npx wrangler secret put WORKER_SECRET
 3. بعد التطبيق: صناديق البريد الحالية هتاخد ساعات الإرسال الافتراضية (الاتنين للجمعة، 9 لـ 6، بالمنطقة الزمنية بتاعة صاحب البريد) وفاصل 18 لـ 24 دقيقة. غيّرها من الإعدادات ← التكاملات ← قواعد الإرسال لو محتاج.
 4. نشر يولياس، ثم `npm run content:seed:production` (نصوص المساعدة اتغيرت).
 
-## جولة SEO 2026-10-27 (D-257). مستنية موافقة المالك، وما اتنفذ منها حاجة على الإنتاج
+## جولة SEO 2026-10-27 (D-257). اتنشرت 2026-10-27: commit 8ca0062، نسخة احتياطية prod-20261027-0304، الـ migration 20261123000000 اتطبقت واتسجلت (المالك)، يولياس 827da1c6، الأدمن e08773eb، والـ 23 صفحة منشورة والمحتوى اتحدّث. الباقي: الخطوة 5 على المالك
 1. نسخة احتياطية (schema + data).
 2. migration واحدة: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261123000000_seo_control_center.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261123000000.sql`. لازم قبل نشر يولياس والأدمن (البوابة بتقرأ `seo_redirects`، والتسجيل بيكتب `signup_attribution`).
 3. نشر يولياس (`npm run cf:deploy` من Yolias/) ثم الأدمن (`npm run cf:deploy:admin`)، ثم `npm run content:seed:production` (سياسة الكوكيز والخصوصية اتغيرت)، ثم `npm run seo:seed:production` من Yolias/ (الصفحات الـ 23 منشورة بموافقة المالك).
 4. المالك (اختياري): الأدمن ← SEO ← المنافسون: راجع المعلومات كل 90 يومًا، وضيف أسعار Apollo وInstantly لو ظهرت واضحة في صفحاتهم.
 5. المالك: Search Console وGA4: حساب خدمة من Google Cloud وربطه في مركز التكاملات (الخطوات في الأدمن ← SEO ← تكاملات SEO). لـ GA4: معرّف القياس في `NEXT_PUBLIC_GA_MEASUREMENT_ID` لـ يولياس ثم نشر.
 6. بعد النشر: أرسل `/sitemap.xml` في Search Console.
+
+## الروابط العربية 2026-10-27 (D-258). مفيش migration
+1. نشر يولياس ثم الأدمن.
+2. بعد ربط Search Console: أرسل `/sitemap.xml` (فيه النسختين).

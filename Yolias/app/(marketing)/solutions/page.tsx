@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { solutions, solutionSlugs, solutionsPage } from "@/lib/content/solutions";
 import { getLocale } from "@/lib/i18n/server";
 import { seoPages } from "@/lib/content/seo-store";

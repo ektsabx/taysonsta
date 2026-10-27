@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArticleFeedback, CopyPageButton } from "@/components/marketing/ArticleTools";
 import { toMarkdown } from "@/lib/content/types";
 import { siteUrl } from "@/lib/seo";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ChevronRight, Rocket, Sparkles, Users } from "lucide-react";
 import { collections, helpHero } from "@/lib/content/help";
 import { helpArticles } from "@/lib/content/store";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { notFound } from "next/navigation";
 import { isUseCaseSlug, useCases, useCaseSlugs, useCasesPage } from "@/lib/content/use-cases";
 import { isSolutionSlug, solutions } from "@/lib/content/solutions";

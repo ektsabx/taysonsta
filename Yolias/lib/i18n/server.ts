@@ -4,11 +4,15 @@ import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { localeForCountry, normalizeCountry } from "@/lib/geo";
 import { defaultLocale, dictionaries, isLocale, LOCALE_COOKIE, type Locale } from "./config";
+import { LOCALE_HEADER } from "./paths";
 
 // Resolves the interface language for this request:
+// the website URL's language (/ar/… or the plain English URL, set by proxy.ts, D-258) →
 // explicit choice (cookie) → signed-in user's saved language → the
 // visitor's country (Arabic-speaking → Arabic, else English) → browser → English.
 export const getLocale = cache(async (): Promise<Locale> => {
+  const fromUrl = (await headers()).get(LOCALE_HEADER);
+  if (isLocale(fromUrl)) return fromUrl;
   const fromCookie = (await cookies()).get(LOCALE_COOKIE)?.value;
   if (isLocale(fromCookie)) return fromCookie;
 

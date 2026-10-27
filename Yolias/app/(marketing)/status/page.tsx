@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { connection } from "next/server";
 import { AlertTriangle, CheckCircle2, CircleHelp, Wrench, XCircle } from "lucide-react";
 import { statusCopy } from "@/lib/content/status-page";

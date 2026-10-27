@@ -26,7 +26,7 @@ export async function GET() {
 
 > ${DEFINITION}
 
-Yolias works in English and Arabic. It finds and qualifies prospects, prepares outreach campaigns, writes and sends them from the user's own mailbox (Gmail or any IMAP/SMTP account) only after the user approves, reads and sorts replies in the Inbox and keeps the CRM up to date; it never messages anyone on LinkedIn. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
+Yolias works in English and Arabic. Every page below also exists in Arabic at the same path under ${base}/ar (for example ${base}/ar/pricing). It finds and qualifies prospects, prepares outreach campaigns, writes and sends them from the user's own mailbox (Gmail or any IMAP/SMTP account) only after the user approves, reads and sorts replies in the Inbox and keeps the CRM up to date; it never messages anyone on LinkedIn. Results depend on the market and on the data sources connected to Yolias, and Yolias doesn't guarantee a number of leads, meetings or sales.
 
 ## What Yolias does today
 - Turns a plain-language description of an ideal customer (or an attached brief, CSV or screenshot) into structured search criteria and a search.

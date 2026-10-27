@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArrowUpRight, BookOpen, Handshake, Users } from "lucide-react";
 import { COMMUNITY_URL } from "@/lib/community";
 import { communityPage } from "@/lib/content/community-page";

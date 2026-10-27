@@ -1,6 +1,6 @@
 import "server-only";
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { SeoPageView, type YoliasPrices } from "@/components/marketing/SeoPageView";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { getPlanCatalog } from "@/lib/plan-catalog";
@@ -19,7 +19,7 @@ import { seoBase, type SeoKind, type SeoPage } from "./seo-pages";
 export async function seoMetadata(page: SeoPage | null): Promise<Metadata> {
   if (!page) return {};
   const p = page.copy[await getLocale()];
-  const meta = pageMetadata({ title: p.metaTitle.includes("Yolias") ? p.metaTitle : `${p.metaTitle} | Yolias`, absoluteTitle: true, description: p.metaDescription, path: page.canonical ?? page.path });
+  const meta = await pageMetadata({ title: p.metaTitle.includes("Yolias") ? p.metaTitle : `${p.metaTitle} | Yolias`, absoluteTitle: true, description: p.metaDescription, path: page.canonical ?? page.path });
   return page.noindex ? { ...meta, robots: { index: false, follow: true } } : meta;
 }
 
@@ -60,7 +60,7 @@ const indexCopy: Record<Exclude<SeoKind, "solution">, Record<Locale, { title: st
 export async function seoIndexMetadata(kind: Exclude<SeoKind, "solution">): Promise<Metadata> {
   const c = indexCopy[kind][await getLocale()];
   const pages = await seoPages(kind);
-  const meta = pageMetadata({ title: `${c.title} | Yolias`, absoluteTitle: true, description: c.description, path: seoBase[kind] });
+  const meta = await pageMetadata({ title: `${c.title} | Yolias`, absoluteTitle: true, description: c.description, path: seoBase[kind] });
   return pages.length ? meta : { ...meta, robots: { index: false, follow: true } };
 }
 

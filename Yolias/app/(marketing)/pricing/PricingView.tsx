@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Check, Plus } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
 import { ConsentText } from "@/app/(auth)/ConsentText";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { affiliatesPage } from "@/lib/content/affiliates-page";
 import { currentProgram } from "@/lib/affiliates";
 import { commissionExamples, commissionLabel, formatCents } from "@/lib/affiliates/program";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { organizationSchema, pageMetadata, webPageSchema } from "@/lib/seo";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { about } from "@/lib/content/site";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 

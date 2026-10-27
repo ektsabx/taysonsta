@@ -228,7 +228,7 @@ export async function dailySeoSync(): Promise<number | null> {
     const base = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
     const { data } = await ydb().from("content_entries").select("kind, slug").in("kind", ["compare", "alternatives", "solution", "template"]).eq("status", "published");
     const prefix: Record<string, string> = { compare: "/compare", alternatives: "/alternatives", solution: "/solutions", template: "/templates" };
-    if (base && data?.length) n += (await inspectUrls(cfg.config, data.map((p) => `${base}${prefix[p.kind]}/${p.slug}`))).rows;
+    if (base && data?.length) n += (await inspectUrls(cfg.config, data.flatMap((p) => [`${base}${prefix[p.kind]}/${p.slug}`, `${base}/ar${prefix[p.kind]}/${p.slug}`]))).rows;
   }
   return n;
 }

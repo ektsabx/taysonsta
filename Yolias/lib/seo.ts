@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedHref } from "@/lib/i18n/paths";
 
 // Search and answer-engine metadata for the public website (D-179). One
 // helper so every public page gets a unique title and description, a
@@ -7,9 +8,9 @@ import type { Metadata } from "next";
 // facts the page shows; nothing is added that the page doesn't say (no
 // ratings, reviews, awards or invented prices).
 //
-// The site serves English and Arabic at the same URL (language is a cookie),
-// so search engines index one version per URL: English, the default. There
-// are no separate language URLs, hence no hreflang.
+// Every website page has an English URL and an Arabic one under /ar (D-258);
+// each declares its own canonical and both versions as hreflang alternates,
+// so searches in either language find the page in that language.
 
 export const SITE_NAME = "Yolias";
 export const HOME_TITLE = "Yolias: Your AI Sales Agent for Business Growth";
@@ -26,18 +27,27 @@ export function absolute(path: string): string {
 }
 
 /** Metadata for an indexable public page. `title` is used as is (pages add "| Yolias" themselves where wanted). */
-export function pageMetadata(p: { title: string; description: string; path: string; type?: "website" | "article"; absoluteTitle?: boolean; publishedTime?: string }): Metadata {
+export async function pageMetadata(p: { title: string; description: string; path: string; type?: "website" | "article"; absoluteTitle?: boolean; publishedTime?: string }): Promise<Metadata> {
+  const { getLocale } = await import("@/lib/i18n/server");
+  const locale = await getLocale();
   const title = p.absoluteTitle ? { absolute: p.title } : p.title;
+  const canonical = localizedHref(p.path, locale);
   return {
     title,
     description: p.description,
-    alternates: { canonical: p.path },
+    alternates: { canonical, languages: languageAlternates(p.path) },
     openGraph: {
-      type: p.type ?? "website", siteName: SITE_NAME, title: p.title, description: p.description, url: p.path, images: [OG_IMAGE],
+      type: p.type ?? "website", siteName: SITE_NAME, title: p.title, description: p.description, url: canonical, images: [OG_IMAGE],
+      locale: locale === "ar" ? "ar_AR" : "en_US", alternateLocale: locale === "ar" ? ["en_US"] : ["ar_AR"],
       ...(p.publishedTime ? { publishedTime: p.publishedTime } : {}),
     },
     twitter: { card: "summary_large_image", title: p.title, description: p.description, images: [OG_IMAGE.url] },
   };
+}
+
+/** hreflang: the English and Arabic URLs of a page; English is the default for other languages. */
+export function languageAlternates(path: string): Record<string, string> {
+  return { en: localizedHref(path, "en"), ar: localizedHref(path, "ar"), "x-default": localizedHref(path, "en") };
 }
 
 /** For pages that must never appear in search results (sign-in, checkout, the app). */

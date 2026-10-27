@@ -58,7 +58,7 @@ export default async function SeoPageEdit({ params, searchParams }: { params: Pr
   const site = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
   const s = path ? stats?.stats.get(path) : undefined;
   const c = path ? stats?.conversions.get(path) : undefined;
-  const { data: queries } = path && stats ? await ydb().from("seo_query_daily").select("query, clicks, impressions, position").eq("page", path).gte("day", stats.period.from).order("impressions", { ascending: false }).limit(200) : { data: null };
+  const { data: queries } = path && stats ? await ydb().from("seo_query_daily").select("query, clicks, impressions, position").in("page", [path, `/ar${path}`]).gte("day", stats.period.from).order("impressions", { ascending: false }).limit(200) : { data: null };
   const top = new Map<string, { clicks: number; impressions: number; position: number | null }>();
   for (const q of queries ?? []) { const a = top.get(q.query) ?? { clicks: 0, impressions: 0, position: q.position }; a.clicks += q.clicks; a.impressions += q.impressions; top.set(q.query, a); }
   const preview = row ? previewUrl(row.id) : null;
