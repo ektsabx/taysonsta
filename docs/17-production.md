@@ -305,6 +305,6 @@ npx wrangler secret put WORKER_SECRET
 5. المالك: Search Console وGA4: حساب خدمة من Google Cloud وربطه في مركز التكاملات (الخطوات في الأدمن ← SEO ← تكاملات SEO). لـ GA4: معرّف القياس في `NEXT_PUBLIC_GA_MEASUREMENT_ID` لـ يولياس ثم نشر.
 6. بعد النشر: أرسل `/sitemap.xml` في Search Console.
 
-## الروابط العربية 2026-10-27 (D-258). مفيش migration
+## الروابط العربية 2026-10-27 (D-258). اتنشرت 2026-10-27: commit 46b516d، يولياس 5f754ddb، الأدمن 065f8939. مفيش migration
 1. نشر يولياس ثم الأدمن.
 2. بعد ربط Search Console: أرسل `/sitemap.xml` (فيه النسختين).
