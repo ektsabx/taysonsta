@@ -9,6 +9,7 @@ import { partnerTerms } from "@/lib/content/partner-terms";
 import { communityPage } from "@/lib/content/community-page";
 import { solutions, solutionSlugs } from "@/lib/content/solutions";
 import { useCases, useCaseSlugs } from "@/lib/content/use-cases";
+import { indexableSeoPages } from "@/lib/content/seo-store";
 import type { Block, Doc } from "@/lib/content/types";
 import { currentProgram } from "@/lib/affiliates";
 import { fillBlocks, termsValues } from "@/lib/affiliates/terms-values";
@@ -30,7 +31,7 @@ import type { Locale } from "@/lib/i18n/config";
 export interface KnowledgeItem {
   /** Stable id: kind + slug + language. */
   key: string;
-  kind: "platform" | "pricing" | "help" | "docs" | "blog" | "legal" | "affiliates" | "community" | "solutions" | "use-cases";
+  kind: "platform" | "pricing" | "help" | "docs" | "blog" | "legal" | "affiliates" | "community" | "solutions" | "use-cases" | "seo";
   language: Locale;
   title: string;
   url: string;
@@ -59,7 +60,7 @@ const qa = (items: { q: string; a: string }[]) => items.map((f) => `Q: ${f.q}\nA
 
 export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
   const base = siteUrl();
-  const [help, docs, posts, legal, plans, packs, program, trialDays] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), topUps().catch(() => []), currentProgram().catch(() => null), trialAvailable().catch(() => null)]);
+  const [help, docs, posts, legal, plans, packs, program, trialDays, seo] = await Promise.all([helpArticles(), docPages(), blogPosts(), legalDocs(), getPlanCatalog(), topUps().catch(() => []), currentProgram().catch(() => null), trialAvailable().catch(() => null), indexableSeoPages().catch(() => [])]);
   const out: KnowledgeItem[] = [];
   const push = (kind: KnowledgeItem["kind"], slug: string, language: Locale, title: string, path: string, content: string) =>
     out.push({ key: `${kind}:${slug}:${language}`, kind, language, title, url: base + path, content: content.trim() });
@@ -124,6 +125,11 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
     for (const s of useCaseSlugs) {
       const x = useCases[s][l];
       push("use-cases", s, l, x.title, `/use-cases/${s}`, [x.answer, x.lead, `${x.stepsTitle}\n${x.steps.map((p, i) => `${i + 1}. ${p.title}: ${p.body}`).join("\n")}`, `${x.limitsTitle}\n${x.limits.map((p) => `- ${p}`).join("\n")}`, qa(x.faq)].join("\n\n"));
+    }
+    // Comparisons, alternatives, audiences and templates published from Admin → SEO (D-257).
+    for (const p of seo) {
+      const x = p.copy[l];
+      push("seo", `${p.kind}-${p.slug}`, l, x.title, p.path, [x.answer, x.lead, x.compare.map((r) => `- ${r.label}: Yolias: ${r.yolias} | Other: ${r.them}`).join("\n"), x.criteria.map((c) => `- ${c}`).join("\n"), x.steps.map((st, i) => `${i + 1}. ${st.title}: ${st.body}`).join("\n"), blocksToText(x.blocks, base), qa(x.faq)].filter(Boolean).join("\n\n"));
     }
   }
   return out;

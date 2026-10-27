@@ -16,7 +16,7 @@ const socials = [
 ];
 
 // Footer shared by every public page (from the pricing design).
-export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
+export function SiteFooter({ signedIn = false, extraLinks = [] }: { signedIn?: boolean; extraLinks?: { href: string; label: string }[] }) {
   const { t } = useI18n();
   const s = t.site;
   const columns = [
@@ -24,6 +24,7 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
       title: s.resources,
       links: [
         { href: "/use-cases", label: s.useCases },
+        ...extraLinks,
         { href: "/community", label: s.community },
         { href: "/help-center", label: s.helpCenter },
         { href: "/docs", label: s.documentation },

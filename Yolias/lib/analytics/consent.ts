@@ -15,5 +15,7 @@ export function readConsent(): Consent | null {
 export function writeConsent(value: Consent) {
   const secure = location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${CONSENT_COOKIE}=${value}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax${secure}`;
+  // Essential only: forget the first page of the visit too (sign-up attribution, lib/attribution.ts).
+  if (value === "essential") document.cookie = `yolias_ft=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
   window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: value }));
 }

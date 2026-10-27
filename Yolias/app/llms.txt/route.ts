@@ -5,6 +5,8 @@ import { solutionSeo } from "@/lib/content/solutions-seo";
 import { useCases, useCaseSlugs } from "@/lib/content/use-cases";
 import { home } from "@/lib/content/site";
 import { DEFINITION, siteUrl } from "@/lib/seo";
+import { indexableSeoPages } from "@/lib/content/seo-store";
+import type { SeoKind } from "@/lib/content/seo-pages";
 
 // /llms.txt (D-179): a plain summary of what Yolias is and does, with links
 // to the pages that explain it, for AI assistants and answer engines
@@ -13,7 +15,11 @@ import { DEFINITION, siteUrl } from "@/lib/seo";
 export async function GET() {
   await connection();
   const base = siteUrl();
-  const [help, docs, posts] = await Promise.all([helpArticles(), docPages(), blogPosts()]);
+  const [help, docs, posts, seo] = await Promise.all([helpArticles(), docPages(), blogPosts(), indexableSeoPages()]);
+  const seoSection = (kind: SeoKind, title: string) => {
+    const pages = seo.filter((p) => p.kind === kind);
+    return pages.length ? `\n## ${title}\n${pages.map((p) => line(p.copy.en.title, p.path, p.copy.en.metaDescription)).join("\n")}\n` : "";
+  };
   const line = (title: string, path: string, note?: string) => `- [${title}](${base}${path})${note ? `: ${note}` : ""}`;
   const faq = home.en.faq.items.map((f) => `### ${f.q}\n${f.a}`).join("\n\n");
   const body = `# Yolias
@@ -40,10 +46,12 @@ ${line("Pricing", "/pricing", "Pay As You Go credit ($5, $20, $50 or $100 top-up
 ${line("Solutions", "/solutions", "how Yolias fits different service businesses")}
 ${solutionSlugs.map((s) => line(solutionSeo[s].en.seoTitle, `/solutions/${s}`, solutions[s].en.metaDescription)).join("\n")}
 
+${seo.filter((p) => p.kind === "solution").map((p) => line(p.copy.en.title, p.path, p.copy.en.metaDescription)).join("\n")}
+
 ## Guides
 ${line("Use cases", "/use-cases")}
 ${useCaseSlugs.map((s) => line(useCases[s].en.title, `/use-cases/${s}`, useCases[s].en.answer)).join("\n")}
-
+${seoSection("template", "Prospecting templates")}${seoSection("compare", "Comparisons")}${seoSection("alternatives", "Alternatives")}
 ## Frequently asked questions
 ${faq}
 

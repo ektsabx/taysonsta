@@ -1,0 +1,226 @@
+import { CTA, type SeedPage } from "./types.ts";
+
+// Audience pages under /solutions (D-257), for audiences the pages in code
+// don't cover (marketing, software, consultants, recruitment, freelancers,
+// real estate and sales teams already have pages). Each one describes the
+// audience's own problem and signals; results and percentages are never
+// promised. Example requests are marked as examples.
+
+const solutionLinks = [
+  { path: "/solutions/marketing-agencies", en: "Marketing agencies", ar: "وكالات التسويق" },
+  { path: "/solutions/software-agencies", en: "Software agencies", ar: "شركات البرمجيات" },
+  { path: "/use-cases/local-business-leads", en: "Local business leads", ar: "عملاء من الأنشطة المحلية" },
+];
+const steps = {
+  en: (ex: string) => [
+    { title: "Describe your client", body: `Write who you want in a sentence or two, for example: "${ex}". You can attach a brief or a CSV of current clients.` },
+    { title: "Review the criteria", body: "Yolias turns it into criteria you can see and change before the search runs." },
+    { title: "Check each match", body: "Every company comes with a match score and the criteria it met, plus the contact details it publishes." },
+    { title: "Approve the campaign", body: "Yolias writes a first email and follow-ups from your Company Knowledge; you edit and approve once." },
+    { title: "Handle replies", body: "Emails go from your own mailbox within your sending rules. Replies arrive in Conversations with a suggested answer, and interested leads move to the CRM." },
+  ],
+  ar: (ex: string) => [
+    { title: "صِف عميلك", body: `اكتب من تريد في جملة أو اثنتين، مثلًا: «${ex}». ويمكنك إرفاق ملف أو CSV بعملائك الحاليين.` },
+    { title: "راجع المعايير", body: "يحوّل يولـياس الوصف إلى معايير تراها وتعدّلها قبل تشغيل البحث." },
+    { title: "افحص كل نتيجة", body: "كل شركة تأتي بنسبة تطابق والمعايير التي حققتها، مع بيانات التواصل التي تنشرها." },
+    { title: "وافق على الحملة", body: "يكتب يولـياس الرسالة الأولى والمتابعات من معرفة شركتك، فتعدّلها وتوافق مرة واحدة." },
+    { title: "تعامل مع الردود", body: "تُرسل الرسائل من بريدك ضمن قواعد الإرسال. وتصل الردود إلى المحادثات مع رد مقترح، وينتقل المهتمون إلى إدارة العملاء." },
+  ],
+};
+
+export const solutionPages: SeedPage[] = [
+  {
+    kind: "solution", slug: "web-design-agencies",
+    primary_keyword: "lead generation for web design agencies", secondary_keywords: ["how to get web design clients", "find web design clients", "web design leads", "client acquisition for web design agencies"],
+    links: solutionLinks, sources: [],
+    en: {
+      title: "Web design agencies", h1: "Find web design clients whose website is holding them back",
+      metaTitle: "Lead generation for web design agencies, with AI",
+      metaDescription: "Find businesses that need a new website: outdated sites, no booking or online store, growing companies. Yolias finds them, explains each match and drafts the email.",
+      lead: "Web design work comes from businesses whose website no longer matches the business. Yolias helps you find them by type and area, see what they publish, and write to them with a reason.",
+      answer: "To find web design clients, pick a type of business you design well for, an area, and a signal that they need a new site, then look for companies that match all three. Yolias runs that search from a plain description, shows why each company fits and drafts a first email you approve.",
+      audience: ["Web design and web development studios", "Freelance designers who want steady projects", "Agencies that build sites for one industry, such as clinics, restaurants or real estate"],
+      criteria: ["A type of business you have shown work for", "An area you can serve and meet in, if that matters to your clients", "Signals of need you can see from outside: no website, a website without booking, ordering or Arabic, or a site that isn't mobile friendly", "Company size that can afford your price range"],
+      steps: steps.en("Dental clinics in Riyadh and Jeddah with a website that has no online booking. I design clinic websites with booking and Arabic and English pages."),
+      blocks: [
+        { h2: "Signals worth writing about" },
+        { ul: ["The business has no website, only social pages.", "Its site has no booking, ordering or contact form.", "It serves Arabic speakers but has no Arabic pages.", "It opened new branches or hired recently, so it is growing."] },
+        { note: "Yolias reads what a company publishes on its site and in the data sources connected to it. It doesn't run a technical audit of the site; check a few sites yourself before you send." },
+        { h2: "What to put in the first email" },
+        { p: "One observation about their site, what it costs them (missed bookings, calls instead of orders), one similar project you've done, and a small next step such as a short call. Yolias drafts it from your Company Knowledge; keep it short and specific." },
+      ],
+      faq: [
+        { q: "How do I find web design clients without cold calling?", a: "Choose one type of business and one area, find the ones whose site shows a clear gap, and send a short email that names the gap. Yolias finds and explains the matches and sends the email from your mailbox after you approve." },
+        { q: "Can Yolias tell me which websites are outdated?", a: "Not as a technical audit. It uses what companies publish and the criteria you give it, such as no online booking or no Arabic pages, and shows which criteria each company met." },
+        { q: "Does it work for local businesses?", a: "Yes. Yolias searches local businesses by category and area, as well as companies and decision makers." },
+      ],
+      cta: CTA.en,
+    },
+    ar: {
+      title: "وكالات تصميم المواقع", h1: "اعثر على عملاء تصميم مواقع يعطّلهم موقعهم الحالي",
+      metaTitle: "جذب العملاء لوكالات تصميم المواقع بالذكاء الاصطناعي",
+      metaDescription: "اعثر على أنشطة تحتاج موقعًا جديدًا: مواقع قديمة، أو بلا حجز أو متجر، أو شركات تنمو. يجدها يولـياس ويشرح كل نتيجة ويكتب الرسالة.",
+      lead: "عمل تصميم المواقع يأتي من أنشطة لم يعد موقعها يناسب نشاطها. يساعدك يولـياس على إيجادها حسب النوع والمنطقة، ورؤية ما تنشره، ومراسلتها بسبب واضح.",
+      answer: "لتجد عملاء لتصميم المواقع، اختر نوع نشاط تصمم له جيدًا، ومنطقة، وإشارة تدل على حاجته لموقع جديد، ثم ابحث عن الشركات التي تحقق الثلاثة. يشغّل يولـياس هذا البحث من وصف بسيط، ويوضح سبب تطابق كل شركة، ويكتب رسالة أولى توافق عليها.",
+      audience: ["استوديوهات تصميم وتطوير المواقع", "المصممون المستقلون الذين يريدون مشاريع مستمرة", "الوكالات التي تبني مواقع لقطاع واحد مثل العيادات أو المطاعم أو العقارات"],
+      criteria: ["نوع نشاط لديك أعمال سابقة له", "منطقة تستطيع خدمتها ومقابلة عملائها فيها إن كان ذلك مهمًا", "إشارات حاجة تراها من الخارج: لا موقع، أو موقع بلا حجز أو طلب أو صفحات عربية، أو موقع لا يناسب الجوال", "حجم شركة يتحمل نطاق أسعارك"],
+      steps: steps.ar("عيادات أسنان في الرياض وجدة لها موقع بلا حجز إلكتروني. أصمم مواقع للعيادات مع الحجز وصفحات بالعربية والإنجليزية."),
+      blocks: [
+        { h2: "إشارات تستحق أن تكتب عنها" },
+        { ul: ["النشاط ليس له موقع، فقط صفحات تواصل اجتماعي.", "موقعه بلا حجز أو طلب أو نموذج تواصل.", "يخدم متحدثين بالعربية وليس له صفحات عربية.", "افتتح فروعًا جديدة أو وظّف مؤخرًا، أي أنه ينمو."] },
+        { note: "يقرأ يولـياس ما تنشره الشركة في موقعها وفي مصادر البيانات المتصلة به، ولا يجري فحصًا تقنيًا للموقع؛ راجع بعض المواقع بنفسك قبل الإرسال." },
+        { h2: "ماذا تكتب في الرسالة الأولى" },
+        { p: "ملاحظة واحدة عن موقعهم، وما تكلفهم (حجوزات ضائعة، مكالمات بدل الطلبات)، ومشروع مشابه نفذته، وخطوة صغيرة تالية مثل مكالمة قصيرة. يكتبها يولـياس من معرفة شركتك؛ اجعلها قصيرة ومحددة." },
+      ],
+      faq: [
+        { q: "كيف أجد عملاء تصميم مواقع دون اتصالات باردة؟", a: "اختر نوع نشاط واحدًا ومنطقة واحدة، وابحث عن الأنشطة التي يظهر في موقعها نقص واضح، وأرسل رسالة قصيرة تذكر هذا النقص. يجد يولـياس النتائج ويشرحها ويرسل الرسالة من بريدك بعد موافقتك." },
+        { q: "هل يخبرني يولـياس أي المواقع قديمة؟", a: "ليس كفحص تقني. يستخدم ما تنشره الشركات والمعايير التي تعطيه إياها، مثل عدم وجود حجز إلكتروني أو صفحات عربية، ويوضح المعايير التي حققتها كل شركة." },
+        { q: "هل يعمل مع الأنشطة المحلية؟", a: "نعم. يبحث يولـياس عن الأنشطة المحلية حسب النوع والمنطقة، وعن الشركات وصنّاع القرار أيضًا." },
+      ],
+      cta: CTA.ar,
+    },
+  },
+  {
+    kind: "solution", slug: "seo-agencies",
+    primary_keyword: "prospecting tools for seo agencies", secondary_keywords: ["how to get seo clients", "find seo clients", "seo client acquisition", "lead generation for seo agencies"],
+    links: solutionLinks, sources: [],
+    en: {
+      title: "SEO agencies", h1: "Find SEO clients who sell online but don't show up in search",
+      metaTitle: "Prospecting for SEO agencies: find clients with AI",
+      metaDescription: "Find companies that depend on search but have weak sites: e-commerce, clinics, local services, B2B firms. Yolias explains each fit and drafts an email you approve.",
+      lead: "The best SEO clients already know search matters to their business. Yolias helps you find companies in the industries you know, in the markets you serve, and write to them with something specific.",
+      answer: "To find SEO clients, focus on businesses whose customers search before they buy (clinics, e-commerce, local services, B2B services), in one market, and look for public signs that their site needs work. Yolias finds matching companies from a plain description, explains each match and drafts the first email.",
+      audience: ["SEO agencies and consultants", "Content and digital marketing agencies that sell SEO", "Freelancers who offer SEO for one industry"],
+      criteria: ["Industries where buyers search first and you have results to show", "A market and language you can write content for, including Arabic", "A website that exists (SEO needs one) but is thin: few pages, no blog, one language", "Company size that pays a monthly retainer"],
+      steps: steps.en("E-commerce stores in the UAE and Saudi Arabia selling fashion or beauty, with an English-only site. I do Arabic and English SEO for online stores."),
+      blocks: [
+        { h2: "What makes an SEO lead worth writing to" },
+        { ul: ["They sell something people search for in their market.", "They have a website, but it has few pages or no content in the language their customers use.", "They compete with businesses you can name.", "They are big enough to pay for months of work, not one fix."] },
+        { note: "Yolias doesn't measure rankings or traffic for the companies it finds. Look up a few in your SEO tool before you send, and mention one real observation in the email." },
+        { h2: "A first email that gets read" },
+        { p: "Name one search their customers make and what shows up instead of them, say what you would change first, and offer a short call. Yolias drafts the email from your Company Knowledge and the facts it found." },
+      ],
+      faq: [
+        { q: "How do SEO agencies get clients?", a: "Mostly referrals and their own content, and outbound to a focused list. For outbound, pick one industry and one market, find companies with a clear content gap, and send a short, specific email." },
+        { q: "Does Yolias check a prospect's SEO?", a: "No. It finds companies that match your criteria and shows what they publish. Use your SEO tool to check the ones you want to contact." },
+        { q: "Can I find Arabic-speaking businesses?", a: "Yes. You can describe the client in Arabic or English and search markets such as Saudi Arabia, the UAE and Egypt; results depend on the data sources connected to Yolias." },
+      ],
+      cta: CTA.en,
+    },
+    ar: {
+      title: "وكالات تحسين محركات البحث (SEO)", h1: "اعثر على عملاء SEO يبيعون أونلاين ولا يظهرون في البحث",
+      metaTitle: "البحث عن عملاء لوكالات SEO بالذكاء الاصطناعي",
+      metaDescription: "اعثر على شركات تعتمد على البحث لكن مواقعها ضعيفة: متاجر إلكترونية، وعيادات، وخدمات محلية، وشركات B2B. يجدها يولـياس ويشرح التطابق ويكتب رسالة توافق عليها.",
+      lead: "أفضل عملاء SEO يعرفون أن البحث مهم لنشاطهم. يساعدك يولـياس على إيجاد شركات في القطاعات التي تعرفها، وفي الأسواق التي تخدمها، ومراسلتها بشيء محدد.",
+      answer: "لتجد عملاء SEO، ركّز على أنشطة يبحث عملاؤها قبل الشراء (العيادات، والمتاجر الإلكترونية، والخدمات المحلية، وخدمات B2B) في سوق واحد، وابحث عن علامات عامة على أن موقعها يحتاج عملًا. يجد يولـياس الشركات المطابقة من وصف بسيط، ويشرح كل نتيجة، ويكتب الرسالة الأولى.",
+      audience: ["وكالات ومستشارو تحسين محركات البحث", "وكالات المحتوى والتسويق الرقمي التي تبيع SEO", "المستقلون الذين يقدمون SEO لقطاع واحد"],
+      criteria: ["قطاعات يبحث فيها المشترون أولًا ولديك نتائج فيها", "سوق ولغة تستطيع كتابة المحتوى لهما، ومنها العربية", "موقع موجود (SEO يحتاج موقعًا) لكنه ضعيف: صفحات قليلة، أو بلا مدونة، أو بلغة واحدة", "حجم شركة يدفع اشتراكًا شهريًا"],
+      steps: steps.ar("متاجر إلكترونية في الإمارات والسعودية تبيع الأزياء أو التجميل، وموقعها بالإنجليزية فقط. أقدم SEO بالعربية والإنجليزية للمتاجر الإلكترونية."),
+      blocks: [
+        { h2: "ما الذي يجعل عميل SEO يستحق المراسلة" },
+        { ul: ["يبيع شيئًا يبحث عنه الناس في سوقه.", "لديه موقع، لكنه بصفحات قليلة أو بلا محتوى بلغة عملائه.", "ينافس أنشطة تستطيع تسميتها.", "حجمه يسمح بالدفع لعدة أشهر من العمل لا لإصلاح واحد."] },
+        { note: "لا يقيس يولـياس ترتيب أو زيارات الشركات التي يجدها. راجع بعضها في أداة SEO التي تستخدمها قبل الإرسال، واذكر ملاحظة حقيقية واحدة في الرسالة." },
+        { h2: "رسالة أولى تُقرأ" },
+        { p: "اذكر بحثًا واحدًا يقوم به عملاؤهم وما يظهر بدلًا منهم، وما ستغيّره أولًا، واعرض مكالمة قصيرة. يكتب يولـياس الرسالة من معرفة شركتك والمعلومات التي وجدها." },
+      ],
+      faq: [
+        { q: "كيف تحصل وكالات SEO على عملاء؟", a: "غالبًا من الترشيحات ومحتواها، ومن التواصل مع قائمة مركّزة. للتواصل، اختر قطاعًا واحدًا وسوقًا واحدًا، وابحث عن شركات لديها نقص واضح في المحتوى، وأرسل رسالة قصيرة ومحددة." },
+        { q: "هل يفحص يولـياس الـ SEO للعميل المحتمل؟", a: "لا. يجد الشركات التي تطابق معاييرك ويعرض ما تنشره. استخدم أداة SEO لفحص الشركات التي تريد التواصل معها." },
+        { q: "هل يمكنني إيجاد أنشطة تتحدث العربية؟", a: "نعم. يمكنك وصف العميل بالعربية أو الإنجليزية والبحث في أسواق مثل السعودية والإمارات ومصر، والنتائج تعتمد على مصادر البيانات المتصلة بيولـياس." },
+      ],
+      cta: CTA.ar,
+    },
+  },
+  {
+    kind: "solution", slug: "it-services",
+    primary_keyword: "lead generation for it service providers", secondary_keywords: ["msp lead generation", "it services lead generation", "how to get clients for it company", "managed services prospecting"],
+    links: [...solutionLinks.slice(0, 2), { path: "/use-cases/find-decision-makers", en: "Find decision makers", ar: "إيجاد صنّاع القرار" }], sources: [],
+    en: {
+      title: "IT service providers", h1: "Find companies that need IT support, before they start looking",
+      metaTitle: "Lead generation for IT service providers and MSPs",
+      metaDescription: "Find companies whose size, industry and signals call for managed IT, cloud or security services, and who decides. Yolias explains each match and drafts the email.",
+      lead: "Managed IT, cloud and security services sell best to companies that have grown past an informal setup. Yolias helps you find them by industry, size and area, and reach the person who decides.",
+      answer: "To find clients for an IT services company, target industries that can't afford downtime (clinics, logistics, finance, schools), companies of a size that has outgrown one IT person, in the area you can support, and contact the operations or finance lead. Yolias finds those companies and their decision makers from a plain description.",
+      audience: ["Managed service providers (MSPs)", "Cloud, network and cybersecurity consultancies", "IT support companies serving small and mid-size businesses"],
+      criteria: ["Industries with regulated data or no tolerance for downtime", "Size: often 20 to 250 employees, big enough to need support and too small for a full IT team", "Area you can reach on site, when your service needs it", "Roles who decide: operations, finance, the general manager in smaller companies"],
+      steps: steps.en("Logistics and clinic groups in Cairo and Giza with 30 to 200 employees. I sell managed IT and backup. Find the operations manager or general manager."),
+      blocks: [
+        { h2: "Who to write to" },
+        { p: "In companies without an IT director, the decision is usually made by the general manager, the operations manager or the finance manager. Yolias looks for the roles you name at each matching company; it shows contact details the company publishes and doesn't promise a personal email for each person." },
+        { h2: "Signals that matter" },
+        { ul: ["New branches or offices.", "Hiring that suggests growth.", "Regulated data, such as health or finance records.", "A website that mentions online systems customers depend on."] },
+      ],
+      faq: [
+        { q: "How do MSPs find new clients?", a: "Referrals, partnerships with software vendors, and focused outbound to companies of the right size in their area. For outbound, define the size and industries you serve best, and write to the person who carries the risk." },
+        { q: "Can Yolias find companies by number of employees?", a: "You can include a size range in your description; how precisely it is matched depends on what the connected data sources publish for each company." },
+      ],
+      cta: CTA.en,
+    },
+    ar: {
+      title: "شركات خدمات تقنية المعلومات", h1: "اعثر على شركات تحتاج دعم تقنية المعلومات قبل أن تبدأ البحث",
+      metaTitle: "جذب العملاء لشركات خدمات تقنية المعلومات والدعم المُدار",
+      metaDescription: "اعثر على شركات بحجم وقطاع وإشارات تدل على حاجتها لخدمات IT مُدارة أو سحابية أو أمنية، وعلى من يتخذ القرار. يشرح يولـياس كل نتيجة ويكتب الرسالة.",
+      lead: "خدمات تقنية المعلومات المُدارة والسحابة والأمن تُباع أفضل للشركات التي تجاوزت الإعداد غير الرسمي. يساعدك يولـياس على إيجادها حسب القطاع والحجم والمنطقة، والوصول إلى صاحب القرار.",
+      answer: "لتجد عملاء لشركة خدمات تقنية، استهدف قطاعات لا تتحمل التوقف (العيادات، والنقل، والمالية، والمدارس)، وشركات تجاوز حجمها شخص IT واحد، في المنطقة التي تستطيع دعمها، وتواصل مع مسؤول العمليات أو المالية. يجد يولـياس هذه الشركات وصنّاع القرار فيها من وصف بسيط.",
+      audience: ["مزودو الخدمات المُدارة (MSP)", "استشاريو السحابة والشبكات والأمن السيبراني", "شركات الدعم الفني التي تخدم الشركات الصغيرة والمتوسطة"],
+      criteria: ["قطاعات ببيانات خاضعة للتنظيم أو لا تتحمل التوقف", "الحجم: غالبًا من 20 إلى 250 موظفًا، كبيرة بما يكفي لتحتاج الدعم وصغيرة على فريق IT كامل", "منطقة تصلها في الموقع إن احتاجت خدمتك ذلك", "من يقرر: العمليات، أو المالية، أو المدير العام في الشركات الأصغر"],
+      steps: steps.ar("مجموعات نقل وعيادات في القاهرة والجيزة من 30 إلى 200 موظف. أبيع دعم IT مُدارًا ونسخًا احتياطيًا. اعثر على مدير العمليات أو المدير العام."),
+      blocks: [
+        { h2: "لمن تكتب" },
+        { p: "في الشركات التي ليس فيها مدير تقنية، يتخذ القرار غالبًا المدير العام أو مدير العمليات أو المدير المالي. يبحث يولـياس عن المناصب التي تذكرها في كل شركة مطابقة، ويعرض بيانات التواصل التي تنشرها الشركة، ولا يعد ببريد شخصي لكل شخص." },
+        { h2: "إشارات مهمة" },
+        { ul: ["فروع أو مكاتب جديدة.", "توظيف يدل على النمو.", "بيانات خاضعة للتنظيم مثل السجلات الصحية أو المالية.", "موقع يذكر أنظمة إلكترونية يعتمد عليها العملاء."] },
+      ],
+      faq: [
+        { q: "كيف يجد مزودو الخدمات المُدارة عملاء جددًا؟", a: "الترشيحات، والشراكات مع موردي البرمجيات، والتواصل المركّز مع شركات بالحجم المناسب في منطقتهم. للتواصل، حدد الحجم والقطاعات التي تخدمها أفضل، واكتب لمن يتحمل المخاطرة." },
+        { q: "هل يجد يولـياس الشركات حسب عدد الموظفين؟", a: "يمكنك ذكر نطاق الحجم في وصفك، ودقة المطابقة تعتمد على ما تنشره مصادر البيانات المتصلة عن كل شركة." },
+      ],
+      cta: CTA.ar,
+    },
+  },
+  {
+    kind: "solution", slug: "saas",
+    primary_keyword: "lead generation for saas companies", secondary_keywords: ["b2b saas lead generation", "saas outbound", "find customers for saas"],
+    links: [{ path: "/solutions/sales-teams", en: "Sales teams", ar: "فرق المبيعات" }, { path: "/use-cases/icp-company-search", en: "Companies that match your ICP", ar: "شركات تطابق عميلك المثالي" }, { path: "/use-cases/similar-companies", en: "Find similar companies", ar: "إيجاد شركات مشابهة" }], sources: [],
+    en: {
+      title: "SaaS companies", h1: "Find companies that look like your best SaaS customers",
+      metaTitle: "Lead generation for B2B SaaS companies with AI",
+      metaDescription: "Turn your best customers and your ICP into a list of matching companies and the people who buy. Yolias explains each match and drafts outreach you approve.",
+      lead: "Early B2B SaaS teams rarely have time to build lists by hand. Yolias turns a description of your ideal customer, or a CSV of your best ones, into matching companies and decision makers, with outreach ready to approve.",
+      answer: "For SaaS lead generation, start from your best customers: what they have in common (industry, size, market, tools, a problem you solve), then find companies that share it and contact the role that owns the problem. Yolias can search from that description or from a list of companies you name.",
+      audience: ["B2B SaaS founders doing sales themselves", "Early sales teams without a researcher", "SaaS companies entering the Gulf or Egypt"],
+      criteria: ["What your best customers share: industry, size, market", "The role that feels the problem and the one that pays", "A trigger that makes now the right time, such as growth or a new market", "Companies you should not contact: current customers, competitors"],
+      steps: steps.en("B2B companies in Saudi Arabia with 50 to 500 employees that run a field sales team. I sell a CRM for field sales. Find the head of sales."),
+      blocks: [
+        { h2: "Start from customers you already have" },
+        { p: "Upload a CSV of your best customers and ask for similar companies. It is usually faster and more accurate than writing filters, because the list already encodes what a good fit looks like." },
+        { note: "Similar-company search needs a connected data source that supports it; when one isn't available for your request, Yolias says so instead of guessing." },
+      ],
+      faq: [
+        { q: "How do early SaaS companies find customers?", a: "Founder-led outreach to a narrow ICP, then content and partnerships. For outreach, keep the list small and specific and write about the problem, not the product." },
+        { q: "Can Yolias exclude my current customers?", a: "Mention who to leave out in your description; you also review every company before any email is sent." },
+      ],
+      cta: CTA.en,
+    },
+    ar: {
+      title: "شركات البرمجيات كخدمة (SaaS)", h1: "اعثر على شركات تشبه أفضل عملاء منتجك",
+      metaTitle: "جذب العملاء لشركات SaaS بالذكاء الاصطناعي",
+      metaDescription: "حوّل أفضل عملائك ووصف عميلك المثالي إلى قائمة شركات مطابقة والأشخاص الذين يشترون. يشرح يولـياس كل نتيجة ويجهّز رسائل توافق عليها.",
+      lead: "فرق SaaS في بدايتها نادرًا ما تجد وقتًا لبناء القوائم يدويًا. يحوّل يولـياس وصف عميلك المثالي، أو ملف CSV بأفضل عملائك، إلى شركات وصنّاع قرار مطابقين، مع رسائل جاهزة لموافقتك.",
+      answer: "لجذب عملاء SaaS، ابدأ من أفضل عملائك: ما الذي يجمعهم (القطاع، والحجم، والسوق، والأدوات، والمشكلة التي تحلها)، ثم ابحث عن شركات تشاركهم ذلك وتواصل مع صاحب المشكلة. يستطيع يولـياس البحث من هذا الوصف أو من قائمة شركات تذكرها.",
+      audience: ["مؤسسو SaaS الذين يبيعون بأنفسهم", "فرق المبيعات الأولى دون باحث", "شركات SaaS التي تدخل الخليج أو مصر"],
+      criteria: ["ما يجمع أفضل عملائك: القطاع والحجم والسوق", "المنصب الذي يشعر بالمشكلة والذي يدفع", "سبب يجعل الآن الوقت المناسب، مثل النمو أو دخول سوق جديد", "شركات لا تتواصل معها: عملاؤك الحاليون والمنافسون"],
+      steps: steps.ar("شركات B2B في السعودية من 50 إلى 500 موظف لديها فريق مبيعات ميداني. أبيع نظام CRM للمبيعات الميدانية. اعثر على مدير المبيعات."),
+      blocks: [
+        { h2: "ابدأ من عملائك الحاليين" },
+        { p: "ارفع ملف CSV بأفضل عملائك واطلب شركات مشابهة. هذا غالبًا أسرع وأدق من كتابة الفلاتر، لأن القائمة تعبّر بالفعل عن شكل العميل المناسب." },
+        { note: "البحث عن الشركات المشابهة يحتاج مصدر بيانات متصلًا يدعمه؛ وعندما لا يتوفر لطلبك يخبرك يولـياس بذلك بدل التخمين." },
+      ],
+      faq: [
+        { q: "كيف تجد شركات SaaS الناشئة عملاءها؟", a: "تواصل يقوده المؤسس مع عميل مثالي محدد، ثم المحتوى والشراكات. في التواصل، اجعل القائمة صغيرة ومحددة واكتب عن المشكلة لا عن المنتج." },
+        { q: "هل يستبعد يولـياس عملائي الحاليين؟", a: "اذكر من تريد استبعاده في وصفك، كما أنك تراجع كل شركة قبل إرسال أي رسالة." },
+      ],
+      cta: CTA.ar,
+    },
+  },
+];

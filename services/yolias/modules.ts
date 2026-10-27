@@ -167,14 +167,14 @@ const seoPages = [
   "/affiliates", "/status", "/help-center", "/blog", "/docs/introduction", "/legal/privacy",
 ];
 /** Pages that must never be indexed (checked for a noindex tag). */
-const privatePages = ["/login", "/signup"];
+const privatePages = ["/login", "/signup", "/preview/seo/00000000-0000-0000-0000-000000000000"];
 
 function tag(html: string, re: RegExp): string | null {
   const m = re.exec(html);
   return m ? m[1].replace(/\s+/g, " ").trim() : null;
 }
 
-export async function seoAudit() {
+export async function seoAudit(extraPaths: string[] = []) {
   const base = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
   if (!base) return { base: null, pages: [], robots: null, sitemapUrls: null };
   const get = async (path: string, locale: "en" | "ar") => {
@@ -186,7 +186,8 @@ export async function seoAudit() {
     }
   };
   const pages = [];
-  for (const path of seoPages) {
+  // The fixed pages, then the published SEO pages from Admin (D-257).
+  for (const path of [...seoPages, ...extraPaths.filter((p) => !seoPages.includes(p)).slice(0, 40)]) {
     for (const locale of ["en", "ar"] as const) {
       const { status, html } = await get(path, locale);
       const title = tag(html, /<title[^>]*>([^<]*)<\/title>/i);

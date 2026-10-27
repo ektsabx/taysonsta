@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
 import { breadcrumbSchema, faqSchema, webPageSchema } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
+import { loadSeoPage, renderSeoPage, seoMetadata } from "@/lib/content/seo-route";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,7 +19,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  if (!isSolutionSlug(slug)) return { title: "Yolias" };
+  // Pages made in Admin → SEO for other audiences (D-257) come after the ones in code.
+  if (!isSolutionSlug(slug)) return seoMetadata(await loadSeoPage("solution", slug));
   const locale = await getLocale();
   const s = solutions[slug][locale];
   return pageMetadata({ title: `${solutionSeo[slug][locale].seoTitle} | Yolias`, description: s.metaDescription, path: `/solutions/${slug}` });
@@ -31,7 +33,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // steps, honest limits, objections (FAQ) and a closing call to action.
 export default async function SolutionPage({ params }: Props) {
   const { slug } = await params;
-  if (!isSolutionSlug(slug)) notFound();
+  if (!isSolutionSlug(slug)) {
+    const page = await loadSeoPage("solution", slug);
+    if (!page) notFound();
+    return renderSeoPage(page);
+  }
   const locale = await getLocale();
   const s = solutions[slug][locale];
   const c = solutionsPage[locale];

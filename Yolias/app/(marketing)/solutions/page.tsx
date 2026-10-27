@@ -3,6 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { solutions, solutionSlugs, solutionsPage } from "@/lib/content/solutions";
 import { getLocale } from "@/lib/i18n/server";
+import { seoPages } from "@/lib/content/seo-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   const c = solutionsPage[await getLocale()];
@@ -12,6 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SolutionsPage() {
   const locale = await getLocale();
   const c = solutionsPage[locale];
+  // Audiences added in Admin → SEO (D-257), after the ones in code.
+  const more = (await seoPages("solution")).filter((p) => !(solutionSlugs as readonly string[]).includes(p.slug));
   return (
     <>
       <section className="page-hero">
@@ -36,6 +39,15 @@ export default async function SolutionsPage() {
                 </li>
               );
             })}
+            {more.map((p) => (
+              <li key={p.id}>
+                <Link className="solution-card" href={p.path}>
+                  <strong>{p.copy[locale].title}</strong>
+                  <span>{p.copy[locale].metaDescription}</span>
+                  <span className="solution-card-more">{c.learnMore}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </section>

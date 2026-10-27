@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
+import { encodeFirstTouch, firstTouch, FIRST_TOUCH_COOKIE, FIRST_TOUCH_MAX_AGE, isLandingPath } from "@/lib/attribution";
 
 // Refreshes the Supabase session cookie on every request and keeps signed-out
 // visitors on the auth pages. Onboarding and workspace checks happen in the
@@ -26,7 +27,58 @@ Port 3200 is being served by Yolias alone instead of the local front door.</p>
   return new NextResponse(html, { status: 503, headers: { "content-type": "text/html; charset=utf-8", "x-yolias-app": "yolias" } });
 }
 
+// Redirects for merged or moved pages (Admin → SEO → Indexing, D-257), read
+// with the anon key and kept for five minutes per server process.
+let redirectMemo: { at: number; map: Map<string, { to: string; code: number }> } | null = null;
+async function seoRedirect(path: string): Promise<{ to: string; code: number } | null> {
+  if (!redirectMemo || Date.now() - redirectMemo.at > 300_000) {
+    const map = new Map<string, { to: string; code: number }>();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/seo_redirects?select=from_path,to_path,status_code&active=eq.true`, {
+        headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+        signal: AbortSignal.timeout(2_000),
+      });
+      if (res.ok) for (const r of (await res.json()) as { from_path: string; to_path: string; status_code: number }[]) map.set(r.from_path, { to: r.to_path, code: r.status_code });
+      else if (redirectMemo) return redirectMemo.map.get(path) ?? null;
+    } catch {
+      // Unreachable: keep the last list (or none); a redirect is never worth a failed page.
+      if (redirectMemo) return redirectMemo.map.get(path) ?? null;
+    }
+    redirectMemo = { at: Date.now(), map };
+  }
+  return redirectMemo.map.get(path.length > 1 ? path.replace(/\/$/, "") : path) ?? null;
+}
+
+// The first public page of a visit, for sign-up attribution (lib/attribution.ts).
+// Page loads of visitors who accepted measurement cookies only; the first
+// visit, before the choice, is written by the browser (components/analytics).
+function keepFirstTouch(request: NextRequest, response: NextResponse) {
+  if (request.method !== "GET" || request.cookies.has(FIRST_TOUCH_COOKIE) || request.cookies.get("yolias_consent")?.value !== "all") return;
+  if (request.headers.has("rsc") || request.headers.has("next-router-prefetch") || !(request.headers.get("accept") ?? "").includes("text/html")) return;
+  if (!isLandingPath(request.nextUrl.pathname)) return;
+  response.cookies.set(FIRST_TOUCH_COOKIE, encodeFirstTouch(firstTouch(request.nextUrl, request.headers.get("referer"))), {
+    path: "/", maxAge: FIRST_TOUCH_MAX_AGE, sameSite: "lax", secure: request.nextUrl.protocol === "https:",
+  });
+}
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (request.method === "GET" && isLandingPath(pathname) && pathname !== "/") {
+    const r = await seoRedirect(pathname);
+    if (r) {
+      const url = request.nextUrl.clone();
+      const [to, query] = r.to.split("?");
+      url.pathname = to;
+      if (query) url.search = `?${query}`;
+      return NextResponse.redirect(url, r.code);
+    }
+  }
+  const response = await route(request);
+  keepFirstTouch(request, response);
+  return response;
+}
+
+async function route(request: NextRequest): Promise<NextResponse> {
   // One address for the site: yolias.com → www.yolias.com (D-135).
   if ((request.headers.get("host") ?? "").toLowerCase() === "yolias.com") {
     const url = request.nextUrl.clone();

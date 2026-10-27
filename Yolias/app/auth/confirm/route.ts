@@ -6,6 +6,8 @@ import { capture } from "@/lib/analytics/server";
 import { attributeSignup } from "@/lib/affiliates";
 import { AFFILIATE_COOKIE } from "@/lib/affiliates/program";
 import { NEXT_COOKIE } from "@/lib/partners";
+import { FIRST_TOUCH_COOKIE } from "@/lib/attribution";
+import { recordSignupSource } from "@/lib/attribution-server";
 
 // Magic link verification. Supports both link formats Supabase can send:
 //  - token_hash + type (Yolias email templates; works across devices)
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest) {
     if (type === "email_change") await securityAlert(auth.user.id, "email_changed");
     // New account: the sign-up confirmation link, or a first Google sign-in.
     const isNew = type === "signup" || (Boolean(code) && Date.now() - new Date(auth.user.created_at).getTime() < 10 * 60_000);
-    if (type !== "email_change") await capture(auth.user.id, isNew ? "signed_up" : "signed_in", { method: code ? (auth.user.app_metadata?.provider ?? "oauth") : "magic_link" });
+    // Where the new account came from: the first public page of the visit (SEO reports, D-257).
+    const source = isNew ? await recordSignupSource(auth.user.id, request.cookies.get(FIRST_TOUCH_COOKIE)?.value, url.hostname) : null;
+    if (type !== "email_change") await capture(auth.user.id, isNew ? "signed_up" : "signed_in", { method: code ? (auth.user.app_metadata?.provider ?? "oauth") : "magic_link", ...(source ? { channel: source.channel, landing_path: source.landing } : {}) });
     // Referral link visited before signing up: the database decides whether
     // it counts (new account, valid window, not the affiliate themself).
     const ref = request.cookies.get(AFFILIATE_COOKIE)?.value;

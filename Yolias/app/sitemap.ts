@@ -5,6 +5,7 @@ import { listCareerJobs } from "@/lib/careers";
 import { solutionSlugs } from "@/lib/content/solutions";
 import { useCaseSlugs } from "@/lib/content/use-cases";
 import { siteUrl } from "@/lib/seo";
+import { indexableSeoPages } from "@/lib/content/seo-store";
 
 // Public, indexable pages only (D-179), on the production domain
 // (NEXT_PUBLIC_SITE_URL). Every URL here is its own canonical: no redirects
@@ -13,7 +14,7 @@ import { siteUrl } from "@/lib/seo";
 // in robots.ts and its pages are noindex.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const [help, docs, posts, jobs] = await Promise.all([helpArticles(), docPages(), blogPosts(), listCareerJobs()]);
+  const [help, docs, posts, jobs, seo] = await Promise.all([helpArticles(), docPages(), blogPosts(), listCareerJobs(), indexableSeoPages()]);
   const page = (path: string, priority: number, lastModified?: string): MetadataRoute.Sitemap[number] => ({ url: `${base}${path}`, priority, ...(lastModified ? { lastModified } : {}) });
   const entries = [
     page("/", 1), page("/product", 0.9), page("/pricing", 0.9),
@@ -26,6 +27,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...posts.map((p) => page(`/blog/${p.slug}`, 0.6, p.date)),
     ...legalSlugs.map((s) => page(`/legal/${s}`, 0.3)),
     ...(jobs ?? []).map((j) => page(`/careers/${j.slug}`, 0.4, j.publishedAt ?? undefined)),
+    // SEO pages from Admin (D-257): only live, indexable ones that are their own canonical; an index only when it lists something.
+    ...(["compare", "alternatives", "template"] as const).filter((k) => seo.some((p) => p.kind === k)).map((k) => page(k === "template" ? "/templates" : `/${k}`, 0.7)),
+    ...seo.map((p) => page(p.path, p.kind === "solution" ? 0.8 : 0.7, p.updatedAt)),
   ];
   // Never the same URL twice (e.g. a CMS page with the slug of a code page).
   const seen = new Set<string>();

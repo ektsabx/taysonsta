@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { identify, loadClarity, loadMetaPixel, metaTrack, resetIdentity } from "@/lib/analytics/client";
+import { identify, loadClarity, loadGa4, loadMetaPixel, metaTrack, resetIdentity } from "@/lib/analytics/client";
 import { CONSENT_EVENT, readConsent, type Consent } from "@/lib/analytics/consent";
 import { ConsentBanner } from "./ConsentBanner";
+import { encodeFirstTouch, firstTouch, FIRST_TOUCH_COOKIE, FIRST_TOUCH_MAX_AGE, isLandingPath } from "@/lib/attribution";
+
+// The page this visit started on and the site that sent it, kept in memory
+// only; written to the attribution cookie once the visitor accepts all cookies.
+const landing = typeof window === "undefined" ? null : { href: window.location.href, referrer: document.referrer };
+
+function rememberFirstTouch() {
+  if (!landing || document.cookie.includes(`${FIRST_TOUCH_COOKIE}=`)) return;
+  const url = new URL(landing.href);
+  if (!isLandingPath(url.pathname)) return;
+  const secure = location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${FIRST_TOUCH_COOKIE}=${encodeFirstTouch(firstTouch(url, landing.referrer || null))}; Path=/; Max-Age=${FIRST_TOUCH_MAX_AGE}; SameSite=Lax${secure}`;
+}
 
 export interface AnalyticsUser {
   userId: string;
@@ -41,9 +54,11 @@ export function Analytics({ user, locale }: { user: AnalyticsUser | null; locale
 
   useEffect(() => {
     if (consent !== "all") return;
+    if (!user) rememberFirstTouch();
     loadMetaPixel();
     loadClarity();
-  }, [consent]);
+    loadGa4();
+  }, [consent, user]);
 
   return consent === null ? <ConsentBanner /> : null;
 }

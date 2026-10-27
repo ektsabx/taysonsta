@@ -29,7 +29,10 @@ export async function syncYoliasKnowledge(actor: Pick<BosUser, "userId"> | null)
     const res = await fetch(`${yoliasSiteUrl()}/api/knowledge`, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
     if (!res.ok) return { ok: false, error: `تعذر قراءة محتوى Yolias (HTTP ${res.status})` };
     const body = (await res.json()) as { items?: FeedItem[] };
-    items = (body.items ?? []).filter((i) => i && typeof i.key === "string" && typeof i.title === "string" && typeof i.content === "string" && (i.language === "en" || i.language === "ar"));
+    items = (body.items ?? []).filter((i) => i && typeof i.key === "string" && typeof i.title === "string" && typeof i.content === "string" && (i.language === "en" || i.language === "ar"))
+      // Comparison, alternatives and template pages (D-257) are for search engines and AI
+      // assistants; the support agent answers from the product's own pages, not from them.
+      .filter((i) => i.kind !== "seo");
   } catch {
     return { ok: false, error: "تعذر الاتصال بموقع Yolias" };
   }

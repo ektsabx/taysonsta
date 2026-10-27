@@ -83,8 +83,22 @@ export const navigation: NavGroup[] = [
     icon: "y_growth",
     items: [
       { href: "/admin/platform/onboarding", label: "الترحيب ومصادر التسجيل", perm: "platform.read" },
-      { href: "/admin/platform/seo", label: "تحسين محركات البحث", perm: "platform.read" },
       { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
+    ],
+  },
+  // SEO Control Center (D-257): organic growth from search to paid accounts.
+  {
+    key: "y_seo",
+    label: "SEO",
+    icon: "y_search",
+    items: [
+      { href: "/admin/platform/seo", label: "الأداء", perm: "platform.read" },
+      { href: "/admin/platform/seo/pages", label: "صفحات SEO", perm: "platform.read" },
+      { href: "/admin/platform/seo/competitors", label: "المنافسون", perm: "platform.read" },
+      { href: "/admin/platform/seo/keywords", label: "الكلمات والفرص", perm: "platform.read" },
+      { href: "/admin/platform/seo/reports", label: "التقارير التجارية", perm: "platform.read" },
+      { href: "/admin/platform/seo/indexing", label: "الفهرسة وخريطة الموقع", perm: "platform.read" },
+      { href: "/admin/platform/seo/settings", label: "تكاملات SEO", perm: "platform.read" },
     ],
   },
   {

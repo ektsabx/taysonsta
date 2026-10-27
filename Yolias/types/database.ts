@@ -237,10 +237,43 @@ export type OutreachMessageRow = {
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;
 };
-export type ContentKind = "help" | "docs" | "blog" | "legal";
+export type ContentKind = "help" | "docs" | "blog" | "legal" | SeoContentKind;
+export type SeoContentKind = "compare" | "alternatives" | "solution" | "template";
 export type ContentEntryRow = {
-  id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "published" | "hidden"; sort: number;
+  id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "scheduled" | "published" | "hidden"; sort: number;
   updated_by: string | null; published_at: string | null; created_at: string; updated_at: string;
+  // SEO Control Center (D-257)
+  seo: Json; primary_keyword: string | null; secondary_keywords: string[]; scheduled_at: string | null;
+};
+export type ContentRevisionRow = {
+  id: number; entry_id: string; slug: string; status: string; meta: Json; doc: Json; seo: Json;
+  primary_keyword: string | null; secondary_keywords: string[]; scheduled_at: string | null; saved_by: string | null; saved_at: string;
+};
+export type SeoCompetitorRow = {
+  id: string; slug: string; name: string; website: string; pricing_url: string | null; summary: Json; best_for: Json; strengths: Json; limits: Json;
+  facts: Json; pricing: Json; publishes_prices: boolean | null; last_reviewed_at: string | null; reviewed_by: string | null; created_at: string; updated_at: string;
+};
+export type SeoKeywordIntent = "informational" | "commercial" | "comparison" | "transactional" | "navigational";
+export type SeoKeywordStage = "idea" | "researching" | "planned" | "writing" | "review" | "published" | "monitoring" | "dropped";
+export type SeoPageType = "compare" | "alternatives" | "solution" | "template" | "use_case" | "blog" | "help" | "core";
+export type SeoKeywordRow = {
+  id: string; keyword: string; locale: "en" | "ar"; intent: SeoKeywordIntent; cluster: string | null; page_type: SeoPageType | null; priority: 1 | 2 | 3;
+  stage: SeoKeywordStage; target_path: string | null; volume: number | null; volume_source: string | null; difficulty: number | null; difficulty_source: string | null;
+  metrics_checked_at: string | null; notes: string | null; related: string[]; created_by: string | null; created_at: string; updated_at: string;
+};
+export type SeoRedirectRow = { id: string; from_path: string; to_path: string; status_code: 301 | 302 | 307 | 308; active: boolean; note: string | null; created_by: string | null; created_at: string; updated_at: string };
+export type SeoPageDailyRow = { day: string; page: string; clicks: number; impressions: number; position: number | null };
+export type SeoQueryDailyRow = SeoPageDailyRow & { query: string };
+export type SeoGaDailyRow = { day: string; landing_page: string; sessions: number; engaged_sessions: number; key_events: number };
+export type SeoUrlInspectionRow = {
+  url: string; verdict: string | null; coverage_state: string | null; indexing_state: string | null; robots_state: string | null;
+  google_canonical: string | null; user_canonical: string | null; last_crawl_at: string | null; checked_at: string;
+};
+export type SeoSyncRunRow = { id: number; source: "gsc" | "ga4" | "inspection" | "crawl"; started_at: string; finished_at: string | null; ok: boolean | null; rows: number | null; error: string | null; result: Json; started_by: string | null };
+export type AttributionChannel = "organic_search" | "paid_search" | "social" | "ai_assistant" | "referral" | "email" | "affiliate" | "direct" | "unknown";
+export type SignupAttributionRow = {
+  user_id: string; landing_path: string | null; referrer_host: string | null; channel: AttributionChannel; search_engine: string | null;
+  utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; first_seen_at: string | null; created_at: string;
 };
 export type NotificationRow = { id: number; user_id: string; workspace_id: string | null; kind: string; title: string; body: string | null; link: string | null; dedupe_key: string | null; read_at: string | null; created_at: string; source: "system" | "flow" | "campaign"; flow_id: string | null; enrollment_id: string | null; campaign_id: string | null };
 export type EmailSettingRow = { kind: string; email_enabled: boolean; in_app_enabled: boolean; updated_by: string | null; updated_at: string };
@@ -975,6 +1008,16 @@ export interface Database {
       msg_campaigns: Table<MsgCampaignRow, "name">;
       msg_provider_events: Table<MsgProviderEventRow, "event_id" | "type" | "payload">;
       msg_suppressions: Table<MsgSuppressionRow, "email" | "reason">;
+      content_revisions: Table<ContentRevisionRow, "entry_id" | "slug" | "status" | "meta" | "doc" | "seo">;
+      seo_competitors: Table<SeoCompetitorRow, "slug" | "name" | "website">;
+      seo_keywords: Table<SeoKeywordRow, "keyword">;
+      seo_redirects: Table<SeoRedirectRow, "from_path" | "to_path">;
+      seo_page_daily: Table<SeoPageDailyRow, "day" | "page">;
+      seo_query_daily: Table<SeoQueryDailyRow, "day" | "page" | "query">;
+      seo_ga_daily: Table<SeoGaDailyRow, "day" | "landing_page">;
+      seo_url_inspections: Table<SeoUrlInspectionRow, "url">;
+      seo_sync_runs: Table<SeoSyncRunRow, "source">;
+      signup_attribution: Table<SignupAttributionRow, "user_id">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };
     Views: {

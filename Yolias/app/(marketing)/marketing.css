@@ -577,3 +577,32 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .faq-centered .section-head .eyebrow { justify-content: center; }
 .mk .faq-centered .faq-list { margin-inline: auto; }
 .mk .faq-centered .faq-list dd { max-width: none; }
+
+/* SEO pages from Admin (D-257): tool cards, sources, preview bar */
+.mk .seo-tools { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.mk .seo-tools-2 { grid-template-columns: minmax(0, 720px); }
+.mk .seo-tool { display: flex; flex-direction: column; gap: 10px; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.mk .seo-tool-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mk .seo-tool-head h3 { margin: 0; font-size: 1.15rem; color: var(--ink); }
+.mk .seo-tool-head a { color: var(--text-2); display: inline-flex; padding: 4px; border-radius: 6px; }
+.mk .seo-tool h4 { margin: 4px 0 0; font-size: .8rem; font-weight: 700; color: var(--text-2); }
+.mk .seo-tool p, .mk .seo-tool li { font-size: .92rem; line-height: 1.6; margin: 0; }
+.mk .seo-tool ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 4px; }
+.mk .seo-tool-price { padding-top: 6px; border-top: 1px solid var(--line); }
+.mk .seo-src { font-size: .8rem; color: var(--text-2); }
+.mk .seo-src a { color: inherit; }
+.mk .seo-body { max-width: 820px; }
+.mk .seo-reviewed { padding-top: 0; }
+.mk .seo-reviewed p { font-size: .85rem; color: var(--text-2); max-width: 820px; }
+.mk .seo-preview-bar { position: sticky; top: 0; z-index: 30; padding: 10px 16px; text-align: center; font-size: .85rem; font-weight: 600; background: var(--ink); color: var(--card); }
+.mk .prose-table th[scope="row"] { background: transparent; font-size: .88rem; color: var(--ink); }
+/* The comparison table stacks on phones: each point becomes a card with both answers labelled. */
+@media (max-width: 640px) {
+  .mk .seo-compare table, .mk .seo-compare tbody, .mk .seo-compare tr, .mk .seo-compare th, .mk .seo-compare td { display: block; width: 100%; }
+  .mk .seo-compare thead { display: none; }
+  .mk .seo-compare tr { border-bottom: 1px solid var(--line); padding: 12px 14px; }
+  .mk .seo-compare tr:last-child { border-bottom: 0; }
+  .mk .seo-compare th[scope="row"], .mk .seo-compare td { border: 0; padding: 4px 0; }
+  .mk .seo-compare th[scope="row"] { font-size: .95rem; padding-bottom: 6px; }
+  .mk .seo-compare td::before { content: attr(data-label); display: block; font-size: .72rem; font-weight: 700; color: var(--text-2); margin-bottom: 2px; }
+}

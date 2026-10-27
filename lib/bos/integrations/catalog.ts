@@ -171,6 +171,17 @@ export const providers: ProviderDef[] = [
     yolias: "إثبات ملكية الموقع لمحركات البحث.",
   },
   {
+    key: "google_search_data", name: "Google Search Console و GA4 (بيانات SEO)", category: "google", phase: 0, testable: false,
+    description: "يجلب أرقام البحث العضوي إلى Yolias Admin ← SEO: النقرات ومرات الظهور ونسبة النقر والترتيب من Search Console، وحالة فهرسة الصفحات، والزيارات العضوية من GA4. أنشئ حساب خدمة (Service account) في Google Cloud وفعّل Search Console API وGoogle Analytics Data API، ثم أنشئ له مفتاح JSON والصقه هنا. أضف بريد حساب الخدمة مستخدمًا في Search Console (صلاحية كاملة أو مقيدة) وفي GA4 (Viewer). الأرقام تتزامن مرة يوميًا، ويمكن التزامن يدويًا من SEO ← التكاملات.",
+    fields: [
+      { key: "service_account_json", label: "مفتاح حساب الخدمة (JSON)", secret: true, required: true, hint: "محتوى ملف JSON كاملًا كما نزّلته من Google Cloud" },
+      { key: "gsc_property", label: "خاصية Search Console", required: true, placeholder: "sc-domain:yolias.com", hint: "sc-domain:yolias.com لخاصية النطاق، أو https://www.yolias.com/ لخاصية الرابط" },
+      { key: "ga4_property", label: "رقم خاصية GA4 (Property ID)", placeholder: "123456789", hint: "اختياري: أرقام فقط، من GA4 ← Admin ← Property details. بدونه تظهر أرقام Search Console فقط" },
+    ],
+    capabilities: ["seo.search_console", "seo.ga4"],
+    docs: "https://developers.google.com/webmaster-tools/v1/how-tos/authorizing",
+  },
+  {
     key: "google_maps", name: "Google Maps Platform", category: "maps", phase: 19, testable: true,
     description: "الخرائط والعناوين (Geocoding) — للمواقع المصرّح بها فقط.",
     fields: [{ key: "api_key", label: "مفتاح API", secret: true, required: true, hint: "قيّد المفتاح بنطاق موقعك وبالواجهات المستخدمة فقط" }],

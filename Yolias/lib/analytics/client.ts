@@ -135,3 +135,27 @@ export function metaTrack(name: MetaEvent, params?: Record<string, unknown>, eve
   if (fbq) fbq(...args);
   else pendingMeta.push(args);
 }
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim().match(/^G-[A-Z0-9]{4,16}$/)?.[0] ?? null;
+
+/**
+ * Google Analytics 4 (gtag.js), run only after consent, for organic-search
+ * sessions by landing page in Admin → SEO (D-257). No user id and no ad
+ * features; page changes are tracked by GA4's own history-change measurement.
+ */
+export function loadGa4() {
+  const w = window as unknown as { dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void };
+  if (!GA_ID || w.gtag) return;
+  w.dataLayer = w.dataLayer || [];
+  // gtag reads the arguments object, as in Google's snippet.
+  w.gtag = function () {
+    // eslint-disable-next-line prefer-rest-params
+    w.dataLayer!.push(arguments);
+  };
+  w.gtag("js", new Date());
+  w.gtag("config", GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+  const t = document.createElement("script");
+  t.async = true;
+  t.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  document.head.appendChild(t);
+}

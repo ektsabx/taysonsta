@@ -1,53 +1,91 @@
+import Link from "next/link";
 import { requirePermission } from "@/lib/bos/auth";
-import { PageHeader, Card, KpiCard, StatusBadge, EmptyState } from "@/components/bos/ui";
+import { PageHeader, Card, KpiCard, EmptyState } from "@/components/bos/ui";
 import { BosTable } from "@/components/bos/BosTable";
+import { LineChart } from "@/components/bos/Chart";
 import { Tx } from "@/components/bos/I18n";
-import { seoAudit } from "@/services/yolias/modules";
-import { num } from "@/components/yolias/PlatformUi";
+import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
+import { PeriodTabs, SeoNotReady, SourceNote, delta, pct, pos } from "@/components/yolias/SeoUi";
+import { overview } from "@/services/yolias/seo/metrics";
+import { seoReady } from "@/services/yolias/seo/indexing";
 
-const issueLabel: Record<string, string> = {
-  no_title: "بلا عنوان", long_title: "العنوان طويل", no_description: "بلا وصف", long_description: "الوصف طويل",
-  no_h1: "بلا H1", many_h1: "أكثر من H1", wrong_lang: "لغة الصفحة خاطئة", duplicate_description: "وصف مكرر",
-  no_canonical: "بلا رابط Canonical", canonical_other_domain: "Canonical على نطاق آخر", no_og_image: "بلا صورة مشاركة", noindex_on_public_page: "صفحة عامة عليها noindex",
-};
-
-// SEO (final spec phase 9): a live check of the Yolias website — title,
-// description, one H1 and the page language for each public page in both
-// languages, plus robots.txt and the sitemap.
-export default async function SeoPage() {
+// SEO performance (D-257): search visibility, organic visits and what they
+// became (sign-ups, trials, paying accounts, revenue). Real numbers only; a
+// source that isn't connected says so instead of showing zero. The live page
+// check that used to be here is in SEO → Indexing.
+export default async function SeoOverviewPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requirePermission("platform.read");
-  const a = await seoAudit();
-  if (!a.base) return (<><PageHeader title="تحسين محركات البحث" /><EmptyState title="رابط موقع Yolias غير مضبوط" description="YOLIAS_SITE_URL" /></>);
-  const withIssues = a.pages.filter((p) => p.issues.length).length;
+  if (!connected()) return (<><PageHeader title="أداء SEO" /><NotConnected /></>);
+  if (!(await seoReady())) return (<><PageHeader title="أداء SEO" /><SeoNotReady /></>);
+  const o = await overview(Number((await searchParams).days ?? 28));
+  const page = (p: string) => <span dir="ltr">{p}</span>;
+  const g = o.gsc;
+  const clicks = g ? delta(g.clicks, g.prev.clicks) : null;
+  const impr = g ? delta(g.impressions, g.prev.impressions) : null;
+  const sess = o.ga4 ? delta(o.ga4.sessions, o.ga4.prev) : null;
+  const sign = delta(o.signups.organic, o.signups.organicPrev);
+  const paid = delta(o.paid, o.paidPrev);
   return (
     <>
-      <PageHeader title="تحسين محركات البحث" subtitle={`فحص مباشر لموقع ${a.base}`} />
+      <PageHeader title="أداء SEO" subtitle={<Tx vars={{ from: o.period.from, to: o.period.to }}>{"من {from} إلى {to}، مقارنة بالفترة السابقة بنفس الطول"}</Tx>} />
+      <PeriodTabs days={o.period.days} base="/admin/platform/seo" />
       <div className="bos-kpis">
-        <KpiCard label="صفحات بلا مشاكل" value={`${num(a.pages.length - withIssues)} / ${num(a.pages.length)}`} />
-        <KpiCard label="robots.txt" value={a.robots ? <StatusBadge tone={a.robots.sitemap && a.robots.disallowsApp ? "success" : "warning"} label={a.robots.sitemap ? "سليم" : "بلا خريطة"} /> : <StatusBadge tone="danger" label="غير موجود" />} />
-        <KpiCard label="خريطة الموقع" value={a.sitemapUrls == null ? <StatusBadge tone="danger" label="غير موجودة" /> : <Tx vars={{ n: num(a.sitemapUrls) }}>{"{n} رابط"}</Tx>} sub={a.sitemapOtherHosts ? <Tx vars={{ n: a.sitemapOtherHosts }}>{"{n} رابط على نطاق آخر"}</Tx> : undefined} />
-        <KpiCard label="llms.txt" value={<StatusBadge tone={a.llms ? "success" : "warning"} label={a.llms ? "موجود" : "غير موجود"} />} />
-        <KpiCard label="صفحات الدخول خارج الفهرسة" value={<StatusBadge tone={a.privateChecks.every((c) => c.noindex) ? "success" : "danger"} label={a.privateChecks.every((c) => c.noindex) ? "noindex سليم" : "تحتاج noindex"} />} />
+        <KpiCard label="النقرات العضوية" value={g ? num(g.clicks) : "—"} sub={clicks ? clicks.text : "Search Console غير متصل"} trend={clicks?.trend} />
+        <KpiCard label="مرات الظهور" value={g ? num(g.impressions) : "—"} sub={impr?.text} trend={impr?.trend} />
+        <KpiCard label="متوسط نسبة النقر" value={g ? pct(g.ctr, 2) : "—"} sub={g ? <Tx vars={{ v: pct(g.prev.ctr, 2) }}>{"قبلها {v}"}</Tx> : undefined} />
+        <KpiCard label="متوسط الترتيب" value={g ? pos(g.position) : "—"} sub={g ? <Tx vars={{ v: pos(g.prev.position) }}>{"قبلها {v}"}</Tx> : undefined} />
+        <KpiCard label="الزيارات العضوية" value={o.ga4 ? num(o.ga4.sessions) : "—"} sub={sess ? sess.text : "GA4 غير متصل"} trend={sess?.trend} />
+        <KpiCard label="صفحات الدخول من البحث" value={o.ga4 ? num(o.ga4.landingPages) : "—"} />
       </div>
-      <Card title="الصفحات">
-        <BosTable className="bos-table">
-          <thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>اللغة</Tx></th><th><Tx>العنوان</Tx></th><th><Tx>الوصف</Tx></th><th><Tx>بيانات منظمة</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
-          <tbody>{a.pages.map((p) => (
-            <tr key={`${p.path}:${p.locale}`}>
-              <td dir="ltr">{p.path}</td>
-              <td dir="ltr">{p.locale}</td>
-              <td dir="auto" style={{ maxWidth: 260 }}>{p.title ?? "—"}{p.title && <span className="cell-sub">{p.title.length}</span>}</td>
-              <td dir="auto" style={{ maxWidth: 320, fontSize: 12 }}>{p.description ?? "—"}{p.description && <span className="cell-sub">{p.description.length}</span>}</td>
-              <td>{p.structured ? <StatusBadge tone="success" label="JSON-LD" /> : "—"}</td>
-              <td>{p.issues.length ? p.issues.map((i) => <StatusBadge key={i} tone="warning" label={issueLabel[i] ?? i} />) : <StatusBadge tone="success" label="سليمة" />}</td>
-            </tr>
-          ))}</tbody>
-        </BosTable>
-        <p className="bos-faint" style={{ fontSize: 12, marginTop: 8 }}><Tx>العنوان حتى 65 حرفاً والوصف حتى 170 حرفاً، وعنوان H1 واحد لكل صفحة.</Tx></p>
+      <div className="bos-kpis">
+        <KpiCard label="التسجيلات العضوية" value={num(o.signups.organic)} sub={sign.text} trend={sign.trend} />
+        <KpiCard label="تجارب مفعّلة" value={num(o.trials)} sub={delta(o.trials, o.trialsPrev).text} />
+        <KpiCard label="حسابات دفعت" value={num(o.paid)} sub={paid.text} trend={paid.trend} />
+        <KpiCard label="معدل التحويل العضوي" value={o.conversion ? pct(o.conversion.rate, 2) : "—"} sub={o.conversion ? (o.conversion.base === "ga4" ? "تسجيلات ÷ زيارات GA4" : "تسجيلات ÷ نقرات Search Console") : "يحتاج Search Console أو GA4"} />
+        <KpiCard label="إيراد من البحث العضوي" value={o.paid ? `$${num(Math.round(o.revenue))}` : "—"} sub="مدفوعات حقيقية بالدولار لحسابات أول زيارتها من البحث" />
+        <KpiCard label="تسجيلات بلا مصدر معروف" value={num(o.signups.unknown)} sub={<Tx vars={{ n: num(o.signups.all) }}>{"من {n} تسجيل في الفترة"}</Tx>} />
+      </div>
+      <SourceNote {...o.sources} />
+
+      <Card title="النقرات ومرات الظهور يوميًا">
+        {g ? (
+          <LineChart labels={o.trend.labels.map((l) => l.slice(5))} series={[{ name: "النقرات", values: o.trend.clicks }, { name: "مرات الظهور", values: o.trend.impressions }]} />
+        ) : (
+          <EmptyState title="Search Console غير متصل" description="اربط حساب الخدمة من SEO ← تكاملات SEO، وتظهر الأرقام بعد أول مزامنة." actions={<Link className="admin-btn" href="/admin/platform/seo/settings"><Tx>طريقة الربط</Tx></Link>} />
+        )}
       </Card>
-      <Card title="الظهور في نتائج البحث">
-        <p style={{ fontSize: 13, lineHeight: 1.7 }}><Tx>أرقام الظهور والنقرات ونسبة النقر ومتوسط الترتيب وأخطاء الفهرسة تأتي من Google Search Console، وهي غير متصلة بالنظام بعد. أضف رمز التحقق من مركز التكاملات ← Google Search Console، ثم أكّد الملكية هناك وأرسل خريطة الموقع /sitemap.xml. الزيارات والتسجيلات من البحث العضوي تظهر في PostHog (مصدر الإحالة لكل زيارة).</Tx></p>
+      <Card title="التسجيلات العضوية يوميًا">
+        <LineChart labels={o.trend.labels.map((l) => l.slice(5))} series={[{ name: "التسجيلات", values: o.trend.signups }]} height={140} />
       </Card>
+
+      {g && (
+        <div className="bos-grid cols-2">
+          <Card title="صفحات تحسّنت">
+            {o.up.length ? (
+              <div className="bos-table-scroll"><BosTable className="bos-table"><thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>النقرات</Tx></th><th><Tx>التغيير</Tx></th></tr></thead>
+                <tbody>{o.up.map((m) => <tr key={m.page}><td>{page(m.page)}</td><td>{num(m.clicks)}</td><td dir="ltr">+{num(m.delta)}</td></tr>)}</tbody></BosTable></div>
+            ) : <EmptyState title="لا يوجد" />}
+          </Card>
+          <Card title="صفحات تراجعت">
+            {o.down.length ? (
+              <div className="bos-table-scroll"><BosTable className="bos-table"><thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>النقرات</Tx></th><th><Tx>التغيير</Tx></th></tr></thead>
+                <tbody>{o.down.map((m) => <tr key={m.page}><td>{page(m.page)}</td><td>{num(m.clicks)}</td><td dir="ltr">{num(m.delta)}</td></tr>)}</tbody></BosTable></div>
+            ) : <EmptyState title="لا يوجد" />}
+          </Card>
+          <Card title="ظهور مرتفع ونسبة نقر منخفضة">
+            {o.lowCtr.length ? (
+              <div className="bos-table-scroll"><BosTable className="bos-table"><thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>مرات الظهور</Tx></th><th><Tx>نسبة النقر</Tx></th><th><Tx>الترتيب</Tx></th></tr></thead>
+                <tbody>{o.lowCtr.map((s) => <tr key={s.page}><td>{page(s.page)}</td><td>{num(s.impressions)}</td><td>{pct(s.ctr, 2)}</td><td>{pos(s.position)}</td></tr>)}</tbody></BosTable></div>
+            ) : <EmptyState title="لا يوجد" description="100 ظهور أو أكثر ونسبة نقر أقل من 1%" />}
+          </Card>
+          <Card title="زيارات بلا تسجيلات">
+            {o.noConversions.length ? (
+              <div className="bos-table-scroll"><BosTable className="bos-table"><thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>النقرات</Tx></th></tr></thead>
+                <tbody>{o.noConversions.map((s) => <tr key={s.page}><td>{page(s.page)}</td><td>{num(s.clicks)}</td></tr>)}</tbody></BosTable></div>
+            ) : <EmptyState title="لا يوجد" description="20 نقرة أو أكثر بدون أي تسجيل" />}
+          </Card>
+        </div>
+      )}
     </>
   );
 }

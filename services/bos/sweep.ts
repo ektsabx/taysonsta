@@ -172,6 +172,17 @@ export async function runScheduledSweep(opts: { actor?: string | null } = {}): P
     return checkPlatformAlerts();
   });
 
+  // SEO (D-257): scheduled pages go live, Search Console / GA4 numbers sync once a day.
+  await step(results, "seo", async () => {
+    const { yoliasConfigured } = await import("@/lib/yolias/db");
+    if (!yoliasConfigured()) return null;
+    const { seoReady } = await import("@/services/yolias/seo/indexing");
+    if (!(await seoReady())) return null;
+    const { publishDuePages } = await import("@/services/yolias/seo/pages");
+    const { dailySeoSync } = await import("@/services/yolias/seo/google");
+    return (await publishDuePages()) + ((await dailySeoSync()) ?? 0);
+  });
+
   await step(results, "approval_reminders", async () => {
     const { remindOverdueApprovals } = await import("@/services/bos/approvals");
     return remindOverdueApprovals();

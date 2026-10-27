@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-21";
+export const LEGAL_UPDATED = "2026-10-27";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -62,6 +62,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["Product analytics (PostHog)", "Understanding how Yolias is used, to improve it"],
           ["Error monitoring (Sentry)", "Finding and fixing errors"],
           ["Session analytics (Microsoft Clarity), with your consent", "Seeing where pages are hard to use"],
+          ["Web analytics (Google Analytics), with your consent", "Counting visits from search engines and the pages they land on"],
           ["Advertising measurement (Meta), with your consent", "Measuring our own ads: page views, checkout started and purchases"],
         ] } },
         { p: "We do not sell personal information. Meta receives only the events listed above, and only if you accept cookies; it never receives your workspace data or prospect data." },
@@ -127,6 +128,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["تحليلات المنتج (PostHog)", "فهم طريقة استخدام يولـياس لتحسينه"],
           ["مراقبة الأخطاء (Sentry)", "اكتشاف الأخطاء وإصلاحها"],
           ["تحليل الجلسات (Microsoft Clarity) بموافقتك", "معرفة الأماكن الصعبة الاستخدام في الصفحات"],
+          ["تحليل الزيارات (Google Analytics) بموافقتك", "عدّ الزيارات القادمة من محركات البحث والصفحات التي تصل إليها"],
           ["قياس الإعلانات (Meta) بموافقتك", "قياس إعلاناتنا: زيارات الصفحات وبدء الدفع وعمليات الشراء"],
         ] } },
         { p: "لا نبيع المعلومات الشخصية. وتستلم Meta الأحداث المذكورة أعلاه فقط، وفقط إذا قبلت ملفات تعريف الارتباط، ولا تستلم بيانات مساحة عملك أو بيانات العملاء المحتملين أبدًا." },
@@ -332,7 +334,9 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_vid", "Essential", "An anonymous id so a “Was this helpful?” vote on an article counts once", "1 year"],
           ["yolias_consent", "Essential", "Remembers your cookie choice", "1 year"],
           ["ph_…_posthog", "Analytics (with consent)", "PostHog: counts visits and product use without your email", "1 year"],
+          ["yolias_ft", "Analytics (with consent)", "The first Yolias page of your visit, the site that linked to it and its campaign tags, so we know which pages bring new accounts. No identifier", "30 days"],
           ["_clck, _clsk", "Analytics (with consent)", "Microsoft Clarity: shows where pages are hard to use", "Up to 1 year"],
+          ["_ga, _ga_…", "Analytics (with consent)", "Google Analytics: counts visits from search engines and the pages they land on", "Up to 2 years"],
           ["_fbp", "Advertising (with consent)", "Meta Pixel: measures our ads (page views, checkout started, purchases)", "3 months"],
         ] } },
         { p: "Error monitoring (Sentry) sets no cookies." },
@@ -358,7 +362,9 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_vid", "أساسي", "معرّف مجهول حتى يُحتسب تقييم «هل كان مفيدًا؟» للمقال مرة واحدة", "سنة واحدة"],
           ["yolias_consent", "أساسي", "يتذكر اختيارك لملفات تعريف الارتباط", "سنة واحدة"],
           ["ph_…_posthog", "تحليلات (بموافقتك)", "PostHog: يحسب الزيارات واستخدام المنتج دون بريدك", "سنة واحدة"],
+          ["yolias_ft", "تحليلات (بموافقتك)", "أول صفحة في زيارتك ليولـياس، والموقع الذي أرسلك إليها ووسوم الحملة، لنعرف أي الصفحات تجلب حسابات جديدة. بدون أي معرّف", "30 يومًا"],
           ["_clck, _clsk", "تحليلات (بموافقتك)", "Microsoft Clarity: يوضح الأماكن الصعبة الاستخدام في الصفحات", "حتى سنة"],
+          ["_ga, _ga_…", "تحليلات (بموافقتك)", "Google Analytics: يعدّ الزيارات القادمة من محركات البحث والصفحات التي تصل إليها", "حتى سنتين"],
           ["_fbp", "إعلانات (بموافقتك)", "Meta Pixel: يقيس إعلاناتنا (زيارات الصفحات وبدء الدفع وعمليات الشراء)", "3 أشهر"],
         ] } },
         { p: "مراقبة الأخطاء (Sentry) لا تضع أي ملفات تعريف ارتباط." },

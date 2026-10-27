@@ -8,7 +8,7 @@ import { contentKinds, kindLabel, type ContentKind } from "@/lib/yolias/content"
 import { listContent } from "@/services/yolias/content";
 import { NotConnected, connected } from "@/components/yolias/PlatformUi";
 
-const statusTone = { draft: { tone: "neutral" as const, label: "مسودة" }, published: { tone: "success" as const, label: "منشورة" }, hidden: { tone: "warning" as const, label: "مخفية" } };
+const statusTone = { draft: { tone: "neutral" as const, label: "مسودة" }, scheduled: { tone: "neutral" as const, label: "مجدولة" }, published: { tone: "success" as const, label: "منشورة" }, hidden: { tone: "warning" as const, label: "مخفية" } };
 
 // Yolias website content (final spec phase 9): Help Center, Docs, Blog and
 // the legal pages, in both languages.
