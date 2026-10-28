@@ -254,7 +254,7 @@ export const en = {
     deleteBody: "“{title}” will be removed from your history. Its prospects stay in Prospects.",
     cancel: "Cancel",
     getHelp: "Get help",
-    helpCenter: "Help Center",
+    videos: "Platform videos", helpCenter: "Help Center",
     getSupport: "Get support",
     reportBug: "Feedback / Report a Bug",
     joinCommunity: "Join Community",
@@ -270,6 +270,7 @@ export const en = {
     later: "Keep exploring",
   },
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
+  share: { on: "Share on", message: "I use Yolias to find B2B customers with AI: it finds the right companies, writes the emails and sends them from my own mailbox. Try it with my link:" },
   startHere: {
     title: "Start here", progress: "{done} of 3",
     mailbox: "Connect your mailbox", mailboxDesc: "Gmail or any mailbox over IMAP/SMTP (Zoho, Hostinger, your company mail). Your campaigns go out from it and replies come back to it.", mailboxCta: "Connect",
@@ -692,9 +693,17 @@ export const en = {
       invite: "Invite User", invitePlaceholder: "colleague@company.com", invitationSent: "Invitation sent · {role}",
       removeConfirm: "Remove {name} from the workspace?", removeLabel: "Remove {name}", revokeLabel: "Revoke invitation for {email}",
     },
+    hub: {
+      title: "Integrations", subtitle: "Connect the tools Yolias works through. Open an integration to see its settings.",
+      back: "All integrations", more: "Options", connect: "Connect", how: "How to connect",
+      connected: "{n} connected", notConnected: "Not connected", soon: "Not available yet",
+      gmailDesc: "Gmail or Google Workspace: sends your campaigns and reads the replies.",
+      imapName: "IMAP/SMTP mailbox", imapDesc: "Any other mailbox: Zoho, Hostinger, Outlook or your company mail.",
+    },
     referral: {
       title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} prospects to your balance. They never expire.",
       copy: "Copy link", copied: "Copied", off: "The invite program is paused right now.",
+      step1: "1. Share your link", step1Body: "Copy it, or share it on WhatsApp, Facebook, LinkedIn, Telegram or X.", step2: "2. A friend signs up", step2Body: "They create a new Yolias account from your link and confirm their email.", step3: "3. You earn", step3Body: "{n} prospects are added to your balance at once. They never expire.",
       joined: "Joined from your link", earned: "Prospects earned", month: "This month", monthNote: "Up to {cap} rewarded invites a month",
       recent: "Latest to join", none: "Nobody has joined from your link yet. Share it with people who sell to businesses.",
       status: { rewarded: "+{n} prospects", capped: "Over the monthly cap", rejected: "Doesn't count" },
@@ -1054,6 +1063,12 @@ export const en = {
     title: "Partner dashboard",
     subtitle: "Earn a commission when customers you refer pay for Yolias.",
     tabs: { overview: "Overview", referrals: "Referrals", commissions: "Commissions", payouts: "Payouts", profile: "Profile" },
+    recent: { title: "Who signed up with your link", all: "See all" },
+    steps: {
+      title: "How the program works", share: "1. Share your link", shareBody: "Copy it, or share it straight to WhatsApp, Facebook, LinkedIn, Telegram or X.",
+      signup: "2. They sign up", signupBody: "Anyone who opens your link and creates an account within {days} days counts for you.",
+      pay: "3. They pay, you earn", withdraw: "4. Withdraw your earnings",
+    },
     card: { active: "Active partner", since: "Partner since {date}", code: "Partner code", rate: "Commission", howTitle: "How you earn" },
     profile: {
       title: "Profile", name: "Name", email: "Email", emailHint: "Your sign-in email. Contact support to change it.",

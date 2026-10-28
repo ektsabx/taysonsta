@@ -3,11 +3,11 @@ import type { AttributionChannel } from "@/types/database";
 // Where a sign-up came from (D-257). The site's front door (proxy.ts) keeps
 // the first public page of a visit in the yolias_ft cookie: the path, the
 // referring site's host (never the full URL) and the UTM tags, with no
-// identifier. Like the other measurement cookies it is set only after "Accept
-// all" (from the first page of the visit, kept in memory until then; proxy.ts
-// for later visits). When the account is created, /auth/confirm classifies it
-// into a channel and stores it in signup_attribution. Without consent there is
-// no cookie and the sign-up counts as unknown.
+// identifier. It is set for every visitor (owner, 2026-10-28): it is first
+// party, holds no identifier and is never used for advertising, so it is
+// listed as a necessary cookie in the cookie policy. When the account is
+// created, /auth/confirm classifies it into a channel and stores it in
+// signup_attribution; payments then tie each page to paying customers.
 
 export const FIRST_TOUCH_COOKIE = "yolias_ft";
 export const FIRST_TOUCH_MAX_AGE = 60 * 60 * 24 * 30;

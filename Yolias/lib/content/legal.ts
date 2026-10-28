@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-27";
+export const LEGAL_UPDATED = "2026-10-28";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -323,7 +323,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "The cookies Yolias sets, what each one does and how long it lasts.",
       blocks: [
         { h2: "Our approach" },
-        { p: "Yolias always uses the cookies it needs to sign you in and remember a few choices. Analytics and advertising cookies are used only if you choose “Accept all” in the cookie banner; with “Essential only” they are never set. You can change your choice by deleting the yolias_consent cookie." },
+        { p: "Yolias always uses the cookies it needs to sign you in and remember a few choices. Analytics and advertising cookies are used only if you choose “Accept all” in the cookie banner; with “Essential only” they are never set. You can change your choice by deleting the yolias_consent cookie. It also keeps, for every visitor, the first Yolias page of the visit (yolias_ft, no identifier, never used for ads), so we know which pages bring paying customers." },
         { h2: "Cookies we set" },
         { table: { head: ["Cookie", "Type", "Purpose", "Duration"], rows: [
           ["sb-…-auth-token", "Essential", "Keeps you signed in after you open a magic link", "Until you sign out or the session expires"],
@@ -334,7 +334,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_vid", "Essential", "An anonymous id so a “Was this helpful?” vote on an article counts once", "1 year"],
           ["yolias_consent", "Essential", "Remembers your cookie choice", "1 year"],
           ["ph_…_posthog", "Analytics (with consent)", "PostHog: counts visits and product use without your email", "1 year"],
-          ["yolias_ft", "Analytics (with consent)", "The first Yolias page of your visit, the site that linked to it and its campaign tags, so we know which pages bring new accounts. No identifier", "30 days"],
+          ["yolias_ft", "Essential (measurement, first party)", "The first Yolias page of your visit, the site that linked to it and its campaign tags, so we know which pages bring new and paying accounts. No identifier, never shared or used for ads", "30 days"],
           ["_clck, _clsk", "Analytics (with consent)", "Microsoft Clarity: shows where pages are hard to use", "Up to 1 year"],
           ["_ga, _ga_…", "Analytics (with consent)", "Google Analytics: counts visits from search engines and the pages they land on", "Up to 2 years"],
           ["_fbp", "Advertising (with consent)", "Meta Pixel: measures our ads (page views, checkout started, purchases)", "3 months"],
@@ -351,7 +351,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "ملفات تعريف الارتباط التي يضعها يولـياس، ووظيفة كل منها، ومدتها.",
       blocks: [
         { h2: "نهجنا" },
-        { p: "يستخدم يولـياس دائمًا ملفات تعريف الارتباط اللازمة لتسجيل دخولك وتذكّر بعض اختياراتك. أما ملفات التحليلات والإعلانات فتُستخدم فقط إذا اخترت «قبول الكل» في شريط ملفات تعريف الارتباط، ومع «الأساسية فقط» لا تُستخدم أبدًا. ويمكنك تغيير اختيارك بحذف ملف yolias_consent." },
+        { p: "يستخدم يولـياس دائمًا ملفات تعريف الارتباط اللازمة لتسجيل دخولك وتذكّر بعض اختياراتك. أما ملفات التحليلات والإعلانات فتُستخدم فقط إذا اخترت «قبول الكل» في شريط ملفات تعريف الارتباط، ومع «الأساسية فقط» لا تُستخدم أبدًا. ويمكنك تغيير اختيارك بحذف ملف yolias_consent. كما يحتفظ لكل زائر بأول صفحة في زيارته (yolias_ft، بدون معرّف، ولا يُستخدم للإعلانات)، لنعرف أي الصفحات تجلب عملاء دافعين." },
         { h2: "الملفات التي نستخدمها" },
         { table: { head: ["الملف", "النوع", "الغرض", "المدة"], rows: [
           ["sb-…-auth-token", "أساسي", "يبقيك مسجّل الدخول بعد فتح الرابط السحري", "حتى تسجيل الخروج أو انتهاء الجلسة"],
@@ -362,7 +362,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_vid", "أساسي", "معرّف مجهول حتى يُحتسب تقييم «هل كان مفيدًا؟» للمقال مرة واحدة", "سنة واحدة"],
           ["yolias_consent", "أساسي", "يتذكر اختيارك لملفات تعريف الارتباط", "سنة واحدة"],
           ["ph_…_posthog", "تحليلات (بموافقتك)", "PostHog: يحسب الزيارات واستخدام المنتج دون بريدك", "سنة واحدة"],
-          ["yolias_ft", "تحليلات (بموافقتك)", "أول صفحة في زيارتك ليولـياس، والموقع الذي أرسلك إليها ووسوم الحملة، لنعرف أي الصفحات تجلب حسابات جديدة. بدون أي معرّف", "30 يومًا"],
+          ["yolias_ft", "ضروري (قياس، من الطرف الأول)", "أول صفحة في زيارتك ليولـياس، والموقع الذي أرسلك إليها ووسوم الحملة، لنعرف أي الصفحات تجلب حسابات جديدة ودافعة. بدون أي معرّف، ولا يُشارك ولا يُستخدم للإعلانات", "30 يومًا"],
           ["_clck, _clsk", "تحليلات (بموافقتك)", "Microsoft Clarity: يوضح الأماكن الصعبة الاستخدام في الصفحات", "حتى سنة"],
           ["_ga, _ga_…", "تحليلات (بموافقتك)", "Google Analytics: يعدّ الزيارات القادمة من محركات البحث والصفحات التي تصل إليها", "حتى سنتين"],
           ["_fbp", "إعلانات (بموافقتك)", "Meta Pixel: يقيس إعلاناتنا (زيارات الصفحات وبدء الدفع وعمليات الشراء)", "3 أشهر"],

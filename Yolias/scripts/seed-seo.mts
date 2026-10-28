@@ -25,6 +25,17 @@ const rows = pages.map((p, i) => toRow(p, i)).map((r) => ({ ...r, doc: j(r.doc),
 const p = await db.from("content_entries").upsert(rows, { onConflict: "kind,slug", ignoreDuplicates: true }).select("id");
 if (p.error) throw p.error;
 
+// Comparison pages written against each competitor (owner, 2026-10-28): pages
+// still as the seed left them (updated_by "seo-seed") get the new table and
+// "What Yolias doesn't do"; a page edited in Admin is left alone.
+let refreshed = 0;
+for (const r of rows.filter((x) => x.kind === "compare")) {
+  const u = await db.from("content_entries").update({ doc: r.doc, meta: r.meta, updated_at: new Date().toISOString() }).eq("kind", "compare").eq("slug", r.slug).eq("updated_by", "seo-seed").select("id");
+  if (u.error) throw u.error;
+  refreshed += u.data?.length ?? 0;
+}
+console.log(`SEO seed: ${refreshed} comparison pages refreshed.`);
+
 const { data: existing } = await db.from("seo_keywords").select("keyword, locale");
 const have = new Set((existing ?? []).map((k) => `${k.locale}:${k.keyword.toLowerCase()}`));
 const fresh = keywords.filter((k) => !have.has(`${k.locale ?? "en"}:${k.keyword.toLowerCase()}`)).map((k) => ({ ...k, locale: k.locale ?? "en", related: k.related ?? [], created_by: "seo-seed" }));

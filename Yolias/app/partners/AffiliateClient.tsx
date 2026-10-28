@@ -1,5 +1,6 @@
 "use client";
 
+import { ShareButtons } from "@/components/ShareButtons";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Copy } from "lucide-react";
@@ -79,6 +80,7 @@ export function ReferralLink({ link, howItWorks }: { link: string; howItWorks: s
           {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}<span>{copied ? a.link.copied : a.link.copy}</span>
         </button>
       </div>
+      <ShareButtons link={full} />
       <div className="field">
         <label htmlFor="aff-campaign">{a.link.campaign}</label>
         <input id="aff-campaign" className="form-input" dir="ltr" value={campaign} maxLength={60} onChange={(e) => setCampaign(e.target.value)} placeholder="newsletter-oct" />

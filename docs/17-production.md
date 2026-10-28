@@ -319,3 +319,9 @@ npx wrangler secret put WORKER_SECRET
 1. migration واحدة (من مجلد taysonsta): `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261125000000_referral_program.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261125000000.sql`. لازم قبل نشر يولياس (التسجيل والإعدادات بيقروا `referrals` و`workspaces.referral_code`).
 2. نشر يولياس (`npm run cf:deploy` من Yolias/) ثم الأدمن (`npm run cf:deploy:admin` من taysonsta/).
 3. `npm run content:seed:production` من Yolias/ (المقالين الجداد وصفحة المجتمع في مساعد الدعم).
+
+## جولة 2026-10-28 الجزء التاني (D-261). مفيش migration جديدة
+1. migration الإحالة 20261125000000 (الجولة اللي فاتت) لازم تكون اتطبقت قبل النشر.
+2. نشر يولياس ثم الأدمن.
+3. من Yolias/: `npm run content:seed:production` (مقالات المساعدة الجديدة وسياسة الكوكيز) ثم `npm run seo:seed:production` (صفحات المقارنة الجديدة).
+4. DNS: سجل TXT باسم `_dmarc` على yolias.com قيمته `v=DMARC1; p=none;`.

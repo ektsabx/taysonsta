@@ -145,18 +145,36 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
                 </div>
               ))}
             </div>
+            {/* Who signed up with the link (owner, 2026-10-28), newest first; the full list is in Referrals. */}
+            <section className="panel-card">
+              <h4 className="panel-title">{a.recent.title}</h4>
+              {d.referrals.length === 0 ? <p className="panel-empty">{a.tables.emptyReferrals}</p> : (
+                <div className="data-table-scroll">
+                  <table className="data-table compact">
+                    <thead><tr><th>{a.tables.customer}</th><th>{a.tables.signedUp}</th><th>{a.tables.paying}</th></tr></thead>
+                    <tbody>
+                      {d.referrals.slice(0, 5).map((r) => (
+                        <tr key={r.id}><td dir="ltr">{r.label}</td><td>{formatDate(r.signedUpAt, locale)}</td><td>{r.paying ? a.tables.yes : a.tables.no}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {d.referrals.length > 5 && <p className="cell-sub"><Link href={`?tab=referrals&range=${range}`}>{a.recent.all}</Link></p>}
+            </section>
             {s ? (
               <section className="panel-card">
-                <h4 className="panel-title">{a.card.howTitle}</h4>
-                <ul className="partners-how">
-                  <li>{fmt(a.apply.earn, {
+                <h4 className="panel-title">{a.steps.title}</h4>
+                <ol className="partners-steps">
+                  <li><strong>{a.steps.share}</strong><span>{a.steps.shareBody}</span></li>
+                  <li><strong>{a.steps.signup}</strong><span>{fmt(a.steps.signupBody, { days: n(s.attribution.days) })}</span></li>
+                  <li><strong>{a.steps.pay}</strong><span>{fmt(a.apply.earn, {
                     rate,
                     recurring: !s.recurring.enabled ? a.apply.firstOnly : s.recurring.maxPayments ? fmt(a.apply.recurringFor, { count: n(s.recurring.maxPayments) }) : a.apply.recurringAlways,
                     days: n(s.holdDays),
-                  })}</li>
-                  <li>{fmt(a.balance.availableHint, { min: formatCents(s.minPayoutCents) })}</li>
-                  <li>{a.payout.manual}</li>
-                </ul>
+                  })}</span></li>
+                  <li><strong>{a.steps.withdraw}</strong><span>{fmt(a.balance.availableHint, { min: formatCents(s.minPayoutCents) })} {a.payout.manual}</span></li>
+                </ol>
               </section>
             ) : null}
           </>

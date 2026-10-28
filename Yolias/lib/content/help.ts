@@ -336,6 +336,121 @@ export const articles: HelpArticle[] = [
       },
     },
   },
+  // How to connect a mailbox (owner, 2026-10-28): "How to connect" on each Settings → Integrations card opens these.
+  {
+    slug: "connect-gmail",
+    collection: "using-yolias",
+    doc: {
+      en: {
+        title: "Connecting Gmail",
+        summary: "Connect your Gmail or Google Workspace mailbox so Yolias sends your campaigns from it and reads the replies.",
+        blocks: [
+          { ol: [
+            "Open your name at the bottom of the sidebar, choose **Settings**, then **Integrations**.",
+            "On the **Gmail** card, open the ⋯ menu and choose **Connect** (or open the card and press **Add mailbox**).",
+            "Choose your Google account and allow Yolias to send email and read the replies to the emails it sent.",
+            "You come back to Yolias with the mailbox listed as **Connected**.",
+          ] },
+          { p: "Yolias reads only the replies in the threads it started; it never reads the rest of your inbox. You can disconnect at any time from the same card, or from your Google account's security settings." },
+          { note: "If the Google button isn't available yet, connect the same Gmail mailbox with IMAP/SMTP and an app password: see [Connecting another mailbox (IMAP/SMTP)](/help-center/connect-imap-smtp)." },
+          { h2: "Official Google help" },
+          { ul: [
+            "[Sign in with app passwords](https://support.google.com/accounts/answer/185833)",
+            "[Add Gmail to another email client (IMAP)](https://support.google.com/mail/answer/7126229)",
+          ] },
+        ],
+      },
+      ar: {
+        title: "ربط Gmail",
+        summary: "اربط Gmail أو بريد Google Workspace ليرسل يولـياس حملاتك منه ويقرأ الردود.",
+        blocks: [
+          { ol: [
+            "اضغط على اسمك أسفل الشريط الجانبي، واختر **الإعدادات** ثم **التكاملات**.",
+            "في كارت **Gmail** افتح قائمة ⋯ واختر **اربط** (أو افتح الكارت واضغط **إضافة صندوق بريد**).",
+            "اختر حساب Google واسمح ليولـياس بإرسال البريد وقراءة الردود على الرسائل التي أرسلها.",
+            "تعود إلى يولـياس وصندوق البريد ظاهر بحالة **متصل**.",
+          ] },
+          { p: "يقرأ يولـياس الردود في المحادثات التي بدأها فقط، ولا يقرأ باقي بريدك. يمكنك فصل الربط في أي وقت من نفس الكارت، أو من إعدادات الأمان في حساب Google." },
+          { note: "إن لم يكن زر Google متاحًا بعد، اربط نفس بريد Gmail عبر IMAP/SMTP بكلمة مرور تطبيق: راجع [ربط بريد آخر (IMAP/SMTP)](/help-center/connect-imap-smtp)." },
+          { h2: "مساعدة Google الرسمية" },
+          { ul: [
+            "[تسجيل الدخول بكلمات مرور التطبيقات](https://support.google.com/accounts/answer/185833?hl=ar)",
+            "[إضافة Gmail إلى برنامج بريد آخر (IMAP)](https://support.google.com/mail/answer/7126229?hl=ar)",
+          ] },
+        ],
+      },
+    },
+  },
+  {
+    slug: "connect-imap-smtp",
+    collection: "using-yolias",
+    doc: {
+      en: {
+        title: "Connecting another mailbox (IMAP/SMTP)",
+        summary: "Connect any mailbox, such as Zoho, Hostinger, Outlook or your company mail, with its IMAP and SMTP settings.",
+        blocks: [
+          { ol: [
+            "Open **Settings → Integrations**, and on the **IMAP/SMTP mailbox** card choose **Connect** from the ⋯ menu.",
+            "Enter your email address and password. Yolias fills the usual server names from your domain; change them if your provider uses others.",
+            "Press **Connect**. Yolias checks the login and a test connection before saving.",
+          ] },
+          { p: "Many providers need an **app password** instead of your normal password when two-step sign-in is on. Create one in your provider's security settings and paste it in the password field." },
+          { h2: "Settings of common providers" },
+          { table: {
+            head: ["Provider", "IMAP (incoming)", "SMTP (outgoing)"],
+            rows: [
+              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
+              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
+              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
+              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
+              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
+            ],
+          } },
+          { p: "Zoho accounts in Europe or India use zoho.eu or zoho.in instead of zoho.com. For any other provider, look for “IMAP settings” in its help." },
+          { h2: "Official help from each provider" },
+          { ul: [
+            "[Google: app passwords](https://support.google.com/accounts/answer/185833)",
+            "[Zoho Mail: IMAP access](https://www.zoho.com/mail/help/imap-access.html)",
+            "[Microsoft: POP, IMAP and SMTP settings for Outlook.com](https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040)",
+            "[Yahoo: generate an app password](https://help.yahoo.com/kb/SLN15241.html)",
+          ] },
+          { note: "After connecting, Settings → Integrations shows whether your domain has SPF, DKIM and DMARC. Without them, campaign emails often land in spam." },
+        ],
+      },
+      ar: {
+        title: "ربط بريد آخر (IMAP/SMTP)",
+        summary: "اربط أي بريد، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك، بإعدادات IMAP وSMTP.",
+        blocks: [
+          { ol: [
+            "افتح **الإعدادات ← التكاملات**، وفي كارت **بريد IMAP/SMTP** اختر **اربط** من قائمة ⋯.",
+            "أدخل بريدك وكلمة المرور. يملأ يولـياس أسماء الخوادم المعتادة من دومينك؛ غيّرها إن كان مزودك يستخدم غيرها.",
+            "اضغط **ربط**. يتحقق يولـياس من الدخول ومن اتصال تجريبي قبل الحفظ.",
+          ] },
+          { p: "كثير من المزودين يطلبون **كلمة مرور تطبيق** بدل كلمة مرورك العادية عند تفعيل التحقق بخطوتين. أنشئها من إعدادات الأمان عند مزودك والصقها في خانة كلمة المرور." },
+          { h2: "إعدادات أشهر المزودين" },
+          { table: {
+            head: ["المزود", "IMAP (الوارد)", "SMTP (الصادر)"],
+            rows: [
+              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
+              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
+              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
+              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
+              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
+            ],
+          } },
+          { p: "حسابات Zoho في أوروبا أو الهند تستخدم zoho.eu أو zoho.in بدل zoho.com. لأي مزود آخر ابحث عن «IMAP settings» في صفحات مساعدته." },
+          { h2: "المساعدة الرسمية من كل مزود" },
+          { ul: [
+            "[Google: كلمات مرور التطبيقات](https://support.google.com/accounts/answer/185833?hl=ar)",
+            "[Zoho Mail: الوصول عبر IMAP](https://www.zoho.com/mail/help/imap-access.html)",
+            "[Microsoft: إعدادات POP وIMAP وSMTP لـ Outlook.com](https://support.microsoft.com/ar-sa/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040)",
+            "[Yahoo: إنشاء كلمة مرور تطبيق](https://help.yahoo.com/kb/SLN15241.html)",
+          ] },
+          { note: "بعد الربط، تعرض الإعدادات ← التكاملات هل في دومينك سجلات SPF وDKIM وDMARC. بدونها تذهب رسائل الحملات غالبًا إلى Spam." },
+        ],
+      },
+    },
+  },
 ];
 
 export const helpHero: Localized<{ title: string; lead: string; collectionsTitle: string; popularTitle: string }> = {

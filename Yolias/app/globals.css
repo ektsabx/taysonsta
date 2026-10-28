@@ -2401,3 +2401,14 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 .referral-status { font-size: .76rem; color: var(--muted); }
 .referral-status.rewarded { color: var(--green); font-weight: 600; }
 @media (max-width: 560px) { .referral-stats { grid-template-columns: 1fr; } .referral-link { flex-direction: column; } }
+
+/* Share on WhatsApp, Facebook, LinkedIn, Telegram, X (owner, 2026-10-28) */
+.share-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 4px; }
+.share-label { font-size: .8rem; color: var(--muted); }
+.share-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.share-btn { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; font-size: .8rem; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--paper); }
+.share-btn:hover { background: var(--hover); }
+.partners-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.partners-steps li { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--line-faint); border-radius: 10px; }
+.partners-steps strong { font-size: .86rem; color: var(--ink); }
+.partners-steps span { font-size: .82rem; color: var(--muted); line-height: 1.55; }

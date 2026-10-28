@@ -388,3 +388,19 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .domain-health-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: .84rem; }
 .domain-health-row span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .domain-health-fix { margin: 10px 0 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: .8rem; line-height: 1.55; color: var(--text-2); }
+
+/* Settings → Integrations as cards (owner, 2026-10-28) */
+.integration-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.integration-card { position: relative; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.integration-card:hover { border-color: var(--line-strong); }
+.integration-card-main { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; padding: 16px; border: 0; background: none; text-align: start; font: inherit; color: inherit; cursor: pointer; border-radius: 12px; }
+.integration-card-logo { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; background: var(--soft); }
+.integration-card-logo svg { width: 20px; height: 20px; }
+.integration-card-text { display: flex; flex-direction: column; gap: 4px; padding-inline-end: 28px; }
+.integration-card-text strong { font-size: .92rem; color: var(--ink); }
+.integration-card-text span { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+.integration-card-menu { position: absolute; top: 10px; inset-inline-end: 10px; }
+.integration-card-menu .sdr-menu-panel { top: 36px; }
+.integration-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; border: 0; background: none; color: var(--muted); font: inherit; font-size: .82rem; cursor: pointer; padding: 0; }
+.integration-back:hover { color: var(--ink); }
+.integration-back svg { width: 15px; height: 15px; }

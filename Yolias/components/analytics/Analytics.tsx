@@ -52,9 +52,13 @@ export function Analytics({ user, locale }: { user: AnalyticsUser | null; locale
     if (pathname !== firstPath) metaTrack("PageView");
   }, [pathname, firstPath]);
 
+  // The landing page is kept for every visitor (owner, 2026-10-28): first-party, no identifier.
+  useEffect(() => {
+    if (!user) rememberFirstTouch();
+  }, [user]);
+
   useEffect(() => {
     if (consent !== "all") return;
-    if (!user) rememberFirstTouch();
     loadMetaPixel();
     loadClarity();
     loadGa4();

@@ -7,6 +7,8 @@ import { useCaseSlugs } from "@/lib/content/use-cases";
 import { languageAlternates, siteUrl } from "@/lib/seo";
 import { localizedHref } from "@/lib/i18n/paths";
 import { indexableSeoPages } from "@/lib/content/seo-store";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { playableTutorials, TUTORIALS_KEY } from "@/lib/tutorials";
 
 // Public, indexable pages only (D-179), in both languages (D-258), on the production domain
 // (NEXT_PUBLIC_SITE_URL). Every URL here is its own canonical: no redirects
@@ -15,14 +17,16 @@ import { indexableSeoPages } from "@/lib/content/seo-store";
 // in robots.ts and its pages are noindex.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const [help, docs, posts, jobs, seo] = await Promise.all([helpArticles(), docPages(), blogPosts(), listCareerJobs(), indexableSeoPages()]);
+  const [help, docs, posts, jobs, seo, videos] = await Promise.all([helpArticles(), docPages(), blogPosts(), listCareerJobs(), indexableSeoPages(),
+    // Platform videos: listed once the first one is published (the page is noindex until then).
+    Promise.resolve(createAdminClient().from("site_settings").select("value").eq("key", TUTORIALS_KEY).maybeSingle()).then(({ data }) => playableTutorials(data?.value, "en").length).catch(() => 0)]);
   const page = (path: string, priority: number, lastModified?: string): MetadataRoute.Sitemap[number] => ({ url: `${base}${path}`, priority, ...(lastModified ? { lastModified } : {}) });
   const entries = [
     page("/", 1), page("/product", 0.9), page("/pricing", 0.9),
     page("/solutions", 0.8), ...solutionSlugs.map((s) => page(`/solutions/${s}`, 0.8)),
     page("/use-cases", 0.8), ...useCaseSlugs.map((s) => page(`/use-cases/${s}`, 0.8)),
     page("/about", 0.6), page("/contact", 0.6), page("/affiliates", 0.5), page("/partners/terms", 0.3), page("/community", 0.5), page("/careers", 0.5), page("/status", 0.4),
-    page("/help-center", 0.7), page("/blog", 0.7),
+    page("/help-center", 0.7), page("/blog", 0.7), ...(videos ? [page("/help-center/videos", 0.6)] : []),
     ...help.map((a) => page(`/help-center/${a.slug}`, 0.5)),
     ...docs.map((d) => page(`/docs/${d.slug}`, 0.5)),
     ...posts.map((p) => page(`/blog/${p.slug}`, 0.6, p.date)),

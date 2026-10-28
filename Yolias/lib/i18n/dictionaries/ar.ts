@@ -255,7 +255,7 @@ export const ar: Dictionary = {
     deleteBody: "سيتم حذف «{title}» من السجل. يبقى عملاؤه المحتملون في صفحة العملاء المحتملين.",
     cancel: "إلغاء",
     getHelp: "المساعدة",
-    helpCenter: "مركز المساعدة",
+    videos: "شرح المنصة بالفيديو", helpCenter: "مركز المساعدة",
     getSupport: "تواصل مع الدعم",
     reportBug: "ملاحظات / الإبلاغ عن مشكلة",
     joinCommunity: "انضم إلى المجتمع",
@@ -271,6 +271,7 @@ export const ar: Dictionary = {
     later: "أكمل الاستكشاف",
   },
   greeting: { morning: "صباح الخير", afternoon: "مساء الخير", evening: "مساء الخير" },
+  share: { on: "شارك على", message: "أستخدم يولـياس لإيجاد عملاء لشركتي بالذكاء الاصطناعي: يجد الشركات المناسبة ويكتب الرسائل ويرسلها من بريدي. جرّبه من رابطي:" },
   startHere: {
     title: "ابدأ هنا", progress: "{done} من 3",
     mailbox: "اربط بريدك", mailboxDesc: "Gmail أو أي بريد عبر IMAP/SMTP (مثل Zoho وHostinger وبريد شركتك). منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
@@ -694,9 +695,17 @@ export const ar: Dictionary = {
       invite: "دعوة مستخدم", invitePlaceholder: "colleague@company.com", invitationSent: "تم إرسال الدعوة · {role}",
       removeConfirm: "إزالة {name} من مساحة العمل؟", removeLabel: "إزالة {name}", revokeLabel: "إلغاء دعوة {email}",
     },
+    hub: {
+      title: "التكاملات", subtitle: "اربط الأدوات التي يعمل يولـياس من خلالها. افتح أي تكامل لترى إعداداته.",
+      back: "كل التكاملات", more: "خيارات", connect: "اربط", how: "طريقة الربط",
+      connected: "{n} متصل", notConnected: "غير متصل", soon: "غير متاح بعد",
+      gmailDesc: "Gmail أو Google Workspace: يرسل حملاتك ويقرأ الردود عليها.",
+      imapName: "بريد IMAP/SMTP", imapDesc: "أي بريد آخر، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك.",
+    },
     referral: {
       title: "رابط دعوتك", desc: "كل شخص ينشئ حسابًا جديدًا في يولـياس من رابطك يضيف لك {n} عميل محتمل، لا تنتهي صلاحيتها.",
       copy: "نسخ الرابط", copied: "تم النسخ", off: "برنامج الدعوة متوقف الآن.",
+      step1: "1. شارك رابطك", step1Body: "انسخه أو شاركه على واتساب أو فيسبوك أو LinkedIn أو Telegram أو X.", step2: "2. يسجّل صديقك", step2Body: "ينشئ حسابًا جديدًا في يولـياس من رابطك ويؤكد بريده.", step3: "3. تكسب", step3Body: "يُضاف {n} عميل محتمل إلى رصيدك فورًا، ولا تنتهي صلاحيتها.",
       joined: "انضموا من رابطك", earned: "عملاء محتملون كسبتهم", month: "هذا الشهر", monthNote: "حتى {cap} دعوة مكافأة شهريًا",
       recent: "آخر من انضم", none: "لم ينضم أحد من رابطك بعد. شاركه مع من يبيع لشركات.",
       status: { rewarded: "+{n} عميل محتمل", capped: "تجاوز الحد الشهري", rejected: "لا يُحتسب" },
@@ -1056,6 +1065,12 @@ export const ar: Dictionary = {
     title: "لوحة الشركاء",
     subtitle: "اربح عمولة عندما يدفع العملاء الذين تحيلهم مقابل يولـياس.",
     tabs: { overview: "نظرة عامة", referrals: "الإحالات", commissions: "العمولات", payouts: "السحب وطرق الدفع", profile: "الملف الشخصي" },
+    recent: { title: "من سجّلوا برابطك", all: "عرض الكل" },
+    steps: {
+      title: "كيف يعمل البرنامج", share: "1. شارك رابطك", shareBody: "انسخه أو شاركه مباشرة على واتساب أو فيسبوك أو LinkedIn أو Telegram أو X.",
+      signup: "2. يسجّل العميل", signupBody: "من يفتح رابطك وينشئ حسابًا خلال {days} يومًا يُحسب لك.",
+      pay: "3. يدفع العميل فتربح", withdraw: "4. اسحب أرباحك",
+    },
     card: { active: "شريك نشط", since: "شريك منذ {date}", code: "كود الشريك", rate: "العمولة", howTitle: "كيف تربح" },
     profile: {
       title: "الملف الشخصي", name: "الاسم", email: "البريد الإلكتروني", emailHint: "بريد تسجيل الدخول. لتغييره تواصل مع الدعم.",

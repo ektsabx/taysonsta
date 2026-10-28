@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertCircle, AtSign, BookOpen, Clock, Gauge, Mail, MailCheck, MoreHorizontal, Plug, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, AtSign, BookOpen, ChevronLeft, Clock, Gauge, Mail, MailCheck, MoreHorizontal, Plug, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -19,7 +19,7 @@ import { DEFAULT_SENDING_RULES } from "@/lib/outreach/sending-rules";
 
 type Tab = "mailboxes" | "connection" | "rules";
 
-export function EmailSettings() {
+export function EmailSettings({ onBack, backLabel }: { onBack?: () => void; backLabel?: string } = {}) {
   const { t } = useI18n();
   const s = t.sdr.email;
   const it = t.settings.integration;
@@ -41,6 +41,7 @@ export function EmailSettings() {
 
   return (
     <div>
+      {onBack && <button type="button" className="integration-back" onClick={onBack}><ChevronLeft className="flip-rtl" />{backLabel}</button>}
       <nav className="sdr-tabs sdr-settings-tabs" aria-label={s.tabs.mailboxes}>
         {([["mailboxes", Mail], ["connection", Plug], ["rules", SlidersHorizontal]] as const).map(([k, Icon]) => (
           <button key={k} type="button" className={tab === k ? "active" : ""} aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)}><Icon />{s.tabs[k]}</button>
@@ -422,7 +423,7 @@ function Rules({ state, reload }: { state: EmailState | null; reload: () => void
 
 /* ── IMAP / SMTP ── */
 
-function ImapDialog({ onClose, onConnected }: { onClose: () => void; onConnected: () => void }) {
+export function ImapDialog({ onClose, onConnected }: { onClose: () => void; onConnected: () => void }) {
   const { t } = useI18n();
   const im = t.settings.integration.imap;
   const [busy, startBusy] = useTransition();

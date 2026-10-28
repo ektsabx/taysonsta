@@ -587,3 +587,14 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .community-steps { list-style: none; padding: 0; margin-top: 24px; }
 .mk .community-step-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); font-weight: 700; margin-bottom: 10px; }
 .mk .community-way-grid { margin-top: 24px; }
+/* Platform videos (owner, 2026-10-28) */
+.mk .tutorials-title { margin-top: 16px; font-size: clamp(2rem, 4vw, 2.8rem); }
+.mk .tutorials-empty { margin-top: 28px; color: var(--muted); }
+.mk .tutorials-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 32px; }
+.mk .tutorial-card h2 { margin-top: 12px; font-size: 1.05rem; font-weight: 700; }
+.mk .tutorial-card p { margin-top: 6px; color: var(--muted); line-height: 1.6; }
+.mk .tutorial-frame { position: relative; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--soft); }
+.mk .tutorial-frame iframe, .mk .tutorial-frame video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+@media (max-width: 760px) { .mk .tutorials-grid { grid-template-columns: 1fr; } }
+.mk .doc-back { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .9rem; text-decoration: none; }
+.mk .doc-back:hover { color: var(--ink); }

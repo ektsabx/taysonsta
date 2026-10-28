@@ -1,4 +1,5 @@
 import { CTA, Y, type SeedPage } from "./types.ts";
+import { yoliasVs } from "./compare-yolias.ts";
 
 // "Yolias vs X" (D-257). The competitor column says only what the product's
 // own website says (scripts/seo-seed/competitors.ts has the sources); where
@@ -40,7 +41,8 @@ function versus(v: Vs): SeedPage {
       : `الفرق بين يولـياس و${v.nameAr ?? v.name} في البحث عن العملاء وبيانات التواصل والتواصل والأسعار، بالمصادر، ومتى يكون كل منهما الخيار الأفضل.`,
     lead: v.lead[l],
     answer: v.answer[l],
-    compare: rows.map((r) => ({ label: labels[r][l], yolias: Y[l][r], them: v.them[r][l] })),
+    // The Yolias column is written against this competitor (compare-yolias.ts), never shared between pages.
+    compare: rows.map((r) => ({ label: labels[r][l], yolias: yoliasVs[v.slug]?.rows[r][l] ?? Y[l][r], them: v.them[r][l] })),
     blocks: [
       { h2: l === "en" ? `When ${v.name} is the better choice` : `متى يكون ${v.nameAr ?? v.name} الخيار الأفضل` },
       { ul: v.chooseThem[l] },
@@ -48,9 +50,7 @@ function versus(v: Vs): SeedPage {
       { ul: v.chooseYolias[l] },
       ...(v.together ? [{ h2: l === "en" ? "Using both" : "استخدام الاثنين معًا" }, { p: v.together[l] }] : []),
       { h2: l === "en" ? "What Yolias doesn't do" : "ما الذي لا يفعله يولـياس" },
-      { ul: l === "en"
-        ? ["It doesn't promise a personal email or phone number for every decision maker: it shows what companies publish, labelled by verification state.", "It doesn't send LinkedIn messages or make calls; outreach is email from your own mailbox.", "What it finds depends on your market and the data sources connected to it."]
-        : ["لا يعد ببريد أو رقم شخصي لكل صانع قرار: يعرض ما تنشره الشركات مصنّفًا حسب حالة التحقق.", "لا يرسل رسائل على LinkedIn ولا يجري اتصالات؛ التواصل بالبريد من صندوق بريدك.", "ما يجده يعتمد على سوقك وعلى مصادر البيانات المتصلة به."] },
+      { ul: yoliasVs[v.slug]?.limits.map((x) => x[l]) ?? [] },
     ],
     faq: v.faq[l],
     cta: CTA[l],

@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
-import { EmailSettings } from "./settings/EmailSettings";
+import { IntegrationsHub } from "./settings/IntegrationsHub";
 import { ReferralSettings } from "./settings/ReferralSettings";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
@@ -914,7 +914,7 @@ function TeamTab({ data }: { data: ShellData }) {
 
 // Integrations → Email (D-256): Mailboxes, Connection and Sending rules, after AgentSDR.
 function IntegrationTab() {
-  return <EmailSettings />;
+  return <IntegrationsHub />;
 }
 
 function SettingRow({ id, label, desc, children }: { id?: string; label: string; desc: string; children: React.ReactNode }) {

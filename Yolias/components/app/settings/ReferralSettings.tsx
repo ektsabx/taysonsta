@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { referralState, type ReferralState } from "@/app/(app)/settings/referral-actions";
+import { ShareButtons } from "@/components/ShareButtons";
 
 // Settings → Referral (owner, 2026-10-28): the invite link, what it brought, the latest sign-ups.
 export function ReferralSettings() {
@@ -31,6 +32,14 @@ export function ReferralSettings() {
             {copied ? <Check /> : <Copy />} {copied ? r.copied : r.copy}
           </button>
         </div>
+      )}
+      {s.enabled && <ShareButtons link={s.link} />}
+      {s.enabled && (
+        <ol className="partners-steps" style={{ margin: "14px 0" }}>
+          <li><strong>{r.step1}</strong><span>{r.step1Body}</span></li>
+          <li><strong>{r.step2}</strong><span>{r.step2Body}</span></li>
+          <li><strong>{r.step3}</strong><span>{fmt(r.step3Body, { n: n(s.reward) })}</span></li>
+        </ol>
       )}
       <div className="referral-stats">
         <div><span>{r.joined}</span><strong>{n(s.joined)}</strong></div>

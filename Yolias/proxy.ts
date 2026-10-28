@@ -53,10 +53,11 @@ async function seoRedirect(path: string): Promise<{ to: string; code: number } |
 }
 
 // The first public page of a visit, for sign-up attribution (lib/attribution.ts).
-// Page loads of visitors who accepted measurement cookies only; the first
-// visit, before the choice, is written by the browser (components/analytics).
+// Every visitor (owner, 2026-10-28): a first-party cookie with the landing path,
+// the referring host and UTM tags only, no identifier and no advertising use,
+// so a paying customer can be traced to the page that brought them.
 function keepFirstTouch(request: NextRequest, response: NextResponse) {
-  if (request.method !== "GET" || request.cookies.has(FIRST_TOUCH_COOKIE) || request.cookies.get("yolias_consent")?.value !== "all") return;
+  if (request.method !== "GET" || request.cookies.has(FIRST_TOUCH_COOKIE)) return;
   if (request.headers.has("rsc") || request.headers.has("next-router-prefetch") || !(request.headers.get("accept") ?? "").includes("text/html")) return;
   if (!isLandingPath(request.nextUrl.pathname)) return;
   response.cookies.set(FIRST_TOUCH_COOKIE, encodeFirstTouch(firstTouch(request.nextUrl, request.headers.get("referer"))), {

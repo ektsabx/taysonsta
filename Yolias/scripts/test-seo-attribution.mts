@@ -45,10 +45,11 @@ try {
   console.log("✓ no cookie: unknown, nothing guessed");
 
   const page = async (cookie: string) => (await fetch(`${site}/pricing`, { headers: { cookie, accept: "text/html" }, redirect: "manual" })).headers.get("set-cookie") ?? "";
-  assert.ok(!/yolias_ft=/.test(await page("yolias_consent=essential")), "essential only: no attribution cookie");
-  assert.ok(!/yolias_ft=/.test(await page("")), "before a choice: no cookie from the server");
-  assert.ok(/yolias_ft=/.test(await page("yolias_consent=all")), "accepted: the first page is kept");
-  console.log("✓ the cookie follows the visitor's consent");
+  // Every visitor (owner, 2026-10-28): first party, no identifier.
+  assert.ok(/yolias_ft=/.test(await page("yolias_consent=essential")), "essential only: the first page is kept");
+  assert.ok(/yolias_ft=/.test(await page("")), "before a choice: kept");
+  assert.ok(!/yolias_ft=/.test(await page(`yolias_ft=${ft}`)), "an existing first touch is never replaced");
+  console.log("✓ the landing page is kept for every visitor, once");
   console.log("\nAll attribution checks passed.");
 } finally {
   for (const id of users) {
