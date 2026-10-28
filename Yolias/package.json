@@ -50,6 +50,7 @@
     "content:seed:production": "bash scripts/seed-content-production.sh",
     "content:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-content.mts",
     "seo:seed": "set -a && . ./.env.local && set +a && npx -y tsx --tsconfig tsconfig.json scripts/seed-seo.mts",
+    "messaging:live": "bash -c 'set -a && . ../.env.yolias-production.local && set +a && NEXT_PUBLIC_SUPABASE_URL=\"$YOLIAS_SUPABASE_URL\" SUPABASE_SERVICE_ROLE_KEY=\"$YOLIAS_SUPABASE_SERVICE_ROLE_KEY\" NEXT_PUBLIC_SITE_URL=https://www.yolias.com npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/ops-messaging-live.mts \"$@\"' --",
     "seo:seed:production": "bash scripts/seed-seo-production.sh",
     "eval:icp": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/eval-icp.mts",
     "test": "npm run typecheck && npm run test:unit",

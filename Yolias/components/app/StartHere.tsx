@@ -8,7 +8,8 @@ import { openSettingsTab } from "@/components/app/open-settings";
 export interface StartSteps { mailbox: boolean; search: boolean; campaign: boolean }
 
 // Start here (owner, 2026-10-28): three steps for a new workspace under the
-// composer: connect a mailbox, write a first search, review a first campaign.
+// composer: write a first search, connect a mailbox to send from, review a first
+// campaign (owner, 2026-10-29: search first, then the mailbox).
 // Each step is done from real rows; the card goes away once all three are.
 export function StartHere({ steps }: { steps: StartSteps }) {
   const { t } = useI18n();
@@ -17,8 +18,8 @@ export function StartHere({ steps }: { steps: StartSteps }) {
   const done = [steps.mailbox, steps.search, steps.campaign].filter(Boolean).length;
   const focusComposer = () => document.querySelector<HTMLTextAreaElement>(".prompt-input")?.focus();
   const items = [
-    { key: "mailbox", ok: steps.mailbox, icon: Mail, title: s.mailbox, desc: s.mailboxDesc, action: <button type="button" className="start-here-go" onClick={() => openSettingsTab("integration")}>{s.mailboxCta}</button> },
     { key: "search", ok: steps.search, icon: Search, title: s.search, desc: s.searchDesc, action: <button type="button" className="start-here-go" onClick={focusComposer}>{s.searchCta}</button> },
+    { key: "mailbox", ok: steps.mailbox, icon: Mail, title: s.mailbox, desc: s.mailboxDesc, action: <button type="button" className="start-here-go" onClick={() => openSettingsTab("integration")}>{s.mailboxCta}</button> },
     { key: "campaign", ok: steps.campaign, icon: Send, title: s.campaign, desc: s.campaignDesc, action: <Link className="start-here-go" href="/outreach">{s.campaignCta}</Link> },
   ];
   return (

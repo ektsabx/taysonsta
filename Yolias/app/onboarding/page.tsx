@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OnboardingPage() {
   const session = await requireUser();
-  if (!canUseApp(session.workspace)) redirect("/checkout");
-  if (session.profile.onboarded_at) redirect("/");
+  // Onboarding comes before the plan (owner, 2026-10-29).
+  if (session.profile.onboarded_at) redirect(canUseApp(session.workspace) ? "/" : "/checkout");
   const t = await getDictionary();
 
   const isOwner = session.role === "owner";

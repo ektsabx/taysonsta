@@ -50,15 +50,16 @@ export async function requireUser(): Promise<Session> {
   return session;
 }
 
-// Order of the journey: pricing → signup → magic link → checkout (plan) →
-// onboarding → Yolias. App pages and actions require all of it.
+// Order of the journey (owner, 2026-10-29): pricing → signup → magic link →
+// onboarding (website, company, ideal customer) → checkout (plan) → Yolias.
+// App pages and actions require all of it.
 export async function requireSession(): Promise<Session> {
   const session = await requireUser();
+  if (!session.profile.onboarded_at) redirect("/onboarding");
   if (!canUseApp(session.workspace)) {
     const plan = await pendingPlan(session);
     redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
   }
-  if (!session.profile.onboarded_at) redirect("/onboarding");
   return session;
 }
 
@@ -71,14 +72,14 @@ export async function requireSession(): Promise<Session> {
  */
 export async function requireViewer(): Promise<Session> {
   const session = await requireUser();
-  if (canUseApp(session.workspace) && !session.profile.onboarded_at) redirect("/onboarding");
+  if (!session.profile.onboarded_at) redirect("/onboarding");
   return session;
 }
 
 /** Where a signed-in user should continue to next. */
 export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
-  if (!canUseApp(session.workspace)) return "/checkout";
   if (!session.profile.onboarded_at) return "/onboarding";
+  if (!canUseApp(session.workspace)) return "/checkout";
   return "/";
 }
 

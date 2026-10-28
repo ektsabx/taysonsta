@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, CheckSquare, ChevronDown, ChevronLeft, ExternalLink, ListFilter, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
+import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, TrendingUp, UserRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -12,7 +12,6 @@ import { convertToOpportunity, draftReplyAction, markThreadRead, sendReply, setR
 import { setTaskDone } from "@/app/(app)/crm/actions";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { MessageCard, type CardMessage } from "@/components/app/ws/MessageCard";
-import { PendingApprovals, type Approval } from "@/components/app/ws/PendingApprovals";
 import { KindBadge, initials, useAgo } from "@/components/app/sdr/bits";
 import { REPLY_KINDS } from "@/lib/automations/schema";
 import type { InboxListItem, InboxTab } from "@/services/master-inbox";
@@ -24,15 +23,11 @@ interface Props {
   counts: Record<InboxTab, number>;
   items: InboxListItem[];
   q: string;
-  campaignId: string | null;
-  campaigns: { id: string; name: string }[];
   thread: InboxThread | null;
   status: LeadStatus | null;
   hasMailbox: boolean;
   mailboxEmail: string | null;
   timeZone: string | null;
-  approvals: Approval[];
-  tasks: { id: string; title: string; leadId: string; leadName: string; dueAt: string | null }[];
 }
 
 const MAIN: InboxTab[] = ["inbox", "replies", "to_approve"];
@@ -47,13 +42,11 @@ export function MasterInbox(p: Props) {
   const x = t.sdr.inbox;
   const router = useRouter();
   const [more, setMore] = useState(false);
-  const [showFilter, setShowFilter] = useState(Boolean(p.campaignId));
-  const [panel, setPanel] = useState<"tasks" | "approvals" | null>(null);
   const [cursor, setCursor] = useState(() => Math.max(0, p.items.findIndex((i) => i.leadId === p.thread?.lead.id)));
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, campaign: p.campaignId, lead: p.thread?.lead.id ?? null, ...patch };
+    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -87,35 +80,15 @@ export function MasterInbox(p: Props) {
     <div className="sdr-page sdr-inbox-page">
       <header className="sdr-head">
         <div><h2>{x.title}</h2><p>{x.subtitle}</p></div>
-        <div className="sdr-head-actions">
-          <button type="button" className="sdr-btn" onClick={() => setPanel(panel === "tasks" ? null : "tasks")}><CheckSquare />{x.tasks}{p.tasks.length > 0 && <span className="sdr-count">{n(p.tasks.length)}</span>}</button>
-          <button type="button" className="sdr-btn" onClick={() => setPanel(panel === "approvals" ? null : "approvals")}><ShieldCheck />{x.approvals}{p.approvals.length > 0 && <span className="sdr-count">{n(p.approvals.length)}</span>}</button>
-        </div>
       </header>
-      {panel === "approvals" && <div className="sdr-panel"><div className="sdr-panel-head"><div className="sdr-panel-title">{x.approvalsTitle}</div></div><div className="sdr-panel-body pad"><PendingApprovals timeZone={p.timeZone} approvals={p.approvals} /></div></div>}
-      {panel === "tasks" && (
-        <div className="sdr-panel"><div className="sdr-panel-head"><div className="sdr-panel-title">{x.tasksTitle}</div></div>
-          <div className="sdr-panel-body pad">{!p.tasks.length ? <p className="sdr-panel-sub">{x.tasksEmpty}</p> : <TaskList tasks={p.tasks} />}</div></div>
-      )}
-
       <div className={`sdr-inbox${p.thread ? " has-thread" : ""}`}>
         <aside className="sdr-inbox-list">
           <div className="sdr-inbox-tools">
             <form method="get" action="/inbox" className="sdr-search" style={{ flex: 1, minWidth: 0 }}>
               {p.tab !== "inbox" && <input type="hidden" name="tab" value={p.tab} />}
-              {p.campaignId && <input type="hidden" name="campaign" value={p.campaignId} />}
               <Search /><input name="q" defaultValue={p.q} placeholder={x.search} aria-label={x.search} />
             </form>
-            <button type="button" className={`sdr-btn${p.campaignId ? " has-filters" : ""}`} aria-expanded={showFilter} onClick={() => setShowFilter((v) => !v)}><ListFilter />{x.filter}</button>
           </div>
-          {showFilter && (
-            <div style={{ padding: "0 12px 8px" }}>
-              <select className="sdr-input" style={{ width: "100%" }} value={p.campaignId ?? ""} onChange={(e) => router.push(href({ campaign: e.target.value || null, lead: null }))} aria-label={x.filter}>
-                <option value="">{x.campaignAll}</option>
-                {p.campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-          )}
           <nav className="sdr-tabs sdr-inbox-tabs">
             {MAIN.map((k) => <Link key={k} href={href({ tab: k === "inbox" ? null : k, lead: null })} className={p.tab === k ? "active" : ""} title={x.tabHints[k]}>{x.tabs[k]}{k === "inbox" && p.counts.inbox > 0 && <span className="sdr-count">{n(p.counts.inbox)}</span>}{k === "to_approve" && p.counts.to_approve > 0 && <span className="sdr-count">{n(p.counts.to_approve)}</span>}</Link>)}
             <div className="sdr-menu">
@@ -124,7 +97,7 @@ export function MasterInbox(p: Props) {
             </div>
           </nav>
           <div className="sdr-inbox-items">
-            {!p.items.length && <p className="sdr-panel-sub" style={{ padding: 16 }}>{p.q || p.campaignId ? t.sdr.leads.emptyFiltered : x.empty[p.tab]}</p>}
+            {!p.items.length && <p className="sdr-panel-sub" style={{ padding: 16 }}>{p.q ? t.sdr.leads.emptyFiltered : x.empty[p.tab]}</p>}
             {groups.map(([label, rows]) => rows.length > 0 && (
               <div key={label}>
                 <div className="sdr-inbox-group">{label}</div>
@@ -159,22 +132,6 @@ export function MasterInbox(p: Props) {
         </section>
       </div>
     </div>
-  );
-}
-
-function TaskList({ tasks }: { tasks: Props["tasks"] }) {
-  const { locale } = useI18n();
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  return (
-    <ul className="sdr-tasks">
-      {tasks.map((k) => (
-        <li key={k.id}>
-          <input type="checkbox" disabled={pending} aria-label={k.title} onChange={() => start(async () => { await setTaskDone(k.id, true); router.refresh(); })} />
-          <span><span dir="auto">{k.title}</span><Link className="sdr-cell-sub" href={`/inbox?lead=${k.leadId}`}>{k.leadName}{k.dueAt ? ` · ${new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { month: "short", day: "numeric" }).format(new Date(k.dueAt))}` : ""}</Link></span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

@@ -1,6 +1,8 @@
 "use server";
 
-import { saveCustomerFromAnalysis } from "@/app/(app)/ai/actions";
+import { saveFirstCustomerProfile } from "@/lib/ai-workspace/customer-from-site";
+import { canUseApp } from "@/lib/plans";
+import { pendingPlan } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { attributeSignup } from "@/lib/affiliates";
@@ -73,7 +75,7 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
   if (company) {
     // The ideal customer the website analysis wrote fills Customer Profiles too (owner, 2026-10-28).
     const customer = (() => { try { return JSON.parse(String(formData.get("customer_json") ?? "null")); } catch { return null; } })();
-    if (customer && typeof customer === "object") await saveCustomerFromAnalysis(customer).catch((e) => console.error("[onboarding] customer profile", e));
+    if (customer && typeof customer === "object") await saveFirstCustomerProfile(session.workspace.id, session.userId, (await getDictionary()).ws.ai.profiles.defaultName, customer).catch((e) => console.error("[onboarding] customer profile", e));
   }
 
   if (company) {
@@ -100,6 +102,11 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     workspace_id: session.workspace.id, role: session.role, plan: session.workspace.plan,
     has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null, acquisition_source: source.value?.source ?? null,
   });
+  // Onboarding comes before the plan (owner, 2026-10-29): Yolias shows it understood the business, then the plan.
+  if (!canUseApp(session.workspace)) {
+    const plan = await pendingPlan(session);
+    redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
+  }
   redirect("/");
 }
 

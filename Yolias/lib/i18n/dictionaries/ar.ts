@@ -696,7 +696,7 @@ export const ar: Dictionary = {
       removeConfirm: "إزالة {name} من مساحة العمل؟", removeLabel: "إزالة {name}", revokeLabel: "إلغاء دعوة {email}",
     },
     hub: {
-      title: "التكاملات", subtitle: "اربط الأدوات التي يعمل يولـياس من خلالها. افتح أي تكامل لترى إعداداته.",
+      title: "التكاملات", subtitle: "الأدوات التي يعمل بها يولـياس.",
       back: "كل التكاملات", more: "خيارات", connect: "اربط", how: "طريقة الربط",
       connected: "{n} متصل", notConnected: "غير متصل", soon: "غير متاح بعد",
       gmailDesc: "Gmail أو Google Workspace: يرسل حملاتك ويقرأ الردود عليها.",
@@ -976,7 +976,7 @@ export const ar: Dictionary = {
   },
   site: {
     product: "المنتج", pricing: "الأسعار", helpCenter: "مركز المساعدة", blog: "المدونة", solutions: "الحلول", allSolutions: "كل الحلول",
-    community: "المجتمع", signIn: "تسجيل الدخول", logIn: "تسجيل الدخول", signUp: "إنشاء حساب", dashboard: "لوحة التحكم", tryYolias: "جرّب يولـياس", menu: "فتح قائمة التنقل", home: "الصفحة الرئيسية ليولـياس",
+    community: "المجتمع", signIn: "تسجيل الدخول", logIn: "تسجيل الدخول", signUp: "إنشاء حساب", dashboard: "افتح يولـياس", tryYolias: "جرّب يولـياس", menu: "فتح قائمة التنقل", home: "الصفحة الرئيسية ليولـياس",
     tagline: "يولـياس منصة لاكتشاف العملاء والنمو مدعومة بالذكاء الاصطناعي، تساعد في اكتشاف العملاء وأبحاث السوق واستراتيجية النمو والمبيعات. صُممت لتساعد الشركات على إيجاد عملائها المثاليين وفهمهم والوصول إليهم أسرع.",
     useCases: "حالات الاستخدام", affiliates: "برنامج الأفلييت", status: "حالة الخدمات", resources: "الموارد", documentation: "التوثيق", faq: "الأسئلة الشائعة", contactSupport: "تواصل مع الدعم",
     company: "الشركة", about: "عن يولـياس", contact: "تواصل معنا", careers: "الوظائف",

@@ -9,47 +9,49 @@ import { referralState, type ReferralState } from "@/app/(app)/settings/referral
 import { ShareButtons } from "@/components/ShareButtons";
 
 // Settings → Referral (owner, 2026-10-28): the invite link, what it brought, the latest sign-ups.
-export function ReferralSettings() {
+export function ReferralSettings({ link }: { link: string }) {
   const { t, locale } = useI18n();
   const r = t.settings.referral;
   const [s, setS] = useState<ReferralState | null>(null);
   const [copied, setCopied] = useState(false);
   useEffect(() => { referralState().then(setS).catch(() => setS(null)); }, []);
   const n = (v: number) => formatNumber(v, locale);
-  if (!s) return <div className="setting-group"><p className="setting-desc">…</p></div>;
+  // The link shows at once (from the app shell); the numbers fill in when they arrive.
+  const state: ReferralState = s ?? { enabled: true, link, reward: 50, monthlyCap: 20, joined: 0, earned: 0, thisMonth: 0, recent: [] };
+  const loading = !s;
   return (
     <div className="setting-group">
       <div className="setting-row" data-setting="referral-link">
         <div className="setting-info">
           <div className="setting-label">{r.title}</div>
-          <div className="setting-desc">{s.enabled ? fmt(r.desc, { n: n(s.reward) }) : r.off}</div>
+          <div className="setting-desc">{state.enabled ? fmt(r.desc, { n: n(state.reward) }) : r.off}</div>
         </div>
       </div>
-      {s.enabled && (
+      {state.enabled && (
         <div className="referral-link">
-          <input className="form-input" dir="ltr" readOnly value={s.link} onFocus={(e) => e.target.select()} aria-label={r.title} />
-          <button type="button" className="btn-secondary" onClick={() => { void navigator.clipboard.writeText(s.link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); }}>
+          <input className="form-input" dir="ltr" readOnly value={state.link} onFocus={(e) => e.target.select()} aria-label={r.title} />
+          <button type="button" className="btn-secondary" onClick={() => { void navigator.clipboard.writeText(state.link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); }}>
             {copied ? <Check /> : <Copy />} {copied ? r.copied : r.copy}
           </button>
         </div>
       )}
-      {s.enabled && <ShareButtons link={s.link} />}
-      {s.enabled && (
+      {state.enabled && <ShareButtons link={state.link} />}
+      {state.enabled && (
         <ol className="partners-steps" style={{ margin: "14px 0" }}>
           <li><strong>{r.step1}</strong><span>{r.step1Body}</span></li>
           <li><strong>{r.step2}</strong><span>{r.step2Body}</span></li>
-          <li><strong>{r.step3}</strong><span>{fmt(r.step3Body, { n: n(s.reward) })}</span></li>
+          <li><strong>{r.step3}</strong><span>{fmt(r.step3Body, { n: n(state.reward) })}</span></li>
         </ol>
       )}
       <div className="referral-stats">
-        <div><span>{r.joined}</span><strong>{n(s.joined)}</strong></div>
-        <div><span>{r.earned}</span><strong>{n(s.earned)}</strong></div>
-        <div><span>{r.month}</span><strong>{n(s.thisMonth)}</strong><em>{fmt(r.monthNote, { cap: n(s.monthlyCap) })}</em></div>
+        <div><span>{r.joined}</span><strong>{n(state.joined)}</strong></div>
+        <div><span>{r.earned}</span><strong>{n(state.earned)}</strong></div>
+        <div><span>{r.month}</span><strong>{n(state.thisMonth)}</strong><em>{fmt(r.monthNote, { cap: n(state.monthlyCap) })}</em></div>
       </div>
       <div className="setting-label" style={{ marginTop: 18 }}>{r.recent}</div>
-      {!s.recent.length ? <p className="setting-desc">{r.none}</p> : (
+      {loading ? <p className="setting-desc">…</p> : !state.recent.length ? <p className="setting-desc">{r.none}</p> : (
         <ul className="referral-list">
-          {s.recent.map((x, i) => (
+          {state.recent.map((x, i) => (
             <li key={i}>
               <span dir="auto">{x.name || "-"}</span>
               <span className="setting-desc">{new Date(x.at).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short" })}</span>

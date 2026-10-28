@@ -146,7 +146,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
             {tab === "integration" && <IntegrationTab />}
-            {tab === "referral" && <ReferralSettings />}
+            {tab === "referral" && <ReferralSettings link={data.workspace.referralLink} />}
             </>}
           </div>
         </div>

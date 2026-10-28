@@ -46,10 +46,11 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M16 16l5 5" />
     </>
   ),
+  // Plain icons, no "AI sparkle" (owner, 2026-10-29).
   y_ai: (
     <>
-      <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z" />
-      <path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" />
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+      <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />
     </>
   ),
   y_messages: (
@@ -166,7 +167,7 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M3 8v8l9 5 9-5V8M12 13v8" />
     </>
   ),
-  assistant: <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" />,
+  assistant: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
   website: (
     <>
       <circle cx="12" cy="12" r="9" />

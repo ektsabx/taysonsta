@@ -51,7 +51,7 @@
   --bos-warning: #b45309;
   --bos-danger: #dc2626;
   --bos-info: #2563eb;
-  --bos-violet: #6d28d9;
+  --bos-violet: #5d5d59; /* neutral ink accents, no violet (owner, 2026-10-29) */
   --bos-radius: 8px;
   --red: var(--y-red);
   color-scheme: light;
@@ -83,7 +83,7 @@
   --bos-warning: #fbbf24;
   --bos-danger: #f87171;
   --bos-info: #60a5fa;
-  --bos-violet: #c4b5fd;
+  --bos-violet: #b5b5ae;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -112,7 +112,7 @@
     --bos-warning: #fbbf24;
     --bos-danger: #f87171;
     --bos-info: #60a5fa;
-    --bos-violet: #c4b5fd;
+    --bos-violet: #b5b5ae;
     color-scheme: dark;
   }
 }
@@ -224,7 +224,7 @@
 .bos-link:hover { color: var(--y-red); }
 
 /* ── Login (Yolias auth page) ──────────────────────────────────── */
-.admin-login-shell { background: radial-gradient(circle at 92% 1%, rgba(207, 37, 37, .05), transparent 25rem), var(--y-paper); }
+.admin-login-shell { background: var(--y-paper); }
 .admin-login-card { max-width: 400px; background: transparent; border: 0; padding: 24px; }
 .admin-login-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 28px; }
 .admin-login-card h1 { font-family: var(--y-serif); font-size: 2rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; color: var(--y-ink); }

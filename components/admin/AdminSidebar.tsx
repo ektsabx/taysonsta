@@ -90,13 +90,13 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
                       const childActive = item.children?.find((c) => isActive(pathname, c.href, allHrefs));
                       return (
                         <div key={item.href} className="bos-nav-item">
-                          <Link href={item.href} className={open && (!item.children || !childActive || childActive.href === item.href) ? "active" : open ? "open" : undefined} aria-current={pathname === item.href ? "page" : undefined} onClick={onNavigate}>
+                          <Link href={item.href} prefetch className={open && (!item.children || !childActive || childActive.href === item.href) ? "active" : open ? "open" : undefined} aria-current={pathname === item.href ? "page" : undefined} onClick={onNavigate}>
                             {t(item.label)}
                           </Link>
                           {open && item.children ? (
                             <div className="bos-nav-sub3">
                               {item.children.filter((c) => c.href !== item.href).map((c) => (
-                                <Link key={c.href} href={c.href} className={childActive?.href === c.href ? "active" : undefined} aria-current={pathname === c.href ? "page" : undefined} onClick={onNavigate}>
+                                <Link key={c.href} href={c.href} prefetch className={childActive?.href === c.href ? "active" : undefined} aria-current={pathname === c.href ? "page" : undefined} onClick={onNavigate}>
                                   {t(c.label)}
                                 </Link>
                               ))}

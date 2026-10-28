@@ -694,7 +694,7 @@ export const en = {
       removeConfirm: "Remove {name} from the workspace?", removeLabel: "Remove {name}", revokeLabel: "Revoke invitation for {email}",
     },
     hub: {
-      title: "Integrations", subtitle: "Connect the tools Yolias works through. Open an integration to see its settings.",
+      title: "Integrations", subtitle: "The tools Yolias works through.",
       back: "All integrations", more: "Options", connect: "Connect", how: "How to connect",
       connected: "{n} connected", notConnected: "Not connected", soon: "Not available yet",
       gmailDesc: "Gmail or Google Workspace: sends your campaigns and reads the replies.",
@@ -974,7 +974,7 @@ export const en = {
   },
   site: {
     product: "Product", pricing: "Pricing", helpCenter: "Help Center", blog: "Blog", solutions: "Solutions", allSolutions: "All solutions",
-    community: "Community", signIn: "Sign In", logIn: "Log in", signUp: "Sign up", dashboard: "Dashboard", tryYolias: "Try Yolias", menu: "Open navigation menu", home: "Yolias home",
+    community: "Community", signIn: "Sign In", logIn: "Log in", signUp: "Sign up", dashboard: "Open Yolias", tryYolias: "Try Yolias", menu: "Open navigation menu", home: "Yolias home",
     tagline: "Yolias is an AI-powered customer discovery and growth platform that helps with customer discovery, market research, growth strategy, and sales. Built to help businesses find, understand, and reach their ideal customers faster.",
     useCases: "Use cases", affiliates: "Affiliate program", status: "Status", resources: "Resources", documentation: "Documentation", faq: "FAQ", contactSupport: "Contact Support",
     company: "Company", about: "About", contact: "Contact", careers: "Careers",

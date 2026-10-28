@@ -17,6 +17,8 @@ export interface ShellData {
   preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product">;
   workspace: {
     name: string;
+    /** Invite link of the referral program: shown at once in Settings → Referral. */
+    referralLink: string;
     website: string | null;
     offering: string | null;
     industry: string | null;

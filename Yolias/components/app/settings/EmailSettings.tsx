@@ -372,7 +372,7 @@ function Rules({ state, reload }: { state: EmailState | null; reload: () => void
       <div className="sdr-section-head"><div><h4>{r.title}</h4><p>{r.subtitle}</p></div></div>
       <div className="sdr-rules"><div className="sdr-rules-body">
         <div className="sdr-rule">
-          <div><div className="sdr-rule-label">{r.perDay}</div><div className="sdr-rule-desc">{r.perDayDesc}</div><div className="sdr-rule-desc">{r.perDayNote}</div></div>
+          <div><div className="sdr-rule-label">{r.perDay}</div><div className="sdr-rule-desc">{r.perDayDesc}</div></div>
           <div className="sdr-rule-ctl">
             <div className="row"><input className="sdr-input num" type="number" min={1} max={500} disabled={ro} value={f.daily_per_mailbox} onChange={(e) => set({ daily_per_mailbox: Number(e.target.value) })} /><span className="unit">{r.unitDay}</span></div>
             <span className="hint">{fmt(r.defaultPerDay, { n: d.daily_per_mailbox })}</span>

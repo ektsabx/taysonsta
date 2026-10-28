@@ -9,7 +9,7 @@ export const wsEn = {
     watchVideo: "Watch the intro video",
   },
   conversations: {
-    title: "Conversations", subtitle: "Every conversation with a prospect in one place: what was sent, the replies and the next step, with the campaigns that start them.",
+    title: "Conversations", subtitle: "Every conversation with a prospect.",
     tabs: { threads: "Conversations", campaigns: "Campaigns" },
     filteredBy: "Conversations of the campaign", clearFilter: "All conversations", campaignSettings: "Campaign settings",
   },
@@ -49,7 +49,7 @@ export const wsEn = {
       sentCols: { lead: "Lead", to: "Email address", subject: "Email", sentAt: "Sent at", sentBy: "Sent by", status: "Status" },
       sentStatus: { sent: "Sent", bounced: "Bounced", replied: "Replied", failed: "Failed" }, noSent: "Nothing sent yet.",
     },
-    title: "Outreach", subtitle: "Campaigns that reach the prospects you found: first message, follow-ups and their status.",
+    title: "Outreach", subtitle: "Emails and follow-ups to your prospects.",
     newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Prospects or the CRM.",
     colName: "Campaign", colStatus: "Status", colLeads: "Leads", colDrafts: "Drafts", colSent: "Sent", colReplies: "Replies", colMeetings: "Meetings", colUpdated: "Updated",
     status: { draft: "Draft", active: "Active", paused: "Paused", archived: "Archived" },
@@ -70,7 +70,7 @@ export const wsEn = {
       ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
       autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops, moves them to the CRM and notifies you so you take it from there. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
       title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",
-      recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address. Leads without one get no emails.", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
+      domainWeak: "{domain} is missing {missing}, so this campaign's emails may land in spam.", domainFix: "How to fix it", recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address. Leads without one get no emails.", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",
       sendFrom: "Send from", manualOption: "Don’t send: I’ll send each message myself",
       autoReply: "Let Yolias answer simple replies", autoReplyHint: "Only questions and positive replies it can answer from Company Knowledge. Anything unclear, a complaint or a stop request comes to you.",
@@ -125,7 +125,7 @@ export const wsEn = {
   inbox: {
       agentLog: "What Yolias did", viaMailbox: "Sent from your mailbox", bounced: "Bounced", autoReply: "Auto-reply",
       activity: { message_drafted: "Prepared a message", message_sent: "Sent a message", reply_logged: "Reply received", reply_analyzed: "Read the reply", stage_changed: "Moved the stage", agent: "Yolias", automation: "Automation", enrolled: "Added to a campaign", enrollment_stopped: "Follow-ups stopped", do_not_contact: "Marked do not contact", task_created: "Added a reminder", created: "Lead created" },
-    title: "Inbox", subtitle: "Replies to your campaigns in one place. Yolias reads them, sorts them and suggests the answer.",
+    title: "Inbox", subtitle: "Replies to your campaigns, sorted.",
     filters: { all: "All", unread: "Unread", interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up", sent: "Sent", done: "Done", others: "Others" },
     labels: { interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up" }, label: "Label",
     convert: "Move to CRM", converted: "Moved to the CRM as Interested.",
@@ -146,7 +146,7 @@ export const wsEn = {
     reminders: "Reminders", scheduled: "Scheduled", stage: "Stage", search: "Search conversations…", show: "Show", channel: "Channel",
   },
   crm: {
-    title: "CRM", subtitle: "Your deals: leads moved from Conversations, with stage, value, meetings, follow-ups and history.",
+    title: "CRM", subtitle: "Your deals.",
     table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", empty: "No deals yet. Open a conversation with an interested lead and choose “Move to CRM”.",
     emptyFiltered: "No leads match these filters.",
     cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", campaignDate: "Campaign date", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
@@ -182,7 +182,7 @@ export const wsEn = {
   },
   ai: {
     knowledge: {
-      title: "Company Knowledge", subtitle: "What Yolias AI knows about your company. It uses only what you write here, in searches, messages and replies.",
+      title: "Company Knowledge", subtitle: "What Yolias knows about your company.",
       tabCompany: "Company",
       basics: "Company profile", sections: "Company information", offers: "Business Offers", competitors: "Competitors",
       fields: {
@@ -208,7 +208,7 @@ export const wsEn = {
       errors: { name: "Enter a name.", duplicate: "That name already exists." },
     },
     profiles: {
-      title: "Customer Profiles", subtitle: "Your ideal customer: who Yolias looks for and how it talks to them. Analyze your website and Yolias writes it from what your company sells.",
+      title: "Customer Profiles", subtitle: "Who Yolias looks for, and how it talks to them.",
       defaultName: "Ideal customer", analyzed: "Yolias wrote your ideal customer from your website. Review it, then save.",
       new: "New profile", empty: "No customer profiles yet.", default: "Default", makeDefault: "Make default", namePh: "e.g. Logistics SMEs in KSA",
       fields: {

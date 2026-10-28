@@ -37,6 +37,8 @@ function Bar({ color }: { color: string }) {
     };
     const sameTarget = (url: URL) => url.pathname === window.location.pathname && url.search === window.location.search;
     const onClick = (e: MouseEvent) => {
+      // Yolias Admin has no loading indicators (owner, 2026-10-29): pages open from the router cache instead.
+      if (window.location.pathname.startsWith("/admin")) return;
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a");
       if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return;
@@ -48,6 +50,7 @@ function Bar({ color }: { color: string }) {
     };
     const onSubmit = (e: SubmitEvent) => {
       const form = e.target as HTMLFormElement | null;
+      if (window.location.pathname.startsWith("/admin")) return;
       if (!form || e.defaultPrevented || (form.method || "get").toLowerCase() !== "get" || !form.action) return;
       if (new URL(form.action, window.location.href).origin === window.location.origin) start();
     };

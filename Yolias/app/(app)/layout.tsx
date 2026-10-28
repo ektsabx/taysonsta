@@ -91,6 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
     workspace: {
       name: workspace.name ?? "",
+      referralLink: `${(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.yolias.com").replace(/\/$/, "")}/i/${workspace.referral_code}`,
       website: workspace.website,
       offering: workspace.offering,
       industry: workspace.industry,

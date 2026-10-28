@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
   const t = (await getDictionary()).ws;
   const errors = t.ai.knowledge.analyze.errors;
   const allowed = body.data.context === "onboarding"
-    ? session.role === "owner" && canUseApp(session.workspace)
+    // Onboarding comes before the plan (owner, 2026-10-29): the owner may analyse their site once, before onboarding is done.
+    ? session.role === "owner" && !session.profile.onboarded_at
     : canUseApp(session.workspace) && Boolean(session.profile.onboarded_at) && canManageTeam(session);
   if (!allowed) return NextResponse.json({ error: body.data.context === "onboarding" ? errors.failed : t.common.onlyManagers }, { status: 403 });
 

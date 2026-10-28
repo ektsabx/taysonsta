@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Local dev serves the admin at http://admin.localhost:3200 through
   // scripts/dev-proxy.mjs (docs/12-decisions.md D-011).
   allowedDevOrigins: ["admin.localhost"],
+  // No loading screens in Yolias Admin (owner, 2026-10-29): pages opened in
+  // the last minute come back at once, and the sidebar prefetches its pages.
+  experimental: { staleTimes: { dynamic: 60, static: 600 } },
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "127.0.0.1", port: "54421", pathname: "/storage/v1/object/public/**" },

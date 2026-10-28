@@ -5,7 +5,8 @@
 //      (email_log row + email.send job, like Admin → "Send test").
 //   3. With --activate: the flows leave test mode and become active.
 // "Trial ending soon" stays a draft (there is no free trial, D-246).
-//   set -a && . ./.env.production.local && set +a && npx tsx --conditions=react-server --tsconfig tsconfig.json scripts/ops-messaging-live.mts <to> [--activate]
+//   npm run messaging:live -- <to> [--activate]
+// (reads the production database from ../.env.yolias-production.local, like the seed scripts)
 import { createClient } from "@supabase/supabase-js";
 import { frame, sampleVars } from "@/lib/messaging/render.ts";
 import type { Database, Json } from "@/types/database.ts";

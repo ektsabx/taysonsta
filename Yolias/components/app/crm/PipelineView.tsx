@@ -1,5 +1,7 @@
 "use client";
 
+import { DealExtrasButtons, type DealTask } from "./DealExtras";
+import type { Approval } from "@/components/app/ws/PendingApprovals";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +21,7 @@ const ICON = { needs_action: Zap, waiting: Hourglass, exhausted: Archive } as co
 // The CRM (D-256, after AgentSDR's Pipeline): every lead with a conversation,
 // by where it stands. Board (three columns) or List; "Potential" leaves out
 // the leads who said no. A ready reply is sent from the card.
-export function PipelineView({ leads, view, potential, total, hasMailbox }: { leads: LeadStatus[]; view: "board" | "list"; potential: boolean; total: Record<"open" | Bucket, number>; hasMailbox: boolean }) {
+export function PipelineView({ leads, view, potential, total, hasMailbox, tasks, approvals, timeZone }: { leads: LeadStatus[]; view: "board" | "list"; potential: boolean; total: Record<"open" | Bucket, number>; hasMailbox: boolean; tasks: DealTask[]; approvals: Approval[]; timeZone: string | null }) {
   const { t, locale } = useI18n();
   const x = t.sdr.pipeline;
   const router = useRouter();
@@ -35,7 +37,7 @@ export function PipelineView({ leads, view, potential, total, hasMailbox }: { le
 
   return (
     <div className="sdr-page">
-      <header className="sdr-head"><div><h2>{x.title}</h2><p>{x.subtitle}</p></div></header>
+      <DealExtrasButtons title={x.title} subtitle={x.subtitle} tasks={tasks} approvals={approvals} timeZone={timeZone} />
       <div className="sdr-stats">
         <div className="sdr-stat"><div className="sdr-stat-icon"><Users /></div><div className="sdr-stat-label" title={x.openHint}>{x.open}</div><div className="sdr-stat-value">{n(total.open)}</div><div className="sdr-stat-note">{x.openNote}</div></div>
         <div className="sdr-stat"><div className="sdr-stat-icon"><Zap /></div><div className="sdr-stat-label" title={x.needsHint}>{x.needs}</div><div className="sdr-stat-value">{n(total.needs_action)}</div><div className="sdr-stat-note">{x.needsNote}</div></div>

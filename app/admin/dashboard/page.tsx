@@ -6,7 +6,7 @@ import { requirePermission, type BosUser } from "@/lib/bos/auth";
 import { type WidgetDef } from "@/lib/bos/widgets";
 import { resolveWidgets } from "@/services/bos/dashboard-layout";
 import { widgetComponents } from "./widgets";
-import { PageHeader, ErrorState, LoadingState } from "@/components/bos/ui";
+import { PageHeader, ErrorState } from "@/components/bos/ui";
 import { logServerError } from "@/lib/bos/errors";
 
 async function WidgetSlot({ def, bos }: { def: WidgetDef; bos: BosUser }) {
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
               <h2><Tx>{def.title}</Tx></h2>
             </div>
             <div className="bos-card-body">
-              <Suspense fallback={<LoadingState rows={3} />}>
+              <Suspense fallback={null}>
                 <WidgetSlot def={def} bos={bos} />
               </Suspense>
             </div>

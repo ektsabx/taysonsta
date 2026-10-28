@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pause, Play, Rocket, XCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
@@ -9,6 +9,8 @@ import { AIMS, aimUsesLink } from "@/lib/outreach/aim";
 import type { CampaignAim } from "@/types/acquisition";
 import { openSettingsTab } from "@/components/app/open-settings";
 import { useRun } from "./bits";
+import { mailboxDomainChecks } from "@/app/(app)/settings/mailbox-actions";
+import type { DomainCheck } from "@/lib/mailbox/domain-check";
 import type { LaunchSummary } from "@/services/outreach-campaigns";
 import type { MessageObjective } from "@/types/database";
 
@@ -33,6 +35,11 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
   const aimChanged = aim !== (c.aim ?? "meeting") || cta.trim() !== (c.cta_url ?? "");
   const approved = Boolean(c.approved_at);
   const archived = c.status === "archived";
+  // The sending domain's SPF / DKIM / DMARC (owner, 2026-10-29): said here, before anything goes out.
+  const [checks, setChecks] = useState<DomainCheck[]>([]);
+  useEffect(() => { if (!approved && email) mailboxDomainChecks().then(setChecks).catch(() => setChecks([])); }, [approved, email]);
+  const chosen = mailboxes.find((m) => m.id === mailbox)?.email.split("@")[1]?.toLowerCase();
+  const weak = checks.find((d) => d.domain === chosen && !d.shared && (["spf", "dkim", "dmarc"] as const).some((k) => d[k] === "missing"));
 
   if (approved && !archived) {
     return (
@@ -68,6 +75,12 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
         <div><dt>{o.form.steps}</dt><dd>{summary.steps.map((s) => `${o.objectives[s.objective as MessageObjective]}${s.position > 1 ? ` (${fmt(l.after, { days: s.delay_days })})` : ""}`).join(" → ") || "-"}</dd></div>
         <div><dt>{l.dailyLimit}</dt><dd>{fmt(l.perDay, { count: dailyLimit })}</dd></div>
       </dl>
+      {weak && (
+        <div className="ws-note launch-domain" role="alert">
+          <span>{fmt(l.domainWeak, { domain: weak.domain, missing: (["spf", "dkim", "dmarc"] as const).filter((k) => weak[k] === "missing").map((k) => k.toUpperCase()).join(", ") })}</span>
+          <button type="button" className="link-button" onClick={() => openSettingsTab("integration")}>{l.domainFix}</button>
+        </div>
+      )}
       {/* What the campaign is for (D-253): the agent writes and answers for this aim. */}
       <div className="launch-aim">
         <div className="ws-field">
