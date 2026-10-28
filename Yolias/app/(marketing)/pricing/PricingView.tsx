@@ -8,7 +8,6 @@ import { ConsentText } from "@/app/(auth)/ConsentText";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { TrustLogos } from "@/components/marketing/SocialProof";
 import { planName, planPrice, type PlanTerms } from "@/lib/plans";
 import type { Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
@@ -109,7 +108,6 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
             {card("growth", dict.plans.recommended)}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
-          <TrustLogos locale={locale} />
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleAlert, Clock, Target, TrendingUp, UserRound } from "lucide-react";
+import { CheckCircle2, CircleAlert, Clock, Target, TrendingUp, MailX, UserRound } from "lucide-react";
 import { criteriaLine, parseIcp, sizeLabel } from "@/lib/discovery/icp";
 import { isActive } from "@/lib/discovery/states";
 import { countryLabel, formatNumber, location } from "@/lib/format";
@@ -36,7 +36,7 @@ function eventText(message: string, meta: Json | null, t: Dictionary, locale: Lo
 export async function DiscoveryCard({ view }: { view: StrategyView }) {
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const d = t.discovery;
-  const { strategy, campaign, topCompany, topProspects, topResults, lastEvent, savedCount } = view;
+  const { strategy, campaign, topCompany, topProspects, topResults, lastEvent, savedCount, reach } = view;
 
   if (strategy.status === "failed") {
     const key = strategy.error as keyof Dictionary["strategy"]["errors"] | null;
@@ -188,6 +188,14 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
           </div>
         )}
       </div>
+
+      {/* Results without a published email (owner, 2026-10-28): said plainly, so nothing seems lost when a campaign skips them. */}
+      {hasResults && reach.total > 0 && reach.withEmail < reach.total && (
+        <p className="artifact-reach" role="note">
+          <MailX />
+          <span>{reach.withEmail === 0 ? fmt(d.reachNone, { total: formatNumber(reach.total, locale) }) : fmt(d.reach, { n: formatNumber(reach.total - reach.withEmail, locale), total: formatNumber(reach.total, locale) })}</span>
+        </p>
+      )}
 
       <div className="artifact-actions">
         <span className="artifact-note">

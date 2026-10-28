@@ -24,6 +24,8 @@ export interface StrategyView {
   topResults: CompanyRow[];
   lastEvent: CampaignEventRow | null;
   savedCount: number;
+  /** How many results the search delivered, and how many have a published email a campaign can write to (owner, 2026-10-28). */
+  reach: { total: number; withEmail: number };
 }
 
 // Everything the Yolias AI result card needs for one strategy: its own
@@ -37,22 +39,28 @@ export async function getStrategyView(id: string, campaignId?: string): Promise<
   const q = supabase.from("campaigns").select("*").eq("strategy_id", id);
   const { data: campaign } = await (campaignId ? q.eq("id", campaignId) : q.order("created_at").limit(1)).maybeSingle();
   if (campaign) campaign.name = plainDashes(campaign.name, ": ");
-  if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], topResults: [], lastEvent: null, savedCount: 0 };
+  if (!campaign) return { strategy, campaign: null, topCompany: null, topProspects: [], topResults: [], lastEvent: null, savedCount: 0, reach: { total: 0, withEmail: 0 } };
   if (campaign.search_type !== "people") {
-    const [{ data: results }, { data: lastEvent }, { count: savedCount }] = await Promise.all([
+    const delivered = () => supabase.from("companies").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("delivered_at", "is", null);
+    const [{ data: results }, { data: lastEvent }, { count: savedCount }, { count: total }, { count: withEmail }] = await Promise.all([
       supabase.from("companies").select("*").eq("campaign_id", campaign.id).not("delivered_at", "is", null)
         .order("match_score", { ascending: false, nullsFirst: false }).limit(4),
       supabase.from("campaign_events").select("*").eq("campaign_id", campaign.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("companies").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("delivered_at", "is", null).not("saved_at", "is", null),
+      delivered(),
+      delivered().not("email", "is", null),
     ]);
-    return { strategy, campaign, topCompany: null, topProspects: [], topResults: results ?? [], lastEvent, savedCount: savedCount ?? 0 };
+    return { strategy, campaign, topCompany: null, topProspects: [], topResults: results ?? [], lastEvent, savedCount: savedCount ?? 0, reach: { total: total ?? 0, withEmail: withEmail ?? 0 } };
   }
 
-  const [{ data: best }, { data: lastEvent }, { count: savedCount }] = await Promise.all([
+  const found = () => supabase.from("prospects").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id);
+  const [{ data: best }, { data: lastEvent }, { count: savedCount }, { count: total }, { count: withEmail }] = await Promise.all([
     supabase.from("prospects").select("company_id").eq("campaign_id", campaign.id).not("company_id", "is", null)
       .order("match_score", { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
     supabase.from("campaign_events").select("*").eq("campaign_id", campaign.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("prospects").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("saved_at", "is", null),
+    found(),
+    found().not("email", "is", null).neq("email_status", "invalid"),
   ]);
 
   let topCompany: CompanyRow | null = null;
@@ -67,5 +75,5 @@ export async function getStrategyView(id: string, campaignId?: string): Promise<
     topProspects = people ?? [];
   }
 
-  return { strategy, campaign, topCompany, topProspects, topResults: [], lastEvent, savedCount: savedCount ?? 0 };
+  return { strategy, campaign, topCompany, topProspects, topResults: [], lastEvent, savedCount: savedCount ?? 0, reach: { total: total ?? 0, withEmail: withEmail ?? 0 } };
 }

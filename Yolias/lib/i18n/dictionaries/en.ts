@@ -359,6 +359,7 @@ export const en = {
     headcount: "Headcount: {count} employees",
     hiringRoles: "Hiring {count}+ roles",
     currentlyHiring: "Currently hiring",
+    reach: "{n} of {total} results have no published email, so campaign emails won’t reach them. They stay in Prospects with their phone and LinkedIn when found.", reachNone: "None of the {total} results has a published email, so campaign emails won’t reach them. They stay in Prospects with their phone and LinkedIn when found.",
     savedTo: "Saved to Prospects from “{name}” with full contact records.",
     created: "Search “{name}” started.",
     saveToProspects: "Save to Prospects",

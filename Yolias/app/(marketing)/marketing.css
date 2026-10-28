@@ -426,30 +426,6 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .mobile-nav-group ul { list-style: none; margin: 0 0 8px; padding: 0 0 0 0; display: grid; }
 .mk .mobile-nav-sublink { display: flex; align-items: center; min-height: 44px; padding-inline: 14px 4px; font-size: .95rem; color: var(--text-2); text-decoration: none; border-inline-start: 2px solid var(--line); }
 
-/* Social proof (components/marketing/SocialProof.tsx) */
-.mk .trust-logos { margin-top: 48px; text-align: center; }
-.mk .trust-logos-title { font-size: 1rem; font-weight: 600; color: var(--muted); margin-bottom: 18px; }
-.mk .trust-marquee { display: flex; overflow: hidden; gap: 48px; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
-.mk .trust-track { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 48px; flex-shrink: 0; min-width: 100%; justify-content: space-around; animation: trust-scroll 40s linear infinite; }
-.mk .trust-track img { display: block; height: 32px; width: auto; filter: grayscale(1); opacity: .75; }
-.mk .trust-marquee:hover .trust-track { animation-play-state: paused; }
-@keyframes trust-scroll { to { transform: translateX(calc(-100% - 48px)); } }
-@keyframes trust-scroll-rtl { to { transform: translateX(calc(100% + 48px)); } }
-[dir="rtl"] .mk .trust-track { animation-name: trust-scroll-rtl; }
-@media (prefers-reduced-motion: reduce) {
-  .mk .trust-track, [dir="rtl"] .mk .trust-track { animation: none; flex-wrap: wrap; justify-content: center; }
-  .mk .trust-track[aria-hidden="true"] { display: none; }
-}
-.mk .customer-count-row { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
-.mk .customer-avatars { display: flex; }
-.mk .customer-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--paper); margin-inline-start: -10px; font-weight: 700; font-size: .85rem; color: #fff; background: #6b6b66; }
-.mk .customer-avatars .customer-avatar:first-child { margin-inline-start: 0; }
-.mk .customer-avatar.a1 { background: #8a6f5a; } .mk .customer-avatar.a2 { background: #4f6b7a; } .mk .customer-avatar.a3 { background: #7a4f5c; } .mk .customer-avatar.a4 { background: #5b7a4f; }
-.mk .customer-count-text strong { font-size: 1.6rem; font-weight: 800; color: var(--ink); }
-.mk .customer-count-text span { color: var(--text-2); }
-.mk .customer-badges { display: flex; gap: 10px; flex-wrap: wrap; }
-.mk .customer-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); text-decoration: none; font-size: .86rem; font-weight: 600; }
-
 /* Always-open FAQ (components/marketing/Faq.tsx, D-179) */
 .mk .faq-list { margin: 0; max-width: 860px; }
 .mk .faq-list dt h3 { margin: 0; padding: 1.3rem .15rem .4rem; font-size: 1rem; font-weight: 700; color: var(--black); }

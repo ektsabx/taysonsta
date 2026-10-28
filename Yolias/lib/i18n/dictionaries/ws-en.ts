@@ -70,7 +70,7 @@ export const wsEn = {
       ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
       autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops, moves them to the CRM and notifies you so you take it from there. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
       title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",
-      recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
+      recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address. Leads without one get no emails.", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",
       sendFrom: "Send from", manualOption: "Don’t send: I’ll send each message myself",
       autoReply: "Let Yolias answer simple replies", autoReplyHint: "Only questions and positive replies it can answer from Company Knowledge. Anything unclear, a complaint or a stop request comes to you.",

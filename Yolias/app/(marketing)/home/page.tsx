@@ -6,7 +6,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { HOME_TITLE, faqSchema, organizationSchema, pageMetadata, websiteSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
-import { CustomerCount, FounderNote } from "@/components/marketing/SocialProof";
+import { FounderNote } from "@/components/marketing/SocialProof";
 import { getSession } from "@/lib/session";
 import { trialAvailable } from "@/lib/payments";
 import { fmt } from "@/lib/i18n/config";
@@ -45,7 +45,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <CustomerCount locale={locale} />
 
       <section className="section alt">
         <div className="site-width">
