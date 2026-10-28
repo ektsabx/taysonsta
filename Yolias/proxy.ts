@@ -148,7 +148,15 @@ async function route(request: NextRequest, pathname: string, urlLocale: "ar" | n
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
   const website = isLocalizedPath(pathname) && !(pathname === "/" && signedIn);
-  if (website) lang = urlLocale ?? "en";
+  if (website) {
+    lang = urlLocale ?? "en";
+    // The response was built before the language was known: build it again with
+    // the language header (an English URL is English for everyone, crawlers
+    // included), keeping any session cookies the auth refresh set.
+    const set = response.cookies.getAll();
+    response = pass();
+    for (const c of set) response.cookies.set(c);
+  }
   if (urlLocale === "ar" && pathname === "/" && signedIn) {
     // Signed in, "/" is Yolias AI (one URL).
     const url = request.nextUrl.clone();
