@@ -37,16 +37,20 @@ export async function listLeads(workspaceId: string, query: CrmQuery = {}): Prom
 export async function stageTotals(workspaceId: string): Promise<Record<LeadStage, { count: number; value: number }>> {
   const db = await createClient();
   const { data } = await db.from("sales_leads").select("stage, deal_value").eq("workspace_id", workspaceId).limit(10000);
-  const out = { new: { count: 0, value: 0 }, interested: { count: 0, value: 0 }, meeting_booked: { count: 0, value: 0 }, meeting_completed: { count: 0, value: 0 }, closed: { count: 0, value: 0 }, lost: { count: 0, value: 0 } };
+  const out = { new: { count: 0, value: 0 }, interested: { count: 0, value: 0 }, meeting_booked: { count: 0, value: 0 }, meeting_completed: { count: 0, value: 0 }, proposal: { count: 0, value: 0 }, negotiation: { count: 0, value: 0 }, closed: { count: 0, value: 0 }, lost: { count: 0, value: 0 } };
   for (const r of data ?? []) { out[r.stage].count++; out[r.stage].value += Number(r.deal_value ?? 0); }
   return out;
 }
 
 export async function getLead(workspaceId: string, id: string) {
   const db = await createClient();
-  const { data: lead } = await db.from("crm_leads").select("*").eq("workspace_id", workspaceId).eq("id", id).maybeSingle();
+  const [{ data: lead }, { data: deal }] = await Promise.all([
+    db.from("crm_leads").select("*").eq("workspace_id", workspaceId).eq("id", id).maybeSingle(),
+    // Deal fields added after the crm_leads view (2026-10-29): read from the table.
+    db.from("sales_leads").select("expected_close_at, lost_reason, closed_at").eq("workspace_id", workspaceId).eq("id", id).maybeSingle(),
+  ]);
   if (!lead) return null;
-  const l = lead as CrmLeadRow;
+  const l = { ...(lead as CrmLeadRow), ...(deal ?? { expected_close_at: null, lost_reason: null, closed_at: null }) } as CrmLeadRow;
   const [activities, tasks, meetings, messages, enrollments, approvals, profiles, person, company] = await Promise.all([
     db.from("lead_activities").select("*").eq("lead_id", id).order("created_at", { ascending: false }).limit(100),
     db.from("lead_tasks").select("*").eq("lead_id", id).order("done_at", { ascending: true, nullsFirst: true }).order("due_at", { ascending: true, nullsFirst: false }).limit(50),
@@ -58,6 +62,10 @@ export async function getLead(workspaceId: string, id: string) {
     l.prospect_id ? db.from("prospects").select("full_name, title, seniority, city, country, email, phone, linkedin_url, match_score").eq("id", l.prospect_id).maybeSingle() : Promise.resolve({ data: null }),
     l.company_id ? db.from("companies").select("name, domain, website, industry, category, description, employee_count, city, country, phone, email, linkedin_url").eq("id", l.company_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
+  // A company lead shows the decision makers found at that company (one page per customer, 2026-10-29).
+  const { data: people } = l.company_id && !l.prospect_id
+    ? await db.from("prospects").select("id, full_name, title").eq("workspace_id", workspaceId).eq("company_id", l.company_id).order("match_score", { ascending: false, nullsFirst: false }).limit(10)
+    : { data: [] };
   return {
     lead: l,
     activities: activities.data ?? [],
@@ -68,7 +76,16 @@ export async function getLead(workspaceId: string, id: string) {
     approvals: approvals.data ?? [],
     profiles: profiles.data ?? [],
     person: person.data,
+    people: people ?? [],
     company: company.data,
   };
 }
 export type LeadDetail = NonNullable<Awaited<ReturnType<typeof getLead>>>;
+
+/** The lead behind a prospect page (person, or a company lead with no person), if there is one. */
+export async function leadFor(workspaceId: string, by: { prospectId?: string; companyId?: string }): Promise<string | null> {
+  const db = await createClient();
+  const q = db.from("sales_leads").select("id").eq("workspace_id", workspaceId);
+  const { data } = by.prospectId ? await q.eq("prospect_id", by.prospectId).limit(1).maybeSingle() : await q.eq("company_id", by.companyId!).is("prospect_id", null).limit(1).maybeSingle();
+  return data?.id ?? null;
+}

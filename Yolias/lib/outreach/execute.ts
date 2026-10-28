@@ -361,15 +361,31 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
   const who = `${lead?.name ?? "a lead"}${lead?.company_name ? ` (${lead.company_name})` : ""}`;
   if (analysis && HANDOFF_KINDS.has(analysis.kind)) {
-    // Hand-off: the member continues the deal (and sends the meeting link) themselves.
-    const { data: owner } = await db.from("profiles").select("language").eq("id", mb.user_id).maybeSingle();
+    // Hand-off: the member continues the deal. A meeting request gets the booking
+    // link at once when there is one (owner, 2026-10-29): the campaign's link for a
+    // meeting campaign, else the member's own (Settings → Account), sent in the thread
+    // when the campaign answers by itself (auto-reply on).
+    const { data: owner } = await db.from("profiles").select("language, booking_url").eq("id", mb.user_id).maybeSingle();
     const ar = owner?.language === "ar";
     const meeting = analysis.kind === "meeting_request";
+    let linkSent = false;
+    if (meeting && campaignId && !lead?.do_not_contact) {
+      const { data: camp } = await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle();
+      const c = camp as OutreachCampaignRow | null;
+      const link = (c?.aim === "meeting" && c.cta_url) || owner?.booking_url || null;
+      if (link && c?.auto_reply && c.status === "active" && c.mailbox_id === mb.id) {
+        linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis.suggested_reply), "Yolias sent your booking link (the lead asked for a meeting).");
+      }
+    }
     const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
-    const body = ar ? `${analysis.summary}\nيولـياس وقف المتابعات ونقله لإدارة العملاء. كمّل انت من المحادثة${meeting ? " وابعتله لينك الاجتماع" : ""}.` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM. Take it from the conversation${meeting ? " and send your meeting link" : ""}.`;
-    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/inbox?lead=${leadId}`, `reply:${messageId}`);
+    const next = meeting
+      ? linkSent ? (ar ? " يولـياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط الاجتماع (أو أضف رابط الحجز في الإعدادات ← الحساب ليرسله يولـياس تلقائيًا)." : " Send your meeting link (or add your booking link in Settings → Account so Yolias sends it).")
+      : "";
+    const body = ar ? `${analysis.summary}\nيولـياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
+    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/crm/${leadId}`, `reply:${messageId}`);
     await db.from("lead_tasks").insert({
-      workspace_id: mb.workspace_id, lead_id: leadId, title: (ar ? `كمّل مع ${who}: ${meeting ? "ابعت لينك الاجتماع" : "مهتم"}` : `Take over ${who}: ${meeting ? "send your meeting link" : "interested"}`).slice(0, 300),
+      workspace_id: mb.workspace_id, lead_id: leadId,
+      title: (ar ? `كمّل مع ${who}: ${meeting ? (linkSent ? "أكّد موعد الاجتماع" : "ابعت لينك الاجتماع") : "مهتم"}` : `Take over ${who}: ${meeting ? (linkSent ? "confirm the meeting time" : "send your meeting link") : "interested"}`).slice(0, 300),
       kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
     });
   } else {
@@ -384,24 +400,41 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   const c = camp as OutreachCampaignRow | null;
   if (!c?.auto_reply || c.status !== "active" || c.mailbox_id !== mb.id) return;
   if (!AUTO_REPLY_KINDS.has(analysis.kind) || analysis.needs_human || analysis.escalate_because.length || !analysis.suggested_reply) return;
+  const reply = analysis.suggested_reply;
+  await sendInThread(db, mb, leadId, messageId, c, () => reply, "Yolias answered the reply automatically (auto-reply is on for this campaign).");
+}
+
+/** The answer to a meeting request: the agent's suggested reply with the link, or a short line in the thread's language. */
+function bookingReply(link: string, lang: string | null, suggested: string | null): string {
+  if (suggested && suggested.includes(link)) return suggested;
+  const line = lang === "ar" ? `يسعدني ذلك. اختر الوقت المناسب لك من هنا: ${link}` : `Great. Pick a time that suits you here: ${link}`;
+  return suggested ? `${suggested.trim()}\n\n${line}` : line;
+}
+
+/** Sends one reply in the lead's thread from the campaign's mailbox; true when it went out. */
+async function sendInThread(db: Db, mb: MailboxRow, leadId: string, messageId: string, c: OutreachCampaignRow, body: (lang: string | null) => string, note: string): Promise<boolean> {
+  const campaignId = c.id;
   const { data: thread } = await db.from("outreach_messages").select("provider_thread_id, provider_message_id, subject, language, prospect_id, company_id")
     .eq("lead_id", leadId).eq("mailbox_id", mb.id).eq("direction", "outbound").eq("status", "sent").order("sent_at", { ascending: false }).limit(1).maybeSingle();
   const { data: inbound } = await db.from("outreach_messages").select("from_address").eq("id", messageId).single();
-  if (!thread?.provider_thread_id || !inbound?.from_address) return;
+  if (!thread?.provider_thread_id || !inbound?.from_address) return false;
   const subject = /^re:/i.test(thread.subject) ? thread.subject : `Re: ${thread.subject}`;
+  const text = body(thread.language ?? null);
   const { data: draft } = await db.from("outreach_messages").insert({
     workspace_id: mb.workspace_id, lead_id: leadId, prospect_id: thread.prospect_id, company_id: thread.company_id, channel: "email", direction: "outbound", status: "sending",
-    subject, body: analysis.suggested_reply, language: thread.language, objective: "follow_up", outreach_campaign_id: campaignId, mailbox_id: mb.id, to_email: inbound.from_address,
+    subject, body: text, language: thread.language, objective: "follow_up", outreach_campaign_id: campaignId, mailbox_id: mb.id, to_email: inbound.from_address,
     instruction: "auto-reply", attempts: 1,
   }).select("id").single();
-  if (!draft) return;
+  if (!draft) return false;
   try {
     const { provider, token } = await mailboxAccess(mb);
-    const r = await provider.send(token, { from: mb.email, fromName: mb.display_name, to: inbound.from_address, subject, body: analysis.suggested_reply, threadId: thread.provider_thread_id, replyToProviderId: thread.provider_message_id });
+    const r = await provider.send(token, { from: mb.email, fromName: mb.display_name, to: inbound.from_address, subject, body: text, threadId: thread.provider_thread_id, replyToProviderId: thread.provider_message_id });
     await db.from("outreach_messages").update({ status: "sent", sent_at: new Date().toISOString(), sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent", from_address: mb.email, approved_by: c.approved_by, approved_at: c.approved_at }).eq("id", draft.id);
-    await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "agent", body: "Yolias answered the reply automatically (auto-reply is on for this campaign).", meta: { message_id: draft.id, reply_to: messageId } as Json });
+    await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "agent", body: note, meta: { message_id: draft.id, reply_to: messageId } as Json });
+    return true;
   } catch (e) {
     await db.from("outreach_messages").update({ status: "draft", error: `Auto-reply not sent: ${e instanceof Error ? e.message.slice(0, 200) : "error"}` }).eq("id", draft.id);
+    return false;
   }
 }
 

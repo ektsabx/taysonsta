@@ -246,3 +246,5 @@
 .ds-subtitle { font-size: 13px; font-weight: 600; margin: 18px 0 8px; }
 .ds-mapping select { max-width: 100%; }
 .ds-progress { display: grid; gap: 8px; }
+.admin-sidebar-section { margin: 14px 12px 4px; font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--bos-muted, #8a8a85); }
+.admin-sidebar-section:first-child { margin-top: 4px; }

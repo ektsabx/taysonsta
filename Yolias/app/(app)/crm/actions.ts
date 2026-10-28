@@ -43,12 +43,15 @@ export async function addToCrm(targets: LeadTarget[]): Promise<CrmResult<{ added
   return { ok: true, added: fresh.length, existing, ids, message };
 }
 
-export async function setStage(leadId: string, stage: LeadStage): Promise<CrmResult> {
+export async function setStage(leadId: string, stage: LeadStage, lostReason?: string): Promise<CrmResult> {
   const session = await requireSession();
   const t = (await getDictionary()).ws;
   if (!uuid.safeParse(leadId).success || !STAGES.includes(stage)) return { ok: false, error: t.crm.errors.notFound };
-  const r = await changeStage(await createClient(), session.workspace.id, leadId, stage, "user");
+  const db = await createClient();
+  const r = await changeStage(db, session.workspace.id, leadId, stage, "user");
   if (!r.ok) return { ok: false, error: t.crm.errors.notFound };
+  // Why it was lost (owner, 2026-10-29), after the stage so the trigger doesn't clear it.
+  if (stage === "lost" && lostReason) await db.from("sales_leads").update({ lost_reason: lostReason.slice(0, 300) }).eq("id", leadId).eq("workspace_id", session.workspace.id);
   refresh(leadId);
   return { ok: true };
 }
@@ -59,6 +62,7 @@ const leadPatch = z.object({
   owner_id: z.string().uuid().nullable().optional(),
   customer_profile_id: z.string().uuid().nullable().optional(),
   do_not_contact: z.boolean().optional(),
+  expected_close_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 });
 
 export async function updateLead(leadId: string, patch: z.input<typeof leadPatch>): Promise<CrmResult> {

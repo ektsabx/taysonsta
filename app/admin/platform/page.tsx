@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/bos/format";
 import { yoliasSiteUrl } from "@/lib/yolias/db";
 import { yoliasPlanIds, yoliasPlanLabel } from "@/lib/yolias/plans";
 import { platformOverview } from "@/services/yolias/platform";
+import { yoliasKpis } from "@/services/yolias/kpis";
 import { NotConnected, connected, num, usd, CampaignStatus } from "@/components/yolias/PlatformUi";
 
 // Yolias platform overview (docs/09-yolias-admin.md "Admin analytics"):
@@ -15,7 +16,8 @@ import { NotConnected, connected, num, usd, CampaignStatus } from "@/components/
 export default async function PlatformOverviewPage() {
   await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="منصة Yolias" /><NotConnected /></>);
-  const o = await platformOverview();
+  const [o, k] = await Promise.all([platformOverview(), yoliasKpis()]);
+  const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
   const plans = yoliasPlanIds;
   const totalWs = Math.max(1, o.workspaces);
   return (
@@ -25,7 +27,24 @@ export default async function PlatformOverviewPage() {
         subtitle="مستخدمو تطبيق Yolias ومساحات العمل والاستخدام — من قاعدة بيانات Yolias مباشرة"
         actions={<a className="admin-btn small secondary" href={yoliasSiteUrl()} target="_blank" rel="noreferrer"><Tx>فتح Yolias</Tx></a>}
       />
-      <div className="bos-kpis">
+      {/* The ten numbers to watch every day (owner, 2026-10-29). */}
+      <Card title="أرقام اليوم">
+        <div className="bos-kpis">
+          <KpiCard label="تسجيلات جديدة" value={num(k.signups.today)} sub={<Tx vars={{ w: num(k.signups.week), p: num(k.signups.prevWeek) }}>{"{w} هذا الأسبوع مقابل {p} الأسبوع الماضي"}</Tx>} href="/admin/platform/users" />
+          <KpiCard label="من أين جاءت" value={k.signups.channels[0]?.channel ?? "—"} sub={k.signups.channels.map((c) => `${c.channel} ${num(c.n)}`).join(" · ") || "—"} href="/admin/platform/seo/reports" />
+          <KpiCard label="نسبة الدفع" value={pct(k.paidConversion.paid, k.paidConversion.cohort)} sub={<Tx vars={{ p: num(k.paidConversion.paid), c: num(k.paidConversion.cohort) }}>{"{p} دفعوا من {c} سجّلوا خلال 30 يومًا"}</Tx>} href="/admin/platform/conversions" />
+          <KpiCard label="إيراد الشهر" value={usd(k.revenue.month)} sub={<Tx vars={{ v: usd(k.revenue.mrr) }}>{"الإيراد الشهري الثابت {v}"}</Tx>} href="/admin/platform/payments" />
+          <KpiCard label="أول بحث خلال يوم" value={pct(k.firstSearch.within24h, k.firstSearch.cohort)} sub={<Tx vars={{ n: num(k.firstSearch.within24h), c: num(k.firstSearch.cohort) }}>{"{n} من {c} مستخدم جديد"}</Tx>} href="/admin/platform/searches" />
+          <KpiCard label="بدأوا أول حملة" value={pct(k.firstCampaign.started, k.firstCampaign.cohort)} sub={<Tx vars={{ n: num(k.firstCampaign.started), c: num(k.firstCampaign.cohort) }}>{"{n} من {c} مساحة جديدة"}</Tx>} />
+          <KpiCard label="نسبة الرد" value={pct(k.replyRate.replied, k.replyRate.contacted)} sub={<Tx vars={{ r: num(k.replyRate.replied), c: num(k.replyRate.contacted) }}>{"{r} ردّوا من {c} تم التواصل معهم (30 يومًا)"}</Tx>} />
+          <KpiCard label="صفقات كسبوها" value={num(k.dealsWon.month)} sub={<Tx vars={{ v: usd(k.dealsWon.value) }}>{"هذا الشهر · قيمتها {v}"}</Tx>} />
+          <KpiCard label="المستخدمون النشطون" value={num(k.retention.activeWeek)} sub={<Tx vars={{ p: num(k.retention.activePrevWeek), q: num(k.retention.quiet) }}>{"الأسبوع الماضي {p} · {q} لم يعودوا"}</Tx>} href="/admin/platform/users" />
+          <KpiCard label="التكلفة لكل عميل محتمل" value={k.costPerProspect.prospects ? usd(k.costPerProspect.cost / k.costPerProspect.prospects) : "—"} sub={<Tx vars={{ c: usd(k.costPerProspect.cost), n: num(k.costPerProspect.prospects) }}>{"{c} لـ {n} عميل هذا الشهر · السعر 0.05$"}</Tx>} href="/admin/platform/profitability" />
+          <KpiCard label="الأعطال" value={num(k.failures.bounced7d + k.failures.mailboxesDown + k.failures.searchesFailed7d)} sub={<Tx vars={{ b: num(k.failures.bounced7d), m: num(k.failures.mailboxesDown), s: num(k.failures.searchesFailed7d) }}>{"{b} إيميل ارتد · {m} بريد منفصل · {s} بحث فشل (7 أيام)"}</Tx>} href="/admin/platform/health" />
+        </div>
+      </Card>
+
+      <div className="bos-kpis" style={{ marginTop: 16 }}>
         <KpiCard label="المستخدمون" value={num(o.users)} sub={<Tx vars={{ n: num(o.users30) }}>{"{n} جديد خلال 30 يوماً"}</Tx>} href="/admin/platform/users" />
         <KpiCard label="مساحات العمل" value={num(o.workspaces)} href="/admin/platform/workspaces" />
         <KpiCard label="خطط مدفوعة (فعلية)" value={num(o.livePaid)} sub={<Tx vars={{ n: num(o.testPaid) }}>{"{n} في وضع الاختبار"}</Tx>} />

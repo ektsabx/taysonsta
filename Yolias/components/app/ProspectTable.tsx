@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNext } from "@/components/app/EmptyNext";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -145,7 +146,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
       )}
 
       <div className="sdr-table-wrap sdr-table-inset">
-        <table className="sdr-table">
+        <table className="sdr-table mobile-cards with-check">
           <thead>
             <tr>
               <th className="col-check"><input type="checkbox" checked={pageAll} onChange={togglePage} aria-label={pr.selectAllPage} disabled={!rows.length} /></th>
@@ -166,7 +167,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={7} className="empty">{empty}</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={7} className="empty">{query ? empty : <EmptyNext text={empty} href="/" label={t.emptyNext.prospects} />}</td></tr>}
             {rows.map((r) => {
               const on = allMatching || selected.has(r.key);
               return (

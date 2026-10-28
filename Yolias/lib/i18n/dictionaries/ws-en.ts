@@ -22,7 +22,7 @@ export const wsEn = {
     mailboxNotConnected: "No mailbox is connected yet. Connect Gmail or any IMAP/SMTP mailbox in Settings → Integrations: Yolias sends your campaigns from it and brings the replies here.",
     by: { user: "You", agent: "AI agent", automation: "Automation", system: "Yolias" },
   },
-  stages: { new: "New", interested: "Interested", meeting_booked: "Meeting Booked", meeting_completed: "Meeting Completed", closed: "Closed", lost: "Lost" },
+  stages: { new: "New", interested: "Interested", meeting_booked: "Meeting booked", meeting_completed: "Meeting done", proposal: "Proposal sent", negotiation: "Negotiation", closed: "Won", lost: "Lost" },
   sources: {
     question: "How did you find us?", placeholder: "Choose one", otherLabel: "Tell us where", otherPlaceholder: "e.g. a conference",
     hint: "Optional. It helps us know what works.",
@@ -154,9 +154,9 @@ export const wsEn = {
     filterStage: "Stage", filterOwner: "Owner", anyone: "Anyone", unassigned: "Unassigned", sort: "Sort",
     sorts: { last_activity_at: "Last activity", created_at: "Date added", deal_value: "Deal value", next_follow_up_at: "Next follow-up", name: "Name" },
     added: "{count} added to the CRM.", alreadyIn: "{count} were already in the CRM.", addToCrm: "Add to CRM",
-    moveTo: "Move to", total: "{count} leads · {value}", stageChanged: "Stage updated.",
+    moveTo: "Move to", total: "{count} leads · {value}", lostReason: "Why was it lost?", lostReasons: { price: "Price", timing: "Timing", no_need: "No need", competitor: "Chose a competitor", no_response: "Stopped replying", other: "Other" }, stageChanged: "Stage updated.",
     detail: {
-      summary: "Deal", lastContact: "Last contact", nextStep: "Next step", conversation: "Conversation", conversationCounts: "{sent} sent · {replies} replies", openConversation: "Open the conversation",
+      people: "Decision makers here", expectedClose: "Expected close date", you: "You", addToCalendar: "Add to Google Calendar", summary: "Deal", lastContact: "Last contact", nextStep: "Next step", conversation: "Conversation", conversationCounts: "{sent} sent · {replies} replies", openConversation: "Open the conversation",
       overview: "Overview", contact: "Contact & company", fit: "Fit with customer profile", campaigns: "Outreach campaigns", messages: "Messages", timeline: "History",
       notes: "Notes", addNote: "Add a note", notePh: "Write a note…", tasks: "Reminders & follow-ups", addTask: "Add reminder", taskTitle: "Reminder", due: "Due",
       meetings: "Meetings", addMeeting: "Add meeting", deal: "Deal", value: "Value", currency: "Currency", owner: "Owner", stage: "Stage", dnc: "Do not contact",

@@ -325,3 +325,7 @@ npx wrangler secret put WORKER_SECRET
 2. نشر يولياس ثم الأدمن.
 3. من Yolias/: `npm run content:seed:production` (مقالات المساعدة الجديدة وسياسة الكوكيز) ثم `npm run seo:seed:production` (صفحات المقارنة الجديدة).
 4. DNS: سجل TXT باسم `_dmarc` على yolias.com قيمته `v=DMARC1; p=none;`.
+
+## جولة 2026-10-29 (D-262, D-263)
+1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261126000000_deals_and_meetings.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261126000000.sql`. قبل النشر.
+2. نشر يولياس ثم الأدمن.

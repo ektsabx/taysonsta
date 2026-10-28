@@ -206,15 +206,44 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     if (!error) out.reminders++;
   }
 
-  // Meetings that ended without an outcome.
+  // A meeting in the next hour: a reminder (owner, 2026-10-29), once.
+  const soon = new Date(Date.now() + 3_600_000).toISOString();
+  const { data: upcoming } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, url, created_by")
+    .eq("status", "scheduled").is("reminded_at", null).gte("starts_at", now).lte("starts_at", soon).limit(limit);
+  for (const m of upcoming ?? []) {
+    const who = await meetingPeople(db, m.lead_id, m.created_by);
+    if (who.userId) {
+      const at = new Intl.DateTimeFormat(who.ar ? "ar-EG-u-nu-latn" : "en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC" }).format(new Date(m.starts_at));
+      await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, `/crm/${m.lead_id}`, `meeting-soon:${m.id}`);
+    }
+    await db.from("sales_meetings").update({ reminded_at: now }).eq("id", m.id);
+    out.reminders++;
+  }
+
+  // Meetings that ended without an outcome: "what happened?", once, and a task.
   const { data: meetings } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, created_by")
-    .eq("status", "scheduled").lte("starts_at", new Date(Date.now() - 2 * 3_600_000).toISOString()).limit(limit);
+    .eq("status", "scheduled").is("outcome_asked_at", null).lte("starts_at", new Date(Date.now() - 2 * 3_600_000).toISOString()).limit(limit);
   for (const m of meetings ?? []) {
-    const { error } = await db.from("lead_tasks").insert({
-      workspace_id: m.workspace_id, lead_id: m.lead_id, title: `Record the outcome of "${m.title}"`.slice(0, 300), kind: "review",
-      due_at: now, source: "agent", assignee_id: m.created_by, dedupe_key: `meeting-outcome:${m.id}`,
+    const who = await meetingPeople(db, m.lead_id, m.created_by);
+    await db.from("lead_tasks").insert({
+      workspace_id: m.workspace_id, lead_id: m.lead_id, title: (who.ar ? `سجّل نتيجة «${m.title}»` : `Record the outcome of "${m.title}"`).slice(0, 300), kind: "review",
+      due_at: now, source: "agent", assignee_id: who.userId, dedupe_key: `meeting-outcome:${m.id}`,
     });
-    if (!error) out.reminders++;
+    if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", `/crm/${m.lead_id}`, `meeting-outcome:${m.id}`);
+    await db.from("sales_meetings").update({ outcome_asked_at: now }).eq("id", m.id);
+    out.reminders++;
   }
   return out;
+}
+
+/** Who hears about a meeting: whoever booked it, else the lead's owner; in their language and time zone. */
+async function meetingPeople(db: ReturnType<typeof createAdminClient>, leadId: string, createdBy: string | null) {
+  const { data: lead } = await db.from("sales_leads").select("name, owner_id").eq("id", leadId).maybeSingle();
+  const userId = createdBy ?? lead?.owner_id ?? null;
+  const { data: p } = userId ? await db.from("profiles").select("language, timezone").eq("id", userId).maybeSingle() : { data: null };
+  return { userId, lead: lead?.name ?? "", ar: p?.language === "ar", timeZone: p?.timezone ?? null };
+}
+
+async function notifyMember(db: ReturnType<typeof createAdminClient>, workspaceId: string, userId: string, title: string, body: string | null, link: string, dedupe: string) {
+  await db.from("notifications").upsert({ user_id: userId, workspace_id: workspaceId, kind: "meeting", title: title.slice(0, 300), body: body ? body.slice(0, 1000) : null, link, dedupe_key: `${dedupe}:${userId}` }, { onConflict: "dedupe_key", ignoreDuplicates: true });
 }

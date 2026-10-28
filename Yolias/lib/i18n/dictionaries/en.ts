@@ -271,6 +271,17 @@ export const en = {
   },
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
   share: { on: "Share on", message: "I use Yolias to find B2B customers with AI: it finds the right companies, writes the emails and sends them from my own mailbox. Try it with my link:" },
+  quote: {
+    title: "Quote", to: "To", description: "Item", qty: "Qty", price: "Price", amount: "Amount", total: "Total",
+    item: "Service", addLine: "Add a line", remove: "Remove the line", notes: "Notes", defaultNotes: "Valid for 30 days. Prices exclude taxes.",
+    print: "Save as PDF or print", back: "Lead record", open: "Quote",
+  },
+  emptyNext: { campaigns: "Pick leads for a campaign", crm: "Open conversations", prospects: "Start a search", inbox: "Open campaigns" },
+  today: {
+    title: "Today", replies: "{n} conversations with a new reply", meeting: "Meeting with {name} at {time}",
+    stale: "{n} deals quiet for a week", staleOne: "{name}: quiet for {days} days",
+    lookalike: "Find companies like {names}", lookalikePrompt: "Find companies like the customers I won: {names}",
+  },
   startHere: {
     title: "Start here", progress: "{done} of 3",
     mailbox: "Connect your mailbox", mailboxDesc: "Gmail or any mailbox over IMAP/SMTP (Zoho, Hostinger, your company mail). Your campaigns go out from it and replies come back to it.", mailboxCta: "Connect",
@@ -635,7 +646,7 @@ export const en = {
     account: {
       avatar: "Avatar", avatarDesc: "Your profile avatar.", change: "Change", uploading: "Uploading…",
       fullName: "Full Name", fullNameDesc: "Workspace user name.",
-      phone: "Phone number", phoneDesc: "With the country code, e.g. +20 100 123 4567. Only you can see it.", phonePlaceholder: "+1 415 555 0123", phoneSaved: "Phone number saved",
+      phone: "Phone number", booking: "Booking link", bookingDesc: "Calendly, Google Calendar or another. Yolias sends it to a lead who asks for a meeting.", phoneDesc: "With the country code, e.g. +20 100 123 4567. Only you can see it.", phonePlaceholder: "+1 415 555 0123", phoneSaved: "Phone number saved",
       email: "Email", emailDesc: "Your verified account email address.", verified: "Verified",
       changeEmail: "Change", newEmail: "New email address", sendChange: "Send confirmation", cancel: "Cancel",
       emailChangeSent: "Check both inboxes: confirm the change from your current and your new address.",
@@ -736,7 +747,7 @@ export const en = {
       },
     },
     errors: {
-      saveFailed: "Couldn’t save. Please try again.",
+      bookingInvalid: "Enter a valid link that starts with https.", saveFailed: "Couldn’t save. Please try again.",
       nameRequired: "Enter your name.",
       phoneInvalid: "Enter the number with its country code, starting with +, e.g. +44 20 7946 0958.",
       invalidAvatar: "Invalid avatar.",

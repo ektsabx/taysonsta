@@ -22,7 +22,7 @@ export const wsAr: Dictionary["ws"] = {
     mailboxNotConnected: "لا يوجد صندوق بريد متصل بعد. اربط Gmail أو أي بريد IMAP/SMTP من الإعدادات ← التكاملات: يرسل يولـياس حملاتك منه ويجلب الردود إلى هنا.",
     by: { user: "أنت", agent: "وكيل ذكاء اصطناعي", automation: "أتمتة", system: "يولـياس" },
   },
-  stages: { new: "جديد", interested: "مهتم", meeting_booked: "تم حجز اجتماع", meeting_completed: "تم الاجتماع", closed: "تم الإغلاق", lost: "خسارة" },
+  stages: { new: "جديد", interested: "مهتم", meeting_booked: "تم حجز اجتماع", meeting_completed: "تم الاجتماع", proposal: "تم إرسال العرض", negotiation: "تفاوض", closed: "كسبنا", lost: "خسرنا" },
   sources: {
     question: "كيف عرفت عنا؟", placeholder: "اختر إجابة", otherLabel: "أخبرنا أين", otherPlaceholder: "مثال: مؤتمر",
     hint: "اختياري. يساعدنا على معرفة ما ينجح.",
@@ -154,9 +154,9 @@ export const wsAr: Dictionary["ws"] = {
     filterStage: "المرحلة", filterOwner: "المسؤول", anyone: "أي شخص", unassigned: "بدون مسؤول", sort: "الترتيب",
     sorts: { last_activity_at: "آخر تفاعل", created_at: "تاريخ الإضافة", deal_value: "قيمة الصفقة", next_follow_up_at: "المتابعة القادمة", name: "الاسم" },
     added: "تمت إضافة {count} إلى إدارة العملاء.", alreadyIn: "{count} موجودون مسبقًا في إدارة العملاء.", addToCrm: "إضافة إلى إدارة العملاء",
-    moveTo: "نقل إلى", total: "{count} عميل · {value}", stageChanged: "تم تحديث المرحلة.",
+    moveTo: "نقل إلى", total: "{count} عميل · {value}", lostReason: "سبب الخسارة", lostReasons: { price: "السعر", timing: "التوقيت", no_need: "لا يحتاجه", competitor: "اختار منافسًا", no_response: "توقف عن الرد", other: "سبب آخر" }, stageChanged: "تم تحديث المرحلة.",
     detail: {
-      summary: "الصفقة", lastContact: "آخر تواصل", nextStep: "الخطوة التالية", conversation: "المحادثة", conversationCounts: "{sent} مرسلة · {replies} ردود", openConversation: "فتح المحادثة",
+      people: "صنّاع القرار في الشركة", expectedClose: "تاريخ الإغلاق المتوقع", you: "أنت", addToCalendar: "أضف إلى Google Calendar", summary: "الصفقة", lastContact: "آخر تواصل", nextStep: "الخطوة التالية", conversation: "المحادثة", conversationCounts: "{sent} مرسلة · {replies} ردود", openConversation: "فتح المحادثة",
       overview: "نظرة عامة", contact: "التواصل والشركة", fit: "التوافق مع ملف العميل", campaigns: "حملات التواصل", messages: "الرسائل", timeline: "السجل",
       notes: "الملاحظات", addNote: "إضافة ملاحظة", notePh: "اكتب ملاحظة…", tasks: "التذكيرات والمتابعات", addTask: "إضافة تذكير", taskTitle: "التذكير", due: "الموعد",
       meetings: "الاجتماعات", addMeeting: "إضافة اجتماع", deal: "الصفقة", value: "القيمة", currency: "العملة", owner: "المسؤول", stage: "المرحلة", dnc: "عدم التواصل",

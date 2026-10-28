@@ -551,9 +551,9 @@ export const agentTools = [
   }),
   define({
     name: "listLeads",
-    description: "CRM leads, optionally by stage (new, interested, meeting_booked, meeting_completed, closed = won, lost) or a name search.",
+    description: "CRM leads, optionally by stage (new, interested, meeting_booked, meeting_completed, proposal, negotiation, closed = won, lost) or a name search.",
     permission: "read",
-    input: z.object({ stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"]).optional(), q: z.string().trim().max(100).optional() }),
+    input: z.object({ stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"]).optional(), q: z.string().trim().max(100).optional() }),
     async run(ctx, input) {
       let q = ctx.db.from("sales_leads").select("id, name, company_name, stage, do_not_contact, deal_value, last_activity_at").eq("workspace_id", ctx.session.workspace.id).order("last_activity_at", { ascending: false }).limit(LIST_MAX);
       if (input.stage) q = q.eq("stage", input.stage);
@@ -566,7 +566,7 @@ export const agentTools = [
     name: "updateLeadStage",
     description: "Move a CRM lead to a stage the user asked for. 'closed' means won, only when the user says the deal was won, never because someone showed interest.",
     permission: "crm.update",
-    input: z.object({ leadId: uuid, stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"]) }),
+    input: z.object({ leadId: uuid, stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"]) }),
     async run(ctx, input) {
       const r = await changeStage(ctx.db, ctx.session.workspace.id, input.leadId, input.stage, "agent");
       return r.ok ? ok({ leadId: input.leadId, stage: input.stage, changed: r.changed }) : fail("not_found", "No such lead in this workspace.");

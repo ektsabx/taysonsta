@@ -14,9 +14,7 @@ import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
 import { IntegrationsHub } from "./settings/IntegrationsHub";
 import { ReferralSettings } from "./settings/ReferralSettings";
-import {
-  changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
-} from "@/app/(app)/settings/actions";
+import { changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult, updateBookingUrl } from "@/app/(app)/settings/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
@@ -265,6 +263,16 @@ function AccountTab({ data }: { data: ShellData }) {
 
   const [phone, setPhone] = useState(data.user.phone ?? "");
   const [savedPhone, setSavedPhone] = useState(data.user.phone ?? "");
+  const [booking, setBooking] = useState(data.user.bookingUrl ?? "");
+  const [savedBooking, setSavedBooking] = useState(data.user.bookingUrl ?? "");
+  const saveBooking = () => {
+    if (booking.trim() === savedBooking) return;
+    run(async () => {
+      const r = await updateBookingUrl(booking);
+      if (r.ok) { setBooking(r.url ?? ""); setSavedBooking(r.url ?? ""); }
+      return r;
+    });
+  };
   const savePhone = () => {
     if (phone.trim() === savedPhone) return;
     run(async () => {
@@ -358,6 +366,13 @@ function AccountTab({ data }: { data: ShellData }) {
             onBlur={savePhone}
             onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
           />
+        </div>
+      </SettingRow>
+
+      <SettingRow id="booking" label={a.booking} desc={a.bookingDesc}>
+        <div style={{ width: 240 }}>
+          <input type="url" dir="ltr" className="form-input" placeholder="https://calendly.com/you" aria-label={a.booking} maxLength={500}
+            value={booking} onChange={(e) => setBooking(e.target.value)} onBlur={saveBooking} onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()} />
         </div>
       </SettingRow>
 

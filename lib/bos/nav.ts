@@ -22,6 +22,8 @@ export interface NavLink {
 
 export interface NavGroup {
   key: string;
+  /** Which business the group belongs to (owner, 2026-10-29): the sidebar shows a heading when it changes. */
+  section?: "yolias" | "taysonsta";
   label: string;
   icon: string;
   href?: string;
@@ -32,14 +34,11 @@ export interface NavGroup {
 const hr = (key: HrSectionKey): NavLink[] => (hrSections[key] as HrNavItem[]).map(({ href, label, perm, all }) => ({ href, label, perm, all }));
 
 export const navigation: NavGroup[] = [
-  { key: "dashboard", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
-  // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
-  { key: "assistant", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
   // Yolias (docs/09-yolias-admin.md §B), read from the Yolias database. Owner
   // rule (2026-10-13): every Yolias area is a sidebar section of its own and a
   // section holds pages only — no section inside a section. Same routes as before.
   {
-    key: "y_overview",
+    key: "y_overview", section: "yolias",
     label: "Yolias",
     icon: "platform",
     items: [
@@ -48,7 +47,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "y_users",
+    key: "y_users", section: "yolias",
     label: "المستخدمون",
     icon: "y_users",
     items: [
@@ -60,9 +59,9 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/users/banned", label: "المستخدمون المحظورون", perm: "platform.read" },
     ],
   },
-  { key: "y_workspaces", label: "مساحات العمل", icon: "y_workspaces", href: "/admin/platform/workspaces", perm: "platform.read" },
+  { key: "y_workspaces", section: "yolias", label: "مساحات العمل", icon: "y_workspaces", href: "/admin/platform/workspaces", perm: "platform.read" },
   {
-    key: "y_revenue",
+    key: "y_revenue", section: "yolias",
     label: "الاشتراكات والإيرادات",
     icon: "y_revenue",
     items: [
@@ -70,7 +69,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/conversions/subscriptions", label: "الاشتراكات", perm: "platform.read" },
       { href: "/admin/platform/payments", label: "المدفوعات", perm: "platform.read" },
       { href: "/admin/platform/conversions/funnel", label: "رحلة التحويل", perm: "platform.read" },
-      { href: "/admin/platform/conversions/abandoned", label: "Abandoned Checkouts", perm: "platform.read" },
+      { href: "/admin/platform/conversions/abandoned", label: "الدفع غير المكتمل", perm: "platform.read" },
       { href: "/admin/platform/conversions/failed", label: "فشل الدفع", perm: "platform.read" },
       { href: "/admin/platform/conversions/trials", label: "التجارب المجانية", perm: "platform.read" },
       { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
@@ -78,7 +77,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "y_growth",
+    key: "y_growth", section: "yolias",
     label: "الاكتساب والنمو",
     icon: "y_growth",
     items: [
@@ -90,7 +89,7 @@ export const navigation: NavGroup[] = [
   },
   // SEO Control Center (D-257): organic growth from search to paid accounts.
   {
-    key: "y_seo",
+    key: "y_seo", section: "yolias",
     label: "SEO",
     icon: "y_search",
     items: [
@@ -103,38 +102,24 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/seo/settings", label: "تكاملات SEO", perm: "platform.read" },
     ],
   },
+  // Data (owner, 2026-10-29): shared data, imports and searches in one place.
   {
-    key: "y_data",
+    key: "y_data", section: "yolias",
     label: "البيانات",
     icon: "y_data",
     items: [
       { href: "/admin/platform/data", label: "البيانات المشتركة", perm: "platform.read" },
       { href: "/admin/platform/data/companies", label: "الشركات والأشخاص", perm: "platform.read" },
       { href: "/admin/platform/quality", label: "جودة البيانات", perm: "platform.read" },
-    ],
-  },
-  // Data import (D-248): bought lists, open data, registries, our crawler.
-  {
-    key: "y_import",
-    label: "استيراد البيانات",
-    icon: "y_data",
-    items: [
       { href: "/admin/platform/datasets", label: "البيانات المستوردة", perm: "platform.read" },
       { href: "/admin/platform/datasets/new", label: "استيراد بيانات", perm: "platform.manage" },
       { href: "/admin/platform/datasets/sources", label: "المصادر المفتوحة", perm: "platform.read" },
-    ],
-  },
-  {
-    key: "y_search",
-    label: "البحث والمزودون",
-    icon: "y_search",
-    items: [
       { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
       { href: "/admin/platform/providers", label: "المزودون", perm: "platform.read" },
     ],
   },
   {
-    key: "y_ai",
+    key: "y_ai", section: "yolias",
     label: "الذكاء الاصطناعي",
     icon: "y_ai",
     items: [
@@ -144,7 +129,7 @@ export const navigation: NavGroup[] = [
   },
   // Messaging & Automation (D-243): one section, pages only.
   {
-    key: "y_messages",
+    key: "y_messages", section: "yolias",
     label: "الرسائل والأتمتة",
     icon: "y_messages",
     items: [
@@ -161,7 +146,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "y_usage",
+    key: "y_usage", section: "yolias",
     label: "الاستخدام والتكاليف",
     icon: "y_usage",
     items: [
@@ -170,7 +155,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "y_monitoring",
+    key: "y_monitoring", section: "yolias",
     label: "مراقبة المنصة",
     icon: "status",
     items: [
@@ -182,7 +167,7 @@ export const navigation: NavGroup[] = [
   },
   // Yolias affiliate program (D-178): marketers, commissions, payouts, rules.
   {
-    key: "affiliates",
+    key: "affiliates", section: "yolias",
     label: "الأفلييت",
     icon: "affiliates",
     items: [
@@ -195,7 +180,30 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "sales",
+    key: "support", section: "yolias",
+    label: "الدعم",
+    icon: "support",
+    // docs/bos/37 §3 (plus Website messages, 2026-10-12): customers and teams
+    // open from the inbox. The support AI agent and the website widget are
+    // controlled from here (owner, 2026-10-13, D-207).
+    items: [
+      { href: "/admin/support", label: "نظرة عامة", perm: "conversations.read" },
+      { href: "/admin/support/inbox", label: "صندوق الوارد", perm: "conversations.read" },
+      { href: "/admin/support/messages", label: "رسائل الموقع والبلاغات", perm: "conversations.read" },
+      { href: "/admin/support/ratings", label: "التقييمات", perm: "conversations.read" },
+      { href: "/admin/support/profile", label: "ملفي في الدعم", perm: "conversations.read" },
+      { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
+      { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
+      { href: "/admin/support/widgets", label: "ويدجت الموقع", perm: "conversations.manage", all: "conversations.manage" },
+      { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
+      { href: "/admin/support/knowledge", label: "قاعدة المعرفة", perm: "knowledge.read" },
+    ],
+  },
+  { key: "dashboard", section: "taysonsta", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
+  // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
+  { key: "assistant", section: "taysonsta", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
+  {
+    key: "sales", section: "taysonsta",
     label: "المبيعات",
     icon: "sales",
     items: [
@@ -209,7 +217,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "clients",
+    key: "clients", section: "taysonsta",
     label: "العملاء",
     icon: "clients",
     items: [
@@ -219,7 +227,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "finance",
+    key: "finance", section: "taysonsta",
     label: "المالية",
     icon: "finance",
     items: [
@@ -230,11 +238,10 @@ export const navigation: NavGroup[] = [
       { href: "/admin/finance/commissions", label: "العمولات", perm: "commissions.read" },
       { href: "/admin/finance/vendors", label: "الموردون", perm: "vendors.read" },
       // Payroll lives in HR; Finance approves and pays it there (docs/bos/28 §32).
-      { href: "/admin/team/payroll", label: "الرواتب", perm: ["payroll.approve", "payroll.manage"] },
     ],
   },
   {
-    key: "team",
+    key: "team", section: "taysonsta",
     label: "الفريق",
     icon: "team",
     // HR & Workforce Management (docs/bos/28 §5, §37): one area per HR
@@ -255,7 +262,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "communication",
+    key: "communication", section: "taysonsta",
     label: "التواصل",
     icon: "communication",
     items: [
@@ -267,7 +274,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "knowledge",
+    key: "knowledge", section: "taysonsta",
     label: "المعرفة",
     icon: "knowledge",
     items: [
@@ -278,27 +285,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "support",
-    label: "الدعم",
-    icon: "support",
-    // docs/bos/37 §3 (plus Website messages, 2026-10-12): customers and teams
-    // open from the inbox. The support AI agent and the website widget are
-    // controlled from here (owner, 2026-10-13, D-207).
-    items: [
-      { href: "/admin/support", label: "نظرة عامة", perm: "conversations.read" },
-      { href: "/admin/support/inbox", label: "صندوق الوارد", perm: "conversations.read" },
-      { href: "/admin/support/messages", label: "رسائل الموقع والبلاغات", perm: "conversations.read" },
-      { href: "/admin/support/ratings", label: "التقييمات", perm: "conversations.read" },
-      { href: "/admin/support/profile", label: "ملفي في الدعم", perm: "conversations.read" },
-      { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
-      { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
-      { href: "/admin/support/widgets", label: "ويدجت الموقع", perm: "conversations.manage", all: "conversations.manage" },
-      { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
-      { href: "/admin/support/knowledge", label: "قاعدة المعرفة", perm: "knowledge.read" },
-    ],
-  },
-  {
-    key: "reports",
+    key: "reports", section: "taysonsta",
     label: "التقارير",
     icon: "reports",
     items: [
@@ -315,7 +302,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "files",
+    key: "files", section: "taysonsta",
     label: "الملفات",
     icon: "files",
     items: [
@@ -326,7 +313,7 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "settings",
+    key: "settings", section: "taysonsta",
     label: "الإعدادات",
     icon: "settings",
     items: [

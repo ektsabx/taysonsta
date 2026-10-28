@@ -106,6 +106,8 @@ export type ProfileRow = {
   id: string;
   email: string;
   full_name: string | null;
+  /** Booking link (Calendly, Google Calendar…) sent when a lead asks for a meeting (2026-10-29). */
+  booking_url: string | null;
   avatar_url: string | null;
   workspace_id: string | null;
   onboarded_at: string | null;

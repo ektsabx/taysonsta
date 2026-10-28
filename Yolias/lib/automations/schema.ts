@@ -7,9 +7,9 @@ import type { AutomationTrigger, LeadStage } from "@/types/database";
 // message" action: nothing is ever sent because a stage changed.
 
 export const TRIGGERS = ["lead.created", "lead.stage_changed", "meeting.booked", "meeting.completed", "reply.received", "enrollment.finished"] as const satisfies readonly AutomationTrigger[];
-export const STAGES = ["new", "interested", "meeting_booked", "meeting_completed", "closed", "lost"] as const satisfies readonly LeadStage[];
+export const STAGES = ["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const satisfies readonly LeadStage[];
 /** The five sales stages the owner asked for (new = added, not yet in the pipeline). */
-export const PIPELINE_STAGES = ["interested", "meeting_booked", "meeting_completed", "closed", "lost"] as const satisfies readonly LeadStage[];
+export const PIPELINE_STAGES = ["interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const satisfies readonly LeadStage[];
 export const REPLY_KINDS = ["interested", "meeting_request", "question", "objection", "not_interested", "stop_request", "out_of_office", "asks_for_human", "unclear"] as const;
 export type ReplyKind = (typeof REPLY_KINDS)[number];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -97,7 +98,7 @@ export function MasterInbox(p: Props) {
             </div>
           </nav>
           <div className="sdr-inbox-items">
-            {!p.items.length && <p className="sdr-panel-sub" style={{ padding: 16 }}>{p.q ? t.sdr.leads.emptyFiltered : x.empty[p.tab]}</p>}
+            {!p.items.length && <div style={{ padding: 16 }}>{p.q || p.tab !== "inbox" ? <p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : x.empty[p.tab]}</p> : <EmptyNext text={x.empty[p.tab]} href="/outreach" label={t.emptyNext.inbox} />}</div>}
             {groups.map(([label, rows]) => rows.length > 0 && (
               <div key={label}>
                 <div className="sdr-inbox-group">{label}</div>

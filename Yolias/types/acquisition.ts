@@ -7,7 +7,8 @@ export type AcquisitionSource =
   | "google" | "youtube" | "tiktok" | "friend" | "x" | "instagram" | "review_site" | "blog" | "facebook"
   | "ai_chat" | "linkedin" | "email" | "reddit" | "podcast" | "other" | "prefer_not_to_say";
 
-export type LeadStage = "new" | "interested" | "meeting_booked" | "meeting_completed" | "closed" | "lost";
+/** "closed" is the won stage (shown as Won); proposal and negotiation added 2026-10-29. */
+export type LeadStage = "new" | "interested" | "meeting_booked" | "meeting_completed" | "proposal" | "negotiation" | "closed" | "lost";
 export type LeadSource = "search" | "import" | "manual";
 export type ActorKind = "user" | "agent" | "automation" | "system";
 
@@ -40,6 +41,7 @@ export type LeadRow = {
   company_name: string | null; email: string | null; stage: LeadStage; stage_changed_at: string; owner_id: string | null;
   deal_value: number | null; deal_currency: string; source: LeadSource; customer_profile_id: string | null; do_not_contact: boolean;
   unsubscribe_token: string; unsubscribed_at: string | null;
+  expected_close_at: string | null; lost_reason: string | null; closed_at: string | null;
   next_follow_up_at: string | null; last_activity_at: string; created_by: string | null; created_at: string; updated_at: string;
 };
 export type ThreadStatus = "open" | "done" | "other";
@@ -67,6 +69,7 @@ export type MeetingStatus = "scheduled" | "completed" | "canceled" | "no_show";
 export type MeetingRow = {
   id: string; workspace_id: string; lead_id: string; title: string; starts_at: string; ends_at: string | null; url: string | null;
   status: MeetingStatus; notes: string | null; created_by: string | null; created_at: string; updated_at: string;
+  reminded_at: string | null; outcome_asked_at: string | null;
 };
 export type OutreachCampaignStatus = "draft" | "active" | "paused" | "archived";
 export type OutreachCampaignRow = {

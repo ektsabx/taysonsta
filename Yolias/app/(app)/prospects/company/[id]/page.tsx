@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { leadFor } from "@/services/crm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, CalendarDays, ExternalLink, FileText, Globe, Mail, MapPin, Phone, Star, Tag, Users } from "lucide-react";
@@ -34,6 +36,9 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await getCompany(id);
   if (!data || data.company.workspace_id !== session.workspace.id) notFound();
+  // One page per customer (owner, 2026-10-29): once this company is a lead, its lead page is the page.
+  const leadId = await leadFor(session.workspace.id, { companyId: data.company.id });
+  if (leadId) redirect(`/crm/${leadId}`);
   const { company: c, people } = data;
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const r = t.results;

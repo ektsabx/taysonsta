@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNext } from "@/components/app/EmptyNext";
 import { DealExtrasButtons, type DealTask } from "./DealExtras";
 import type { Approval } from "@/components/app/ws/PendingApprovals";
 import { useState, useTransition } from "react";
@@ -55,7 +56,7 @@ export function PipelineView({ leads, view, potential, total, hasMailbox, tasks,
         </select>
       </div>
 
-      {!leads.length ? <div className="sdr-panel"><div className="sdr-panel-body pad"><p className="sdr-panel-sub">{x.empty}</p></div></div> : view === "board" ? (
+      {!leads.length ? <div className="sdr-panel"><div className="sdr-panel-body pad"><EmptyNext text={x.empty} href="/inbox" label={t.emptyNext.crm} /></div></div> : view === "board" ? (
         <div className="sdr-board">
           {BUCKETS.map((b) => {
             const Icon = ICON[b];
@@ -88,7 +89,7 @@ export function PipelineView({ leads, view, potential, total, hasMailbox, tasks,
           </div>
           <div className="sdr-panel-body">
             <div className="sdr-table-wrap sdr-table-inset">
-              <table className="sdr-table">
+              <table className="sdr-table mobile-cards">
                 <thead><tr><th>{x.colContact}</th><th>{x.colClass}</th><th>{x.colLatest}</th><th>{x.colDraft}</th><th>{x.colStatus}</th><th aria-label={t.sdr.common.more} /></tr></thead>
                 <tbody>
                   {leads.filter((l) => seg === "all" || l.bucket === seg).map((l) => <LeadRow key={l.leadId} lead={l} hasMailbox={hasMailbox} />)}

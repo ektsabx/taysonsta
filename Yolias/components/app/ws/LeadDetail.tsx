@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Check, Inbox, PenLine, ShieldAlert, Trash2, X } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Check, FileText, Inbox, PenLine, ShieldAlert, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { addNote, addTask, decideApproval, prepareMeetingBrief, removeLead, saveMeeting, setTaskDone, updateLead } from "@/app/(app)/crm/actions";
@@ -21,6 +21,15 @@ interface Props {
   timeZone: string | null;
 }
 
+/** "Add to Google Calendar" for a meeting (owner, 2026-10-29): opens a prefilled event, no calendar connection needed. */
+function googleCalendarUrl(m: MeetingRow, leadName: string): string {
+  const f = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const end = m.ends_at ?? new Date(Date.parse(m.starts_at) + 30 * 60_000).toISOString();
+  const q = new URLSearchParams({ action: "TEMPLATE", text: m.title || leadName, dates: `${f(m.starts_at)}/${f(end)}`, details: [leadName, m.url ?? "", m.notes ?? ""].filter(Boolean).join("\n") });
+  if (m.url) q.set("location", m.url);
+  return `https://calendar.google.com/calendar/render?${q}`;
+}
+
 export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Props) {
   const { t, locale } = useI18n();
   const c = t.ws.crm;
@@ -30,6 +39,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
   const { lead } = detail;
   const [value, setValue] = useState(lead.deal_value == null ? "" : String(lead.deal_value));
   const [currency, setCurrency] = useState(lead.deal_currency);
+  const [closeAt, setCloseAt] = useState(lead.expected_close_at ?? "");
   const [note, setNote] = useState("");
   const [task, setTask] = useState("");
   const [due, setDue] = useState("");
@@ -54,6 +64,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
           {lead.do_not_contact && <span className="ws-chip red"><ShieldAlert /> {d.dnc}</span>}
           <StageSelect leadId={lead.id} stage={lead.stage} />
           <Link className="btn-secondary" href={`/inbox?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
+          <Link className="btn-secondary" href={`/crm/${lead.id}/quote`}><FileText size={14} /> {t.quote.open}</Link>
         </div>
       </header>
       <div className="view-content-padding">
@@ -82,7 +93,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
             <section className="ws-section" style={{ marginTop: detail.approvals.length ? 16 : 0 }}>
               <div className="ws-section-head"><h3>{d.summary}</h3></div>
               <div className="ws-card lead-summary">
-                <div><span className="ws-label">{c.cols.stage}</span><strong>{t.ws.stages[lead.stage]}</strong></div>
+                <div><span className="ws-label">{c.cols.stage}</span><strong>{t.ws.stages[lead.stage]}{lead.stage === "lost" && lead.lost_reason ? ` · ${c.lostReasons[lead.lost_reason as keyof typeof c.lostReasons] ?? lead.lost_reason}` : ""}</strong></div>
                 <div><span className="ws-label">{d.value}</span><strong dir="ltr">{money(lead.deal_value, lead.deal_currency, locale)}</strong></div>
                 <div><span className="ws-label">{d.lastContact}</span><strong>{lead.thread_last_message_at ? dateTime(lead.thread_last_message_at, locale, timeZone) : "-"}</strong></div>
                 <div><span className="ws-label">{d.nextStep}</span><strong>{lead.next_meeting_at ? `${d.meetings}: ${dateTime(lead.next_meeting_at, locale, timeZone)}` : lead.next_follow_up_at ? `${c.cols.followUp}: ${dateTime(lead.next_follow_up_at, locale, timeZone)}` : "-"}</strong></div>
@@ -96,6 +107,17 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                 </div>
                 <Link className="btn-secondary ws-btn-sm" href={`/inbox?lead=${lead.id}`}><Inbox size={13} /> {d.openConversation}</Link>
               </div>
+              {/* One page per lead (owner, 2026-10-29): the latest messages are here; replying happens in Conversations. */}
+              {detail.messages.length > 0 && (
+                <ol className="lead-thread">
+                  {detail.messages.filter((m) => m.status !== "canceled" && m.status !== "draft").slice(-4).map((m) => (
+                    <li key={m.id} className={m.direction === "inbound" ? "in" : "out"}>
+                      <span className="lead-thread-who">{m.direction === "inbound" ? lead.name : d.you} · {dateTime(m.received_at ?? m.sent_at ?? m.created_at, locale, timeZone)}</span>
+                      <p dir="auto">{(m.body ?? "").slice(0, 400)}{(m.body ?? "").length > 400 ? "…" : ""}</p>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </section>
 
             <section className="ws-section">
@@ -138,9 +160,13 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                     <input id="deal-cur" className="form-input" dir="ltr" maxLength={3} value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} />
                   </div>
                 </div>
+                <div className="ws-field">
+                  <label className="ws-label" htmlFor="deal-close">{d.expectedClose}</label>
+                  <input id="deal-close" type="date" className="form-input" dir="ltr" value={closeAt} onChange={(e) => setCloseAt(e.target.value)} />
+                </div>
                 <div className="ws-actions">
                   <button className="btn-secondary ws-btn-sm" type="button" disabled={pending}
-                    onClick={() => run(() => updateLead(lead.id, { deal_value: value.trim() === "" ? null : Number(value.replace(/,/g, "")), deal_currency: currency }), { success: t.ws.common.saved })}>{t.ws.common.save}</button>
+                    onClick={() => run(() => updateLead(lead.id, { deal_value: value.trim() === "" ? null : Number(value.replace(/,/g, "")), deal_currency: currency, expected_close_at: closeAt || null }), { success: t.ws.common.saved })}>{t.ws.common.save}</button>
                 </div>
                 <div className="ws-field">
                   <label className="ws-label" htmlFor="lead-owner">{d.owner}</label>
@@ -215,6 +241,7 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                       <strong>{m.title}</strong>
                       <span className="cell-sub">{dateTime(m.starts_at, locale, timeZone)} · {c.meeting.statuses[m.status]}</span>
                       {m.url && <a className="ws-link cell-sub" href={m.url} target="_blank" rel="noopener noreferrer" dir="ltr">{m.url.replace(/^https?:\/\//, "").slice(0, 40)}</a>}
+                      {m.status === "scheduled" && <a className="ws-link cell-sub" href={googleCalendarUrl(m, lead.name)} target="_blank" rel="noopener noreferrer">{d.addToCalendar}</a>}
                     </div>
                     <span className="ws-inline">
                       <button className="btn-secondary ws-btn-sm" type="button" onClick={() => setMeeting(m)}>{t.ws.common.edit}</button>
@@ -235,6 +262,19 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                 </div>
               ))}
             </section>
+
+            {detail.people.length > 0 && (
+              <section className="ws-card">
+                <h3 className="ws-label" style={{ marginBottom: 10 }}>{d.people}</h3>
+                <div className="ws-list">
+                  {detail.people.map((p) => (
+                    <Link key={p.id} className="ws-list-row" href={`/prospects/person/${p.id}`}>
+                      <span><strong dir="auto">{p.full_name}</strong>{p.title && <span className="cell-sub" dir="auto">{p.title}</span>}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="ws-card">
               <h3 className="ws-label" style={{ marginBottom: 10 }}>{d.contact}</h3>

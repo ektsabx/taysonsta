@@ -62,7 +62,7 @@ async function afterStageChange(workspaceId: string, leadId: string, from: LeadS
 export async function meetingChanged(db: Db, workspaceId: string, meeting: { id: string; lead_id: string; status: MeetingStatus }, previous: MeetingStatus | null, actor: ActorKind) {
   const admin = createAdminClient();
   const { data: lead } = await admin.from("sales_leads").select("stage").eq("id", meeting.lead_id).single();
-  const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "closed"];
+  const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed"];
   const at = (s: LeadStage | undefined) => (s ? order.indexOf(s) : -1);
   if (previous === null && meeting.status === "scheduled") {
     if (lead && at(lead.stage) >= 0 && at(lead.stage) < at("meeting_booked")) await changeStage(db, workspaceId, meeting.lead_id, "meeting_booked", actor);

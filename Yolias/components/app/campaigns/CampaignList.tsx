@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyNext } from "@/components/app/EmptyNext";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -60,12 +61,12 @@ export function CampaignList({ campaigns }: { campaigns: CampaignSummary[] }) {
           <label className="sdr-search"><Search /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={c.search} aria-label={c.search} /></label>
         </div>
         <div className="sdr-table-wrap sdr-table-inset">
-          <table className="sdr-table">
+          <table className="sdr-table mobile-cards">
             <thead>
               <tr><th>{c.colCampaign}</th><th className="num">{c.colLeads}</th><th className="num">{c.colSent}</th><th>{c.colReplies}</th><th>{c.colLastSend}</th><th aria-label={t.sdr.common.more} /></tr>
             </thead>
             <tbody>
-              {!shown.length && <tr><td colSpan={6} className="empty">{campaigns.length ? c.noMatch : c.empty}</td></tr>}
+              {!shown.length && <tr><td colSpan={6} className="empty">{campaigns.length ? c.noMatch : <EmptyNext text={c.empty} href="/prospects" label={t.emptyNext.campaigns} />}</td></tr>}
               {shown.map((x) => {
                 const pct = x.leads ? (x.replied / x.leads) * 100 : 0;
                 return (

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { leadFor } from "@/services/crm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Building2, ExternalLink, Globe, Mail, MapPin, MessageSquare, Phone, Search, UserRound, Users } from "lucide-react";
@@ -54,6 +56,9 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await getPerson(id);
   if (!p || p.workspace_id !== session.workspace.id) notFound();
+  // One page per customer (owner, 2026-10-29): once this person is a lead, their lead page is the page.
+  const leadId = await leadFor(session.workspace.id, { prospectId: p.id });
+  if (leadId) redirect(`/crm/${leadId}`);
   const [t, locale, messages] = await Promise.all([getDictionary(), getLocale(), messagesFor(p.id)]);
   const o = t.outreach;
   const r = t.results;

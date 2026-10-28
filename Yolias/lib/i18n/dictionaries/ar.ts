@@ -272,9 +272,20 @@ export const ar: Dictionary = {
   },
   greeting: { morning: "صباح الخير", afternoon: "مساء الخير", evening: "مساء الخير" },
   share: { on: "شارك على", message: "أستخدم يولـياس لإيجاد عملاء لشركتي بالذكاء الاصطناعي: يجد الشركات المناسبة ويكتب الرسائل ويرسلها من بريدي. جرّبه من رابطي:" },
+  quote: {
+    title: "عرض سعر", to: "إلى", description: "البند", qty: "الكمية", price: "السعر", amount: "المبلغ", total: "الإجمالي",
+    item: "الخدمة", addLine: "إضافة بند", remove: "حذف البند", notes: "ملاحظات", defaultNotes: "العرض صالح لمدة 30 يومًا. الأسعار لا تشمل الضرائب.",
+    print: "حفظ PDF أو طباعة", back: "سجل العميل", open: "عرض سعر",
+  },
+  emptyNext: { campaigns: "اختر العملاء للحملة", crm: "افتح المحادثات", prospects: "ابدأ بحثًا", inbox: "افتح الحملات" },
+  today: {
+    title: "اليوم", replies: "{n} محادثة فيها رد جديد", meeting: "اجتماع مع {name} الساعة {time}",
+    stale: "{n} صفقات بلا نشاط منذ أسبوع", staleOne: "{name}: بلا نشاط منذ {days} يوم",
+    lookalike: "ابحث عن شركات شبه {names}", lookalikePrompt: "ابحث عن شركات تشبه عملائي الذين كسبتهم: {names}",
+  },
   startHere: {
     title: "ابدأ هنا", progress: "{done} من 3",
-    mailbox: "اربط بريدك", mailboxDesc: "Gmail أو أي بريد عبر IMAP/SMTP (مثل Zoho وHostinger وبريد شركتك). منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
+    mailbox: "اربط بريدك", mailboxDesc: "Gmail أو أي بريد آخر، مثل Zoho أو Hostinger أو بريد شركتك. منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
     search: "اكتب أول بحث", searchDesc: "اكتب في الخانة أعلاه لمن تريد أن تبيع، ويولـياس يجد لك العملاء.", searchCta: "اكتب الطلب",
     campaign: "راجع أول حملة", campaignDesc: "راجع الرسائل التي كتبها يولـياس ووافق على الإرسال.", campaignCta: "فتح الحملات",
     done: "تم",
@@ -364,7 +375,7 @@ export const ar: Dictionary = {
     headcount: "عدد الموظفين: {count}",
     hiringRoles: "يوظّف {count}+ وظيفة",
     currentlyHiring: "يوظّف حاليًا",
-    reach: "{n} من {total} نتيجة ليس لها بريد منشور، فلن تصلها رسائل الحملة. تبقى في العملاء المحتملين مع الهاتف وLinkedIn إن وُجدا.", reachNone: "لا يوجد بريد منشور لأي من النتائج ({total})، فلن تصلها رسائل الحملة. تبقى في العملاء المحتملين مع الهاتف وLinkedIn إن وُجدا.",
+    reach: "{n} من {total} نتيجة ليس لها بريد منشور، فلن تصلها رسائل الحملة. تبقى في العملاء المحتملين مع الهاتف أو حساب LinkedIn إن وُجد.", reachNone: "لا يوجد بريد منشور لأي من النتائج ({total})، فلن تصلها رسائل الحملة. تبقى في العملاء المحتملين مع الهاتف أو حساب LinkedIn إن وُجد.",
     savedTo: "تم الحفظ في العملاء المحتملين من «{name}» مع بيانات التواصل الكاملة.",
     created: "بدأ البحث «{name}».",
     saveToProspects: "حفظ في العملاء المحتملين",
@@ -637,7 +648,7 @@ export const ar: Dictionary = {
     account: {
       avatar: "الصورة الشخصية", avatarDesc: "صورة ملفك الشخصي.", change: "تغيير", uploading: "جارٍ الرفع…",
       fullName: "الاسم الكامل", fullNameDesc: "اسم المستخدم في مساحة العمل.",
-      phone: "رقم الهاتف", phoneDesc: "مع رمز الدولة، مثل ‎+20 100 123 4567. لا يراه أحد غيرك.", phonePlaceholder: "+20 100 123 4567", phoneSaved: "تم حفظ رقم الهاتف",
+      phone: "رقم الهاتف", booking: "رابط حجز الاجتماعات", bookingDesc: "Calendly أو Google Calendar أو غيره. يرسله يولـياس للعميل الذي يطلب اجتماعًا.", phoneDesc: "مع رمز الدولة، مثل ‎+20 100 123 4567. لا يراه أحد غيرك.", phonePlaceholder: "+20 100 123 4567", phoneSaved: "تم حفظ رقم الهاتف",
       email: "البريد الإلكتروني", emailDesc: "بريد حسابك الموثّق.", verified: "موثّق",
       changeEmail: "تغيير", newEmail: "البريد الإلكتروني الجديد", sendChange: "إرسال التأكيد", cancel: "إلغاء",
       emailChangeSent: "راجع البريدين: أكّد التغيير من عنوانك الحالي ومن العنوان الجديد.",
@@ -738,7 +749,7 @@ export const ar: Dictionary = {
       },
     },
     errors: {
-      saveFailed: "تعذّر الحفظ. حاول مرة أخرى.",
+      bookingInvalid: "أدخل رابطًا صحيحًا يبدأ بـ https.", saveFailed: "تعذّر الحفظ. حاول مرة أخرى.",
       nameRequired: "أدخل اسمك.",
       phoneInvalid: "أدخل الرقم مع رمز الدولة بدءًا بعلامة +، مثل ‎+966 50 123 4567.",
       invalidAvatar: "صورة غير صالحة.",

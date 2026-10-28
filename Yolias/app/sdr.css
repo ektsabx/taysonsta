@@ -406,3 +406,28 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .integration-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; border: 0; background: none; color: var(--muted); font: inherit; font-size: .82rem; cursor: pointer; padding: 0; }
 .integration-back:hover { color: var(--ink); }
 .integration-back svg { width: 15px; height: 15px; }
+
+/* Phones (owner, 2026-10-29): wide tables become cards, no sideways scroll.
+   Row 1: [checkbox] name … menu; the other cells wrap underneath. */
+@media (max-width: 640px) {
+  .sdr-table.mobile-cards { min-width: 0 !important; width: 100%; }
+  .sdr-table.mobile-cards thead { display: none; }
+  .sdr-table.mobile-cards tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line-faint); }
+  .sdr-table.mobile-cards tbody td { display: block; padding: 0; border: 0; max-width: none !important; min-width: 0; text-align: start; }
+  .sdr-table.mobile-cards tbody td.empty { grid-column: 1 / -1; }
+  .sdr-table.mobile-cards tbody td:first-child { grid-column: 1; grid-row: 1; }
+  .sdr-table.mobile-cards tbody td:last-child { grid-column: 2; grid-row: 1; }
+  .sdr-table.mobile-cards tbody td:not(:first-child):not(:last-child) { grid-column: 1 / -1; font-size: .8rem; }
+  .sdr-table.mobile-cards.with-check tbody tr { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .sdr-table.mobile-cards.with-check tbody td:first-child { grid-column: 1; }
+  .sdr-table.mobile-cards.with-check tbody td:nth-child(2) { grid-column: 2; grid-row: 1; font-size: inherit; }
+  .sdr-table.mobile-cards.with-check tbody td:last-child { grid-column: 3; }
+  .sdr-table.mobile-cards.with-check tbody td:not(:first-child):not(:nth-child(2)):not(:last-child) { grid-column: 2 / -1; }
+  .sdr-table-wrap:has(.mobile-cards) { overflow-x: visible; }
+}
+
+/* One button size across the app (owner, 2026-10-29): primary, secondary and
+   the page buttons share height, corners and text size; ws-btn-sm stays small. */
+.btn-primary, .btn-secondary, .sdr-btn { min-height: 34px; height: auto; border-radius: 9px; font-size: .84rem; }
+.sdr-btn { height: 34px; }
+.btn-primary.ws-btn-sm, .btn-secondary.ws-btn-sm, .sdr-btn.sm { min-height: 30px; }

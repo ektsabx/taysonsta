@@ -26,7 +26,7 @@ import type { Database, Json, LeadStage, MessageChannel } from "@/types/database
 type Db = SupabaseClient<Database>;
 export const ANALYSIS_PROMPT_VERSION = "replies-2026-10-13";
 
-const STAGES = ["interested", "meeting_booked", "meeting_completed", "closed", "lost"] as const;
+const STAGES = ["interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const;
 const AnalysisSchema = z.object({
   kind: z.enum(REPLY_KINDS),
   summary: z.string().min(1).max(400),
@@ -137,7 +137,7 @@ export async function suggestStage(workspaceId: string, leadId: string, stage: L
   const { data: lead } = await db.from("sales_leads").select("stage").eq("id", leadId).single();
   if (!lead || lead.stage === stage || lead.stage === "closed") return;
   // Suggestions only move a deal forward (or to Lost), never back.
-  const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "closed"];
+  const order: LeadStage[] = ["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed"];
   if (stage !== "lost" && order.indexOf(stage) <= order.indexOf(lead.stage)) return;
   const d = decide(s, "crm", "update_crm_stage");
   if (!d.allowed) return;

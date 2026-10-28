@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -46,11 +47,15 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
         </div>
 
         <nav className="admin-sidebar-nav" style={{ gap: 2 }}>
-          {navigation.map((group) => {
+          {navigation.map((group, gi) => {
+            // A heading where the business changes: Yolias, then Taysonsta (owner, 2026-10-29).
+            const heading = group.section && group.section !== navigation[gi - 1]?.section && !collapsed
+              ? <div key={`h-${group.section}`} className="admin-sidebar-section">{t(group.section === "yolias" ? "يولياس" : "Taysonsta")}</div>
+              : null;
             if (group.href) {
               const active = isActive(pathname, group.href, allHrefs);
               return (
-                <Link
+                <Fragment key={group.key}>{heading}<Link
                   key={group.key}
                   href={group.href}
                   className={`admin-sidebar-link${active ? " active" : ""}`}
@@ -59,12 +64,13 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
                 >
                   <BosIcon name={group.icon} className="admin-sidebar-icon" />
                   {!collapsed ? <span>{t(group.label)}</span> : null}
-                </Link>
+                </Link></Fragment>
               );
             }
             const isOpen = open.has(group.key);
             return (
-              <div className="bos-nav-group" key={group.key}>
+              <Fragment key={group.key}>{heading}
+              <div className="bos-nav-group">
                 <button
                   type="button"
                   className={`bos-nav-group-btn${isOpen ? " open" : ""}${activeGroup === group.key ? " active" : ""}`}
@@ -108,6 +114,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onNavigate, navigation }: 
                   </div>
                 ) : null}
               </div>
+              </Fragment>
             );
           })}
         </nav>

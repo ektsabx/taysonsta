@@ -76,6 +76,20 @@ export async function updatePhone(input: string): Promise<ActionResult & { phone
   return { ok: true, phone };
 }
 
+// Account → Booking link (owner, 2026-10-29): sent to a lead who asks for a
+// meeting. https only; empty removes it. Written by the server (profiles columns
+// aren't client-writable).
+export async function updateBookingUrl(input: string): Promise<ActionResult & { url?: string | null }> {
+  const session = await requireUser();
+  const t = (await getDictionary()).settings.errors;
+  const raw = input.trim().slice(0, 500);
+  const url = raw ? (/^https?:\/\//i.test(raw) ? raw.replace(/^http:/i, "https:") : `https://${raw}`) : null;
+  if (url) { try { new URL(url); } catch { return { ok: false, error: t.bookingInvalid }; } }
+  const { error } = await createAdminClient().from("profiles").update({ booking_url: url }).eq("id", session.userId);
+  if (error) return { ok: false, error: t.saveFailed };
+  return { ok: true, url };
+}
+
 // Trustpilot request (lib/review-prompt.ts): the first call marks it as asked,
 // so it never shows again on any device; later calls record the choice.
 export async function recordReviewPrompt(action: "shown" | "opened" | "dismissed"): Promise<ActionResult> {
