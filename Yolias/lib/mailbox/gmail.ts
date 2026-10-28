@@ -71,7 +71,7 @@ export const gmail: MailboxProvider = {
     return { token: body.access_token, expiresAt: Date.now() + (body.expires_in ?? 3000) * 1000 };
   },
   async send(token, mail) {
-    const raw = buildRawEmail({ from: mail.from, fromName: mail.fromName, to: mail.to, subject: mail.subject, body: mail.body, inReplyTo: null });
+    const raw = buildRawEmail({ from: mail.from, fromName: mail.fromName, to: mail.to, subject: mail.subject, body: mail.body, inReplyTo: null, unsubscribeUrl: mail.unsubscribeUrl });
     const r = await call<{ id: string; threadId: string }>(token, "/messages/send", { method: "POST", body: JSON.stringify({ raw, ...(mail.threadId ? { threadId: mail.threadId } : {}) }) });
     return { providerMessageId: r.id, threadId: r.threadId };
   },

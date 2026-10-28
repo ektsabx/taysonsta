@@ -14,7 +14,12 @@ export function encodeHeader(v: string): string {
 
 const clean = (v: string) => v.replace(/[\r\n]+/g, " ").trim();
 
-export function buildRawEmail(m: { from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null }): string {
+/** List-Unsubscribe with RFC 8058 one-click, for campaign emails (owner, 2026-10-28). */
+function unsubscribeHeaders(url?: string | null): string[] {
+  return url ? [`List-Unsubscribe: <${clean(url)}>`, "List-Unsubscribe-Post: List-Unsubscribe=One-Click"] : [];
+}
+
+export function buildRawEmail(m: { from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null }): string {
   const headers = [
     `From: ${m.fromName ? `${encodeHeader(clean(m.fromName))} <${clean(m.from)}>` : clean(m.from)}`,
     `To: ${clean(m.to)}`,
@@ -23,6 +28,7 @@ export function buildRawEmail(m: { from: string; fromName: string | null; to: st
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: base64",
     ...(m.inReplyTo ? [`In-Reply-To: ${clean(m.inReplyTo)}`, `References: ${clean(m.inReplyTo)}`] : []),
+    ...unsubscribeHeaders(m.unsubscribeUrl),
   ];
   const body = btoa(String.fromCharCode(...utf8(m.body.replace(/\r?\n/g, "\r\n")))).replace(/(.{76})/g, "$1\r\n");
   return b64url(utf8(`${headers.join("\r\n")}\r\n\r\n${body}`));
@@ -83,7 +89,7 @@ export function htmlToText(html: string): string {
 // ── SMTP / IMAP mailboxes (D-238) ───────────────────────────────────────────
 
 /** A complete RFC 5322 message for SMTP (CRLF line ends, base64 UTF-8 body). */
-export function buildMessage(m: { from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date }): string {
+export function buildMessage(m: { from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null }): string {
   const refs = (m.references ?? []).filter(Boolean).map(clean);
   const headers = [
     `Date: ${(m.date ?? new Date()).toUTCString().replace("GMT", "+0000")}`,
@@ -93,6 +99,7 @@ export function buildMessage(m: { from: string; fromName: string | null; to: str
     `Message-ID: ${clean(m.messageId)}`,
     ...(m.inReplyTo ? [`In-Reply-To: ${clean(m.inReplyTo)}`] : []),
     ...(refs.length ? [`References: ${refs.join(" ")}`] : []),
+    ...unsubscribeHeaders(m.unsubscribeUrl),
     "MIME-Version: 1.0",
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: base64",

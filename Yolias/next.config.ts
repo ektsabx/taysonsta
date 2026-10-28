@@ -39,19 +39,6 @@ const nextConfig: NextConfig = {
       ],
     }];
   },
-  // Searches used to live at /strategies/<id>; keep old links working.
-  async redirects() {
-    return [
-      { source: "/strategies/:id", destination: "/search/:id", permanent: true },
-      { source: "/docs/strategies", destination: "/docs/searches", permanent: true },
-      // Discovery campaigns are no longer a concept in the product (owner, 2026-10-20).
-      { source: "/docs/campaigns", destination: "/docs/search-status", permanent: true },
-      { source: "/campaigns", destination: "/prospects", permanent: true },
-      { source: "/campaigns/:id", destination: "/prospects", permanent: true },
-      { source: "/help-center/strategy-needs-attention", destination: "/help-center/search-needs-attention", permanent: true },
-      { source: "/blog/writing-better-strategies", destination: "/blog/writing-better-searches", permanent: true },
-    ];
-  },
   images: {
     // Small logos only: served as-is (no Cloudflare Images binding needed).
     unoptimized: true,

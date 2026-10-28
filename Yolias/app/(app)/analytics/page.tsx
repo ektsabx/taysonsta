@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { RangePicker } from "@/components/app/RangePicker";
 import { formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
@@ -7,6 +8,8 @@ import { requireViewer } from "@/lib/session";
 import { firstName } from "@/lib/format";
 import { Greeting } from "@/components/app/Greeting";
 import { discoveryAnalytics, outreachAnalytics, parseRange, ranges } from "@/services/analytics";
+import { campaignList, campaignPage } from "@/services/campaigns";
+import { CampaignAnalytics } from "@/components/app/campaigns/CampaignDetail";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.analytics} | Yolias` };
@@ -44,10 +47,28 @@ function Panel({ title, children, wide = false }: { title: string; children: Rea
 // distribution panels were removed (owner, 2026-10-20).
 export default async function AnalyticsPage({ searchParams }: PageProps<"/analytics">) {
   const session = await requireViewer();
-  const range = parseRange((await searchParams).range);
-  const [a, o] = await Promise.all([discoveryAnalytics(session.workspace.id, range), outreachAnalytics(session.workspace.id, range)]);
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const sp = await searchParams;
+  const range = parseRange(sp.range);
+  const ws = session.workspace.id;
+  // Analytics live in one place (owner, 2026-10-28): all campaigns, or one campaign's numbers and charts.
+  const asked = typeof sp.campaign === "string" && /^[0-9a-f-]{36}$/i.test(sp.campaign) ? sp.campaign : null;
+  const [campaigns, one, t, locale] = await Promise.all([campaignList(ws), asked ? campaignPage(ws, asked, session.profile.timezone ?? null) : Promise.resolve(null), getDictionary(), getLocale()]);
   const an = t.analytics;
+  const picker = campaigns.length > 0 && (
+    <RangePicker param="campaign" value={one ? one.summary.id : ""} options={[{ key: "", label: an.allCampaigns }, ...campaigns.map((c) => ({ key: c.id, label: c.name }))]} />
+  );
+  if (one) {
+    return (
+      <div className="page-view">
+        <header className="view-header">
+          <div className="view-title-group"><h2 dir="auto">{one.summary.name}</h2></div>
+          <div className="view-actions"><Link className="btn-secondary" href={`/outreach/${one.summary.id}`}>{an.openCampaign}</Link>{picker}</div>
+        </header>
+        <div className="view-content-padding analytics-page"><CampaignAnalytics page={one} /></div>
+      </div>
+    );
+  }
+  const [a, o] = await Promise.all([discoveryAnalytics(ws, range), outreachAnalytics(ws, range)]);
   const n = (v: number) => formatNumber(v, locale);
   const p = (v: number | null) => (v == null ? "-" : `${v}%`);
   const changeNote = (v: number | null) => (v == null ? an.noPrevious : fmt(an.vsPrevious, { change: `${v > 0 ? "+" : ""}${v}%` }));
@@ -60,6 +81,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
           <h2>{an.title}</h2>
         </div>
         <div className="view-actions">
+          {picker}
           <RangePicker value={range} options={(Object.keys(ranges) as (keyof typeof ranges)[]).map((k) => ({ key: k, label: an.ranges[k] }))} />
         </div>
       </header>

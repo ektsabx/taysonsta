@@ -21,7 +21,6 @@ export type MsgResult<T = object> = ({ ok: true } & T) | { ok: false; error: str
 const uuid = z.string().uuid();
 const refresh = (leadId?: string | null) => {
   revalidatePath("/inbox");
-  revalidatePath("/conversations");
   revalidatePath("/outreach", "layout");
   revalidatePath("/crm");
   if (leadId) revalidatePath(`/crm/${leadId}`);

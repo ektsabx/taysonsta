@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 import { computeDiscovery, type ActivityCounts, type LeadRow } from "@/lib/analytics/discovery";
 
 export const ranges = { "7d": 7, "30d": 30, "90d": 90 } as const;
@@ -86,7 +87,7 @@ export async function discoveryAnalytics(workspaceId: string, range: RangeKey) {
 export async function outreachAnalytics(workspaceId: string, range: RangeKey, client?: Client) {
   const db: Client = client ?? (await createClient());
   const s = new Date(Date.now() - ranges[range] * 86_400_000).toISOString();
-  const [campaigns, out, inbound, meetings, won, leads] = await Promise.all([
+  const [campaigns, out, received, meetings, won, leads] = await Promise.all([
     all<{ id: string; approved_at: string | null; created_at: string }>(() => db.from("outreach_campaigns").select("id, approved_at, created_at").eq("workspace_id", workspaceId).gte("created_at", s)),
     all<{ status: string; sent_via: string | null; delivery_status: string | null; sent_at: string | null; lead_id: string | null }>(() => db.from("outreach_messages").select("status, sent_via, delivery_status, sent_at, lead_id")
       .eq("workspace_id", workspaceId).eq("direction", "outbound").in("status", ["sent", "failed"]).gte("updated_at", s)),
@@ -96,6 +97,8 @@ export async function outreachAnalytics(workspaceId: string, range: RangeKey, cl
     db.from("sales_leads").select("id", head).eq("workspace_id", workspaceId).gte("created_at", s),
   ]);
   const sent = out.filter((m) => m.status === "sent" && m.sent_at && m.sent_at >= s);
+  // An out-of-office reply isn't the lead answering (owner, 2026-10-28): not a reply here.
+  const inbound = received.filter((m) => !isAutoReplyRow(m));
   const kinds = inbound.map((m) => (m.analysis as { kind?: string } | null)?.kind);
   const contactedLeads = new Set(sent.map((m) => m.lead_id).filter(Boolean));
   const repliedLeads = new Set(inbound.map((m) => m.lead_id).filter((id) => id && contactedLeads.has(id))).size;

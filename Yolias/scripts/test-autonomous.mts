@@ -88,6 +88,7 @@ const { saveMailbox, mailboxProvider } = await import("@/lib/mailbox/index.ts");
 const { testOutbox, pushTestReply } = await import("@/lib/mailbox/test-provider.ts");
 const { dispatchCampaigns, syncReplies } = await import("@/lib/outreach/execute.ts");
 const { campaignStats } = await import("@/services/outreach-campaigns.ts");
+const { unsubscribeLead } = await import("@/lib/outreach/unsubscribe.ts");
 const { outreachAnalytics } = await import("@/services/analytics.ts");
 const { DEFAULT_POLICY } = await import("@/lib/agent/policy-schema.ts");
 type Ctx = Parameters<typeof executeTool>[0];
@@ -202,6 +203,8 @@ try {
   assert.ok(firstSent >= 4 && r1.sent === firstSent, `first messages sent: ${firstSent}`);
   await dispatchCampaigns();
   assert.equal(testOutbox().length, firstSent, "a second run sends nothing twice");
+  // Every campaign email ends with the unsubscribe line and carries List-Unsubscribe (owner, 2026-10-28).
+  assert.ok(testOutbox().every((m) => /\/u\/[0-9a-f-]{36}/.test(m.body) && /\/api\/u\/[0-9a-f-]{36}$/.test(m.unsubscribeUrl ?? "")), "unsubscribe line and header on every campaign email");
   const { data: sentRows } = await admin.from("outreach_messages").select("id, lead_id, provider_message_id, provider_thread_id, sent_via, to_email, step_position").eq("outreach_campaign_id", campId).eq("status", "sent");
   assert.ok(sentRows!.every((m) => m.provider_message_id && m.provider_thread_id && m.sent_via === "mailbox" && m.step_position === 1), "provider ids saved");
   const { data: enr } = await admin.from("outreach_enrollments").select("id, lead_id, current_step, next_step_at").eq("campaign_id", campId).eq("status", "active");
@@ -329,9 +332,30 @@ try {
   assert.equal(an.sent, sentCount, "Analytics: sent");
   assert.equal(an.sentFromMailbox, sentCount);
   assert.equal(an.bounced, 1);
-  assert.equal(an.replies, (await admin.from("outreach_messages").select("id", { count: "exact", head: true }).eq("workspace_id", A.wsId).eq("direction", "inbound")).count);
+  // Out of office isn't a reply (owner, 2026-10-28).
+  const { data: inboundRows } = await admin.from("outreach_messages").select("analysis").eq("workspace_id", A.wsId).eq("direction", "inbound");
+  const ooo = inboundRows!.filter((m) => (m.analysis as { kind?: string } | null)?.kind === "out_of_office").length;
+  assert.ok(ooo >= 1, "the test has an out-of-office reply");
+  assert.equal(an.replies, inboundRows!.length - ooo, "Analytics: replies without out of office");
   assert.equal(an.campaignsStarted, 1);
   console.log("✓ stats and analytics");
+
+  // ── 11b. Unsubscribe link: the lead's token marks it do not contact and stops its campaigns ──
+  {
+    const { data: target } = await admin.from("outreach_enrollments").select("lead_id").eq("campaign_id", campId).eq("status", "active").limit(1).maybeSingle();
+    const leadId = target?.lead_id ?? sentRows![0].lead_id!;
+    const { data: row } = await admin.from("sales_leads").select("unsubscribe_token").eq("id", leadId).single();
+    assert.equal(await unsubscribeLead("00000000-0000-4000-8000-000000000000"), false, "an unknown token does nothing");
+    assert.equal(await unsubscribeLead(row!.unsubscribe_token), true);
+    assert.equal(await unsubscribeLead(row!.unsubscribe_token), true, "twice is fine");
+    const after = (await admin.from("sales_leads").select("do_not_contact, unsubscribed_at").eq("id", leadId).single()).data!;
+    assert.ok(after.do_not_contact && after.unsubscribed_at, "marked do not contact");
+    const { count: still } = await admin.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("lead_id", leadId).in("status", ["active", "paused"]);
+    assert.equal(still, 0, "its campaigns stopped");
+    const { count: acts } = await admin.from("lead_activities").select("id", { count: "exact", head: true }).eq("lead_id", leadId).contains("meta", { kind: "unsubscribe" });
+    assert.equal(acts, 1, "one timeline entry");
+  }
+  console.log("✓ unsubscribe link");
 
   // ── 12. Expired mailbox pauses; cancel stops everything ──
   const { data: camp2 } = await admin.from("outreach_campaigns").insert({ workspace_id: A.wsId, name: "Second", channel: "email", created_by: A.userId }).select("id").single();

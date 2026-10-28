@@ -57,7 +57,7 @@ export const wsAr: Dictionary["ws"] = {
       name: "اسم الحملة", goal: "الهدف", goalPh: "مثال: حجز مكالمات تعريفية مع مديري الخدمات اللوجستية في الرياض",
       description: "الوصف", channel: "القناة", language: "اللغة", tone: "الأسلوب", profile: "ملف العميل", offer: "العرض", noProfile: "الملف الافتراضي", noOffer: "كل العروض",
       steps: "تسلسل الرسائل", step: "الخطوة {n}", firstMessage: "الرسالة الأولى", followUp: "متابعة", delay: "الانتظار (أيام)", objective: "هدف هذه الرسالة", instruction: "ماذا تقول",
-      instructionPh: "اختياري: سبب التواصل أو نقطة تريد ذكرها…", addStep: "إضافة متابعة", removeStep: "إزالة", maxSteps: "حتى {count} رسائل لكل عميل (إعدادات الوكيل).",
+      instructionPh: "اختياري: سبب التواصل أو نقطة تريد ذكرها…", addStep: "إضافة متابعة", removeStep: "إزالة", maxSteps: "حتى {count} رسائل لكل عميل.",
     },
     tones: { conservative: "رسمي", direct: "مباشر", friendly: "ودّي" },
     objectives: { introduction: "تعريف", sales: "بيع", meeting: "حجز اجتماع", follow_up: "متابعة", partnership: "شراكة", referral: "طلب توجيه" },
@@ -114,7 +114,7 @@ export const wsAr: Dictionary["ws"] = {
     sendDisabled: "إرسال (يحتاج بريدًا متصلًا)", subject: "الموضوع", body: "الرسالة", from: "من", to: "إلى",
     errors: {
       not_found: "الرسالة غير موجودة.", not_ready: "لا يمكن تعليم هذه الرسالة كمُرسلة.", do_not_contact: "طلب هذا العميل عدم التواصل معه.",
-      too_soon: "الوقت قصير منذ آخر رسالة (وكيل الذكاء الاصطناعي ← الانتظار بين الرسائل).", daily_limit: "تم بلوغ حد الإرسال اليومي (إعدادات الوكيل).",
+      too_soon: "الوقت قصير منذ آخر رسالة لهذا العميل. تُرسل لاحقًا تلقائيًا.", daily_limit: "تم بلوغ حد الإرسال اليومي (الإعدادات ← التكاملات ← قواعد الإرسال).",
       edit: "يمكن تعديل المسودات فقط.", failed: "تعذّر حفظ الرسالة.",
     },
     prepareErrors: {
@@ -257,7 +257,7 @@ export const wsAr: Dictionary["ws"] = {
         unverified_info: "تحتاج الإجابة معلومات غير مؤكدة", no_permission: "لا يملك الوكيل الصلاحية (دائمًا)",
       },
       guidelines: "الإرشادات", guidelinesHint: "طريقة عمل شركتك، ونبرة التواصل، وما يجب تجنبه. يلتزم بها كل الوكلاء.", guidelinesPh: "مثال: لا تَعِد بمواعيد تسليم. خاطب العميل بـ«أنت».",
-      searchBlocked: "البحث متوقف في مساحة الذكاء الاصطناعي ← وكيل الذكاء الاصطناعي.",
+      searchBlocked: "البحث متوقف لهذه المساحة. تواصل مع الدعم.",
     },
     automations: {
       title: "الأتمتة", subtitle: "عندما يحدث شيء لعميل، تنفَّذ الخطوة التالية عنك. الأتمتة لا ترسل رسائل أبدًا.",

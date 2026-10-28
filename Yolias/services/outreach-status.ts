@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 
 // Where each prospect stands in outreach (D-234), for the Prospects table:
 // new → in a campaign → contacted (a message went out) → replied; plus
@@ -22,11 +23,11 @@ export async function outreachStates(workspaceId: string, items: { id: string; k
   const ids = leads.map((l) => l.id);
   const [{ data: enr }, { data: msgs }] = await Promise.all([
     db.from("outreach_enrollments").select("lead_id").in("lead_id", ids),
-    db.from("outreach_messages").select("lead_id, direction, status").in("lead_id", ids).in("status", ["sent", "received"]),
+    db.from("outreach_messages").select("lead_id, direction, status, analysis").in("lead_id", ids).in("status", ["sent", "received"]),
   ]);
   const enrolled = new Set((enr ?? []).map((e) => e.lead_id));
   const sent = new Set((msgs ?? []).filter((m) => m.direction === "outbound").map((m) => m.lead_id));
-  const replied = new Set((msgs ?? []).filter((m) => m.direction === "inbound").map((m) => m.lead_id));
+  const replied = new Set((msgs ?? []).filter((m) => m.direction === "inbound" && !isAutoReplyRow(m)).map((m) => m.lead_id));
   for (const l of leads) {
     const key = l.prospect_id ?? l.company_id;
     if (!key) continue;

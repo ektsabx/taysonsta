@@ -9,7 +9,7 @@ export function testMailboxAllowed(): boolean {
   return process.env.YOLIAS_TEST_MAILBOX === "1" && process.env.NODE_ENV !== "production";
 }
 
-const sent: { id: string; threadId: string; to: string; subject: string; body: string }[] = [];
+const sent: { id: string; threadId: string; to: string; subject: string; body: string; unsubscribeUrl: string | null }[] = [];
 const inbox: IncomingMail[] = [];
 let seq = 0;
 
@@ -28,7 +28,7 @@ export const testProvider: MailboxProvider = {
     if (!testMailboxAllowed()) throw new Error("test mailbox not allowed here");
     const id = `test-out-${++seq}-${Date.now()}`;
     const threadId = mail.threadId ?? `test-thread-${id}`;
-    sent.push({ id, threadId, to: mail.to, subject: mail.subject, body: mail.body });
+    sent.push({ id, threadId, to: mail.to, subject: mail.subject, body: mail.body, unsubscribeUrl: mail.unsubscribeUrl ?? null });
     return { providerMessageId: id, threadId };
   },
   async replies(_token, _own, threadIds) {

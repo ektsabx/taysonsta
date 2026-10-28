@@ -9,6 +9,7 @@ import { loadSendingRules, mailboxAccess, markMailboxError, MailboxError } from 
 import { mailboxWindow, nextGapMs, withinWindow } from "@/lib/outreach/sending-rules";
 import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
+import { unsubscribeFooter, unsubscribePostUrl } from "@/lib/outreach/unsubscribe";
 import type { Json, MailboxRow, OutreachMessageRow } from "@/types/database";
 import type { OutreachCampaignRow } from "@/types/acquisition";
 
@@ -186,7 +187,12 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
   try {
     const { provider, token } = await mailboxAccess(mailbox);
     const { data: sender } = await db.from("profiles").select("full_name").eq("id", mailbox.user_id).maybeSingle();
-    const r = await provider.send(token, { from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body: m.body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null });
+    // Campaign emails (first email and follow-ups) end with an unsubscribe line and carry List-Unsubscribe
+    // (owner, 2026-10-28). A reply the member writes from the Inbox doesn't.
+    const { data: lead } = m.enrollment_id && m.lead_id ? await db.from("sales_leads").select("unsubscribe_token").eq("id", m.lead_id).maybeSingle() : { data: null };
+    const unsub = lead?.unsubscribe_token ?? null;
+    const body = unsub ? `${m.body.trimEnd()}${unsubscribeFooter(unsub, m.language ?? "en")}` : m.body;
+    const r = await provider.send(token, { from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null });
     const now = new Date().toISOString();
     await db.from("outreach_messages").update({
       status: "sent", sent_at: now, sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent",

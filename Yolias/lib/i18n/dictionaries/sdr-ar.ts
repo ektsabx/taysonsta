@@ -91,7 +91,7 @@ export const sdrAr: typeof sdrEn = {
     back: "الحملات", created: "أُنشئت {date} · {steps} خطوات",
     pause: "إيقاف مؤقت", resume: "استئناف", launch: "مراجعة وإطلاق",
     stripFollowUps: "متابعات اليوم", stripNewLeads: "عملاء جدد وصلتهم اليوم", stripSteps: "خطوات التسلسل", stripNext: "الرسالة التالية", nextNone: "لا شيء مجدول", nextIn: "خلال {ago}",
-    tabs: { analytics: "التحليلات", leads: "العملاء", sequence: "التسلسل" },
+    tabs: { leads: "العملاء", sequence: "التسلسل" }, fullAnalytics: "التحليلات الكاملة",
     a: {
       leads: "العملاء", leadsNote: "في هذه الحملة", contacted: "تم التواصل", contactedNote: "{pct}% من العملاء", sent: "الرسائل المرسلة", sentNote: "{n} ما زالت مجدولة",
       replied: "ردّوا", repliedHint: "العملاء الذين ردّوا على أي رسالة في هذه الحملة.", repliedNote: "{pct}% ممن تم التواصل معهم", bounced: "مرتدة", bouncedNote: "{pct}% ممن تم التواصل معهم",
@@ -114,7 +114,7 @@ export const sdrAr: typeof sdrEn = {
       goal: "هدف الرسالة", goalSub: "يكتب يولياس كل رسالة من هذا الهدف ومن بيانات العميل وشركته ومعرفة شركتك. لا يخترع أي معلومة.", goalPh: "مثال: عرّف بخدمة تتبع الأسطول واطلب مكالمة 15 دقيقة.",
       purpose: "الغرض", preview: "معاينة", previewTitle: "الرسالة الأولى كما كتبها يولياس", previewNone: "لم تُكتب أي رسالة بعد. يكتبها يولياس بعد ربط بريد.",
       settings: "إعدادات الحملة", aim: "الهدف", link: "الرابط", language: "اللغة", tone: "النبرة", profile: "ملف العميل", offer: "العرض", none: "بدون",
-      save: "حفظ", saved: "تم الحفظ.", archived: "هذه الحملة مؤرشفة.", max: "حتى {n} رسائل لكل عميل (القواعد والصلاحيات).",
+      save: "حفظ", saved: "تم الحفظ.", archived: "هذه الحملة مؤرشفة.", max: "حتى {n} رسائل لكل عميل. يُضاف سطر إلغاء الاشتراك تلقائيًا أسفل كل رسالة.",
     },
     w: {
       title: "إنشاء حملة", sub: "أضف المستلمين، ابنِ التسلسل، عاينه ببيانات حقيقية، ثم أطلقه.", back: "الحملات",

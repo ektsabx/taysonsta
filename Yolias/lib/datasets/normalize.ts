@@ -137,6 +137,22 @@ export function canonicalCity(v: string | null | undefined): string | null {
   return cityIndex.get(key) ?? cityIndex.get(fold(s)) ?? s.slice(0, 120);
 }
 
+/** Every name of the city `v` names (its English name first), folded; just `v` when it isn't a known city. */
+export function cityNames(v: string | null | undefined): string[] {
+  const canon = canonicalCity(v);
+  if (!canon) return [];
+  const group = CITY_NAMES[canon.replace(/ /g, "_")];
+  return [...new Set([canon, ...(group ?? []), (v ?? "").trim()].map((x) => x.trim()).filter(Boolean))];
+}
+
+/** Two city names that are the same city, in Arabic or English («القاهرة» and "Cairo"), or one inside the other. */
+export function sameCity(a: string | null | undefined, b: string | null | undefined): boolean {
+  const x = canonicalCity(a), y = canonicalCity(b);
+  if (!x || !y) return false;
+  const fx = fold(x), fy = fold(y);
+  return fx === fy || fx.includes(fy) || fy.includes(fx);
+}
+
 // ───────────────────────── Phones ─────────────────────────
 
 /** Calling code and whether local numbers start with a trunk 0. */

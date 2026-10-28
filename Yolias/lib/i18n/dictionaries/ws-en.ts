@@ -57,7 +57,7 @@ export const wsEn = {
       name: "Campaign name", goal: "Goal", goalPh: "e.g. Book intro calls with logistics managers in Riyadh",
       description: "Description", channel: "Channel", language: "Language", tone: "Tone", profile: "Customer profile", offer: "Offer", noProfile: "Default profile", noOffer: "All offers",
       steps: "Sequence", step: "Step {n}", firstMessage: "First message", followUp: "Follow-up", delay: "Wait (days)", objective: "Goal of this message", instruction: "What to say",
-      instructionPh: "Optional: the reason for writing, a point to make…", addStep: "Add a follow-up", removeStep: "Remove", maxSteps: "Up to {count} messages per lead (AI Agent settings).",
+      instructionPh: "Optional: the reason for writing, a point to make…", addStep: "Add a follow-up", removeStep: "Remove", maxSteps: "Up to {count} messages per lead.",
     },
     tones: { conservative: "Conservative", direct: "Direct", friendly: "Friendly" },
     objectives: { introduction: "Introduction", sales: "Sales", meeting: "Book a meeting", follow_up: "Follow-up", partnership: "Partnership", referral: "Referral" },
@@ -114,7 +114,7 @@ export const wsEn = {
     sendDisabled: "Send (needs a connected mailbox)", subject: "Subject", body: "Message", from: "From", to: "To",
     errors: {
       not_found: "Message not found.", not_ready: "This message can’t be marked as sent.", do_not_contact: "This lead asked not to be contacted.",
-      too_soon: "Too soon after the last message (AI Agent → wait between messages).", daily_limit: "Daily sending limit reached (AI Agent settings).",
+      too_soon: "Too soon after the last message to this lead. It goes out later by itself.", daily_limit: "Daily sending limit reached (Settings → Integrations → Sending rules).",
       edit: "Only drafts can be edited.", failed: "Couldn’t save the message.",
     },
     prepareErrors: {
@@ -256,7 +256,7 @@ export const wsEn = {
         unverified_info: "The answer needs information that isn’t verified", no_permission: "The agent doesn’t have permission (always)",
       },
       guidelines: "Guidelines", guidelinesHint: "How your company works, the tone to use, and what to avoid. Every agent follows these.", guidelinesPh: "e.g. Never promise delivery dates. Use “you” not “sir”.",
-      searchBlocked: "Searching is turned off in AI Workspace → AI Agent.",
+      searchBlocked: "Searching is turned off for this workspace. Contact support.",
     },
     automations: {
       title: "Automations", subtitle: "When something happens to a lead, do the next step for you. Automations never send messages.",

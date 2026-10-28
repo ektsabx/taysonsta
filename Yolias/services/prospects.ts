@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CompanyRow, JobRow, ProspectItemRow, ProspectRow } from "@/types/database";
+import { cityNames } from "@/lib/datasets/normalize";
 
 // The Prospects workspace: one table for every company, local business and
 // person in Prospects (owner brief 2026-10-12, like Clay / Instantly), read
@@ -125,7 +126,9 @@ function query(db: Client, f: ProspectFilters, workspaceId: string, columns = "*
   }
   if (f.campaign) q = q.eq("campaign_id", f.campaign);
   if (f.country) q = q.eq("country", f.country);
-  if (f.city) q = q.ilike("city", `%${safe(f.city)}%`);
+  // Any of the city's names (owner, 2026-10-28): «القاهرة» finds "Cairo" and the other way round.
+  // In Arabic names, letters that are written two ways (ة/ه, أ/ا, ى/ي) match either.
+  if (f.city) q = q.or(cityNames(safe(f.city)).map((n) => `city.ilike."%${n.replace(/[هةاأإآيى"\\]/g, "_")}%"`).join(","));
   if (f.minMatch) q = q.gte("match_score", f.minMatch);
   if (f.verified) q = q.eq("email_status", "verified");
   if (f.industry) q = q.ilike("industry", `%${safe(f.industry)}%`);

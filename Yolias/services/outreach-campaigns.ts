@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 import type { LeadStage, OutreachCampaignRow } from "@/types/database";
 
 // Outreach campaign reads (D-193), as the member (RLS). Numbers are counted
@@ -31,6 +32,7 @@ export async function campaignStats(ids: string[], client?: Awaited<ReturnType<t
     const s = m.outreach_campaign_id ? out.get(m.outreach_campaign_id) : undefined;
     if (!s) continue;
     if (m.direction === "inbound") {
+      if (isAutoReplyRow(m)) continue; // out of office: not a reply (owner, 2026-10-28)
       s.replies++;
       const kind = (m.analysis as { kind?: string } | null)?.kind;
       if (kind === "interested" || kind === "meeting_request") s.interested++;
@@ -124,12 +126,12 @@ export async function campaignWorkspace(workspaceId: string, id: string) {
   const [{ data: people }, { data: companies }, { data: msgs }] = await Promise.all([
     prospectIds.length ? db.from("prospects").select("id, title, email_status, linkedin_url").in("id", prospectIds.slice(0, 500)) : Promise.resolve({ data: [] }),
     companyIds.length ? db.from("companies").select("id, domain, website, linkedin_url").in("id", companyIds.slice(0, 500)) : Promise.resolve({ data: [] }),
-    db.from("outreach_messages").select("id, enrollment_id, lead_id, direction, status, subject, body, to_email, from_address, sent_at, received_at, created_at, delivery_status, error, step_position")
+    db.from("outreach_messages").select("id, enrollment_id, lead_id, direction, status, subject, body, to_email, from_address, sent_at, received_at, created_at, delivery_status, error, step_position, analysis")
       .eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at").limit(3000),
   ]);
   const person = new Map((people ?? []).map((p) => [p.id, p]));
   const company = new Map((companies ?? []).map((c) => [c.id, c]));
-  const replied = new Set((msgs ?? []).filter((m) => m.direction === "inbound").map((m) => m.lead_id));
+  const replied = new Set((msgs ?? []).filter((m) => m.direction === "inbound" && !isAutoReplyRow(m)).map((m) => m.lead_id));
   const current = new Map<string, NonNullable<typeof msgs>[number]>();
   for (const m of msgs ?? []) if (m.direction === "outbound" && m.enrollment_id) current.set(m.enrollment_id, m); // latest wins
   const leads = rows.map((e) => {

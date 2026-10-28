@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canonicalCity, companyKey, guessDatasetMapping, guessEntity, normalizeCountry, normalizePhoneFor, normalizeRow, usable } from "../../lib/datasets/normalize.ts";
+import { canonicalCity, cityNames, sameCity, companyKey, guessDatasetMapping, guessEntity, normalizeCountry, normalizePhoneFor, normalizeRow, usable } from "../../lib/datasets/normalize.ts";
 
 // Data import (D-248): rows are cleaned the same way in Admin and in tests.
 
@@ -92,4 +92,14 @@ test("cities: Arabic and English names meet on one name; unknown cities stay as 
   assert.equal(canonicalCity("مدينة الكويت"), "Kuwait City");
   assert.equal(canonicalCity("Mit Ghamr"), "Mit Ghamr");
   assert.equal(canonicalCity(""), null);
+});
+
+test("cities: Arabic and English names of one city match (owner, 2026-10-28)", () => {
+  assert.ok(sameCity("Cairo", "القاهرة"));
+  assert.ok(sameCity("الرياض", "Riyadh"));
+  assert.ok(sameCity("Jeddah", "جدة"));
+  assert.ok(!sameCity("Cairo", "Riyadh"));
+  assert.ok(cityNames("القاهرة").includes("Cairo"));
+  assert.ok(cityNames("Cairo").includes("القاهره"));
+  assert.deepEqual(cityNames("Smallville"), ["Smallville"]);
 });

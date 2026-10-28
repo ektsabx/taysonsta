@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { OutreachCampaignRow } from "@/types/database";
+import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 
 // Campaign numbers for the Campaigns list and a campaign's page (D-256, after
 // AgentSDR Send campaigns). Counted from real rows only: enrollments, the
@@ -34,12 +35,12 @@ export interface CampaignSummary {
 }
 
 type Enr = { id: string; campaign_id: string; lead_id: string; status: string; current_step: number; next_step_at: string | null; stop_reason: string | null; created_at: string };
-type Msg = { id: string; outreach_campaign_id: string; enrollment_id: string | null; lead_id: string | null; direction: "inbound" | "outbound"; status: string; delivery_status: string | null; sent_at: string | null; created_at: string; updated_at: string; step_position: number | null; body: string; subject: string };
+type Msg = { id: string; outreach_campaign_id: string; enrollment_id: string | null; lead_id: string | null; direction: "inbound" | "outbound"; status: string; delivery_status: string | null; sent_at: string | null; created_at: string; updated_at: string; step_position: number | null; body: string; subject: string; analysis?: unknown };
 
 function summarise(c: OutreachCampaignRow, steps: number, enr: Enr[], msgs: Msg[]): CampaignSummary {
   const out = msgs.filter((m) => m.direction === "outbound");
   const sent = out.filter((m) => m.status === "sent");
-  const repliedLeads = new Set(msgs.filter((m) => m.direction === "inbound" && m.lead_id).map((m) => m.lead_id));
+  const repliedLeads = new Set(msgs.filter((m) => m.direction === "inbound" && m.lead_id && !isAutoReplyRow(m)).map((m) => m.lead_id));
   const active = enr.filter((e) => e.status === "active");
   const scheduled = active.reduce((n, e) => n + Math.max(steps - e.current_step, 0), 0);
   const lastSendAt = sent.map((m) => m.sent_at!).filter(Boolean).sort().at(-1) ?? null;
@@ -63,7 +64,7 @@ export async function campaignList(workspaceId: string): Promise<CampaignSummary
   const [{ data: steps }, { data: enr }, { data: msgs }] = await Promise.all([
     db.from("outreach_steps").select("campaign_id").in("campaign_id", ids),
     db.from("outreach_enrollments").select("id, campaign_id, lead_id, status, current_step, next_step_at, stop_reason, created_at").in("campaign_id", ids).limit(20000),
-    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position").in("outreach_campaign_id", ids).in("status", ["sent", "failed", "received"]).limit(50000),
+    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position, analysis").in("outreach_campaign_id", ids).in("status", ["sent", "failed", "received"]).limit(50000),
   ]);
   const group = <T,>(rows: T[] | null, key: (r: T) => string) => (rows ?? []).reduce((m, r) => m.set(key(r), [...(m.get(key(r)) ?? []), r]), new Map<string, T[]>());
   const s = group(steps, (r) => r.campaign_id), e = group(enr as Enr[] | null, (r) => r.campaign_id), m = group(msgs as Msg[] | null, (r) => r.outreach_campaign_id);
@@ -107,7 +108,7 @@ export async function campaignPage(workspaceId: string, id: string, timeZone: st
   const [{ data: steps }, { data: enr }, { data: msgs }] = await Promise.all([
     db.from("outreach_steps").select("position").eq("campaign_id", id),
     db.from("outreach_enrollments").select("id, campaign_id, lead_id, status, current_step, next_step_at, stop_reason, created_at, lead:sales_leads(name, email, company_name, do_not_contact)").eq("campaign_id", id).order("created_at", { ascending: false }).limit(5000),
-    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position, body, subject").eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at", { ascending: false }).limit(20000),
+    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position, body, subject, analysis").eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at", { ascending: false }).limit(20000),
   ]);
   const rows = (enr ?? []) as unknown as (Enr & { lead: { name: string; email: string | null; company_name: string | null; do_not_contact: boolean } | null })[];
   const ms = (msgs ?? []) as Msg[];
@@ -116,7 +117,7 @@ export async function campaignPage(workspaceId: string, id: string, timeZone: st
   const tz = timeZone ?? "UTC";
   const today = dayKey(Date.now(), tz);
   const sentToday = ms.filter((m) => m.direction === "outbound" && m.status === "sent" && m.sent_at && dayKey(m.sent_at, tz) === today);
-  const repliedLeads = new Set(ms.filter((m) => m.direction === "inbound").map((m) => m.lead_id));
+  const repliedLeads = new Set(ms.filter((m) => m.direction === "inbound" && !isAutoReplyRow(m)).map((m) => m.lead_id));
   const lastSent = new Map<string, string>();
   for (const m of ms) if (m.direction === "outbound" && m.status === "sent" && m.enrollment_id && !lastSent.has(m.enrollment_id)) lastSent.set(m.enrollment_id, m.body);
 

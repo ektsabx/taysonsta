@@ -16,7 +16,7 @@ const MAX_FILES = 3;
 const MAX_BYTES = 4 * 1024 * 1024; // documents; images follow lib/uploads/image.ts (10 MB)
 
 
-export function StrategyComposer({ initialPrompt = "", profiles = [], firstName = null }: { initialPrompt?: string; profiles?: { id: string; name: string; is_default: boolean }[]; firstName?: string | null }) {
+export function StrategyComposer({ initialPrompt = "", profiles = [], firstName = null, below = null }: { initialPrompt?: string; profiles?: { id: string; name: string; is_default: boolean }[]; firstName?: string | null; below?: React.ReactNode }) {
   const { t } = useI18n();
   const c = t.composer;
   const router = useRouter();
@@ -180,6 +180,7 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
 
 
       {error && <p className="prompt-error" role="alert">{error}</p>}
+      {!sent && below}
 
     </div>
   );

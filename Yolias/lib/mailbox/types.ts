@@ -13,6 +13,8 @@ export interface OutgoingMail {
   /** Continue a thread: the provider's thread / conversation id and the last message we sent in it. */
   threadId?: string | null;
   replyToProviderId?: string | null;
+  /** Campaign emails: the one-click unsubscribe address for the List-Unsubscribe header (Gmail, SMTP; Graph allows only X- headers). */
+  unsubscribeUrl?: string | null;
 }
 
 export interface SentMail {

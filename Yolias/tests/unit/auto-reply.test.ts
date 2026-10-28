@@ -30,3 +30,13 @@ test("a person's reply is not an auto-reply", () => {
 test("a bounce is still a bounce (asked first)", () => {
   assert.ok(isBounce("mailer-daemon@googlemail.com", "Delivery Status Notification (Failure)"));
 });
+
+test("campaign emails carry List-Unsubscribe with one-click (RFC 8058); others don't", async () => {
+  const { buildMessage, buildRawEmail, decodeBase64Url } = await import("../../lib/mailbox/mime.ts");
+  const url = "https://www.yolias.com/api/u/00000000-0000-4000-8000-000000000000";
+  const smtp = buildMessage({ from: "a@x.com", fromName: null, to: "b@y.com", subject: "Hi", body: "Hello", messageId: "<1@x.com>", unsubscribeUrl: url });
+  assert.match(smtp, new RegExp(`List-Unsubscribe: <${url}>\\r\\n`));
+  assert.match(smtp, /List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n/);
+  assert.match(decodeBase64Url(buildRawEmail({ from: "a@x.com", fromName: null, to: "b@y.com", subject: "Hi", body: "Hello", unsubscribeUrl: url })), /List-Unsubscribe-Post/);
+  assert.doesNotMatch(buildMessage({ from: "a@x.com", fromName: null, to: "b@y.com", subject: "Hi", body: "Hello", messageId: "<1@x.com>" }), /List-Unsubscribe/);
+});

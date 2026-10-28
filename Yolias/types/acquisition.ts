@@ -39,6 +39,7 @@ export type LeadRow = {
   id: string; workspace_id: string; lead_key: string; prospect_id: string | null; company_id: string | null; name: string;
   company_name: string | null; email: string | null; stage: LeadStage; stage_changed_at: string; owner_id: string | null;
   deal_value: number | null; deal_currency: string; source: LeadSource; customer_profile_id: string | null; do_not_contact: boolean;
+  unsubscribe_token: string; unsubscribed_at: string | null;
   next_follow_up_at: string | null; last_activity_at: string; created_by: string | null; created_at: string; updated_at: string;
 };
 export type ThreadStatus = "open" | "done" | "other";

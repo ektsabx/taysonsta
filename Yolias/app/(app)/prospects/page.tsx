@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Building2, UserRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
@@ -28,11 +27,6 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
   const session = await requireViewer();
   const sp = await searchParams;
   const filters = parseFilters(sp);
-  // Old links: discovery campaigns (D-204), and the type filters before the two tabs.
-  if ("campaign" in sp || filters.tab === "local" || filters.tab === "saved") {
-    const q = filterQuery({ ...filters, tab: filters.tab === "local" ? "companies" : filters.tab === "saved" ? "people" : filters.tab, bookmarked: filters.tab === "saved" || filters.bookmarked });
-    redirect(`/prospects${q ? `?${q}` : ""}`);
-  }
   const ws = session.workspace.id;
   const counts = await tabCounts(ws);
   // No tab chosen: People, unless only companies were found so far.

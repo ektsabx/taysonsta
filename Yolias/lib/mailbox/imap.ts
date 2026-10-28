@@ -233,7 +233,7 @@ export const imapProvider: MailboxProvider = {
     const messageId = `<${crypto.randomUUID()}@${domain}>`;
     // Follow-ups answer the last message we sent and keep the whole thread in References.
     const refs = [...new Set([mail.threadId, mail.replyToProviderId].filter((x): x is string => Boolean(x)))];
-    await smtpSend(a, mail.to, buildMessage({ from: a.email, fromName: mail.fromName ?? a.name, to: mail.to, subject: mail.subject, body: mail.body, messageId, inReplyTo: mail.replyToProviderId ?? mail.threadId ?? null, references: refs }));
+    await smtpSend(a, mail.to, buildMessage({ from: a.email, fromName: mail.fromName ?? a.name, to: mail.to, subject: mail.subject, body: mail.body, messageId, inReplyTo: mail.replyToProviderId ?? mail.threadId ?? null, references: refs, unsubscribeUrl: mail.unsubscribeUrl }));
     return { providerMessageId: messageId, threadId: mail.threadId ?? messageId };
   },
   async replies(token, ownAddress, threadIds) {

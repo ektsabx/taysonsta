@@ -1,6 +1,7 @@
 import type { Seniority } from "@/types/database";
 import type { IcpCriteria } from "@/lib/discovery/icp";
 import type { CompanyCandidate, PersonCandidate } from "@/lib/discovery/types";
+import { sameCity } from "@/lib/datasets/normalize";
 
 // Deterministic ICP match scoring (0–100). Each criterion the user specified
 // contributes weight; criteria left open don't count against a candidate.
@@ -56,7 +57,8 @@ export function scoreMatch(icp: IcpCriteria, company: CompanyCandidate, person: 
     check(20, ok, "Company size");
   }
   if (icp.cities.length && company.kind === "local_business") {
-    check(20, !!company.city && overlaps(company.city, icp.cities), "City");
+    // «القاهرة» in the request and "Cairo" on the business are the same city (owner, 2026-10-28).
+    check(20, !!company.city && icp.cities.some((c) => sameCity(company.city, c) || overlaps(company.city!, [c])), "City");
   }
   if (icp.hiring) check(10, (company.hiringRoles ?? 0) > 0, "Hiring");
   if (icp.funding_stages.length) check(5, !!company.fundingStage && overlaps(company.fundingStage, icp.funding_stages), "Funding");

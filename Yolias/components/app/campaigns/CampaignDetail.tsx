@@ -21,7 +21,7 @@ import type { CampaignWorkspace, LaunchSummary, OutreachDetail } from "@/service
 import type { CampaignAim } from "@/types/acquisition";
 import type { LeadStage, MessageObjective, MessageTone } from "@/types/database";
 
-export type CampaignTab = "analytics" | "leads" | "sequence";
+export type CampaignTab = "leads" | "sequence";
 
 interface Props {
   page: CampaignPage;
@@ -85,7 +85,7 @@ export function CampaignDetail(p: Props) {
     if (!r.ok) toast(r.error, "error");
     router.refresh();
   });
-  const tabHref = (k: CampaignTab) => `/outreach/${camp.id}${k === "analytics" ? "" : `?tab=${k}`}`;
+  const tabHref = (k: CampaignTab) => `/outreach/${camp.id}${k === "leads" ? "" : `?tab=${k}`}`;
 
   return (
     <div className="sdr-page">
@@ -125,13 +125,15 @@ export function CampaignDetail(p: Props) {
         </div>
       )}
 
+      {/* Analytics live in one place (owner, 2026-10-28): the campaign keeps its numbers, the charts are on the Analytics page. */}
+      <CampaignNumbers page={p.page} />
+      <Link className="sdr-btn" style={{ alignSelf: "flex-start" }} href={`/analytics?campaign=${camp.id}`}><BarChart3 />{c.fullAnalytics}</Link>
+
       <nav className="sdr-tabs">
-        <Link href={tabHref("analytics")} className={p.tab === "analytics" ? "active" : ""}><BarChart3 />{c.tabs.analytics}</Link>
         <Link href={tabHref("leads")} className={p.tab === "leads" ? "active" : ""}><Users />{c.tabs.leads}<span className="sdr-count">{n(s.leads)}</span></Link>
         <Link href={tabHref("sequence")} className={p.tab === "sequence" ? "active" : ""}><ListOrdered />{c.tabs.sequence}<span className="sdr-count">{n(s.steps)}</span></Link>
       </nav>
 
-      {p.tab === "analytics" && <Analytics page={p.page} />}
       {p.tab === "leads" && <Leads {...p} />}
       {p.tab === "sequence" && <Sequence {...p} />}
     </div>
@@ -140,7 +142,8 @@ export function CampaignDetail(p: Props) {
 
 /* ── Analytics ── */
 
-function Analytics({ page }: { page: CampaignPage }) {
+/** The campaign's six numbers (its page and the Analytics page). */
+export function CampaignNumbers({ page }: { page: CampaignPage }) {
   const { t, locale } = useI18n();
   const a = t.sdr.campaigns.a;
   const s = page.summary;
@@ -155,17 +158,24 @@ function Analytics({ page }: { page: CampaignPage }) {
     [AlertCircle, a.failed, s.failed, s.failed ? a.failedNote : a.failedNone],
   ];
   return (
-    <>
-      <div className="sdr-stats" style={{ ["--cols" as string]: 6 }}>
-        {cards.map(([Icon, label, value, note, hint]) => (
-          <div key={label} className="sdr-stat"><div className="sdr-stat-icon"><Icon /></div><div className="sdr-stat-label" title={hint}>{label}</div><div className="sdr-stat-value">{n(value)}</div><div className="sdr-stat-note">{note}</div></div>
-        ))}
-      </div>
+    <div className="sdr-stats" style={{ ["--cols" as string]: 6 }}>
+      {cards.map(([Icon, label, value, note, hint]) => (
+        <div key={label} className="sdr-stat"><div className="sdr-stat-icon"><Icon /></div><div className="sdr-stat-label" title={hint}>{label}</div><div className="sdr-stat-value">{n(value)}</div><div className="sdr-stat-note">{note}</div></div>
+      ))}
+    </div>
+  );
+}
+
+/** One campaign's analytics on the Analytics page: its numbers, where its leads stand, its daily activity. */
+export function CampaignAnalytics({ page }: { page: CampaignPage }) {
+  return (
+    <div className="sdr-page">
+      <CampaignNumbers page={page} />
       <div className="sdr-two">
         <Stand page={page} />
         <Activity page={page} />
       </div>
-    </>
+    </div>
   );
 }
 

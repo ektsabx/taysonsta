@@ -308,3 +308,9 @@ npx wrangler secret put WORKER_SECRET
 ## الروابط العربية 2026-10-27 (D-258). اتنشرت 2026-10-27: commit 46b516d، يولياس 5f754ddb، الأدمن 065f8939. مفيش migration
 1. نشر يولياس ثم الأدمن.
 2. بعد ربط Search Console: أرسل `/sitemap.xml` (فيه النسختين).
+
+## ردود المالك 2026-10-28 (D-259)
+1. migration واحدة (المالك، من مجلد taysonsta): `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261124000000_lead_unsubscribe.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261124000000.sql`. إضافية بس (عمودين وفهرس). النشر قبلها آمن: الإيميلات بتطلع من غير سطر الإلغاء لحد ما تتطبق.
+2. نشر يولياس (`npm run cf:deploy` من Yolias/). الأدمن ما اتغيرش.
+3. المالك: مفاتيح Turnstile في الأدمن ← الإعدادات ← التكاملات ← Cloudflare Turnstile.
+4. المالك: خطوة 1 من D-251 (حفظ Resend)، وبعدها من Yolias/: `set -a && . ./.env.production.local && set +a && npx tsx --conditions=react-server --tsconfig tsconfig.json scripts/ops-messaging-live.mts <بريدك>`، تأكد إن الإيميلات التجريبية وصلت، وبعدها نفس الأمر وفي آخره `--activate`.

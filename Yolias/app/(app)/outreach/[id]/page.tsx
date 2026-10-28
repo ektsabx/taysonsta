@@ -29,9 +29,8 @@ export default async function CampaignPageRoute({ params, searchParams }: { para
     (await createClient()).from("sales_leads").select("id, name, company_name, stage, do_not_contact").eq("workspace_id", ws).order("last_activity_at", { ascending: false }).limit(500),
   ]);
   if (!page || !detail || !launch) notFound();
-  // Old links: ?view=emails / ?view=sequence (one place per campaign, D-254).
-  const asked = one(sp.tab) || (one(sp.view) === "emails" ? "leads" : one(sp.view));
-  const tab: CampaignTab = asked === "leads" || asked === "sequence" ? asked : "analytics";
+  const asked = one(sp.tab);
+  const tab: CampaignTab = asked === "sequence" ? "sequence" : "leads";
   const connected = boxes.filter((m) => m.status === "connected").map((m) => ({ id: m.id, email: m.email, provider: m.provider }));
   return (
     <CampaignDetail

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Calendar } from "lucide-react";
+import { Calendar, Send } from "lucide-react";
 
-export function RangePicker({ value, options }: { value: string; options: { key: string; label: string }[] }) {
+/** A dropdown that sets one URL parameter: the date range, or (param "campaign") the campaign on the Analytics page. */
+export function RangePicker({ value, options, param = "range" }: { value: string; options: { key: string; label: string }[]; param?: "range" | "campaign" }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -22,7 +23,7 @@ export function RangePicker({ value, options }: { value: string; options: { key:
   return (
     <div ref={ref} className="range-picker" style={{ position: "relative" }}>
       <button className="btn-secondary" type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <Calendar /> {current.label}
+        {param === "campaign" ? <Send /> : <Calendar />} <span dir="auto">{current.label}</span>
       </button>
       {open && (
         <div className="dropdown-panel">
@@ -35,12 +36,12 @@ export function RangePicker({ value, options }: { value: string; options: { key:
                 setOpen(false);
                 // Keep the other parameters (e.g. the Partners tab); a new range starts at page 1.
                 const next = new URLSearchParams(params.toString());
-                next.set("range", o.key);
+                if (o.key) next.set(param, o.key); else next.delete(param);
                 next.delete("page");
                 router.push(`${pathname}?${next.toString()}`);
               }}
             >
-              {o.label}
+              <span dir="auto">{o.label}</span>
             </button>
           ))}
         </div>

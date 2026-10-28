@@ -2364,3 +2364,26 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 .lead-summary strong { font-weight: 500; }
 .lead-conversation { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .lead-conversation > div { display: flex; flex-direction: column; gap: 2px; }
+
+/* Start here (owner, 2026-10-28): three first steps under the composer. */
+.start-here { width: 100%; margin-top: 28px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); text-align: start; }
+.start-here-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px 6px; }
+.start-here-head h2 { margin: 0; font-size: .95rem; font-weight: 600; color: var(--ink); }
+.start-here-head span { font-size: .78rem; color: var(--muted); }
+.start-here ol { list-style: none; margin: 0; padding: 4px 8px 8px; }
+.start-here li { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-top: 1px solid var(--line-faint); }
+.start-here li:first-child { border-top: 0; }
+.start-here-mark { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); color: var(--text-2); }
+.start-here-mark svg { width: 15px; height: 15px; }
+.start-here li.done .start-here-mark { background: var(--green-soft); color: var(--green); }
+.start-here-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.start-here-text strong { font-size: .86rem; font-weight: 600; color: var(--ink); }
+.start-here-text span { font-size: .8rem; color: var(--muted); line-height: 1.45; }
+.start-here li.done .start-here-text strong { color: var(--muted); }
+.start-here-go { flex-shrink: 0; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: .8rem; font-weight: 500; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.start-here-go:hover { background: var(--hover); }
+@media (max-width: 560px) {
+  .start-here li { flex-wrap: wrap; }
+  .start-here-text { flex-basis: calc(100% - 42px); }
+  .start-here-go { margin-inline-start: 42px; }
+}

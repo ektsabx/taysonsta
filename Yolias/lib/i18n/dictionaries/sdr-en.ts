@@ -90,7 +90,7 @@ export const sdrEn = {
     back: "Campaigns", created: "Created {date} · {steps} steps",
     pause: "Pause", resume: "Resume", launch: "Review & launch",
     stripFollowUps: "Follow-ups today", stripNewLeads: "New leads reached today", stripSteps: "Sequence steps", stripNext: "Next email", nextNone: "Nothing scheduled", nextIn: "In {ago}",
-    tabs: { analytics: "Analytics", leads: "Leads", sequence: "Sequence" },
+    tabs: { leads: "Leads", sequence: "Sequence" }, fullAnalytics: "Full analytics",
     a: {
       leads: "Leads", leadsNote: "In this campaign", contacted: "Contacted", contactedNote: "{pct}% of leads", sent: "Emails sent", sentNote: "{n} still scheduled",
       replied: "Replied", repliedHint: "Leads who replied to any email of this campaign.", repliedNote: "{pct}% of contacted", bounced: "Bounced", bouncedNote: "{pct}% of contacted",
@@ -113,7 +113,7 @@ export const sdrEn = {
       goal: "Message goal", goalSub: "Yolias writes each email from this goal, the lead, their company and your company knowledge. It never invents facts.", goalPh: "e.g. Introduce our fleet tracking and ask for a 15-minute call.",
       purpose: "Purpose", preview: "Preview", previewTitle: "First email, as Yolias wrote it", previewNone: "No email written yet. Yolias writes them once a mailbox is connected.",
       settings: "Campaign settings", aim: "Aim", link: "Link", language: "Language", tone: "Tone", profile: "Customer profile", offer: "Offer", none: "None",
-      save: "Save", saved: "Saved.", archived: "This campaign is archived.", max: "Up to {n} emails per lead (Rules & Permissions).",
+      save: "Save", saved: "Saved.", archived: "This campaign is archived.", max: "Up to {n} emails per lead. An unsubscribe line is added under every email automatically.",
     },
     w: {
       title: "Create a campaign", sub: "Add recipients, build the sequence, preview it with real lead data, then launch.", back: "Campaigns",

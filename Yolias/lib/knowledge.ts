@@ -79,6 +79,19 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
       `${h.faq.title}\n${qa(h.faq.items)}`,
     ].join("\n\n"));
 
+    // How campaign emails go out (owner, 2026-10-28): facts the code enforces.
+    push("platform", "sending", l, l === "ar" ? "كيف تُرسل رسائل الحملات" : "How campaign emails are sent", "/", l === "ar" ? [
+      "تُرسل رسائل الحملات من بريدك المتصل (Gmail أو Outlook أو أي بريد عبر IMAP/SMTP)، في أيام وساعات الإرسال التي تحددها (افتراضيًا من الاثنين إلى الجمعة، 9 صباحًا إلى 6 مساءً بتوقيت صاحب البريد).",
+      "كل رسالة حملة تنتهي بسطر لإلغاء الاشتراك، وتحمل ترويسة List-Unsubscribe بنقرة واحدة (RFC 8058) فيظهر زر إلغاء الاشتراك في Gmail وغيره. من يلغي اشتراكه يُعلَّم «عدم التواصل» وتتوقف كل الحملات له.",
+      "طلبات التوقف في الردود تُحترم دائمًا. الرد التلقائي «خارج المكتب» لا يُحسب ردًا في التحليلات، وتنتظر المتابعة التالية 7 أيام.",
+      "أسماء المدن بالعربية والإنجليزية تتطابق في البحث والتصفية: «القاهرة» تجد Cairo، و«الرياض» تجد Riyadh.",
+    ].join("\n") : [
+      "Campaign emails go out from your connected mailbox (Gmail, Outlook or any mailbox over IMAP/SMTP), on the sending days and hours you set (by default Monday to Friday, 9 am to 6 pm in the mailbox owner's time zone).",
+      "Every campaign email ends with an unsubscribe line and carries a one-click List-Unsubscribe header (RFC 8058), so Gmail and other mail apps show their Unsubscribe button. Whoever unsubscribes is marked do not contact and every campaign to them stops.",
+      "Stop requests in replies are always honoured. An out-of-office auto-reply isn't counted as a reply in analytics, and the next follow-up waits 7 days.",
+      "City names in Arabic and English match in searches and filters: «القاهرة» finds Cairo and «الرياض» finds Riyadh.",
+    ].join("\n"));
+
     // Pay As You Go, the two monthly plans (live), pricing FAQ (D-247).
     const money = (v: number) => `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
     const planLines = offeredPlans.map((p) => {
