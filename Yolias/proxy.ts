@@ -89,8 +89,13 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+const CRAWLER = /bot\b|crawler|spider|slurp|googlebot|bingbot|duckduckbot|yandex|baiduspider|applebot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|perplexitybot|ccbot|facebookexternalhit|linkedinbot|twitterbot|whatsapp|telegrambot/i;
+
 /** Arabic visitors on an English website URL: chose Arabic, or (no choice yet) browsing from an Arabic-speaking country. */
 function prefersArabic(request: NextRequest): boolean {
+  // Search engines and AI crawlers always get the URL they asked for (hreflang links
+  // the other language): a crawler in an Arabic-speaking country must still index English pages.
+  if (CRAWLER.test(request.headers.get("user-agent") ?? "")) return false;
   const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
   if (chosen) return chosen === "ar";
   return localeForCountry(normalizeCountry(request.headers.get("cf-ipcountry"))) === "ar";
