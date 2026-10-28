@@ -81,12 +81,12 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
 
     // How campaign emails go out (owner, 2026-10-28): facts the code enforces.
     push("platform", "sending", l, l === "ar" ? "كيف تُرسل رسائل الحملات" : "How campaign emails are sent", "/", l === "ar" ? [
-      "تُرسل رسائل الحملات من بريدك المتصل (Gmail أو Outlook أو أي بريد عبر IMAP/SMTP)، في أيام وساعات الإرسال التي تحددها (افتراضيًا من الاثنين إلى الجمعة، 9 صباحًا إلى 6 مساءً بتوقيت صاحب البريد).",
+      "تُرسل رسائل الحملات من بريدك المتصل (Gmail أو أي بريد عبر IMAP/SMTP)، في أيام وساعات الإرسال التي تحددها (افتراضيًا من الاثنين إلى الجمعة، 9 صباحًا إلى 6 مساءً بتوقيت صاحب البريد).",
       "كل رسالة حملة تنتهي بسطر لإلغاء الاشتراك، وتحمل ترويسة List-Unsubscribe بنقرة واحدة (RFC 8058) فيظهر زر إلغاء الاشتراك في Gmail وغيره. من يلغي اشتراكه يُعلَّم «عدم التواصل» وتتوقف كل الحملات له.",
       "طلبات التوقف في الردود تُحترم دائمًا. الرد التلقائي «خارج المكتب» لا يُحسب ردًا في التحليلات، وتنتظر المتابعة التالية 7 أيام.",
       "أسماء المدن بالعربية والإنجليزية تتطابق في البحث والتصفية: «القاهرة» تجد Cairo، و«الرياض» تجد Riyadh.",
     ].join("\n") : [
-      "Campaign emails go out from your connected mailbox (Gmail, Outlook or any mailbox over IMAP/SMTP), on the sending days and hours you set (by default Monday to Friday, 9 am to 6 pm in the mailbox owner's time zone).",
+      "Campaign emails go out from your connected mailbox (Gmail or any mailbox over IMAP/SMTP), on the sending days and hours you set (by default Monday to Friday, 9 am to 6 pm in the mailbox owner's time zone).",
       "Every campaign email ends with an unsubscribe line and carries a one-click List-Unsubscribe header (RFC 8058), so Gmail and other mail apps show their Unsubscribe button. Whoever unsubscribes is marked do not contact and every campaign to them stops.",
       "Stop requests in replies are always honoured. An out-of-office auto-reply isn't counted as a reply in analytics, and the next follow-up waits 7 days.",
       "City names in Arabic and English match in searches and filters: «القاهرة» finds Cairo and «الرياض» finds Riyadh.",
@@ -129,7 +129,7 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
     push("affiliates", "terms", l, pt.title, "/partners/terms", `${pt.summary}\n\n${blocksToText(fillBlocks(pt.blocks, termsValues(program?.settings, l)), base)}`);
 
     const cp = communityPage[l];
-    push("community", "community", l, cp.title, "/community", [cp.lead, cp.overview, `Facebook group: ${COMMUNITY_URL}`, cp.ways.map((w) => `- ${w.title}: ${w.body}`).join("\n"), `${cp.faqTitle}\n${qa(cp.faq)}`].join("\n\n"));
+    push("community", "community", l, cp.title, "/community", [cp.lead, cp.overview, `Facebook group: ${COMMUNITY_URL}`, `${cp.waysTitle}\n${cp.ways.map((w) => `- ${w.title}: ${w.body}`).join("\n")}`, `${cp.forTitle}\n${cp.forList.map((x) => `- ${x}`).join("\n")}`, `${cp.startTitle}\n${cp.steps.map((x, i) => `${i + 1}. ${x.title}: ${x.body}`).join("\n")}`, `${cp.rulesTitle}\n${cp.rules.map((x) => `- ${x}`).join("\n")}`, `${cp.faqTitle}\n${qa(cp.faq)}`].join("\n\n"));
 
     for (const s of solutionSlugs) {
       const x = solutions[s][l];

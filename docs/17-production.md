@@ -314,3 +314,8 @@ npx wrangler secret put WORKER_SECRET
 2. نشر يولياس (`npm run cf:deploy` من Yolias/). الأدمن ما اتغيرش.
 3. المالك: مفاتيح Turnstile في الأدمن ← الإعدادات ← التكاملات ← Cloudflare Turnstile.
 4. المالك: خطوة 1 من D-251 (حفظ Resend)، وبعدها من Yolias/: `set -a && . ./.env.production.local && set +a && npx tsx --conditions=react-server --tsconfig tsconfig.json scripts/ops-messaging-live.mts <بريدك>`، تأكد إن الإيميلات التجريبية وصلت، وبعدها نفس الأمر وفي آخره `--activate`.
+
+## جولة 2026-10-28 (D-260)
+1. migration واحدة (من مجلد taysonsta): `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261125000000_referral_program.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261125000000.sql`. لازم قبل نشر يولياس (التسجيل والإعدادات بيقروا `referrals` و`workspaces.referral_code`).
+2. نشر يولياس (`npm run cf:deploy` من Yolias/) ثم الأدمن (`npm run cf:deploy:admin` من taysonsta/).
+3. `npm run content:seed:production` من Yolias/ (المقالين الجداد وصفحة المجتمع في مساعد الدعم).

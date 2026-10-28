@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Clock, ShieldCheck, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
@@ -9,8 +10,9 @@ import { decideAgentAction } from "@/app/(app)/agent-actions";
 type Status = "pending" | "approved" | "rejected" | "expired" | "failed";
 
 // Human-in-the-loop card under a Yolias AI reply (D-141): the action runs
-// only after Approve; Reject cancels it.
-export function ApprovalCard({ id, summary, status }: { id: string; summary: string; status: Status }) {
+// only after Approve; Reject cancels it. A campaign is approved in one place,
+// its page, where its emails are reviewed (owner, 2026-10-28): its card links there.
+export function ApprovalCard({ id, summary, status, campaignId = null }: { id: string; summary: string; status: Status; campaignId?: string | null }) {
   const { t } = useI18n();
   const a = t.agent.approval;
   const router = useRouter();
@@ -31,7 +33,12 @@ export function ApprovalCard({ id, summary, status }: { id: string; summary: str
         <span>{done ? a[status] : a.title}</span>
       </div>
       <p className="approval-summary" dir="auto">{summary}</p>
-      {!done && (
+      {!done && campaignId && (
+        <div className="approval-actions">
+          <Link className="btn-primary" href={`/outreach/${campaignId}`}><Check /> {a.reviewCampaign}</Link>
+        </div>
+      )}
+      {!done && !campaignId && (
         <div className="approval-actions">
           <button type="button" className="btn-primary" disabled={pending} onClick={() => decide(true)}><Check /> {a.approve}</button>
           <button type="button" className="btn-secondary" disabled={pending} onClick={() => decide(false)}><X /> {a.reject}</button>

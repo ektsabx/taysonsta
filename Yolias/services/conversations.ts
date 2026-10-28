@@ -67,7 +67,11 @@ export async function conversationFor(strategyId: string): Promise<ConversationT
 export async function approvalCards(ids: string[]) {
   if (!ids.length) return [];
   const db = await createClient();
-  const { data } = await db.from("agent_pending_actions").select("id, summary, status, expires_at").in("id", ids);
+  const { data } = await db.from("agent_pending_actions").select("id, summary, status, expires_at, tool, input").in("id", ids);
   const now = Date.now();
-  return (data ?? []).map((r) => ({ id: r.id, summary: r.summary, status: r.status === "pending" && Date.parse(r.expires_at) < now ? ("expired" as const) : r.status }));
+  return (data ?? []).map((r) => ({
+    id: r.id, summary: r.summary, status: r.status === "pending" && Date.parse(r.expires_at) < now ? ("expired" as const) : r.status,
+    // Starting a campaign is approved on the campaign's page, after its emails are reviewed (owner, 2026-10-28).
+    campaignId: r.tool === "startOutreachCampaign" ? ((r.input as { id?: string } | null)?.id ?? null) : null,
+  }));
 }

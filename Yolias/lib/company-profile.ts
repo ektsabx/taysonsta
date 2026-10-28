@@ -10,9 +10,11 @@ export type CompanyProfileErrors = { company: string; website: string; offering:
 export function companyProfileSchema(e: CompanyProfileErrors) {
   return z.object({
     name: z.string().trim().min(1, e.company).max(160),
+    // Optional (owner, 2026-10-28): a company without a website fills its profile by hand.
     website: z.string().trim()
       .transform((v) => v.replace(/^https?:\/\//i, "").replace(/\/+$/, ""))
-      .pipe(z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i, e.website)),
+      .pipe(z.union([z.literal(""), z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i, e.website)]))
+      .transform((v) => v || null),
     industry: z.string().trim().min(2, e.industry).max(120),
     offering: z.string().trim().min(10, e.offering).max(2000),
     ideal_customer: z.string().trim().max(2000).transform((v) => v || null),

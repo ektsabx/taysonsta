@@ -55,6 +55,8 @@ export type Seniority = "founder" | "c_level" | "vp" | "director" | "head" | "ma
 export type WorkspaceRow = {
   id: string;
   name: string | null;
+  /** Invite link code (www.yolias.com/i/<code>, referral program 2026-10-28). */
+  referral_code: string;
   website: string | null;
   offering: string | null;
   industry: string | null;
@@ -912,6 +914,11 @@ export type IntelDatasetRecordRow = {
   created_at: string;
 };
 
+export type ReferralRow = {
+  id: string; referrer_workspace_id: string; referred_user_id: string; referred_workspace_id: string | null;
+  status: "rewarded" | "capped" | "rejected"; reason: string | null; prospects: number; signup_ip: string | null; created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -926,6 +933,7 @@ export interface Database {
       prospects: Table<ProspectRow, "workspace_id" | "campaign_id" | "full_name" | "source">;
       jobs: Table<JobRow, "workspace_id" | "campaign_id" | "title" | "source">;
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
+      referrals: Table<ReferralRow, "referrer_workspace_id" | "referred_user_id" | "status">;
       invoices: Table<InvoiceRow, "workspace_id" | "amount" | "currency" | "mode" | "period_start" | "period_end" | "bill_to_email">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount" | "currency" | "mode">;
       payments: Table<PaymentRow, "workspace_id" | "kind" | "amount" | "currency" | "provider" | "mode">;

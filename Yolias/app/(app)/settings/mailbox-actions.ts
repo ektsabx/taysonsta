@@ -8,6 +8,7 @@ import { mailboxWindow, sendingRulesSchema, validTimeZone, type SendingRules } f
 import { testMailboxAllowed } from "@/lib/mailbox/test-provider";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { MailProvider } from "@/types/database";
+import { checkDomain, type DomainCheck } from "@/lib/mailbox/domain-check";
 
 // Settings → Integrations: the member's own mailboxes (D-228). Everything is
 // scoped to the signed-in member; tokens never leave the server.
@@ -144,4 +145,12 @@ export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true }
   await saveMailbox({ workspaceId: s.workspace.id, userId: s.userId, provider: "imap", email: v.email, displayName: v.name || null, canRead: true, refreshToken: JSON.stringify(account) });
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+/** SPF / DKIM / DMARC of the domains the member's mailboxes send from (owner, 2026-10-28). */
+export async function mailboxDomainChecks(): Promise<DomainCheck[]> {
+  const s = await requireUser();
+  const rows = await memberMailboxes(s.workspace.id, s.userId);
+  const domains = [...new Set(rows.filter((m) => m.status !== "disconnected").map((m) => m.email.split("@")[1]?.toLowerCase()).filter((d): d is string => Boolean(d)))].slice(0, 10);
+  return Promise.all(domains.map(checkDomain));
 }

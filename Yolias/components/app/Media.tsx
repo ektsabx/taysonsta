@@ -4,15 +4,12 @@ import { useState } from "react";
 import { initials } from "@/lib/format";
 
 // Company logos and people's photos on result cards (D-147). A provider
-// image when there is one, else the company's domain icon, else initials
-// on a colour picked from the name.
-
-const PALETTE = ["#1f2937", "#7c3aed", "#0f766e", "#475569", "#be123c", "#1d4ed8", "#4d7c0f", "#9333ea"];
-const colour = (s: string) => PALETTE[[...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
+// image when there is one, else the company's domain icon, else initials on
+// the product's neutral surface (owner, 2026-10-28: no colours outside the design).
 
 function Fallback({ name, size, round }: { name: string; size: number; round: boolean }) {
   return (
-    <span className={`media-fallback${round ? " round" : ""}`} style={{ width: size, height: size, background: colour(name), fontSize: Math.max(11, size * 0.36) }} aria-hidden="true">
+    <span className={`media-fallback${round ? " round" : ""}`} style={{ width: size, height: size, fontSize: Math.max(11, size * 0.36) }} aria-hidden="true">
       {initials(name, name.slice(0, 2).toUpperCase())}
     </span>
   );

@@ -24,7 +24,12 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
   const formRef = useRef<HTMLFormElement>(null);
   const [website, setWebsite] = useState(v("website"));
   const [knowledge, setKnowledge] = useState("");
+  const [customer, setCustomer] = useState("");
   const [analyzed, setAnalyzed] = useState<number | null>(null);
+  // Website first (owner, 2026-10-28): Yolias reads the site and fills the company and the ideal
+  // customer; "No website?" opens the same fields to fill by hand.
+  const [manual, setManual] = useState(Boolean(defaults.industry || defaults.offering));
+  const showFields = !isOwner || manual || analyzed != null || Boolean(state.fields);
   const fill = (a: WebsiteAnalysis) => {
     const f = formRef.current;
     const put = (name: string, value: string | null) => {
@@ -35,6 +40,7 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
     put("ideal_customer", a.profile.ideal_customer); put("target_markets", a.profile.target_markets);
     setWebsite(a.url);
     setKnowledge(JSON.stringify(a.knowledge));
+    setCustomer(JSON.stringify(a.customer));
     setAnalyzed(a.pages.length);
   };
 
@@ -42,29 +48,34 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
     <form className="auth-form" action={action} ref={formRef}>
       <input type="hidden" name="timezone" value={timeZone} />
       <input type="hidden" name="knowledge_json" value={knowledge} />
-      <div className="field">
+      <input type="hidden" name="customer_json" value={customer} />
+      {isOwner && (
+        <div className="field">
+          <label htmlFor="website">{o.websiteFirst}</label>
+          <p className="field-note">{o.websiteFirstNote}</p>
+          <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} value={website} onChange={(e) => setWebsite(e.target.value)} autoComplete="url" required={!manual} autoFocus />
+          <AnalyzeWebsite compact initialUrl={website} url={website} onUrl={setWebsite} onResult={fill} context="onboarding" />
+          {analyzed != null && <p className="field-note">{fmt(t.ws.ai.knowledge.analyze.done, { count: analyzed })}</p>}
+          {!manual && analyzed == null && <button type="button" className="link-button onboarding-no-site" onClick={() => { setManual(true); setWebsite(""); }}>{o.noWebsite}</button>}
+        </div>
+      )}
+      <div className="field" hidden={!showFields}>
         <label htmlFor="full_name">{o.name}</label>
-        <input id="full_name" name="full_name" className="form-input" placeholder={o.namePlaceholder} defaultValue={v("full_name")} autoComplete="name" required autoFocus />
+        <input id="full_name" name="full_name" className="form-input" placeholder={o.namePlaceholder} defaultValue={v("full_name")} autoComplete="name" required autoFocus={!isOwner} />
       </div>
       {isOwner && (
-        <>
+        <div hidden={!showFields} className="onboarding-fields">
           <div className="field">
             <label htmlFor="company_name">{o.company}</label>
-            <input id="company_name" name="company_name" className="form-input" placeholder={o.companyPlaceholder} defaultValue={v("company_name")} autoComplete="organization" required />
-          </div>
-          <div className="field">
-            <label htmlFor="website">{o.website}</label>
-            <input id="website" name="website" dir="ltr" className="form-input" placeholder={o.websitePlaceholder} value={website} onChange={(e) => setWebsite(e.target.value)} autoComplete="url" required />
-            <AnalyzeWebsite compact initialUrl={website} url={website} onUrl={setWebsite} onResult={fill} context="onboarding" />
-            {analyzed != null && <p className="field-note">{fmt(t.ws.ai.knowledge.analyze.done, { count: analyzed })}</p>}
+            <input id="company_name" name="company_name" className="form-input" placeholder={o.companyPlaceholder} defaultValue={v("company_name")} autoComplete="organization" required={showFields} />
           </div>
           <div className="field">
             <label htmlFor="industry">{o.industry}</label>
-            <input id="industry" name="industry" className="form-input" placeholder={o.industryPlaceholder} defaultValue={v("industry")} maxLength={120} required />
+            <input id="industry" name="industry" className="form-input" placeholder={o.industryPlaceholder} defaultValue={v("industry")} maxLength={120} required={showFields} />
           </div>
           <div className="field">
             <label htmlFor="offering">{o.offering}</label>
-            <textarea id="offering" name="offering" className="form-input" placeholder={o.offeringPlaceholder} defaultValue={v("offering")} rows={3} maxLength={2000} required />
+            <textarea id="offering" name="offering" className="form-input" placeholder={o.offeringPlaceholder} defaultValue={v("offering")} rows={3} maxLength={2000} required={showFields} />
           </div>
           <div className="field">
             <label htmlFor="ideal_customer">{o.idealCustomer} <span className="field-optional">{o.optional}</span></label>
@@ -72,12 +83,12 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
           </div>
           <div className="field">
             <label htmlFor="target_markets">{o.targetMarkets}</label>
-            <input id="target_markets" name="target_markets" className="form-input" placeholder={o.targetMarketsPlaceholder} defaultValue={v("target_markets")} maxLength={300} required />
+            <input id="target_markets" name="target_markets" className="form-input" placeholder={o.targetMarketsPlaceholder} defaultValue={v("target_markets")} maxLength={300} required={showFields} />
           </div>
           <p className="field-note">{o.contextNote}</p>
-        </>
+        </div>
       )}
-      <div className="field">
+      <div className="field" hidden={!showFields}>
         <label htmlFor="acquisition_source">{src.question} <span className="field-optional">{o.optional}</span></label>
         <select id="acquisition_source" name="acquisition_source" className="form-select" value={source} onChange={(e) => setSource(e.target.value)}>
           <option value="">{src.placeholder}</option>
@@ -89,7 +100,7 @@ export function OnboardingForm({ isOwner, defaults }: { isOwner: boolean; defaul
         <p className="field-note">{src.hint}</p>
       </div>
       {state.error && <p className="form-error" role="alert">{state.error}</p>}
-      <button className="btn-primary auth-submit" type="submit" disabled={pending}>
+      <button className="btn-primary auth-submit" type="submit" disabled={pending} hidden={!showFields}>
         {pending ? t.common.saving : o.submit}
       </button>
     </form>

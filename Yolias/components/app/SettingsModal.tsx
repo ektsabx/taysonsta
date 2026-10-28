@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, ChevronRight, CreditCard, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, ChevronRight, CreditCard, Gift, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
@@ -13,6 +13,7 @@ import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
 import { EmailSettings } from "./settings/EmailSettings";
+import { ReferralSettings } from "./settings/ReferralSettings";
 import {
   changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult,
 } from "@/app/(app)/settings/actions";
@@ -30,6 +31,7 @@ const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "billing", icon: CreditCard },
   { tab: "team", icon: Users },
   { tab: "integration", icon: Plug },
+  { tab: "referral", icon: Gift },
 ];
 
 interface Props {
@@ -144,6 +146,7 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
             {tab === "integration" && <IntegrationTab />}
+            {tab === "referral" && <ReferralSettings />}
             </>}
           </div>
         </div>

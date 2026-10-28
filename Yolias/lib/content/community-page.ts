@@ -1,96 +1,122 @@
 import type { Localized } from "./types";
 
-// /community (owner brief 2026-10-19): laid out like lovable.dev/community —
-// hero, overview, three ways to take part, events, partnership, FAQ, final
-// call to action. The community itself is the Yolias Facebook group
-// (COMMUNITY_URL). No member counts are shown until real numbers exist.
+// /community: the Yolias community only (owner, 2026-10-28: each page serves
+// its own topic, nothing about partners or the affiliate program here). The
+// community is the Yolias Facebook group (COMMUNITY_URL). Only what is true of
+// the group is said: no member counts, no events that don't exist.
 
 export interface CommunityCopy {
   seoTitle: string; metaDescription: string;
-  eyebrow: string; title: string; lead: string; join: string; secondary: string;
+  eyebrow: string; title: string; lead: string; join: string;
   overview: string;
-  ways: { title: string; body: string; link: string; href: string; external?: boolean }[];
-  events: { title: string; body: string; cta: string };
-  partner: { title: string; body: string; cta: string };
+  waysTitle: string;
+  ways: { title: string; body: string }[];
+  forTitle: string; forList: string[];
+  startTitle: string; steps: { title: string; body: string }[];
+  rulesTitle: string; rulesLead: string; rules: string[];
   faqTitle: string; faq: { q: string; a: string }[];
-  final: { title: string; body: string; primary: string; secondary: string };
+  final: { title: string; body: string; primary: string };
 }
 
 export const communityPage: Localized<CommunityCopy> = {
   en: {
-    seoTitle: "Yolias Community | Founders and sales teams growing with AI",
-    metaDescription: "Join the Yolias community on Facebook: founders, marketers and sales teams sharing how they find customers, write outreach and grow with AI.",
+    seoTitle: "Yolias Community | Founders and sales teams finding B2B customers with AI",
+    metaDescription: "The Yolias community on Facebook: founders, freelancers, agencies and sales teams asking questions, reviewing each other's outreach and sharing what works to find B2B customers with AI, in English and Arabic.",
     eyebrow: "COMMUNITY",
-    title: "Welcome to the Yolias community",
-    lead: "Grow alongside founders, marketers and sales teams who use AI to find and win customers. Whether you’re just starting or running a full sales team, there’s a place for you here.",
-    join: "Join the community on Facebook",
-    secondary: "Become a partner",
-    overview: "Ask questions and get answers from people doing the same work, share what’s working in your outreach, see new Yolias features first and tell us what to build next, in English and Arabic.",
+    title: "The Yolias community",
+    lead: "A group for people who sell to businesses: founders, freelancers, agencies and sales teams who want to find the right customers and write outreach that gets answered. Free, in English and Arabic.",
+    join: "Join the group on Facebook",
+    overview: "Finding customers is easier when you can ask someone who did it last week. In the group, members ask questions, post the email they're about to send and get feedback, share what worked in their market, and tell the Yolias team what to build next.",
+    waysTitle: "What happens in the group",
     ways: [
-      { title: "Join online", body: "The Yolias Facebook group is where members share wins, ask for feedback on their outreach and get help from the team and each other.", link: "Join the Facebook group", href: "community", external: true },
-      { title: "Learn and get help", body: "Guides, documentation and answers to common questions about finding customers, outreach and the Yolias AI agent.", link: "Open the Help Center", href: "/help-center" },
-      { title: "Become a partner", body: "Creators, agencies and community leaders who recommend Yolias earn a commission on every paying customer they refer.", link: "Explore the partner program", href: "/affiliates" },
+      { title: "Ask anything", body: "How to describe your ideal customer, which job titles decide in your market, how many follow-ups are too many. Members and the Yolias team answer." },
+      { title: "Get feedback on your outreach", body: "Post a first email or a follow-up (without your lead's personal data) and get honest notes on the subject line, the length and the ask." },
+      { title: "Share what works", body: "Reply rates by market, an opening line that worked in Riyadh or Cairo, a niche that answered better than expected. Real results help everyone." },
+      { title: "See new features first", body: "New Yolias features are announced in the group first, and members' suggestions go straight to the team that builds them." },
     ],
-    events: {
-      title: "Run a Yolias session for your community",
-      body: "Host a workshop, a live demo or a sales meetup for your founders’ group, accelerator or students, online or in person. Tell us about it and the Yolias team will help with content and a walkthrough of the product.",
-      cta: "Tell us about your event",
-    },
-    partner: {
-      title: "Partner with Yolias",
-      body: "Agencies, educators, incubators and content creators can bring Yolias to the businesses they work with, and earn on the customers they refer.",
-      cta: "Explore partnerships",
-    },
+    forTitle: "Who it's for",
+    forList: [
+      "Founders who do their own sales and need a steady flow of B2B customers.",
+      "Freelancers and agencies looking for clients in Egypt, the Gulf and beyond.",
+      "Sales and business development teams who want better lists and better first emails.",
+      "Anyone starting out: beginners' questions are welcome. You don't need a Yolias account to join.",
+    ],
+    startTitle: "How to start",
+    steps: [
+      { title: "Ask to join", body: "Open the group on Facebook and press Join. A moderator approves new members." },
+      { title: "Introduce yourself", body: "Say what you sell, who you sell to and in which market. Members can then point you to what helped them." },
+      { title: "Post your first question", body: "Give context: your customer, your market and what you tried. Specific questions get the most useful answers." },
+    ],
+    rulesTitle: "Group guidelines",
+    rulesLead: "A few rules keep the group useful for everyone:",
+    rules: [
+      "Be respectful. Disagree with ideas, not with people.",
+      "No spam and no repeated self-promotion. Share what you learned, not ads.",
+      "Never post anyone's personal data: no lead lists, emails or phone numbers of real people.",
+      "No selling or swapping contact lists.",
+      "Account, billing or data questions go to Yolias support in the app, so they stay private.",
+    ],
     faqTitle: "Frequently asked questions",
     faq: [
-      { q: "Who can join the Yolias community?", a: "Anyone interested in finding customers and growing a business with AI: founders, freelancers, marketers, sales teams and agencies. You don’t need a Yolias plan to join." },
+      { q: "Who can join the Yolias community?", a: "Anyone who sells to businesses or wants to: founders, freelancers, agencies, marketers and sales teams. You don't need a Yolias account to join." },
       { q: "Where does the community meet?", a: "In the Yolias Facebook group. Ask to join and a moderator approves you." },
       { q: "Does it cost anything?", a: "No. The community is free." },
-      { q: "Which languages are used?", a: "English and Arabic. Write in the one you’re most comfortable with." },
-      { q: "Do I need experience in sales or AI?", a: "No. Many members are just starting out. Ask anything. Beginners’ questions are welcome." },
+      { q: "Which languages are used?", a: "English and Arabic. Write in the one you're most comfortable with." },
+      { q: "Do I need experience in sales or AI?", a: "No. Many members are just starting out, and beginners' questions are welcome." },
       { q: "Can I get product support in the group?", a: "Members and the team help with how-to questions. For anything about your account, billing or data, use the support chat in Yolias or the Contact page, so it stays private." },
-      { q: "Can I share my own services or links?", a: "Share what you learned and what worked. Repeated self-promotion and spam are removed; partners share their referral links in their own channels." },
-      { q: "What’s the difference between the community and the partner program?", a: "The community is for learning and sharing. The partner program is for people who recommend Yolias and want to earn a commission on paying customers they refer." },
-      { q: "How do I suggest a feature?", a: "Post it in the group or send it from Yolias with Feedback / Report a Bug. The team reads every suggestion." },
+      { q: "Can I post my own services?", a: "Share what you learned and what worked. Repeated self-promotion and spam are removed." },
+      { q: "How do I suggest a feature?", a: "Post it in the group, or send it from Yolias with Feedback / Report a Bug. The team reads every suggestion." },
     ],
-    final: { title: "Ready to find your next customers?", body: "Join the community, then let Yolias find, research and reach the businesses you want to sell to.", primary: "Join the community", secondary: "See pricing" },
+    final: { title: "Find customers with people doing the same", body: "Join the group, introduce yourself and ask your first question today.", primary: "Join the group on Facebook" },
   },
   ar: {
-    seoTitle: "مجتمع يولـياس | رواد أعمال وفرق مبيعات ينمون بالذكاء الاصطناعي",
-    metaDescription: "انضم إلى مجتمع يولـياس على فيسبوك: رواد أعمال ومسوّقون وفرق مبيعات يتشاركون كيف يجدون العملاء ويكتبون رسائل التواصل وينمون بالذكاء الاصطناعي.",
+    seoTitle: "مجتمع يولـياس | رواد أعمال وفرق مبيعات يجدون عملاء الشركات بالذكاء الاصطناعي",
+    metaDescription: "مجتمع يولـياس على فيسبوك: رواد أعمال ومستقلون ووكالات وفرق مبيعات يسألون ويراجعون رسائل بعضهم ويتشاركون ما ينجح في إيجاد عملاء الشركات بالذكاء الاصطناعي، بالعربية والإنجليزية.",
     eyebrow: "المجتمع",
-    title: "مرحبًا بك في مجتمع يولـياس",
-    lead: "انمُ مع رواد أعمال ومسوّقين وفرق مبيعات يستخدمون الذكاء الاصطناعي لإيجاد العملاء وكسبهم. سواء كنت في البداية أو تدير فريق مبيعات كاملًا، لك مكان هنا.",
-    join: "انضم إلى المجتمع على فيسبوك",
-    secondary: "كن شريكًا",
-    overview: "اسأل واحصل على إجابات من أشخاص يقومون بنفس العمل، وشارك ما ينجح في رسائل تواصلك، وشاهد ميزات يولـياس الجديدة أولًا، وأخبرنا بما نبنيه بعد ذلك، بالعربية والإنجليزية.",
+    title: "مجتمع يولـياس",
+    lead: "مجموعة لمن يبيع للشركات: رواد أعمال ومستقلون ووكالات وفرق مبيعات يريدون إيجاد العملاء المناسبين وكتابة رسائل يُرد عليها. مجانية، بالعربية والإنجليزية.",
+    join: "انضم إلى المجموعة على فيسبوك",
+    overview: "إيجاد العملاء أسهل عندما تسأل شخصًا فعلها الأسبوع الماضي. في المجموعة يسأل الأعضاء، وينشرون الرسالة التي سيرسلونها ويأخذون رأيًا فيها، ويتشاركون ما نجح في سوقهم، ويخبرون فريق يولـياس بما يبنيه بعد ذلك.",
+    waysTitle: "ماذا يحدث في المجموعة",
     ways: [
-      { title: "انضم عبر الإنترنت", body: "مجموعة يولـياس على فيسبوك هي المكان الذي يشارك فيه الأعضاء نجاحاتهم ويطلبون رأيًا في رسائلهم ويحصلون على المساعدة من الفريق ومن بعضهم.", link: "انضم إلى مجموعة فيسبوك", href: "community", external: true },
-      { title: "تعلّم واحصل على المساعدة", body: "أدلة وتوثيق وإجابات للأسئلة الشائعة عن إيجاد العملاء والتواصل ووكيل يولـياس الذكي.", link: "افتح مركز المساعدة", href: "/help-center" },
-      { title: "كن شريكًا", body: "صنّاع المحتوى والوكالات وقادة المجتمعات الذين يرشّحون يولـياس يربحون عمولة على كل عميل دافع يحيلونه.", link: "اكتشف برنامج الشركاء", href: "/affiliates" },
+      { title: "اسأل أي شيء", body: "كيف تصف عميلك المثالي، ومن يتخذ القرار في سوقك، وكم متابعة تكفي. يجيب الأعضاء وفريق يولـياس." },
+      { title: "رأي في رسائلك", body: "انشر رسالتك الأولى أو المتابعة (بدون بيانات شخصية لعملائك) وخذ ملاحظات صريحة على العنوان والطول والطلب." },
+      { title: "شارك ما ينجح", body: "نسب الرد في كل سوق، وجملة افتتاحية نجحت في الرياض أو القاهرة، ومجال ردّ أفضل من المتوقع. النتائج الحقيقية تفيد الجميع." },
+      { title: "الميزات الجديدة أولًا", body: "تُعلن ميزات يولـياس الجديدة في المجموعة أولًا، واقتراحات الأعضاء تصل مباشرة للفريق الذي يبنيها." },
     ],
-    events: {
-      title: "نظّم جلسة عن يولـياس لمجتمعك",
-      body: "استضف ورشة عمل أو عرضًا مباشرًا أو لقاءً عن المبيعات لمجموعة رواد الأعمال أو المسرّعة أو الطلاب، عبر الإنترنت أو حضوريًا. أخبرنا عنها وسيساعدك فريق يولـياس بالمحتوى وجولة في المنتج.",
-      cta: "أخبرنا عن فعاليتك",
-    },
-    partner: {
-      title: "شارك مع يولـياس",
-      body: "الوكالات والمدربون والحاضنات وصنّاع المحتوى يمكنهم تقديم يولـياس للشركات التي يعملون معها، والربح من العملاء الذين يحيلونهم.",
-      cta: "اكتشف الشراكات",
-    },
+    forTitle: "لمن هذا المجتمع",
+    forList: [
+      "رواد الأعمال الذين يبيعون بأنفسهم ويحتاجون تدفقًا ثابتًا من عملاء الشركات.",
+      "المستقلون والوكالات الذين يبحثون عن عملاء في مصر والخليج وغيرها.",
+      "فرق المبيعات وتطوير الأعمال التي تريد قوائم أفضل ورسائل أولى أفضل.",
+      "كل من يبدأ: أسئلة المبتدئين مرحب بها، ولا تحتاج حسابًا في يولـياس للانضمام.",
+    ],
+    startTitle: "كيف تبدأ",
+    steps: [
+      { title: "اطلب الانضمام", body: "افتح المجموعة على فيسبوك واضغط «انضمام». يوافق أحد المشرفين على الأعضاء الجدد." },
+      { title: "عرّف بنفسك", body: "قل ماذا تبيع، ولمن، وفي أي سوق. هكذا يدلّك الأعضاء على ما ساعدهم." },
+      { title: "انشر سؤالك الأول", body: "أعطِ السياق: عميلك وسوقك وما جربته. الأسئلة المحددة تحصل على أنفع الإجابات." },
+    ],
+    rulesTitle: "قواعد المجموعة",
+    rulesLead: "قواعد قليلة تُبقي المجموعة مفيدة للجميع:",
+    rules: [
+      "الاحترام أولًا. اختلف مع الأفكار، لا مع الأشخاص.",
+      "لا رسائل مزعجة ولا ترويج ذاتي متكرر. شارك ما تعلّمته، لا الإعلانات.",
+      "لا تنشر بيانات شخصية لأي أحد: لا قوائم عملاء ولا بريد ولا أرقام هواتف لأشخاص حقيقيين.",
+      "لا بيع ولا تبادل لقوائم جهات الاتصال.",
+      "أسئلة الحساب والفوترة والبيانات مكانها دعم يولـياس داخل التطبيق، حتى تبقى خاصة.",
+    ],
     faqTitle: "أسئلة شائعة",
     faq: [
-      { q: "من يمكنه الانضمام إلى مجتمع يولـياس؟", a: "كل من يهتم بإيجاد العملاء وتنمية عمله بالذكاء الاصطناعي: رواد الأعمال والمستقلون والمسوّقون وفرق المبيعات والوكالات. لا تحتاج إلى خطة في يولـياس للانضمام." },
+      { q: "من يمكنه الانضمام إلى مجتمع يولـياس؟", a: "كل من يبيع للشركات أو يريد ذلك: رواد الأعمال والمستقلون والوكالات والمسوّقون وفرق المبيعات. لا تحتاج حسابًا في يولـياس للانضمام." },
       { q: "أين يجتمع المجتمع؟", a: "في مجموعة يولـياس على فيسبوك. اطلب الانضمام وسيوافق عليك أحد المشرفين." },
       { q: "هل له أي تكلفة؟", a: "لا. المجتمع مجاني." },
       { q: "ما اللغات المستخدمة؟", a: "العربية والإنجليزية. اكتب باللغة التي تريحك." },
-      { q: "هل أحتاج خبرة في المبيعات أو الذكاء الاصطناعي؟", a: "لا. كثير من الأعضاء في البداية. اسأل أي شيء، فأسئلة المبتدئين مرحب بها." },
+      { q: "هل أحتاج خبرة في المبيعات أو الذكاء الاصطناعي؟", a: "لا. كثير من الأعضاء في البداية، وأسئلة المبتدئين مرحب بها." },
       { q: "هل أحصل على دعم للمنتج في المجموعة؟", a: "يساعد الأعضاء والفريق في أسئلة الاستخدام. أما ما يخص حسابك أو الفوترة أو بياناتك فاستخدم محادثة الدعم في يولـياس أو صفحة التواصل حتى تبقى خاصة." },
-      { q: "هل يمكنني مشاركة خدماتي أو روابطي؟", a: "شارك ما تعلّمته وما نجح معك. يُحذف الترويج الذاتي المتكرر والرسائل المزعجة، ويشارك الشركاء روابط الإحالة في قنواتهم الخاصة." },
-      { q: "ما الفرق بين المجتمع وبرنامج الشركاء؟", a: "المجتمع للتعلّم والمشاركة. برنامج الشركاء لمن يرشّح يولـياس ويريد ربح عمولة على العملاء الدافعين الذين يحيلهم." },
-      { q: "كيف أقترح ميزة؟", a: "انشرها في المجموعة أو أرسلها من يولـياس عبر «ملاحظات / الإبلاغ عن خطأ». يقرأ الفريق كل اقتراح." },
+      { q: "هل يمكنني نشر خدماتي؟", a: "شارك ما تعلّمته وما نجح معك. يُحذف الترويج الذاتي المتكرر والرسائل المزعجة." },
+      { q: "كيف أقترح ميزة؟", a: "انشرها في المجموعة، أو أرسلها من يولـياس عبر «ملاحظات / الإبلاغ عن خطأ». يقرأ الفريق كل اقتراح." },
     ],
-    final: { title: "مستعد لإيجاد عملائك القادمين؟", body: "انضم إلى المجتمع، ثم دَع يولـياس يجد الشركات التي تريد البيع لها ويبحث عنها ويتواصل معها.", primary: "انضم إلى المجتمع", secondary: "شاهد الأسعار" },
+    final: { title: "ابحث عن العملاء مع من يفعل مثلك", body: "انضم إلى المجموعة، وعرّف بنفسك، واسأل سؤالك الأول اليوم.", primary: "انضم إلى المجموعة على فيسبوك" },
   },
 };

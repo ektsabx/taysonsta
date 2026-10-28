@@ -4,6 +4,17 @@
 export const sdrEn = {
   days: { short: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], sep: ", " },
   email: {
+    domain: {
+      title: "Sending domain health", subtitle: "Without SPF, DKIM and DMARC, campaign emails usually land in spam. We check your domain's DNS.",
+      checking: "Checking…", state: { ok: "Found", missing: "Missing", unknown: "Not checked" },
+      allGood: "This domain is ready to send.", unknown: "Some records couldn't be checked right now. Open this page again later.",
+      fix: {
+        spf: "Add a TXT record on the domain that starts with v=spf1 and names your mail provider (e.g. include:_spf.google.com for Google Workspace).",
+        dkim: "Turn on DKIM in your mail provider's admin (Google Workspace, Zoho, Hostinger…) and add the record it gives you.",
+        dmarc: "Add a TXT record named _dmarc with the value v=DMARC1; p=none; (start with none, tighten it later).",
+      },
+      fixWhere: "Records are added in your domain's DNS settings (Cloudflare, GoDaddy, Namecheap…). The change shows here within an hour.",
+    },
     tabs: { mailboxes: "Mailboxes", connection: "Connection", rules: "Sending rules" },
     accounts: {
       title: "Email accounts",
@@ -65,7 +76,7 @@ export const sdrEn = {
   leads: {
     subtitle: "Every person and company you can reach, with their outreach and CRM state.",
     importPeople: "Import people",
-    tabs: { people: "People", companies: "Companies" },
+    tabs: { people: "People", companies: "Companies", saved: "Saved" }, emptySaved: "Nothing saved yet. Use the bookmark on any person or company to keep it here.",
     peopleTitle: "People", peopleCount: "{n} people", companiesTitle: "Companies", companiesCount: "{n} companies",
     searchPeople: "Search people…", searchCompanies: "Search companies…",
     colName: "Name", colCompany: "Company", colReach: "Reach", colOutreach: "Outreach", colCrm: "CRM", colPeople: "People", colLinks: "Links", colUpdated: "Updated",
@@ -77,7 +88,7 @@ export const sdrEn = {
     peopleHint: "No people yet. Your searches found {n} companies: see the Companies tab.",
   },
   campaigns: {
-    title: "Campaigns", subtitle: "Email sequences sent from your mailboxes, and how each one is landing.", create: "Create campaign",
+    title: "Campaigns", subtitle: "Email sequences sent from your mailboxes, and how each one is landing.", create: "Pick leads for a campaign", createHint: "A campaign is made in a Yolias AI chat, or by selecting people or companies in Prospects.",
     statActive: "Active campaigns", statActiveNote: "{paused} paused · {draft} draft · {completed} completed",
     statLeads: "Leads", statLeadsNote: "across {n} campaigns",
     statSent: "Emails sent", statSentNote: "Last send {ago}", statSentNever: "Nothing sent yet",

@@ -34,7 +34,7 @@ export default async function StrategyPage({ params }: PageProps<"/search/[id]">
     const reqs = approvals.filter((r) => turn.approvals?.includes(r.id));
     cards[turn.id] = (
       <div className="thread-cards">
-        {reqs.map((r) => <ApprovalCard key={r.id} id={r.id} summary={r.summary} status={r.status} />)}
+        {reqs.map((r) => <ApprovalCard key={r.id} id={r.id} summary={r.summary} status={r.status} campaignId={r.campaignId} />)}
         {views.map((v) => <DiscoveryCard key={v!.campaign!.id} view={v!} />)}
       </div>
     );

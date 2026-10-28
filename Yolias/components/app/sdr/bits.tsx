@@ -9,7 +9,7 @@ import type { ReplyKind } from "@/services/pipeline";
 
 const KIND_TONE: Record<ReplyKind, string> = {
   interested: "green", meeting_request: "green", question: "green", objection: "blue",
-  not_interested: "red", stop_request: "red", out_of_office: "violet", asks_for_human: "gray", unclear: "gray", unclassified: "outline nodot",
+  not_interested: "red", stop_request: "red", out_of_office: "gray", asks_for_human: "gray", unclear: "gray", unclassified: "outline nodot",
 };
 
 /** How Yolias read a reply, as a coloured badge (Interested, Out of Office, Unclassified…). */

@@ -32,8 +32,9 @@ export default async function CampaignsPage() {
   return (
     <div className="sdr-page">
       <header className="sdr-head">
-        <div><h2>{c.title}</h2><p>{c.subtitle}</p></div>
-        <div className="sdr-head-actions"><Link className="sdr-btn primary" href="/outreach/new"><Plus />{c.create}</Link></div>
+        <div><h2>{c.title}</h2><p>{c.subtitle} {c.createHint}</p></div>
+        {/* Campaigns are made from Yolias AI or from people / companies picked in Prospects (owner, 2026-10-28). */}
+        <div className="sdr-head-actions"><Link className="sdr-btn primary" href="/prospects"><Plus />{c.create}</Link></div>
       </header>
       {!hasMailbox && <div className="ws-note"><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>}
       <div className="sdr-stats">

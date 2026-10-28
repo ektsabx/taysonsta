@@ -22,7 +22,8 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
   const router = useRouter();
   const [prompt, setPrompt] = useState(initialPrompt);
   // Customer Profile for this search (AI Workspace, D-195): the default one is preselected.
-  const [profileId, setProfileId] = useState(profiles.find((p) => p.is_default)?.id ?? "");
+  // The workspace's customer profile from Company Knowledge is used; no picker in the chat (owner, 2026-10-28).
+  const profileId = profiles.find((p) => p.is_default)?.id ?? profiles[0]?.id ?? "";
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -163,12 +164,6 @@ export function StrategyComposer({ initialPrompt = "", profiles = [], firstName 
               <Paperclip />
             </button>
             <input ref={fileRef} type="file" className="hidden-input" accept=".csv,.pdf,.txt,.md,.tsv" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
-            {profiles.length > 0 && (
-              <select className="composer-profile" aria-label={t.ws.ai.profiles.composerLabel} title={t.ws.ai.profiles.composerLabel} value={profileId} disabled={pending} onChange={(e) => setProfileId(e.target.value)}>
-                <option value="">{t.ws.ai.profiles.composerNone}</option>
-                {profiles.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            )}
           </div>
 
           <button className="btn-send" type="button" aria-label={c.send} onClick={submit} disabled={pending}>

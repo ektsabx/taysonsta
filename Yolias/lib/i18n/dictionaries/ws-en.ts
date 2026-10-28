@@ -200,7 +200,7 @@ export const wsEn = {
         url: "Website", run: "Analyze website", running: "Reading your website…", retry: "Try again", stop: "Stop",
         steps: { open: "Opening your website", pages: "Finding and reading your pages", extract: "Reading your company details, services, products and customers", result: "Preparing the result" },
         pagesCount: "{read} of {total} pages", pageMissed: "couldn’t be opened",
-        done: "Filled from {count} pages of your website. Review the fields below, then save.", saveAll: "Save everything", notFound: "Not found on the website:",
+        done: "Filled from {count} pages of your website. Review the fields below, then save.", reviewThenSave: "Check what Yolias wrote, then press Save at the bottom of the page.", saveAll: "Save everything", notFound: "Not found on the website:",
         errors: { url: "Enter your website address (e.g. yourcompany.com).", unreachable: "We couldn’t open that website. Check the address and try again.", empty: "We couldn’t find enough text on that website.", not_configured: "Website analysis isn’t available right now.", failed: "The analysis didn’t work. Please try again." },
       },
       offer: { name: "Offer name", description: "Description", problem: "Problem it solves", audience: "Who it’s for", benefits: "Value and benefits", price: "Price or range", terms: "Terms or limits", active: "Used by AI", add: "Add offer", empty: "No offers yet. Add what you sell so messages can mention the right one." },

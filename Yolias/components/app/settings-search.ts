@@ -15,6 +15,7 @@ interface Entry {
 const S = (t: Dictionary) => t.settings;
 
 const ENTRIES: Entry[] = [
+  { tab: "referral", id: "referral-link", label: (t) => S(t).referral.title, desc: (t) => S(t).referral.desc },
   { tab: "general", id: "theme", label: (t) => S(t).general.theme, desc: (t) => S(t).general.themeDesc },
   { tab: "general", id: "text-size", label: (t) => S(t).general.textSize, desc: (t) => S(t).general.textSizeDesc },
   { tab: "general", id: "language", label: (t) => S(t).general.languages, desc: (t) => S(t).general.languagesDesc },

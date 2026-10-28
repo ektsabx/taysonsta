@@ -63,6 +63,6 @@ export interface ShellData {
   planGate: { trialDays: number | null } | null;
 }
 
-export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration";
+export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration" | "referral";
 
 export const SIDEBAR_COOKIE = "yolias_sidebar";

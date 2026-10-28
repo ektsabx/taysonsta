@@ -7,9 +7,10 @@ import { fmt } from "@/lib/i18n/config";
 import { formatDate, formatNumber } from "@/lib/format";
 import { timeZoneChoices } from "@/lib/regions";
 import { useToast } from "@/components/Toast";
-import { GmailIcon, OutlookIcon } from "@/components/app/ConnectorIcons";
-import { connectImapMailbox, connectTestMailbox, mailboxState, removeMailbox, saveSendingRules, updateMailboxSending, type EmailState, type MailboxView } from "@/app/(app)/settings/mailbox-actions";
+import { GmailIcon } from "@/components/app/ConnectorIcons";
+import { connectImapMailbox, connectTestMailbox, mailboxDomainChecks, mailboxState, removeMailbox, saveSendingRules, updateMailboxSending, type EmailState, type MailboxView } from "@/app/(app)/settings/mailbox-actions";
 import type { SendingRules } from "@/lib/outreach/sending-rules";
+import type { CheckState, DomainCheck } from "@/lib/mailbox/domain-check";
 import { DEFAULT_SENDING_RULES } from "@/lib/outreach/sending-rules";
 
 // Settings → Integrations → Email (D-256), after AgentSDR Settings → Email:
@@ -172,7 +173,39 @@ function Mailboxes({ state, reload, onImap }: { state: EmailState | null; reload
           </div>
         </div>
       </div>
+      {boxes.length > 0 && <DomainHealth key={boxes.map((m) => m.email).join(",")} />}
       {editing && state && <EditMailbox box={editing} state={state} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); reload(); }} />}
+    </div>
+  );
+}
+
+/* ── Sending domain: SPF / DKIM / DMARC (owner, 2026-10-28) ── */
+
+function DomainHealth() {
+  const { t } = useI18n();
+  const d = t.sdr.email.domain;
+  const [checks, setChecks] = useState<DomainCheck[] | null>(null);
+  useEffect(() => { mailboxDomainChecks().then(setChecks).catch(() => setChecks([])); }, []);
+  const own = (checks ?? []).filter((c) => !c.shared);
+  if (checks && !own.length) return null;
+  const mark = (v: CheckState) => <span className={`sdr-badge ${v === "ok" ? "green" : v === "missing" ? "red" : "gray"}`}>{d.state[v]}</span>;
+  return (
+    <div className="sdr-panel" style={{ marginTop: 20 }}>
+      <div className="sdr-panel-head"><div><div className="sdr-panel-title">{d.title}</div><div className="sdr-panel-sub">{d.subtitle}</div></div></div>
+      <div className="sdr-panel-body pad">
+        {!checks && <p className="sdr-panel-sub">{d.checking}</p>}
+        {own.map((c) => {
+          const missing = (["spf", "dkim", "dmarc"] as const).filter((k) => c[k] === "missing");
+          return (
+            <div key={c.domain} className="domain-health">
+              <div className="domain-health-row"><strong dir="ltr">{c.domain}</strong><span>SPF {mark(c.spf)}</span><span>DKIM {mark(c.dkim)}</span><span>DMARC {mark(c.dmarc)}</span></div>
+              {missing.length > 0
+                ? <ul className="domain-health-fix">{missing.map((k) => <li key={k}>{d.fix[k]}</li>)}<li>{d.fixWhere}</li></ul>
+                : c.spf === "ok" && c.dkim === "ok" && c.dmarc === "ok" ? <p className="sdr-panel-sub">{d.allGood}</p> : <p className="sdr-panel-sub">{d.unknown}</p>}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -312,17 +345,6 @@ function Connection({ state, onImap, onGo }: { state: EmailState | null; onImap:
           <div className="sdr-provider-actions">{!mine("imap").length ? <button type="button" className="sdr-btn" onClick={onImap}>{c.addMailbox}</button> : <button type="button" className="sdr-btn" onClick={onGo}>{t.sdr.email.tabs.mailboxes}</button>}</div>
         </div>
         {facts("imap")}
-      </div></div>
-      <div className="sdr-provider"><div className="sdr-provider-body">
-        <div className="sdr-provider-top">
-          <div className="sdr-provider-logo"><OutlookIcon /></div>
-          <div style={{ minWidth: 0 }}>
-            <div className="sdr-provider-name">{c.outlook}<span className="sdr-badge nodot violet">{c.comingSoon}</span></div>
-            <div className="sdr-provider-desc">{c.outlookDesc}</div>
-            <div className="sdr-provider-powers">{c.willPower}</div>
-          </div>
-          <div className="sdr-provider-actions"><button type="button" className="sdr-btn" disabled>{c.comingSoon}</button></div>
-        </div>
       </div></div>
     </div>
   );

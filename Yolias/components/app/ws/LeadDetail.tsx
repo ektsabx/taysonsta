@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Check, Inbox, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Check, Inbox, PenLine, ShieldAlert, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { addNote, addTask, decideApproval, prepareMeetingBrief, removeLead, saveMeeting, setTaskDone, updateLead } from "@/app/(app)/crm/actions";
@@ -218,12 +218,12 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
                     </div>
                     <span className="ws-inline">
                       <button className="btn-secondary ws-btn-sm" type="button" onClick={() => setMeeting(m)}>{t.ws.common.edit}</button>
-                      <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => prepareMeetingBrief(m.id), { onOk: (r) => setBrief(r.brief) })}><Sparkles size={13} /> {pending ? c.meeting.briefing : c.meeting.brief}</button>
+                      <button className="btn-secondary ws-btn-sm" type="button" disabled={pending} onClick={() => run(() => prepareMeetingBrief(m.id), { onOk: (r) => setBrief(r.brief) })}><PenLine size={13} /> {pending ? c.meeting.briefing : c.meeting.brief}</button>
                     </span>
                   </div>
                 ))}
               </div>
-              {brief && <div className="ws-note" style={{ marginTop: 10, whiteSpace: "pre-wrap" }}><Sparkles /><div dir="auto">{brief}</div></div>}
+              {brief && <div className="ws-note" style={{ marginTop: 10, whiteSpace: "pre-wrap" }}><PenLine /><div dir="auto">{brief}</div></div>}
             </section>
 
             <section className="ws-card">

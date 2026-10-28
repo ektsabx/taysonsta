@@ -57,6 +57,9 @@ export async function approveCampaign(input: { workspaceId: string; userId: stri
     send_mode: mailbox ? "mailbox" : "manual", mailbox_id: mailbox?.id ?? null, approved_at: now, approved_by: input.userId,
     auto_reply: Boolean(mailbox && input.autoReply), status: "active", started_at: camp.started_at ?? now,
   }).eq("id", camp.id);
+  // One place approves a campaign, its page (owner, 2026-10-28): the chat's card for it shows it as approved.
+  await db.from("agent_pending_actions").update({ status: "approved", decided_by: input.userId, decided_at: now })
+    .eq("workspace_id", input.workspaceId).eq("tool", "startOutreachCampaign").eq("status", "pending").eq("input->>id", camp.id);
   return { ok: true };
 }
 

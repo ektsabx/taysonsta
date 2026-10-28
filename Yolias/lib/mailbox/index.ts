@@ -27,7 +27,7 @@ export function mailboxProvider(id: MailProvider): MailboxProvider {
 export async function availableProviders(): Promise<MailProvider[]> {
   const out: MailProvider[] = [];
   if (await gmail.configured()) out.push("gmail");
-  if (await outlook.configured()) out.push("outlook");
+  // Outlook isn't offered (owner, 2026-10-28); mailboxes connected before keep working.
   // Any IMAP/SMTP mailbox (D-238): nothing to set up in Admin.
   out.push("imap");
   if (testMailboxAllowed()) out.push("test");

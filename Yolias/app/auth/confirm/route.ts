@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { recordReferral, REFERRAL_COOKIE } from "@/lib/referrals";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { securityAlert, signedIn } from "@/lib/email/events";
@@ -48,6 +49,9 @@ export async function GET(request: NextRequest) {
     // it counts (new account, valid window, not the affiliate themself).
     const ref = request.cookies.get(AFFILIATE_COOKIE)?.value;
     if (ref) await attributeSignup(auth.user.id, ref, ip);
+    // Invite link of the referral program (owner, 2026-10-28): a new account rewards the inviting workspace.
+    const invite = request.cookies.get(REFERRAL_COOKIE)?.value;
+    if (invite && isNew) await recordReferral(auth.user.id, invite, ip).catch((e) => console.error("[referral]", e));
   }
 
   // Yolias Partners (D-206): back to the partner portal — this browser started
@@ -62,5 +66,6 @@ export async function GET(request: NextRequest) {
   }
   const res = NextResponse.redirect(new URL(dest, url.origin));
   if (next) res.cookies.delete(NEXT_COOKIE);
+  if (request.cookies.get(REFERRAL_COOKIE)) res.cookies.delete(REFERRAL_COOKIE);
   return res;
 }

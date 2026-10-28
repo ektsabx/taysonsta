@@ -128,6 +128,9 @@ export const en = {
     company: "Company name",
     companyPlaceholder: "Acme Inc.",
     website: "Website",
+    websiteFirst: "What is your company's website?",
+    websiteFirstNote: "Yolias reads your site and fills your company profile and your ideal customer. You check them, then start.",
+    noWebsite: "No website? Fill it in yourself",
     websitePlaceholder: "example.com",
     industry: "Industry",
     industryPlaceholder: "e.g. B2B software, logistics, real estate",
@@ -269,7 +272,7 @@ export const en = {
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
   startHere: {
     title: "Start here", progress: "{done} of 3",
-    mailbox: "Connect your mailbox", mailboxDesc: "Gmail, Outlook or any mailbox over IMAP/SMTP. Your campaigns go out from it and replies come back to it.", mailboxCta: "Connect",
+    mailbox: "Connect your mailbox", mailboxDesc: "Gmail or any mailbox over IMAP/SMTP (Zoho, Hostinger, your company mail). Your campaigns go out from it and replies come back to it.", mailboxCta: "Connect",
     search: "Write your first search", searchDesc: "Tell Yolias above who you want to sell to, and it finds the leads.", searchCta: "Write it",
     campaign: "Review your first campaign", campaignDesc: "Check the emails Yolias wrote and approve sending.", campaignCta: "Open campaigns",
     done: "Done",
@@ -367,7 +370,7 @@ export const en = {
   },
   agent: {
     approval: {
-      title: "Waiting for your approval", approve: "Approve", reject: "Reject",
+      title: "Waiting for your approval", approve: "Approve", reject: "Reject", reviewCampaign: "Review and start the campaign",
       approved: "Approved", rejected: "Rejected", expired: "Expired", failed: "Didn't work",
       doneNote: "Done: {action}.", failedNote: "Couldn't do it: {action}. {reason}", rejectedNote: "Canceled: {action}.",
       notFound: "That request no longer exists.", notYours: "Only the person who asked, or an owner or admin, can decide.", decided: "This request was already decided.", expiredError: "This request has expired. Ask Yolias AI again.",
@@ -605,10 +608,10 @@ export const en = {
     title: "Settings",
     search: { placeholder: "Search settings", empty: "No settings match “{q}”.", hint: "Try another word, such as theme, invoices or mailbox.", clear: "Clear search" },
     tabs: {
-      general: "General", account: "Account", organization: "Organization", notifications: "Notifications", usage: "Usage", billing: "Billing", team: "Team", integration: "Integrations",
+      general: "General", account: "Account", organization: "Organization", notifications: "Notifications", usage: "Usage", billing: "Billing", team: "Team", integration: "Integrations", referral: "Referral",
     },
     titles: {
-      general: "General", account: "Account", organization: "Organization Profile", notifications: "Notifications", usage: "Usage", billing: "Billing & Invoices", team: "Team Members", integration: "Integrations",
+      general: "General", account: "Account", organization: "Organization Profile", notifications: "Notifications", usage: "Usage", billing: "Billing & Invoices", team: "Team Members", integration: "Integrations", referral: "Invite and earn",
     },
     general: {
       theme: "Theme", themeDesc: "Select how Yolias looks on your screen.",
@@ -688,6 +691,14 @@ export const en = {
       members: "Team Members", membersDesc: "Colleagues with access to searches and prospect exports.",
       invite: "Invite User", invitePlaceholder: "colleague@company.com", invitationSent: "Invitation sent · {role}",
       removeConfirm: "Remove {name} from the workspace?", removeLabel: "Remove {name}", revokeLabel: "Revoke invitation for {email}",
+    },
+    referral: {
+      title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} prospects to your balance. They never expire.",
+      copy: "Copy link", copied: "Copied", off: "The invite program is paused right now.",
+      joined: "Joined from your link", earned: "Prospects earned", month: "This month", monthNote: "Up to {cap} rewarded invites a month",
+      recent: "Latest to join", none: "Nobody has joined from your link yet. Share it with people who sell to businesses.",
+      status: { rewarded: "+{n} prospects", capped: "Over the monthly cap", rejected: "Doesn't count" },
+      rules: "Only a new account counts, once, after its email is confirmed. A member joining your own team doesn't count.",
     },
     integration: {
       intro: "Connect the mailbox Yolias sends your campaigns from. Nothing is sent without your approval.",

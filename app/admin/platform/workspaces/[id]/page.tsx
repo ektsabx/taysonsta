@@ -10,6 +10,7 @@ import { workspaceUsage } from "@/services/yolias/usage";
 import { AdjustUsageForm } from "../../UsageForms";
 import { can } from "@/lib/bos/auth";
 import { getWorkspace } from "@/services/yolias/platform";
+import { workspaceReferrals } from "@/services/yolias/referrals";
 import { NotConnected, connected, PlanBadge, SearchStatus, CampaignStatus, num, usd } from "@/components/yolias/PlatformUi";
 
 const roleLabel: Record<string, string> = { owner: "المالك", admin: "مسؤول", member: "عضو" };
@@ -21,7 +22,7 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
   if (!connected()) return (<><PageHeader title="مساحة العمل" /><NotConnected /></>);
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [d, usage] = await Promise.all([getWorkspace(id), workspaceUsage(id)]);
+  const [d, usage, ref] = await Promise.all([getWorkspace(id), workspaceUsage(id), workspaceReferrals(id).catch(() => null)]);
   if (!d) notFound();
   const w = d.workspace;
   const u = usage.summary;
@@ -51,6 +52,18 @@ export default async function PlatformWorkspacePage({ params }: PageProps<"/admi
           { label: "معرّف مساحة العمل", value: <span dir="ltr" style={{ fontSize: 12 }}>{w.id}</span> },
         ]} />
       </Card>
+
+      {ref && (
+        <Card title="برنامج الدعوة">
+          <KeyValues items={[
+            { label: "رمز الدعوة", value: ref.code ? <span dir="ltr">{ref.code}</span> : "—" },
+            { label: "تسجيلات عبر رابطه", value: num(ref.invited) },
+            { label: "مُكافأة", value: num(ref.rewarded) },
+            { label: "عملاء محتملون كسبهم", value: num(ref.prospects) },
+            { label: "دعاه", value: ref.referredBy ?? "—" },
+          ]} />
+        </Card>
+      )}
 
       <Card title="سجل الاستخدام">
         <KeyValues items={[

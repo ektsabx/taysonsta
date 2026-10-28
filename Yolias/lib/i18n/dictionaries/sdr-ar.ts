@@ -5,6 +5,17 @@ import type { sdrEn } from "./sdr-en";
 export const sdrAr: typeof sdrEn = {
   days: { short: ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"], sep: "، " },
   email: {
+    domain: {
+      title: "سلامة دومين الإرسال", subtitle: "بدون SPF وDKIM وDMARC تذهب رسائل الحملات غالبًا إلى Spam. نفحصها في DNS دومينك.",
+      checking: "جارٍ الفحص…", state: { ok: "موجود", missing: "ناقص", unknown: "لم يُفحص" },
+      allGood: "الدومين جاهز للإرسال.", unknown: "تعذّر فحص بعض السجلات الآن. أعد فتح الصفحة لاحقًا.",
+      fix: {
+        spf: "أضف سجل TXT على الدومين يبدأ بـ v=spf1 ويذكر مزود بريدك (مثل include:_spf.google.com لـ Google Workspace).",
+        dkim: "فعّل DKIM من لوحة مزود بريدك (Google Workspace أو Zoho أو Hostinger…) وأضف السجل الذي يعطيك إياه.",
+        dmarc: "أضف سجل TXT باسم _dmarc قيمته v=DMARC1; p=none; (ابدأ بـ none ثم شدّده لاحقًا).",
+      },
+      fixWhere: "السجلات تُضاف من لوحة DNS عند مزود الدومين (Cloudflare أو GoDaddy أو Namecheap…). التغيير يظهر هنا خلال ساعة.",
+    },
     tabs: { mailboxes: "صناديق البريد", connection: "الاتصال", rules: "قواعد الإرسال" },
     accounts: {
       title: "حسابات البريد",
@@ -66,7 +77,7 @@ export const sdrAr: typeof sdrEn = {
   leads: {
     subtitle: "كل شخص وشركة تستطيع الوصول إليهم، مع حالة التواصل وإدارة العملاء.",
     importPeople: "استيراد أشخاص",
-    tabs: { people: "الأشخاص", companies: "الشركات" },
+    tabs: { people: "الأشخاص", companies: "الشركات", saved: "المحفوظات" }, emptySaved: "لا يوجد شيء محفوظ بعد. اضغط علامة الحفظ عند أي شخص أو شركة ليظهر هنا.",
     peopleTitle: "الأشخاص", peopleCount: "{n} شخص", companiesTitle: "الشركات", companiesCount: "{n} شركة",
     searchPeople: "ابحث في الأشخاص…", searchCompanies: "ابحث في الشركات…",
     colName: "الاسم", colCompany: "الشركة", colReach: "التواصل", colOutreach: "الحملات", colCrm: "إدارة العملاء", colPeople: "الأشخاص", colLinks: "الروابط", colUpdated: "آخر تحديث",
@@ -78,7 +89,7 @@ export const sdrAr: typeof sdrEn = {
     peopleHint: "لا يوجد أشخاص بعد. وجدت عمليات البحث {n} شركة: افتح تبويب «الشركات».",
   },
   campaigns: {
-    title: "الحملات", subtitle: "تسلسلات بريد تُرسل من صناديقك، وكيف تصل كل حملة.", create: "إنشاء حملة",
+    title: "الحملات", subtitle: "تسلسلات بريد تُرسل من صناديقك، وكيف تصل كل حملة.", create: "اختر العملاء للحملة", createHint: "الحملة تُنشأ من محادثة Yolias AI، أو بتحديد أشخاص أو شركات في العملاء المحتملين.",
     statActive: "الحملات النشطة", statActiveNote: "{paused} متوقفة · {draft} مسودة · {completed} مكتملة",
     statLeads: "العملاء", statLeadsNote: "عبر {n} حملات",
     statSent: "الرسائل المرسلة", statSentNote: "آخر إرسال {ago}", statSentNever: "لم يُرسل شيء بعد",

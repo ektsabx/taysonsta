@@ -10,7 +10,8 @@ export interface CompanyProfileValues { name: string; website: string; industry:
 // The company details from onboarding (D-139), now under AI Workspace →
 // Company Knowledge (moved from Settings → Organization, same data on
 // workspaces). Owners and admins edit them.
-// `onChange` reports edits to a parent that saves more than this form (Company Knowledge → Save everything).
+// `onChange` reports edits to a parent that saves more than this form; then the parent's one Save button
+// saves it (Company Knowledge, owner 2026-10-28) and this form shows none.
 export function CompanyProfileForm({ initial, manage, onChange }: { initial: CompanyProfileValues; manage: boolean; onChange?: (v: CompanyProfileValues) => void }) {
   const { t } = useI18n();
   const o = t.settings.organization;
@@ -43,7 +44,7 @@ export function CompanyProfileForm({ initial, manage, onChange }: { initial: Com
       </div>
       {row("offering", o.offering, o.offeringDesc, <textarea id="cp-offering" className="form-input" rows={3} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />)}
       {row("ideal_customer", o.idealCustomer, o.idealCustomerDesc, <textarea id="cp-ideal_customer" className="form-input" rows={3} value={form.ideal_customer} maxLength={2000} disabled={!manage} onChange={set("ideal_customer")} />)}
-      {manage ? (
+      {manage && onChange ? null : manage ? (
         <div className="setting-actions">
           {error && <p className="form-error" role="alert">{error}</p>}
           {saved && !error && <span className="setting-desc">{o.saved}</span>}

@@ -129,6 +129,9 @@ export const ar: Dictionary = {
     company: "اسم الشركة",
     companyPlaceholder: "شركة المثال",
     website: "الموقع الإلكتروني",
+    websiteFirst: "ما رابط موقع شركتك؟",
+    websiteFirstNote: "يقرأ يولـياس موقعك ويملأ ملف الشركة وعميلك المثالي. تراجعها ثم تبدأ.",
+    noWebsite: "لا يوجد موقع إلكتروني؟ املأ البيانات بنفسك",
     websitePlaceholder: "example.com",
     industry: "المجال",
     industryPlaceholder: "مثل: برمجيات للشركات، لوجستيات، عقارات",
@@ -270,7 +273,7 @@ export const ar: Dictionary = {
   greeting: { morning: "صباح الخير", afternoon: "مساء الخير", evening: "مساء الخير" },
   startHere: {
     title: "ابدأ هنا", progress: "{done} من 3",
-    mailbox: "اربط بريدك", mailboxDesc: "Gmail أو Outlook أو أي بريد عبر IMAP/SMTP. منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
+    mailbox: "اربط بريدك", mailboxDesc: "Gmail أو أي بريد عبر IMAP/SMTP (مثل Zoho وHostinger وبريد شركتك). منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
     search: "اكتب أول بحث", searchDesc: "اكتب في الخانة أعلاه لمن تريد أن تبيع، ويولـياس يجد لك العملاء.", searchCta: "اكتب الطلب",
     campaign: "راجع أول حملة", campaignDesc: "راجع الرسائل التي كتبها يولـياس ووافق على الإرسال.", campaignCta: "فتح الحملات",
     done: "تم",
@@ -368,7 +371,7 @@ export const ar: Dictionary = {
   },
   agent: {
     approval: {
-      title: "بانتظار موافقتك", approve: "موافقة", reject: "رفض",
+      title: "بانتظار موافقتك", approve: "موافقة", reject: "رفض", reviewCampaign: "راجع الحملة وابدأها",
       approved: "تمت الموافقة", rejected: "مرفوض", expired: "انتهت صلاحيته", failed: "لم ينجح",
       doneNote: "تم: {action}.", failedNote: "تعذّر التنفيذ: {action}. {reason}", rejectedNote: "تم الإلغاء: {action}.",
       notFound: "هذا الطلب لم يعد موجودًا.", notYours: "يقرر صاحب الطلب أو المالك أو المسؤول فقط.", decided: "تم اتخاذ قرار في هذا الطلب بالفعل.", expiredError: "انتهت صلاحية هذا الطلب. اطلبه من Yolias AI مرة أخرى.",
@@ -607,10 +610,10 @@ export const ar: Dictionary = {
     title: "الإعدادات",
     search: { placeholder: "ابحث في الإعدادات", empty: "لا توجد إعدادات تطابق «{q}».", hint: "جرّب كلمة أخرى، مثل المظهر أو الفواتير أو البريد.", clear: "مسح البحث" },
     tabs: {
-      general: "عام", account: "الحساب", organization: "المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة", team: "الفريق", integration: "التكاملات",
+      general: "عام", account: "الحساب", organization: "المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة", team: "الفريق", integration: "التكاملات", referral: "الإحالة",
     },
     titles: {
-      general: "عام", account: "الحساب", organization: "ملف المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة والفواتير", team: "أعضاء الفريق", integration: "التكاملات",
+      general: "عام", account: "الحساب", organization: "ملف المؤسسة", notifications: "الإشعارات", usage: "الاستخدام", billing: "الفوترة والفواتير", team: "أعضاء الفريق", integration: "التكاملات", referral: "ادعُ واكسب",
     },
     general: {
       theme: "المظهر", themeDesc: "اختر شكل يولـياس على شاشتك.",
@@ -690,6 +693,14 @@ export const ar: Dictionary = {
       members: "أعضاء الفريق", membersDesc: "الزملاء الذين يمكنهم الوصول إلى عمليات البحث وتصدير العملاء المحتملين.",
       invite: "دعوة مستخدم", invitePlaceholder: "colleague@company.com", invitationSent: "تم إرسال الدعوة · {role}",
       removeConfirm: "إزالة {name} من مساحة العمل؟", removeLabel: "إزالة {name}", revokeLabel: "إلغاء دعوة {email}",
+    },
+    referral: {
+      title: "رابط دعوتك", desc: "كل شخص ينشئ حسابًا جديدًا في يولـياس من رابطك يضيف لك {n} عميل محتمل، لا تنتهي صلاحيتها.",
+      copy: "نسخ الرابط", copied: "تم النسخ", off: "برنامج الدعوة متوقف الآن.",
+      joined: "انضموا من رابطك", earned: "عملاء محتملون كسبتهم", month: "هذا الشهر", monthNote: "حتى {cap} دعوة مكافأة شهريًا",
+      recent: "آخر من انضم", none: "لم ينضم أحد من رابطك بعد. شاركه مع من يبيع لشركات.",
+      status: { rewarded: "+{n} عميل محتمل", capped: "تجاوز الحد الشهري", rejected: "لا يُحتسب" },
+      rules: "يُحتسب الحساب الجديد فقط، مرة واحدة، بعد تأكيد بريده. انضمام عضو إلى فريقك لا يُحتسب.",
     },
     integration: {
       intro: "اربط صندوق البريد الذي يرسل منه يولـياس حملاتك. لا يُرسل شيء بدون موافقتك.",

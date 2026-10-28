@@ -85,7 +85,7 @@ a.sdr-cell-main:hover { text-decoration: none; color: var(--ink); }
 .sdr-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .sdr-who > div { min-width: 0; }
 .sdr-who .sdr-cell-main, .sdr-who .sdr-cell-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sdr-avatar { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; font-size: .78rem; font-weight: 600; flex-shrink: 0; background: var(--blue-soft); color: var(--blue); position: relative; }
+.sdr-avatar { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; font-size: .78rem; font-weight: 600; flex-shrink: 0; background: var(--soft); color: var(--text-2); border: 1px solid var(--line); position: relative; }
 .sdr-avatar.plain { background: var(--soft); color: var(--muted); border: 1px solid var(--line); }
 .sdr-avatar .dot { position: absolute; inset-inline-end: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 999px; background: var(--green); border: 2px solid var(--paper); }
 .sdr-avatar .dot.bad { background: var(--danger); }
@@ -99,10 +99,8 @@ a.sdr-cell-main:hover { text-decoration: none; color: var(--ink); }
 .sdr-badge.green { background: var(--green-soft); color: var(--green); }
 .sdr-badge.blue { background: var(--blue-soft); color: var(--blue); }
 .sdr-badge.red { background: var(--danger-soft); color: var(--danger-text); }
-.sdr-badge.violet { background: #f3efff; color: #6d28d9; }
 .sdr-badge.gray { background: var(--line-faint); color: var(--muted); }
 .sdr-badge.outline { background: var(--paper); border-color: var(--line); color: var(--ink); }
-html[data-theme="dark"] .sdr-badge.violet { background: #241a3d; color: #c4b5fd; }
 .sdr-status { font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
 
 /* Bars and rings. */
@@ -383,3 +381,10 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .sdr-quote { border-inline-start: 2px solid var(--line); padding-inline-start: 10px; }
 .sdr-badge svg { width: 11px; height: 11px; }
 @media (max-width: 1100px) { .sdr-board { grid-template-columns: 1fr; } .sdr-column-body { max-height: none; } }
+
+/* Pages built on .sdr-page sit straight in the main area: they scroll there (owner, 2026-10-28: no page could scroll). */
+.main-area > .sdr-page { flex: 1; min-height: 0; overflow-y: auto; }
+.domain-health + .domain-health { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-faint); }
+.domain-health-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: .84rem; }
+.domain-health-row span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.domain-health-fix { margin: 10px 0 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: .8rem; line-height: 1.55; color: var(--text-2); }

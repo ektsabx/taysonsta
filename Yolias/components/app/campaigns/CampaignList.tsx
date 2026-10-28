@@ -12,7 +12,7 @@ import { runOutreach, setOutreachStatus } from "@/app/(app)/outreach/actions";
 import { RowMenu, Ring, useAgo } from "@/components/app/sdr/bits";
 import type { CampaignSummary, CampaignView } from "@/services/campaigns";
 
-const VIEW_TONE: Record<CampaignView, string> = { draft: "gray", active: "green", paused: "violet", completed: "blue", archived: "gray" };
+const VIEW_TONE: Record<CampaignView, string> = { draft: "gray", active: "green", paused: "gray", completed: "blue", archived: "gray" };
 
 /** The status chip of a campaign (Draft, Active, Paused, Completed, Archived). */
 export function CampaignStatus({ view }: { view: CampaignView }) {

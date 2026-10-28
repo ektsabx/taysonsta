@@ -52,7 +52,6 @@
   --danger-soft: #fff5f5;
   --danger-line: #fecaca;
   --overlay: rgba(0, 0, 0, 0.4);
-  --main-glow: rgba(207, 37, 37, 0.035);
 
   --font-sans: var(--font-dm-sans), "DM Sans", var(--font-kufi), sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", var(--font-kufi), serif;
@@ -99,7 +98,6 @@ html[data-theme="dark"] {
   --danger-line: #5a2626;
   --danger-text: #f87171;
   --overlay: rgba(0, 0, 0, 0.6);
-  --main-glow: rgba(207, 37, 37, 0.06);
 }
 
 /* Arabic: Noto Kufi Arabic for everything (Latin falls back to DM Sans),
@@ -428,7 +426,7 @@ a { color: inherit; text-decoration: none; }
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+  background: var(--paper);
   position: relative;
   overflow: hidden;
   font-size: 1rem;
@@ -1114,7 +1112,7 @@ input:disabled + .slider { cursor: not-allowed; opacity: .55; }
   flex-direction: column;
   align-items: center;
   padding: 18px 24px 48px;
-  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+  background: var(--paper);
 }
 .auth-brand { width: 100%; max-width: 1100px; }
 .auth-card { width: 100%; max-width: 400px; margin: auto 0; display: flex; flex-direction: column; }
@@ -1352,7 +1350,7 @@ html[dir="rtl"] .notif-panel { left: auto; right: 0; }
 .checkout-page {
   height: 100dvh;
   overflow-y: auto;
-  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+  background: var(--paper);
 }
 .checkout-top {
   max-width: 1040px;
@@ -1562,7 +1560,7 @@ a.menu-item { text-decoration: none; }
 /* ================= ERROR PAGES ================= */
 .error-page {
   min-height: 100dvh; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column;
-  background: radial-gradient(circle at 92% 1%, var(--main-glow), transparent 25rem), var(--paper);
+  background: var(--paper);
 }
 .error-top { max-width: 1100px; width: 100%; margin: 0 auto; padding: 18px 24px; }
 .error-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 24px 12vh; }
@@ -1583,14 +1581,8 @@ html[lang="ar"] .error-main h1 { letter-spacing: 0; }
 @keyframes mark-segment { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .28; transform: scale(.82); } }
 @keyframes mark-core { 0%, 100% { transform: scale(1); } 50% { transform: scale(.62); } }
 .yolias-thinking { display: flex; align-items: center; gap: 10px; padding: 6px 2px; font-size: .92rem; color: var(--muted); }
-.shimmer-text {
-  background: linear-gradient(90deg, var(--muted) 0%, var(--muted) 40%, var(--ink) 50%, var(--muted) 60%, var(--muted) 100%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: shimmer 2.2s linear infinite;
-}
-[dir="rtl"] .shimmer-text { animation-direction: reverse; }
-@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+/* Plain status text: no shimmer (owner, 2026-10-28: nothing styled "AI" outside the product's design). */
+.shimmer-text { color: var(--muted); }
 .composer-thinking { width: 100%; max-width: 720px; margin: 18px auto 0; }
 
 /* Yolias AI conversation of a search (D-115, D-133) */
@@ -1793,7 +1785,7 @@ body:has(.consent-banner) .toast-region { bottom: auto; top: 20px; }
 .result-card-title svg { width: 18px; height: 18px; color: var(--red); }
 .media-logo { border-radius: 10px; object-fit: contain; background: var(--paper); border: 1px solid var(--line-faint); flex-shrink: 0; }
 .media-avatar { border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--hover); }
-.media-fallback { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; font-weight: 600; letter-spacing: .02em; flex-shrink: 0; }
+.media-fallback { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--soft); border: 1px solid var(--line); color: var(--text-2); font-weight: 600; letter-spacing: .02em; flex-shrink: 0; }
 .media-fallback.round { border-radius: 50%; }
 .avatar-stack { display: inline-flex; align-items: center; }
 .avatar-stack > * { border: 2px solid var(--paper); margin-inline-start: -7px; }
@@ -2389,3 +2381,23 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
   .start-here-text { flex-basis: calc(100% - 42px); }
   .start-here-go { margin-inline-start: 42px; }
 }
+.onboarding-no-site { display: block; margin-top: 10px; }
+.onboarding-fields { display: flex; flex-direction: column; gap: 14px; }
+.onboarding-fields[hidden], .auth-form .field[hidden] { display: none; }
+
+/* Settings → Referral (owner, 2026-10-28) */
+.referral-link { display: flex; gap: 8px; margin: 4px 0 16px; }
+.referral-link .form-input { flex: 1; min-width: 0; }
+.referral-link .btn-secondary { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.referral-link svg { width: 14px; height: 14px; }
+.referral-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.referral-stats > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.referral-stats span { font-size: .76rem; color: var(--muted); }
+.referral-stats strong { font-size: 1.3rem; font-weight: 600; color: var(--ink); }
+.referral-stats em { font-style: normal; font-size: .72rem; color: var(--muted); }
+.referral-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.referral-list li { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line-faint); font-size: .84rem; }
+.referral-list li > span:first-child { flex: 1; min-width: 0; }
+.referral-status { font-size: .76rem; color: var(--muted); }
+.referral-status.rewarded { color: var(--green); font-weight: 600; }
+@media (max-width: 560px) { .referral-stats { grid-template-columns: 1fr; } .referral-link { flex-direction: column; } }

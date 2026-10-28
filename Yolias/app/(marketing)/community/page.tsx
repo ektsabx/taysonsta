@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "@/components/LocaleLink";
-import { ArrowUpRight, BookOpen, Handshake, Users } from "lucide-react";
+import { ArrowUpRight, Lightbulb, MessageCircleQuestion, PenLine, TrendingUp } from "lucide-react";
 import { COMMUNITY_URL } from "@/lib/community";
 import { communityPage } from "@/lib/content/community-page";
 import { getLocale } from "@/lib/i18n/server";
@@ -13,14 +12,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ title: c.seoTitle, absoluteTitle: true, description: c.metaDescription, path: "/community" });
 }
 
-const wayIcons = [Users, BookOpen, Handshake];
+const wayIcons = [MessageCircleQuestion, PenLine, TrendingUp, Lightbulb];
 
-// Community (owner brief 2026-10-19), same sections as lovable.dev/community;
-// joining = the Yolias Facebook group.
+// Community: the Yolias Facebook group and nothing else (owner, 2026-10-28):
+// what happens there, who it's for, how to start, its rules, FAQ.
 export default async function CommunityPage() {
   const locale = await getLocale();
   const c = communityPage[locale];
-  const href = (h: string) => (h === "community" ? COMMUNITY_URL : h);
   return (
     <>
       <JsonLd nodes={[webPageSchema({ title: c.seoTitle, description: c.metaDescription, path: "/community" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.title, path: "/community" }]), faqSchema(c.faq)]} />
@@ -31,7 +29,6 @@ export default async function CommunityPage() {
           <p className="lead">{c.lead}</p>
           <div className="hero-actions">
             <a className="btn-solid" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer">{c.join} <ArrowUpRight width={16} height={16} aria-hidden="true" /></a>
-            <Link className="btn-ghost" href="/affiliates">{c.secondary}</Link>
           </div>
         </div>
       </section>
@@ -39,7 +36,8 @@ export default async function CommunityPage() {
       <section className="section">
         <div className="site-width">
           <p className="community-overview">{c.overview}</p>
-          <div className="tiles three mt-10">
+          <h2 className="solution-h2" style={{ marginTop: 48 }}>{c.waysTitle}</h2>
+          <div className="tiles community-way-grid">
             {c.ways.map((w, i) => {
               const Icon = wayIcons[i % wayIcons.length];
               return (
@@ -47,9 +45,6 @@ export default async function CommunityPage() {
                   <div className="tile-icon"><Icon /></div>
                   <h3>{w.title}</h3>
                   <p>{w.body}</p>
-                  {w.external
-                    ? <a className="community-link" href={href(w.href)} target="_blank" rel="noopener noreferrer">{w.link} <ArrowUpRight width={15} height={15} aria-hidden="true" /></a>
-                    : <Link className="community-link" href={w.href}>{w.link}</Link>}
                 </div>
               );
             })}
@@ -59,20 +54,28 @@ export default async function CommunityPage() {
 
       <section className="section alt">
         <div className="site-width split">
-          <h2 className="solution-h2">{c.events.title}</h2>
-          <div>
-            <p className="community-body">{c.events.body}</p>
-            <div className="hero-actions"><Link className="btn-solid" href="/contact?topic=partnerships">{c.events.cta}</Link></div>
-          </div>
+          <h2 className="solution-h2">{c.forTitle}</h2>
+          <ul className="community-list">{c.forList.map((x) => <li key={x}>{x}</li>)}</ul>
         </div>
       </section>
 
       <section className="section">
+        <div className="site-width">
+          <h2 className="solution-h2">{c.startTitle}</h2>
+          <ol className="tiles three community-steps">
+            {c.steps.map((st, i) => (
+              <li className="tile" key={st.title}><span className="community-step-n">{i + 1}</span><h3>{st.title}</h3><p>{st.body}</p></li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="section alt">
         <div className="site-width split">
-          <h2 className="solution-h2">{c.partner.title}</h2>
+          <h2 className="solution-h2">{c.rulesTitle}</h2>
           <div>
-            <p className="community-body">{c.partner.body}</p>
-            <div className="hero-actions"><Link className="btn-ghost" href="/affiliates">{c.partner.cta}</Link></div>
+            <p className="community-body">{c.rulesLead}</p>
+            <ul className="community-list">{c.rules.map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
         </div>
       </section>
@@ -84,8 +87,7 @@ export default async function CommunityPage() {
           <h2 className="display-font">{c.final.title}</h2>
           <p>{c.final.body}</p>
           <div className="hero-actions">
-            <a className="btn-solid" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer">{c.final.primary}</a>
-            <Link className="btn-ghost" href="/pricing">{c.final.secondary}</Link>
+            <a className="btn-solid" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer">{c.final.primary} <ArrowUpRight width={16} height={16} aria-hidden="true" /></a>
           </div>
         </div>
       </section>

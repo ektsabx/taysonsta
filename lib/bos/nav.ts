@@ -83,6 +83,7 @@ export const navigation: NavGroup[] = [
     icon: "y_growth",
     items: [
       { href: "/admin/platform/onboarding", label: "الترحيب ومصادر التسجيل", perm: "platform.read" },
+      { href: "/admin/platform/referrals", label: "برنامج الدعوة", perm: "platform.read" },
       { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
     ],
   },

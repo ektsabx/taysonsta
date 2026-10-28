@@ -49,16 +49,7 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
         <div className="ws-card analyze-result" role="status">
           <p>{fmt(k.analyze.done, { count: analysis.pages.length })}</p>
           {analysis.notFound.length ? <p className="ws-muted">{k.analyze.notFound} {analysis.notFound.map((f) => (f in k.fields ? k.fields[f as keyof typeof k.fields] : fieldLabel(t, f))).join(", ")}</p> : null}
-          <div className="ws-actions">
-            <button className="btn-primary" type="button" disabled={pending} onClick={() => run(async () => {
-              const a = await updateOrganization(basics);
-              if (!a.ok) return a;
-              const k2 = await saveKnowledge(form);
-              if (!k2.ok) return k2;
-              // The analysis also writes the ideal customer into Customer Profiles (D-241).
-              return saveCustomerFromAnalysis(analysis.customer);
-            }, { success: t.ws.common.saved, onOk: () => setAnalysis(null) })}>{k.analyze.saveAll}</button>
-          </div>
+          <p className="ws-muted">{k.analyze.reviewThenSave}</p>
         </div>
       )}
       <section className="ws-section">
@@ -78,7 +69,6 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
               </div>
             ))}
           </div>
-          {manage && <div className="ws-actions"><button className="btn-primary" type="button" disabled={pending} onClick={() => run(() => saveKnowledge(form), { success: t.ws.common.saved })}>{t.ws.common.save}</button></div>}
         </div>
       </section>
 
@@ -105,6 +95,20 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
         onSave={(v) => saveCompetitor(v as Parameters<typeof saveCompetitor>[0])}
         onDelete={(id) => deleteKnowledgeItem("competitor", id)}
       />
+
+      {/* One Save for the whole page (owner, 2026-10-28): the company basics, the knowledge sections and,
+          after a website analysis, the ideal customer it wrote into Customer Profiles (D-241). */}
+      {manage && (
+        <div className="knowledge-save">
+          <button className="btn-primary" type="button" disabled={pending} onClick={() => run(async () => {
+            const a = await updateOrganization(basics);
+            if (!a.ok) return a;
+            const k2 = await saveKnowledge(form);
+            if (!k2.ok || !analysis) return k2;
+            return saveCustomerFromAnalysis(analysis.customer);
+          }, { success: t.ws.common.saved, onOk: () => setAnalysis(null) })}>{t.ws.common.save}</button>
+        </div>
+      )}
     </>
   );
 }

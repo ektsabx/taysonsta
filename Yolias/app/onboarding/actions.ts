@@ -1,5 +1,6 @@
 "use server";
 
+import { saveCustomerFromAnalysis } from "@/app/(app)/ai/actions";
 import { redirect } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { attributeSignup } from "@/lib/affiliates";
@@ -67,6 +68,12 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     if (k.success && Object.values(k.data).some(Boolean)) {
       await createAdminClient().from("workspace_knowledge").upsert({ workspace_id: session.workspace.id, ...k.data, updated_by: session.userId, updated_at: new Date().toISOString() });
     }
+  }
+
+  if (company) {
+    // The ideal customer the website analysis wrote fills Customer Profiles too (owner, 2026-10-28).
+    const customer = (() => { try { return JSON.parse(String(formData.get("customer_json") ?? "null")); } catch { return null; } })();
+    if (customer && typeof customer === "object") await saveCustomerFromAnalysis(customer).catch((e) => console.error("[onboarding] customer profile", e));
   }
 
   if (company) {

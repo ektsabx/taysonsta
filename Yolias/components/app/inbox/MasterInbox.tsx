@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, CheckSquare, ChevronDown, ChevronLeft, ExternalLink, ListFilter, Mail, MailOpen, PanelRight, Reply, RotateCcw, Search, Send, ShieldCheck, Sparkles, TrendingUp, UserRound } from "lucide-react";
+import { CheckCheck, CheckSquare, ChevronDown, ChevronLeft, ExternalLink, ListFilter, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -137,7 +137,7 @@ export function MasterInbox(p: Props) {
                         <span className="row"><strong dir="auto">{i.name}</strong>{i.company && <span className="co" dir="auto">{i.company}</span>}<time>{date(i.at)}</time></span>
                         {i.subject && <span className="subj" dir="auto">{i.subject}</span>}
                         <span className="prev" dir="auto">{i.preview}</span>
-                        {(i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.hasDraft && <span className="sdr-badge blue nodot"><Sparkles size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
+                        {(i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.hasDraft && <span className="sdr-badge blue nodot"><PenLine size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
                       </span>
                     </Link>
                   );
@@ -271,7 +271,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
           {(draftMsg || suggestion) && !lead.do_not_contact && (
             <div className="sdr-draft">
               <div className="sdr-draft-head">
-                <span className="sdr-draft-icon"><Sparkles /></span>
+                <span className="sdr-draft-icon"><PenLine /></span>
                 <div style={{ flex: 1 }}><strong>{x.draftReady}</strong> <span className="sdr-cell-sub" style={{ display: "inline" }}>· {x.draftCheck}</span></div>
                 <button type="button" className="sdr-btn primary sm" onClick={() => {
                   if (draftMsg) setShowDraft(true);
@@ -294,7 +294,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
               {!p.hasMailbox && <p className="sdr-panel-sub">{x.noMailbox}</p>}
               <textarea ref={box} className="sdr-input" dir="auto" rows={5} value={body} maxLength={5000} placeholder={fmt(x.replyTo, { name: lead.name })} onChange={(e) => setBody(e.target.value)} />
               <div className="sdr-foot" style={{ marginTop: 0 }}>
-                <button type="button" className="sdr-btn" disabled={pending} onClick={() => act(async () => { const r = await draftReplyAction(lead.id, body); if (r.ok) setBody(""); return r; }, t.ws.inbox.composer.draftReady)}><Sparkles />{x.suggest}</button>
+                <button type="button" className="sdr-btn" disabled={pending} onClick={() => act(async () => { const r = await draftReplyAction(lead.id, body); if (r.ok) setBody(""); return r; }, t.ws.inbox.composer.draftReady)}><PenLine />{x.suggest}</button>
                 <button type="button" className="sdr-btn primary" disabled={pending || !body.trim() || !p.hasMailbox} onClick={() => act(async () => { const r = await sendReply(lead.id, body); if (r.ok) { setBody(""); setComposing(false); } return r; }, x.sent)}><Send />{x.send}</button>
               </div>
             </div>

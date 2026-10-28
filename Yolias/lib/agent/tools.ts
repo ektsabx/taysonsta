@@ -509,7 +509,7 @@ export const agentTools = [
   }),
   define({
     name: "startOutreachCampaign",
-    description: "Start an outreach campaign after the user said yes. Always asks for the user's approval first (an Approve / Reject card). sendFromMailbox=true sends from the user's connected Gmail / Outlook; false runs it manually (Yolias prepares, the user sends). autoReply lets Yolias answer simple replies itself, only when the user asked for it.",
+    description: "Start an outreach campaign after the user said yes. The user approves it on the campaign page (the card links there). sendFromMailbox=true sends from the user's connected mailbox; false runs it manually (Yolias prepares, the user sends). autoReply lets Yolias answer simple replies itself, only when the user asked for it.",
     permission: "outreach.run",
     input: z.object({ id: uuid, sendFromMailbox: z.boolean().default(true), autoReply: z.boolean().default(false) }),
     async run(ctx, input) {

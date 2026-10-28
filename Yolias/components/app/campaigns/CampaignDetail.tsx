@@ -272,7 +272,7 @@ function Activity({ page }: { page: CampaignPage }) {
 
 /* ── Leads ── */
 
-const LEAD_TONE: Record<LeadView, string> = { pending: "gray", in_sequence: "blue", replied: "green", completed: "violet", bounced: "red", suppressed: "red" };
+const LEAD_TONE: Record<LeadView, string> = { pending: "gray", in_sequence: "blue", replied: "green", completed: "gray", bounced: "red", suppressed: "red" };
 
 function Leads(p: Props) {
   const { t, locale } = useI18n();

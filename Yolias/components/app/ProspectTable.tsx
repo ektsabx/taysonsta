@@ -301,7 +301,7 @@ function CrmCell({ crm }: { crm: TableRow["crm"] }) {
   if (crm.doNotContact) return <span className="sdr-badge red">{L.doNotContact}</span>;
   const stage = crm.stage !== "new" ? t.ws.stages[crm.stage as keyof typeof t.ws.stages] : null;
   const label = [stage, crm.kind ? t.sdr.kinds[crm.kind] : null].filter(Boolean).join(" · ");
-  const tone = crm.kind === "not_interested" || crm.kind === "stop_request" || crm.stage === "lost" ? "red" : crm.kind === "out_of_office" ? "violet" : crm.kind === "unclassified" || !crm.kind ? (stage ? "green" : "gray") : "green";
+  const tone = crm.kind === "not_interested" || crm.kind === "stop_request" || crm.stage === "lost" ? "red" : crm.kind === "out_of_office" ? "gray" : crm.kind === "unclassified" || !crm.kind ? (stage ? "green" : "gray") : "green";
   const note = crm.bucket === "needs_action" ? t.sdr.common.actionRequired
     : crm.followUpAt ? fmt(t.sdr.common.nextFollowUp, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { month: "short", day: "numeric" }).format(new Date(crm.followUpAt)) })
     : crm.bucket ? t.sdr.buckets[crm.bucket] : null;

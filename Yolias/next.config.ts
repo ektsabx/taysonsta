@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
     // Search requests can carry up to 3 files: images up to 10 MB each (D-182,
     // usually made smaller in the browser first), documents up to 4 MB (lib/attachments.ts).
     serverActions: { bodySizeLimit: "32mb" },
+    // No loading screens (owner, 2026-10-28, "like Claude"): pages the member
+    // already opened come back from the browser at once for a minute, and
+    // the sidebar prefetches its pages, so a click shows the page right away.
+    // Any change the member makes (server actions) refreshes them.
+    staleTimes: { dynamic: 60, static: 600 },
   },
   poweredByHeader: false,
   // Baseline security headers on every response. Framing is limited to

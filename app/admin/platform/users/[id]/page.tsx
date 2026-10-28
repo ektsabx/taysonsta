@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { workspaceReferrals } from "@/services/yolias/referrals";
 import { notFound } from "next/navigation";
 import { requirePermission, can } from "@/lib/bos/auth";
 import { readParams, type SearchParams } from "@/lib/bos/params";
@@ -53,6 +54,7 @@ export default async function User360Page({ params, searchParams }: { params: Pr
   const lastRenewal = d.subEvents.find((e) => e.status === "renewed");
   // Pay As You Go balance and history (D-247), shown on the billing tab.
   const credit = tab === "billing" && a.workspace_id ? await workspaceCredit(a.workspace_id) : null;
+  const ref = tab === "billing" && a.workspace_id ? await workspaceReferrals(a.workspace_id).catch(() => null) : null;
 
   return (
     <>
@@ -148,6 +150,15 @@ export default async function User360Page({ params, searchParams }: { params: Pr
 
       {tab === "billing" && (
         <>
+          {ref && (
+            <Card title="برنامج الدعوة">
+              <KeyValues items={[
+                { label: "تسجيلات عبر رابطه", value: num(ref.invited) },
+                { label: "عملاء محتملون كسبهم", value: num(ref.prospects) },
+                { label: "دعاه", value: ref.referredBy ?? "—" },
+              ]} />
+            </Card>
+          )}
           <Card title="رصيد الدفع حسب الاستخدام">
             {credit ? (
               <>

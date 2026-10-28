@@ -366,3 +366,6 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 .launch-aim { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; margin: 12px 0; }
 .launch-aim .cell-sub { display: block; margin-top: 4px; }
 @media (max-width: 720px) { .launch-aim { grid-template-columns: 1fr; } }
+
+/* Company Knowledge: one Save at the end of the page (owner, 2026-10-28), always in reach. */
+.knowledge-save { position: sticky; bottom: 0; display: flex; justify-content: flex-end; padding: 12px 0; margin-top: 8px; background: var(--paper); border-top: 1px solid var(--line); z-index: 2; }

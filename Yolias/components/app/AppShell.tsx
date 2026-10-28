@@ -4,10 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowUpRight, BookOpen, Bug, ChevronRight, CircleHelp, MessageCircle, UsersRound,
-  Activity, ChartColumnIncreasing, CreditCard, EllipsisVertical, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
-  Plug, Plus, SlidersHorizontal, Sparkles, User, UserSearch, Users, X,
-  Library, MessagesSquare, Send, SquareKanban } from "lucide-react";
+  Activity, ArrowUpRight, BookOpen, Bug, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, Plug, Plus, Send, SlidersHorizontal, SquareKanban, User, UserSearch, Users, UsersRound, X,
+} from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { useI18n } from "@/lib/i18n/client";
@@ -28,7 +26,7 @@ import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 
 const mainNav = [
-  { href: "/", key: "yoliasAi", icon: Sparkles },
+  { href: "/", key: "yoliasAi", icon: MessageSquareText },
   { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
   // Search results is a tab inside Prospects (owner, 2026-10-19), not its own sidebar page.
   { href: "/prospects", key: "prospects", icon: UserSearch },
@@ -52,6 +50,7 @@ const menu: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
   { tab: "team", icon: Users },
+  { tab: "referral", icon: Gift },
 ];
 
 // Phones and small tablets (same breakpoint as the CSS): the sidebar is a
@@ -142,7 +141,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   useEffect(() => {
     const tab = new URLSearchParams(window.location.search).get("settings");
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (tab === "integration" || tab === "usage" || tab === "billing" || tab === "account") setSettingsTab(tab);
+    if (tab === "integration" || tab === "usage" || tab === "billing" || tab === "account" || tab === "referral") setSettingsTab(tab);
   }, []);
 
   // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
@@ -201,7 +200,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         <nav className="sidebar-nav">
           <section className="nav-group">
             {mainNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
+              <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.nav[key]}</span>
@@ -209,7 +208,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               </Link>
             ))}
             {workNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
+              <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
                   <span>{t.ws.nav[key]}</span>

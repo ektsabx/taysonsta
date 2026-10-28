@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarClock, Pencil, Send, Sparkles, Trash2 } from "lucide-react";
+import { CalendarClock, PenLine, Pencil, Send, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { discardMessage, sendNow, updateDraft } from "@/app/(app)/inbox/actions";
@@ -70,7 +70,7 @@ export function MessageCard({ m, timeZone, onUseSuggestion, mailboxEmail, leadEm
 
       {analysis && (
         <div className="ws-note" style={{ marginTop: 10, marginBottom: 0 }}>
-          <Sparkles />
+          <PenLine />
           <div>
             <strong>{t.ws.inbox.reply.analysis}: {t.ws.inbox.reply.kind[analysis.kind as keyof typeof t.ws.inbox.reply.kind] ?? analysis.kind}</strong>
             <div>{analysis.summary}</div>

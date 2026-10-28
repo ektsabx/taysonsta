@@ -286,8 +286,8 @@ export const comparePages: SeedPage[] = [
       ar: "Instantly مبني لإرسال البريد البارد بكميات كبيرة عبر صناديق بريد كثيرة، مع التدفئة وأدوات وصول الرسائل. أما يولـياس فمبني لإيجاد الشركات المناسبة لخدماتك وإرسال رسائل أقل ومدروسة من بريدك.",
     },
     answer: {
-      en: "Choose Instantly if you run high-volume campaigns across many mailboxes and need warmup and deliverability tooling. Choose Yolias if you want help deciding who to write to, with each company explained, and a personal email from your own Gmail or Outlook after you approve it.",
-      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولـياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو Outlook الخاص بك بعد موافقتك.",
+      en: "Choose Instantly if you run high-volume campaigns across many mailboxes and need warmup and deliverability tooling. Choose Yolias if you want help deciding who to write to, with each company explained, and a personal email from your own Gmail or company mailbox after you approve it.",
+      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولـياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد موافقتك.",
     },
     them: {
       find: { en: "A B2B lead database with filters, on separate credit plans", ar: "قاعدة عملاء B2B بفلاتر، بخطط رصيد منفصلة" },
