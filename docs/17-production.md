@@ -330,7 +330,7 @@ npx wrangler secret put WORKER_SECRET
 1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261126000000_deals_and_meetings.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261126000000.sql`. قبل النشر.
 2. نشر يولياس ثم الأدمن.
 
-## جولة 2026-10-29 الثانية (D-264)
+## جولة 2026-10-29 الثانية (D-264). اتنشرت: الـ migration 20261127000000 اتطبقت واتسجلت، يولياس 5eb50c3b، الأدمن b146e103، والمقال اتضاف
 1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261127000000_sales_emails.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261127000000.sql`. قبل النشر (الإيميلات بتقرأ `notify_sales`).
 2. نشر يولياس ثم الأدمن.
 3. من Yolias/: `npm run content:seed:production` (مقال «الصفقات والاجتماعات وعروض الأسعار»).
