@@ -340,7 +340,7 @@ npx wrangler secret put WORKER_SECRET
 2. نشر يولياس ثم الأدمن.
 3. من Yolias/: `npm run content:seed:production` ثم `npm run seo:seed:production`.
 
-## جولة 2026-10-29 الرابعة (D-266). اتنشرت: الـ migration 20261129000000 اتطبقت واتسجلت، يولياس e2910741 ثم التحديث الأخير، الأدمن 29c2a583. الفحص: 175 من 176 صفحة سليمة
+## جولة 2026-10-29 الرابعة (D-266). اتنشرت: الـ migration 20261129000000 اتطبقت واتسجلت، يولياس e602d11c، الأدمن 29c2a583. الفحص: 175 من 176 صفحة سليمة
 1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261129000000_retire_discovery_post.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261129000000.sql`.
 2. نشر يولياس ثم الأدمن.
 3. من Yolias/: `npm run content:seed:production` ثم `npm run seo:seed:production`.
