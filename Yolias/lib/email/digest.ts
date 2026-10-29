@@ -12,6 +12,10 @@ import { todayFor, type Today } from "@/services/today";
 
 const EVERY_MS = 15 * 60_000;
 const SEND_HOUR = 8;
+// Resend's free plan sends 100 emails a day, and sign-in links share it: the
+// morning summary stops once the last 24 hours reach this budget, so sign-in
+// and billing mail always get through. EMAIL_DAILY_BUDGET raises it (Resend Pro).
+const budget = () => Number(process.env.EMAIL_DAILY_BUDGET) || 60;
 
 async function claim(): Promise<boolean> {
   const db = createAdminClient();
@@ -44,6 +48,8 @@ export async function dailyDigestSweep(opts: { force?: boolean; now?: Date } = {
   const db = createAdminClient();
   const now = opts.now ?? new Date();
   const out = { checked: 0, queued: 0 };
+  const sentLastDay = async () => (await db.from("email_log").select("id", { count: "exact", head: true }).gte("created_at", new Date(now.getTime() - 86_400_000).toISOString()).in("status", ["queued", "sent"])).count ?? 0;
+  if (!opts.force && (await sentLastDay()) >= budget()) return out;
   const today = new Map<string, Today | null>();
   const usable = new Map<string, boolean>();
   for (let from = 0; from < 50_000; from += 1000) {
@@ -65,6 +71,7 @@ export async function dailyDigestSweep(opts: { force?: boolean; now?: Date } = {
       const t = today.get(ws);
       if (!t || !hasNews(t)) continue;
       const r: Recipient = { userId: p.id, email: p.email, locale: p.language === "ar" ? "ar" : "en", prefs: { notify_sales: true } };
+      if (!opts.force && out.queued > 0 && out.queued % 10 === 0 && (await sentLastDay()) >= budget()) return out;
       out.queued += await notify("daily_digest", [r], digestData(t, tz), { workspaceId: ws, dedupe: `${p.id}:${clock.day}` });
     }
     if (!people || people.length < 1000) break;

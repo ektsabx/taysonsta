@@ -404,7 +404,19 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
   .quote-notes textarea { border: 0; resize: none; }
   .quote-lines input { border: 0; }
 }
-@media (max-width: 640px) { .quote-sheet { padding: 20px; } .quote-tools { padding: 16px 16px 0; } }
+@media (max-width: 640px) {
+  .quote-sheet { padding: 20px; } .quote-tools { padding: 16px 16px 0; }
+  /* Phones: the item gets its own row so its text isn't cut. */
+  .quote-lines, .quote-lines tbody, .quote-lines tfoot { display: block; width: 100%; }
+  .quote-lines tbody tr { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; align-items: center; border-bottom: 1px solid #f0f0eb; }
+  .quote-lines tbody td, .quote-lines input { min-width: 0; }
+  .quote-lines tfoot tr { display: flex; justify-content: space-between; }
+  .quote-lines tfoot td:empty { display: none; }
+  .quote-lines tbody td { border: 0; padding: 4px; }
+  .quote-lines tbody td:first-child { grid-column: 1 / -1; }
+  .quote-lines td:nth-child(2) input, .quote-lines td:nth-child(3) input { width: 100%; }
+  .quote-lines thead { display: none; }
+}
 .quote-sheet .sdr-btn { background: #fff; color: #141413; border-color: #e5e5e0; }
 .quote-sheet .sdr-btn:hover { background: #f3f3f0; }
 .quote-sheet .sdr-icon-btn { color: #747470; }
