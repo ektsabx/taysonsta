@@ -215,6 +215,52 @@ export const docs: DocPage[] = [
     },
   },
   {
+    slug: "campaigns",
+    group: "core",
+    doc: {
+      en: {
+        title: "Campaigns",
+        summary: "How an email campaign is made, approved and sent from your own mailbox, and what happens to the replies.",
+        blocks: [
+          { h2: "Where a campaign comes from" },
+          { p: "From Yolias AI after a search (it prepares the campaign and asks you once in the chat), or from Prospects: select people or companies and choose **Send**. You pick what the campaign is for: meetings, introducing your company, or selling directly with a link." },
+          { h2: "Approval" },
+          { p: "Nothing is sent until you approve the campaign on its page. Yolias writes the first email and the follow-ups from your Company Knowledge and what it found about each lead; you can edit them before approving. Before the launch, Yolias checks your sending domain (SPF, DKIM and DMARC) and warns you if something is missing." },
+          { h2: "Sending" },
+          { table: { head: ["Rule", "What it does"], rows: [
+            ["Your own mailbox", "Emails go out from the Gmail or IMAP/SMTP mailbox you connected, never from Yolias."],
+            ["Daily limit", "The lower of the mailbox's limit and the workspace's daily limit."],
+            ["Gaps and hours", "A random gap between emails, only on your sending days and hours, in the mailbox's time zone."],
+            ["Unsubscribe", "Every campaign email has an unsubscribe link (and one-click unsubscribe for mail apps). Who unsubscribes is never emailed again."],
+            ["Bounces", "If 5% or more of the first 20 or more emails bounce, the campaign pauses itself to protect your mailbox."],
+          ] } },
+          { h2: "Replies" },
+          { p: "A reply stops that lead's follow-ups. Replies arrive in Conversations, sorted (interested, not interested, needs follow-up, out of office), with a suggested answer. An out-of-office reply pauses the follow-up for a week instead of stopping it. Interested replies and meeting requests move to the CRM. If you turn on auto-reply for a campaign, Yolias answers only simple positive replies from your Company Knowledge; anything that needs a person comes to you." },
+        ],
+      },
+      ar: {
+        title: "الحملات",
+        summary: "كيف تُنشأ حملة البريد وتُعتمد وتُرسل من بريدك أنت، وما الذي يحدث للردود.",
+        blocks: [
+          { h2: "من أين تأتي الحملة" },
+          { p: "من يولياس AI بعد البحث (يجهّز الحملة ويسألك مرة واحدة في المحادثة)، أو من العملاء المحتملين: حدّد أشخاصًا أو شركات واختر **إرسال**. تختار هدف الحملة: اجتماعات، أو التعريف بشركتك، أو البيع المباشر برابط." },
+          { h2: "الموافقة" },
+          { p: "لا يُرسل شيء حتى توافق على الحملة من صفحتها. يكتب يولياس الرسالة الأولى والمتابعات من معرفة الشركة وما وجده عن كل عميل، ويمكنك تعديلها قبل الموافقة. وقبل الإطلاق يفحص يولياس نطاق الإرسال (SPF وDKIM وDMARC) وينبّهك إن كان شيء ناقصًا." },
+          { h2: "الإرسال" },
+          { table: { head: ["القاعدة", "ما تفعله"], rows: [
+            ["بريدك أنت", "تُرسل الرسائل من Gmail أو بريد IMAP/SMTP الذي ربطته، وليس من يولياس."],
+            ["الحد اليومي", "الأقل بين حد صندوق البريد والحد اليومي لمساحة العمل."],
+            ["الفواصل والمواعيد", "فاصل عشوائي بين الرسائل، في أيام وساعات الإرسال فقط، بتوقيت صندوق البريد."],
+            ["إلغاء الاشتراك", "كل رسالة حملة فيها رابط إلغاء اشتراك (وإلغاء بضغطة واحدة في تطبيقات البريد). ومن يلغي لا تصله رسائل بعدها."],
+            ["الارتداد", "إذا ارتد 5% أو أكثر بعد إرسال 20 رسالة على الأقل، تتوقف الحملة تلقائيًا لحماية بريدك."],
+          ] } },
+          { h2: "الردود" },
+          { p: "الرد يوقف متابعات هذا العميل. تصل الردود إلى المحادثات مصنّفة (مهتم، غير مهتم، يحتاج متابعة، خارج المكتب) مع رد مقترح. والرد الآلي «خارج المكتب» يؤجل المتابعة أسبوعًا بدل أن يوقفها. والردود المهتمة وطلبات الاجتماع تنتقل إلى إدارة العملاء. وإذا فعّلت الرد التلقائي في حملة، يرد يولياس فقط على الردود الإيجابية البسيطة من معرفة الشركة، وأي شيء يحتاج شخصًا يصل إليك." },
+        ],
+      },
+    },
+  },
+  {
     slug: "customer-profile",
     group: "core",
     doc: {
@@ -358,6 +404,7 @@ export const docs: DocPage[] = [
             ["Email", "Prospects with a usable email, and their share of all prospects"],
           ] } },
           { p: "**Outreach and sales** counts campaigns started, messages sent, not delivered, replies, interested replies, meetings and deals won. **Decision makers** groups the people found by role, and **User activity** counts searches, qualifications, emails prepared and exports." },
+          { p: "At the top, **Today** lists what needs you now: conversations with a new reply, today's meetings and deals quiet for a week. The same summary is emailed each morning. **Won and lost deals** shows won deals by industry and why deals were lost; new searches lean toward what won." },
         ],
       },
       ar: {
@@ -372,6 +419,7 @@ export const docs: DocPage[] = [
             ["البريد", "العملاء المحتملون الذين لديهم بريد صالح ونسبتهم من الإجمالي"],
           ] } },
           { p: "يعرض قسم **التواصل والمبيعات** الحملات التي بدأت والرسائل المرسلة وغير الواصلة والردود والمهتمين والاجتماعات والصفقات الرابحة. ويجمع قسم **صنّاع القرار** الأشخاص حسب المنصب، ويعدّ **نشاط المستخدم** عمليات البحث والتأهيل والرسائل المجهزة والتصدير." },
+          { p: "في الأعلى يعرض **اليوم** ما يحتاجك الآن: المحادثات التي وصلها رد جديد، واجتماعات اليوم، والصفقات المتوقفة منذ أسبوع. ويصلك الملخص نفسه بالبريد كل صباح. ويعرض **الصفقات المكسوبة والخاسرة** الصفقات المكسوبة حسب المجال وأسباب الخسارة، وتميل عمليات البحث الجديدة إلى ما كسبته." },
         ],
       },
     },
