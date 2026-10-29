@@ -38,7 +38,7 @@ test("only public website pages are landing pages", () => {
 });
 
 const doc = (title: string) => ({ title, summary: "Lead", blocks: [{ p: "Body" }] });
-const row = (over: Record<string, unknown> = {}) => ({ id: "1", kind: "compare", slug: "apollo", updated_at: "2026-10-27", published_at: null, doc: { en: doc("Yolias vs Apollo"), ar: doc("يولـياس مقابل Apollo") }, seo: {}, meta: {}, ...over });
+const row = (over: Record<string, unknown> = {}) => ({ id: "1", kind: "compare", slug: "apollo", updated_at: "2026-10-27", published_at: null, doc: { en: doc("Yolias vs Apollo"), ar: doc("يولياس مقابل Apollo") }, seo: {}, meta: {}, ...over });
 
 test("SEO pages: malformed rows never reach a page, unsafe links are dropped", () => {
   assert.equal(toSeoPage(row({ kind: "help" })), null, "not an SEO kind");

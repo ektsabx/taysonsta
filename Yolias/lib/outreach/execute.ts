@@ -379,9 +379,9 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     }
     const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
     const next = meeting
-      ? linkSent ? (ar ? " يولـياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط الاجتماع (أو أضف رابط الحجز في الإعدادات ← الحساب ليرسله يولـياس تلقائيًا)." : " Send your meeting link (or add your booking link in Settings → Account so Yolias sends it).")
+      ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط الاجتماع (أو أضف رابط الحجز في الإعدادات ← الحساب ليرسله يولياس تلقائيًا)." : " Send your meeting link (or add your booking link in Settings → Account so Yolias sends it).")
       : "";
-    const body = ar ? `${analysis.summary}\nيولـياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
+    const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
     await notifyUser(mb.workspace_id, mb.user_id, title, body, `/crm/${leadId}`, `reply:${messageId}`);
     await db.from("lead_tasks").insert({
       workspace_id: mb.workspace_id, lead_id: leadId,

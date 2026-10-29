@@ -21,8 +21,8 @@ function sample(name: (typeof productNames)[number], l: EmailLocale): Omit<Email
   const ar = l === "ar";
   const now = new Date();
   const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate())).toISOString();
-  const pro = ar ? "يولـياس برو" : "Yolias Pro";
-  const growth = ar ? "يولـياس للنمو" : "Yolias Growth";
+  const pro = ar ? "يولياس برو" : "Yolias Pro";
+  const growth = ar ? "يولياس للنمو" : "Yolias Growth";
   const plan = { planName: pro, period: "monthly" as const, amount: 20, periodEnd: next, test: true };
   const data: { [K in (typeof productNames)[number]]: Omit<EmailData[K], "siteUrl"> } = {
     welcome: { name: ar ? "سارة" : "Sara" },

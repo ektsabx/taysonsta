@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
 import { solutions, solutionSlugs, solutionsPage } from "@/lib/content/solutions";
 import { getLocale } from "@/lib/i18n/server";
@@ -17,6 +18,7 @@ export default async function SolutionsPage() {
   const more = (await seoPages("solution")).filter((p) => !(solutionSlugs as readonly string[]).includes(p.slug));
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: c.eyebrow, description: c.lead, path: "/solutions", type: "CollectionPage" })]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{c.eyebrow}</p>

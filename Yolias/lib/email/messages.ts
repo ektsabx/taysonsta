@@ -146,8 +146,8 @@ export type AffiliateEmailEvent =
   | "terms_updated";
 
 const affiliateCopy: Record<AffiliateEmailEvent, { subject: [string, string]; body: [string, string] }> = {
-  application_received: { subject: ["We received your affiliate application", "استلمنا طلب انضمامك لبرنامج الأفلييت"], body: ["Thanks for applying to the Yolias affiliate program. Our team reviews every application and will email you the decision.", "شكرًا لتقديمك على برنامج الأفلييت في يولـياس. يراجع فريقنا كل طلب وسنرسل لك القرار بالبريد."] },
-  approved: { subject: ["You’re now a Yolias affiliate", "أصبحت مسوّقًا معتمدًا في يولـياس"], body: ["Your application was approved. Your referral link is ready in your affiliate dashboard.", "تمت الموافقة على طلبك. رابط الإحالة الخاص بك جاهز في لوحة الأفلييت."] },
+  application_received: { subject: ["We received your affiliate application", "استلمنا طلب انضمامك لبرنامج الأفلييت"], body: ["Thanks for applying to the Yolias affiliate program. Our team reviews every application and will email you the decision.", "شكرًا لتقديمك على برنامج الأفلييت في يولياس. يراجع فريقنا كل طلب وسنرسل لك القرار بالبريد."] },
+  approved: { subject: ["You’re now a Yolias affiliate", "أصبحت مسوّقًا معتمدًا في يولياس"], body: ["Your application was approved. Your referral link is ready in your affiliate dashboard.", "تمت الموافقة على طلبك. رابط الإحالة الخاص بك جاهز في لوحة الأفلييت."] },
   rejected: { subject: ["About your Yolias affiliate application", "بخصوص طلب انضمامك لبرنامج الأفلييت"], body: ["We reviewed your application and can’t approve it at this time.", "راجعنا طلبك ولا يمكننا الموافقة عليه حاليًا."] },
   suspended: { subject: ["Your Yolias affiliate account is suspended", "تم تعليق حسابك في برنامج الأفلييت"], body: ["Your affiliate account was suspended. New referrals and commissions are paused while it is suspended.", "تم تعليق حسابك في برنامج الأفلييت. تتوقف الإحالات والعمولات الجديدة طوال فترة التعليق."] },
   reactivated: { subject: ["Your Yolias affiliate account is active again", "تمت إعادة تفعيل حسابك في برنامج الأفلييت"], body: ["Your affiliate account was reactivated. Your referral link works again.", "أعيد تفعيل حسابك في برنامج الأفلييت، ورابط الإحالة يعمل من جديد."] },
@@ -160,14 +160,14 @@ const affiliateCopy: Record<AffiliateEmailEvent, { subject: [string, string]; bo
   payout_processing: { subject: ["Your payout is being sent", "جارٍ إرسال مبلغ السحب"], body: ["The team started sending your payout.", "بدأ الفريق في إرسال مبلغ السحب."] },
   payout_paid: { subject: ["Your payout was sent", "تم إرسال مبلغ السحب"], body: ["The team recorded your payout as sent. It can take a few days to arrive depending on the method.", "سجّل الفريق إرسال مبلغ السحب. قد يستغرق وصوله بضعة أيام حسب الطريقة."] },
   payout_failed: { subject: ["Your payout couldn’t be sent", "تعذّر إرسال مبلغ السحب"], body: ["The payout couldn’t be completed. The amount is back in your available balance; check your payout details.", "تعذّر إتمام السحب، وعاد المبلغ إلى رصيدك المتاح. راجع بيانات السحب."] },
-  terms_updated: { subject: ["The Yolias affiliate terms changed", "تغيّرت شروط برنامج الأفلييت في يولـياس"], body: ["We updated the affiliate program terms. Please read them in your affiliate dashboard.", "حدّثنا شروط برنامج الأفلييت. يرجى قراءتها في لوحة الأفلييت."] },
+  terms_updated: { subject: ["The Yolias affiliate terms changed", "تغيّرت شروط برنامج الأفلييت في يولياس"], body: ["We updated the affiliate program terms. Please read them in your affiliate dashboard.", "حدّثنا شروط برنامج الأفلييت. يرجى قراءتها في لوحة الأفلييت."] },
 };
 
 const announcementEyebrow: Record<AnnouncementType, [string, string]> = {
   new_feature: ["Introducing", "جديد"],
   feature_available: ["Now available", "متاح الآن"],
   feature_updated: ["Updated", "تحديث"],
-  important_changes: ["Important changes to Yolias", "تغييرات مهمة في يولـياس"],
+  important_changes: ["Important changes to Yolias", "تغييرات مهمة في يولياس"],
   plan_changes: ["Changes to your plan", "تغييرات على خطتك"],
   pricing_change: ["New pricing coming", "أسعار جديدة قادمة"],
   service_update: ["Service update", "تحديث الخدمة"],
@@ -183,25 +183,25 @@ function paragraphs(text: string): string[] {
 const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Copy } = {
   /* Account */
   welcome: (l, d) => ({
-    subject: T(l, "Welcome to Yolias", "أهلًا بك في يولـياس"),
-    preheader: T(l, "Tell Yolias who you sell to. It finds the decision makers.", "أخبر يولـياس بمن تبيع له، وسيجد لك صنّاع القرار."),
-    heading: T(l, d.name ? `Welcome to Yolias, ${d.name}` : "Welcome to Yolias", d.name ? `أهلًا بك في يولـياس يا ${d.name}` : "أهلًا بك في يولـياس"),
+    subject: T(l, "Welcome to Yolias", "أهلًا بك في يولياس"),
+    preheader: T(l, "Tell Yolias who you sell to. It finds the decision makers.", "أخبر يولياس بمن تبيع له، وسيجد لك صنّاع القرار."),
+    heading: T(l, d.name ? `Welcome to Yolias, ${d.name}` : "Welcome to Yolias", d.name ? `أهلًا بك في يولياس يا ${d.name}` : "أهلًا بك في يولياس"),
     body: [
       T(l, "Your workspace is ready. Describe your ideal customer in one sentence: industry, market, company size and titles, in Arabic or English.",
         "مساحة عملك جاهزة. صِف عميلك المثالي في جملة واحدة: المجال والسوق وحجم الشركة والمسميات، بالعربية أو الإنجليزية."),
       T(l, "Yolias turns it into a search, finds matching companies and their decision makers, and scores each match.",
-        "يحوّلها يولـياس إلى عملية بحث، ويجد الشركات المطابقة وصنّاع القرار فيها، ويقيّم كل نتيجة."),
+        "يحوّلها يولياس إلى عملية بحث، ويجد الشركات المطابقة وصنّاع القرار فيها، ويقيّم كل نتيجة."),
     ],
     button: { label: T(l, "Start your first search", "ابدأ أول عملية بحث"), href: `${d.siteUrl}/` },
     footnote: T(l, `Need a hand? Visit the ${link(`${d.siteUrl}/help-center`, "Help Center")}.`, `تحتاج مساعدة؟ زر ${link(`${d.siteUrl}/help-center`, "مركز المساعدة")}.`),
   }),
   account_deleted: (l, d) => ({
-    subject: T(l, "Your Yolias account has been deleted", "تم حذف حسابك في يولـياس"),
+    subject: T(l, "Your Yolias account has been deleted", "تم حذف حسابك في يولياس"),
     preheader: T(l, "This confirms your account was deleted.", "هذا تأكيد بحذف حسابك."),
     heading: T(l, "Your account has been deleted", "تم حذف حسابك"),
     body: [
       T(l, `The Yolias account for <strong dir="ltr">${esc(d.email)}</strong> was deleted, together with the data you owned in it. You won’t receive further emails about it.`,
-        `تم حذف حساب يولـياس الخاص بـ <strong dir="ltr">${esc(d.email)}</strong> مع البيانات التي كنت تملكها فيه. لن تصلك رسائل أخرى بخصوصه.`),
+        `تم حذف حساب يولياس الخاص بـ <strong dir="ltr">${esc(d.email)}</strong> مع البيانات التي كنت تملكها فيه. لن تصلك رسائل أخرى بخصوصه.`),
       T(l, "You’re welcome back any time with a new account.", "يسعدنا عودتك في أي وقت بحساب جديد."),
     ],
     footnote: T(l, `Didn’t delete your account? ${link(`${d.siteUrl}/contact?topic=support`, "Contact us right away")}.`, `لم تحذف حسابك؟ ${link(`${d.siteUrl}/contact?topic=support`, "تواصل معنا فورًا")}.`),
@@ -209,7 +209,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
 
   /* Security */
   new_sign_in: (l, d) => ({
-    subject: T(l, "New sign-in to your Yolias account", "تسجيل دخول جديد إلى حسابك في يولـياس"),
+    subject: T(l, "New sign-in to your Yolias account", "تسجيل دخول جديد إلى حسابك في يولياس"),
     preheader: T(l, `Signed in from ${d.device}.`, `تم تسجيل الدخول من ${d.device}.`),
     heading: T(l, "New sign-in detected", "تم رصد تسجيل دخول جديد"),
     body: [T(l, "Your account was just signed in to from a device we haven’t seen before.", "تم تسجيل الدخول إلى حسابك للتو من جهاز لم نره من قبل.")],
@@ -221,7 +221,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: securityNote(l, d.siteUrl),
   }),
   suspicious_sign_in: (l, d) => ({
-    subject: T(l, "Unusual sign-in activity on your Yolias account", "نشاط تسجيل دخول غير معتاد على حسابك في يولـياس"),
+    subject: T(l, "Unusual sign-in activity on your Yolias account", "نشاط تسجيل دخول غير معتاد على حسابك في يولياس"),
     preheader: T(l, `${d.attempts} sign-in links were requested in ${d.windowMinutes} minutes.`, `تم طلب ${d.attempts} روابط دخول خلال ${d.windowMinutes} دقيقة.`),
     heading: T(l, "Suspicious sign-in attempts", "محاولات دخول مشبوهة"),
     body: [
@@ -233,13 +233,13 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
   security_alert: (l, d) => {
     const what: Record<MessageData["security_alert"]["event"], [string, string]> = {
-      signed_out_everywhere: ["You were signed out of Yolias on all devices.", "تم تسجيل خروجك من يولـياس على كل الأجهزة."],
-      email_changed: ["The email address of your Yolias account was changed.", "تم تغيير البريد الإلكتروني لحسابك في يولـياس."],
-      account_suspended: ["Your Yolias account was suspended by our team. You can’t sign in until it’s restored.", "قام فريقنا بإيقاف حسابك في يولـياس مؤقتًا. لا يمكنك تسجيل الدخول حتى تتم استعادته."],
-      account_restored: ["Your Yolias account was restored. You can sign in again.", "تمت استعادة حسابك في يولـياس. يمكنك تسجيل الدخول مجددًا."],
+      signed_out_everywhere: ["You were signed out of Yolias on all devices.", "تم تسجيل خروجك من يولياس على كل الأجهزة."],
+      email_changed: ["The email address of your Yolias account was changed.", "تم تغيير البريد الإلكتروني لحسابك في يولياس."],
+      account_suspended: ["Your Yolias account was suspended by our team. You can’t sign in until it’s restored.", "قام فريقنا بإيقاف حسابك في يولياس مؤقتًا. لا يمكنك تسجيل الدخول حتى تتم استعادته."],
+      account_restored: ["Your Yolias account was restored. You can sign in again.", "تمت استعادة حسابك في يولياس. يمكنك تسجيل الدخول مجددًا."],
     };
     return {
-      subject: T(l, "Security alert for your Yolias account", "تنبيه أمني لحسابك في يولـياس"),
+      subject: T(l, "Security alert for your Yolias account", "تنبيه أمني لحسابك في يولياس"),
       preheader: T(l, what[d.event][0], what[d.event][1]),
       heading: T(l, "Security alert", "تنبيه أمني"),
       body: [T(l, what[d.event][0], what[d.event][1]), `<span style="color:${C.muted}">${moment(d.at, l)}</span>`],
@@ -252,13 +252,13 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   /* Subscription */
   // Sent once, after the account is set up (onboarding), never on later sign-ins.
   community_invite: (l, d) => ({
-    subject: T(l, "Join the Yolias community", "انضم إلى مجتمع يولـياس"),
-    preheader: T(l, "Swap ideas with other Yolias users and hear about new features first.", "تبادل الأفكار مع مستخدمي يولـياس وتعرّف على الميزات الجديدة أولًا."),
-    heading: T(l, d.name ? `${d.name}, join the Yolias community` : "Join the Yolias community", d.name ? `${d.name}، انضم إلى مجتمع يولـياس` : "انضم إلى مجتمع يولـياس"),
+    subject: T(l, "Join the Yolias community", "انضم إلى مجتمع يولياس"),
+    preheader: T(l, "Swap ideas with other Yolias users and hear about new features first.", "تبادل الأفكار مع مستخدمي يولياس وتعرّف على الميزات الجديدة أولًا."),
+    heading: T(l, d.name ? `${d.name}, join the Yolias community` : "Join the Yolias community", d.name ? `${d.name}، انضم إلى مجتمع يولياس` : "انضم إلى مجتمع يولياس"),
     body: [
       T(l, "Our Facebook group is where Yolias users share how they find customers, ask questions and suggest what we should build next.",
-        "مجموعتنا على فيسبوك هي المكان الذي يتبادل فيه مستخدمو يولـياس طرق إيجاد العملاء، ويطرحون أسئلتهم، ويقترحون ما نبنيه بعد ذلك."),
-      T(l, "The Yolias team is there too, and new features are announced there first.", "فريق يولـياس موجود هناك أيضًا، ونعلن فيها عن الميزات الجديدة أولًا."),
+        "مجموعتنا على فيسبوك هي المكان الذي يتبادل فيه مستخدمو يولياس طرق إيجاد العملاء، ويطرحون أسئلتهم، ويقترحون ما نبنيه بعد ذلك."),
+      T(l, "The Yolias team is there too, and new features are announced there first.", "فريق يولياس موجود هناك أيضًا، ونعلن فيها عن الميزات الجديدة أولًا."),
     ],
     button: { label: T(l, "Join the community", "انضم إلى المجتمع"), href: d.communityUrl },
     footnote: T(l, `A one-time invitation sent when you created your account. We won’t send it again. Other emails: ${link(`${d.siteUrl}/`, "Notification settings")}`, `دعوة لمرة واحدة عند إنشاء حسابك، ولن نرسلها مرة أخرى. لباقي الرسائل: ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
@@ -278,11 +278,11 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   subscription_activated: (l, d) => ({
-    subject: T(l, "Your Yolias subscription has been activated", "تم تفعيل اشتراكك في يولـياس"),
+    subject: T(l, "Your Yolias subscription has been activated", "تم تفعيل اشتراكك في يولياس"),
     preheader: T(l, `${d.planName} is active again.`, `${d.planName} فعّال من جديد.`),
     heading: T(l, "Your subscription is active", "اشتراكك فعّال"),
     body: [T(l, `<strong>${esc(d.planName)}</strong> is active again. It renews on ${day(d.periodEnd, l)}.`, `<strong>${esc(d.planName)}</strong> فعّال من جديد ويتجدد في ${day(d.periodEnd, l)}.`), ...(d.test ? [testNote(l)] : [])],
-    button: { label: T(l, "Open Yolias", "افتح يولـياس"), href: `${d.siteUrl}/` },
+    button: { label: T(l, "Open Yolias", "افتح يولياس"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),
   renewal_upcoming: (l, d) => ({
@@ -301,7 +301,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     subject: T(l, `Your ${d.planName} plan has renewed`, `تم تجديد اشتراك ${d.planName}`),
     preheader: T(l, `Next renewal: ${day(d.periodEnd, l)}.`, `التجديد القادم: ${day(d.periodEnd, l)}.`),
     heading: T(l, "Your subscription has renewed", "تم تجديد اشتراكك"),
-    body: [T(l, `Thanks for staying with Yolias. <strong>${esc(d.planName)}</strong> continues until ${day(d.periodEnd, l)}.`, `شكرًا لبقائك مع يولـياس. يستمر <strong>${esc(d.planName)}</strong> حتى ${day(d.periodEnd, l)}.`), ...(d.test ? [testNote(l)] : [])],
+    body: [T(l, `Thanks for staying with Yolias. <strong>${esc(d.planName)}</strong> continues until ${day(d.periodEnd, l)}.`, `شكرًا لبقائك مع يولياس. يستمر <strong>${esc(d.planName)}</strong> حتى ${day(d.periodEnd, l)}.`), ...(d.test ? [testNote(l)] : [])],
     extra: table(l, [[T(l, "Invoice", "الفاتورة"), `<span dir="ltr">${esc(d.invoiceNumber)}</span>`], [T(l, "Amount", "المبلغ"), money(d.amount, d.currency)]]),
     button: { label: T(l, "View invoice", "عرض الفاتورة"), href: `${d.siteUrl}/invoices/${d.invoiceId}` },
     footnote: billingNote(l, d.siteUrl),
@@ -322,7 +322,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     body: [T(l, `You moved from ${esc(d.fromPlanName)} to <strong>${esc(d.planName)}</strong>. Your workspace now gets <strong>${d.prospectsPerMonth}</strong> prospects a month.`,
       `انتقلت من ${esc(d.fromPlanName)} إلى <strong>${esc(d.planName)}</strong>. تحصل مساحة عملك الآن على <strong>${d.prospectsPerMonth}</strong> عميل محتمل شهريًا.`), ...(d.test ? [testNote(l)] : [])],
     extra: table(l, [[T(l, "Amount", "المبلغ"), money(d.amount, d.currency)], [T(l, "Renews on", "يتجدد في"), day(d.periodEnd, l)]]),
-    button: { label: T(l, "Open Yolias", "افتح يولـياس"), href: `${d.siteUrl}/` },
+    button: { label: T(l, "Open Yolias", "افتح يولياس"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),
   plan_downgraded: (l, d) => ({
@@ -335,7 +335,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   subscription_paused: (l, d) => ({
-    subject: T(l, "Your Yolias subscription has been paused", "تم إيقاف اشتراكك في يولـياس مؤقتًا"),
+    subject: T(l, "Your Yolias subscription has been paused", "تم إيقاف اشتراكك في يولياس مؤقتًا"),
     preheader: T(l, "New searches are paused until it’s resolved.", "عمليات البحث الجديدة متوقفة حتى يتم الحل."),
     heading: T(l, "Your subscription has been paused", "تم إيقاف اشتراكك مؤقتًا"),
     body: [T(l, `<strong>${esc(d.planName)}</strong> is paused${d.reason ? `: ${esc(d.reason)}` : "."} Your searches and prospects stay saved.`, `تم إيقاف <strong>${esc(d.planName)}</strong> مؤقتًا${d.reason ? `: ${esc(d.reason)}` : "."} تبقى عمليات البحث والعملاء المحتملون محفوظين.`)],
@@ -343,17 +343,17 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   access_restored: (l, d) => ({
-    subject: T(l, "Your Yolias access has been restored", "تمت استعادة وصولك إلى يولـياس"),
+    subject: T(l, "Your Yolias access has been restored", "تمت استعادة وصولك إلى يولياس"),
     preheader: T(l, `${d.planName} is active again.`, `${d.planName} فعّال من جديد.`),
     heading: T(l, "Your subscription access has been restored", "تمت استعادة الوصول إلى اشتراكك"),
     body: [T(l, `Everything is back to normal: <strong>${esc(d.planName)}</strong> is active and you can run searches again.`, `عاد كل شيء كما كان: <strong>${esc(d.planName)}</strong> فعّال ويمكنك البحث من جديد.`)],
-    button: { label: T(l, "Open Yolias", "افتح يولـياس"), href: `${d.siteUrl}/` },
+    button: { label: T(l, "Open Yolias", "افتح يولياس"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),
 
   /* Payments & billing */
   payment_failed: (l, d) => ({
-    subject: T(l, "Your Yolias payment failed", "فشلت عملية الدفع في يولـياس"),
+    subject: T(l, "Your Yolias payment failed", "فشلت عملية الدفع في يولياس"),
     preheader: T(l, `We couldn’t charge ${price(d.amount, d.currency)} for ${d.planName}.`, `لم نتمكن من تحصيل ${price(d.amount, d.currency)} لاشتراك ${d.planName}.`),
     heading: T(l, "Payment failed", "فشل الدفع"),
     body: [
@@ -366,14 +366,14 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
   payment_method_attention: (l, d) => ({
     subject: T(l, "Your payment method needs attention", "وسيلة الدفع تحتاج إلى انتباهك"),
-    preheader: T(l, "Update it to keep your Yolias plan running.", "حدّثها لاستمرار خطتك في يولـياس."),
+    preheader: T(l, "Update it to keep your Yolias plan running.", "حدّثها لاستمرار خطتك في يولياس."),
     heading: T(l, "Your payment method needs attention", "وسيلة الدفع تحتاج إلى انتباهك"),
     body: [T(l, `${d.reason ? esc(d.reason) + ". " : ""}Please update your payment method so your next renewal goes through.`, `${d.reason ? esc(d.reason) + ". " : ""}يرجى تحديث وسيلة الدفع حتى يتم التجديد القادم بنجاح.`)],
     button: { label: T(l, "Update payment method", "تحديث وسيلة الدفع"), href: `${d.siteUrl}/` },
     footnote: billingNote(l, d.siteUrl),
   }),
   invoice_ready: (l, d) => ({
-    subject: T(l, `Your Yolias invoice ${d.invoiceNumber} is ready`, `فاتورتك ${d.invoiceNumber} من يولـياس جاهزة`),
+    subject: T(l, `Your Yolias invoice ${d.invoiceNumber} is ready`, `فاتورتك ${d.invoiceNumber} من يولياس جاهزة`),
     preheader: T(l, `${price(d.amount, d.currency)} for ${d.planName}.`, `${price(d.amount, d.currency)} لاشتراك ${d.planName}.`),
     heading: T(l, "Your invoice is ready", "فاتورتك جاهزة"),
     body: [T(l, `Your invoice for <strong>${esc(d.planName)}</strong> is ready to view and download.`, `فاتورة اشتراك <strong>${esc(d.planName)}</strong> جاهزة للعرض والتنزيل.`), ...(d.test ? [testNote(l)] : [])],
@@ -386,7 +386,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   refund_processed: (l, d) => ({
-    subject: T(l, "Your Yolias refund is being processed", "جارٍ معالجة استرداد مبلغك من يولـياس"),
+    subject: T(l, "Your Yolias refund is being processed", "جارٍ معالجة استرداد مبلغك من يولياس"),
     preheader: T(l, `${price(d.amount, d.currency)} for invoice ${d.invoiceNumber}.`, `${price(d.amount, d.currency)} للفاتورة ${d.invoiceNumber}.`),
     heading: T(l, "Refund processed", "تمت معالجة الاسترداد"),
     body: [T(l, `We’ve processed a refund of ${money(d.amount, d.currency)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span>${d.reason ? ` (${esc(d.reason)})` : ""}. Your bank usually shows it within 5–10 business days.`,
@@ -394,7 +394,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   refund_issued: (l, d) => ({
-    subject: T(l, "Your Yolias refund has been issued", "تم إصدار استرداد مبلغك من يولـياس"),
+    subject: T(l, "Your Yolias refund has been issued", "تم إصدار استرداد مبلغك من يولياس"),
     preheader: T(l, `${price(d.amount, d.currency)} is on its way back to you.`, `${price(d.amount, d.currency)} في طريقها إليك.`),
     heading: T(l, "Refund issued", "تم إصدار الاسترداد"),
     body: [T(l, `A refund of ${money(d.amount, d.currency)} for invoice <span dir="ltr">${esc(d.invoiceNumber)}</span> was sent to your original payment method.`,
@@ -402,7 +402,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: billingNote(l, d.siteUrl),
   }),
   payment_overdue: (l, d) => ({
-    subject: T(l, "Your Yolias payment is overdue", "دفعتك في يولـياس متأخرة"),
+    subject: T(l, "Your Yolias payment is overdue", "دفعتك في يولياس متأخرة"),
     preheader: T(l, `${d.daysOverdue} days overdue for ${d.planName}.`, `متأخرة ${d.daysOverdue} يومًا لاشتراك ${d.planName}.`),
     heading: T(l, "Payment overdue", "دفعة متأخرة"),
     body: [T(l, `Your payment of ${money(d.amount, d.currency)} for <strong>${esc(d.planName)}</strong> is ${d.daysOverdue} days overdue. Please pay or update your payment method to avoid your plan being paused.`,
@@ -431,7 +431,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     const parts = [d.replies ? T(l, `${d.replies} new replies`, `${d.replies} رد جديد`) : null, d.meetings.length ? T(l, `${d.meetings.length} meetings today`, `${d.meetings.length} اجتماع اليوم`) : null, d.staleCount ? T(l, `${d.staleCount} quiet deals`, `${d.staleCount} صفقة متوقفة`) : null].filter(Boolean);
     return {
       subject: T(l, `Today: ${parts.join(", ")}`, `اليوم: ${parts.join("، ")}`),
-      preheader: T(l, "What needs you today in Yolias.", "ما يحتاجك اليوم في يولـياس."),
+      preheader: T(l, "What needs you today in Yolias.", "ما يحتاجك اليوم في يولياس."),
       heading: T(l, "Today", "اليوم"),
       body: [T(l, "Here is what needs you today.", "هذا ما يحتاجك اليوم."),
         ...(d.won.length ? [T(l, `You won ${esc(d.won.slice(0, 2).join(" and "))}. ${link(`${d.siteUrl}/analytics`, "Find companies like them")}.`, `كسبت ${esc(d.won.slice(0, 2).join(" و"))}. ${link(`${d.siteUrl}/analytics`, "ابحث عن شركات مشابهة")}.`)] : [])],
@@ -452,10 +452,10 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
   meeting_outcome: (l, d) => ({
     subject: T(l, `How did the meeting with ${d.lead} go?`, `كيف كان الاجتماع مع ${d.lead}؟`),
-    preheader: T(l, "Update the stage so Yolias knows what happened.", "حدّث المرحلة ليعرف يولـياس ما حدث."),
+    preheader: T(l, "Update the stage so Yolias knows what happened.", "حدّث المرحلة ليعرف يولياس ما حدث."),
     heading: T(l, `How did it go with ${d.lead}?`, `كيف كان الاجتماع مع ${d.lead}؟`),
     body: [T(l, "Update the deal: meeting done, proposal sent, won or lost. Won and lost deals teach Yolias which companies to find next.",
-      "حدّث الصفقة: تم الاجتماع، أو أُرسل العرض، أو كسبت، أو خسرت. الصفقات المكسوبة والخاسرة تعلّم يولـياس أي الشركات يبحث عنها.")],
+      "حدّث الصفقة: تم الاجتماع، أو أُرسل العرض، أو كسبت، أو خسرت. الصفقات المكسوبة والخاسرة تعلّم يولياس أي الشركات يبحث عنها.")],
     button: { label: T(l, "Update the deal", "حدّث الصفقة"), href: `${d.siteUrl}/crm/${d.leadId}` },
     footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
@@ -478,7 +478,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     heading: d.subject,
     body: paragraphs(d.body),
     button: d.ctaLabel && d.ctaUrl ? { label: d.ctaLabel, href: d.ctaUrl } : undefined,
-    footnote: T(l, `A message from the Yolias team. ${link(`${d.siteUrl}/`, "Notification settings")}`, `رسالة من فريق يولـياس. ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
+    footnote: T(l, `A message from the Yolias team. ${link(`${d.siteUrl}/`, "Notification settings")}`, `رسالة من فريق يولياس. ${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
 
   /* Affiliate program */
@@ -496,7 +496,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       extra: rows.length ? table(l, rows) : undefined,
       button: { label: T(l, "Open affiliate dashboard", "افتح لوحة الأفلييت"), href: `${d.siteUrl}/partners` },
       footnote: T(l, `You’re receiving this because you joined the Yolias affiliate program. Questions? ${link(`${d.siteUrl}/contact?topic=partnerships`, "Contact us")}.`,
-        `تصلك هذه الرسالة لأنك عضو في برنامج الأفلييت في يولـياس. لديك سؤال؟ ${link(`${d.siteUrl}/contact?topic=partnerships`, "تواصل معنا")}.`),
+        `تصلك هذه الرسالة لأنك عضو في برنامج الأفلييت في يولياس. لديك سؤال؟ ${link(`${d.siteUrl}/contact?topic=partnerships`, "تواصل معنا")}.`),
     };
   },
 };

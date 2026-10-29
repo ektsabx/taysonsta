@@ -33,12 +33,12 @@ const notStated: L = { en: "Not described on its website", ar: "غير موضح 
 
 function versus(v: Vs): SeedPage {
   const side = (l: "en" | "ar") => ({
-    title: l === "en" ? `Yolias vs ${v.name}` : `يولـياس مقابل ${v.nameAr ?? v.name}`,
-    h1: l === "en" ? `Yolias vs ${v.name}: which one fits how you find clients?` : `يولـياس أم ${v.nameAr ?? v.name}: أيهما يناسب طريقتك في إيجاد العملاء؟`,
-    metaTitle: l === "en" ? `Yolias vs ${v.name}: an honest comparison` : `يولـياس مقابل ${v.nameAr ?? v.name}: مقارنة صادقة`,
+    title: l === "en" ? `Yolias vs ${v.name}` : `يولياس مقابل ${v.nameAr ?? v.name}`,
+    h1: l === "en" ? `Yolias vs ${v.name}: which one fits how you find clients?` : `يولياس أم ${v.nameAr ?? v.name}: أيهما يناسب طريقتك في إيجاد العملاء؟`,
+    metaTitle: l === "en" ? `Yolias vs ${v.name}: an honest comparison` : `يولياس مقابل ${v.nameAr ?? v.name}: مقارنة صادقة`,
     metaDescription: l === "en"
       ? `How Yolias and ${v.name} differ in finding prospects, contact data, outreach and pricing, with sources, and when each one is the better choice.`
-      : `الفرق بين يولـياس و${v.nameAr ?? v.name} في البحث عن العملاء وبيانات التواصل والتواصل والأسعار، بالمصادر، ومتى يكون كل منهما الخيار الأفضل.`,
+      : `الفرق بين يولياس و${v.nameAr ?? v.name} في البحث عن العملاء وبيانات التواصل والتواصل والأسعار، بالمصادر، ومتى يكون كل منهما الخيار الأفضل.`,
     lead: v.lead[l],
     answer: v.answer[l],
     // The Yolias column is written against this competitor (compare-yolias.ts), never shared between pages.
@@ -46,10 +46,10 @@ function versus(v: Vs): SeedPage {
     blocks: [
       { h2: l === "en" ? `When ${v.name} is the better choice` : `متى يكون ${v.nameAr ?? v.name} الخيار الأفضل` },
       { ul: v.chooseThem[l] },
-      { h2: l === "en" ? "When Yolias is the better choice" : "متى يكون يولـياس الخيار الأفضل" },
+      { h2: l === "en" ? "When Yolias is the better choice" : "متى يكون يولياس الخيار الأفضل" },
       { ul: v.chooseYolias[l] },
       ...(v.together ? [{ h2: l === "en" ? "Using both" : "استخدام الاثنين معًا" }, { p: v.together[l] }] : []),
-      { h2: l === "en" ? "What Yolias doesn't do" : "ما الذي لا يفعله يولـياس" },
+      { h2: l === "en" ? "What Yolias doesn't do" : "ما الذي لا يفعله يولياس" },
       { ul: yoliasVs[v.slug]?.limits.map((x) => x[l]) ?? [] },
     ],
     faq: v.faq[l],
@@ -61,7 +61,7 @@ function versus(v: Vs): SeedPage {
     links: [
       { path: "/compare/best-lead-generation-tools", en: "Best lead generation tools", ar: "أفضل أدوات جذب العملاء" },
       { path: "/use-cases/ai-prospecting", en: "AI prospecting", ar: "البحث عن العملاء بالذكاء الاصطناعي" },
-      { path: "/pricing", en: "Yolias pricing", ar: "أسعار يولـياس" },
+      { path: "/pricing", en: "Yolias pricing", ar: "أسعار يولياس" },
     ],
     sources: v.sources,
     en: side("en"), ar: side("ar"),
@@ -73,11 +73,11 @@ export const comparePages: SeedPage[] = [
     slug: "apollo", name: "Apollo", nameAr: "Apollo", keyword: "yolias vs apollo", secondary: ["apollo vs yolias", "apollo.io comparison"],
     lead: {
       en: "Apollo is a sales platform built around a large contact database, sequences and calling. Yolias starts from a description of your ideal customer and turns it into a researched list and approved emails. Here is how they differ.",
-      ar: "Apollo منصة مبيعات مبنية حول قاعدة جهات اتصال كبيرة وتسلسلات واتصالات. أما يولـياس فيبدأ من وصف عميلك المثالي ويحوّله إلى قائمة مدروسة ورسائل توافق عليها. هذا هو الفرق بينهما.",
+      ar: "Apollo منصة مبيعات مبنية حول قاعدة جهات اتصال كبيرة وتسلسلات واتصالات. أما يولياس فيبدأ من وصف عميلك المثالي ويحوّله إلى قائمة مدروسة ورسائل توافق عليها. هذا هو الفرق بينهما.",
     },
     answer: {
       en: "Choose Apollo if you want one large contact database with sequences and a dialer, and you are comfortable building lists with filters. Choose Yolias if you sell services, want to describe your customer in plain English or Arabic, and want each company explained and emailed from your own mailbox after you approve.",
-      ar: "اختر Apollo إذا أردت قاعدة جهات اتصال كبيرة مع التسلسلات والاتصال الهاتفي، وتبني القوائم بالفلاتر بسهولة. واختر يولـياس إذا كنت تبيع خدمات، وتريد وصف عميلك بالعربية أو الإنجليزية، وتريد شرحًا لكل شركة ورسائل تُرسل من بريدك بعد موافقتك.",
+      ar: "اختر Apollo إذا أردت قاعدة جهات اتصال كبيرة مع التسلسلات والاتصال الهاتفي، وتبني القوائم بالفلاتر بسهولة. واختر يولياس إذا كنت تبيع خدمات، وتريد وصف عميلك بالعربية أو الإنجليزية، وتريد شرحًا لكل شركة ورسائل تُرسل من بريدك بعد موافقتك.",
     },
     them: {
       find: { en: "Filters over its own database, plus AI agents that research and build lists (its website)", ar: "فلاتر على قاعدة بياناته، ووكلاء ذكاء اصطناعي يبحثون ويبنون القوائم (من موقعه)" },
@@ -104,9 +104,9 @@ export const comparePages: SeedPage[] = [
         { q: "Can I move from Apollo to Yolias?", a: "You can bring a list as a CSV to find similar companies or to start outreach. There is no direct import from Apollo." },
       ],
       ar: [
-        { q: "هل يولـياس أرخص من Apollo؟", a: "يعتمد على طريقة استخدامك. Apollo بسعر لكل مستخدم مع رصيد، ويولـياس بالدفع حسب الاستخدام أو خطة شهرية، بعدد غير محدود من المستخدمين والبريد لا يُحسب عليك. قارن صفحتي الأسعار بحجم فريقك وعدد العملاء المحتملين الذين تحتاجهم." },
-        { q: "هل لدى يولـياس قاعدة جهات اتصال مثل Apollo؟", a: "لا. يولـياس لا يبيع الوصول إلى قاعدة جهات اتصال، بل يبحث في مصادر البيانات المتصلة به وفي المعلومات العامة مثل مواقع الشركات لكل طلب، ويعرض ما وجده بمصدره." },
-        { q: "هل يمكنني الانتقال من Apollo إلى يولـياس؟", a: "يمكنك رفع قائمة كملف CSV لإيجاد شركات مشابهة أو لبدء التواصل. لا يوجد استيراد مباشر من Apollo." },
+        { q: "هل يولياس أرخص من Apollo؟", a: "يعتمد على طريقة استخدامك. Apollo بسعر لكل مستخدم مع رصيد، ويولياس بالدفع حسب الاستخدام أو خطة شهرية، بعدد غير محدود من المستخدمين والبريد لا يُحسب عليك. قارن صفحتي الأسعار بحجم فريقك وعدد العملاء المحتملين الذين تحتاجهم." },
+        { q: "هل لدى يولياس قاعدة جهات اتصال مثل Apollo؟", a: "لا. يولياس لا يبيع الوصول إلى قاعدة جهات اتصال، بل يبحث في مصادر البيانات المتصلة به وفي المعلومات العامة مثل مواقع الشركات لكل طلب، ويعرض ما وجده بمصدره." },
+        { q: "هل يمكنني الانتقال من Apollo إلى يولياس؟", a: "يمكنك رفع قائمة كملف CSV لإيجاد شركات مشابهة أو لبدء التواصل. لا يوجد استيراد مباشر من Apollo." },
       ],
     },
     sources: ["https://www.apollo.io/", "https://www.apollo.io/pricing"],
@@ -115,11 +115,11 @@ export const comparePages: SeedPage[] = [
     slug: "clay", name: "Clay", keyword: "yolias vs clay", secondary: ["clay vs yolias", "clay.com comparison"],
     lead: {
       en: "Clay is a toolkit for building your own enrichment and outbound workflows from many data providers. Yolias does the research for you from a plain description and prepares the emails. The choice is mostly about how much you want to build.",
-      ar: "Clay مجموعة أدوات لبناء مسارات الإثراء والتواصل بنفسك من مزودي بيانات كثيرين. أما يولـياس فيبحث عنك انطلاقًا من وصف بسيط ويجهّز الرسائل. الاختيار يعتمد غالبًا على مقدار ما تريد بناءه بنفسك.",
+      ar: "Clay مجموعة أدوات لبناء مسارات الإثراء والتواصل بنفسك من مزودي بيانات كثيرين. أما يولياس فيبحث عنك انطلاقًا من وصف بسيط ويجهّز الرسائل. الاختيار يعتمد غالبًا على مقدار ما تريد بناءه بنفسك.",
     },
     answer: {
       en: "Choose Clay if you have someone who enjoys building tables, columns and waterfalls across many data vendors. Choose Yolias if you want to describe your ideal customer and get matching companies, the reason each fits and emails ready for your approval, without building a workflow.",
-      ar: "اختر Clay إذا كان لديك من يحب بناء الجداول والأعمدة والمسارات عبر مزودي بيانات كثيرين. واختر يولـياس إذا أردت أن تصف عميلك المثالي وتحصل على الشركات المطابقة وسبب تطابق كل منها ورسائل جاهزة لموافقتك، دون بناء مسار.",
+      ar: "اختر Clay إذا كان لديك من يحب بناء الجداول والأعمدة والمسارات عبر مزودي بيانات كثيرين. واختر يولياس إذا أردت أن تصف عميلك المثالي وتحصل على الشركات المطابقة وسبب تطابق كل منها ورسائل جاهزة لموافقتك، دون بناء مسار.",
     },
     them: {
       find: { en: "Tables and a visual canvas where you build the workflow; AI research agents (Claygent)", ar: "جداول ولوحة مرئية تبني فيها المسار، ووكلاء بحث بالذكاء الاصطناعي (Claygent)" },
@@ -141,7 +141,7 @@ export const comparePages: SeedPage[] = [
     },
     together: {
       en: "Teams that already enrich in Clay can export a list as CSV and bring it to Yolias to find similar companies or to run the outreach and replies from their own mailbox.",
-      ar: "الفرق التي تُثري بياناتها في Clay يمكنها تصدير قائمة CSV ورفعها إلى يولـياس لإيجاد شركات مشابهة أو لإدارة التواصل والردود من بريدها.",
+      ar: "الفرق التي تُثري بياناتها في Clay يمكنها تصدير قائمة CSV ورفعها إلى يولياس لإيجاد شركات مشابهة أو لإدارة التواصل والردود من بريدها.",
     },
     faq: {
       en: [
@@ -150,9 +150,9 @@ export const comparePages: SeedPage[] = [
         { q: "Which one is easier to start with?", a: "Yolias: you write who you are looking for and review the result. Clay is more flexible and takes longer to learn." },
       ],
       ar: [
-        { q: "هل يولـياس بديل لـ Clay؟", a: "للفرق التي تريد أن يتم البحث عنها، نعم. أما للفرق التي تريد بناء مسارات إثراء مخصصة عبر مزودين كثيرين، فـ Clay يقدم شيئًا لا يحاول يولـياس تقديمه." },
-        { q: "هل يستخدم يولـياس الإثراء المتتابع (waterfall)؟", a: "يبحث يولـياس في مصادر البيانات المتصلة به ومواقع الشركات، ويحتفظ بمصدر كل سجل، ويصنّف بيانات التواصل حسب التحقق. لكنه لا يتيح لك بناء تسلسل مزودين خاص بك." },
-        { q: "أيهما أسهل للبدء؟", a: "يولـياس: تكتب من تبحث عنه وتراجع النتيجة. أما Clay فأكثر مرونة ويحتاج وقتًا أطول للتعلم." },
+        { q: "هل يولياس بديل لـ Clay؟", a: "للفرق التي تريد أن يتم البحث عنها، نعم. أما للفرق التي تريد بناء مسارات إثراء مخصصة عبر مزودين كثيرين، فـ Clay يقدم شيئًا لا يحاول يولياس تقديمه." },
+        { q: "هل يستخدم يولياس الإثراء المتتابع (waterfall)؟", a: "يبحث يولياس في مصادر البيانات المتصلة به ومواقع الشركات، ويحتفظ بمصدر كل سجل، ويصنّف بيانات التواصل حسب التحقق. لكنه لا يتيح لك بناء تسلسل مزودين خاص بك." },
+        { q: "أيهما أسهل للبدء؟", a: "يولياس: تكتب من تبحث عنه وتراجع النتيجة. أما Clay فأكثر مرونة ويحتاج وقتًا أطول للتعلم." },
       ],
     },
     sources: ["https://www.clay.com/", "https://www.clay.com/pricing"],
@@ -161,11 +161,11 @@ export const comparePages: SeedPage[] = [
     slug: "zoominfo", name: "ZoomInfo", keyword: "yolias vs zoominfo", secondary: ["zoominfo vs yolias", "zoominfo comparison small business"],
     lead: {
       en: "ZoomInfo is an enterprise data and intelligence platform bought through its sales team. Yolias is a self-serve tool for businesses that sell services and want matching companies and approved outreach without an enterprise contract.",
-      ar: "ZoomInfo منصة بيانات ومعلومات للمؤسسات تُشترى عبر فريق مبيعاتها. أما يولـياس فأداة ذاتية الخدمة للشركات التي تبيع خدمات وتريد شركات مطابقة وتواصلًا توافق عليه دون عقد مؤسسي.",
+      ar: "ZoomInfo منصة بيانات ومعلومات للمؤسسات تُشترى عبر فريق مبيعاتها. أما يولياس فأداة ذاتية الخدمة للشركات التي تبيع خدمات وتريد شركات مطابقة وتواصلًا توافق عليه دون عقد مؤسسي.",
     },
     answer: {
       en: "Choose ZoomInfo if you are a larger sales and marketing organisation that needs broad contact data, intent signals and CRM integrations and buys through a sales process. Choose Yolias if you want to start today with a monthly plan or Pay As You Go, describe your customer in plain language and send from your own mailbox.",
-      ar: "اختر ZoomInfo إذا كنت مؤسسة مبيعات وتسويق كبيرة تحتاج بيانات واسعة وإشارات نية وتكاملات CRM وتشتري عبر فريق مبيعات. واختر يولـياس إذا أردت البدء اليوم بخطة شهرية أو بالدفع حسب الاستخدام، وتصف عميلك بلغة طبيعية، وترسل من بريدك.",
+      ar: "اختر ZoomInfo إذا كنت مؤسسة مبيعات وتسويق كبيرة تحتاج بيانات واسعة وإشارات نية وتكاملات CRM وتشتري عبر فريق مبيعات. واختر يولياس إذا أردت البدء اليوم بخطة شهرية أو بالدفع حسب الاستخدام، وتصف عميلك بلغة طبيعية، وترسل من بريدك.",
     },
     them: {
       find: { en: "Search over its data, intent insights and AI agents in its GTM Workspace", ar: "البحث في بياناته، وإشارات النية، ووكلاء ذكاء اصطناعي في GTM Workspace" },
@@ -192,9 +192,9 @@ export const comparePages: SeedPage[] = [
         { q: "Is Yolias good for enterprise teams?", a: "Yolias is built for businesses that sell services and for smaller sales teams. Large teams with complex data needs may be better served by an enterprise data platform." },
       ],
       ar: [
-        { q: "كم يكلف ZoomInfo مقارنة بيولـياس؟", a: "ZoomInfo لا ينشر أسعاره؛ وتقول صفحة أسعاره إنها تعتمد على الباقة وعدد التراخيص والرصيد. أما يولـياس فينشر أسعاره في صفحة الأسعار." },
-        { q: "هل لدى يولـياس بيانات نية الشراء؟", a: "لا. يولـياس لا يبيع بيانات النية، بل يجد الشركات التي تطابق المعايير التي تصفها ويشرح سبب التطابق." },
-        { q: "هل يولـياس مناسب لفرق المؤسسات الكبيرة؟", a: "يولـياس مبني للشركات التي تبيع خدمات وفرق المبيعات الأصغر. والفرق الكبيرة ذات احتياجات البيانات المعقدة قد تناسبها منصة بيانات مؤسسية أكثر." },
+        { q: "كم يكلف ZoomInfo مقارنة بيولياس؟", a: "ZoomInfo لا ينشر أسعاره؛ وتقول صفحة أسعاره إنها تعتمد على الباقة وعدد التراخيص والرصيد. أما يولياس فينشر أسعاره في صفحة الأسعار." },
+        { q: "هل لدى يولياس بيانات نية الشراء؟", a: "لا. يولياس لا يبيع بيانات النية، بل يجد الشركات التي تطابق المعايير التي تصفها ويشرح سبب التطابق." },
+        { q: "هل يولياس مناسب لفرق المؤسسات الكبيرة؟", a: "يولياس مبني للشركات التي تبيع خدمات وفرق المبيعات الأصغر. والفرق الكبيرة ذات احتياجات البيانات المعقدة قد تناسبها منصة بيانات مؤسسية أكثر." },
       ],
     },
     sources: ["https://www.zoominfo.com/", "https://www.zoominfo.com/pricing"],
@@ -203,11 +203,11 @@ export const comparePages: SeedPage[] = [
     slug: "lusha", name: "Lusha", keyword: "yolias vs lusha", secondary: ["lusha vs yolias"],
     lead: {
       en: "Lusha gives you the email and phone number of a person you already found, in the browser or the CRM. Yolias helps you find which companies and people to approach in the first place, and prepares the emails.",
-      ar: "Lusha يعطيك البريد ورقم الهاتف لشخص وجدته بالفعل، في المتصفح أو CRM. أما يولـياس فيساعدك أولًا في إيجاد الشركات والأشخاص الذين تتواصل معهم، ويجهّز الرسائل.",
+      ar: "Lusha يعطيك البريد ورقم الهاتف لشخص وجدته بالفعل، في المتصفح أو CRM. أما يولياس فيساعدك أولًا في إيجاد الشركات والأشخاص الذين تتواصل معهم، ويجهّز الرسائل.",
     },
     answer: {
       en: "Choose Lusha if you already know who you want and need verified emails and phone numbers for them. Choose Yolias if your problem is finding the right companies for your services and writing to them from your own mailbox.",
-      ar: "اختر Lusha إذا كنت تعرف من تريد وتحتاج بريده ورقم هاتفه موثقين. واختر يولـياس إذا كانت مشكلتك إيجاد الشركات المناسبة لخدماتك ومراسلتها من بريدك.",
+      ar: "اختر Lusha إذا كنت تعرف من تريد وتحتاج بريده ورقم هاتفه موثقين. واختر يولياس إذا كانت مشكلتك إيجاد الشركات المناسبة لخدماتك ومراسلتها من بريدك.",
     },
     them: {
       find: { en: "A browser extension, a workspace with filters and signals, an API and MCP", ar: "إضافة للمتصفح، ومساحة عمل بفلاتر وإشارات، وواجهة برمجة وMCP" },
@@ -233,8 +233,8 @@ export const comparePages: SeedPage[] = [
         { q: "Can I use Lusha and Yolias together?", a: "Yes. Find and qualify companies in Yolias, export them as CSV, and look up direct contacts in a contact data tool if you need phone numbers." },
       ],
       ar: [
-        { q: "هل يعطي يولـياس أرقام هاتف مثل Lusha؟", a: "يعرض يولـياس أرقام الهاتف والبريد التي تنشرها الشركات، مصنّفة حسب التحقق، ولا يعد برقم مباشر لكل شخص." },
-        { q: "هل يمكنني استخدام Lusha ويولـياس معًا؟", a: "نعم. ابحث عن الشركات وقيّمها في يولـياس، وصدّرها كملف CSV، ثم ابحث عن جهات الاتصال المباشرة في أداة بيانات تواصل إن احتجت أرقام الهاتف." },
+        { q: "هل يعطي يولياس أرقام هاتف مثل Lusha؟", a: "يعرض يولياس أرقام الهاتف والبريد التي تنشرها الشركات، مصنّفة حسب التحقق، ولا يعد برقم مباشر لكل شخص." },
+        { q: "هل يمكنني استخدام Lusha ويولياس معًا؟", a: "نعم. ابحث عن الشركات وقيّمها في يولياس، وصدّرها كملف CSV، ثم ابحث عن جهات الاتصال المباشرة في أداة بيانات تواصل إن احتجت أرقام الهاتف." },
       ],
     },
     sources: ["https://www.lusha.com/", "https://www.lusha.com/pricing/"],
@@ -243,11 +243,11 @@ export const comparePages: SeedPage[] = [
     slug: "cognism", name: "Cognism", keyword: "yolias vs cognism", secondary: ["cognism vs yolias"],
     lead: {
       en: "Cognism is a contact data provider known for phone-verified mobile numbers in Europe. Yolias finds companies that fit a service you sell, explains the fit and handles the email outreach from your own mailbox.",
-      ar: "Cognism مزود بيانات تواصل معروف بأرقام الجوال المتحقق منها هاتفيًا في أوروبا. أما يولـياس فيجد الشركات المناسبة لخدمة تبيعها، ويشرح سبب التطابق، ويدير التواصل بالبريد من بريدك.",
+      ar: "Cognism مزود بيانات تواصل معروف بأرقام الجوال المتحقق منها هاتفيًا في أوروبا. أما يولياس فيجد الشركات المناسبة لخدمة تبيعها، ويشرح سبب التطابق، ويدير التواصل بالبريد من بريدك.",
     },
     answer: {
       en: "Choose Cognism if your team calls decision makers, especially in Europe, and needs verified mobiles and compliance features. Choose Yolias if you want to find the right companies from a plain description and reach them by email after your approval.",
-      ar: "اختر Cognism إذا كان فريقك يتصل بصنّاع القرار، خاصة في أوروبا، ويحتاج أرقام جوال موثقة وميزات امتثال. واختر يولـياس إذا أردت إيجاد الشركات المناسبة من وصف بسيط ومراسلتها بالبريد بعد موافقتك.",
+      ar: "اختر Cognism إذا كان فريقك يتصل بصنّاع القرار، خاصة في أوروبا، ويحتاج أرقام جوال موثقة وميزات امتثال. واختر يولياس إذا أردت إيجاد الشركات المناسبة من وصف بسيط ومراسلتها بالبريد بعد موافقتك.",
     },
     them: {
       find: { en: "Search with firmographic and technographic filters; MCP and API access", ar: "بحث بفلاتر بيانات الشركات والتقنيات، ووصول عبر MCP وواجهة برمجة" },
@@ -273,7 +273,7 @@ export const comparePages: SeedPage[] = [
         { q: "Is Cognism priced per seat?", a: "Its pricing page lists Standard and Pro plans with 5 seats included and asks you to contact sales for a price." },
       ],
       ar: [
-        { q: "هل لدى يولـياس أرقام جوال متحقق منها هاتفيًا؟", a: "لا. يعرض يولـياس بيانات التواصل التي تنشرها الشركات ويصنّفها حسب حالة التحقق." },
+        { q: "هل لدى يولياس أرقام جوال متحقق منها هاتفيًا؟", a: "لا. يعرض يولياس بيانات التواصل التي تنشرها الشركات ويصنّفها حسب حالة التحقق." },
         { q: "هل يُسعّر Cognism لكل مستخدم؟", a: "صفحة أسعاره تعرض خطتي Standard وPro بخمسة مستخدمين، وتطلب التواصل مع المبيعات لمعرفة السعر." },
       ],
     },
@@ -283,11 +283,11 @@ export const comparePages: SeedPage[] = [
     slug: "instantly", name: "Instantly", keyword: "yolias vs instantly", secondary: ["instantly vs yolias", "instantly.ai comparison"],
     lead: {
       en: "Instantly is built to send cold email at volume across many mailboxes, with warmup and deliverability tools. Yolias is built to find the right companies for your services and send fewer, researched emails from your own mailbox.",
-      ar: "Instantly مبني لإرسال البريد البارد بكميات كبيرة عبر صناديق بريد كثيرة، مع التدفئة وأدوات وصول الرسائل. أما يولـياس فمبني لإيجاد الشركات المناسبة لخدماتك وإرسال رسائل أقل ومدروسة من بريدك.",
+      ar: "Instantly مبني لإرسال البريد البارد بكميات كبيرة عبر صناديق بريد كثيرة، مع التدفئة وأدوات وصول الرسائل. أما يولياس فمبني لإيجاد الشركات المناسبة لخدماتك وإرسال رسائل أقل ومدروسة من بريدك.",
     },
     answer: {
       en: "Choose Instantly if you run high-volume campaigns across many mailboxes and need warmup and deliverability tooling. Choose Yolias if you want help deciding who to write to, with each company explained, and a personal email from your own Gmail or company mailbox after you approve it.",
-      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولـياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد موافقتك.",
+      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد موافقتك.",
     },
     them: {
       find: { en: "A B2B lead database with filters, on separate credit plans", ar: "قاعدة عملاء B2B بفلاتر، بخطط رصيد منفصلة" },
@@ -313,8 +313,8 @@ export const comparePages: SeedPage[] = [
         { q: "Can I send high volumes with Yolias?", a: "Yolias is built for researched outreach from your own mailbox, not for volume sending across many domains." },
       ],
       ar: [
-        { q: "هل يقوم يولـياس بتدفئة حسابات البريد؟", a: "لا. يرسل يولـياس من صندوق البريد الذي تربطه، ضمن حد يومي وفاصل عشوائي بين الرسائل وأيام وساعات الإرسال التي تحددها لكل صندوق." },
-        { q: "هل يمكنني الإرسال بكميات كبيرة مع يولـياس؟", a: "يولـياس مبني لتواصل مدروس من بريدك، وليس للإرسال بكميات كبيرة عبر نطاقات كثيرة." },
+        { q: "هل يقوم يولياس بتدفئة حسابات البريد؟", a: "لا. يرسل يولياس من صندوق البريد الذي تربطه، ضمن حد يومي وفاصل عشوائي بين الرسائل وأيام وساعات الإرسال التي تحددها لكل صندوق." },
+        { q: "هل يمكنني الإرسال بكميات كبيرة مع يولياس؟", a: "يولياس مبني لتواصل مدروس من بريدك، وليس للإرسال بكميات كبيرة عبر نطاقات كثيرة." },
       ],
     },
     sources: ["https://instantly.ai/", "https://instantly.ai/pricing"],
@@ -323,11 +323,11 @@ export const comparePages: SeedPage[] = [
     slug: "smartlead", name: "Smartlead", keyword: "yolias vs smartlead", secondary: ["smartlead vs yolias"],
     lead: {
       en: "Smartlead is a cold email sending platform with unlimited mailboxes, warmup and white label for agencies. Yolias finds the companies first and sends researched emails from one or a few mailboxes you connect.",
-      ar: "Smartlead منصة لإرسال البريد البارد بصناديق بريد غير محدودة وتدفئة وعلامة بيضاء للوكالات. أما يولـياس فيجد الشركات أولًا ويرسل رسائل مدروسة من صندوق بريد أو أكثر تربطه.",
+      ar: "Smartlead منصة لإرسال البريد البارد بصناديق بريد غير محدودة وتدفئة وعلامة بيضاء للوكالات. أما يولياس فيجد الشركات أولًا ويرسل رسائل مدروسة من صندوق بريد أو أكثر تربطه.",
     },
     answer: {
       en: "Choose Smartlead if you are a lead generation agency sending for many clients and need unlimited mailboxes, sender rotation, an API and white label. Choose Yolias if you need the list itself: companies that fit your service, explained, with emails ready for your approval.",
-      ar: "اختر Smartlead إذا كنت وكالة جذب عملاء ترسل لعملاء كثيرين وتحتاج صناديق بريد غير محدودة وتدوير المرسلين وواجهة برمجة وعلامة بيضاء. واختر يولـياس إذا كنت تحتاج القائمة نفسها: شركات تناسب خدمتك، مشروحة، مع رسائل جاهزة لموافقتك.",
+      ar: "اختر Smartlead إذا كنت وكالة جذب عملاء ترسل لعملاء كثيرين وتحتاج صناديق بريد غير محدودة وتدوير المرسلين وواجهة برمجة وعلامة بيضاء. واختر يولياس إذا كنت تحتاج القائمة نفسها: شركات تناسب خدمتك، مشروحة، مع رسائل جاهزة لموافقتك.",
     },
     them: {
       find: { en: "You bring your leads; email verification is included in each plan", ar: "تجلب عملاءك بنفسك، والتحقق من البريد ضمن كل خطة" },
@@ -349,7 +349,7 @@ export const comparePages: SeedPage[] = [
     },
     together: {
       en: "Agencies can find and qualify companies in Yolias, export them as CSV and send at volume from a sending platform.",
-      ar: "يمكن للوكالات إيجاد الشركات وتقييمها في يولـياس، وتصديرها كملف CSV، ثم الإرسال بكميات كبيرة من منصة إرسال.",
+      ar: "يمكن للوكالات إيجاد الشركات وتقييمها في يولياس، وتصديرها كملف CSV، ثم الإرسال بكميات كبيرة من منصة إرسال.",
     },
     faq: {
       en: [
@@ -357,8 +357,8 @@ export const comparePages: SeedPage[] = [
         { q: "Does Yolias rotate senders across mailboxes?", a: "Yolias sends from the mailboxes you connect, each with its own daily limit, gap between emails and sending hours. It doesn't provide mailboxes or warmup." },
       ],
       ar: [
-        { q: "هل يقدم يولـياس علامة بيضاء للوكالات؟", a: "لا. يعمل يولـياس داخل مساحة عملك، بعدد غير محدود من المستخدمين في كل الخطط." },
-        { q: "هل يدوّر يولـياس المرسلين بين صناديق البريد؟", a: "يرسل يولـياس من صناديق البريد التي تربطها، لكل منها حد يومي وفاصل بين الرسائل وساعات إرسال. ولا يوفر صناديق بريد أو تدفئة." },
+        { q: "هل يقدم يولياس علامة بيضاء للوكالات؟", a: "لا. يعمل يولياس داخل مساحة عملك، بعدد غير محدود من المستخدمين في كل الخطط." },
+        { q: "هل يدوّر يولياس المرسلين بين صناديق البريد؟", a: "يرسل يولياس من صناديق البريد التي تربطها، لكل منها حد يومي وفاصل بين الرسائل وساعات إرسال. ولا يوفر صناديق بريد أو تدفئة." },
       ],
     },
     sources: ["https://www.smartlead.ai/", "https://www.smartlead.ai/pricing"],
@@ -367,11 +367,11 @@ export const comparePages: SeedPage[] = [
     slug: "hunter", name: "Hunter", keyword: "yolias vs hunter", secondary: ["hunter.io vs yolias", "hunter io comparison"],
     lead: {
       en: "Hunter is best known for finding and verifying email addresses at a company. Yolias starts one step earlier: it finds which companies fit the service you sell, explains why, and writes the first email.",
-      ar: "Hunter معروف أكثر بإيجاد عناوين البريد في شركة والتحقق منها. أما يولـياس فيبدأ قبلها بخطوة: يجد الشركات التي تناسب الخدمة التي تبيعها، ويشرح السبب، ويكتب الرسالة الأولى.",
+      ar: "Hunter معروف أكثر بإيجاد عناوين البريد في شركة والتحقق منها. أما يولياس فيبدأ قبلها بخطوة: يجد الشركات التي تناسب الخدمة التي تبيعها، ويشرح السبب، ويكتب الرسالة الأولى.",
     },
     answer: {
       en: "Choose Hunter if you know the companies and need verified email addresses for people there. Choose Yolias if you need to find the companies that fit your offer and want the outreach prepared and sent from your mailbox after you approve.",
-      ar: "اختر Hunter إذا كنت تعرف الشركات وتحتاج عناوين بريد موثقة لأشخاص فيها. واختر يولـياس إذا كنت تحتاج إيجاد الشركات المناسبة لعرضك وتريد تجهيز التواصل وإرساله من بريدك بعد موافقتك.",
+      ar: "اختر Hunter إذا كنت تعرف الشركات وتحتاج عناوين بريد موثقة لأشخاص فيها. واختر يولياس إذا كنت تحتاج إيجاد الشركات المناسبة لعرضك وتريد تجهيز التواصل وإرساله من بريدك بعد موافقتك.",
     },
     them: {
       find: { en: "Domain search, email finder and Discover filters for B2B leads", ar: "البحث بالنطاق، والعثور على البريد، وفلاتر Discover لعملاء B2B" },
@@ -397,8 +397,8 @@ export const comparePages: SeedPage[] = [
         { q: "Is there a free plan?", a: "Hunter has a free plan with 50 credits a month (its pricing page). Yolias has Pay As You Go credit from $5 and monthly plans; see its pricing page." },
       ],
       ar: [
-        { q: "هل يتحقق يولـياس من البريد مثل Hunter؟", a: "يصنّف يولـياس بيانات التواصل حسب حالة التحقق، ويمكنه التحقق من البريد عند ربط مزود تحقق به. ولا يعد ببريد شخصي موثق لكل شخص." },
-        { q: "هل توجد خطة مجانية؟", a: "لدى Hunter خطة مجانية بخمسين رصيدًا شهريًا (من صفحة أسعاره). أما يولـياس فلديه الدفع حسب الاستخدام من 5 دولارات وخطط شهرية؛ راجع صفحة الأسعار." },
+        { q: "هل يتحقق يولياس من البريد مثل Hunter؟", a: "يصنّف يولياس بيانات التواصل حسب حالة التحقق، ويمكنه التحقق من البريد عند ربط مزود تحقق به. ولا يعد ببريد شخصي موثق لكل شخص." },
+        { q: "هل توجد خطة مجانية؟", a: "لدى Hunter خطة مجانية بخمسين رصيدًا شهريًا (من صفحة أسعاره). أما يولياس فلديه الدفع حسب الاستخدام من 5 دولارات وخطط شهرية؛ راجع صفحة الأسعار." },
       ],
     },
     sources: ["https://hunter.io/", "https://hunter.io/pricing"],

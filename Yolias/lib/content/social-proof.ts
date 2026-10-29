@@ -15,6 +15,6 @@ export const founderNote: { name: string; title: Localized<string>; photo: strin
   photo: "/brand/team/youseef-waleed.jpg",
   message: {
     en: "I lived this problem myself: hours every week building lists, guessing who the right decision maker was, and writing messages that never got a reply. I built Yolias so you can skip that part and spend your time talking to the customers who actually need what you sell.",
-    ar: "عشتُ هذه المشكلة بنفسي: ساعات كل أسبوع في بناء القوائم، وتخمين من هو صاحب القرار الصحيح، وكتابة رسائل لا يرد عليها أحد. بنيتُ يولـياس لتتجاوز هذا الجزء وتقضي وقتك في الحديث مع العملاء الذين يحتاجون فعلًا ما تبيعه.",
+    ar: "عشتُ هذه المشكلة بنفسي: ساعات كل أسبوع في بناء القوائم، وتخمين من هو صاحب القرار الصحيح، وكتابة رسائل لا يرد عليها أحد. بنيتُ يولياس لتتجاوز هذا الجزء وتقضي وقتك في الحديث مع العملاء الذين يحتاجون فعلًا ما تبيعه.",
   },
 };

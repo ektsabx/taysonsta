@@ -40,9 +40,9 @@ export const statusCopy: Localized<{
     contact: "Having trouble that isn’t listed here? Contact support.",
   },
   ar: {
-    title: "حالة خدمات يولـياس",
-    seoTitle: "حالة خدمات يولـياس: التوفر والأعطال",
-    metaDescription: "توفر خدمات يولـياس مباشرةً، بقياس كل بضع دقائق، مع الأعطال الحالية والصيانة المجدولة وسجل الأعطال.",
+    title: "حالة خدمات يولياس",
+    seoTitle: "حالة خدمات يولياس: التوفر والأعطال",
+    metaDescription: "توفر خدمات يولياس مباشرةً، بقياس كل بضع دقائق، مع الأعطال الحالية والصيانة المجدولة وسجل الأعطال.",
     updated: "آخر فحص {time}",
     never: "لم يتم أي فحص بعد",
     overall: {
@@ -67,7 +67,7 @@ export const statusCopy: Localized<{
     affects: "تؤثر على: {list}",
     scheduled: "من {from} إلى {to}",
     incidentStatus: { investigating: "قيد التحقق", identified: "تم تحديد السبب", monitoring: "تحت المراقبة", resolved: "تم الحل", scheduled: "مجدولة", in_progress: "جارية", completed: "اكتملت" },
-    how: "تُفحص كل خدمة تلقائيًا كل بضع دقائق، ولا يُعرض فحص فاشل واحد كعطل. ينشر فريق يولـياس الأعطال والصيانة.",
+    how: "تُفحص كل خدمة تلقائيًا كل بضع دقائق، ولا يُعرض فحص فاشل واحد كعطل. ينشر فريق يولياس الأعطال والصيانة.",
     contact: "تواجه مشكلة غير مذكورة هنا؟ تواصل مع الدعم.",
   },
 };

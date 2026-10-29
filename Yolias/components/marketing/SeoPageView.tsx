@@ -27,12 +27,12 @@ const copy = {
   },
   ar: {
     kinds: { compare: "المقارنات", alternatives: "البدائل", solution: "الحلول", template: "القوالب" } as Record<SeoKind, string>,
-    point: "وجه المقارنة", yolias: "يولـياس", pricing: "الأسعار", notPublished: "غير منشورة؛ يحددها فريق المبيعات", seePricing: "صفحة الأسعار",
-    audience: "لمن هذه الصفحة", criteria: "ما الذي تبحث عنه", steps: "كيف تنفّذها مع يولـياس", tools: "الأدوات في المقارنة",
+    point: "وجه المقارنة", yolias: "يولياس", pricing: "الأسعار", notPublished: "غير منشورة؛ يحددها فريق المبيعات", seePricing: "صفحة الأسعار",
+    audience: "لمن هذه الصفحة", criteria: "ما الذي تبحث عنه", steps: "كيف تنفّذها مع يولياس", tools: "الأدوات في المقارنة",
     bestFor: "الأنسب لـ", strengths: "نقاط القوة", limits: "الحدود", website: "الموقع", checked: "تمت المراجعة {date}", source: "المصدر",
-    prompt: "الطلب الذي يبدأ به القالب", promptNote: "يفتح في Yolias AI لتعدّله قبل أن يبدأ أي شيء.", open: "افتح القالب في يولـياس",
+    prompt: "الطلب الذي يبدأ به القالب", promptNote: "يفتح في Yolias AI لتعدّله قبل أن يبدأ أي شيء.", open: "افتح القالب في يولياس",
     faq: "أسئلة شائعة", related: "صفحات ذات صلة", reviewed: "راجعنا المعلومات عن المنتجات الأخرى من مواقعها الرسمية بتاريخ {date}. المنتجات تتغير، فراجع صفحاتها قبل أن تقرر.",
-    preview: "معاينة: هذه الصفحة غير منشورة بعد.", trySignup: "جرّب يولـياس", seePricingCta: "عرض الأسعار",
+    preview: "معاينة: هذه الصفحة غير منشورة بعد.", trySignup: "جرّب يولياس", seePricingCta: "عرض الأسعار",
     yoliasPrice: (p: YoliasPrices) => [p.payg ? `الدفع حسب الاستخدام من ${p.payg}$` : null, ...p.plans.map((x) => `${x.name} ${x.price}$ شهريًا`)].filter(Boolean).join(" · "),
   },
 };

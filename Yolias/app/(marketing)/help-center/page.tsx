@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
 import { ChevronRight, Rocket, Sparkles, Users } from "lucide-react";
 import { collections, helpHero } from "@/lib/content/help";
@@ -22,6 +23,7 @@ export default async function HelpCenterPage() {
 
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: hero.title, description: helpHero[locale].lead, path: "/help-center", type: "CollectionPage" })]} />
       <section className="help-hero">
         <div className="site-width">
           <h1>{hero.title}</h1>
@@ -32,7 +34,7 @@ export default async function HelpCenterPage() {
       <section className="section">
         <div className="site-width">
           <Link href="/help-center/videos" className="article-link help-videos-link">
-            <div><strong>{t.nav.videos}</strong><span>{locale === "ar" ? "جولات قصيرة بالفيديو في يولـياس." : "Short video walkthroughs of Yolias."}</span></div>
+            <div><strong>{t.nav.videos}</strong><span>{locale === "ar" ? "جولات قصيرة بالفيديو في يولياس." : "Short video walkthroughs of Yolias."}</span></div>
             <ChevronRight className="flip-rtl" />
           </Link>
           <h2 className="mb-5 mt-10 text-lg font-bold">{hero.collectionsTitle}</h2>

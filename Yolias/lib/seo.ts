@@ -14,8 +14,17 @@ import { localizedHref } from "@/lib/i18n/paths";
 
 export const SITE_NAME = "Yolias";
 export const HOME_TITLE = "Yolias: Your AI Sales Agent for Business Growth";
+/** The owner's home title in Arabic, for /ar: the Arabic name first, so Arabic searches for the brand find Yolias (D-265). */
+export const HOME_TITLE_AR = "يولياس (Yolias): وكيل المبيعات بالذكاء الاصطناعي لنمو أعمالك";
+/** The home page's search snippet (D-265): under 170 characters, brand first, in each language. */
+export const HOME_DESCRIPTION = {
+  en: "Yolias, the AI sales agent for service businesses: describe your ideal customer and it finds the companies and decision makers, then emails them from your mailbox.",
+  ar: "يولياس وكيل مبيعات بالذكاء الاصطناعي للشركات التي تبيع خدمات: صِف عميلك المثالي، فيجد لك الشركات وصنّاع القرار ويراسلهم من بريدك أنت.",
+};
+/** How people write the brand: Arabic spelling, the product name and what it is (schema.org alternateName). */
+export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Sales Agent"];
 /** The one-line definition used everywhere Yolias is described (site, llms.txt, schema). */
-export const DEFINITION = "Yolias is an AI customer discovery platform for businesses that sell services. You describe your ideal customer in plain language, in English or Arabic, and Yolias runs a search that finds matching companies, local businesses and decision makers, explains why each one fits, prepares the outreach campaign, and sends it from your own Gmail or Outlook only after you approve it.";
+export const DEFINITION = "Yolias is an AI customer discovery platform for businesses that sell services. You describe your ideal customer in plain language, in English or Arabic, and Yolias runs a search that finds matching companies, local businesses and decision makers, explains why each one fits, prepares the outreach campaign, and sends it from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it.";
 export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: AI customer discovery for businesses that sell services" };
 
 export function siteUrl(): string {
@@ -62,6 +71,7 @@ export function organizationSchema(): Thing {
     "@type": "Organization",
     "@id": absolute("/#organization"),
     name: SITE_NAME,
+    alternateName: BRAND_NAMES,
     url: absolute("/"),
     logo: { "@type": "ImageObject", url: absolute("/brand/logo-mark.png") },
     description: DEFINITION,
@@ -70,7 +80,7 @@ export function organizationSchema(): Thing {
 }
 
 export function websiteSchema(): Thing {
-  return { "@type": "WebSite", "@id": absolute("/#website"), url: absolute("/"), name: SITE_NAME, description: DEFINITION, publisher: { "@id": absolute("/#organization") }, inLanguage: ["en", "ar"] };
+  return { "@type": "WebSite", "@id": absolute("/#website"), url: absolute("/"), name: SITE_NAME, alternateName: BRAND_NAMES, description: DEFINITION, publisher: { "@id": absolute("/#organization") }, inLanguage: ["en", "ar"] };
 }
 
 /** The product, with the plans as offers: only prices the pricing page shows. */

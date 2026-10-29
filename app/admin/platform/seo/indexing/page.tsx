@@ -17,6 +17,9 @@ const issueLabel: Record<string, string> = {
   no_title: "بلا عنوان", long_title: "العنوان طويل", no_description: "بلا وصف", long_description: "الوصف طويل",
   no_h1: "بلا H1", many_h1: "أكثر من H1", wrong_lang: "لغة الصفحة خاطئة", duplicate_description: "وصف مكرر",
   no_canonical: "بلا رابط Canonical", canonical_other_domain: "Canonical على نطاق آخر", no_og_image: "بلا صورة مشاركة", noindex_on_public_page: "صفحة عامة عليها noindex",
+  short_title: "العنوان قصير", duplicate_title: "عنوان مكرر", short_description: "الوصف قصير", canonical_not_self: "Canonical يشير لصفحة أخرى",
+  no_hreflang: "بلا hreflang كامل", invalid_jsonld: "بيانات منظمة غير صالحة", no_jsonld: "بلا بيانات منظمة", thin: "محتوى قليل",
+  not_arabic: "صفحة عربية نصها غير عربي", near_duplicate: "شبه مكررة", brand_spelling: "«يولـياس» بالتطويل",
 };
 
 // Crawling and indexing (D-257): a live check of each public page (title,
@@ -30,15 +33,18 @@ export default async function SeoIndexingPage() {
   const manage = can(bos, "platform.manage", "all");
   const pages = await listSeoPages();
   const live = pages.filter((p) => p.status === "published" && p.seo?.robots !== "noindex").map((p) => seoPath(p.kind, p.slug));
-  const [a, crawl, insp, redirects] = await Promise.all([seoAudit(live), lastCrawl(), inspections(), listRedirects()]);
+  const [a, crawl, insp, redirects] = await Promise.all([seoAudit(live, { pages: false }), lastCrawl(), inspections(), listRedirects()]);
   if (!a.base) return (<><PageHeader title="الفهرسة وخريطة الموقع" /><EmptyState title="رابط موقع Yolias غير مضبوط" description="YOLIAS_SITE_URL" /></>);
-  const withIssues = a.pages.filter((p) => p.issues.length).length;
+  const audit = crawl?.audit ?? null;
+  const withIssues = audit ? audit.filter((p) => p.issues.length).length : 0;
+  const issueCounts = new Map<string, number>();
+  for (const p of audit ?? []) for (const i of p.issues) issueCounts.set(i, (issueCounts.get(i) ?? 0) + 1);
   const unpublished = pages.filter((p) => p.status !== "published").length;
   return (
     <>
       <PageHeader title="الفهرسة وخريطة الموقع" subtitle={`فحص مباشر لموقع ${a.base}`} />
       <div className="bos-kpis">
-        <KpiCard label="صفحات بلا مشاكل" value={`${num(a.pages.length - withIssues)} / ${num(a.pages.length)}`} />
+        <KpiCard label="صفحات بلا مشاكل" value={audit ? `${num(audit.length - withIssues)} / ${num(audit.length)}` : "—"} sub={audit ? undefined : <Tx>شغّل فحص الموقع</Tx>} />
         <KpiCard label="robots.txt" value={a.robots ? <StatusBadge tone={a.robots.sitemap && a.robots.disallowsApp ? "success" : "warning"} label={a.robots.sitemap ? "سليم" : "بلا خريطة"} /> : <StatusBadge tone="danger" label="غير موجود" />} />
         <KpiCard label="خريطة الموقع" value={a.sitemapUrls == null ? <StatusBadge tone="danger" label="غير موجودة" /> : <Tx vars={{ n: num(a.sitemapUrls) }}>{"{n} رابط"}</Tx>} sub={a.sitemapOtherHosts ? <Tx vars={{ n: a.sitemapOtherHosts }}>{"{n} رابط على نطاق آخر"}</Tx> : undefined} />
         <KpiCard label="llms.txt" value={<StatusBadge tone={a.llms ? "success" : "warning"} label={a.llms ? "موجود" : "غير موجود"} />} />
@@ -46,21 +52,26 @@ export default async function SeoIndexingPage() {
         <KpiCard label="صفحات SEO منشورة" value={num(live.length)} sub={<Tx vars={{ n: num(unpublished) }}>{"{n} غير منشورة"}</Tx>} />
       </div>
 
-      <Card title="فحص الصفحات">
-        <div className="bos-table-scroll"><BosTable className="bos-table">
-          <thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>اللغة</Tx></th><th><Tx>العنوان</Tx></th><th><Tx>الوصف</Tx></th><th><Tx>بيانات منظمة</Tx></th><th><Tx>الحالة</Tx></th></tr></thead>
-          <tbody>{a.pages.map((p) => (
-            <tr key={`${p.path}:${p.locale}`}>
-              <td dir="ltr">{p.path}</td>
-              <td dir="ltr">{p.locale}</td>
-              <td dir="auto" style={{ maxWidth: 260 }}>{p.title ?? "—"}{p.title && <span className="cell-sub">{p.title.length}</span>}</td>
-              <td dir="auto" style={{ maxWidth: 320, fontSize: 12 }}>{p.description ?? "—"}{p.description && <span className="cell-sub">{p.description.length}</span>}</td>
-              <td>{p.structured ? <StatusBadge tone="success" label="JSON-LD" /> : "—"}</td>
-              <td>{p.issues.length ? p.issues.map((i) => <StatusBadge key={i} tone="warning" label={issueLabel[i] ?? i} />) : <StatusBadge tone="success" label="سليمة" />}</td>
-            </tr>
-          ))}</tbody>
-        </BosTable></div>
-        <p className="bos-faint" style={{ fontSize: 12, marginTop: 8 }}><Tx>العنوان حتى 65 حرفاً والوصف حتى 170 حرفاً، وعنوان H1 واحد لكل صفحة.</Tx></p>
+      {/* Every page of the sitemap, from the last crawl (D-265): what each page says to search engines. */}
+      <Card title="فحص محتوى الصفحات">
+        {audit ? (
+          <>
+            <p className="bos-faint" style={{ fontSize: 12 }}><Tx vars={{ at: formatDateTime(crawl!.checkedAt), n: num(audit.length) }}>{"من آخر فحص للموقع ({at}): {n} صفحة."}</Tx></p>
+            {issueCounts.size > 0 && <p style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{[...issueCounts.entries()].sort((x, y) => y[1] - x[1]).map(([i, n]) => <StatusBadge key={i} tone="warning" label={`${issueLabel[i] ?? i} · ${num(n)}`} />)}</p>}
+            <div className="bos-table-scroll"><BosTable className="bos-table">
+              <thead><tr><th><Tx>الصفحة</Tx></th><th><Tx>العنوان</Tx></th><th><Tx>الكلمات</Tx></th><th><Tx>المشاكل</Tx></th></tr></thead>
+              <tbody>{audit.filter((p) => p.issues.length).slice(0, 200).map((p) => (
+                <tr key={p.path}>
+                  <td dir="ltr">{p.path}</td>
+                  <td dir="auto" style={{ maxWidth: 280 }}>{p.title ?? "—"}{p.title && <span className="cell-sub">{p.title.length}</span>}</td>
+                  <td className="bos-num">{num(p.words)}</td>
+                  <td>{p.issues.map((i) => <StatusBadge key={i} tone="warning" label={i === "near_duplicate" && p.similar ? `${issueLabel[i]} (${p.similar.score}% ${p.similar.path})` : issueLabel[i] ?? i} />)}</td>
+                </tr>
+              ))}</tbody>
+            </BosTable></div>
+            <p className="bos-faint" style={{ fontSize: 12, marginTop: 8 }}><Tx>العنوان من 15 إلى 65 حرفًا، والوصف من 50 إلى 170، وعنوان H1 واحد، وCanonical يشير للصفحة نفسها، وhreflang للعربي والإنجليزي. «محتوى قليل»: أقل من 250 كلمة في الصفحات التجارية والمقالات فقط. «شبه مكررة»: 80% أو أكثر من النص مشترك مع صفحة أخرى بنفس اللغة.</Tx></p>
+          </>
+        ) : <EmptyState title="لم يُفحص الموقع بعد" description="اضغط «افحص الموقع الآن» في فحص الروابط الداخلية." />}
       </Card>
 
       <Card title="فحص الروابط الداخلية" actions={manage ? <ActionForm action={syncNowAction} successMessage="انتهى الفحص"><input type="hidden" name="source" value="crawl" /><SubmitButton label="افحص الموقع الآن" pendingLabel="جارٍ الفحص..." /></ActionForm> : undefined}>

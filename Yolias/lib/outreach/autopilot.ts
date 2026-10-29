@@ -130,5 +130,5 @@ async function propose(db: Db, s: Search, userId: string) {
     content: text.filter(Boolean).join("\n\n"), meta: { approvals: pa ? [pa.id] : [], outreach: camp.id, by: "autopilot" } as Json,
   });
   await notifyUser(ws, userId, ar ? `حملة «${s.name}» جاهزة لموافقتك` : `"${s.name}" is ready for your approval`,
-    ar ? `${recipients} عميل. وافق مرة واحدة ويولـياس يكمّل لوحده.` : `${recipients} leads. Approve once and Yolias runs it.`, link, `autopilot:${camp.id}`);
+    ar ? `${recipients} عميل. وافق مرة واحدة ويولياس يكمّل لوحده.` : `${recipients} leads. Approve once and Yolias runs it.`, link, `autopilot:${camp.id}`);
 }

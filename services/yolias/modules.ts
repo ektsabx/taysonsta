@@ -174,7 +174,8 @@ function tag(html: string, re: RegExp): string | null {
   return m ? m[1].replace(/\s+/g, " ").trim() : null;
 }
 
-export async function seoAudit(extraPaths: string[] = []) {
+/** `pages: false` checks only robots.txt, the sitemap, llms.txt and the private pages (the crawl audits every page, D-265). */
+export async function seoAudit(extraPaths: string[] = [], opts: { pages?: boolean } = {}) {
   const base = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
   if (!base) return { base: null, pages: [], robots: null, sitemapUrls: null };
   const get = async (path: string, locale: "en" | "ar") => {
@@ -189,7 +190,7 @@ export async function seoAudit(extraPaths: string[] = []) {
   };
   const pages = [];
   // The fixed pages, then the published SEO pages from Admin (D-257).
-  for (const path of [...seoPages, ...extraPaths.filter((p) => !seoPages.includes(p)).slice(0, 40)]) {
+  for (const path of opts.pages === false ? [] : [...seoPages, ...extraPaths.filter((p) => !seoPages.includes(p)).slice(0, 40)]) {
     for (const locale of ["en", "ar"] as const) {
       const { status, html } = await get(path, locale);
       const title = tag(html, /<title[^>]*>([^<]*)<\/title>/i);

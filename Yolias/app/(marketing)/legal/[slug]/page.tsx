@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
 import { notFound } from "next/navigation";
 import { Prose } from "@/components/marketing/Prose";
@@ -33,6 +34,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) 
 
   return (
     <div className="site-width doc-layout with-nav">
+      <JsonLd nodes={[webPageSchema({ title: doc.title, description: doc.summary, path: `/legal/${slug}` })]} />
       <nav className="side-nav" aria-label={t.site.legal}>
         <div className="side-nav-group">
           <div className="side-nav-title">{t.site.legal}</div>

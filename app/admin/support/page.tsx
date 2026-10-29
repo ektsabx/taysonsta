@@ -60,7 +60,7 @@ export default async function SupportOverviewPage({ searchParams }: { searchPara
               <tbody>{a.byAgent.slice(0, 15).map((r) => <tr key={r.userId}><td>{names.get(r.userId) ?? "—"}</td><td className="bos-num">{r.handled}</td><td className="bos-num">{r.resolved}</td><td className="bos-num">{dur(r.avgFirstResponseMin)}</td></tr>)}</tbody></BosTable>
           ) : <EmptyState title="لا توجد محادثات مسندة في هذه الفترة" />}
         </Card>
-        <Card title="وكيل الذكاء الاصطناعي" actions={can(bos, "conversations.manage", "all") ? <Link className="bos-link" href="/admin/support/ai-agents"><Tx>الإعدادات</Tx></Link> : null}>
+        <Card title="وكيل الدعم الآلي" actions={can(bos, "conversations.manage", "all") ? <Link className="bos-link" href="/admin/support/ai-agents"><Tx>الإعدادات</Tx></Link> : null}>
           {a.ai.total ? (
             <div className="bos-kpis" style={{ marginBottom: 0 }}>
               <KpiCard label="محادثات تولّاها" value={a.ai.total} />

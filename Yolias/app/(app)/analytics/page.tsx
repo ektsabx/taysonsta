@@ -5,8 +5,6 @@ import { formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
-import { firstName } from "@/lib/format";
-import { Greeting } from "@/components/app/Greeting";
 import { discoveryAnalytics, outreachAnalytics, parseRange, ranges } from "@/services/analytics";
 import { campaignList, campaignPage } from "@/services/campaigns";
 import { CampaignAnalytics } from "@/components/app/campaigns/CampaignDetail";
@@ -80,7 +78,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
     <div className="page-view">
       <header className="view-header">
         <div className="view-title-group">
-          <Greeting name={firstName(session.profile.full_name)} className="view-greeting" />
           <h2>{an.title}</h2>
         </div>
         <div className="view-actions">

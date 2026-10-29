@@ -19,7 +19,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Se
   const current = sp.t && /^[0-9a-f-]{36}$/i.test(sp.t) ? await getThread(bos, sp.t).catch(() => null) : null;
   return (
     <>
-      <PageHeader title="المساعد الذكي" subtitle="يجيب من بيانات النظام المسموح لك بها فقط — مع المصدر ووقت التحديث" actions={current ? <Link className="admin-btn small ghost" href="/admin/assistant"><Tx>محادثة جديدة</Tx></Link> : null} />
+      <PageHeader title="مساعد البيانات" subtitle="يجيب من بيانات النظام المسموح لك بها فقط — مع المصدر ووقت التحديث" actions={current ? <Link className="admin-btn small ghost" href="/admin/assistant"><Tx>محادثة جديدة</Tx></Link> : null} />
       {!ai ? <Card><p className="bos-hint" style={{ margin: 0 }}><Tx>لا يوجد مزود ذكاء اصطناعي متصل — سيعرض المساعد البيانات المطابقة لسؤالك مباشرة دون تحليل. أضف مفتاحاً من مركز التكاملات للإجابات التحليلية.</Tx></p></Card> : null}
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "minmax(0, 1fr) 260px" }} className="bos-assistant">
         <div className="bos-stack" style={{ gap: 12 }}>

@@ -1,9 +1,12 @@
 import "server-only";
 import { ydb } from "@/lib/yolias/db";
+import { auditPage, crossPageIssues, type PageAudit } from "./page-audit";
 
 // Crawl check for Admin → SEO → Indexing (D-257): reads the live sitemap,
 // opens every page and every internal link found on them, and records which
-// answer with an error, a redirect or a noindex. Runs on demand (one button),
+// answer with an error, a redirect or a noindex, and audits each page's
+// content (title, description, H1, language, canonical, hreflang, structured
+// data, thin or near-duplicate text: page-audit.ts, D-265). Runs on demand (one button),
 // at most 400 URLs, five at a time; the result is kept in seo_sync_runs.
 
 export interface CrawlResult {
@@ -12,6 +15,8 @@ export interface CrawlResult {
   pages: { path: string; status: number; noindex: boolean; canonical: string | null }[];
   broken: { from: string; to: string; status: number }[];
   redirects: { from: string; to: string; status: number }[];
+  /** Every page that answered 200 (crawls before D-265 don't have it). */
+  audit?: PageAudit[];
 }
 
 const tag = (html: string, re: RegExp) => re.exec(html)?.[1]?.trim() ?? null;
@@ -25,6 +30,7 @@ export async function crawlSite(by: string | null): Promise<CrawlResult> {
     const xml = sm.ok ? await sm.text() : "";
     const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]).filter((u) => u.startsWith(base)).slice(0, 300);
     const pages: CrawlResult["pages"] = [];
+    const audit: PageAudit[] = [];
     const links = new Map<string, string>(); // internal link → first page that has it
     const pool = async <T>(items: T[], fn: (x: T) => Promise<void>) => {
       let i = 0;
@@ -33,9 +39,10 @@ export async function crawlSite(by: string | null): Promise<CrawlResult> {
     await pool(urls, async (u) => {
       const path = new URL(u).pathname;
       try {
-        const res = await fetch(u, { cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { "user-agent": "YoliasAdminCrawl/1" } });
+        const res = await fetch(u, { cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { "user-agent": "YoliasAdminCrawler/1" } });
         const html = res.status === 200 ? await res.text() : "";
         pages.push({ path, status: res.status, noindex: /<meta[^>]+name="robots"[^>]+noindex/i.test(html), canonical: tag(html, /<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i) });
+        if (res.status === 200) audit.push(auditPage(path, html, base));
         for (const m of html.matchAll(/<a[^>]+href="(\/[^"#?]*)/g)) if (!m[1].startsWith("//") && !links.has(m[1])) links.set(m[1], path);
       } catch {
         pages.push({ path, status: 0, noindex: false, canonical: null });
@@ -47,7 +54,7 @@ export async function crawlSite(by: string | null): Promise<CrawlResult> {
     const toCheck = [...links].filter(([to]) => !known.has(to) && !/^\/(api|_next|auth|admin)(\/|$)/.test(to)).slice(0, 100);
     await pool(toCheck, async ([to, from]) => {
       try {
-        const res = await fetch(`${base}${to}`, { method: "GET", cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { "user-agent": "YoliasAdminCrawl/1" } });
+        const res = await fetch(`${base}${to}`, { method: "GET", cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { "user-agent": "YoliasAdminCrawler/1" } });
         await res.body?.cancel();
         if (res.status >= 400 || res.status === 0) broken.push({ from, to, status: res.status });
         else if (res.status >= 300) redirects.push({ from, to, status: res.status });
@@ -55,7 +62,7 @@ export async function crawlSite(by: string | null): Promise<CrawlResult> {
         broken.push({ from, to, status: 0 });
       }
     });
-    const result: CrawlResult = { checkedAt: new Date().toISOString(), sitemap: urls.length, pages: pages.sort((a, b) => a.path.localeCompare(b.path)), broken, redirects };
+    const result: CrawlResult = { checkedAt: new Date().toISOString(), sitemap: urls.length, pages: pages.sort((a, b) => a.path.localeCompare(b.path)), broken, redirects, audit: crossPageIssues(audit).sort((a, b) => b.issues.length - a.issues.length || a.path.localeCompare(b.path)) };
     if (run) await ydb().from("seo_sync_runs").update({ finished_at: new Date().toISOString(), ok: true, rows: pages.length + toCheck.length, result: result as never }).eq("id", run.id);
     return result;
   } catch (e) {

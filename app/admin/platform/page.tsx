@@ -28,15 +28,12 @@ export default async function PlatformOverviewPage() {
         subtitle="مستخدمو تطبيق Yolias ومساحات العمل والاستخدام — من قاعدة بيانات Yolias مباشرة"
         actions={<a className="admin-btn small secondary" href={yoliasSiteUrl()} target="_blank" rel="noreferrer"><Tx>فتح Yolias</Tx></a>}
       />
-      {/* The ten numbers to watch every day (owner, 2026-10-29). */}
+      {/* The numbers to watch every day (owner, 2026-10-29); paid conversion, first search and first campaign are in the journey below. */}
       <Card title="أرقام اليوم">
         <div className="bos-kpis">
           <KpiCard label="تسجيلات جديدة" value={num(k.signups.today)} sub={<Tx vars={{ w: num(k.signups.week), p: num(k.signups.prevWeek) }}>{"{w} هذا الأسبوع مقابل {p} الأسبوع الماضي"}</Tx>} href="/admin/platform/users" />
           <KpiCard label="من أين جاءت" value={k.signups.channels[0]?.channel ?? "—"} sub={k.signups.channels.map((c) => `${c.channel} ${num(c.n)}`).join(" · ") || "—"} href="/admin/platform/seo/reports" />
-          <KpiCard label="نسبة الدفع" value={pct(k.paidConversion.paid, k.paidConversion.cohort)} sub={<Tx vars={{ p: num(k.paidConversion.paid), c: num(k.paidConversion.cohort) }}>{"{p} دفعوا من {c} سجّلوا خلال 30 يومًا"}</Tx>} href="/admin/platform/conversions" />
           <KpiCard label="إيراد الشهر" value={usd(k.revenue.month)} sub={<Tx vars={{ v: usd(k.revenue.mrr) }}>{"الإيراد الشهري الثابت {v}"}</Tx>} href="/admin/platform/payments" />
-          <KpiCard label="أول بحث خلال يوم" value={pct(k.firstSearch.within24h, k.firstSearch.cohort)} sub={<Tx vars={{ n: num(k.firstSearch.within24h), c: num(k.firstSearch.cohort) }}>{"{n} من {c} مستخدم جديد"}</Tx>} href="/admin/platform/searches" />
-          <KpiCard label="بدأوا أول حملة" value={pct(k.firstCampaign.started, k.firstCampaign.cohort)} sub={<Tx vars={{ n: num(k.firstCampaign.started), c: num(k.firstCampaign.cohort) }}>{"{n} من {c} مساحة جديدة"}</Tx>} />
           <KpiCard label="نسبة الرد" value={pct(k.replyRate.replied, k.replyRate.contacted)} sub={<Tx vars={{ r: num(k.replyRate.replied), c: num(k.replyRate.contacted) }}>{"{r} ردّوا من {c} تم التواصل معهم (30 يومًا)"}</Tx>} />
           <KpiCard label="صفقات كسبوها" value={num(k.dealsWon.month)} sub={<Tx vars={{ v: usd(k.dealsWon.value) }}>{"هذا الشهر · قيمتها {v}"}</Tx>} />
           <KpiCard label="المستخدمون النشطون" value={num(k.retention.activeWeek)} sub={<Tx vars={{ p: num(k.retention.activePrevWeek), q: num(k.retention.quiet) }}>{"الأسبوع الماضي {p} · {q} لم يعودوا"}</Tx>} href="/admin/platform/users" />
@@ -71,7 +68,6 @@ export default async function PlatformOverviewPage() {
         <KpiCard label="المستخدمون" value={num(o.users)} sub={<Tx vars={{ n: num(o.users30) }}>{"{n} جديد خلال 30 يوماً"}</Tx>} href="/admin/platform/users" />
         <KpiCard label="مساحات العمل" value={num(o.workspaces)} href="/admin/platform/workspaces" />
         <KpiCard label="خطط مدفوعة (فعلية)" value={num(o.livePaid)} sub={<Tx vars={{ n: num(o.testPaid) }}>{"{n} في وضع الاختبار"}</Tx>} />
-        <KpiCard label="الإيراد الشهري المتكرر" value={usd(o.mrrLive)} sub={<Tx vars={{ v: usd(o.mrrTest) }}>{"{v} في وضع الاختبار (ليس إيراداً)"}</Tx>} />
         <KpiCard label="عمليات البحث" value={num(o.searches)} sub={<Tx vars={{ n: num(o.searches30) }}>{"{n} خلال 30 يوماً"}</Tx>} href="/admin/platform/searches" />
         <KpiCard label="العملاء المحتملون المسلَّمون" value={num(o.prospects)} sub={<Tx vars={{ n: num(o.prospectsMonth) }}>{"{n} هذا الشهر"}</Tx>} />
       </div>

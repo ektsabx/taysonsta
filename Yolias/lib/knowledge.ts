@@ -70,7 +70,7 @@ export async function knowledgeFeed(): Promise<KnowledgeItem[]> {
     const h = home[l];
     const ab = about[l];
     // What Yolias is, how it works, the home FAQ.
-    push("platform", "overview", l, l === "ar" ? "ما هو يولـياس وكيف يعمل" : "What Yolias is and how it works", "/", [
+    push("platform", "overview", l, l === "ar" ? "ما هو يولياس وكيف يعمل" : "What Yolias is and how it works", "/", [
       l === "en" ? DEFINITION : h.lead,
       d.composer.subtitle,
       `${h.how.title}\n${h.how.steps.map((s, i) => `${i + 1}. ${s.title}: ${s.body}`).join("\n")}`,

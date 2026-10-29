@@ -268,7 +268,6 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
             {lead.job_title && <span className="sdr-cell-sub" dir="auto">{lead.job_title}</span>}
             {lead.company_name && <span className="sdr-cell-sub" dir="auto">{lead.company_name}</span>}
             <div className="sdr-details-actions">
-              {lead.stage !== "new" ? <Link className="sdr-btn sm" href={`/crm/${lead.id}`}><UserRound />{x.crmRecord}</Link> : <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => act(() => convertToOpportunity(lead.id), t.ws.inbox.converted)}><TrendingUp />{x.moveToCrm}</button>}
               {lead.linkedin_url && <a className="sdr-icon-btn bordered" href={lead.linkedin_url} target="_blank" rel="noreferrer" aria-label={x.linkedin}><LinkedInIcon /></a>}
               {lead.email && <a className="sdr-icon-btn bordered" href={`mailto:${lead.email}`} aria-label={x.email}><Mail /></a>}
             </div>

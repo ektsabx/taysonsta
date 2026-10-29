@@ -45,15 +45,15 @@ export async function loadSeoPage(kind: SeoKind, slug: string) {
 const indexCopy: Record<Exclude<SeoKind, "solution">, Record<Locale, { title: string; lead: string; description: string }>> = {
   compare: {
     en: { title: "Yolias compared", lead: "How Yolias compares with other prospecting, data and outreach tools: who each one is for, what it does and what it doesn't, from each product's own pages.", description: "Side-by-side comparisons of Yolias with other lead generation, B2B data and cold email tools, with sources and review dates." },
-    ar: { title: "مقارنات يولـياس", lead: "كيف يقارن يولـياس بأدوات البحث عن العملاء والبيانات والتواصل الأخرى: لمن تناسب كل أداة، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنات جنبًا إلى جنب بين يولـياس وأدوات جذب العملاء وبيانات الشركات والبريد البارد، مع المصادر وتواريخ المراجعة." },
+    ar: { title: "مقارنات يولياس", lead: "كيف يقارن يولياس بأدوات البحث عن العملاء والبيانات والتواصل الأخرى: لمن تناسب كل أداة، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنات جنبًا إلى جنب بين يولياس وأدوات جذب العملاء وبيانات الشركات والبريد البارد، مع المصادر وتواريخ المراجعة." },
   },
   alternatives: {
     en: { title: "Alternatives", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular prospecting and outreach tools, with selection criteria and when Yolias is a good fit." },
-    ar: { title: "البدائل", lead: "تبحث عن أداة أخرى؟ ما الذي تزنه عند التبديل، والخيارات التي تستحق النظر لكل أداة.", description: "بدائل لأدوات البحث عن العملاء والتواصل الشائعة، مع معايير الاختيار ومتى يكون يولـياس مناسبًا." },
+    ar: { title: "البدائل", lead: "تبحث عن أداة أخرى؟ ما الذي تزنه عند التبديل، والخيارات التي تستحق النظر لكل أداة.", description: "بدائل لأدوات البحث عن العملاء والتواصل الشائعة، مع معايير الاختيار ومتى يكون يولياس مناسبًا." },
   },
   template: {
     en: { title: "Prospecting templates", lead: "Ready-made ways to find the right companies and people: the criteria, the steps and a request you can open in Yolias AI and edit.", description: "B2B prospecting templates: find companies by industry, location and size, and the decision makers in them, then open the template in Yolias." },
-    ar: { title: "قوالب البحث عن العملاء", lead: "طرق جاهزة لإيجاد الشركات والأشخاص المناسبين: المعايير والخطوات وطلب تفتحه في Yolias AI وتعدّله.", description: "قوالب للبحث عن عملاء B2B: اعثر على الشركات حسب القطاع والموقع والحجم وعلى صنّاع القرار فيها، ثم افتح القالب في يولـياس." },
+    ar: { title: "قوالب البحث عن العملاء", lead: "طرق جاهزة لإيجاد الشركات والأشخاص المناسبين: المعايير والخطوات وطلب تفتحه في Yolias AI وتعدّله.", description: "قوالب للبحث عن عملاء B2B: اعثر على الشركات حسب القطاع والموقع والحجم وعلى صنّاع القرار فيها، ثم افتح القالب في يولياس." },
   },
 };
 

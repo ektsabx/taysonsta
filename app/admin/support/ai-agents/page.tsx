@@ -28,7 +28,7 @@ export default async function AiAgentsPage() {
   const kbRows = kb ?? [];
   return (
     <>
-      <PageHeader title="وكيل الذكاء الاصطناعي" subtitle="يرد على زوار ويدجت الموقع من قاعدة المعرفة فقط، ويحوّل إلى موظف عند الحاجة" actions={<AgentButton categories={catOpts} />} />
+      <PageHeader title="وكيل الدعم الآلي" subtitle="يرد على زوار ويدجت الموقع من قاعدة المعرفة فقط، ويحوّل إلى موظف عند الحاجة" actions={<AgentButton categories={catOpts} />} />
       <div className="bos-kpis">
         <KpiCard label="مزود الذكاء الاصطناعي" value={aiConns ? <Tx>متصل</Tx> : <Tx>غير متصل</Tx>} href="/admin/settings/integrations?cat=ai" sub={aiConns ? undefined : <Tx>كل الرسائل تُحوّل للموظفين</Tx>} />
         <KpiCard label="مقالات متاحة للوكيل" value={kbRows.length} href="/admin/support/knowledge?ai=1&status=published" />

@@ -334,3 +334,8 @@ npx wrangler secret put WORKER_SECRET
 1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261127000000_sales_emails.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261127000000.sql`. قبل النشر (الإيميلات بتقرأ `notify_sales`).
 2. نشر يولياس ثم الأدمن.
 3. من Yolias/: `npm run content:seed:production` (مقال «الصفقات والاجتماعات وعروض الأسعار»).
+
+## جولة 2026-10-29 الثالثة (D-265)
+1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261128000000_brand_spelling.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261128000000.sql`.
+2. نشر يولياس ثم الأدمن.
+3. من Yolias/: `npm run content:seed:production` ثم `npm run seo:seed:production`.

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
 import { blogHero } from "@/lib/content/blog";
 import { blogPosts } from "@/lib/content/store";
@@ -19,6 +20,7 @@ export default async function BlogPage() {
   const hero = blogHero[locale];
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: hero.title, description: hero.lead, path: "/blog", type: "CollectionPage" })]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{hero.eyebrow}</p>

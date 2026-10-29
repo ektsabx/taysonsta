@@ -8,7 +8,7 @@ import { playableTutorials, TUTORIALS_KEY, type PlayableTutorial } from "@/lib/t
 
 const copy = {
   en: { title: "Platform videos", lead: "Short walkthroughs of Yolias: from your first search to your first campaign.", empty: "The first videos are on their way. Meanwhile, the Help Center answers the common questions.", back: "Help Center", open: "Open the video" },
-  ar: { title: "شرح المنصة بالفيديو", lead: "جولات قصيرة في يولـياس: من أول بحث حتى أول حملة.", empty: "أول الفيديوهات في الطريق. حتى ذلك الحين، مركز المساعدة يجيب عن الأسئلة الشائعة.", back: "مركز المساعدة", open: "افتح الفيديو" },
+  ar: { title: "شرح المنصة بالفيديو", lead: "جولات قصيرة في يولياس: من أول بحث حتى أول حملة.", empty: "أول الفيديوهات في الطريق. حتى ذلك الحين، مركز المساعدة يجيب عن الأسئلة الشائعة.", back: "مركز المساعدة", open: "افتح الفيديو" },
 };
 
 async function load(locale: "en" | "ar"): Promise<PlayableTutorial[]> {

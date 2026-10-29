@@ -129,11 +129,11 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       footnote: "If you didn’t try to sign in, you can safely ignore this email. Your account stays secure.",
     },
     ar: {
-      subject: "رابط تسجيل الدخول إلى يولـياس",
+      subject: "رابط تسجيل الدخول إلى يولياس",
       preheader: "استخدم هذا الرابط الآمن لتسجيل الدخول. تنتهي صلاحيته خلال ساعة.",
-      heading: "رابط آمن لتسجيل الدخول إلى يولـياس",
+      heading: "رابط آمن لتسجيل الدخول إلى يولياس",
       body: "اضغط على الزر أدناه لتسجيل الدخول. تنتهي صلاحية الرابط خلال ساعة ويمكن استخدامه مرة واحدة فقط.",
-      button: "تسجيل الدخول إلى يولـياس",
+      button: "تسجيل الدخول إلى يولياس",
       footnote: "إذا لم تحاول تسجيل الدخول، يمكنك تجاهل هذه الرسالة بأمان. حسابك يبقى آمنًا.",
     },
   },
@@ -147,12 +147,12 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       footnote: "If you didn’t create a Yolias account, you can safely ignore this email.",
     },
     ar: {
-      subject: "أكّد حسابك في يولـياس",
-      preheader: "نقرة واحدة لتأكيد بريدك والبدء مع يولـياس.",
+      subject: "أكّد حسابك في يولياس",
+      preheader: "نقرة واحدة لتأكيد بريدك والبدء مع يولياس.",
       heading: "أكّد بريدك الإلكتروني",
-      body: "أهلًا بك في يولـياس. أكّد بريدك الإلكتروني لإكمال إنشاء حسابك. تنتهي صلاحية الرابط خلال ساعة.",
+      body: "أهلًا بك في يولياس. أكّد بريدك الإلكتروني لإكمال إنشاء حسابك. تنتهي صلاحية الرابط خلال ساعة.",
       button: "التأكيد والمتابعة",
-      footnote: "إذا لم تنشئ حسابًا في يولـياس، يمكنك تجاهل هذه الرسالة بأمان.",
+      footnote: "إذا لم تنشئ حسابًا في يولياس، يمكنك تجاهل هذه الرسالة بأمان.",
     },
   },
   invite: {
@@ -165,10 +165,10 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       footnote: "If you weren’t expecting this invitation, you can ignore this email.",
     },
     ar: {
-      subject: "دعوة للانضمام إلى يولـياس",
-      preheader: "فريقك يستخدم يولـياس للعثور على العملاء. اقبل الدعوة للانضمام.",
-      heading: "تمت دعوتك للانضمام إلى فريق على يولـياس",
-      body: "يستخدم فريقك يولـياس لاكتشاف العملاء وصنّاع القرار المناسبين. اقبل الدعوة للانضمام إلى مساحة العمل. تنتهي صلاحية الرابط خلال 24 ساعة.",
+      subject: "دعوة للانضمام إلى يولياس",
+      preheader: "فريقك يستخدم يولياس للعثور على العملاء. اقبل الدعوة للانضمام.",
+      heading: "تمت دعوتك للانضمام إلى فريق على يولياس",
+      body: "يستخدم فريقك يولياس لاكتشاف العملاء وصنّاع القرار المناسبين. اقبل الدعوة للانضمام إلى مساحة العمل. تنتهي صلاحية الرابط خلال 24 ساعة.",
       button: "قبول الدعوة",
       footnote: "إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.",
     },
@@ -183,10 +183,10 @@ const authCopy: Record<AuthTemplate, { en: AuthCopy; ar?: AuthCopy }> = {
       footnote: "If you didn’t ask for this, ignore this email. Nothing changes.",
     },
     ar: {
-      subject: "أكّد بريدك الجديد في يولـياس",
-      preheader: "أكّد هذا العنوان لإكمال تغيير بريدك في يولـياس.",
+      subject: "أكّد بريدك الجديد في يولياس",
+      preheader: "أكّد هذا العنوان لإكمال تغيير بريدك في يولياس.",
       heading: "أكّد بريدك الإلكتروني الجديد",
-      body: "طلبت تغيير البريد الإلكتروني لحسابك في يولـياس إلى هذا العنوان. أكّده لإكمال التغيير. تنتهي صلاحية الرابط خلال ساعة.",
+      body: "طلبت تغيير البريد الإلكتروني لحسابك في يولياس إلى هذا العنوان. أكّده لإكمال التغيير. تنتهي صلاحية الرابط خلال ساعة.",
       button: "تأكيد البريد الجديد",
       footnote: "إذا لم تطلب ذلك، تجاهل هذه الرسالة، ولن يتغير شيء.",
     },
@@ -297,13 +297,13 @@ export function supabaseAuthSubject(name: AuthTemplate): string {
 export function emailChangedNotice(locale: EmailLocale, siteUrl = "{{ .SiteURL }}", oldEmail = "{{ .OldEmail }}", newEmail = "{{ .Email }}"): RenderedEmail {
   const ar = locale === "ar";
   return {
-    subject: ar ? "تم تغيير بريدك في يولـياس" : "Your Yolias email address was changed",
+    subject: ar ? "تم تغيير بريدك في يولياس" : "Your Yolias email address was changed",
     html: layout({
       locale, siteUrl,
       preheader: ar ? "تنبيه أمني: تم تغيير البريد الإلكتروني لحسابك." : "Security notice: your account email was changed.",
       heading: ar ? "تم تغيير بريدك الإلكتروني" : "Your email address was changed",
       body: [ar
-        ? `تم تغيير البريد الإلكتروني لحسابك في يولـياس من <strong dir="ltr">${oldEmail}</strong> إلى <strong dir="ltr">${newEmail}</strong>. ستصل رسائل تسجيل الدخول إلى العنوان الجديد.`
+        ? `تم تغيير البريد الإلكتروني لحسابك في يولياس من <strong dir="ltr">${oldEmail}</strong> إلى <strong dir="ltr">${newEmail}</strong>. ستصل رسائل تسجيل الدخول إلى العنوان الجديد.`
         : `The email of your Yolias account was changed from <strong dir="ltr">${oldEmail}</strong> to <strong dir="ltr">${newEmail}</strong>. Sign-in links now go to the new address.`],
       footnote: ar
         ? `إذا لم تقم بهذا التغيير، <a href="${siteUrl}/contact?topic=support" style="color:${C.ink}">تواصل معنا فورًا</a>.`
@@ -319,11 +319,11 @@ type NoticeCopy = { subject: string; heading: string; body: string };
 const noticeCopy: Record<SecurityNotice, { en: NoticeCopy; ar?: NoticeCopy }> = {
   mfa_factor_enrolled: {
     en: { subject: "Two-factor authentication enabled", heading: "Two-factor authentication is on", body: "Two-factor authentication was turned on for your Yolias account. From now on, signing in needs a code from your authenticator app." },
-    ar: { subject: "تم تفعيل المصادقة الثنائية", heading: "المصادقة الثنائية مفعّلة", body: "تم تفعيل المصادقة الثنائية لحسابك في يولـياس. من الآن يحتاج تسجيل الدخول إلى رمز من تطبيق المصادقة." },
+    ar: { subject: "تم تفعيل المصادقة الثنائية", heading: "المصادقة الثنائية مفعّلة", body: "تم تفعيل المصادقة الثنائية لحسابك في يولياس. من الآن يحتاج تسجيل الدخول إلى رمز من تطبيق المصادقة." },
   },
   mfa_factor_unenrolled: {
     en: { subject: "Two-factor authentication disabled", heading: "Two-factor authentication is off", body: "Two-factor authentication was turned off for your Yolias account. Signing in now needs only the link sent to your email." },
-    ar: { subject: "تم إيقاف المصادقة الثنائية", heading: "المصادقة الثنائية متوقفة", body: "تم إيقاف المصادقة الثنائية لحسابك في يولـياس. يحتاج تسجيل الدخول الآن فقط إلى الرابط المرسل إلى بريدك." },
+    ar: { subject: "تم إيقاف المصادقة الثنائية", heading: "المصادقة الثنائية متوقفة", body: "تم إيقاف المصادقة الثنائية لحسابك في يولياس. يحتاج تسجيل الدخول الآن فقط إلى الرابط المرسل إلى بريدك." },
   },
   password_changed: {
     en: { subject: "Your Yolias password was changed", heading: "Your password was changed", body: "The password for your Yolias account was just changed. If this was you, there’s nothing else to do." },
@@ -395,7 +395,7 @@ export function receiptEmail(locale: EmailLocale, r: ReceiptInput): RenderedEmai
   const ar = locale === "ar";
   const periodText = r.period === "annual" ? (ar ? "سنوي" : "Annual") : ar ? "شهري" : "Monthly";
   return {
-    subject: ar ? `تم الدفع بنجاح: إيصالك من يولـياس #${r.invoiceNumber}` : `Payment successful: your Yolias receipt #${r.invoiceNumber}`,
+    subject: ar ? `تم الدفع بنجاح: إيصالك من يولياس #${r.invoiceNumber}` : `Payment successful: your Yolias receipt #${r.invoiceNumber}`,
     html: layout({
       locale,
       siteUrl: r.siteUrl,
@@ -443,7 +443,7 @@ export function discoveryReadyEmail(locale: EmailLocale, d: DiscoveryReadyInput)
         preheader: ar ? "لم نجد صنّاع قرار مطابقين هذه المرة." : "No matching decision makers this time.",
         heading: ar ? "انتهى البحث دون نتائج مطابقة" : "Your search finished without matches",
         body: [ar
-          ? `انتهى يولـياس من «${esc(d.strategyTitle)}» ولم يجد صنّاع قرار يطابقون معاييرك. لم يُحتسب أي عميل محتمل من رصيدك. جرّب توسيع السوق أو حجم الشركات أو المسميات.`
+          ? `انتهى يولياس من «${esc(d.strategyTitle)}» ولم يجد صنّاع قرار يطابقون معاييرك. لم يُحتسب أي عميل محتمل من رصيدك. جرّب توسيع السوق أو حجم الشركات أو المسميات.`
           : `Yolias finished “${esc(d.strategyTitle)}” and found no decision makers matching your criteria. No prospects were used. Try a wider market, company size or titles.`],
         button: { label: ar ? "تعديل البحث" : "Refine the search", href: `${d.siteUrl}/search/${d.strategyId}` },
         footnote: ar
@@ -461,7 +461,7 @@ export function discoveryReadyEmail(locale: EmailLocale, d: DiscoveryReadyInput)
       heading: ar ? "نتائج الاكتشاف جاهزة" : "Your discovery is ready",
       body: [
         ar
-          ? `انتهى يولـياس من «${esc(d.strategyTitle)}» ووجد <strong>${d.prospects}</strong> صانع قرار في <strong>${d.companies}</strong> شركة، مع نسبة تطابق لكل واحد.`
+          ? `انتهى يولياس من «${esc(d.strategyTitle)}» ووجد <strong>${d.prospects}</strong> صانع قرار في <strong>${d.companies}</strong> شركة، مع نسبة تطابق لكل واحد.`
           : `Yolias finished “${esc(d.strategyTitle)}” and found <strong>${d.prospects}</strong> decision makers at <strong>${d.companies}</strong> companies, each with a match score.`,
       ],
       button: { label: ar ? "عرض النتائج" : "View results", href: `${d.siteUrl}/search/${d.strategyId}` },
@@ -499,7 +499,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       heading: full ? (ar ? "استخدمت العملاء المحتملين المجانيين" : "You’ve used your free prospects") : ar ? "اقتربت من نهاية العملاء المحتملين المجانيين" : "You’re close to the end of your free prospects",
       body: [
         full
-          ? ar ? "توقف يولـياس عن إضافة عملاء محتملين جدد. اختر خطة أو اشترِ عملاء محتملين إضافيين من الإعدادات ← الاستخدام لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan, or buy more prospects in Settings → Usage, to keep discovering."
+          ? ar ? "توقف يولياس عن إضافة عملاء محتملين جدد. اختر خطة أو اشترِ عملاء محتملين إضافيين من الإعدادات ← الاستخدام لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan, or buy more prospects in Settings → Usage, to keep discovering."
           : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين. اختر خطة في أي وقت لتحصل على عملاء محتملين كل شهر.` : `You’ve used ${pct}% of your free prospects. Pick a plan any time to get prospects every month.`,
       ],
       extra: bar,
@@ -513,7 +513,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       body: [
         full
           ? ar
-            ? `توقف يولـياس عن إضافة عملاء محتملين جدد حتى ${dateText(u.resetsAt, locale)}. يمكنك شراء عملاء محتملين إضافيين من الإعدادات ← الاستخدام أو الترقية للمتابعة الآن.`
+            ? `توقف يولياس عن إضافة عملاء محتملين جدد حتى ${dateText(u.resetsAt, locale)}. يمكنك شراء عملاء محتملين إضافيين من الإعدادات ← الاستخدام أو الترقية للمتابعة الآن.`
             : `Yolias has paused adding new prospects until ${dateText(u.resetsAt, locale)}. Buy more prospects in Settings → Usage, or upgrade, to keep discovering now.`
           : ar
             ? `استخدمت ${pct}% من العملاء المحتملين المتاحين في خطتك هذا الشهر. يتجدد الرصيد في ${dateText(u.resetsAt, locale)}.`

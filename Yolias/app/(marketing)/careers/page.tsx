@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
 import { listCareerJobs } from "@/lib/careers";
 import { getDictionary } from "@/lib/i18n/server";
@@ -15,6 +16,7 @@ export default async function CareersPage() {
   const [c, jobs] = await Promise.all([getDictionary().then((t) => t.careers), listCareerJobs()]);
   return (
     <>
+      <JsonLd nodes={[webPageSchema({ title: c.title, description: c.lead, path: "/careers", type: "CollectionPage" })]} />
       <section className="page-hero">
         <div className="site-width">
           <p className="eyebrow">{c.eyebrow}</p>

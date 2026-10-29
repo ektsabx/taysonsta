@@ -120,7 +120,7 @@ export const navigation: NavGroup[] = [
   },
   {
     key: "y_ai", section: "yolias",
-    label: "الذكاء الاصطناعي",
+    label: "Yolias AI والنماذج",
     icon: "y_ai",
     items: [
       { href: "/admin/platform/agent", label: "Yolias AI", perm: "platform.read" },
@@ -193,7 +193,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/support/ratings", label: "التقييمات", perm: "conversations.read" },
       { href: "/admin/support/profile", label: "ملفي في الدعم", perm: "conversations.read" },
       { href: "/admin/support/spam", label: "الرسائل المزعجة", perm: "conversations.read" },
-      { href: "/admin/support/ai-agents", label: "وكيل الذكاء الاصطناعي", perm: "conversations.manage", all: "conversations.manage" },
+      { href: "/admin/support/ai-agents", label: "وكيل الدعم الآلي", perm: "conversations.manage", all: "conversations.manage" },
       { href: "/admin/support/widgets", label: "ويدجت الموقع", perm: "conversations.manage", all: "conversations.manage" },
       { href: "/admin/support/tickets", label: "التذاكر", perm: "tickets.read" },
       { href: "/admin/support/knowledge", label: "قاعدة المعرفة", perm: "knowledge.read" },
@@ -201,7 +201,7 @@ export const navigation: NavGroup[] = [
   },
   { key: "dashboard", section: "taysonsta", label: "لوحة التحكم", icon: "dashboard", href: "/admin/dashboard", perm: "dashboard.read" },
   // Phase 17 (docs/bos/30 §25): questions over the user's permitted data.
-  { key: "assistant", section: "taysonsta", label: "المساعد الذكي", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
+  { key: "assistant", section: "taysonsta", label: "مساعد البيانات", icon: "assistant", href: "/admin/assistant", perm: "dashboard.read" },
   {
     key: "sales", section: "taysonsta",
     label: "المبيعات",

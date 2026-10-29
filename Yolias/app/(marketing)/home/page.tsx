@@ -3,7 +3,7 @@ import Link from "@/components/LocaleLink";
 import { Check, Languages, ListChecks, MessageSquareText, Send, X } from "lucide-react";
 import { home } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
-import { HOME_TITLE, faqSchema, organizationSchema, pageMetadata, websiteSchema } from "@/lib/seo";
+import { HOME_DESCRIPTION, HOME_TITLE, HOME_TITLE_AR, faqSchema, organizationSchema, pageMetadata, websiteSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
 import { FounderNote } from "@/components/marketing/SocialProof";
@@ -11,10 +11,11 @@ import { getSession } from "@/lib/session";
 import { trialAvailable } from "@/lib/payments";
 import { fmt } from "@/lib/i18n/config";
 
-// The home title is fixed by the owner (2026-10-19), word for word, in both languages.
+// The home title is fixed by the owner (2026-10-19), word for word; /ar carries
+// its Arabic translation with the Arabic brand name first (D-265).
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return pageMetadata({ title: HOME_TITLE, absoluteTitle: true, description: home[locale].lead, path: "/" });
+  return pageMetadata({ title: locale === "ar" ? HOME_TITLE_AR : HOME_TITLE, absoluteTitle: true, description: HOME_DESCRIPTION[locale], path: "/" });
 }
 
 const tileIcons = [MessageSquareText, ListChecks, Send, Languages];
