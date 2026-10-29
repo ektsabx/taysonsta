@@ -94,39 +94,4 @@ export const posts: BlogPost[] = [
       },
     },
   },
-  {
-    slug: "why-yolias-stops-at-discovery",
-    date: "2026-10-01",
-    category: { en: "Perspective", ar: "رأي" },
-    doc: {
-      en: {
-        title: "Why Yolias stops at discovery",
-        summary: "We chose not to send messages for you. Here is the reasoning.",
-        blocks: [
-          { p: "The obvious next feature for a product like Yolias is outreach: write the emails, send them, follow up automatically. We decided not to build it, at least not now, and the reasons shape the whole product." },
-          { h2: "Quality is decided before the first message" },
-          { p: "Most outreach fails because it reaches the wrong people, not because the email was badly written. Every hour we spend on discovery (better criteria, clearer match scores, verified channels) improves every conversation that follows, whichever tool you use for it." },
-          { h2: "Your voice should stay yours" },
-          { p: "How you introduce your company to a founder in Riyadh or a procurement head in Cairo is a judgment call. Automating it at scale tends to produce the messages everyone has learned to ignore." },
-          { h2: "Compliance belongs with the sender" },
-          { p: "Rules for contacting people differ by country and channel. Keeping outreach in your hands keeps responsibility clear: Yolias finds and qualifies, and you decide whether and how to get in touch." },
-          { p: "That is why the product ends with a list you can trust and an export button, not a send button." },
-        ],
-      },
-      ar: {
-        title: "لماذا يتوقف يولياس عند الاكتشاف",
-        summary: "اخترنا ألا نرسل الرسائل نيابةً عنك. إليك الأسباب.",
-        blocks: [
-          { p: "الميزة التالية البديهية لمنتج مثل يولياس هي التواصل: كتابة الرسائل وإرسالها ومتابعتها تلقائيًا. قررنا ألا نبنيها، على الأقل الآن، وهذه الأسباب تشكّل المنتج كله." },
-          { h2: "الجودة تتحدد قبل الرسالة الأولى" },
-          { p: "يفشل معظم التواصل لأنه يصل إلى الأشخاص الخطأ، لا لأن الرسالة سيئة الصياغة. كل ساعة نقضيها في الاكتشاف، معايير أفضل، ونسب تطابق أوضح، وقنوات موثّقة، تحسّن كل محادثة تليها، أيًا كانت الأداة التي تستخدمها." },
-          { h2: "صوتك يجب أن يبقى لك" },
-          { p: "طريقة تقديم شركتك لمؤسس في الرياض أو مدير مشتريات في القاهرة قرار يحتاج تقديرًا. وأتمتتها على نطاق واسع تنتج غالبًا الرسائل التي تعلّم الجميع تجاهلها." },
-          { h2: "الامتثال مسؤولية المرسِل" },
-          { p: "تختلف قواعد التواصل مع الأشخاص من دولة لأخرى ومن قناة لأخرى. وإبقاء التواصل بين يديك يجعل المسؤولية واضحة: يولياس يجد ويؤهل، وأنت تقرر هل تتواصل وكيف." },
-          { p: "لهذا ينتهي المنتج بقائمة يمكنك الوثوق بها وزر تصدير، لا زر إرسال." },
-        ],
-      },
-    },
-  },
 ];

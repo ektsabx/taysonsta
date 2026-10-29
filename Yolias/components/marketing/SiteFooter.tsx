@@ -5,15 +5,11 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { SupportLink } from "@/components/SupportLink";
 import { ThemeMenu } from "@/components/ThemeMenu";
 import { useI18n } from "@/lib/i18n/client";
+import { SOCIAL_PROFILES } from "@/lib/social";
 
-// Official Yolias accounts.
-const socials = [
-  { label: "Instagram", href: "https://www.instagram.com/yolias.ai", Icon: InstagramIcon },
-  { label: "YouTube", href: "https://www.youtube.com/@yoliasai", Icon: YoutubeIcon },
-  { label: "Facebook", href: "https://www.facebook.com/yoliasai", Icon: FacebookIcon },
-  { label: "LinkedIn", href: "https://www.linkedin.com/company/yolias", Icon: LinkedinIcon },
-  { label: "X", href: "https://x.com/yolias", Icon: XIcon },
-];
+// Official Yolias accounts (lib/social.ts, also schema.org sameAs).
+const icons = { instagram: InstagramIcon, tiktok: TiktokIcon, youtube: YoutubeIcon, facebook: FacebookIcon, linkedin: LinkedinIcon, x: XIcon };
+const socials = SOCIAL_PROFILES.map((s) => ({ label: s.label, href: s.href, Icon: icons[s.id] }));
 
 // Footer shared by every public page (from the pricing design).
 export function SiteFooter({ signedIn = false, extraLinks = [] }: { signedIn?: boolean; extraLinks?: { href: string; label: string }[] }) {
@@ -127,6 +123,14 @@ function YoutubeIcon() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M2.5 17a24.1 24.1 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.1 24.1 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
       <path d="m10 15 5-3-5-3z" />
+    </svg>
+  );
+}
+
+function TiktokIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.6 2h-3.3v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.2a6.3 6.3 0 1 0 5.3 6.2V8.6a8 8 0 0 0 4.7 1.5V6.8a4.7 4.7 0 0 1-4.7-4.8Z" />
     </svg>
   );
 }

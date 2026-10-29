@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { localizedHref } from "@/lib/i18n/paths";
+import { SOCIAL_PROFILES } from "@/lib/social";
 
 // Search and answer-engine metadata for the public website (D-179). One
 // helper so every public page gets a unique title and description, a
@@ -20,6 +21,15 @@ export const HOME_TITLE_AR = "يولياس (Yolias): وكيل المبيعات �
 export const HOME_DESCRIPTION = {
   en: "Yolias, the AI sales agent for service businesses: describe your ideal customer and it finds the companies and decision makers, then emails them from your mailbox.",
   ar: "يولياس وكيل مبيعات بالذكاء الاصطناعي للشركات التي تبيع خدمات: صِف عميلك المثالي، فيجد لك الشركات وصنّاع القرار ويراسلهم من بريدك أنت.",
+};
+/** Search titles and snippets that differ from the page's headline (D-265 audit: titles 15–65, descriptions 50–170). */
+export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"en" | "ar", { title?: string; description?: string }>>> = {
+  product: { en: { title: "AI prospecting: one sentence to a list of buyers | Yolias", description: "Describe who you sell to. Yolias AI finds the companies and decision makers that fit, explains each match and writes outreach you approve." } },
+  about: { en: { title: "About Yolias | AI customer discovery" } },
+  pricing: {
+    en: { description: "Yolias pricing: pay as you go or monthly. Every option has all features and unlimited users, and you pay for prospects only." },
+    ar: { description: "أسعار يولياس: ادفع حسب استخدامك أو اشترك شهريًا. كل خيار فيه كل الميزات ومستخدمون غير محدودين، وتدفع مقابل العملاء المحتملين فقط." },
+  },
 };
 /** How people write the brand: Arabic spelling, the product name and what it is (schema.org alternateName). */
 export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Sales Agent"];
@@ -73,6 +83,7 @@ export function organizationSchema(): Thing {
     name: SITE_NAME,
     alternateName: BRAND_NAMES,
     url: absolute("/"),
+    sameAs: SOCIAL_PROFILES.map((s) => s.href),
     logo: { "@type": "ImageObject", url: absolute("/brand/logo-mark.png") },
     description: DEFINITION,
     contactPoint: { "@type": "ContactPoint", contactType: "customer support", url: absolute("/contact"), availableLanguage: ["English", "Arabic"] },

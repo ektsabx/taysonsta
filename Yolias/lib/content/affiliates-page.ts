@@ -24,7 +24,7 @@ export const affiliatesPage: Localized<{
     title: "Earn by introducing Yolias to businesses that sell services.",
     seoTitle: "Yolias Affiliate Program",
     lead: "Join in a minute. No application and no subscription. Share your referral link and earn a commission on the payments of the customers you refer.",
-    metaDescription: "Join the Yolias affiliate program: share your link, earn a commission on qualifying payments of the customers you refer, and follow every commission and payout in your dashboard.",
+    metaDescription: "Join the Yolias affiliate program: share your link, earn a commission on the payments of customers you refer, and track every payout.",
     closed: "The affiliate program isn’t open right now.",
     heroRate: "{rate} commission",
     heroRateNote: "on every qualifying payment of the customers you refer",

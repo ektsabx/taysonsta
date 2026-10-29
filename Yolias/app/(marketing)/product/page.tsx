@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
-import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
+import { PAGE_META, breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "@/components/LocaleLink";
 import { ArrowUp, BarChart3, Check, Download, History, Image as ImageIcon, Mic, Paperclip, Users } from "lucide-react";
 import { product } from "@/lib/content/site";
@@ -12,7 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   // "Yolias AI — <title>" stays within ~65 characters; the lead is the description.
   const title = product[locale].title.replace(/[.。]$/, "");
-  return pageMetadata({ title: `${title} | Yolias`, description: product[locale].lead, path: "/product" });
+  const m = PAGE_META.product[locale];
+  return pageMetadata({ title: m?.title ?? `${title} | Yolias`, absoluteTitle: Boolean(m?.title), description: m?.description ?? product[locale].lead, path: "/product" });
 }
 
 const moreIcons = [BarChart3, Download, Users, History];

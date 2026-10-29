@@ -184,6 +184,9 @@ export async function pageStats(days: number) {
   return { period: p, stats, conversions: per };
 }
 
+/** A search for the brand: Yolias / يولياس and the common misspellings. */
+export const BRAND_QUERY = /yol+i+a+s|yolyas|youlias|يول[ـ]?ي?اس|يوليا س/i;
+
 export async function reports(days: number) {
   const p = period(days);
   const [{ stats, conversions }, pages, kw, queries, comps, revs] = await Promise.all([
@@ -239,8 +242,18 @@ export async function reports(days: number) {
   const stale = (comps.data ?? []).filter((c) => !c.last_reviewed_at || Date.now() - Date.parse(c.last_reviewed_at) > 90 * 86_400_000);
   const invisible = [...pages].filter(([path, pg]) => pg.status === "published" && pg.publishedAt && Date.now() - Date.parse(pg.publishedAt) > 30 * 86_400_000 && !(stats.get(path)?.impressions)).map(([path, pg]) => ({ page: path, title: pg.title }));
 
+  // 9. Brand searches (D-266): every query naming Yolias, in Latin or Arabic letters
+  // (with or without the old tatweel), and where Yolias ranks for it.
+  const brand = qs.filter((x) => BRAND_QUERY.test(x.query)).sort((a, b) => b.impressions - a.impressions);
+  const brandTotals = (arabic: boolean) => {
+    const xs = brand.filter((x) => /[\u0600-\u06FF]/.test(x.query) === arabic);
+    const imp = xs.reduce((s, x) => s + x.impressions, 0);
+    return { queries: xs.length, impressions: imp, clicks: xs.reduce((s, x) => s + x.clicks, 0), position: imp ? xs.reduce((s, x) => s + (x.position ?? 0) * x.impressions, 0) / imp : null };
+  };
+
   return {
     period: p,
+    brand: { queries: brand.slice(0, 30), en: brandTotals(false), ar: brandTotals(true) },
     topSignups: [...rows].filter((r) => r.signups > 0).sort((a, b) => b.signups - a.signups).slice(0, 15),
     topRate: [...rows].filter((r) => r.clicks >= 10 && r.rate !== null).sort((a, b) => (b.rate ?? 0) - (a.rate ?? 0)).slice(0, 15),
     clusters: [...clusters.values()].sort((a, b) => b.paid - a.paid || b.signups - a.signups),

@@ -14,7 +14,7 @@ export const guidePosts: BlogPost[] = [
     doc: {
       en: {
         title: "AI sales automation: a practical guide for B2B teams",
-        summary: "What AI sales automation is, which parts of the sales process it should handle, which parts it shouldn’t, and how to roll it out in 30 days without hurting your reputation.",
+        summary: "What AI sales automation is, which parts of selling it should handle and which it shouldn’t, and how to roll it out in 30 days safely.",
         blocks: [
           { p: "**AI sales automation** means using AI to do the repetitive work between “we know who we want to sell to” and “we’re talking to a qualified buyer”: finding companies that fit, identifying the right decision makers, researching them, writing the first message and keeping follow-ups on time. Done well, it gives a small team the reach of a bigger one. Done badly, it floods inboxes with generic messages and burns your domain." },
           { p: "This guide explains where AI helps, where a human must stay in charge, and a step-by-step plan to start." },

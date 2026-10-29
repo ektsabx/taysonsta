@@ -9348,6 +9348,11 @@ const en: Record<string, string> = {
  "المشاكل": "Issues",
  "العنوان من 15 إلى 65 حرفًا، والوصف من 50 إلى 170، وعنوان H1 واحد، وCanonical يشير للصفحة نفسها، وhreflang للعربي والإنجليزي. «محتوى قليل»: أقل من 250 كلمة في الصفحات التجارية والمقالات فقط. «شبه مكررة»: 80% أو أكثر من النص مشترك مع صفحة أخرى بنفس اللغة.": "Title 15–65 characters, description 50–170, one H1, a canonical pointing to the page itself, and hreflang for Arabic and English. \"Thin\": under 250 words, on commercial pages and articles only. \"Near duplicate\": 80% or more of the text shared with another page in the same language.",
  "اضغط «افحص الموقع الآن» في فحص الروابط الداخلية.": "Press \"Check the site now\" under the internal link check.",
+ "9. البحث باسم يولياس": "9. Searches for Yolias",
+ "بالإنجليزية: {i} ظهور، {c} نقرة، متوسط الترتيب {p}": "English: {i} impressions, {c} clicks, average position {p}",
+ "بالعربية: {i} ظهور، {c} نقرة، متوسط الترتيب {p}": "Arabic: {i} impressions, {c} clicks, average position {p}",
+ "لا توجد عمليات بحث باسم يولياس في هذه الفترة": "No searches for Yolias in this period",
+ "كل عبارة فيها Yolias أو يولياس أو أخطاء كتابتها الشائعة. الترتيب الأقرب لـ 1 أفضل.": "Every query with Yolias, يولياس or a common misspelling. A position closer to 1 is better.",
 };
 
 export default en;

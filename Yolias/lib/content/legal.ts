@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-28";
+export const LEGAL_UPDATED = "2026-10-29";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -32,8 +32,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "Conversations with Yolias AI, and facts you ask it to remember about your business.",
           "Emails Yolias writes for you, your edits, and when and from which of your mailboxes they were sent. Yolias sends them only from a mailbox you connected, after you approve.",
         ] },
-        { h3: "Connected mailboxes (Gmail, Outlook)" },
-        { p: "If you connect your Gmail or Outlook, we keep an access permission (an OAuth refresh token) encrypted in our database vault; it never reaches your browser. Yolias uses it only to send campaigns you approved and to read the replies in the email threads Yolias started, so it can show them in your Inbox, classify them and stop follow-ups. Yolias doesn’t read, store or analyse any other email in your mailbox, doesn’t use mailbox data for advertising, doesn’t sell it, and doesn’t use it to train AI models. Yolias’s use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. You can disconnect at any time in Settings, Integrations, which deletes the stored permission; you can also remove Yolias’s access from your Google or Microsoft account." },
+        { h3: "Connected mailboxes (Gmail, IMAP/SMTP)" },
+        { p: "If you connect Gmail, we keep an access permission (an OAuth refresh token); if you connect another mailbox by IMAP/SMTP, we keep its server settings and password. Either is kept encrypted in our database vault and never reaches your browser. Yolias uses it only to send campaigns you approved and to read the replies in the email threads Yolias started, so it can show them in your Inbox, classify them and stop follow-ups. Yolias doesn’t read, store or analyse any other email in your mailbox, doesn’t use mailbox data for advertising, doesn’t sell it, and doesn’t use it to train AI models. Yolias’s use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. You can disconnect at any time in Settings, Integrations, which deletes the stored permission or password; for Gmail you can also remove Yolias’s access from your Google account." },
         { h3: "Payments" },
         { p: "Payments are made on our payment partner’s secure page: Paymob, where you pay by card (Visa, Mastercard or Meeza). If you choose to save your card there, Paymob keeps it and gives us a reference to it (a token) so renewals can be charged; we store that reference encrypted and see only the card brand and last four digits. We receive the payment result, amount, subscription status and a reference. We never receive your card number or security code." },
         { h3: "Business contact data about prospects" },
@@ -98,8 +98,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           "محادثاتك مع Yolias AI، والمعلومات التي تطلب منه تذكّرها عن عملك.",
           "رسائل البريد التي يكتبها يولياس لك، وتعديلاتك عليها، ومتى ومن أي صندوق بريد أُرسلت. يرسلها يولياس فقط من صندوق بريد ربطته، وبعد موافقتك.",
         ] },
-        { h3: "صناديق البريد المتصلة (Gmail وOutlook)" },
-        { p: "إذا ربطت Gmail أو Outlook، نحتفظ بإذن الوصول (رمز OAuth للتجديد) مشفّرًا في خزنة قاعدة البيانات، ولا يصل إلى متصفحك أبدًا. يستخدمه يولياس فقط لإرسال الحملات التي وافقت عليها ولقراءة الردود في محادثات البريد التي بدأها يولياس، ليعرضها في صندوق الوارد ويصنفها ويوقف المتابعات. لا يقرأ يولياس أي رسالة أخرى في صندوق بريدك ولا يخزنها ولا يحللها، ولا يستخدم بيانات البريد للإعلانات، ولا يبيعها، ولا يستخدمها لتدريب نماذج الذكاء الاصطناعي. يلتزم استخدام يولياس للمعلومات الواردة من واجهات Google بسياسة بيانات المستخدم لخدمات Google API، بما في ذلك متطلبات الاستخدام المحدود. يمكنك فصل الحساب في أي وقت من الإعدادات ← التكاملات، فيُحذف الإذن المخزّن، ويمكنك أيضًا إزالة وصول يولياس من حساب Google أو Microsoft الخاص بك." },
+        { h3: "صناديق البريد المتصلة (Gmail وIMAP/SMTP)" },
+        { p: "إذا ربطت Gmail نحتفظ بإذن الوصول (رمز OAuth للتجديد)، وإذا ربطت بريدًا آخر عبر IMAP/SMTP نحتفظ بإعدادات الخادم وكلمة المرور. ويُحفظ كلاهما مشفّرًا في خزنة قاعدة البيانات، ولا يصل إلى متصفحك أبدًا. يستخدمه يولياس فقط لإرسال الحملات التي وافقت عليها ولقراءة الردود في محادثات البريد التي بدأها يولياس، ليعرضها في صندوق الوارد ويصنفها ويوقف المتابعات. لا يقرأ يولياس أي رسالة أخرى في صندوق بريدك ولا يخزنها ولا يحللها، ولا يستخدم بيانات البريد للإعلانات، ولا يبيعها، ولا يستخدمها لتدريب نماذج الذكاء الاصطناعي. يلتزم استخدام يولياس للمعلومات الواردة من واجهات Google بسياسة بيانات المستخدم لخدمات Google API، بما في ذلك متطلبات الاستخدام المحدود. يمكنك فصل الحساب في أي وقت من الإعدادات ← التكاملات، فيُحذف الإذن أو كلمة المرور المخزّنة، ويمكنك أيضًا مع Gmail إزالة وصول يولياس من حساب Google الخاص بك." },
         { h3: "المدفوعات" },
         { p: "يتم الدفع في صفحة الدفع الآمنة لشريكنا Paymob، وتدفع بالبطاقة (فيزا أو ماستركارد أو ميزة). إذا اخترت حفظ بطاقتك هناك، يحتفظ بها Paymob ويعطينا مرجعًا لها (رمزًا) لخصم التجديدات؛ نخزّن هذا المرجع مشفّرًا ولا نرى إلا نوع البطاقة وآخر أربعة أرقام. نستلم نتيجة الدفع والمبلغ وحالة الاشتراك ومرجعًا للعملية فقط، ولا نستلم رقم بطاقتك أو رمز الأمان أبدًا." },
         { h3: "بيانات التواصل المهنية للعملاء المحتملين" },
@@ -199,7 +199,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
     },
     ar: {
       title: "شروط الخدمة",
-      summary: "الاتفاق بينك وبين Yolias LLC لاستخدام يولياس.",
+      summary: "الاتفاق بينك وبين Yolias LLC لاستخدام يولياس: الحساب والدفع والاستخدام المقبول والمسؤولية.",
       blocks: [
         { h2: "الاتفاق" },
         { p: "بإنشاء حساب أو استخدام يولياس فإنك توافق على هذه الشروط عن نفسك وعن الجهة التي تمثلها. يولياس مخصص للاستخدام التجاري." },

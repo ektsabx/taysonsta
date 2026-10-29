@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/JsonLd";
-import { organizationSchema, pageMetadata, webPageSchema } from "@/lib/seo";
+import { PAGE_META, organizationSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import Link from "@/components/LocaleLink";
 import { about } from "@/lib/content/site";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return pageMetadata({ title: `${(await getDictionary()).site.about} | Yolias`, description: about[locale].lead, path: "/about" });
+  const m = PAGE_META.about[locale];
+  return pageMetadata({ title: m?.title ?? `${(await getDictionary()).site.about} | Yolias`, absoluteTitle: Boolean(m?.title), description: m?.description ?? about[locale].lead, path: "/about" });
 }
 
 export default async function AboutPage() {

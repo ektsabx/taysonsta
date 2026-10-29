@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { currencyFor, getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { getSession } from "@/lib/session";
 import { offeredPlans } from "@/lib/plans";
@@ -10,11 +10,11 @@ import { pricingFaq } from "@/lib/pricing-copy";
 import { topUps } from "@/lib/credits";
 import { switches } from "@/lib/switches";
 import { JsonLd } from "@/components/marketing/JsonLd";
-import { breadcrumbSchema, faqSchema, pageMetadata, softwareSchema } from "@/lib/seo";
+import { PAGE_META, breadcrumbSchema, faqSchema, pageMetadata, softwareSchema } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDictionary();
-  return pageMetadata({ title: t.pricing.title, absoluteTitle: true, description: `${t.pricing.heroTitle} ${t.pricing.heroSupport}`, path: "/pricing" });
+  return pageMetadata({ title: t.pricing.title, absoluteTitle: true, description: PAGE_META.pricing[await getLocale()]?.description ?? `${t.pricing.heroTitle} ${t.pricing.heroSupport}`, path: "/pricing" });
 }
 
 // Public pricing page. Picking a plan → signup (new visitors) or checkout

@@ -506,7 +506,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       tagline: "Research organizations and opportunities in your target market.",
       title: "Research organizations and business opportunities relevant to your target market.",
       lead: "Commercial and corporate real estate sales start with knowing which organizations are in your market. Describe them and Yolias finds companies and local businesses that match.",
-      metaDescription: "Yolias helps real estate sales professionals research organizations and local businesses in their target market, with match explanations and public business contact details.",
+      metaDescription: "Yolias helps real estate sales teams find companies and local businesses in their market, with why each fits and their public business contacts.",
       pillars: [
         { title: "Know who is in your market", body: "Describe the organizations and local businesses you sell to and get a list of the ones in your target areas." },
         { title: "Prioritize with reasons, not guesses", body: "Each result shows why it matched your criteria, so your team starts with the most relevant organizations." },

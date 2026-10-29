@@ -48,8 +48,8 @@ const indexCopy: Record<Exclude<SeoKind, "solution">, Record<Locale, { title: st
     ar: { title: "مقارنات يولياس", lead: "كيف يقارن يولياس بأدوات البحث عن العملاء والبيانات والتواصل الأخرى: لمن تناسب كل أداة، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنات جنبًا إلى جنب بين يولياس وأدوات جذب العملاء وبيانات الشركات والبريد البارد، مع المصادر وتواريخ المراجعة." },
   },
   alternatives: {
-    en: { title: "Alternatives", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular prospecting and outreach tools, with selection criteria and when Yolias is a good fit." },
-    ar: { title: "البدائل", lead: "تبحث عن أداة أخرى؟ ما الذي تزنه عند التبديل، والخيارات التي تستحق النظر لكل أداة.", description: "بدائل لأدوات البحث عن العملاء والتواصل الشائعة، مع معايير الاختيار ومتى يكون يولياس مناسبًا." },
+    en: { title: "Alternatives to prospecting tools", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular prospecting and outreach tools, with selection criteria and when Yolias is a good fit." },
+    ar: { title: "بدائل أدوات البحث عن العملاء", lead: "تبحث عن أداة أخرى؟ ما الذي تزنه عند التبديل، والخيارات التي تستحق النظر لكل أداة.", description: "بدائل لأدوات البحث عن العملاء والتواصل الشائعة، مع معايير الاختيار ومتى يكون يولياس مناسبًا." },
   },
   template: {
     en: { title: "Prospecting templates", lead: "Ready-made ways to find the right companies and people: the criteria, the steps and a request you can open in Yolias AI and edit.", description: "B2B prospecting templates: find companies by industry, location and size, and the decision makers in them, then open the template in Yolias." },
@@ -69,7 +69,9 @@ export async function SeoIndex({ kind }: { kind: Exclude<SeoKind, "solution"> })
   const locale = await getLocale();
   const c = indexCopy[kind][locale];
   const pages = await seoPages(kind);
-  const others = kind === "compare" ? await seoPages("alternatives") : kind === "alternatives" ? await seoPages("compare") : [];
+  // "Yolias vs X" and "X alternatives" answer different searches: each hub lists its own
+  // pages and links to the other once (listing both made the two hubs 81% alike, D-266).
+  const other = kind === "compare" ? "alternatives" : kind === "alternatives" ? "compare" : null;
   return (
     <>
       <JsonLd nodes={[webPageSchema({ title: c.title, description: c.description, path: seoBase[kind], type: "CollectionPage" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.title, path: seoBase[kind] }])]} />
@@ -92,13 +94,7 @@ export async function SeoIndex({ kind }: { kind: Exclude<SeoKind, "solution"> })
           ) : (
             <p className="lead">{locale === "ar" ? "لا توجد صفحات منشورة هنا بعد." : "Nothing is published here yet."}</p>
           )}
-          {others.length > 0 && (
-            <ul className="solutions-grid" style={{ marginTop: "2rem" }}>
-              {others.map((p) => (
-                <li key={p.id}><Link className="solution-card" href={p.path}><strong>{p.copy[locale].title}</strong><span>{p.copy[locale].metaDescription}</span></Link></li>
-              ))}
-            </ul>
-          )}
+          {other && <p className="lead" style={{ marginTop: "2rem" }}><Link className="ws-link" href={seoBase[other]}>{indexCopy[other][locale].title}</Link></p>}
         </div>
       </section>
     </>

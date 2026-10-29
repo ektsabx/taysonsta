@@ -112,7 +112,7 @@ export const aeoPosts: BlogPost[] = [
     doc: {
       en: {
         title: "How to find B2B customers: a step-by-step guide",
-        summary: "Where B2B customers come from, how to build a target list of companies, how to reach the right person, and how AI shortens each step, with examples from Egypt and the Gulf.",
+        summary: "Where B2B customers come from, how to build a target list, reach the right person and use AI to shorten each step, with examples from Egypt and the Gulf.",
         blocks: [
           { p: "**Short answer:** B2B customers are found by choosing a narrow market (one industry, one region, one company size), building a list of the companies in it, finding the person who decides in each, and contacting them with a relevant message, then following up. The main sources are business directories and maps, company registries, LinkedIn, industry events and referrals. AI tools now do the list building and research in minutes instead of days." },
           { h2: "1. Choose a market narrow enough to describe in one sentence" },

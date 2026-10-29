@@ -145,7 +145,7 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
   "real-estate": {
     en: {
       ...common.en,
-      seoTitle: "Commercial Real Estate Prospecting: Find Companies that Need Space",
+      seoTitle: "Commercial Real Estate Prospecting with AI",
       limits: ["Yolias finds companies and organizations, not individual home buyers.", "It can’t see leases or moving plans. It finds companies by size, location and the signals available, and you qualify the opportunity.", limitsEn.contacts],
       faq: [
         { q: "Can Yolias tell me which companies are moving offices?", a: "No. Yolias can’t see leases or moving plans. It finds companies that match the size, location and signals you describe, such as hiring when a source provides it, and you qualify the opportunity." },

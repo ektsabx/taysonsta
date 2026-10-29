@@ -63,6 +63,17 @@ export default async function SeoReportsPage({ searchParams }: { searchParams: P
           {r.invisible.length > 0 && <p style={{ fontSize: 13 }}><Tx vars={{ list: r.invisible.map((x) => x.page).join(", ") }}>{"منشورة منذ أكثر من 30 يومًا بدون أي ظهور: {list}"}</Tx></p>}
           {!r.cannibal.length && !r.stale.length && !r.invisible.length && <EmptyState title="لا يوجد" />}
         </Card>
+        <Card title="9. البحث باسم يولياس">
+          {noGsc}
+          {src.gsc && (
+            <p style={{ fontSize: 13 }}>
+              <Tx vars={{ i: num(r.brand.en.impressions), c: num(r.brand.en.clicks), p: pos(r.brand.en.position) }}>{"بالإنجليزية: {i} ظهور، {c} نقرة، متوسط الترتيب {p}"}</Tx><br />
+              <Tx vars={{ i: num(r.brand.ar.impressions), c: num(r.brand.ar.clicks), p: pos(r.brand.ar.position) }}>{"بالعربية: {i} ظهور، {c} نقرة، متوسط الترتيب {p}"}</Tx>
+            </p>
+          )}
+          {table(["عبارة البحث", "مرات الظهور", "نقرات", "الترتيب"], r.brand.queries.map((x) => [<span key="q" dir="auto">{x.query}</span>, num(x.impressions), num(x.clicks), pos(x.position)]), "لا توجد عمليات بحث باسم يولياس في هذه الفترة")}
+          <p className="bos-faint" style={{ fontSize: 12 }}><Tx>كل عبارة فيها Yolias أو يولياس أو أخطاء كتابتها الشائعة. الترتيب الأقرب لـ 1 أفضل.</Tx></p>
+        </Card>
       </div>
       <Card title="حدود الإسناد">
         <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13, lineHeight: 1.8 }}>

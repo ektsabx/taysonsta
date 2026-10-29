@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { SOCIAL_PROFILES } from "@/lib/social";
 import { blogPosts, docPages, helpArticles } from "@/lib/content/store";
 import { solutions, solutionSlugs } from "@/lib/content/solutions";
 import { solutionSeo } from "@/lib/content/solutions-seo";
@@ -40,6 +41,9 @@ Yolias works in English and Arabic. Every page below also exists in Arabic at th
 - Analytics: "Today" (new replies, today's meetings, deals quiet for a week) above the discovery and outreach numbers, the same summary by email each morning, and won and lost deals by industry and reason; new searches lean toward what the user's won deals have in common.
 - Email sending rules: emails per day per mailbox, a random gap between emails, and sending days and hours in each mailbox's time zone; out-of-office replies pause the follow-up for a week instead of stopping it.
 - Company Knowledge (with offers and competitors) and a Customer Profile that Yolias writes from the company's website; they guide searches, emails and replies. Campaigns (emails written per person and sent from the user's mailbox) and their replies (labelled interested, not interested or needs follow-up, with AI-suggested answers) are together in Conversations.
+
+## Official profiles
+Yolias (Arabic: يولياس) publishes only on these accounts: ${SOCIAL_PROFILES.map((s) => `${s.label} ${s.href}`).join(", ")}.
 
 ## Main pages
 ${line("Product", "/product", "how Yolias AI turns a brief into a list of matching companies and decision makers")}

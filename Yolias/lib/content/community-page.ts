@@ -20,8 +20,8 @@ export interface CommunityCopy {
 
 export const communityPage: Localized<CommunityCopy> = {
   en: {
-    seoTitle: "Yolias Community | Founders and sales teams finding B2B customers with AI",
-    metaDescription: "The Yolias community on Facebook: founders, freelancers, agencies and sales teams asking questions, reviewing each other's outreach and sharing what works to find B2B customers with AI, in English and Arabic.",
+    seoTitle: "Yolias Community | Finding B2B customers with AI",
+    metaDescription: "The Yolias community on Facebook: founders, agencies and sales teams sharing what works to find B2B customers with AI, in English and Arabic.",
     eyebrow: "COMMUNITY",
     title: "The Yolias community",
     lead: "A group for people who sell to businesses: founders, freelancers, agencies and sales teams who want to find the right customers and write outreach that gets answered. Free, in English and Arabic.",
@@ -70,8 +70,8 @@ export const communityPage: Localized<CommunityCopy> = {
     final: { title: "Find customers with people doing the same", body: "Join the group, introduce yourself and ask your first question today.", primary: "Join the group on Facebook" },
   },
   ar: {
-    seoTitle: "مجتمع يولياس | رواد أعمال وفرق مبيعات يجدون عملاء الشركات بالذكاء الاصطناعي",
-    metaDescription: "مجتمع يولياس على فيسبوك: رواد أعمال ومستقلون ووكالات وفرق مبيعات يسألون ويراجعون رسائل بعضهم ويتشاركون ما ينجح في إيجاد عملاء الشركات بالذكاء الاصطناعي، بالعربية والإنجليزية.",
+    seoTitle: "مجتمع يولياس | إيجاد عملاء الشركات بالذكاء الاصطناعي",
+    metaDescription: "مجتمع يولياس على فيسبوك: رواد أعمال ووكالات وفرق مبيعات يتشاركون ما ينجح في إيجاد عملاء الشركات بالذكاء الاصطناعي، بالعربية والإنجليزية.",
     eyebrow: "المجتمع",
     title: "مجتمع يولياس",
     lead: "مجموعة لمن يبيع للشركات: رواد أعمال ومستقلون ووكالات وفرق مبيعات يريدون إيجاد العملاء المناسبين وكتابة رسائل يُرد عليها. مجانية، بالعربية والإنجليزية.",
