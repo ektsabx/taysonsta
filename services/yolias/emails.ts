@@ -111,6 +111,10 @@ export const emailEvents: { kind: string; category: string; label: string; inApp
   { kind: "daily_digest", category: "usage", label: "ملخص الصباح (اليوم)", inApp: false },
   { kind: "meeting_soon", category: "usage", label: "تذكير قبل الاجتماع بساعة", inApp: false },
   { kind: "meeting_outcome", category: "usage", label: "سؤال «كيف كان الاجتماع؟»", inApp: false },
+  { kind: "meeting_booked", category: "account", label: "حجز جديد من صفحة الحجز (لصاحب الصفحة)", inApp: false },
+  { kind: "meeting_canceled", category: "account", label: "الضيف ألغى الاجتماع (لصاحب الصفحة)", inApp: false },
+  { kind: "meeting_guest", category: "account", label: "تأكيد الحجز (للضيف)", inApp: false },
+  { kind: "meeting_guest_canceled", category: "account", label: "إلغاء الاجتماع (للضيف)", inApp: false },
   { kind: "announcement", category: "updates", label: "إعلان تحديثات المنتج", inApp: true },
   { kind: "affiliate_update", category: "account", label: "إشعارات برنامج الأفلييت (القبول، العمولات، السحب)", inApp: true },
 ];

@@ -1,4 +1,5 @@
 import "server-only";
+import { nextSlots } from "@/lib/meetings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { analyzeReply, type ReplyAnalysis } from "@/lib/agents/replies";
@@ -361,25 +362,26 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
   const who = `${lead?.name ?? "a lead"}${lead?.company_name ? ` (${lead.company_name})` : ""}`;
   if (analysis && HANDOFF_KINDS.has(analysis.kind)) {
-    // Hand-off: the member continues the deal. A meeting request gets the booking
-    // link at once when there is one (owner, 2026-10-29): the campaign's link for a
-    // meeting campaign, else the member's own (Settings → Account), sent in the thread
-    // when the campaign answers by itself (auto-reply on).
-    const { data: owner } = await db.from("profiles").select("language, booking_url").eq("id", mb.user_id).maybeSingle();
+    // Hand-off: the member continues the deal. A meeting request gets two free
+    // times and the member's Yolias booking page (D-267; the campaign's own link
+    // only when the page is off), sent in the thread when the campaign answers
+    // by itself (auto-reply on).
+    const { data: owner } = await db.from("profiles").select("language").eq("id", mb.user_id).maybeSingle();
     const ar = owner?.language === "ar";
     const meeting = analysis.kind === "meeting_request";
     let linkSent = false;
     if (meeting && campaignId && !lead?.do_not_contact) {
       const { data: camp } = await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle();
       const c = camp as OutreachCampaignRow | null;
-      const link = (c?.aim === "meeting" && c.cta_url) || owner?.booking_url || null;
+      const page = await nextSlots(mb.user_id).catch(() => null);
+      const link = page?.url ?? ((c?.aim === "meeting" && c.cta_url) || null);
       if (link && c?.auto_reply && c.status === "active" && c.mailbox_id === mb.id) {
-        linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis.suggested_reply), "Yolias sent your booking link (the lead asked for a meeting).");
+        linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis.suggested_reply, page?.slots ?? [], page?.timezone ?? null), "Yolias offered two times and sent your booking page (the lead asked for a meeting).");
       }
     }
     const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
     const next = meeting
-      ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط الاجتماع (أو أضف رابط الحجز في الإعدادات ← الحساب ليرسله يولياس تلقائيًا)." : " Send your meeting link (or add your booking link in Settings → Account so Yolias sends it).")
+      ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط صفحة الحجز من الاجتماعات (أو فعّل الرد التلقائي في الحملة ليرسله يولياس بنفسه)." : " Send them your booking page from Meetings (or turn on auto-reply in the campaign so Yolias sends it).")
       : "";
     const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
     await notifyUser(mb.workspace_id, mb.user_id, title, body, `/crm/${leadId}`, `reply:${messageId}`);
@@ -404,10 +406,16 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   await sendInThread(db, mb, leadId, messageId, c, () => reply, "Yolias answered the reply automatically (auto-reply is on for this campaign).");
 }
 
-/** The answer to a meeting request: the agent's suggested reply with the link, or a short line in the thread's language. */
-function bookingReply(link: string, lang: string | null, suggested: string | null): string {
+/** The answer to a meeting request: two free times from the booking page and its link, in the thread's language. */
+function bookingReply(link: string, lang: string | null, suggested: string | null, slots: string[], timeZone: string | null): string {
   if (suggested && suggested.includes(link)) return suggested;
-  const line = lang === "ar" ? `يسعدني ذلك. اختر الوقت المناسب لك من هنا: ${link}` : `Great. Pick a time that suits you here: ${link}`;
+  const ar = lang === "ar";
+  const city = (timeZone ?? "UTC").split("/").pop()!.replace(/_/g, " ");
+  const at = (iso: string) => new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: timeZone ?? "UTC" }).format(new Date(iso));
+  const times = slots.slice(0, 2).map(at);
+  const line = times.length === 2
+    ? (ar ? `يسعدني ذلك. هل يناسبك ${times[0]} أو ${times[1]} (بتوقيت ${city})؟ يمكنك تأكيد أحدهما أو اختيار وقت آخر من هنا: ${link}` : `Great. Would ${times[0]} or ${times[1]} (${city} time) work? Confirm one, or pick another time here: ${link}`)
+    : (ar ? `يسعدني ذلك. اختر الوقت المناسب لك من هنا: ${link}` : `Great. Pick a time that suits you here: ${link}`);
   return suggested ? `${suggested.trim()}\n\n${line}` : line;
 }
 

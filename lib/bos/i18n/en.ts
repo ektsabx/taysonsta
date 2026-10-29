@@ -9353,6 +9353,10 @@ const en: Record<string, string> = {
  "بالعربية: {i} ظهور، {c} نقرة، متوسط الترتيب {p}": "Arabic: {i} impressions, {c} clicks, average position {p}",
  "لا توجد عمليات بحث باسم يولياس في هذه الفترة": "No searches for Yolias in this period",
  "كل عبارة فيها Yolias أو يولياس أو أخطاء كتابتها الشائعة. الترتيب الأقرب لـ 1 أفضل.": "Every query with Yolias, يولياس or a common misspelling. A position closer to 1 is better.",
+ "حجز جديد من صفحة الحجز (لصاحب الصفحة)": "New booking from the booking page (to the host)",
+ "الضيف ألغى الاجتماع (لصاحب الصفحة)": "The guest canceled (to the host)",
+ "تأكيد الحجز (للضيف)": "Booking confirmation (to the guest)",
+ "إلغاء الاجتماع (للضيف)": "Meeting canceled (to the guest)",
 };
 
 export default en;

@@ -70,6 +70,20 @@ export type MeetingRow = {
   id: string; workspace_id: string; lead_id: string; title: string; starts_at: string; ends_at: string | null; url: string | null;
   status: MeetingStatus; notes: string | null; created_by: string | null; created_at: string; updated_at: string;
   reminded_at: string | null; outcome_asked_at: string | null;
+  /** D-267: where it came from, the guest of a booking, its host and the Google event. */
+  source: "manual" | "booking" | "agent"; host_id: string | null; guest_name: string | null; guest_email: string | null; guest_note: string | null;
+  location: string | null; google_event_id: string | null; cancel_token: string;
+};
+export type WeekDay = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+export type BookingHours = Record<WeekDay, [string, string][]>;
+export type BookingPageRow = {
+  user_id: string; workspace_id: string; slug: string; enabled: boolean; title: string; location: string | null; description: string | null;
+  duration_min: number; timezone: string; buffer_min: number; min_notice_hours: number; window_days: number; hours: BookingHours;
+  created_at: string; updated_at: string;
+};
+export type CalendarConnectionRow = {
+  user_id: string; workspace_id: string; provider: "google"; email: string | null; calendar_id: string | null; token_secret_id: string | null;
+  status: "connected" | "error" | "disconnected"; error: string | null; created_at: string; updated_at: string;
 };
 export type OutreachCampaignStatus = "draft" | "active" | "paused" | "archived";
 export type OutreachCampaignRow = {

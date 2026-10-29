@@ -131,6 +131,13 @@ export interface MessageData {
   meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null };
   /** A meeting passed with no outcome recorded. */
   meeting_outcome: Base & { lead: string; leadId: string };
+  /** Booking page (D-267): to the host when someone books or cancels. */
+  meeting_booked: Base & { guest: string; guestEmail: string; time: string; leadId: string; url: string | null; note: string | null };
+  meeting_canceled: Base & { guest: string; guestEmail: string; time: string; leadId: string; url: string | null; note: string | null };
+  /** To the guest who booked: the time, the place or link, and a cancel link. */
+  meeting_guest: Base & { hostName: string; company: string | null; title: string; start: string; end: string; timeZone: string; location: string | null; url: string | null; calendarInvite: boolean; cancelUrl: string };
+  /** To the guest when the host cancels (Google tells them itself when the event came from Google Calendar). */
+  meeting_guest_canceled: Base & { title: string; start: string; timeZone: string };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
   affiliate_update: Base & { event: AffiliateEmailEvent; amountCents: number | null; reason: string | null; reference: string | null };
   /** A message written by the Yolias team to one account (Admin → Users / Abandoned checkouts, D-215). */
@@ -458,6 +465,50 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       "حدّث الصفقة: تم الاجتماع، أو أُرسل العرض، أو كسبت، أو خسرت. الصفقات المكسوبة والخاسرة تعلّم يولياس أي الشركات يبحث عنها.")],
     button: { label: T(l, "Update the deal", "حدّث الصفقة"), href: `${d.siteUrl}/crm/${d.leadId}` },
     footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
+  }),
+
+  meeting_booked: (l, d) => ({
+    subject: T(l, `New meeting: ${d.guest}, ${d.time}`, `اجتماع جديد: ${d.guest}، ${d.time}`),
+    preheader: T(l, "Booked from your Yolias booking page.", "حُجز من صفحة الحجز في يولياس."),
+    heading: T(l, `${d.guest} booked a meeting`, `${d.guest} حجز اجتماعًا`),
+    body: [T(l, `<strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) booked <span dir="ltr">${esc(d.time)}</span>. They are in your CRM with the meeting on their record.`, `حجز <strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) موعد <span dir="ltr">${esc(d.time)}</span>. أصبح في إدارة العملاء والاجتماع في سجله.`),
+      ...(d.note ? [T(l, `Their note: “${esc(d.note)}”`, `ملاحظته: «${esc(d.note)}»`)] : []),
+      ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : [])],
+    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    footnote: T(l, `${link(`${d.siteUrl}/meetings`, "Your meetings")}`, `${link(`${d.siteUrl}/meetings`, "اجتماعاتك")}`),
+  }),
+  meeting_canceled: (l, d) => ({
+    subject: T(l, `Canceled: ${d.guest}, ${d.time}`, `أُلغي: ${d.guest}، ${d.time}`),
+    preheader: T(l, "The guest canceled from their confirmation email.", "ألغى الضيف من رسالة التأكيد."),
+    heading: T(l, `${d.guest} canceled`, `${d.guest} ألغى الاجتماع`),
+    body: [T(l, `<strong>${esc(d.guest)}</strong> canceled the meeting on <span dir="ltr">${esc(d.time)}</span>. The time is free again on your booking page.`, `ألغى <strong>${esc(d.guest)}</strong> اجتماع <span dir="ltr">${esc(d.time)}</span>. عاد الموعد متاحًا في صفحة الحجز.`),
+      ...(d.note ? [T(l, `Reason: “${esc(d.note)}”`, `السبب: «${esc(d.note)}»`)] : [])],
+    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    footnote: T(l, `${link(`${d.siteUrl}/meetings`, "Your meetings")}`, `${link(`${d.siteUrl}/meetings`, "اجتماعاتك")}`),
+  }),
+  meeting_guest: (l, d) => {
+    const when = (iso: string) => new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(iso));
+    const g = (iso: string) => iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    const add = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${d.title} with ${d.hostName}`)}&dates=${g(d.start)}/${g(d.end)}${d.url || d.location ? `&location=${encodeURIComponent(d.url ?? d.location ?? "")}` : ""}`;
+    const rows: [string, string][] = [["When", `<span dir="ltr">${esc(when(d.start))}</span>`], ["With", esc([d.hostName, d.company].filter(Boolean).join(", "))]];
+    if (d.url) rows.push(["Link", link(d.url, d.url)]);
+    else if (d.location) rows.push(["Where", esc(d.location)]);
+    return {
+      subject: `Confirmed: ${d.title} with ${d.hostName}`,
+      preheader: when(d.start),
+      heading: "Your meeting is booked",
+      body: [`${esc(d.hostName)} will see you on <span dir="ltr">${esc(when(d.start))}</span>.`, d.calendarInvite ? "A calendar invitation is on its way from Google Calendar." : `${link(add, "Add it to Google Calendar")}.`],
+      extra: table("en", rows),
+      button: { label: "Cancel the meeting", href: d.cancelUrl },
+      footnote: `You booked this on ${esc(d.hostName)}’s booking page on Yolias. If you can’t make it, cancel with the button above so the time is freed.`,
+    };
+  },
+  meeting_guest_canceled: (l, d) => ({
+    subject: `Canceled: ${d.title}`,
+    preheader: "The meeting was canceled.",
+    heading: "Meeting canceled",
+    body: [`The meeting “${esc(d.title)}” on <span dir="ltr">${esc(new Intl.DateTimeFormat("en-US", { dateStyle: "full", timeStyle: "short", timeZone: d.timeZone }).format(new Date(d.start)))}</span> was canceled by the host.`],
+    footnote: "Sent by Yolias on behalf of the host.",
   }),
 
   /* Product updates */

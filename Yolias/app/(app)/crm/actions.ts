@@ -129,7 +129,8 @@ export async function saveMeeting(input: z.input<typeof meetingInput>): Promise<
     previous = old.status;
     saved = (await db.from("sales_meetings").update(row).eq("id", m.id).select("id, lead_id, status").single()).data;
   } else {
-    saved = (await db.from("sales_meetings").insert({ ...row, workspace_id: session.workspace.id, lead_id: m.lead_id, created_by: session.userId }).select("id, lead_id, status").single()).data;
+    // The member is the host: their booking page won't offer this time (D-267).
+    saved = (await db.from("sales_meetings").insert({ ...row, workspace_id: session.workspace.id, lead_id: m.lead_id, created_by: session.userId, host_id: session.userId }).select("id, lead_id, status").single()).data;
   }
   if (!saved) return { ok: false, error: (await getDictionary()).ws.common.error };
   await meetingChanged(db, session.workspace.id, saved, previous, "user");

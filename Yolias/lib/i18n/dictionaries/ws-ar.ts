@@ -4,7 +4,7 @@ import type { Dictionary } from "./en";
 
 export const wsAr: Dictionary["ws"] = {
   nav: {
-    campaigns: "الحملات", conversations: "المحادثات", outreach: "التواصل", inbox: "صندوق الوارد", crm: "إدارة العملاء", aiWorkspace: "مساحة الذكاء الاصطناعي",
+    campaigns: "الحملات", conversations: "المحادثات", meetings: "الاجتماعات", outreach: "التواصل", inbox: "صندوق الوارد", crm: "إدارة العملاء", aiWorkspace: "مساحة الذكاء الاصطناعي",
     knowledge: "معرفة الشركة", profiles: "ملفات العملاء", agents: "وكيل الذكاء الاصطناعي", rules: "القواعد والصلاحيات", automations: "الأتمتة",
     watchVideo: "شاهد الفيديو التعريفي",
   },

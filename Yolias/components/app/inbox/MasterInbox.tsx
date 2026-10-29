@@ -4,7 +4,7 @@ import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, FileText, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, TrendingUp, UserRound } from "lucide-react";
+import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, TrendingUp, UserRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -253,7 +253,6 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
               <textarea ref={box} className="sdr-input" dir="auto" rows={5} value={body} maxLength={5000} placeholder={fmt(x.replyTo, { name: lead.name })} onChange={(e) => setBody(e.target.value)} />
               <div className="sdr-foot" style={{ marginTop: 0 }}>
                 <button type="button" className="sdr-btn" disabled={pending} onClick={() => act(async () => { const r = await draftReplyAction(lead.id, body); if (r.ok) setBody(""); return r; }, t.ws.inbox.composer.draftReady)}><PenLine />{x.suggest}</button>
-                <Link className="sdr-btn" href={`/crm/${lead.id}/quote?from=inbox`}><FileText />{t.quote.open}</Link>
                 <button type="button" className="sdr-btn primary" disabled={pending || !body.trim() || !p.hasMailbox} onClick={() => act(async () => { const r = await sendReply(lead.id, body); if (r.ok) { setBody(""); setComposing(false); } return r; }, x.sent)}><Send />{x.send}</button>
               </div>
             </div>

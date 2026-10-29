@@ -5,7 +5,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 import type {
   AcquisitionSource, ActorKind, AutomationRow, AutomationRunRow, BusinessOfferRow, CompetitorRow, CrmLeadRow, CustomerProfileRow,
-  InboxThreadRow, LeadActivityRow, LeadRow, LeadSource, LeadStage, LeadTaskRow, MeetingRow, OutreachCampaignRow, OutreachEnrollmentRow,
+  InboxThreadRow, LeadActivityRow, LeadRow, LeadSource, LeadStage, LeadTaskRow, MeetingRow, BookingPageRow, CalendarConnectionRow, OutreachCampaignRow, OutreachEnrollmentRow,
   OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow,
 } from "./acquisition";
 export type * from "./acquisition";
@@ -997,6 +997,8 @@ export interface Database {
       lead_activities: Table<LeadActivityRow, "workspace_id" | "lead_id" | "kind">;
       lead_tasks: Table<LeadTaskRow, "workspace_id" | "lead_id" | "title">;
       sales_meetings: Table<MeetingRow, "workspace_id" | "lead_id" | "title" | "starts_at">;
+      booking_pages: Table<BookingPageRow, "user_id" | "workspace_id" | "slug">;
+      calendar_connections: Table<CalendarConnectionRow, "user_id" | "workspace_id">;
       outreach_campaigns: Table<OutreachCampaignRow, "workspace_id" | "name">;
       outreach_steps: Table<OutreachStepRow, "workspace_id" | "campaign_id" | "position">;
       outreach_enrollments: Table<OutreachEnrollmentRow, "workspace_id" | "campaign_id" | "lead_id">;
@@ -1070,6 +1072,9 @@ export interface Database {
       campaign_usage: { Args: { p_campaign: string }; Returns: { consumed: number; reserved: number }[] };
       can_read_conversation: { Args: { p_id: string }; Returns: boolean };
       set_mailbox_token: { Args: { p_mailbox: string; p_token: string }; Returns: undefined };
+      set_calendar_token: { Args: { p_user: string; p_token: string }; Returns: undefined };
+      calendar_token: { Args: { p_user: string }; Returns: string | null };
+      clear_calendar_token: { Args: { p_user: string }; Returns: undefined };
       mailbox_token: { Args: { p_mailbox: string }; Returns: string | null };
       clear_mailbox_token: { Args: { p_mailbox: string }; Returns: undefined };
       workspace_analytics: { Args: { p_ws: string; p_since: string }; Returns: Json };

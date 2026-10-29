@@ -4,7 +4,7 @@
 
 export const wsEn = {
   nav: {
-    campaigns: "Campaigns", conversations: "Conversations", outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
+    campaigns: "Campaigns", conversations: "Conversations", meetings: "Meetings", outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
     knowledge: "Company Knowledge", profiles: "Customer Profiles", agents: "AI Agent", rules: "Rules & Permissions", automations: "Automations",
     watchVideo: "Watch the intro video",
   },

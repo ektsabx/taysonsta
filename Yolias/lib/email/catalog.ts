@@ -54,6 +54,11 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   daily_digest: { category: "usage", pref: "notify_sales" },
   meeting_soon: { category: "usage", pref: "notify_sales" },
   meeting_outcome: { category: "usage", pref: "notify_sales" },
+  // Booking page (D-267): the host is always told (it's their calendar); the guest gets the confirmation they asked for.
+  meeting_booked: { category: "account", pref: null },
+  meeting_canceled: { category: "account", pref: null },
+  meeting_guest: { category: "account", pref: null },
+  meeting_guest_canceled: { category: "account", pref: null },
   announcement: { category: "updates", pref: "notify_product" },
   // Affiliate program: statements about the affiliate's own money and status.
   affiliate_update: { category: "account", pref: null },

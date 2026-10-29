@@ -76,7 +76,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       avatarUrl: profile.avatar_url,
       initials: initials(profile.full_name, session.email.slice(0, 2).toUpperCase()),
       phone,
-      bookingUrl: profile.booking_url ?? null,
       askReview,
     },
     preferences: {

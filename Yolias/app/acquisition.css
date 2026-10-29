@@ -377,46 +377,6 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 .lead-thread-who { display: block; font-size: .74rem; color: var(--muted); margin-bottom: 4px; }
 .lead-thread p { margin: 0; font-size: .84rem; line-height: 1.55; white-space: pre-wrap; color: var(--ink); }
 
-/* Quote (owner, 2026-10-29): edit on screen, print to PDF. */
-.quote-tools { display: flex; justify-content: space-between; align-items: center; padding: 20px 34px 0; gap: 12px; flex-wrap: wrap; }
-.quote-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.quote-hint { flex-basis: 100%; margin: 0; font-size: .8rem; color: var(--muted); text-align: end; }
-.quote-sheet { max-width: 820px; margin: 20px auto 40px; padding: 40px; background: #fff; color: #141413; border: 1px solid var(--line); border-radius: 12px; }
-.quote-head { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e5e5e0; padding-bottom: 18px; }
-.quote-head h1 { margin: 0; font-size: 1.4rem; }
-.quote-head p, .quote-meta span, .quote-to span { color: #747470; font-size: .84rem; margin: 4px 0 0; }
-.quote-meta { display: flex; flex-direction: column; text-align: end; }
-.quote-meta strong { font-size: 1.2rem; }
-.quote-to { display: flex; flex-direction: column; gap: 2px; margin: 20px 0; }
-.quote-lines { width: 100%; border-collapse: collapse; font-size: .88rem; }
-.quote-lines th { text-align: start; color: #747470; font-weight: 600; border-bottom: 1px solid #e5e5e0; padding: 8px 6px; }
-.quote-lines td { border-bottom: 1px solid #f0f0eb; padding: 6px; }
-.quote-lines input { width: 100%; border: 1px solid transparent; background: transparent; font: inherit; color: inherit; padding: 4px; border-radius: 6px; }
-.quote-lines input:hover, .quote-lines input:focus { border-color: #e5e5e0; outline: none; }
-.quote-lines td:nth-child(2) input { width: 60px; } .quote-lines td:nth-child(3) input { width: 110px; }
-.quote-lines tfoot td { font-weight: 600; border-bottom: 0; padding-top: 12px; }
-.quote-sheet .sdr-btn { margin-top: 10px; }
-.quote-notes { margin-top: 24px; display: flex; flex-direction: column; gap: 6px; font-size: .84rem; color: #747470; }
-.quote-notes textarea { border: 1px solid #e5e5e0; border-radius: 8px; padding: 8px; font: inherit; color: #141413; background: #fff; resize: vertical; }
 @media print {
   .no-print, .sidebar, .app-sidebar, .mobile-topbar, nav { display: none !important; }
-  .quote-sheet { border: 0; margin: 0; max-width: none; padding: 0; }
-  .quote-notes textarea { border: 0; resize: none; }
-  .quote-lines input { border: 0; }
 }
-@media (max-width: 640px) {
-  .quote-sheet { padding: 20px; } .quote-tools { padding: 16px 16px 0; }
-  /* Phones: the item gets its own row so its text isn't cut. */
-  .quote-lines, .quote-lines tbody, .quote-lines tfoot { display: block; width: 100%; }
-  .quote-lines tbody tr { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; align-items: center; border-bottom: 1px solid #f0f0eb; }
-  .quote-lines tbody td, .quote-lines input { min-width: 0; }
-  .quote-lines tfoot tr { display: flex; justify-content: space-between; }
-  .quote-lines tfoot td:empty { display: none; }
-  .quote-lines tbody td { border: 0; padding: 4px; }
-  .quote-lines tbody td:first-child { grid-column: 1 / -1; }
-  .quote-lines td:nth-child(2) input, .quote-lines td:nth-child(3) input { width: 100%; }
-  .quote-lines thead { display: none; }
-}
-.quote-sheet .sdr-btn { background: #fff; color: #141413; border-color: #e5e5e0; }
-.quote-sheet .sdr-btn:hover { background: #f3f3f0; }
-.quote-sheet .sdr-icon-btn { color: #747470; }

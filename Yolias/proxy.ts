@@ -11,7 +11,7 @@ import { localeForCountry, normalizeCountry } from "@/lib/geo";
 // (app) layout, which has database access.
 // Pages that need a signed-in user. Everything else is public (website,
 // auth, legal, resources) and unknown paths fall through to the 404 page.
-const appPaths = ["/analytics", "/prospects", "/search", "/checkout", "/onboarding", "/invoices", "/billing", "/outreach", "/inbox", "/crm", "/ai"];
+const appPaths = ["/analytics", "/prospects", "/search", "/checkout", "/onboarding", "/invoices", "/billing", "/outreach", "/inbox", "/crm", "/meetings", "/ai"];
 
 // admin.* belongs to Yolias Admin. If such a request reaches Yolias, the
 // local front door (scripts/dev-proxy.mjs) isn't the one serving :3200 —

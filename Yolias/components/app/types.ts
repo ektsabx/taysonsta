@@ -4,7 +4,6 @@ import type { BillingPeriod, Plan, ProfileRow, SubscriptionStatus, WorkspaceRole
 export interface ShellData {
   user: {
     /** Booking link sent when a lead asks for a meeting (2026-10-29). */
-    bookingUrl: string | null;
     id: string;
     name: string;
     email: string;

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Check, FileText, Inbox, PenLine, ShieldAlert, Trash2, X } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Check, Inbox, PenLine, ShieldAlert, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { addNote, addTask, decideApproval, prepareMeetingBrief, removeLead, saveMeeting, setTaskDone, updateLead } from "@/app/(app)/crm/actions";
@@ -64,7 +64,6 @@ export function LeadDetailView({ detail, fit, members, canDelete, timeZone }: Pr
           {lead.do_not_contact && <span className="ws-chip red"><ShieldAlert /> {d.dnc}</span>}
           <StageSelect leadId={lead.id} stage={lead.stage} />
           <Link className="btn-secondary" href={`/inbox?lead=${lead.id}`}><Inbox size={14} /> {d.openInInbox}</Link>
-          <Link className="btn-secondary" href={`/crm/${lead.id}/quote`}><FileText size={14} /> {t.quote.open}</Link>
         </div>
       </header>
       <div className="view-content-padding">
