@@ -942,3 +942,14 @@ a.bos-kpi.active { border-color: var(--bos-info); }
 .y-tl-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
 .y-tl-meta { font-size: 12.5px; color: var(--bos-faint); overflow-wrap: anywhere; }
 @media (max-width: 760px) { .y-tl li { grid-template-columns: 1fr; gap: 4px; } }
+
+/* Journey funnel on the Yolias overview (owner, 2026-10-29). */
+.bos-funnel { display: grid; gap: 8px; }
+.bos-funnel-row { display: grid; grid-template-columns: minmax(140px, 260px) 1fr minmax(150px, auto); gap: 12px; align-items: center; }
+.bos-funnel-track { height: 10px; border-radius: 5px; background: var(--bos-border-strong); overflow: hidden; }
+.bos-funnel-bar { display: block; height: 100%; background: var(--bos-strong); border-radius: 5px; }
+.bos-funnel-n { white-space: nowrap; }
+@media (max-width: 640px) {
+  .bos-funnel-row { grid-template-columns: 1fr auto; }
+  .bos-funnel-track { grid-column: 1 / -1; grid-row: 2; }
+}

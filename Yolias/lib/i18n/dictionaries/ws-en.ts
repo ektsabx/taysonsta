@@ -153,7 +153,6 @@ export const wsEn = {
     sources: { search: "Yolias search", import: "CSV import", manual: "Added manually" },
     filterStage: "Stage", filterOwner: "Owner", anyone: "Anyone", unassigned: "Unassigned", sort: "Sort",
     sorts: { last_activity_at: "Last activity", created_at: "Date added", deal_value: "Deal value", next_follow_up_at: "Next follow-up", name: "Name" },
-    added: "{count} added to the CRM.", alreadyIn: "{count} were already in the CRM.", addToCrm: "Add to CRM",
     moveTo: "Move to", total: "{count} leads · {value}", lostReason: "Why was it lost?", lostReasons: { price: "Price", timing: "Timing", no_need: "No need", competitor: "Chose a competitor", no_response: "Stopped replying", other: "Other" }, stageChanged: "Stage updated.",
     detail: {
       people: "Decision makers here", expectedClose: "Expected close date", you: "You", addToCalendar: "Add to Google Calendar", summary: "Deal", lastContact: "Last contact", nextStep: "Next step", conversation: "Conversation", conversationCounts: "{sent} sent · {replies} replies", openConversation: "Open the conversation",

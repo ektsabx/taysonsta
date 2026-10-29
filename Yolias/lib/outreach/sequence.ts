@@ -1,4 +1,5 @@
 import "server-only";
+import { notify, userRecipient } from "@/lib/email/notify";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSuppressed } from "@/lib/intel/shared";
@@ -215,6 +216,9 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     if (who.userId) {
       const at = new Intl.DateTimeFormat(who.ar ? "ar-EG-u-nu-latn" : "en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC" }).format(new Date(m.starts_at));
       await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, `/crm/${m.lead_id}`, `meeting-soon:${m.id}`);
+      // And by email (owner, 2026-10-29); emails are in English (D-158).
+      const atEn = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC", timeZoneName: "short" }).format(new Date(m.starts_at));
+      await notify("meeting_soon", await userRecipient(who.userId), { lead: who.lead, time: atEn, leadId: m.lead_id, url: m.url ?? null }, { workspaceId: m.workspace_id, dedupe: m.id });
     }
     await db.from("sales_meetings").update({ reminded_at: now }).eq("id", m.id);
     out.reminders++;
@@ -230,6 +234,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
       due_at: now, source: "agent", assignee_id: who.userId, dedupe_key: `meeting-outcome:${m.id}`,
     });
     if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", `/crm/${m.lead_id}`, `meeting-outcome:${m.id}`);
+    if (who.userId) await notify("meeting_outcome", await userRecipient(who.userId), { lead: who.lead, leadId: m.lead_id }, { workspaceId: m.workspace_id, dedupe: m.id });
     await db.from("sales_meetings").update({ outcome_asked_at: now }).eq("id", m.id);
     out.reminders++;
   }

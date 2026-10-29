@@ -90,3 +90,4 @@ export async function yoliasKpis(): Promise<Kpis> {
     failures: { bounced7d: bounced.count ?? 0, mailboxesDown: boxesDown.count ?? 0, searchesFailed7d: failedSearches.count ?? 0 },
   };
 }
+

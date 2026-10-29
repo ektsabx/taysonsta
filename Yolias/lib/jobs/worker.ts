@@ -3,6 +3,7 @@ import { sendTeamMessage } from "@/lib/email/team";
 import { classifyCheckouts } from "@/lib/funnel";
 import { messagingTick } from "@/lib/messaging/engine";
 import { followUpSweep } from "@/lib/outreach/sequence";
+import { dailyDigestSweep } from "@/lib/email/digest";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { autopilotSweep } from "@/lib/outreach/autopilot";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
@@ -161,6 +162,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
   // Follow-up Agent: due follow-ups, scheduled messages and meeting outcomes (D-197).
   await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
+  // The morning summary by email (owner, 2026-10-29), at most every 15 minutes.
+  await dailyDigestSweep().catch((e) => console.error("[jobs] morning summary failed", e));
   // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
   await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));

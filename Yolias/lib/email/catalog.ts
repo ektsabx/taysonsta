@@ -8,7 +8,7 @@ import type { EmailCategory } from "@/lib/email/send";
 // mail is transactional) and how it renders. Triggers live next to the
 // events (billing, pipeline, auth, admin); see docs/05 "Emails".
 
-export type Pref = "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product";
+export type Pref = "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product" | "notify_sales";
 
 interface LegacyData {
   receipt: ReceiptInput;
@@ -51,6 +51,9 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   usage_low: { category: "usage", pref: "notify_usage" },
   usage_limit: { category: "usage", pref: "notify_usage" },
   discovery_ready: { category: "usage", pref: "notify_campaign_done" },
+  daily_digest: { category: "usage", pref: "notify_sales" },
+  meeting_soon: { category: "usage", pref: "notify_sales" },
+  meeting_outcome: { category: "usage", pref: "notify_sales" },
   announcement: { category: "updates", pref: "notify_product" },
   // Affiliate program: statements about the affiliate's own money and status.
   affiliate_update: { category: "account", pref: null },

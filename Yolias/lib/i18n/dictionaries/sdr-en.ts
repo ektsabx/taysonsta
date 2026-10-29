@@ -83,7 +83,7 @@ export const sdrEn = {
     notInCampaign: "Not in a campaign", notContacted: "Not contacted", doNotContact: "Do not contact",
     reachEmail: "Has an email", reachLinkedin: "LinkedIn profile", reachPhone: "Has a phone number", website: "Website", linkedin: "LinkedIn",
     savedOnly: "Saved only", sort: "Sort", sortMatch: "Best match", sortNewest: "Newest", sortName: "Name",
-    menu: { open: "Open", send: "Send a campaign", crm: "Add to CRM", reveal: "Reveal contacts", remove: "Remove", exportCsv: "Export CSV", importCsv: "Import CSV" },
+    menu: { open: "Open", send: "Send a campaign", reveal: "Reveal contacts", remove: "Remove", exportCsv: "Export CSV", importCsv: "Import CSV" },
     emptyPeople: "No people yet. Save decision makers from a search, or import a CSV.", emptyCompanies: "No companies yet. Save results from a search, or import a CSV.", emptyFiltered: "Nothing matches these filters.",
     peopleHint: "No people yet. Your searches found {n} companies: see the Companies tab.",
   },

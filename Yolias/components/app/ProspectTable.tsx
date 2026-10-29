@@ -4,14 +4,14 @@ import { EmptyNext } from "@/components/app/EmptyNext";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Eye, Globe, Mail, Phone, Send, SquareKanban, Trash2, UsersRound, X } from "lucide-react";
+import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Eye, Globe, Mail, Phone, Send, Trash2, UsersRound, X } from "lucide-react";
 import { AIMS, aimUsesLink } from "@/lib/outreach/aim";
 import type { CampaignAim } from "@/types/acquisition";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { addSelectionToCampaign, addSelectionToCrm, findDecisionMakersAction, openOutreachCampaigns, removeFromProspects, removeFromSaved, revealContacts, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
+import { addSelectionToCampaign, findDecisionMakersAction, openOutreachCampaigns, removeFromProspects, removeFromSaved, revealContacts, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
 import type { Bucket, ReplyKind } from "@/services/pipeline";
 import { RowMenu } from "./sdr/bits";
@@ -121,7 +121,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
     <RowMenu label={t.sdr.common.more}>{(close) => (<>
       <Link href={r.href} onClick={close}><ExternalLink />{L.menu.open}</Link>
       <button type="button" onClick={() => { close(); setSelected(new Set([r.key])); setAllMatching(false); start(async () => setPicker(await openOutreachCampaigns())); }}><Send />{L.menu.send}</button>
-      <button type="button" onClick={() => { close(); one(r.key, async (tg) => { const x = await addSelectionToCrm(tg); if (!x.ok) { toast(x.error, "error"); return null; } return x.message; }); }}><SquareKanban />{L.menu.crm}</button>
       {r.kind === "person" && <button type="button" onClick={() => { close(); one(r.key, async (tg) => ((await revealContacts(tg)).ok ? pr.revealed : null)); }}><Eye />{L.menu.reveal}</button>}
       <hr />
       <button type="button" className="danger" onClick={() => { close(); one(r.key, async (tg) => { const x = await removeFromProspects(tg); return x.ok ? fmt(pr.removed, { count: n(x.removed) }) : null; }); }}><Trash2 />{L.menu.remove}</button>
@@ -238,11 +237,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
           <span className="selection-count">{fmt(pr.selected, { count: n(count) })}</span>
           <span className="selection-actions">
             <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.send.button}</button>
-            <button type="button" className="btn-secondary icon-only" aria-label={t.ws.crm.addToCrm} title={t.ws.crm.addToCrm} disabled={pending} onClick={() => run(async () => {
-              const r = await addSelectionToCrm(target());
-              if (!r.ok) { toast(r.error, "error"); return null; }
-              return r.message;
-            })}><SquareKanban /></button>
             <button type="button" className="btn-secondary icon-only" aria-label={t.outreach.exportCsv} title={t.outreach.exportCsv} onClick={() => {
               exportForm.current?.requestSubmit();
               if (hasPeople) void exportedPeople(count, "prospects");

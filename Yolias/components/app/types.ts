@@ -16,7 +16,7 @@ export interface ShellData {
     /** Show the Trustpilot request now (once per user, after a successful search). */
     askReview: boolean;
   };
-  preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product">;
+  preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product" | "notify_sales">;
   workspace: {
     name: string;
     /** Invite link of the referral program: shown at once in Settings → Referral. */

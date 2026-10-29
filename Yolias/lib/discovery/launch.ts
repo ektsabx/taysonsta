@@ -1,4 +1,5 @@
 import "server-only";
+import { outcomesLines, salesOutcomes } from "@/lib/crm/outcomes";
 import { capture } from "@/lib/analytics/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { customerProfileLines, loadCustomerProfile } from "@/lib/ai-workspace/server";
@@ -101,9 +102,11 @@ export async function launchInSearch(session: Session, strategyId: string, promp
 
 async function understand(session: Session, strategyId: string, prompt: string, attachments: StrategyAttachment[]) {
   try {
-    const profile = await strategyProfile(session.workspace.id, strategyId);
+    const [profile, outcomes] = await Promise.all([strategyProfile(session.workspace.id, strategyId), salesOutcomes(session.workspace.id).catch(() => null)]);
     const understood = await understandStrategy(prompt, attachments, {
       customerProfile: customerProfileLines(profile) || null,
+      // Won and lost deals shape the next search (owner, 2026-10-29).
+      salesHistory: outcomes ? outcomesLines(outcomes) || null : null,
       userName: session.profile.full_name,
       companyName: session.workspace.name,
       website: session.workspace.website,

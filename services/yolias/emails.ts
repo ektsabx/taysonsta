@@ -108,6 +108,9 @@ export const emailEvents: { kind: string; category: string; label: string; inApp
   { kind: "usage_low", category: "usage", label: "الرصيد قارب على النفاد", inApp: true },
   { kind: "usage_limit", category: "usage", label: "نفد الرصيد", inApp: true },
   { kind: "discovery_ready", category: "usage", label: "نتائج البحث جاهزة", inApp: true },
+  { kind: "daily_digest", category: "usage", label: "ملخص الصباح (اليوم)", inApp: false },
+  { kind: "meeting_soon", category: "usage", label: "تذكير قبل الاجتماع بساعة", inApp: false },
+  { kind: "meeting_outcome", category: "usage", label: "سؤال «كيف كان الاجتماع؟»", inApp: false },
   { kind: "announcement", category: "updates", label: "إعلان تحديثات المنتج", inApp: true },
   { kind: "affiliate_update", category: "account", label: "إشعارات برنامج الأفلييت (القبول، العمولات، السحب)", inApp: true },
 ];

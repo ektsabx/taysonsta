@@ -10,6 +10,9 @@ import { Greeting } from "@/components/app/Greeting";
 import { discoveryAnalytics, outreachAnalytics, parseRange, ranges } from "@/services/analytics";
 import { campaignList, campaignPage } from "@/services/campaigns";
 import { CampaignAnalytics } from "@/components/app/campaigns/CampaignDetail";
+import { TodayCard } from "@/components/app/TodayCard";
+import { todayFor } from "@/services/today";
+import { salesOutcomes } from "@/lib/crm/outcomes";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).nav.analytics} | Yolias` };
@@ -68,7 +71,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
       </div>
     );
   }
-  const [a, o] = await Promise.all([discoveryAnalytics(ws, range), outreachAnalytics(ws, range)]);
+  const [a, o, today, wl] = await Promise.all([discoveryAnalytics(ws, range), outreachAnalytics(ws, range), todayFor(ws, session.profile.timezone ?? null), salesOutcomes(ws)]);
   const n = (v: number) => formatNumber(v, locale);
   const p = (v: number | null) => (v == null ? "-" : `${v}%`);
   const changeNote = (v: number | null) => (v == null ? an.noPrevious : fmt(an.vsPrevious, { change: `${v > 0 ? "+" : ""}${v}%` }));
@@ -87,6 +90,8 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
       </header>
 
       <div className="view-content-padding analytics-page">
+        {/* Today (owner, 2026-10-29): what needs the member now lives with the numbers, not in Yolias AI. */}
+        <TodayCard today={today} timeZone={session.profile.timezone ?? null} />
         <div className="stat-grid">
           {([
             [an.companiesDiscovered, n(a.totals.companies), changeNote(a.totals.vsPrevious.companies)],
@@ -129,6 +134,25 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
               <Bars rows={a.decisionMakers.roles.filter((r) => r.count > 0)} label={(k) => an.roles[k as keyof typeof an.roles]} value={(r) => `${n(r.count)} (${r.pct}%)`} empty={an.empty} />
             </Panel>
           )}
+
+          {/* Won and lost deals (owner, 2026-10-29): the same summary every new search reads. */}
+          <Panel title={an.outcomes.title} wide>
+            {!wl.won && !wl.lost ? <p className="panel-empty">{an.outcomes.none}</p> : (
+              <div className="an-outcomes">
+                <div>
+                  <h5 className="an-sub">{an.outcomes.won}</h5>
+                  <Bars rows={wl.wonIndustries.map((x) => ({ key: x.name, count: x.n, pct: Math.round((x.n / Math.max(1, wl.won)) * 100) }))} label={(k) => k} value={(r) => n(r.count)} empty={an.empty} />
+                </div>
+                <div>
+                  <h5 className="an-sub">{an.outcomes.lost}</h5>
+                  <Bars rows={wl.lostReasons.map((x) => ({ key: x.reason, count: x.n, pct: Math.round((x.n / Math.max(1, wl.lost)) * 100) }))} label={(k) => t.ws.crm.lostReasons[k as keyof typeof t.ws.crm.lostReasons] ?? k} value={(r) => n(r.count)} empty={an.empty} />
+                </div>
+                {wl.wonIndustries.length > 0 && (
+                  <p className="an-outcomes-note">{an.outcomes.note} <Link className="ws-link" href={`/?q=${encodeURIComponent(fmt(an.outcomes.prompt, { names: wl.wonIndustries.map((x) => x.name).join(", ") }))}`}>{an.outcomes.findMore}</Link></p>
+                )}
+              </div>
+            )}
+          </Panel>
 
           <Panel title={an.sections.activity} wide>
             <dl className="an-activity">

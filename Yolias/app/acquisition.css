@@ -378,7 +378,9 @@ html[data-theme="dark"] .partners-status { color: #4ade80; }
 .lead-thread p { margin: 0; font-size: .84rem; line-height: 1.55; white-space: pre-wrap; color: var(--ink); }
 
 /* Quote (owner, 2026-10-29): edit on screen, print to PDF. */
-.quote-tools { display: flex; justify-content: space-between; align-items: center; padding: 20px 34px 0; gap: 12px; }
+.quote-tools { display: flex; justify-content: space-between; align-items: center; padding: 20px 34px 0; gap: 12px; flex-wrap: wrap; }
+.quote-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.quote-hint { flex-basis: 100%; margin: 0; font-size: .8rem; color: var(--muted); text-align: end; }
 .quote-sheet { max-width: 820px; margin: 20px auto 40px; padding: 40px; background: #fff; color: #141413; border: 1px solid var(--line); border-radius: 12px; }
 .quote-head { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e5e5e0; padding-bottom: 18px; }
 .quote-head h1 { margin: 0; font-size: 1.4rem; }

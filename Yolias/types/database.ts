@@ -127,6 +127,8 @@ export type ProfileRow = {
   notify_usage: boolean;
   notify_billing: boolean;
   notify_product: boolean;
+  /** Morning summary and meeting reminders by email (owner, 2026-10-29). */
+  notify_sales: boolean;
   created_at: string;
   updated_at: string;
   /** Unsubscribe links carry this token (D-243). */

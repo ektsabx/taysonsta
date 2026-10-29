@@ -20,13 +20,13 @@ export interface Recipient {
   prefs: Partial<Record<Pref, boolean>>;
 }
 
-type ProfilePick = { id: string; email: string; language: string; notify_campaign_done: boolean; notify_usage: boolean; notify_billing: boolean; notify_product: boolean };
-const PROFILE_COLS = "id, email, language, notify_campaign_done, notify_usage, notify_billing, notify_product";
+type ProfilePick = { id: string; email: string; language: string; notify_campaign_done: boolean; notify_usage: boolean; notify_billing: boolean; notify_product: boolean; notify_sales: boolean };
+const PROFILE_COLS = "id, email, language, notify_campaign_done, notify_usage, notify_billing, notify_product, notify_sales";
 
 function toRecipient(p: ProfilePick): Recipient {
   return {
     userId: p.id, email: p.email, locale: p.language === "ar" ? "ar" : "en",
-    prefs: { notify_campaign_done: p.notify_campaign_done, notify_usage: p.notify_usage, notify_billing: p.notify_billing, notify_product: p.notify_product },
+    prefs: { notify_campaign_done: p.notify_campaign_done, notify_usage: p.notify_usage, notify_billing: p.notify_billing, notify_product: p.notify_product, notify_sales: p.notify_sales },
   };
 }
 

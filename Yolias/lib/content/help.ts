@@ -71,6 +71,48 @@ export const articles: HelpArticle[] = [
     },
   },
   {
+    slug: "deals-and-meetings",
+    collection: "using-yolias",
+    doc: {
+      en: {
+        title: "Deals, meetings and quotes",
+        summary: "How a lead reaches the CRM, deal stages, the booking link, meeting reminders, sending a quote and the morning summary.",
+        blocks: [
+          { h2: "How a lead reaches the CRM" },
+          { p: "The CRM holds deals only. A lead gets there through a conversation: you send a campaign, they reply, and Yolias (or you, with **Move to CRM** in Conversations) moves an interested reply into the CRM. Prospects you haven't talked to stay in Prospects." },
+          { h2: "Deal stages" },
+          { p: "Interested, Meeting booked, Meeting done, Proposal, Negotiation, then Won or Lost. Add the deal value and an expected close date on the customer's page. When a deal is lost, pick why (price, timing, no need, chose a competitor, stopped replying or another reason)." },
+          { h2: "Meetings" },
+          { p: "Add your booking link in **Settings → Account**. When a lead asks for a meeting, Yolias replies in the same thread with your link. Yolias emails you an hour before each meeting, and after it asks how it went so you can move the deal on." },
+          { h2: "Send a quote" },
+          { p: "In a conversation, choose **Quote**. Edit the lines and notes, then **Send in the conversation**: the quote goes from your mailbox in the same thread, the deal value becomes the total, and the deal moves to Proposal. **Save as PDF** keeps a copy." },
+          { h2: "Morning summary" },
+          { p: "Each morning around 8:00 in your time zone, Yolias emails what needs you: new replies, today's meetings and deals quiet for a week. It's the **Today** card at the top of Analytics. Turn it off in **Settings → Notifications → Morning summary and meetings**." },
+          { h2: "What wins and what loses" },
+          { p: "Analytics shows your won deals by industry and why deals were lost. New searches read the same summary: when your request leaves the industry, size or city open, Yolias leans toward what won. What you write in the request always comes first." },
+        ],
+      },
+      ar: {
+        title: "الصفقات والاجتماعات وعروض الأسعار",
+        summary: "كيف يصل العميل إلى إدارة العملاء، ومراحل الصفقة، ورابط الحجز، وتذكيرات الاجتماعات، وإرسال عرض السعر، وملخص الصباح.",
+        blocks: [
+          { h2: "كيف يصل العميل إلى إدارة العملاء" },
+          { p: "إدارة العملاء فيها الصفقات فقط. يصل العميل إليها عبر محادثة: ترسل حملة، فيرد، فينقل يولـياس الرد المهتم إلى إدارة العملاء (أو تنقله أنت بزر **نقل لإدارة العملاء** في المحادثات). العملاء المحتملون الذين لم تتحدث معهم يبقون في العملاء المحتملين." },
+          { h2: "مراحل الصفقة" },
+          { p: "مهتم، ثم تم حجز اجتماع، ثم تم الاجتماع، ثم عرض سعر، ثم تفاوض، ثم مكسوبة أو خاسرة. أضف قيمة الصفقة وتاريخ الإغلاق المتوقع في صفحة العميل. وعند خسارة صفقة اختر السبب (السعر، أو التوقيت، أو لا يحتاجه، أو اختار منافسًا، أو توقف عن الرد، أو سبب آخر)." },
+          { h2: "الاجتماعات" },
+          { p: "أضف رابط الحجز في **الإعدادات ← الحساب**. عندما يطلب العميل اجتماعًا، يرد يولـياس في نفس المحادثة برابطك. ويرسل لك يولـياس بريدًا قبل كل اجتماع بساعة، وبعده يسألك كيف كان لتحدّث الصفقة." },
+          { h2: "إرسال عرض سعر" },
+          { p: "في المحادثة اختر **عرض سعر**. عدّل البنود والملاحظات، ثم **إرسال في المحادثة**: يُرسل العرض من بريدك في نفس المحادثة، وتصبح قيمة الصفقة هي الإجمالي، وتنتقل الصفقة إلى مرحلة عرض السعر. و**حفظ PDF** يحتفظ بنسخة." },
+          { h2: "ملخص الصباح" },
+          { p: "كل صباح نحو الساعة 8:00 بتوقيتك، يرسل لك يولـياس ما يحتاجك: الردود الجديدة واجتماعات اليوم والصفقات المتوقفة منذ أسبوع. هو نفسه كارت **اليوم** أعلى صفحة التحليلات. أوقفه من **الإعدادات ← الإشعارات ← ملخص الصباح والاجتماعات**." },
+          { h2: "ما الذي يكسب وما الذي يخسر" },
+          { p: "تعرض التحليلات الصفقات المكسوبة حسب المجال وأسباب الخسارة. وتقرأ عمليات البحث الجديدة نفس الملخص: عندما يترك طلبك المجال أو الحجم أو المدينة مفتوحًا، يميل يولـياس إلى ما كسبته. وما تكتبه في الطلب يأتي أولًا دائمًا." },
+        ],
+      },
+    },
+  },
+  {
     slug: "signing-in",
     collection: "getting-started",
     doc: {

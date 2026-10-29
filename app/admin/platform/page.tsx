@@ -8,6 +8,7 @@ import { yoliasSiteUrl } from "@/lib/yolias/db";
 import { yoliasPlanIds, yoliasPlanLabel } from "@/lib/yolias/plans";
 import { platformOverview } from "@/services/yolias/platform";
 import { yoliasKpis } from "@/services/yolias/kpis";
+import { yoliasFunnel } from "@/services/yolias/funnel";
 import { NotConnected, connected, num, usd, CampaignStatus } from "@/components/yolias/PlatformUi";
 
 // Yolias platform overview (docs/09-yolias-admin.md "Admin analytics"):
@@ -16,7 +17,7 @@ import { NotConnected, connected, num, usd, CampaignStatus } from "@/components/
 export default async function PlatformOverviewPage() {
   await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="منصة Yolias" /><NotConnected /></>);
-  const [o, k] = await Promise.all([platformOverview(), yoliasKpis()]);
+  const [o, k, f] = await Promise.all([platformOverview(), yoliasKpis(), yoliasFunnel()]);
   const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
   const plans = yoliasPlanIds;
   const totalWs = Math.max(1, o.workspaces);
@@ -43,6 +44,28 @@ export default async function PlatformOverviewPage() {
           <KpiCard label="الأعطال" value={num(k.failures.bounced7d + k.failures.mailboxesDown + k.failures.searchesFailed7d)} sub={<Tx vars={{ b: num(k.failures.bounced7d), m: num(k.failures.mailboxesDown), s: num(k.failures.searchesFailed7d) }}>{"{b} إيميل ارتد · {m} بريد منفصل · {s} بحث فشل (7 أيام)"}</Tx>} href="/admin/platform/health" />
         </div>
       </Card>
+
+
+      {/* The journey funnel (owner, 2026-10-29): where people stop, for those who signed up in 30 days. */}
+      <div style={{ marginTop: 16 }}><Card title="رحلة المستخدم (من سجّلوا خلال 30 يومًا)">
+        <p className="cell-sub" style={{ margin: "0 0 12px" }}>
+          <Tx vars={{ s: num(f.audience.services), o: num(f.audience.other), u: num(f.audience.unknown) }}>{"الجمهور: {s} شركات خدمات أو وكالات · {o} مجالات أخرى · {u} لم يكتبوا المجال"}</Tx>
+          {f.audience.top.length ? <> · {f.audience.top.map((t) => `${t.industry} ${num(t.n)}`).join(" · ")}</> : null}
+        </p>
+        <div className="bos-funnel">
+          {f.steps.map((s, i) => {
+            const prev = i ? f.steps[i - 1].n : s.n;
+            return (
+              <div key={s.id} className="bos-funnel-row">
+                <span className="bos-funnel-label"><Tx>{s.label}</Tx></span>
+                <span className="bos-funnel-track"><span className="bos-funnel-bar" style={{ width: `${f.cohort ? Math.max(2, (s.n / f.cohort) * 100) : 0}%` }} /></span>
+                <span className="bos-num bos-funnel-n">{num(s.n)} <span className="cell-sub">{pct(s.n, f.cohort)}{i ? <> · <Tx vars={{ p: pct(s.n, prev) }}>{"{p} من الخطوة السابقة"}</Tx></> : null}</span></span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="cell-sub" style={{ margin: "12px 0 0" }}><Tx>كل خطوة تعدّ من وصلها في أي وقت. في Yolias الدفع يأتي بعد الإعداد مباشرة، فالبحث والنتائج غالبًا بعد الدفع.</Tx></p>
+      </Card></div>
 
       <div className="bos-kpis" style={{ marginTop: 16 }}>
         <KpiCard label="المستخدمون" value={num(o.users)} sub={<Tx vars={{ n: num(o.users30) }}>{"{n} جديد خلال 30 يوماً"}</Tx>} href="/admin/platform/users" />

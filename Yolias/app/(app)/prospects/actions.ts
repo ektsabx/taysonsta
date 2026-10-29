@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 import { parseFilters, selectItems } from "@/services/prospects";
-import { addToCrm } from "@/app/(app)/crm/actions";
 import { addProspectsToCampaign, quickCampaign } from "@/app/(app)/outreach/actions";
 
 // Prospects workspace actions. The browser sends row keys ("person:<id>" /
@@ -85,12 +84,6 @@ export async function removeFromSaved(target: Target): Promise<{ ok: boolean; re
   ]);
   revalidatePath("/prospects", "layout");
   return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
-}
-
-/** Selected results → CRM (one lead per person / company, never duplicated). */
-export async function addSelectionToCrm(target: Target) {
-  const { people, companies } = await resolve(target);
-  return addToCrm([...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))]);
 }
 
 /** Selected results → CRM → an Outreach campaign. */

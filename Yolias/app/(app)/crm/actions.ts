@@ -6,8 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canManageTeam, requireSession } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
-import { fmt } from "@/lib/i18n/config";
-import { addLeads, changeStage, leadsCreated, meetingChanged, type LeadTarget } from "@/lib/crm";
+import { changeStage, meetingChanged } from "@/lib/crm";
 import { meetingBrief } from "@/lib/agents/meeting";
 import { STAGES } from "@/lib/automations/schema";
 import type { LeadStage, MeetingStatus } from "@/types/database";
@@ -22,26 +21,6 @@ const refresh = (leadId?: string) => {
   revalidatePath("/inbox");
   if (leadId) revalidatePath(`/crm/${leadId}`);
 };
-
-/** Prospects → CRM. People or companies already in the CRM keep their single lead.
- *  Adding by hand is the member choosing the deal, so new ones enter the CRM
- *  as Interested (the CRM shows deals only, owner 2026-10-21). */
-export async function addToCrm(targets: LeadTarget[]): Promise<CrmResult<{ added: number; existing: number; ids: string[]; message: string }>> {
-  const session = await requireSession();
-  const t = (await getDictionary()).ws;
-  const valid = (targets ?? []).filter((x) => (x?.kind === "person" || x?.kind === "company") && uuid.safeParse(x.id).success).slice(0, 500);
-  if (!valid.length) return { ok: false, error: t.crm.errors.notFound };
-  const db = await createClient();
-  const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", session.workspace.id).limit(10000)).data ?? []).map((l) => l.id));
-  const { ids } = await addLeads(db, valid, "search");
-  const fresh = ids.filter((id) => !before.has(id));
-  await leadsCreated(session.workspace.id, fresh);
-  for (const id of fresh) await changeStage(db, session.workspace.id, id, "interested", "user");
-  refresh();
-  const existing = ids.length - fresh.length;
-  const message = [fresh.length ? fmt(t.crm.added, { count: fresh.length }) : null, existing ? fmt(t.crm.alreadyIn, { count: existing }) : null].filter(Boolean).join(" ");
-  return { ok: true, added: fresh.length, existing, ids, message };
-}
 
 export async function setStage(leadId: string, stage: LeadStage, lostReason?: string): Promise<CrmResult> {
   const session = await requireSession();

@@ -29,6 +29,8 @@ export interface StrategyContext {
   targetMarkets?: string | null;
   /** The Customer Profile chosen for this search (AI Workspace), as text. */
   customerProfile?: string | null;
+  /** What the workspace's won and lost deals say (lib/crm/outcomes.ts), as text. */
+  salesHistory?: string | null;
   language: "en" | "ar";
   /** For cost attribution (intel.llm_calls). */
   workspaceId: string;
@@ -36,7 +38,7 @@ export interface StrategyContext {
 }
 
 /** Bump when SYSTEM or the ICP schema changes: cached answers of older versions are not reused. */
-export const ICP_PROMPT_VERSION = "icp-2026-10-13b";
+export const ICP_PROMPT_VERSION = "icp-2026-10-29";
 const TASK = "icp.parse";
 
 export interface UnderstoodStrategy {
@@ -55,6 +57,7 @@ Rules:
 - Extract only what the user asked for. Where the request is silent, choose a sensible default for a B2B discovery mission and record it in "assumptions".
 - Use the user's own business (industry, products and services) to infer which decision-maker job titles are relevant when they don't name any.
 - When the request doesn't say who to look for, use the business's ideal customer profile; when it doesn't name a market, use its target markets. Say so in "assumptions". What the request says always wins.
+- <sales_history> is what the user's own won and lost deals show. When the request leaves the industry, company size or city open, lean toward what won (add the won industries to industries, keep the size near the won range) and away from industries that were mostly lost because there was no need. Deals lost on price point to companies of the size that won. Say in "assumptions" when sales history shaped a criterion. The request and the selected customer profile always win over sales history.
 - countries are ISO 3166-1 alpha-2 codes. If the request names no market, use the selected customer profile's countries, else the business's target markets. If none of them names one, leave countries empty and say so in "assumptions". Never guess a country.
 - search_type: "companies" (the default) when the user wants companies, decision makers or contacts: Yolias finds the companies, then the decision makers inside them (put the titles in job_titles); "local_businesses" for places on a map (shops, clinics, restaurants, salons, gyms…) usually in a city; "company_lookalikes" when they name companies and want similar ones (put the named companies in lookalike_seeds).
 - target_count is the number of companies the user asked for (default 100); target_unit is "companies".
@@ -106,7 +109,7 @@ export async function understandStrategy(prompt: string, attachments: StrategyAt
 }
 
 /** The exact request Yolias sends to understand a search (also used by the eval set). */
-export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "language" | "customerProfile">) {
+export function icpRequest(prompt: string, attachments: StrategyAttachment[], ctx: Pick<StrategyContext, "companyName" | "website" | "offering" | "industry" | "idealCustomer" | "targetMarkets" | "language" | "customerProfile" | "salesHistory">) {
   const business = [
     businessLines({ name: ctx.companyName, website: ctx.website, industry: ctx.industry, offering: ctx.offering, ideal_customer: ctx.idealCustomer, target_markets: ctx.targetMarkets }),
     // A chosen Customer Profile (D-195): its criteria are the defaults when the request is silent; the request always wins.
@@ -116,7 +119,8 @@ export function icpRequest(prompt: string, attachments: StrategyAttachment[], ct
     a.kind === "image" ? { kind: "image", mediaType: a.mediaType, base64: a.data }
       : a.kind === "pdf" ? { kind: "pdf", name: a.name, base64: a.data }
         : { kind: "document", name: a.name, text: a.data });
-  const userText = `<my_business>\n${business}\n</my_business>\n\n<request>\n${prompt}\n</request>`;
+  const history = ctx.salesHistory ? `<sales_history>\n${ctx.salesHistory}\n</sales_history>\n\n` : "";
+  const userText = `<my_business>\n${business}\n</my_business>\n\n${history}<request>\n${prompt}\n</request>`;
   parts.push({ kind: "text", text: userText });
   const system = SYSTEM.replace("{LANGUAGE}", ctx.language === "ar" ? "Arabic" : "English");
   return { system, parts, userText, schema: icpJsonSchema };

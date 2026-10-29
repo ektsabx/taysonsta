@@ -274,7 +274,8 @@ export const en = {
   quote: {
     title: "Quote", to: "To", description: "Item", qty: "Qty", price: "Price", amount: "Amount", total: "Total",
     item: "Service", addLine: "Add a line", remove: "Remove the line", notes: "Notes", defaultNotes: "Valid for 30 days. Prices exclude taxes.",
-    print: "Save as PDF or print", back: "Lead record", open: "Quote",
+    print: "Save as PDF", back: "Customer record", backInbox: "Conversation", open: "Quote", send: "Send in the conversation", sent: "Quote sent.",
+    intro: "Here is the quote we discussed:", errors: { invalid: "Check the lines: each needs a description and a price.", noEmail: "This customer has no email to send the quote to." },
   },
   emptyNext: { campaigns: "Pick leads for a campaign", crm: "Open conversations", prospects: "Start a search", inbox: "Open campaigns" },
   today: {
@@ -472,6 +473,10 @@ export const en = {
     scoredLeads: "Across {count} scored leads",
     ofLeads: "{pct}% of leads",
     sections: { decisionMakers: "Decision makers", activity: "User activity" },
+    outcomes: {
+      title: "Won and lost deals", won: "Won by industry", lost: "Why deals were lost", none: "Mark deals as won or lost in the CRM and Yolias learns what works.",
+      note: "Your next searches lean toward what won.", findMore: "Find similar companies", prompt: "Find companies in the industries where I won deals: {names}",
+    },
     roles: { ceo: "CEO", founder: "Founder", cLevel: "C-Level", vp: "VP", director: "Director", manager: "Manager", other: "Other" },
     activity: { searches: "Searches", enrichments: "Enrichments", qualifications: "Qualifications", exports: "Exports", emailsPrepared: "Emails prepared", csvExports: "CSV exports" },
     empty: "Nothing in this period yet.",
@@ -668,6 +673,7 @@ export const en = {
       discovery: "Discovery completed", discoveryDesc: "When a search finishes and its prospects are ready.",
       usage: "Usage alerts", usageDesc: "When you’ve used 80% and 100% of this month’s prospects.",
       billing: "Billing and receipts", billingDesc: "Receipts, renewals and changes to your plan.",
+      sales: "Morning summary and meetings", salesDesc: "Every morning: new replies, today's meetings and quiet deals. And a reminder an hour before each meeting.",
       product: "Product updates", productDesc: "New features and tips, about once a month.",
     },
     usage: {

@@ -1,8 +1,11 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { LeadStage } from "@/types/database";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, LeadStage } from "@/types/database";
 
-// "Today" on the Yolias AI home (owner, 2026-10-29): what needs the member now,
+type Db = SupabaseClient<Database>;
+
+// "Today" at the top of Analytics and in the morning email (owner, 2026-10-29): what needs the member now,
 // from real rows only (RLS: their workspace): conversations with an unread
 // reply, today's meetings, open deals with no activity for a week, and the
 // companies of won deals (to find more like them).
@@ -18,8 +21,9 @@ export interface Today {
   won: string[];
 }
 
-export async function todayFor(workspaceId: string, timeZone: string | null): Promise<Today> {
-  const db = await createClient();
+/** `db`: the member's client (RLS) in the app; the morning email passes the service client. */
+export async function todayFor(workspaceId: string, timeZone: string | null, client?: Db): Promise<Today> {
+  const db = client ?? await createClient();
   const tz = timeZone ?? "UTC";
   // The member's day in their time zone, as UTC bounds.
   const now = new Date();

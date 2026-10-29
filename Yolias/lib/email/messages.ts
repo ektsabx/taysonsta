@@ -125,6 +125,12 @@ export interface MessageData {
   refund_issued: RefundData;
   payment_overdue: PaymentProblemData & { daysOverdue: number };
   prospects_added: Base & { added: number; allowance: number; reason: string | null };
+  /** Today by email (owner, 2026-10-29): the Analytics "Today" card, each morning, only when something needs the member. */
+  daily_digest: Base & { replies: number; meetings: { name: string; time: string }[]; stale: { name: string; days: number }[]; staleCount: number; won: string[] };
+  /** A meeting in the next hour (owner, 2026-10-29). */
+  meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null };
+  /** A meeting passed with no outcome recorded. */
+  meeting_outcome: Base & { lead: string; leadId: string };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
   affiliate_update: Base & { event: AffiliateEmailEvent; amountCents: number | null; reason: string | null; reference: string | null };
   /** A message written by the Yolias team to one account (Admin → Users / Abandoned checkouts, D-215). */
@@ -414,6 +420,44 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       `تمت إضافة <strong>${d.added}</strong> عميل محتمل إلى مساحة عملك لهذا الشهر${d.reason ? ` (${esc(d.reason)})` : ""}. أصبح رصيدك <strong>${d.allowance}</strong>.`)],
     button: { label: T(l, "Start a search", "ابدأ البحث"), href: `${d.siteUrl}/` },
     footnote: T(l, "Unused prospects reset at the start of next month.", "يتجدد الرصيد غير المستخدم في بداية الشهر القادم."),
+  }),
+
+  /* Sales (Today, meetings) */
+  daily_digest: (l, d) => {
+    const rows: [string, string][] = [];
+    if (d.replies) rows.push([T(l, "New replies", "ردود جديدة"), link(`${d.siteUrl}/inbox`, T(l, `${d.replies} conversations`, `${d.replies} محادثة`))]);
+    for (const m of d.meetings) rows.push([T(l, "Meeting", "اجتماع"), `${esc(m.name)} · <span dir="ltr">${esc(m.time)}</span>`]);
+    if (d.staleCount) rows.push([T(l, "Quiet deals", "صفقات متوقفة"), d.stale.length ? d.stale.map((s) => `${esc(s.name)} (${s.days} ${T(l, "days", "يوم")})`).join("<br>") : String(d.staleCount)]);
+    const parts = [d.replies ? T(l, `${d.replies} new replies`, `${d.replies} رد جديد`) : null, d.meetings.length ? T(l, `${d.meetings.length} meetings today`, `${d.meetings.length} اجتماع اليوم`) : null, d.staleCount ? T(l, `${d.staleCount} quiet deals`, `${d.staleCount} صفقة متوقفة`) : null].filter(Boolean);
+    return {
+      subject: T(l, `Today: ${parts.join(", ")}`, `اليوم: ${parts.join("، ")}`),
+      preheader: T(l, "What needs you today in Yolias.", "ما يحتاجك اليوم في يولـياس."),
+      heading: T(l, "Today", "اليوم"),
+      body: [T(l, "Here is what needs you today.", "هذا ما يحتاجك اليوم."),
+        ...(d.won.length ? [T(l, `You won ${esc(d.won.slice(0, 2).join(" and "))}. ${link(`${d.siteUrl}/analytics`, "Find companies like them")}.`, `كسبت ${esc(d.won.slice(0, 2).join(" و"))}. ${link(`${d.siteUrl}/analytics`, "ابحث عن شركات مشابهة")}.`)] : [])],
+      extra: rows.length ? table(l, rows) : undefined,
+      button: { label: T(l, "Open Analytics", "افتح التحليلات"), href: `${d.siteUrl}/analytics` },
+      footnote: T(l, `Sent each morning when something needs you. ${link(`${d.siteUrl}/`, "Turn off in Notification settings")}`, `يصلك كل صباح عندما يوجد ما يحتاجك. ${link(`${d.siteUrl}/`, "أوقفه من إعدادات الإشعارات")}`),
+    };
+  },
+  meeting_soon: (l, d) => ({
+    subject: T(l, `Meeting with ${d.lead} at ${d.time}`, `اجتماع مع ${d.lead} الساعة ${d.time}`),
+    preheader: T(l, "Your meeting starts within the hour.", "اجتماعك يبدأ خلال ساعة."),
+    heading: T(l, `Meeting with ${d.lead}`, `اجتماع مع ${d.lead}`),
+    body: [T(l, `Your meeting with <strong>${esc(d.lead)}</strong> starts at <span dir="ltr">${esc(d.time)}</span>. The customer record has the conversation and notes.`,
+      `اجتماعك مع <strong>${esc(d.lead)}</strong> يبدأ الساعة <span dir="ltr">${esc(d.time)}</span>. سجل العميل فيه المحادثة والملاحظات.`),
+      ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : [])],
+    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
+  }),
+  meeting_outcome: (l, d) => ({
+    subject: T(l, `How did the meeting with ${d.lead} go?`, `كيف كان الاجتماع مع ${d.lead}؟`),
+    preheader: T(l, "Update the stage so Yolias knows what happened.", "حدّث المرحلة ليعرف يولـياس ما حدث."),
+    heading: T(l, `How did it go with ${d.lead}?`, `كيف كان الاجتماع مع ${d.lead}؟`),
+    body: [T(l, "Update the deal: meeting done, proposal sent, won or lost. Won and lost deals teach Yolias which companies to find next.",
+      "حدّث الصفقة: تم الاجتماع، أو أُرسل العرض، أو كسبت، أو خسرت. الصفقات المكسوبة والخاسرة تعلّم يولـياس أي الشركات يبحث عنها.")],
+    button: { label: T(l, "Update the deal", "حدّث الصفقة"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
 
   /* Product updates */

@@ -9313,6 +9313,20 @@ const en: Record<string, string> = {
  "التكلفة لكل عميل محتمل": "Cost per prospect",
  "الأعطال": "Failures",
  "يولياس": "Yolias",
+ "رحلة المستخدم (من سجّلوا خلال 30 يومًا)": "User journey (signed up in the last 30 days)",
+ "الجمهور: {s} شركات خدمات أو وكالات · {o} مجالات أخرى · {u} لم يكتبوا المجال": "Audience: {s} service businesses or agencies · {o} other fields · {u} gave no industry",
+ "سجّلوا": "Signed up",
+ "بدأوا بحثًا حقيقيًا": "Started a real search",
+ "وصلوا لنتائج": "Got results",
+ "استخدموا البيانات (حفظ أو تصدير أو حملة)": "Used the data (saved, exported or campaign)",
+ "شافوا السعر": "Saw the price",
+ "ضغطوا لبدء الدفع": "Started paying",
+ "أكملوا الاشتراك": "Subscribed",
+ "{p} من الخطوة السابقة": "{p} of the previous step",
+ "ملخص الصباح (اليوم)": "Morning summary (Today)",
+ "تذكير قبل الاجتماع بساعة": "Reminder an hour before a meeting",
+ "سؤال «كيف كان الاجتماع؟»": "\"How did the meeting go?\"",
+ "كل خطوة تعدّ من وصلها في أي وقت. في Yolias الدفع يأتي بعد الإعداد مباشرة، فالبحث والنتائج غالبًا بعد الدفع.": "Each step counts everyone who reached it at any time. In Yolias the plan comes right after onboarding, so searches and results usually follow payment.",
 };
 
 export default en;

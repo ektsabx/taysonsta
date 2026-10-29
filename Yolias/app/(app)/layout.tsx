@@ -89,6 +89,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       notify_usage: profile.notify_usage,
       notify_billing: profile.notify_billing,
       notify_product: profile.notify_product,
+      notify_sales: profile.notify_sales,
     },
     workspace: {
       name: workspace.name ?? "",

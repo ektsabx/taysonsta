@@ -275,7 +275,8 @@ export const ar: Dictionary = {
   quote: {
     title: "عرض سعر", to: "إلى", description: "البند", qty: "الكمية", price: "السعر", amount: "المبلغ", total: "الإجمالي",
     item: "الخدمة", addLine: "إضافة بند", remove: "حذف البند", notes: "ملاحظات", defaultNotes: "العرض صالح لمدة 30 يومًا. الأسعار لا تشمل الضرائب.",
-    print: "حفظ PDF أو طباعة", back: "سجل العميل", open: "عرض سعر",
+    print: "حفظ PDF", back: "سجل العميل", backInbox: "المحادثة", open: "عرض سعر", send: "إرسال في المحادثة", sent: "تم إرسال العرض.",
+    intro: "هذا عرض السعر كما تحدثنا:", errors: { invalid: "راجع البنود: كل بند يحتاج وصفًا وسعرًا.", noEmail: "لا يوجد بريد لهذا العميل لإرسال العرض إليه." },
   },
   emptyNext: { campaigns: "اختر العملاء للحملة", crm: "افتح المحادثات", prospects: "ابدأ بحثًا", inbox: "افتح الحملات" },
   today: {
@@ -474,6 +475,10 @@ export const ar: Dictionary = {
     scoredLeads: "من {count} عميلًا تم تقييمه",
     ofLeads: "{pct}% من العملاء",
     sections: { decisionMakers: "تحليل صناع القرار", activity: "نشاط المستخدم" },
+    outcomes: {
+      title: "الصفقات المكسوبة والخاسرة", won: "المكسوبة حسب المجال", lost: "أسباب الخسارة", none: "سجّل الصفقات كمكسوبة أو خاسرة في إدارة العملاء، ويتعلم يولـياس منها.",
+      note: "عمليات البحث القادمة تعطي الأولوية لما كسبته.", findMore: "ابحث عن شركات مشابهة", prompt: "ابحث عن شركات في المجالات التي كسبت فيها صفقات: {names}",
+    },
     roles: { ceo: "CEO", founder: "مؤسس", cLevel: "C-Level", vp: "VP", director: "مدير إدارة", manager: "مدير", other: "أخرى" },
     activity: { searches: "عمليات البحث", enrichments: "الإثراء", qualifications: "التأهيل", exports: "التصدير", emailsPrepared: "إيميلات تم تجهيزها", csvExports: "تصدير CSV" },
     empty: "لا يوجد شيء في هذه الفترة بعد.",
@@ -670,6 +675,7 @@ export const ar: Dictionary = {
       discovery: "اكتمال الاكتشاف", discoveryDesc: "عندما ينتهي بحث ويصبح عملاؤه المحتملون جاهزين.",
       usage: "تنبيهات الاستخدام", usageDesc: "عند استخدام 80% و100% من العملاء المحتملين لهذا الشهر.",
       billing: "الفوترة والإيصالات", billingDesc: "الإيصالات والتجديدات والتغييرات على خطتك.",
+      sales: "ملخص الصباح والاجتماعات", salesDesc: "كل صباح: الردود الجديدة واجتماعات اليوم والصفقات المتوقفة. وتذكير قبل كل اجتماع بساعة.",
       product: "تحديثات المنتج", productDesc: "ميزات جديدة ونصائح، مرة تقريبًا كل شهر.",
     },
     usage: {

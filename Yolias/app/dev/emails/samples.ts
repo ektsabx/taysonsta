@@ -11,7 +11,7 @@ const productNames = [
   "plan_welcome", "subscription_activated", "renewal_upcoming", "subscription_renewed", "subscription_canceled", "subscription_ending",
   "plan_upgraded", "plan_downgraded", "subscription_paused", "access_restored",
   "receipt", "invoice_ready", "payment_failed", "payment_method_attention", "payment_overdue", "refund_processed", "refund_issued",
-  "prospects_added", "usage_low", "usage_limit", "discovery_ready", "announcement", "affiliate_update",
+  "prospects_added", "usage_low", "usage_limit", "discovery_ready", "daily_digest", "meeting_soon", "meeting_outcome", "announcement", "affiliate_update",
 ] as const satisfies readonly EmailKind[];
 
 export const emailNames = [...authNames, ...productNames] as const;
@@ -49,6 +49,9 @@ function sample(name: (typeof productNames)[number], l: EmailLocale): Omit<Email
     refund_processed: { invoiceNumber: "YL-001001", amount: 20, reason: null },
     refund_issued: { invoiceNumber: "YL-001001", amount: 20, reason: null },
     prospects_added: { added: 200, allowance: 1200, reason: null },
+    daily_digest: { replies: 3, meetings: [{ name: "Nile Logistics", time: "11:00 AM" }], stale: [{ name: "Delta Foods", days: 9 }], staleCount: 2, won: ["Cairo Clinics"] },
+    meeting_soon: { lead: "Nile Logistics", time: "11:00 AM", leadId: "00000000-0000-0000-0000-000000000000", url: "https://meet.google.com/abc-defg-hij" },
+    meeting_outcome: { lead: "Nile Logistics", leadId: "00000000-0000-0000-0000-000000000000" },
     usage_low: { used: 820, total: 1000, resetsAt: next },
     usage_limit: { used: 1000, total: 1000, resetsAt: next },
     discovery_ready: { strategyId: "sample", strategyTitle: ar ? "شركات التقنية المالية في الإمارات" : "Fintech companies in the UAE", prospects: 86, companies: 41 },

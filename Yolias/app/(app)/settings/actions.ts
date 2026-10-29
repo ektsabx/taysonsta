@@ -33,6 +33,7 @@ const preferencesSchema = z
     notify_usage: z.boolean(),
     notify_billing: z.boolean(),
     notify_product: z.boolean(),
+    notify_sales: z.boolean(),
     full_name: z.string().trim().min(2).max(120),
   })
   .partial();

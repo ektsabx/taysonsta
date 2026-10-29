@@ -519,6 +519,7 @@ function NotificationsTab({ data }: { data: ShellData }) {
   const { error, run } = useSave();
   const items = [
     { key: "notify_campaign_done", id: "notify-discovery", label: nt.discovery, desc: nt.discoveryDesc },
+    { key: "notify_sales", id: "notify-sales", label: nt.sales, desc: nt.salesDesc },
     { key: "notify_usage", id: "notify-usage", label: nt.usage, desc: nt.usageDesc },
     { key: "notify_billing", id: "notify-billing", label: nt.billing, desc: nt.billingDesc },
     { key: "notify_product", id: "notify-product", label: nt.product, desc: nt.productDesc },

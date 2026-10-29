@@ -153,7 +153,6 @@ export const wsAr: Dictionary["ws"] = {
     sources: { search: "بحث يولـياس", import: "استيراد CSV", manual: "إضافة يدوية" },
     filterStage: "المرحلة", filterOwner: "المسؤول", anyone: "أي شخص", unassigned: "بدون مسؤول", sort: "الترتيب",
     sorts: { last_activity_at: "آخر تفاعل", created_at: "تاريخ الإضافة", deal_value: "قيمة الصفقة", next_follow_up_at: "المتابعة القادمة", name: "الاسم" },
-    added: "تمت إضافة {count} إلى إدارة العملاء.", alreadyIn: "{count} موجودون مسبقًا في إدارة العملاء.", addToCrm: "إضافة إلى إدارة العملاء",
     moveTo: "نقل إلى", total: "{count} عميل · {value}", lostReason: "سبب الخسارة", lostReasons: { price: "السعر", timing: "التوقيت", no_need: "لا يحتاجه", competitor: "اختار منافسًا", no_response: "توقف عن الرد", other: "سبب آخر" }, stageChanged: "تم تحديث المرحلة.",
     detail: {
       people: "صنّاع القرار في الشركة", expectedClose: "تاريخ الإغلاق المتوقع", you: "أنت", addToCalendar: "أضف إلى Google Calendar", summary: "الصفقة", lastContact: "آخر تواصل", nextStep: "الخطوة التالية", conversation: "المحادثة", conversationCounts: "{sent} مرسلة · {replies} ردود", openConversation: "فتح المحادثة",

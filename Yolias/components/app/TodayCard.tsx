@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import type { Today } from "@/services/today";
 
-// "Today" under the composer (owner, 2026-10-29): replies waiting, today's
+// "Today" at the top of Analytics (owner, 2026-10-29): replies waiting, today's
 // meetings, deals gone quiet, and "find more like the ones you won".
 export function TodayCard({ today, timeZone }: { today: Today; timeZone: string | null }) {
   const { t, locale } = useI18n();

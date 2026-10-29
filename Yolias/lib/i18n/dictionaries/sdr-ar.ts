@@ -84,7 +84,7 @@ export const sdrAr: typeof sdrEn = {
     notInCampaign: "ليس في حملة", notContacted: "لم يُتواصل معه", doNotContact: "عدم التواصل",
     reachEmail: "لديه بريد", reachLinkedin: "حساب LinkedIn", reachPhone: "لديه رقم هاتف", website: "الموقع", linkedin: "LinkedIn",
     savedOnly: "المحفوظ فقط", sort: "الترتيب", sortMatch: "الأعلى تطابقًا", sortNewest: "الأحدث", sortName: "الاسم",
-    menu: { open: "فتح", send: "إرسال حملة", crm: "إضافة لإدارة العملاء", reveal: "كشف بيانات التواصل", remove: "إزالة", exportCsv: "تصدير CSV", importCsv: "استيراد CSV" },
+    menu: { open: "فتح", send: "إرسال حملة", reveal: "كشف بيانات التواصل", remove: "إزالة", exportCsv: "تصدير CSV", importCsv: "استيراد CSV" },
     emptyPeople: "لا يوجد أشخاص بعد. احفظ صنّاع القرار من بحث، أو استورد ملف CSV.", emptyCompanies: "لا توجد شركات بعد. احفظ نتائج من بحث، أو استورد ملف CSV.", emptyFiltered: "لا توجد نتائج مطابقة لهذه الفلاتر.",
     peopleHint: "لا يوجد أشخاص بعد. وجدت عمليات البحث {n} شركة: افتح تبويب «الشركات».",
   },

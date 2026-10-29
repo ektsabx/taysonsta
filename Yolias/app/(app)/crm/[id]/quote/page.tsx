@@ -8,11 +8,12 @@ import { QuoteSheet } from "@/components/app/crm/QuoteSheet";
 export const metadata: Metadata = { title: "Quote | Yolias" };
 
 // A simple quote for a deal (owner, 2026-10-29): your company, the client, the
-// lines and the total, filled from the deal; the member edits it on the page and
-// saves it as PDF with the browser's print (no PDF service, nothing stored).
-export default async function QuotePage({ params }: { params: Promise<{ id: string }> }) {
+// lines and the total, filled from the deal; the member edits it on the page,
+// sends it in the conversation (kept on the timeline) or saves it as PDF.
+export default async function QuotePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string }> }) {
   const session = await requireViewer();
   const { id } = await params;
+  const { from } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const detail = await getLead(session.workspace.id, id);
   if (!detail) notFound();
@@ -26,6 +27,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
       currency={detail.lead.deal_currency}
       offering={w.offering ?? ""}
       leadId={id}
+      back={from === "inbox" ? "inbox" : "crm"}
     />
   );
 }
