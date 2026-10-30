@@ -102,7 +102,7 @@ export const sdrAr: typeof sdrEn = {
     back: "الحملات", created: "أُنشئت {date} · {steps} خطوات",
     pause: "إيقاف مؤقت", resume: "استئناف", launch: "مراجعة وإطلاق",
     stripFollowUps: "متابعات اليوم", stripNewLeads: "عملاء جدد وصلتهم اليوم", stripSteps: "خطوات التسلسل", stripNext: "الرسالة التالية", nextNone: "لا شيء مجدول", nextIn: "خلال {ago}",
-    tabs: { leads: "العملاء", sequence: "التسلسل" }, fullAnalytics: "التحليلات الكاملة",
+    tabs: { leads: "العملاء", sequence: "التسلسل" },
     a: {
       abTitle: "تجربة نسختين", abA: "النسخة أ: {replied} من {sent} ردّوا ({pct}%)", abB: "النسخة ب: {replied} من {sent} ردّوا ({pct}%)",
       leads: "العملاء", leadsNote: "في هذه الحملة", contacted: "تم التواصل", contactedNote: "{pct}% من العملاء", sent: "الرسائل المرسلة", sentNote: "{n} ما زالت مجدولة",

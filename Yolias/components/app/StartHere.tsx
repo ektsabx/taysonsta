@@ -1,25 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Mail, Search, Send } from "lucide-react";
+import { CalendarDays, Check, Mail, Search, Send } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { openSettingsTab } from "@/components/app/open-settings";
 
-export interface StartSteps { mailbox: boolean; search: boolean; campaign: boolean }
+export interface StartSteps { mailbox: boolean; search: boolean; campaign: boolean; booking: boolean }
 
 // Start here (owner, 2026-10-28): three steps for a new workspace under the
 // composer: write a first search, connect a mailbox to send from, review a first
 // campaign (owner, 2026-10-29: search first, then the mailbox).
-// Each step is done from real rows; the card goes away once all three are.
+// D-269: a fourth step, set the booking page (done once the calendar is
+// connected or the page was edited), so a lead who asks for a meeting can book.
+// Each step is done from real rows; the card goes away once all are.
 export function StartHere({ steps }: { steps: StartSteps }) {
   const { t } = useI18n();
   const s = t.startHere;
-  if (steps.mailbox && steps.search && steps.campaign) return null;
-  const done = [steps.mailbox, steps.search, steps.campaign].filter(Boolean).length;
+  if (steps.mailbox && steps.search && steps.campaign && steps.booking) return null;
+  const done = [steps.mailbox, steps.search, steps.campaign, steps.booking].filter(Boolean).length;
   const focusComposer = () => document.querySelector<HTMLTextAreaElement>(".prompt-input")?.focus();
   const items = [
     { key: "search", ok: steps.search, icon: Search, title: s.search, desc: s.searchDesc, action: <button type="button" className="start-here-go" onClick={focusComposer}>{s.searchCta}</button> },
     { key: "mailbox", ok: steps.mailbox, icon: Mail, title: s.mailbox, desc: s.mailboxDesc, action: <button type="button" className="start-here-go" onClick={() => openSettingsTab("integration")}>{s.mailboxCta}</button> },
+    { key: "booking", ok: steps.booking, icon: CalendarDays, title: s.booking, desc: s.bookingDesc, action: <Link className="start-here-go" href="/meetings?tab=page">{s.bookingCta}</Link> },
     { key: "campaign", ok: steps.campaign, icon: Send, title: s.campaign, desc: s.campaignDesc, action: <Link className="start-here-go" href="/outreach">{s.campaignCta}</Link> },
   ];
   return (

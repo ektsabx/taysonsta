@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { noindex } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
-import { pageBySlug, slotsFor } from "@/lib/meetings";
+import { pageBySlug, slotsByType } from "@/lib/meetings";
 import { BookingForm } from "./BookingForm";
 
 // A member's public booking page (D-267): yolias.com/meet/<slug>. Shared by
@@ -17,19 +17,17 @@ export default async function MeetPage({ params, searchParams }: { params: Promi
   if (!page) notFound();
   const l = (await searchParams).l;
   const locale = l === "ar" || l === "en" ? l : await getLocale();
-  const days = page.enabled ? await slotsFor(page) : [];
+  const types = page.enabled ? await slotsByType(page) : [];
   return (
     <BookingForm
       locale={locale}
       slug={page.slug}
       host={page.host}
       title={page.title}
-      description={page.description}
       location={page.location}
-      duration={page.duration_min}
       timezone={page.timezone}
       enabled={page.enabled}
-      days={days}
+      types={types}
     />
   );
 }

@@ -115,6 +115,7 @@ export const emailEvents: { kind: string; category: string; label: string; inApp
   { kind: "meeting_canceled", category: "account", label: "الضيف ألغى الاجتماع (لصاحب الصفحة)", inApp: false },
   { kind: "meeting_guest", category: "account", label: "تأكيد الحجز (للضيف)", inApp: false },
   { kind: "meeting_guest_canceled", category: "account", label: "إلغاء الاجتماع (للضيف)", inApp: false },
+  { kind: "meeting_rebook", category: "account", label: "لم يحضر: رابط إعادة الحجز (للضيف)", inApp: false },
   { kind: "announcement", category: "updates", label: "إعلان تحديثات المنتج", inApp: true },
   { kind: "affiliate_update", category: "account", label: "إشعارات برنامج الأفلييت (القبول، العمولات، السحب)", inApp: true },
 ];

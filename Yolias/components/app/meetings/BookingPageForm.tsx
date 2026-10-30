@@ -37,13 +37,14 @@ export function BookingPageForm({ page, link, calendar, zones }: {
     enabled: page.enabled, slug: page.slug, title: page.title, location: page.location ?? "", description: page.description ?? "",
     duration_min: page.duration_min, timezone: page.timezone, buffer_min: page.buffer_min, min_notice_hours: page.min_notice_hours, window_days: page.window_days,
     hours: Object.fromEntries(DAYS.map((d) => [d, page.hours[d] ?? []])) as BookingPageRow["hours"],
+    types: (page.types ?? []).map((x) => ({ ...x, description: x.description ?? "" })),
   });
   const [copied, setCopied] = useState(false);
   const base = link.slice(0, link.length - page.slug.length);
   const set = <K extends keyof typeof v>(k: K, value: (typeof v)[K]) => setV((s) => ({ ...s, [k]: value }));
   const setRange = (d: (typeof DAYS)[number], i: number, which: 0 | 1, value: string) => set("hours", { ...v.hours, [d]: v.hours[d].map((r, j) => (j === i ? (which ? [r[0], value] : [value, r[1]]) as [string, string] : r)) });
   const save = () => start(async () => {
-    const r = await saveBookingPage(v);
+    const r = await saveBookingPage({ ...v, types: v.types.map((x) => ({ ...x, description: x.description.trim() || null })) });
     if (!r.ok) toast(r.error, "error"); else { toast(m.saved); router.refresh(); }
   });
   const select = (k: "duration_min" | "buffer_min" | "min_notice_hours" | "window_days", opts: number[], label: (n: number) => string) => (
@@ -80,6 +81,22 @@ export function BookingPageForm({ page, link, calendar, zones }: {
           <label>{p.buffer}{select("buffer_min", BUFFERS, minutes)}</label>
           <label>{p.notice}{select("min_notice_hours", NOTICE, (n) => fmt(p.hoursN, { n: String(n) }))}</label>
           <label>{p.window}{select("window_days", WINDOW, (n) => fmt(p.daysN, { n: String(n) }))}</label>
+        </div>
+
+        <h3>{p.moreTypes}</h3>
+        <p className="meet-muted">{p.moreTypesHint}</p>
+        <div className="meet-typelist">
+          {v.types.map((x, i) => (
+            <div key={x.key} className="meet-typerow">
+              <input className="form-input" value={x.title} maxLength={120} placeholder={p.name} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} dir="auto" />
+              <select className="form-input" value={x.duration_min} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, duration_min: Number(e.target.value) } : y)))}>
+                {DURATIONS.map((d) => <option key={d} value={d}>{minutes(d)}</option>)}
+              </select>
+              <input className="form-input" value={x.description} maxLength={500} placeholder={p.lineHint} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, description: e.target.value } : y)))} dir="auto" />
+              <button type="button" className="sdr-icon-btn" aria-label={p.removeType} onClick={() => set("types", v.types.filter((_, j) => j !== i))}><Trash2 /></button>
+            </div>
+          ))}
+          {v.types.length < 3 && <button type="button" className="sdr-btn sm" onClick={() => set("types", [...v.types, { key: `t${Date.now().toString(36).slice(-6)}`, title: "", duration_min: 15, description: "" }])}><Plus />{p.addType}</button>}
         </div>
 
         <h3>{p.hours}</h3>

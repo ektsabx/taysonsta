@@ -25,7 +25,7 @@ import type { Database, Json, LeadStage, MessageChannel } from "@/types/database
 // and the CRM stage moves only as Rules & Permissions allow.
 
 type Db = SupabaseClient<Database>;
-export const ANALYSIS_PROMPT_VERSION = "replies-2026-10-13";
+export const ANALYSIS_PROMPT_VERSION = "replies-2026-10-30";
 
 const STAGES = ["interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const;
 const AnalysisSchema = z.object({
@@ -35,6 +35,8 @@ const AnalysisSchema = z.object({
   needs_human: z.boolean(),
   escalate_because: z.array(z.enum(["unclear_reply", "objection", "asks_for_human", "stop_request", "unverified_info"])).max(5),
   suggested_reply: z.string().max(2000).nullable(),
+  /** D-269: a concrete meeting time the reply proposes or accepts, as ISO 8601 with its offset, else null. */
+  proposed_start: z.string().max(40).nullable().optional(),
 });
 export type ReplyAnalysis = z.infer<typeof AnalysisSchema> & { by: "ai" | "rules" };
 
@@ -84,6 +86,8 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
     const business = await loadBusinessContext(workspaceId);
     // The campaign's aim decides what the suggested reply asks for (D-253).
     const { data: camp } = m.outreach_campaign_id ? await db.from("outreach_campaigns").select("aim, cta_url, approved_by").eq("id", m.outreach_campaign_id).maybeSingle() : { data: null };
+    const { data: host } = camp?.approved_by ? await db.from("booking_pages").select("timezone").eq("user_id", camp.approved_by).maybeSingle() : { data: null };
+    const hostZone = host?.timezone ?? "Africa/Cairo";
     try {
       const r = await runStructured(tasks.extraction, {
         system: [
@@ -93,6 +97,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "needs_human: true when a person should answer (complaints, objections, legal or pricing negotiations, unclear meaning, requests to talk to a person).",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
           "suggested_reply: a short reply in the reply's language using only the company knowledge given, or null for stop requests and out-of-office. Never invent prices, features, results, dates or claims about competitors.",
+          `proposed_start: when the reply proposes or accepts one specific meeting day and time (for example "Tuesday at 3pm" or "the 11:00 slot works"), that moment as ISO 8601 with its UTC offset, read in the sender's time zone (${hostZone}) unless the reply names another; today is ${new Date().toISOString().slice(0, 10)}. Null when no single day and time is given.`,
           camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", camp.cta_url, await bookingLinkFor(camp.approved_by)) : "",
           `Sender's company:\n${contextText(business)}`,
           guidanceFor(s, "replies"),

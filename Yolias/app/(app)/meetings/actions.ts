@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
 import { changeStage, meetingChanged } from "@/lib/crm";
 import { meetingBrief } from "@/lib/agents/meeting";
-import { cancelMeeting, ensureBookingPage } from "@/lib/meetings";
+import { cancelMeeting, ensureBookingPage, offerRebooking } from "@/lib/meetings";
 import { DAYS, isTime } from "@/lib/meetings/availability";
 import { isValidTimeZone } from "@/lib/regions";
 import type { MeetingStatus } from "@/types/database";
@@ -29,6 +29,8 @@ const pageInput = z.object({
   min_notice_hours: z.number().int().min(0).max(336),
   window_days: z.number().int().min(1).max(90),
   hours: z.object(Object.fromEntries(DAYS.map((d) => [d, z.array(range).max(3)])) as Record<(typeof DAYS)[number], z.ZodArray<typeof range>>),
+  /** Up to three more meeting types (D-269). */
+  types: z.array(z.object({ key: z.string().regex(/^[a-z0-9-]{1,20}$/), title: z.string().trim().min(1).max(120), duration_min: z.number().int().min(10).max(240), description: z.string().trim().max(500).nullable() })).max(3).default([]),
 });
 
 export async function saveBookingPage(input: z.input<typeof pageInput>): Promise<R> {
@@ -37,7 +39,8 @@ export async function saveBookingPage(input: z.input<typeof pageInput>): Promise
   const p = pageInput.safeParse(input);
   if (!p.success) return { ok: false, error: p.error.issues[0]?.path[0] === "slug" ? t.slug : t.invalid };
   await ensureBookingPage(session.userId, session.workspace.id, session.profile.full_name, session.email, session.profile.timezone ?? null, session.profile.language);
-  const { error } = await createAdminClient().from("booking_pages").update({ ...p.data, location: p.data.location || null, description: p.data.description || null }).eq("user_id", session.userId);
+  const types = p.data.types.map((x) => ({ ...x, description: x.description || null }));
+  const { error } = await createAdminClient().from("booking_pages").update({ ...p.data, types, location: p.data.location || null, description: p.data.description || null }).eq("user_id", session.userId);
   if (error) return { ok: false, error: error.code === "23505" ? t.slugTaken : t.invalid };
   revalidatePath("/meetings");
   return { ok: true };
@@ -58,6 +61,8 @@ export async function setMeetingStatus(id: string, status: MeetingStatus): Promi
   const { data: saved } = await db.from("sales_meetings").update({ status }).eq("id", id).select("id, lead_id, status").single();
   if (!saved) return { ok: false, error: t.invalid };
   await meetingChanged(db, session.workspace.id, saved, old.status, "user");
+  // A no-show gets the booking page to pick another time (owner, 2026-10-30, D-269).
+  if (status === "no_show" && old.status !== "no_show") await offerRebooking(id).catch((e) => console.error("[meetings] rebook", e));
   revalidatePath("/meetings");
   revalidatePath("/inbox");
   return { ok: true };

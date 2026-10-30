@@ -9357,6 +9357,7 @@ const en: Record<string, string> = {
  "الضيف ألغى الاجتماع (لصاحب الصفحة)": "The guest canceled (to the host)",
  "تأكيد الحجز (للضيف)": "Booking confirmation (to the guest)",
  "إلغاء الاجتماع (للضيف)": "Meeting canceled (to the guest)",
+ "لم يحضر: رابط إعادة الحجز (للضيف)": "No-show: link to book again (to the guest)",
 };
 
 export default en;

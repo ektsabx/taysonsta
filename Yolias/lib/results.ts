@@ -15,7 +15,7 @@ export function gridPerson(p: ProspectRow, company: { id: string; name: string }
     id: p.id, name: p.full_name, title: p.title, place: location(p.city, p.country, locale), company: company?.name ?? null, companyId: company?.id ?? null,
     photoUrl: p.photo_url, linkedinUrl: p.linkedin_url, emailStatus: p.email_status, hasEmail: Boolean(email), hasPhone: Boolean(p.phone),
     email: revealed ? email : null, phone: revealed ? p.phone : null, revealed, matchScore: p.match_score,
-    hasWhatsapp: false, facebookUrl: p.facebook_url, instagramUrl: p.instagram_url, bookmarked: Boolean(p.bookmarked_at),
+    facebookUrl: p.facebook_url, instagramUrl: p.instagram_url, bookmarked: Boolean(p.bookmarked_at),
   };
 }
 

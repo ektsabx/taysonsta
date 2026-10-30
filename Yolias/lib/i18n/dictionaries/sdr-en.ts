@@ -101,7 +101,7 @@ export const sdrEn = {
     back: "Campaigns", created: "Created {date} · {steps} steps",
     pause: "Pause", resume: "Resume", launch: "Review & launch",
     stripFollowUps: "Follow-ups today", stripNewLeads: "New leads reached today", stripSteps: "Sequence steps", stripNext: "Next email", nextNone: "Nothing scheduled", nextIn: "In {ago}",
-    tabs: { leads: "Leads", sequence: "Sequence" }, fullAnalytics: "Full analytics",
+    tabs: { leads: "Leads", sequence: "Sequence" },
     a: {
       abTitle: "A/B test", abA: "Version A: {replied} of {sent} replied ({pct}%)", abB: "Version B: {replied} of {sent} replied ({pct}%)",
       leads: "Leads", leadsNote: "In this campaign", contacted: "Contacted", contactedNote: "{pct}% of leads", sent: "Emails sent", sentNote: "{n} still scheduled",

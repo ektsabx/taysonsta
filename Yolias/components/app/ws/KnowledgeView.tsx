@@ -79,6 +79,14 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors,
 
       <section className="ws-section">
         <div className="ws-section-head"><h3>{t.ws.ai.profiles.title}</h3></div>
+        {/* The one-line description lives with the rest of the ideal customer, not in the company basics (D-269). */}
+        <div className="ws-card ws-form" style={{ marginBottom: 12 }}>
+          <div className="ws-field">
+            <label className="ws-label" htmlFor="kn-ideal">{t.settings.organization.idealCustomer}</label>
+            <p className="ws-hint">{t.settings.organization.idealCustomerDesc}</p>
+            <textarea id="kn-ideal" className="form-input" rows={3} maxLength={2000} disabled={!manage} value={basics.ideal_customer} onChange={(e) => setBasics({ ...basics, ideal_customer: e.target.value })} dir="auto" />
+          </div>
+        </div>
         <IdealCustomerFields form={customer} onChange={setCustomer} manage={manage} />
       </section>
 

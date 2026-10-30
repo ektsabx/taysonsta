@@ -287,6 +287,10 @@ export const about: Localized<{
     story: [
       "Finding the right companies is slow work: searching directories, checking headcounts, guessing who decides, copying details into a sheet. By the time the list is ready, the market has moved and the team is tired of it.",
       "In the Gulf and the wider region the problem is sharper. Company data is scattered across sources, and most prospecting tools treat Arabic as an afterthought. We wanted a tool that understands a brief written the way founders and sales leads actually write, in either language, and does the research part properly.",
+      "So Yolias covers the whole path from a sentence to a meeting. You describe your customer, and it finds matching companies and the people who decide there, with verified work emails and the reason each one fits. It writes a personal email for each person from what it found and from what you told it about your business, and sends only after you approve, from your own mailbox and within safe daily limits.",
+      "When replies come in, Yolias reads them, answers the simple ones the way you set, stops at once for anyone who asks not to be contacted, and hands you the ones that need a person. If someone asks for a meeting, it offers free times from your calendar or books the time they named, with a Google Meet link. Analytics then shows, from real numbers, which searches and campaigns led to replies, meetings and customers.",
+      "We focus on email on purpose. It is the channel a business inbox is built for, it can be measured honestly, and doing one channel well beats doing five badly.",
+      "We build Yolias for startups and small and mid-sized companies: founders and small sales teams without time to build lists by hand or the budget for a full team of SDRs. Our goal is for your team to spend its time in the conversations that close deals, and for Yolias to handle everything before them.",
     ],
     principlesEyebrow: "WHAT WE BELIEVE",
     principlesTitle: "Four rules the product follows.",
@@ -306,6 +310,10 @@ export const about: Localized<{
     story: [
       "العثور على الشركات المناسبة عمل بطيء: بحث في الأدلة، والتحقق من أعداد الموظفين، وتخمين من يملك القرار، ونسخ التفاصيل إلى جدول. وحين تجهز القائمة يكون السوق قد تغيّر والفريق قد ملّ منها.",
       "وفي الخليج والمنطقة تكون المشكلة أوضح. بيانات الشركات موزعة على مصادر كثيرة، ومعظم أدوات البحث عن العملاء تتعامل مع العربية كأمر ثانوي. أردنا أداة تفهم الطلب كما يكتبه المؤسسون ومديرو المبيعات فعلًا، بأي من اللغتين، وتنجز جزء البحث كما يجب.",
+      "لذلك يغطي يولياس الطريق كاملًا من جملة واحدة إلى اجتماع. تصف عميلك المثالي، فيجد الشركات المطابقة والأشخاص أصحاب القرار فيها، مع بريد عمل موثَّق وسبب واضح لكل تطابق. ثم يكتب لكل شخص رسالة بريد شخصية مبنية على ما وجده وعلى ما أخبرته به عن نشاطك، ولا يرسل إلا بعد موافقتك، من صندوق بريدك أنت، وفي حدود يومية آمنة تحمي سمعة نطاقك.",
+      "وعندما تصل الردود يقرأها يولياس، ويرد على البسيط منها بالطريقة التي حددتها، ويتوقف فورًا مع كل من يطلب عدم التواصل، ويحوّل إليك ما يحتاج تدخل شخص. وإذا طلب أحدهم اجتماعًا يعرض عليه مواعيد متاحة من تقويمك، أو يحجز الموعد الذي اقترحه مباشرة، مع رابط Google Meet. وفي التحليلات ترى بأرقام حقيقية أي بحث وأي حملة أوصلاك إلى ردود واجتماعات وعملاء.",
+      "ونركّز على البريد الإلكتروني عن قصد. فهو القناة التي صُمم لها بريد الشركات، ونتائجه تُقاس بصدق، وإتقان قناة واحدة أفضل من أداء خمس قنوات بشكل ضعيف.",
+      "نبني يولياس للشركات الناشئة والصغيرة والمتوسطة، وللمؤسسين وفرق المبيعات الصغيرة التي لا تملك وقتًا لبناء القوائم يدويًا ولا ميزانية لفريق كامل من مندوبي تطوير المبيعات. هدفنا أن يقضي فريقك وقته في المحادثات التي تصنع صفقات، وأن يتولى يولياس كل ما قبلها.",
     ],
     principlesEyebrow: "ما نؤمن به",
     principlesTitle: "أربع قواعد يلتزم بها المنتج.",

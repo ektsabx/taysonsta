@@ -59,6 +59,7 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   meeting_canceled: { category: "account", pref: null },
   meeting_guest: { category: "account", pref: null },
   meeting_guest_canceled: { category: "account", pref: null },
+  meeting_rebook: { category: "account", pref: null },
   announcement: { category: "updates", pref: "notify_product" },
   // Affiliate program: statements about the affiliate's own money and status.
   affiliate_update: { category: "account", pref: null },

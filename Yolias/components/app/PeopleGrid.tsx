@@ -24,8 +24,6 @@ export interface GridPerson {
   phone: string | null;
   revealed: boolean;
   matchScore: number | null;
-  /** WhatsApp number (or a phone to try on WhatsApp) is known. */
-  hasWhatsapp: boolean;
   facebookUrl: string | null;
   instagramUrl: string | null;
   bookmarked: boolean;

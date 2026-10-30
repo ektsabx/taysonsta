@@ -136,6 +136,8 @@ export interface MessageData {
   meeting_canceled: Base & { guest: string; guestEmail: string; time: string; leadId: string; url: string | null; note: string | null };
   /** To the guest who booked: the time, the place or link, and a cancel link. */
   meeting_guest: Base & { hostName: string; company: string | null; title: string; start: string; end: string; timeZone: string; location: string | null; url: string | null; calendarInvite: boolean; cancelUrl: string };
+  /** To a guest who missed the meeting (D-269): a short note and the booking page to pick another time. */
+  meeting_rebook: Base & { hostName: string; company: string | null; title: string; bookingUrl: string };
   /** To the guest when the host cancels (Google tells them itself when the event came from Google Calendar). */
   meeting_guest_canceled: Base & { title: string; start: string; timeZone: string };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
@@ -504,6 +506,14 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       footnote: `You booked this on ${esc(d.hostName)}’s booking page on Yolias. If you can’t make it, cancel with the button above so the time is freed.`,
     };
   },
+  meeting_rebook: (l, d) => ({
+    subject: `Shall we find another time? (${d.title})`,
+    preheader: `${d.hostName} would still like to meet.`,
+    heading: "We missed you",
+    body: [`It looks like the meeting with ${esc(d.hostName)}${d.company ? ` (${esc(d.company)})` : ""} didn’t happen. No problem: pick another time that suits you.`],
+    button: { label: "Pick another time", href: d.bookingUrl },
+    footnote: `Sent by Yolias on behalf of ${esc(d.hostName)}.`,
+  }),
   meeting_guest_canceled: (l, d) => ({
     subject: `Canceled: ${d.title}`,
     preheader: "The meeting was canceled.",

@@ -6,8 +6,9 @@ import { CTA, type SeedPage } from "./types.ts";
 // someone already wants; Yolias also finds the people and writes to them, and
 // its booking page comes with every plan. Their prices are as their own
 // pricing pages showed them on 30 October 2026 (sources listed); Yolias's
-// limits are said plainly: one booking page per member, no team scheduling,
-// Google Calendar only, and it doesn't read your other calendars.
+// limits are said plainly: one booking page per member with up to four meeting
+// types, no team scheduling, Google Calendar only (D-269: busy times from the
+// main Google Calendar are read, so they're never offered).
 
 type L = { en: string; ar: string };
 type Row = "what" | "find" | "reach" | "book" | "calendar" | "team" | "price";
@@ -27,15 +28,15 @@ const Y: Record<Exclude<Row, "price" | "team">, L> = {
   find: { en: "You describe your ideal customer in a sentence, in Arabic or English, and Yolias finds them with a match score", ar: "تصف عميلك المثالي في جملة، بالعربية أو الإنجليزية، فيجدهم يولياس مع نسبة تطابق" },
   reach: { en: "Writes the first email and follow-ups and sends them from your Gmail or company mailbox after one approval", ar: "يكتب الرسالة الأولى والمتابعات ويرسلها من Gmail أو بريد شركتك بعد موافقة واحدة" },
   book: { en: "Your page at yolias.com/meet/your-name: length, break, notice, booking window and weekly hours; when a lead asks for a meeting, Yolias replies with two free times and the page", ar: "صفحتك على yolias.com/meet/اسمك: المدة والاستراحة والمهلة ومدة الإتاحة وساعات الأسبوع؛ وعندما يطلب العميل اجتماعًا يرد يولياس بموعدين متاحين والصفحة" },
-  calendar: { en: "Google Calendar: each booking goes to a calendar Yolias creates, with a Google Meet link and Google's invitation; email reminder an hour before", ar: "تقويم Google: كل حجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
+  calendar: { en: "Google Calendar: busy times in your main calendar are never offered; each booking goes to a calendar Yolias creates, with a Google Meet link and Google's invitation; email reminder an hour before", ar: "تقويم Google: أوقات انشغالك في تقويمك الرئيسي لا تُعرض أبدًا؛ وكل حجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
 };
-const YT: L = { en: "One booking page per member, booked one-to-one; no round-robin or routing forms", ar: "صفحة حجز واحدة لكل عضو، والحجز فردي؛ لا توزيع دوري ولا نماذج توجيه" };
+const YT: L = { en: "One booking page per member with up to four meeting types, booked one-to-one; no round-robin or routing forms", ar: "صفحة حجز واحدة لكل عضو بحتى أربعة أنواع اجتماعات، والحجز فردي؛ لا توزيع دوري ولا نماذج توجيه" };
 const YP = (en: string, ar: string): L => ({ en: `Pay As You Go from $5, or Pro $50 and Growth $100 a month, unlimited users; the booking page is included. ${en}`, ar: `الدفع حسب الاستخدام من 5 دولارات، أو Pro بـ 50 وGrowth بـ 100 دولار شهريًا، ومستخدمون بلا حد؛ وصفحة الحجز مشمولة. ${ar}` });
 
 const limits: L[] = [
-  { en: "Yolias doesn't read your other calendars, so it can't see events outside Yolias: keep your booking hours clear of them.", ar: "يولياس لا يقرأ تقويماتك الأخرى، فلا يرى المواعيد خارجه: اجعل ساعات الحجز بعيدة عنها." },
+  { en: "Yolias reads busy times from your main Google Calendar only; events in other calendars (Outlook, iCloud or a second Google calendar) aren't seen.", ar: "يقرأ يولياس أوقات الانشغال من تقويم Google الرئيسي فقط؛ ولا يرى مواعيد التقويمات الأخرى (Outlook أو iCloud أو تقويم Google ثانٍ)." },
   { en: "Google Calendar only; no Outlook or iCloud calendar yet.", ar: "تقويم Google فقط؛ لا Outlook ولا iCloud حتى الآن." },
-  { en: "One meeting type per member: no team pages, round-robin, routing forms, payments or SMS reminders.", ar: "نوع اجتماع واحد لكل عضو: لا صفحات فرق ولا توزيع دوري ولا نماذج توجيه ولا دفع ولا تذكير برسائل SMS." },
+  { en: "Up to four meeting types per member: no team pages, round-robin, routing forms, payments or SMS reminders.", ar: "حتى أربعة أنواع اجتماعات لكل عضو: لا صفحات فرق ولا توزيع دوري ولا نماذج توجيه ولا دفع ولا تذكير برسائل SMS." },
 ];
 
 interface Vs {
@@ -117,12 +118,12 @@ export const meetingComparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Can Yolias replace Calendly?", a: "For one-to-one sales meetings booked from your outreach, yes: every member has a booking page with weekly hours, and bookings go to Google Calendar with a Meet link. For team scheduling, routing, payments or Outlook, keep Calendly." },
+        { q: "Can Yolias replace Calendly?", a: "For one-to-one sales meetings booked from your outreach, yes: every member has a booking page with weekly hours and up to four meeting types, busy times in Google Calendar are never offered, and bookings go to Google Calendar with a Meet link. For team scheduling, routing, payments or Outlook, keep Calendly." },
         { q: "Is Yolias cheaper than Calendly?", a: "For scheduling alone, Calendly's Standard plan at $10 a seat is cheaper. Yolias costs more than a scheduler because it also finds and emails your prospects; its booking page is included, with unlimited users." },
         { q: "Can I use both?", a: "Yes. Yolias offers its own booking page to leads who ask for a meeting; you can keep Calendly for your other meetings." },
       ],
       ar: [
-        { q: "هل يمكن أن يحل يولياس محل Calendly؟", a: "لاجتماعات المبيعات الفردية التي تأتي من تواصلك، نعم: لكل عضو صفحة حجز بساعات أسبوعية، وتذهب الحجوزات إلى تقويم Google برابط Meet. أما جدولة الفرق والتوجيه والدفع وOutlook فاحتفظ لها بـ Calendly." },
+        { q: "هل يمكن أن يحل يولياس محل Calendly؟", a: "لاجتماعات المبيعات الفردية التي تأتي من تواصلك، نعم: لكل عضو صفحة حجز بساعات أسبوعية وحتى أربعة أنواع اجتماعات، ولا تُعرض أوقات انشغالك في تقويم Google، وتذهب الحجوزات إلى تقويم Google برابط Meet. أما جدولة الفرق والتوجيه والدفع وOutlook فاحتفظ لها بـ Calendly." },
         { q: "هل يولياس أرخص من Calendly؟", a: "للجدولة وحدها، خطة Standard في Calendly بـ 10 دولارات للمقعد أرخص. يولياس أغلى من أداة الجدولة لأنه يجد عملاءك ويراسلهم أيضًا، وصفحة الحجز مشمولة، بمستخدمين بلا حد." },
         { q: "هل يمكن استخدام الاثنين؟", a: "نعم. يقدّم يولياس صفحة الحجز الخاصة به للعملاء الذين يطلبون اجتماعًا، ويمكنك الإبقاء على Calendly لاجتماعاتك الأخرى." },
       ],
@@ -327,7 +328,7 @@ export const meetingAlternativesPages: SeedPage[] = [{
       ] } },
       { h2: "How Yolias fits next to a scheduler" },
       { p: "Schedulers assume someone already wants to meet you. Yolias starts before that: you describe your ideal customer, it finds the companies and decision makers, writes the emails and follow-ups, and when someone asks for a meeting it replies with two free times and your booking page. Every booking lands in Meetings and in Google Calendar with a Meet link." },
-      { note: "Yolias's booking page is one-to-one and Google Calendar only, and it doesn't read your other calendars. Keep a scheduler if you need team pages, routing or payments." },
+      { note: "Yolias's booking page is one-to-one and works with Google Calendar only; it skips busy times in your main Google Calendar but not in Outlook or iCloud. Keep a scheduler if you need team pages, routing or payments." },
     ],
     faq: [
       { q: "What is the cheapest Calendly alternative?", a: "For scheduling alone, Cal.com's free plan for one user or TidyCal's one-time price. Yolias isn't the cheapest scheduler; it's priced for finding and emailing prospects, with the booking page included." },
@@ -358,7 +359,7 @@ export const meetingAlternativesPages: SeedPage[] = [{
       ] } },
       { h2: "كيف يعمل يولياس بجانب أداة الجدولة" },
       { p: "تفترض أدوات الجدولة أن شخصًا يريد مقابلتك بالفعل. أما يولياس فيبدأ قبل ذلك: تصف عميلك المثالي، فيجد الشركات وصنّاع القرار، ويكتب الرسائل والمتابعات، وعندما يطلب أحدهم اجتماعًا يرد بموعدين متاحين وصفحة الحجز الخاصة بك. وكل حجز يظهر في الاجتماعات وفي تقويم Google برابط Meet." },
-      { note: "صفحة الحجز في يولياس فردية وتعمل مع تقويم Google فقط، ولا تقرأ تقويماتك الأخرى. احتفظ بأداة جدولة إذا كنت تحتاج صفحات فرق أو توجيهًا أو دفعًا." },
+      { note: "صفحة الحجز في يولياس فردية وتعمل مع تقويم Google فقط؛ تتجنب أوقات انشغالك في تقويم Google الرئيسي، لكن لا ترى Outlook أو iCloud. احتفظ بأداة جدولة إذا كنت تحتاج صفحات فرق أو توجيهًا أو دفعًا." },
     ],
     faq: [
       { q: "ما أرخص بديل لـ Calendly؟", a: "للجدولة وحدها، خطة Cal.com المجانية لمستخدم واحد أو سعر TidyCal لمرة واحدة. يولياس ليس أرخص أداة جدولة؛ سعره يشمل إيجاد العملاء ومراسلتهم، وصفحة الحجز مشمولة." },
@@ -447,7 +448,7 @@ export const meetingSolutionPages: SeedPage[] = [
       blocks: [
         { h2: "What your guest sees" },
         { ul: ["Free days and times in their own time zone.", "A short form: name, email and an optional note.", "A confirmation with the link or place, and a link to cancel.", "In Arabic or English."] },
-        { note: "Yolias doesn't read your other calendars: keep your booking hours free of meetings booked elsewhere." },
+        { note: "Yolias reads busy times from your main Google Calendar and never offers them. Meetings in Outlook or iCloud aren't seen, so keep your hours clear of them." },
       ],
       faq: [
         { q: "Is the booking page free?", a: "It's included in every Yolias plan, with unlimited users. Yolias charges for the prospects it finds, not for bookings." },
@@ -472,7 +473,7 @@ export const meetingSolutionPages: SeedPage[] = [
       blocks: [
         { h2: "ماذا يرى ضيفك" },
         { ul: ["الأيام والأوقات المتاحة بتوقيته.", "نموذج قصير: الاسم والبريد وملاحظة اختيارية.", "تأكيد فيه الرابط أو المكان ورابط للإلغاء.", "بالعربية أو الإنجليزية."] },
-        { note: "لا يقرأ يولياس تقويماتك الأخرى: اجعل ساعات الحجز خالية من الاجتماعات المحجوزة في مكان آخر." },
+        { note: "يقرأ يولياس أوقات انشغالك في تقويم Google الرئيسي ولا يعرضها أبدًا. أما مواعيد Outlook أو iCloud فلا يراها، فاجعل ساعاتك خالية منها." },
       ],
       faq: [
         { q: "هل صفحة الحجز مجانية؟", a: "مشمولة في كل خطط يولياس، بمستخدمين بلا حد. يحسب يولياس العملاء المحتملين الذين يجدهم، لا الحجوزات." },

@@ -2,9 +2,9 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { meetingChanged } from "@/lib/crm";
 import { notify, siteUrl, userRecipient, type Recipient } from "@/lib/email/notify";
-import { freeSlots, isFree, type DaySlots } from "./availability";
-import { accessToken, cancelEvent, createCalendar, createEvent, CalendarError } from "./google";
-import type { BookingPageRow } from "@/types/database";
+import { fitsPage, freeSlots, isFree, type DaySlots } from "./availability";
+import { accessToken, busyTimes, cancelEvent, createCalendar, createEvent, CalendarError } from "./google";
+import type { BookingPageRow, MeetingType } from "@/types/database";
 
 // Meetings inside Yolias (owner, 2026-10-30, D-267): each member's booking
 // page at yolias.com/meet/<slug>, bookings that land in the CRM, optional
@@ -49,14 +49,26 @@ export async function pageBySlug(slug: string): Promise<(BookingPageRow & { host
   return { ...page, host: { name: p?.full_name || p?.email?.split("@")[0] || "", company: w?.name ?? null } };
 }
 
+/** The host's busy times: their Yolias meetings, plus their Google Calendar when connected (D-269). */
 async function busy(db: Db, hostId: string, days: number) {
-  const { data } = await db.from("sales_meetings").select("starts_at, ends_at").eq("host_id", hostId).eq("status", "scheduled")
-    .gte("starts_at", new Date(Date.now() - 86_400_000).toISOString()).lte("starts_at", new Date(Date.now() + (days + 2) * 86_400_000).toISOString());
-  return (data ?? []).map((m) => ({ start: m.starts_at, end: m.ends_at ?? new Date(Date.parse(m.starts_at) + 30 * 60_000).toISOString() }));
+  const from = new Date(Date.now() - 86_400_000).toISOString();
+  const to = new Date(Date.now() + (days + 2) * 86_400_000).toISOString();
+  const [{ data }, cal] = await Promise.all([
+    db.from("sales_meetings").select("starts_at, ends_at").eq("host_id", hostId).eq("status", "scheduled").gte("starts_at", from).lte("starts_at", to),
+    calendarAccess(db, hostId),
+  ]);
+  const own = (data ?? []).map((m) => ({ start: m.starts_at, end: m.ends_at ?? new Date(Date.parse(m.starts_at) + 30 * 60_000).toISOString() }));
+  return cal ? [...own, ...(await busyTimes(cal.token, from, to))] : own;
 }
 
 export async function slotsFor(page: BookingPageRow): Promise<DaySlots[]> {
   return freeSlots(page, await busy(createAdminClient(), page.user_id, page.window_days));
+}
+
+/** Free times for every meeting type of a page, reading the busy times once (D-269). */
+export async function slotsByType(page: BookingPageRow): Promise<{ type: MeetingType; days: DaySlots[] }[]> {
+  const b = await busy(createAdminClient(), page.user_id, page.window_days);
+  return pageTypes(page).map((type) => ({ type, days: freeSlots({ ...page, duration_min: type.duration_min }, b) }));
 }
 
 /** The member's booking page link when it's open, else null (for the emails of a meeting campaign). */
@@ -79,18 +91,27 @@ export async function nextSlots(userId: string, count = 2): Promise<{ url: strin
 
 export type BookError = "not_found" | "closed" | "invalid" | "taken";
 
-export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null } | { ok: false; error: BookError }> {
+/** The meeting types a page offers: its own meeting first, then up to three more (D-269). */
+export function pageTypes(page: BookingPageRow): MeetingType[] {
+  return [{ key: "main", title: page.title, duration_min: page.duration_min, description: page.description }, ...(page.types ?? [])];
+}
+
+/** The page's rules for one meeting type (its own length). */
+const withType = (page: BookingPageRow, type: MeetingType) => ({ ...page, duration_min: type.duration_min });
+
+export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null; type?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null } | { ok: false; error: BookError }> {
   const db = createAdminClient();
   const page = await pageBySlug(input.slug);
   if (!page) return { ok: false, error: "not_found" };
   if (!page.enabled) return { ok: false, error: "closed" };
+  const type = pageTypes(page).find((x) => x.key === (input.type || "main"));
+  if (!type) return { ok: false, error: "invalid" };
   const name = input.name.trim().slice(0, 120);
   const email = input.email.trim().toLowerCase();
   const note = input.note?.trim().slice(0, 1000) || null;
   if (name.length < 2 || !EMAIL.test(email) || Number.isNaN(Date.parse(input.start))) return { ok: false, error: "invalid" };
   const start = new Date(input.start).toISOString();
-  if (!isFree(page, await busy(db, page.user_id, page.window_days), start)) return { ok: false, error: "taken" };
-  const end = new Date(Date.parse(start) + page.duration_min * 60_000).toISOString();
+  if (!isFree(withType(page, type), await busy(db, page.user_id, page.window_days), start)) return { ok: false, error: "taken" };
 
   // The guest is a lead of the host's workspace: the same person keeps one record.
   const { data: found } = await db.from("sales_leads").select("id").eq("workspace_id", page.workspace_id).ilike("email", email).limit(1).maybeSingle();
@@ -100,15 +121,36 @@ export async function book(input: { slug: string; start: string; name: string; e
     leadId = made?.id ?? (await db.from("sales_leads").select("id").eq("workspace_id", page.workspace_id).eq("lead_key", `email:${email}`).maybeSingle()).data?.id ?? null;
   }
   if (!leadId) return { ok: false, error: "invalid" };
+  return createBooking(db, page, type, { leadId, name, email, note }, start, "booking");
+}
 
+/**
+ * A lead proposed a time in their reply and it is free (D-269): Yolias books
+ * it on the host's page (their main meeting), like a booking from the page.
+ */
+export async function bookForLead(hostId: string, leadId: string, start: string): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null } | { ok: false; error: BookError }> {
+  const db = createAdminClient();
+  const { data: row } = await db.from("booking_pages").select("slug").eq("user_id", hostId).maybeSingle();
+  const page = row ? await pageBySlug(row.slug) : null;
+  if (!page) return { ok: false, error: "not_found" };
+  if (!page.enabled) return { ok: false, error: "closed" };
+  const { data: lead } = await db.from("sales_leads").select("id, name, email").eq("id", leadId).eq("workspace_id", page.workspace_id).maybeSingle();
+  if (!lead?.email) return { ok: false, error: "invalid" };
+  const at = new Date(start).toISOString();
+  if (!fitsPage(page, await busy(db, page.user_id, page.window_days), at)) return { ok: false, error: "taken" };
+  return createBooking(db, page, pageTypes(page)[0], { leadId: lead.id, name: lead.name, email: lead.email, note: null }, at, "agent");
+}
+
+async function createBooking(db: Db, page: BookingPageRow & { host: { name: string; company: string | null } }, type: MeetingType, who: { leadId: string; name: string; email: string; note: string | null }, start: string, source: "booking" | "agent") {
+  const end = new Date(Date.parse(start) + type.duration_min * 60_000).toISOString();
   const { data: meeting, error } = await db.from("sales_meetings").insert({
-    workspace_id: page.workspace_id, lead_id: leadId, title: `${page.title}: ${name}`.slice(0, 200), starts_at: start, ends_at: end, status: "scheduled",
-    source: "booking", host_id: page.user_id, guest_name: name, guest_email: email, guest_note: note, location: page.location, created_by: page.user_id,
+    workspace_id: page.workspace_id, lead_id: who.leadId, title: `${type.title}: ${who.name}`.slice(0, 200), starts_at: start, ends_at: end, status: "scheduled",
+    source, host_id: page.user_id, guest_name: who.name, guest_email: who.email, guest_note: who.note, location: page.location, created_by: page.user_id,
   }).select("id, lead_id, status, cancel_token").single();
-  if (error?.code === "23505") return { ok: false, error: "taken" };
+  if (error?.code === "23505") return { ok: false as const, error: "taken" as const };
   if (error || !meeting) throw error ?? new Error("meeting not saved");
-  await meetingChanged(db, page.workspace_id, meeting, null, "system").catch((e) => console.error("[meetings] stage", e));
-  await db.from("lead_activities").insert({ workspace_id: page.workspace_id, lead_id: leadId, kind: "meeting_scheduled", actor_kind: "system", body: `Booked "${page.title}" from the booking page.`, meta: { meeting_id: meeting.id, source: "booking" } });
+  await meetingChanged(db, page.workspace_id, meeting, null, source === "agent" ? "agent" : "system").catch((e) => console.error("[meetings] stage", e));
+  await db.from("lead_activities").insert({ workspace_id: page.workspace_id, lead_id: who.leadId, kind: "meeting_scheduled", actor_kind: source === "agent" ? "agent" : "system", body: source === "agent" ? `Yolias booked "${type.title}" at the time the lead proposed.` : `Booked "${type.title}" from the booking page.`, meta: { meeting_id: meeting.id, source } });
 
   // Google Calendar (optional): the event with the guest invited, and a Meet link when no place is set.
   let url: string | null = null;
@@ -116,8 +158,8 @@ export async function book(input: { slug: string; start: string; name: string; e
   if (cal) {
     try {
       const ev = await createEvent(cal.token, cal.calendarId, {
-        summary: `${page.title}: ${name}`, description: [page.description, note && `Note from ${name}: ${note}`, `Booked with Yolias.`].filter(Boolean).join("\n\n"),
-        start, end, timeZone: page.timezone, guest: { email, name }, location: page.location, meet: !page.location,
+        summary: `${type.title}: ${who.name}`, description: [type.description, who.note && `Note from ${who.name}: ${who.note}`, "Booked with Yolias."].filter(Boolean).join("\n\n"),
+        start, end, timeZone: page.timezone, guest: { email: who.email, name: who.name }, location: page.location, meet: !page.location,
       });
       url = ev.meetUrl;
       await db.from("sales_meetings").update({ google_event_id: ev.id, ...(url ? { url } : {}) }).eq("id", meeting.id);
@@ -130,13 +172,13 @@ export async function book(input: { slug: string; start: string; name: string; e
     await db.from("sales_meetings").update({ url }).eq("id", meeting.id);
   }
 
-  await tellHost(db, page, "booked", { meetingId: meeting.id, leadId, name, email, start, url, note });
-  const guest: Recipient = { userId: null, email, locale: "en", prefs: {} };
+  await tellHost(db, page, "booked", { meetingId: meeting.id, leadId: who.leadId, name: who.name, email: who.email, start, url, note: who.note });
+  const guest: Recipient = { userId: null, email: who.email, locale: "en", prefs: {} };
   await notify("meeting_guest", [guest], {
-    hostName: page.host.name, company: page.host.company, title: page.title, start, end, timeZone: page.timezone, location: page.location, url,
+    hostName: page.host.name, company: page.host.company, title: type.title, start, end, timeZone: page.timezone, location: page.location, url,
     calendarInvite: Boolean(cal), cancelUrl: `${siteUrl()}/meet/c/${meeting.cancel_token}`,
   }, { workspaceId: page.workspace_id, dedupe: meeting.id });
-  return { ok: true, start, end, url, location: page.location };
+  return { ok: true as const, start, end, url, location: page.location };
 }
 
 /** Cancels a booking: by the guest (their link) or by the host (Meetings). The other side is told. */
@@ -204,4 +246,24 @@ async function calendarAccess(db: Db, userId: string): Promise<{ token: string; 
 async function calendarFailed(db: Db, userId: string, e: unknown) {
   console.error("[meetings] google calendar", e instanceof Error ? e.message : e);
   await db.from("calendar_connections").update({ status: "error", error: e instanceof CalendarError && e.kind === "auth" ? "Reconnect Google Calendar" : "Google Calendar didn't answer" }).eq("user_id", userId);
+}
+
+/** A guest who missed the meeting gets the host's booking page to pick another time (D-269). Once per meeting. */
+export async function offerRebooking(meetingId: string): Promise<boolean> {
+  const db = createAdminClient();
+  const { data: m } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, host_id, created_by, guest_email, lead:sales_leads(email, do_not_contact)").eq("id", meetingId).maybeSingle();
+  if (!m) return false;
+  const lead = m.lead as unknown as { email: string | null; do_not_contact: boolean } | null;
+  const to = m.guest_email ?? lead?.email ?? null;
+  const host = m.host_id ?? m.created_by;
+  if (!to || lead?.do_not_contact || !host) return false;
+  const { data: row } = await db.from("booking_pages").select("slug, enabled").eq("user_id", host).maybeSingle();
+  if (!row?.enabled) return false;
+  const page = await pageBySlug(row.slug);
+  if (!page) return false;
+  await notify("meeting_rebook", [{ userId: null, email: to, locale: "en", prefs: {} }], {
+    hostName: page.host.name, company: page.host.company, title: m.title.split(":")[0] || page.title, bookingUrl: bookingUrl(page.slug),
+  }, { workspaceId: m.workspace_id, dedupe: m.id });
+  await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "agent", actor_kind: "agent", body: "No-show: Yolias sent the booking page to pick another time.", meta: { meeting_id: m.id } });
+  return true;
 }

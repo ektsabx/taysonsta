@@ -1,6 +1,6 @@
 // Booking page free times (D-267): npx tsx scripts/test-availability.mts
 import assert from "node:assert/strict";
-import { freeSlots, isFree, zoned, type AvailabilityRules } from "../lib/meetings/availability.ts";
+import { fitsPage, freeSlots, isFree, zoned, type AvailabilityRules } from "../lib/meetings/availability.ts";
 
 const week = { sun: [["10:00", "12:00"]], mon: [["10:00", "12:00"]], tue: [], wed: [], thu: [], fri: [], sat: [] } as AvailabilityRules["hours"];
 const r: AvailabilityRules = { duration_min: 30, buffer_min: 10, min_notice_hours: 0, window_days: 7, timezone: "Africa/Cairo", hours: week };
@@ -20,4 +20,10 @@ assert.equal(zoned("2026-11-09", "10:00", "America/New_York").toISOString(), "20
 assert.equal(zoned("2026-10-26", "10:00", "America/New_York").toISOString(), "2026-10-26T14:00:00.000Z");
 assert.ok(isFree(r, [], "2026-11-08T08:00:00.000Z", now));
 assert.ok(!isFree(r, [], "2026-11-08T08:05:00.000Z", now), "only the offered times");
+// A time the lead named in a reply (D-269): any start inside the hours, clear of busy times.
+assert.ok(fitsPage(r, [], "2026-11-08T08:05:00.000Z", now), "10:05 Cairo fits");
+assert.ok(!fitsPage(r, [], "2026-11-08T09:45:00.000Z", now), "11:45 + 30 min runs past 12:00");
+assert.ok(!fitsPage(r, busy, "2026-11-08T08:30:00.000Z", now), "overlaps a busy time with its break");
+assert.ok(!fitsPage(r, [], "2026-11-10T08:00:00.000Z", now), "Tuesday has no hours");
+assert.ok(!fitsPage(r, [], "next week", now), "not a date");
 console.log("✓ availability");

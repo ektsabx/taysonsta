@@ -1,5 +1,5 @@
 import "server-only";
-import { nextSlots } from "@/lib/meetings";
+import { bookForLead, nextSlots } from "@/lib/meetings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { analyzeReply, type ReplyAnalysis } from "@/lib/agents/replies";
@@ -371,20 +371,34 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     const ar = owner?.language === "ar";
     const meeting = analysis.kind === "meeting_request";
     let linkSent = false;
-    if (meeting && campaignId && !lead?.do_not_contact) {
+    let bookedAt: string | null = null;
+    const proposed = analysis?.proposed_start && !Number.isNaN(Date.parse(analysis.proposed_start)) ? analysis.proposed_start : null;
+    if ((meeting || proposed) && campaignId && !lead?.do_not_contact) {
       const { data: camp } = await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle();
       const c = camp as OutreachCampaignRow | null;
-      const page = await nextSlots(mb.user_id).catch(() => null);
+      const answers = Boolean(c?.auto_reply && c.status === "active" && c.mailbox_id === mb.id);
+      // The lead named a time (D-269): when it is free on the member's page, Yolias books it and confirms in the thread.
+      if (proposed && answers && c) {
+        const b = await bookForLead(mb.user_id, leadId, proposed).catch(() => null);
+        if (b?.ok) {
+          bookedAt = b.start;
+          const { data: me } = await db.from("booking_pages").select("timezone").eq("user_id", mb.user_id).maybeSingle();
+          linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookedReply(b.start, me?.timezone ?? null, lang, b.url ?? b.location), "Yolias booked the time the lead proposed and confirmed it in the thread.");
+        }
+      }
+      const page = bookedAt ? null : await nextSlots(mb.user_id).catch(() => null);
       const link = page?.url ?? ((c?.aim === "meeting" && c.cta_url) || null);
-      if (link && c?.auto_reply && c.status === "active" && c.mailbox_id === mb.id) {
+      if (!bookedAt && link && answers && c) {
         linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis.suggested_reply, page?.slots ?? [], page?.timezone ?? null), "Yolias offered two times and sent your booking page (the lead asked for a meeting).");
       }
     }
+    // Booked at the time they proposed: the booking notice and email already told the member.
+    if (bookedAt) return;
     const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
     const next = meeting
       ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط صفحة الحجز من الاجتماعات (أو فعّل الرد التلقائي في الحملة ليرسله يولياس بنفسه)." : " Send them your booking page from Meetings (or turn on auto-reply in the campaign so Yolias sends it).")
       : "";
-    const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
+    const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات.${next}` : `${analysis.summary}\nYolias stopped the follow-ups.${next}`;
     await notifyUser(mb.workspace_id, mb.user_id, title, body, `/inbox?lead=${leadId}`, `reply:${messageId}`);
     await db.from("lead_tasks").insert({
       workspace_id: mb.workspace_id, lead_id: leadId,
@@ -407,6 +421,14 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   if (!AUTO_REPLY_KINDS.has(analysis.kind) || analysis.needs_human || analysis.escalate_because.length || !analysis.suggested_reply) return;
   const reply = analysis.suggested_reply;
   await sendInThread(db, mb, leadId, messageId, c, () => reply, "Yolias answered the reply automatically (auto-reply is on for this campaign).");
+}
+
+/** The confirmation of a time the lead proposed and Yolias booked (D-269), in the thread's language. */
+function bookedReply(start: string, timeZone: string | null, lang: string | null, where: string | null): string {
+  const ar = lang === "ar";
+  const at = new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: timeZone ?? "UTC", timeZoneName: "short" }).format(new Date(start));
+  const place = where ? (ar ? ` الرابط: ${where}` : ` Link: ${where}`) : "";
+  return ar ? `تم، حجزت الموعد ${at}. ستصلك رسالة تأكيد بها التفاصيل.${place}` : `Done, you're booked for ${at}. A confirmation with the details is on its way.${place}`;
 }
 
 /** The answer to a meeting request: two free times from the booking page and its link, in the thread's language. */

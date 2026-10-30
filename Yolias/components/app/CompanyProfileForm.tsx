@@ -43,7 +43,6 @@ export function CompanyProfileForm({ initial, manage, onChange }: { initial: Com
         {row("target_markets", o.targetMarkets, o.targetMarketsDesc, <input id="cp-target_markets" className="form-input" value={form.target_markets} maxLength={300} disabled={!manage} onChange={set("target_markets")} />)}
       </div>
       {row("offering", o.offering, o.offeringDesc, <textarea id="cp-offering" className="form-input" rows={3} value={form.offering} maxLength={2000} disabled={!manage} onChange={set("offering")} />)}
-      {row("ideal_customer", o.idealCustomer, o.idealCustomerDesc, <textarea id="cp-ideal_customer" className="form-input" rows={3} value={form.ideal_customer} maxLength={2000} disabled={!manage} onChange={set("ideal_customer")} />)}
       {manage && onChange ? null : manage ? (
         <div className="setting-actions">
           {error && <p className="form-error" role="alert">{error}</p>}

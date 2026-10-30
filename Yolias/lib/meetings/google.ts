@@ -11,7 +11,9 @@ import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 const AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
 const API = "https://www.googleapis.com/calendar/v3";
-const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/calendar.app.created"];
+// calendar.freebusy (D-269): only whether a time is busy in the member's own
+// calendar, never what the events are, so the booking page skips those times.
+const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/calendar.app.created", "https://www.googleapis.com/auth/calendar.freebusy"];
 
 export class CalendarError extends Error {
   constructor(public kind: "not_configured" | "auth" | "failed", message: string) {
@@ -85,4 +87,14 @@ export async function createEvent(token: string, calendarId: string, e: EventInp
 
 export async function cancelEvent(token: string, calendarId: string, eventId: string): Promise<void> {
   await call(token, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: "DELETE" });
+}
+
+/** Busy times in the member's primary calendar (needs calendar.freebusy; connections from before D-269 return none). */
+export async function busyTimes(token: string, from: string, to: string): Promise<{ start: string; end: string }[]> {
+  try {
+    const r = await call<{ calendars?: Record<string, { busy?: { start: string; end: string }[] }> }>(token, "/freeBusy", { method: "POST", body: JSON.stringify({ timeMin: from, timeMax: to, items: [{ id: "primary" }] }) });
+    return r?.calendars?.primary?.busy ?? [];
+  } catch {
+    return [];
+  }
 }

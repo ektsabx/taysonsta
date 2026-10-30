@@ -79,8 +79,11 @@ export type BookingHours = Record<WeekDay, [string, string][]>;
 export type BookingPageRow = {
   user_id: string; workspace_id: string; slug: string; enabled: boolean; title: string; location: string | null; description: string | null;
   duration_min: number; timezone: string; buffer_min: number; min_notice_hours: number; window_days: number; hours: BookingHours;
+  /** D-269: up to three more meeting types besides the page's own. */
+  types: MeetingType[];
   created_at: string; updated_at: string;
 };
+export type MeetingType = { key: string; title: string; duration_min: number; description: string | null };
 export type CalendarConnectionRow = {
   user_id: string; workspace_id: string; provider: "google"; email: string | null; calendar_id: string | null; token_secret_id: string | null;
   status: "connected" | "error" | "disconnected"; error: string | null; created_at: string; updated_at: string;

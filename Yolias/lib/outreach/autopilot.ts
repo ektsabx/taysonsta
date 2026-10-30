@@ -121,10 +121,10 @@ async function propose(db: Db, s: Search, userId: string) {
   const text = ar
     ? [`لقيت ${s.prospects_found} عميل محتمل، وجهّزت حملة «${s.name}» لـ ${recipients} منهم، هدفها ${aimText}: إيميل أول ومتابعتين. ما اتبعتش أي حاجة لسه.`,
        sample ? `أول إيميل:\n\n**${sample.subject}**\n\n${sample.body.slice(0, 1500)}` : "",
-       `وافق مرة واحدة وأنا أكمّل لوحدي حتى لو قفلت الموقع: أبعت، وأتابع اللي ما ردّوش، وأجاوب الأسئلة البسيطة. أول ما حد يهتم أو يطلب اجتماع، أنقله لإدارة العملاء وأبعتلك إشعار عشان تكمّل انت. الاعتراضات وطلبات الكلام مع شخص والردود غير الواضحة وطلبات الإيقاف هتوصلك أنت. تقدر تغيّر الهدف أو اللينك أو الإيميل من [المحادثات](${link}) قبل الموافقة.`]
+       `وافق مرة واحدة وأنا أكمّل لوحدي حتى لو قفلت الموقع: أبعت، وأتابع اللي ما ردّوش، وأجاوب الأسئلة البسيطة. ولو حد طلب اجتماع أبعتله ميعادين وصفحة الحجز، ولو اقترح ميعاد فاضي أحجزه، والاجتماع يظهر في الاجتماعات. الاعتراضات وطلبات الكلام مع شخص والردود غير الواضحة وطلبات الإيقاف هتوصلك أنت. تقدر تغيّر الهدف أو اللينك أو الإيميل من [المحادثات](${link}) قبل الموافقة.`]
     : [`I found ${s.prospects_found} prospects and prepared the campaign "${s.name}" for ${recipients} of them, to ${aimText}: a first email and two follow-ups. Nothing has been sent.`,
        sample ? `First email:\n\n**${sample.subject}**\n\n${sample.body.slice(0, 1500)}` : "",
-       `Approve once and I carry on by myself, even with the site closed: I send, follow up with those who don't reply and answer simple questions. As soon as someone is interested or asks for a meeting, I move them to the CRM and notify you so you take it from there. Objections, requests to talk to a person, unclear replies and stop requests come to you. You can change the aim, the link or the email in [Conversations](${link}) before approving.`];
+       `Approve once and I carry on by myself, even with the site closed: I send, follow up with those who don't reply and answer simple questions. When someone asks for a meeting I offer two free times and your booking page, and if they name a free time I book it; the meeting shows up in Meetings. Objections, requests to talk to a person, unclear replies and stop requests come to you. You can change the aim, the link or the email in [Conversations](${link}) before approving.`];
   if (conv) await db.from("agent_messages").insert({
     workspace_id: ws, conversation_id: conv.id, strategy_id: s.strategy_id, user_id: null, role: "assistant",
     content: text.filter(Boolean).join("\n\n"), meta: { approvals: pa ? [pa.id] : [], outreach: camp.id, by: "autopilot" } as Json,

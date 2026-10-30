@@ -78,3 +78,19 @@ export function isFree(r: AvailabilityRules, busy: Busy[], start: string, now = 
 
 /** "HH:MM" from 00:00 to 23:59. */
 export const isTime = (v: unknown): v is string => typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+
+/**
+ * A time the lead proposed in their reply (D-269): not necessarily on the
+ * page's grid, but inside the weekly hours, after the notice, within the
+ * window, and clear of every busy time and its break.
+ */
+export function fitsPage(r: AvailabilityRules, busy: Busy[], start: string, now = new Date()): boolean {
+  const t = Date.parse(start);
+  if (Number.isNaN(t)) return false;
+  const end = t + r.duration_min * 60_000;
+  if (t < now.getTime() + r.min_notice_hours * 3_600_000 || t > now.getTime() + (r.window_days + 1) * 86_400_000) return false;
+  const { day, weekday } = localDay(new Date(t), r.timezone);
+  const inHours = (r.hours[weekday] ?? []).some(([from, to]) => t >= zoned(day, from, r.timezone).getTime() && end <= zoned(day, to, r.timezone).getTime());
+  if (!inHours) return false;
+  return !busy.some((b) => t < Date.parse(b.end) + r.buffer_min * 60_000 && end > Date.parse(b.start) - r.buffer_min * 60_000);
+}

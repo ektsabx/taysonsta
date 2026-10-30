@@ -353,3 +353,7 @@ npx wrangler secret put WORKER_SECRET
 ## جولة 2026-10-30 الثانية (D-268). اتنشرت: الـ 4 migrations اتطبقت واتسجلت، يولياس 8ba9e5e9، الأدمن 24c378ca، المحتوى وصفحات SEO اتحدّثت. الفحص: 190 من 192 صفحة سليمة
 1. migrations بالترتيب: 20261201000000_campaign_goals، 20261202000000_contacts_shown، 20261203000000_step_channels، 20261204000000_ab_test، وملف record لكل واحدة.
 2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`.
+## جولة 2026-10-30 الثالثة (D-269)
+1. migrations بالترتيب: 20261205000000_email_only، 20261206000000_meeting_types، وملف record لكل واحدة.
+2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`، ثم فحص SEO الحي.
+3. على صاحب المنصة في Google Cloud: إضافة scope ‏`calendar.freebusy` لشاشة الموافقة (مع `calendar.app.created`)، ومن ربط التقويم قبل كده يعيد الربط عشان أوقات الانشغال تتقري.
