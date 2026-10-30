@@ -1,12 +1,13 @@
 "use client";
 
+import { LiveRefresh } from "@/components/app/LiveRefresh";
 import { setOutcome } from "@/app/(app)/meetings/actions";
 import { LOST_REASONS } from "@/components/app/ws/bits";
 import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound } from "lucide-react";
+import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Loader2, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -30,6 +31,8 @@ interface Props {
   hasMailbox: boolean;
   mailboxEmail: string | null;
   timeZone: string | null;
+  /** The campaign being watched (?campaign=), with its live counts. */
+  campaign: { id: string; name: string; active: boolean; leads: number; writing: number; sent: number; failed: number } | null;
 }
 
 const MAIN: InboxTab[] = ["inbox", "replies", "to_approve"];
@@ -48,7 +51,7 @@ export function MasterInbox(p: Props) {
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, ...patch };
+    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -83,6 +86,16 @@ export function MasterInbox(p: Props) {
       <header className="sdr-head">
         <div><h2>{x.title}</h2><p>{x.subtitle}</p></div>
       </header>
+      {p.campaign && (
+        <div className="sdr-live" role="status">
+          <LiveRefresh active={p.campaign.active && p.campaign.writing > 0} />
+          {p.campaign.active && p.campaign.writing > 0 ? <Loader2 className="spin" /> : <CheckCheck />}
+          <Link className="sdr-live-name" href={`/outreach/${p.campaign.id}`}>{p.campaign.name}</Link>
+          <span>{fmt(x.live.progress, { writing: n(p.campaign.writing), sent: n(p.campaign.sent), total: n(p.campaign.leads) })}</span>
+          {p.campaign.failed > 0 && <span className="sdr-live-bad">{fmt(x.live.failed, { n: n(p.campaign.failed) })}</span>}
+          <Link className="sdr-live-x" href="/inbox" aria-label={x.live.clear}><X size={14} /></Link>
+        </div>
+      )}
       <div className={`sdr-inbox${p.thread ? " has-thread" : ""}`}>
         <aside className="sdr-inbox-list">
           <div className="sdr-inbox-tools">

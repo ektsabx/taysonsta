@@ -143,6 +143,7 @@ export const sdrAr: typeof sdrEn = {
     },
   },
   inbox: {
+    live: { progress: "يكتب {writing} · أُرسل {sent} من {total}", failed: "{n} لم تُرسل", clear: "عرض كل المحادثات" },
     title: "المحادثات", subtitle: "كل الردود في مكان واحد.", tasks: "المهام", approvals: "الموافقات",
     search: "ابحث في الرسائل والعملاء…", filter: "تصفية", campaignAll: "كل الحملات",
     tabs: { inbox: "الوارد", replies: "الردود", to_approve: "بانتظار موافقتك", out_of_office: "خارج المكتب", sent: "المرسلة", done: "منتهية" },

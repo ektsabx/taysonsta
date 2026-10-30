@@ -71,3 +71,19 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
   const counts = Object.fromEntries(INBOX_TABS.map((t) => [t, t === "inbox" ? items.filter((i) => i.tabs.has("inbox") && i.unread).length : items.filter((i) => i.tabs.has(t)).length])) as Record<InboxTab, number>;
   return { items: items.filter((i) => i.tabs.has(tab)).map(({ tabs: _t, ...i }) => { void _t; return i; }), counts };
 }
+
+/** A campaign being written and sent, for the strip on top of Conversations (D-269). */
+export async function campaignLive(workspaceId: string, campaignId: string): Promise<{ id: string; name: string; active: boolean; leads: number; writing: number; sent: number; failed: number } | null> {
+  const db = await createClient();
+  const { data: c } = await db.from("outreach_campaigns").select("id, name, status, approved_at").eq("workspace_id", workspaceId).eq("id", campaignId).maybeSingle();
+  if (!c) return null;
+  const count = (q: PromiseLike<{ count: number | null }>) => Promise.resolve(q).then((r) => r.count ?? 0);
+  const msgs = () => db.from("outreach_messages").select("id", { count: "exact", head: true }).eq("outreach_campaign_id", campaignId).eq("direction", "outbound");
+  const [leads, writing, sent, failed] = await Promise.all([
+    count(db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("campaign_id", campaignId)),
+    count(msgs().in("status", ["draft", "approved", "sending"])),
+    count(msgs().eq("status", "sent")),
+    count(msgs().eq("status", "failed")),
+  ]);
+  return { id: c.id, name: c.name, active: c.status === "active" && Boolean(c.approved_at), leads, writing, sent, failed };
+}

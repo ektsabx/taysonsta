@@ -72,15 +72,14 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const toast = useToast();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [allMatching, setAllMatching] = useState(false);
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
   const [picker, setPicker] = useState<{ id: string; name: string; status: string }[] | null>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.key));
-  const count = allMatching ? total : selected.size;
-  const target = (): Target => (allMatching ? { all: query } : { ids: [...selected] });
+  const count = selected.size;
+  const target = (): Target => ({ ids: [...selected] });
   const href = (p: number) => `/prospects?${[query, p > 1 ? `page=${p}` : ""].filter(Boolean).join("&")}`;
   const sortHref = (s: string) => `/prospects?${[query.split("&").filter((x) => x && !x.startsWith("sort=")).join("&"), s ? `sort=${s}` : ""].filter(Boolean).join("&")}`;
   const sortNow = new URLSearchParams(query).get("sort") ?? "match";
@@ -88,7 +87,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const hasCompanies = tab === "companies";
 
   const toggle = (key: string) => {
-    setAllMatching(false);
     setSelected((s) => {
       const next = new Set(s);
       if (next.has(key)) next.delete(key);
@@ -97,12 +95,10 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
     });
   };
   const togglePage = () => {
-    setAllMatching(false);
     setSelected(pageAll ? new Set() : new Set(rows.map((r) => r.key)));
   };
   const clear = () => {
     setSelected(new Set());
-    setAllMatching(false);
   };
   const run = (fn: () => Promise<string | null>) =>
     start(async () => {
@@ -120,7 +116,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const rowMenu = (r: TableRow) => (
     <RowMenu label={t.sdr.common.more}>{(close) => (<>
       <Link href={r.href} onClick={close}><ExternalLink />{L.menu.open}</Link>
-      <button type="button" onClick={() => { close(); setSelected(new Set([r.key])); setAllMatching(false); start(async () => setPicker(await openOutreachCampaigns())); }}><Send />{L.menu.send}</button>
+      <button type="button" onClick={() => { close(); setSelected(new Set([r.key])); start(async () => setPicker(await openOutreachCampaigns())); }}><Send />{L.menu.send}</button>
       <hr />
       <button type="button" className="danger" onClick={() => { close(); one(r.key, async (tg) => { const x = await removeFromProspects(tg); return x.ok ? fmt(pr.removed, { count: n(x.removed) }) : null; }); }}><Trash2 />{L.menu.remove}</button>
     </>)}</RowMenu>
@@ -134,14 +130,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
 
   return (
     <div className="prospect-table">
-      {rows.length > 0 && (pageAll && total > rows.length || allMatching) && (
-        <div className="prospect-table-note">
-          {pageAll && !allMatching && total > rows.length && (
-            <button type="button" className="link-button" onClick={() => setAllMatching(true)}>{fmt(pr.selectAllMatching, { count: n(total) })}</button>
-          )}
-          {allMatching && <span className="cell-sub">{fmt(pr.allMatchingSelected, { count: n(total) })}</span>}
-        </div>
-      )}
 
       <div className="sdr-table-wrap sdr-table-inset">
         <table className="sdr-table mobile-cards with-check">
@@ -167,7 +155,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
           <tbody>
             {rows.length === 0 && <tr><td colSpan={7} className="empty">{query ? empty : <EmptyNext text={empty} href="/" label={t.emptyNext.prospects} />}</td></tr>}
             {rows.map((r) => {
-              const on = allMatching || selected.has(r.key);
+              const on = selected.has(r.key);
               return (
                 <tr key={r.key} className={`clickable${on ? " selected" : ""}`} onClick={(e) => { if (!(e.target as HTMLElement).closest("a,button,input,label")) router.push(r.href); }}>
                   <td className="col-check"><input type="checkbox" checked={on} onChange={() => toggle(r.key)} aria-label={fmt(pr.selectRow, { name: r.name })} /></td>
@@ -263,7 +251,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
       )}
       <form ref={exportForm} method="post" action="/prospects/export" hidden>
         <input type="hidden" name="query" value={query} />
-        {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
+        {[...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
       </form>
       {picker && (
         <SendDialog count={Math.max(count, 1)} campaigns={picker} pending={pending} onClose={() => setPicker(null)}
@@ -277,6 +265,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
           onPick={(id) => { setPicker(null); run(async () => {
             const r = await addSelectionToCampaign(id, target());
             if (!r.ok) { toast(r.error, "error"); return null; }
+            router.push(`/outreach/${id}`);
             return r.message ?? null;
           }); }} />
       )}

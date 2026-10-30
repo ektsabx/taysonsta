@@ -33,10 +33,10 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
   const saved = filters.tab === "saved";
   const kindAsked = typeof sp.kind === "string" ? sp.kind : "";
   const savedCounts = saved ? await savedKindCounts(ws) : { people: 0, companies: 0 };
-  // No tab chosen: People, unless only companies were found so far. In Saved, the same rule on what was saved.
+  // Companies first (owner, 2026-10-30): no tab chosen opens Companies, unless only people were found. Same rule in Saved.
   const tab: "people" | "companies" = saved
-    ? (kindAsked === "companies" || (kindAsked !== "people" && !savedCounts.people && savedCounts.companies > 0) ? "companies" : "people")
-    : filters.tab === "companies" || (filters.tab !== "people" && !counts.people && counts.companies > 0) ? "companies" : "people";
+    ? (kindAsked === "people" || (kindAsked !== "companies" && !savedCounts.companies && savedCounts.people > 0) ? "people" : "companies")
+    : filters.tab === "people" || (filters.tab !== "companies" && !counts.companies && counts.people > 0) ? "people" : "companies";
   const f = { ...filters, tab, bookmarked: saved || filters.bookmarked };
   const [page, countryCodes, funding, usage, t, locale, canCollect] = await Promise.all([
     listItems(ws, f), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
@@ -96,14 +96,14 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       </header>
 
       <nav className="sdr-tabs" aria-label={pr.title}>
-        <Link href={tabHref("people")} className={!saved && tab === "people" ? "active" : ""} aria-current={!saved && tab === "people" ? "page" : undefined}><UserRound />{L.tabs.people}<span className="sdr-count">{formatNumber(counts.people, locale)}</span></Link>
         <Link href={tabHref("companies")} className={!saved && tab === "companies" ? "active" : ""} aria-current={!saved && tab === "companies" ? "page" : undefined}><Building2 />{L.tabs.companies}<span className="sdr-count">{formatNumber(counts.companies, locale)}</span></Link>
+        <Link href={tabHref("people")} className={!saved && tab === "people" ? "active" : ""} aria-current={!saved && tab === "people" ? "page" : undefined}><UserRound />{L.tabs.people}<span className="sdr-count">{formatNumber(counts.people, locale)}</span></Link>
         <Link href="/prospects?tab=saved" className={saved ? "active" : ""} aria-current={saved ? "page" : undefined}><Bookmark />{L.tabs.saved}<span className="sdr-count">{formatNumber(counts.saved, locale)}</span></Link>
       </nav>
       {saved && (
         <div className="sdr-seg" style={{ alignSelf: "flex-start" }} role="tablist" aria-label={L.tabs.saved}>
-          <Link role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} href="/prospects?tab=saved&kind=people">{L.tabs.people} <span className="sdr-count">{formatNumber(savedCounts.people, locale)}</span></Link>
           <Link role="tab" aria-selected={tab === "companies"} className={tab === "companies" ? "active" : ""} href="/prospects?tab=saved&kind=companies">{L.tabs.companies} <span className="sdr-count">{formatNumber(savedCounts.companies, locale)}</span></Link>
+          <Link role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} href="/prospects?tab=saved&kind=people">{L.tabs.people} <span className="sdr-count">{formatNumber(savedCounts.people, locale)}</span></Link>
         </div>
       )}
 

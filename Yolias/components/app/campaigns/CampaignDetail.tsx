@@ -1,5 +1,6 @@
 "use client";
 
+import { LiveRefresh } from "@/components/app/LiveRefresh";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -126,8 +127,14 @@ export function CampaignDetail(p: Props) {
       )}
 
       {/* Analytics live in one place (owner, 2026-10-28): the campaign keeps its numbers, the charts are on the Analytics page. */}
+      {/* Live while Yolias writes and sends it (D-269). */}
+      <LiveRefresh active={camp.status === "active" && Boolean(camp.approved_at) && p.page.summary.scheduled > 0} seconds={8} />
+      {/* A campaign's analytics live on its page only (owner, 2026-10-30): numbers, where leads stand, daily activity. */}
       <CampaignNumbers page={p.page} />
-      <Link className="sdr-btn" style={{ alignSelf: "flex-start" }} href={`/analytics?campaign=${camp.id}`}><BarChart3 />{c.fullAnalytics}</Link>
+      <div className="sdr-two">
+        <Stand page={p.page} />
+        <Activity page={p.page} />
+      </div>
 
       <nav className="sdr-tabs">
         <Link href={tabHref("leads")} className={p.tab === "leads" ? "active" : ""}><Users />{c.tabs.leads}<span className="sdr-count">{n(s.leads)}</span></Link>
@@ -171,19 +178,6 @@ export function CampaignNumbers({ page }: { page: CampaignPage }) {
       </div>
     )}
     </>
-  );
-}
-
-/** One campaign's analytics on the Analytics page: its numbers, where its leads stand, its daily activity. */
-export function CampaignAnalytics({ page }: { page: CampaignPage }) {
-  return (
-    <div className="sdr-page">
-      <CampaignNumbers page={page} />
-      <div className="sdr-two">
-        <Stand page={page} />
-        <Activity page={page} />
-      </div>
-    </div>
   );
 }
 

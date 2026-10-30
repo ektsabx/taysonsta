@@ -120,3 +120,65 @@ export async function outreachAnalytics(workspaceId: string, range: RangeKey, cl
     won: won.count ?? 0,
   };
 }
+
+/**
+ * The member's overview (owner, 2026-10-30, D-269): what matters in each part
+ * of Yolias for the period: search, campaigns, conversations, meetings and
+ * customers, plus a day-by-day series of emails sent, replies and meetings
+ * booked. Real rows only (RLS: the member's workspace). A campaign's own
+ * numbers are on its page, not here.
+ */
+export async function overviewAnalytics(workspaceId: string, range: RangeKey, timeZone: string | null) {
+  const db: Client = await createClient();
+  const days = ranges[range];
+  const now = Date.now();
+  const s = new Date(now - days * 86_400_000).toISOString();
+  const [strategies, companies, people, campaigns, sentRows, received, unread, meetings, won, lost] = await Promise.all([
+    db.from("strategies").select("id", head).eq("workspace_id", workspaceId).neq("status", "chat").gte("created_at", s),
+    db.from("companies").select("id", head).eq("workspace_id", workspaceId).not("delivered_at", "is", null).gte("created_at", s),
+    all<{ email: string | null; email_status: string }>(() => db.from("prospects").select("email, email_status").eq("workspace_id", workspaceId).gte("created_at", s).order("created_at")),
+    db.from("outreach_campaigns").select("id", head).eq("workspace_id", workspaceId).eq("status", "active").not("approved_at", "is", null),
+    all<{ sent_at: string | null; lead_id: string | null; delivery_status: string | null }>(() => db.from("outreach_messages").select("sent_at, lead_id, delivery_status")
+      .eq("workspace_id", workspaceId).eq("direction", "outbound").eq("status", "sent").gte("sent_at", s).order("sent_at")),
+    all<{ received_at: string | null; lead_id: string | null; analysis: unknown }>(() => db.from("outreach_messages").select("received_at, lead_id, analysis")
+      .eq("workspace_id", workspaceId).eq("direction", "inbound").gte("received_at", s).order("received_at")),
+    db.from("crm_leads").select("id", head).eq("workspace_id", workspaceId).eq("unread", true),
+    all<{ created_at: string; starts_at: string; status: string; source: string }>(() => db.from("sales_meetings").select("created_at, starts_at, status, source")
+      .eq("workspace_id", workspaceId).or(`created_at.gte.${s},starts_at.gte.${s}`).order("created_at")),
+    db.from("sales_leads").select("id", head).eq("workspace_id", workspaceId).eq("stage", "closed").gte("stage_changed_at", s),
+    db.from("sales_leads").select("id", head).eq("workspace_id", workspaceId).eq("stage", "lost").gte("stage_changed_at", s),
+  ]);
+  const replies = received.filter((m) => !isAutoReplyRow(m));
+  const contacted = new Set(sentRows.map((m) => m.lead_id).filter(Boolean));
+  const replied = new Set(replies.map((m) => m.lead_id).filter((id) => id && contacted.has(id)));
+  const interested = new Set(replies.filter((m) => ["interested", "meeting_request"].includes((m.analysis as { kind?: string } | null)?.kind ?? "")).map((m) => m.lead_id).filter(Boolean));
+  const booked = meetings.filter((m) => m.created_at >= s && m.status !== "canceled");
+  const past = meetings.filter((m) => m.starts_at >= s && Date.parse(m.starts_at) < now);
+  const held = past.filter((m) => m.status === "completed").length;
+  const noShow = past.filter((m) => m.status === "no_show").length;
+  const tz = timeZone ?? "UTC";
+  const dayOf = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+  const series = new Map<string, { sent: number; replies: number; meetings: number }>();
+  for (let i = days - 1; i >= 0; i--) series.set(dayOf(new Date(now - i * 86_400_000).toISOString()), { sent: 0, replies: 0, meetings: 0 });
+  for (const m of sentRows) if (m.sent_at) { const d = series.get(dayOf(m.sent_at)); if (d) d.sent++; }
+  for (const m of replies) if (m.received_at) { const d = series.get(dayOf(m.received_at)); if (d) d.replies++; }
+  for (const m of booked) { const d = series.get(dayOf(m.created_at)); if (d) d.meetings++; }
+  const withEmail = people.filter((p) => p.email && p.email_status !== "invalid").length;
+  const wonN = won.count ?? 0, lostN = lost.count ?? 0;
+  return {
+    search: { searches: strategies.count ?? 0, companies: companies.count ?? 0, people: people.length, withEmail, emailPct: people.length ? Math.round((withEmail / people.length) * 100) : null },
+    campaigns: { active: campaigns.count ?? 0, sent: sentRows.length, contacted: contacted.size, bounced: sentRows.filter((m) => m.delivery_status === "bounced").length },
+    conversations: { replies: replies.length, replied: replied.size, replyPct: contacted.size ? Math.round((replied.size / contacted.size) * 100) : null, interested: interested.size, waiting: unread.count ?? 0 },
+    meetings: {
+      booked: booked.length, held, noShow, upcoming: meetings.filter((m) => m.status === "scheduled" && Date.parse(m.starts_at) >= now).length,
+      bySource: { booking: booked.filter((m) => m.source === "booking").length, agent: booked.filter((m) => m.source === "agent").length, manual: booked.filter((m) => m.source === "manual").length },
+    },
+    customers: { won: wonN, lost: lostN, winPct: wonN + lostN ? Math.round((wonN / (wonN + lostN)) * 100) : null },
+    series: [...series.entries()].map(([day, v]) => ({ day, ...v })),
+    funnel: [
+      { key: "found", n: (companies.count ?? 0) + people.length }, { key: "contacted", n: contacted.size }, { key: "replied", n: replied.size },
+      { key: "interested", n: interested.size }, { key: "meetings", n: booked.length }, { key: "customers", n: wonN },
+    ],
+  };
+}
+export type Overview = Awaited<ReturnType<typeof overviewAnalytics>>;

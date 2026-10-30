@@ -491,6 +491,7 @@ export const en = {
     scoredLeads: "Across {count} scored leads",
     ofLeads: "{pct}% of leads",
     sections: { decisionMakers: "Decision makers", activity: "User activity" },
+    ov: { search: "Search", found: "prospects found", searches: "Searches", companies: "Companies", people: "People", withEmail: "With an email", campaigns: "Campaigns", sent: "Emails sent", active: "Active campaigns", contacted: "People contacted", bounced: "Bounced", conversations: "Conversations", replyRate: "reply rate", replies: "Replies", interested: "Interested", waiting: "Waiting for you", meetings: "Meetings", booked: "Meetings booked", upcoming: "Upcoming", held: "Held", noShow: "No-shows", customers: "Customers", won: "customers won", winRate: "Win rate after a meeting", lost: "Didn't buy", activity: "Day by day", meetingSources: "Where meetings come from" },
     funnel: { optedOutNote: "Never emailed again", title: "From search to customer", optedOut: "Opted out", steps: { found: "Found", contacted: "Contacted", replied: "Replied", interested: "Interested", meetings: "Meetings", customers: "Customers" } },
     outcomes: {
       title: "Won and lost deals", won: "Won by industry", lost: "Why deals were lost", none: "After each meeting, mark in Meetings whether they became a customer, and Yolias learns what works.",

@@ -142,6 +142,7 @@ export const sdrEn = {
     },
   },
   inbox: {
+    live: { progress: "Writing {writing} · Sent {sent} of {total}", failed: "{n} not sent", clear: "Show all conversations" },
     title: "Conversations", subtitle: "Every reply, in one place.", tasks: "Tasks", approvals: "Approvals",
     search: "Search emails, leads…", filter: "Filter", campaignAll: "All campaigns",
     tabs: { inbox: "Inbox", replies: "Replies", to_approve: "To approve", out_of_office: "Out of office", sent: "Sent", done: "Done" },

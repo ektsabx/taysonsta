@@ -433,3 +433,11 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .btn-primary.ws-btn-sm, .btn-secondary.ws-btn-sm, .sdr-btn.sm { min-height: 30px; }
 .sdr-ab { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; color: var(--muted); }
 .sdr-ab strong { color: var(--ink); }
+/* A campaign being sent, on top of Conversations (D-269) */
+.sdr-live { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font-size: .86rem; color: var(--muted); }
+.sdr-live svg { width: 16px; height: 16px; color: var(--ink); }
+.sdr-live .spin { animation: sdr-spin 1s linear infinite; }
+@keyframes sdr-spin { to { transform: rotate(360deg); } }
+.sdr-live-name { color: var(--ink); font-weight: 600; text-decoration: none; }
+.sdr-live-bad { color: var(--danger, #c62828); }
+.sdr-live-x { margin-inline-start: auto; color: var(--muted); display: inline-flex; }

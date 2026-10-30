@@ -493,6 +493,7 @@ export const ar: Dictionary = {
     scoredLeads: "من {count} عميلًا تم تقييمه",
     ofLeads: "{pct}% من العملاء",
     sections: { decisionMakers: "تحليل صناع القرار", activity: "نشاط المستخدم" },
+    ov: { search: "البحث", found: "عميل محتمل وُجد", searches: "عمليات البحث", companies: "الشركات", people: "الأشخاص", withEmail: "لديهم بريد", campaigns: "الحملات", sent: "رسائل أُرسلت", active: "حملات نشطة", contacted: "تم التواصل معهم", bounced: "ارتدّت", conversations: "المحادثات", replyRate: "نسبة الرد", replies: "الردود", interested: "مهتمون", waiting: "ينتظرون ردك", meetings: "الاجتماعات", booked: "اجتماعات حُجزت", upcoming: "قادمة", held: "تمت", noShow: "لم يحضروا", customers: "العملاء", won: "صاروا عملاء", winRate: "نسبة الفوز بعد الاجتماع", lost: "لم يشتروا", activity: "يومًا بيوم", meetingSources: "من أين تأتي الاجتماعات" },
     funnel: { optedOutNote: "لن تصلهم رسائل بعدها", title: "من البحث إلى العميل", optedOut: "طلبوا الإيقاف", steps: { found: "وُجدوا", contacted: "تم التواصل", replied: "ردّوا", interested: "مهتمون", meetings: "اجتماعات", customers: "صاروا عملاء" } },
     outcomes: {
       title: "الصفقات المكسوبة والخاسرة", won: "المكسوبة حسب المجال", lost: "أسباب الخسارة", none: "بعد كل اجتماع، سجّل في الاجتماعات هل صار عميلًا، ويتعلم يولياس ما ينجح.",

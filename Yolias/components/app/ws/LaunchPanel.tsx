@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Pause, Play, Rocket, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { approveOutreach, runOutreach, setCampaignAim } from "@/app/(app)/outreach/actions";
@@ -26,6 +27,7 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
   const o = t.ws.outreach;
   const l = o.launch;
   const { run, pending } = useRun();
+  const router = useRouter();
   const c = summary.campaign;
   const email = c.channel === "email";
   const [mailbox, setMailbox] = useState<string>(email && mailboxes[0] ? mailboxes[0].id : "");
@@ -127,7 +129,8 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
       <div className="ws-actions">
         <button className="btn-primary" type="button" disabled={pending || !summary.recipients || !mailbox || aimChanged} onClick={() => {
           if (!confirm(fmt(l.confirmSend, { count: summary.withEmail }))) return;
-          run(() => approveOutreach(c.id, mailbox, autoReply));
+          // After approval the member watches the emails being written and sent in Conversations (D-269).
+          run(() => approveOutreach(c.id, mailbox, autoReply), { onOk: () => router.push(`/inbox?tab=sent&campaign=${c.id}`) });
         }}><Rocket size={14} /> {l.approveSend}</button>
       </div>
     </section>
