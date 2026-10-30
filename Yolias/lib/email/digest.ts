@@ -35,12 +35,12 @@ function localClock(tz: string, now: Date): { hour: number; day: string } {
   }
 }
 
-export const hasNews = (t: Today) => t.replies > 0 || t.meetings.length > 0 || t.staleCount > 0;
+export const hasNews = (t: Today) => t.replies > 0 || t.meetings.length > 0 || t.staleCount > 0 || t.tasks > 0;
 
 /** The email's data from Today; meeting times in the member's time zone (emails are in English, D-158). */
 export function digestData(t: Today, tz: string) {
   const time = (iso: string) => new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz }).format(new Date(iso));
-  return { replies: t.replies, meetings: t.meetings.map((m) => ({ name: m.name, time: time(m.at) })), stale: t.stale.map((s) => ({ name: s.name, days: s.days })), staleCount: t.staleCount, won: t.won };
+  return { replies: t.replies, meetings: t.meetings.map((m) => ({ name: m.name, time: time(m.at) })), stale: t.stale.map((s) => ({ name: s.name, days: s.days })), staleCount: t.staleCount, won: t.won, tasks: t.tasks };
 }
 
 export async function dailyDigestSweep(opts: { force?: boolean; now?: Date } = {}): Promise<{ checked: number; queued: number }> {

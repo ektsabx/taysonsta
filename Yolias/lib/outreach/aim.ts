@@ -1,10 +1,10 @@
 import type { CampaignAim } from "@/types/acquisition";
 
-// What a campaign is for (owner 2026-10-21, D-253). The same guidance steers
-// the emails Yolias writes and the replies it sends, so the agent books a
-// meeting only when the campaign is about meetings, and sends the sign-up /
-// purchase link when the campaign sells directly (a SaaS like Yolias itself).
-export const AIMS = ["meeting", "introduce", "sell"] as const satisfies readonly CampaignAim[];
+// What a campaign is for (owner 2026-10-30, D-268): book a meeting, or buy
+// through the website. The same guidance steers the emails Yolias writes and
+// the replies it sends: a meeting campaign leads to the member's Yolias
+// booking page, a purchase campaign to the website link.
+export const AIMS = ["meeting", "sell"] as const satisfies readonly CampaignAim[];
 
 export const isAim = (v: unknown): v is CampaignAim => typeof v === "string" && (AIMS as readonly string[]).includes(v);
 
@@ -19,18 +19,15 @@ export function cleanCtaUrl(v: unknown): string | null {
   }
 }
 
-/** One paragraph for the model: the campaign's aim and its link. */
-/** Aims that use a link in the emails (a meeting link is sent by the member, not the agent). */
-export const aimUsesLink = (aim: CampaignAim) => aim !== "meeting";
+/** Only a purchase campaign asks for a link; a meeting campaign uses the member's booking page. */
+export const aimUsesLink = (aim: CampaignAim) => aim === "sell";
 
-export function aimGuidance(aim: CampaignAim, ctaUrl: string | null): string {
-  const link = ctaUrl ? ` Use exactly this link when it fits: ${ctaUrl}` : "";
-  if (aim === "meeting") {
-    // The member sends the meeting link themselves once the lead is interested (owner 2026-10-21).
-    return "Campaign aim: a short meeting. The call to action is to ask whether they are open to a short call. Do not include a booking link and never propose a date or time; the sender follows up personally.";
+/** One paragraph for the model: the campaign's aim and its link (the booking page for meetings). */
+export function aimGuidance(aim: CampaignAim, ctaUrl: string | null, bookingUrl: string | null = null): string {
+  if (aim !== "sell") {
+    const page = bookingUrl ? ` From the first follow-up on, or as soon as they show interest, give this booking page so they pick a time themselves: ${bookingUrl}` : "";
+    return `Campaign aim: book a short meeting. The call to action is a short call. In the first email ask whether they are open to it.${page} Never invent a date or time.`;
   }
-  if (aim === "sell") {
-    return `Campaign aim: direct sale, no meeting. Do not ask for a call or a meeting. The call to action is to sign up, try or buy.${link || " Invite them to reply for the sign-up link."} Answer questions so they can decide on their own.`;
-  }
-  return `Campaign aim: introduce the company and start a conversation. Do not push for a meeting or a sale. The call to action is a reply: ask if this is relevant to them.${link ? ` For more information, this link: ${ctaUrl}` : ""}`;
+  const link = ctaUrl ? ` Use exactly this link: ${ctaUrl}` : " Invite them to reply for the link.";
+  return `Campaign aim: purchase through the website, no meeting. Do not ask for a call or a meeting. The call to action is to visit the website and sign up or buy.${link} Answer questions so they can decide on their own.`;
 }

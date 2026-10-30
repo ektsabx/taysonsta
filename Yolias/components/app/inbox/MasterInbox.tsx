@@ -1,16 +1,17 @@
 "use client";
 
+import { setOutcome } from "@/app/(app)/meetings/actions";
+import { LOST_REASONS } from "@/components/app/ws/bits";
 import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, TrendingUp, UserRound } from "lucide-react";
+import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { convertToOpportunity, draftReplyAction, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
-import { setTaskDone } from "@/app/(app)/crm/actions";
+import { draftReplyAction, setTaskDone, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { MessageCard, type CardMessage } from "@/components/app/ws/MessageCard";
 import { KindBadge, initials, useAgo } from "@/components/app/sdr/bits";
@@ -196,9 +197,6 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
             </div>
           </div>
           <div className="sdr-head-actions">
-            {lead.stage === "new" || lead.stage === "lost"
-              ? <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.moveToCrm} aria-label={x.moveToCrm} onClick={() => act(() => convertToOpportunity(lead.id), t.ws.inbox.converted)}><TrendingUp /></button>
-              : <Link className="sdr-icon-btn bordered" href={`/crm/${lead.id}`} title={x.crmRecord} aria-label={x.crmRecord}><UserRound /></Link>}
             {status === "open"
               ? <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.markDone} aria-label={x.markDone} onClick={() => act(() => setThreadStatus(lead.id, "done"))}><CheckCheck /></button>
               : <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.reopen} aria-label={x.reopen} onClick={() => act(() => setThreadStatus(lead.id, "open"))}><RotateCcw /></button>}
@@ -279,12 +277,22 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
             <dt>{x.nextStep}</dt><dd>{s?.draft ? x.draftWaiting : s?.followUp ? fmt(x.nextFollowUp, { date: when(s.followUp.at) }) : x.none}</dd>
             <dt>{x.lastReply}</dt><dd>{ago(s?.lastInbound?.at) ?? x.none}</dd>
             <dt>{x.lastSent}</dt><dd>{ago(s?.lastOutbound?.at) ?? x.none}</dd>
+            {/* What came of it, when there is no meeting to ask after (D-268: a meeting's outcome is asked in Meetings). */}
+            {!lead.next_meeting_at && lead.stage !== "closed" && lead.stage !== "lost" && lead.stage !== "meeting_completed" && (
+              <dd className="full sdr-outcome">
+                <span>{t.meetings.outcome.ask}</span>
+                <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => act(() => setOutcome(lead.id, true), t.meetings.saved)}>{t.meetings.outcome.won}</button>
+                <select className="sdr-input sm" disabled={pending} value="" aria-label={t.meetings.outcome.lost} onChange={(e) => { const r = e.target.value; if (r) act(() => setOutcome(lead.id, false, r), t.meetings.saved); }}>
+                  <option value="">{t.meetings.outcome.lost}</option>
+                  {LOST_REASONS.map((r) => <option key={r} value={r}>{t.ws.crm.lostReasons[r]}</option>)}
+                </select>
+              </dd>
+            )}
           </dl>
           <dl className="sdr-dl">
             <dt className="h">{x.conversation}</dt>
             <dt>{x.channel}</dt><dd><Mail size={12} /> {x.email}</dd>
             <dt>{x.mailbox}</dt><dd dir="ltr">{s?.lastOutbound?.from ?? p.mailboxEmail ?? x.none}</dd>
-            <dt>{x.leadStatus}</dt><dd>{s?.lastInbound ? t.sdr.kinds[s.lastInbound.kind] : t.ws.stages[lead.stage]}</dd>
             <dt>{x.messages}</dt><dd>{formatNumber(s?.messages ?? done.length, locale)}</dd>
           </dl>
           <dl className="sdr-dl">

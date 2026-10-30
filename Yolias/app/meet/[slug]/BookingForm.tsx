@@ -103,7 +103,8 @@ export function BookingForm(p: {
         )}
         {error && !slot && <p className="meet-error" role="alert">{error}</p>}
       </main>
-      <p className="meet-by">{t.by}</p>
+      {/* "Booking by Yolias" opens the Yolias website (owner, 2026-10-30), marked as coming from a booking page. */}
+      <a className="meet-by" href={`${p.locale === "ar" ? "/ar" : "/"}?utm_source=booking_page&utm_medium=referral`} target="_blank" rel="noopener">{t.by}</a>
     </div>
   );
 }

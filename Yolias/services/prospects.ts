@@ -1,4 +1,5 @@
 import "server-only";
+import { reengageTargets } from "@/lib/outreach/reengage";
 import { createClient } from "@/lib/supabase/server";
 import type { CompanyRow, JobRow, ProspectItemRow, ProspectRow } from "@/types/database";
 import { cityNames } from "@/lib/datasets/normalize";
@@ -44,6 +45,10 @@ export interface ProspectFilters {
   /** Text in the company's signals. */
   signals?: string;
   funding?: string;
+  /** People who didn't reply to a campaign that ended 60+ days ago (D-268, lib/outreach/reengage.ts). */
+  noReply?: boolean;
+  /** Server code only: the rows `noReply` resolved to. */
+  ids?: string[];
   /** Saved (bookmarked) only, inside the People or Companies tab. */
   bookmarked?: boolean;
   sort: ProspectSort;
@@ -74,6 +79,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
     signals: text(one("signals"), 80),
     funding: text(one("funding"), 60),
     bookmarked: one("saved") === "1" || undefined,
+    noReply: one("noreply") === "1" || undefined,
     sort,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 10_000) : 1,
   };
@@ -82,7 +88,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
 const QUERY_KEYS: [keyof ProspectFilters, string][] = [
   ["tab", "tab"], ["q", "q"], ["country", "country"], ["city", "city"], ["minMatch", "min"], ["verified", "verified"],
   ["titles", "titles"], ["industry", "industry"], ["employees", "employees"], ["domain", "domain"], ["company", "company"], ["hiring", "hiring"],
-  ["signals", "signals"], ["funding", "funding"], ["bookmarked", "saved"], ["sort", "sort"], ["page", "page"],
+  ["signals", "signals"], ["funding", "funding"], ["bookmarked", "saved"], ["noReply", "noreply"], ["sort", "sort"], ["page", "page"],
 ];
 
 /** Same filters as a query string (for links, export and "all matching"). */
@@ -124,6 +130,7 @@ function query(db: Client, f: ProspectFilters, workspaceId: string, columns = "*
     if (f.tab === "people") q = q.eq("item_type", "person");
     if (f.bookmarked) q = q.not("bookmarked_at", "is", null);
   }
+  if (f.ids) q = q.in("id", f.ids.length ? f.ids.slice(0, 2000) : ["00000000-0000-0000-0000-000000000000"]);
   if (f.campaign) q = q.eq("campaign_id", f.campaign);
   if (f.country) q = q.eq("country", f.country);
   // Any of the city's names (owner, 2026-10-28): «القاهرة» finds "Cairo" and the other way round.
@@ -161,8 +168,16 @@ function sorted(q: any, f: ProspectFilters) {
 }
 
 /** One page of the table. */
-export async function listItems(workspaceId: string, f: ProspectFilters, pageSize = PAGE_SIZE): Promise<{ rows: ProspectItemRow[]; total: number }> {
+/** Resolves "didn't reply 60+ days ago" into the rows it means (once per request). */
+async function resolved(db: Client, workspaceId: string, f: ProspectFilters): Promise<ProspectFilters> {
+  if (!f.noReply || f.ids) return f;
+  const t = await reengageTargets(db, workspaceId);
+  return { ...f, ids: [...t.prospectIds, ...t.companyIds] };
+}
+
+export async function listItems(workspaceId: string, filters: ProspectFilters, pageSize = PAGE_SIZE): Promise<{ rows: ProspectItemRow[]; total: number }> {
   const db = await createClient();
+  const f = await resolved(db, workspaceId, filters);
   const from = (f.page - 1) * pageSize;
   const { data, count } = await sorted(query(db, f, workspaceId), f).range(from, from + pageSize - 1);
   return { rows: (data ?? []) as ProspectItemRow[], total: count ?? 0 };
@@ -200,8 +215,9 @@ export async function searchTargets(workspaceId: string, searchId: string, clien
     .slice(0, 500);
 }
 
-export async function selectItems(workspaceId: string, f: ProspectFilters, keys: string[] | "all", cap = 10_000, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ rows: SelectedItem[]; total: number }> {
+export async function selectItems(workspaceId: string, filters: ProspectFilters, keys: string[] | "all", cap = 10_000, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ rows: SelectedItem[]; total: number }> {
   const db = client ?? (await createClient());
+  const f = await resolved(db, workspaceId, filters);
   let q = query(db, f, workspaceId, "key, item_type, id");
   if (keys !== "all") q = q.in("key", keys.filter((k) => /^(person|company):[0-9a-f-]{36}$/i.test(k)).slice(0, cap));
   const { data, count } = await sorted(q, f).range(0, cap - 1);

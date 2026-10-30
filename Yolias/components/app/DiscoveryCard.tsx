@@ -12,8 +12,6 @@ import { CompanyLogo, PersonAvatar } from "./Media";
 import { BuyMoreProspectsButton, RetryStrategyButton, SaveToProspectsButton } from "./DiscoveryActions";
 import { ChannelBadges } from "./ChannelBadges";
 import { CampaignSetup } from "./CampaignSetup";
-import { ContactCell } from "./ProspectBits";
-import { maskEmail, maskPhone } from "@/services/prospects";
 
 // Renders a campaign event in the reader's language when it carries a
 // dictionary key (meta.key), otherwise its stored text.
@@ -170,7 +168,7 @@ export async function DiscoveryCard({ view }: { view: StrategyView }) {
                   <div className="contact-name">{p.full_name}</div>
                   <div className="contact-role">{p.title}</div>
                 </div>
-                {p.revealed_at ? <ChannelBadges prospect={p} /> : <ContactCell id={p.id} masked={{ email: p.email && p.email_status !== "invalid" ? maskEmail(p.email) : null, phone: p.phone ? maskPhone(p.phone) : null, verified: p.email_status === "verified" }} linkedin={p.linkedin_url} />}
+                <ChannelBadges prospect={p} />
               </div>
             ))}
           </div>

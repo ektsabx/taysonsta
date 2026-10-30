@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Eye, Mail, Phone, Star, UsersRound } from "lucide-react";
+import { ExternalLink, Mail, Phone, Star, UsersRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
-import { revealPeople } from "@/app/(app)/prospects/people-actions";
 import { LinkedInIcon } from "./ConnectorIcons";
 import { AvatarStack, CompanyLogo, PersonAvatar } from "./Media";
 import { CollectButton, SaveButton } from "./ResultActions";
@@ -41,8 +40,8 @@ function Select({ label, checked, onToggle }: { label: string; checked: boolean;
 }
 
 /** A person: photo, title, company, place, LinkedIn, save, email / phone (masked until revealed), reveal. */
-export function PersonCard({ person, showCompany = true, selected = false, onToggle, onRevealed }: {
-  person: GridPerson; showCompany?: boolean; selected?: boolean; onToggle?: () => void; onRevealed?: (p: GridPerson) => void;
+export function PersonCard({ person, showCompany = true, selected = false, onToggle }: {
+  person: GridPerson; showCompany?: boolean; selected?: boolean; onToggle?: () => void;
 }) {
   const { t } = useI18n();
   const r = t.results;
@@ -52,15 +51,6 @@ export function PersonCard({ person, showCompany = true, selected = false, onTog
     setFrom(person);
     setP(person);
   }
-  const [pending, start] = useTransition();
-  const reveal = () => start(async () => {
-    const res = await revealPeople([p.id]);
-    if (!res.ok) return;
-    const c = res.contacts[0];
-    const next = { ...p, revealed: true, email: c?.email ?? null, phone: c?.phone ?? null };
-    setP(next);
-    onRevealed?.(next);
-  });
   return (
     <li className={`person-card${selected ? " selected" : ""}`}>
       <div className="person-card-top">
@@ -86,11 +76,6 @@ export function PersonCard({ person, showCompany = true, selected = false, onTog
       </dl>
       <div className="person-card-actions">
         <Link className="btn-secondary" href={`/prospects/person/${p.id}`}>{r.viewProfile} <ExternalLink /></Link>
-        {p.revealed ? (
-          <span className="revealed-pill"><CheckCircle2 /> {r.revealed}</span>
-        ) : (
-          <button className="btn-outline-accent" type="button" disabled={pending || (!p.hasEmail && !p.hasPhone)} onClick={reveal}><Eye /> {r.reveal}</button>
-        )}
       </div>
     </li>
   );

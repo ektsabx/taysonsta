@@ -2,24 +2,28 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, Plus, Trash2, Video } from "lucide-react";
+import { CalendarDays, Check, Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
 import { DAYS } from "@/lib/meetings/availability";
-import { disconnectCalendar, saveBookingPage } from "@/app/(app)/meetings/actions";
-import type { BookingPageRow, CalendarConnectionRow } from "@/types/database";
+import { saveBookingPage } from "@/app/(app)/meetings/actions";
+import { openSettingsTab } from "@/components/app/open-settings";
+import type { BookingPageRow } from "@/types/database";
 
-// Booking page settings (owner's layout, 2026-10-30, D-267): the link, Google
-// Calendar and Meet, then the page itself and its weekly hours. One Save.
+// Booking page settings (owner's layout, 2026-10-30, D-267): the link, then the
+// page itself and its weekly hours. One Save. Google Calendar is connected in
+// Settings → Integrations (D-268); this page only says whether it is.
 const DURATIONS = [15, 20, 30, 45, 60, 90];
 const BUFFERS = [0, 5, 10, 15, 30];
 const NOTICE = [0, 1, 2, 4, 12, 24, 48];
 const WINDOW = [7, 14, 21, 30, 60];
 const ORDER = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
-export function BookingPageForm({ page, link, calendar, googleReady, notice, zones }: {
-  page: BookingPageRow; link: string; calendar: Pick<CalendarConnectionRow, "email" | "status" | "error"> | null; googleReady: boolean; notice: string | null;
+export function BookingPageForm({ page, link, calendar, zones }: {
+  page: BookingPageRow; link: string;
+  /** The connected Google account (Settings → Integrations → Google Calendar), or null. */
+  calendar: string | null;
   /** Time zones with their labels, from the server (labels depend on the date and the ICU data). */
   zones: { value: string; label: string }[];
 }) {
@@ -62,19 +66,7 @@ export function BookingPageForm({ page, link, calendar, googleReady, notice, zon
         </div>
       </section>
 
-      <section className="meet-box">
-        <h3><Video size={16} /> {p.google}</h3>
-        <p className="meet-muted">{p.googleLead}</p>
-        <ul className="meet-points">{p.googlePoints.map((x) => <li key={x}><Check size={14} />{x}</li>)}</ul>
-        {notice && p.calendar[notice as keyof typeof p.calendar] && <p className={notice === "connected" ? "meet-ok" : "meet-error"}>{p.calendar[notice as keyof typeof p.calendar]}</p>}
-        {calendar && calendar.status !== "disconnected" ? (
-          <div className="meet-linkrow">
-            <span>{fmt(p.connectedAs, { email: calendar.email ?? "Google" })}</span>
-            {calendar.status === "error" && <><span className="meet-error">{calendar.error}</span><a className="sdr-btn sm" href="/api/calendar/google/start">{p.reconnect}</a></>}
-            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => { await disconnectCalendar(); router.refresh(); })}>{p.disconnect}</button>
-          </div>
-        ) : googleReady ? <a className="btn-primary meet-connect" href="/api/calendar/google/start">{p.connect}</a> : <p className="meet-muted">{p.notConfigured}</p>}
-      </section>
+      <p className="meet-muted"><CalendarDays size={14} /> {calendar ? fmt(p.connectedAs, { email: calendar }) : p.calendarHint} <button type="button" className="ws-link meet-inline" onClick={() => { window.history.replaceState(null, "", `${window.location.pathname}?tab=page&card=calendar`); openSettingsTab("integration"); }}>{t.settings.hub.title}</button></p>
 
       <section className="meet-box">
         <label className="meet-switch"><input type="checkbox" checked={v.enabled} onChange={(e) => set("enabled", e.target.checked)} /> {p.taking}</label>

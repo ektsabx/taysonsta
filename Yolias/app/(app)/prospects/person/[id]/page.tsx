@@ -4,7 +4,6 @@ import { leadFor } from "@/services/crm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Building2, ExternalLink, Globe, Mail, MapPin, MessageSquare, Phone, Search, UserRound, Users } from "lucide-react";
-import { ContactCell } from "@/components/app/ProspectBits";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { CompanyLogo, PersonAvatar } from "@/components/app/Media";
 import { ProspectActionButtons } from "@/components/app/ProspectActions";
@@ -17,7 +16,7 @@ import type { ProspectRow } from "@/types/database";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
-import { getPerson, maskEmail, maskPhone } from "@/services/prospects";
+import { getPerson } from "@/services/prospects";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/person/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -58,7 +57,6 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   if (!p || p.workspace_id !== session.workspace.id) notFound();
   // One page per customer (owner, 2026-10-29): once this person is a lead, their lead page is the page.
   const leadId = await leadFor(session.workspace.id, { prospectId: p.id });
-  if (leadId) redirect(`/crm/${leadId}`);
   const [t, locale, messages] = await Promise.all([getDictionary(), getLocale(), messagesFor(p.id)]);
   const o = t.outreach;
   const r = t.results;
@@ -74,10 +72,9 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   const info: Tile[] = [
     { icon: <Briefcase />, label: pr.csv.title, value: p.title },
     { icon: <MapPin />, label: r.location, value: place },
-    p.revealed_at
-      ? { icon: <Mail />, label: pr.csv.email, ltr: true, value: email && <a className="entity-link" href={`mailto:${email}`}>{email}{p.email_status === "verified" ? " ✓" : ""}</a> }
-      : { icon: <Mail />, label: pr.colContact, value: (email || p.phone) && <ContactCell id={p.id} masked={{ email: email ? maskEmail(email) : null, phone: p.phone ? maskPhone(p.phone) : null, verified: p.email_status === "verified" }} linkedin={null} /> },
-    ...(p.revealed_at ? [{ icon: <Phone />, label: pr.csv.phone, ltr: true, value: p.phone && <a className="entity-link" href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a> }] : []),
+    // Contacts are shown as soon as Yolias delivers the person (D-268).
+    { icon: <Mail />, label: pr.csv.email, ltr: true, value: email && <a className="entity-link" href={`mailto:${email}`}>{email}{p.email_status === "verified" ? " ✓" : ""}</a> },
+    { icon: <Phone />, label: pr.csv.phone, ltr: true, value: p.phone && <a className="entity-link" href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a> },
     { icon: <LinkedInIcon />, label: r.linkedin, ltr: true, value: link(p.linkedin_url) },
     { icon: <FacebookIcon />, label: pr.csv.facebook, ltr: true, value: link(p.facebook_url) },
     { icon: <InstagramIcon />, label: pr.csv.instagram, ltr: true, value: link(p.instagram_url) },

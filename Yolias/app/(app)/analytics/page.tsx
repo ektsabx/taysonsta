@@ -71,8 +71,10 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
   }
   const [a, o, today, wl] = await Promise.all([discoveryAnalytics(ws, range), outreachAnalytics(ws, range), todayFor(ws, session.profile.timezone ?? null), salesOutcomes(ws)]);
   const n = (v: number) => formatNumber(v, locale);
-  const p = (v: number | null) => (v == null ? "-" : `${v}%`);
-  const changeNote = (v: number | null) => (v == null ? an.noPrevious : fmt(an.vsPrevious, { change: `${v > 0 ? "+" : ""}${v}%` }));
+  const funnel = [
+    { key: "found", n: a.totals.leads }, { key: "contacted", n: o.contactedLeads }, { key: "replied", n: o.repliedLeads },
+    { key: "interested", n: o.interestedLeads }, { key: "meetings", n: o.meetings }, { key: "customers", n: o.won },
+  ];
 
   return (
     <div className="page-view">
@@ -89,32 +91,21 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
       <div className="view-content-padding analytics-page">
         {/* Today (owner, 2026-10-29): what needs the member now lives with the numbers, not in Yolias AI. */}
         <TodayCard today={today} timeZone={session.profile.timezone ?? null} />
-        <div className="stat-grid">
-          {([
-            [an.companiesDiscovered, n(a.totals.companies), changeNote(a.totals.vsPrevious.companies)],
-            [an.decisionMakers, n(a.totals.decisionMakers), changeNote(a.totals.vsPrevious.decisionMakers)],
-            [an.avgMatch, p(a.icp.avgMatch), fmt(an.scoredLeads, { count: n(a.icp.scored) })],
-            [t.prospects.csv.email, n(a.emailFound), fmt(an.ofLeads, { pct: a.totals.leads ? Math.round((a.emailFound / a.totals.leads) * 100) : 0 })],
-          ] as const).map(([label, value, note]) => (
-            <div key={label} className="stat-card">
-              <div className="stat-label">{label}</div>
-              <div className="stat-value">{value}</div>
-              <div className="stat-note">{note}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Outreach and sales (D-234): real campaign, message and CRM rows only. */}
-        <section className="an-outreach" aria-label={an.outreach.title}>
-          <h3 className="an-outreach-title">{an.outreach.title}</h3>
-          <div className="stat-grid">
+        {/* One path from search to customer (owner, 2026-10-30, D-268): each step against the first. */}
+        <section className="an-outreach" aria-label={an.funnel.title}>
+          <h3 className="an-outreach-title">{an.funnel.title}</h3>
+          <Bars
+            rows={funnel.map((f) => ({ key: f.key, count: f.n, pct: funnel[0].n ? Math.round((f.n / funnel[0].n) * 100) : 0 }))}
+            label={(k) => an.funnel.steps[k as keyof typeof an.funnel.steps]}
+            value={(r) => `${n(r.count)}${funnel[0].n && r.key !== "found" ? ` (${r.pct}%)` : ""}`}
+            empty={an.empty}
+          />
+          <div className="stat-grid" style={{ marginTop: 16 }}>
             {([
-              [an.outreach.campaigns, n(o.campaignsStarted), fmt(an.outreach.created, { count: n(o.campaignsCreated) })],
-              [an.outreach.sent, n(o.sent), fmt(an.outreach.fromMailbox, { count: n(o.sentFromMailbox) })],
+              [an.outreach.sent, n(o.sent), fmt(an.outreach.created, { count: n(o.campaignsStarted) })],
               [an.outreach.failed, n(o.failed + o.bounced), fmt(an.outreach.bouncedNote, { count: n(o.bounced) })],
               [an.outreach.replies, n(o.replies), o.contactedLeads ? fmt(an.outreach.replyRate, { pct: Math.round((o.repliedLeads / o.contactedLeads) * 100) }) : an.outreach.noSends],
-              [an.outreach.interested, n(o.interested), fmt(an.outreach.optedOut, { count: n(o.optedOut) })],
-              [an.outreach.meetings, n(o.meetings), fmt(an.outreach.won, { count: n(o.won) })],
+              [an.funnel.optedOut, n(o.optedOut), an.funnel.optedOutNote],
             ] as const).map(([label, value, note]) => (
               <div key={label} className="stat-card">
                 <div className="stat-label">{label}</div>
@@ -126,11 +117,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
         </section>
 
         <div className="analytics-grid">
-          {a.decisionMakers.total > 0 && (
-            <Panel title={an.sections.decisionMakers} wide>
-              <Bars rows={a.decisionMakers.roles.filter((r) => r.count > 0)} label={(k) => an.roles[k as keyof typeof an.roles]} value={(r) => `${n(r.count)} (${r.pct}%)`} empty={an.empty} />
-            </Panel>
-          )}
 
           {/* Won and lost deals (owner, 2026-10-29): the same summary every new search reads. */}
           <Panel title={an.outcomes.title} wide>
@@ -151,13 +137,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/analyt
             )}
           </Panel>
 
-          <Panel title={an.sections.activity} wide>
-            <dl className="an-activity">
-              {(["searches", "qualifications", "emailsPrepared", "exports"] as const).map((k) => (
-                <div key={k}><dt>{an.activity[k]}</dt><dd>{n(a.activity[k])}</dd></div>
-              ))}
-            </dl>
-          </Panel>
         </div>
       </div>
     </div>

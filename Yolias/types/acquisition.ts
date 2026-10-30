@@ -94,13 +94,19 @@ export type OutreachCampaignRow = {
   source_campaign_id: string | null; strategy_id: string | null; started_at: string | null;
   /** What the campaign is for (D-253) and the link the agent offers. */
   aim: CampaignAim; cta_url: string | null;
+  /** D-268: a second angle for the first email (A/B test), or null. */
+  variant_b: string | null;
   /** When the sending worker last gave it a turn (D-256: oldest first). */
   dispatched_at: string | null;
 };
-export type CampaignAim = "meeting" | "introduce" | "sell";
+/** D-268: a campaign books a meeting or sells through the website. */
+export type CampaignAim = "meeting" | "sell";
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;
+  /** D-268: email (sent from the mailbox) or a call / WhatsApp / LinkedIn task. */
+  kind: StepKind;
 };
+export type StepKind = "email" | "call" | "whatsapp" | "linkedin";
 export type EnrollmentStatus = "active" | "paused" | "replied" | "completed" | "stopped";
 export type OutreachEnrollmentRow = {
   id: string; workspace_id: string; campaign_id: string; lead_id: string; status: EnrollmentStatus; current_step: number;

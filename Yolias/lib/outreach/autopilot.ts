@@ -110,7 +110,7 @@ async function propose(db: Db, s: Search, userId: string) {
   // The search's chat: a message with the Approve card.
   let { data: conv } = await db.from("conversations").select("id").eq("scope", "campaign").eq("strategy_id", s.strategy_id).maybeSingle();
   if (!conv) conv = (await db.from("conversations").insert({ workspace_id: ws, user_id: userId, scope: "campaign", strategy_id: s.strategy_id, campaign_id: s.id, title: s.name.slice(0, 200) }).select("id").single()).data;
-  const aimText = ar ? { meeting: "حجز اجتماعات", introduce: "التعريف بشركتك", sell: "البيع المباشر" }[aim] : { meeting: "book meetings", introduce: "introduce your company", sell: "sell directly" }[aim];
+  const aimText = ar ? { meeting: "حجز اجتماعات", sell: "الشراء من موقعك" }[aim] : { meeting: "book meetings", sell: "purchases on your website" }[aim];
   const { data: pa } = await db.from("agent_pending_actions").insert({
     workspace_id: ws, conversation_id: conv?.id ?? null, requested_by: userId, tool: "startOutreachCampaign",
     input: { id: camp.id, sendFromMailbox: true, autoReply: true } as Json,

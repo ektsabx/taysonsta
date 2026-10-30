@@ -39,9 +39,12 @@ const campaignInput = z.object({
     delay_days: z.number().int().min(0).max(90),
     objective: z.enum(objectives as [string, ...string[]]),
     instruction: z.string().trim().max(1000).optional().default(""),
+    kind: z.enum(["email", "call", "whatsapp", "linkedin"]).optional().default("email"),
   })).min(1).max(10),
   /** What the campaign is for and the link the agent offers (D-253). */
   aim: z.enum(AIMS).optional(),
+  /** A second angle for the first email (A/B test, D-268); empty = no test. */
+  variant_b: z.string().trim().max(1000).nullable().optional(),
   cta_url: z.string().trim().max(500).nullable().optional(),
   /** New campaigns only: start from a search campaign — its prospects join, drafts are prepared (owner brief 2026-10-19). */
   source_campaign_id: z.string().uuid().nullable().optional(),
@@ -61,6 +64,7 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
     name: c.name, goal: c.goal || null, description: c.description || null, channel: "email" as never, language: c.language, tone: c.tone as never,
     customer_profile_id: c.customer_profile_id, offer_id: c.offer_id,
     ...(c.aim ? { aim: c.aim } : {}), ...(c.cta_url !== undefined ? { cta_url: cleanCtaUrl(c.cta_url) } : {}),
+    ...(c.variant_b !== undefined ? { variant_b: c.variant_b || null } : {}),
   };
   let id = c.id;
   if (id) {
@@ -75,6 +79,8 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
   await db.from("outreach_steps").delete().eq("campaign_id", id);
   const { error: stepsError } = await db.from("outreach_steps").insert(steps.map((s, i) => ({
     workspace_id: session.workspace.id, campaign_id: id!, position: i + 1, delay_days: i === 0 ? 0 : s.delay_days, objective: s.objective as never, instruction: s.instruction || null,
+    // The first message is an email: the conversation starts in the mailbox.
+    kind: i === 0 ? "email" : s.kind,
   })));
   if (stepsError) return { ok: false, error: e.steps };
   if (!c.id && c.source_campaign_id) {
@@ -167,7 +173,7 @@ async function writeSample(workspaceId: string, userId: string, campaignId: stri
 }
 
 /**
- * Changes what the campaign is for (meeting / introduce / sell) and its link
+ * Changes what the campaign is for (meeting / sell) and its link
  * before it starts. Unsent first emails are written again for the new aim.
  */
 export async function setCampaignAim(campaignId: string, aim: CampaignAim, ctaUrl: string | null): Promise<OutreachResult> {
@@ -218,7 +224,7 @@ export async function enrollInCampaign(campaignId: string, leadIds: string[]): P
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
     revalidatePath("/inbox");
-  revalidatePath("/crm");
+  revalidatePath("/inbox");
   return { ok: true, message: enrollMessage(t, r) };
 }
 
@@ -236,7 +242,7 @@ export async function addProspectsToCampaign(campaignId: string, targets: LeadTa
   if (!r) return { ok: false, error: t.errors.archived };
   revalidatePath("/outreach", "layout");
     revalidatePath("/inbox");
-  revalidatePath("/crm");
+  revalidatePath("/inbox");
   return { ok: true, message: enrollMessage(t, r) };
 }
 

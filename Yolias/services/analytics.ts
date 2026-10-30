@@ -114,6 +114,7 @@ export async function outreachAnalytics(workspaceId: string, range: RangeKey, cl
     repliedLeads,
     contactedLeads: contactedLeads.size,
     interested: kinds.filter((k) => k === "interested" || k === "meeting_request").length,
+    interestedLeads: new Set(inbound.filter((m) => ["interested", "meeting_request"].includes((m.analysis as { kind?: string } | null)?.kind ?? "")).map((m) => m.lead_id).filter(Boolean)).size,
     optedOut: kinds.filter((k) => k === "stop_request").length,
     meetings: meetings.count ?? 0,
     won: won.count ?? 0,

@@ -559,7 +559,7 @@ export const agentTools = [
       if (input.stage) q = q.eq("stage", input.stage);
       if (input.q) q = q.ilike("name", `%${term(input.q)}%`);
       const { data } = await q;
-      return ok({ leads: data ?? [], crmUrl: "/crm" });
+      return ok({ leads: data ?? [], crmUrl: "/inbox" });
     },
   }),
   define({

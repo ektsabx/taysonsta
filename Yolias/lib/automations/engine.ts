@@ -95,7 +95,7 @@ async function runAction(act: AutomationAction, ctx: Ctx): Promise<ActionResult>
       if (recipients.length) {
         await db.from("notifications").insert(recipients.map((user_id) => ({
           user_id, workspace_id: ev.workspaceId, kind: "automation", title: cleanNotificationText(act.title).slice(0, 300), body: lead?.name ?? null,
-          link: `/crm/${ev.leadId}`, dedupe_key: `auto:${ctx.automationId}:${ev.eventKey}:${ctx.index}:${user_id}`,
+          link: `/inbox?lead=${ev.leadId}`, dedupe_key: `auto:${ctx.automationId}:${ev.eventKey}:${ctx.index}:${user_id}`,
         })));
       }
       return { type: act.type, ok: true, detail: `${recipients.length}` };
@@ -111,13 +111,7 @@ async function runAction(act: AutomationAction, ctx: Ctx): Promise<ActionResult>
     case "set_stage": {
       const d = decide(ctx.settings, "crm", "update_crm_stage");
       if (!d.allowed) return { type: act.type, ok: false, detail: d.reason };
-      if (d.mode === "approve") {
-        await db.from("agent_pending_actions").insert({
-          workspace_id: ev.workspaceId, lead_id: ev.leadId, agent: "automation", tool: "crm.set_stage", input: { stage: act.stage } as Json,
-          summary: `${ctx.automationName}: → ${act.stage}`, expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-        });
-        return { type: act.type, ok: true, detail: "needs_approval" };
-      }
+      // No CRM to approve it in (D-268): an allowed stage change applies at once.
       const { error } = await db.rpc("set_lead_stage", { p_lead: ev.leadId, p_stage: act.stage, p_actor: "automation" });
       if (error) throw error;
       return { type: act.type, ok: true };

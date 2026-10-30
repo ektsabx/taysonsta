@@ -145,7 +145,8 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   if (mailbox.next_send_at && Date.parse(mailbox.next_send_at) > Date.now()) return res;
   if (rules.gap_max > 0) room = Math.min(room, 1);
   const { data: msgs } = await db.from("outreach_messages").select("*, enrollment:outreach_enrollments(id, status, current_step), lead:sales_leads(id, do_not_contact, email, name)")
-    .eq("outreach_campaign_id", c.id).eq("direction", "outbound").in("status", ["draft", "approved"]).order("created_at").limit(room * 2);
+    // Email only: WhatsApp / LinkedIn drafts are sent by the member (D-268).
+    .eq("outreach_campaign_id", c.id).eq("direction", "outbound").eq("channel", "email").in("status", ["draft", "approved"]).order("created_at").limit(room * 2);
   for (const raw of msgs ?? []) {
     if (room <= 0) break;
     const m = raw as unknown as OutreachMessageRow & { enrollment: { id: string; status: string; current_step: number } | null; lead: { id: string; do_not_contact: boolean; email: string | null; name: string } | null };
@@ -384,7 +385,7 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
       ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط صفحة الحجز من الاجتماعات (أو فعّل الرد التلقائي في الحملة ليرسله يولياس بنفسه)." : " Send them your booking page from Meetings (or turn on auto-reply in the campaign so Yolias sends it).")
       : "";
     const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات ونقله لإدارة العملاء.${next}` : `${analysis.summary}\nYolias stopped the follow-ups and moved them to the CRM.${next}`;
-    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/crm/${leadId}`, `reply:${messageId}`);
+    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/inbox?lead=${leadId}`, `reply:${messageId}`);
     await db.from("lead_tasks").insert({
       workspace_id: mb.workspace_id, lead_id: leadId,
       title: (ar ? `كمّل مع ${who}: ${meeting ? (linkSent ? "أكّد موعد الاجتماع" : "ابعت لينك الاجتماع") : "مهتم"}` : `Take over ${who}: ${meeting ? (linkSent ? "confirm the meeting time" : "send your meeting link") : "interested"}`).slice(0, 300),

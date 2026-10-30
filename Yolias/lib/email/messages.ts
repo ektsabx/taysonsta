@@ -126,7 +126,7 @@ export interface MessageData {
   payment_overdue: PaymentProblemData & { daysOverdue: number };
   prospects_added: Base & { added: number; allowance: number; reason: string | null };
   /** Today by email (owner, 2026-10-29): the Analytics "Today" card, each morning, only when something needs the member. */
-  daily_digest: Base & { replies: number; meetings: { name: string; time: string }[]; stale: { name: string; days: number }[]; staleCount: number; won: string[] };
+  daily_digest: Base & { replies: number; meetings: { name: string; time: string }[]; stale: { name: string; days: number }[]; staleCount: number; won: string[]; tasks?: number };
   /** A meeting in the next hour (owner, 2026-10-29). */
   meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null };
   /** A meeting passed with no outcome recorded. */
@@ -434,7 +434,8 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     const rows: [string, string][] = [];
     if (d.replies) rows.push([T(l, "New replies", "ردود جديدة"), link(`${d.siteUrl}/inbox`, T(l, `${d.replies} conversations`, `${d.replies} محادثة`))]);
     for (const m of d.meetings) rows.push([T(l, "Meeting", "اجتماع"), `${esc(m.name)} · <span dir="ltr">${esc(m.time)}</span>`]);
-    if (d.staleCount) rows.push([T(l, "Quiet deals", "صفقات متوقفة"), d.stale.length ? d.stale.map((s) => `${esc(s.name)} (${s.days} ${T(l, "days", "يوم")})`).join("<br>") : String(d.staleCount)]);
+    if (d.tasks) rows.push([T(l, "Tasks", "مهام"), link(`${d.siteUrl}/inbox`, T(l, `${d.tasks} calls and messages to send`, `${d.tasks} مكالمة ورسالة لإرسالها`))]);
+    if (d.staleCount) rows.push([T(l, "Quiet conversations", "محادثات متوقفة"), d.stale.length ? d.stale.map((s) => `${esc(s.name)} (${s.days} ${T(l, "days", "يوم")})`).join("<br>") : String(d.staleCount)]);
     const parts = [d.replies ? T(l, `${d.replies} new replies`, `${d.replies} رد جديد`) : null, d.meetings.length ? T(l, `${d.meetings.length} meetings today`, `${d.meetings.length} اجتماع اليوم`) : null, d.staleCount ? T(l, `${d.staleCount} quiet deals`, `${d.staleCount} صفقة متوقفة`) : null].filter(Boolean);
     return {
       subject: T(l, `Today: ${parts.join(", ")}`, `اليوم: ${parts.join("، ")}`),
@@ -451,19 +452,19 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     subject: T(l, `Meeting with ${d.lead} at ${d.time}`, `اجتماع مع ${d.lead} الساعة ${d.time}`),
     preheader: T(l, "Your meeting starts within the hour.", "اجتماعك يبدأ خلال ساعة."),
     heading: T(l, `Meeting with ${d.lead}`, `اجتماع مع ${d.lead}`),
-    body: [T(l, `Your meeting with <strong>${esc(d.lead)}</strong> starts at <span dir="ltr">${esc(d.time)}</span>. The customer record has the conversation and notes.`,
-      `اجتماعك مع <strong>${esc(d.lead)}</strong> يبدأ الساعة <span dir="ltr">${esc(d.time)}</span>. سجل العميل فيه المحادثة والملاحظات.`),
+    body: [T(l, `Your meeting with <strong>${esc(d.lead)}</strong> starts at <span dir="ltr">${esc(d.time)}</span>. The conversation is in Yolias.`,
+      `اجتماعك مع <strong>${esc(d.lead)}</strong> يبدأ الساعة <span dir="ltr">${esc(d.time)}</span>. المحادثة معه في يولياس.`),
       ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : [])],
-    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    button: { label: T(l, "Open Meetings", "افتح الاجتماعات"), href: `${d.siteUrl}/meetings` },
     footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
   meeting_outcome: (l, d) => ({
     subject: T(l, `How did the meeting with ${d.lead} go?`, `كيف كان الاجتماع مع ${d.lead}؟`),
     preheader: T(l, "Update the stage so Yolias knows what happened.", "حدّث المرحلة ليعرف يولياس ما حدث."),
     heading: T(l, `How did it go with ${d.lead}?`, `كيف كان الاجتماع مع ${d.lead}؟`),
-    body: [T(l, "Update the deal: meeting done, proposal sent, won or lost. Won and lost deals teach Yolias which companies to find next.",
-      "حدّث الصفقة: تم الاجتماع، أو أُرسل العرض، أو كسبت، أو خسرت. الصفقات المكسوبة والخاسرة تعلّم يولياس أي الشركات يبحث عنها.")],
-    button: { label: T(l, "Update the deal", "حدّث الصفقة"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    body: [T(l, "In Meetings, mark whether they became a customer or not, and why. That teaches Yolias which companies to find next.",
+      "في الاجتماعات سجّل هل صار عميلًا أم لا، ولماذا. هذا يعلّم يولياس أي الشركات يبحث عنها.")],
+    button: { label: T(l, "Record the outcome", "سجّل النتيجة"), href: `${d.siteUrl}/meetings` },
     footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
 
@@ -471,10 +472,10 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     subject: T(l, `New meeting: ${d.guest}, ${d.time}`, `اجتماع جديد: ${d.guest}، ${d.time}`),
     preheader: T(l, "Booked from your Yolias booking page.", "حُجز من صفحة الحجز في يولياس."),
     heading: T(l, `${d.guest} booked a meeting`, `${d.guest} حجز اجتماعًا`),
-    body: [T(l, `<strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) booked <span dir="ltr">${esc(d.time)}</span>. They are in your CRM with the meeting on their record.`, `حجز <strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) موعد <span dir="ltr">${esc(d.time)}</span>. أصبح في إدارة العملاء والاجتماع في سجله.`),
+    body: [T(l, `<strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) booked <span dir="ltr">${esc(d.time)}</span>. The meeting is in Meetings.`, `حجز <strong>${esc(d.guest)}</strong> (<span dir="ltr">${esc(d.guestEmail)}</span>) موعد <span dir="ltr">${esc(d.time)}</span>. الاجتماع في صفحة الاجتماعات.`),
       ...(d.note ? [T(l, `Their note: “${esc(d.note)}”`, `ملاحظته: «${esc(d.note)}»`)] : []),
       ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : [])],
-    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    button: { label: T(l, "Open Meetings", "افتح الاجتماعات"), href: `${d.siteUrl}/meetings` },
     footnote: T(l, `${link(`${d.siteUrl}/meetings`, "Your meetings")}`, `${link(`${d.siteUrl}/meetings`, "اجتماعاتك")}`),
   }),
   meeting_canceled: (l, d) => ({
@@ -483,7 +484,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     heading: T(l, `${d.guest} canceled`, `${d.guest} ألغى الاجتماع`),
     body: [T(l, `<strong>${esc(d.guest)}</strong> canceled the meeting on <span dir="ltr">${esc(d.time)}</span>. The time is free again on your booking page.`, `ألغى <strong>${esc(d.guest)}</strong> اجتماع <span dir="ltr">${esc(d.time)}</span>. عاد الموعد متاحًا في صفحة الحجز.`),
       ...(d.note ? [T(l, `Reason: “${esc(d.note)}”`, `السبب: «${esc(d.note)}»`)] : [])],
-    button: { label: T(l, "Open the customer", "افتح سجل العميل"), href: `${d.siteUrl}/crm/${d.leadId}` },
+    button: { label: T(l, "Open Meetings", "افتح الاجتماعات"), href: `${d.siteUrl}/meetings` },
     footnote: T(l, `${link(`${d.siteUrl}/meetings`, "Your meetings")}`, `${link(`${d.siteUrl}/meetings`, "اجتماعاتك")}`),
   }),
   meeting_guest: (l, d) => {

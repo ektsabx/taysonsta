@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertCircle, AtSign, BookOpen, ChevronLeft, Clock, Gauge, Mail, MailCheck, MoreHorizontal, Plug, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, AtSign, ChevronLeft, Clock, Gauge, Mail, MailCheck, MoreHorizontal, Plug, Search, SlidersHorizontal } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { timeZoneChoices } from "@/lib/regions";
 import { useToast } from "@/components/Toast";
 import { GmailIcon } from "@/components/app/ConnectorIcons";
@@ -17,39 +17,23 @@ import { DEFAULT_SENDING_RULES } from "@/lib/outreach/sending-rules";
 // Mailboxes (stats + the member's mailboxes with limits, hours and health),
 // Connection (how mailboxes connect), Sending rules (the workspace defaults).
 
-type Tab = "mailboxes" | "connection" | "rules";
 
-export function EmailSettings({ onBack, backLabel }: { onBack?: () => void; backLabel?: string } = {}) {
+/** One integration card opened (D-268): a provider's mailboxes, or the sending rules shared by every mailbox. */
+export type EmailCard = "gmail" | "imap" | "rules";
+
+export function EmailSettings({ card, onBack, backLabel }: { card: EmailCard; onBack?: () => void; backLabel?: string }) {
   const { t } = useI18n();
-  const s = t.sdr.email;
   const it = t.settings.integration;
   const toast = useToast();
-  const [tab, setTab] = useState<Tab>("mailboxes");
   const [state, setState] = useState<EmailState | null>(null);
   const [imapOpen, setImapOpen] = useState(false);
   const load = () => mailboxState().then(setState).catch(() => setState(null));
   useEffect(() => { void load(); }, []);
-  // Coming back from Google: say what happened.
-  useEffect(() => {
-    const status = new URLSearchParams(window.location.search).get("mailbox");
-    if (!status) return;
-    const msg = { connected: it.mailboxConnected, denied: it.mailboxDenied, not_configured: it.mailboxNotConfigured }[status] ?? it.mailboxFailed;
-    toast(msg, status === "connected" ? undefined : "error");
-    window.history.replaceState(null, "", window.location.pathname);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div>
       {onBack && <button type="button" className="integration-back" onClick={onBack}><ChevronLeft className="flip-rtl" />{backLabel}</button>}
-      <nav className="sdr-tabs sdr-settings-tabs" aria-label={s.tabs.mailboxes}>
-        {([["mailboxes", Mail], ["connection", Plug], ["rules", SlidersHorizontal]] as const).map(([k, Icon]) => (
-          <button key={k} type="button" className={tab === k ? "active" : ""} aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)}><Icon />{s.tabs[k]}</button>
-        ))}
-      </nav>
-      {tab === "mailboxes" && <Mailboxes state={state} reload={load} onImap={() => setImapOpen(true)} />}
-      {tab === "connection" && <Connection state={state} onImap={() => setImapOpen(true)} onGo={() => setTab("mailboxes")} />}
-      {tab === "rules" && <Rules state={state} reload={load} />}
+      {card === "rules" ? <Rules state={state} reload={load} /> : <Mailboxes provider={card} state={state} reload={load} onImap={() => setImapOpen(true)} />}
       {imapOpen && <ImapDialog onClose={() => setImapOpen(false)} onConnected={() => { setImapOpen(false); toast(it.mailboxConnected); void load(); }} />}
     </div>
   );
@@ -88,14 +72,15 @@ function Menu({ label, children }: { label: string; children: (close: () => void
 
 /* ── Mailboxes ── */
 
-function Mailboxes({ state, reload, onImap }: { state: EmailState | null; reload: () => void; onImap: () => void }) {
+function Mailboxes({ provider, state, reload, onImap }: { provider: "gmail" | "imap"; state: EmailState | null; reload: () => void; onImap: () => void }) {
   const { t, locale } = useI18n();
   const a = t.sdr.email.accounts;
   const [filter, setFilter] = useState<"all" | "healthy" | "attention">("all");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<MailboxView | null>(null);
   const [pending, start] = useTransition();
-  const boxes = (state?.mailboxes ?? []).filter((m) => m.status !== "disconnected");
+  // Only this card's mailboxes (the test mailbox of local development sits with IMAP).
+  const boxes = (state?.mailboxes ?? []).filter((m) => m.status !== "disconnected" && (provider === "gmail" ? m.provider === "gmail" : m.provider !== "gmail"));
   const connected = boxes.filter((m) => m.status === "connected");
   const attention = boxes.filter((m) => m.status === "error");
   const sent = connected.reduce((n, m) => n + m.sentToday, 0);
@@ -109,7 +94,7 @@ function Mailboxes({ state, reload, onImap }: { state: EmailState | null; reload
     <div>
       <div className="sdr-section-head">
         <div><h4>{a.title}</h4><p>{a.subtitle}</p></div>
-        <AddMailbox state={state} reload={reload} onImap={onImap} />
+        <AddMailbox provider={provider} state={state} reload={reload} onImap={onImap} />
       </div>
       <div className="sdr-stats" style={{ marginBottom: 20 }}>
         <div className="sdr-stat"><div className="sdr-stat-icon"><MailCheck /></div><div className="sdr-stat-label">{a.connected}</div><div className="sdr-stat-value">{num(connected.length)}</div><div className="sdr-stat-note">{fmt(a.connectedNote, { total: num(boxes.length) })}</div></div>
@@ -211,30 +196,19 @@ function DomainHealth() {
   );
 }
 
-function AddMailbox({ state, reload, onImap }: { state: EmailState | null; reload: () => void; onImap: () => void }) {
+function AddMailbox({ provider, state, reload, onImap }: { provider: "gmail" | "imap"; state: EmailState | null; reload: () => void; onImap: () => void }) {
   const { t } = useI18n();
   const a = t.sdr.email.accounts;
-  const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const off = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", off);
-    return () => document.removeEventListener("mousedown", off);
-  }, [open]);
   const has = (p: string) => state?.mailboxes.some((m) => m.provider === p && m.status !== "disconnected");
+  if (provider === "gmail") {
+    return state?.available.includes("gmail") && !has("gmail") ? <a className="sdr-btn primary" href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a> : null;
+  }
   return (
-    <div className="sdr-menu" ref={ref}>
-      <button type="button" className="sdr-btn primary" aria-expanded={open} onClick={() => setOpen((o) => !o)} disabled={!state}><Plus />{a.add}</button>
-      {open && (
-        <div className="sdr-menu-panel" role="menu" style={{ minWidth: 240 }}>
-          {state?.available.includes("gmail") && !has("gmail") && <a href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a>}
-          {!has("imap") && <button type="button" onClick={() => { setOpen(false); onImap(); }}><AtSign />{a.addImap}</button>}
-          {state?.available.includes("test") && !has("test") && <button type="button" disabled={pending} onClick={() => start(async () => { await connectTestMailbox(); setOpen(false); reload(); })}><Plug />{a.addTest}</button>}
-        </div>
-      )}
-    </div>
+    <span style={{ display: "flex", gap: 8 }}>
+      {state?.available.includes("test") && !has("test") && <button type="button" className="sdr-btn" disabled={pending} onClick={() => start(async () => { await connectTestMailbox(); reload(); })}><Plug />{a.addTest}</button>}
+      {!has("imap") && <button type="button" className="sdr-btn primary" disabled={!state} onClick={onImap}><AtSign />{a.addImap}</button>}
+    </span>
   );
 }
 
@@ -302,56 +276,6 @@ function EditMailbox({ box, state, onClose, onSaved }: { box: MailboxView; state
 }
 
 /* ── Connection ── */
-
-function Connection({ state, onImap, onGo }: { state: EmailState | null; onImap: () => void; onGo: () => void }) {
-  const { t, locale } = useI18n();
-  const c = t.sdr.email.connection;
-  const googleOn = Boolean(state?.available.includes("gmail"));
-  const mine = (p: string) => (state?.mailboxes ?? []).filter((m) => m.provider === p && m.status !== "disconnected");
-  const facts = (p: string) => {
-    const boxes = mine(p);
-    return (
-      <dl className="sdr-provider-facts">
-        <div><dt>{c.yourMailboxes}</dt><dd dir="ltr">{boxes.length ? boxes.map((m) => m.email).join(", ") : c.none}</dd></div>
-        <div><dt>{c.readsReplies}</dt><dd>{boxes.length ? (boxes.every((m) => m.canRead) ? c.yes : c.no) : "-"}</dd></div>
-        <div><dt>{c.lastConnected}</dt><dd>{boxes.length ? formatDate(boxes.at(-1)!.connectedAt, locale) : "-"}</dd></div>
-      </dl>
-    );
-  };
-  return (
-    <div>
-      <div className="sdr-section-head"><div><h4>{c.title}</h4><p>{c.subtitle}</p></div></div>
-      <div className="sdr-provider"><div className="sdr-provider-body">
-        <div className="sdr-provider-top">
-          <div className="sdr-provider-logo"><GmailIcon /></div>
-          <div style={{ minWidth: 0 }}>
-            <div className="sdr-provider-name">{c.google}<span className={`sdr-badge nodot ${googleOn ? "green" : "gray"}`}>{googleOn ? c.ready : c.notSetUp}</span></div>
-            <div className="sdr-provider-desc">{c.googleDesc}</div>
-            <div className="sdr-provider-powers">{c.powers}</div>
-            {!googleOn && <div className="sdr-provider-powers">{c.notSetUpNote}</div>}
-            <a className="sdr-provider-powers" style={{ display: "inline-flex", gap: 4, alignItems: "center", color: "var(--blue)", textDecoration: "none" }} href="/help-center" target="_blank" rel="noreferrer"><BookOpen size={13} />{c.guide}</a>
-          </div>
-          <div className="sdr-provider-actions">{googleOn && !mine("gmail").length && <a className="sdr-btn" href="/api/integrations/gmail/start">{c.addMailbox}</a>}{mine("gmail").length ? <button type="button" className="sdr-btn" onClick={onGo}>{t.sdr.email.tabs.mailboxes}</button> : null}</div>
-        </div>
-        {facts("gmail")}
-      </div></div>
-      <div className="sdr-provider"><div className="sdr-provider-body">
-        <div className="sdr-provider-top">
-          <div className="sdr-provider-logo"><AtSign /></div>
-          <div style={{ minWidth: 0 }}>
-            <div className="sdr-provider-name">{c.imap}<span className="sdr-badge nodot green">{c.available}</span></div>
-            <div className="sdr-provider-desc">{c.imapDesc}</div>
-            <div className="sdr-provider-powers">{c.powers}</div>
-          </div>
-          <div className="sdr-provider-actions">{!mine("imap").length ? <button type="button" className="sdr-btn" onClick={onImap}>{c.addMailbox}</button> : <button type="button" className="sdr-btn" onClick={onGo}>{t.sdr.email.tabs.mailboxes}</button>}</div>
-        </div>
-        {facts("imap")}
-      </div></div>
-    </div>
-  );
-}
-
-/* ── Sending rules ── */
 
 function Rules({ state, reload }: { state: EmailState | null; reload: () => void }) {
   const { t } = useI18n();

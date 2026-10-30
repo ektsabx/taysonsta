@@ -6,7 +6,8 @@ import { requireSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
-import { meetingChanged } from "@/lib/crm";
+import { changeStage, meetingChanged } from "@/lib/crm";
+import { meetingBrief } from "@/lib/agents/meeting";
 import { cancelMeeting, ensureBookingPage } from "@/lib/meetings";
 import { DAYS, isTime } from "@/lib/meetings/availability";
 import { isValidTimeZone } from "@/lib/regions";
@@ -42,13 +43,6 @@ export async function saveBookingPage(input: z.input<typeof pageInput>): Promise
   return { ok: true };
 }
 
-export async function disconnectCalendar(): Promise<R> {
-  const session = await requireSession();
-  await createAdminClient().rpc("clear_calendar_token", { p_user: session.userId });
-  revalidatePath("/meetings");
-  return { ok: true };
-}
-
 export async function setMeetingStatus(id: string, status: MeetingStatus): Promise<R> {
   const session = await requireSession();
   const t = (await getDictionary()).meetings.errors;
@@ -65,6 +59,67 @@ export async function setMeetingStatus(id: string, status: MeetingStatus): Promi
   if (!saved) return { ok: false, error: t.invalid };
   await meetingChanged(db, session.workspace.id, saved, old.status, "user");
   revalidatePath("/meetings");
-  revalidatePath(`/crm/${old.lead_id}`);
+  revalidatePath("/inbox");
+  return { ok: true };
+}
+
+/** A meeting the member arranged in a conversation (D-268): the lead, the time and the place or link. */
+export async function addMeeting(input: { leadId: string; start: string; minutes: number; place: string }): Promise<R> {
+  const session = await requireSession();
+  const t = (await getDictionary()).meetings.errors;
+  const p = z.object({ leadId: z.string().uuid(), start: z.string().refine((v) => !Number.isNaN(Date.parse(v))), minutes: z.number().int().min(10).max(480), place: z.string().trim().max(300) }).safeParse(input);
+  if (!p.success) return { ok: false, error: t.invalid };
+  const db = await createClient();
+  const { data: lead } = await db.from("sales_leads").select("id, name").eq("id", p.data.leadId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!lead) return { ok: false, error: t.invalid };
+  const starts = new Date(p.data.start).toISOString();
+  const place = p.data.place || null;
+  const url = place && /^https?:\/\//i.test(place) ? place : null;
+  const { data: saved, error } = await db.from("sales_meetings").insert({
+    workspace_id: session.workspace.id, lead_id: lead.id, title: lead.name.slice(0, 200), starts_at: starts, ends_at: new Date(Date.parse(starts) + p.data.minutes * 60_000).toISOString(),
+    url, location: url ? null : place, status: "scheduled", source: "manual", created_by: session.userId, host_id: session.userId,
+  }).select("id, lead_id, status").single();
+  if (error?.code === "23505") return { ok: false, error: t.taken };
+  if (error || !saved) return { ok: false, error: t.invalid };
+  await meetingChanged(db, session.workspace.id, saved, null, "user");
+  revalidatePath("/meetings");
+  return { ok: true };
+}
+
+/** A short brief before the meeting: who they are, the conversation so far, what to ask (Meeting Agent). */
+export async function meetingBriefAction(meetingId: string): Promise<{ ok: true; brief: string } | { ok: false; error: string }> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!z.string().uuid().safeParse(meetingId).success) return { ok: false, error: t.meetings.errors.invalid };
+  const { data: own } = await (await createClient()).from("sales_meetings").select("id").eq("id", meetingId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!own) return { ok: false, error: t.meetings.errors.invalid };
+  const r = await meetingBrief(session.workspace.id, session.userId, meetingId, session.profile.language === "ar" ? "ar" : "en");
+  if (!r.ok) return { ok: false, error: r.error === "not_configured" ? t.outreach.errors.not_configured : t.meetings.errors.invalid };
+  return { ok: true, brief: r.brief };
+}
+
+/**
+ * What came of it (D-268): the lead became a customer, or didn't (and why).
+ * Asked after a meeting (Meetings) and, for purchase campaigns, in the
+ * conversation. Won and lost deals guide the next searches (lib/crm/outcomes.ts).
+ */
+export async function setOutcome(leadId: string, won: boolean, reason?: string | null, meetingId?: string | null): Promise<R> {
+  const session = await requireSession();
+  const t = (await getDictionary()).meetings.errors;
+  if (!z.string().uuid().safeParse(leadId).success) return { ok: false, error: t.invalid };
+  const db = await createClient();
+  if (meetingId && z.string().uuid().safeParse(meetingId).success) {
+    const { data: m } = await db.from("sales_meetings").select("id, lead_id, status").eq("id", meetingId).eq("workspace_id", session.workspace.id).maybeSingle();
+    if (m && m.status === "scheduled") {
+      const { data: saved } = await db.from("sales_meetings").update({ status: "completed" }).eq("id", m.id).select("id, lead_id, status").single();
+      if (saved) await meetingChanged(db, session.workspace.id, saved, "scheduled", "user");
+    }
+  }
+  const r = await changeStage(db, session.workspace.id, leadId, won ? "closed" : "lost", "user");
+  if (!r.ok) return { ok: false, error: t.invalid };
+  if (!won && reason) await db.from("sales_leads").update({ lost_reason: reason.slice(0, 300) }).eq("id", leadId);
+  revalidatePath("/meetings");
+  revalidatePath("/inbox");
+  revalidatePath("/analytics");
   return { ok: true };
 }

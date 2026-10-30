@@ -59,6 +59,13 @@ export async function slotsFor(page: BookingPageRow): Promise<DaySlots[]> {
   return freeSlots(page, await busy(createAdminClient(), page.user_id, page.window_days));
 }
 
+/** The member's booking page link when it's open, else null (for the emails of a meeting campaign). */
+export async function bookingLinkFor(userId: string | null): Promise<string | null> {
+  if (!userId) return null;
+  const { data } = await createAdminClient().from("booking_pages").select("slug").eq("user_id", userId).eq("enabled", true).maybeSingle();
+  return data ? bookingUrl(data.slug) : null;
+}
+
 /** The next free times of a member's page, for the agent to offer in a reply. */
 export async function nextSlots(userId: string, count = 2): Promise<{ url: string; slots: string[]; timezone: string } | null> {
   const db = createAdminClient();
@@ -167,7 +174,7 @@ async function tellHost(db: Db, page: BookingPageRow & { host: { name: string } 
   const ar = p?.language === "ar";
   const at = new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: tz }).format(new Date(d.start));
   const title = what === "booked" ? (ar ? `${d.name} حجز اجتماعًا ${at}` : `${d.name} booked a meeting, ${at}`) : (ar ? `${d.name} ألغى اجتماع ${at}` : `${d.name} canceled the meeting on ${at}`);
-  await db.from("notifications").upsert({ user_id: page.user_id, workspace_id: page.workspace_id, kind: "meeting", title: title.slice(0, 300), body: d.note?.slice(0, 1000) ?? null, link: `/crm/${d.leadId}`, dedupe_key: `meeting-${what}:${d.meetingId}:${page.user_id}` }, { onConflict: "dedupe_key", ignoreDuplicates: true });
+  await db.from("notifications").upsert({ user_id: page.user_id, workspace_id: page.workspace_id, kind: "meeting", title: title.slice(0, 300), body: d.note?.slice(0, 1000) ?? null, link: "/meetings", dedupe_key: `meeting-${what}:${d.meetingId}:${page.user_id}` }, { onConflict: "dedupe_key", ignoreDuplicates: true });
   const atEn = new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: tz, timeZoneName: "short" }).format(new Date(d.start));
   await notify(what === "booked" ? "meeting_booked" : "meeting_canceled", await userRecipient(page.user_id), { guest: d.name, guestEmail: d.email, time: atEn, leadId: d.leadId, url: d.url, note: d.note }, { workspaceId: page.workspace_id, dedupe: d.meetingId });
 }

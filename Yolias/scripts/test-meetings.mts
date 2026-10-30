@@ -1,7 +1,7 @@
 // Meeting reminders and deal fields (owner, 2026-10-29), against the local Supabase:
 //   npm run test:meetings
 // Covers: a meeting in the next hour gets one reminder; a meeting that ended
-// gets one "what happened?" plus a task; reruns add nothing; the new stages
+// gets one "what happened?" (asked in Meetings, no task); reruns add nothing; the new stages
 // are accepted and closed_at / lost_reason follow the stage. Reminders and the
 // morning summary are queued as email once (owner, 2026-10-29), never with
 // "Morning summary and meetings" off; won / lost deals become search context.
@@ -36,7 +36,7 @@ try {
   const m2 = (await db.from("sales_meetings").select("outcome_asked_at").eq("id", past.data!.id).single()).data!;
   assert.ok(m1.reminded_at && m2.outcome_asked_at, "flags set");
   const { count: tasks } = await db.from("lead_tasks").select("id", { count: "exact", head: true }).eq("lead_id", lead!.id).eq("dedupe_key", `meeting-outcome:${past.data!.id}`);
-  assert.equal(tasks, 1, "one outcome task");
+  assert.equal(tasks, 0, "no outcome task: Meetings asks (D-268)");
   console.log("✓ meeting reminders");
 
   const mails = async (kind: string) => (await db.from("email_log").select("id").eq("user_id", userId).eq("kind", kind)).data ?? [];

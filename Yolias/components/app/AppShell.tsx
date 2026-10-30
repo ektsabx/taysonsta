@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Plus, Send, SlidersHorizontal, SquareKanban, User, UserSearch, Users, UsersRound, X,
+  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Plus, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
@@ -37,7 +37,6 @@ const workNav = [
   // Campaigns and Conversations are two pages again (D-256, after AgentSDR's Campaigns and Inbox).
   { href: "/outreach", key: "campaigns", icon: Send },
   { href: "/inbox", key: "conversations", icon: MessagesSquare },
-  { href: "/crm", key: "crm", icon: SquareKanban },
   // Meetings inside Yolias (D-267): bookings and the booking page.
   { href: "/meetings", key: "meetings", icon: CalendarDays },
   // Company Knowledge is a regular page (owner, 2026-10-19): no "AI Workspace" section, no AI Agent page.

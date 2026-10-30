@@ -68,8 +68,7 @@ export function PeopleGrid({ people, showCompany = false }: Props) {
       </div>
       <ul className="people-grid">
         {rows.map((p) => (
-          <PersonCard key={p.id} person={p} showCompany={showCompany} selected={selected.has(p.id)} onToggle={() => toggle(p.id)}
-            onRevealed={(next) => setRows((list) => list.map((x) => (x.id === next.id ? next : x)))} />
+          <PersonCard key={p.id} person={p} showCompany={showCompany} selected={selected.has(p.id)} onToggle={() => toggle(p.id)} />
         ))}
       </ul>
 

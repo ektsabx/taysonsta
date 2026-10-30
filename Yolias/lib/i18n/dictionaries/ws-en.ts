@@ -64,9 +64,9 @@ export const wsEn = {
     channels: { email: "Email", linkedin: "LinkedIn", whatsapp: "WhatsApp", facebook: "Messenger", instagram: "Instagram" },
     stats: { leads: "Leads", drafts: "Drafts ready", sent: "Sent", failed: "Failed", bounced: "Bounced", replies: "Replies", interested: "Interested", notInterested: "Not interested", optedOut: "Opted out", meetings: "Meetings", noData: "Numbers appear as messages are sent and replies come in." },
     launch: {
-      aim: "Campaign aim", aims: { meeting: "Book meetings", introduce: "Introduce the company", sell: "Direct sale (sign-up or purchase)" },
-      aimHints: { meeting: "Yolias reaches out and follows up until they are interested or ask for a meeting, then tells you so you continue and send your meeting link yourself.", introduce: "Introduces your company and starts a conversation, without asking for a meeting.", sell: "No meetings: Yolias sends your sign-up or purchase link and answers questions." },
-      ctaUrl: { meeting: "Booking link (Calendly or Google Calendar)", introduce: "Link for more information (optional)", sell: "Sign-up or purchase link" },
+      aim: "Campaign goal", aims: { meeting: "Book a meeting", sell: "Buy on the website" },
+      aimHints: { meeting: "Yolias reaches out, follows up and sends your booking page; when they book, the meeting is in Meetings.", sell: "No meetings: Yolias sends your website link and answers questions so they sign up or buy." },
+      ctaUrl: { meeting: "Booking page", sell: "Website link (sign-up or purchase)" },
       ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
       autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops, moves them to the CRM and notifies you so you take it from there. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
       title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",

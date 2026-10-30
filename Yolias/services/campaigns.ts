@@ -32,10 +32,12 @@ export interface CampaignSummary {
   nextSendAt: string | null;
   /** Share of the planned sends done (sent / (sent + scheduled)). */
   donePct: number;
+  /** A/B test of the first email (D-268): leads sent each version and how many replied. */
+  ab: { a: { sent: number; replied: number }; b: { sent: number; replied: number } } | null;
 }
 
 type Enr = { id: string; campaign_id: string; lead_id: string; status: string; current_step: number; next_step_at: string | null; stop_reason: string | null; created_at: string };
-type Msg = { id: string; outreach_campaign_id: string; enrollment_id: string | null; lead_id: string | null; direction: "inbound" | "outbound"; status: string; delivery_status: string | null; sent_at: string | null; created_at: string; updated_at: string; step_position: number | null; body: string; subject: string; analysis?: unknown };
+type Msg = { id: string; outreach_campaign_id: string; enrollment_id: string | null; lead_id: string | null; direction: "inbound" | "outbound"; status: string; delivery_status: string | null; sent_at: string | null; variant?: string | null; created_at: string; updated_at: string; step_position: number | null; body: string; subject: string; analysis?: unknown };
 
 function summarise(c: OutreachCampaignRow, steps: number, enr: Enr[], msgs: Msg[]): CampaignSummary {
   const out = msgs.filter((m) => m.direction === "outbound");
@@ -52,6 +54,12 @@ function summarise(c: OutreachCampaignRow, steps: number, enr: Enr[], msgs: Msg[
     contacted: new Set(sent.map((m) => m.lead_id)).size, sent: sent.length, scheduled, replied: repliedLeads.size,
     bounced: sent.filter((m) => m.delivery_status === "bounced").length, failed: out.filter((m) => m.status === "failed").length,
     lastSendAt, nextSendAt, donePct: sent.length + scheduled ? (sent.length / (sent.length + scheduled)) * 100 : 0,
+    ab: (() => {
+      const first = sent.filter((m) => m.variant === "a" || m.variant === "b");
+      if (!first.length) return null;
+      const side = (v: "a" | "b") => { const leads = new Set(first.filter((m) => m.variant === v).map((m) => m.lead_id)); return { sent: leads.size, replied: [...leads].filter((l) => repliedLeads.has(l)).length }; };
+      return { a: side("a"), b: side("b") };
+    })(),
   };
 }
 
@@ -108,7 +116,7 @@ export async function campaignPage(workspaceId: string, id: string, timeZone: st
   const [{ data: steps }, { data: enr }, { data: msgs }] = await Promise.all([
     db.from("outreach_steps").select("position").eq("campaign_id", id),
     db.from("outreach_enrollments").select("id, campaign_id, lead_id, status, current_step, next_step_at, stop_reason, created_at, lead:sales_leads(name, email, company_name, do_not_contact)").eq("campaign_id", id).order("created_at", { ascending: false }).limit(5000),
-    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position, body, subject, analysis").eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at", { ascending: false }).limit(20000),
+    db.from("outreach_messages").select("id, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, created_at, updated_at, step_position, body, subject, analysis, variant").eq("outreach_campaign_id", id).neq("status", "canceled").order("created_at", { ascending: false }).limit(20000),
   ]);
   const rows = (enr ?? []) as unknown as (Enr & { lead: { name: string; email: string | null; company_name: string | null; do_not_contact: boolean } | null })[];
   const ms = (msgs ?? []) as Msg[];

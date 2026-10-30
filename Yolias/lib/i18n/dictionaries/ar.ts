@@ -288,14 +288,18 @@ export const ar: Dictionary = {
       taking: "مفتوحة للحجز", address: "العنوان", name: "اسم الاجتماع", location: "المكان", locationHint: "رابط Google Meet أو Zoom، أو رقم هاتف، أو عنوان. اتركه فارغًا مع ربط تقويم Google ليُنشأ رابط Google Meet.",
       line: "سطر للزوار", lineHint: "مثال: مكالمة تعارف لمدة 30 دقيقة عن منتجنا.", duration: "المدة", timezone: "المنطقة الزمنية", buffer: "استراحة بين الاجتماعات",
       notice: "أقل مهلة قبل الاجتماع", window: "الحجز متاح لمدة", hours: "ساعات الأسبوع", unavailable: "غير متاح", addRange: "أضف ساعات", save: "حفظ",
+      calendarHint: "تقويم Google غير مرتبط: يصل الضيف رابط «أضف إلى تقويم Google» بدل الدعوة.",
       minutes: "{n} دقيقة", hoursN: "{n} ساعة", daysN: "{n} يومًا",
     },
+    outcome: { ask: "ما النتيجة؟", won: "صار عميلًا", lost: "لم يشترِ", prep: "جهّز الاجتماع", add: "إضافة اجتماع", who: "مع", when: "الموعد", length: "المدة (دقيقة)", place: "المكان أو الرابط", pick: "اختر محادثة" },
     days: { sun: "الأحد", mon: "الاثنين", tue: "الثلاثاء", wed: "الأربعاء", thu: "الخميس", fri: "الجمعة", sat: "السبت" },
-    errors: { invalid: "راجع الحقول وحاول مرة أخرى.", slug: "العنوان بحروف إنجليزية صغيرة وأرقام وشرطات (من 3 إلى 40).", slugTaken: "هذا العنوان مستخدم. جرّب عنوانًا آخر." },
+    errors: { invalid: "راجع الحقول وحاول مرة أخرى.", taken: "لديك اجتماع آخر في هذا الوقت.", slug: "العنوان بحروف إنجليزية صغيرة وأرقام وشرطات (من 3 إلى 40).", slugTaken: "هذا العنوان مستخدم. جرّب عنوانًا آخر." },
   },
   today: {
+    reengage: "{n} شخص لم يردوا منذ أكثر من شهرين: جرّب معهم حملة جديدة",
+    tasks: "{n} مكالمة ورسالة لترسلها اليوم",
     title: "اليوم", replies: "{n} محادثة فيها رد جديد", meeting: "اجتماع مع {name} الساعة {time}",
-    stale: "{n} صفقات بلا نشاط منذ أسبوع", staleOne: "{name}: بلا نشاط منذ {days} يوم",
+    stale: "{n} مهتمون بلا رد منذ أسبوع", staleOne: "{name}: لا جديد منذ {days} يوم",
     lookalike: "ابحث عن شركات شبه {names}", lookalikePrompt: "ابحث عن شركات تشبه عملائي الذين كسبتهم: {names}",
   },
   startHere: {
@@ -489,6 +493,7 @@ export const ar: Dictionary = {
     scoredLeads: "من {count} عميلًا تم تقييمه",
     ofLeads: "{pct}% من العملاء",
     sections: { decisionMakers: "تحليل صناع القرار", activity: "نشاط المستخدم" },
+    funnel: { optedOutNote: "لن تصلهم رسائل بعدها", title: "من البحث إلى العميل", optedOut: "طلبوا الإيقاف", steps: { found: "وُجدوا", contacted: "تم التواصل", replied: "ردّوا", interested: "مهتمون", meetings: "اجتماعات", customers: "صاروا عملاء" } },
     outcomes: {
       title: "الصفقات المكسوبة والخاسرة", won: "المكسوبة حسب المجال", lost: "أسباب الخسارة", none: "سجّل الصفقات كمكسوبة أو خاسرة في إدارة العملاء، ويتعلم يولياس منها.",
       note: "عمليات البحث القادمة تعطي الأولوية لما كسبته.", findMore: "ابحث عن شركات مشابهة", prompt: "ابحث عن شركات في المجالات التي كسبت فيها صفقات: {names}",
@@ -732,6 +737,8 @@ export const ar: Dictionary = {
       connected: "{n} متصل", notConnected: "غير متصل", soon: "غير متاح بعد",
       gmailDesc: "Gmail أو Google Workspace: يرسل حملاتك ويقرأ الردود عليها.",
       imapName: "بريد IMAP/SMTP", imapDesc: "أي بريد آخر، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك.",
+      rulesName: "قواعد الإرسال", rulesDesc: "عدد الرسائل يوميًا والفاصل بينها وأيام وساعات الإرسال، لكل صناديق البريد.", rulesOn: "مفعّلة",
+      calendarName: "تقويم Google", calendarDesc: "كل اجتماع يُحجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google لضيفك.",
     },
     referral: {
       title: "رابط دعوتك", desc: "كل شخص ينشئ حسابًا جديدًا في يولياس من رابطك يضيف لك {n} عميل محتمل، لا تنتهي صلاحيتها.",

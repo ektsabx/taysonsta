@@ -239,6 +239,8 @@ export type OutreachMessageRow = {
   direction: "outbound" | "inbound"; scheduled_for: string | null; sent_via: "manual" | "mailbox" | null; from_address: string | null;
   received_at: string | null; analysis: Json | null;
   provider_thread_id: string | null; delivery_status: "sent" | "bounced" | null; attempts: number; next_attempt_at: string | null;
+  /** D-268: which version of an A/B-tested first email this is. */
+  variant: "a" | "b" | null;
 };
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;

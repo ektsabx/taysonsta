@@ -9,7 +9,6 @@ import { getDictionary } from "@/lib/i18n/server";
 import { confirmSent } from "@/lib/outreach/sequence";
 import { draftReply, logReply } from "@/lib/agents/replies";
 import { channelLimit } from "@/lib/outreach/channels";
-import { changeStage } from "@/lib/crm";
 import type { MessageChannel, ThreadStatus } from "@/types/database";
 
 // Messages and conversations (Inbox, CRM lead page, Outreach). Three
@@ -19,11 +18,11 @@ import type { MessageChannel, ThreadStatus } from "@/types/database";
 
 export type MsgResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const uuid = z.string().uuid();
-const refresh = (leadId?: string | null) => {
+// The lead id stays in the calls for readability; every page that shows it is revalidated.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const refresh = (_leadId?: string | null) => {
   revalidatePath("/inbox");
   revalidatePath("/outreach", "layout");
-  revalidatePath("/crm");
-  if (leadId) revalidatePath(`/crm/${leadId}`);
 };
 
 export async function updateDraft(messageId: string, subject: string, body: string): Promise<MsgResult> {
@@ -189,24 +188,6 @@ export async function setThreadLabel(leadId: string, label: "interested" | "not_
   return { ok: true };
 }
 
-/** Move to CRM: the conversation becomes a deal (Interested), shown in the CRM from now on (owner 2026-10-21). */
-export async function convertToOpportunity(leadId: string): Promise<MsgResult> {
-  const session = await requireSession();
-  const t = await getDictionary();
-  if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
-  const db = await createClient();
-  const { data: lead } = await db.from("sales_leads").select("id, stage").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
-  if (!lead) return { ok: false, error: t.ws.crm.errors.notFound };
-  if (lead.stage === "new" || lead.stage === "lost") {
-    // Same path as every stage change: timeline entry and the workspace's automations.
-    const r = await changeStage(db, session.workspace.id, lead.id, "interested", "user");
-    if (!r.ok) return { ok: false, error: t.ws.common.error };
-  }
-  await db.from("inbox_threads").update({ label: "interested" }).eq("lead_id", lead.id);
-  refresh(leadId);
-  return { ok: true };
-}
-
 /**
  * The member corrects how Yolias read the latest reply (D-256, the Inbox's
  * classification dropdown). The thread's label follows, as with Yolias's own reading.
@@ -226,5 +207,16 @@ export async function setReplyKind(leadId: string, kind: string): Promise<MsgRes
   if (error) return { ok: false, error: t.ws.common.error };
   await db.from("inbox_threads").update({ label: labelFor(kind) }).eq("lead_id", leadId).eq("workspace_id", session.workspace.id);
   refresh(leadId);
+  return { ok: true };
+}
+
+/** A task on the conversation done or open again (tasks live with the conversation, D-268). */
+export async function setTaskDone(taskId: string, done: boolean): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(taskId).success) return { ok: false, error: t.ws.common.notFound };
+  const { data, error } = await (await createClient()).from("lead_tasks").update({ done_at: done ? new Date().toISOString() : null }).eq("id", taskId).eq("workspace_id", session.workspace.id).select("lead_id").maybeSingle();
+  if (error || !data) return { ok: false, error: t.ws.common.error };
+  refresh(data.lead_id);
   return { ok: true };
 }

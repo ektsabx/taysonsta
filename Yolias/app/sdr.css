@@ -431,3 +431,5 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .btn-primary, .btn-secondary, .sdr-btn { min-height: 34px; height: auto; border-radius: 9px; font-size: .84rem; }
 .sdr-btn { height: 34px; }
 .btn-primary.ws-btn-sm, .btn-secondary.ws-btn-sm, .sdr-btn.sm { min-height: 30px; }
+.sdr-ab { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; color: var(--muted); }
+.sdr-ab strong { color: var(--ink); }

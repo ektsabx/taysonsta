@@ -16,6 +16,6 @@ export async function GET() {
     res.cookies.set(STATE, nonce, { httpOnly: true, secure: siteUrl().startsWith("https://"), sameSite: "lax", path: "/api/calendar", maxAge: 600 });
     return res;
   } catch (e) {
-    return NextResponse.redirect(new URL(`/meetings?tab=page&calendar=${e instanceof CalendarError && e.kind === "not_configured" ? "not_configured" : "failed"}`, siteUrl()));
+    return NextResponse.redirect(new URL(`/?settings=integration&card=calendar&calendar=${e instanceof CalendarError && e.kind === "not_configured" ? "not_configured" : "failed"}`, siteUrl()));
   }
 }

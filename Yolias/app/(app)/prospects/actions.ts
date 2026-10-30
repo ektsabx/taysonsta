@@ -32,16 +32,6 @@ async function resolve(target: Target) {
  * reveals them; the first reveal is recorded (who, when). Revealing costs no
  * prospects — the person was already counted when delivered.
  */
-export async function revealContacts(target: Target): Promise<{ ok: true; contacts: { id: string; email: string | null; phone: string | null }[] } | { ok: false }> {
-  const { session, people } = await resolve("ids" in target ? { ids: target.ids.map((k) => (k.includes(":") ? k : `person:${k}`)) } : target);
-  if (!people.length) return { ok: false };
-  const supabase = await createClient();
-  await supabase.from("prospects").update({ revealed_at: new Date().toISOString(), revealed_by: session.userId })
-    .eq("workspace_id", session.workspace.id).in("id", people.map((p) => p.id)).is("revealed_at", null);
-  revalidatePath("/prospects", "layout");
-  return { ok: true, contacts: people.map((r) => ({ id: r.id, email: r.email, phone: r.phone })) };
-}
-
 /** Decision-maker matching: queues "find the decision makers" for the selected companies / local businesses. */
 export async function findDecisionMakersAction(target: Target): Promise<{ ok: boolean; queued: number }> {
   const { session, companies } = await resolve(target);

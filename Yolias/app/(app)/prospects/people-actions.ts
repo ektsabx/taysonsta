@@ -14,21 +14,6 @@ import { enqueue } from "@/lib/jobs/queue";
 const uuid = /^[0-9a-f-]{36}$/i;
 const ids = (v: string[]) => [...new Set(v.filter((i) => uuid.test(i)))].slice(0, 100);
 
-/** Shows the email / phone of these people (recorded once per person). The result was already counted. */
-export async function revealPeople(personIds: string[]): Promise<{ ok: true; contacts: { id: string; email: string | null; phone: string | null; emailStatus: string }[] } | { ok: false }> {
-  const session = await requireSession();
-  const list = ids(personIds);
-  if (!list.length) return { ok: false };
-  const db = await createClient();
-  const { data } = await db.from("prospects").select("id, email, phone, email_status").eq("workspace_id", session.workspace.id).in("id", list);
-  if (!data?.length) return { ok: false };
-  await db.from("prospects").update({ revealed_at: new Date().toISOString(), revealed_by: session.userId })
-    .eq("workspace_id", session.workspace.id).in("id", data.map((p) => p.id)).is("revealed_at", null);
-  await capture(session.userId, "people_revealed", { workspace_id: session.workspace.id, count: data.length, with_email: data.filter((p) => p.email && p.email_status !== "invalid").length, with_phone: data.filter((p) => p.phone).length });
-  revalidatePath("/prospects", "layout");
-  return { ok: true, contacts: data.map((p) => ({ id: p.id, email: p.email_status === "invalid" ? null : p.email, phone: p.phone, emailStatus: p.email_status })) };
-}
-
 /** Bookmark: a company in / out of the Prospects list. */
 /**
  * Save / unsave a person, company or local business (Prospects → Saved,

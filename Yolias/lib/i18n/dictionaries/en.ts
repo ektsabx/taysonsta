@@ -287,14 +287,18 @@ export const en = {
       taking: "Taking bookings", address: "Address", name: "Meeting name", location: "Place", locationHint: "A Google Meet or Zoom link, a phone number or an address. Empty with Google Calendar connected: a Google Meet link.",
       line: "A line for visitors", lineHint: "Example: a 30-minute intro call about our product.", duration: "Length", timezone: "Time zone", buffer: "Break between meetings",
       notice: "Shortest notice", window: "Open for booking", hours: "Weekly hours", unavailable: "Unavailable", addRange: "Add hours", save: "Save",
+      calendarHint: "Google Calendar isn't connected: guests get an \"Add to Google Calendar\" link instead of an invitation.",
       minutes: "{n} minutes", hoursN: "{n} hours", daysN: "{n} days",
     },
+    outcome: { ask: "What came of it?", won: "Became a customer", lost: "Didn't buy", prep: "Prepare", add: "Add a meeting", who: "With", when: "When", length: "Length (minutes)", place: "Place or link", pick: "Pick a conversation" },
     days: { sun: "Sunday", mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday" },
-    errors: { invalid: "Check the fields and try again.", slug: "The address uses lowercase letters, numbers and dashes (3 to 40).", slugTaken: "This address is taken. Try another." },
+    errors: { invalid: "Check the fields and try again.", taken: "You already have a meeting at that time.", slug: "The address uses lowercase letters, numbers and dashes (3 to 40).", slugTaken: "This address is taken. Try another." },
   },
   today: {
+    reengage: "{n} people didn't reply 2+ months ago: try again with a new campaign",
+    tasks: "{n} calls and messages to send today",
     title: "Today", replies: "{n} conversations with a new reply", meeting: "Meeting with {name} at {time}",
-    stale: "{n} deals quiet for a week", staleOne: "{name}: quiet for {days} days",
+    stale: "{n} interested people quiet for a week", staleOne: "{name}: quiet for {days} days",
     lookalike: "Find companies like {names}", lookalikePrompt: "Find companies like the customers I won: {names}",
   },
   startHere: {
@@ -487,6 +491,7 @@ export const en = {
     scoredLeads: "Across {count} scored leads",
     ofLeads: "{pct}% of leads",
     sections: { decisionMakers: "Decision makers", activity: "User activity" },
+    funnel: { optedOutNote: "Never emailed again", title: "From search to customer", optedOut: "Opted out", steps: { found: "Found", contacted: "Contacted", replied: "Replied", interested: "Interested", meetings: "Meetings", customers: "Customers" } },
     outcomes: {
       title: "Won and lost deals", won: "Won by industry", lost: "Why deals were lost", none: "Mark deals as won or lost in the CRM and Yolias learns what works.",
       note: "Your next searches lean toward what won.", findMore: "Find similar companies", prompt: "Find companies in the industries where I won deals: {names}",
@@ -730,6 +735,8 @@ export const en = {
       connected: "{n} connected", notConnected: "Not connected", soon: "Not available yet",
       gmailDesc: "Gmail or Google Workspace: sends your campaigns and reads the replies.",
       imapName: "IMAP/SMTP mailbox", imapDesc: "Any other mailbox: Zoho, Hostinger, Outlook or your company mail.",
+      rulesName: "Sending rules", rulesDesc: "Emails a day, the gap between emails, and sending days and hours, for every mailbox.", rulesOn: "On",
+      calendarName: "Google Calendar", calendarDesc: "Every booked meeting goes to a calendar Yolias creates, with a Google Meet link and Google's invitation to your guest.",
     },
     referral: {
       title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} prospects to your balance. They never expire.",

@@ -1,4 +1,5 @@
 import "server-only";
+import { bookingLinkFor } from "@/lib/meetings";
 import { notify, userRecipient } from "@/lib/email/notify";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -97,8 +98,35 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const target = targetOf(lead);
   if (!target) return { ok: false, error: "not_found" };
 
+  // A call / WhatsApp / LinkedIn step (D-268): Yolias writes the WhatsApp or
+  // LinkedIn text, leaves a task on the conversation for the member, and the
+  // sequence moves on (the next step waits its own delay).
+  const kind = (step as { kind?: string }).kind ?? "email";
+  if (kind !== "email") {
+    let draftId: string | null = null;
+    if (kind === "whatsapp" || kind === "linkedin") {
+      const w = await draftOutreach({
+        workspaceId, userId, target, channel: kind, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), step.instruction].filter(Boolean).join("\n") || null,
+        language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
+        sequence: { leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position, customerProfileId: campaign.customer_profile_id ?? lead.customer_profile_id, offerId: campaign.offer_id, history: await historyFor(lead.id) },
+      }).catch(() => null);
+      if (w?.ok) draftId = w.message.id;
+    }
+    const { data: owner } = await db.from("profiles").select("language").eq("id", userId).maybeSingle();
+    const ar = owner?.language === "ar";
+    const verb = { call: ar ? "اتصل بـ" : "Call", whatsapp: ar ? "ابعت واتساب لـ" : "WhatsApp", linkedin: ar ? "ابعت على لينكدإن لـ" : "Message on LinkedIn:" }[kind as "call" | "whatsapp" | "linkedin"];
+    await db.from("lead_tasks").insert({
+      workspace_id: workspaceId, lead_id: lead.id, title: `${verb} ${lead.name}${draftId ? (ar ? " (الرسالة جاهزة في المحادثة)" : " (the message is ready in the conversation)") : ""}`.slice(0, 300),
+      kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: userId, dedupe_key: `step:${e.id}:${position}`,
+    });
+    await advanceEnrollment(e.id, position, settings.limits.max_messages_per_lead);
+    return { ok: true, messageId: draftId ?? "" };
+  }
+  // A/B test (D-268): half the leads (by their id) get the second angle for the first email.
+  const variant = position === 1 && (campaign as { variant_b?: string | null }).variant_b ? (parseInt(lead.id.replace(/-/g, "").slice(-6), 16) % 2 ? "b" : "a") : null;
+  const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${(campaign as { variant_b?: string | null }).variant_b}` : null;
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: campaign.channel, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null), campaign.goal, step.instruction].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: campaign.channel, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), campaign.goal, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     sequence: {
       leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position,
@@ -107,6 +135,7 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
     },
   });
   if (!r.ok) return r;
+  if (variant) await db.from("outreach_messages").update({ variant }).eq("id", r.message.id);
   return { ok: true, messageId: r.message.id };
 }
 
@@ -215,7 +244,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     const who = await meetingPeople(db, m.lead_id, m.created_by);
     if (who.userId) {
       const at = new Intl.DateTimeFormat(who.ar ? "ar-EG-u-nu-latn" : "en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC" }).format(new Date(m.starts_at));
-      await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, `/crm/${m.lead_id}`, `meeting-soon:${m.id}`);
+      await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, "/meetings", `meeting-soon:${m.id}`);
       // And by email (owner, 2026-10-29); emails are in English (D-158).
       const atEn = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC", timeZoneName: "short" }).format(new Date(m.starts_at));
       await notify("meeting_soon", await userRecipient(who.userId), { lead: who.lead, time: atEn, leadId: m.lead_id, url: m.url ?? null }, { workspaceId: m.workspace_id, dedupe: m.id });
@@ -229,11 +258,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     .eq("status", "scheduled").is("outcome_asked_at", null).lte("starts_at", new Date(Date.now() - 2 * 3_600_000).toISOString()).limit(limit);
   for (const m of meetings ?? []) {
     const who = await meetingPeople(db, m.lead_id, m.created_by);
-    await db.from("lead_tasks").insert({
-      workspace_id: m.workspace_id, lead_id: m.lead_id, title: (who.ar ? `سجّل نتيجة «${m.title}»` : `Record the outcome of "${m.title}"`).slice(0, 300), kind: "review",
-      due_at: now, source: "agent", assignee_id: who.userId, dedupe_key: `meeting-outcome:${m.id}`,
-    });
-    if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", `/crm/${m.lead_id}`, `meeting-outcome:${m.id}`);
+    if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", "/meetings", `meeting-outcome:${m.id}`);
     if (who.userId) await notify("meeting_outcome", await userRecipient(who.userId), { lead: who.lead, leadId: m.lead_id }, { workspaceId: m.workspace_id, dedupe: m.id });
     await db.from("sales_meetings").update({ outcome_asked_at: now }).eq("id", m.id);
     out.reminders++;
