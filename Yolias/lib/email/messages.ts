@@ -434,7 +434,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     const rows: [string, string][] = [];
     if (d.replies) rows.push([T(l, "New replies", "ردود جديدة"), link(`${d.siteUrl}/inbox`, T(l, `${d.replies} conversations`, `${d.replies} محادثة`))]);
     for (const m of d.meetings) rows.push([T(l, "Meeting", "اجتماع"), `${esc(m.name)} · <span dir="ltr">${esc(m.time)}</span>`]);
-    if (d.tasks) rows.push([T(l, "Tasks", "مهام"), link(`${d.siteUrl}/inbox`, T(l, `${d.tasks} calls and messages to send`, `${d.tasks} مكالمة ورسالة لإرسالها`))]);
+    if (d.tasks) rows.push([T(l, "Tasks", "مهام"), link(`${d.siteUrl}/inbox`, T(l, `${d.tasks} tasks`, `${d.tasks} مهمة`))]);
     if (d.staleCount) rows.push([T(l, "Quiet conversations", "محادثات متوقفة"), d.stale.length ? d.stale.map((s) => `${esc(s.name)} (${s.days} ${T(l, "days", "يوم")})`).join("<br>") : String(d.staleCount)]);
     const parts = [d.replies ? T(l, `${d.replies} new replies`, `${d.replies} رد جديد`) : null, d.meetings.length ? T(l, `${d.meetings.length} meetings today`, `${d.meetings.length} اجتماع اليوم`) : null, d.staleCount ? T(l, `${d.staleCount} quiet deals`, `${d.staleCount} صفقة متوقفة`) : null].filter(Boolean);
     return {

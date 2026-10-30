@@ -4,18 +4,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { LlmNotConfiguredError, runStructured } from "@/lib/ai/llm";
 import { tasks } from "@/lib/ai/orchestrator";
 import { isSuppressed } from "@/lib/intel/shared";
-import { channelLimit, messageLanguages, whatsappDigits, type MessageLanguage } from "@/lib/outreach/channels";
+import { messageLanguages, type MessageLanguage } from "@/lib/outreach/channels";
 import { contextText, loadAiSettings, loadBusinessContext } from "@/lib/ai-workspace/server";
 import { guidanceFor, type AgentKey } from "@/lib/ai-workspace/settings";
-import type { MessageChannel, MessageObjective, MessageTone, OutreachMessageRow } from "@/types/database";
+import type { MessageObjective, MessageTone, OutreachMessageRow } from "@/types/database";
 
-// Prepared messages (MVP, D-155 / D-160): Yolias writes an email, a LinkedIn
-// note or a WhatsApp / Facebook / Instagram message for a person, company or
-// local business, from what Yolias knows (never invented facts). The member
-// edits it and sends it from their own Gmail / Outlook / app. Yolias sends
-// nothing. Every message is kept in outreach_messages (channel, text,
-// objective, tone, the facts it used, where and when it was opened) for a
-// later Outreach module.
+// Prepared messages (D-155, email only since D-269): Yolias writes an email
+// for a person, company or local business from what Yolias knows (never
+// invented facts). Every message is kept in outreach_messages (text,
+// objective, tone, the facts it used, when it was sent and opened).
 
 export const OUTREACH_PROMPT_VERSION = "outreach-2026-10-07c";
 
@@ -23,12 +20,6 @@ const facts = z.array(z.string().min(1).max(200)).max(6);
 const EmailSchema = z.object({
   subject: z.string().min(1).max(120),
   body: z.string().min(1).max(3000),
-  personalization_used: facts,
-  cta: z.string().min(1).max(200),
-  tone: z.enum(["conservative", "direct", "friendly"]),
-});
-const ShortSchema = (max: number) => z.object({
-  body: z.string().min(1).max(max),
   personalization_used: facts,
   cta: z.string().min(1).max(200),
   tone: z.enum(["conservative", "direct", "friendly"]),
@@ -65,20 +56,10 @@ const STYLE = `Style:
 - No exaggerated claims, no unnecessary compliments, don't repeat the prospect's own title and company back to them, don't over-explain the product.
 - Exactly one call to action; cta restates it in a few words.`;
 
-const CHANNEL: Record<MessageChannel, string> = {
-  email: `You write one cold B2B email on behalf of the sender, who reviews it and sends it from their own mailbox.
+const EMAIL_BRIEF = `You write one cold B2B email on behalf of the sender, who reviews it and sends it from their own mailbox.
 Structure: subject → personalized opening → reason for reaching out → relevant value (one or two sentences tied to the prospect's situation) → one call to action → short professional closing with the sender's name and company.
 Length: normally 50–120 words in the body, in 2–4 short paragraphs. Don't add information just to make it longer.
-Subject: 2–7 words, specific to the prospect's situation or the sender's value, no clickbait, no "Quick question", not just the two company names.`,
-  linkedin: `You write a LinkedIn connection note on behalf of the sender.
-At most 280 characters in total so it fits a connection request. Greet the person by first name, one sentence on why connecting makes sense, and a light reason to connect. No subject and no signature block; the sender's first name at the end is enough.`,
-  whatsapp: `You write a first WhatsApp message on behalf of the sender, who sends it from their own phone.
-At most 500 characters: a greeting, who the sender is (name and company) in one line, why they're writing, and one call to action. Conversational; no subject and no signature block.`,
-  facebook: `You write a first Facebook Messenger message on behalf of the sender, who sends it from their own account.
-At most 500 characters: a greeting, who the sender is (name and company) in one line, why they're writing, and one call to action. Conversational; no subject and no signature block.`,
-  instagram: `You write a first Instagram direct message on behalf of the sender, who sends it from their own account.
-At most 400 characters: a greeting, who the sender is (name and company) in one line, why they're writing, and one call to action. Conversational; no subject and no signature block.`,
-};
+Subject: 2–7 words, specific to the prospect's situation or the sender's value, no clickbait, no "Quick question", not just the two company names.`;
 
 const PLACEHOLDER = /\[[^\]]{1,40}\]|\{\{?[^}]{1,40}\}\}?/;
 const CLICHE = /hope (this|my) (email|message) finds you|i (wanted to|am|'m) reach(ing)? out|fast-paced world/i;
@@ -89,7 +70,8 @@ export interface DraftInput {
   workspaceId: string;
   userId: string;
   target: MessageTarget;
-  channel: MessageChannel;
+  /** Email only (D-269). */
+  channel: "email";
   /** The reason for contacting / anything the member wants said. */
   instruction: string | null;
   language: MessageLanguage;
@@ -108,7 +90,7 @@ export interface DraftInput {
   leadId?: string | null;
 }
 
-export type DraftError = "not_found" | "no_email" | "no_linkedin" | "no_whatsapp" | "no_facebook" | "no_instagram" | "suppressed" | "do_not_contact" | "not_configured" | "failed";
+export type DraftError = "not_found" | "no_email" | "suppressed" | "do_not_contact" | "not_configured" | "failed";
 export type DraftResult = { ok: true; message: OutreachMessageRow } | { ok: false; error: DraftError };
 
 const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, email, whatsapp, facebook_url, instagram_url";
@@ -121,25 +103,21 @@ type Loaded = {
   facts: Record<string, unknown>;
 };
 
-/** The recipient and what Yolias really knows about them, or why this channel can't reach them. */
-export async function loadTarget(workspaceId: string, target: MessageTarget, channel: MessageChannel): Promise<{ ok: true; data: Loaded } | { ok: false; error: DraftError }> {
+/** The recipient and what Yolias really knows about them, or why email can't reach them. */
+export async function loadTarget(workspaceId: string, target: MessageTarget): Promise<{ ok: true; data: Loaded } | { ok: false; error: DraftError }> {
   const db = createAdminClient();
   const clean = (o: Record<string, unknown>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && !v.length)));
   if (target.kind === "person") {
     const { data: p } = await db.from("prospects").select(`*, company:companies(${companyColumns})`).eq("id", target.id).eq("workspace_id", workspaceId).maybeSingle();
     if (!p) return { ok: false, error: "not_found" };
     const email = p.email && p.email_status !== "invalid" ? p.email : null;
-    if (channel === "email" && !email) return { ok: false, error: "no_email" };
-    if (channel === "linkedin" && !p.linkedin_url) return { ok: false, error: "no_linkedin" };
-    if (channel === "whatsapp" && !whatsappDigits(p.whatsapp ?? p.phone)) return { ok: false, error: "no_whatsapp" };
-    if (channel === "facebook" && !p.facebook_url) return { ok: false, error: "no_facebook" };
-    if (channel === "instagram" && !p.instagram_url) return { ok: false, error: "no_instagram" };
+    if (!email) return { ok: false, error: "no_email" };
     if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedin_url, personId: p.person_id })) return { ok: false, error: "suppressed" };
     const company = (p.company ?? null) as unknown as Record<string, unknown> | null;
     return {
       ok: true,
       data: {
-        campaignId: p.campaign_id, prospectId: p.id, companyId: p.company_id, toEmail: channel === "email" ? email : null,
+        campaignId: p.campaign_id, prospectId: p.id, companyId: p.company_id, toEmail: email,
         facts: {
           prospect: clean({ name: p.full_name, job_title: p.title, seniority: p.seniority, city: p.city, country: p.country }),
           prospect_company: company && clean({ name: company.name, website: company.website ?? company.domain, industry: company.industry, description: company.description, city: company.city, country: company.country, employees: company.employee_count, founded: company.founded_year, signals: company.signals, open_roles: company.hiring_roles }),
@@ -150,16 +128,12 @@ export async function loadTarget(workspaceId: string, target: MessageTarget, cha
   const { data: c } = await db.from("companies").select(companyColumns).eq("id", target.id).eq("workspace_id", workspaceId).maybeSingle();
   if (!c) return { ok: false, error: "not_found" };
   // A company is emailed at the public inbox from its own website (D-163); it has no LinkedIn messages.
-  if (channel === "email" && !c.email) return { ok: false, error: "no_email" };
-  if (channel === "linkedin") return { ok: false, error: "no_linkedin" };
-  if (channel === "whatsapp" && !whatsappDigits(c.whatsapp ?? c.phone)) return { ok: false, error: "no_whatsapp" };
-  if (channel === "facebook" && !c.facebook_url) return { ok: false, error: "no_facebook" };
-  if (channel === "instagram" && !c.instagram_url) return { ok: false, error: "no_instagram" };
+  if (!c.email) return { ok: false, error: "no_email" };
   if (await isSuppressed({ domain: c.domain ?? c.website, email: c.email })) return { ok: false, error: "suppressed" };
   return {
     ok: true,
     data: {
-      campaignId: c.campaign_id, prospectId: null, companyId: c.id, toEmail: channel === "email" ? c.email : null,
+      campaignId: c.campaign_id, prospectId: null, companyId: c.id, toEmail: c.email,
       facts: {
         prospect_company: clean({
           name: c.name, kind: c.kind === "local_business" ? "local business" : "company", website: c.website ?? c.domain, industry: c.industry, category: c.category,
@@ -176,7 +150,7 @@ export async function loadTarget(workspaceId: string, target: MessageTarget, cha
  * The caller has already checked the member belongs to the workspace.
  */
 export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
-  const loaded = await loadTarget(input.workspaceId, input.target, input.channel);
+  const loaded = await loadTarget(input.workspaceId, input.target);
   if (!loaded.ok) return loaded;
   const t = loaded.data;
   const db = createAdminClient();
@@ -202,7 +176,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
   };
   const language = messageLanguages[input.language];
   const system = [
-    CHANNEL[input.channel],
+    EMAIL_BRIEF,
     `Objective (the message has this one goal only): ${OBJECTIVES[input.objective]}`,
     `Tone: ${TONES[input.tone]} Return tone = "${input.tone}".`,
     PERSONALIZATION,
@@ -213,8 +187,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
     guidanceFor(settings, input.agent ?? "outreach"),
   ].filter(Boolean).join("\n\n");
 
-  const max = input.channel === "email" ? 3000 : input.channel === "linkedin" ? 300 : channelLimit[input.channel];
-  const Schema = input.channel === "email" ? EmailSchema : ShortSchema(max);
+  const Schema = EmailSchema;
   const { $schema: _drop, ...schema } = z.toJSONSchema(Schema) as Record<string, unknown>;
   void _drop;
   try {
@@ -222,7 +195,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
       system,
       parts: [{ kind: "text", text: JSON.stringify(context) }],
       schema,
-      schemaName: input.channel === "email" ? "outreach_email" : `${input.channel}_message`,
+      schemaName: "outreach_email",
       maxTokens: 1200,
     }, (d) => {
       const v = Schema.safeParse(d);
@@ -235,7 +208,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
     const { data: message, error } = await db.from("outreach_messages").insert({
       workspace_id: input.workspaceId, prospect_id: t.prospectId, company_id: t.prospectId ? null : t.companyId, campaign_id: t.campaignId,
       created_by: input.userId, channel: input.channel, to_email: t.toEmail,
-      subject: input.channel === "email" ? r.data.subject ?? "" : "", body: r.data.body, language: input.language, instruction: input.instruction,
+      subject: r.data.subject ?? "", body: r.data.body, language: input.language, instruction: input.instruction,
       objective: input.objective, tone: input.tone, cta: r.data.cta.slice(0, 300), personalization: r.data.personalization_used,
       model: `${r.route.provider}:${r.servedModel}`, cost_usd: r.unpricedCalls ? null : r.costUsd,
       lead_id: leadId, outreach_campaign_id: input.sequence?.outreachCampaignId ?? null, enrollment_id: input.sequence?.enrollmentId ?? null,

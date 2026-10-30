@@ -98,35 +98,11 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const target = targetOf(lead);
   if (!target) return { ok: false, error: "not_found" };
 
-  // A call / WhatsApp / LinkedIn step (D-268): Yolias writes the WhatsApp or
-  // LinkedIn text, leaves a task on the conversation for the member, and the
-  // sequence moves on (the next step waits its own delay).
-  const kind = (step as { kind?: string }).kind ?? "email";
-  if (kind !== "email") {
-    let draftId: string | null = null;
-    if (kind === "whatsapp" || kind === "linkedin") {
-      const w = await draftOutreach({
-        workspaceId, userId, target, channel: kind, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), step.instruction].filter(Boolean).join("\n") || null,
-        language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
-        sequence: { leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position, customerProfileId: campaign.customer_profile_id ?? lead.customer_profile_id, offerId: campaign.offer_id, history: await historyFor(lead.id) },
-      }).catch(() => null);
-      if (w?.ok) draftId = w.message.id;
-    }
-    const { data: owner } = await db.from("profiles").select("language").eq("id", userId).maybeSingle();
-    const ar = owner?.language === "ar";
-    const verb = { call: ar ? "اتصل بـ" : "Call", whatsapp: ar ? "ابعت واتساب لـ" : "WhatsApp", linkedin: ar ? "ابعت على لينكدإن لـ" : "Message on LinkedIn:" }[kind as "call" | "whatsapp" | "linkedin"];
-    await db.from("lead_tasks").insert({
-      workspace_id: workspaceId, lead_id: lead.id, title: `${verb} ${lead.name}${draftId ? (ar ? " (الرسالة جاهزة في المحادثة)" : " (the message is ready in the conversation)") : ""}`.slice(0, 300),
-      kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: userId, dedupe_key: `step:${e.id}:${position}`,
-    });
-    await advanceEnrollment(e.id, position, settings.limits.max_messages_per_lead);
-    return { ok: true, messageId: draftId ?? "" };
-  }
   // A/B test (D-268): half the leads (by their id) get the second angle for the first email.
   const variant = position === 1 && (campaign as { variant_b?: string | null }).variant_b ? (parseInt(lead.id.replace(/-/g, "").slice(-6), 16) % 2 ? "b" : "a") : null;
   const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${(campaign as { variant_b?: string | null }).variant_b}` : null;
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: campaign.channel, instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), campaign.goal, step.instruction, angle].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), campaign.goal, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     sequence: {
       leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position,

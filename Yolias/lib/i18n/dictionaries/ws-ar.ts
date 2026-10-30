@@ -61,7 +61,7 @@ export const wsAr: Dictionary["ws"] = {
     },
     tones: { conservative: "رسمي", direct: "مباشر", friendly: "ودّي" },
     objectives: { introduction: "تعريف", sales: "بيع", meeting: "حجز اجتماع", follow_up: "متابعة", partnership: "شراكة", referral: "طلب توجيه" },
-    channels: { email: "البريد الإلكتروني", linkedin: "LinkedIn", whatsapp: "WhatsApp", facebook: "Messenger", instagram: "Instagram" },
+    channels: { email: "البريد الإلكتروني" },
     launch: {
       aim: "هدف الحملة", aims: { meeting: "حجز اجتماع", sell: "الشراء من الموقع" },
       aimHints: { meeting: "يولياس يتواصل ويتابع ويرسل صفحة الحجز الخاصة بك، وعندما يحجز العميل يظهر الاجتماع في الاجتماعات.", sell: "من غير اجتماعات: يولياس يرسل رابط موقعك ويجاوب الأسئلة حتى يسجّل العميل أو يشتري." },
@@ -134,7 +134,7 @@ export const wsAr: Dictionary["ws"] = {
     empty: "لا توجد محادثات هنا بعد.", emptyAll: "لا توجد ردود بعد. ردود حملاتك تصل هنا تلقائيًا.", select: "اختر محادثة.",
     thread: { campaign: "الحملة", openCrm: "فتح في إدارة العملاء", openCampaign: "فتح الحملة", noMessages: "لا توجد رسائل في هذه المحادثة بعد.", markDone: "تعليم كمنتهية", reopen: "إعادة فتح", markOther: "نقل إلى أخرى", markRead: "تعليم كمقروءة" },
     reply: {
-      logTitle: "سجّل ردًا وصلك", logHint: "الصق الرد من بريدك أو WhatsApp أو LinkedIn. يوقف يولياس المتابعات ويقرأ الرد ويقترح الخطوة التالية.",
+      logTitle: "سجّل ردًا وصلك", logHint: "الصق الرد من بريدك. يوقف يولياس المتابعات ويقرأ الرد ويقترح الخطوة التالية.",
       body: "ردّهم", channel: "وصل عبر", receivedAt: "وقت الوصول", from: "من (اختياري)", save: "تسجيل الرد", logged: "تم تسجيل الرد.",
       draftTitle: "اكتب ردًا", draftAi: "صياغة بالذكاء الاصطناعي", drafting: "جارٍ الكتابة…", instruction: "ماذا يجب أن يقول الرد؟ (اختياري)", drafted: "المسودة جاهزة بالأسفل. راجعها قبل الإرسال.", saveDraft: "حفظ كمسودة", manualHint: "اكتب الرد بنفسك واحفظه كمسودة، أو دع الذكاء الاصطناعي يصيغه مما كتبت (اختياري).",
       analysis: "قرأ الذكاء الاصطناعي الرد", kind: {

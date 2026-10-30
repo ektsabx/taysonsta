@@ -22,13 +22,6 @@ async function leadIdsWithMessages(workspaceId: string, kind: "scheduled" | "sen
   return [...new Set((data ?? []).map((m) => m.lead_id!))];
 }
 
-/** Channels that have messages in this workspace (the channel filter offers these, plus email and LinkedIn). */
-export async function inboxChannels(workspaceId: string): Promise<string[]> {
-  const db = await createClient();
-  const { data } = await db.from("outreach_messages").select("channel").eq("workspace_id", workspaceId).not("lead_id", "is", null).limit(5000);
-  return [...new Set(["email", "linkedin", ...(data ?? []).map((m) => m.channel)])];
-}
-
 export async function listInbox(workspaceId: string, filter: InboxFilter, search: string, channel: string | null = null, campaignId: string | null = null): Promise<{ items: InboxItem[]; counts: Record<InboxFilter, number> }> {
   const db = await createClient();
   // The id lists the filters need, fetched together (D-251: fewer round trips).

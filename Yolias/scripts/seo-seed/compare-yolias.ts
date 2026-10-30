@@ -7,7 +7,7 @@
 // in 15 languages sent from the member's Gmail or IMAP/SMTP mailbox after one
 // approval, with an unsubscribe line; replies sorted in the Inbox; interested
 // leads get the booking page and meetings land in Meetings (D-268); email
-// sent by Yolias, call / WhatsApp / LinkedIn steps as tasks; unlimited users; pay per prospect.
+// sent by Yolias, email only (D-269); unlimited users; pay per prospect.
 
 type L = { en: string; ar: string };
 export type CompareRow = "find" | "finds" | "why" | "contacts" | "outreach" | "replies" | "channels" | "users";
@@ -21,7 +21,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       contacts: { en: "No credits to reveal contacts: Yolias shows the contacts a company publishes, labelled by verification state", ar: "لا رصيد لكشف بيانات التواصل: يعرض يولياس ما تنشره الشركة، مصنّفًا حسب حالة التحقق" },
       outreach: { en: "One approval per campaign, then emails and follow-ups go from your own mailbox at a human pace, with an unsubscribe line", ar: "موافقة واحدة لكل حملة، ثم تخرج الرسائل والمتابعات من بريدك بوتيرة بشرية مع سطر لإلغاء الاشتراك" },
       replies: { en: "Replies come back sorted with a suggested answer; a meeting request gets two free times and your booking page", ar: "تعود الردود مصنّفة مع رد مقترح، وطلب الاجتماع يُرد عليه بموعدين متاحين وصفحة الحجز" },
-      channels: { en: "Email sent by Yolias; call, WhatsApp and LinkedIn steps are tasks for you, and there is no dialer", ar: "البريد يرسله يولياس؛ وخطوات الاتصال وواتساب ولينكدإن مهام لك، ولا يوجد اتصال هاتفي من داخله" },
+      channels: { en: "Email from your own mailbox; no dialer", ar: "البريد من صندوق بريدك؛ لا اتصال هاتفي" },
       users: { en: "Unlimited users; you pay for prospects found, not per seat", ar: "مستخدمون بلا حد؛ تدفع مقابل العملاء الذين يُعثر عليهم، لا لكل مقعد" },
     },
     limits: [

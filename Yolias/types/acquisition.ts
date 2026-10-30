@@ -103,10 +103,7 @@ export type OutreachCampaignRow = {
 export type CampaignAim = "meeting" | "sell";
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;
-  /** D-268: email (sent from the mailbox) or a call / WhatsApp / LinkedIn task. */
-  kind: StepKind;
 };
-export type StepKind = "email" | "call" | "whatsapp" | "linkedin";
 export type EnrollmentStatus = "active" | "paused" | "replied" | "completed" | "stopped";
 export type OutreachEnrollmentRow = {
   id: string; workspace_id: string; campaign_id: string; lead_id: string; status: EnrollmentStatus; current_step: number;

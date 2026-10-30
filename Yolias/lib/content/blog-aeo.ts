@@ -34,7 +34,7 @@ export const aeoPosts: BlogPost[] = [
           { h2: "Step 2: Let AI build the list" },
           { p: "From that description the AI searches company sources (business directories, maps, open company registries and the companies' own websites), keeps the companies that match, and scores how well each one fits. Look for a tool that shows *why* each company matched, so you can tell a good fit from a lucky keyword." },
           { h2: "Step 3: Check the contact details" },
-          { p: "A list is only useful if you can reach it. Prefer contact details the company publishes (a general email on its website, a phone number on its map listing) or that can be verified. Results without a published email can still be called or contacted on LinkedIn, but no email should be guessed. A good tool tells you plainly how many results have an email, instead of dropping the rest silently." },
+          { p: "A list is only useful if you can reach it. Prefer contact details the company publishes (a general email on its website, a phone number on its map listing) or that can be verified. Results without a published email are left out of an email campaign: no email should be guessed. A good tool tells you plainly how many results have an email, instead of dropping the rest silently." },
           { h2: "Step 4: Let AI draft personal emails" },
           { p: "The first email should prove you looked at the company: one sentence about them, one about the problem you solve, and one simple question. AI can write that for every company from what it read on their site, in the buyer's language and in your tone. Edit the first few until they sound like you; the rest follow the same style." },
           { h2: "Step 5: Send from your own mailbox, at a human pace" },

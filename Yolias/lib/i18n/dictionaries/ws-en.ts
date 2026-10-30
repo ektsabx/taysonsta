@@ -61,7 +61,7 @@ export const wsEn = {
     },
     tones: { conservative: "Conservative", direct: "Direct", friendly: "Friendly" },
     objectives: { introduction: "Introduction", sales: "Sales", meeting: "Book a meeting", follow_up: "Follow-up", partnership: "Partnership", referral: "Referral" },
-    channels: { email: "Email", linkedin: "LinkedIn", whatsapp: "WhatsApp", facebook: "Messenger", instagram: "Instagram" },
+    channels: { email: "Email" },
     stats: { leads: "Leads", drafts: "Drafts ready", sent: "Sent", failed: "Failed", bounced: "Bounced", replies: "Replies", interested: "Interested", notInterested: "Not interested", optedOut: "Opted out", meetings: "Meetings", noData: "Numbers appear as messages are sent and replies come in." },
     launch: {
       aim: "Campaign goal", aims: { meeting: "Book a meeting", sell: "Buy on the website" },
@@ -134,7 +134,7 @@ export const wsEn = {
     empty: "No conversations here yet.", emptyAll: "No replies yet. Replies to your campaigns arrive here automatically.", select: "Select a conversation.",
     thread: { campaign: "Campaign", openCrm: "Open in CRM", openCampaign: "Open campaign", noMessages: "No messages in this conversation yet.", markDone: "Mark done", reopen: "Reopen", markOther: "Move to Others", markRead: "Mark read" },
     reply: {
-      logTitle: "Log a reply you received", logHint: "Paste the reply from your email, WhatsApp or LinkedIn. Yolias stops the follow-ups, reads it and suggests the next step.",
+      logTitle: "Log a reply you received", logHint: "Paste the reply from your email. Yolias stops the follow-ups, reads it and suggests the next step.",
       body: "Their reply", channel: "Received on", receivedAt: "Received at", from: "From (optional)", save: "Log reply", logged: "Reply logged.",
       draftTitle: "Write a reply", draftAi: "Draft with AI", drafting: "Writing…", instruction: "What should the reply say? (optional)", drafted: "Draft ready below. Review it before sending.", saveDraft: "Save as draft", manualHint: "Write the reply yourself and save it as a draft, or let the AI draft it from what you wrote (optional).",
       analysis: "AI read the reply", kind: {

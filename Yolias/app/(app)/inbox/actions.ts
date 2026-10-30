@@ -8,8 +8,8 @@ import { requireSession } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { confirmSent } from "@/lib/outreach/sequence";
 import { draftReply, logReply } from "@/lib/agents/replies";
-import { channelLimit } from "@/lib/outreach/channels";
-import type { MessageChannel, ThreadStatus } from "@/types/database";
+import { EMAIL_LIMIT } from "@/lib/outreach/channels";
+import type { ThreadStatus } from "@/types/database";
 
 // Messages and conversations (Inbox, CRM lead page, Outreach). Three
 // separate states: the message (draft → sent / received), the conversation
@@ -33,7 +33,7 @@ export async function updateDraft(messageId: string, subject: string, body: stri
   const { data: m } = await db.from("outreach_messages").select("id, channel, status, lead_id").eq("id", messageId).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!m) return { ok: false, error: e.not_found };
   if (m.status !== "draft") return { ok: false, error: e.edit };
-  const text = String(body ?? "").trim().slice(0, channelLimit[m.channel as MessageChannel]);
+  const text = String(body ?? "").trim().slice(0, EMAIL_LIMIT);
   if (!text) return { ok: false, error: e.failed };
   const { error } = await db.from("outreach_messages").update({ subject: m.channel === "email" ? String(subject ?? "").trim().slice(0, 300) : "", body: text }).eq("id", m.id);
   if (error) return { ok: false, error: e.failed };
@@ -143,11 +143,12 @@ export async function saveManualDraft(leadId: string, body: string): Promise<Msg
   if (lead.do_not_contact) return { ok: false, error: t.ws.messages.errors.do_not_contact };
   const admin = createAdminClient();
   const { data: last } = await admin.from("outreach_messages").select("channel, subject, language, outreach_campaign_id").eq("lead_id", leadId).neq("status", "canceled").order("created_at", { ascending: false }).limit(1).maybeSingle();
-  const channel = (last?.channel ?? "email") as MessageChannel;
-  const subject = channel === "email" && last?.subject ? (/^re:/i.test(last.subject) ? last.subject : `Re: ${last.subject}`).slice(0, 300) : "";
+  // Replies are email (D-269), whatever an old message's channel was.
+  const channel = "email" as const;
+  const subject = last?.subject ? (/^re:/i.test(last.subject) ? last.subject : `Re: ${last.subject}`).slice(0, 300) : "";
   const { data: msg, error } = await admin.from("outreach_messages").insert({
     workspace_id: session.workspace.id, lead_id: leadId, prospect_id: lead.prospect_id, company_id: lead.prospect_id ? null : lead.company_id, created_by: session.userId,
-    channel, to_email: channel === "email" ? lead.email : null, subject, body: text.slice(0, channelLimit[channel]), language: last?.language ?? "en",
+    channel, to_email: lead.email, subject, body: text.slice(0, EMAIL_LIMIT), language: last?.language ?? "en",
     outreach_campaign_id: last?.outreach_campaign_id ?? null,
   }).select("id").single();
   if (error || !msg) return { ok: false, error: t.ws.messages.errors.failed };

@@ -71,7 +71,7 @@ export function LaunchPanel({ summary, mailboxes, mailboxName, dailyLimit }: { s
       </div>
       <dl className="launch-facts">
         <div><dt>{l.recipients}</dt><dd>{summary.recipients}{email && summary.withEmail < summary.recipients ? <span className="cell-sub launch-sub">{fmt(l.withEmail, { count: summary.withEmail })}</span> : null}</dd></div>
-        <div><dt>{o.form.channel}</dt><dd>{o.channels[c.channel]}</dd></div>
+        <div><dt>{o.form.channel}</dt><dd>{o.channels.email}</dd></div>
         <div><dt>{o.form.steps}</dt><dd>{summary.steps.map((s) => `${o.objectives[s.objective as MessageObjective]}${s.position > 1 ? ` (${fmt(l.after, { days: s.delay_days })})` : ""}`).join(" → ") || "-"}</dd></div>
         <div><dt>{l.dailyLimit}</dt><dd>{fmt(l.perDay, { count: dailyLimit })}</dd></div>
       </dl>

@@ -71,7 +71,7 @@ const limitsEn = {
 const limitsAr = {
   contacts: "يعرض يولياس بيانات التواصل التي تنشرها الشركة، ولا يعد ببريد أو رقم شخصي لكل شخص.",
   coverage: "تعتمد النتائج على سوقك وعلى مصادر البيانات المتصلة بيولياس، والبحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويوضح ذلك.",
-  outreach: "يرسل يولياس الحملة من Gmail أو بريد IMAP الخاص بك فقط بعد موافقتك؛ وبدون صندوق بريد متصل، ودائمًا على LinkedIn، ترسل كل رسالة بنفسك.",
+  outreach: "يكتب يولياس الحملة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك فقط بعد موافقتك، ويعيد الردود إلى المحادثات.",
   guarantee: "لا يضمن يولياس عددًا محددًا من العملاء المحتملين أو الاجتماعات أو المبيعات.",
 };
 
@@ -402,7 +402,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "Which local business categories can I search?", a: "Any category you can name, such as clinics, restaurants, salons, gyms, schools, real estate offices or car repair shops." },
         { q: "Can I search a neighborhood rather than a whole city?", a: "Yes. Describe the area as precisely as you need, for example a district or a well-known neighborhood." },
-        { q: "Does Yolias send messages to local businesses?", a: "No. Yolias prepares the email and opens it in your own email app; you choose whether to send it. Yolias doesn’t collect WhatsApp numbers." },
+        { q: "Does Yolias send emails to local businesses?", a: "Yes, when the business publishes an email: Yolias writes the campaign and sends it from your own mailbox after you approve it. Businesses without a published email are left out; nothing is guessed." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },
@@ -437,7 +437,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "ما أنواع الأنشطة المحلية التي يمكنني البحث عنها؟", a: "أي نوع يمكنك تسميته، مثل العيادات والمطاعم والصالونات والصالات الرياضية والمدارس ومكاتب العقار وورش السيارات." },
         { q: "هل يمكنني البحث في حي بدل مدينة كاملة؟", a: "نعم. صِف المنطقة بالدقة التي تحتاجها، مثل حي معين أو منطقة معروفة." },
-        { q: "هل يرسل يولياس رسائل للأنشطة المحلية؟", a: "لا. يجهّز يولياس رسالة البريد ويفتحها في تطبيق بريدك، وأنت تقرر إرسالها. ولا يجمع يولياس أرقام واتساب." },
+        { q: "هل يرسل يولياس رسائل للأنشطة المحلية؟", a: "نعم، عندما ينشر النشاط بريدًا: يكتب يولياس الحملة ويرسلها من بريدك بعد موافقتك. والأنشطة التي لا تنشر بريدًا تُستبعد، ولا يُخمَّن أي بريد." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },

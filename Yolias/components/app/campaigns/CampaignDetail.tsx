@@ -18,7 +18,7 @@ import { CampaignStatus } from "./CampaignList";
 import { initials, RowMenu, useAgo } from "@/components/app/sdr/bits";
 import type { CampaignLead, CampaignPage, LeadView } from "@/services/campaigns";
 import type { CampaignWorkspace, LaunchSummary, OutreachDetail } from "@/services/outreach-campaigns";
-import type { CampaignAim, StepKind } from "@/types/acquisition";
+import type { CampaignAim } from "@/types/acquisition";
 import type { LeadStage, MessageObjective, MessageTone } from "@/types/database";
 
 export type CampaignTab = "leads" | "sequence";
@@ -362,7 +362,7 @@ function Leads(p: Props) {
 
 /* ── Sequence ── */
 
-type Step = { delay_days: number; objective: MessageObjective; instruction: string; kind: StepKind };
+type Step = { delay_days: number; objective: MessageObjective; instruction: string };
 
 function Sequence(p: Props) {
   const { t } = useI18n();
@@ -373,7 +373,7 @@ function Sequence(p: Props) {
   const c = p.detail.campaign;
   const archived = c.status === "archived";
   const initial = useMemo(() => ({
-    steps: (p.detail.steps.length ? p.detail.steps : [{ delay_days: 0, objective: "introduction", instruction: "", kind: "email" as StepKind }]).map((s) => ({ delay_days: s.delay_days, objective: s.objective as MessageObjective, instruction: s.instruction ?? "", kind: (s.kind ?? "email") as StepKind })) as Step[],
+    steps: (p.detail.steps.length ? p.detail.steps : [{ delay_days: 0, objective: "introduction", instruction: "" }]).map((s) => ({ delay_days: s.delay_days, objective: s.objective as MessageObjective, instruction: s.instruction ?? "" })) as Step[],
     language: c.language, tone: c.tone as MessageTone, aim: ((c.aim as CampaignAim | undefined) ?? "meeting"), cta: c.cta_url ?? "", profile: c.customer_profile_id, offer: c.offer_id, variantB: c.variant_b ?? "",
   }), [p.detail.steps, c]);
   const [v, setV] = useState(initial);
@@ -403,12 +403,12 @@ function Sequence(p: Props) {
                 )}
                 <button type="button" className={`sdr-flow-step${sel === i ? " active" : ""}`} onClick={() => setSel(i)}>
                   <span className="num">{i + 1}</span>
-                  <span><strong>{s.kind && s.kind !== "email" ? sq.kinds[s.kind].split(" (")[0] : fmt(sq.step, { n: i + 1 })}</strong><span className="sdr-cell-sub sdr-ellipsis" style={{ display: "block", maxWidth: 170 }}>{i === 0 ? (s.instruction || o.objectives[s.objective]) : sq.sameThread}</span></span>
+                  <span><strong>{fmt(sq.step, { n: i + 1 })}</strong><span className="sdr-cell-sub sdr-ellipsis" style={{ display: "block", maxWidth: 170 }}>{i === 0 ? (s.instruction || o.objectives[s.objective]) : sq.sameThread}</span></span>
                 </button>
               </li>
             ))}
           </ol>
-          {!archived && <button type="button" className="sdr-btn" style={{ width: "100%" }} disabled={v.steps.length >= p.maxSteps} onClick={() => { setV({ ...v, steps: [...v.steps, { kind: "email" as StepKind, delay_days: 3, objective: "follow_up", instruction: "" }] }); setSel(v.steps.length); }}><Plus />{sq.add}</button>}
+          {!archived && <button type="button" className="sdr-btn" style={{ width: "100%" }} disabled={v.steps.length >= p.maxSteps} onClick={() => { setV({ ...v, steps: [...v.steps, { delay_days: 3, objective: "follow_up", instruction: "" }] }); setSel(v.steps.length); }}><Plus />{sq.add}</button>}
           <p className="sdr-panel-sub" style={{ marginTop: 8 }}>{fmt(sq.max, { n: p.maxSteps })}</p>
         </div>
       </section>
@@ -423,11 +423,6 @@ function Sequence(p: Props) {
             </div>
           </div>
           <div className="sdr-panel-body pad" style={{ display: "grid", gap: 14 }}>
-            {sel > 0 && <label><span className="sdr-field-label">{sq.kind}</span>
-              <select className="sdr-input" style={{ width: "100%" }} disabled={archived} value={step.kind} onChange={(e) => setStep({ kind: e.target.value as StepKind })}>
-                {(["email", "call", "whatsapp", "linkedin"] as const).map((x) => <option key={x} value={x}>{sq.kinds[x]}</option>)}
-              </select>
-              {step.kind !== "email" && <span className="sdr-cell-sub" style={{ marginTop: 6 }}>{sq.kindHint}</span>}</label>}
             <label><span className="sdr-field-label">{sq.purpose}</span>
               <select className="sdr-input" style={{ width: "100%" }} disabled={archived} value={step.objective} onChange={(e) => setStep({ objective: e.target.value as MessageObjective })}>
                 {objectives.map((x) => <option key={x} value={x}>{o.objectives[x]}</option>)}

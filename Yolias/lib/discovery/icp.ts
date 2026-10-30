@@ -8,7 +8,8 @@ import type { Locale } from "@/lib/i18n/config";
 
 // Business email and LinkedIn come first; WhatsApp is no longer a contact
 // method (D-201) — older searches that asked for it simply ignore it.
-export const contactMethods = ["email", "linkedin", "phone"] as const;
+/** Email only since D-269 (older searches may still list "linkedin" or "phone"; they are dropped). */
+export const contactMethods = ["email"] as const;
 export type ContactMethod = (typeof contactMethods)[number];
 
 export const seniorities = ["founder", "c_level", "vp", "director", "head", "manager", "other"] as const;

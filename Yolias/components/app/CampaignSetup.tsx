@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n/client";
 import { countryLabel } from "@/lib/format";
-import { contactMethods, type ContactMethod, type IcpCriteria } from "@/lib/discovery/icp";
+import { type ContactMethod, type IcpCriteria } from "@/lib/discovery/icp";
 import { confirmCampaignSetup } from "@/app/(app)/actions";
 
 // Campaign Setup (owner decision 2026-10-07, D-167): the request becomes a
@@ -46,7 +46,8 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
   const known = (x: string) => ROLES.find((r) => r.toLowerCase() === x.toLowerCase() || (r === "C-Level" && /^c[-\s]?level$/i.test(x)));
   const [roles, setRoles] = useState<string[]>(icp.job_titles.map(known).filter(Boolean) as string[]);
   const [customRoles, setCustomRoles] = useState(join(icp.job_titles.filter((x) => !known(x))));
-  const [contact, setContact] = useState<ContactMethod[]>(icp.contact ?? []);
+  // Outreach is email (D-269): the search always looks for email, so there is no contact choice.
+  const contact: ContactMethod[] = [];
   const [count, setCount] = useState(icp.target_count > 0 ? icp.target_count : 100);
   const [exclusions, setExclusions] = useState(join(icp.exclusions));
 
@@ -154,14 +155,6 @@ export function CampaignSetup({ strategyId, icp }: { strategyId: string; icp: Ic
           </fieldset>
         </>
       )}
-
-      <fieldset className="setup-field">
-        <legend>{s.contact}</legend>
-        <div className="setup-chips">
-          <Chip on={contact.length === 0} onClick={() => setContact([])}>{s.contactAny}</Chip>
-          {contactMethods.map((m) => <Chip key={m} on={contact.includes(m)} onClick={() => setContact(toggle(contact, m))}>{s.contactNames[m]}</Chip>)}
-        </div>
-      </fieldset>
 
       <fieldset className="setup-field">
         <legend>{s.count} <em>{s.required}</em></legend>

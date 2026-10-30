@@ -1,7 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { socialsFromHtml } from "../../lib/intel/socials.ts";
-import { conversationUrl, whatsappDigits } from "../../lib/outreach/channels.ts";
 
 test("a website's own social links are read; share buttons and posts are not", () => {
   const html = `
@@ -41,13 +40,4 @@ test("the site's own public inbox and phone are read (D-163); placeholders are n
   assert.equal(s.phone, "+20212345678");
   assert.equal(socialsFromHtml(`<a href="mailto:ahmed@acme.example">a</a>`, "https://acme.example").email, "ahmed@acme.example");
   assert.equal(socialsFromHtml(`<p>info@acme.example</p><a href="mailto:test@acme.example">t</a>`, "https://acme.example").email, null);
-});
-
-test("conversation links open the member's own app", () => {
-  assert.equal(whatsappDigits("+20 (100) 123-4567"), "201001234567");
-  assert.equal(whatsappDigits("12"), null);
-  assert.equal(conversationUrl("whatsapp", { whatsapp: "+20 100 123 4567" }, "Hi Sara"), "https://wa.me/201001234567?text=Hi%20Sara");
-  assert.equal(conversationUrl("facebook", { facebookUrl: "https://www.facebook.com/AcmeBakery" }, "x"), "https://m.me/AcmeBakery");
-  assert.equal(conversationUrl("instagram", { instagramUrl: "https://www.instagram.com/acme.bakery" }, "x"), "https://ig.me/m/acme.bakery");
-  assert.equal(conversationUrl("whatsapp", { whatsapp: null }, "x"), null);
 });

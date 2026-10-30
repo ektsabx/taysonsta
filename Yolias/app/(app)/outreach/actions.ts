@@ -39,7 +39,6 @@ const campaignInput = z.object({
     delay_days: z.number().int().min(0).max(90),
     objective: z.enum(objectives as [string, ...string[]]),
     instruction: z.string().trim().max(1000).optional().default(""),
-    kind: z.enum(["email", "call", "whatsapp", "linkedin"]).optional().default("email"),
   })).min(1).max(10),
   /** What the campaign is for and the link the agent offers (D-253). */
   aim: z.enum(AIMS).optional(),
@@ -79,8 +78,6 @@ export async function saveOutreachCampaign(input: z.input<typeof campaignInput>)
   await db.from("outreach_steps").delete().eq("campaign_id", id);
   const { error: stepsError } = await db.from("outreach_steps").insert(steps.map((s, i) => ({
     workspace_id: session.workspace.id, campaign_id: id!, position: i + 1, delay_days: i === 0 ? 0 : s.delay_days, objective: s.objective as never, instruction: s.instruction || null,
-    // The first message is an email: the conversation starts in the mailbox.
-    kind: i === 0 ? "email" : s.kind,
   })));
   if (stepsError) return { ok: false, error: e.steps };
   if (!c.id && c.source_campaign_id) {

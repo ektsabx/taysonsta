@@ -128,13 +128,13 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
           <div className="person-actions">
             <ProspectActionButtons people={[gridPerson(p as unknown as ProspectRow, c ? { id: c.id, name: c.name } : null, locale)]} source="prospects" />
           </div>
-          {messages.length ? (
+          {messages.filter((m) => m.channel === "email").length ? (
             <ul className="message-log">
-              {messages.map((m) => (
+              {messages.filter((m) => m.channel === "email").map((m) => (
                 <li key={m.id}>
-                  <span className="message-log-channel">{o[m.channel]}</span>
+                  <span className="message-log-channel">{o.email}</span>
                   <span className="message-log-text" dir="auto">{m.subject || m.body.slice(0, 120)}</span>
-                  <span className="cell-sub">{m.opened_at && m.opened_via ? fmt(o.lastOpened, { via: o.via[m.opened_via], date: formatDate(m.opened_at, locale, session.profile.timezone) }) : formatDate(m.created_at, locale, session.profile.timezone)}</span>
+                  <span className="cell-sub">{m.opened_at && m.opened_via ? fmt(o.lastOpened, { via: o.via[m.opened_via as keyof typeof o.via] ?? m.opened_via, date: formatDate(m.opened_at, locale, session.profile.timezone) }) : formatDate(m.created_at, locale, session.profile.timezone)}</span>
                 </li>
               ))}
             </ul>
