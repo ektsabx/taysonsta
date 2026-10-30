@@ -392,7 +392,9 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
       kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
     });
   } else {
-    await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `reply:${messageId}`);
+    // Only what needs the member now is a notification (owner, 2026-10-30, D-268): a reply
+    // that needs a person. Other replies are unread conversations and part of Today.
+    if (analysis?.needs_human || (analysis?.escalate_because?.length ?? 0) > 0) await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `reply:${messageId}`);
   }
 
   // Auto-reply: only if the member turned it on for this campaign, only for
