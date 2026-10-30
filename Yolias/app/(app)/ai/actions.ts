@@ -1,6 +1,5 @@
 "use server";
 
-import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -154,27 +153,6 @@ export async function saveAiSettings(input: SettingsInput): Promise<AiResult> {
   if (error) return { ok: false, error: t.common.error };
   revalidatePath("/ai", "layout");
   return { ok: true };
-}
-
-/**
- * Writes the ideal customer from a website analysis into the workspace's
- * customer profile (D-241): one profile per workspace, the fields the
- * analysis found replace the old ones, the rest stay.
- */
-export async function saveCustomerFromAnalysis(c: WebsiteAnalysis["customer"]): Promise<AiResult<{ id: string }>> {
-  const { session, t, allowed } = await manager();
-  if (!allowed) return { ok: false, error: t.common.onlyManagers };
-  const db = await createClient();
-  const { data: cur } = await db.from("customer_profiles").select("*").eq("workspace_id", session.workspace.id).order("is_default", { ascending: false }).limit(1).maybeSingle();
-  const pick = <T,>(v: T | null | undefined, old: T) => (v == null || (Array.isArray(v) && !v.length) || v === "" ? old : v);
-  return saveProfile({
-    id: cur?.id, name: cur?.name ?? (t.ai.profiles.defaultName as string),
-    problems: pick(c.problems, cur?.problems ?? ""), benefits: pick(c.benefits, cur?.benefits ?? ""), usp: cur?.usp ?? "", goals: pick(c.goals, cur?.goals ?? ""), success_stories: cur?.success_stories ?? "",
-    include_keywords: cur?.include_keywords ?? [], exclude_keywords: cur?.exclude_keywords ?? [],
-    industries: pick(c.industries, cur?.industries ?? []), job_titles: pick(c.job_titles, cur?.job_titles ?? []), countries: pick(c.countries, cur?.countries ?? []),
-    company_size_min: c.company_size_min ?? cur?.company_size_min ?? null, company_size_max: c.company_size_max ?? cur?.company_size_max ?? null,
-    regions: cur?.regions ?? "", budget: cur?.budget ?? "", customer_type: c.customer_type ?? cur?.customer_type ?? "b2b", extra_criteria: cur?.extra_criteria ?? "",
-  });
 }
 
 /** Yolias AI finds real competitors (Google-grounded, websites checked) and adds the new ones (D-251). */

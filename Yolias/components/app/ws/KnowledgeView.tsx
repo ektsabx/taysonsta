@@ -1,23 +1,26 @@
 "use client";
 
+import { IdealCustomerFields, customerFromAnalysis, customerPayload, emptyCustomer, toCustomerForm, type CustomerForm } from "./ProfilesView";
 import { useEffect, useRef, useState } from "react";
 import { Check, Globe, Info, LoaderCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { deleteKnowledgeItem, discoverCompetitorsAction, saveCompetitor, saveCustomerFromAnalysis, saveKnowledge, saveOffer } from "@/app/(app)/ai/actions";
+import { deleteKnowledgeItem, discoverCompetitorsAction, saveCompetitor, saveKnowledge, saveOffer, saveProfile } from "@/app/(app)/ai/actions";
 import { updateOrganization } from "@/app/(app)/settings/actions";
 import { fmt } from "@/lib/i18n/config";
 import type { WebsiteAnalysis } from "@/lib/website-analysis";
 import type { AnalysisStreamEvent } from "@/app/api/website-analysis/route";
 import { CompanyProfileForm, type CompanyProfileValues } from "../CompanyProfileForm";
 import { useRun } from "./bits";
-import type { BusinessOfferRow, CompetitorRow, WorkspaceKnowledgeRow } from "@/types/database";
+import type { BusinessOfferRow, CompetitorRow, CustomerProfileRow, WorkspaceKnowledgeRow } from "@/types/database";
 
 const SECTIONS = ["about", "value_proposition", "services", "products", "pricing", "differentiators", "case_studies", "faqs", "contact", "reply_policy"] as const;
 const OFFER_FIELDS = ["description", "problem", "audience", "benefits", "price", "terms"] as const;
 const COMPETITOR_FIELDS = ["website", "description", "strengths", "weaknesses", "differences", "notes"] as const;
 
-export function KnowledgeView({ manage, profile, knowledge, offers, competitors }: {
+export function KnowledgeView({ manage, profile, knowledge, offers, competitors, customer: initialCustomer }: {
   manage: boolean; profile: CompanyProfileValues; knowledge: WorkspaceKnowledgeRow | null; offers: BusinessOfferRow[]; competitors: CompetitorRow[];
+  /** The ideal customer (the workspace's default Customer Profile). */
+  customer: CustomerProfileRow | null;
 }) {
   const { t } = useI18n();
   const k = t.ws.ai.knowledge;
@@ -26,6 +29,7 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
   const [basics, setBasics] = useState(profile);
   const [basicsKey, setBasicsKey] = useState(0);
   const [analysis, setAnalysis] = useState<WebsiteAnalysis | null>(null);
+  const [customer, setCustomer] = useState<CustomerForm>(() => (initialCustomer ? toCustomerForm(initialCustomer) : { ...emptyCustomer, name: t.ws.ai.profiles.defaultName }));
 
   // Analyze website (D-232): what the site supports fills the fields; the rest stays as it was.
   const applyAnalysis = (a: WebsiteAnalysis) => {
@@ -39,6 +43,7 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
       for (const [key, v] of Object.entries(a.knowledge)) if (v && key in f) f[key as (typeof SECTIONS)[number]] = v;
       return f;
     });
+    setCustomer((cur) => customerFromAnalysis(cur, a.customer));
   };
 
   return (
@@ -72,6 +77,11 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
         </div>
       </section>
 
+      <section className="ws-section">
+        <div className="ws-section-head"><h3>{t.ws.ai.profiles.title}</h3></div>
+        <IdealCustomerFields form={customer} onChange={setCustomer} manage={manage} />
+      </section>
+
       <ItemSection
         title={k.offers} empty={k.offer.empty} addLabel={k.offer.add} manage={manage}
         items={offers.map((o) => ({ id: o.id, name: o.name, sub: [o.price, o.active ? null : "-"].filter(Boolean).join(" · "), values: o as unknown as Record<string, string | boolean | null> }))}
@@ -96,16 +106,18 @@ export function KnowledgeView({ manage, profile, knowledge, offers, competitors 
         onDelete={(id) => deleteKnowledgeItem("competitor", id)}
       />
 
-      {/* One Save for the whole page (owner, 2026-10-28): the company basics, the knowledge sections and,
-          after a website analysis, the ideal customer it wrote into Customer Profiles (D-241). */}
+      {/* One page and one Save (owner, 2026-10-28 and 2026-10-30): the company basics, the knowledge
+          sections and the ideal customer; offers and competitors save as you add them. */}
       {manage && (
         <div className="knowledge-save">
           <button className="btn-primary" type="button" disabled={pending} onClick={() => run(async () => {
             const a = await updateOrganization(basics);
             if (!a.ok) return a;
             const k2 = await saveKnowledge(form);
-            if (!k2.ok || !analysis) return k2;
-            return saveCustomerFromAnalysis(analysis.customer);
+            if (!k2.ok) return k2;
+            const c = await saveProfile(customerPayload(customer));
+            if (c.ok) setCustomer((cur) => ({ ...cur, id: c.id }));
+            return c;
           }, { success: t.ws.common.saved, onOk: () => setAnalysis(null) })}>{t.ws.common.save}</button>
         </div>
       )}
