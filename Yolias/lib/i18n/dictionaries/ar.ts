@@ -495,7 +495,7 @@ export const ar: Dictionary = {
     sections: { decisionMakers: "تحليل صناع القرار", activity: "نشاط المستخدم" },
     funnel: { optedOutNote: "لن تصلهم رسائل بعدها", title: "من البحث إلى العميل", optedOut: "طلبوا الإيقاف", steps: { found: "وُجدوا", contacted: "تم التواصل", replied: "ردّوا", interested: "مهتمون", meetings: "اجتماعات", customers: "صاروا عملاء" } },
     outcomes: {
-      title: "الصفقات المكسوبة والخاسرة", won: "المكسوبة حسب المجال", lost: "أسباب الخسارة", none: "سجّل الصفقات كمكسوبة أو خاسرة في إدارة العملاء، ويتعلم يولياس منها.",
+      title: "الصفقات المكسوبة والخاسرة", won: "المكسوبة حسب المجال", lost: "أسباب الخسارة", none: "بعد كل اجتماع، سجّل في الاجتماعات هل صار عميلًا، ويتعلم يولياس ما ينجح.",
       note: "عمليات البحث القادمة تعطي الأولوية لما كسبته.", findMore: "ابحث عن شركات مشابهة", prompt: "ابحث عن شركات في المجالات التي كسبت فيها صفقات: {names}",
     },
     roles: { ceo: "CEO", founder: "مؤسس", cLevel: "C-Level", vp: "VP", director: "مدير إدارة", manager: "مدير", other: "أخرى" },
@@ -967,7 +967,7 @@ export const ar: Dictionary = {
     features: {
       aiSalesAgent: "وكيل المبيعات بالذكاء الاصطناعي", aiLeadGeneration: "توليد العملاء المحتملين بالذكاء الاصطناعي", campaigns: "بحث مستمر",
       analytics: "التحليلات", integrations: "التكاملات", unlimitedUsers: "مستخدمون غير محدودين",
-      teamWorkspace: "مساحة عمل للفريق", crm: "CRM ومسارات البيع والصفقات", enrichment: "إثراء كامل لبيانات الملف", chatSupport: "دعم عبر المحادثة",
+      teamWorkspace: "مساحة عمل للفريق", crm: "الاجتماعات: صفحة الحجز وتقويم Google و Meet", enrichment: "إثراء كامل لبيانات الملف", chatSupport: "دعم عبر المحادثة",
     },
     usageProspects: "العملاء المحتملون شهريًا",
     usageContacts: "جهات الاتصال المرفوعة",

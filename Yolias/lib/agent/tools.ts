@@ -551,7 +551,7 @@ export const agentTools = [
   }),
   define({
     name: "listLeads",
-    description: "CRM leads, optionally by stage (new, interested, meeting_booked, meeting_completed, proposal, negotiation, closed = won, lost) or a name search.",
+    description: "Leads (people Yolias has contacted or who booked a meeting; Yolias has no CRM page: they are in Conversations and Meetings), optionally by stage (new, interested, meeting_booked, meeting_completed, proposal, negotiation, closed = won, lost) or a name search.",
     permission: "read",
     input: z.object({ stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"]).optional(), q: z.string().trim().max(100).optional() }),
     async run(ctx, input) {
@@ -564,7 +564,7 @@ export const agentTools = [
   }),
   define({
     name: "updateLeadStage",
-    description: "Move a CRM lead to a stage the user asked for. 'closed' means won, only when the user says the deal was won, never because someone showed interest.",
+    description: "Move a lead to a stage the user asked for (it feeds Analytics; there is no CRM page). 'closed' means won, only when the user says the deal was won, never because someone showed interest.",
     permission: "crm.update",
     input: z.object({ leadId: uuid, stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"]) }),
     async run(ctx, input) {

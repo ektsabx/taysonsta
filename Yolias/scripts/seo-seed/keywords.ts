@@ -59,4 +59,9 @@ export const keywords: K[] = [
   // Arabic
   { keyword: "أداة للبحث عن عملاء", locale: "ar", intent: "commercial", cluster: "arabic", page_type: "core", priority: 2, stage: "idea", notes: "The site serves Arabic at the same URL by cookie, so search engines index the English version. Arabic keywords need Arabic URLs first (architecture decision, docs/20)." },
   { keyword: "كيف أجد عملاء لشركتي", locale: "ar", intent: "informational", cluster: "arabic", page_type: "use_case", priority: 2, stage: "idea", notes: "Same as above: needs indexable Arabic pages." },
+  // Meetings (D-268)
+  { keyword: "calendly alternatives", intent: "comparison", cluster: "calendly", page_type: "alternatives", priority: 1, stage: "review", target_path: "/alternatives/calendly", related: ["calendly alternative", "cheaper calendly alternative", "calendly competitors"] },
+  vs("Calendly", "calendly"), vs("Cal.com", "cal-com"), vs("Chili Piper", "chili-piper"), vs("SavvyCal", "savvycal"), vs("TidyCal", "tidycal"),
+  { keyword: "ai meeting booking", intent: "commercial", cluster: "meetings", page_type: "solution", priority: 1, stage: "review", target_path: "/solutions/sales-meeting-booking", related: ["ai appointment setter", "book sales meetings with ai", "حجز اجتماعات بالذكاء الاصطناعي"] },
+  { keyword: "booking page for sales", intent: "commercial", cluster: "meetings", page_type: "solution", priority: 2, stage: "review", target_path: "/solutions/booking-page", related: ["meeting booking page", "صفحة حجز مواعيد"] },
 ];

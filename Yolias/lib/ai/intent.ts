@@ -11,7 +11,7 @@ import { tasks } from "@/lib/ai/orchestrator";
 // everything else stays a search, as before.
 
 export type Intent = "search" | "assistant";
-export const INTENT_PROMPT_VERSION = "intent-2026-10-19";
+export const INTENT_PROMPT_VERSION = "intent-2026-10-30";
 
 const Schema = z.object({ intent: z.enum(["search", "assistant"]) });
 
@@ -37,7 +37,7 @@ export async function classifyIntent(text: string, workspaceId: string): Promise
       system: [
         "Classify one message typed into a B2B customer-acquisition assistant.",
         'intent = "search" when the user wants to find new companies, local businesses or people to sell to (a new prospect search), even if they also mention a campaign afterwards.',
-        'intent = "assistant" for everything else: replies and the inbox, outreach campaigns (start, pause, resume, cancel, results), the CRM and deal stages, analytics, questions about Yolias or their account, writing a message.',
+        'intent = "assistant" for everything else: replies and the inbox, outreach campaigns (start, pause, resume, cancel, results), meetings and the booking page, analytics, questions about Yolias or their account, writing a message.',
       ].join("\n"),
       parts: [{ kind: "text", text: text.slice(0, 2000) }],
       schema: { type: "object", properties: { intent: { type: "string", enum: ["search", "assistant"] } }, required: ["intent"], additionalProperties: false },

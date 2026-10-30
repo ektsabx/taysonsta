@@ -349,3 +349,7 @@ npx wrangler secret put WORKER_SECRET
 1. migration: `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/migrations/20261130000000_meetings.sql` ثم `npx supabase db query --linked --project-ref iudasrzqjnsutvanjrvn -f Yolias/supabase/remote/record-20261130000000.sql`.
 2. نشر يولياس ثم الأدمن، ثم من Yolias/: `npm run content:seed:production`.
 3. Google Cloud (المالك): تفعيل Google Calendar API، وإضافة الصلاحية `calendar.app.created` في شاشة الموافقة، وإضافة `https://www.yolias.com/api/calendar/google/callback` في Authorized redirect URIs لنفس عميل OAuth بتاع Gmail.
+
+## جولة 2026-10-30 الثانية (D-268)
+1. migrations بالترتيب: 20261201000000_campaign_goals، 20261202000000_contacts_shown، 20261203000000_step_channels، 20261204000000_ab_test، وملف record لكل واحدة.
+2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`.

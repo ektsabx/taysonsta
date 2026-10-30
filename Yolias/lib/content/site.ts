@@ -3,7 +3,7 @@ import type { Localized } from "./types";
 // Copy for the public website pages. Written around what Yolias does today
 // (owner brief 2026-10-20, conversion pass): find companies and decision
 // makers from one sentence, explain each match, write outreach the member
-// approves, keep replies and deals in Inbox and CRM. No claim the product
+// approves, keep replies in Conversations and meetings in Meetings. No claim the product
 // can't keep: the free trial is promised only while checkout offers it.
 
 export const home: Localized<{
@@ -36,7 +36,7 @@ export const home: Localized<{
         { before: "Hours on Google, maps and LinkedIn looking for companies that might fit.", after: "One sentence. Yolias finds companies that match your market, industry, size and signals." },
         { before: "Guessing who decides, then copying names into a spreadsheet.", after: "The decision makers at each company, with the contact details that exist. Missing ones are marked, never guessed." },
         { before: "A generic first email that ignores what the company does.", after: "A first email and follow-ups written from your company knowledge and what Yolias found, sent only after you approve." },
-        { before: "Replies scattered across inboxes and sheets.", after: "Replies in one place, Conversations, and every lead’s stage, deal value and next step in the CRM." },
+        { before: "Replies scattered across inboxes and sheets.", after: "Replies in one place, Conversations, and every meeting they lead to in Meetings." },
       ],
     },
     how: {
@@ -67,13 +67,13 @@ export const home: Localized<{
       title: "What people ask before they start",
       items: [
         { q: "What is Yolias?", a: "Yolias is an AI prospecting platform for businesses that sell services to other businesses. You describe your ideal customer in plain language, in English or Arabic, and Yolias finds matching companies, local businesses and decision makers, explains why each one fits, and writes first emails that it sends from your own mailbox once you approve." },
-        { q: "Is Yolias a general AI chatbot?", a: "No. You talk to Yolias AI to describe customers and ask about your results, but it works inside Yolias: it runs searches, prepares outreach for your approval, reads replies and updates your CRM. It doesn’t browse the web for you or act outside your workspace." },
+        { q: "Is Yolias a general AI chatbot?", a: "No. You talk to Yolias AI to describe customers and ask about your results, but it works inside Yolias: it runs searches, prepares outreach for your approval, reads replies and books meetings. It doesn’t browse the web for you or act outside your workspace." },
         { q: "Who is Yolias for?", a: "Teams and people who sell services to other businesses: marketing and software agencies, consultants, recruitment agencies, freelancers, real estate sales professionals and B2B sales teams." },
         { q: "What can I search for?", a: "Decision makers at companies that match your criteria, companies on their own, local businesses in a city or area, and companies similar to ones you name." },
         { q: "Where does the data come from, and how accurate is it?", a: "From the data sources connected to Yolias and from public information such as company websites. Every record keeps the source it came from, contact details are labelled by verification state, and anything Yolias couldn’t find is shown as not available instead of being guessed. What Yolias finds depends on your market and on what those sources cover." },
         { q: "Does Yolias send messages for me?", a: "Yes, after you approve. Yolias writes a first email and follow-ups from your Company Knowledge and the facts it found, and sends them from your own connected mailbox (Gmail or any IMAP/SMTP account). Yolias never messages anyone on LinkedIn." },
-        { q: "Does Yolias run campaigns by itself?", a: "Yes, after one approval per campaign. When a search finishes, Yolias prepares an email campaign for the people it found, writes the first email and asks you once in the chat. You choose what the campaign is for: meetings, introducing your company, or selling directly with a sign-up link. After you approve, Yolias sends from your own mailbox within a daily limit, follows up with those who don’t reply and answers simple questions, even with the site closed. When someone is interested or asks for a meeting, Yolias moves them to the CRM and notifies you, and you take the deal from there. Objections, requests to talk to a person, unclear replies and stop requests come to you, and a campaign pauses itself if too many emails bounce. You can still create and send a campaign yourself from Prospects." },
-        { q: "Can I manage replies and deals in Yolias?", a: "Yes. Replies to the emails Yolias sent from your mailbox come into Conversations, sorted, with a suggested answer. The CRM is a pipeline of every lead with a conversation, by where it stands: needs action (their reply waits for you), waiting on them, or follow-ups exhausted, as a board or a list. Each lead keeps one record with its stage (interested, meeting, proposal, negotiation, won or lost), deal value, expected close date, meetings and history, linked to the conversation. When a lead asks for a meeting, Yolias offers two free times and your Yolias booking page, adds the meeting to Google Calendar with a Meet link if you connect it, reminds you by email an hour before and asks how it went. Every morning an email lists new replies, today’s meetings and quiet deals, and won and lost deals shape your next searches." },
+        { q: "Does Yolias run campaigns by itself?", a: "Yes, after one approval per campaign. When a search finishes, Yolias prepares an email campaign for the people it found, writes the first email and asks you once in the chat. You choose what the campaign is for: booking a meeting, or buying on your website. After you approve, Yolias sends from your own mailbox within a daily limit, follows up with those who don’t reply and answers simple questions, even with the site closed. When someone asks for a meeting, Yolias replies with two free times and your booking page; the meeting lands in Meetings and you get notified. Objections, requests to talk to a person, unclear replies and stop requests come to you, and a campaign pauses itself if too many emails bounce. You can still create and send a campaign yourself from Prospects." },
+        { q: "Can I manage replies and meetings in Yolias?", a: "Yes. Replies to the emails Yolias sent from your mailbox come into Conversations, sorted, with a suggested answer. Meetings holds every booking and your booking page. When a lead asks for a meeting, Yolias offers two free times and your Yolias booking page, adds the meeting to Google Calendar with a Meet link if you connect it, reminds you by email an hour before and asks how it went. After each meeting you mark whether they became a customer. Every morning an email lists new replies, today’s meetings and what needs you, and won and lost customers shape your next searches." },
         { q: "What do I need to get started?", a: "A work email, a plan, and a few lines about your company (or your website address, which Yolias can read to fill them in). Connect your mailbox when you are ready to send." },
         { q: "Which languages does Yolias support?", a: "The whole product works in Arabic and English, right-to-left and left-to-right. Messages can be drafted in 15 languages." },
         { q: "How much does Yolias cost?", a: "Three options: Pay As You Go (prepaid credit from $5, no subscription), or the monthly plans Pro and Growth. Every option has all the features and unlimited users. You pay for prospects only: emails are never charged. Monthly plans cancel any time. See the pricing page for current prices." },
@@ -105,7 +105,7 @@ export const home: Localized<{
         { before: "ساعات على جوجل والخرائط و LinkedIn بحثًا عن شركات قد تناسبك.", after: "جملة واحدة، فيجد يولياس الشركات المطابقة لسوقك وقطاعك وحجم الشركة والمؤشرات التي تريدها." },
         { before: "تخمين صاحب القرار، ثم نسخ الأسماء في جدول.", after: "صنّاع القرار في كل شركة مع بيانات التواصل المتوفرة فعلًا. وما لم يُعثر عليه يظهر كذلك، ولا يُخمَّن أبدًا." },
         { before: "رسالة أولى عامة لا تذكر ما تفعله الشركة.", after: "رسالة أولى ومتابعات مكتوبة من معرفة شركتك وما وجده يولياس، ولا تُرسل إلا بعد موافقتك." },
-        { before: "ردود متفرقة بين صناديق البريد والجداول.", after: "الردود في صندوق وارد واحد، ومرحلة كل عميل وقيمة صفقته وخطوته التالية في إدارة العملاء." },
+        { before: "ردود متفرقة بين صناديق البريد والجداول.", after: "الردود في مكان واحد هو المحادثات، وكل اجتماع تقود إليه في الاجتماعات." },
       ],
     },
     how: {
@@ -136,13 +136,13 @@ export const home: Localized<{
       title: "أسئلة يطرحها الناس قبل البدء",
       items: [
         { q: "ما هو يولياس؟", a: "يولياس منصة لاكتشاف العملاء بالذكاء الاصطناعي للشركات والأشخاص الذين يبيعون خدماتهم لشركات أخرى. تصف عميلك المثالي بلغة طبيعية، بالعربية أو الإنجليزية، فيجد يولياس الشركات والأنشطة المحلية وصنّاع القرار المطابقين، ويشرح سبب تطابق كل نتيجة، ويكتب رسائل بريد أولى يرسلها من بريدك بعد موافقتك." },
-        { q: "هل يولياس روبوت محادثة عام؟", a: "لا. تتحدث مع Yolias AI لتصف عملاءك وتسأل عن نتائجك، لكنه يعمل داخل يولياس: يشغّل عمليات البحث، ويجهّز رسائل التواصل لموافقتك، ويقرأ الردود، ويحدّث إدارة العملاء. لا يتصفح الإنترنت نيابة عنك ولا يتصرف خارج مساحة عملك." },
+        { q: "هل يولياس روبوت محادثة عام؟", a: "لا. تتحدث مع Yolias AI لتصف عملاءك وتسأل عن نتائجك، لكنه يعمل داخل يولياس: يشغّل عمليات البحث، ويجهّز رسائل التواصل لموافقتك، ويقرأ الردود، ويحجز الاجتماعات. لا يتصفح الإنترنت نيابة عنك ولا يتصرف خارج مساحة عملك." },
         { q: "لمن صُمم يولياس؟", a: "للفرق والأشخاص الذين يبيعون خدمات لشركات أخرى: وكالات التسويق والبرمجيات، والاستشاريين، ووكالات التوظيف، والمستقلين، ومسوّقي العقارات، وفرق المبيعات B2B." },
         { q: "عن ماذا يمكنني البحث؟", a: "عن صنّاع القرار في الشركات المطابقة لمعاييرك، أو عن الشركات وحدها، أو عن الأنشطة التجارية المحلية في مدينة أو منطقة، أو عن شركات تشبه شركات تذكرها." },
         { q: "من أين تأتي البيانات، وما مدى دقتها؟", a: "من مصادر البيانات المتصلة بيولياس ومن المعلومات العامة مثل مواقع الشركات. يحتفظ كل سجل بالمصدر الذي جاء منه، وتُصنَّف بيانات التواصل حسب حالة التحقق، وما لم يعثر عليه يولياس يظهر كغير متوفر بدل تخمينه. ما يجده يولياس يعتمد على سوقك وعلى ما تغطيه هذه المصادر." },
         { q: "هل يرسل يولياس الرسائل نيابةً عني؟", a: "نعم، بعد موافقتك. يكتب يولياس رسالة أولى ومتابعات من معرفة شركتك والمعلومات التي وجدها، ويرسلها من صندوق بريدك المتصل (Gmail أو أي بريد IMAP/SMTP). ولا يرسل يولياس رسائل على LinkedIn أبدًا." },
-        { q: "هل يدير يولياس الحملات بنفسه؟", a: "نعم، بعد موافقة واحدة لكل حملة. عندما ينتهي البحث يجهّز يولياس حملة بريد للأشخاص الذين وجدهم، ويكتب أول رسالة، ويسألك مرة واحدة في المحادثة. تختار هدف الحملة: اجتماعات، أو التعريف بشركتك، أو البيع المباشر برابط التسجيل. بعد موافقتك يرسل يولياس من بريدك ضمن حد يومي، ويتابع من لم يرد، ويجيب عن الأسئلة البسيطة، حتى لو أغلقت الموقع. وعندما يهتم شخص أو يطلب اجتماعًا، ينقله يولياس إلى إدارة العملاء ويرسل لك إشعارًا لتكمل الصفقة بنفسك. الاعتراضات وطلبات التحدث مع شخص والردود غير الواضحة وطلبات الإيقاف تصلك أنت، وتتوقف الحملة وحدها إذا ارتدت رسائل كثيرة. ويمكنك دائمًا إنشاء حملة وإرسالها بنفسك من العملاء المحتملين." },
-        { q: "هل يمكنني إدارة الردود والصفقات في يولياس؟", a: "نعم. تصل الردود على الرسائل التي أرسلها يولياس من بريدك إلى المحادثات مصنّفة مع رد مقترح. وإدارة العملاء لوحة لكل عميل لديه محادثة حسب موقعه: يحتاج إجراء (رده ينتظرك)، أو في انتظارهم، أو انتهت متابعاته، كلوحة أو قائمة. ولكل عميل سجل واحد بمرحلته (مهتم، اجتماع، عرض سعر، تفاوض، مكسوبة أو خاسرة) وقيمة الصفقة وتاريخ الإغلاق المتوقع والاجتماعات والسجل، مع رابط للمحادثة. عندما يطلب العميل اجتماعًا يقترح يولياس موعدين متاحين مع صفحة الحجز الخاصة بك في يولياس، ويضيف الاجتماع إلى تقويم Google برابط Meet إذا ربطته، ويذكّرك بالبريد قبل الاجتماع بساعة، ثم يسألك كيف كان. وكل صباح يصلك بريد بالردود الجديدة واجتماعات اليوم والصفقات المتوقفة، والصفقات المكسوبة والخاسرة توجّه عمليات البحث القادمة." },
+        { q: "هل يدير يولياس الحملات بنفسه؟", a: "نعم، بعد موافقة واحدة لكل حملة. عندما ينتهي البحث يجهّز يولياس حملة بريد للأشخاص الذين وجدهم، ويكتب أول رسالة، ويسألك مرة واحدة في المحادثة. تختار هدف الحملة: حجز اجتماع، أو الشراء من موقعك. بعد موافقتك يرسل يولياس من بريدك ضمن حد يومي، ويتابع من لم يرد، ويجيب عن الأسئلة البسيطة، حتى لو أغلقت الموقع. وعندما يطلب شخص اجتماعًا، يرد يولياس بموعدين متاحين وصفحة الحجز الخاصة بك، ويظهر الاجتماع في الاجتماعات ويصلك إشعار. الاعتراضات وطلبات التحدث مع شخص والردود غير الواضحة وطلبات الإيقاف تصلك أنت، وتتوقف الحملة وحدها إذا ارتدت رسائل كثيرة. ويمكنك دائمًا إنشاء حملة وإرسالها بنفسك من العملاء المحتملين." },
+        { q: "هل يمكنني إدارة الردود والاجتماعات في يولياس؟", a: "نعم. تصل الردود على الرسائل التي أرسلها يولياس من بريدك إلى المحادثات مصنّفة مع رد مقترح. وفي الاجتماعات كل الحجوزات وصفحة الحجز الخاصة بك. عندما يطلب العميل اجتماعًا يقترح يولياس موعدين متاحين مع صفحة الحجز الخاصة بك في يولياس، ويضيف الاجتماع إلى تقويم Google برابط Meet إذا ربطته، ويذكّرك بالبريد قبل الاجتماع بساعة، ثم يسألك كيف كان. وبعد كل اجتماع تسجّل هل صار عميلًا. وكل صباح يصلك بريد بالردود الجديدة واجتماعات اليوم وما يحتاجك، والعملاء المكسوبون والخاسرون يوجّهون عمليات البحث القادمة." },
         { q: "ماذا أحتاج لأبدأ؟", a: "بريد عمل، وخطة، وبضعة أسطر عن شركتك (أو عنوان موقعك ليقرأه يولياس ويملأها). واربط بريدك عندما تكون جاهزًا للإرسال." },
         { q: "ما اللغات التي يدعمها يولياس؟", a: "يعمل المنتج كله بالعربية والإنجليزية، من اليمين لليسار ومن اليسار لليمين، ويمكن كتابة الرسائل بـ 15 لغة." },
         { q: "كم تكلفة يولياس؟", a: "ثلاثة خيارات: الدفع حسب الاستخدام (رصيد مسبق من 5 دولارات بدون اشتراك)، أو الخطتان الشهريتان برو والنمو. كل خيار فيه كل الميزات ومستخدمون غير محدودين. تدفع مقابل العملاء المحتملين فقط، والرسائل بدون رسوم. الخطط الشهرية تُلغى في أي وقت. الأسعار الحالية في صفحة الأسعار." },
@@ -194,7 +194,7 @@ export const product: Localized<{
       {
         title: "Outreach, replies and deals",
         body: "Pick the prospects you want and Yolias writes a personal first email and follow-ups from your Company Knowledge. They are sent from your own mailbox only after you approve.",
-        points: ["Gmail or any IMAP/SMTP mailbox", "Replies arrive in Conversations, sorted, with a suggested answer", "Every lead’s stage, deal value and meetings in the CRM"],
+        points: ["Gmail or any IMAP/SMTP mailbox", "Replies arrive in Conversations, sorted, with a suggested answer", "Meetings booked on your own page, with Google Calendar and Meet"],
       },
     ],
     icp: [
@@ -246,7 +246,7 @@ export const product: Localized<{
       {
         title: "التواصل والردود والصفقات",
         body: "اختر العملاء المحتملين الذين تريدهم، ويكتب يولياس رسالة أولى ومتابعات شخصية من معرفة شركتك. ولا تُرسل من بريدك إلا بعد موافقتك.",
-        points: ["Gmail أو أي بريد IMAP/SMTP", "تصل الردود إلى المحادثات مصنّفة مع رد مقترح", "مرحلة كل عميل وقيمة صفقته واجتماعاته في إدارة العملاء"],
+        points: ["Gmail أو أي بريد IMAP/SMTP", "تصل الردود إلى المحادثات مصنّفة مع رد مقترح", "اجتماعات تُحجز في صفحتك مع تقويم Google و Meet"],
       },
     ],
     icp: [

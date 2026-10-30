@@ -210,4 +210,33 @@ export const competitors: SeedCompetitor[] = [
       fact("credit", "1 search credit = 1 email found", "رصيد بحث واحد = بريد واحد", "https://hunter.io/pricing"),
     ],
   },
+  // Scheduling tools (D-268), read once on 2026-10-30 from their own pricing pages:
+  // prices are listed unverified until a second reading in Admin → SEO → Competitors.
+  ...([
+    ["calendly", "Calendly", "https://calendly.com", "https://calendly.com/pricing",
+      { en: "A scheduling platform: booking pages, routing forms, an AI scheduling assistant and meeting notes.", ar: "منصة جدولة: صفحات حجز ونماذج توجيه ومساعد جدولة بالذكاء الاصطناعي وملاحظات الاجتماعات." },
+      { en: "People and teams whose calendar already fills with inbound meetings.", ar: "الأفراد والفرق الذين يمتلئ تقويمهم بالاجتماعات الواردة." },
+      [["Free", "$0"], ["Standard", "$10"], ["Teams", "$16"]], "seat / month"],
+    ["cal-com", "Cal.com", "https://cal.com", "https://cal.com/pricing",
+      { en: "Open scheduling infrastructure with 100+ apps, routing forms and a free plan for one user.", ar: "بنية جدولة مفتوحة بأكثر من 100 تطبيق ونماذج توجيه وخطة مجانية لمستخدم واحد." },
+      { en: "Teams that want flexible or self-hosted scheduling.", ar: "الفرق التي تريد جدولة مرنة أو مستضافة ذاتيًا." },
+      [["Free", "$0"], ["Teams", "$12"], ["Organizations", "$28"]], "user / month, billed yearly"],
+    ["chili-piper", "Chili Piper", "https://www.chilipiper.com", "https://www.chilipiper.com/pricing",
+      { en: "Inbound conversion for revenue teams: form-to-calendar booking, lead routing and AI agents.", ar: "تحويل الطلب الوارد لفرق الإيرادات: حجز من النموذج إلى التقويم وتوجيه العملاء ووكلاء ذكاء اصطناعي." },
+      { en: "Companies with heavy inbound traffic and many reps.", ar: "الشركات ذات الطلب الوارد الكبير والمندوبين الكثيرين." },
+      [["Routing & Scheduling", "$1,250"], ["Experiences", "$3,500"]], "month"],
+    ["savvycal", "SavvyCal", "https://savvycal.com", "https://savvycal.com/pricing",
+      { en: "Scheduling links and polls focused on the invitee's experience.", ar: "روابط جدولة واستطلاعات تركّز على تجربة المدعو." },
+      { en: "People who book many meetings with contacts who already know them.", ar: "من يحجزون اجتماعات كثيرة مع من يعرفونهم." },
+      [["Basic", "$12"], ["Premium", "$20"]], "user / month"],
+    ["tidycal", "TidyCal", "https://tidycal.com", "https://tidycal.com/pricing",
+      { en: "A low-cost booking page sold as a one-time lifetime plan, with paid and group bookings.", ar: "صفحة حجز منخفضة التكلفة تُباع بخطة مدى الحياة لمرة واحدة، مع حجوزات مدفوعة وجماعية." },
+      { en: "Freelancers who only need a booking page.", ar: "المستقلون الذين يحتاجون صفحة حجز فقط." },
+      [["Free", "$0"], ["Individual (one time)", "$29"], ["Agency (one time)", "$79"], ["Pro", "$12"]], "as listed"],
+  ] as const).map(([slug, name, website, pricing_url, summary, best_for, plans, period]): SeedCompetitor => ({
+    slug, name, website, pricing_url, publishes_prices: true, summary, best_for,
+    strengths: { en: [], ar: [] }, limits: { en: ["Books meetings people already want; it doesn't find prospects or send outreach"], ar: ["يحجز اجتماعات يريدها الناس بالفعل؛ لا يجد عملاء ولا يرسل تواصلًا"] },
+    pricing: plans.map(([plan, p]) => ({ plan, price: p, period, source_url: pricing_url, checked_at: "2026-10-30", verified: false })),
+    facts: [],
+  })),
 ];

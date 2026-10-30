@@ -493,7 +493,7 @@ export const en = {
     sections: { decisionMakers: "Decision makers", activity: "User activity" },
     funnel: { optedOutNote: "Never emailed again", title: "From search to customer", optedOut: "Opted out", steps: { found: "Found", contacted: "Contacted", replied: "Replied", interested: "Interested", meetings: "Meetings", customers: "Customers" } },
     outcomes: {
-      title: "Won and lost deals", won: "Won by industry", lost: "Why deals were lost", none: "Mark deals as won or lost in the CRM and Yolias learns what works.",
+      title: "Won and lost deals", won: "Won by industry", lost: "Why deals were lost", none: "After each meeting, mark in Meetings whether they became a customer, and Yolias learns what works.",
       note: "Your next searches lean toward what won.", findMore: "Find similar companies", prompt: "Find companies in the industries where I won deals: {names}",
     },
     roles: { ceo: "CEO", founder: "Founder", cLevel: "C-Level", vp: "VP", director: "Director", manager: "Manager", other: "Other" },
@@ -965,7 +965,7 @@ export const en = {
     features: {
       aiSalesAgent: "AI Sales Agent", aiLeadGeneration: "AI Lead Generation", campaigns: "Continuous searches",
       analytics: "Analytics", integrations: "Integrations", unlimitedUsers: "Unlimited Users",
-      teamWorkspace: "Team Workspace", crm: "CRM, pipelines and deals", enrichment: "Full profile enrichment", chatSupport: "Chat support",
+      teamWorkspace: "Team Workspace", crm: "Meetings: your booking page, Google Calendar and Meet", enrichment: "Full profile enrichment", chatSupport: "Chat support",
     },
     usageProspects: "Prospects / month",
     usageContacts: "Uploaded contacts",

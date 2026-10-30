@@ -6,7 +6,8 @@
 // with the criteria met; published contacts labelled by verification; emails
 // in 15 languages sent from the member's Gmail or IMAP/SMTP mailbox after one
 // approval, with an unsubscribe line; replies sorted in the Inbox; interested
-// leads move to the CRM; email only; unlimited users; pay per prospect.
+// leads get the booking page and meetings land in Meetings (D-268); email
+// sent by Yolias, call / WhatsApp / LinkedIn steps as tasks; unlimited users; pay per prospect.
 
 type L = { en: string; ar: string };
 export type CompareRow = "find" | "finds" | "why" | "contacts" | "outreach" | "replies" | "channels" | "users";
@@ -19,8 +20,8 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "Each result shows its match score and which of your criteria it met, so you can see why it is on the list", ar: "كل نتيجة تعرض نسبة تطابقها والمعايير التي حققتها، فتعرف لماذا هي في القائمة" },
       contacts: { en: "No credits to reveal contacts: Yolias shows the contacts a company publishes, labelled by verification state", ar: "لا رصيد لكشف بيانات التواصل: يعرض يولياس ما تنشره الشركة، مصنّفًا حسب حالة التحقق" },
       outreach: { en: "One approval per campaign, then emails and follow-ups go from your own mailbox at a human pace, with an unsubscribe line", ar: "موافقة واحدة لكل حملة، ثم تخرج الرسائل والمتابعات من بريدك بوتيرة بشرية مع سطر لإلغاء الاشتراك" },
-      replies: { en: "Replies come back sorted with a suggested answer; interested leads move to a deals-only CRM inside Yolias", ar: "تعود الردود مصنّفة مع رد مقترح، والعملاء المهتمون ينتقلون إلى إدارة عملاء للصفقات فقط داخل يولياس" },
-      channels: { en: "Email only: no dialer, so nothing to set up for calling", ar: "البريد فقط: لا اتصال هاتفي، فلا شيء تجهزه للمكالمات" },
+      replies: { en: "Replies come back sorted with a suggested answer; a meeting request gets two free times and your booking page", ar: "تعود الردود مصنّفة مع رد مقترح، وطلب الاجتماع يُرد عليه بموعدين متاحين وصفحة الحجز" },
+      channels: { en: "Email sent by Yolias; call, WhatsApp and LinkedIn steps are tasks for you, and there is no dialer", ar: "البريد يرسله يولياس؛ وخطوات الاتصال وواتساب ولينكدإن مهام لك، ولا يوجد اتصال هاتفي من داخله" },
       users: { en: "Unlimited users; you pay for prospects found, not per seat", ar: "مستخدمون بلا حد؛ تدفع مقابل العملاء الذين يُعثر عليهم، لا لكل مقعد" },
     },
     limits: [
@@ -53,7 +54,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "A plain match score with the criteria met, rather than intent data you have to interpret", ar: "نسبة تطابق واضحة مع المعايير المحققة، بدل بيانات نية تحتاج إلى تفسير" },
       contacts: { en: "Published business contacts, labelled by verification; nothing to export with credits", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق؛ لا شيء تصدّره برصيد" },
       outreach: { en: "Emails and follow-ups written and sent from your mailbox, so you don't need a second tool to reach the list", ar: "رسائل ومتابعات تُكتب وتُرسل من بريدك، فلا تحتاج أداة ثانية للوصول إلى القائمة" },
-      replies: { en: "Replies and interested deals stay in Yolias; CSV export when you want them in another CRM", ar: "الردود والصفقات المهتمة تبقى في يولياس، مع تصدير CSV متى أردتها في نظام آخر" },
+      replies: { en: "Replies and the meetings they lead to stay in Yolias; CSV export when you want them in a CRM", ar: "الردود والاجتماعات التي تقود إليها تبقى في يولياس، مع تصدير CSV متى أردتها في نظام آخر" },
       channels: { en: "Email from your own account", ar: "البريد من حسابك" },
       users: { en: "Public prices from $5, unlimited users, no sales quote", ar: "أسعار معلنة تبدأ من 5 دولارات، ومستخدمون بلا حد، بلا عرض سعر من المبيعات" },
     },
@@ -70,7 +71,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "Every company comes with the reasons it fits your description, not only a score", ar: "كل شركة تأتي بأسباب مطابقتها لوصفك، لا بنسبة فقط" },
       contacts: { en: "Published business contacts with their verification state; no 1-credit email or 5-credit phone pricing", ar: "بيانات تواصل منشورة بحالة تحققها؛ لا تسعير برصيد للبريد ولا خمسة أرصدة للهاتف" },
       outreach: { en: "Goes past the contact: writes the first email and follow-ups and sends them from your mailbox after approval", ar: "يتجاوز جهة الاتصال: يكتب الرسالة الأولى والمتابعات ويرسلها من بريدك بعد الموافقة" },
-      replies: { en: "An inbox for the replies to those emails, sorted, and a CRM of the leads that showed interest", ar: "صندوق وارد لردود تلك الرسائل مصنّفة، وإدارة عملاء للمهتمين منهم" },
+      replies: { en: "An inbox for the replies to those emails, sorted, and a booking page for the ones who want to talk", ar: "صندوق وارد لردود تلك الرسائل مصنّفة، وصفحة حجز لمن يريد التحدث" },
       channels: { en: "Email", ar: "البريد" },
       users: { en: "Unlimited users on every plan, no team plan needed", ar: "مستخدمون بلا حد في كل خطة، بلا حاجة لخطة فرق" },
     },
@@ -87,7 +88,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "Fit to your own description, shown as a score with the criteria met, rather than third-party intent", ar: "التوافق مع وصفك أنت، معروضًا كنسبة مع المعايير المحققة، بدل نية من طرف ثالث" },
       contacts: { en: "Published business contacts labelled by verification; no phone-verified mobile numbers", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق؛ بلا أرقام جوال محققة بالهاتف" },
       outreach: { en: "The emails are part of the product: written for each company and sent from your mailbox after one approval", ar: "الرسائل جزء من المنتج: تُكتب لكل شركة وتُرسل من بريدك بعد موافقة واحدة" },
-      replies: { en: "Replies handled in Yolias, with interested leads moved to its CRM; CSV export for other tools", ar: "الردود تُدار في يولياس، والمهتمون ينتقلون إلى إدارة العملاء فيه، مع تصدير CSV لأدوات أخرى" },
+      replies: { en: "Replies handled in Yolias, with meetings booked on your page; CSV export for other tools", ar: "الردود تُدار في يولياس، والاجتماعات تُحجز في صفحتك، مع تصدير CSV لأدوات أخرى" },
       channels: { en: "Email from your own mailbox", ar: "البريد من صندوقك" },
       users: { en: "Unlimited users and public prices, no five-seat minimum or quote", ar: "مستخدمون بلا حد وأسعار معلنة، بلا حد أدنى خمسة مقاعد ولا عرض سعر" },
     },
@@ -121,7 +122,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "Each company is scored against your description and shows why it fits", ar: "كل شركة تُقيّم مقابل وصفك وتوضح لماذا تناسب" },
       contacts: { en: "Published business contacts, labelled by verification, found together with the company", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق، تُجمع مع الشركة نفسها" },
       outreach: { en: "Writes each email from what it learned about the company and sends from your own mailbox after one approval", ar: "يكتب كل رسالة مما عرفه عن الشركة ويرسلها من بريدك بعد موافقة واحدة" },
-      replies: { en: "Replies sorted with a suggested answer; interested leads become deals in Yolias' CRM", ar: "ردود مصنّفة مع رد مقترح، والمهتمون يصبحون صفقات في إدارة العملاء في يولياس" },
+      replies: { en: "Replies sorted with a suggested answer; meeting requests are booked on your page in Meetings", ar: "ردود مصنّفة مع رد مقترح، وطلبات الاجتماع تُحجز في صفحتك وتظهر في الاجتماعات" },
       channels: { en: "Email from your own mailbox", ar: "البريد من صندوقك" },
       users: { en: "Unlimited users; price per prospect found, sending included", ar: "مستخدمون بلا حد؛ السعر لكل عميل محتمل يُعثر عليه والإرسال مشمول" },
     },
@@ -138,7 +139,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "A match score with the criteria each company met", ar: "نسبة تطابق مع المعايير التي حققتها كل شركة" },
       contacts: { en: "The contacts a company publishes, labelled by verification; no guessing of email patterns", ar: "بيانات التواصل التي تنشرها الشركة مصنّفة حسب التحقق؛ بلا تخمين لأنماط البريد" },
       outreach: { en: "Emails written for each company from its website, sent from your mailbox after you approve", ar: "رسائل تُكتب لكل شركة من موقعها، وتُرسل من بريدك بعد موافقتك" },
-      replies: { en: "Replies sorted in Yolias, with a CRM for the interested ones", ar: "الردود مصنّفة في يولياس، مع إدارة عملاء للمهتمين" },
+      replies: { en: "Replies sorted in Yolias, with a booking page for the interested ones", ar: "الردود مصنّفة في يولياس، مع صفحة حجز للمهتمين" },
       channels: { en: "Email", ar: "البريد" },
       users: { en: "Unlimited users on every plan", ar: "مستخدمون بلا حد في كل خطة" },
     },

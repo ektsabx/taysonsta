@@ -34,7 +34,7 @@ export const AGENT_TOOLS = [
   { name: "startOutreachCampaign", label: { ar: "بدء حملة تواصل", en: "Start an outreach campaign" }, writes: true },
   { name: "controlOutreachCampaign", label: { ar: "إيقاف / استئناف / إلغاء حملة تواصل", en: "Pause / resume / cancel outreach" }, writes: true },
   { name: "listReplies", label: { ar: "الردود الواردة", en: "Replies" }, writes: false },
-  { name: "listLeads", label: { ar: "عملاء CRM", en: "CRM leads" }, writes: false },
+  { name: "listLeads", label: { ar: "العملاء في المحادثات", en: "Leads in conversations" }, writes: false },
   { name: "updateLeadStage", label: { ar: "تحديث مرحلة عميل", en: "Update a lead's stage" }, writes: true },
   { name: "excludeLead", label: { ar: "استبعاد عميل", en: "Exclude a lead" }, writes: true },
   { name: "getAnalytics", label: { ar: "التحليلات", en: "Analytics" }, writes: false },

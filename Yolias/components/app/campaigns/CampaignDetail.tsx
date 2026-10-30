@@ -403,7 +403,7 @@ function Sequence(p: Props) {
                 )}
                 <button type="button" className={`sdr-flow-step${sel === i ? " active" : ""}`} onClick={() => setSel(i)}>
                   <span className="num">{i + 1}</span>
-                  <span><strong>{fmt(sq.step, { n: i + 1 })}</strong><span className="sdr-cell-sub sdr-ellipsis" style={{ display: "block", maxWidth: 170 }}>{i === 0 ? (s.instruction || o.objectives[s.objective]) : sq.sameThread}</span></span>
+                  <span><strong>{s.kind && s.kind !== "email" ? sq.kinds[s.kind].split(" (")[0] : fmt(sq.step, { n: i + 1 })}</strong><span className="sdr-cell-sub sdr-ellipsis" style={{ display: "block", maxWidth: 170 }}>{i === 0 ? (s.instruction || o.objectives[s.objective]) : sq.sameThread}</span></span>
                 </button>
               </li>
             ))}

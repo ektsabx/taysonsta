@@ -271,7 +271,6 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
           </div>
           <dl className="sdr-dl">
             <dt className="h">{x.crm}</dt>
-            <dt>{x.category}</dt><dd>{s?.lastInbound ? t.sdr.kinds[s.lastInbound.kind] : x.none}</dd>
             <dt>{x.stage}</dt><dd>{t.ws.stages[lead.stage]}{s?.bucket ? ` · ${t.sdr.buckets[s.bucket]}` : ""}</dd>
             <dt>{x.sequence}</dt><dd>{s?.campaigns.length ? s.campaigns.map((c) => <Link key={c.id} href={`/outreach/${c.id}`} className="sdr-link">{c.name}</Link>) : x.none}</dd>
             <dt>{x.nextStep}</dt><dd>{s?.draft ? x.draftWaiting : s?.followUp ? fmt(x.nextFollowUp, { date: when(s.followUp.at) }) : x.none}</dd>

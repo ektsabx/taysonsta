@@ -68,7 +68,7 @@ export const wsEn = {
       aimHints: { meeting: "Yolias reaches out, follows up and sends your booking page; when they book, the meeting is in Meetings.", sell: "No meetings: Yolias sends your website link and answers questions so they sign up or buy." },
       ctaUrl: { meeting: "Booking page", sell: "Website link (sign-up or purchase)" },
       ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
-      autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops, moves them to the CRM and notifies you so you take it from there. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
+      autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops following up, offers your booking page (or your website link for a purchase campaign) and notifies you. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
       title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",
       domainWeak: "{domain} is missing {missing}, so this campaign's emails may land in spam.", domainFix: "How to fix it", recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address. Leads without one get no emails.", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",
@@ -88,7 +88,7 @@ export const wsEn = {
     leadsTitle: "Leads in this campaign", noLeads: "No leads yet. Add them from Prospects (select → Add to outreach) or from the CRM.",
     colLead: "Lead", colStep: "Step", colEnroll: "Status", colNext: "Next follow-up", colLast: "Last message",
     enrollStatus: { active: "Active", paused: "Paused", replied: "Replied", completed: "Finished", stopped: "Stopped" },
-    addLeadsTitle: "Add leads from the CRM", addLeadsEmpty: "Your CRM is empty. Add prospects to the CRM first.", addSelected: "Add {count}",
+    addLeadsTitle: "Add people you have contacted", addLeadsEmpty: "Nobody to add yet. Send to people from Prospects first.", addSelected: "Add {count}",
     enrolled: "{count} added.", skipped: {
       do_not_contact: "{count} asked not to be contacted", suppressed: "{count} on the do-not-contact list", already_enrolled: "{count} already in this campaign",
       recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details",
@@ -167,7 +167,7 @@ export const wsEn = {
       matchScore: "Search match", profile: "Customer profile",
     },
     activity: {
-      created: "Added to the CRM", stage_changed: "Stage: {from} → {to}", note: "Note", deal_updated: "Deal value: {value}", message_drafted: "Message drafted",
+      created: "Became a lead", stage_changed: "Stage: {from} → {to}", note: "Note", deal_updated: "Deal value: {value}", message_drafted: "Message drafted",
       message_sent: "Message sent", reply_logged: "Reply received", reply_analyzed: "Reply analysed", meeting_scheduled: "Meeting scheduled", meeting_updated: "Meeting updated",
       task_created: "Reminder added", task_done: "Reminder done", enrolled: "Added to campaign", enrollment_stopped: "Left campaign", automation: "Automation ran", agent: "Agent", do_not_contact: "Marked do not contact",
     },

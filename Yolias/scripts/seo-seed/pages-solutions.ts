@@ -17,14 +17,14 @@ const steps = {
     { title: "Review the criteria", body: "Yolias turns it into criteria you can see and change before the search runs." },
     { title: "Check each match", body: "Every company comes with a match score and the criteria it met, plus the contact details it publishes." },
     { title: "Approve the campaign", body: "Yolias writes a first email and follow-ups from your Company Knowledge; you edit and approve once." },
-    { title: "Handle replies", body: "Emails go from your own mailbox within your sending rules. Replies arrive in Conversations with a suggested answer, and interested leads move to the CRM." },
+    { title: "Handle replies", body: "Emails go from your own mailbox within your sending rules. Replies arrive in Conversations with a suggested answer, and meeting requests get your booking page." },
   ],
   ar: (ex: string) => [
     { title: "صِف عميلك", body: `اكتب من تريد في جملة أو اثنتين، مثلًا: «${ex}». ويمكنك إرفاق ملف أو CSV بعملائك الحاليين.` },
     { title: "راجع المعايير", body: "يحوّل يولياس الوصف إلى معايير تراها وتعدّلها قبل تشغيل البحث." },
     { title: "افحص كل نتيجة", body: "كل شركة تأتي بنسبة تطابق والمعايير التي حققتها، مع بيانات التواصل التي تنشرها." },
     { title: "وافق على الحملة", body: "يكتب يولياس الرسالة الأولى والمتابعات من معرفة شركتك، فتعدّلها وتوافق مرة واحدة." },
-    { title: "تعامل مع الردود", body: "تُرسل الرسائل من بريدك ضمن قواعد الإرسال. وتصل الردود إلى المحادثات مع رد مقترح، وينتقل المهتمون إلى إدارة العملاء." },
+    { title: "تعامل مع الردود", body: "تُرسل الرسائل من بريدك ضمن قواعد الإرسال. وتصل الردود إلى المحادثات مع رد مقترح، وطلبات الاجتماع تصلها صفحة الحجز." },
   ],
 };
 
