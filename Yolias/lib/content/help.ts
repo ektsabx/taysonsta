@@ -116,7 +116,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Creating and managing campaigns",
-        summary: "Campaigns work like an ads manager: set the objective, budget, schedule, audience groups and channel; approve Yolias's plan; then follow every campaign and audience in one table.",
+        summary: "Set the objective, budget, schedule and audiences, approve Yolias's plan, then follow every campaign in one table.",
         blocks: [
           { p: "Open **Campaigns → Create campaign**. Six steps, and **Save draft** keeps your place at any step:" },
           { ol: [
@@ -136,7 +136,7 @@ export const articles: HelpArticle[] = [
       },
       ar: {
         title: "إنشاء الحملات وإدارتها",
-        summary: "تعمل الحملات مثل مدير الإعلانات: حدّد الهدف والميزانية والجدول ومجموعات الجمهور والقناة، واعتمد خطة يولياس، ثم تابع كل حملة وجمهور في جدول واحد.",
+        summary: "حدّد الهدف والميزانية والجدول والجماهير، واعتمد خطة يولياس، ثم تابع كل حملة في جدول واحد.",
         blocks: [
           { p: "افتح **الحملات ← إنشاء حملة**. ست خطوات، و**حفظ كمسودة** يحفظ مكانك في أي خطوة:" },
           { ol: [
