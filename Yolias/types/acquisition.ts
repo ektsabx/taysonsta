@@ -106,16 +106,35 @@ export type OutreachCampaignRow = {
   /** D-270: the campaign's target, schedule, daily limit and budget (prospects), and how it ended. */
   target_meetings: number | null; starts_at: string | null; ends_at: string | null; daily_limit: number | null;
   budget_prospects: number | null; ended_at: string | null; failure_reason: string | null;
+  /** D-272: objective, owner, money budget, schedule detail, channels and the saved wizard draft. */
+  objective: CampaignObjective; owner_id: string | null; budget_type: "total" | "daily" | "monthly" | null; budget_usd: number | null;
+  timezone: string | null; run_days: string[]; contact_from: string | null; contact_to: string | null; channels: string[]; wizard: Json | null;
 };
+export type CampaignObjective = "leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
+export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
+export type AudienceGroupRow = {
+  id: string; workspace_id: string; campaign_id: string; name: string; status: "active" | "paused" | "archived"; source: AudienceSource;
+  targeting: Json; audience_id: string | null; strategy_id: string | null; search_campaign_id: string | null; angle_a: string | null; angle_b: string | null;
+  created_by: string | null; created_at: string; updated_at: string;
+};
+export type AudienceRow = {
+  id: string; workspace_id: string; kind: "saved" | "custom" | "lookalike"; name: string; targeting: Json; origin: Json; members: number;
+  created_by: string | null; created_at: string; updated_at: string;
+};
+export type SavedViewRow = { id: string; workspace_id: string; user_id: string; scope: "campaigns"; name: string; config: Json; created_at: string };
 /** D-268: a campaign books a meeting or sells through the website. */
 export type CampaignAim = "meeting" | "sell";
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;
+  /** D-272: a step of one audience group's own sequence (null = the campaign's). */
+  audience_group_id: string | null;
 };
 export type EnrollmentStatus = "active" | "paused" | "replied" | "completed" | "stopped";
 export type OutreachEnrollmentRow = {
   id: string; workspace_id: string; campaign_id: string; lead_id: string; status: EnrollmentStatus; current_step: number;
   next_step_at: string | null; stop_reason: string | null; created_by: string | null; created_at: string; updated_at: string;
+  /** D-272: the audience group the lead came in through. */
+  audience_group_id: string | null;
 };
 export type InboxThreadRow = {
   id: string; workspace_id: string; lead_id: string; status: ThreadStatus; last_message_at: string | null; last_inbound_at: string | null;

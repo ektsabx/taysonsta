@@ -81,3 +81,20 @@ export function nextGapMs(rules: Pick<SendingRules, "gap_min" | "gap_max">, rand
   const min = rules.gap_min, max = Math.max(rules.gap_max, rules.gap_min);
   return (min + Math.floor(random() * (max - min + 1))) * 60_000;
 }
+
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+/**
+ * The campaign's own running days and contact hours (D-272), in its time zone;
+ * null when it sets none (only the mailbox's window applies). Sending needs
+ * both windows to be open.
+ */
+export function campaignWindow(c: { run_days: string[] | null; contact_from: string | null; contact_to: string | null; timezone: string | null }, fallbackZone: string): SendWindow | null {
+  const days = (c.run_days ?? []).map((d) => DAY_KEYS.indexOf(d)).filter((d) => d >= 0);
+  if (!c.contact_from && !c.contact_to && (!days.length || days.length === 7)) return null;
+  return {
+    days: days.length ? days : [0, 1, 2, 3, 4, 5, 6],
+    start: (c.contact_from ?? "00:00").slice(0, 5), end: (c.contact_to ?? c.contact_from ?? "00:00").slice(0, 5),
+    timeZone: c.timezone && validTimeZone(c.timezone) ? c.timezone : fallbackZone,
+  };
+}

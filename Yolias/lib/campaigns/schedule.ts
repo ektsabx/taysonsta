@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyUser } from "@/lib/outreach/execute";
 import { guard } from "@/lib/campaigns/engines";
+import { prospectRate } from "@/services/campaign-metrics";
 import { logCampaign } from "@/lib/campaigns/activity";
 import type { Json } from "@/types/database";
 
@@ -41,6 +42,7 @@ export async function campaignScheduleSweep(): Promise<{ started: number; ended:
   }
 
   out.paused = await deliverabilityGuard(db);
+  await budgetPeriods(db);
   await learningRefresh(db);
   return out;
 }
@@ -79,4 +81,42 @@ async function learningRefresh(db: Db) {
   if (st && Date.now() - Date.parse(st.updated_at) < DAY) return;
   await db.from("worker_state").upsert({ key, value: {} as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
   await db.rpc("refresh_learning_rates").then(({ error }) => { if (error) console.error("[learning]", error.message); });
+}
+
+/**
+ * Daily and monthly budgets (D-272): a campaign gets one period's prospects at
+ * launch; each new period raises its searches' quota by one more period,
+ * reserved from the account's balance (never more than is available), until
+ * its end date. A total budget is reserved once, at launch.
+ */
+async function budgetPeriods(db: Db) {
+  const { data: camps } = await db.from("outreach_campaigns").select("id, workspace_id, budget_type, budget_usd, starts_at, started_at, ends_at")
+    .in("status", ["active", "scheduled"]).in("budget_type", ["daily", "monthly"]).not("budget_usd", "is", null).limit(200);
+  for (const c of camps ?? []) {
+    const start = Date.parse(c.starts_at ?? c.started_at ?? "");
+    if (!Number.isFinite(start) || start > Date.now()) continue;
+    const rate = await prospectRate(c.workspace_id);
+    if (!(rate > 0)) continue;
+    const perPeriod = Math.floor(Number(c.budget_usd) / rate);
+    const periods = c.budget_type === "daily" ? Math.floor((Date.now() - start) / DAY) + 1 : monthsBetween(start, Date.now()) + 1;
+    const { data: groups } = await db.from("audience_groups").select("search_campaign_id").eq("campaign_id", c.id).eq("status", "active").not("search_campaign_id", "is", null);
+    const searches = (groups ?? []).map((g) => g.search_campaign_id!) ;
+    if (!searches.length || perPeriod < searches.length) continue;
+    const share = Math.floor((perPeriod * periods) / searches.length);
+    for (const id of searches) {
+      const { data: s } = await db.from("campaigns").select("id, quota, status, deadline").eq("id", id).maybeSingle();
+      if (!s || s.quota >= share || ["failed", "canceled"].includes(s.status)) continue;
+      if (s.deadline && Date.parse(s.deadline) <= Date.now()) continue;
+      const { data: got } = await db.rpc("reserve_usage", { p_ws: c.workspace_id, p_campaign: id, p_n: share - s.quota });
+      const n = Number(got ?? 0);
+      if (n <= 0) continue;
+      await db.from("campaigns").update({ quota: s.quota + n, continuous: true, status: "scheduled", next_run_at: new Date().toISOString(), completed_at: null, partial_reason: null }).eq("id", id);
+      await logCampaign(db, c.workspace_id, c.id, "note", `New ${c.budget_type === "daily" ? "day" : "month"} of budget: up to ${n} more prospects for this audience.`, { search: id, prospects: n });
+    }
+  }
+}
+
+function monthsBetween(a: number, b: number): number {
+  const x = new Date(a), y = new Date(b);
+  return (y.getUTCFullYear() - x.getUTCFullYear()) * 12 + y.getUTCMonth() - x.getUTCMonth() - (y.getUTCDate() < x.getUTCDate() ? 1 : 0);
 }

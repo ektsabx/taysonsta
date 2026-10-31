@@ -33,7 +33,7 @@ export function targetOf(lead: Pick<LeadRow, "prospect_id" | "company_id">): Mes
 }
 
 /** Enrolls leads in a campaign as the member (RLS), honouring do-not-contact, suppression and the re-contact window. */
-export async function enrollLeads(db: Db, workspaceId: string, userId: string, campaignId: string, leadIds: string[]): Promise<EnrollResult | null> {
+export async function enrollLeads(db: Db, workspaceId: string, userId: string, campaignId: string, leadIds: string[], groupId: string | null = null): Promise<EnrollResult | null> {
   const { data: campaign } = await db.from("outreach_campaigns").select("id, status").eq("id", campaignId).eq("workspace_id", workspaceId).maybeSingle();
   if (!campaign || campaign.status === "archived") return null;
   const { data: leads } = await db.from("sales_leads").select("id, email, do_not_contact, company_id, prospect_id").eq("workspace_id", workspaceId).in("id", leadIds.slice(0, 500));
@@ -58,7 +58,9 @@ export async function enrollLeads(db: Db, workspaceId: string, userId: string, c
     const { count: elsewhere } = await admin.from("outreach_enrollments").select("id", { count: "exact", head: true })
       .eq("lead_id", lead.id).eq("status", "active").neq("campaign_id", campaignId);
     if (elsewhere) { skip("in_other_campaign"); continue; }
-    const { error } = await db.from("outreach_enrollments").insert({ workspace_id: workspaceId, campaign_id: campaignId, lead_id: lead.id, created_by: userId });
+    // D-272: into the given audience group, else the campaign's first group.
+    const group = groupId ?? (await admin.from("audience_groups").select("id").eq("campaign_id", campaignId).order("created_at").limit(1).maybeSingle()).data?.id ?? null;
+    const { error } = await db.from("outreach_enrollments").insert({ workspace_id: workspaceId, campaign_id: campaignId, lead_id: lead.id, created_by: userId, audience_group_id: group });
     if (error) { if (/duplicate key/.test(error.message)) skip("already_enrolled"); else throw error; continue; }
     result.added++;
   }
@@ -96,8 +98,14 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   if (!d.allowed || (actor === "agent" && d.mode !== "auto")) return { ok: false, error: "denied" };
   const position = e.current_step + 1;
   if (position > settings.limits.max_messages_per_lead) return { ok: false, error: "limit" };
-  const { data: step } = await db.from("outreach_steps").select("*").eq("campaign_id", campaign.id).eq("position", position).maybeSingle();
+  // D-272: the lead's audience group may have its own sequence and angles; else the campaign's.
+  const groupId = (e as { audience_group_id?: string | null }).audience_group_id ?? null;
+  const { data: group } = groupId ? await db.from("audience_groups").select("angle_a, angle_b, status").eq("id", groupId).maybeSingle() : { data: null };
+  if (group && group.status !== "active" && actor === "agent") return { ok: false, error: "inactive" };
+  const { data: steps } = await db.from("outreach_steps").select("*").eq("campaign_id", campaign.id).eq("position", position);
+  const step = (steps ?? []).find((s) => s.audience_group_id === groupId) ?? (steps ?? []).find((s) => !s.audience_group_id) ?? null;
   if (!step) return { ok: false, error: "no_step" };
+  const angleA = group?.angle_a ?? campaign.goal, angleB = group ? group.angle_b : (campaign as { variant_b?: string | null }).variant_b;
   const { data: existing } = await db.from("outreach_messages").select("id").eq("enrollment_id", e.id).eq("step_position", position).eq("direction", "outbound").neq("status", "canceled").maybeSingle();
   if (existing) return { ok: false, error: "exists" };
   const target = targetOf(lead);
@@ -105,10 +113,10 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
 
   // A/B test (D-268): the first email's angle. D-270: Thompson sampling on positive replies
   // (lib/campaigns/engines.ts): alternate until each angle has 20 leads, then favour the one that works.
-  const variant = position === 1 && (campaign as { variant_b?: string | null }).variant_b ? pickArm(await angleArms(db, campaign.id)) as "a" | "b" : null;
-  const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${(campaign as { variant_b?: string | null }).variant_b}` : null;
+  const variant = position === 1 && angleB ? pickArm(await angleArms(db, campaign.id, groupId)) as "a" | "b" : null;
+  const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${angleB}` : null;
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), campaign.goal, step.instruction, angle].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     sequence: {
       leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position,
@@ -122,9 +130,11 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
 }
 
 /** Leads sent each first-email angle in a campaign, and how many of them replied with interest. */
-async function angleArms(db: Db, campaignId: string) {
-  const { data: firsts } = await db.from("outreach_messages").select("lead_id, variant").eq("outreach_campaign_id", campaignId).eq("step_position", 1)
+async function angleArms(db: Db, campaignId: string, groupId: string | null = null) {
+  // Per audience group when there is one (D-272): each group tests its own two angles.
+  const { data: all } = await db.from("outreach_messages").select("lead_id, variant, enrollment:outreach_enrollments(audience_group_id)").eq("outreach_campaign_id", campaignId).eq("step_position", 1)
     .eq("direction", "outbound").in("variant", ["a", "b"]).neq("status", "canceled").limit(5000);
+  const firsts = (all ?? []).filter((m) => !groupId || (m.enrollment as unknown as { audience_group_id: string | null } | null)?.audience_group_id === groupId);
   const { data: replies } = await db.from("outreach_messages").select("lead_id, analysis").eq("outreach_campaign_id", campaignId).eq("direction", "inbound").limit(5000);
   const positive = new Set((replies ?? []).filter((r) => ["interested", "meeting_request"].includes((r.analysis as { kind?: string } | null)?.kind ?? "")).map((r) => r.lead_id));
   return (["a", "b"] as const).map((key) => {

@@ -2,217 +2,318 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Check, Globe, Loader2, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Check, Loader2, Mail, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, countryLabel } from "@/lib/format";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useToast } from "@/components/Toast";
-import { launchWizardCampaign, proposeStrategy, understandAudience, type Angles, type AudienceSummary } from "@/app/(app)/outreach/new/actions";
-import type { CampaignAim } from "@/types/acquisition";
+import { CHANNELS } from "@/lib/campaigns/channels";
+import { emptyGroup, expectedVolume, type WizardGroup, type WizardState } from "@/lib/campaigns/wizard";
+import type { Targeting } from "@/lib/campaigns/targeting";
+import type { Estimate, Lookalike, SeedKind } from "@/lib/campaigns/audience";
+import { estimateAudience, launchCampaign, lookalikeOf, planCampaign, saveDraft } from "@/app/(app)/outreach/new/actions";
+import { saveAudience } from "@/app/(app)/prospects/audiences/actions";
+import { TargetingEditor, targetingSummary } from "./TargetingEditor";
 
-// The campaign wizard (owner, 2026-10-31, D-270): six steps, after Facebook
-// Ads' "objective → audience → budget and schedule → review". The member sets
-// what and who; Yolias plans how. Nothing is sent from here: launching starts
-// the search, and the first email still waits for the member's approval.
+// Create campaign (owner, 2026-10-31, D-272), after Meta / TikTok Ads
+// Manager: basics → budget and schedule → audience groups and targeting →
+// channels → Yolias's plan (approve, edit, regenerate) → review and launch.
+// A draft is saved on every step change and with "Save draft".
 
-const DAY = 86_400_000;
-const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
-const split = (s: string) => s.split(/[,،]/).map((x) => x.trim()).filter(Boolean).slice(0, 20);
+const OBJECTIVES = ["meetings", "leads", "opportunities", "new_customers", "reactivate", "promote", "custom"] as const;
+const SOURCES = ["find_new", "saved", "lookalike", "custom", "imported", "previous_campaign", "customers"] as const;
+const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+const SEEDS: SeedKind[] = ["customers", "qualified", "meetings", "interested", "audience"];
 
-export function CampaignWizard({ available }: { available: number }) {
+export interface WizardProps {
+  draftId: string | null;
+  initial: WizardState;
+  rate: number;
+  balance: number;
+  members: { id: string; name: string }[];
+  zones: { value: string; label: string }[];
+  audiences: { id: string; name: string; kind: "saved" | "custom" | "lookalike"; targeting: Targeting; members: number }[];
+  campaigns: { id: string; name: string }[];
+  mailbox: string | null;
+  today: string;
+}
+
+export function CampaignWizard(p: WizardProps) {
   const { t, locale } = useI18n();
-  const w = t.camp.wizard;
+  const w = t.camp.wiz;
+  const lang = locale === "ar" ? "ar" : "en";
   const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
-  const [step, setStep] = useState(0);
-
-  const [aim, setAim] = useState<CampaignAim>("meeting");
-  const [ctaUrl, setCtaUrl] = useState("");
-  const [description, setDescription] = useState("");
-  const [countries, setCountries] = useState("");
-  const [industries, setIndustries] = useState("");
-  const [titles, setTitles] = useState("");
-  const [sizeMin, setSizeMin] = useState("");
-  const [sizeMax, setSizeMax] = useState("");
-  const [audience, setAudience] = useState<AudienceSummary | null>(null);
-  const [target, setTarget] = useState(10);
-  const [today] = useState(() => isoDay(Date.now()));
-  const [startDay, setStartDay] = useState(today);
-  const [endDay, setEndDay] = useState(() => isoDay(Date.now() + 30 * DAY));
-  const [noEnd, setNoEnd] = useState(false);
-  const [budget, setBudget] = useState(Math.min(500, Math.max(available, 10)));
-  const [daily, setDaily] = useState(30);
-  const [angles, setAngles] = useState<Angles | null>(null);
-  const [angleA, setAngleA] = useState("");
-  const [angleB, setAngleB] = useState("");
-  const [name, setName] = useState("");
-
+  const [s, setS] = useState<WizardState>(p.initial);
+  const [draftId, setDraftId] = useState(p.draftId);
+  const [active, setActive] = useState(0);
+  const [estimates, setEstimates] = useState<Record<string, Estimate>>({});
+  const [looks, setLooks] = useState<Record<string, Lookalike>>({});
+  const [warnings, setWarnings] = useState<string[]>([]);
   const n = (v: number) => formatNumber(v, locale);
-  const fail = (msg: string) => toast(msg, "error");
+  const usd = (v: number) => new Intl.NumberFormat(lang === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency: "USD", maximumFractionDigits: 3 }).format(v);
+  const patch = (x: Partial<WizardState>) => setS((cur) => ({ ...cur, ...x, ...(x.groups || "objective" in x ? { planned: x.planned ?? false } : {}) }));
+  const setGroup = (i: number, g: Partial<WizardGroup>) => setS((cur) => ({ ...cur, planned: "angleA" in g || "angleB" in g || "steps" in g ? cur.planned : false, groups: cur.groups.map((x, j) => (j === i ? { ...x, ...g } : x)) }));
   const call = <R extends { ok: boolean }>(fn: () => Promise<R>, then: (r: R) => void) => start(async () => {
     const r = await callAction(fn);
-    if (isNetworkFailure(r)) { fail(t.feedback.errors.network); return; }
-    if (!r.ok) { fail((r as unknown as { error: string }).error); return; }
+    if (isNetworkFailure(r)) { toast(t.feedback.errors.network, "error"); return; }
+    if (!r.ok) { toast((r as unknown as { error: string }).error, "error"); return; }
     then(r);
   });
+  const persist = (next: WizardState, silent = true) => call(() => saveDraft(next, draftId), (r) => {
+    const id = (r as unknown as { id: string }).id;
+    if (id !== draftId) { setDraftId(id); window.history.replaceState(null, "", `/outreach/new?draft=${id}`); }
+    if (!silent) toast(w.saved);
+  });
+  const go = (step: number) => { const next = { ...s, step }; setS(next); if (s.name.trim() || draftId) persist(next); };
+  const prospects = p.rate > 0 ? Math.floor(s.budgetUsd / p.rate) : 0;
+  const volume = expectedVolume(s, p.today);
 
-  const readAudience = () => call(() => understandAudience({
-    description, countries: split(countries), industries: split(industries), titles: split(titles),
-    sizeMin: sizeMin ? Number(sizeMin) : null, sizeMax: sizeMax ? Number(sizeMax) : null,
-  }), (r) => { const a = (r as { audience: AudienceSummary }).audience; setAudience(a); setName((x) => x || a.name); setAngles(null); setStep(2); });
+  const canNext = [
+    Boolean(s.name.trim()) && (s.objective !== "custom" || Boolean(s.customObjective.trim())) && (s.objective !== "promote" || /^https?:\/\/\S+\.\S+/.test(s.ctaUrl)),
+    s.budgetUsd > 0 && (!s.endDate || s.endDate >= (s.startDate || p.today)) && s.runDays.length > 0 && s.dailyLimit > 0,
+    s.groups.every((g) => g.name.trim() && (g.source === "find_new" || g.source === "saved" ? hasAny(g.targeting) : g.source === "lookalike" ? g.seeds.length > 0 : g.source === "custom" ? Boolean(g.audienceId) : g.source === "previous_campaign" ? Boolean(g.fromCampaignId) : true)),
+    true,
+    s.planned && s.groups.every((g) => g.angleA.trim()),
+    true,
+  ][s.step];
 
-  const plan = () => call(() => proposeStrategy(audience!.strategyId, aim), (r) => {
-    const a = (r as { angles: Angles }).angles; setAngles(a); setAngleA(a.a); setAngleB(a.b);
+  const plan = () => call(() => planCampaign(s), (r) => {
+    const groups = (r as unknown as { groups: { key: string; angleA: string; angleB: string; why: string; risks: string }[] }).groups;
+    setS((cur) => ({ ...cur, planned: false, groups: cur.groups.map((g) => { const x = groups.find((y) => y.key === g.key); return x ? { ...g, angleA: x.angleA, angleB: x.angleB, why: x.why, risks: x.risks } : g; }) }));
+  });
+  const checkAudience = () => call(() => estimateAudience(s.groups.map((g) => g.targeting)), (r) => {
+    const list = (r as unknown as { estimates: Estimate[] }).estimates;
+    setEstimates(Object.fromEntries(s.groups.map((g, i) => [g.key, list[i]])));
+  });
+  const readSeed = (i: number, kind: SeedKind, audienceId: string | null) => call(() => lookalikeOf(kind, audienceId), (r) => {
+    const l = (r as unknown as { lookalike: Lookalike }).lookalike;
+    setLooks((x) => ({ ...x, [s.groups[i].key]: l }));
+    setGroup(i, { seed: kind, seeds: l.seeds, targeting: { ...l.targeting, description: s.groups[i].targeting.description } as never });
+  });
+  const launch = () => call(() => launchCampaign(s, draftId), (r) => {
+    const x = r as unknown as { id: string; warnings: string[] };
+    if (x.warnings.length) { setWarnings(x.warnings); x.warnings.forEach((m) => toast(m, "error")); }
+    router.push(`/outreach/${x.id}`);
   });
 
-  const launch = () => call(() => launchWizardCampaign({
-    strategyId: audience!.strategyId, name: name.trim() || audience!.name, aim, ctaUrl: aim === "sell" ? ctaUrl : null, target,
-    startsAt: new Date(`${startDay}T00:00:00`).toISOString(), endsAt: noEnd ? null : new Date(`${endDay}T23:59:00`).toISOString(),
-    budget, dailyLimit: daily, angleA: angleA.trim(), angleB: angleB.trim() || null,
-  }), (r) => router.push(`/outreach/${(r as { id: string }).id}`));
-
-  const next = () => {
-    if (step === 1) return readAudience();
-    if (step === 3) { setStep(4); if (!angles) plan(); return; }
-    setStep((s) => Math.min(s + 1, 5));
-  };
-  const canNext = [
-    aim === "meeting" || /^https?:\/\/\S+\.\S+/.test(ctaUrl),
-    Boolean(description.trim() || industries.trim() || titles.trim()),
-    target > 0 && (noEnd || endDay > startDay),
-    budget >= 10 && budget <= Math.max(available, 10) && daily > 0,
-    Boolean(angles && angleA.trim()),
-    true,
-  ][step];
-
-  const sizeText = audience && (audience.sizeMin || audience.sizeMax) ? `${audience.sizeMin ?? 1}–${audience.sizeMax ?? "∞"}` : null;
-  const audienceLine = audience ? [audience.industries.slice(0, 3).join("، "), [...audience.countries, ...audience.cities].slice(0, 4).join("، "), audience.titles.slice(0, 3).join("، "), sizeText].filter(Boolean).join(" · ") : "";
+  const g = s.groups[Math.min(active, s.groups.length - 1)];
+  const gi = s.groups.indexOf(g);
+  const est = estimates[g.key];
+  const look = looks[g.key];
 
   return (
-    <div className="wiz">
-      <ol className="wiz-steps" aria-label={w.title}>
+    <div className="wz">
+      <ol className="wz-steps" aria-label={w.title}>
         {w.steps.map((label, i) => (
-          <li key={label} className={i === step ? "on" : i < step ? "done" : ""} aria-current={i === step ? "step" : undefined}>
-            <span>{i < step ? <Check /> : i + 1}</span>{label}
-          </li>
+          <li key={label}><button type="button" className={i === s.step ? "on" : i < s.step ? "done" : ""} aria-current={i === s.step ? "step" : undefined} disabled={i > s.step} onClick={() => go(i)}>
+            <span>{i < s.step ? <Check /> : i + 1}</span>{label}
+          </button></li>
         ))}
       </ol>
 
-      <section className="wiz-card">
-        {step === 0 && (
+      <section className="wz-card">
+        {s.step === 0 && (
           <>
-            <h3>{w.goal.title}</h3>
-            <div className="wiz-choices" role="radiogroup">
-              <button type="button" role="radio" aria-checked={aim === "meeting"} className={aim === "meeting" ? "on" : ""} onClick={() => setAim("meeting")}>
-                <CalendarCheck /><strong>{w.goal.meeting}</strong><span>{w.goal.meetingDesc}</span>
-              </button>
-              <button type="button" role="radio" aria-checked={aim === "sell"} className={aim === "sell" ? "on" : ""} onClick={() => setAim("sell")}>
-                <Globe /><strong>{w.goal.sell}</strong><span>{w.goal.sellDesc}</span>
-              </button>
+            <h3>{w.steps[0]}</h3>
+            <div className="ws-field"><label className="ws-label" htmlFor="wz-name">{w.basics.name}</label><input id="wz-name" className="form-input" dir="auto" maxLength={160} placeholder={w.basics.namePh} value={s.name} onChange={(e) => patch({ name: e.target.value })} /></div>
+            <div className="ws-field"><span className="ws-label">{w.basics.objective}</span><p className="ws-hint">{w.basics.objectiveHint}</p>
+              <div className="wz-objectives" role="radiogroup">{OBJECTIVES.map((o) => <button key={o} type="button" role="radio" aria-checked={s.objective === o} className={s.objective === o ? "on" : ""} onClick={() => patch({ objective: o })}>{t.camp.manager.objectives[o]}</button>)}</div></div>
+            {s.objective === "custom" && <div className="ws-field"><label className="ws-label" htmlFor="wz-co">{w.basics.custom}</label><input id="wz-co" className="form-input" dir="auto" maxLength={300} value={s.customObjective} onChange={(e) => patch({ customObjective: e.target.value })} /></div>}
+            {s.objective === "promote" && <div className="ws-field"><label className="ws-label" htmlFor="wz-url">{w.basics.link}</label><input id="wz-url" className="form-input" dir="ltr" placeholder="https://" maxLength={500} value={s.ctaUrl} onChange={(e) => patch({ ctaUrl: e.target.value })} /></div>}
+            <div className="ws-field"><label className="ws-label" htmlFor="wz-desc">{w.basics.description}</label><textarea id="wz-desc" className="form-input" rows={3} dir="auto" maxLength={3000} placeholder={w.basics.descriptionPh} value={s.description} onChange={(e) => patch({ description: e.target.value })} /></div>
+            {p.members.length > 1 && <div className="ws-field"><label className="ws-label" htmlFor="wz-owner">{w.basics.owner}</label><select id="wz-owner" className="form-input" value={s.ownerId ?? ""} onChange={(e) => patch({ ownerId: e.target.value || null })}>{p.members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>}
+          </>
+        )}
+
+        {s.step === 1 && (
+          <>
+            <h3>{w.steps[1]}</h3>
+            <div className="ws-grid-2">
+              <div className="ws-field"><span className="ws-label">{w.budget.type}</span>
+                <div className="wz-seg">{(["total", "daily", "monthly"] as const).map((b) => <button key={b} type="button" className={s.budgetType === b ? "on" : ""} onClick={() => patch({ budgetType: b })}>{w.budget.types[b]}</button>)}</div></div>
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-amount">{w.budget.amount}</label><input id="wz-amount" className="form-input" type="number" min={1} step={1} value={s.budgetUsd} onChange={(e) => patch({ budgetUsd: Math.max(0, Number(e.target.value) || 0) })} />
+                <p className="ws-hint">{s.budgetType === "total" ? fmt(w.budget.rate, { n: n(prospects), rate: usd(p.rate) }) : fmt(w.budget.period, { period: w.budget.periods[s.budgetType], n: n(prospects) })}</p></div>
             </div>
-            {aim === "sell" && (
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-url">{w.goal.link}</label><p className="ws-hint">{w.goal.linkHint}</p>
-                <input id="wiz-url" className="form-input" dir="ltr" value={ctaUrl} maxLength={500} onChange={(e) => setCtaUrl(e.target.value)} placeholder="https://" /></div>
+            <p className={p.balance > 0 ? "ws-hint" : "form-error"}>{p.balance > 0 ? fmt(w.budget.balance, { n: n(p.balance) }) : w.budget.noBalance} {w.budget.separate}</p>
+            <div className="ws-grid-2">
+              <div className="ws-field"><span className="ws-label">{w.budget.start}</span><div className="wz-pair"><input className="form-input" type="date" min={p.today} value={s.startDate} onChange={(e) => patch({ startDate: e.target.value })} aria-label={w.budget.start} /><input className="form-input" type="time" value={s.startTime} onChange={(e) => patch({ startTime: e.target.value })} aria-label={w.budget.start} /></div></div>
+              <div className="ws-field"><span className="ws-label">{w.budget.end}</span><div className="wz-pair"><input className="form-input" type="date" min={s.startDate || p.today} value={s.endDate} onChange={(e) => patch({ endDate: e.target.value })} aria-label={w.budget.end} /><input className="form-input" type="time" value={s.endTime} disabled={!s.endDate} onChange={(e) => patch({ endTime: e.target.value })} aria-label={w.budget.end} /></div>
+                <label className="wiz-check"><input type="checkbox" checked={!s.endDate} onChange={(e) => patch({ endDate: e.target.checked ? "" : p.today })} />{w.budget.noEnd}</label></div>
+            </div>
+            <div className="ws-grid-2">
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-tz">{w.budget.timezone}</label><select id="wz-tz" className="form-input" value={s.timezone} onChange={(e) => patch({ timezone: e.target.value })}>{p.zones.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}</select></div>
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-daily">{w.budget.daily}</label><input id="wz-daily" className="form-input" type="number" min={1} max={500} value={s.dailyLimit} onChange={(e) => patch({ dailyLimit: Math.max(1, Number(e.target.value) || 1) })} /></div>
+            </div>
+            <div className="ws-field"><span className="ws-label">{w.budget.days}</span><div className="wz-days">{DAYS.map((d) => <button key={d} type="button" aria-pressed={s.runDays.includes(d)} className={s.runDays.includes(d) ? "on" : ""} onClick={() => patch({ runDays: s.runDays.includes(d) ? s.runDays.filter((x) => x !== d) : [...s.runDays, d] })}>{w.budget.dayNames[d]}</button>)}</div></div>
+            <div className="ws-field"><span className="ws-label">{w.budget.hours}</span><p className="ws-hint">{w.budget.hoursHint}</p><div className="wz-pair narrow"><input className="form-input" type="time" value={s.contactFrom} onChange={(e) => patch({ contactFrom: e.target.value })} aria-label={w.budget.hours} /><input className="form-input" type="time" value={s.contactTo} onChange={(e) => patch({ contactTo: e.target.value })} aria-label={w.budget.hours} /></div></div>
+            <div className="ws-field"><label className="ws-label" htmlFor="wz-target">{w.budget.target}</label><p className="ws-hint">{w.budget.targetHint}</p><input id="wz-target" className="form-input wiz-num" type="number" min={0} max={1000} value={s.targetMeetings} onChange={(e) => patch({ targetMeetings: Math.max(0, Number(e.target.value) || 0) })} /></div>
+            <p className="wz-note">{volume != null ? fmt(w.budget.volume, { n: n(Math.min(volume, prospects || volume)) }) : fmt(w.budget.volumeOpen, { n: n(s.dailyLimit) })}</p>
+          </>
+        )}
+
+        {s.step === 2 && (
+          <>
+            <h3>{w.audience.groups}</h3>
+            <p className="ws-hint">{w.audience.groupsHint}</p>
+            <div className="wz-tabs" role="tablist">
+              {s.groups.map((x, i) => <button key={x.key} type="button" role="tab" aria-selected={i === gi} className={i === gi ? "on" : ""} onClick={() => setActive(i)} dir="auto">{x.name || `#${i + 1}`}</button>)}
+              {s.groups.length < 8 && <button type="button" className="wz-add" onClick={() => { const ng = emptyGroup(s.groups.length, `${t.camp.groups.name} ${s.groups.length + 1}`); patch({ groups: [...s.groups, ng] }); setActive(s.groups.length); }}><Plus />{w.audience.add}</button>}
+            </div>
+            <div className="ws-grid-2">
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-gname">{w.audience.name}</label><input id="wz-gname" className="form-input" dir="auto" maxLength={120} value={g.name} onChange={(e) => setGroup(gi, { name: e.target.value })} /></div>
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-src">{w.audience.source}</label><select id="wz-src" className="form-input" value={g.source} onChange={(e) => setGroup(gi, { source: e.target.value as WizardGroup["source"], audienceId: null, fromCampaignId: null, seed: null, seeds: [] })}>{SOURCES.map((x) => <option key={x} value={x}>{t.camp.groups.sources[x]}</option>)}</select></div>
+            </div>
+            {s.groups.length > 1 && <button type="button" className="sdr-btn sm danger wz-remove" onClick={() => { patch({ groups: s.groups.filter((_, i) => i !== gi) }); setActive(0); }}><Trash2 />{w.audience.remove}</button>}
+
+            {g.source === "saved" && (
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-saved">{w.audience.pickAudience}</label>
+                {p.audiences.some((a) => a.kind === "saved") ? (
+                  <select id="wz-saved" className="form-input" value={g.audienceId ?? ""} onChange={(e) => { const a = p.audiences.find((x) => x.id === e.target.value); setGroup(gi, { audienceId: a?.id ?? null, targeting: (a?.targeting ?? {}) as never }); }}>
+                    <option value="">–</option>{p.audiences.filter((a) => a.kind === "saved").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                ) : <p className="ws-hint">{w.audience.noAudiences}</p>}
+              </div>
             )}
-          </>
-        )}
-
-        {step === 1 && (
-          <>
-            <h3>{w.audience.title}</h3>
-            <div className="ws-field"><label className="ws-label" htmlFor="wiz-desc">{w.audience.description}</label><p className="ws-hint">{w.audience.descriptionHint}</p>
-              <textarea id="wiz-desc" className="form-input" rows={3} dir="auto" maxLength={2000} value={description} placeholder={w.audience.descriptionPlaceholder} onChange={(e) => setDescription(e.target.value)} /></div>
-            <div className="ws-grid-2">
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-ind">{w.audience.industries}</label><p className="ws-hint">{w.audience.listHint}</p><input id="wiz-ind" className="form-input" dir="auto" value={industries} onChange={(e) => setIndustries(e.target.value)} /></div>
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-geo">{w.audience.countries}</label><p className="ws-hint">{w.audience.listHint}</p><input id="wiz-geo" className="form-input" dir="auto" value={countries} onChange={(e) => setCountries(e.target.value)} /></div>
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-titles">{w.audience.titles}</label><p className="ws-hint">{w.audience.listHint}</p><input id="wiz-titles" className="form-input" dir="auto" value={titles} onChange={(e) => setTitles(e.target.value)} /></div>
-              <div className="ws-field"><span className="ws-label">{w.audience.size}</span><p className="ws-hint">&nbsp;</p>
-                <div className="wiz-range">
-                  <input className="form-input" type="number" min={1} inputMode="numeric" aria-label={w.audience.sizeMin} placeholder={w.audience.sizeMin} value={sizeMin} onChange={(e) => setSizeMin(e.target.value)} />
-                  <input className="form-input" type="number" min={1} inputMode="numeric" aria-label={w.audience.sizeMax} placeholder={w.audience.sizeMax} value={sizeMax} onChange={(e) => setSizeMax(e.target.value)} />
-                </div></div>
-            </div>
-            {pending && <p className="wiz-wait"><Loader2 className="spin" />{w.audience.reading}</p>}
-          </>
-        )}
-
-        {step >= 2 && audience && step < 5 && (
-          <div className="wiz-understood"><Sparkles /><div><strong>{w.audience.understood}</strong><span dir="auto">{audience.summary}</span>{audienceLine && <small dir="auto">{audienceLine}</small>}</div>
-            <button type="button" className="sdr-btn" onClick={() => setStep(1)}>{w.audience.edit}</button></div>
-        )}
-
-        {step === 2 && (
-          <>
-            <h3>{w.target.title}</h3>
-            <div className="ws-field"><label className="ws-label" htmlFor="wiz-target">{w.target.meetings}</label><p className="ws-hint">{w.target.meetingsHint}</p>
-              <input id="wiz-target" className="form-input wiz-num" type="number" min={1} max={1000} value={target} onChange={(e) => setTarget(Math.max(0, Number(e.target.value) || 0))} /></div>
-            <div className="ws-grid-2">
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-start">{w.target.start}</label><input id="wiz-start" className="form-input" type="date" min={today} value={startDay} onChange={(e) => setStartDay(e.target.value)} /></div>
-              <div className="ws-field"><label className="ws-label" htmlFor="wiz-end">{w.target.end}</label><input id="wiz-end" className="form-input" type="date" min={startDay} value={endDay} disabled={noEnd} onChange={(e) => setEndDay(e.target.value)} />
-                <label className="wiz-check"><input type="checkbox" checked={noEnd} onChange={(e) => setNoEnd(e.target.checked)} />{w.target.noEnd}</label></div>
-            </div>
-            <p className="ws-hint">{w.target.endHint}</p>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <h3>{w.budget.title}</h3>
-            <div className="ws-field"><label className="ws-label" htmlFor="wiz-budget">{w.budget.prospects}</label><p className="ws-hint">{w.budget.prospectsHint}</p>
-              <input id="wiz-budget" className="form-input wiz-num" type="number" min={10} max={Math.max(available, 10)} step={10} value={budget} onChange={(e) => setBudget(Math.max(0, Number(e.target.value) || 0))} />
-              <p className={available > 0 ? "ws-hint" : "form-error"}>{available > 0 ? fmt(w.budget.available, { count: n(available) }) : w.budget.none}</p></div>
-            <div className="ws-field"><label className="ws-label" htmlFor="wiz-daily">{w.budget.daily}</label><p className="ws-hint">{w.budget.dailyHint}</p>
-              <input id="wiz-daily" className="form-input wiz-num" type="number" min={1} max={500} value={daily} onChange={(e) => setDaily(Math.max(0, Number(e.target.value) || 0))} /></div>
-          </>
-        )}
-
-        {step === 4 && (
-          <>
-            <h3>{w.strategy.title}</h3>
-            {!angles && pending && <p className="wiz-wait"><Loader2 className="spin" />{w.strategy.thinking}</p>}
-            {!angles && !pending && <button type="button" className="sdr-btn" onClick={plan}>{w.strategy.retry}</button>}
-            {angles && (
+            {g.source === "lookalike" && (
+              <div className="wz-look">
+                <div className="ws-field"><span className="ws-label">{w.audience.seed}</span>
+                  <div className="wz-seg">{SEEDS.map((k) => <button key={k} type="button" className={g.seed === k ? "on" : ""} onClick={() => k === "audience" ? setGroup(gi, { seed: k }) : readSeed(gi, k, null)}>{w.audience.seeds[k]}</button>)}</div></div>
+                {g.seed === "audience" && (
+                  <select className="form-input" value={g.audienceId ?? ""} onChange={(e) => { setGroup(gi, { audienceId: e.target.value || null }); if (e.target.value) readSeed(gi, "audience", e.target.value); }}>
+                    <option value="">{w.audience.pickAudience}</option>{p.audiences.filter((a) => a.kind === "custom").map((a) => <option key={a.id} value={a.id}>{a.name} ({n(a.members)})</option>)}
+                  </select>
+                )}
+                {pending && !look && <p className="wiz-wait"><Loader2 className="spin" />{w.audience.estimating}</p>}
+                {look && (look.seedSize ? (
+                  <div className="wz-traits"><strong>{fmt(w.audience.seedSize, { n: n(look.seedSize) })} {w.audience.confidence[look.confidence]}</strong>
+                    {look.traits.length > 0 && <><span>{w.audience.traits}</span><ul>{look.traits.map((x) => <li key={`${x.field}${x.value}`} dir="auto">{x.field === "countries" ? countryLabel(x.value, locale) : x.value} · {fmt(w.audience.share, { pct: `${Math.round(x.share * 100)}%` })}</li>)}</ul></>}
+                    <p className="ws-hint">{w.audience.similarNote}</p></div>
+                ) : <p className="form-error">{w.audience.seedEmpty}</p>)}
+              </div>
+            )}
+            {g.source === "custom" && (
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-custom">{w.audience.pickAudience}</label>
+                {p.audiences.some((a) => a.kind === "custom") ? (
+                  <select id="wz-custom" className="form-input" value={g.audienceId ?? ""} onChange={(e) => setGroup(gi, { audienceId: e.target.value || null })}><option value="">–</option>{p.audiences.filter((a) => a.kind === "custom").map((a) => <option key={a.id} value={a.id}>{a.name} ({n(a.members)})</option>)}</select>
+                ) : <p className="ws-hint">{w.audience.noAudiences} <Link className="ws-link" href="/prospects/audiences">{t.camp.aud.title}</Link></p>}
+                <p className="ws-hint">{w.audience.listNote}</p></div>
+            )}
+            {g.source === "previous_campaign" && (
+              <div className="ws-field"><label className="ws-label" htmlFor="wz-prev">{w.audience.pickCampaign}</label>
+                <select id="wz-prev" className="form-input" value={g.fromCampaignId ?? ""} onChange={(e) => setGroup(gi, { fromCampaignId: e.target.value || null })}><option value="">–</option>{p.campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                <p className="ws-hint">{w.audience.listNote}</p></div>
+            )}
+            {(g.source === "imported" || g.source === "customers") && <p className="ws-hint">{w.audience.listNote}</p>}
+            {(g.source === "find_new" || g.source === "saved" || g.source === "lookalike") && (
               <>
-                <div className="wiz-block"><h4>{w.strategy.angles}</h4><p className="ws-hint" dir="auto">{angles.why}</p>
-                  <div className="ws-field"><label className="ws-label" htmlFor="wiz-a">{w.strategy.angleA}</label><textarea id="wiz-a" className="form-input" rows={2} dir="auto" maxLength={1000} value={angleA} onChange={(e) => setAngleA(e.target.value)} /></div>
-                  <div className="ws-field"><label className="ws-label" htmlFor="wiz-b">{w.strategy.angleB}</label><textarea id="wiz-b" className="form-input" rows={2} dir="auto" maxLength={1000} value={angleB} onChange={(e) => setAngleB(e.target.value)} /></div>
-                  <p className="ws-hint">{w.strategy.anglesHint}</p></div>
-                <dl className="wiz-plan">
-                  <dt>{w.strategy.sequence}</dt><dd>{w.strategy.sequenceLine}</dd>
-                  <dt>{w.strategy.replies}</dt><dd>{w.strategy.repliesLine}</dd>
-                  {aim === "meeting" && <><dt>{w.strategy.meetings}</dt><dd>{w.strategy.meetingsLine}</dd></>}
-                  <dt>{w.strategy.forecast}</dt><dd>{w.strategy.forecastLine}</dd>
-                </dl>
+                <TargetingEditor value={g.targeting as Targeting} onChange={(tg) => setGroup(gi, { targeting: tg as never })} />
+                <div className="wz-summary">
+                  <strong>{w.audience.summary}</strong>
+                  <ul>{targetingSummary(g.targeting as Targeting, lang, (c) => countryLabel(c, locale)).map((l) => <li key={l} dir="auto">{l}</li>)}</ul>
+                  <div className="wz-row">
+                    <button type="button" className="sdr-btn sm" disabled={pending || !hasAny(g.targeting)} onClick={checkAudience}>{pending ? w.audience.estimating : w.audience.estimate}</button>
+                    {g.source === "find_new" && hasAny(g.targeting) && <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => call(() => saveAudience({ kind: "saved", name: g.name, targeting: g.targeting }), () => toast(w.audience.audienceSaved))}>{w.audience.saveAudience}</button>}
+                  </div>
+                  {est && (
+                    <dl className="wz-est">
+                      <dt>{fmt(w.audience.inWorkspace, { n: n(est.inWorkspace) })}</dt>
+                      {est.inWorkspace > 0 && <dd>{fmt(w.audience.withEmail, { n: n(est.withEmail), pct: `${Math.round((est.completeness ?? 0) * 100)}%` })} · {fmt(w.audience.verified, { n: n(est.verified) })}</dd>}
+                      {est.overlapGroups > 0 && <dd>{fmt(w.audience.overlap, { n: n(est.overlapGroups) })}</dd>}
+                      {est.inRunningCampaigns > 0 && <dd>{fmt(w.audience.running, { n: n(est.inRunningCampaigns) })}</dd>}
+                      <dd>{est.canFindNew ? w.audience.newMarket : w.audience.noSource}</dd>
+                      <dd className="ws-hint">{w.audience.estimateNote}</dd>
+                    </dl>
+                  )}
+                </div>
               </>
             )}
           </>
         )}
 
-        {step === 5 && audience && (
+        {s.step === 3 && (
+          <>
+            <h3>{w.channels.title}</h3>
+            {CHANNELS.filter((c) => c.available).map((c) => (
+              <label key={c.id} className="wz-channel">
+                <input type="checkbox" checked={s.channels.includes(c.id)} onChange={() => patch({ channels: s.channels.includes(c.id) && s.channels.length > 1 ? s.channels.filter((x) => x !== c.id) : [...new Set([...s.channels, c.id])] })} />
+                <Mail />
+                <div><strong>{c.label[lang]}</strong>
+                  <span>{p.mailbox ? fmt(w.channels.connected, { email: p.mailbox }) : <>{w.channels.notConnected} <Link className="ws-link" href="/integrations">{w.channels.connect}</Link></>}</span>
+                  <span>{w.channels.capabilities}</span><span>{w.channels.limits}</span><span>{w.channels.compliance} {c.compliance[lang]}</span></div>
+              </label>
+            ))}
+            <p className="ws-hint">{w.channels.only}</p>
+          </>
+        )}
+
+        {s.step === 4 && (
+          <>
+            <div className="wz-row spread"><h3>{w.plan.title}</h3>
+              {s.groups.some((x) => x.angleA) && <button type="button" className="sdr-btn sm" disabled={pending} onClick={plan}><Sparkles />{w.plan.regenerate}</button>}</div>
+            {!s.groups.some((x) => x.angleA) && (pending ? <p className="wiz-wait"><Loader2 className="spin" />{w.plan.making}</p> : <button type="button" className="sdr-btn primary" onClick={plan}><Sparkles />{w.plan.make}</button>)}
+            <p className="wz-note">{w.plan.volume}: {fmt(w.plan.volumeLine, { prospects: n(prospects), daily: n(s.dailyLimit) })}</p>
+            {s.groups.some((x) => x.angleA) && s.groups.map((x, i) => (
+              <div key={x.key} className="wz-plan">
+                <h4 dir="auto">{x.name} · {t.camp.groups.sources[x.source]}</h4>
+                {x.why && <p className="ws-hint" dir="auto"><strong>{w.plan.why}:</strong> {x.why}</p>}
+                {x.risks && <p className="ws-hint" dir="auto"><strong>{w.plan.risks}:</strong> {x.risks}</p>}
+                <div className="ws-field"><label className="ws-label">{w.plan.angleA}</label><textarea className="form-input" rows={2} dir="auto" maxLength={1000} value={x.angleA} onChange={(e) => setGroup(i, { angleA: e.target.value })} /></div>
+                <div className="ws-field"><label className="ws-label">{w.plan.angleB}</label><textarea className="form-input" rows={2} dir="auto" maxLength={1000} value={x.angleB} onChange={(e) => setGroup(i, { angleB: e.target.value })} /></div>
+                <div className="ws-field"><span className="ws-label">{w.plan.sequence}</span>
+                  <ol className="wz-seq">{x.steps.map((st, k) => (
+                    <li key={k}>
+                      <span>{fmt(w.plan.step, { n: String(k + 1) })} · {k === 0 ? w.plan.first : w.plan.followUp}</span>
+                      {k > 0 && <label>{fmt(w.plan.day, { n: "" })}<input className="sdr-input sm" type="number" min={1} max={60} value={st.delayDays} onChange={(e) => setGroup(i, { steps: x.steps.map((y, j) => (j === k ? { ...y, delayDays: Math.max(1, Number(e.target.value) || 1) } : y)) })} /></label>}
+                      <input className="sdr-input sm wz-ins" dir="auto" maxLength={500} placeholder={w.plan.instruction} value={st.instruction} onChange={(e) => setGroup(i, { steps: x.steps.map((y, j) => (j === k ? { ...y, instruction: e.target.value } : y)) })} />
+                      {k > 0 && <button type="button" className="sdr-btn sm" onClick={() => setGroup(i, { steps: x.steps.filter((_, j) => j !== k) })}>{w.plan.removeStep}</button>}
+                    </li>
+                  ))}</ol>
+                  {x.steps.length < 5 && <button type="button" className="sdr-btn sm" onClick={() => setGroup(i, { steps: [...x.steps, { delayDays: (x.steps.at(-1)?.delayDays ?? 0) + 4, objective: "follow_up", instruction: "" }] })}><Plus />{w.plan.addStep}</button>}
+                  <p className="ws-hint">{w.plan.stops}</p></div>
+              </div>
+            ))}
+            {s.groups.some((x) => x.angleA) && (
+              <button type="button" className={`sdr-btn ${s.planned ? "" : "primary"}`} disabled={s.planned || !s.groups.every((x) => x.angleA.trim())} onClick={() => setS((cur) => ({ ...cur, planned: true }))}>{s.planned ? <><Check />{w.plan.approved}</> : w.plan.approve}</button>
+            )}
+            {!s.planned && s.groups.some((x) => x.angleA) && <p className="ws-hint">{w.plan.needApprove}</p>}
+          </>
+        )}
+
+        {s.step === 5 && (
           <>
             <h3>{w.review.title}</h3>
-            <div className="ws-field"><label className="ws-label" htmlFor="wiz-name">{w.review.name}</label><input id="wiz-name" className="form-input" dir="auto" maxLength={160} value={name} onChange={(e) => setName(e.target.value)} /></div>
             <dl className="wiz-plan">
-              <dt>{w.review.goal}</dt><dd>{aim === "meeting" ? w.goal.meeting : `${w.goal.sell} · ${ctaUrl}`}</dd>
-              <dt>{w.review.audience}</dt><dd dir="auto">{audience.summary}</dd>
-              <dt>{w.review.target}</dt><dd>{fmt(w.review.meetingsN, { n: n(target) })}</dd>
-              <dt>{w.review.dates}</dt><dd>{noEnd ? fmt(w.review.fromOpen, { from: startDay }) : fmt(w.review.fromTo, { from: startDay, to: endDay })}</dd>
-              <dt>{w.review.budget}</dt><dd>{fmt(w.review.prospectsN, { n: n(budget) })}</dd>
-              <dt>{w.review.daily}</dt><dd>{fmt(w.review.emailsN, { n: n(daily) })}</dd>
+              <dt>{w.basics.name}</dt><dd dir="auto">{s.name}</dd>
+              <dt>{w.basics.objective}</dt><dd>{s.objective === "custom" ? s.customObjective : t.camp.manager.objectives[s.objective]}</dd>
+              <dt>{w.budget.amount}</dt><dd>{usd(s.budgetUsd)} · {w.budget.types[s.budgetType]} · ≈ {n(prospects)}</dd>
+              <dt>{w.budget.start}</dt><dd>{s.startDate || p.today} {s.startTime}{s.endDate ? ` → ${s.endDate} ${s.endTime}` : ` · ${w.budget.noEnd}`} · {s.timezone}</dd>
+              <dt>{w.budget.days}</dt><dd>{s.runDays.map((d) => w.budget.dayNames[d]).join("، ")} · {s.contactFrom}–{s.contactTo} · {fmt(w.budget.volumeOpen, { n: n(s.dailyLimit) })}</dd>
+              <dt>{w.audience.groups}</dt><dd>{s.groups.map((x) => <div key={x.key} dir="auto">{x.name} · {t.camp.groups.sources[x.source]}</div>)}</dd>
+              <dt>{w.channels.title}</dt><dd>{s.channels.map((c) => CHANNELS.find((x) => x.id === c)?.label[lang]).join(" + ")}</dd>
             </dl>
             <div className="wiz-next"><strong>{w.review.what}</strong><p>{w.review.whatLine}</p></div>
+            {warnings.length > 0 && <div className="ws-note"><strong>{w.review.warnings}</strong><ul>{warnings.map((x) => <li key={x}>{x}</li>)}</ul></div>}
           </>
         )}
       </section>
 
       <div className="wiz-actions">
-        {step > 0 && <button type="button" className="sdr-btn" disabled={pending} onClick={() => setStep((s) => s - 1)}>{w.back}</button>}
-        {step < 5
-          ? <button type="button" className="sdr-btn primary" disabled={!canNext || pending} onClick={next}>{pending && <Loader2 className="spin" />}{w.next}</button>
+        <button type="button" className="sdr-btn" disabled={pending || !s.name.trim()} onClick={() => persist(s, false)}>{w.saveDraft}</button>
+        <span className="cm-spacer" />
+        {s.step > 0 && <button type="button" className="sdr-btn" disabled={pending} onClick={() => go(s.step - 1)}>{w.back}</button>}
+        {s.step < 5
+          ? <button type="button" className="sdr-btn primary" disabled={!canNext || pending} onClick={() => go(s.step + 1)}>{w.next}</button>
           : <button type="button" className="sdr-btn primary" disabled={pending} onClick={launch}>{pending && <Loader2 className="spin" />}{pending ? w.launching : w.launch}</button>}
       </div>
     </div>
   );
+}
+
+function hasAny(tg: unknown): boolean {
+  const t = tg as Record<string, { include?: string[] } | string | undefined>;
+  return Object.entries(t ?? {}).some(([k, v]) => (k === "description" ? Boolean((v as string)?.trim()) : ((v as { include?: string[] })?.include?.length ?? 0) > 0));
 }

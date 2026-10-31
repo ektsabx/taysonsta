@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Bookmark, Building2, UserRound } from "lucide-react";
+import { Bookmark, Building2, UserRound, UsersRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
 import { CampaignFilter } from "@/components/app/campaigns/CampaignFilter";
@@ -93,6 +93,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           <p>{L.subtitle}</p>
         </div>
         <div className="sdr-head-actions">
+          <Link className="sdr-btn" href="/prospects/audiences"><UsersRound />{t.camp.aud.title}</Link>
           <ImportCsvButton available={Math.max(usage.contacts.limit - usage.contacts.used, 0)} primary label={L.importPeople} />
         </div>
       </header>

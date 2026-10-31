@@ -40,7 +40,13 @@ export async function autopilotSweep(): Promise<{ proposed: number; topped: numb
   for (const s of (searches ?? []) as Search[]) {
     if (!s.created_by) continue;
     try {
-      const { data: existing } = await db.from("outreach_campaigns").select("id, approved_at, status, created_by").eq("source_campaign_id", s.id).neq("status", "archived").order("created_at").limit(1).maybeSingle();
+      // D-272: a search belongs to an audience group of a campaign (older campaigns: source_campaign_id).
+      const { data: grp } = await db.from("audience_groups").select("id, campaign_id, status").eq("search_campaign_id", s.id).limit(1).maybeSingle();
+      const { data: existing } = grp
+        ? await db.from("outreach_campaigns").select("id, approved_at, status, created_by").eq("id", grp.campaign_id).neq("status", "archived").maybeSingle()
+        : await db.from("outreach_campaigns").select("id, approved_at, status, created_by").eq("source_campaign_id", s.id).neq("status", "archived").order("created_at").limit(1).maybeSingle();
+      const groupId = grp?.id ?? (existing ? (await db.from("audience_groups").select("id").eq("campaign_id", existing.id).order("created_at").limit(1).maybeSingle()).data?.id ?? null : null);
+      if (grp && grp.status !== "active") continue;
       if (!existing) {
         // One worker only, once per search.
         // A few per minute: each one writes a first email with the AI.
@@ -50,18 +56,24 @@ export async function autopilotSweep(): Promise<{ proposed: number; topped: numb
       if (!existing.approved_at) {
         // A campaign made in the campaign wizard (D-270) waits for its search's first people:
         // they join, one real first email is written, and the approval card goes out once.
+        // Several groups (D-272): the first group with people brings the approval card; the others just join.
+        const inGroup = groupId ? (await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("audience_group_id", groupId)).count ?? 0 : 0;
+        if (inGroup) continue;
         const { count } = await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("campaign_id", existing.id);
-        if (!count && out.proposed < 3 && await claim(db, `autopilot:offer:${existing.id}`)) { await offer(db, s, existing.id, existing.created_by ?? s.created_by); out.proposed++; }
+        if (count) { if (await claim(db, `autopilot:join:${groupId ?? s.id}`)) await enrollSearch(db, s.workspace_id, existing.created_by ?? s.created_by, existing.id, s.id, groupId); continue; }
+        if (out.proposed < 3 && await claim(db, `autopilot:offer:${existing.id}`)) { await offer(db, s, existing.id, existing.created_by ?? s.created_by, groupId); out.proposed++; }
         continue;
       }
       if (existing.status !== "active" && existing.status !== "scheduled") continue;
       // A new run of a continuous search: its new prospects join the running campaign.
-      const key = `autopilot:topup:${existing.id}`;
+      const key = `autopilot:topup:${groupId ?? existing.id}`;
       const { data: st } = await db.from("worker_state").select("value").eq("key", key).maybeSingle();
       const seen = Number((st?.value as { runs?: number } | null)?.runs ?? -1);
       if (seen === s.runs_count) continue;
       await db.from("worker_state").upsert({ key, value: { runs: s.runs_count } as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
-      if (seen >= 0) { await enrollSearch(db, s.workspace_id, existing.created_by ?? s.created_by, existing.id, s.id); out.topped++; }
+      // A group's first people after approval join too (a group added to a running campaign, D-272).
+      const empty = groupId ? !((await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("audience_group_id", groupId)).count ?? 0) : false;
+      if (seen >= 0 || empty) { await enrollSearch(db, s.workspace_id, existing.created_by ?? s.created_by, existing.id, s.id, groupId); out.topped++; }
     } catch (e) {
       console.error("[autopilot]", s.id, e instanceof Error ? e.message : e);
     }
@@ -76,13 +88,13 @@ async function claim(db: Db, key: string) {
 }
 
 /** The search's prospects become leads and join the campaign (do-not-contact, suppression and re-contact rules apply). */
-async function enrollSearch(db: Db, ws: string, userId: string, outreachId: string, searchId: string) {
+async function enrollSearch(db: Db, ws: string, userId: string, outreachId: string, searchId: string, groupId: string | null = null) {
   const targets: LeadTarget[] = await searchTargets(ws, searchId, db as never);
   if (!targets.length) return null;
   const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", ws).limit(10000)).data ?? []).map((l) => l.id));
   const { ids } = await addLeads(db as never, targets, "search");
   await leadsCreated(ws, ids.filter((id) => !before.has(id)), "agent");
-  return enrollLeads(db as never, ws, userId, outreachId, ids);
+  return enrollLeads(db as never, ws, userId, outreachId, ids, groupId);
 }
 
 async function propose(db: Db, s: Search, userId: string) {
@@ -104,11 +116,13 @@ async function propose(db: Db, s: Search, userId: string) {
   await db.from("outreach_steps").insert(Array.from({ length: steps }, (_, i) => ({
     workspace_id: ws, campaign_id: camp.id, position: i + 1, delay_days: i === 0 ? 0 : 3 * i, objective: (i === 0 ? "introduction" : "follow_up") as never,
   })));
-  await offer(db, s, camp.id, userId);
+  // Every campaign has at least one audience group (D-272): this search's.
+  const { data: group } = await db.from("audience_groups").insert({ workspace_id: ws, campaign_id: camp.id, name: s.name.slice(0, 120), source: "find_new", strategy_id: s.strategy_id, search_campaign_id: s.id, created_by: userId }).select("id").single();
+  await offer(db, s, camp.id, userId, group?.id ?? null);
 }
 
 /** The search's people join the campaign, one real first email is written, and the member is asked to approve once. */
-async function offer(db: Db, s: Search, campaignId: string, userId: string) {
+async function offer(db: Db, s: Search, campaignId: string, userId: string, groupId: string | null = null) {
   const ws = s.workspace_id;
   const [{ data: profile }, { data: camp }] = await Promise.all([
     db.from("profiles").select("language").eq("id", userId).maybeSingle(),
@@ -117,7 +131,7 @@ async function offer(db: Db, s: Search, campaignId: string, userId: string) {
   if (!camp) return;
   const ar = profile?.language === "ar";
   const aim = (camp.aim ?? "meeting") as CampaignAim;
-  const enrolled = await enrollSearch(db, ws, userId, camp.id, s.id);
+  const enrolled = await enrollSearch(db, ws, userId, camp.id, s.id, groupId);
   const recipients = enrolled?.added ?? 0;
   if (!recipients) return;
 

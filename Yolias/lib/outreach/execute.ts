@@ -9,7 +9,7 @@ import { isStopRequest } from "@/lib/agents/stop";
 import { runAutomations } from "@/lib/automations/engine";
 import { postponeFollowUps, stopEnrollments } from "@/lib/crm/follow-ups";
 import { loadSendingRules, mailboxAccess, markMailboxError, MailboxError } from "@/lib/mailbox";
-import { mailboxWindow, nextGapMs, withinWindow } from "@/lib/outreach/sending-rules";
+import { mailboxWindow, nextGapMs, withinWindow, campaignWindow } from "@/lib/outreach/sending-rules";
 import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
 import { unsubscribeFooter, unsubscribePostUrl } from "@/lib/outreach/unsubscribe";
@@ -177,7 +177,11 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   // mailbox's sending hours and one email per random gap (D-256).
   const rules = await loadSendingRules(c.workspace_id);
   const { data: member } = await db.from("profiles").select("timezone").eq("id", mailbox.user_id).maybeSingle();
-  if (!withinWindow(mailboxWindow(mailbox, rules, member?.timezone ?? null))) return res;
+  const boxWindow = mailboxWindow(mailbox, rules, member?.timezone ?? null);
+  if (!withinWindow(boxWindow)) return res;
+  // D-272: and the campaign's own running days and contact hours, when it sets them.
+  const own = campaignWindow(c, boxWindow.timeZone);
+  if (own && !withinWindow(own)) return res;
   if (mailbox.next_send_at && Date.parse(mailbox.next_send_at) > Date.now()) return res;
   if (rules.gap_max > 0) room = Math.min(room, 1);
   const { data: msgs } = await db.from("outreach_messages").select("*, enrollment:outreach_enrollments(id, status, current_step), lead:sales_leads(id, do_not_contact, email, name)")
