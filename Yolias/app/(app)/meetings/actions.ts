@@ -1,5 +1,6 @@
 "use server";
 
+import { campaignOfLead } from "@/lib/campaigns/activity";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/session";
@@ -83,6 +84,7 @@ export async function addMeeting(input: { leadId: string; start: string; minutes
   const { data: saved, error } = await db.from("sales_meetings").insert({
     workspace_id: session.workspace.id, lead_id: lead.id, title: lead.name.slice(0, 200), starts_at: starts, ends_at: new Date(Date.parse(starts) + p.data.minutes * 60_000).toISOString(),
     url, location: url ? null : place, status: "scheduled", source: "manual", created_by: session.userId, host_id: session.userId,
+    campaign_id: await campaignOfLead(db, lead.id),
   }).select("id, lead_id, status").single();
   if (error?.code === "23505") return { ok: false, error: t.taken };
   if (error || !saved) return { ok: false, error: t.invalid };
@@ -108,7 +110,7 @@ export async function meetingBriefAction(meetingId: string): Promise<{ ok: true;
  * Asked after a meeting (Meetings) and, for purchase campaigns, in the
  * conversation. Won and lost deals guide the next searches (lib/crm/outcomes.ts).
  */
-export async function setOutcome(leadId: string, won: boolean, reason?: string | null, meetingId?: string | null): Promise<R> {
+export async function setOutcome(leadId: string, won: boolean, reason?: string | null, meetingId?: string | null, dealValue?: number | null): Promise<R> {
   const session = await requireSession();
   const t = (await getDictionary()).meetings.errors;
   if (!z.string().uuid().safeParse(leadId).success) return { ok: false, error: t.invalid };
@@ -123,8 +125,23 @@ export async function setOutcome(leadId: string, won: boolean, reason?: string |
   const r = await changeStage(db, session.workspace.id, leadId, won ? "closed" : "lost", "user");
   if (!r.ok) return { ok: false, error: t.invalid };
   if (!won && reason) await db.from("sales_leads").update({ lost_reason: reason.slice(0, 300) }).eq("id", leadId);
+  // D-270: the deal's value, when known, for the campaign's return.
+  if (won && dealValue != null && Number.isFinite(dealValue) && dealValue >= 0 && dealValue <= 1e9) await db.from("sales_leads").update({ deal_value: dealValue }).eq("id", leadId);
   revalidatePath("/meetings");
   revalidatePath("/inbox");
-  revalidatePath("/analytics");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** After a meeting (D-270): was it with the right person, about a real need? Counts toward the campaign's target. */
+export async function setMeetingQualified(id: string, qualified: boolean): Promise<R> {
+  const session = await requireSession();
+  const t = (await getDictionary()).meetings.errors;
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.invalid };
+  const db = await createClient();
+  const { data, error } = await db.from("sales_meetings").update({ qualified }).eq("id", id).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
+  if (error || !data) return { ok: false, error: t.invalid };
+  revalidatePath("/meetings");
+  revalidatePath("/dashboard");
   return { ok: true };
 }

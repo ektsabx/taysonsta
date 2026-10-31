@@ -1,4 +1,6 @@
 import "server-only";
+import { priority } from "@/lib/campaigns/engines";
+import { logCampaign } from "@/lib/campaigns/activity";
 import { bookForLead, nextSlots } from "@/lib/meetings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
@@ -28,7 +30,7 @@ type Db = ReturnType<typeof createAdminClient>;
 const MINUTE = 60_000;
 const PER_RUN = 20;
 
-export type ApproveResult = { ok: true } | { ok: false; error: "not_found" | "archived" | "no_mailbox" | "mailbox_not_connected" | "channel" | "no_leads" | "denied" };
+export type ApproveResult = { ok: true } | { ok: false; error: "not_found" | "archived" | "no_mailbox" | "mailbox_not_connected" | "channel" | "no_leads" | "denied" | "ended" };
 
 /**
  * The member approves running a campaign. With a mailbox, Yolias sends the
@@ -54,28 +56,46 @@ export async function approveCampaign(input: { workspaceId: string; userId: stri
     mailbox = m as MailboxRow;
   }
   const now = new Date().toISOString();
+  if (camp.ends_at && Date.parse(camp.ends_at) <= Date.now()) return { ok: false, error: "ended" };
+  // D-270: a campaign with a start date ahead waits as "scheduled"; the schedule sweep starts it.
+  const later = Boolean(camp.starts_at && Date.parse(camp.starts_at) > Date.now());
   await db.from("outreach_campaigns").update({
     send_mode: mailbox ? "mailbox" : "manual", mailbox_id: mailbox?.id ?? null, approved_at: now, approved_by: input.userId,
-    auto_reply: Boolean(mailbox && input.autoReply), status: "active", started_at: camp.started_at ?? now,
+    auto_reply: Boolean(mailbox && input.autoReply), status: later ? "scheduled" : "active", started_at: later ? null : camp.started_at ?? now,
   }).eq("id", camp.id);
+  await logCampaign(db, camp.workspace_id, camp.id, later ? "scheduled" : "started", later ? `Approved. Starts on ${camp.starts_at!.slice(0, 10)}.` : "Approved and started.", { by: input.userId });
   // One place approves a campaign, its page (owner, 2026-10-28): the chat's card for it shows it as approved.
   await db.from("agent_pending_actions").update({ status: "approved", decided_by: input.userId, decided_at: now })
     .eq("workspace_id", input.workspaceId).eq("tool", "startOutreachCampaign").eq("status", "pending").eq("input->>id", camp.id);
   return { ok: true };
 }
 
-/** Pause / resume / cancel (archive). Cancelling drops unsent drafts and stops every lead. */
-export async function setCampaignRun(workspaceId: string, campaignId: string, action: "pause" | "resume" | "cancel"): Promise<boolean> {
+/**
+ * Pause / resume / end / cancel. Ending (D-270) keeps the campaign and its
+ * results as "completed"; cancelling archives it. Both drop unsent drafts and
+ * stop every lead; replies already in conversations stay.
+ */
+export async function setCampaignRun(workspaceId: string, campaignId: string, action: "pause" | "resume" | "cancel" | "end"): Promise<boolean> {
   const db = createAdminClient();
-  const { data: c } = await db.from("outreach_campaigns").select("id, status, approved_at").eq("id", campaignId).eq("workspace_id", workspaceId).maybeSingle();
-  if (!c || c.status === "archived") return false;
-  if (action === "pause") return !(await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id)).error;
-  if (action === "resume") {
-    if (!c.approved_at) return false;
-    return !(await db.from("outreach_campaigns").update({ status: "active" }).eq("id", c.id)).error;
+  const { data: c } = await db.from("outreach_campaigns").select("id, status, approved_at, starts_at, ends_at, source_campaign_id").eq("id", campaignId).eq("workspace_id", workspaceId).maybeSingle();
+  if (!c || c.status === "archived" || (c.status === "completed" && action !== "cancel")) return false;
+  if (action === "pause") {
+    const done = !(await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id)).error;
+    if (done) await logCampaign(db, workspaceId, c.id, "paused", "Paused.");
+    return done;
   }
-  await db.from("outreach_campaigns").update({ status: "archived" }).eq("id", c.id);
-  const { data: stopped } = await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "campaign_canceled", next_step_at: null }).eq("campaign_id", c.id).in("status", ["active", "paused"]).select("id");
+  if (action === "resume") {
+    if (!c.approved_at || (c.ends_at && Date.parse(c.ends_at) <= Date.now())) return false;
+    const later = Boolean(c.starts_at && Date.parse(c.starts_at) > Date.now());
+    const done = !(await db.from("outreach_campaigns").update({ status: later ? "scheduled" : "active", failure_reason: null }).eq("id", c.id)).error;
+    if (done) await logCampaign(db, workspaceId, c.id, "resumed", "Resumed.");
+    return done;
+  }
+  await logCampaign(db, workspaceId, c.id, "completed", action === "end" ? "Ended. Replies already in Conversations stay there." : "Canceled.");
+  await db.from("outreach_campaigns").update(action === "end" ? { status: "completed", ended_at: new Date().toISOString() } : { status: "archived" }).eq("id", c.id);
+  // Its search stops finding more people for it.
+  if (c.source_campaign_id) await db.from("campaigns").update({ continuous: false, next_run_at: null }).eq("id", c.source_campaign_id);
+  const { data: stopped } = await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: action === "end" ? "campaign_ended" : "campaign_canceled", next_step_at: null }).eq("campaign_id", c.id).in("status", ["active", "paused"]).select("id");
   if (stopped?.length) await db.from("outreach_messages").update({ status: "canceled" }).in("enrollment_id", stopped.map((e) => e.id)).eq("direction", "outbound").in("status", ["draft", "approved", "failed"]);
   return true;
 }
@@ -109,6 +129,9 @@ async function recoverInterrupted(db: Db) {
 async function runCampaign(db: Db, c: OutreachCampaignRow) {
   const res = { sent: 0, failed: 0, prepared: 0 };
   if (!c.mailbox_id || !c.approved_by) return res;
+  // D-270: inside the campaign's own dates only (the schedule sweep moves it to scheduled / completed).
+  if (c.starts_at && Date.parse(c.starts_at) > Date.now()) return res;
+  if (c.ends_at && Date.parse(c.ends_at) <= Date.now()) return res;
   const { data: mb } = await db.from("mailboxes").select("*").eq("id", c.mailbox_id).maybeSingle();
   const mailbox = mb as MailboxRow | null;
   // Only the approver's own, connected mailbox in this workspace.
@@ -122,13 +145,26 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   const sentToday = mailbox.sent_day === today ? mailbox.sent_today : 0;
   // The mailbox's own limit and the workspace's daily send limit, whichever is lower.
   let room = Math.min(Math.min(mailbox.daily_limit, settings.limits.daily_send_limit) - sentToday, PER_RUN);
+  // D-270: and the campaign's own daily limit, when it has one.
+  if (c.daily_limit) {
+    const { count: campaignToday } = await db.from("outreach_messages").select("id", { count: "exact", head: true })
+      .eq("outreach_campaign_id", c.id).eq("direction", "outbound").eq("status", "sent").gte("sent_at", `${today}T00:00:00Z`);
+    room = Math.min(room, c.daily_limit - (campaignToday ?? 0));
+  }
   if (room <= 0) return res;
 
   // 1) Leads whose next step is due get their message prepared.
   const now = new Date().toISOString();
-  const { data: due } = await db.from("outreach_enrollments").select("id, current_step, next_step_at").eq("campaign_id", c.id).eq("status", "active")
-    .or(`current_step.eq.0,next_step_at.lte.${now}`).order("created_at").limit(room);
-  for (const e of due ?? []) {
+  const { data: dueRaw } = await db.from("outreach_enrollments").select("id, current_step, next_step_at, lead:sales_leads(email, prospect:prospects(match_score, email_status))").eq("campaign_id", c.id).eq("status", "active")
+    .or(`current_step.eq.0,next_step_at.lte.${now}`).order("created_at").limit(Math.max(room * 4, 20));
+  // D-270: follow-ups first (the conversation is already open), then new leads by priority:
+  // fit, a verified email (lib/campaigns/engines.ts → priority).
+  const rank = (e: NonNullable<typeof dueRaw>[number]) => {
+    const lead = e.lead as unknown as { email: string | null; prospect: { match_score: number | null; email_status: string | null } | null } | null;
+    return e.current_step > 0 ? 2 : priority({ matchScore: lead?.prospect?.match_score ?? null, emailStatus: lead?.prospect?.email_status ?? null, contactable: Boolean(lead?.email) });
+  };
+  const due = [...(dueRaw ?? [])].sort((a, b) => rank(b) - rank(a)).slice(0, room);
+  for (const e of due) {
     const r = await prepareNextStep(c.workspace_id, c.approved_by, e.id, "user").catch(() => null);
     if (r?.ok) res.prepared++;
     // Nobody to send to on this channel: the lead leaves the campaign instead of waiting forever.

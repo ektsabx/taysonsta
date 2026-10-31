@@ -1,6 +1,13 @@
 // Database types for the Yolias schema (supabase/migrations). Keep in sync
 // with the migrations, or regenerate with `supabase gen types typescript`.
 
+/** D-270: shared learning, one aggregated group (industry × country × aim; "*" = any). Numbers only. */
+export type LearningRateRow = { industry: string; country: string; aim: string; workspaces: number; contacted: number; positive: number; meetings: number; qualified: number; updated_at: string };
+
+/** D-270: what Yolias did in a campaign and why. */
+export type CampaignActivityKind = "started" | "scheduled" | "paused" | "resumed" | "completed" | "failed" | "guard" | "enrolled" | "angle" | "pace" | "note";
+export type CampaignActivityRow = { id: number; workspace_id: string; campaign_id: string; kind: CampaignActivityKind; body: string; meta: Json; created_at: string };
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 import type {
@@ -1034,6 +1041,8 @@ export interface Database {
       seo_url_inspections: Table<SeoUrlInspectionRow, "url">;
       seo_sync_runs: Table<SeoSyncRunRow, "source">;
       signup_attribution: Table<SignupAttributionRow, "user_id">;
+      campaign_activity: Table<CampaignActivityRow, "workspace_id" | "campaign_id" | "kind" | "body">;
+      learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };
     Views: {
@@ -1045,6 +1054,7 @@ export interface Database {
     };
     Functions: {
       is_workspace_member: { Args: { ws: string }; Returns: boolean };
+      refresh_learning_rates: { Args: Record<string, never>; Returns: number };
       is_workspace_manager: { Args: { ws: string }; Returns: boolean };
       upsert_lead: { Args: { p_prospect: string | null; p_company: string | null; p_source?: LeadSource }; Returns: string };
       set_lead_stage: { Args: { p_lead: string; p_stage: LeadStage; p_actor?: ActorKind }; Returns: number | null };

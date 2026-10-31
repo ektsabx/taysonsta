@@ -10,6 +10,7 @@ import { runAutomations } from "@/lib/automations/engine";
 import { draftOutreach, type DraftError, type MessageTarget } from "@/lib/outreach";
 import { isMessageLanguage, DEFAULT_LANGUAGE } from "@/lib/outreach/channels";
 import { aimGuidance } from "@/lib/outreach/aim";
+import { pickArm } from "@/lib/campaigns/engines";
 import type { Database, LeadRow } from "@/types/database";
 
 // Outreach campaigns (D-193): a campaign holds steps (first message +
@@ -22,7 +23,7 @@ import type { Database, LeadRow } from "@/types/database";
 type Db = SupabaseClient<Database>;
 const DAY = 86_400_000;
 
-export type EnrollSkip = "do_not_contact" | "suppressed" | "already_enrolled" | "recently_contacted" | "no_contact";
+export type EnrollSkip = "do_not_contact" | "suppressed" | "already_enrolled" | "recently_contacted" | "no_contact" | "in_other_campaign";
 export type EnrollResult = { added: number; skipped: Partial<Record<EnrollSkip, number>> };
 
 export function targetOf(lead: Pick<LeadRow, "prospect_id" | "company_id">): MessageTarget | null {
@@ -53,6 +54,10 @@ export async function enrollLeads(db: Db, workspaceId: string, userId: string, c
         .eq("lead_id", lead.id).eq("status", "sent").gte("sent_at", since).neq("outreach_campaign_id", campaignId);
       if (count) { skip("recently_contacted"); continue; }
     }
+    // One person, one conversation (D-270): not while another campaign is still writing to them.
+    const { count: elsewhere } = await admin.from("outreach_enrollments").select("id", { count: "exact", head: true })
+      .eq("lead_id", lead.id).eq("status", "active").neq("campaign_id", campaignId);
+    if (elsewhere) { skip("in_other_campaign"); continue; }
     const { error } = await db.from("outreach_enrollments").insert({ workspace_id: workspaceId, campaign_id: campaignId, lead_id: lead.id, created_by: userId });
     if (error) { if (/duplicate key/.test(error.message)) skip("already_enrolled"); else throw error; continue; }
     result.added++;
@@ -98,8 +103,9 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const target = targetOf(lead);
   if (!target) return { ok: false, error: "not_found" };
 
-  // A/B test (D-268): half the leads (by their id) get the second angle for the first email.
-  const variant = position === 1 && (campaign as { variant_b?: string | null }).variant_b ? (parseInt(lead.id.replace(/-/g, "").slice(-6), 16) % 2 ? "b" : "a") : null;
+  // A/B test (D-268): the first email's angle. D-270: Thompson sampling on positive replies
+  // (lib/campaigns/engines.ts): alternate until each angle has 20 leads, then favour the one that works.
+  const variant = position === 1 && (campaign as { variant_b?: string | null }).variant_b ? pickArm(await angleArms(db, campaign.id)) as "a" | "b" : null;
   const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${(campaign as { variant_b?: string | null }).variant_b}` : null;
   const r = await draftOutreach({
     workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), campaign.goal, step.instruction, angle].filter(Boolean).join("\n") || null,
@@ -113,6 +119,18 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   if (!r.ok) return r;
   if (variant) await db.from("outreach_messages").update({ variant }).eq("id", r.message.id);
   return { ok: true, messageId: r.message.id };
+}
+
+/** Leads sent each first-email angle in a campaign, and how many of them replied with interest. */
+async function angleArms(db: Db, campaignId: string) {
+  const { data: firsts } = await db.from("outreach_messages").select("lead_id, variant").eq("outreach_campaign_id", campaignId).eq("step_position", 1)
+    .eq("direction", "outbound").in("variant", ["a", "b"]).neq("status", "canceled").limit(5000);
+  const { data: replies } = await db.from("outreach_messages").select("lead_id, analysis").eq("outreach_campaign_id", campaignId).eq("direction", "inbound").limit(5000);
+  const positive = new Set((replies ?? []).filter((r) => ["interested", "meeting_request"].includes((r.analysis as { kind?: string } | null)?.kind ?? "")).map((r) => r.lead_id));
+  return (["a", "b"] as const).map((key) => {
+    const leads = new Set((firsts ?? []).filter((m) => m.variant === key).map((m) => m.lead_id));
+    return { key, n: leads.size, s: [...leads].filter((l) => positive.has(l)).length };
+  });
 }
 
 export type SendError = "not_found" | "not_ready" | "do_not_contact" | "too_soon" | "daily_limit";

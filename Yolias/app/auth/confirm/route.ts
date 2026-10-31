@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { TEMPLATE_COOKIE } from "@/lib/content/seo-pages";
 import { recordReferral, REFERRAL_COOKIE } from "@/lib/referrals";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -57,7 +58,8 @@ export async function GET(request: NextRequest) {
   // Yolias Partners (D-206): back to the partner portal — this browser started
   // there (cookie), or the account is a partner account without a plan.
   const next = request.cookies.get(NEXT_COOKIE)?.value;
-  let dest = "/";
+  // The dashboard is the account's home (D-270); a template opened from the website waits in Yolias AI's box.
+  let dest = request.cookies.get(TEMPLATE_COOKIE) ? "/" : "/dashboard";
   if (next === "/partners") dest = "/partners";
   else if (auth.user?.user_metadata?.partner === true) {
     const { data: prof } = await supabase.from("profiles").select("workspace:workspaces(subscription_status)").eq("id", auth.user.id).maybeSingle();

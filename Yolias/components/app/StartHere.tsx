@@ -18,9 +18,8 @@ export function StartHere({ steps }: { steps: StartSteps }) {
   const s = t.startHere;
   if (steps.mailbox && steps.search && steps.campaign && steps.booking) return null;
   const done = [steps.mailbox, steps.search, steps.campaign, steps.booking].filter(Boolean).length;
-  const focusComposer = () => document.querySelector<HTMLTextAreaElement>(".prompt-input")?.focus();
   const items = [
-    { key: "search", ok: steps.search, icon: Search, title: s.search, desc: s.searchDesc, action: <button type="button" className="start-here-go" onClick={focusComposer}>{s.searchCta}</button> },
+    { key: "search", ok: steps.search, icon: Search, title: s.search, desc: s.searchDesc, action: <Link className="start-here-go" href="/outreach/new">{s.searchCta}</Link> },
     { key: "mailbox", ok: steps.mailbox, icon: Mail, title: s.mailbox, desc: s.mailboxDesc, action: <button type="button" className="start-here-go" onClick={() => openSettingsTab("integration")}>{s.mailboxCta}</button> },
     { key: "booking", ok: steps.booking, icon: CalendarDays, title: s.booking, desc: s.bookingDesc, action: <Link className="start-here-go" href="/meetings?tab=page">{s.bookingCta}</Link> },
     { key: "campaign", ok: steps.campaign, icon: Send, title: s.campaign, desc: s.campaignDesc, action: <Link className="start-here-go" href="/outreach">{s.campaignCta}</Link> },

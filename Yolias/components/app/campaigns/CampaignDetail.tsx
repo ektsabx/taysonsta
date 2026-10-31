@@ -37,6 +37,8 @@ interface Props {
   dailyLimit: number;
   tab: CampaignTab;
   timeZone: string | null;
+  /** D-270: results, costs, plan and forecast, what Yolias did, and the campaign controls. */
+  results?: React.ReactNode;
 }
 
 // A campaign's page (D-256, after AgentSDR): back link, name and status,
@@ -131,6 +133,7 @@ export function CampaignDetail(p: Props) {
       <LiveRefresh active={camp.status === "active" && Boolean(camp.approved_at) && p.page.summary.scheduled > 0} seconds={8} />
       {/* A campaign's analytics live on its page only (owner, 2026-10-30): numbers, where leads stand, daily activity. */}
       <CampaignNumbers page={p.page} />
+      {p.results}
       <div className="sdr-two">
         <Stand page={p.page} />
         <Activity page={p.page} />

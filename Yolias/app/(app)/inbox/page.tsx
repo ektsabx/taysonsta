@@ -3,7 +3,8 @@ import { requireViewer } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { memberMailboxes } from "@/lib/mailbox";
 import { inboxThread } from "@/services/inbox";
-import { INBOX_TABS, campaignLive, masterInbox, type InboxTab } from "@/services/master-inbox";
+import { INBOX_SHOWS, INBOX_TABS, campaignLive, masterInbox, type InboxShow, type InboxTab } from "@/services/master-inbox";
+import { createClient } from "@/lib/supabase/server";
 import { leadStatuses } from "@/services/pipeline";
 import { MasterInbox } from "@/components/app/inbox/MasterInbox";
 
@@ -25,19 +26,21 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const q = one(sp.q).slice(0, 100);
   const leadId = /^[0-9a-f-]{36}$/i.test(one(sp.lead)) ? one(sp.lead) : null;
   const campaignId = /^[0-9a-f-]{36}$/i.test(one(sp.campaign)) ? one(sp.campaign) : null;
-  const [list, thread, status, boxes, live] = await Promise.all([
-    masterInbox(ws, tab, q, campaignId),
+  const show = (INBOX_SHOWS as readonly string[]).includes(one(sp.show)) ? (one(sp.show) as InboxShow) : null;
+  const [list, thread, status, boxes, live, { data: campaignOptions }] = await Promise.all([
+    masterInbox(ws, tab, q, campaignId, show),
     leadId ? inboxThread(ws, leadId) : Promise.resolve(null),
     leadId ? leadStatuses(ws, { leadIds: [leadId] }).then((r) => r[0] ?? null) : Promise.resolve(null),
     memberMailboxes(ws, session.userId),
     campaignId ? campaignLive(ws, campaignId) : Promise.resolve(null),
+    (await createClient()).from("outreach_campaigns").select("id, name").eq("workspace_id", ws).neq("status", "archived").order("created_at", { ascending: false }).limit(100),
   ]);
   const connected = boxes.find((m) => m.status === "connected") ?? null;
   return (
     <MasterInbox
       tab={tab} counts={list.counts} items={list.items} q={q}
       thread={thread} status={status} hasMailbox={Boolean(connected)} mailboxEmail={connected?.email ?? null} timeZone={session.profile.timezone ?? null}
-      campaign={live}
+      campaign={live} campaigns={campaignOptions ?? []} show={show}
     />
   );
 }

@@ -81,7 +81,7 @@ export const wsEn = {
       running: "Campaign running", paused: "Campaign paused", sendingFrom: "Sending from {email}", manualMode: "Manual: you send each prepared message", autoReplyOn: "auto-replies on",
       cancel: "Cancel campaign", cancelConfirm: "Cancel this campaign? Unsent messages are dropped and no follow-ups go out.",
       started: "Approved. Yolias starts sending within a minute.", startedManual: "Approved. The messages are being prepared for you to send.",
-      errors: { not_found: "Campaign not found.", archived: "This campaign is canceled.", no_mailbox: "That mailbox isn’t yours or doesn’t exist.", mailbox_not_connected: "That mailbox needs reconnecting in Settings, Integrations.", channel: "Only email campaigns can send from a mailbox.", no_leads: "Add leads to the campaign first.", denied: "Only the person who created this campaign or a workspace admin can approve it." },
+      errors: { not_found: "Campaign not found.", archived: "This campaign is canceled.", no_mailbox: "That mailbox isn’t yours or doesn’t exist.", mailbox_not_connected: "That mailbox needs reconnecting in Settings, Integrations.", channel: "Only email campaigns can send from a mailbox.", no_leads: "Add leads to the campaign first.", denied: "Only the person who created this campaign or a workspace admin can approve it.", ended: "This campaign has passed its end date. Change the date to run it again." },
     },
     actions: { activate: "Activate", pause: "Pause", resume: "Resume", archive: "Archive", prepare: "Prepare drafts", preparing: "Preparing…", addLeads: "Add leads", remove: "Remove from campaign" },
     prepared: "{count} drafts prepared.", prepareSkipped: "{count} skipped (no step, limit reached, already prepared or not allowed).",
@@ -91,7 +91,7 @@ export const wsEn = {
     addLeadsTitle: "Add people you have contacted", addLeadsEmpty: "Nobody to add yet. Send to people from Prospects first.", addSelected: "Add {count}",
     enrolled: "{count} added.", skipped: {
       do_not_contact: "{count} asked not to be contacted", suppressed: "{count} on the do-not-contact list", already_enrolled: "{count} already in this campaign",
-      recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details",
+      recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details", in_other_campaign: "{count} already being contacted by another campaign",
     },
     errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no prospects yet." },
     started: "Campaign created. Yolias is writing the emails.",

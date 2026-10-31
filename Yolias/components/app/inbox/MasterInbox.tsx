@@ -1,5 +1,6 @@
 "use client";
 
+import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
 import { LiveRefresh } from "@/components/app/LiveRefresh";
 import { setOutcome } from "@/app/(app)/meetings/actions";
 import { LOST_REASONS } from "@/components/app/ws/bits";
@@ -33,6 +34,9 @@ interface Props {
   timeZone: string | null;
   /** The campaign being watched (?campaign=), with its live counts. */
   campaign: { id: string; name: string; active: boolean; leads: number; writing: number; sent: number; failed: number } | null;
+  /** D-270: filter by campaign and by what the conversation shows. */
+  campaigns: { id: string; name: string }[];
+  show: InboxShow | null;
 }
 
 const MAIN: InboxTab[] = ["inbox", "replies", "to_approve"];
@@ -51,7 +55,7 @@ export function MasterInbox(p: Props) {
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, ...patch };
+    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -103,6 +107,18 @@ export function MasterInbox(p: Props) {
               {p.tab !== "inbox" && <input type="hidden" name="tab" value={p.tab} />}
               <Search /><input name="q" defaultValue={p.q} placeholder={x.search} aria-label={x.search} />
             </form>
+          </div>
+          <div className="sdr-inbox-filters">
+            <select className="sdr-input sm" aria-label={t.camp.inbox.filter} value={p.show ?? ""} onChange={(e) => router.push(href({ show: e.target.value || null, lead: null }))}>
+              <option value="">{t.camp.inbox.all}</option>
+              {INBOX_SHOWS.map((k) => <option key={k} value={k}>{{ interested: t.camp.inbox.interested, not_interested: t.camp.inbox.notInterested, needs_you: t.camp.inbox.needsYou, meeting_request: t.camp.inbox.meetingRequest, booked: t.camp.inbox.booked, replied: t.camp.inbox.replied, no_reply: t.camp.inbox.noReply }[k]}</option>)}
+            </select>
+            {p.campaigns.length > 0 && (
+              <select className="sdr-input sm" aria-label={t.camp.prospects.campaign} value={p.campaign?.id ?? ""} onChange={(e) => router.push(href({ campaign: e.target.value || null, lead: null }))}>
+                <option value="">{t.camp.prospects.anyCampaign}</option>
+                {p.campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            )}
           </div>
           <nav className="sdr-tabs sdr-inbox-tabs">
             {MAIN.map((k) => <Link key={k} href={href({ tab: k === "inbox" ? null : k, lead: null })} className={p.tab === k ? "active" : ""} title={x.tabHints[k]}>{x.tabs[k]}{k === "inbox" && p.counts.inbox > 0 && <span className="sdr-count">{n(p.counts.inbox)}</span>}{k === "to_approve" && p.counts.to_approve > 0 && <span className="sdr-count">{n(p.counts.to_approve)}</span>}</Link>)}

@@ -94,7 +94,7 @@ export const sdrEn = {
     statSent: "Emails sent", statSentNote: "Last send {ago}", statSentNever: "Nothing sent yet",
     statReplies: "Replies", statRepliesHint: "Leads who replied, out of every lead in your campaigns.", statRepliesNote: "{pct}% of leads replied",
     panelTitle: "Campaigns", panelSub: "All time. Select a campaign to see its sends, leads and sequence.", search: "Search campaigns…",
-    views: { all: "All", active: "Active", paused: "Paused", draft: "Draft", completed: "Completed", archived: "Archived" },
+    views: { all: "All", active: "Active", scheduled: "Scheduled", paused: "Paused", draft: "Draft", completed: "Completed", failed: "Failed", archived: "Canceled" },
     colCampaign: "Campaign", colLeads: "Leads", colSent: "Sent", colReplies: "Replies", colLastSend: "Last send",
     stepsCreated: "{steps} steps · Created {date}", oneStepCreated: "1 step · Created {date}", empty: "No campaign yet. Create one, or send a selection from Prospects.", noMatch: "No campaign matches.",
     menu: { open: "Open", pause: "Pause", resume: "Resume", archive: "Archive", archiveConfirm: "Archive this campaign? It stops sending and its unsent emails are dropped." },

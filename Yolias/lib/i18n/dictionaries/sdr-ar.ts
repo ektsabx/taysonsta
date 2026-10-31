@@ -95,7 +95,7 @@ export const sdrAr: typeof sdrEn = {
     statSent: "الرسائل المرسلة", statSentNote: "آخر إرسال {ago}", statSentNever: "لم يُرسل شيء بعد",
     statReplies: "الردود", statRepliesHint: "العملاء الذين ردّوا، من كل عملاء حملاتك.", statRepliesNote: "ردّ {pct}% من العملاء",
     panelTitle: "الحملات", panelSub: "كل الأوقات. اختر حملة لترى رسائلها وعملاءها وتسلسلها.", search: "ابحث في الحملات…",
-    views: { all: "الكل", active: "نشطة", paused: "متوقفة", draft: "مسودة", completed: "مكتملة", archived: "مؤرشفة" },
+    views: { all: "الكل", active: "نشطة", scheduled: "مجدولة", paused: "متوقفة", draft: "مسودة", completed: "مكتملة", failed: "فشلت", archived: "ملغاة" },
     colCampaign: "الحملة", colLeads: "العملاء", colSent: "المرسلة", colReplies: "الردود", colLastSend: "آخر إرسال",
     stepsCreated: "{steps} خطوات · أُنشئت {date}", oneStepCreated: "خطوة واحدة · أُنشئت {date}", empty: "لا توجد حملات بعد. أنشئ حملة، أو أرسل مجموعة من العملاء المحتملين.", noMatch: "لا توجد حملة مطابقة.",
     menu: { open: "فتح", pause: "إيقاف مؤقت", resume: "استئناف", archive: "أرشفة", archiveConfirm: "أرشفة هذه الحملة؟ سيتوقف الإرسال وتُحذف الرسائل غير المرسلة." },

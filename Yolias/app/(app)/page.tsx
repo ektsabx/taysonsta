@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { StrategyComposer } from "@/components/app/StrategyComposer";
 import { TemplateOpened } from "@/components/app/TemplateOpened";
-import { StartHere } from "@/components/app/StartHere";
 import { requireViewer } from "@/lib/session";
 import { firstName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -14,17 +13,7 @@ export default async function YoliasAiPage({ searchParams }: PageProps<"/">) {
   const { new: fresh, q } = await searchParams;
   const db = await createClient();
   const ws = session.workspace.id;
-  // Start here (owner, 2026-10-28): each step is done from real rows (RLS: the member's workspace).
-  const [{ data: profiles }, mailboxes, searches, campaigns, calendar, page] = await Promise.all([
-    db.from("customer_profiles").select("id, name, is_default").eq("workspace_id", ws).order("is_default", { ascending: false }).order("name"),
-    db.from("mailboxes").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("status", "connected"),
-    db.from("strategies").select("id", { count: "exact", head: true }).eq("workspace_id", ws).neq("status", "chat"),
-    db.from("outreach_campaigns").select("id", { count: "exact", head: true }).eq("workspace_id", ws).not("approved_at", "is", null),
-    db.from("calendar_connections").select("user_id", { count: "exact", head: true }).eq("user_id", session.userId).eq("status", "connected"),
-    db.from("booking_pages").select("created_at, updated_at").eq("user_id", session.userId).maybeSingle(),
-  ]);
-  // The booking page is set once Google Calendar is connected or the page was edited (D-269).
-  const booking = (calendar.count ?? 0) > 0 || (!!page.data && page.data.updated_at > page.data.created_at);
+  const { data: profiles } = await db.from("customer_profiles").select("id, name, is_default").eq("workspace_id", ws).order("is_default", { ascending: false }).order("name");
   // A prospecting template opened from the website (/start, D-257): its request waits in the composer.
   // The key stays the same when the cookie is cleared, so the request stays in the box.
   const slug = (await cookies()).get(TEMPLATE_COOKIE)?.value;
@@ -36,7 +25,7 @@ export default async function YoliasAiPage({ searchParams }: PageProps<"/">) {
     <div className="page-view">
       <header style={{ height: 44, flexShrink: 0 }} />
       <div className="chat-view">
-        <StrategyComposer key={typeof fresh === "string" ? fresh : asked ? `q:${asked}` : "home"} initialPrompt={prompt} profiles={profiles ?? []} firstName={firstName(session.profile.full_name)} below={<StartHere steps={{ mailbox: (mailboxes.count ?? 0) > 0, search: (searches.count ?? 0) > 0, campaign: (campaigns.count ?? 0) > 0, booking }} />} />
+        <StrategyComposer key={typeof fresh === "string" ? fresh : asked ? `q:${asked}` : "home"} initialPrompt={prompt} profiles={profiles ?? []} firstName={firstName(session.profile.full_name)} />
       </div>
       {slug && <TemplateOpened />}
     </div>

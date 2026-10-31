@@ -6,6 +6,7 @@ import { followUpSweep } from "@/lib/outreach/sequence";
 import { dailyDigestSweep } from "@/lib/email/digest";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { autopilotSweep } from "@/lib/outreach/autopilot";
+import { campaignScheduleSweep } from "@/lib/campaigns/schedule";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -165,6 +166,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   // The morning summary by email (owner, 2026-10-29), at most every 15 minutes.
   await dailyDigestSweep().catch((e) => console.error("[jobs] morning summary failed", e));
   // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
+  // Campaign dates, the deliverability guard and shared learning (D-270), before sending.
+  await campaignScheduleSweep().catch((e) => console.error("[jobs] campaign schedule failed", e));
   await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
   // Autopilot (D-253): finished searches get a campaign waiting for one approval; continuous ones top it up.

@@ -47,7 +47,9 @@ export interface ProspectFilters {
   funding?: string;
   /** People who didn't reply to a campaign that ended 60+ days ago (D-268, lib/outreach/reengage.ts). */
   noReply?: boolean;
-  /** Server code only: the rows `noReply` resolved to. */
+  /** D-270: only the people and companies in this outreach campaign (?campaign= in the URL). */
+  outreach?: string;
+  /** Server code only: the rows `noReply` / `campaign` resolved to. */
   ids?: string[];
   /** Saved (bookmarked) only, inside the People or Companies tab. */
   bookmarked?: boolean;
@@ -80,6 +82,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
     funding: text(one("funding"), 60),
     bookmarked: one("saved") === "1" || undefined,
     noReply: one("noreply") === "1" || undefined,
+    outreach: /^[0-9a-f-]{36}$/i.test(one("campaign")) ? one("campaign") : undefined,
     sort,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 10_000) : 1,
   };
@@ -88,7 +91,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
 const QUERY_KEYS: [keyof ProspectFilters, string][] = [
   ["tab", "tab"], ["q", "q"], ["country", "country"], ["city", "city"], ["minMatch", "min"], ["verified", "verified"],
   ["titles", "titles"], ["industry", "industry"], ["employees", "employees"], ["domain", "domain"], ["company", "company"], ["hiring", "hiring"],
-  ["signals", "signals"], ["funding", "funding"], ["bookmarked", "saved"], ["noReply", "noreply"], ["sort", "sort"], ["page", "page"],
+  ["signals", "signals"], ["funding", "funding"], ["bookmarked", "saved"], ["noReply", "noreply"], ["outreach", "campaign"], ["sort", "sort"], ["page", "page"],
 ];
 
 /** Same filters as a query string (for links, export and "all matching"). */
@@ -170,9 +173,19 @@ function sorted(q: any, f: ProspectFilters) {
 /** One page of the table. */
 /** Resolves "didn't reply 60+ days ago" into the rows it means (once per request). */
 async function resolved(db: Client, workspaceId: string, f: ProspectFilters): Promise<ProspectFilters> {
-  if (!f.noReply || f.ids) return f;
-  const t = await reengageTargets(db, workspaceId);
-  return { ...f, ids: [...t.prospectIds, ...t.companyIds] };
+  if ((!f.noReply && !f.outreach) || f.ids) return f;
+  let ids: string[] | null = null;
+  if (f.noReply) {
+    const t = await reengageTargets(db, workspaceId);
+    ids = [...t.prospectIds, ...t.companyIds];
+  }
+  if (f.outreach) {
+    // The people in the campaign, and their companies (D-270).
+    const { data } = await db.from("outreach_enrollments").select("lead:sales_leads(prospect_id, company_id)").eq("workspace_id", workspaceId).eq("campaign_id", f.outreach).limit(5000);
+    const inCampaign = new Set((data ?? []).flatMap((e) => { const l = e.lead as unknown as { prospect_id: string | null; company_id: string | null } | null; return [l?.prospect_id, l?.company_id].filter((x): x is string => Boolean(x)); }));
+    ids = ids ? ids.filter((id) => inCampaign.has(id)) : [...inCampaign];
+  }
+  return { ...f, ids: ids ?? [] };
 }
 
 export async function listItems(workspaceId: string, filters: ProspectFilters, pageSize = PAGE_SIZE): Promise<{ rows: ProspectItemRow[]; total: number }> {

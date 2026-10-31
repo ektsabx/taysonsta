@@ -111,6 +111,48 @@ export const articles: HelpArticle[] = [
     },
   },
   {
+    slug: "creating-a-campaign",
+    collection: "using-yolias",
+    doc: {
+      en: {
+        title: "Creating a campaign",
+        summary: "Set the goal, the audience, the target and dates, and the budget. Yolias plans the emails, finds the people, sends after your approval and books the meetings.",
+        blocks: [
+          { p: "Open **Campaigns → New campaign** (or **New campaign** on the dashboard). Six short steps:" },
+          { ol: [
+            "**Goal**: qualified meetings (Yolias asks for a short call and books it on your booking page) or purchases on your website (it sends people to your link).",
+            "**Audience**: describe your ideal customer in your own words, and add countries, industries, job titles and company size if you want. Yolias shows what it understood.",
+            "**Target and dates**: how many qualified meetings you aim for, and the start and end dates. Until the end date Yolias keeps finding new people every day, within the budget.",
+            "**Budget and limits**: the most prospects the campaign may use from your balance, and the most emails per day.",
+            "**Strategy**: two angles for the first email, written from your Company Knowledge. You can edit both. Half the first emails start with each; once there is enough data, the one that gets more interested replies is sent more.",
+            "**Review and launch**: Yolias starts finding people. When the first ones are found it writes one real first email and asks you to approve it. Nothing is sent before you approve.",
+          ] },
+          { h2: "While it runs" },
+          { p: "The campaign page shows its sending numbers, its results (positive replies, meetings booked, held and qualified, customers and revenue), what it cost per result, and what Yolias did and why. Once there is enough data (about 50 people contacted and a first positive reply) it also shows the plan to reach the target and a forecast range, always labelled as estimates. You can change the target, dates or daily limit, pause, resume, duplicate or end it." },
+          { p: "One person is never written to by two campaigns at once, and a mailbox whose emails bounce too much has its campaigns paused automatically, with the reason on the campaign page." },
+        ],
+      },
+      ar: {
+        title: "إنشاء حملة",
+        summary: "حدّد الهدف والجمهور والمستهدف والمواعيد والميزانية، ويولياس يخطط الرسائل ويجد الأشخاص ويرسل بعد موافقتك ويحجز الاجتماعات.",
+        blocks: [
+          { p: "افتح **الحملات ← حملة جديدة** (أو **حملة جديدة** في لوحة التحكم). ست خطوات قصيرة:" },
+          { ol: [
+            "**الهدف**: اجتماعات مؤهلة (يطلب يولياس مكالمة قصيرة ويحجزها على صفحة الحجز الخاصة بك) أو شراء من موقعك (يرسل الأشخاص إلى رابطك).",
+            "**الجمهور**: صِف عميلك المثالي بكلماتك، وأضف الدول والمجالات والمسميات الوظيفية وحجم الشركة إن أردت. ويعرض يولياس ما فهمه.",
+            "**الهدف والمواعيد**: كم اجتماعًا مؤهلًا تستهدف، وتاريخ البداية والنهاية. وحتى تاريخ النهاية يواصل يولياس إيجاد أشخاص جدد كل يوم في حدود الميزانية.",
+            "**الميزانية والحدود**: أقصى عدد عملاء محتملين تستهلكه الحملة من رصيدك، وأقصى عدد رسائل في اليوم.",
+            "**الاستراتيجية**: زاويتان للرسالة الأولى مكتوبتان من معرفة شركتك، ويمكنك تعديلهما. نصف الرسائل الأولى تبدأ بكل زاوية، وحين تكفي البيانات تُرسل الزاوية التي تجلب ردودًا مهتمة أكثر بنسبة أكبر.",
+            "**المراجعة والإطلاق**: يبدأ يولياس في إيجاد الأشخاص، وحين يجد أولهم يكتب رسالة أولى حقيقية ويطلب موافقتك. لا يُرسل شيء قبل موافقتك.",
+          ] },
+          { h2: "أثناء تشغيلها" },
+          { p: "تعرض صفحة الحملة أرقام الإرسال، ونتائجها (الردود الإيجابية، والاجتماعات المحجوزة والتي تمت والمؤهلة، والعملاء والإيرادات)، وتكلفة كل نتيجة، وما نفّذه يولياس ولماذا. وحين تكفي البيانات (نحو 50 شخصًا تم التواصل معهم وأول رد إيجابي) تعرض أيضًا الخطة للوصول إلى الهدف ونطاقًا متوقعًا، مع توضيح أنها تقديرات دائمًا. ويمكنك تغيير الهدف أو المواعيد أو الحد اليومي، أو إيقافها مؤقتًا أو استئنافها أو نسخها أو إنهاؤها." },
+          { p: "لا تتواصل حملتان مع نفس الشخص في نفس الوقت، وإذا ارتدت رسائل صندوق بريد بنسبة عالية تتوقف حملاته تلقائيًا مع ذكر السبب في صفحة الحملة." },
+        ],
+      },
+    },
+  },
+  {
     slug: "signing-in",
     collection: "getting-started",
     doc: {

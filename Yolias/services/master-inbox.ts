@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { leadStatuses, type LeadStatus } from "@/services/pipeline";
 import type { CrmLeadRow } from "@/types/database";
+import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
 
 // The Inbox (D-256, after AgentSDR's Master Inbox): every conversation that
 // has a reply, in one list. Tabs read the same statuses as the CRM pipeline:
@@ -29,7 +30,23 @@ export interface InboxListItem {
   status: LeadStatus | null;
 }
 
-export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null): Promise<{ items: InboxListItem[]; counts: Record<InboxTab, number> }> {
+export { INBOX_SHOWS, type InboxShow };
+const NEEDS_YOU = new Set(["objection", "asks_for_human", "unclear"]);
+
+function shows(st: LeadStatus | null, waiting: boolean, show: InboxShow): boolean {
+  const kind = st?.lastInbound?.kind;
+  switch (show) {
+    case "interested": return kind === "interested" || kind === "meeting_request";
+    case "not_interested": return kind === "not_interested" || kind === "stop_request";
+    case "needs_you": return waiting || Boolean(st?.draft) || (kind != null && NEEDS_YOU.has(kind));
+    case "meeting_request": return kind === "meeting_request";
+    case "booked": return st?.stage === "meeting_booked" || st?.stage === "meeting_completed";
+    case "replied": return Boolean(st?.lastInbound) && kind !== "out_of_office";
+    case "no_reply": return Boolean(st?.lastOutbound) && !st?.lastInbound;
+  }
+}
+
+export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null, show: InboxShow | null = null): Promise<{ items: InboxListItem[]; counts: Record<InboxTab, number> }> {
   const db = await createClient();
   let q = db.from("crm_leads").select("*").eq("workspace_id", workspaceId).not("thread_last_message_at", "is", null);
   const s = term(search);
@@ -51,7 +68,7 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
   const latest = new Map<string, { subject: string; body: string; at: string }>();
   for (const m of last ?? []) if (m.lead_id && !latest.has(m.lead_id)) latest.set(m.lead_id, { subject: m.subject, body: m.body, at: m.received_at ?? m.sent_at ?? m.created_at });
 
-  const items: (InboxListItem & { tabs: Set<InboxTab> })[] = leads.map((l) => {
+  const items: (InboxListItem & { tabs: Set<InboxTab> })[] = leads.filter((l) => !show || shows(statuses.get(l.id) ?? null, waiting.has(l.id), show)).map((l) => {
     const st = statuses.get(l.id) ?? null;
     const open = (l.thread_status ?? "open") === "open";
     const tabs = new Set<InboxTab>();

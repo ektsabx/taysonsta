@@ -228,7 +228,7 @@ try {
   assert.ok(/^Re: /.test(followUp.subject), "the follow-up continues the thread");
   console.log("✓ pause / resume");
 
-  // ── 8. Replies: linked, classified, follow-ups stop, CRM asks ──
+  // ── 8. Replies: linked, classified, follow-ups stop, the stage moves by itself ──
   const lead0 = sentRows![0];
   pushTestReply({ threadId: lead0.provider_thread_id!, from: lead0.to_email!, fromName: "Sara", subject: "Re: Fleet tracking", body: "Sounds interesting, can you share pricing?" });
   const s1 = await syncReplies(10, true);
@@ -240,8 +240,10 @@ try {
   assert.equal((inbound![0].analysis as { kind: string }).kind, "interested");
   const e0 = (await admin.from("outreach_enrollments").select("status, stop_reason, current_step").eq("campaign_id", campId).eq("lead_id", lead0.lead_id!).single()).data!;
   assert.ok(e0.status === "replied" || (e0.status === "completed"), `follow-ups stop on reply: ${JSON.stringify(e0)}`);
-  const { data: crmAsk } = await admin.from("agent_pending_actions").select("tool, input").eq("lead_id", lead0.lead_id!).eq("status", "pending");
-  assert.ok(crmAsk!.some((x) => x.tool === "crm.set_stage" && (x.input as { stage: string }).stage === "interested"), "the CRM change waits for approval (default rules)");
+  // D-268: no stage approvals; the stage moves by itself and only feeds the results.
+  const { data: crmAsk } = await admin.from("agent_pending_actions").select("tool").eq("lead_id", lead0.lead_id!).eq("status", "pending").eq("tool", "crm.set_stage");
+  assert.equal(crmAsk!.length, 0, "no stage approval is asked");
+  assert.equal((await admin.from("sales_leads").select("stage").eq("id", lead0.lead_id!).single()).data!.stage, "interested", "the stage moved by itself");
   const { data: notes } = await admin.from("notifications").select("title").eq("user_id", A.userId).eq("kind", "outreach");
   // Hand-off (owner 2026-10-21): an interested lead is the member's to take on.
   assert.ok(notes!.some((n) => / is interested$/.test(n.title)), `the member is told the lead is interested, in English: ${JSON.stringify(notes)}`);

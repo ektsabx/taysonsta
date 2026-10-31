@@ -7,14 +7,17 @@ import { CalendarPlus, Copy, Sparkles, UserX, Video, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { useToast } from "@/components/Toast";
 import { LOST_REASONS } from "@/components/app/ws/bits";
-import { addMeeting, meetingBriefAction, setMeetingStatus, setOutcome } from "@/app/(app)/meetings/actions";
+import { addMeeting, meetingBriefAction, setMeetingQualified, setMeetingStatus, setOutcome } from "@/app/(app)/meetings/actions";
 import type { LeadStage, MeetingStatus } from "@/types/database";
 
 export interface MeetingItem {
   id: string; lead_id: string; title: string; starts_at: string; ends_at: string | null; url: string | null; location: string | null;
   status: MeetingStatus; source: "manual" | "booking" | "agent"; guest_name: string | null; guest_email: string | null; guest_note: string | null;
   lead: { name: string; company_name: string | null; stage: LeadStage } | null;
+  /** D-270: the campaign it came from and whether the member judged it qualified. */
+  campaign: { id: string; name: string } | null; qualified: boolean | null;
 }
+type Show = "all" | "upcoming" | "past" | "no_show" | "canceled" | "qualified" | "unqualified";
 
 // Bookings (D-267, D-268): upcoming first, then the last 60 days. Before a
 // meeting: join, a brief from Yolias, cancel. After it: what came of it
@@ -30,6 +33,9 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
   const [pending, start] = useTransition();
   const [briefs, setBriefs] = useState<Record<string, string>>({});
   const [adding, setAdding] = useState(false);
+  const [show, setShow] = useState<Show>("all");
+  const [values, setValues] = useState<Record<string, string>>({});
+  const f = t.camp.meet;
   const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { ...opts, timeZone: timeZone ?? undefined }).format(new Date(iso));
   const done = (r: { ok: boolean; error?: string }) => { if (!r.ok) toast(r.error ?? t.ws.common.error, "error"); else { toast(m.saved); router.refresh(); } };
   const status = (id: string, s: MeetingStatus) => {
@@ -56,6 +62,8 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
           <span className="meet-tag">{m.source[x.source]}</span>
           {x.status !== "scheduled" && <span className="meet-tag">{m.status[x.status]}</span>}
           {decided(x) && <span className="meet-tag">{x.lead?.stage === "closed" ? o.won : o.lost}</span>}
+          {x.qualified != null && <span className="meet-tag">{x.qualified ? f.qualified : f.unqualified}</span>}
+          {x.campaign && <Link className="meet-tag" href={`/outreach/${x.campaign.id}`} dir="auto">{f.campaign}: {x.campaign.name}</Link>}
           {x.location && !x.url && <span className="meet-sub" dir="auto">{x.location}</span>}
         </span>
         {briefs[x.id] && <p className="meet-brief" dir="auto">{briefs[x.id]}</p>}
@@ -66,8 +74,15 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
           <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => brief(x.id)}><Sparkles />{o.prep}</button>
           <button type="button" className="sdr-icon-btn bordered" title={m.cancel} aria-label={m.cancel} disabled={pending} onClick={() => status(x.id, "canceled")}><X /></button>
         </>)}
+        {isPast && (x.status === "scheduled" || x.status === "completed") && x.qualified == null && (
+          <span className="meet-q"><span>{f.qualifiedQ}</span>
+            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setMeetingQualified(x.id, true)))}>{f.yes}</button>
+            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setMeetingQualified(x.id, false)))}>{f.no}</button>
+          </span>
+        )}
         {isPast && (x.status === "scheduled" || x.status === "completed") && !decided(x) && (<>
-          <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setOutcome(x.lead_id, true, null, x.id)))}>{o.won}</button>
+          <input className="sdr-input sm meet-value" type="number" min={0} inputMode="decimal" placeholder={f.value} title={f.valueHint} aria-label={f.value} value={values[x.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [x.id]: e.target.value }))} />
+          <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setOutcome(x.lead_id, true, null, x.id, values[x.id] ? Number(values[x.id]) : null)))}>{o.won}</button>
           <select className="sdr-input sm" disabled={pending} value="" aria-label={o.lost} onChange={(e) => { const r = e.target.value; if (r) start(async () => done(await setOutcome(x.lead_id, false, r, x.id))); }}>
             <option value="">{o.lost}</option>
             {LOST_REASONS.map((r) => <option key={r} value={r}>{t.ws.crm.lostReasons[r]}</option>)}
@@ -84,9 +99,25 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
         <button type="button" className="sdr-btn" onClick={() => setAdding(true)} disabled={!people.length}><CalendarPlus />{o.add}</button>
         <button type="button" className="sdr-btn" onClick={() => { void navigator.clipboard?.writeText(bookingLink); toast(m.page.copied); }}><Copy />{m.page.copy} {m.page.link}</button>
       </div>
+      {(upcoming.length > 0 || past.length > 0) && (
+        <div className="sdr-seg meet-filter" role="tablist" aria-label={f.filter}>
+          {(["all", "upcoming", "past", "no_show", "canceled", "qualified", "unqualified"] as const).map((k) => (
+            <button key={k} type="button" role="tab" aria-selected={show === k} className={show === k ? "active" : ""} onClick={() => setShow(k)}>
+              {{ all: f.all, upcoming: f.upcoming, past: f.past, no_show: f.noShow, canceled: f.canceled, qualified: f.qualified, unqualified: f.unqualified }[k]}
+            </button>
+          ))}
+        </div>
+      )}
       {!upcoming.length && !past.length && <p className="meet-muted">{m.empty}</p>}
-      {upcoming.length > 0 && (<><h3 className="meet-group">{m.upcoming}</h3><ul>{upcoming.map((x) => card(x, false))}</ul></>)}
-      {past.length > 0 && (<><h3 className="meet-group">{m.past}</h3><ul>{past.map((x) => card(x, true))}</ul></>)}
+      {(() => {
+        const keep = (x: MeetingItem) => show === "all" || (show === "past" ? x.status === "completed" : show === "no_show" ? x.status === "no_show" : show === "canceled" ? x.status === "canceled" : show === "qualified" ? x.qualified === true : show === "unqualified" ? x.qualified === false : true);
+        const up = show === "all" || show === "upcoming" ? upcoming : [];
+        const pa = show === "upcoming" ? [] : past.filter(keep);
+        return (<>
+          {up.length > 0 && (<><h3 className="meet-group">{m.upcoming}</h3><ul>{up.map((x) => card(x, false))}</ul></>)}
+          {pa.length > 0 && (<><h3 className="meet-group">{m.past}</h3><ul>{pa.map((x) => card(x, true))}</ul></>)}
+        </>);
+      })()}
       {adding && <AddMeeting people={people} duration={duration} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); toast(m.saved); router.refresh(); }} />}
     </section>
   );

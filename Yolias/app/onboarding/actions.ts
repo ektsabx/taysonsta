@@ -18,6 +18,7 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requestCountry } from "@/lib/geo-server";
 import { detectPreferences } from "@/lib/regions";
 import { parseSource } from "@/lib/onboarding/source";
+import { TEMPLATE_COOKIE } from "@/lib/content/seo-pages";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -107,7 +108,8 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     const plan = await pendingPlan(session);
     redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
   }
-  redirect("/");
+  // The dashboard is the account's home (D-270); a template from the website waits in Yolias AI's box.
+  redirect((await cookies()).get(TEMPLATE_COOKIE) ? "/" : "/dashboard");
 }
 
 const fromSite = (max: number) => z.string().trim().max(max).nullable().optional().transform((v) => v || null);

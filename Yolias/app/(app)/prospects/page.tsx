@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark, Building2, UserRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
+import { CampaignFilter } from "@/components/app/campaigns/CampaignFilter";
 import { ImportCsvButton } from "@/components/app/ImportCsvButton";
 import { countryLabel, formatDate, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
@@ -38,8 +39,9 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     ? (kindAsked === "people" || (kindAsked !== "companies" && !savedCounts.companies && savedCounts.people > 0) ? "people" : "companies")
     : filters.tab === "people" || (filters.tab !== "companies" && !counts.companies && counts.people > 0) ? "people" : "companies";
   const f = { ...filters, tab, bookmarked: saved || filters.bookmarked };
-  const [page, countryCodes, funding, usage, t, locale, canCollect] = await Promise.all([
+  const [page, countryCodes, funding, usage, t, locale, canCollect, { data: campaignOptions }] = await Promise.all([
     listItems(ws, f), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
+    (await createClient()).from("outreach_campaigns").select("id, name").eq("workspace_id", ws).neq("status", "archived").order("created_at", { ascending: false }).limit(100),
   ]);
   const pr = t.prospects;
   const L = t.sdr.leads;
@@ -82,7 +84,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
 
   const query = saved ? [filterQuery({ ...f, tab: "saved" as const, bookmarked: false }, { page: undefined }), `kind=${tab}`].filter(Boolean).join("&") : filterQuery(f, { page: undefined });
   const filtered = active > 0 || Boolean(f.q);
-  const tabHref = (k: "people" | "companies") => `/prospects?tab=${k}`;
+  const tabHref = (k: "people" | "companies") => `/prospects?tab=${k}${f.outreach ? `&campaign=${f.outreach}` : ""}`;
   return (
     <div className="sdr-page">
       <header className="sdr-head">
@@ -107,6 +109,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
         </div>
       )}
 
+      <CampaignFilter campaigns={campaignOptions ?? []} />
       <section className="sdr-panel">
         <Suspense>
           <ProspectToolbar key={query} tab={tab} total={page.total} countries={countries} funding={funding} active={active} exportHref={`/prospects/export${query ? `?${query}` : ""}`} />

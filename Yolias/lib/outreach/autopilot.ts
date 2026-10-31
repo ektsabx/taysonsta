@@ -47,7 +47,14 @@ export async function autopilotSweep(): Promise<{ proposed: number; topped: numb
         if (out.proposed < 3 && await claim(db, `autopilot:propose:${s.id}`)) { await propose(db, s, s.created_by); out.proposed++; }
         continue;
       }
-      if (!existing.approved_at || existing.status !== "active") continue;
+      if (!existing.approved_at) {
+        // A campaign made in the campaign wizard (D-270) waits for its search's first people:
+        // they join, one real first email is written, and the approval card goes out once.
+        const { count } = await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("campaign_id", existing.id);
+        if (!count && out.proposed < 3 && await claim(db, `autopilot:offer:${existing.id}`)) { await offer(db, s, existing.id, existing.created_by ?? s.created_by); out.proposed++; }
+        continue;
+      }
+      if (existing.status !== "active" && existing.status !== "scheduled") continue;
       // A new run of a continuous search: its new prospects join the running campaign.
       const key = `autopilot:topup:${existing.id}`;
       const { data: st } = await db.from("worker_state").select("value").eq("key", key).maybeSingle();
@@ -97,6 +104,19 @@ async function propose(db: Db, s: Search, userId: string) {
   await db.from("outreach_steps").insert(Array.from({ length: steps }, (_, i) => ({
     workspace_id: ws, campaign_id: camp.id, position: i + 1, delay_days: i === 0 ? 0 : 3 * i, objective: (i === 0 ? "introduction" : "follow_up") as never,
   })));
+  await offer(db, s, camp.id, userId);
+}
+
+/** The search's people join the campaign, one real first email is written, and the member is asked to approve once. */
+async function offer(db: Db, s: Search, campaignId: string, userId: string) {
+  const ws = s.workspace_id;
+  const [{ data: profile }, { data: camp }] = await Promise.all([
+    db.from("profiles").select("language").eq("id", userId).maybeSingle(),
+    db.from("outreach_campaigns").select("id, aim").eq("id", campaignId).single(),
+  ]);
+  if (!camp) return;
+  const ar = profile?.language === "ar";
+  const aim = (camp.aim ?? "meeting") as CampaignAim;
   const enrolled = await enrollSearch(db, ws, userId, camp.id, s.id);
   const recipients = enrolled?.added ?? 0;
   if (!recipients) return;

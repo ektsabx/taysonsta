@@ -1,4 +1,5 @@
 import { sdrAr } from "./sdr-ar";
+import { campAr } from "./camp-ar";
 import { wsAr } from "./ws-ar";
 import type { Dictionary } from "./en";
 
@@ -306,7 +307,7 @@ export const ar: Dictionary = {
   startHere: {
     title: "ابدأ هنا", progress: "{done} من 4",
     mailbox: "اربط بريدك", mailboxDesc: "Gmail أو أي بريد آخر، مثل Zoho أو Hostinger أو بريد شركتك. منه تُرسل حملاتك وتصلك الردود.", mailboxCta: "ربط البريد",
-    search: "اكتب أول بحث", searchDesc: "اكتب في الخانة أعلاه لمن تريد أن تبيع، ويولياس يجد لك العملاء.", searchCta: "اكتب الطلب",
+    search: "أنشئ أول حملة", searchDesc: "حدّد الهدف ومن تريد الوصول إليه، ويولياس يجد الأشخاص ويكتب الرسائل.", searchCta: "أنشئها",
     booking: "اضبط صفحة الحجز", bookingDesc: "اربط تقويم Google واختر مواعيدك، ليحجز العميل الذي يطلب اجتماعًا موعدًا متاحًا.", bookingCta: "اضبطها",
     campaign: "راجع أول حملة", campaignDesc: "راجع الرسائل التي كتبها يولياس ووافق على الإرسال.", campaignCta: "فتح الحملات",
     done: "تم",
@@ -1168,6 +1169,7 @@ export const ar: Dictionary = {
   },
   ws: wsAr,
   sdr: sdrAr,
+  camp: campAr,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "هذه الصفحة غير موجودة",

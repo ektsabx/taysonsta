@@ -17,6 +17,8 @@ import { memberMailboxes } from "@/lib/mailbox";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AIMS, cleanCtaUrl } from "@/lib/outreach/aim";
 import type { CampaignAim } from "@/types/acquisition";
+import { updateSettings } from "@/lib/discovery/campaign-control";
+import { logCampaign } from "@/lib/campaigns/activity";
 
 // Outreach campaigns (D-193): create / edit with steps, add and remove leads,
 // prepare drafts, change status. All as the member (RLS); drafting checks
@@ -316,12 +318,66 @@ export async function approveOutreach(campaignId: string, mailboxId: string | nu
   return { ok: true, message: mailboxId ? t.launch.started : t.launch.startedManual };
 }
 
-export async function runOutreach(campaignId: string, action: "pause" | "resume" | "cancel"): Promise<OutreachResult> {
+export async function runOutreach(campaignId: string, action: "pause" | "resume" | "cancel" | "end"): Promise<OutreachResult> {
   const session = await requireSession();
   const t = (await getDictionary()).ws.outreach;
-  if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel"].includes(action)) return { ok: false, error: t.errors.notFound };
+  if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel", "end"].includes(action)) return { ok: false, error: t.errors.notFound };
   if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
   revalidatePath("/outreach", "layout");
     revalidatePath("/inbox");
   return { ok: true };
+}
+
+// ── Campaign controls (D-270) ──────────────────────────────────────────────
+
+const scheduleInput = z.object({
+  id: z.string().uuid(),
+  target: z.number().int().min(1).max(1000).nullable(),
+  startsAt: z.string().datetime().nullable(),
+  endsAt: z.string().datetime().nullable(),
+  dailyLimit: z.number().int().min(1).max(500).nullable(),
+});
+
+/** The campaign's target, dates and daily limit. A later start date waits as "scheduled"; its search follows the end date. */
+export async function updateCampaignSchedule(input: z.input<typeof scheduleInput>): Promise<OutreachResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  const p = scheduleInput.safeParse(input);
+  if (!p.success) return { ok: false, error: t.camp.wizard.errors.settings };
+  const c = p.data;
+  if (c.endsAt && (Date.parse(c.endsAt) <= Date.now() || (c.startsAt && Date.parse(c.endsAt) <= Date.parse(c.startsAt)))) return { ok: false, error: t.camp.wizard.errors.dates };
+  const db = await createClient();
+  const { data: camp } = await db.from("outreach_campaigns").select("id, status, approved_at, source_campaign_id, budget_prospects").eq("id", c.id).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!camp || camp.status === "archived" || camp.status === "completed") return { ok: false, error: t.ws.outreach.errors.notFound };
+  const later = Boolean(c.startsAt && Date.parse(c.startsAt) > Date.now());
+  const status = camp.approved_at && (camp.status === "active" || camp.status === "scheduled") ? (later ? "scheduled" : "active") : camp.status;
+  const { error } = await db.from("outreach_campaigns").update({ target_meetings: c.target, starts_at: c.startsAt, ends_at: c.endsAt, daily_limit: c.dailyLimit, status }).eq("id", c.id);
+  if (error) return { ok: false, error: t.camp.wizard.errors.settings };
+  // Its search keeps finding people until the new end date (within the budget).
+  if (camp.source_campaign_id && camp.budget_prospects && c.endsAt) {
+    await updateSettings(db, camp.source_campaign_id, { goal: camp.budget_prospects, deadline: c.endsAt, continuous: true, everyHours: 24 });
+  }
+  await logCampaign(createAdminClient(), session.workspace.id, c.id, "note", "Target, dates or daily limit changed.", { by: session.userId, target: c.target, starts_at: c.startsAt, ends_at: c.endsAt, daily_limit: c.dailyLimit });
+  revalidatePath(`/outreach/${c.id}`);
+  return { ok: true, message: t.camp.perf.saved };
+}
+
+/** A copy of the campaign's settings and steps as a new draft, without its leads, messages or results. */
+export async function duplicateCampaign(id: string): Promise<OutreachResult<{ id: string }>> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(id).success) return { ok: false, error: t.ws.outreach.errors.notFound };
+  const db = await createClient();
+  const { data: src } = await db.from("outreach_campaigns").select("*").eq("id", id).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!src) return { ok: false, error: t.ws.outreach.errors.notFound };
+  const { data: copy, error } = await db.from("outreach_campaigns").insert({
+    workspace_id: session.workspace.id, created_by: session.userId, name: `${src.name} (2)`.slice(0, 160), goal: src.goal, description: src.description,
+    channel: "email" as never, language: src.language, tone: src.tone, customer_profile_id: src.customer_profile_id, offer_id: src.offer_id,
+    aim: src.aim, cta_url: src.cta_url, variant_b: src.variant_b, strategy_id: src.strategy_id, target_meetings: src.target_meetings, daily_limit: src.daily_limit, budget_prospects: src.budget_prospects,
+  }).select("id").single();
+  if (error || !copy) return { ok: false, error: t.ws.outreach.errors.name };
+  const { data: steps } = await db.from("outreach_steps").select("position, delay_days, objective, instruction").eq("campaign_id", id).order("position");
+  if (steps?.length) await db.from("outreach_steps").insert(steps.map((s) => ({ ...s, workspace_id: session.workspace.id, campaign_id: copy.id })));
+  revalidatePath("/outreach", "layout");
+  return { ok: true, id: copy.id, message: t.camp.perf.duplicated };
 }

@@ -46,6 +46,7 @@
     "test:meetings": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-meetings.mts",
     "test:steps": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-steps.mts",
     "test:booking": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-booking.mts",
+    "test:campaigns": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-campaigns.mts",
     "test:autopilot": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-autopilot.mts",
     "test:acquisition": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-acquisition.mts",
     "test:campaigns": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-campaigns.mts",

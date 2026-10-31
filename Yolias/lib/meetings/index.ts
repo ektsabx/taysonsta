@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { meetingChanged } from "@/lib/crm";
+import { campaignOfLead } from "@/lib/campaigns/activity";
 import { notify, siteUrl, userRecipient, type Recipient } from "@/lib/email/notify";
 import { fitsPage, freeSlots, isFree, type DaySlots } from "./availability";
 import { accessToken, busyTimes, cancelEvent, createCalendar, createEvent, CalendarError } from "./google";
@@ -146,6 +147,7 @@ async function createBooking(db: Db, page: BookingPageRow & { host: { name: stri
   const { data: meeting, error } = await db.from("sales_meetings").insert({
     workspace_id: page.workspace_id, lead_id: who.leadId, title: `${type.title}: ${who.name}`.slice(0, 200), starts_at: start, ends_at: end, status: "scheduled",
     source, host_id: page.user_id, guest_name: who.name, guest_email: who.email, guest_note: who.note, location: page.location, created_by: page.user_id,
+    campaign_id: await campaignOfLead(db, who.leadId),
   }).select("id, lead_id, status, cancel_token").single();
   if (error?.code === "23505") return { ok: false as const, error: "taken" as const };
   if (error || !meeting) throw error ?? new Error("meeting not saved");

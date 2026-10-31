@@ -1,4 +1,5 @@
 import "server-only";
+import { campaignActivity, campaignMetrics } from "@/services/campaign-metrics";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -525,9 +526,9 @@ export const agentTools = [
   }),
   define({
     name: "controlOutreachCampaign",
-    description: "Pause, resume or cancel an outreach campaign. Cancel stops every lead and drops unsent messages.",
+    description: "Pause, resume, end or cancel an outreach campaign. End keeps it and its results as completed; cancel archives it. Both stop every lead and drop unsent messages.",
     permission: "outreach.run",
-    input: z.object({ id: uuid, action: z.enum(["pause", "resume", "cancel"]) }),
+    input: z.object({ id: uuid, action: z.enum(["pause", "resume", "end", "cancel"]) }),
     async run(ctx, input) {
       const done = await setCampaignRun(ctx.session.workspace.id, input.id, input.action);
       return done ? ok({ id: input.id, action: input.action }) : fail("not_found", "No such active campaign, or it was never approved to run.");
@@ -619,6 +620,35 @@ export const agentTools = [
       if (!data || data.workspace_id !== ctx.session.workspace.id) return fail("not_found", "No such saved fact.");
       await ctx.db.from("agent_memories").delete().eq("id", data.id);
       return ok({ forgotten: true });
+    },
+  }),
+
+  // ───────────── Campaign results (D-270) ─────────────
+  define({
+    name: "campaignPerformance",
+    description: "Every outreach campaign (or one) with its actual results: status, meeting target, people contacted, positive replies, meetings booked / held / qualified, customers and revenue won, prospects used and cost per meeting; its pace against the target; and, only when there is enough data, the plan and the forecast range. Forecasts are estimates, never results: say so. Use it for 'how are my campaigns doing', 'which campaign gets the most qualified meetings', 'why is this one weak', 'how many meetings can we expect'.",
+    permission: "read",
+    input: z.object({ id: uuid.optional() }),
+    async run(ctx, input) {
+      const rows = await campaignMetrics(ctx.session.workspace.id, input.id ? { ids: [input.id], includeArchived: true } : {});
+      return ok({
+        campaigns: rows.map((m) => ({
+          id: m.id, name: m.name, status: m.status, aim: m.aim, target: m.target, startsAt: m.startsAt, endsAt: m.endsAt, pace: m.pace,
+          actual: { found: m.found, strongMatch: m.strongMatch, contacted: m.contacted, sent: m.sent, bounced: m.bounced, positive: m.positive, meetingRequests: m.requests,
+            booked: m.booked, held: m.held, noShow: m.noShow, qualified: m.qualified, customers: m.customers, revenueUsd: m.revenueUsd, prospectsUsed: m.prospectsUsed,
+            spendUsd: m.costs.spendUsd, costPerMeetingUsd: m.costs.perMeeting, costPerQualifiedUsd: m.costs.perQualified, roi: m.costs.roi },
+          plan: m.plan, forecast: m.forecast, forecastUsesSharedLearning: m.sharedWorkspaces > 0, pausedBecause: m.failureReason,
+        })),
+      });
+    },
+  }),
+  define({
+    name: "campaignActivityLog",
+    description: "What Yolias did in the campaigns and why, newest first: started, scheduled, paused (and why, e.g. bounces), ended, settings changed. Use it for 'what did Yolias do today' or 'why was this campaign paused'.",
+    permission: "read",
+    input: z.object({ id: uuid.optional(), limit: z.number().int().min(1).max(50).default(20) }),
+    async run(ctx, input) {
+      return ok({ activity: await campaignActivity(ctx.session.workspace.id, input.id, input.limit) });
     },
   }),
 

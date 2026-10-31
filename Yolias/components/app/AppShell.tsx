@@ -24,22 +24,18 @@ import { WelcomeVideoModal } from "./WelcomeVideoModal";
 import { PlanGateModal } from "./PlanGateModal";
 import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
+import { AskYolias } from "./AskYolias";
 
-const mainNav = [
-  { href: "/", key: "yoliasAi", icon: MessageSquareText },
-  { href: "/analytics", key: "analytics", icon: ChartColumnIncreasing },
-  // Search results is a tab inside Prospects (owner, 2026-10-19), not its own sidebar page.
-  { href: "/prospects", key: "prospects", icon: UserSearch },
-] as const;
-
-// Customer acquisition after discovery (D-193..D-195).
-const workNav = [
-  // Campaigns and Conversations are two pages again (D-256, after AgentSDR's Campaigns and Inbox).
+// The menu around campaigns (owner, 2026-10-31, D-270): the dashboard first,
+// then campaigns and what they produce (prospects, conversations, meetings),
+// then Yolias AI (also a button on every screen) and Company Knowledge.
+const nav = [
+  { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
   { href: "/outreach", key: "campaigns", icon: Send },
+  { href: "/prospects", key: "prospects", icon: UserSearch },
   { href: "/inbox", key: "conversations", icon: MessagesSquare },
-  // Meetings inside Yolias (D-267): bookings and the booking page.
   { href: "/meetings", key: "meetings", icon: CalendarDays },
-  // Company Knowledge is a regular page (owner, 2026-10-19): no "AI Workspace" section, no AI Agent page.
+  { href: "/", key: "yoliasAi", icon: MessageSquareText },
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
 ] as const;
 
@@ -200,19 +196,11 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
         <nav className="sidebar-nav">
           <section className="nav-group">
-            {mainNav.map(({ href, key, icon: Icon }) => (
+            {nav.map(({ href, key, icon: Icon }) => (
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{t.nav[key]}</span>
-                </div>
-              </Link>
-            ))}
-            {workNav.map(({ href, key, icon: Icon }) => (
-              <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
-                <div className="nav-item-inner">
-                  <Icon />
-                  <span>{t.ws.nav[key]}</span>
+                  <span>{key === "dashboard" ? t.camp.dash.title : key === "yoliasAi" || key === "prospects" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>
@@ -340,6 +328,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
           </div>
         )}
         {children}
+        <AskYolias />
       </main>
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}

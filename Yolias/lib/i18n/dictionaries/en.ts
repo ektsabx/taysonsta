@@ -1,4 +1,5 @@
 import { sdrEn } from "./sdr-en";
+import { campEn } from "./camp-en";
 import { wsEn } from "./ws-en";
 // English UI copy. Every key here must exist in ar.ts (enforced by the
 // Dictionary type). Placeholders use {name} and are filled with fmt().
@@ -305,7 +306,7 @@ export const en = {
   startHere: {
     title: "Start here", progress: "{done} of 4",
     mailbox: "Connect your mailbox", mailboxDesc: "Gmail or any mailbox over IMAP/SMTP (Zoho, Hostinger, your company mail). Your campaigns go out from it and replies come back to it.", mailboxCta: "Connect",
-    search: "Write your first search", searchDesc: "Tell Yolias above who you want to sell to, and it finds the leads.", searchCta: "Write it",
+    search: "Create your first campaign", searchDesc: "Set the goal and who you want to reach. Yolias finds the people and writes the emails.", searchCta: "Create it",
     booking: "Set your booking page", bookingDesc: "Connect Google Calendar and pick your hours, so a lead who asks for a meeting books a free time.", bookingCta: "Set it",
     campaign: "Review your first campaign", campaignDesc: "Check the emails Yolias wrote and approve sending.", campaignCta: "Open campaigns",
     done: "Done",
@@ -1166,6 +1167,7 @@ export const en = {
   },
   ws: wsEn,
   sdr: sdrEn,
+  camp: campEn,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "This page doesn’t exist",

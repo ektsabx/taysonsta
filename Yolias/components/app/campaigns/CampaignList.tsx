@@ -13,7 +13,7 @@ import { runOutreach, setOutreachStatus } from "@/app/(app)/outreach/actions";
 import { RowMenu, Ring, useAgo } from "@/components/app/sdr/bits";
 import type { CampaignSummary, CampaignView } from "@/services/campaigns";
 
-const VIEW_TONE: Record<CampaignView, string> = { draft: "gray", active: "green", paused: "gray", completed: "blue", archived: "gray" };
+const VIEW_TONE: Record<CampaignView, string> = { draft: "gray", scheduled: "blue", active: "green", paused: "gray", completed: "blue", failed: "red", archived: "gray" };
 
 /** The status chip of a campaign (Draft, Active, Paused, Completed, Archived). */
 export function CampaignStatus({ view }: { view: CampaignView }) {
@@ -52,7 +52,7 @@ export function CampaignList({ campaigns }: { campaigns: CampaignSummary[] }) {
       <div className="sdr-panel-body">
         <div className="sdr-panel-head" style={{ padding: "10px 12px 4px" }}>
           <div className="sdr-seg" role="tablist">
-            {(["all", "active", "paused", "draft", "completed"] as const).map((v) => (
+            {(["all", "active", "scheduled", "paused", "draft", "completed"] as const).map((v) => (
               <button key={v} type="button" role="tab" aria-selected={view === v} className={view === v ? "active" : ""} onClick={() => setView(v)}>
                 {c.views[v]} <span className="n">{n(v === "all" ? campaigns.length : count(v))}</span>
               </button>

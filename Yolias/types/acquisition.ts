@@ -73,6 +73,8 @@ export type MeetingRow = {
   /** D-267: where it came from, the guest of a booking, its host and the Google event. */
   source: "manual" | "booking" | "agent"; host_id: string | null; guest_name: string | null; guest_email: string | null; guest_note: string | null;
   location: string | null; google_event_id: string | null; cancel_token: string;
+  /** D-270: the campaign that led to it, and whether the member judged it qualified (null = not said yet). */
+  campaign_id: string | null; qualified: boolean | null;
 };
 export type WeekDay = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 export type BookingHours = Record<WeekDay, [string, string][]>;
@@ -88,7 +90,7 @@ export type CalendarConnectionRow = {
   user_id: string; workspace_id: string; provider: "google"; email: string | null; calendar_id: string | null; token_secret_id: string | null;
   status: "connected" | "error" | "disconnected"; error: string | null; created_at: string; updated_at: string;
 };
-export type OutreachCampaignStatus = "draft" | "active" | "paused" | "archived";
+export type OutreachCampaignStatus = "draft" | "scheduled" | "active" | "paused" | "completed" | "failed" | "archived";
 export type OutreachCampaignRow = {
   id: string; workspace_id: string; name: string; goal: string | null; description: string | null; channel: MessageChannel; language: string;
   tone: MessageTone; customer_profile_id: string | null; offer_id: string | null; status: OutreachCampaignStatus; created_by: string | null;
@@ -101,6 +103,9 @@ export type OutreachCampaignRow = {
   variant_b: string | null;
   /** When the sending worker last gave it a turn (D-256: oldest first). */
   dispatched_at: string | null;
+  /** D-270: the campaign's target, schedule, daily limit and budget (prospects), and how it ended. */
+  target_meetings: number | null; starts_at: string | null; ends_at: string | null; daily_limit: number | null;
+  budget_prospects: number | null; ended_at: string | null; failure_reason: string | null;
 };
 /** D-268: a campaign books a meeting or sells through the website. */
 export type CampaignAim = "meeting" | "sell";

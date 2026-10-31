@@ -8,6 +8,8 @@ import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { campaignPage } from "@/services/campaigns";
 import { campaignWorkspace, getOutreachCampaign, launchSummary, outreachOptions } from "@/services/outreach-campaigns";
 import { CampaignDetail, type CampaignTab } from "@/components/app/campaigns/CampaignDetail";
+import { CampaignResults } from "@/components/app/campaigns/CampaignResults";
+import { campaignActivity, campaignMetrics } from "@/services/campaign-metrics";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).sdr.campaigns.title} | Yolias` };
@@ -23,10 +25,11 @@ export default async function CampaignPageRoute({ params, searchParams }: { para
   const session = await requireViewer();
   const ws = session.workspace.id;
   const tz = session.profile.timezone ?? null;
-  const [page, detail, launch, options, work, boxes, settings, leads] = await Promise.all([
+  const [page, detail, launch, options, work, boxes, settings, leads, metrics, activity] = await Promise.all([
     campaignPage(ws, id, tz), getOutreachCampaign(ws, id), launchSummary(ws, id), outreachOptions(ws), campaignWorkspace(ws, id),
     memberMailboxes(ws, session.userId), loadAiSettings(ws),
     (await createClient()).from("sales_leads").select("id, name, company_name, stage, do_not_contact").eq("workspace_id", ws).order("last_activity_at", { ascending: false }).limit(500),
+    campaignMetrics(ws, { ids: [id], includeArchived: true }), campaignActivity(ws, id, 15),
   ]);
   if (!page || !detail || !launch) notFound();
   const asked = one(sp.tab);
@@ -37,6 +40,7 @@ export default async function CampaignPageRoute({ params, searchParams }: { para
       page={page} detail={detail} work={work} launch={launch} options={options} maxSteps={settings.limits.max_messages_per_lead}
       candidates={leads.data ?? []} mailboxes={connected} mailboxName={boxes.find((m) => m.id === page.campaign.mailbox_id)?.email ?? null}
       dailyLimit={settings.limits.daily_send_limit} tab={tab} timeZone={tz}
+      results={metrics[0] ? <CampaignResults key={metrics[0].id} m={metrics[0]} activity={activity} dailyLimit={page.campaign.daily_limit ?? null} /> : null}
     />
   );
 }

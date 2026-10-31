@@ -28,13 +28,13 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   const page = await ensureBookingPage(session.userId, session.workspace.id, session.profile.full_name, session.email, session.profile.timezone ?? null, session.profile.language);
   const db = await createClient();
   const [{ data: meetings }, { data: calendar }, { data: people }] = await Promise.all([
-    db.from("sales_meetings").select("id, lead_id, title, starts_at, ends_at, url, location, status, source, guest_name, guest_email, guest_note, host_id, lead:sales_leads(name, company_name, stage)")
+    db.from("sales_meetings").select("id, lead_id, title, starts_at, ends_at, url, location, status, source, guest_name, guest_email, guest_note, host_id, qualified, campaign:outreach_campaigns(id, name), lead:sales_leads(name, company_name, stage)")
       .eq("workspace_id", session.workspace.id).gte("starts_at", sinceIso(60)).order("starts_at").limit(300),
     db.from("calendar_connections").select("email, status").eq("user_id", session.userId).maybeSingle(),
     // "Add a meeting" picks from the people already in a conversation.
     db.from("crm_leads").select("id, name, company_name").eq("workspace_id", session.workspace.id).not("thread_status", "is", null).order("last_activity_at", { ascending: false }).limit(300),
   ]);
-  const rows = (meetings ?? []).map((m) => ({ ...m, lead: m.lead as unknown as { name: string; company_name: string | null; stage: LeadStage } | null }));
+  const rows = (meetings ?? []).map((m) => ({ ...m, lead: m.lead as unknown as { name: string; company_name: string | null; stage: LeadStage } | null, campaign: m.campaign as unknown as { id: string; name: string } | null }));
   const now = nowMs();
   return (
     <div className="sdr-page">

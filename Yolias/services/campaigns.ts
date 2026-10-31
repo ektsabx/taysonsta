@@ -8,7 +8,7 @@ import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 // emails the mailbox accepted (sent), the ones it refused (failed), the ones
 // returned (bounced) and the replies read from the mailbox. Read as the member (RLS).
 
-export type CampaignView = "draft" | "active" | "paused" | "completed" | "archived";
+export type CampaignView = "draft" | "scheduled" | "active" | "paused" | "completed" | "failed" | "archived";
 export type LeadView = "pending" | "in_sequence" | "replied" | "completed" | "bounced" | "suppressed";
 const SUPPRESSED = new Set(["do_not_contact", "no_email", "suppressed", "campaign_canceled", "opted_out", "stop_request"]);
 
@@ -47,8 +47,11 @@ function summarise(c: OutreachCampaignRow, steps: number, enr: Enr[], msgs: Msg[
   const scheduled = active.reduce((n, e) => n + Math.max(steps - e.current_step, 0), 0);
   const lastSendAt = sent.map((m) => m.sent_at!).filter(Boolean).sort().at(-1) ?? null;
   const nextSendAt = active.map((e) => e.next_step_at).filter((x): x is string => Boolean(x)).sort()[0] ?? null;
-  const view: CampaignView = c.status === "archived" ? "archived" : c.status === "draft" ? "draft"
-    : enr.length > 0 && !active.length ? "completed" : c.status === "paused" ? "paused" : "active";
+  // D-270: scheduled / completed / failed are stored states; an active campaign whose every lead finished
+  // shows as completed only when it has no search still finding people for it (no end date ahead).
+  const stillFinding = Boolean(c.ends_at && Date.parse(c.ends_at) > Date.now());
+  const view: CampaignView = (["archived", "draft", "scheduled", "completed", "failed", "paused"] as const).find((s) => s === c.status)
+    ?? (enr.length > 0 && !active.length && !stillFinding ? "completed" : "active");
   return {
     id: c.id, name: c.name, view, status: c.status, approved: Boolean(c.approved_at), createdAt: c.created_at, steps, leads: enr.length,
     contacted: new Set(sent.map((m) => m.lead_id)).size, sent: sent.length, scheduled, replied: repliedLeads.size,

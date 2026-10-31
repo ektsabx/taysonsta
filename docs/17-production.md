@@ -357,3 +357,6 @@ npx wrangler secret put WORKER_SECRET
 1. migrations بالترتيب: 20261205000000_email_only، 20261206000000_meeting_types، وملف record لكل واحدة.
 2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`، ثم فحص SEO الحي.
 3. على صاحب المنصة في Google Cloud: إضافة scope ‏`calendar.freebusy` لشاشة الموافقة (مع `calendar.app.created`)، ومن ربط التقويم قبل كده يعيد الربط عشان أوقات الانشغال تتقري.
+## جولة 2026-10-31 (D-270)
+1. migrations بالترتيب: 20261207000000_campaign_centric (إضافية فقط)، 20261208000000_payg_price، وملف record لكل واحدة.
+2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`، ثم فحص SEO الحي.

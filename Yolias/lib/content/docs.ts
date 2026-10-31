@@ -467,7 +467,7 @@ export const docs: DocPage[] = [
         summary: "Pay As You Go, the monthly plans, and how prospects are counted.",
         blocks: [
           { table: { head: ["Option", "Price", "Prospects"], rows: [
-            ["Pay As You Go", "$5 / $20 / $50 / $100 top-up", "100 / 400 / 1,000 / 2,000, no expiry (5 cents each)"], ["Pro", "$50 / month", "1,000 / month"], ["Growth", "$100 / month", "2,000 / month"],
+            ["Pay As You Go", "$5 / $20 / $50 / $100 top-up", "50 / 200 / 500 / 1,000, no expiry (10 cents each; a plan is half the price per prospect)"], ["Pro", "$50 / month", "1,000 / month"], ["Growth", "$100 / month", "2,000 / month"],
           ] } },
           { ul: [
             "The prospect is the only unit. Writing and sending emails is never charged or limited, uploaded contacts are unlimited, and viewing your prospects again is free.",
@@ -485,7 +485,7 @@ export const docs: DocPage[] = [
         summary: "الدفع حسب الاستخدام والخطط الشهرية وطريقة احتساب العملاء المحتملين.",
         blocks: [
           { table: { head: ["الخيار", "السعر", "العملاء المحتملون"], rows: [
-            ["الدفع حسب الاستخدام", "شحن $5 / $20 / $50 / $100", "100 / 400 / 1,000 / 2,000 بدون انتهاء (5 سنت للعميل)"], ["برو", "$50 شهريًا", "1,000 شهريًا"], ["النمو", "$100 شهريًا", "2,000 شهريًا"],
+            ["الدفع حسب الاستخدام", "شحن $5 / $20 / $50 / $100", "50 / 200 / 500 / 1,000 بدون انتهاء (10 سنت للعميل؛ الخطة بنصف السعر للعميل)"], ["برو", "$50 شهريًا", "1,000 شهريًا"], ["النمو", "$100 شهريًا", "2,000 شهريًا"],
           ] } },
           { ul: [
             "العميل المحتمل هو الوحدة الوحيدة. كتابة الرسائل وإرسالها بدون رسوم وبدون حد، وجهات الاتصال المرفوعة غير محدودة، وعرض عملائك مرة أخرى مجاني.",
