@@ -29,7 +29,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
     campaignTable(ws, rangeBounds(range, new Date(), { from, to }), { includeArchived: true }),
     memberMailboxes(ws, session.userId),
     createAdminClient().from("profiles").select("id, full_name, email").eq("workspace_id", ws),
-    db.from("saved_views").select("id, name, config").eq("user_id", session.userId).eq("workspace_id", ws).eq("scope", "campaigns").order("created_at"),
+    db.from("campaign_views").select("id, name, config").eq("user_id", session.userId).eq("workspace_id", ws).eq("scope", "campaigns").order("created_at"),
   ]);
   const members = (memberRows ?? []).map((p) => ({ id: p.id, name: p.full_name || p.email || "" }));
   const hasMailbox = boxes.some((b) => b.status === "connected");

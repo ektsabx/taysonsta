@@ -1044,7 +1044,7 @@ export interface Database {
       audience_groups: Table<AudienceGroupRow, "workspace_id" | "campaign_id" | "name">;
       audiences: Table<AudienceRow, "workspace_id" | "kind" | "name">;
       audience_members: Table<{ audience_id: string; lead_id: string; workspace_id: string; added_at: string }, "audience_id" | "lead_id" | "workspace_id">;
-      saved_views: Table<SavedViewRow, "workspace_id" | "user_id" | "name">;
+      campaign_views: Table<SavedViewRow, "workspace_id" | "user_id" | "name">;
       campaign_activity: Table<CampaignActivityRow, "workspace_id" | "campaign_id" | "kind" | "body">;
       learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;

@@ -112,7 +112,7 @@ export async function saveView(name: string, config: z.input<typeof viewConfig>)
   const n = name.trim().slice(0, 80), c = viewConfig.safeParse(config);
   if (!n || !c.success) return { ok: false, error: t.camp.manager.errors.view };
   const db = await createClient();
-  const { data, error } = await db.from("saved_views").insert({
+  const { data, error } = await db.from("campaign_views").insert({
     workspace_id: session.workspace.id, user_id: session.userId, scope: "campaigns", name: n,
     config: { ...c.data, columns: cleanColumns(c.data.columns), pinned: cleanColumns(c.data.pinned) } as unknown as Json,
   }).select("id").single();
@@ -126,7 +126,7 @@ export async function deleteView(id: string): Promise<ManagerResult> {
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.camp.manager.errors.view };
   const db = await createClient();
-  await db.from("saved_views").delete().eq("id", id).eq("user_id", session.userId);
+  await db.from("campaign_views").delete().eq("id", id).eq("user_id", session.userId);
   revalidatePath("/outreach");
   return { ok: true };
 }

@@ -95,7 +95,7 @@ grant select, insert, update, delete on public.audiences, public.audience_member
 alter table public.audience_groups drop constraint if exists audience_groups_audience_fk;
 alter table public.audience_groups add constraint audience_groups_audience_fk foreign key (audience_id) references public.audiences(id) on delete set null;
 
-create table if not exists public.saved_views (
+create table if not exists public.campaign_views (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -104,11 +104,11 @@ create table if not exists public.saved_views (
   config jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
-create index if not exists saved_views_user_idx on public.saved_views (user_id, scope);
-alter table public.saved_views enable row level security;
-drop policy if exists "own saved views" on public.saved_views;
-create policy "own saved views" on public.saved_views for all using (user_id = auth.uid() and public.is_workspace_member(workspace_id)) with check (user_id = auth.uid() and public.is_workspace_member(workspace_id));
-grant select, insert, update, delete on public.saved_views to authenticated;
+create index if not exists campaign_views_user_idx on public.campaign_views (user_id, scope);
+alter table public.campaign_views enable row level security;
+drop policy if exists "own saved views" on public.campaign_views;
+create policy "own saved views" on public.campaign_views for all using (user_id = auth.uid() and public.is_workspace_member(workspace_id)) with check (user_id = auth.uid() and public.is_workspace_member(workspace_id));
+grant select, insert, update, delete on public.campaign_views to authenticated;
 
 -- Running days restrict sending only when the member sets them: every existing campaign runs every day, as before.
 alter table public.outreach_campaigns alter column run_days set default '{sun,mon,tue,wed,thu,fri,sat}';
