@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
 } from "lucide-react";
@@ -62,6 +62,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
   const pathname = usePathname();
+  const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -147,10 +148,13 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
   // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
   useEffect(() => {
-    const onOpen = (e: Event) => setSettingsTab((e as CustomEvent<SettingsTab>).detail);
+    const onOpen = (e: Event) => {
+      const tab = (e as CustomEvent<SettingsTab>).detail;
+      if (tab === "integration") router.push("/integrations"); else setSettingsTab(tab);
+    };
     window.addEventListener(OPEN_SETTINGS_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_SETTINGS_EVENT, onOpen);
-  }, []);
+  }, [router]);
 
   // Running out of prospects (like a usage limit): a banner from 80%, red at 100%.
   const [nearDismissed, setNearDismissed] = useState(false);

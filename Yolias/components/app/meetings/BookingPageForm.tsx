@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Check, Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
@@ -8,7 +9,6 @@ import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
 import { DAYS } from "@/lib/meetings/availability";
 import { saveBookingPage } from "@/app/(app)/meetings/actions";
-import { openSettingsTab } from "@/components/app/open-settings";
 import type { BookingPageRow } from "@/types/database";
 
 // Booking page settings (owner's layout, 2026-10-30, D-267): the link, then the
@@ -67,7 +67,7 @@ export function BookingPageForm({ page, link, calendar, zones }: {
         </div>
       </section>
 
-      <p className="meet-muted"><CalendarDays size={14} /> {calendar ? fmt(p.connectedAs, { email: calendar }) : p.calendarHint} <button type="button" className="ws-link meet-inline" onClick={() => window.location.assign("/integrations?card=calendar")}>{t.settings.hub.title}</button></p>
+      <p className="meet-muted"><CalendarDays size={14} /> {calendar ? fmt(p.connectedAs, { email: calendar }) : p.calendarHint} <Link className="ws-link meet-inline" href="/integrations?card=calendar">{t.settings.hub.title}</Link></p>
 
       <section className="meet-box">
         <label className="meet-switch"><input type="checkbox" checked={v.enabled} onChange={(e) => set("enabled", e.target.checked)} /> {p.taking}</label>
