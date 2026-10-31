@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
-  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Plus, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
+  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
@@ -37,6 +37,8 @@ const nav = [
   { href: "/meetings", key: "meetings", icon: CalendarDays },
   { href: "/", key: "yoliasAi", icon: MessageSquareText },
   { href: "/ai/knowledge", key: "knowledge", icon: Library },
+  // Integrations has its own page (owner, 2026-10-31, D-271), out of Settings.
+  { href: "/integrations", key: "integrations", icon: Plug },
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -60,7 +62,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   // A live renewal is waiting for payment (lib/billing.ts billingSweep): say so everywhere until it's paid.
   const pastDue = data.workspace.subscriptionStatus === "past_due" ? { id: data.invoices.find((i) => i.status === "open")?.id ?? null } : null;
   const pathname = usePathname();
-  const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -136,9 +137,12 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
   // ?settings=<tab> opens that tab (e.g. back from connecting a mailbox).
   useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get("settings");
+    const q = new URLSearchParams(window.location.search);
+    const tab = q.get("settings");
+    // Integrations moved to its own page (D-271): old links land there with their card and status.
+    if (tab === "integration") { q.delete("settings"); window.location.replace(`/integrations${q.size ? `?${q}` : ""}`); return; }
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (tab === "integration" || tab === "usage" || tab === "billing" || tab === "account" || tab === "referral") setSettingsTab(tab);
+    if (tab === "usage" || tab === "billing" || tab === "account" || tab === "referral") setSettingsTab(tab);
   }, []);
 
   // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
@@ -159,7 +163,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
   const recent = data.recent.filter((st) => !st.pinned);
 
   // "+ New Strategy": back to Yolias AI with an empty prompt.
-  const newStrategy = () => router.push(`/?new=${Date.now()}`);
 
   return (
     <ToastProvider closeLabel={t.common.close}>
@@ -180,19 +183,14 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         </button>
 
         <div className="brand-area">
-          {/* The logo always leads home: Yolias AI with an empty prompt. */}
-          <Link href="/" className="brand-home" aria-label="Yolias" onClick={(e) => { e.preventDefault(); newStrategy(); }}>
+          {/* The logo leads home: the dashboard (D-271). */}
+          <Link href="/dashboard" className="brand-home" aria-label="Yolias">
             <BrandLogo />
           </Link>
           <NotificationBell unread={data.unread} />
         </div>
 
-        <div className="sidebar-action-wrap">
-          <button className="btn-new-chat" type="button" onClick={newStrategy}>
-            <Plus />
-            <span>{t.nav.newStrategy}</span>
-          </button>
-        </div>
+        {/* "New search" was removed (owner, 2026-10-31, D-271): campaigns start from Campaigns, questions from Yolias AI. */}
 
         <nav className="sidebar-nav">
           <section className="nav-group">
@@ -200,7 +198,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{key === "dashboard" ? t.camp.dash.title : key === "yoliasAi" || key === "prospects" ? t.nav[key] : t.ws.nav[key]}</span>
+                  <span>{key === "dashboard" ? t.camp.dash.title : key === "integrations" ? t.settings.hub.title : key === "yoliasAi" || key === "prospects" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>
@@ -302,9 +300,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         <div className="mobile-topbar">
           <button ref={menuButtonRef} className="mobile-topbar-btn" type="button" aria-label={t.nav.openSidebar} aria-controls="app-sidebar" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}>
             <Menu />
-          </button>
-          <button className="mobile-topbar-btn" type="button" aria-label={t.nav.newStrategy} onClick={newStrategy}>
-            <Plus />
           </button>
         </div>
         {data.planGate && (

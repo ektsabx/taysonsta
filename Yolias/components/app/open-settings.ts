@@ -5,5 +5,7 @@ import type { SettingsTab } from "./types";
 export const OPEN_SETTINGS_EVENT = "yolias:open-settings";
 
 export function openSettingsTab(tab: SettingsTab) {
+  // Integrations is its own page in the sidebar (owner, 2026-10-31, D-271).
+  if (tab === "integration") { window.location.assign("/integrations"); return; }
   window.dispatchEvent(new CustomEvent<SettingsTab>(OPEN_SETTINGS_EVENT, { detail: tab }));
 }

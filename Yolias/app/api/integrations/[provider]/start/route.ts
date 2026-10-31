@@ -20,6 +20,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pro
     return res;
   } catch (e) {
     const reason = e instanceof MailboxError && e.kind === "not_configured" ? "not_configured" : "failed";
-    return NextResponse.redirect(new URL(`/?settings=integration&mailbox=${reason}`, siteUrl()));
+    return NextResponse.redirect(new URL(`/integrations?mailbox=${reason}`, siteUrl()));
   }
 }

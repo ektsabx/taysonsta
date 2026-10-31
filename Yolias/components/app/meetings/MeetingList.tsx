@@ -93,6 +93,8 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
     </li>
   );
 
+  // No meetings yet (owner, 2026-10-31): only the sentence, nothing else.
+  if (!upcoming.length && !past.length) return <section className="sdr-panel meet-list"><p className="meet-muted meet-empty">{m.empty}</p></section>;
   return (
     <section className="sdr-panel meet-list">
       <div className="meet-list-head">
@@ -108,7 +110,6 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
           ))}
         </div>
       )}
-      {!upcoming.length && !past.length && <p className="meet-muted">{m.empty}</p>}
       {(() => {
         const keep = (x: MeetingItem) => show === "all" || (show === "past" ? x.status === "completed" : show === "no_show" ? x.status === "no_show" : show === "canceled" ? x.status === "canceled" : show === "qualified" ? x.qualified === true : show === "unqualified" ? x.qualified === false : true);
         const up = show === "all" || show === "upcoming" ? upcoming : [];

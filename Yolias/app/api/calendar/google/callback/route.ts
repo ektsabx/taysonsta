@@ -12,7 +12,7 @@ const STATE = "yolias_calendar_state";
 // Yolias creates its own "Yolias meetings" calendar right away.
 export async function GET(req: NextRequest) {
   const back = (status: string) => {
-    const res = NextResponse.redirect(new URL(`/?settings=integration&card=calendar&calendar=${status}`, siteUrl()));
+    const res = NextResponse.redirect(new URL(`/integrations?card=calendar&calendar=${status}`, siteUrl()));
     res.cookies.delete({ name: STATE, path: "/api/calendar" });
     return res;
   };

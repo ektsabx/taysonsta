@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, Bell, ChevronRight, CreditCard, Gift, Plug, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
+import { Activity, Bell, ChevronRight, CreditCard, Gift, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
@@ -12,7 +12,6 @@ import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
-import { IntegrationsHub } from "./settings/IntegrationsHub";
 import { ReferralSettings } from "./settings/ReferralSettings";
 import { changeEmail, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult } from "@/app/(app)/settings/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
@@ -28,7 +27,6 @@ const tabs: { tab: SettingsTab; icon: typeof User }[] = [
   { tab: "usage", icon: Activity },
   { tab: "billing", icon: CreditCard },
   { tab: "team", icon: Users },
-  { tab: "integration", icon: Plug },
   { tab: "referral", icon: Gift },
 ];
 
@@ -143,7 +141,6 @@ export function SettingsModal({ data, tab, onTab, onClose }: Props) {
             {tab === "usage" && <UsageTab data={data} />}
             {tab === "billing" && <BillingTab data={data} />}
             {tab === "team" && <TeamTab data={data} />}
-            {tab === "integration" && <IntegrationTab />}
             {tab === "referral" && <ReferralSettings link={data.workspace.referralLink} />}
             </>}
           </div>
@@ -912,10 +909,6 @@ function TeamTab({ data }: { data: ShellData }) {
 /* ─────────────── Integrations ─────────────── */
 
 // Integrations → Email (D-256): Mailboxes, Connection and Sending rules, after AgentSDR.
-function IntegrationTab() {
-  return <IntegrationsHub />;
-}
-
 function SettingRow({ id, label, desc, children }: { id?: string; label: string; desc: string; children: React.ReactNode }) {
   return (
     <div className="setting-row" data-setting={id}>

@@ -11,7 +11,7 @@ const STATE_COOKIE = "yolias_mailbox_state";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const back = (status: string) => {
-    const res = NextResponse.redirect(new URL(`/?settings=integration&mailbox=${status}`, siteUrl()));
+    const res = NextResponse.redirect(new URL(`/integrations?mailbox=${status}`, siteUrl()));
     res.cookies.delete({ name: STATE_COOKIE, path: "/api/integrations" });
     return res;
   };

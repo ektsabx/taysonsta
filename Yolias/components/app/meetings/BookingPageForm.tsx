@@ -67,7 +67,7 @@ export function BookingPageForm({ page, link, calendar, zones }: {
         </div>
       </section>
 
-      <p className="meet-muted"><CalendarDays size={14} /> {calendar ? fmt(p.connectedAs, { email: calendar }) : p.calendarHint} <button type="button" className="ws-link meet-inline" onClick={() => { window.history.replaceState(null, "", `${window.location.pathname}?tab=page&card=calendar`); openSettingsTab("integration"); }}>{t.settings.hub.title}</button></p>
+      <p className="meet-muted"><CalendarDays size={14} /> {calendar ? fmt(p.connectedAs, { email: calendar }) : p.calendarHint} <button type="button" className="ws-link meet-inline" onClick={() => window.location.assign("/integrations?card=calendar")}>{t.settings.hub.title}</button></p>
 
       <section className="meet-box">
         <label className="meet-switch"><input type="checkbox" checked={v.enabled} onChange={(e) => set("enabled", e.target.checked)} /> {p.taking}</label>

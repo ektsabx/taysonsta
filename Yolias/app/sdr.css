@@ -509,3 +509,4 @@ a.meet-tag { text-decoration: none; color: inherit; }
 .campaign-filter select { max-width: 280px; }
 .sdr-inbox-filters { display: flex; gap: 8px; padding: 0 12px 8px; flex-wrap: wrap; }
 .sdr-inbox-filters select { flex: 1; min-width: 0; }
+.meet-empty { padding: 28px 20px; margin: 0; text-align: center; }

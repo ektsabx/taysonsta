@@ -71,7 +71,7 @@ export const campEn = {
     progress: "Progress to meeting targets", progressNote: "Qualified meetings against each campaign's target. Actual results only.",
     compare: "Compare campaigns", colCampaign: "Campaign", colStatus: "Status", colContacted: "Contacted", colPositive: "Positive", colMeetings: "Meetings", colQualified: "Qualified", colTarget: "Target", colPace: "Pace", colCost: "Cost / meeting",
     attention: "Needs you", attentionEmpty: "Nothing needs you right now.",
-    approvals: "{n} campaigns waiting for your approval", hot: "{n} replies waiting for you", paused: "{n} campaigns paused by Yolias", outcomes: "{n} meetings waiting for their outcome",
+    approvals: "{n} campaigns waiting for your approval", hot: "{n} replies waiting for you", paused: "{n} campaigns paused by Yolias", outcomes: "{n} meetings waiting for their outcome", meetingsToday: "{n} meetings today", tryAgain: "{n} people to try again (no reply 60+ days ago)",
     insights: "Yolias's notes", insightsEmpty: "Notes appear once campaigns have enough data.",
     activity: "What Yolias did", activityEmpty: "Nothing yet.",
     noCampaigns: "No campaigns yet", noCampaignsLine: "Create your first campaign: set the goal and the audience, and Yolias does the rest.",

@@ -72,7 +72,7 @@ export const campAr: typeof campEn = {
     progress: "التقدم نحو أهداف الاجتماعات", progressNote: "الاجتماعات المؤهلة مقارنة بهدف كل حملة. نتائج فعلية فقط.",
     compare: "مقارنة الحملات", colCampaign: "الحملة", colStatus: "الحالة", colContacted: "تم التواصل", colPositive: "إيجابي", colMeetings: "اجتماعات", colQualified: "مؤهلة", colTarget: "الهدف", colPace: "السير", colCost: "تكلفة الاجتماع",
     attention: "يحتاجك", attentionEmpty: "لا شيء يحتاجك الآن.",
-    approvals: "{n} حملات تنتظر موافقتك", hot: "{n} ردود تنتظرك", paused: "{n} حملات أوقفها يولياس", outcomes: "{n} اجتماعات تنتظر نتيجتها",
+    approvals: "{n} حملات تنتظر موافقتك", hot: "{n} ردود تنتظرك", paused: "{n} حملات أوقفها يولياس", outcomes: "{n} اجتماعات تنتظر نتيجتها", meetingsToday: "{n} اجتماعات اليوم", tryAgain: "{n} أشخاص لتجربتهم من جديد (لم يردوا منذ 60+ يومًا)",
     insights: "ملاحظات يولياس", insightsEmpty: "تظهر الملاحظات حين تكفي بيانات الحملات.",
     activity: "ما نفّذه يولياس", activityEmpty: "لا شيء بعد.",
     noCampaigns: "لا توجد حملات بعد", noCampaignsLine: "أنشئ حملتك الأولى: حدّد الهدف والجمهور، ويولياس يتولى الباقي.",

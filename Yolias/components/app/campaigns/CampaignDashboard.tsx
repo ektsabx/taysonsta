@@ -11,7 +11,9 @@ import type { CampaignMetrics } from "@/services/campaign-metrics";
 
 type Activity = { id: number; campaignId: string; kind: string; body: string; at: string; campaign: string };
 
-export async function CampaignDashboard({ found, metrics, activity, rate, waiting, outcomesWaiting }: { found: number; metrics: CampaignMetrics[]; activity: Activity[]; rate: number; waiting: string[]; outcomesWaiting: number }) {
+export async function CampaignDashboard({ found, metrics, activity, rate, waiting, outcomesWaiting, repliesWaiting, meetingsToday, tryAgain }: {
+  found: number; metrics: CampaignMetrics[]; activity: Activity[]; rate: number; waiting: string[]; outcomesWaiting: number; repliesWaiting: number; meetingsToday: number; tryAgain: number;
+}) {
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const d = t.camp.dash;
   const n = (v: number) => formatNumber(v, locale);
@@ -45,9 +47,12 @@ export async function CampaignDashboard({ found, metrics, activity, rate, waitin
 
   const pausedByYolias = live.filter((m) => m.status === "paused" && m.failureReason);
   const attention = [
+    repliesWaiting ? { key: "hot", text: fmt(d.hot, { n: n(repliesWaiting) }), href: "/inbox?tab=replies" } : null,
+    meetingsToday ? { key: "today", text: fmt(d.meetingsToday, { n: n(meetingsToday) }), href: "/meetings" } : null,
     waiting.length ? { key: "approve", text: fmt(d.approvals, { n: n(waiting.length) }), href: `/outreach/${waiting[0]}` } : null,
     pausedByYolias.length ? { key: "paused", text: fmt(d.paused, { n: n(pausedByYolias.length) }), href: `/outreach/${pausedByYolias[0].id}` } : null,
     outcomesWaiting ? { key: "outcomes", text: fmt(d.outcomes, { n: n(outcomesWaiting) }), href: "/meetings" } : null,
+    tryAgain ? { key: "again", text: fmt(d.tryAgain, { n: n(tryAgain) }), href: "/prospects?tab=people&noreply=1" } : null,
   ].filter((x): x is { key: string; text: string; href: string } => Boolean(x));
 
   // Yolias's notes: only from the engines' answers, never invented.
