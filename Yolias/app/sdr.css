@@ -391,7 +391,7 @@ kbd { display: inline-block; border: 1px solid var(--line); border-bottom-width:
 .domain-health-row span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .domain-health-fix { margin: 10px 0 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: .8rem; line-height: 1.55; color: var(--text-2); }
 
-/* Settings → Integrations as cards (owner, 2026-10-28) */
+/* Integrations as cards (owner, 2026-10-28) */
 .integration-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .integration-card { position: relative; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
 .integration-card:hover { border-color: var(--line-strong); }
@@ -707,3 +707,4 @@ a.meet-tag { text-decoration: none; color: inherit; }
 .cp-conv p { margin: 0; color: var(--muted); }
 .cp-conv time, .cp-kind { color: var(--muted); font-size: .76rem; }
 .cp-dim { display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; color: var(--muted); }
+.cp-head .sdr-head-actions { flex-wrap: wrap; } .cp-head { align-items: flex-start; }

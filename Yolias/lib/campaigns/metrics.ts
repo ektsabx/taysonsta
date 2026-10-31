@@ -73,7 +73,7 @@ export function formatMetric(v: number | null, format: MetricFormat, locale: "en
   if (v == null) return "–";
   const loc = locale === "ar" ? "ar-EG-u-nu-latn" : "en-US";
   if (format === "pct") return `${(v * 100).toFixed(v * 100 < 10 ? 1 : 0)}%`;
-  if (format === "usd") return new Intl.NumberFormat(loc, { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 }).format(v);
+  if (format === "usd") return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 }).format(v);
   if (format === "ratio") return `${v.toFixed(1)}×`;
   return new Intl.NumberFormat(loc).format(v);
 }

@@ -60,7 +60,7 @@ export function CampaignPage(p: {
   const [rangeOpen, setRangeOpen] = useState(false);
   const c = p.c;
   const n = (v: number) => formatNumber(v, locale);
-  const usd = (v: number) => new Intl.NumberFormat(lang === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+  const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
   const when = (iso: string) => new Intl.DateTimeFormat(lang === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", ...(p.timeZone ? { timeZone: p.timeZone } : {}) }).format(new Date(iso));
   const href = (patch: Record<string, string | null>) => {
     const q = new URLSearchParams(sp.toString());

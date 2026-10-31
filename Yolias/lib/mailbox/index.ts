@@ -81,7 +81,7 @@ export async function mailboxAccess(m: Pick<MailboxRow, "id" | "provider" | "sta
     tokens.set(m.id, t);
     return { provider, token: t.token };
   } catch (e) {
-    if (e instanceof MailboxError && e.kind === "auth") await markMailboxError(m.id, "The mailbox permission expired or was removed. Reconnect it in Settings → Integrations.");
+    if (e instanceof MailboxError && e.kind === "auth") await markMailboxError(m.id, "The mailbox permission expired or was removed. Reconnect it in Integrations.");
     throw e;
   }
 }

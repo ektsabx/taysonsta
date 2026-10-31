@@ -58,8 +58,11 @@ export async function enrollLeads(db: Db, workspaceId: string, userId: string, c
     const { count: elsewhere } = await admin.from("outreach_enrollments").select("id", { count: "exact", head: true })
       .eq("lead_id", lead.id).eq("status", "active").neq("campaign_id", campaignId);
     if (elsewhere) { skip("in_other_campaign"); continue; }
-    // D-272: into the given audience group, else the campaign's first group.
-    const group = groupId ?? (await admin.from("audience_groups").select("id").eq("campaign_id", campaignId).order("created_at").limit(1).maybeSingle()).data?.id ?? null;
+    // D-272: into the given audience group, else the campaign's first group (made once if it has none:
+    // campaigns started from Yolias AI or from people picked in Prospects).
+    groupId ??= (await admin.from("audience_groups").select("id").eq("campaign_id", campaignId).order("created_at").limit(1).maybeSingle()).data?.id
+      ?? (await admin.from("audience_groups").insert({ workspace_id: workspaceId, campaign_id: campaignId, name: "Main audience", source: "imported", created_by: userId }).select("id").single()).data?.id ?? null;
+    const group = groupId;
     const { error } = await db.from("outreach_enrollments").insert({ workspace_id: workspaceId, campaign_id: campaignId, lead_id: lead.id, created_by: userId, audience_group_id: group });
     if (error) { if (/duplicate key/.test(error.message)) skip("already_enrolled"); else throw error; continue; }
     result.added++;

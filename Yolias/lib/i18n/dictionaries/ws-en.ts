@@ -19,7 +19,7 @@ export const wsEn = {
     onlyManagers: "Only owners and admins can change this.", optional: "Optional", confirmDelete: "Delete this? This can't be undone.",
     page: "Page {page} of {pages}", prev: "Previous", next: "Next", yes: "Yes", no: "No", open: "Open", close: "Close", done: "Done",
     notConnectedTitle: "Not connected yet",
-    mailboxNotConnected: "No mailbox is connected yet. Connect Gmail or any IMAP/SMTP mailbox in Settings → Integrations: Yolias sends your campaigns from it and brings the replies here.",
+    mailboxNotConnected: "No mailbox is connected yet. Connect Gmail or any IMAP/SMTP mailbox in Integrations: Yolias sends your campaigns from it and brings the replies here.",
     by: { user: "You", agent: "AI agent", automation: "Automation", system: "Yolias" },
   },
   stages: { new: "New", interested: "Interested", meeting_booked: "Meeting booked", meeting_completed: "Meeting done", proposal: "Proposal sent", negotiation: "Negotiation", closed: "Won", lost: "Lost" },
@@ -81,7 +81,7 @@ export const wsEn = {
       running: "Campaign running", paused: "Campaign paused", sendingFrom: "Sending from {email}", manualMode: "Manual: you send each prepared message", autoReplyOn: "auto-replies on",
       cancel: "Cancel campaign", cancelConfirm: "Cancel this campaign? Unsent messages are dropped and no follow-ups go out.",
       started: "Approved. Yolias starts sending within a minute.", startedManual: "Approved. The messages are being prepared for you to send.",
-      errors: { not_found: "Campaign not found.", archived: "This campaign is canceled.", no_mailbox: "That mailbox isn’t yours or doesn’t exist.", mailbox_not_connected: "That mailbox needs reconnecting in Settings, Integrations.", channel: "Only email campaigns can send from a mailbox.", no_leads: "Add leads to the campaign first.", denied: "Only the person who created this campaign or a workspace admin can approve it.", ended: "This campaign has passed its end date. Change the date to run it again." },
+      errors: { not_found: "Campaign not found.", archived: "This campaign is canceled.", no_mailbox: "That mailbox isn’t yours or doesn’t exist.", mailbox_not_connected: "That mailbox needs reconnecting in Integrations.", channel: "Only email campaigns can send from a mailbox.", no_leads: "Add leads to the campaign first.", denied: "Only the person who created this campaign or a workspace admin can approve it.", ended: "This campaign has passed its end date. Change the date to run it again." },
     },
     actions: { activate: "Activate", pause: "Pause", resume: "Resume", archive: "Archive", prepare: "Prepare drafts", preparing: "Preparing…", addLeads: "Add leads", remove: "Remove from campaign" },
     prepared: "{count} drafts prepared.", prepareSkipped: "{count} skipped (no step, limit reached, already prepared or not allowed).",
@@ -101,9 +101,9 @@ export const wsEn = {
   },
   send: {
     errors: {
-      not_found: "Message not found.", not_draft: "This email was already sent.", no_mailbox: "Connect your mailbox in Settings → Integrations first.",
+      not_found: "Message not found.", not_draft: "This email was already sent.", no_mailbox: "Connect your mailbox in Integrations first.",
       do_not_contact: "This person asked not to be contacted.", no_email: "There’s no email address for this person.", daily_limit: "Your mailbox reached today’s sending limit. It continues tomorrow.",
-      mailbox_error: "Your mailbox refused to send. Reconnect it in Settings → Integrations.", failed: "The email wasn’t sent.",
+      mailbox_error: "Your mailbox refused to send. Reconnect it in Integrations.", failed: "The email wasn’t sent.",
     },
   },
   messages: {
@@ -114,7 +114,7 @@ export const wsEn = {
     sendDisabled: "Send (needs a connected mailbox)", subject: "Subject", body: "Message", from: "From", to: "To",
     errors: {
       not_found: "Message not found.", not_ready: "This message can’t be marked as sent.", do_not_contact: "This lead asked not to be contacted.",
-      too_soon: "Too soon after the last message to this lead. It goes out later by itself.", daily_limit: "Daily sending limit reached (Settings → Integrations → Sending rules).",
+      too_soon: "Too soon after the last message to this lead. It goes out later by itself.", daily_limit: "Daily sending limit reached (Integrations → Sending rules).",
       edit: "Only drafts can be edited.", failed: "Couldn’t save the message.",
     },
     prepareErrors: {
@@ -129,7 +129,7 @@ export const wsEn = {
     filters: { all: "All", unread: "Unread", interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up", sent: "Sent", done: "Done", others: "Others" },
     labels: { interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up" }, label: "Label",
     convert: "Move to CRM", converted: "Moved to the CRM as Interested.",
-    composer: { placeholder: "Write your reply…", send: "Send", sending: "Sending…", suggest: "Suggest a reply with AI", suggesting: "Writing…", sent: "Reply sent.", noMailbox: "Connect your mailbox in Settings → Integrations to reply from here.", draftReady: "Yolias wrote a reply. Review it, then send." },
+    composer: { placeholder: "Write your reply…", send: "Send", sending: "Sending…", suggest: "Suggest a reply with AI", suggesting: "Writing…", sent: "Reply sent.", noMailbox: "Connect your mailbox in Integrations to reply from here.", draftReady: "Yolias wrote a reply. Review it, then send." },
 
     empty: "No conversations here yet.", emptyAll: "No replies yet. Replies to your campaigns arrive here automatically.", select: "Select a conversation.",
     thread: { campaign: "Campaign", openCrm: "Open in CRM", openCampaign: "Open campaign", noMessages: "No messages in this conversation yet.", markDone: "Mark done", reopen: "Reopen", markOther: "Move to Others", markRead: "Mark read" },

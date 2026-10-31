@@ -360,3 +360,6 @@ npx wrangler secret put WORKER_SECRET
 ## جولة 2026-10-31 (D-270)
 1. migrations بالترتيب: 20261207000000_campaign_centric (إضافية فقط)، 20261208000000_payg_price، وملف record لكل واحدة.
 2. نشر يولياس ثم الأدمن، ثم `npm run content:seed:production` و`npm run seo:seed:production`، ثم فحص SEO الحي.
+## جولة 2026-10-31 الثانية (D-271، D-272)
+1. migration ‏20261209000000_ads_manager وملف record.
+2. بناء يولياس ونشره (الرفع بطيء على الشبكة الحالية: انتظر حتى يكتمل وأعد المحاولة عند fetch failed)، ثم الأدمن، ثم seeds المحتوى وSEO، ثم فحص SEO الحي.

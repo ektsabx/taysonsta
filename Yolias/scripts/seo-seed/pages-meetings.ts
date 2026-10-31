@@ -442,7 +442,7 @@ export const meetingSolutionPages: SeedPage[] = [
       criteria: ["Weekly hours with up to three ranges a day", "Meeting length, a break between meetings and the shortest notice", "How many days ahead people can book", "A place: Google Meet, Zoom, a phone number or an address"],
       steps: [
         { title: "Set your hours", body: "In Meetings → Booking page, choose your days and hours, the meeting length and the break after each meeting." },
-        { title: "Connect Google Calendar", body: "In Settings → Integrations. Yolias creates its own calendar there and adds a Google Meet link to every booking." },
+        { title: "Connect Google Calendar", body: "In Integrations. Yolias creates its own calendar there and adds a Google Meet link to every booking." },
         { title: "Share it, or let Yolias do it", body: "Copy the link, or let your meeting campaigns include it and answer meeting requests with two free times." },
       ],
       blocks: [
@@ -467,7 +467,7 @@ export const meetingSolutionPages: SeedPage[] = [
       criteria: ["ساعات أسبوعية حتى ثلاث فترات في اليوم", "مدة الاجتماع والاستراحة بين الاجتماعات وأقل مهلة", "عدد الأيام المتاحة للحجز مقدمًا", "المكان: Google Meet أو Zoom أو رقم هاتف أو عنوان"],
       steps: [
         { title: "حدّد ساعاتك", body: "من الاجتماعات ← صفحة الحجز، اختر أيامك وساعاتك ومدة الاجتماع والاستراحة بعد كل اجتماع." },
-        { title: "اربط تقويم Google", body: "من الإعدادات ← التكاملات. ينشئ يولياس تقويمه الخاص هناك ويضيف رابط Google Meet لكل حجز." },
+        { title: "اربط تقويم Google", body: "من التكاملات. ينشئ يولياس تقويمه الخاص هناك ويضيف رابط Google Meet لكل حجز." },
         { title: "شاركها أو دع يولياس يشاركها", body: "انسخ الرابط، أو دع حملات الاجتماعات تضيفه وترد على طلبات الاجتماع بموعدين متاحين." },
       ],
       blocks: [

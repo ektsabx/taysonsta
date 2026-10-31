@@ -17,7 +17,7 @@ export async function CampaignDashboard({ found, metrics, activity, rate, waitin
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const d = t.camp.dash;
   const n = (v: number) => formatNumber(v, locale);
-  const usd = (v: number) => new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 }).format(v);
+  const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 }).format(v);
   const live = metrics;
   const sum = (k: keyof CampaignMetrics) => live.reduce((s, m) => s + (Number(m[k]) || 0), 0);
   const by = (s: CampaignMetrics["status"]) => live.filter((m) => m.status === s).length;

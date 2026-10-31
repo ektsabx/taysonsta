@@ -1,5 +1,6 @@
 import "server-only";
 import { campaignActivity, campaignMetrics } from "@/services/campaign-metrics";
+import { campaignTable } from "@/services/campaign-table";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -517,7 +518,7 @@ export const agentTools = [
       const s = ctx.session;
       const boxes = (await memberMailboxes(s.workspace.id, s.userId)).filter((m) => m.status === "connected");
       const mailbox = input.sendFromMailbox ? boxes[0] ?? null : null;
-      if (input.sendFromMailbox && !mailbox) return fail("not_connected", "No mailbox is connected. The user can connect Gmail or Outlook in Settings, Integrations, or start the campaign in manual mode.");
+      if (input.sendFromMailbox && !mailbox) return fail("not_connected", "No mailbox is connected. The user can connect Gmail or Outlook in Integrations, or start the campaign in manual mode.");
       const r = await approveCampaign({ workspaceId: s.workspace.id, userId: s.userId, role: s.role, campaignId: input.id, mailboxId: mailbox?.id ?? null, autoReply: input.autoReply });
       if (!r.ok) return fail(r.error === "not_found" ? "not_found" : "denied", `Couldn't start it: ${r.error}.`);
       if (!mailbox) await prepareFirstDrafts(s.workspace.id, s.userId, input.id);
@@ -626,11 +627,13 @@ export const agentTools = [
   // ───────────── Campaign results (D-270) ─────────────
   define({
     name: "campaignPerformance",
-    description: "Every outreach campaign (or one) with its actual results: status, meeting target, people contacted, positive replies, meetings booked / held / qualified, customers and revenue won, prospects used and cost per meeting; its pace against the target; and, only when there is enough data, the plan and the forecast range. Forecasts are estimates, never results: say so. Use it for 'how are my campaigns doing', 'which campaign gets the most qualified meetings', 'why is this one weak', 'how many meetings can we expect'.",
+    description: "Every outreach campaign (or one) with its actual results, and each of its audience groups' results: status, meeting target, people contacted, positive replies, meetings booked / held / qualified, customers and revenue won, prospects used and cost per meeting; its pace against the target; and, only when there is enough data, the plan and the forecast range. Forecasts are estimates, never results: say so. Use it for 'how are my campaigns doing', 'which campaign gets the most qualified meetings', 'why is this one weak', 'how many meetings can we expect'.",
     permission: "read",
     input: z.object({ id: uuid.optional() }),
     async run(ctx, input) {
       const rows = await campaignMetrics(ctx.session.workspace.id, input.id ? { ids: [input.id], includeArchived: true } : {});
+      // D-272: each campaign's audience groups with their own results.
+      const lines = new Map((await campaignTable(ctx.session.workspace.id, { from: null, to: null }, input.id ? { ids: [input.id], includeArchived: true } : {})).map((l) => [l.id, l]));
       return ok({
         campaigns: rows.map((m) => ({
           id: m.id, name: m.name, status: m.status, aim: m.aim, target: m.target, startsAt: m.startsAt, endsAt: m.endsAt, pace: m.pace,
@@ -638,6 +641,7 @@ export const agentTools = [
             booked: m.booked, held: m.held, noShow: m.noShow, qualified: m.qualified, customers: m.customers, revenueUsd: m.revenueUsd, prospectsUsed: m.prospectsUsed,
             spendUsd: m.costs.spendUsd, costPerMeetingUsd: m.costs.perMeeting, costPerQualifiedUsd: m.costs.perQualified, roi: m.costs.roi },
           plan: m.plan, forecast: m.forecast, forecastUsesSharedLearning: m.sharedWorkspaces > 0, pausedBecause: m.failureReason,
+          audienceGroups: (lines.get(m.id)?.groups ?? []).map((g) => ({ name: g.name, status: g.status, source: g.source, contacted: g.counts.contacted, replies: g.counts.replies, interested: g.counts.interested, meetings: g.counts.meetings, spendUsd: g.counts.spendUsd })),
         })),
       });
     },

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calendarConfigured } from "@/lib/meetings/google";
 
-// Settings → Integrations → Google Calendar (D-268): the member's connection.
+// Integrations → Google Calendar (D-268): the member's connection.
 export async function calendarState(): Promise<{ available: boolean; connection: { email: string | null; status: string; error: string | null } | null }> {
   const session = await requireSession();
   const [{ data }, available] = await Promise.all([

@@ -152,7 +152,7 @@ export const sdrEn = {
     selectTitle: "Select an email", selectSub: "Pick a conversation from the list to read the thread and reply.", keys: "to move", keysOpen: "to open", keysBack: "back to the list",
     you: "You", to: "to", from: "from", details: "Details", hideDetails: "Hide details", crmRecord: "CRM record", moveToCrm: "Move to CRM", markDone: "Mark done", reopen: "Reopen",
     draftReady: "AI reply ready", draftCheck: "Check it before sending", reviewDraft: "Review draft", showDraft: "Show full draft", hideDraft: "Hide draft",
-    replyTo: "Reply to {name}…", replyFrom: "from {email}", suggest: "Write with AI", send: "Send", sent: "Sent.", noMailbox: "Connect a mailbox in Settings, Integrations to reply from Yolias.", dnc: "This lead asked not to be contacted.",
+    replyTo: "Reply to {name}…", replyFrom: "from {email}", suggest: "Write with AI", send: "Send", sent: "Sent.", noMailbox: "Connect a mailbox in Integrations to reply from Yolias.", dnc: "This lead asked not to be contacted.",
     crm: "Status", category: "Category", stage: "Stage", sequence: "Sequence", nextStep: "Next step", lastReply: "Last reply", lastSent: "Last sent",
     conversation: "Conversation", channel: "Channel", email: "Email", mailbox: "Mailbox", leadStatus: "Lead status", messages: "Messages",
     contact: "Contact", linkedin: "LinkedIn", phone: "Phone", activity: "What Yolias did", reminders: "Reminders", noTasks: "No open tasks.",

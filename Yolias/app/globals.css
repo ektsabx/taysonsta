@@ -2232,7 +2232,7 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 .partner-listing { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
 .partner-listing h5 { font-size: .92rem; font-weight: 600; color: var(--ink); }
 .partner-listing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-/* Settings → Integrations: connected mailboxes (D-228) */
+/* Integrations: connected mailboxes (D-228) */
 .connector-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .connector-account { font-weight: 400; color: var(--muted); }
 .status-pill.failed { background: var(--danger-soft); color: var(--danger-text); }

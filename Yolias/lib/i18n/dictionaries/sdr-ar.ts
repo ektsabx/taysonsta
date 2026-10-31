@@ -153,7 +153,7 @@ export const sdrAr: typeof sdrEn = {
     selectTitle: "اختر رسالة", selectSub: "اختر محادثة من القائمة لتقرأها وترد.", keys: "للتنقل", keysOpen: "للفتح", keysBack: "للرجوع للقائمة",
     you: "أنت", to: "إلى", from: "من", details: "التفاصيل", hideDetails: "إخفاء التفاصيل", crmRecord: "سجل العميل", moveToCrm: "نقل لإدارة العملاء", markDone: "إنهاء", reopen: "إعادة فتح",
     draftReady: "رد AI جاهز", draftCheck: "راجعه قبل الإرسال", reviewDraft: "مراجعة المسودة", showDraft: "عرض المسودة كاملة", hideDraft: "إخفاء المسودة",
-    replyTo: "رد على {name}…", replyFrom: "من {email}", suggest: "اكتب بالذكاء الاصطناعي", send: "إرسال", sent: "تم الإرسال.", noMailbox: "اربط بريدًا من الإعدادات ← التكاملات لترد من يولياس.", dnc: "طلب هذا العميل عدم التواصل معه.",
+    replyTo: "رد على {name}…", replyFrom: "من {email}", suggest: "اكتب بالذكاء الاصطناعي", send: "إرسال", sent: "تم الإرسال.", noMailbox: "اربط بريدًا من التكاملات لترد من يولياس.", dnc: "طلب هذا العميل عدم التواصل معه.",
     crm: "الحالة", category: "التصنيف", stage: "المرحلة", sequence: "التسلسل", nextStep: "الخطوة التالية", lastReply: "آخر رد", lastSent: "آخر إرسال",
     conversation: "المحادثة", channel: "القناة", email: "البريد", mailbox: "صندوق البريد", leadStatus: "حالة العميل", messages: "الرسائل",
     contact: "التواصل", linkedin: "LinkedIn", phone: "الهاتف", activity: "ما فعله يولياس", reminders: "التذكيرات", noTasks: "لا توجد مهام مفتوحة.",

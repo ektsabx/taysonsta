@@ -54,7 +54,7 @@ export function CampaignWizard(p: WizardProps) {
   const [looks, setLooks] = useState<Record<string, Lookalike>>({});
   const [warnings, setWarnings] = useState<string[]>([]);
   const n = (v: number) => formatNumber(v, locale);
-  const usd = (v: number) => new Intl.NumberFormat(lang === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency: "USD", maximumFractionDigits: 3 }).format(v);
+  const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 3 }).format(v);
   const patch = (x: Partial<WizardState>) => setS((cur) => ({ ...cur, ...x, ...(x.groups || "objective" in x ? { planned: x.planned ?? false } : {}) }));
   const setGroup = (i: number, g: Partial<WizardGroup>) => setS((cur) => ({ ...cur, planned: "angleA" in g || "angleB" in g || "steps" in g ? cur.planned : false, groups: cur.groups.map((x, j) => (j === i ? { ...x, ...g } : x)) }));
   const call = <R extends { ok: boolean }>(fn: () => Promise<R>, then: (r: R) => void) => start(async () => {

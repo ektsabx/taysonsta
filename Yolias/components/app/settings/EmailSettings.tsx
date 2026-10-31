@@ -13,7 +13,7 @@ import type { SendingRules } from "@/lib/outreach/sending-rules";
 import type { CheckState, DomainCheck } from "@/lib/mailbox/domain-check";
 import { DEFAULT_SENDING_RULES } from "@/lib/outreach/sending-rules";
 
-// Settings → Integrations → Email (D-256), after AgentSDR Settings → Email:
+// Integrations → Email (D-256), after AgentSDR Settings → Email:
 // Mailboxes (stats + the member's mailboxes with limits, hours and health),
 // Connection (how mailboxes connect), Sending rules (the workspace defaults).
 

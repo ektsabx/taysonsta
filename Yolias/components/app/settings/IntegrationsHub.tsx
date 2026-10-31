@@ -11,7 +11,7 @@ import { EmailSettings, ImapDialog } from "./EmailSettings";
 import { CalendarSettings } from "./CalendarSettings";
 import { calendarState } from "@/app/(app)/settings/calendar-actions";
 
-// Settings → Integrations as cards (owner, 2026-10-28): one card per
+// Integrations as cards (owner, 2026-10-28): one card per
 // integration, so more can be added beside email. Opening a card shows what is
 // inside it; its ⋯ menu has "Connect" and "How to connect" (the help article
 // for that platform, with the provider's own guides). Each card holds only its

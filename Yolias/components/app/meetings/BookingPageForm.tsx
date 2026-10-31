@@ -13,7 +13,7 @@ import type { BookingPageRow } from "@/types/database";
 
 // Booking page settings (owner's layout, 2026-10-30, D-267): the link, then the
 // page itself and its weekly hours. One Save. Google Calendar is connected in
-// Settings → Integrations (D-268); this page only says whether it is.
+// Integrations (D-268); this page only says whether it is.
 const DURATIONS = [15, 20, 30, 45, 60, 90];
 const BUFFERS = [0, 5, 10, 15, 30];
 const NOTICE = [0, 1, 2, 4, 12, 24, 48];
@@ -22,7 +22,7 @@ const ORDER = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 export function BookingPageForm({ page, link, calendar, zones }: {
   page: BookingPageRow; link: string;
-  /** The connected Google account (Settings → Integrations → Google Calendar), or null. */
+  /** The connected Google account (Integrations → Google Calendar), or null. */
   calendar: string | null;
   /** Time zones with their labels, from the server (labels depend on the date and the ICU data). */
   zones: { value: string; label: string }[];

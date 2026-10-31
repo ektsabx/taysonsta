@@ -137,7 +137,7 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   // Only the approver's own, connected mailbox in this workspace.
   if (!mailbox || mailbox.user_id !== c.approved_by || mailbox.workspace_id !== c.workspace_id || mailbox.status !== "connected") {
     await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
+    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
     return res;
   }
   const settings = await loadAiSettings(c.workspace_id);
@@ -254,10 +254,10 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
     const err = e instanceof MailboxError ? e : new MailboxError("unavailable", e instanceof Error ? e.message : String(e));
     if (err.kind === "auth" || err.kind === "not_configured") {
       await db.from("outreach_messages").update({ status: "approved", next_attempt_at: null }).eq("id", m.id);
-      if (err.kind === "auth") await markMailboxError(mailbox.id, "The mailbox permission expired or was removed. Reconnect it in Settings, Integrations.");
+      if (err.kind === "auth") await markMailboxError(mailbox.id, "The mailbox permission expired or was removed. Reconnect it in Integrations.");
       if (c) {
         await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Settings, Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
+        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
       }
       return "stop";
     }

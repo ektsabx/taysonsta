@@ -10,7 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { MailProvider } from "@/types/database";
 import { checkDomain, type DomainCheck } from "@/lib/mailbox/domain-check";
 
-// Settings → Integrations: the member's own mailboxes (D-228). Everything is
+// Integrations: the member's own mailboxes (D-228). Everything is
 // scoped to the signed-in member; tokens never leave the server.
 
 export interface MailboxView {
