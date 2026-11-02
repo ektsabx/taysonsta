@@ -774,3 +774,27 @@ Yolias works like an ads platform whose result is a meeting that took place.
   - The spending limit is in Settings → Usage, inline.
   - The booking page shows the main meeting only.
   - No support floating button anywhere (it opens from Get support).
+
+### D-274, fourth round (owner, 2026-11-02): pixels like Facebook's
+- **Pixels.**
+  - Several pixels per workspace, shown as cards in Events Manager, with allowed and blocked domains.
+  - `/api/px?check=` tells the Pixel Helper whether a pixel ID exists.
+- **Attribution window** per campaign: 1, 7 or 28 days, 7 by default.
+  - Click: `yc` plus the first-click time kept by px.js.
+  - View: advanced matching. The customer's email is SHA-256 hashed in the browser and matched to a contact Yolias emailed within the window.
+  - Test events (`?yolias_test=CODE`) are kept out of results and shown live in Test events.
+- **Campaign:**
+  - Two types: Outreach (meetings, website purchases, website leads) and Find customers (qualified leads only).
+  - A website objective picks its pixel, its conversion event (Facebook's standard purchase or lead events) and its window.
+  - "Results" and "Cost per result" follow the objective.
+  - The message level and the after-launch text change with the objective (no booking-page note unless the objective is meetings).
+- **Set up:** the base code, advanced matching, and the standard purchase and lead events with code. There is no "test" step; Test events is its own tab.
+- **Yolias Pixel Helper** (`extension/pixel-helper`, Manifest V3), built with `npm run build:pixel-helper` to `public/downloads`.
+  - It detects pixels, lists every event with its parameters, checks pixel IDs, and flags problems the way Facebook's helper does.
+- **UI:**
+  - Purple replaced by Yolias red.
+  - Arabic in IBM Plex Sans Arabic, with bold capped at semibold.
+  - The date picker flips to stay on screen and is a bottom sheet on phones.
+  - The balance card shows spend only.
+  - Leads is back to the campaign filter.
+  - No CSV export in a person's profile.

@@ -30,3 +30,6 @@ main { padding: 10px 14px; overflow-y: auto; max-height: 470px; }
 .foot { padding: 10px 14px; border-top: 1px solid var(--line); }
 .foot a { color: var(--red); text-decoration: none; font-weight: 600; }
 [dir="rtl"] .detail { padding: 4px 33px 10px 11px; }
+.pixel-head { flex-wrap: wrap; }
+.pixel-head .id { white-space: nowrap; }
+.pixel-head .name { flex: 1 1 140px; min-width: 0; text-align: end; }

@@ -16,7 +16,7 @@ const T = AR ? {
 document.documentElement.dir = AR ? "rtl" : "ltr";
 document.getElementById("em").textContent = T.open;
 const el = (tag, cls, text) => { const x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; };
-const time = (ms) => new Date(ms).toLocaleTimeString(AR ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+const time = (ms) => new Date(ms).toLocaleTimeString(AR ? "ar-EG-u-nu-latn" : "en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
 
 chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
   const app = document.getElementById("app");
