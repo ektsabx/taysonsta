@@ -156,13 +156,15 @@ export interface Competitor {
   lastReviewedAt: string | null;
 }
 
-export function toCompetitor(row: { slug: string; name: string; website: string; pricing_url: string | null; summary: unknown; best_for: unknown; strengths: unknown; limits: unknown; pricing: unknown; publishes_prices: boolean | null; last_reviewed_at: string | null }, l: Locale): Competitor {
+export function toCompetitor(row: { slug: string; name: string; website: string; pricing_url: string | null; summary: unknown; best_for: unknown; strengths: unknown; limits: unknown; pricing: unknown; publishes_prices: boolean | null; last_reviewed_at: string | null; facts?: unknown }, l: Locale): Competitor {
+  // A "name" fact gives the name in each language (D-275: "إعلانات فيسبوك" on Arabic pages, not "Facebook Ads").
+  const localName = str(loc((Array.isArray(row.facts) ? row.facts : []).map(obj).find((f) => f.key === "name")?.value, l));
   const prices = (Array.isArray(row.pricing) ? row.pricing : []).map(obj)
     .filter((p) => p.verified === true && str(p.price) && /^https:\/\//.test(str(p.source_url)) && str(p.checked_at))
     .map((p) => ({ plan: str(p.plan), price: str(p.price), period: str(p.period), note: str(loc(p.note, l)) || str(p.note), sourceUrl: str(p.source_url), checkedAt: str(p.checked_at) }));
   return {
     slug: row.slug,
-    name: row.name,
+    name: localName || row.name,
     website: row.website,
     pricingUrl: row.pricing_url,
     summary: str(loc(row.summary, l)),

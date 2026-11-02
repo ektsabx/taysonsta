@@ -2,9 +2,10 @@ import { fmt, type Dictionary, type Locale } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import type { BillingPeriod, Currency, PaidPlan, Plan, WorkspaceRow } from "@/types/database";
 
-// Pricing (owner brief 2026-10-20, D-247): Pay As You Go credit (top-ups,
-// lib/credits.ts) or a monthly plan, Pro ($50) or Growth ($100). No annual
-// billing, no Scale for new customers (existing subscriptions keep running).
+// Pricing (owner, 2026-11-02, D-275): Pay As You Go credit (top-ups,
+// lib/credits.ts) or a plan, Growth ($100) or Scale ($200), monthly or annual
+// (20% off, D-192). Pro ($50) is no longer offered (running subscriptions
+// keep going). No free trial.
 // The only unit is the prospect; emails and uploaded contacts are not limited.
 export interface PlanTerms {
   priceUsd: number;
@@ -31,10 +32,10 @@ export function planPrice(terms: PlanTerms, currency: Currency): number | null {
 
 export const allPlans: Plan[] = ["free", "pro", "growth", "scale"];
 export const paidPlans: PaidPlan[] = ["pro", "growth", "scale"];
-/** The monthly plans a workspace can choose (D-247: Scale is no longer offered). */
-export const offeredPlans: PaidPlan[] = ["pro", "growth"];
+/** The plans a workspace can choose (D-275: Growth and Scale; Pro is no longer offered). */
+export const offeredPlans: PaidPlan[] = ["growth", "scale"];
 /** The biggest plan on offer: nothing to upgrade to. */
-export const topPlan: PaidPlan = "growth";
+export const topPlan: PaidPlan = "scale";
 
 /** Localized plan name: "Free" / "Yolias Pro" / "Yolias Growth". */
 export function planName(plan: Plan, t: Dictionary): string {

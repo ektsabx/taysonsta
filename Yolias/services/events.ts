@@ -10,7 +10,7 @@ import type { PixelRow } from "@/types/database";
 
 const DAY = 86_400_000;
 
-export interface PixelCard { id: string; publicId: string; name: string; lastEventAt: string | null; week: number; createdAt: string }
+export interface PixelCard { id: string; publicId: string; name: string; websiteUrl: string | null; lastEventAt: string | null; week: number; createdAt: string }
 export async function pixelCards(workspaceId: string): Promise<PixelCard[]> {
   const pixels = await workspacePixels(workspaceId);
   const db = createAdminClient();
@@ -18,7 +18,7 @@ export async function pixelCards(workspaceId: string): Promise<PixelCard[]> {
   const { data } = await db.from("pixel_events").select("pixel_id").eq("workspace_id", workspaceId).is("test_code", null).gte("created_at", since).limit(50_000);
   const week = new Map<string, number>();
   for (const r of data ?? []) week.set(r.pixel_id, (week.get(r.pixel_id) ?? 0) + 1);
-  return pixels.map((p) => ({ id: p.id, publicId: p.public_id, name: p.name, lastEventAt: p.last_event_at, week: week.get(p.id) ?? 0, createdAt: p.created_at }));
+  return pixels.map((p) => ({ id: p.id, publicId: p.public_id, name: p.name, websiteUrl: p.website_url ?? null, lastEventAt: p.last_event_at, week: week.get(p.id) ?? 0, createdAt: p.created_at }));
 }
 
 export interface EventLine { name: string; total: number; credited: number; value: number; last: string }
@@ -47,7 +47,7 @@ export async function pixelOverview(workspaceId: string, pixelId: string, range:
   const n = Math.max(1, Math.min(120, Math.round((end - Date.parse(from)) / DAY)));
   const series = Array.from({ length: n }, (_, i) => { const k = new Date(Date.parse(from) + i * DAY).toISOString().slice(0, 10); return { day: k, n: days.get(k) ?? 0 }; });
   return {
-    pixel: { id: pixel.id, publicId: pixel.public_id, name: pixel.name, allowed: pixel.allowed_domains, blocked: pixel.blocked_domains ?? [], lastEventAt: pixel.last_event_at, createdAt: pixel.created_at },
+    pixel: { id: pixel.id, publicId: pixel.public_id, name: pixel.name, websiteUrl: pixel.website_url ?? null, allowed: pixel.allowed_domains, blocked: pixel.blocked_domains ?? [], lastEventAt: pixel.last_event_at, createdAt: pixel.created_at },
     events: [...byName.values()].sort((a, b) => b.total - a.total), series, total: rows?.length ?? 0,
   };
 }

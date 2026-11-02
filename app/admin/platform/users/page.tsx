@@ -27,14 +27,12 @@ export default async function UsersOverviewPage({ searchParams }: { searchParams
       <div className="bos-kpis">
         <KpiCard label="إجمالي الحسابات" value={num(o.total)} href={`${L}/all`} />
         <KpiCard label="مسجلون جدد في الفترة" value={num(o.newInPeriod)} href={`${L}/all?${range || `from=${p.since.slice(0, 10)}`}`} />
-        <KpiCard label="لم يشتركوا بعد" value={num(o.notSubscribed)} sub={<Tx>لا دفع ولا تجربة</Tx>} href={`${L}/registered?sub=none`} />
-        <KpiCard label="في التجربة المجانية الآن" value={num(o.trialing)} href={`${L}/subscribed?sub=trialing`} />
+        <KpiCard label="لم يشتركوا بعد" value={num(o.notSubscribed)} sub={<Tx>لم يدفعوا بعد</Tx>} href={`${L}/registered?sub=none`} />
         <KpiCard label="مشتركون مدفوعون نشطون" value={num(o.paidActive)} href={`${L}/subscribed?segment=paid_active`} />
         <KpiCard label="اشتراكات منتهية" value={num(o.ended)} href={`${L}/subscribed?sub=canceled`} />
         <KpiCard label="ملغاة وما زالت سارية" value={num(o.canceledRunning)} sub={<Tx vars={{ n: num(o.canceledInPeriod) }}>{"{n} إلغاء في الفترة"}</Tx>} />
         <KpiCard label="موقوفون" value={num(o.suspended)} href={`${L}/suspended`} />
         <KpiCard label="محظورون" value={num(o.banned)} href={`${L}/banned`} />
-        <KpiCard label="تجارب تنتهي خلال 3 أيام" value={num(o.trialSoon)} href={`${L}/subscribed?sub=trialing&sort=trial_end&dir=asc`} />
         <KpiCard label="اشتراكات تنتهي خلال 7 أيام" value={num(o.periodSoon)} href={`${L}/subscribed?sub=active&sort=period_end&dir=asc`} />
         <KpiCard label="تحويل المسجلين إلى مدفوعين" value={pct(o.conversion)} sub={<Tx vars={{ a: num(o.newPaid), b: num(o.newInPeriod) }}>{"{a} من {b} سجلوا في الفترة ودفعوا"}</Tx>} />
       </div>

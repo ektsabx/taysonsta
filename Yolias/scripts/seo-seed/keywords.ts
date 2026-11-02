@@ -63,5 +63,14 @@ export const keywords: K[] = [
   { keyword: "calendly alternatives", intent: "comparison", cluster: "calendly", page_type: "alternatives", priority: 1, stage: "review", target_path: "/alternatives/calendly", related: ["calendly alternative", "cheaper calendly alternative", "calendly competitors"] },
   vs("Calendly", "calendly"), vs("Cal.com", "cal-com"), vs("Chili Piper", "chili-piper"), vs("SavvyCal", "savvycal"), vs("TidyCal", "tidycal"),
   { keyword: "ai meeting booking", intent: "commercial", cluster: "meetings", page_type: "solution", priority: 1, stage: "review", target_path: "/solutions/sales-meeting-booking", related: ["ai appointment setter", "book sales meetings with ai", "حجز اجتماعات بالذكاء الاصطناعي"] },
+  // D-275 (owner, 2026-11-02): Yolias as an AI advertising platform, next to the ad platforms.
+  { keyword: "ai advertising platform", intent: "commercial", cluster: "advertising", page_type: "core", priority: 1, stage: "review", target_path: "/", related: ["ai ad platform", "customer acquisition platform", "ai customer acquisition"] },
+  { keyword: "منصة إعلانات بالذكاء الاصطناعي", locale: "ar", intent: "commercial", cluster: "advertising", page_type: "core", priority: 1, stage: "review", target_path: "/", related: ["منصة اكتساب العملاء", "إعلانات بالذكاء الاصطناعي"] },
+  { keyword: "best advertising platforms for b2b", intent: "comparison", cluster: "advertising", page_type: "compare", priority: 1, stage: "review", target_path: "/compare/ai-advertising-platforms", related: ["b2b advertising platforms", "alternatives to facebook and google ads"] },
+  { keyword: "أفضل منصات الإعلانات للشركات", locale: "ar", intent: "comparison", cluster: "advertising", page_type: "compare", priority: 1, stage: "review", target_path: "/compare/ai-advertising-platforms" },
+  ...([["facebook ads", "facebook-ads", "بديل إعلانات فيسبوك"], ["google ads", "google-ads", "بديل إعلانات جوجل"], ["tiktok ads", "tiktok-ads", "بديل إعلانات تيك توك"], ["snapchat ads", "snapchat-ads", "بديل إعلانات سناب شات"], ["linkedin ads", "linkedin-ads", "بديل إعلانات لينكدإن"], ["x ads", "x-ads", "بديل إعلانات تويتر"]] as const).flatMap(([name, slug, ar]): K[] => [
+    { keyword: `${name} alternative`, intent: "comparison", cluster: "advertising", page_type: "compare", priority: 1, stage: "review", target_path: `/compare/${slug}`, related: [`yolias vs ${name}`, `${name} for b2b`] },
+    { keyword: ar, locale: "ar", intent: "comparison", cluster: "advertising", page_type: "compare", priority: 1, stage: "review", target_path: `/compare/${slug}` },
+  ]),
   { keyword: "booking page for sales", intent: "commercial", cluster: "meetings", page_type: "solution", priority: 2, stage: "review", target_path: "/solutions/booking-page", related: ["meeting booking page", "صفحة حجز مواعيد"] },
 ];

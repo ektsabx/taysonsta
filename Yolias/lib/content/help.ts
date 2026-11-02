@@ -116,7 +116,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Creating and managing campaigns",
-        summary: "Three steps like an ads manager: the campaign, its audiences and the message. Then Yolias finds, writes, answers and books, and every campaign shows its cost per meeting.",
+        summary: "Three steps like an ads manager: the campaign, its audiences and the message. Then Yolias finds, writes, answers and books, and every campaign shows its results and cost per result.",
         blocks: [
           { p: "Open **Campaigns → Create campaign**. One page with three levels on the side; open any level to change it, and **Save draft** keeps everything:" },
           { ol: [
@@ -141,7 +141,7 @@ export const articles: HelpArticle[] = [
       },
       ar: {
         title: "إنشاء الحملات وإدارتها",
-        summary: "ثلاث خطوات مثل مدير الإعلانات: الحملة وجماهيرها والرسالة. ثم يجد يولياس الأشخاص ويكتب ويرد ويحجز، وتعرض كل حملة تكلفة الاجتماع.",
+        summary: "ثلاث خطوات مثل مدير الإعلانات: الحملة وجماهيرها والرسالة. ثم يجد يولياس الأشخاص ويكتب ويرد ويحجز، وتعرض كل حملة نتائجها وتكلفة النتيجة.",
         blocks: [
           { p: "افتح **الحملات ← إنشاء حملة**. صفحة واحدة بثلاثة مستويات على الجانب؛ افتح أي مستوى لتعدّله، و**حفظ كمسودة** يحفظ كل شيء:" },
           { ol: [
@@ -212,26 +212,26 @@ export const articles: HelpArticle[] = [
         title: "Pay As You Go or a monthly plan",
         summary: "Every option has the same features; you pay for prospects only.",
         blocks: [
-          { p: "Yolias has three options with the same features and unlimited users: **Pay As You Go**, **Pro** and **Growth**. The prospect is the only unit: writing and sending emails is never charged, uploaded contacts are unlimited, and the same prospect is never counted twice. There is no free trial and no free credit. The [pricing page](/pricing#compare) lists the numbers." },
+          { p: "Yolias has three options with the same features and unlimited users: **Pay As You Go**, **Growth** and **Scale**. The prospect is the only unit: writing and sending emails is never charged, uploaded contacts are unlimited, and the same prospect is never counted twice. There is no free trial and no free credit. The [pricing page](/pricing#compare) lists the numbers." },
           { h2: "Pay As You Go" },
           { p: "Prepaid credit with no subscription and no renewal. In Checkout, choose **Pay As You Go**, then the amount: $5, $20, $50 or $100. Checkout shows exactly how many prospects the amount gives before you pay. The credit is added once the payment is confirmed and doesn’t expire. Top up again whenever you like." },
-          { h2: "Monthly plans" },
-          { p: "Pro and Growth are billed monthly by card through Paymob, with a set number of prospects every month. There is no annual billing. Cancel any time from Settings → Billing." },
+          { h2: "Plans" },
+          { p: "Growth ($100, 2,000 prospects) and Scale ($200, 4,000 prospects) are billed by card through Paymob, monthly or annually. Annual billing is 20% off ($80 and $160 a month, paid for the year). Each plan gives a set number of prospects every month. Cancel any time from Settings → Billing." },
           { h2: "Switching" },
-          { p: "You can move between Pay As You Go and a monthly plan at any time. Remaining credit stays in your account: on a plan, its monthly prospects are used first, then your credit." },
+          { p: "You can move between Pay As You Go and a plan at any time. Remaining credit stays in your account: on a plan, its monthly prospects are used first, then your credit." },
         ],
       },
       ar: {
         title: "الدفع حسب الاستخدام أو خطة شهرية",
         summary: "كل الخيارات فيها الميزات نفسها، وتدفع مقابل العملاء المحتملين فقط.",
         blocks: [
-          { p: "في يولياس ثلاثة خيارات بالميزات نفسها ومستخدمين غير محدودين: **الدفع حسب الاستخدام** و**برو** و**النمو**. العميل المحتمل هو الوحدة الوحيدة: كتابة الرسائل وإرسالها بدون رسوم، وجهات الاتصال المرفوعة غير محدودة، ولا يُحسب العميل نفسه مرتين. لا توجد تجربة مجانية ولا رصيد مجاني. الأرقام في [صفحة الأسعار](/pricing#compare)." },
+          { p: "في يولياس ثلاثة خيارات بالميزات نفسها ومستخدمين غير محدودين: **الدفع حسب الاستخدام** و**النمو** و**التوسع**. العميل المحتمل هو الوحدة الوحيدة: كتابة الرسائل وإرسالها بدون رسوم، وجهات الاتصال المرفوعة غير محدودة، ولا يُحسب العميل نفسه مرتين. لا توجد تجربة مجانية ولا رصيد مجاني. الأرقام في [صفحة الأسعار](/pricing#compare)." },
           { h2: "الدفع حسب الاستخدام" },
           { p: "رصيد مسبق الدفع بدون اشتراك وبدون تجديد. في صفحة الدفع اختر **الدفع حسب الاستخدام** ثم المبلغ: 5 أو 20 أو 50 أو 100 دولار. تعرض صفحة الدفع عدد العملاء المحتملين بالضبط قبل الدفع. يُضاف الرصيد بعد تأكيد الدفع ولا تنتهي صلاحيته، ويمكنك الشحن مرة أخرى في أي وقت." },
-          { h2: "الخطط الشهرية" },
-          { p: "برو والنمو تُدفعان شهريًا بالبطاقة عبر Paymob، بعدد ثابت من العملاء المحتملين كل شهر. لا توجد فوترة سنوية. يمكنك الإلغاء في أي وقت من الإعدادات ← الفوترة." },
+          { h2: "الخطط" },
+          { p: "النمو (100 دولار، 2,000 عميل محتمل) والتوسع (200 دولار، 4,000 عميل محتمل) تُدفعان بالبطاقة عبر Paymob شهريًا أو سنويًا. الدفع السنوي بخصم 20% (80 و160 دولارًا شهريًا تُدفع عن السنة). وكل خطة تعطي عددًا ثابتًا من العملاء المحتملين كل شهر. يمكنك الإلغاء في أي وقت من الإعدادات ← الفوترة." },
           { h2: "التبديل" },
-          { p: "يمكنك الانتقال بين الدفع حسب الاستخدام والخطة الشهرية في أي وقت. الرصيد المتبقي يبقى في حسابك: مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم رصيدك." },
+          { p: "يمكنك الانتقال بين الدفع حسب الاستخدام والخطة في أي وقت. الرصيد المتبقي يبقى في حسابك: مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم رصيدك." },
         ],
       },
     },
@@ -382,7 +382,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Changing your plan",
-        summary: "Move between Pay As You Go, Pro and Growth, or cancel.",
+        summary: "Move between Pay As You Go, Growth and Scale, or cancel.",
         blocks: [
           { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan**. Pick the plan and confirm. To top up credit instead, choose **Pay As You Go** in Checkout." },
           { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period; after that new searches stop until you subscribe again, and everything stays saved. You can resume before then." },
@@ -391,7 +391,7 @@ export const articles: HelpArticle[] = [
       },
       ar: {
         title: "تغيير خطتك",
-        summary: "انتقل بين الدفع حسب الاستخدام وبرو والنمو، أو ألغِ الاشتراك.",
+        summary: "انتقل بين الدفع حسب الاستخدام والنمو والتوسع، أو ألغِ الاشتراك.",
         blocks: [
           { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة**. اختر الخطة وأكّد. ولشحن الرصيد بدلًا من ذلك، اختر **الدفع حسب الاستخدام** في صفحة الدفع." },
           { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، وبعدها تتوقف عمليات البحث الجديدة حتى تشترك من جديد مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },

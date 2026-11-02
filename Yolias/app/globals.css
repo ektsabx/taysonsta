@@ -2632,3 +2632,11 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 }
 
 .ay-logo { width: 56px; height: auto; display: block; }
+
+/* D-275: monthly / annual (20% off) on pricing and checkout */
+.period-toggle { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
+.period-toggle button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.period-toggle button.active { background: var(--ink); color: var(--paper); }
+.period-toggle .plan-badge { font-size: .68rem; }
+.pricing-period { margin-top: 24px; }
+.checkout-period { margin-bottom: 12px; }

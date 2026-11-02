@@ -140,7 +140,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**Create your account.** Enter your work email on [Create account](/signup) and open the magic link.",
-            "**Top up or choose a plan.** Pick Pay As You Go and a top-up of $5, $20, $50 or $100 (no subscription), or the monthly plan Pro or Growth. You pay by card through Paymob. There is no free trial.",
+            "**Top up or choose a plan.** Pick Pay As You Go and a top-up of $5, $20, $50 or $100 (no subscription), or the plan Growth or Scale, monthly or annual (20% off). You pay by card through Paymob. There is no free trial.",
             "**Tell Yolias about your business.** Onboarding asks for your name, company, website and what you sell. This becomes permanent context for every search, so be specific about the problem you solve.",
             "**Run your first search.** In Yolias AI, describe who you want to sell to and press Enter.",
           ] },
@@ -153,7 +153,7 @@ export const docs: DocPage[] = [
         blocks: [
           { ol: [
             "**أنشئ حسابك.** أدخل بريد العمل في [إنشاء حساب](/signup) وافتح الرابط السحري.",
-            "**اشحن رصيدك أو اختر خطة.** اختر الدفع حسب الاستخدام بمبلغ 5 أو 20 أو 50 أو 100 دولار (بدون اشتراك)، أو الخطة الشهرية برو أو النمو. تدفع بالبطاقة عبر Paymob، ولا توجد تجربة مجانية.",
+            "**اشحن رصيدك أو اختر خطة.** اختر الدفع حسب الاستخدام بمبلغ 5 أو 20 أو 50 أو 100 دولار (بدون اشتراك)، أو خطة النمو أو التوسع، شهريًا أو سنويًا (بخصم 20%). تدفع بالبطاقة عبر Paymob، ولا توجد تجربة مجانية.",
             "**عرّف يولياس بعملك.** يطلب الإعداد الأولي اسمك وشركتك وموقعك وما تبيعه. يصبح ذلك سياقًا دائمًا لكل بحث، فكن محددًا في وصف المشكلة التي تحلها.",
             "**ابدأ أول بحث.** في يولياس AI صِف لمن تريد أن تبيع واضغط Enter.",
           ] },
@@ -468,10 +468,10 @@ export const docs: DocPage[] = [
     doc: {
       en: {
         title: "Plans and usage",
-        summary: "Pay As You Go, the monthly plans, and how prospects are counted.",
+        summary: "Pay As You Go, the plans (monthly or annual), and how prospects are counted.",
         blocks: [
           { table: { head: ["Option", "Price", "Prospects"], rows: [
-            ["Pay As You Go", "$5 / $20 / $50 / $100 top-up", "50 / 200 / 500 / 1,000, no expiry (10 cents each; a plan is half the price per prospect)"], ["Pro", "$50 / month", "1,000 / month"], ["Growth", "$100 / month", "2,000 / month"],
+            ["Pay As You Go", "$5 / $20 / $50 / $100 top-up", "50 / 200 / 500 / 1,000, no expiry (10 cents each; a plan is half the price per prospect)"], ["Growth", "$100 / month, or $80 / month billed annually", "2,000 / month"], ["Scale", "$200 / month, or $160 / month billed annually", "4,000 / month"],
           ] } },
           { ul: [
             "The prospect is the only unit. Writing and sending emails is never charged or limited, uploaded contacts are unlimited, and viewing your prospects again is free.",
@@ -479,17 +479,17 @@ export const docs: DocPage[] = [
             "Companies, searches and AI work are not counted.",
             "On a plan, its monthly prospects are used first, then any credit you topped up. Plan prospects reset on the first day of every month (UTC); credit doesn’t expire.",
             "When no prospects are left, discovery pauses until you top up or the plan renews.",
-            "No annual billing and no free trial.",
+            "Plans are billed monthly, or annually at 20% off. There is no free trial.",
           ] },
           { p: "Current usage is in Settings → Usage." },
         ],
       },
       ar: {
         title: "الخطط والاستخدام",
-        summary: "الدفع حسب الاستخدام والخطط الشهرية وطريقة احتساب العملاء المحتملين.",
+        summary: "الدفع حسب الاستخدام والخطط (شهرية أو سنوية) وطريقة احتساب العملاء المحتملين.",
         blocks: [
           { table: { head: ["الخيار", "السعر", "العملاء المحتملون"], rows: [
-            ["الدفع حسب الاستخدام", "شحن $5 / $20 / $50 / $100", "50 / 200 / 500 / 1,000 بدون انتهاء (10 سنت للعميل؛ الخطة بنصف السعر للعميل)"], ["برو", "$50 شهريًا", "1,000 شهريًا"], ["النمو", "$100 شهريًا", "2,000 شهريًا"],
+            ["الدفع حسب الاستخدام", "شحن $5 / $20 / $50 / $100", "50 / 200 / 500 / 1,000 بدون انتهاء (10 سنت للعميل؛ الخطة بنصف السعر للعميل)"], ["النمو", "$100 شهريًا، أو $80 شهريًا بالدفع السنوي", "2,000 شهريًا"], ["التوسع", "$200 شهريًا، أو $160 شهريًا بالدفع السنوي", "4,000 شهريًا"],
           ] } },
           { ul: [
             "العميل المحتمل هو الوحدة الوحيدة. كتابة الرسائل وإرسالها بدون رسوم وبدون حد، وجهات الاتصال المرفوعة غير محدودة، وعرض عملائك مرة أخرى مجاني.",
@@ -497,7 +497,7 @@ export const docs: DocPage[] = [
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
             "مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم الرصيد الذي شحنته. يتجدد عملاء الخطة في أول كل شهر (بتوقيت UTC)، والرصيد لا تنتهي صلاحيته.",
             "عندما لا يتبقى عملاء محتملون، يتوقف الاكتشاف حتى تشحن رصيدك أو تتجدد الخطة.",
-            "لا توجد فوترة سنوية ولا تجربة مجانية.",
+            "تُدفع الخطط شهريًا، أو سنويًا بخصم 20%. ولا توجد تجربة مجانية.",
           ] },
           { p: "تجد استخدامك الحالي في الإعدادات ← الاستخدام." },
         ],

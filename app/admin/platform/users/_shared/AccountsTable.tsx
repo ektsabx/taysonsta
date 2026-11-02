@@ -70,7 +70,7 @@ export function AccountsTable({ rows, total, view, filters, canManage, smsConnec
               <th><Tx>المستخدم</Tx></th>
               <th><Tx>الحساب</Tx></th>
               <th><Tx>الاشتراك</Tx></th>
-              <th><Tx>التجربة / الاشتراك</Tx></th>
+              <th><Tx>الاشتراك</Tx></th>
               <th><Tx>المدفوعات</Tx></th>
               <th><Tx>آخر نشاط</Tx></th>
             </tr>
@@ -98,7 +98,7 @@ export function AccountsTable({ rows, total, view, filters, canManage, smsConnec
                   <span className="cell-sub" dir="ltr">{r.plan}{r.billing_period ? ` · ${r.billing_period}` : ""}{r.billing_provider ? ` · ${r.billing_provider}` : ""}</span>
                   <span className="cell-sub"><Tx>{segmentLabel[r.segment] ?? r.segment}</Tx></span>
                 </td>
-                <td data-label={t("التجربة / الاشتراك")} style={{ whiteSpace: "nowrap" }}>
+                <td data-label={t("الاشتراك")} style={{ whiteSpace: "nowrap" }}>
                   {r.trial_started_at ? <span className="cell-sub"><Tx vars={{ a: dt(r.trial_started_at), b: dt(r.trial_ends_at) }}>{"تجربة: {a} ← {b}"}</Tx></span> : null}
                   {r.current_period_end ? <span className="cell-sub"><Tx vars={{ d: dt(r.current_period_end) }}>{"ينتهي: {d}"}</Tx></span> : null}
                   {r.subscription_status === "active" ? <span className="cell-sub">{r.cancel_at_period_end ? <Tx>التجديد التلقائي: متوقف</Tx> : <Tx>التجديد التلقائي: مفعّل</Tx>}</span> : null}

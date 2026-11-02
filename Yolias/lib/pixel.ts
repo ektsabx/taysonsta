@@ -42,8 +42,8 @@ export async function workspacePixels(workspaceId: string): Promise<PixelRow[]> 
   return [await createPixel(workspaceId, "Yolias pixel", null)];
 }
 
-export async function createPixel(workspaceId: string, name: string, userId: string | null): Promise<PixelRow> {
-  const { data, error } = await createAdminClient().from("pixels").insert({ workspace_id: workspaceId, public_id: randomBytes(8).toString("hex"), name: name.slice(0, 80) || "Yolias pixel", created_by: userId }).select("*").single();
+export async function createPixel(workspaceId: string, name: string, userId: string | null, websiteUrl: string | null = null): Promise<PixelRow> {
+  const { data, error } = await createAdminClient().from("pixels").insert({ workspace_id: workspaceId, public_id: randomBytes(8).toString("hex"), name: name.slice(0, 80) || "Yolias pixel", website_url: websiteUrl, created_by: userId }).select("*").single();
   if (error || !data) throw error ?? new Error("pixel not created");
   return data as PixelRow;
 }

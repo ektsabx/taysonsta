@@ -38,7 +38,7 @@ export async function activatePlan(plan: string, period: string, method: string 
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
   // New subscriptions: Pro or Growth, monthly only (D-247). Renewals of older plans go through payInvoice.
-  if (!isPaidPlan(plan) || !offeredPlans.includes(plan) || period !== "monthly") return { ok: false, error: t.checkout.errors.choosePlan };
+  if (!isPaidPlan(plan) || !offeredPlans.includes(plan) || !isBillingPeriod(period)) return { ok: false, error: t.checkout.errors.choosePlan };
   if (method !== "paymob") return { ok: false, error: t.checkout.errors.chooseMethod };
   const payer = { userId: session.userId, email: session.email, name: session.profile.full_name };
   const ws = session.workspace;

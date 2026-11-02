@@ -10,7 +10,7 @@ import { PeriodPicker } from "@/components/yolias/PeriodPicker";
 import { pct, providerLabel, sourceLabel } from "@/components/yolias/AccountBits";
 import { STAGES, funnel, period } from "@/services/yolias/conversions";
 
-const DIMS: Record<string, string> = { "": "بدون مقارنة", plan: "الخطة", provider: "بوابة الدفع", device: "الجهاز", source: "مصدر الاكتساب", audience: "التجربة المجانية / زائر" };
+const DIMS: Record<string, string> = { "": "بدون مقارنة", plan: "الخطة", provider: "بوابة الدفع", device: "الجهاز", source: "مصدر الاكتساب", audience: "زائر / مسجّل" };
 const dimValue = (dim: string, v: string) =>
   dim === "provider" ? providerLabel[v] ?? v : dim === "source" ? sourceLabel[v] ?? v : dim === "audience" ? ({ visitor: "زائر غير مسجل", trial: "بدأ تجربة", no_trial: "بدون تجربة" } as Record<string, string>)[v] ?? v : v;
 
@@ -78,7 +78,7 @@ export default async function FunnelPage({ searchParams }: { searchParams: Searc
           <li><Tx>فتح Checkout: الخادم أنشأ جلسة Checkout. إعادة تحميل الصفحة خلال 30 دقيقة لا تنشئ جلسة جديدة.</Tx></li>
           <li><Tx>بدء الإدخال: اختار طريقة دفع أو غيّر الخطة / الفترة. بدء الدفع: ضغط زر الدفع ووصل الطلب للخادم.</Tx></li>
           <li><Tx>الانتقال إلى البوابة: سجله الخادم عند التحويل (لا يثبت أن المستخدم رأى صفحة المزود).</Tx></li>
-          <li><Tx>نجاح الدفع: من تأكيد موقّع من المزود فقط. تفعيل الاشتراك: بدأ Yolias التجربة أو الخطة فعلًا.</Tx></li>
+          <li><Tx>نجاح الدفع: من تأكيد موقّع من المزود فقط. تفعيل الاشتراك: بدأ Yolias الخطة المدفوعة فعلًا.</Tx></li>
         </ul>
       </Card>
       {stageKey ? (

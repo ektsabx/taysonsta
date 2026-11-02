@@ -19,7 +19,7 @@ import { seoBase, type SeoKind, type SeoPage } from "./seo-pages";
 export async function seoMetadata(page: SeoPage | null): Promise<Metadata> {
   if (!page) return {};
   const p = page.copy[await getLocale()];
-  const meta = await pageMetadata({ title: p.metaTitle.includes("Yolias") ? p.metaTitle : `${p.metaTitle} | Yolias`, absoluteTitle: true, description: p.metaDescription, path: page.canonical ?? page.path });
+  const meta = await pageMetadata({ title: /Yolias|يولياس/.test(p.metaTitle) ? p.metaTitle : `${p.metaTitle} | Yolias`, absoluteTitle: true, description: p.metaDescription, path: page.canonical ?? page.path });
   return page.noindex ? { ...meta, robots: { index: false, follow: true } } : meta;
 }
 
@@ -44,8 +44,8 @@ export async function loadSeoPage(kind: SeoKind, slug: string) {
 
 const indexCopy: Record<Exclude<SeoKind, "solution">, Record<Locale, { title: string; lead: string; description: string }>> = {
   compare: {
-    en: { title: "Yolias compared", lead: "How Yolias compares with other prospecting, data and outreach tools: who each one is for, what it does and what it doesn't, from each product's own pages.", description: "Side-by-side comparisons of Yolias with other lead generation, B2B data and cold email tools, with sources and review dates." },
-    ar: { title: "مقارنات يولياس", lead: "كيف يقارن يولياس بأدوات البحث عن العملاء والبيانات والتواصل الأخرى: لمن تناسب كل أداة، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنات جنبًا إلى جنب بين يولياس وأدوات جذب العملاء وبيانات الشركات والبريد البارد، مع المصادر وتواريخ المراجعة." },
+    en: { title: "Yolias compared", lead: "How Yolias, the AI advertising platform for customer acquisition, compares with ad platforms (Facebook, Google, TikTok, Snapchat, LinkedIn, X) and with prospecting, data and outreach tools: who each one is for, what it does and what it doesn't, from each product's own pages.", description: "Yolias compared with Facebook, Google, TikTok, Snapchat and LinkedIn ads, and with lead generation, B2B data and outreach tools, with sources." },
+    ar: { title: "مقارنات يولياس", lead: "كيف يقارن يولياس، منصة الإعلانات بالذكاء الاصطناعي لاكتساب العملاء، بمنصات الإعلانات (فيسبوك وجوجل وتيك توك وسناب شات ولينكدإن وإكس) وبأدوات البحث عن العملاء والبيانات والتواصل: لمن تناسب كل منها، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنة يولياس بإعلانات فيسبوك وجوجل وتيك توك وسناب شات ولينكدإن، وبأدوات جذب العملاء وبيانات الشركات والتواصل، مع المصادر." },
   },
   alternatives: {
     en: { title: "Alternatives to prospecting tools", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular prospecting and outreach tools, with selection criteria and when Yolias is a good fit." },

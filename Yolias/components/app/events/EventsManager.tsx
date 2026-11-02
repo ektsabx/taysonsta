@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Activity, Check, CheckCircle2, ChevronLeft, Copy, Download, ExternalLink, RefreshCw } from "lucide-react";
+import { Activity, Check, CheckCircle2, ChevronLeft, Copy, Download, ExternalLink, Pencil, RefreshCw, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { DateRange } from "@/components/app/campaigns/DateRange";
-import { pollTestEvents, savePixelSettings } from "@/app/(app)/events/actions";
+import { editPixelAction, pollTestEvents, savePixelSettings } from "@/app/(app)/events/actions";
 import type { RangePreset } from "@/lib/campaigns/metrics";
 import type { PixelOverview, TestEvent } from "@/services/events";
 
@@ -17,8 +17,8 @@ import type { PixelOverview, TestEvent } from "@/services/events";
 // the pixel's name, id and status; Overview (events by day and by name);
 // Test events (open your website with a test code and watch the events
 // arrive, with the Yolias Pixel Helper); Set up (the base code and the
-// standard events for purchases and leads); Settings (name, allowed and
-// blocked domains).
+// standard events for purchases and leads); Settings (name, website, allowed
+// and blocked domains). The name can also be changed in place (D-275).
 
 export type EventsTab = "overview" | "test" | "setup" | "settings";
 const TABS: EventsTab[] = ["overview", "test", "setup", "settings"];
@@ -41,7 +41,18 @@ export function EventsManager({ testCode, active, data, tab, range, from, to, sn
   const toast = useToast();
   const [pending, start] = useTransition();
   const [copied, setCopied] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: data.pixel.name, allowed: data.pixel.allowed.join(", "), blocked: data.pixel.blocked.join(", ") });
+  const [form, setForm] = useState({ name: data.pixel.name, website: data.pixel.websiteUrl ?? "", allowed: data.pixel.allowed.join(", "), blocked: data.pixel.blocked.join(", ") });
+  // Rename in place, like Facebook's Events Manager (D-275): the pencil beside the name.
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const rename = () => start(async () => {
+    if (renaming == null) return;
+    const r = await editPixelAction(data.pixel.id, { name: renaming });
+    if (!r.ok) { toast(r.error, "error"); return; }
+    setRenaming(null);
+    setForm((f) => ({ ...f, name: renaming.trim() }));
+    toast(r.message ?? E.saved);
+    router.refresh();
+  });
   const n = (v: number) => formatNumber(v, locale);
   const tz = timeZone ?? undefined;
   const go = (k: EventsTab) => { const p = new URLSearchParams(sp.toString()); if (k === "overview") p.delete("tab"); else p.set("tab", k); router.push(`${pathname}${p.size ? `?${p}` : ""}`, { scroll: false }); };
@@ -58,7 +69,18 @@ export function EventsManager({ testCode, active, data, tab, range, from, to, sn
         <div className="ev-id">
           <span className="ev-ico"><Activity /></span>
           <div>
-            <h2 dir="auto">{data.pixel.name}</h2>
+            {renaming != null ? (
+              <form className="ev-title-edit" onSubmit={(e) => { e.preventDefault(); rename(); }}>
+                <input className="form-input" autoFocus dir="auto" maxLength={80} aria-label={E.name} value={renaming} onChange={(e) => setRenaming(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setRenaming(null); }} />
+                <button type="submit" className="sdr-btn primary sm" disabled={pending || !renaming.trim()}><Check />{E.save}</button>
+                <button type="button" className="sdr-icon-btn" aria-label={E.cancel} onClick={() => setRenaming(null)}><X /></button>
+              </form>
+            ) : (
+              <div className="ev-title-edit">
+                <h2 dir="auto">{data.pixel.name}</h2>
+                {canManage && <button type="button" className="sdr-icon-btn ev-rename" aria-label={E.rename} title={E.rename} onClick={() => setRenaming(data.pixel.name)}><Pencil /></button>}
+              </div>
+            )}
             <p><span className={`ev-dot${active ? " on" : ""}`} />{active ? E.active : data.pixel.lastEventAt ? E.quiet : E.notInstalled}<span dir="ltr">· ID {data.pixel.publicId}</span></p>
           </div>
         </div>
@@ -103,7 +125,7 @@ export function EventsManager({ testCode, active, data, tab, range, from, to, sn
         </>
       )}
 
-      {tab === "test" && <TestEvents pixelId={data.pixel.id} code={testCode} timeZone={tz} />}
+      {tab === "test" && <TestEvents pixelId={data.pixel.id} code={testCode} website={data.pixel.websiteUrl ?? ""} timeZone={tz} />}
 
       {tab === "setup" && (
         <div className="ev-setup">
@@ -145,6 +167,7 @@ export function EventsManager({ testCode, active, data, tab, range, from, to, sn
       {tab === "settings" && (
         <section className="cp-card ev-settings">
           <label className="ws-field"><span className="ws-label">{E.name}</span><input className="form-input" dir="auto" maxLength={80} value={form.name} disabled={!canManage} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+          <label className="ws-field"><span className="ws-label">{E.site}</span><input className="form-input" dir="ltr" inputMode="url" maxLength={300} placeholder={E.sitePh} value={form.website} disabled={!canManage} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
           <label className="ws-field"><span className="ws-label">{E.domains}</span><input className="form-input" dir="ltr" placeholder="example.com, shop.example.com" value={form.allowed} disabled={!canManage} onChange={(e) => setForm({ ...form, allowed: e.target.value })} /><span className="ws-hint">{E.domainsHint}</span></label>
           <label className="ws-field"><span className="ws-label">{E.blocked}</span><input className="form-input" dir="ltr" placeholder="staging.example.com" value={form.blocked} disabled={!canManage} onChange={(e) => setForm({ ...form, blocked: e.target.value })} /><span className="ws-hint">{E.blockedHint}</span></label>
           {canManage && <div><button type="button" className="sdr-btn primary" disabled={pending} onClick={() => start(async () => { const r = await savePixelSettings(data.pixel.id, form); if (r.ok) { toast(r.message ?? E.saved); router.refresh(); } else toast(r.error, "error"); })}>{E.save}</button></div>}
@@ -155,10 +178,10 @@ export function EventsManager({ testCode, active, data, tab, range, from, to, sn
 }
 
 /** Test events, like Facebook's: open the website with a test code; events sent from that browser show here as they arrive. */
-function TestEvents({ pixelId, code, timeZone }: { pixelId: string; code: string; timeZone?: string }) {
+function TestEvents({ pixelId, code, website, timeZone }: { pixelId: string; code: string; website: string; timeZone?: string }) {
   const { t, locale } = useI18n();
   const E = t.ag.rx.ev;
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(website);
   const [events, setEvents] = useState<TestEvent[]>([]);
   const [listening, setListening] = useState(false);
   const [openRow, setOpenRow] = useState<number | null>(null);

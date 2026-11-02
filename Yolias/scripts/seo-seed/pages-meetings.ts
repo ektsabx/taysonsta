@@ -31,7 +31,7 @@ const Y: Record<Exclude<Row, "price" | "team">, L> = {
   calendar: { en: "Google Calendar: busy times in your main calendar are never offered; each booking goes to a calendar Yolias creates, with a Google Meet link and Google's invitation; email reminder an hour before", ar: "تقويم Google: أوقات انشغالك في تقويمك الرئيسي لا تُعرض أبدًا؛ وكل حجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
 };
 const YT: L = { en: "One booking page per member with up to four meeting types, booked one-to-one; no round-robin or routing forms", ar: "صفحة حجز واحدة لكل عضو بحتى أربعة أنواع اجتماعات، والحجز فردي؛ لا توزيع دوري ولا نماذج توجيه" };
-const YP = (en: string, ar: string): L => ({ en: `Pay As You Go from $5, or Pro $50 and Growth $100 a month, unlimited users; the booking page is included. ${en}`, ar: `الدفع حسب الاستخدام من 5 دولارات، أو Pro بـ 50 وGrowth بـ 100 دولار شهريًا، ومستخدمون بلا حد؛ وصفحة الحجز مشمولة. ${ar}` });
+const YP = (en: string, ar: string): L => ({ en: `Pay As You Go from $5, or Growth $100 and Scale $200 a month (20% off annually), unlimited users; the booking page is included. ${en}`, ar: `الدفع حسب الاستخدام من 5 دولارات، أو النمو بـ 100 والتوسع بـ 200 دولار شهريًا (بخصم 20% سنويًا)، ومستخدمون بلا حد؛ وصفحة الحجز مشمولة. ${ar}` });
 
 const limits: L[] = [
   { en: "Yolias reads busy times from your main Google Calendar only; events in other calendars (Outlook, iCloud or a second Google calendar) aren't seen.", ar: "يقرأ يولياس أوقات الانشغال من تقويم Google الرئيسي فقط؛ ولا يرى مواعيد التقويمات الأخرى (Outlook أو iCloud أو تقويم Google ثانٍ)." },
@@ -203,11 +203,11 @@ export const meetingComparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Is there a cheaper Chili Piper alternative?", a: "For outbound meetings, Yolias starts at $5 of Pay As You Go credit or $50 a month, with unlimited users. It doesn't replace Chili Piper's inbound routing." },
+        { q: "Is there a cheaper Chili Piper alternative?", a: "For outbound meetings, Yolias starts at $5 of Pay As You Go credit or $100 a month, with unlimited users. It doesn't replace Chili Piper's inbound routing." },
         { q: "Does Yolias route leads between reps?", a: "No. Each member books on their own page. Leads reach the member whose campaign wrote to them." },
       ],
       ar: [
-        { q: "هل يوجد بديل أرخص لـ Chili Piper؟", a: "لاجتماعات التواصل الصادر، يبدأ يولياس من 5 دولارات بالدفع حسب الاستخدام أو 50 دولارًا شهريًا، بمستخدمين بلا حد. لكنه لا يحل محل توجيه الطلب الوارد في Chili Piper." },
+        { q: "هل يوجد بديل أرخص لـ Chili Piper؟", a: "لاجتماعات التواصل الصادر، يبدأ يولياس من 5 دولارات بالدفع حسب الاستخدام أو 100 دولار شهريًا، بمستخدمين بلا حد. لكنه لا يحل محل توجيه الطلب الوارد في Chili Piper." },
         { q: "هل يوزّع يولياس العملاء بين المندوبين؟", a: "لا. كل عضو يحجز في صفحته، ويصل العميل إلى العضو الذي راسلته حملته." },
       ],
     },

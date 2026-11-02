@@ -14,28 +14,36 @@ import { SOCIAL_PROFILES } from "@/lib/social";
 // so searches in either language find the page in that language.
 
 export const SITE_NAME = "Yolias";
-export const HOME_TITLE = "Yolias: Your AI Sales Agent for Business Growth";
-/** The owner's home title in Arabic, for /ar: the Arabic name first, so Arabic searches for the brand find Yolias (D-265). */
-export const HOME_TITLE_AR = "يولياس (Yolias): وكيل المبيعات بالذكاء الاصطناعي لنمو أعمالك";
-/** The home page's search snippet (D-265): under 170 characters, brand first, in each language. */
+// D-275 (owner, 2026-11-02): Yolias is an AI advertising platform for customer
+// acquisition. Search titles are in one language each: Arabic pages say
+// "يولياس" and carry no English brand (see localizeTitle).
+export const HOME_TITLE = "Yolias - AI Advertising Platform for Customer Acquisition";
+export const HOME_TITLE_AR = "يولياس - منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء";
+/** The home page's search snippet: under 170 characters, brand first, in each language. */
 export const HOME_DESCRIPTION = {
-  en: "Yolias, the AI sales agent for B2B: set the meetings you want and who to meet. It finds the people, emails them from your mailbox, answers and books.",
-  ar: "يولياس وكيل مبيعات بالذكاء الاصطناعي: حدد الاجتماعات التي تريدها ومن تريد مقابلتهم، فيجد الأشخاص ويراسلهم من بريدك ويرد ويحجز الاجتماع.",
+  en: "Yolias is an AI advertising platform: define the customers you want, and AI campaigns reach the decision makers and bring you meetings, leads and sales.",
+  ar: "يولياس منصة إعلانات بالذكاء الاصطناعي: حدد العملاء الذين تريدهم، فتصل حملاته الذكية إلى صنّاع القرار وتأتيك باجتماعات وعملاء ومبيعات.",
 };
 /** Search titles and snippets that differ from the page's headline (D-265 audit: titles 15–65, descriptions 50–170). */
 export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"en" | "ar", { title?: string; description?: string }>>> = {
-  product: { en: { title: "AI sales agent that books your meetings | Yolias", description: "Campaigns like an ads manager: Yolias finds the right people, emails them from your mailbox, answers replies and books meetings, optimizing for booked meetings." } },
-  about: { en: { title: "About Yolias | The AI sales agent" } },
+  product: {
+    en: { title: "AI Advertising Platform for Customer Acquisition | Yolias", description: "Campaigns like an ads manager: Yolias finds the customers you define, contacts each one, answers replies and books meetings, with conversions and revenue tracked." },
+    ar: { title: "منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء | يولياس", description: "حملات مثل مدير الإعلانات: يجد يولياس العملاء الذين تحددهم، ويتواصل مع كل منهم، ويرد ويحجز الاجتماعات، مع حساب التحويلات والإيرادات." },
+  },
+  about: {
+    en: { title: "About Yolias | AI Advertising Platform", description: "Why we built Yolias: advertising that starts from the customer you choose, and AI that reaches them and brings back meetings, leads and sales." },
+    ar: { title: "عن يولياس | منصة إعلانات بالذكاء الاصطناعي", description: "لماذا بنينا يولياس: إعلان يبدأ من العميل الذي تختاره، وذكاء اصطناعي يصل إليه ويأتيك باجتماعات وعملاء ومبيعات." },
+  },
   pricing: {
-    en: { description: "Yolias pricing: pay as you go or monthly. Every option has all features and unlimited users, and you pay for the people Yolias finds for your campaigns." },
-    ar: { description: "أسعار يولياس: ادفع حسب استخدامك أو اشترك شهريًا. كل خيار فيه كل الميزات ومستخدمون غير محدودين، وتدفع مقابل الأشخاص الذين يجدهم يولياس لحملاتك." },
+    en: { description: "Yolias pricing: pay as you go, or Growth and Scale plans billed monthly or annually at 20% off. All features and unlimited users on every option." },
+    ar: { description: "أسعار يولياس: ادفع حسب استخدامك، أو خطتا النمو والتوسع شهريًا أو سنويًا بخصم 20%. كل الميزات ومستخدمون بلا حد في كل خيار." },
   },
 };
 /** How people write the brand: Arabic spelling, the product name and what it is (schema.org alternateName). */
-export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Sales Agent"];
+export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Advertising Platform", "منصة إعلانات يولياس", "Yolias AI Sales Agent"];
 /** The one-line definition used everywhere Yolias is described (site, llms.txt, schema). */
-export const DEFINITION = "Yolias is an AI sales agent for businesses that sell services to other businesses. You set the meetings you want and who you want to meet (campaign, audiences and message, like an ads manager), and Yolias finds the matching companies and decision makers, writes a personal email to each from your own mailbox (Gmail or any IMAP/SMTP account), follows up, answers the replies and books the meetings on your booking page and Google Calendar.";
-export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: the AI sales agent that books meetings with the right customers" };
+export const DEFINITION = "Yolias is an AI advertising platform for customer acquisition. Instead of paying for reach and views, a business defines the customers it wants (campaign, audiences and message, like an ads manager), and Yolias's AI campaigns find the matching companies and decision makers, contact each one directly with a personal email from the business's own mailbox (Gmail or any IMAP/SMTP account), follow up, answer the replies and book the meetings. Each campaign works for one goal (meetings, website purchases, website leads or qualified leads) and tracks its conversions, revenue and cost per result. It adds an acquisition channel next to ads on Facebook, Google, TikTok, Snapchat and LinkedIn.";
+export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: the AI advertising platform for customer acquisition" };
 
 export function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");
@@ -49,19 +57,39 @@ export function absolute(path: string): string {
 export async function pageMetadata(p: { title: string; description: string; path: string; type?: "website" | "article"; absoluteTitle?: boolean; publishedTime?: string }): Promise<Metadata> {
   const { getLocale } = await import("@/lib/i18n/server");
   const locale = await getLocale();
-  const title = p.absoluteTitle ? { absolute: p.title } : p.title;
+  const pageTitle = localizeTitle(p.title, locale);
+  const title = p.absoluteTitle ? { absolute: pageTitle } : pageTitle;
   const canonical = localizedHref(p.path, locale);
   return {
     title,
     description: p.description,
     alternates: { canonical, languages: languageAlternates(p.path) },
     openGraph: {
-      type: p.type ?? "website", siteName: SITE_NAME, title: p.title, description: p.description, url: canonical, images: [OG_IMAGE],
+      type: p.type ?? "website", siteName: locale === "ar" ? "يولياس" : SITE_NAME, title: pageTitle, description: p.description, url: canonical, images: [OG_IMAGE],
       locale: locale === "ar" ? "ar_AR" : "en_US", alternateLocale: locale === "ar" ? ["en_US"] : ["ar_AR"],
       ...(p.publishedTime ? { publishedTime: p.publishedTime } : {}),
     },
-    twitter: { card: "summary_large_image", title: p.title, description: p.description, images: [OG_IMAGE.url] },
+    twitter: { card: "summary_large_image", title: pageTitle, description: p.description, images: [OG_IMAGE.url] },
   };
+}
+
+/**
+ * A search title in one language (owner, 2026-11-02, D-275): on Arabic pages
+ * the brand and the site sections are written in Arabic ("| يولياس", not
+ * "| Yolias"), so an Arabic result reads fully in Arabic. Other products'
+ * names (Calendly, Gmail…) stay as people search for them.
+ */
+export function localizeTitle(title: string, locale: string): string {
+  // "Notes from the Yolias team | Yolias": the brand once is enough.
+  const once = (t: string) => t.replace(/^(.*(?:Yolias|يولياس).*) \| (?:Yolias|يولياس)$/, "$1");
+  if (locale !== "ar") return once(title);
+  return once(title
+    .replace(/\s*\(Yolias\)/g, "")
+    .replace(/Yolias Help Center/g, "مركز مساعدة يولياس")
+    .replace(/Yolias Docs/g, "مستندات يولياس")
+    .replace(/Yolias Blog/g, "مدونة يولياس")
+    .replace(/Yolias AI/g, "يولياس AI")
+    .replace(/\bYolias\b/g, "يولياس"));
 }
 
 /** hreflang: the English and Arabic URLs of a page; English is the default for other languages. */

@@ -47,7 +47,7 @@ export async function UsersList({ view, searchParams }: { view: AccountView; sea
             { value: "active", label: "نشط" }, { value: "suspended", label: "موقوف" }, { value: "paused", label: "موقوف مؤقتًا" }, { value: "banned", label: "محظور" }, { value: "deleted", label: "محذوف" },
           ] }]),
           { key: "sub", label: "حالة الاشتراك", type: "select", options: [
-            { value: "none", label: "لم يشترك" }, { value: "trialing", label: "تجربة مجانية" }, { value: "active", label: "مدفوع نشط" },
+            { value: "none", label: "لم يشترك" }, { value: "active", label: "مدفوع نشط" },
             { value: "past_due", label: "دفع متأخر" }, { value: "canceled", label: "منتهٍ" }, { value: "test", label: "اختبار" },
           ] },
           { key: "plan", label: "الخطة", type: "select", options: [{ value: "pro", label: "Pro" }, { value: "growth", label: "Growth" }, { value: "scale", label: "Scale" }, { value: "free", label: "بدون خطة" }] },
@@ -57,7 +57,7 @@ export async function UsersList({ view, searchParams }: { view: AccountView; sea
           { key: "to", label: "تاريخ التسجيل إلى", type: "date" },
           { key: "sort", label: "الترتيب", type: "select", options: [
             { value: "created", label: "تاريخ التسجيل" }, { value: "activity", label: "آخر نشاط" }, { value: "paid", label: "إجمالي المدفوعات" },
-            { value: "trial_end", label: "انتهاء التجربة" }, { value: "period_end", label: "انتهاء الاشتراك" },
+            { value: "period_end", label: "انتهاء الاشتراك" },
           ] },
           { key: "dir", label: "الاتجاه", type: "select", options: [{ value: "desc", label: "تنازلي" }, { value: "asc", label: "تصاعدي" }] },
         ]}

@@ -38,7 +38,8 @@ const SORTS: Record<string, keyof AdminAccountRow> = {
 };
 
 export const SEGMENTS = [
-  "registered_only", "trialing", "trial_ended", "plan_selected", "checkout_no_payment", "payment_pending", "payment_failed",
+  // D-275: Yolias has no free trial: no trial segments.
+  "registered_only", "plan_selected", "checkout_no_payment", "payment_pending", "payment_failed",
   "payment_not_completed", "paid_active", "lapsed", "test", "deleted",
 ] as const;
 

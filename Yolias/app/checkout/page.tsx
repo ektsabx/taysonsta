@@ -6,9 +6,9 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { billingTestMode } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
-import { hasActivePlan, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
+import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
-import { canManageTeam, pendingPlan, requireUser } from "@/lib/session";
+import { canManageTeam, pendingPeriod, pendingPlan, requireUser } from "@/lib/session";
 import { CheckoutForm } from "./CheckoutForm";
 import { paymentMethods, paysInEgp } from "@/lib/payments";
 import { requestCountry } from "@/lib/geo-server";
@@ -26,17 +26,17 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const session = await requireUser();
   const plans = await getPlanCatalog();
   const t = await getDictionary();
-  const { plan, error } = await searchParams;
+  const { plan, error, period } = await searchParams;
   const ws = session.workspace;
   const active = hasActivePlan(ws);
   const currency = await workspaceCurrency(ws);
   const current = active && isPaidPlan(ws.plan) ? ws.plan : null;
   const pending = await pendingPlan(session);
   const picked = isPaidPlan(plan) ? plan : isPaidPlan(pending) ? pending : null;
-  const initial = picked ?? current ?? "pro";
+  const initial = picked ?? (current && offeredPlans.includes(current) ? current : "growth");
   const methods = await paymentMethods();
-  // Monthly only for new subscriptions (D-247); a running annual one keeps going.
-  const initialPeriod = "monthly" as const;
+  // Monthly or annual (D-275: annual is back, 20% off): from the link, else what was picked before signup.
+  const initialPeriod = isBillingPeriod(period) ? period : (await pendingPeriod()) ?? "monthly";
   // Paymob only (D-254), hidden when switched off in Admin (D-213).
   const on = await switches();
   const online = on.payments_paymob && methods.paymob;
@@ -64,6 +64,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPlan={initial}
         currentPlan={current}
         currentPeriod={current ? ws.billing_period : null}
+        initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}
         online={online}

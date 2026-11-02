@@ -24,9 +24,9 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
       <FilterBar
         searchPlaceholder="بحث بالاسم أو البريد أو المعرّف"
         filters={[
-          { key: "sub", label: "حالة الاشتراك", type: "select", options: [{ value: "trialing", label: "تجربة مجانية" }, { value: "active", label: "مدفوع نشط" }, { value: "past_due", label: "دفع متأخر" }, { value: "canceled", label: "منتهٍ" }, { value: "test", label: "اختبار" }] },
+          { key: "sub", label: "حالة الاشتراك", type: "select", options: [{ value: "active", label: "مدفوع نشط" }, { value: "past_due", label: "دفع متأخر" }, { value: "canceled", label: "منتهٍ" }, { value: "test", label: "اختبار" }] },
           { key: "plan", label: "الخطة", type: "select", options: [{ value: "pro", label: "Pro" }, { value: "growth", label: "Growth" }, { value: "scale", label: "Scale" }] },
-          { key: "sort", label: "الترتيب", type: "select", options: [{ value: "period_end", label: "انتهاء الاشتراك" }, { value: "trial_end", label: "انتهاء التجربة" }, { value: "paid", label: "إجمالي المدفوعات" }, { value: "created", label: "تاريخ التسجيل" }] },
+          { key: "sort", label: "الترتيب", type: "select", options: [{ value: "period_end", label: "انتهاء الاشتراك" }, { value: "paid", label: "إجمالي المدفوعات" }, { value: "created", label: "تاريخ التسجيل" }] },
         ]}
       />
       <Card flush>

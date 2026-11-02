@@ -86,6 +86,6 @@ export const Y = {
 };
 
 export const CTA = {
-  en: { title: "Get meetings, not lists.", body: "Create an account, set the meetings you want and who to reach, preview the email Yolias writes, and launch. Yolias finds the people, writes, answers and books.", label: "Try Yolias" },
-  ar: { title: "احصل على اجتماعات، لا قوائم.", body: "أنشئ حسابًا، وحدد الاجتماعات التي تريدها ومن تريد الوصول إليه، وعاين الرسالة التي يكتبها يولياس، ثم شغّل الحملة. يجد يولياس الأشخاص ويكتب ويرد ويحجز.", label: "جرّب يولياس" },
+  en: { title: "Get customers, not lists.", body: "Create an account, choose the result you want (meetings, leads or sales) and the customers to reach, preview the message Yolias writes, and launch. Yolias finds the people, writes, answers and books.", label: "Try Yolias" },
+  ar: { title: "احصل على عملاء، لا قوائم.", body: "أنشئ حسابًا، واختر النتيجة التي تريدها (اجتماعات أو عملاء محتملون أو مبيعات) والعملاء الذين تريد الوصول إليهم، وعاين الرسالة التي يكتبها يولياس، ثم أطلق الحملة. يجد يولياس الأشخاص ويكتب ويرد ويحجز.", label: "جرّب يولياس" },
 };

@@ -177,7 +177,7 @@ export type BookingVisitRow = {
 };
 
 /** D-274: the Yolias pixel (one per workspace) and its events, like Facebook's. */
-export type PixelRow = { id: string; workspace_id: string; public_id: string; name: string; allowed_domains: string[]; blocked_domains: string[]; created_by: string | null; last_event_at: string | null; created_at: string };
+export type PixelRow = { id: string; workspace_id: string; public_id: string; name: string; website_url: string | null; allowed_domains: string[]; blocked_domains: string[]; created_by: string | null; last_event_at: string | null; created_at: string };
 export type PixelEventRow = {
   id: number; pixel_id: string; workspace_id: string; event: string; value: number | null; currency: string | null; url: string | null; referrer: string | null;
   visitor: string | null; event_id: string | null; lead_id: string | null; campaign_id: string | null; group_id: string | null;

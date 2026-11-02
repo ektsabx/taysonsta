@@ -35,7 +35,7 @@ export async function indexableSeoPages(): Promise<SeoPage[]> {
 }
 
 const competitorRows = cache(async () => {
-  const { data, error } = await createAdminClient().from("seo_competitors").select("slug, name, website, pricing_url, summary, best_for, strengths, limits, pricing, publishes_prices, last_reviewed_at");
+  const { data, error } = await createAdminClient().from("seo_competitors").select("slug, name, website, pricing_url, summary, best_for, strengths, limits, pricing, publishes_prices, last_reviewed_at, facts");
   return error ? [] : data ?? [];
 });
 

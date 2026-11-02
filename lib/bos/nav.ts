@@ -71,7 +71,6 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/conversions/funnel", label: "رحلة التحويل", perm: "platform.read" },
       { href: "/admin/platform/conversions/abandoned", label: "الدفع غير المكتمل", perm: "platform.read" },
       { href: "/admin/platform/conversions/failed", label: "فشل الدفع", perm: "platform.read" },
-      { href: "/admin/platform/conversions/trials", label: "التجارب المجانية", perm: "platform.read" },
       { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
       { href: "/admin/platform/profitability", label: "الربحية", perm: "platform.read" },
     ],

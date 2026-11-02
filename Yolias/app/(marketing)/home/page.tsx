@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "@/components/LocaleLink";
-import { Check, Languages, ListChecks, MessageSquareText, Send, X } from "lucide-react";
+import { Bot, Check, Megaphone, TrendingUp, UserSearch, X } from "lucide-react";
 import { home } from "@/lib/content/site";
 import { getLocale } from "@/lib/i18n/server";
 import { HOME_DESCRIPTION, HOME_TITLE, HOME_TITLE_AR, faqSchema, organizationSchema, pageMetadata, websiteSchema } from "@/lib/seo";
@@ -11,14 +11,14 @@ import { getSession } from "@/lib/session";
 import { trialAvailable } from "@/lib/payments";
 import { fmt } from "@/lib/i18n/config";
 
-// The home title is fixed by the owner (2026-10-19), word for word; /ar carries
-// its Arabic translation with the Arabic brand name first (D-265).
+// The home title (owner, 2026-11-02, D-275): "Yolias - AI Advertising Platform
+// for Customer Acquisition"; /ar carries it fully in Arabic, brand first.
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   return pageMetadata({ title: locale === "ar" ? HOME_TITLE_AR : HOME_TITLE, absoluteTitle: true, description: HOME_DESCRIPTION[locale], path: "/" });
 }
 
-const tileIcons = [MessageSquareText, ListChecks, Send, Languages];
+const tileIcons = [Megaphone, UserSearch, Bot, TrendingUp];
 
 // Public home page (served at "/" for visitors via the proxy rewrite).
 // Conversion pass (owner brief 2026-10-20): outcome headline, one primary

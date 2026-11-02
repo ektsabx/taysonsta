@@ -170,6 +170,12 @@ export const agEn = {
     ev: {
       title: "Events Manager", nav: "Events Manager", subtitle: "Your pixels: they measure what the people Yolias sends to your website do there.",
       create: "Create a pixel", namePh: "Pixel name, e.g. My store", createBtn: "Create", created: "Pixel created.",
+      createTitle: "Create a pixel", createLine: "A pixel measures what the people Yolias sends to your website do there: purchases, forms and page views.",
+      site: "Website URL", sitePh: "https://www.example.com", siteHint: "Optional. Yolias opens it in Test events and shows it on the pixel card.",
+      editTitle: "Edit pixel", edit: "Edit pixel", del: "Delete pixel", more: "More", rename: "Rename", cancel: "Cancel",
+      delTitle: "Delete this pixel?", delLine: "Its events are deleted with it, and websites that still have its code stop sending events. This can't be undone.", delBtn: "Delete pixel", deleted: "Pixel deleted.",
+      lastPixel: "This is your only pixel. Create another one before deleting it.", inUse: "Campaigns measure with this pixel: {names}. Choose another pixel in them first.",
+      invalidName: "Give the pixel a name.", invalidSite: "Enter a valid website, e.g. example.com.", tooMany: "You can have up to 20 pixels.",
       active: "Active", quiet: "No events in the last 24 hours", notInstalled: "Not installed yet", week: "events in the last 7 days", lastAt: "Last event {at}", refresh: "Refresh",
       tabs: { overview: "Overview", test: "Test events", setup: "Set up", settings: "Settings" },
       installLine: "Add this pixel to your website so Yolias can count the purchases and leads of the people it sends there.", setupCta: "Set up the pixel",

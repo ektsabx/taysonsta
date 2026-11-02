@@ -26,6 +26,8 @@ interface Props {
   initialPlan: PaidPlan;
   currentPlan: Plan | null;
   currentPeriod: BillingPeriod | null;
+  /** D-275: monthly or annual (20% off). */
+  initialPeriod?: BillingPeriod;
   canManage: boolean;
   testMode: boolean;
   /** Paymob, the only payment method (D-254), is connected and switched on. */
@@ -49,13 +51,12 @@ interface Props {
   initialPayg: boolean;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManage, testMode, online, email, workspaceName, continueHref, options, currency, initialError, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod = "monthly", canManage, testMode, online, email, workspaceName, continueHref, options, currency, initialError, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
-  // Monthly only (D-247): no annual billing for new subscriptions.
-  const period: BillingPeriod = "monthly";
-  const initialPeriod: BillingPeriod = "monthly";
+  // Monthly or annual, 20% off (owner, 2026-11-02, D-275).
+  const [period, setPeriod] = useState<BillingPeriod>(initialPeriod);
   const [payg, setPayg] = useState(initialPayg && topUps.length > 0);
   const [topUp, setTopUp] = useState(topUps[0]?.id ?? "");
   const [error, setError] = useState<string | null>(initialError);
@@ -105,10 +106,10 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
     });
   };
 
-  // Next renewal, from today.
+  // Next renewal, from today: a month, or a year on annual billing.
   const renewal = (() => {
     const d = new Date();
-    d.setMonth(d.getMonth() + 1);
+    if (period === "annual") d.setFullYear(d.getFullYear() + 1); else d.setMonth(d.getMonth() + 1);
     return d;
   })();
 
@@ -119,6 +120,15 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         <h1 className="checkout-title">{payg ? c.payg.title : fmt(c.title, { plan: name })}</h1>
         <p className="checkout-lead">{payg ? c.payg.lead : c.lead}</p>
 
+        {!payg && (
+          <div className="period-toggle checkout-period" role="tablist" aria-label={t.plans.billedMonthly}>
+            {(["monthly", "annual"] as const).map((k) => (
+              <button key={k} type="button" role="tab" aria-selected={period === k} className={period === k ? "active" : ""} onClick={() => { setPeriod(k); detail({ period: k }); }}>
+                {t.plans[k]}{k === "annual" && <span className="plan-badge">{t.plans.annualSave}</span>}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="checkout-plans" role="radiogroup" aria-label={c.eyebrow}>
           {topUps.length > 0 && (
             <button type="button" role="radio" aria-checked={payg} className={`checkout-plan${payg ? " selected" : ""}`} onClick={() => { setPayg(true); setError(null); }}>
@@ -146,7 +156,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
                   {o.id === "growth" && <span className="plan-badge">{t.plans.recommended}</span>}
                   {o.id === currentPlan && currentPeriod === period && <span className="coming-soon">{c.currentPlan}</span>}
                 </span>
-                <span className="checkout-plan-sub">{fmt(t.plans.prospectsPerMonth, { count: n(o.prospects) })}</span>
+                <span className="checkout-plan-sub">{fmt(t.plans.prospectsPerMonth, { count: n(o.prospects) })}{period === "annual" ? ` · ${fmt(t.plans.billedYearlyAt, { amount: formatMoney(price(o), shownCurrency) })}` : ""}</span>
               </span>
               <span className="checkout-plan-price"><span dir="ltr" translate="no">{formatMoney(rate(o), shownCurrency)}</span><small>{t.plans.perMonth}</small></span>
             </button>
@@ -189,7 +199,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         <div className="checkout-line">
           <span>
             <span>{name}</span>
-            <small>{`${t.plans.billedMonthly}${workspaceName ? ` · ${workspaceName}` : ""}`}</small>
+            <small>{`${period === "annual" ? t.plans.billedAnnually : t.plans.billedMonthly}${workspaceName ? ` · ${workspaceName}` : ""}`}</small>
           </span>
           <span dir="ltr" translate="no">{money(price(plan))}</span>
         </div>
@@ -234,7 +244,7 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, canManag
         )}
         {error && <p className="form-error" role="alert"><span>{error}</span></p>}
 
-        <p className="checkout-fine">{fmt(c.fine, { email, days: "0" })}</p>
+        <p className="checkout-fine">{fmt(period === "annual" ? c.fineAnnual : c.fine, { email, days: "0" })}</p>
       </aside>
       )}
     </main>

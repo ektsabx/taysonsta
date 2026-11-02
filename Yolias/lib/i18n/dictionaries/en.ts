@@ -7,8 +7,8 @@ import { wsEn } from "./ws-en";
 
 export const en = {
   meta: {
-    title: "Yolias: Your AI Sales Agent for Business Growth",
-    description: "The AI sales agent that books meetings with the right customers for you.",
+    title: "Yolias - AI Advertising Platform for Customer Acquisition",
+    description: "The AI advertising platform that reaches the customers you choose and brings you meetings, leads and sales.",
   },
   consent: {
     text: "We use cookies to keep you signed in. With your OK, we also use analytics and ad-measurement cookies to improve Yolias and our ads.",
@@ -160,7 +160,7 @@ export const en = {
     back: "Back to pricing",
     eyebrow: "Subscribe",
     title: "Upgrade to {plan}",
-    lead: "Top up credit with no subscription, or choose a monthly plan. Every option includes unlimited users.",
+    lead: "Top up credit with no subscription, or choose a plan, monthly or annual (20% off). Every option includes unlimited users.",
     currentPlan: "Current plan",
     perMonth: "/month",
     includedIn: "Included in {plan}",
@@ -205,7 +205,7 @@ export const en = {
     fine: "Signed in as {email}. Renews monthly until canceled. Prices don’t include applicable tax.",
     fineAnnual: "Signed in as {email}. Renews yearly until canceled. Prices don’t include applicable tax.",
     payg: {
-      eyebrow: "Top up", title: "Top up your credit", lead: "Pay once for the prospects you need, or choose a monthly plan. Every option includes unlimited users.",
+      eyebrow: "Top up", title: "Top up your credit", lead: "Pay once for the prospects you need, or choose a plan. Every option includes unlimited users.",
       name: "Pay As You Go",
       sub: "Prepaid credit · no subscription",
       from: "From {amount}",
@@ -916,9 +916,9 @@ export const en = {
     },
   },
   pricing: {
-    title: "Yolias Pricing | Plans for finding your next B2B customers",
+    title: "Yolias Pricing | AI advertising plans for customer acquisition",
     tryYolias: "Try Yolias",
-    heroEyebrow: "YOLIAS PRICING", heroTitle: "Pay as you go, or pay monthly.",
+    heroEyebrow: "YOLIAS PRICING", heroTitle: "Pay as you go, or choose a plan.",
     heroSupport: "Every option finds companies and decision makers, writes your outreach and keeps your replies and deals in one place. You pay for prospects only. Unlimited users.",
     heroTrial: "Every plan starts with a {days}-day free trial.",
     getStarted: "Get started", paidFoot: "Pay by card · Cancel anytime",
@@ -953,7 +953,7 @@ export const en = {
     faqEyebrow: "QUESTIONS, ANSWERED", faqTitle: "Frequently asked questions",
     faq: [
       ["Are users unlimited?", "Yes. Every Yolias plan includes unlimited users. You don’t pay per user."],
-      ["What’s the difference between the options?", "All three include the same Yolias features. Pay As You Go is prepaid credit you top up when you need it ($5, $20, $50 or $100), with no subscription and no renewal. Pro and Growth are monthly plans with a set number of prospects every month."],
+      ["What’s the difference between the options?", "All three include the same Yolias features. Pay As You Go is prepaid credit you top up when you need it ($5, $20, $50 or $100), with no subscription and no renewal. Growth ($100) and Scale ($200) are plans with a set number of prospects every month, billed monthly or annually at 20% off."],
       ["What is Pay As You Go?", "You top up credit once and use it for prospects. The amount you choose shows the exact number of prospects it gives before you pay. The credit is added after the payment is confirmed, never turns into a subscription and doesn’t expire."],
       ["Can I switch between Pay As You Go and a monthly plan?", "Yes, any time. Your remaining credit stays in your account when you subscribe, and you can still top up while on a plan."],
       ["Are taxes included in the displayed prices?", "No. Prices shown don’t include applicable tax."],
@@ -978,7 +978,7 @@ export const en = {
   site: {
     product: "Product", pricing: "Pricing", helpCenter: "Help Center", blog: "Blog", solutions: "Solutions", allSolutions: "All solutions",
     community: "Community", signIn: "Sign In", logIn: "Log in", signUp: "Sign up", dashboard: "Open Yolias", tryYolias: "Try Yolias", menu: "Open navigation menu", home: "Yolias home",
-    tagline: "Yolias is an AI sales agent for businesses that sell services: it finds the right companies and people, writes to them from your mailbox, answers their replies and books the meetings.",
+    tagline: "Yolias is an AI advertising platform for customer acquisition: define the customers you want, and its AI campaigns reach the decision makers, answer their replies and bring you meetings, leads and sales.",
     useCases: "Use cases", affiliates: "Affiliate program", status: "Status", resources: "Resources", documentation: "Documentation", faq: "FAQ", contactSupport: "Contact Support",
     company: "Company", about: "About", contact: "Contact", careers: "Careers",
     legal: "Legal", privacy: "Privacy Policy", terms: "Terms of Service", refunds: "Refund Policy", cookies: "Cookie Policy", security: "Security",

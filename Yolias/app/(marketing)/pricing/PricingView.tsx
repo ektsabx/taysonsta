@@ -8,7 +8,7 @@ import { ConsentText } from "@/app/(auth)/ConsentText";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { fmt, type Dictionary } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { planName, planPrice, type PlanTerms } from "@/lib/plans";
+import { monthlyRate, planName, planPrice, priceFor, type PlanTerms } from "@/lib/plans";
 import type { Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
 import { pricingFaq } from "@/lib/pricing-copy";
@@ -16,11 +16,11 @@ import { pricingFaq } from "@/lib/pricing-copy";
 type PricingCopy = Dictionary["pricing"];
 type PlanId = PaidPlan;
 
-// Pay As You Go, Pro and Growth (owner brief 2026-10-20, D-247): prepaid
-// credit or one of two monthly plans, no annual billing, no free credit. The
+// Pay As You Go, Growth and Scale (owner, 2026-11-02, D-275): prepaid credit
+// or one of two plans, monthly or annual (20% off), no free trial. The
 // prospect is the only unit. Every number comes from the configuration the
 // limits are enforced with (plan_quotas, prospect_packs).
-const tiers: PlanId[] = ["pro", "growth"];
+const tiers: PlanId[] = ["growth", "scale"];
 
 // Features on every plan. CRM, pipelines and deals are listed at the owner's
 // request ahead of the CRM module (docs/21).
@@ -42,18 +42,19 @@ interface Props {
 export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps }: Props) {
   const { t: dict, locale } = useI18n();
   const t = dict.pricing;
+  const [period, setPeriod] = useState<"monthly" | "annual">("monthly");
   const n = (v: number) => formatNumber(v, locale);
   // Monthly prices only. Visitors from Egypt see the EGP prices they are charged (D-237).
   const list = (plan: PlanId) => planPrice(plans[plan], currency) ?? 0;
   // USD everywhere (owner, 2026-10-21); visitors from Egypt see the EGP charge in checkout.
   void egp;
-  const price = (plan: PlanId) => formatMoney(list(plan), currency);
+  const price = (plan: PlanId) => formatMoney(monthlyRate(list(plan), period), currency);
   const usd = (v: number) => formatMoney(v, "USD");
   // The same features on every card (owner, 2026-10-21).
   const shared = [dict.plans.contactsUnlimited, t.features.teamWorkspace, t.features.crm, t.features.enrichment, t.features.chatSupport, t.unlimitedUsers];
 
   // Picking a plan → signup (new visitors) or checkout (signed in).
-  const href = (plan: PlanId | "payg") => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}`;
+  const href = (plan: PlanId | "payg") => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}${plan !== "payg" && period === "annual" ? "&period=annual" : ""}`;
   // Journey tracking (D-212): the plans were seen; a plan was picked.
   useEffect(() => { funnelEvent("plans_viewed"); }, []);
   const min = topUps[0];
@@ -73,7 +74,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
   const card = (plan: PlanId, recommended?: string) => (
     <PlanCard
       key={plan}
-      onPick={() => funnelEvent("plan_selected", { plan, period: "monthly" })}
+      onPick={() => funnelEvent("plan_selected", { plan, period })}
       name={planName(plan, dict)}
       price={price(plan)}
       note={t.perMonth}
@@ -82,8 +83,8 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
         ...shared,
       ]}
       href={href(plan)}
-      cta={trialDays ? t.startTrial : t.getStarted}
-      foot={trialDays ? fmt(t.trialFoot, { days: n(trialDays) }) : t.paidFoot}
+      cta={t.getStarted}
+      foot={period === "annual" ? fmt(dict.plans.billedYearlyAt, { amount: formatMoney(priceFor(list(plan), "annual"), currency) }) : t.paidFoot}
       recommended={recommended}
     />
   );
@@ -95,7 +96,14 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
           <div className="site-width text-center">
             <p className="eyebrow">{t.heroEyebrow}</p>
             <h1 className="display-font hero-title mt-5">{t.heroTitle}</h1>
-            <p className="hero-copy">{t.heroSupport}{trialDays ? ` ${fmt(t.heroTrial, { days: n(trialDays) })}` : ""}</p>
+            <p className="hero-copy">{t.heroSupport}</p>
+            <div className="period-toggle pricing-period" role="tablist" aria-label={dict.plans.billedMonthly}>
+              {(["monthly", "annual"] as const).map((k) => (
+                <button key={k} type="button" role="tab" aria-selected={period === k} className={period === k ? "active" : ""} onClick={() => setPeriod(k)}>
+                  {dict.plans[k]}{k === "annual" && <span className="plan-badge">{dict.plans.annualSave}</span>}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -104,8 +112,8 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
         <div className="site-width">
           <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
             {paygCard}
-            {card("pro")}
             {card("growth", dict.plans.recommended)}
+            {card("scale")}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
         </div>

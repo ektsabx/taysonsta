@@ -31,7 +31,7 @@ const Y: Record<Row, L> = {
   fees: { en: "No commission on your work: you pay for the people Yolias finds and reaches for your campaigns", ar: "لا عمولة على عملك: تدفع مقابل الأشخاص الذين يجدهم يولياس ويتواصل معهم لحملاتك" },
   relationship: { en: "Yours from the first email: the conversation, the contract and the payment are between you and the client", ar: "لك من أول رسالة: المحادثة والعقد والدفع بينك وبين العميل" },
   effort: { en: "You set the audience once; Yolias writes, follows up and answers; you take the meetings", ar: "تحدد الجمهور مرة واحدة؛ ويكتب يولياس ويتابع ويرد؛ وأنت تحضر الاجتماعات" },
-  price: { en: "Pay As You Go from $5 (about $0.10 a person reached), or Pro $50 and Growth $100 a month", ar: "الدفع حسب الاستخدام من 5 دولارات (نحو 0.10 دولار لكل شخص)، أو Pro بـ 50 وGrowth بـ 100 دولار شهريًا" },
+  price: { en: "Pay As You Go from $5 (about $0.10 a person reached), or Growth $100 and Scale $200 a month", ar: "الدفع حسب الاستخدام من 5 دولارات (نحو 0.10 دولار لكل شخص)، أو النمو بـ 100 والتوسع بـ 200 دولار شهريًا" },
 };
 
 const limits: L[] = [

@@ -6,11 +6,11 @@ import { canUseApp, defaultPlans, hasActivePlan, monthlyRate, monthlyRateEgp, of
 
 // Owner brief 2026-10-12: plans, trial, CSV import, affiliate examples.
 
-test("plans: Pro and Growth monthly are offered (no Scale), Growth is the top plan, credit opens the app", () => {
-  assert.deepEqual(offeredPlans, ["pro", "growth"]);
-  assert.equal(topPlan, "growth");
-  assert.equal(defaultPlans.pro.priceUsd, 50);
+test("plans: Growth and Scale are offered (no Pro, D-275), Scale is the top plan, credit opens the app", () => {
+  assert.deepEqual(offeredPlans, ["growth", "scale"]);
+  assert.equal(topPlan, "scale");
   assert.equal(defaultPlans.growth.priceUsd, 100);
+  assert.equal(defaultPlans.scale.priceUsd, 200);
   assert.equal(hasActivePlan({ subscription_status: "trialing" }), true);
   assert.equal(hasActivePlan({ subscription_status: "canceled" }), false, "an ended plan or trial gives no access");
   assert.equal(hasActivePlan({ subscription_status: "none" }), false);
