@@ -42,7 +42,7 @@ export const listPages: SeedPage[] = [
           ["Send at volume", "Instantly, Smartlead", "You have lists and many mailboxes"],
         ] } },
         { h2: "Where Yolias fits" },
-        { p: "Yolias is for businesses that sell services. You describe the client you want, in English or Arabic, and Yolias finds matching companies, local businesses and decision makers, explains why each one fits, writes the first emails and sends them from your own mailbox after you approve. It shows the contact details companies publish and doesn't promise a personal email or phone for everyone, and its outreach is email only." },
+        { p: "Yolias is for businesses that sell services. You describe the client you want, in English or Arabic, and Yolias finds matching companies, local businesses and decision makers, explains why each one fits, writes the first emails and sends them from your own mailbox once you launch the campaign. It shows the contact details companies publish and doesn't promise a personal email or phone for everyone, and its outreach is email only." },
         { h2: "A common combination" },
         { p: "Many teams use one tool to find and qualify companies and another for direct contacts or volume sending. Yolias exports any list as CSV, so it works alongside the others." },
       ],
@@ -76,7 +76,7 @@ export const listPages: SeedPage[] = [
           ["الإرسال بكميات كبيرة", "Instantly وSmartlead", "لديك قوائم وصناديق بريد كثيرة"],
         ] } },
         { h2: "أين يقع يولياس" },
-        { p: "يولياس للشركات التي تبيع خدمات. تصف العميل الذي تريده، بالعربية أو الإنجليزية، فيجد يولياس الشركات والأنشطة المحلية وصنّاع القرار المطابقين، ويشرح سبب تطابق كل منهم، ويكتب الرسائل الأولى ويرسلها من بريدك بعد موافقتك. يعرض بيانات التواصل التي تنشرها الشركات ولا يعد ببريد أو رقم شخصي للجميع، وتواصله بالبريد فقط." },
+        { p: "يولياس للشركات التي تبيع خدمات. تصف العميل الذي تريده، بالعربية أو الإنجليزية، فيجد يولياس الشركات والأنشطة المحلية وصنّاع القرار المطابقين، ويشرح سبب تطابق كل منهم، ويكتب الرسائل الأولى ويرسلها من بريدك بعد تشغيلك للحملة. يعرض بيانات التواصل التي تنشرها الشركات ولا يعد ببريد أو رقم شخصي للجميع، وتواصله بالبريد فقط." },
         { h2: "تركيبة شائعة" },
         { p: "كثير من الفرق تستخدم أداة لإيجاد الشركات وتقييمها وأخرى لبيانات التواصل المباشرة أو الإرسال بكميات. ويصدّر يولياس أي قائمة كملف CSV، فيعمل بجانب الأدوات الأخرى." },
       ],
@@ -101,7 +101,7 @@ export const alternativesPages: SeedPage[] = [
       metaTitle: "Apollo.io alternatives for 2026, by reason to switch",
       metaDescription: "Leaving Apollo because of credits, data in your market or how you build lists? The alternatives that fit each reason, with sources, and when Yolias is the right one.",
       lead: "People look for an Apollo alternative for different reasons: credits running out, contact data that is thin in their country, phone numbers, or a team that finds filters slow. The right alternative depends on the reason.",
-      answer: "If you need more or better phone numbers, look at Cognism or Lusha. If you need a bigger enterprise dataset with intent, look at ZoomInfo. If you want to build your own enrichment across providers, look at Clay. If you only need emails for companies you chose, Hunter. If you sell services and want to describe your client and get matching companies with emails ready to approve, try Yolias.",
+      answer: "If you need more or better phone numbers, look at Cognism or Lusha. If you need a bigger enterprise dataset with intent, look at ZoomInfo. If you want to build your own enrichment across providers, look at Clay. If you only need emails for companies you chose, Hunter. If you sell services and want to describe your client and get matching companies with the emails written and sent for you, try Yolias.",
       criteria: [
         "**Why you're leaving Apollo:** price and credits, data quality in your market, phone coverage, or the way you build lists.",
         "**What you'll keep from Apollo:** many teams keep sequences in one tool and change only the data source.",
@@ -131,7 +131,7 @@ export const alternativesPages: SeedPage[] = [
       metaTitle: "بدائل Apollo.io في 2026 حسب سبب الانتقال",
       metaDescription: "تترك Apollo بسبب الرصيد، أو ضعف البيانات في سوقك، أو طريقة بناء القوائم؟ البدائل المناسبة لكل سبب، بالمصادر، ومتى يكون يولياس هو الخيار المناسب.",
       lead: "يبحث الناس عن بديل لـ Apollo لأسباب مختلفة: نفاد الرصيد، أو بيانات تواصل ضعيفة في بلدهم، أو أرقام الهاتف، أو فريق يرى الفلاتر بطيئة. البديل المناسب يعتمد على السبب.",
-      answer: "إذا كنت تحتاج أرقام هاتف أكثر أو أدق، فانظر إلى Cognism أو Lusha. وإذا كنت تحتاج بيانات مؤسسية أوسع مع إشارات النية، فـ ZoomInfo. وإذا أردت بناء الإثراء بنفسك عبر مزودين، فـ Clay. وإذا كنت تحتاج البريد فقط لشركات اخترتها، فـ Hunter. وإذا كنت تبيع خدمات وتريد وصف عميلك والحصول على شركات مطابقة مع رسائل جاهزة لموافقتك، فجرّب يولياس.",
+      answer: "إذا كنت تحتاج أرقام هاتف أكثر أو أدق، فانظر إلى Cognism أو Lusha. وإذا كنت تحتاج بيانات مؤسسية أوسع مع إشارات النية، فـ ZoomInfo. وإذا أردت بناء الإثراء بنفسك عبر مزودين، فـ Clay. وإذا كنت تحتاج البريد فقط لشركات اخترتها، فـ Hunter. وإذا كنت تبيع خدمات وتريد وصف عميلك والحصول على شركات مطابقة مع رسائل يكتبها ويرسلها نيابةً عنك، فجرّب يولياس.",
       criteria: [
         "**سبب تركك لـ Apollo:** السعر والرصيد، أو جودة البيانات في سوقك، أو تغطية الهاتف، أو طريقة بناء القوائم.",
         "**ما ستحتفظ به:** كثير من الفرق تبقي التسلسلات في أداة وتغيّر مصدر البيانات فقط.",
@@ -167,7 +167,7 @@ export const alternativesPages: SeedPage[] = [
       metaTitle: "Clay alternatives: simpler ways to find and enrich leads",
       metaDescription: "Clay is powerful but you build everything yourself. Alternatives for teams that want a database, an email finder or research done for them, and when Yolias fits.",
       lead: "Clay is a builder: tables, columns, waterfalls and agents you set up. Teams usually look for an alternative when the building takes longer than the selling, or when usage credits are hard to predict.",
-      answer: "If you want a ready contact database instead of building enrichment, look at Apollo, ZoomInfo or Lusha. If you only need emails for companies you picked, Hunter. If you want the research itself done from a plain description of your client, with emails prepared for your approval, try Yolias.",
+      answer: "If you want a ready contact database instead of building enrichment, look at Apollo, ZoomInfo or Lusha. If you only need emails for companies you picked, Hunter. If you want the research itself done from a plain description of your client, with the emails written and sent for you, try Yolias.",
       criteria: [
         "**Who will run it:** a dedicated RevOps person, or the person who also sells.",
         "**What you used Clay for:** finding companies, enriching contacts, scoring, or writing personalised lines.",
@@ -195,7 +195,7 @@ export const alternativesPages: SeedPage[] = [
       metaTitle: "بدائل Clay: طرق أبسط لإيجاد العملاء وإثراء بياناتهم",
       metaDescription: "Clay قوي لكنك تبني كل شيء بنفسك. بدائل للفرق التي تريد قاعدة بيانات أو أداة لإيجاد البريد أو بحثًا يُنجز عنها، ومتى يناسب يولياس.",
       lead: "Clay أداة بناء: جداول وأعمدة وتسلسلات ووكلاء تضبطهم بنفسك. وتبحث الفرق عادة عن بديل عندما يأخذ البناء وقتًا أطول من البيع، أو عندما يصعب توقع استهلاك الرصيد.",
-      answer: "إذا أردت قاعدة جهات اتصال جاهزة بدل بناء الإثراء، فانظر إلى Apollo أو ZoomInfo أو Lusha. وإذا كنت تحتاج البريد فقط لشركات اخترتها، فـ Hunter. وإذا أردت أن يتم البحث نفسه من وصف بسيط لعميلك، مع رسائل جاهزة لموافقتك، فجرّب يولياس.",
+      answer: "إذا أردت قاعدة جهات اتصال جاهزة بدل بناء الإثراء، فانظر إلى Apollo أو ZoomInfo أو Lusha. وإذا كنت تحتاج البريد فقط لشركات اخترتها، فـ Hunter. وإذا أردت أن يتم البحث نفسه من وصف بسيط لعميلك، مع رسائل يكتبها ويرسلها نيابةً عنك، فجرّب يولياس.",
       criteria: [
         "**من سيشغّل الأداة:** شخص متفرغ للعمليات، أم الشخص الذي يبيع أيضًا.",
         "**لماذا كنت تستخدم Clay:** إيجاد الشركات، أو إثراء جهات الاتصال، أو التقييم، أو كتابة سطور مخصصة.",
@@ -240,7 +240,7 @@ export const alternativesPages: SeedPage[] = [
         { h2: "Check what you use before you switch" },
         { p: "If your team mostly exports contacts, a self-serve database will cover it. If you rely on intent data and many integrations, few alternatives match ZoomInfo, and the switch is a bigger project." },
         { h2: "When Yolias fits" },
-        { p: "Yolias is not a data platform. It fits when your goal is new clients for a service business: you describe them, Yolias finds and explains matching companies, writes the first emails and sends them from your mailbox after you approve, and keeps replies and leads in one place." },
+        { p: "Yolias is not a data platform. It fits when your goal is new clients for a service business: you describe them, Yolias finds and explains matching companies, writes the first emails and sends them from your mailbox once you launch the campaign, and keeps replies and leads in one place." },
       ],
       faq: [
         { q: "Is there a cheaper alternative to ZoomInfo?", a: "Several alternatives publish their prices and have self-serve plans, including Apollo, Lusha and Yolias. Whether they are cheaper depends on your team size and usage." },
@@ -264,7 +264,7 @@ export const alternativesPages: SeedPage[] = [
         { h2: "راجع ما تستخدمه قبل الانتقال" },
         { p: "إذا كان فريقك يصدّر جهات الاتصال غالبًا، فقاعدة بيانات ذاتية الخدمة تكفي. وإذا كنت تعتمد على بيانات النية وتكاملات كثيرة، فقليل من البدائل يضاهي ZoomInfo، والانتقال مشروع أكبر." },
         { h2: "متى يناسب يولياس" },
-        { p: "يولياس ليس منصة بيانات. يناسب عندما يكون هدفك عملاء جددًا لنشاط خدمي: تصفهم، فيجد يولياس الشركات المطابقة ويشرحها، ويكتب الرسائل الأولى ويرسلها من بريدك بعد موافقتك، ويحفظ الردود والعملاء في مكان واحد." },
+        { p: "يولياس ليس منصة بيانات. يناسب عندما يكون هدفك عملاء جددًا لنشاط خدمي: تصفهم، فيجد يولياس الشركات المطابقة ويشرحها، ويكتب الرسائل الأولى ويرسلها من بريدك بعد تشغيلك للحملة، ويحفظ الردود والعملاء في مكان واحد." },
       ],
       faq: [
         { q: "هل يوجد بديل أرخص من ZoomInfo؟", a: "عدة بدائل تنشر أسعارها ولديها خطط ذاتية الخدمة، منها Apollo وLusha ويولياس. وكونها أرخص يعتمد على حجم فريقك واستخدامك." },

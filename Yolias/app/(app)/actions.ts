@@ -1,6 +1,5 @@
 "use server";
 
-import { classifyIntent } from "@/lib/ai/intent";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
@@ -10,10 +9,8 @@ import { confirmSetup, titleFrom, understandAndLaunch } from "@/lib/discovery/la
 import { parseIcp } from "@/lib/discovery/icp";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
-import { releaseDaily, takeDaily } from "@/lib/daily-limits";
+import { takeDaily } from "@/lib/daily-limits";
 import type { Json } from "@/types/database";
-import { loadAiSettings } from "@/lib/ai-workspace/server";
-import { decide } from "@/lib/ai-workspace/settings";
 
 export type StrategyResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -38,10 +35,6 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
   }
   if (!prompt && attachments.length === 0) return { ok: false, error: t.strategy.errors.empty };
 
-  // AI Workspace → Rules & Permissions: the Research Agent may be switched off or denied searching.
-  const research = decide(await loadAiSettings(session.workspace.id), "research", "search_prospects");
-  if (!research.allowed) return { ok: false, error: t.ws.ai.rules.searchBlocked };
-
   const supabase = await createClient();
   // The Customer Profile picked in the composer (RLS proves it is this workspace's).
   const profileId = String(formData.get("customer_profile_id") ?? "");
@@ -57,39 +50,17 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
       .order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (recent) return { ok: true, id: recent.id };
   }
-  // Not a search (replies, campaigns, CRM, analytics…): a conversation with Yolias AI (D-231).
-  if (prompt && attachments.length === 0 && (await classifyIntent(prompt, session.workspace.id)) === "assistant") {
-    const { data: chat, error: chatError } = await supabase.from("strategies").insert({
-      workspace_id: session.workspace.id, created_by: session.userId, title: titleFrom(prompt), prompt, attachments: [] as Json, status: "chat", customer_profile_id: customerProfileId,
-    }).select("id").single();
-    if (chatError || !chat) return { ok: false, error: t.strategy.errors.startFailed };
-    revalidatePath("/", "layout");
-    return { ok: true, id: chat.id };
-  }
-
-  const slot = await takeDaily(session.userId, session.workspace.plan, "search");
-  if (!slot.ok) return { ok: false, error: fmt(t.strategy.errors.dailyLimit, { count: slot.limit }) };
-
-  const { data: strategy, error } = await supabase
-    .from("strategies")
-    .insert({
-      workspace_id: session.workspace.id,
-      created_by: session.userId,
-      title: titleFrom(prompt || attachments[0].name),
-      prompt: prompt || `(${attachments.map((a) => a.name).join(", ")})`,
-      attachments: attachments.map((a) => ({ name: a.name, type: a.mediaType })) as Json,
-      customer_profile_id: customerProfileId,
-    })
-    .select("id")
-    .single();
-  if (error || !strategy) {
-    await releaseDaily(session.userId, "search");
-    return { ok: false, error: t.strategy.errors.startFailed };
-  }
-
-  await understandAndLaunch(session, strategy.id, prompt, attachments);
+  // Yolias AI is a conversation (D-273): finding people happens inside campaigns, which Yolias AI
+  // can prepare as a draft (createCampaignDraft). The page it was opened from comes along.
+  const page = String(formData.get("page") ?? "").slice(0, 300);
+  const text = prompt || `(${attachments.map((a) => a.name).join(", ")})`;
+  const { data: chat, error: chatError } = await supabase.from("strategies").insert({
+    workspace_id: session.workspace.id, created_by: session.userId, title: titleFrom(text), prompt: text, attachments: attachments.map((a) => ({ name: a.name, type: a.mediaType })) as Json,
+    status: "chat", customer_profile_id: customerProfileId, page_context: /^\/[\w\-/?=&]*$/.test(page) ? page : null,
+  }).select("id").single();
+  if (chatError || !chat) return { ok: false, error: t.strategy.errors.startFailed };
   revalidatePath("/", "layout");
-  return { ok: true, id: strategy.id };
+  return { ok: true, id: chat.id };
 }
 
 // Re-runs understanding for a strategy that failed (attachments aren't stored,

@@ -13,18 +13,18 @@ const solutionLinks = [
 ];
 const steps = {
   en: (ex: string) => [
-    { title: "Describe your client", body: `Write who you want in a sentence or two, for example: "${ex}". You can attach a brief or a CSV of current clients.` },
-    { title: "Review the criteria", body: "Yolias turns it into criteria you can see and change before the search runs." },
-    { title: "Check each match", body: "Every company comes with a match score and the criteria it met, plus the contact details it publishes." },
-    { title: "Approve the campaign", body: "Yolias writes a first email and follow-ups from your Company Knowledge; you edit and approve once." },
-    { title: "Handle replies", body: "Emails go from your own mailbox within your sending rules. Replies arrive in Conversations with a suggested answer, and meeting requests get your booking page." },
+    { title: "Set the result", body: "Create a campaign: the meetings you want, what you offer, the budget and the dates." },
+    { title: "Choose who to reach", body: `Describe the audience or pick it from lists (locations, industries, size, job titles), for example: "${ex}". Or use a custom or lookalike audience.` },
+    { title: "Preview and launch", body: "Pick your mailbox, tone and language, preview the email Yolias writes for this audience, and launch." },
+    { title: "Yolias works the conversations", body: "It finds the companies and decision makers, writes to each from your mailbox, follows up, answers questions and objections from your Company Knowledge, and sends interested people your booking page." },
+    { title: "Watch the meetings come in", body: "Meetings land in Meetings and Google Calendar; each campaign shows its replies, meetings and cost per meeting." },
   ],
   ar: (ex: string) => [
-    { title: "صِف عميلك", body: `اكتب من تريد في جملة أو اثنتين، مثلًا: «${ex}». ويمكنك إرفاق ملف أو CSV بعملائك الحاليين.` },
-    { title: "راجع المعايير", body: "يحوّل يولياس الوصف إلى معايير تراها وتعدّلها قبل تشغيل البحث." },
-    { title: "افحص كل نتيجة", body: "كل شركة تأتي بنسبة تطابق والمعايير التي حققتها، مع بيانات التواصل التي تنشرها." },
-    { title: "وافق على الحملة", body: "يكتب يولياس الرسالة الأولى والمتابعات من معرفة شركتك، فتعدّلها وتوافق مرة واحدة." },
-    { title: "تعامل مع الردود", body: "تُرسل الرسائل من بريدك ضمن قواعد الإرسال. وتصل الردود إلى المحادثات مع رد مقترح، وطلبات الاجتماع تصلها صفحة الحجز." },
+    { title: "حدد النتيجة", body: "أنشئ حملة: الاجتماعات التي تريدها، وما تقدمه، والميزانية والتواريخ." },
+    { title: "اختر من تريد الوصول إليهم", body: `صِف الجمهور أو اختره من القوائم (المواقع والمجالات والحجم والمسميات الوظيفية)، مثلًا: «${ex}». أو استخدم جمهورًا مخصصًا أو مشابهًا.` },
+    { title: "عاين ثم شغّل", body: "اختر بريدك والأسلوب واللغة، وعاين الرسالة التي يكتبها يولياس لهذا الجمهور، ثم شغّل الحملة." },
+    { title: "يدير يولياس المحادثات", body: "يجد الشركات وصنّاع القرار، ويكتب لكل منهم من بريدك، ويتابع، ويجيب عن الأسئلة والاعتراضات من معرفة شركتك، ويرسل للمهتمين صفحة الحجز." },
+    { title: "تابع الاجتماعات وهي تصل", body: "تظهر الاجتماعات في الاجتماعات وتقويم Google؛ وتعرض كل حملة ردودها واجتماعاتها وتكلفة الاجتماع." },
   ],
 };
 
@@ -38,7 +38,7 @@ export const solutionPages: SeedPage[] = [
       metaTitle: "Lead generation for web design agencies, with AI",
       metaDescription: "Find businesses that need a new website: outdated sites, no booking or online store, growing companies. Yolias finds them, explains each match and drafts the email.",
       lead: "Web design work comes from businesses whose website no longer matches the business. Yolias helps you find them by type and area, see what they publish, and write to them with a reason.",
-      answer: "To find web design clients, pick a type of business you design well for, an area, and a signal that they need a new site, then look for companies that match all three. Yolias runs that search from a plain description, shows why each company fits and drafts a first email you approve.",
+      answer: "To find web design clients, pick a type of business you design well for, an area, and a signal that they need a new site, then look for companies that match all three. Yolias runs that search from a plain description, shows why each company fits and writes and sends the first email for you.",
       audience: ["Web design and web development studios", "Freelance designers who want steady projects", "Agencies that build sites for one industry, such as clinics, restaurants or real estate"],
       criteria: ["A type of business you have shown work for", "An area you can serve and meet in, if that matters to your clients", "Signals of need you can see from outside: no website, a website without booking, ordering or Arabic, or a site that isn't mobile friendly", "Company size that can afford your price range"],
       steps: steps.en("Dental clinics in Riyadh and Jeddah with a website that has no online booking. I design clinic websites with booking and Arabic and English pages."),
@@ -50,7 +50,7 @@ export const solutionPages: SeedPage[] = [
         { p: "One observation about their site, what it costs them (missed bookings, calls instead of orders), one similar project you've done, and a small next step such as a short call. Yolias drafts it from your Company Knowledge; keep it short and specific." },
       ],
       faq: [
-        { q: "How do I find web design clients without cold calling?", a: "Choose one type of business and one area, find the ones whose site shows a clear gap, and send a short email that names the gap. Yolias finds and explains the matches and sends the email from your mailbox after you approve." },
+        { q: "How do I find web design clients without cold calling?", a: "Choose one type of business and one area, find the ones whose site shows a clear gap, and send a short email that names the gap. Yolias finds and explains the matches and sends the email from your mailbox once you launch the campaign." },
         { q: "Can Yolias tell me which websites are outdated?", a: "Not as a technical audit. It uses what companies publish and the criteria you give it, such as no online booking or no Arabic pages, and shows which criteria each company met." },
         { q: "Does it work for local businesses?", a: "Yes. Yolias searches local businesses by category and area, as well as companies and decision makers." },
       ],
@@ -73,7 +73,7 @@ export const solutionPages: SeedPage[] = [
         { p: "ملاحظة واحدة عن موقعهم، وما تكلفهم (حجوزات ضائعة، مكالمات بدل الطلبات)، ومشروع مشابه نفذته، وخطوة صغيرة تالية مثل مكالمة قصيرة. يكتبها يولياس من معرفة شركتك؛ اجعلها قصيرة ومحددة." },
       ],
       faq: [
-        { q: "كيف أجد عملاء تصميم مواقع دون اتصالات باردة؟", a: "اختر نوع نشاط واحدًا ومنطقة واحدة، وابحث عن الأنشطة التي يظهر في موقعها نقص واضح، وأرسل رسالة قصيرة تذكر هذا النقص. يجد يولياس النتائج ويشرحها ويرسل الرسالة من بريدك بعد موافقتك." },
+        { q: "كيف أجد عملاء تصميم مواقع دون اتصالات باردة؟", a: "اختر نوع نشاط واحدًا ومنطقة واحدة، وابحث عن الأنشطة التي يظهر في موقعها نقص واضح، وأرسل رسالة قصيرة تذكر هذا النقص. يجد يولياس النتائج ويشرحها ويرسل الرسالة من بريدك بعد تشغيلك للحملة." },
         { q: "هل يخبرني يولياس أي المواقع قديمة؟", a: "ليس كفحص تقني. يستخدم ما تنشره الشركات والمعايير التي تعطيه إياها، مثل عدم وجود حجز إلكتروني أو صفحات عربية، ويوضح المعايير التي حققتها كل شركة." },
         { q: "هل يعمل مع الأنشطة المحلية؟", a: "نعم. يبحث يولياس عن الأنشطة المحلية حسب النوع والمنطقة، وعن الشركات وصنّاع القرار أيضًا." },
       ],
@@ -87,7 +87,7 @@ export const solutionPages: SeedPage[] = [
     en: {
       title: "SEO agencies", h1: "Find SEO clients who sell online but don't show up in search",
       metaTitle: "Prospecting for SEO agencies: find clients with AI",
-      metaDescription: "Find companies that depend on search but have weak sites: e-commerce, clinics, local services, B2B firms. Yolias explains each fit and drafts an email you approve.",
+      metaDescription: "Find companies that depend on search but have weak sites: e-commerce, clinics, local services, B2B firms. Yolias explains each fit and writes and sends the emails for you.",
       lead: "The best SEO clients already know search matters to their business. Yolias helps you find companies in the industries you know, in the markets you serve, and write to them with something specific.",
       answer: "To find SEO clients, focus on businesses whose customers search before they buy (clinics, e-commerce, local services, B2B services), in one market, and look for public signs that their site needs work. Yolias finds matching companies from a plain description, explains each match and drafts the first email.",
       audience: ["SEO agencies and consultants", "Content and digital marketing agencies that sell SEO", "Freelancers who offer SEO for one industry"],
@@ -185,8 +185,8 @@ export const solutionPages: SeedPage[] = [
     en: {
       title: "SaaS companies", h1: "Find companies that look like your best SaaS customers",
       metaTitle: "Lead generation for B2B SaaS companies with AI",
-      metaDescription: "Turn your best customers and your ICP into a list of matching companies and the people who buy. Yolias explains each match and drafts outreach you approve.",
-      lead: "Early B2B SaaS teams rarely have time to build lists by hand. Yolias turns a description of your ideal customer, or a CSV of your best ones, into matching companies and decision makers, with outreach ready to approve.",
+      metaDescription: "Turn your best customers and your ICP into a list of matching companies and the people who buy. Yolias explains each match and writes and sends the outreach for you.",
+      lead: "Early B2B SaaS teams rarely have time to build lists by hand. Yolias turns a description of your ideal customer, or a CSV of your best ones, into matching companies and decision makers, with the outreach written and sent for you.",
       answer: "For SaaS lead generation, start from your best customers: what they have in common (industry, size, market, tools, a problem you solve), then find companies that share it and contact the role that owns the problem. Yolias can search from that description or from a list of companies you name.",
       audience: ["B2B SaaS founders doing sales themselves", "Early sales teams without a researcher", "SaaS companies entering the Gulf or Egypt"],
       criteria: ["What your best customers share: industry, size, market", "The role that feels the problem and the one that pays", "A trigger that makes now the right time, such as growth or a new market", "Companies you should not contact: current customers, competitors"],
@@ -206,7 +206,7 @@ export const solutionPages: SeedPage[] = [
       title: "شركات البرمجيات كخدمة (SaaS)", h1: "اعثر على شركات تشبه أفضل عملاء منتجك",
       metaTitle: "جذب العملاء لشركات SaaS بالذكاء الاصطناعي",
       metaDescription: "حوّل أفضل عملائك ووصف عميلك المثالي إلى قائمة شركات مطابقة والأشخاص الذين يشترون. يشرح يولياس كل نتيجة ويجهّز رسائل توافق عليها.",
-      lead: "فرق SaaS في بدايتها نادرًا ما تجد وقتًا لبناء القوائم يدويًا. يحوّل يولياس وصف عميلك المثالي، أو ملف CSV بأفضل عملائك، إلى شركات وصنّاع قرار مطابقين، مع رسائل جاهزة لموافقتك.",
+      lead: "فرق SaaS في بدايتها نادرًا ما تجد وقتًا لبناء القوائم يدويًا. يحوّل يولياس وصف عميلك المثالي، أو ملف CSV بأفضل عملائك، إلى شركات وصنّاع قرار مطابقين، مع رسائل يكتبها ويرسلها نيابةً عنك.",
       answer: "لجذب عملاء SaaS، ابدأ من أفضل عملائك: ما الذي يجمعهم (القطاع، والحجم، والسوق، والأدوات، والمشكلة التي تحلها)، ثم ابحث عن شركات تشاركهم ذلك وتواصل مع صاحب المشكلة. يستطيع يولياس البحث من هذا الوصف أو من قائمة شركات تذكرها.",
       audience: ["مؤسسو SaaS الذين يبيعون بأنفسهم", "فرق المبيعات الأولى دون باحث", "شركات SaaS التي تدخل الخليج أو مصر"],
       criteria: ["ما يجمع أفضل عملائك: القطاع والحجم والسوق", "المنصب الذي يشعر بالمشكلة والذي يدفع", "سبب يجعل الآن الوقت المناسب، مثل النمو أو دخول سوق جديد", "شركات لا تتواصل معها: عملاؤك الحاليون والمنافسون"],

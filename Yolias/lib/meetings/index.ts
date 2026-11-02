@@ -4,7 +4,7 @@ import { meetingChanged } from "@/lib/crm";
 import { campaignOfLead } from "@/lib/campaigns/activity";
 import { notify, siteUrl, userRecipient, type Recipient } from "@/lib/email/notify";
 import { fitsPage, freeSlots, isFree, type DaySlots } from "./availability";
-import { accessToken, busyTimes, cancelEvent, createCalendar, createEvent, CalendarError } from "./google";
+import { accessToken, busyTimes, cancelEvent, createCalendar, createEvent, guestResponse, CalendarError } from "./google";
 import type { BookingPageRow, MeetingType } from "@/types/database";
 
 // Meetings inside Yolias (owner, 2026-10-30, D-267): each member's booking
@@ -148,6 +148,8 @@ async function createBooking(db: Db, page: BookingPageRow & { host: { name: stri
     workspace_id: page.workspace_id, lead_id: who.leadId, title: `${type.title}: ${who.name}`.slice(0, 200), starts_at: start, ends_at: end, status: "scheduled",
     source, host_id: page.user_id, guest_name: who.name, guest_email: who.email, guest_note: who.note, location: page.location, created_by: page.user_id,
     campaign_id: await campaignOfLead(db, who.leadId),
+    // D-273: the guest picked this time (booking page) or named it in the thread (agent): confirmed.
+    confirmed_at: new Date().toISOString(),
   }).select("id, lead_id, status, cancel_token").single();
   if (error?.code === "23505") return { ok: false as const, error: "taken" as const };
   if (error || !meeting) throw error ?? new Error("meeting not saved");
@@ -268,4 +270,35 @@ export async function offerRebooking(meetingId: string): Promise<boolean> {
   }, { workspaceId: m.workspace_id, dedupe: m.id });
   await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "agent", actor_kind: "agent", body: "No-show: Yolias sent the booking page to pick another time.", meta: { meeting_id: m.id } });
   return true;
+}
+
+/**
+ * Confirmations from Google Calendar (D-273): an upcoming meeting not yet
+ * confirmed, with an event Yolias created, is confirmed when the guest accepts
+ * the invitation. Every 30 minutes, a few hosts per run; nothing is guessed.
+ */
+export async function confirmationSweep(): Promise<number> {
+  const db = createAdminClient();
+  const key = "meetings.confirmations";
+  const { data: st } = await db.from("worker_state").select("updated_at").eq("key", key).maybeSingle();
+  if (st && Date.now() - Date.parse(st.updated_at) < 30 * 60_000) return 0;
+  await db.from("worker_state").upsert({ key, value: {}, updated_at: new Date().toISOString() }, { onConflict: "key" });
+  const { data: rows } = await db.from("sales_meetings").select("id, host_id, created_by, google_event_id, guest_email")
+    .eq("status", "scheduled").is("confirmed_at", null).not("google_event_id", "is", null).not("guest_email", "is", null)
+    .gte("starts_at", new Date().toISOString()).order("starts_at").limit(40);
+  let confirmed = 0;
+  const access = new Map<string, { token: string; calendarId: string } | null>();
+  for (const m of rows ?? []) {
+    const host = m.host_id ?? m.created_by;
+    if (!host) continue;
+    if (!access.has(host)) access.set(host, await calendarAccess(db, host).catch(() => null));
+    const cal = access.get(host);
+    if (!cal) continue;
+    const answer = await guestResponse(cal.token, cal.calendarId, m.google_event_id!, m.guest_email!).catch(() => null);
+    if (answer === "accepted") {
+      await db.from("sales_meetings").update({ confirmed_at: new Date().toISOString() }).eq("id", m.id).is("confirmed_at", null);
+      confirmed++;
+    }
+  }
+  return confirmed;
 }

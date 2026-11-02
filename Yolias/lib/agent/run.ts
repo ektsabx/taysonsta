@@ -34,7 +34,7 @@ function toolSchema(schema: z.ZodType): Record<string, unknown> {
 export type AgentEvent = { type: "thinking" } | { type: "tool"; name: string } | { type: "tool_done"; name: string; ok: boolean };
 
 export type AgentFocus =
-  | { scope: "campaign"; strategyId: string; campaignId: string | null }
+  | { scope: "campaign"; strategyId: string; campaignId: string | null; page?: string | null }
   | { scope: "user" | "workspace" };
 
 export async function runAgent(
@@ -50,9 +50,12 @@ export async function runAgent(
   ctx.counters ??= { research: 0 };
   if (!(await routesFor("agent")).length) throw new AgentNotConfiguredError("no LLM provider is configured");
   const ws = ctx.session.workspace;
-  const about = focus.scope === "campaign"
-    ? ` This conversation is about search ${focus.strategyId}${focus.campaignId ? ` (campaign ${focus.campaignId})` : ""}; "this search" means it.`
-    : focus.scope === "workspace" ? " This conversation is shared with the whole workspace." : " This is the user's private conversation.";
+  // D-273: a conversation started from a page knows it ("this campaign" = the one on that page).
+  const opened = focus.scope === "campaign" && focus.page ? focus.page : null;
+  const onCampaign = opened?.match(/^\/outreach\/([0-9a-f-]{36})/i)?.[1] ?? null;
+  const about = opened
+    ? ` The user opened this conversation from the page ${opened}${onCampaign ? `; "this campaign" means outreach campaign ${onCampaign} (use listCampaigns / campaignPerformance for it)` : ""}.`
+    : focus.scope === "workspace" ? " This conversation is shared with the whole workspace." : "";
   const remembered = memories.length ? `\nSaved facts about this workspace (from earlier conversations; use when relevant, forget with forgetFact):\n${memories.map((m) => `- ${m.content} [${m.id}]`).join("\n")}` : "";
   const profile = businessLines({ ...ws, name: null });
   const business = profile ? `\nThe workspace's business (use it to suggest who to look for and to judge fit; what the user asks always wins):\n${profile}` : "";

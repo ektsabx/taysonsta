@@ -25,7 +25,7 @@ import type { Database, Json, LeadStage, MessageChannel } from "@/types/database
 // and the CRM stage moves only as Rules & Permissions allow.
 
 type Db = SupabaseClient<Database>;
-export const ANALYSIS_PROMPT_VERSION = "replies-2026-10-30";
+export const ANALYSIS_PROMPT_VERSION = "replies-2026-10-31";
 
 const STAGES = ["interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const;
 const AnalysisSchema = z.object({
@@ -74,7 +74,7 @@ async function markDoNotContact(leadId: string) {
 }
 
 /** Classifies one logged reply and acts within Rules & Permissions. Null when the Replies Agent is off or not allowed. */
-export async function analyzeReply(workspaceId: string, userId: string, messageId: string, settings?: AiSettings): Promise<ReplyAnalysis | null> {
+export async function analyzeReply(workspaceId: string, userId: string, messageId: string, settings?: AiSettings, opts: { agentHandles?: boolean } = {}): Promise<ReplyAnalysis | null> {
   const s = settings ?? (await loadAiSettings(workspaceId));
   const db = createAdminClient();
   const { data: m } = await db.from("outreach_messages").select("id, lead_id, body, direction, outreach_campaign_id").eq("id", messageId).eq("workspace_id", workspaceId).single();
@@ -94,9 +94,9 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "You read one reply from a sales prospect and classify it for the sender's team.",
           "kind: interested | meeting_request | question | objection | not_interested | stop_request | out_of_office | asks_for_human | unclear.",
           "suggested_stage: the CRM stage this reply justifies, or null when it changes nothing (interested → interested; a request for a meeting → interested unless a time was agreed → meeting_booked; a clear no → lost; a stop request → lost).",
-          "needs_human: true when a person should answer (complaints, objections, legal or pricing negotiations, unclear meaning, requests to talk to a person).",
+          "needs_human: true only when a person must answer: a complaint, a legal matter, a negotiation of price or contract terms, or a request to talk to a person. Questions and objections Yolias can answer from the company knowledge are NOT needs_human.",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
-          "suggested_reply: a short reply in the reply's language using only the company knowledge given, or null for stop requests and out-of-office. Never invent prices, features, results, dates or claims about competitors.",
+          "suggested_reply: the next reply Yolias sends in this thread on the sender's behalf, in the reply's language, using only the company knowledge given; null for stop requests, not interested and out-of-office. Interested or a meeting request: thank them in one line and move to a short call (the booking link is added after). A question: answer it plainly from the knowledge, then propose a short call. An objection: acknowledge it, answer it with one relevant fact from the knowledge, no pressure, then propose a short call. 2–5 sentences, plain text, sounds like a person. Never invent prices, features, results, dates or claims about competitors.",
           `proposed_start: when the reply proposes or accepts one specific meeting day and time (for example "Tuesday at 3pm" or "the 11:00 slot works"), that moment as ISO 8601 with its UTC offset, read in the sender's time zone (${hostZone}) unless the reply names another; today is ${new Date().toISOString().slice(0, 10)}. Null when no single day and time is given.`,
           camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", camp.cta_url, await bookingLinkFor(camp.approved_by)) : "",
           `Sender's company:\n${contextText(business)}`,
@@ -124,9 +124,10 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
   await db.from("inbox_threads").update({ label: labelFor(analysis.kind) }).eq("lead_id", leadId);
   await db.from("lead_activities").insert({ workspace_id: workspaceId, lead_id: leadId, kind: "reply_analyzed", actor_kind: "agent", body: analysis.summary, meta: { message_id: m.id, kind: analysis.kind, suggested_stage: analysis.suggested_stage, by: analysis.by } });
 
-  // Escalation: the agent stops and asks the member.
-  const reasons = analysis.escalate_because.filter((r) => s.escalation[r as Escalation]);
-  if (analysis.needs_human && s.escalation.asks_for_human && !reasons.length) reasons.push("asks_for_human");
+  // Escalation: the agent stops and asks the member. In a campaign thread the
+  // conversation unit decides (lib/agent-core/policy.ts) and leaves its own task.
+  const reasons = opts.agentHandles ? [] : analysis.escalate_because.filter((r) => s.escalation[r as Escalation]);
+  if (!opts.agentHandles && analysis.needs_human && s.escalation.asks_for_human && !reasons.length) reasons.push("asks_for_human");
   if (reasons.length) {
     await db.from("lead_tasks").insert({
       workspace_id: workspaceId, lead_id: leadId, title: `Reply needs you: ${analysis.summary}`.slice(0, 300), kind: "review", due_at: new Date().toISOString(),

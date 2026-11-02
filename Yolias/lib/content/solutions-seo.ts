@@ -18,12 +18,12 @@ export interface SolutionSeo {
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes (for example on its website). It doesn’t promise a personal email or phone number for every decision maker.",
   coverage: "What Yolias finds depends on your market and on the data sources connected to it. A search that needs a source Yolias doesn’t have yet waits and tells you so.",
-  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
+  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only once you launch the campaign, and brings the replies to your Inbox.",
 };
 const limitsAr = {
   contacts: "يعرض يولياس بيانات التواصل التي تنشرها الشركة (على موقعها مثلًا). ولا يعد ببريد أو رقم شخصي لكل صانع قرار.",
   coverage: "ما يجده يولياس يعتمد على سوقك وعلى مصادر البيانات المتصلة به. البحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويخبرك بذلك.",
-  outreach: "يكتب يولياس الحملة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك فقط بعد موافقتك، ويعيد الردود إلى المحادثات.",
+  outreach: "يكتب يولياس الحملة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك فقط بعد تشغيلك للحملة، ويعيد الردود إلى المحادثات.",
 };
 
 const common = {
@@ -62,7 +62,7 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
       faq: [
         { q: "Can Yolias check whether a company already has a mobile app?", a: "You can include it in your request, and Yolias uses what it finds publicly about each company and explains its reasoning. It can’t confirm every technical detail, so check it before you pitch." },
         { q: "Can I find companies similar to my best clients?", a: "Yes. A company lookalike search starts from companies you name and looks for similar ones, when a data source that offers it is connected." },
-        { q: "Does Yolias write the first message?", a: "Yes. Yolias writes an email from your company profile and the facts it found about the prospect. You review it, and Yolias sends it from your own mailbox once you approve." },
+        { q: "Does Yolias write the first message?", a: "Yes. Yolias writes an email from your company profile and the facts it found about the prospect. You preview it before launching the campaign, and Yolias sends it from your own mailbox." },
       ],
     },
     ar: {

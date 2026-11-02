@@ -27,7 +27,7 @@ export default async function PlatformSearchesPage({ searchParams }: { searchPar
         {rows.length ? (
           <div className="bos-table-scroll">
             <BosTable className="bos-table responsive">
-              <thead><tr><th><Tx>البحث</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>الفهم</Tx></th><th><Tx>الحملة</Tx></th><th><Tx>العملاء المحتملون</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
+              <thead><tr><th><Tx>البحث</Tx></th><th><Tx>مساحة العمل</Tx></th><th><Tx>الفهم</Tx></th><th><Tx>الحملة</Tx></th><th><Tx>العملاء المحتملون</Tx></th><th><Tx>المزودون المستخدمون</Tx></th><th><Tx>التاريخ</Tx></th></tr></thead>
               <tbody>
                 {rows.map((s) => (
                   <tr key={s.id}>
@@ -40,6 +40,16 @@ export default async function PlatformSearchesPage({ searchParams }: { searchPar
                     <td><SearchStatus value={s.status} /></td>
                     <td>{s.campaign ? <CampaignStatus value={s.campaign.status} /> : "—"}</td>
                     <td className="bos-num">{s.campaign ? `${num(s.campaign.prospects_found)} / ${num(s.campaign.quota)}` : "—"}</td>
+                    <td style={{ fontSize: 12 }}>
+                      {s.providers.length ? s.providers.map((p) => (
+                        <span key={p.id} className="cell-sub" style={{ whiteSpace: "normal" }}>
+                          <Link className="bos-link" href={`/admin/platform/providers/${p.id}`} dir="ltr">{p.id}</Link>{" · "}
+                          <Tx vars={{ c: num(p.calls), r: num(p.records), f: num(p.failed) }}>{"{c} طلب · {r} سجل · {f} فشل"}</Tx>
+                          {" · "}<span dir="ltr">${p.costUsd.toFixed(p.costUsd >= 1 ? 2 : 4)}</span>
+                          {p.lastError ? <span style={{ color: "var(--bos-danger, #c00)" }}> · {p.lastError.slice(0, 80)}</span> : null}
+                        </span>
+                      )) : <span className="bos-faint">—</span>}
+                    </td>
                     <td style={{ whiteSpace: "nowrap" }}>{formatDateTime(s.created_at)}</td>
                   </tr>
                 ))}

@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
 
   const db = await createClient();
   const ws = session.workspace.id;
-  const { data: strategy } = await db.from("strategies").select("id, workspace_id, title").eq("id", body.data.strategyId).maybeSingle();
+  const { data: strategy } = await db.from("strategies").select("id, workspace_id, title, page_context").eq("id", body.data.strategyId).maybeSingle();
   if (!strategy || strategy.workspace_id !== ws) return NextResponse.json({ error: "notFound" }, { status: 404 });
   const conversation: ConversationRow | null = await campaignConversation(strategy);
   if (!conversation || conversation.workspace_id !== ws || conversation.archived_at) return NextResponse.json({ error: "notFound" }, { status: 404 });
   const { data: campaign } = await db.from("campaigns").select("id").eq("strategy_id", strategy.id).order("created_at").limit(1).maybeSingle();
-  const focus: AgentFocus = { scope: "campaign", strategyId: strategy.id, campaignId: campaign?.id ?? null };
+  const focus: AgentFocus = { scope: "campaign", strategyId: strategy.id, campaignId: campaign?.id ?? null, page: strategy.page_context };
 
   const active = await activePolicy();
   const { policy } = active;

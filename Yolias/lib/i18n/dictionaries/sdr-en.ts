@@ -55,6 +55,9 @@ export const sdrEn = {
     },
     rules: {
       title: "Email sending rules",
+      titleGmail: "Gmail sending rules", titleImap: "IMAP / SMTP sending rules",
+      capGmail: "Google allows up to 500 emails a day from a Gmail account and 2,000 from Google Workspace; for emails to new people, stay far below (30 to 50 a mailbox).",
+      capImap: "Each email host sets its own daily limit (often 100 to 500); for emails to new people, stay far below (30 to 50 a mailbox).",
       subtitle: "How fast and when mailboxes send.",
       perDay: "Emails per day, per mailbox", perDayDesc: "Start low for a new mailbox.", perDayNote: "",
       unitDay: "emails / day", defaultPerDay: "Default: {n} emails / day",

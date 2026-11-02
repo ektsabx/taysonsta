@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { analyzeReply, type ReplyAnalysis } from "@/lib/agents/replies";
 import { isStopRequest } from "@/lib/agents/stop";
+import { replyAction, type ReplyAction, type ReplyKind } from "@/lib/agent-core/policy";
 import { runAutomations } from "@/lib/automations/engine";
 import { postponeFollowUps, stopEnrollments } from "@/lib/crm/follow-ups";
 import { loadSendingRules, mailboxAccess, markMailboxError, MailboxError } from "@/lib/mailbox";
@@ -38,15 +39,16 @@ export type ApproveResult = { ok: true } | { ok: false; error: "not_found" | "ar
  * are prepared, the member sends them). Only the campaign's creator or a
  * workspace owner / admin approves, and only from their own mailbox.
  */
-export async function approveCampaign(input: { workspaceId: string; userId: string; role: "owner" | "admin" | "member"; campaignId: string; mailboxId: string | null; autoReply: boolean }): Promise<ApproveResult> {
+export async function approveCampaign(input: { workspaceId: string; userId: string; role: "owner" | "admin" | "member"; campaignId: string; mailboxId: string | null; autoReply: boolean; launch?: boolean }): Promise<ApproveResult> {
   const db = createAdminClient();
   const { data: c } = await db.from("outreach_campaigns").select("*").eq("id", input.campaignId).eq("workspace_id", input.workspaceId).maybeSingle();
   if (!c) return { ok: false, error: "not_found" };
   const camp = c as OutreachCampaignRow;
   if (camp.status === "archived") return { ok: false, error: "archived" };
   if (input.role === "member" && camp.created_by !== input.userId) return { ok: false, error: "denied" };
+  // Launching from the campaign builder (D-273) starts before anyone is found: the audiences' searches bring the people.
   const { count } = await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("campaign_id", camp.id).eq("status", "active");
-  if (!count) return { ok: false, error: "no_leads" };
+  if (!count && !input.launch) return { ok: false, error: "no_leads" };
   let mailbox: MailboxRow | null = null;
   if (input.mailboxId) {
     if (camp.channel !== "email") return { ok: false, error: "channel" };
@@ -63,10 +65,7 @@ export async function approveCampaign(input: { workspaceId: string; userId: stri
     send_mode: mailbox ? "mailbox" : "manual", mailbox_id: mailbox?.id ?? null, approved_at: now, approved_by: input.userId,
     auto_reply: Boolean(mailbox && input.autoReply), status: later ? "scheduled" : "active", started_at: later ? null : camp.started_at ?? now,
   }).eq("id", camp.id);
-  await logCampaign(db, camp.workspace_id, camp.id, later ? "scheduled" : "started", later ? `Approved. Starts on ${camp.starts_at!.slice(0, 10)}.` : "Approved and started.", { by: input.userId });
-  // One place approves a campaign, its page (owner, 2026-10-28): the chat's card for it shows it as approved.
-  await db.from("agent_pending_actions").update({ status: "approved", decided_by: input.userId, decided_at: now })
-    .eq("workspace_id", input.workspaceId).eq("tool", "startOutreachCampaign").eq("status", "pending").eq("input->>id", camp.id);
+  await logCampaign(db, camp.workspace_id, camp.id, later ? "scheduled" : "started", later ? `Launched. Starts on ${camp.starts_at!.slice(0, 10)}.` : "Launched. Yolias is finding the first people.", { by: input.userId });
   return { ok: true };
 }
 
@@ -79,22 +78,37 @@ export async function setCampaignRun(workspaceId: string, campaignId: string, ac
   const db = createAdminClient();
   const { data: c } = await db.from("outreach_campaigns").select("id, status, approved_at, starts_at, ends_at, source_campaign_id").eq("id", campaignId).eq("workspace_id", workspaceId).maybeSingle();
   if (!c || c.status === "archived" || (c.status === "completed" && action !== "cancel")) return false;
+  // Pausing stops the spending too (D-273): its audiences' searches wait until it resumes.
+  const searchesOf = async () => {
+    const { data: groups } = await db.from("audience_groups").select("search_campaign_id").eq("campaign_id", c.id).eq("status", "active").not("search_campaign_id", "is", null);
+    return [...new Set([c.source_campaign_id, ...(groups ?? []).map((g) => g.search_campaign_id)].filter((x): x is string => Boolean(x)))];
+  };
   if (action === "pause") {
     const done = !(await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id)).error;
-    if (done) await logCampaign(db, workspaceId, c.id, "paused", "Paused.");
+    if (done) {
+      const ids = await searchesOf();
+      if (ids.length) await db.from("campaigns").update({ status: "paused" }).in("id", ids).in("status", ["scheduled", "queued", "awaiting_source", "created"]);
+      await logCampaign(db, workspaceId, c.id, "paused", "Paused. Sending and finding new people stopped.");
+    }
     return done;
   }
   if (action === "resume") {
     if (!c.approved_at || (c.ends_at && Date.parse(c.ends_at) <= Date.now())) return false;
     const later = Boolean(c.starts_at && Date.parse(c.starts_at) > Date.now());
     const done = !(await db.from("outreach_campaigns").update({ status: later ? "scheduled" : "active", failure_reason: null }).eq("id", c.id)).error;
-    if (done) await logCampaign(db, workspaceId, c.id, "resumed", "Resumed.");
+    if (done) {
+      const ids = await searchesOf();
+      if (ids.length) await db.from("campaigns").update({ status: "scheduled", next_run_at: new Date().toISOString() }).in("id", ids).eq("status", "paused").or("partial_reason.is.null,partial_reason.neq.quota");
+      await logCampaign(db, workspaceId, c.id, "resumed", "Resumed.");
+    }
     return done;
   }
   await logCampaign(db, workspaceId, c.id, "completed", action === "end" ? "Ended. Replies already in Conversations stay there." : "Canceled.");
   await db.from("outreach_campaigns").update(action === "end" ? { status: "completed", ended_at: new Date().toISOString() } : { status: "archived" }).eq("id", c.id);
-  // Its search stops finding more people for it.
-  if (c.source_campaign_id) await db.from("campaigns").update({ continuous: false, next_run_at: null }).eq("id", c.source_campaign_id);
+  // Its audiences' searches stop finding more people for it.
+  const { data: groups } = await db.from("audience_groups").select("search_campaign_id").eq("campaign_id", c.id).not("search_campaign_id", "is", null);
+  const searches = [...new Set([c.source_campaign_id, ...(groups ?? []).map((g) => g.search_campaign_id)].filter((x): x is string => Boolean(x)))];
+  if (searches.length) await db.from("campaigns").update({ continuous: false, next_run_at: null }).in("id", searches);
   const { data: stopped } = await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: action === "end" ? "campaign_ended" : "campaign_canceled", next_step_at: null }).eq("campaign_id", c.id).in("status", ["active", "paused"]).select("id");
   if (stopped?.length) await db.from("outreach_messages").update({ status: "canceled" }).in("enrollment_id", stopped.map((e) => e.id)).eq("direction", "outbound").in("status", ["draft", "approved", "failed"]);
   return true;
@@ -175,7 +189,7 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
 
   // 2) Send the prepared messages of the current step, only inside the
   // mailbox's sending hours and one email per random gap (D-256).
-  const rules = await loadSendingRules(c.workspace_id);
+  const rules = await loadSendingRules(c.workspace_id, mailbox.provider);
   const { data: member } = await db.from("profiles").select("timezone").eq("id", mailbox.user_id).maybeSingle();
   const boxWindow = mailboxWindow(mailbox, rules, member?.timezone ?? null);
   if (!withinWindow(boxWindow)) return res;
@@ -311,11 +325,6 @@ export async function sendMessageNow(workspaceId: string, userId: string, messag
 // ── Replies ─────────────────────────────────────────────────────────────────
 
 const SYNC_EVERY = 5 * MINUTE;
-// Yolias answers simple questions by itself. Interest and meeting requests are
-// the member's to take on (owner 2026-10-21, this version): Yolias stops, moves
-// the lead to Interested and tells them; its suggested reply waits in the thread.
-const AUTO_REPLY_KINDS = new Set(["question"]);
-const HANDOFF_KINDS = new Set(["interested", "meeting_request"]);
 
 /** Worker step: reads new replies in the threads Yolias started, per connected mailbox. */
 export async function syncReplies(limit = 10, force = false): Promise<{ mailboxes: number; replies: number; bounces: number }> {
@@ -386,81 +395,98 @@ async function handleAutoReply(db: Db, mb: MailboxRow, leadId: string, messageId
   });
 }
 
-/** Same steps as a reply the member logs by hand (lib/agents/replies.ts), plus the optional auto-reply. */
+/**
+ * One reply in a campaign thread (D-273: the conversation unit). The reply is
+ * read and classified, then lib/agent-core/policy.ts decides: book the time
+ * they named, offer two free times and the booking page, answer a question or
+ * one objection from Company Knowledge, wait (out of office), stop (opt-out),
+ * close (a clear no) or hand the person to the member. Everything Yolias
+ * sends goes in the same thread, from the campaign's mailbox, and shows in
+ * Conversations; the member is told only when they are needed or a meeting
+ * was booked.
+ */
 async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: string, campaignId: string | null, body: string) {
   const settings = await loadAiSettings(mb.workspace_id);
   const stopped = settings.limits.stop_on_reply ? await stopEnrollments(leadId, "replied", "replied") : [];
   if (isStopRequest(body)) await db.from("sales_leads").update({ do_not_contact: true }).eq("id", leadId);
-  const analysis = await analyzeReply(mb.workspace_id, mb.user_id, messageId, settings).catch((e) => { console.error("[outreach] analyze", e); return null; });
-  // The AI found an out-of-office the headers didn't show: the follow-ups it just stopped come back, later.
-  if (analysis?.kind === "out_of_office") {
-    const moved = await postponeFollowUps(leadId, OUT_OF_OFFICE_DAYS, stopped);
-    if (moved) await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "system", body: `Out of office. The next follow-up waits ${OUT_OF_OFFICE_DAYS} days.`, meta: { message_id: messageId, kind: "out_of_office", by: analysis.by } });
-    return;
-  }
+  const analysis = await analyzeReply(mb.workspace_id, mb.user_id, messageId, settings, { agentHandles: true }).catch((e) => { console.error("[outreach] analyze", e); return null; });
   await runAutomations({ workspaceId: mb.workspace_id, trigger: "reply.received", leadId, eventKey: `message:${messageId}`, data: { replyKind: analysis?.kind }, origin: "system" })
     .catch((e) => console.error("[automations] reply.received", e));
   const { data: lead } = await db.from("sales_leads").select("name, company_name, do_not_contact").eq("id", leadId).single();
+  const { data: camp } = campaignId ? await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle() : { data: null };
+  const c = camp as OutreachCampaignRow | null;
+  const proposed = analysis?.proposed_start && !Number.isNaN(Date.parse(analysis.proposed_start)) ? analysis.proposed_start : null;
+  const { data: mine } = await db.from("outreach_messages").select("instruction").eq("lead_id", leadId).eq("direction", "outbound").eq("status", "sent").eq("instruction", "auto-reply").limit(50);
+  const { data: objections } = await db.from("lead_activities").select("id").eq("lead_id", leadId).eq("kind", "agent").contains("meta", { action: "answer_objection" }).limit(10);
+  const action: ReplyAction = analysis ? replyAction({
+    kind: analysis.kind as ReplyKind,
+    unverified: analysis.escalate_because.includes("unverified_info"),
+    needsHuman: analysis.needs_human || analysis.escalate_because.includes("asks_for_human"),
+    proposedTime: Boolean(proposed),
+    autoReplies: mine?.length ?? 0,
+    objectionsAnswered: objections?.length ?? 0,
+    campaignRunning: Boolean(c && c.status === "active" && c.mailbox_id === mb.id && c.auto_reply && !lead?.do_not_contact),
+    hasAnswer: Boolean(analysis.suggested_reply),
+  }) : (isStopRequest(body) ? "stop" : "hand_off");
   const who = `${lead?.name ?? "a lead"}${lead?.company_name ? ` (${lead.company_name})` : ""}`;
-  if (analysis && HANDOFF_KINDS.has(analysis.kind)) {
-    // Hand-off: the member continues the deal. A meeting request gets two free
-    // times and the member's Yolias booking page (D-267; the campaign's own link
-    // only when the page is off), sent in the thread when the campaign answers
-    // by itself (auto-reply on).
-    const { data: owner } = await db.from("profiles").select("language").eq("id", mb.user_id).maybeSingle();
-    const ar = owner?.language === "ar";
-    const meeting = analysis.kind === "meeting_request";
-    let linkSent = false;
-    let bookedAt: string | null = null;
-    const proposed = analysis?.proposed_start && !Number.isNaN(Date.parse(analysis.proposed_start)) ? analysis.proposed_start : null;
-    if ((meeting || proposed) && campaignId && !lead?.do_not_contact) {
-      const { data: camp } = await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle();
-      const c = camp as OutreachCampaignRow | null;
-      const answers = Boolean(c?.auto_reply && c.status === "active" && c.mailbox_id === mb.id);
-      // The lead named a time (D-269): when it is free on the member's page, Yolias books it and confirms in the thread.
-      if (proposed && answers && c) {
-        const b = await bookForLead(mb.user_id, leadId, proposed).catch(() => null);
-        if (b?.ok) {
-          bookedAt = b.start;
-          const { data: me } = await db.from("booking_pages").select("timezone").eq("user_id", mb.user_id).maybeSingle();
-          linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookedReply(b.start, me?.timezone ?? null, lang, b.url ?? b.location), "Yolias booked the time the lead proposed and confirmed it in the thread.");
-        }
-      }
-      const page = bookedAt ? null : await nextSlots(mb.user_id).catch(() => null);
-      const link = page?.url ?? ((c?.aim === "meeting" && c.cta_url) || null);
-      if (!bookedAt && link && answers && c) {
-        linkSent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis.suggested_reply, page?.slots ?? [], page?.timezone ?? null), "Yolias offered two times and sent your booking page (the lead asked for a meeting).");
-      }
-    }
-    // Booked at the time they proposed: the booking notice and email already told the member.
-    if (bookedAt) return;
-    const title = ar ? `${who} ${meeting ? "عايز اجتماع" : "مهتم"}` : `${who} ${meeting ? "wants a meeting" : "is interested"}`;
-    const next = meeting
-      ? linkSent ? (ar ? " يولياس بعتله رابط الحجز." : " Yolias sent your booking link.") : (ar ? " ابعتله رابط صفحة الحجز من الاجتماعات (أو فعّل الرد التلقائي في الحملة ليرسله يولياس بنفسه)." : " Send them your booking page from Meetings (or turn on auto-reply in the campaign so Yolias sends it).")
-      : "";
-    const body = ar ? `${analysis.summary}\nيولياس وقف المتابعات.${next}` : `${analysis.summary}\nYolias stopped the follow-ups.${next}`;
-    await notifyUser(mb.workspace_id, mb.user_id, title, body, `/inbox?lead=${leadId}`, `reply:${messageId}`);
-    await db.from("lead_tasks").insert({
-      workspace_id: mb.workspace_id, lead_id: leadId,
-      title: (ar ? `كمّل مع ${who}: ${meeting ? (linkSent ? "أكّد موعد الاجتماع" : "ابعت لينك الاجتماع") : "مهتم"}` : `Take over ${who}: ${meeting ? (linkSent ? "confirm the meeting time" : "send your meeting link") : "interested"}`).slice(0, 300),
-      kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
-    });
-  } else {
-    // Only what needs the member now is a notification (owner, 2026-10-30, D-268): a reply
-    // that needs a person. Other replies are unread conversations and part of Today.
-    if (analysis?.needs_human || (analysis?.escalate_because?.length ?? 0) > 0) await notifyUser(mb.workspace_id, mb.user_id, `New reply from ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `reply:${messageId}`);
+  const { data: owner } = await db.from("profiles").select("language").eq("id", mb.user_id).maybeSingle();
+  const ar = owner?.language === "ar";
+  const note = (text: string, meta: Record<string, unknown> = {}) => db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "agent", body: text, meta: { message_id: messageId, action, ...meta } as Json });
+
+  if (action === "postpone") {
+    const moved = await postponeFollowUps(leadId, OUT_OF_OFFICE_DAYS, stopped);
+    if (moved) await note(`Out of office. The next follow-up waits ${OUT_OF_OFFICE_DAYS} days.`);
+    return;
+  }
+  if (action === "stop" || action === "close") {
+    if (action === "stop") await db.from("sales_leads").update({ do_not_contact: true }).eq("id", leadId);
+    await note(action === "stop" ? "Asked not to be contacted. Yolias stopped and won't write again." : "Not interested. Yolias closed the conversation and won't follow up.");
+    if (c) await logCampaign(db, mb.workspace_id, c.id, "replied", `${who}: ${action === "stop" ? "asked not to be contacted" : "not interested"}.`, { lead_id: leadId });
+    return;
   }
 
-  // Auto-reply: only if the member turned it on for this campaign, only for
-  // simple positive replies the agent can answer from company knowledge, never
-  // when anything needs a person.
-  if (!campaignId || !analysis || lead?.do_not_contact) return;
-  const { data: camp } = await db.from("outreach_campaigns").select("*").eq("id", campaignId).maybeSingle();
-  const c = camp as OutreachCampaignRow | null;
-  if (!c?.auto_reply || c.status !== "active" || c.mailbox_id !== mb.id) return;
-  if (!AUTO_REPLY_KINDS.has(analysis.kind) || analysis.needs_human || analysis.escalate_because.length || !analysis.suggested_reply) return;
-  const reply = analysis.suggested_reply;
-  await sendInThread(db, mb, leadId, messageId, c, () => reply, "Yolias answered the reply automatically (auto-reply is on for this campaign).");
+  if (c && (action === "book_named_time" || action === "offer_times")) {
+    // The lead named a time (D-269): when it is free on the member's page, Yolias books it and confirms in the thread.
+    if (action === "book_named_time" && proposed) {
+      const b = await bookForLead(mb.user_id, leadId, proposed).catch(() => null);
+      if (b?.ok) {
+        const { data: me } = await db.from("booking_pages").select("timezone").eq("user_id", mb.user_id).maybeSingle();
+        await sendInThread(db, mb, leadId, messageId, c, (lang) => bookedReply(b.start, me?.timezone ?? null, lang, b.url ?? b.location), "Yolias booked the time the lead named and confirmed it in the thread.");
+        await logCampaign(db, mb.workspace_id, c.id, "meeting", `${who} booked a meeting (the time they named).`, { lead_id: leadId, start: b.start });
+        return; // the booking notice and email already told the member
+      }
+    }
+    // Interest or a meeting request: answer, two free times and the booking page (the campaign's own link only when the page is off).
+    const page = await nextSlots(mb.user_id).catch(() => null);
+    const link = page?.url ?? ((c.aim === "meeting" && c.cta_url) || null);
+    if (link) {
+      const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis?.suggested_reply ?? null, page?.slots ?? [], page?.timezone ?? null), "Yolias answered and offered two free times with your booking page.");
+      if (sent) {
+        await note("Yolias offered times and the booking page.", { offered: true });
+        await logCampaign(db, mb.workspace_id, c.id, "replied", `${who} is interested. Yolias offered times and your booking page.`, { lead_id: leadId });
+        return;
+      }
+    }
+    // No booking page and no link: the member is the only way to book.
+  } else if (c && (action === "answer" || action === "answer_objection") && analysis?.suggested_reply) {
+    const reply = analysis.suggested_reply;
+    const sent = await sendInThread(db, mb, leadId, messageId, c, () => reply, action === "answer" ? "Yolias answered the question from your Company Knowledge." : "Yolias answered the objection from your Company Knowledge.");
+    if (sent) {
+      await note(action === "answer" ? "Yolias answered." : "Yolias answered the objection.");
+      await logCampaign(db, mb.workspace_id, c.id, "replied", `${who}: ${action === "answer" ? "question answered" : "objection answered"}.`, { lead_id: leadId });
+      return;
+    }
+  }
+
+  // Hand-off: the member is needed (or Yolias couldn't send). One notification and one task.
+  const reason = analysis?.summary ?? (ar ? "رد يحتاجك." : "A reply needs you.");
+  await notifyUser(mb.workspace_id, mb.user_id, ar ? `${who} يحتاجك` : `${who} needs you`, ar ? `${reason}\nيولياس توقف وينتظرك في المحادثة.` : `${reason}\nYolias paused this conversation for you.`, `/inbox?lead=${leadId}`, `reply:${messageId}`);
+  await db.from("lead_tasks").insert({
+    workspace_id: mb.workspace_id, lead_id: leadId, title: (ar ? `رد على ${who}` : `Reply to ${who}`).slice(0, 300),
+    kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}`,
+  });
+  await note("Handed to you: a person is needed here.", { handoff: true });
+  if (c) await logCampaign(db, mb.workspace_id, c.id, "handoff", `${who}: handed to you.`, { lead_id: leadId, kind: analysis?.kind ?? null });
 }
 
 /** The confirmation of a time the lead proposed and Yolias booked (D-269), in the thread's language. */

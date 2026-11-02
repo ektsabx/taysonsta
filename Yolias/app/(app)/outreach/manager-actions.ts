@@ -25,7 +25,7 @@ const ids = z.array(z.string().uuid()).min(1).max(200);
 export async function bulkCampaigns(campaignIds: string[], action: "pause" | "resume" | "archive" | "delete" | "duplicate"): Promise<ManagerResult<{ done: number; skipped: number }>> {
   const session = await requireSession();
   const t = await getDictionary();
-  const m = t.camp.manager;
+  const m = t.ag.manager;
   const p = ids.safeParse(campaignIds);
   if (!p.success || !["pause", "resume", "archive", "delete", "duplicate"].includes(action)) return { ok: false, error: m.errors.select };
   const db = await createClient();
@@ -73,26 +73,26 @@ export async function bulkEdit(campaignIds: string[], patch: z.input<typeof shar
   const session = await requireSession();
   const t = await getDictionary();
   const p = ids.safeParse(campaignIds), q = sharedEdit.safeParse(patch);
-  if (!p.success || !q.success) return { ok: false, error: t.camp.manager.errors.select };
+  if (!p.success || !q.success) return { ok: false, error: t.ag.manager.errors.select };
   const v = q.data;
-  if (v.endsAt && Date.parse(v.endsAt) <= Date.now()) return { ok: false, error: t.camp.wizard.errors.dates };
+  if (v.endsAt && Date.parse(v.endsAt) <= Date.now()) return { ok: false, error: t.ag.builder.errors.dates };
   if (v.ownerId) {
     const { data: member } = await createAdminClient().from("workspace_members").select("user_id").eq("workspace_id", session.workspace.id).eq("user_id", v.ownerId).maybeSingle();
-    if (!member) return { ok: false, error: t.camp.manager.errors.owner };
+    if (!member) return { ok: false, error: t.ag.manager.errors.owner };
   }
   const row: Record<string, unknown> = {};
   if (v.ownerId !== undefined) row.owner_id = v.ownerId;
   if (v.endsAt !== undefined) row.ends_at = v.endsAt;
   if (v.dailyLimit !== undefined) row.daily_limit = v.dailyLimit;
   if (v.budgetUsd !== undefined) row.budget_usd = v.budgetUsd;
-  if (!Object.keys(row).length) return { ok: false, error: t.camp.manager.errors.nothing };
+  if (!Object.keys(row).length) return { ok: false, error: t.ag.manager.errors.nothing };
   const db = await createClient();
   const { data, error } = await db.from("outreach_campaigns").update(row as never).eq("workspace_id", session.workspace.id).in("id", p.data).not("status", "in", "(archived,completed)").select("id");
-  if (error) return { ok: false, error: t.camp.wizard.errors.settings };
+  if (error) return { ok: false, error: t.ag.builder.errors.settings };
   const admin = createAdminClient();
   for (const c of data ?? []) await logCampaign(admin, session.workspace.id, c.id, "note", "Settings changed (bulk edit).", { by: session.userId, fields: Object.keys(row) });
   revalidatePath("/outreach", "layout");
-  return { ok: true, done: data?.length ?? 0, message: fmt(t.camp.manager.done, { n: String(data?.length ?? 0) }) };
+  return { ok: true, done: data?.length ?? 0, message: fmt(t.ag.manager.done, { n: String(data?.length ?? 0) }) };
 }
 
 const viewConfig = z.object({
@@ -103,28 +103,28 @@ const viewConfig = z.object({
   from: z.string().max(10).optional(),
   to: z.string().max(10).optional(),
   sort: z.string().max(40).optional(),
-  breakdown: z.enum(["none", "audience"]).default("none"),
+  level: z.enum(["campaigns", "audiences", "messages"]).default("campaigns"),
 });
 
 export async function saveView(name: string, config: z.input<typeof viewConfig>): Promise<ManagerResult<{ id: string }>> {
   const session = await requireSession();
   const t = await getDictionary();
   const n = name.trim().slice(0, 80), c = viewConfig.safeParse(config);
-  if (!n || !c.success) return { ok: false, error: t.camp.manager.errors.view };
+  if (!n || !c.success) return { ok: false, error: t.ag.manager.errors.view };
   const db = await createClient();
   const { data, error } = await db.from("campaign_views").insert({
     workspace_id: session.workspace.id, user_id: session.userId, scope: "campaigns", name: n,
     config: { ...c.data, columns: cleanColumns(c.data.columns), pinned: cleanColumns(c.data.pinned) } as unknown as Json,
   }).select("id").single();
-  if (error || !data) return { ok: false, error: t.camp.manager.errors.view };
+  if (error || !data) return { ok: false, error: t.ag.manager.errors.view };
   revalidatePath("/outreach");
-  return { ok: true, id: data.id, message: t.camp.manager.viewSaved };
+  return { ok: true, id: data.id, message: t.ag.manager.viewSaved };
 }
 
 export async function deleteView(id: string): Promise<ManagerResult> {
   const session = await requireSession();
   const t = await getDictionary();
-  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.camp.manager.errors.view };
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.ag.manager.errors.view };
   const db = await createClient();
   await db.from("campaign_views").delete().eq("id", id).eq("user_id", session.userId);
   revalidatePath("/outreach");

@@ -27,15 +27,16 @@ export async function setReferralProgram(bos: BosUser, input: ReferralProgram): 
   await audit({ actorId: bos.userId, action: "yolias.referral_program.update", entityType: "yolias_setting", entityId: null, oldValue: before, newValue: input, metadata: { key: "referral_program" } });
 }
 
-export interface ReferralRow { id: string; at: string; status: string; prospects: number; referrer: string; referrerId: string; referred: string }
+export interface ReferralRow { id: string; at: string; status: string; reason: string | null; signals: string[]; ip: string | null; prospects: number; referrer: string; referrerId: string; referred: string }
 
 export async function referralOverview(): Promise<{ total: number; rewarded: number; prospects: number; last30: number; top: { workspaceId: string; name: string; count: number; prospects: number }[]; recent: ReferralRow[] }> {
   const db = ydb();
-  const { data, error } = await db.from("referrals").select("id, created_at, status, prospects, referrer_workspace_id, referred_user_id").order("created_at", { ascending: false }).limit(2000);
+  const { data, error } = await db.from("referrals").select("id, created_at, status, reason, signals, signup_ip, prospects, referrer_workspace_id, referred_user_id").order("created_at", { ascending: false }).limit(2000);
   if (error) throw error;
   const rows = data ?? [];
   const wsIds = [...new Set(rows.map((r) => r.referrer_workspace_id))];
-  const userIds = rows.slice(0, 100).map((r) => r.referred_user_id);
+  const shown = [...rows.filter((r) => r.status === "review"), ...rows.filter((r) => r.status !== "review").slice(0, 100)];
+  const userIds = shown.map((r) => r.referred_user_id);
   const [{ data: ws }, { data: people }] = await Promise.all([
     wsIds.length ? db.from("workspaces").select("id, name").in("id", wsIds.slice(0, 1000)) : Promise.resolve({ data: [] }),
     userIds.length ? db.from("profiles").select("id, email").in("id", userIds) : Promise.resolve({ data: [] }),
@@ -51,7 +52,7 @@ export async function referralOverview(): Promise<{ total: number; rewarded: num
     prospects: rows.reduce((n, r) => n + r.prospects, 0),
     last30: rows.filter((r) => Date.parse(r.created_at) >= since).length,
     top: [...per.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, 10).map(([id, v]) => ({ workspaceId: id, name: wsName.get(id) ?? "—", ...v })),
-    recent: rows.slice(0, 100).map((r) => ({ id: r.id, at: r.created_at, status: r.status, prospects: r.prospects, referrer: wsName.get(r.referrer_workspace_id) ?? "—", referrerId: r.referrer_workspace_id, referred: email.get(r.referred_user_id) ?? "—" })),
+    recent: shown.map((r) => ({ id: r.id, at: r.created_at, status: r.status, reason: r.reason, signals: Array.isArray(r.signals) ? (r.signals as string[]) : [], ip: r.signup_ip, prospects: r.prospects, referrer: wsName.get(r.referrer_workspace_id) ?? "—", referrerId: r.referrer_workspace_id, referred: email.get(r.referred_user_id) ?? "—" })),
   };
 }
 
@@ -74,4 +75,32 @@ export async function workspaceReferrals(workspaceId: string): Promise<{ code: s
     prospects: list.reduce((n, r) => n + r.prospects, 0),
     referredBy: by ? ((byWs as { name?: string | null } | null)?.name ?? "—") : null,
   };
+}
+
+/**
+ * A referral held for review (D-273: a second sign-up from one network, or a
+ * burst for one link): approving grants the reward as the program says now
+ * and tells the workspace; rejecting records it. Both are audited.
+ */
+export async function decideReferral(bos: BosUser, id: string, decision: "approve" | "reject"): Promise<void> {
+  const db = ydb();
+  const { data: r } = await db.from("referrals").select("id, status, referrer_workspace_id").eq("id", id).maybeSingle();
+  if (!r || r.status !== "review") throw new ValidationError("هذه الإحالة ليست قيد المراجعة.", {});
+  const program = await getReferralProgram();
+  const prospects = decision === "approve" ? program.prospects : 0;
+  const { data: moved } = await db.from("referrals").update({ status: decision === "approve" ? "rewarded" : "rejected", prospects, decided_at: new Date().toISOString(), decided_by: bos.userId })
+    .eq("id", id).eq("status", "review").select("id");
+  if (!moved?.length) return;
+  if (decision === "approve" && prospects > 0) {
+    const month = new Date(); month.setUTCDate(1);
+    await db.from("usage_ledger").insert({ workspace_id: r.referrer_workspace_id, kind: "grant", prospects, period_start: month.toISOString().slice(0, 10), reason: `referral:${id}`, created_by: "referral" });
+    const { data: admins } = await db.from("workspace_members").select("user_id").eq("workspace_id", r.referrer_workspace_id).in("role", ["owner", "admin"]);
+    for (const a of admins ?? []) {
+      await db.from("notifications").insert({
+        user_id: a.user_id, workspace_id: r.referrer_workspace_id, kind: "referral", title: `Someone joined with your invite link: +${prospects} prospects`,
+        body: "They're in your balance and never expire.", link: "/?settings=referral", dedupe_key: `referral:${id}:${a.user_id}`,
+      });
+    }
+  }
+  await audit({ actorId: bos.userId, action: `yolias.referral.${decision}`, entityType: "yolias_referral", entityId: id, oldValue: { status: "review" }, newValue: { status: decision === "approve" ? "rewarded" : "rejected", prospects }, metadata: {} });
 }

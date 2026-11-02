@@ -4,9 +4,12 @@ import { classifyCheckouts } from "@/lib/funnel";
 import { messagingTick } from "@/lib/messaging/engine";
 import { followUpSweep } from "@/lib/outreach/sequence";
 import { dailyDigestSweep } from "@/lib/email/digest";
+import { campaignDigestSweep } from "@/lib/email/campaign-digest";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
-import { autopilotSweep } from "@/lib/outreach/autopilot";
+import { intakeSweep } from "@/lib/agent-core/intake";
+import { learningSweep } from "@/lib/agent-core/learning";
 import { campaignScheduleSweep } from "@/lib/campaigns/schedule";
+import { confirmationSweep } from "@/lib/meetings";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -165,13 +168,19 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
   // The morning summary by email (owner, 2026-10-29), at most every 15 minutes.
   await dailyDigestSweep().catch((e) => console.error("[jobs] morning summary failed", e));
+  // The daily campaign emails (D-273): people found, changes, the summary, the founder's note.
+  await campaignDigestSweep().catch((e) => console.error("[jobs] campaign emails failed", e));
   // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
   // Campaign dates, the deliverability guard and shared learning (D-270), before sending.
   await campaignScheduleSweep().catch((e) => console.error("[jobs] campaign schedule failed", e));
   await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
-  // Autopilot (D-253): finished searches get a campaign waiting for one approval; continuous ones top it up.
-  await autopilotSweep().catch((e) => console.error("[jobs] autopilot failed", e));
+  // Guests who accepted the calendar invitation confirm their meeting (D-273).
+  await confirmationSweep().catch((e) => console.error("[jobs] meeting confirmations failed", e));
+  // Intake (D-273): people found for a launched campaign's audiences join its conversations.
+  await intakeSweep().catch((e) => console.error("[jobs] intake failed", e));
+  // Learning (D-273): once a day, what worked for each workspace (a hint for the writer).
+  await learningSweep().catch((e) => console.error("[jobs] learning failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".
   await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
   // Messaging & Automation (D-243): events → flows, due steps, campaigns, time-based events.

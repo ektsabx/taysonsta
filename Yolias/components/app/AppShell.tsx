@@ -26,12 +26,14 @@ import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 import { AskYolias } from "./AskYolias";
 
-// The menu around campaigns (owner, 2026-10-31, D-270): the dashboard first,
-// then campaigns and what they produce (prospects, conversations, meetings),
-// then Yolias AI (also a button on every screen) and Company Knowledge.
+// The menu around campaigns (owner, 2026-10-31, D-270, D-273): the dashboard
+// first, then campaigns, audiences (a section of their own) and what campaigns
+// produce (prospects, conversations, meetings), then Yolias AI (also a button
+// on every screen; its chats are listed below the menu) and Company Knowledge.
 const nav = [
   { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
   { href: "/outreach", key: "campaigns", icon: Send },
+  { href: "/audiences", key: "audiences", icon: UsersRound },
   { href: "/prospects", key: "prospects", icon: UserSearch },
   { href: "/inbox", key: "conversations", icon: MessagesSquare },
   { href: "/meetings", key: "meetings", icon: CalendarDays },
@@ -143,7 +145,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
     // Integrations moved to its own page (D-271): old links land there with their card and status.
     if (tab === "integration") { q.delete("settings"); window.location.replace(`/integrations${q.size ? `?${q}` : ""}`); return; }
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (tab === "usage" || tab === "billing" || tab === "account" || tab === "referral") setSettingsTab(tab);
+    if (tab === "usage" || tab === "billing" || tab === "account" || tab === "referral" || tab === "notifications" || tab === "general" || tab === "team") setSettingsTab(tab);
   }, []);
 
   // "Buy more prospects" buttons anywhere in the app open Settings → Usage.
@@ -202,7 +204,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{key === "dashboard" ? t.camp.dash.title : key === "integrations" ? t.settings.hub.title : key === "yoliasAi" || key === "prospects" ? t.nav[key] : t.ws.nav[key]}</span>
+                  <span>{key === "integrations" ? t.settings.hub.title : key === "yoliasAi" || key === "prospects" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>

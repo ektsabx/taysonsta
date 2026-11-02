@@ -26,7 +26,7 @@ const rows: Row[] = ["what", "find", "reach", "book", "calendar", "team", "price
 const Y: Record<Exclude<Row, "price" | "team">, L> = {
   what: { en: "An AI sales agent: finds matching companies and decision makers, emails them from your mailbox, and books the meeting", ar: "وكيل مبيعات بالذكاء الاصطناعي: يجد الشركات وصنّاع القرار المطابقين، ويراسلهم من بريدك، ويحجز الاجتماع" },
   find: { en: "You describe your ideal customer in a sentence, in Arabic or English, and Yolias finds them with a match score", ar: "تصف عميلك المثالي في جملة، بالعربية أو الإنجليزية، فيجدهم يولياس مع نسبة تطابق" },
-  reach: { en: "Writes the first email and follow-ups and sends them from your Gmail or company mailbox after one approval", ar: "يكتب الرسالة الأولى والمتابعات ويرسلها من Gmail أو بريد شركتك بعد موافقة واحدة" },
+  reach: { en: "Writes the first email and follow-ups and sends them from your Gmail or company mailbox once you launch the campaign", ar: "يكتب الرسالة الأولى والمتابعات ويرسلها من Gmail أو بريد شركتك بعد تشغيلك للحملة" },
   book: { en: "Your page at yolias.com/meet/your-name: length, break, notice, booking window and weekly hours; when a lead asks for a meeting, Yolias replies with two free times and the page", ar: "صفحتك على yolias.com/meet/اسمك: المدة والاستراحة والمهلة ومدة الإتاحة وساعات الأسبوع؛ وعندما يطلب العميل اجتماعًا يرد يولياس بموعدين متاحين والصفحة" },
   calendar: { en: "Google Calendar: busy times in your main calendar are never offered; each booking goes to a calendar Yolias creates, with a Google Meet link and Google's invitation; email reminder an hour before", ar: "تقويم Google: أوقات انشغالك في تقويمك الرئيسي لا تُعرض أبدًا؛ وكل حجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
 };
@@ -380,7 +380,7 @@ export const meetingSolutionPages: SeedPage[] = [
       metaTitle: "AI meeting booking: from prospect to booked call",
       metaDescription: "Yolias finds matching companies, emails the decision makers from your mailbox, offers two free times when they reply, and books the meeting on your page.",
       lead: "A booking link only helps once someone wants to talk. Yolias does the work that gets you there: it finds the companies that fit, writes to them, follows up, and turns a \"yes, let's talk\" into a meeting on your calendar.",
-      answer: "To book more sales meetings, reach the right decision makers with a short, specific email, follow up a few times, and make booking a single click when they agree. Yolias runs that sequence: it finds the prospects, sends the emails from your own mailbox after you approve, and replies to meeting requests with two free times and your Yolias booking page.",
+      answer: "To book more sales meetings, reach the right decision makers with a short, specific email, follow up a few times, and make booking a single click when they agree. Yolias runs that sequence: it finds the prospects, sends the emails from your own mailbox once you launch the campaign, and replies to meeting requests with two free times and your Yolias booking page.",
       audience: ["Agencies and consultants who sell through calls", "Founders doing their own sales", "Small sales teams without SDRs"],
       criteria: ["A clear description of who you want to meet", "A meeting campaign goal, so every email asks for a short call", "Booking hours that leave room for other work", "Google Calendar connected, for Meet links and invitations"],
       steps: [
@@ -395,7 +395,7 @@ export const meetingSolutionPages: SeedPage[] = [
         { note: "Yolias doesn't promise a number of meetings: results depend on your market, your offer and the contacts available for it." },
       ],
       faq: [
-        { q: "Is Yolias an AI appointment setter?", a: "Yes, for email: it finds prospects, writes and sends the emails after your approval, answers meeting requests with free times and books the meeting on your page. It works by email only." },
+        { q: "Is Yolias an AI appointment setter?", a: "Yes, for email: it finds prospects, writes and sends the emails once you launch the campaign, answers meeting requests with free times and books the meeting on your page. It works by email only." },
         { q: "Do I need Calendly to use it?", a: "No. Every member has a booking page in Yolias. Connect Google Calendar for Meet links and invitations." },
         { q: "Can Yolias book a time the lead suggests in their reply?", a: "It offers your free times and the page; when the lead picks one, the meeting is booked. If they propose another time, you can add the meeting in Meetings." },
       ],
@@ -406,7 +406,7 @@ export const meetingSolutionPages: SeedPage[] = [
       metaTitle: "حجز اجتماعات المبيعات بالذكاء الاصطناعي",
       metaDescription: "يجد يولياس الشركات المطابقة، ويراسل صنّاع القرار من بريدك، ويقترح موعدين متاحين عندما يردون، ويحجز الاجتماع في صفحتك.",
       lead: "رابط الحجز لا يفيد إلا عندما يريد أحدهم التحدث. ويولياس يقوم بالعمل الذي يوصلك إلى ذلك: يجد الشركات المناسبة، ويراسلها، ويتابع، ويحوّل «نعم، لنتحدث» إلى اجتماع في تقويمك.",
-      answer: "لتحجز اجتماعات مبيعات أكثر، صِل إلى صنّاع القرار المناسبين برسالة قصيرة ومحددة، وتابع عدة مرات، واجعل الحجز ضغطة واحدة عندما يوافقون. ويولياس يدير هذا التسلسل: يجد العملاء، ويرسل الرسائل من بريدك بعد موافقتك، ويرد على طلبات الاجتماع بموعدين متاحين وصفحة الحجز الخاصة بك في يولياس.",
+      answer: "لتحجز اجتماعات مبيعات أكثر، صِل إلى صنّاع القرار المناسبين برسالة قصيرة ومحددة، وتابع عدة مرات، واجعل الحجز ضغطة واحدة عندما يوافقون. ويولياس يدير هذا التسلسل: يجد العملاء، ويرسل الرسائل من بريدك بعد تشغيلك للحملة، ويرد على طلبات الاجتماع بموعدين متاحين وصفحة الحجز الخاصة بك في يولياس.",
       audience: ["الوكالات والاستشاريون الذين يبيعون عبر المكالمات", "المؤسسون الذين يبيعون بأنفسهم", "فرق المبيعات الصغيرة بلا مندوبي تواصل"],
       criteria: ["وصف واضح لمن تريد مقابلتهم", "هدف الحملة حجز اجتماع، لتطلب كل رسالة مكالمة قصيرة", "ساعات حجز تترك وقتًا لعملك الآخر", "ربط تقويم Google لروابط Meet والدعوات"],
       steps: [
@@ -421,7 +421,7 @@ export const meetingSolutionPages: SeedPage[] = [
         { note: "لا يَعِد يولياس بعدد معين من الاجتماعات: النتائج تعتمد على سوقك وعرضك وبيانات التواصل المتاحة له." },
       ],
       faq: [
-        { q: "هل يولياس منسّق مواعيد بالذكاء الاصطناعي؟", a: "نعم، بالبريد: يجد العملاء، ويكتب الرسائل ويرسلها بعد موافقتك، ويرد على طلبات الاجتماع بمواعيد متاحة ويحجز في صفحتك. ويعمل بالبريد فقط." },
+        { q: "هل يولياس منسّق مواعيد بالذكاء الاصطناعي؟", a: "نعم، بالبريد: يجد العملاء، ويكتب الرسائل ويرسلها بعد تشغيلك للحملة، ويرد على طلبات الاجتماع بمواعيد متاحة ويحجز في صفحتك. ويعمل بالبريد فقط." },
         { q: "هل أحتاج Calendly لاستخدامه؟", a: "لا. لكل عضو صفحة حجز في يولياس. اربط تقويم Google لروابط Meet والدعوات." },
         { q: "هل يحجز يولياس موعدًا يقترحه العميل في رده؟", a: "يقدّم مواعيدك المتاحة والصفحة، وعندما يختار العميل أحدها يُحجز الاجتماع. وإذا اقترح موعدًا آخر يمكنك إضافة الاجتماع من صفحة الاجتماعات." },
       ],

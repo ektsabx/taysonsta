@@ -65,13 +65,13 @@ export const useCasesPage: Localized<{ eyebrow: string; title: string; lead: str
 const limitsEn = {
   contacts: "Yolias shows the business contact details a company publishes. It doesn’t promise a personal email or phone number for every person.",
   coverage: "Results depend on your market and on the data sources connected to Yolias; a search that needs a source Yolias doesn’t have yet waits and says so.",
-  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it, and brings the replies to your Inbox.",
+  outreach: "Yolias writes and sends a campaign from your own mailbox (Gmail or any IMAP/SMTP account) only once you launch the campaign, and brings the replies to your Inbox.",
   guarantee: "Yolias doesn’t guarantee a number of leads, meetings or sales.",
 };
 const limitsAr = {
   contacts: "يعرض يولياس بيانات التواصل التي تنشرها الشركة، ولا يعد ببريد أو رقم شخصي لكل شخص.",
   coverage: "تعتمد النتائج على سوقك وعلى مصادر البيانات المتصلة بيولياس، والبحث الذي يحتاج مصدرًا غير متاح بعد ينتظر ويوضح ذلك.",
-  outreach: "يكتب يولياس الحملة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك فقط بعد موافقتك، ويعيد الردود إلى المحادثات.",
+  outreach: "يكتب يولياس الحملة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك فقط بعد تشغيلك للحملة، ويعيد الردود إلى المحادثات.",
   guarantee: "لا يضمن يولياس عددًا محددًا من العملاء المحتملين أو الاجتماعات أو المبيعات.",
 };
 
@@ -109,7 +109,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "Is AI prospecting the same as buying a lead list?", a: "No. A lead list is a fixed file someone else built. In Yolias each search is built from your own brief and business context, and every result shows why it matched." },
         { q: "Do I need to know industry codes or filters?", a: "No. You describe the customer in plain language. Yolias turns it into criteria and shows them to you before the campaign runs." },
-        { q: "Does Yolias contact prospects for me?", a: "Only after you approve. You choose who to contact; Yolias writes the emails and sends them from your own connected mailbox, then brings the replies to your Inbox." },
+        { q: "Does Yolias contact prospects for me?", a: "Only once you launch the campaign. You choose who to contact; Yolias writes the emails and sends them from your own connected mailbox, then brings the replies to your Inbox." },
       ],
       solutions: ["sales-teams", "marketing-agencies", "consultants"],
     },
@@ -133,7 +133,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
         { title: "صِف العميل", body: "اكتب لمن تريد أن تبيع كما تشرح المهمة لزميل: السوق والقطاع وحجم الشركة والمؤشرات والمناصب التي تريد الوصول إليها." },
         { title: "أكّد الحملة", body: "يعرض يولياس المعايير التي فهمها والافتراضات التي أخذها من ملف شركتك، ثم يفتح حملة بعدد مستهدف من العملاء المحتملين." },
         { title: "راجع النتائج", body: "تصل الشركات وصنّاع القرار مع نسبة تطابق توضّح ما تطابق. احتفظ بالمناسب واحذف الباقي وصدّر إلى CSV." },
-        { title: "جهّز الرسالة الأولى", body: "لكل عميل محتمل يكتب يولياس رسالة بريد من ملفك والمعلومات التي وجدها، ويرسلها من بريدك بعد موافقتك." },
+        { title: "جهّز الرسالة الأولى", body: "لكل عميل محتمل يكتب يولياس رسالة بريد من ملفك والمعلومات التي وجدها، ويرسلها من بريدك بعد تشغيلك للحملة." },
       ],
       exampleTitle: "مثال على وصف",
       exampleNote: "مثال توضيحي لطريقة كتابة الطلب، وليس قصة عميل:",
@@ -195,7 +195,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       metaDescription: "طريقة عملية لإيجاد عملاء لنشاط خدمي: حدّد من تخدمه، وابنِ قائمة مختصرة مدروسة، وتواصل مع كل شركة برسالة مناسبة.",
       lead: "عملاء الترشيحات هم الأفضل، حتى تتباطأ الترشيحات. يعرض هذا الدليل طريقة متكررة لإيجاد عملاء جدد لوكالة أو مكتب استشارات أو عمل حر، وأين يوفر عليك يولياس وقت البحث.",
       answerTitle: "الإجابة المختصرة",
-      answer: "اكتب نوع الشركة التي تخدمها بأفضل شكل، وابحث عن الشركات المطابقة، وتحقق من مناسبة كل منها، ثم تواصل مع الشخص المناسب برسالة عن وضعه. يتولى يولياس البحث والتحقق من وصف بلغة طبيعية، ويكتب الرسالة الأولى ويرسلها من بريدك بعد موافقتك.",
+      answer: "اكتب نوع الشركة التي تخدمها بأفضل شكل، وابحث عن الشركات المطابقة، وتحقق من مناسبة كل منها، ثم تواصل مع الشخص المناسب برسالة عن وضعه. يتولى يولياس البحث والتحقق من وصف بلغة طبيعية، ويكتب الرسالة الأولى ويرسلها من بريدك بعد تشغيلك للحملة.",
       forTitle: "لمن هذا",
       forWho: ["وكالات التسويق والتصميم والبرمجيات", "الاستشاريون ومكاتب الاستشارات", "المستقلون والاستوديوهات الصغيرة", "وكالات التوظيف التي تبحث عن شركات عميلة جديدة"],
       problemTitle: "أين تتعثر معظم الأنشطة الخدمية",
@@ -402,7 +402,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "Which local business categories can I search?", a: "Any category you can name, such as clinics, restaurants, salons, gyms, schools, real estate offices or car repair shops." },
         { q: "Can I search a neighborhood rather than a whole city?", a: "Yes. Describe the area as precisely as you need, for example a district or a well-known neighborhood." },
-        { q: "Does Yolias send emails to local businesses?", a: "Yes, when the business publishes an email: Yolias writes the campaign and sends it from your own mailbox after you approve it. Businesses without a published email are left out; nothing is guessed." },
+        { q: "Does Yolias send emails to local businesses?", a: "Yes, when the business publishes an email: Yolias writes the campaign and sends it from your own mailbox once you launch the campaign. Businesses without a published email are left out; nothing is guessed." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },
@@ -425,7 +425,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       steps: [
         { title: "صِف النوع والمنطقة", body: "مثل: عيادات الأسنان في جدة، أو المقاهي والمخابز في دبي مارينا التي لديها موقع إلكتروني." },
         { title: "راجع الأنشطة", body: "يظهر كل نشاط بعنوانه وموقعه الإلكتروني وهاتفه أو بريده المنشور، ومع التقييم وعدد المراجعات عندما يوفرها المصدر." },
-        { title: "تواصل بطريقتك", body: "يكتب يولياس رسالة بريد قصيرة بلغة النشاط إلى بريده المنشور، ويرسلها من بريدك بعد موافقتك. وتظهر روابط موقعه وصفحاته على مواقع التواصل عند توفرها." },
+        { title: "تواصل بطريقتك", body: "يكتب يولياس رسالة بريد قصيرة بلغة النشاط إلى بريده المنشور، ويرسلها من بريدك بعد تشغيلك للحملة. وتظهر روابط موقعه وصفحاته على مواقع التواصل عند توفرها." },
       ],
       exampleTitle: "مثال",
       exampleNote: "مثال توضيحي لطلب، وليس قصة عميل:",
@@ -437,7 +437,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       faq: [
         { q: "ما أنواع الأنشطة المحلية التي يمكنني البحث عنها؟", a: "أي نوع يمكنك تسميته، مثل العيادات والمطاعم والصالونات والصالات الرياضية والمدارس ومكاتب العقار وورش السيارات." },
         { q: "هل يمكنني البحث في حي بدل مدينة كاملة؟", a: "نعم. صِف المنطقة بالدقة التي تحتاجها، مثل حي معين أو منطقة معروفة." },
-        { q: "هل يرسل يولياس رسائل للأنشطة المحلية؟", a: "نعم، عندما ينشر النشاط بريدًا: يكتب يولياس الحملة ويرسلها من بريدك بعد موافقتك. والأنشطة التي لا تنشر بريدًا تُستبعد، ولا يُخمَّن أي بريد." },
+        { q: "هل يرسل يولياس رسائل للأنشطة المحلية؟", a: "نعم، عندما ينشر النشاط بريدًا: يكتب يولياس الحملة ويرسلها من بريدك بعد تشغيلك للحملة. والأنشطة التي لا تنشر بريدًا تُستبعد، ولا يُخمَّن أي بريد." },
       ],
       solutions: ["marketing-agencies", "freelancers", "real-estate"],
     },

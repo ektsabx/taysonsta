@@ -62,23 +62,23 @@ export function toRow(p: SeedPage, sort: number) {
 // FAQ and llms.txt). Keep in step with the product.
 export const Y = {
   en: {
-    find: "Describe your ideal customer in plain language, in English or Arabic, or attach a brief, CSV or screenshot; Yolias turns it into criteria and runs the search",
-    finds: "Companies, local businesses by category and area, decision makers at matching companies, and companies similar to ones you name",
+    find: "You create a campaign in three steps (the result you want, the audiences, how Yolias speaks for you): countries, regions and cities worldwide, industries, company size, job titles and exclusions, or a saved, custom or lookalike audience",
+    finds: "Companies, local businesses by category and area, decision makers at matching companies, and companies similar to your best customers",
     why: "A match score with the criteria each result met",
     contacts: "The business contact details a company publishes, labelled by verification state; no promise of a personal email or phone number for every person",
-    outreach: "Writes first emails and follow-ups in 15 languages and sends them from your own Gmail or IMAP/SMTP mailbox after you approve, within daily limits and sending hours per mailbox",
-    replies: "Replies arrive in Conversations, sorted, with a suggested answer; meeting requests get two free times and your booking page, and bookings land in Meetings",
+    outreach: "An AI sales agent: writes a different email to each person in 15 languages and sends it from your own Gmail or IMAP/SMTP mailbox, follows up twice, within daily limits and sending hours",
+    replies: "Answers replies itself: questions and objections from your Company Knowledge, interest with two free times and your booking page, and books the meeting; it hands a conversation to you when a person is needed",
     channels: "Email, sent by Yolias from your own mailbox",
     users: "Unlimited users on every plan",
     language: "The whole product in Arabic and English",
   },
   ar: {
-    find: "تصف عميلك المثالي بلغة طبيعية، بالعربية أو الإنجليزية، أو ترفق ملفًا أو CSV أو صورة، فيحوّله يولياس إلى معايير ويشغّل البحث",
-    finds: "الشركات، والأنشطة المحلية حسب النوع والمنطقة، وصنّاع القرار في الشركات المطابقة، والشركات المشابهة لشركات تذكرها",
+    find: "تنشئ حملة في ثلاث خطوات (النتيجة التي تريدها، والجماهير، وكيف يتحدث يولياس باسمك): دول ومناطق ومدن العالم، والمجالات، وحجم الشركة، والمسميات الوظيفية، والاستبعادات، أو جمهور محفوظ أو مخصص أو مشابه",
+    finds: "الشركات، والأنشطة المحلية حسب النوع والمنطقة، وصنّاع القرار في الشركات المطابقة، والشركات المشابهة لأفضل عملائك",
     why: "نسبة تطابق مع المعايير التي حققتها كل نتيجة",
     contacts: "بيانات التواصل التي تنشرها الشركة، مصنّفة حسب حالة التحقق؛ ولا وعد ببريد أو رقم شخصي لكل شخص",
-    outreach: "يكتب الرسائل الأولى والمتابعات بخمس عشرة لغة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك بعد موافقتك، ضمن حد يومي وساعات إرسال لكل صندوق بريد",
-    replies: "تصل الردود إلى المحادثات مصنّفة مع رد مقترح، وطلبات الاجتماع يُرد عليها بموعدين متاحين وصفحة الحجز، والحجوزات في الاجتماعات",
+    outreach: "وكيل مبيعات بالذكاء الاصطناعي: يكتب رسالة مختلفة لكل شخص بخمس عشرة لغة ويرسلها من Gmail أو بريد IMAP/SMTP الخاص بك، ويتابع مرتين، ضمن حد يومي وساعات إرسال",
+    replies: "يرد على الردود بنفسه: الأسئلة والاعتراضات من معرفة شركتك، والاهتمام بموعدين متاحين وصفحة الحجز، ويحجز الاجتماع؛ ويسلّمك المحادثة عندما تحتاج إلى شخص",
     channels: "البريد، يرسله يولياس من صندوق بريدك",
     users: "عدد غير محدود من المستخدمين في كل الخطط",
     language: "المنتج كله بالعربية والإنجليزية",
@@ -86,6 +86,6 @@ export const Y = {
 };
 
 export const CTA = {
-  en: { title: "Try it on your own market.", body: "Create an account, describe who you want to reach and review the list and the emails Yolias prepares before anything is sent.", label: "Try Yolias" },
-  ar: { title: "جرّبه على سوقك.", body: "أنشئ حسابًا، وصِف من تريد الوصول إليه، وراجع القائمة والرسائل التي يجهّزها يولياس قبل إرسال أي شيء.", label: "جرّب يولياس" },
+  en: { title: "Get meetings, not lists.", body: "Create an account, set the meetings you want and who to reach, preview the email Yolias writes, and launch. Yolias finds the people, writes, answers and books.", label: "Try Yolias" },
+  ar: { title: "احصل على اجتماعات، لا قوائم.", body: "أنشئ حسابًا، وحدد الاجتماعات التي تريدها ومن تريد الوصول إليه، وعاين الرسالة التي يكتبها يولياس، ثم شغّل الحملة. يجد يولياس الأشخاص ويكتب ويرد ويحجز.", label: "جرّب يولياس" },
 };

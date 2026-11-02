@@ -117,7 +117,12 @@ export function BookingForm(p: {
         {error && !slot && <p className="meet-error" role="alert">{error}</p>}
       </main>
       {/* "Booking by Yolias" opens the Yolias website (owner, 2026-10-30), marked as coming from a booking page. */}
-      <a className="meet-by" href={`${p.locale === "ar" ? "/ar" : "/"}?utm_source=booking_page&utm_medium=referral`} target="_blank" rel="noopener">{t.by}</a>
+      <a className="meet-by" href={`${p.locale === "ar" ? "/ar" : "/"}?utm_source=booking_page&utm_medium=referral`} target="_blank" rel="noopener" aria-label={t.by}>
+        {/* The Yolias logo (D-273), the same mark as everywhere, opening the website. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/logo-mark.png" alt="" width={15} height={16} />
+        <span>{t.by}</span>
+      </a>
     </div>
   );
 }

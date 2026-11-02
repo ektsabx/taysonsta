@@ -52,13 +52,15 @@ try {
   assert.equal(r.ok, true); assert.deepEqual(r.data.prospects.map((x: { id: string }) => x.id), [a.prospect]);
   r = await executeTool(ctxA, "getProspect", { prospectId: b.prospect }); assert.equal(r.outcome, "not_found");
   r = await executeTool(ctxA, "getProspect", { prospectId: a.prospect }); assert.equal(r.ok, true);
-  r = await executeTool(ctxA, "getCampaign", { campaignId: b.campaign }); assert.equal(r.outcome, "not_found");
-  r = await executeTool(ctxA, "getCampaign", { campaignId: a.campaign }); assert.equal(r.data.campaign.partial_reason, "no provider");
+  // D-273: the old search and approval tools are gone; Yolias AI works on campaigns.
+  for (const gone of ["getCampaign", "createCampaign", "startOutreachCampaign", "revealContact", "saveResults", "enrichProspect", "getAnalytics"]) {
+    r = await executeTool(ctxA, gone, {}); assert.equal(r.outcome, "invalid", `${gone} is no longer a tool`);
+  }
+  r = await executeTool(ctxA, "listCampaigns", {}); assert.equal(r.ok, true); assert.deepEqual(r.data.campaigns, [], "no outreach campaigns yet");
   r = await executeTool(ctxA, "filterProspects", { country: "sa", minMatch: 50 }); assert.equal(r.data.total, 1);
   r = await executeTool(ctxA, "getUsage", {}); assert.equal(r.ok, true); assert.equal(typeof r.data.available, "number");
-  r = await executeTool(ctxA, "getAnalytics", { days: 30 }); assert.equal(r.ok, true); assert.equal(r.data.prospects, 1);
-  r = await executeTool(ctxA, "enrichProspect", { prospectId: a.prospect, want: "email" }); assert.equal(r.outcome, "not_connected");
-  r = await executeTool(ctxA, "enrichProspect", { prospectId: b.prospect, want: "email" }); assert.equal(r.outcome, "not_found");
+  r = await executeTool(ctxA, "listAudiences", {}); assert.equal(r.ok, true);
+  r = await executeTool(ctxA, "listMeetings", { when: "upcoming" }); assert.equal(r.ok, true);
   r = await executeTool(ctxA, "researchCompany", { companyId: a.company }); assert.equal(r.outcome, "not_connected");
   r = await executeTool(ctxA, "getProspect", { prospectId: "nope" }); assert.equal(r.outcome, "invalid");
   r = await executeTool(ctxA, "dropTables", {}); assert.equal(r.outcome, "invalid");
@@ -67,18 +69,14 @@ try {
   r = await executeTool(inactive, "getUsage", {}); assert.equal(r.outcome, "denied");
   // RLS is the second line: even a raw query with A's client can't read B.
   const { data: leak } = await ctxA.db.from("prospects").select("id").eq("id", b.prospect); assert.equal(leak!.length, 0);
-  // createCampaign without an Anthropic key: the search is saved and marked failed honestly.
-  r = await executeTool(ctxA, "createCampaign", { request: "Heads of sales at fintechs in Riyadh" }); assert.equal(r.ok, true);
-  console.log("createCampaign →", JSON.stringify(r.data));
-  // Inside a search's conversation: no new search is created (D-133).
-  const before = (await admin.from("strategies").select("id", { count: "exact", head: true }).eq("workspace_id", A)).count;
-  const launched: string[] = [];
-  r = await executeTool({ ...ctxA, strategyId: r.data.strategyId, launched } as AgentContext, "createCampaign", { request: "Founders of SaaS companies in Cairo" });
-  assert.equal(r.ok, true); assert.equal(r.data.error, "aiNotConfigured"); assert.equal(launched.length, 0);
-  assert.equal((await admin.from("strategies").select("id", { count: "exact", head: true }).eq("workspace_id", A)).count, before, "no new search from inside a conversation");
+  // A campaign draft from Yolias AI: saved as a draft for the member to launch, nothing more.
+  r = await executeTool(ctxA, "createCampaignDraft", { name: "Riyadh fintechs", audiences: [{ name: "Heads of sales", countries: ["SA"], titles: ["Head of Sales"] }] }); assert.equal(r.ok, true);
+  assert.match(r.data.draftUrl, /^\/outreach\/new\?draft=[0-9a-f-]{36}$/);
+  const { data: drafted } = await admin.from("outreach_campaigns").select("status, approved_at").eq("id", r.data.draftUrl.split("=")[1]).single();
+  assert.deepEqual([drafted!.status, drafted!.approved_at], ["draft", null]);
   const { data: log } = await admin.from("agent_tool_calls").select("tool, outcome").eq("workspace_id", A).order("id");
   console.log("audit:", log!.map((l) => `${l.tool}:${l.outcome}`).join(" "));
-  assert.equal(log!.length, 16);
+  assert.equal(log!.length, 20, "every call audited, refused ones too");
 
   // ── Control center (D-141) ──
   const { agentTools } = await import("@/lib/agent/tools.ts");
@@ -88,18 +86,18 @@ try {
   const off = normalizePolicy({ tools: { getUsage: { enabled: false, approval: false, roles: ["owner", "admin", "member"] } } });
   r = await executeTool({ ...ctxA, policy: off } as AgentContext, "getUsage", {}); assert.equal(r.outcome, "disabled");
   // Roles can only narrow access.
-  const ownerOnly = normalizePolicy({ tools: { getAnalytics: { enabled: true, approval: false, roles: ["admin"] } } });
-  r = await executeTool({ ...ctxA, policy: ownerOnly } as AgentContext, "getAnalytics", { days: 30 }); assert.equal(r.outcome, "disabled", "owner not in the allowed roles");
+  const ownerOnly = normalizePolicy({ tools: { listCampaigns: { enabled: true, approval: false, roles: ["admin"] } } });
+  r = await executeTool({ ...ctxA, policy: ownerOnly } as AgentContext, "listCampaigns", {}); assert.equal(r.outcome, "disabled", "owner not in the allowed roles");
   // Human-in-the-loop: the action waits; approving runs it once.
   const { data: conv } = await admin.from("conversations").insert({ workspace_id: A, scope: "user", user_id: (await admin.from("workspace_members").select("user_id").eq("workspace_id", A).single()).data!.user_id }).select("id").single();
   const pending: string[] = [];
-  const policy = normalizePolicy({ tools: { saveResults: { enabled: true, approval: true, roles: ["owner", "admin", "member"] } } });
-  r = await executeTool({ ...ctxA, policy, pending, conversationId: conv!.id } as AgentContext, "saveResults", { campaignId: a.campaign });
+  const policy = normalizePolicy({ tools: { rememberFact: { enabled: true, approval: true, roles: ["owner", "admin", "member"] } } });
+  r = await executeTool({ ...ctxA, policy, pending, conversationId: conv!.id } as AgentContext, "rememberFact", { fact: "We sell to clinics." });
   assert.equal(r.outcome, "awaiting_approval"); assert.equal(pending.length, 1);
   const { data: pa } = await ctxA.db.from("agent_pending_actions").select("status, tool, summary").eq("id", pending[0]).single();
-  assert.equal(pa!.status, "pending"); assert.equal(pa!.tool, "saveResults"); assert.ok(pa!.summary.length > 3);
+  assert.equal(pa!.status, "pending"); assert.equal(pa!.tool, "rememberFact"); assert.ok(pa!.summary.length > 3);
   assert.equal((await ctxB().then((x) => x.db.from("agent_pending_actions").select("id").eq("id", pending[0]))).data!.length, 0, "another workspace can't see it");
-  r = await executeTool({ ...ctxA, policy, approved: true } as AgentContext, "saveResults", { campaignId: a.campaign }); assert.equal(r.ok, true, "approved → runs");
+  r = await executeTool({ ...ctxA, policy, approved: true } as AgentContext, "rememberFact", { fact: "We sell to clinics." }); assert.equal(r.ok, true, "approved → runs");
   // Long-term memory: saved with the member's client, scoped to the workspace, capped.
   const capped = normalizePolicy({ memory: { enabled: true, maxItems: 2 } });
   for (const fact of ["We sell to banks", "Prefers Saudi companies", "Avoid agencies"]) {

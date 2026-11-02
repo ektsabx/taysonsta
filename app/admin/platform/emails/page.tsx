@@ -4,9 +4,9 @@ import { PageHeader, Card, KpiCard, EmptyState, StatusBadge } from "@/components
 import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
-import { emailEventStats, emailOverview, listAnnouncements } from "@/services/yolias/emails";
+import { emailEventStats, emailOverview, getFounderNote, listAnnouncements } from "@/services/yolias/emails";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
-import { EmailEventForm, SendAnnouncementButton } from "./EmailForms";
+import { EmailEventForm, FounderNoteForm, SendAnnouncementButton } from "./EmailForms";
 
 const statusTone = { queued: "info", sent: "success", skipped: "warning", failed: "danger", draft: "neutral", sending: "info", canceled: "neutral" } as const;
 const statusLabel: Record<string, string> = { queued: "في الطابور", sent: "أُرسل", skipped: "لم يُرسل (غير مُعدّ)", failed: "فشل", draft: "مسودة", sending: "جارٍ الإرسال", canceled: "أُلغي قبل الإرسال" };
@@ -17,7 +17,7 @@ const categoryLabel: Record<string, string> = { account: "الحساب", subscri
 export default async function EmailsPage() {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="رسائل النظام" /><NotConnected /></>);
-  const [{ recent, counts }, announcements, events] = await Promise.all([emailOverview(30), listAnnouncements(), emailEventStats(30)]);
+  const [{ recent, counts }, announcements, events, founder] = await Promise.all([emailOverview(30), listAnnouncements(), emailEventStats(30), getFounderNote()]);
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
@@ -71,6 +71,12 @@ export default async function EmailsPage() {
       {canManage && (
         <Card title="إعلان جديد">
           <p><Tx>الإعلانات الجديدة تُكتب كحملة (شريحة، معاينة، إرسال اختباري، جدولة، نتائج).</Tx> <Link className="bos-link" href="/admin/platform/messaging/campaigns"><Tx>الحملات</Tx></Link></p>
+        </Card>
+      )}
+
+      {canManage && (
+        <Card title="رسالة شخصية من المؤسس">
+          <FounderNoteForm value={founder} />
         </Card>
       )}
 

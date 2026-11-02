@@ -27,7 +27,7 @@ test("system prompt: identity, voice, hard rules, vendor confidentiality, owner 
   const s = buildSystemPrompt(p);
   assert.match(s, /^You are Yoli\./);
   assert.match(s, /Egyptian Arabic/);
-  assert.match(s, /Never invent prospects/);
+  assert.match(s, /Never invent companies/);
   assert.match(s, /never name or hint at the AI models/);
   assert.ok(s.indexOf("Always suggest a next step.") > s.indexOf("Rules (these always apply"));
 });

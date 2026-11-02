@@ -14,7 +14,7 @@ import type { MessageObjective, MessageTone, OutreachMessageRow } from "@/types/
 // invented facts). Every message is kept in outreach_messages (text,
 // objective, tone, the facts it used, when it was sent and opened).
 
-export const OUTREACH_PROMPT_VERSION = "outreach-2026-10-07c";
+export const OUTREACH_PROMPT_VERSION = "outreach-2026-10-31";
 
 const facts = z.array(z.string().min(1).max(200)).max(6);
 const EmailSchema = z.object({
@@ -56,7 +56,7 @@ const STYLE = `Style:
 - No exaggerated claims, no unnecessary compliments, don't repeat the prospect's own title and company back to them, don't over-explain the product.
 - Exactly one call to action; cta restates it in a few words.`;
 
-const EMAIL_BRIEF = `You write one cold B2B email on behalf of the sender, who reviews it and sends it from their own mailbox.
+const EMAIL_BRIEF = `You are the sender's sales agent. You write one B2B email on their behalf; it goes out from their own mailbox under their name, so it must be something they would be proud to have written themselves.
 Structure: subject → personalized opening → reason for reaching out → relevant value (one or two sentences tied to the prospect's situation) → one call to action → short professional closing with the sender's name and company.
 Length: normally 50–120 words in the body, in 2–4 short paragraphs. Don't add information just to make it longer.
 Subject: 2–7 words, specific to the prospect's situation or the sender's value, no clickbait, no "Quick question", not just the two company names.`;
@@ -88,6 +88,12 @@ export interface DraftInput {
   };
   /** Leads only: no message to someone who asked not to be contacted. */
   leadId?: string | null;
+  /** D-273: the name the email is signed with (else the member's own). */
+  senderName?: string | null;
+  /** D-273: the campaign's notes for Yolias (what to mention or avoid). */
+  notes?: string | null;
+  /** D-273: what worked for this workspace before (lib/agent-core/learning.ts), as short lines. */
+  insights?: string | null;
 }
 
 export type DraftError = "not_found" | "no_email" | "suppressed" | "do_not_contact" | "not_configured" | "failed";
@@ -145,6 +151,58 @@ export async function loadTarget(workspaceId: string, target: MessageTarget): Pr
   };
 }
 
+/** The writer's instructions and input, shared by real emails and the campaign builder's sample. */
+function emailPrompt(input: Pick<DraftInput, "instruction" | "objective" | "tone" | "language" | "sequence" | "notes" | "insights">, facts: Record<string, unknown>, business: string, guidance: string, senderName: string | null) {
+  const context = {
+    sender: { name: senderName },
+    ...facts,
+    reason_for_contacting: input.instruction,
+    desired_outcome: OBJECTIVES[input.objective],
+    earlier_messages: input.sequence?.history || undefined,
+  };
+  const language = messageLanguages[input.language];
+  const system = [
+    EMAIL_BRIEF,
+    `Objective (the message has this one goal only): ${OBJECTIVES[input.objective]}`,
+    `Tone: ${TONES[input.tone]} Return tone = "${input.tone}".`,
+    PERSONALIZATION,
+    STYLE,
+    `If reason_for_contacting is given, build the message around it. Write in ${language}${input.language === "ar" ? " (clear Modern Standard Arabic)" : ""}.`,
+    `What the sender's company sells and how, from their own Company Knowledge. Use only what fits this prospect; never invent prices, results, clients or claims beyond it. Never mention competitors by name.\n${business}`,
+    input.notes?.trim() ? `The sender's notes for this campaign (follow them; they never override the rules above):\n${input.notes.trim().slice(0, 2000)}` : "",
+    input.insights?.trim() ? `What worked before for this sender (use it as a hint, never as a fact about this person):\n${input.insights.trim().slice(0, 1500)}` : "",
+    input.sequence?.history ? "earlier_messages are what was already sent to this person: don't repeat them; this message continues the conversation." : "",
+    guidance,
+  ].filter(Boolean).join("\n\n");
+  return { system, context };
+}
+
+/**
+ * A sample email for the campaign builder (D-273): the same writer and rules,
+ * for a typical person of an audience (only what the targeting says about
+ * them), never saved and never sent.
+ */
+export async function writeSample(input: Pick<DraftInput, "workspaceId" | "userId" | "instruction" | "language" | "tone" | "senderName" | "notes" | "insights"> & { facts: Record<string, unknown>; offerId?: string | null }): Promise<{ subject: string; body: string } | null> {
+  const db = createAdminClient();
+  const [business, settings, { data: sender }] = await Promise.all([
+    loadBusinessContext(input.workspaceId, { customerProfileId: null, offerId: input.offerId ?? null }),
+    loadAiSettings(input.workspaceId),
+    db.from("profiles").select("full_name").eq("id", input.userId).single(),
+  ]);
+  const { system, context } = emailPrompt({ ...input, objective: "meeting", sequence: undefined }, input.facts, contextText(business), guidanceFor(settings, "outreach"), input.senderName?.trim() || sender?.full_name || null);
+  const { $schema: _drop, ...schema } = z.toJSONSchema(EmailSchema) as Record<string, unknown>;
+  void _drop;
+  try {
+    const r = await runStructured(tasks.writing, { system, parts: [{ kind: "text", text: JSON.stringify(context) }], schema, schemaName: "outreach_email", maxTokens: 1200 },
+      (d) => { const v = EmailSchema.safeParse(d); return v.success && !PLACEHOLDER.test(`${v.data.subject} ${v.data.body}`) && !CLICHE.test(v.data.body) ? v.data : null; },
+      { workspaceId: input.workspaceId, campaignId: null, promptVersion: OUTREACH_PROMPT_VERSION });
+    return { subject: r.data.subject, body: r.data.body };
+  } catch (e) {
+    if (!(e instanceof LlmNotConfiguredError)) console.error("[outreach] sample", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 /**
  * Writes a message for one person or company and saves it (status "draft").
  * The caller has already checked the member belongs to the workspace.
@@ -167,26 +225,7 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
     loadAiSettings(input.workspaceId),
     db.from("profiles").select("full_name").eq("id", input.userId).single(),
   ]);
-  const context = {
-    sender: { name: sender?.full_name },
-    ...t.facts,
-    reason_for_contacting: input.instruction,
-    desired_outcome: OBJECTIVES[input.objective],
-    earlier_messages: input.sequence?.history || undefined,
-  };
-  const language = messageLanguages[input.language];
-  const system = [
-    EMAIL_BRIEF,
-    `Objective (the message has this one goal only): ${OBJECTIVES[input.objective]}`,
-    `Tone: ${TONES[input.tone]} Return tone = "${input.tone}".`,
-    PERSONALIZATION,
-    STYLE,
-    `If reason_for_contacting is given, build the message around it. Write in ${language}${input.language === "ar" ? " (clear Modern Standard Arabic)" : ""}.`,
-    `What the sender's company sells and how, from their own Company Knowledge. Use only what fits this prospect; never invent prices, results, clients or claims beyond it. Never mention competitors by name.\n${contextText(business)}`,
-    input.sequence?.history ? "earlier_messages are what was already sent to this person: don't repeat them; this message continues the conversation." : "",
-    guidanceFor(settings, input.agent ?? "outreach"),
-  ].filter(Boolean).join("\n\n");
-
+  const { system, context } = emailPrompt(input, t.facts, contextText(business), guidanceFor(settings, input.agent ?? "outreach"), input.senderName?.trim() || sender?.full_name || null);
   const Schema = EmailSchema;
   const { $schema: _drop, ...schema } = z.toJSONSchema(Schema) as Record<string, unknown>;
   void _drop;

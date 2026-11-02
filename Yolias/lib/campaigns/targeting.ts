@@ -10,7 +10,7 @@ import type { ChannelId } from "./channels";
 
 export type Lang = "en" | "ar";
 export interface Option { value: string; en: string; ar: string }
-export type FieldType = "country" | "multi" | "tags" | "range" | "toggle";
+export type FieldType = "country" | "place" | "multi" | "tags" | "range" | "toggle";
 export type FieldGroup = "geo" | "company" | "people" | "signals";
 
 export interface TargetingField {
@@ -74,11 +74,13 @@ export const JOB_TITLES: Option[] = [
 
 export const FUNDING: Option[] = [o("Pre-seed", "ما قبل التأسيسية"), o("Seed", "تأسيسية"), o("Series A", "الجولة A"), o("Series B", "الجولة B"), o("Series C+", "الجولة C وما بعدها")];
 
-export type TargetingKey = "countries" | "cities" | "industries" | "company_types" | "sizes" | "hiring" | "funding" | "technologies" | "keywords" | "titles" | "seniority" | "departments";
+export type TargetingKey = "countries" | "regions" | "cities" | "industries" | "company_types" | "sizes" | "hiring" | "funding" | "technologies" | "keywords" | "titles" | "seniority" | "departments" | "exclude_companies";
 
 export const TARGETING: TargetingField[] = [
   { id: "countries", group: "geo", type: "country", label: { en: "Countries", ar: "الدول" }, operators: ["include", "exclude"], channels: ["email"], source: "search" },
-  { id: "cities", group: "geo", type: "tags", label: { en: "Cities or regions", ar: "المدن أو المناطق" }, hint: { en: "Inside the countries you picked.", ar: "داخل الدول التي اخترتها." }, operators: ["include"], custom: true, channels: ["email"], source: "search" },
+  // D-273: every country, its regions and cities (GeoNames, public/geo); chosen after the country, included or excluded.
+  { id: "regions", group: "geo", type: "place", label: { en: "Regions", ar: "المناطق والمحافظات" }, operators: ["include", "exclude"], channels: ["email"], source: "search" },
+  { id: "cities", group: "geo", type: "place", label: { en: "Cities", ar: "المدن" }, operators: ["include", "exclude"], channels: ["email"], source: "search" },
   { id: "industries", group: "company", type: "multi", label: { en: "Industries", ar: "المجالات" }, operators: ["include", "exclude"], options: INDUSTRIES, custom: true, channels: ["email"], source: "search" },
   { id: "company_types", group: "company", type: "multi", label: { en: "Company type", ar: "نوع الشركة" }, operators: ["include"], options: COMPANY_TYPES, channels: ["email"], source: "search" },
   { id: "sizes", group: "company", type: "multi", label: { en: "Employees", ar: "عدد الموظفين" }, operators: ["include"], options: SIZES, channels: ["email"], source: "search" },
@@ -89,17 +91,23 @@ export const TARGETING: TargetingField[] = [
   { id: "titles", group: "people", type: "multi", label: { en: "Job titles", ar: "المسميات الوظيفية" }, operators: ["include", "exclude"], options: JOB_TITLES, custom: true, channels: ["email"], source: "search" },
   { id: "seniority", group: "people", type: "multi", label: { en: "Seniority", ar: "المستوى الوظيفي" }, operators: ["include"], options: SENIORITY, channels: ["email"], source: "search" },
   { id: "departments", group: "people", type: "multi", label: { en: "Department", ar: "الإدارة" }, operators: ["include"], options: DEPARTMENTS, channels: ["email"], source: "search" },
+  { id: "exclude_companies", group: "company", type: "tags", label: { en: "Companies never to contact", ar: "شركات لا يتم التواصل معها" }, hint: { en: "Names or websites: customers, partners, competitors.", ar: "أسماء أو مواقع: عملاؤك وشركاؤك ومنافسوك." }, operators: ["include"], custom: true, channels: ["email"], source: "search" },
 ];
 
-/** What an audience group targets: per field, the values to include and to exclude. */
-export type Targeting = Partial<Record<TargetingKey, { include: string[]; exclude?: string[] }>> & { description?: string };
+/** A chosen region or city: its names and country (regions are "CC-ADM1", cities their GeoNames id). */
+export type Place = { en: string; ar?: string; cc: string };
+/** What an audience targets: per field, the values to include and to exclude, and the names of chosen places. */
+export type Targeting = Partial<Record<TargetingKey, { include: string[]; exclude?: string[] }>> & { description?: string; places?: Record<string, Place> };
+
+/** A region's or city's name (falls back to the stored value: older audiences kept city names as typed). */
+export const placeName = (t: Targeting, id: string, lang: Lang = "en") => (lang === "ar" ? t.places?.[id]?.ar : undefined) ?? t.places?.[id]?.en ?? id;
 
 export const values = (t: Targeting, k: TargetingKey) => t[k]?.include ?? [];
 export const excluded = (t: Targeting, k: TargetingKey) => t[k]?.exclude ?? [];
 
 /** Any field set at all (an empty audience can't be searched). */
 export function hasTargeting(t: Targeting): boolean {
-  return Boolean(t.description?.trim()) || TARGETING.some((f) => values(t, f.id).length > 0);
+  return Boolean(t.description?.trim()) || TARGETING.some((f) => f.id !== "exclude_companies" && values(t, f.id).length > 0);
 }
 
 /**
@@ -109,10 +117,15 @@ export function hasTargeting(t: Targeting): boolean {
 export function targetingPrompt(t: Targeting, countryName: (code: string) => string): string {
   const line = (label: string, xs: string[]) => (xs.length ? `${label}: ${xs.join(" OR ")}` : "");
   const sizes = values(t, "sizes").map((s) => (s.endsWith("-") ? `${s.slice(0, -1)}+` : s.replace("-", " to ")));
+  const where = (k: "regions" | "cities") => values(t, k).map((id) => `${placeName(t, id)}${t.places?.[id] ? ` (${countryName(t.places[id].cc)})` : ""}`);
   return [
     t.description?.trim() ?? "",
     line("Countries", values(t, "countries").map(countryName)),
-    line("Cities", values(t, "cities")),
+    excluded(t, "countries").length ? `Not in: ${excluded(t, "countries").map(countryName).join(", ")}` : "",
+    line("Regions", where("regions")),
+    excluded(t, "regions").length ? `Exclude regions: ${excluded(t, "regions").map((id) => placeName(t, id)).join(", ")}` : "",
+    line("Cities", where("cities")),
+    excluded(t, "cities").length ? `Exclude cities: ${excluded(t, "cities").map((id) => placeName(t, id)).join(", ")}` : "",
     line("Industries", values(t, "industries")),
     excluded(t, "industries").length ? `Exclude industries: ${excluded(t, "industries").join(", ")}` : "",
     line("Company type", values(t, "company_types")),
@@ -126,6 +139,7 @@ export function targetingPrompt(t: Targeting, countryName: (code: string) => str
     excluded(t, "titles").length ? `Not these roles: ${excluded(t, "titles").join(", ")}` : "",
     line("Seniority", values(t, "seniority")),
     line("Department", values(t, "departments")),
+    values(t, "exclude_companies").length ? `Never these companies: ${values(t, "exclude_companies").join(", ")}` : "",
   ].filter(Boolean).join("\n");
 }
 

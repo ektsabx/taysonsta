@@ -363,3 +363,7 @@ npx wrangler secret put WORKER_SECRET
 ## جولة 2026-10-31 الثانية (D-271، D-272)
 1. migration ‏20261209000000_ads_manager وملف record.
 2. بناء يولياس ونشره (الرفع بطيء على الشبكة الحالية: انتظر حتى يكتمل وأعد المحاولة عند fetch failed)، ثم الأدمن، ثم seeds المحتوى وSEO، ثم فحص SEO الحي.
+## جولة 2026-11-02 (D-273)
+1. تحقق أن `workspace_insights` غير موجود في الإنتاج (to_regclass)، ثم migration ‏20261210000000_sales_agent وملف record.
+2. بناء يولياس ونشره، ثم الأدمن، ثم seeds المحتوى وSEO، ثم فحص SEO الحي.
+3. المزودون الجدد (Hunter، Findymail، LeadMagic) يظهرون معطّلين في الأدمن حتى تُضاف المفاتيح والأسعار.

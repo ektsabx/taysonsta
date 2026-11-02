@@ -126,6 +126,11 @@ export interface MessageData {
   payment_overdue: PaymentProblemData & { daysOverdue: number };
   prospects_added: Base & { added: number; allowance: number; reason: string | null };
   /** Today by email (owner, 2026-10-29): the Analytics "Today" card, each morning, only when something needs the member. */
+  /** D-273: the five notification types. */
+  leads_review: Base & { total: number; campaigns: { name: string; found: number; id: string }[] };
+  campaign_changes: Base & { items: { campaign: string; body: string }[] };
+  campaign_summary: Base & { rows: { name: string; sent: number; replies: number; meetings: number; spend: string }[]; sent: number; replies: number; meetings: number; spend: string };
+  founder_note: Base & { name: string | null; founder: string; text: string };
   daily_digest: Base & { replies: number; meetings: { name: string; time: string }[]; stale: { name: string; days: number }[]; staleCount: number; won: string[]; tasks?: number };
   /** A meeting in the next hour (owner, 2026-10-29). */
   meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null };
@@ -432,6 +437,40 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   }),
 
   /* Sales (Today, meetings) */
+  leads_review: (l, d) => ({
+    subject: T(l, `${d.total} new people found for your campaigns`, `${d.total} شخص جديد لحملاتك`),
+    preheader: T(l, "Yolias found them yesterday and is writing to them.", "وجدهم يولياس أمس ويكتب إليهم."),
+    heading: T(l, "Ready for your review", "جاهزون لمراجعتك"),
+    body: [T(l, "Yolias found these people for your campaigns in the last day. It writes to each one in your campaign's hours; you can look at who they are first.", "وجد يولياس هؤلاء الأشخاص لحملاتك خلال اليوم الماضي. يكتب لكل واحد منهم في ساعات حملتك؛ ويمكنك أن تراجع من هم أولًا.")],
+    extra: table(l, d.campaigns.map((c) => [esc(c.name), link(`${d.siteUrl}/prospects?campaign=${c.id}`, T(l, `${c.found} people`, `${c.found} شخص`))])),
+    button: { label: T(l, "See who they are", "شاهد من هم"), href: `${d.siteUrl}/prospects` },
+    footnote: T(l, `Sent once a day when Yolias found new people. ${link(`${d.siteUrl}/?settings=notifications`, "Turn off in Notification settings")}`, `يصلك مرة يوميًا عندما يجد يولياس أشخاصًا جددًا. ${link(`${d.siteUrl}/?settings=notifications`, "أوقفه من إعدادات الإشعارات")}`),
+  }),
+  campaign_changes: (l, d) => ({
+    subject: T(l, `What changed in your campaigns (${d.items.length})`, `ما تغيّر في حملاتك (${d.items.length})`),
+    preheader: T(l, "Yesterday's changes, in one email.", "تغييرات أمس في رسالة واحدة."),
+    heading: T(l, "Changes to your campaigns", "التغييرات في حملاتك"),
+    body: [T(l, "What happened to your campaigns in the last day:", "ما حدث لحملاتك خلال اليوم الماضي:")],
+    extra: table(l, d.items.slice(0, 20).map((x) => [esc(x.campaign), esc(x.body)])),
+    button: { label: T(l, "Open Campaigns", "افتح الحملات"), href: `${d.siteUrl}/outreach` },
+    footnote: T(l, `Sent once a day when something changed. ${link(`${d.siteUrl}/?settings=notifications`, "Turn off in Notification settings")}`, `يصلك مرة يوميًا عندما يتغير شيء. ${link(`${d.siteUrl}/?settings=notifications`, "أوقفه من إعدادات الإشعارات")}`),
+  }),
+  campaign_summary: (l, d) => ({
+    subject: T(l, `Yesterday: ${d.sent} sent, ${d.replies} replies, ${d.meetings} meetings`, `أمس: ${d.sent} مرسلة، ${d.replies} رد، ${d.meetings} اجتماع`),
+    preheader: T(l, "Your campaigns in numbers.", "حملاتك بالأرقام."),
+    heading: T(l, "Your campaigns yesterday", "حملاتك أمس"),
+    body: [T(l, `All campaigns: ${d.sent} emails sent, ${d.replies} people replied, ${d.meetings} meetings booked, ${esc(d.spend)} spent.`, `كل الحملات: ${d.sent} رسالة مرسلة، ${d.replies} شخص ردّوا، ${d.meetings} اجتماع محجوز، إنفاق ${esc(d.spend)}.`)],
+    extra: table(l, d.rows.slice(0, 15).map((r) => [esc(r.name), T(l, `${r.sent} sent · ${r.replies} replies · ${r.meetings} meetings · ${esc(r.spend)}`, `${r.sent} مرسلة · ${r.replies} رد · ${r.meetings} اجتماع · ${esc(r.spend)}`)])),
+    button: { label: T(l, "Open the dashboard", "افتح لوحة التحكم"), href: `${d.siteUrl}/dashboard` },
+    footnote: T(l, `Sent each morning when your campaigns did something. ${link(`${d.siteUrl}/?settings=notifications`, "Turn off in Notification settings")}`, `يصلك كل صباح عندما تعمل حملاتك. ${link(`${d.siteUrl}/?settings=notifications`, "أوقفه من إعدادات الإشعارات")}`),
+  }),
+  founder_note: (l, d) => ({
+    subject: T(l, `A note from ${d.founder}, Yolias's founder`, `رسالة من ${d.founder}، مؤسس يولياس`),
+    preheader: T(l, "Thank you for trying Yolias.", "شكرًا لتجربتك يولياس."),
+    heading: T(l, `Hi${d.name ? ` ${esc(d.name)}` : ""},`, `مرحبًا${d.name ? ` ${esc(d.name)}` : ""}،`),
+    body: d.text.split(/\n{2,}/).map((x) => esc(x)),
+    footnote: T(l, `${esc(d.founder)}, founder of Yolias. Reply to this email: I read every answer. ${link(`${d.siteUrl}/?settings=notifications`, "No more emails from me")}`, `${esc(d.founder)}، مؤسس يولياس. رد على هذه الرسالة: أقرأ كل رد. ${link(`${d.siteUrl}/?settings=notifications`, "لا أريد رسائل أخرى منك")}`),
+  }),
   daily_digest: (l, d) => {
     const rows: [string, string][] = [];
     if (d.replies) rows.push([T(l, "New replies", "ردود جديدة"), link(`${d.siteUrl}/inbox`, T(l, `${d.replies} conversations`, `${d.replies} محادثة`))]);
@@ -444,9 +483,9 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       preheader: T(l, "What needs you today in Yolias.", "ما يحتاجك اليوم في يولياس."),
       heading: T(l, "Today", "اليوم"),
       body: [T(l, "Here is what needs you today.", "هذا ما يحتاجك اليوم."),
-        ...(d.won.length ? [T(l, `You won ${esc(d.won.slice(0, 2).join(" and "))}. ${link(`${d.siteUrl}/analytics`, "Find companies like them")}.`, `كسبت ${esc(d.won.slice(0, 2).join(" و"))}. ${link(`${d.siteUrl}/analytics`, "ابحث عن شركات مشابهة")}.`)] : [])],
+        ...(d.won.length ? [T(l, `You won ${esc(d.won.slice(0, 2).join(" and "))}. ${link(`${d.siteUrl}/audiences`, "Create a lookalike audience")}.`, `كسبت ${esc(d.won.slice(0, 2).join(" و"))}. ${link(`${d.siteUrl}/audiences`, "أنشئ جمهورًا مشابهًا")}.`)] : [])],
       extra: rows.length ? table(l, rows) : undefined,
-      button: { label: T(l, "Open Analytics", "افتح التحليلات"), href: `${d.siteUrl}/analytics` },
+      button: { label: T(l, "Open the dashboard", "افتح لوحة التحكم"), href: `${d.siteUrl}/dashboard` },
       footnote: T(l, `Sent each morning when something needs you. ${link(`${d.siteUrl}/`, "Turn off in Notification settings")}`, `يصلك كل صباح عندما يوجد ما يحتاجك. ${link(`${d.siteUrl}/`, "أوقفه من إعدادات الإشعارات")}`),
     };
   },
@@ -503,7 +542,7 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
       body: [`${esc(d.hostName)} will see you on <span dir="ltr">${esc(when(d.start))}</span>.`, d.calendarInvite ? "A calendar invitation is on its way from Google Calendar." : `${link(add, "Add it to Google Calendar")}.`],
       extra: table("en", rows),
       button: { label: "Cancel the meeting", href: d.cancelUrl },
-      footnote: `You booked this on ${esc(d.hostName)}’s booking page on Yolias. If you can’t make it, cancel with the button above so the time is freed.`,
+      footnote: `You booked this on ${esc(d.hostName)}’s booking page on <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a>. If you can’t make it, cancel with the button above so the time is freed.`,
     };
   },
   meeting_rebook: (l, d) => ({
@@ -512,14 +551,14 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     heading: "We missed you",
     body: [`It looks like the meeting with ${esc(d.hostName)}${d.company ? ` (${esc(d.company)})` : ""} didn’t happen. No problem: pick another time that suits you.`],
     button: { label: "Pick another time", href: d.bookingUrl },
-    footnote: `Sent by Yolias on behalf of ${esc(d.hostName)}.`,
+    footnote: `Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of ${esc(d.hostName)}.`,
   }),
   meeting_guest_canceled: (l, d) => ({
     subject: `Canceled: ${d.title}`,
     preheader: "The meeting was canceled.",
     heading: "Meeting canceled",
     body: [`The meeting “${esc(d.title)}” on <span dir="ltr">${esc(new Intl.DateTimeFormat("en-US", { dateStyle: "full", timeStyle: "short", timeZone: d.timeZone }).format(new Date(d.start)))}</span> was canceled by the host.`],
-    footnote: "Sent by Yolias on behalf of the host.",
+    footnote: `Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of the host.`,
   }),
 
   /* Product updates */

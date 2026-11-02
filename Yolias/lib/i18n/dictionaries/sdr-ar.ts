@@ -56,6 +56,9 @@ export const sdrAr: typeof sdrEn = {
     },
     rules: {
       title: "قواعد إرسال البريد",
+      titleGmail: "قواعد الإرسال في Gmail", titleImap: "قواعد الإرسال في IMAP / SMTP",
+      capGmail: "تسمح Google بحتى 500 رسالة يوميًا من حساب Gmail و2,000 من Google Workspace؛ وللرسائل إلى أشخاص جدد ابقَ أقل بكثير (30 إلى 50 لكل بريد).",
+      capImap: "كل مزود بريد يحدد حده اليومي (غالبًا 100 إلى 500)؛ وللرسائل إلى أشخاص جدد ابقَ أقل بكثير (30 إلى 50 لكل بريد).",
       subtitle: "سرعة الإرسال ومواعيده.",
       perDay: "رسائل في اليوم لكل بريد", perDayDesc: "ابدأ بعدد قليل للبريد الجديد.", perDayNote: "",
       unitDay: "رسالة / يوم", defaultPerDay: "الافتراضي: {n} رسالة / يوم",

@@ -4,14 +4,12 @@ import { EmptyNext } from "@/components/app/EmptyNext";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Globe, Mail, Phone, Send, Trash2, UsersRound, X } from "lucide-react";
-import { AIMS, aimUsesLink } from "@/lib/outreach/aim";
-import type { CampaignAim } from "@/types/acquisition";
+import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Globe, Mail, Phone, Trash2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { addSelectionToCampaign, findDecisionMakersAction, openOutreachCampaigns, removeFromProspects, removeFromSaved, sendSelectionAsCampaign, type Target } from "@/app/(app)/prospects/actions";
+import { removeFromProspects, removeFromSaved, type Target } from "@/app/(app)/prospects/actions";
 import { exportedPeople } from "@/app/(app)/prospects/message-actions";
 import type { Bucket, ReplyKind } from "@/services/pipeline";
 import { RowMenu } from "./sdr/bits";
@@ -55,8 +53,6 @@ interface Props {
   /** The active filters as a query string (no page). */
   query: string;
   empty: string;
-  /** A source for decision makers is connected. */
-  canCollect: boolean;
 }
 
 // Prospects (D-256, after AgentSDR Leads): a People tab (name and title,
@@ -65,7 +61,7 @@ interface Props {
 // matching" across pages and the floating bar for bulk actions stay (Send,
 // CRM, export, reveal, find people, remove): they send row keys or the
 // filters, never row data.
-export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, canCollect }: Props) {
+export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }: Props) {
   const { t, locale } = useI18n();
   const pr = t.prospects;
   const L = t.sdr.leads;
@@ -74,7 +70,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
-  const [picker, setPicker] = useState<{ id: string; name: string; status: string }[] | null>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.key));
@@ -84,7 +79,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const sortHref = (s: string) => `/prospects?${[query.split("&").filter((x) => x && !x.startsWith("sort=")).join("&"), s ? `sort=${s}` : ""].filter(Boolean).join("&")}`;
   const sortNow = new URLSearchParams(query).get("sort") ?? "match";
   const hasPeople = tab === "people";
-  const hasCompanies = tab === "companies";
 
   const toggle = (key: string) => {
     setSelected((s) => {
@@ -116,7 +110,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
   const rowMenu = (r: TableRow) => (
     <RowMenu label={t.sdr.common.more}>{(close) => (<>
       <Link href={r.href} onClick={close}><ExternalLink />{L.menu.open}</Link>
-      <button type="button" onClick={() => { close(); setSelected(new Set([r.key])); start(async () => setPicker(await openOutreachCampaigns())); }}><Send />{L.menu.send}</button>
       <hr />
       <button type="button" className="danger" onClick={() => { close(); one(r.key, async (tg) => { const x = await removeFromProspects(tg); return x.ok ? fmt(pr.removed, { count: n(x.removed) }) : null; }); }}><Trash2 />{L.menu.remove}</button>
     </>)}</RowMenu>
@@ -219,21 +212,14 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
         </div>
       )}
 
-      {count > 0 && !picker && (
+      {count > 0 && (
         <div className="selection-bar" role="region" aria-label={fmt(pr.selected, { count: n(count) })}>
           <span className="selection-count">{fmt(pr.selected, { count: n(count) })}</span>
           <span className="selection-actions">
-            <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => setPicker(await openOutreachCampaigns()))}><Send /> {t.ws.outreach.send.button}</button>
             <button type="button" className="btn-secondary icon-only" aria-label={t.outreach.exportCsv} title={t.outreach.exportCsv} onClick={() => {
               exportForm.current?.requestSubmit();
               if (hasPeople) void exportedPeople(count, "prospects");
             }}><Download /></button>
-            {canCollect && hasCompanies && (
-              <button type="button" className="btn-secondary icon-only" aria-label={pr.findPeople} title={pr.findPeople} disabled={pending} onClick={() => run(async () => {
-                const r = await findDecisionMakersAction(target());
-                return r.ok ? fmt(pr.findPeopleQueued, { count: n(r.queued) }) : null;
-              })}><UsersRound /></button>
-            )}
             {new URLSearchParams(query).get("saved") === "1" ? (
               <button type="button" className="btn-danger-ghost" disabled={pending} onClick={() => run(async () => {
                 const r = await removeFromSaved(target());
@@ -253,22 +239,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty, 
         <input type="hidden" name="query" value={query} />
         {[...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
       </form>
-      {picker && (
-        <SendDialog count={Math.max(count, 1)} campaigns={picker} pending={pending} onClose={() => setPicker(null)}
-          onCreate={(input) => { setPicker(null); run(async () => {
-            const r = await sendSelectionAsCampaign(target(), input);
-            if (!r.ok) { toast(r.error, "error"); return null; }
-            // Straight to the campaign: one approval there, then Yolias runs it (D-253).
-            router.push(`/outreach/${r.id}`);
-            return r.message ?? null;
-          }); }}
-          onPick={(id) => { setPicker(null); run(async () => {
-            const r = await addSelectionToCampaign(id, target());
-            if (!r.ok) { toast(r.error, "error"); return null; }
-            router.push(`/outreach/${id}`);
-            return r.message ?? null;
-          }); }} />
-      )}
     </div>
   );
 }
@@ -289,58 +259,6 @@ function CrmCell({ crm }: { crm: TableRow["crm"] }) {
     <div>
       {label ? <span className={`sdr-badge ${tone}`}>{label}</span> : <span className="sdr-cell-sub">{crm.contacted ? t.prospects.table.outreach.contacted : t.prospects.table.outreach.in_campaign}</span>}
       {note && <span className="sdr-cell-sub">{note}</span>}
-    </div>
-  );
-}
-
-/**
- * Prospects → Send (owner brief 2026-10-19, D-239): name a new email campaign
- * — Yolias creates it and writes each person's email on the campaign page —
- * or add the selection to a campaign that already exists.
- */
-function SendDialog({ count, campaigns, pending, onClose, onCreate, onPick }: {
-  count: number; campaigns: { id: string; name: string; status: string }[]; pending: boolean;
-  onClose: () => void; onCreate: (input: { name: string; channel: "email"; aim: CampaignAim; ctaUrl: string | null }) => void; onPick: (id: string) => void;
-}) {
-  const { t, locale } = useI18n();
-  const o = t.ws.outreach;
-  const l = o.launch;
-  const [aim, setAim] = useState<CampaignAim>("meeting");
-  const [cta, setCta] = useState("");
-  const [name, setName] = useState(() => fmt(o.send.defaultName, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "short" }).format(new Date()) }));
-  return (
-    <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="ws-modal send-dialog" role="dialog" aria-modal="true" aria-labelledby="send-title">
-        <div className="ws-modal-head">
-          <h3 id="send-title">{fmt(o.send.title, { count: formatNumber(count, locale) })}</h3>
-          <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={onClose}><X /></button>
-        </div>
-        <p className="ws-muted">{o.send.lead}</p>
-        <div className="ws-field"><label className="ws-label" htmlFor="send-name">{o.send.name}</label>
-          <input id="send-name" className="form-input" value={name} maxLength={160} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="ws-field"><label className="ws-label" htmlFor="send-aim">{l.aim}</label>
-          <select id="send-aim" className="form-select" value={aim} onChange={(e) => setAim(e.target.value as CampaignAim)}>
-            {AIMS.map((a) => <option key={a} value={a}>{l.aims[a]}</option>)}
-          </select>
-          <span className="cell-sub">{l.aimHints[aim]}</span></div>
-        {aimUsesLink(aim) && <div className="ws-field"><label className="ws-label" htmlFor="send-cta">{l.ctaUrl[aim]}</label>
-          <input id="send-cta" className="form-input" dir="ltr" type="url" inputMode="url" placeholder={l.ctaPh} value={cta} maxLength={500} onChange={(e) => setCta(e.target.value)} /></div>}
-        <div className="ws-actions">
-          <button className="btn-primary" type="button" disabled={pending || !name.trim()} onClick={() => onCreate({ name: name.trim(), channel: "email", aim, ctaUrl: aimUsesLink(aim) ? cta.trim() || null : null })}><Send /> {o.send.start}</button>
-        </div>
-        {campaigns.length > 0 && (
-          <>
-            <p className="ws-label send-dialog-or">{o.send.orExisting}</p>
-            <div className="ws-pick-list">
-              {campaigns.map((c) => (
-                <button key={c.id} type="button" className="menu-item" disabled={pending} onClick={() => onPick(c.id)}>
-                  <Send /> <span>{c.name}</span> <span className="cell-sub">{o.status[c.status as keyof typeof o.status]}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 }

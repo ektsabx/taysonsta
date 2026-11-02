@@ -498,11 +498,15 @@ function NotificationsTab({ data }: { data: ShellData }) {
   const [prefs, setPrefs] = useState(data.preferences);
   const { error, run } = useSave();
   const items = [
-    { key: "notify_campaign_done", id: "notify-discovery", label: nt.discovery, desc: nt.discoveryDesc },
+    // The five the owner asked for (D-273), on by default, then replies, usage and billing.
+    { key: "notify_review", id: "notify-review", label: nt.review, desc: nt.reviewDesc },
+    { key: "notify_daily_changes", id: "notify-changes", label: nt.changes, desc: nt.changesDesc },
+    { key: "notify_daily_summary", id: "notify-summary", label: nt.summary, desc: nt.summaryDesc },
+    { key: "notify_product", id: "notify-product", label: nt.product, desc: nt.productDesc },
+    { key: "notify_founder", id: "notify-founder", label: nt.founder, desc: nt.founderDesc },
     { key: "notify_sales", id: "notify-sales", label: nt.sales, desc: nt.salesDesc },
     { key: "notify_usage", id: "notify-usage", label: nt.usage, desc: nt.usageDesc },
     { key: "notify_billing", id: "notify-billing", label: nt.billing, desc: nt.billingDesc },
-    { key: "notify_product", id: "notify-product", label: nt.product, desc: nt.productDesc },
   ] as const;
 
   const toggle = (key: (typeof items)[number]["key"], value: boolean) => {

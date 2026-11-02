@@ -72,12 +72,12 @@ export const comparePages: SeedPage[] = [
   versus({
     slug: "apollo", name: "Apollo", nameAr: "Apollo", keyword: "yolias vs apollo", secondary: ["apollo vs yolias", "apollo.io comparison"],
     lead: {
-      en: "Apollo is a sales platform built around a large contact database, sequences and calling. Yolias starts from a description of your ideal customer and turns it into a researched list and approved emails. Here is how they differ.",
+      en: "Apollo is a sales platform built around a large contact database, sequences and calling. Yolias starts from a description of your ideal customer and turns it into a researched list and emails it sends for you. Here is how they differ.",
       ar: "Apollo منصة مبيعات مبنية حول قاعدة جهات اتصال كبيرة وتسلسلات واتصالات. أما يولياس فيبدأ من وصف عميلك المثالي ويحوّله إلى قائمة مدروسة ورسائل توافق عليها. هذا هو الفرق بينهما.",
     },
     answer: {
-      en: "Choose Apollo if you want one large contact database with sequences and a dialer, and you are comfortable building lists with filters. Choose Yolias if you sell services, want to describe your customer in plain English or Arabic, and want each company explained and emailed from your own mailbox after you approve.",
-      ar: "اختر Apollo إذا أردت قاعدة جهات اتصال كبيرة مع التسلسلات والاتصال الهاتفي، وتبني القوائم بالفلاتر بسهولة. واختر يولياس إذا كنت تبيع خدمات، وتريد وصف عميلك بالعربية أو الإنجليزية، وتريد شرحًا لكل شركة ورسائل تُرسل من بريدك بعد موافقتك.",
+      en: "Choose Apollo if you want one large contact database with sequences and a dialer, and you are comfortable building lists with filters. Choose Yolias if you sell services, want to describe your customer in plain English or Arabic, and want each company explained and emailed from your own mailbox once you launch the campaign.",
+      ar: "اختر Apollo إذا أردت قاعدة جهات اتصال كبيرة مع التسلسلات والاتصال الهاتفي، وتبني القوائم بالفلاتر بسهولة. واختر يولياس إذا كنت تبيع خدمات، وتريد وصف عميلك بالعربية أو الإنجليزية، وتريد شرحًا لكل شركة ورسائل تُرسل من بريدك بعد تشغيلك للحملة.",
     },
     them: {
       find: { en: "Filters over its own database, plus AI agents that research and build lists (its website)", ar: "فلاتر على قاعدة بياناته، ووكلاء ذكاء اصطناعي يبحثون ويبنون القوائم (من موقعه)" },
@@ -118,8 +118,8 @@ export const comparePages: SeedPage[] = [
       ar: "Clay مجموعة أدوات لبناء مسارات الإثراء والتواصل بنفسك من مزودي بيانات كثيرين. أما يولياس فيبحث عنك انطلاقًا من وصف بسيط ويجهّز الرسائل. الاختيار يعتمد غالبًا على مقدار ما تريد بناءه بنفسك.",
     },
     answer: {
-      en: "Choose Clay if you have someone who enjoys building tables, columns and waterfalls across many data vendors. Choose Yolias if you want to describe your ideal customer and get matching companies, the reason each fits and emails ready for your approval, without building a workflow.",
-      ar: "اختر Clay إذا كان لديك من يحب بناء الجداول والأعمدة والمسارات عبر مزودي بيانات كثيرين. واختر يولياس إذا أردت أن تصف عميلك المثالي وتحصل على الشركات المطابقة وسبب تطابق كل منها ورسائل جاهزة لموافقتك، دون بناء مسار.",
+      en: "Choose Clay if you have someone who enjoys building tables, columns and waterfalls across many data vendors. Choose Yolias if you want to describe your ideal customer and get matching companies, the reason each fits and emails written and sent for you, without building a workflow.",
+      ar: "اختر Clay إذا كان لديك من يحب بناء الجداول والأعمدة والمسارات عبر مزودي بيانات كثيرين. واختر يولياس إذا أردت أن تصف عميلك المثالي وتحصل على الشركات المطابقة وسبب تطابق كل منها ورسائل يكتبها ويرسلها نيابةً عنك، دون بناء مسار.",
     },
     them: {
       find: { en: "Tables and a visual canvas where you build the workflow; AI research agents (Claygent)", ar: "جداول ولوحة مرئية تبني فيها المسار، ووكلاء بحث بالذكاء الاصطناعي (Claygent)" },
@@ -160,7 +160,7 @@ export const comparePages: SeedPage[] = [
   versus({
     slug: "zoominfo", name: "ZoomInfo", keyword: "yolias vs zoominfo", secondary: ["zoominfo vs yolias", "zoominfo comparison small business"],
     lead: {
-      en: "ZoomInfo is an enterprise data and intelligence platform bought through its sales team. Yolias is a self-serve tool for businesses that sell services and want matching companies and approved outreach without an enterprise contract.",
+      en: "ZoomInfo is an enterprise data and intelligence platform bought through its sales team. Yolias is a self-serve tool for businesses that sell services and want matching companies and outreach it sends for you without an enterprise contract.",
       ar: "ZoomInfo منصة بيانات ومعلومات للمؤسسات تُشترى عبر فريق مبيعاتها. أما يولياس فأداة ذاتية الخدمة للشركات التي تبيع خدمات وتريد شركات مطابقة وتواصلًا توافق عليه دون عقد مؤسسي.",
     },
     answer: {
@@ -246,8 +246,8 @@ export const comparePages: SeedPage[] = [
       ar: "Cognism مزود بيانات تواصل معروف بأرقام الجوال المتحقق منها هاتفيًا في أوروبا. أما يولياس فيجد الشركات المناسبة لخدمة تبيعها، ويشرح سبب التطابق، ويدير التواصل بالبريد من بريدك.",
     },
     answer: {
-      en: "Choose Cognism if your team calls decision makers, especially in Europe, and needs verified mobiles and compliance features. Choose Yolias if you want to find the right companies from a plain description and reach them by email after your approval.",
-      ar: "اختر Cognism إذا كان فريقك يتصل بصنّاع القرار، خاصة في أوروبا، ويحتاج أرقام جوال موثقة وميزات امتثال. واختر يولياس إذا أردت إيجاد الشركات المناسبة من وصف بسيط ومراسلتها بالبريد بعد موافقتك.",
+      en: "Choose Cognism if your team calls decision makers, especially in Europe, and needs verified mobiles and compliance features. Choose Yolias if you want to find the right companies from a plain description and reach them by email once you launch the campaign.",
+      ar: "اختر Cognism إذا كان فريقك يتصل بصنّاع القرار، خاصة في أوروبا، ويحتاج أرقام جوال موثقة وميزات امتثال. واختر يولياس إذا أردت إيجاد الشركات المناسبة من وصف بسيط ومراسلتها بالبريد بعد تشغيلك للحملة.",
     },
     them: {
       find: { en: "Search with firmographic and technographic filters; MCP and API access", ar: "بحث بفلاتر بيانات الشركات والتقنيات، ووصول عبر MCP وواجهة برمجة" },
@@ -286,8 +286,8 @@ export const comparePages: SeedPage[] = [
       ar: "Instantly مبني لإرسال البريد البارد بكميات كبيرة عبر صناديق بريد كثيرة، مع التدفئة وأدوات وصول الرسائل. أما يولياس فمبني لإيجاد الشركات المناسبة لخدماتك وإرسال رسائل أقل ومدروسة من بريدك.",
     },
     answer: {
-      en: "Choose Instantly if you run high-volume campaigns across many mailboxes and need warmup and deliverability tooling. Choose Yolias if you want help deciding who to write to, with each company explained, and a personal email from your own Gmail or company mailbox after you approve it.",
-      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد موافقتك.",
+      en: "Choose Instantly if you run high-volume campaigns across many mailboxes and need warmup and deliverability tooling. Choose Yolias if you want help deciding who to write to, with each company explained, and a personal email from your own Gmail or company mailbox once you launch the campaign.",
+      ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد تشغيلك للحملة.",
     },
     them: {
       find: { en: "A B2B lead database with filters, on separate credit plans", ar: "قاعدة عملاء B2B بفلاتر، بخطط رصيد منفصلة" },
@@ -304,7 +304,7 @@ export const comparePages: SeedPage[] = [
       ar: ["ترسل آلاف الرسائل الباردة شهريًا عبر نطاقات كثيرة.", "التدفئة ووصول الرسائل إلى الوارد مشكلتك الأساسية.", "أنت وكالة تدير التواصل لعملاء كثيرين."],
     },
     chooseYolias: {
-      en: ["You'd rather send fewer, better emails from your real mailbox.", "Your problem is finding who to write to, not sending more.", "You want the emails written from your Company Knowledge and approved by you first."],
+      en: ["You'd rather send fewer, better emails from your real mailbox.", "Your problem is finding who to write to, not sending more.", "You want the emails written from your Company Knowledge and previewed by you before launch."],
       ar: ["تفضل إرسال رسائل أقل وأفضل من بريدك الحقيقي.", "مشكلتك إيجاد من تراسل، لا إرسال المزيد.", "تريد رسائل مكتوبة من معرفة شركتك وتوافق عليها أولًا."],
     },
     faq: {
@@ -326,8 +326,8 @@ export const comparePages: SeedPage[] = [
       ar: "Smartlead منصة لإرسال البريد البارد بصناديق بريد غير محدودة وتدفئة وعلامة بيضاء للوكالات. أما يولياس فيجد الشركات أولًا ويرسل رسائل مدروسة من صندوق بريد أو أكثر تربطه.",
     },
     answer: {
-      en: "Choose Smartlead if you are a lead generation agency sending for many clients and need unlimited mailboxes, sender rotation, an API and white label. Choose Yolias if you need the list itself: companies that fit your service, explained, with emails ready for your approval.",
-      ar: "اختر Smartlead إذا كنت وكالة جذب عملاء ترسل لعملاء كثيرين وتحتاج صناديق بريد غير محدودة وتدوير المرسلين وواجهة برمجة وعلامة بيضاء. واختر يولياس إذا كنت تحتاج القائمة نفسها: شركات تناسب خدمتك، مشروحة، مع رسائل جاهزة لموافقتك.",
+      en: "Choose Smartlead if you are a lead generation agency sending for many clients and need unlimited mailboxes, sender rotation, an API and white label. Choose Yolias if you need the list itself: companies that fit your service, explained, with emails written and sent for you.",
+      ar: "اختر Smartlead إذا كنت وكالة جذب عملاء ترسل لعملاء كثيرين وتحتاج صناديق بريد غير محدودة وتدوير المرسلين وواجهة برمجة وعلامة بيضاء. واختر يولياس إذا كنت تحتاج القائمة نفسها: شركات تناسب خدمتك، مشروحة، مع رسائل يكتبها ويرسلها نيابةً عنك.",
     },
     them: {
       find: { en: "You bring your leads; email verification is included in each plan", ar: "تجلب عملاءك بنفسك، والتحقق من البريد ضمن كل خطة" },
@@ -370,8 +370,8 @@ export const comparePages: SeedPage[] = [
       ar: "Hunter معروف أكثر بإيجاد عناوين البريد في شركة والتحقق منها. أما يولياس فيبدأ قبلها بخطوة: يجد الشركات التي تناسب الخدمة التي تبيعها، ويشرح السبب، ويكتب الرسالة الأولى.",
     },
     answer: {
-      en: "Choose Hunter if you know the companies and need verified email addresses for people there. Choose Yolias if you need to find the companies that fit your offer and want the outreach prepared and sent from your mailbox after you approve.",
-      ar: "اختر Hunter إذا كنت تعرف الشركات وتحتاج عناوين بريد موثقة لأشخاص فيها. واختر يولياس إذا كنت تحتاج إيجاد الشركات المناسبة لعرضك وتريد تجهيز التواصل وإرساله من بريدك بعد موافقتك.",
+      en: "Choose Hunter if you know the companies and need verified email addresses for people there. Choose Yolias if you need to find the companies that fit your offer and want the outreach prepared and sent from your mailbox once you launch the campaign.",
+      ar: "اختر Hunter إذا كنت تعرف الشركات وتحتاج عناوين بريد موثقة لأشخاص فيها. واختر يولياس إذا كنت تحتاج إيجاد الشركات المناسبة لعرضك وتريد تجهيز التواصل وإرساله من بريدك بعد تشغيلك للحملة.",
     },
     them: {
       find: { en: "Domain search, email finder and Discover filters for B2B leads", ar: "البحث بالنطاق، والعثور على البريد، وفلاتر Discover لعملاء B2B" },

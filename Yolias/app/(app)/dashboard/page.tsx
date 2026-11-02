@@ -1,50 +1,40 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/server";
-import { requireViewer } from "@/lib/session";
+import { canManageTeam, requireViewer } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayFor } from "@/services/today";
-import { campaignActivity, campaignMetrics, prospectRate } from "@/services/campaign-metrics";
-import { CampaignDashboard } from "@/components/app/campaigns/CampaignDashboard";
-import { StartHere } from "@/components/app/StartHere";
+import { dashboardData, type DashRange } from "@/services/dashboard";
 import { startSteps } from "@/services/start-here";
-import { tabCounts } from "@/services/prospects";
+import { Dashboard } from "@/components/app/campaigns/Dashboard";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).camp.dash.title} | Yolias` };
+  return { title: `${(await getDictionary()).nav.dashboard} | Yolias` };
 }
 
 /** An ISO time relative to now (outside render, for the lint rule on impure calls). */
 function isoFromNow(ms: number) { return new Date(Date.now() + ms).toISOString(); }
 
-// The dashboard (owner, 2026-10-31, D-270 / D-271): the account's home, one
-// design only. Start here while it isn't done, then the campaigns: results
-// (actual), what needs the member, Yolias's notes, progress to each target
-// (actual vs forecast vs target), the comparison and what Yolias did. The old
-// analytics overview (Today card, section cards, charts) was removed.
-export default async function DashboardPage() {
+// The dashboard (owner, 2026-10-31, D-273): the account's home, after the
+// reference the owner chose. ?range=30d|90d and ?campaign=<id> set the
+// performance section; everything is counted on the server from real rows.
+export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   const session = await requireViewer();
   const ws = session.workspace.id;
+  const sp = await searchParams;
+  const range: DashRange = sp.range === "30d" || sp.range === "90d" ? sp.range : "7d";
+  const campaignId = typeof sp.campaign === "string" && /^[0-9a-f-]{36}$/i.test(sp.campaign) ? sp.campaign : null;
   const admin = createAdminClient();
-  const [t, today, metrics, activity, rate, steps, found, approvals, outcomes] = await Promise.all([
-    getDictionary(), todayFor(ws, session.profile.timezone ?? null),
-    campaignMetrics(ws), campaignActivity(ws), prospectRate(ws), startSteps(ws, session.userId), tabCounts(ws),
-    admin.from("agent_pending_actions").select("input").eq("workspace_id", ws).eq("tool", "startOutreachCampaign").eq("status", "pending").gt("expires_at", isoFromNow(0)),
+  const [data, steps, today, outcomes, paused] = await Promise.all([
+    dashboardData(ws, range, campaignId), startSteps(ws, session.userId), todayFor(ws, session.profile.timezone ?? null),
     admin.from("sales_meetings").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("status", "scheduled").lt("starts_at", isoFromNow(-3_600_000)),
+    admin.from("outreach_campaigns").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("status", "paused").not("failure_reason", "is", null),
   ]);
-  const waiting = [...new Set((approvals.data ?? []).map((a) => (a.input as { id?: string } | null)?.id).filter((x): x is string => Boolean(x)))];
   return (
     <div className="page-view">
-      <header className="view-header">
-        <div className="view-title-group"><h2>{t.camp.dash.title}</h2></div>
-        <div className="view-actions"><Link className="sdr-btn primary" href="/outreach/new"><Plus />{t.camp.dash.newCampaign}</Link></div>
-      </header>
-      <div className="view-content-padding analytics-page">
-        <StartHere steps={steps} />
-        <CampaignDashboard
-          found={found.companies + found.people} metrics={metrics} activity={activity} rate={rate} waiting={waiting}
-          outcomesWaiting={outcomes.count ?? 0} repliesWaiting={today.replies} meetingsToday={today.meetings.length} tryAgain={today.reengage}
+      <div className="view-content-padding db-page">
+        <Dashboard
+          name={session.workspace.name || session.profile.full_name || "Yolias"} data={data} range={range} campaignId={campaignId} steps={steps} canBudget={canManageTeam(session)}
+          needs={{ replies: today.replies, today: today.meetings.length, outcomes: outcomes.count ?? 0, paused: paused.count ?? 0, tryAgain: today.reengage }}
         />
       </div>
     </div>

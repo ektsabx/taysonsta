@@ -24,6 +24,8 @@ export interface EmailState {
   mailboxes: MailboxView[];
   available: MailProvider[];
   rules: SendingRules;
+  /** D-273: each kind of mailbox has its own sending rules. */
+  rulesBy: { gmail: SendingRules; imap: SendingRules };
   /** Owners and admins change the workspace's sending rules; every member sees them. */
   canEditRules: boolean;
   memberTimeZone: string | null;
@@ -31,15 +33,16 @@ export interface EmailState {
 
 export async function mailboxState(): Promise<EmailState> {
   const s = await requireUser();
-  const [rows, available, rules] = await Promise.all([memberMailboxes(s.workspace.id, s.userId), availableProviders(), loadSendingRules(s.workspace.id)]);
+  const [rows, available, gmail, imap] = await Promise.all([memberMailboxes(s.workspace.id, s.userId), availableProviders(), loadSendingRules(s.workspace.id, "gmail"), loadSendingRules(s.workspace.id, "imap")]);
   const today = new Date().toISOString().slice(0, 10);
+  const rulesFor = (p: string) => (p === "gmail" ? gmail : imap);
   return {
-    available, rules, canEditRules: canManageTeam(s), memberTimeZone: s.profile.timezone ?? null,
+    available, rules: gmail, rulesBy: { gmail, imap }, canEditRules: canManageTeam(s), memberTimeZone: s.profile.timezone ?? null,
     mailboxes: rows.map((m) => ({
       id: m.id, provider: m.provider, email: m.email, displayName: m.display_name, status: m.status, lastError: m.last_error, dailyLimit: m.daily_limit,
       sentToday: m.sent_day === today ? m.sent_today : 0, canRead: m.can_read, connectedAt: m.connected_at, lastSyncedAt: m.last_synced_at,
       sendDays: m.send_days, sendStart: m.send_start, sendEnd: m.send_end, timeZone: m.time_zone,
-      effectiveTimeZone: mailboxWindow(m, rules, s.profile.timezone ?? null).timeZone,
+      effectiveTimeZone: mailboxWindow(m, rulesFor(m.provider), s.profile.timezone ?? null).timeZone,
     })),
   };
 }
@@ -61,12 +64,17 @@ export async function updateMailboxSending(id: string, input: { dailyLimit: numb
 }
 
 /** Owners and admins set the workspace's sending rules (Settings → Email → Sending rules). */
-export async function saveSendingRules(input: SendingRules): Promise<{ ok: boolean }> {
+/** The sending rules of one kind of mailbox (D-273: inside its own integration, Gmail or IMAP/SMTP). */
+export async function saveSendingRules(input: SendingRules, provider: "gmail" | "imap"): Promise<{ ok: boolean }> {
   const s = await requireUser();
-  if (!canManageTeam(s)) return { ok: false };
+  if (!canManageTeam(s) || !["gmail", "imap"].includes(provider)) return { ok: false };
   const v = sendingRulesSchema.safeParse(input);
   if (!v.success || (v.data.timezone && !validTimeZone(v.data.timezone))) return { ok: false };
-  const { error } = await createAdminClient().from("workspaces").update({ sending_rules: { ...v.data, days: [...new Set(v.data.days)].sort() } }).eq("id", s.workspace.id);
+  const db = createAdminClient();
+  const { data: ws } = await db.from("workspaces").select("sending_rules").eq("id", s.workspace.id).single();
+  const cur = (ws?.sending_rules ?? {}) as Record<string, unknown> & { by_provider?: Record<string, unknown> };
+  const next = { ...cur, by_provider: { ...(cur.by_provider ?? {}), [provider]: { ...v.data, days: [...new Set(v.data.days)].sort() } } };
+  const { error } = await db.from("workspaces").update({ sending_rules: next as never }).eq("id", s.workspace.id);
   return { ok: !error };
 }
 

@@ -3,9 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
 import { inRange } from "@/lib/campaigns/metrics";
 
-// One campaign's detail tabs (owner, 2026-10-31, D-272): performance broken
-// down by day, audience group, first-email variant, sequence step, industry,
-// country and job title; its messages; its conversations; its meetings.
+// One campaign's detail (owner, 2026-10-31, D-272, D-273): results day by day
+// (and by audience, opening, industry, country, job title for Yolias AI); its
+// emails; its conversations; its meetings.
 // Counted from real rows, each person once per count. Called after
 // requireViewer with the session's workspace (admin client, filtered by it).
 
@@ -22,7 +22,7 @@ export async function campaignDetail(workspaceId: string, campaignId: string, ra
       .eq("workspace_id", workspaceId).eq("outreach_campaign_id", campaignId).order("created_at", { ascending: false }).limit(5000),
     db.from("outreach_enrollments").select("id, lead_id, audience_group_id, status, current_step, lead:sales_leads(name, company_name, email, stage, prospect:prospects(title, country), company:companies(industry, country))").eq("campaign_id", campaignId).limit(5000),
     db.from("audience_groups").select("id, name").eq("campaign_id", campaignId),
-    db.from("sales_meetings").select("id, lead_id, title, starts_at, status, qualified, source, lead:sales_leads(name, company_name)").eq("workspace_id", workspaceId).eq("campaign_id", campaignId).order("starts_at", { ascending: false }).limit(500),
+    db.from("sales_meetings").select("id, lead_id, title, starts_at, status, qualified, source, confirmed_at, lead:sales_leads(name, company_name)").eq("workspace_id", workspaceId).eq("campaign_id", campaignId).order("starts_at", { ascending: false }).limit(500),
   ]);
   const msgs = (msgsRaw ?? []) as Msg[];
   type Lead = { name: string; company_name: string | null; email: string | null; stage: string; prospect: { title: string | null; country: string | null } | null; company: { industry: string | null; country: string | null } | null };
@@ -82,7 +82,7 @@ export async function campaignDetail(workspaceId: string, campaignId: string, ra
     const l = e.lead as unknown as Lead | null;
     return { enrollmentId: e.id, leadId: e.lead_id, name: l?.name ?? "", company: l?.company_name ?? null, email: l?.email ?? null, title: l?.prospect?.title ?? null, country: l?.prospect?.country ?? l?.company?.country ?? null, stage: l?.stage ?? "new", status: e.status, step: e.current_step, group: groupName.get(e.audience_group_id ?? "") ?? null };
   });
-  const meetingRows = (meetings ?? []).map((m) => ({ id: m.id, leadId: m.lead_id, title: m.title, at: m.starts_at, status: m.status, qualified: m.qualified, source: m.source, lead: (m.lead as unknown as { name: string; company_name: string | null } | null)?.name ?? "" }));
+  const meetingRows = (meetings ?? []).map((m) => ({ id: m.id, leadId: m.lead_id, title: m.title, at: m.starts_at, status: m.status, qualified: m.qualified, source: m.source, confirmed: Boolean(m.confirmed_at), lead: (m.lead as unknown as { name: string; company_name: string | null } | null)?.name ?? "" }));
   const dims: Dimension[] = ["day", "group", "variant", "step", "industry", "country", "title"];
   return { breakdowns: Object.fromEntries(dims.map((d) => [d, breakdown(d)])) as Record<Dimension, BreakRow[]>, messages, conversations, people, meetings: meetingRows };
 }

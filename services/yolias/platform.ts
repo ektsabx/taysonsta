@@ -1,5 +1,5 @@
 import "server-only";
-import { ydb, type YTables } from "@/lib/yolias/db";
+import { ydb, yintel, type YTables } from "@/lib/yolias/db";
 import { isYoliasPlan, monthStartUtc, type YoliasPlan } from "@/lib/yolias/plans";
 import { getPlanTerms } from "@/services/yolias/usage";
 
@@ -182,12 +182,27 @@ export async function listSearches(opts: { q?: string; status?: string; page: nu
   const wsIds = [...new Set(rows.map((r) => r.workspace_id))];
   const [{ data: ws }, { data: camps }] = await Promise.all([
     wsIds.length ? ydb().from("workspaces").select("id, name, plan").in("id", wsIds) : Promise.resolve({ data: [] as Pick<Workspace, "id" | "name" | "plan">[] }),
-    rows.length ? ydb().from("campaigns").select("strategy_id, status, prospects_found, quota").in("strategy_id", rows.map((r) => r.id)) : Promise.resolve({ data: [] as Pick<YTables<"campaigns">, "strategy_id" | "status" | "prospects_found" | "quota">[] }),
+    rows.length ? ydb().from("campaigns").select("id, strategy_id, status, prospects_found, quota").in("strategy_id", rows.map((r) => r.id)) : Promise.resolve({ data: [] as Pick<YTables<"campaigns">, "id" | "strategy_id" | "status" | "prospects_found" | "quota">[] }),
   ]);
   const wsById = new Map((ws ?? []).map((w) => [w.id, w]));
+  // D-273: which providers each search used, with calls, records, cost and failures (intel.provider_calls).
+  const campIds = (camps ?? []).map((c) => c.id);
+  const { data: calls } = campIds.length ? await yintel().from("provider_calls").select("campaign_id, provider, ok, records_returned, cost_usd, error").in("campaign_id", campIds).limit(20_000) : { data: [] };
+  const used = new Map<string, Map<string, { calls: number; failed: number; records: number; costUsd: number; lastError: string | null }>>();
+  for (const c of calls ?? []) {
+    if (!c.campaign_id) continue;
+    const per = used.get(c.campaign_id) ?? new Map();
+    const x = per.get(c.provider) ?? { calls: 0, failed: 0, records: 0, costUsd: 0, lastError: null };
+    x.calls++; if (!c.ok) { x.failed++; x.lastError = c.error ?? x.lastError; } x.records += c.records_returned ?? 0; x.costUsd += Number(c.cost_usd ?? 0);
+    per.set(c.provider, x); used.set(c.campaign_id, per);
+  }
   return {
     total: total ?? 0,
     pages: Math.max(1, Math.ceil((total ?? 0) / PAGE)),
-    rows: rows.map((r) => ({ ...r, workspace: wsById.get(r.workspace_id) ?? null, campaign: (camps ?? []).find((c) => c.strategy_id === r.id) ?? null })),
+    rows: rows.map((r) => {
+      const campaign = (camps ?? []).find((c) => c.strategy_id === r.id) ?? null;
+      const providers = campaign ? [...(used.get(campaign.id)?.entries() ?? [])].map(([id, v]) => ({ id, ...v })) : [];
+      return { ...r, workspace: wsById.get(r.workspace_id) ?? null, campaign, providers };
+    }),
   };
 }

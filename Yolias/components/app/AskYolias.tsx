@@ -8,11 +8,10 @@ import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useToast } from "@/components/Toast";
 import { createStrategy } from "@/app/(app)/actions";
 
-// Yolias AI on every screen (owner, 2026-10-31, D-270): a button that opens a
-// short box. What is typed goes to Yolias AI exactly as from its own page
-// (createStrategy: a question or an action becomes a conversation, a request
-// for new customers becomes a search), and the answer opens there. Hidden on
-// Yolias AI's own pages, where the box is already on screen.
+// Yolias AI on every screen (owner, 2026-10-31, D-270, D-273): a button that
+// opens a short box. What is typed starts a conversation with Yolias AI (kept
+// in its history in the sidebar) that knows the page it came from, and the
+// answer opens there. Hidden on Yolias AI's own pages.
 
 export function AskYolias() {
   const { t } = useI18n();
@@ -38,6 +37,8 @@ export function AskYolias() {
     start(async () => {
       const fd = new FormData();
       fd.set("prompt", prompt);
+      // The page it was opened from, so "this campaign" means the one on screen (D-273).
+      fd.set("page", pathname);
       const r = await callAction(() => createStrategy(fd));
       if (isNetworkFailure(r)) { toast(t.feedback.errors.network, "error"); return; }
       if (!r.ok) { toast(r.error, "error"); return; }

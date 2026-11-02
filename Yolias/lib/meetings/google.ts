@@ -85,6 +85,14 @@ export async function createEvent(token: string, calendarId: string, e: EventInp
   return { id: r.id, meetUrl: r.hangoutLink ?? null };
 }
 
+/** The guest's answer to the invitation on an event Yolias created (D-273): accepted, declined, tentative or not answered. */
+export async function guestResponse(token: string, calendarId: string, eventId: string, guestEmail: string): Promise<"accepted" | "declined" | "tentative" | "needsAction" | null> {
+  const r = await call<{ attendees?: { email?: string; responseStatus?: string }[] } | null>(token, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`);
+  const a = r?.attendees?.find((x) => x.email?.toLowerCase() === guestEmail.toLowerCase());
+  const s = a?.responseStatus;
+  return s === "accepted" || s === "declined" || s === "tentative" || s === "needsAction" ? s : null;
+}
+
 export async function cancelEvent(token: string, calendarId: string, eventId: string): Promise<void> {
   await call(token, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: "DELETE" });
 }

@@ -14,14 +14,18 @@ import type { AudienceGroupRow, OutreachCampaignRow } from "@/types/database";
 const DAY = 86_400_000;
 const POSITIVE = new Set(["interested", "meeting_request"]);
 
-export interface GroupLine { id: string; name: string; status: AudienceGroupRow["status"]; source: AudienceGroupRow["source"]; counts: Counts }
+/** D-273: one opening (first-email angle) of an audience, like an ad of an ad set. */
+export interface OpeningLine { key: string; variant: "a" | "b"; text: string; counts: Counts }
+export interface GroupLine { id: string; name: string; status: AudienceGroupRow["status"]; source: AudienceGroupRow["source"]; counts: Counts; openings: OpeningLine[] }
 export interface CampaignLine {
   id: string; name: string; status: OutreachCampaignRow["status"]; objective: OutreachCampaignRow["objective"]; channels: string[];
   ownerId: string | null; createdAt: string; startsAt: string | null; endsAt: string | null; budgetUsd: number | null; budgetType: OutreachCampaignRow["budget_type"];
   approved: boolean; countries: string[]; counts: Counts; groups: GroupLine[];
+  /** D-273: the campaign's daily pace (new people a day) and its daily budget in USD, when it has one. */
+  dailyLimit: number | null; dailyUsd: number | null;
 }
 
-type Msg = { outreach_campaign_id: string | null; enrollment_id: string | null; lead_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown };
+type Msg = { outreach_campaign_id: string | null; enrollment_id: string | null; lead_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; step_position: number | null; variant: string | null };
 
 async function paged<T>(q: (from: number, to: number) => PromiseLike<{ data: T[] | null }>, cap = 50_000): Promise<T[]> {
   const out: T[] = [];
@@ -46,10 +50,10 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   const searchIds = [...new Set([...groups.map((g) => g.search_campaign_id), ...camps.map((c) => c.source_campaign_id)].filter((x): x is string => Boolean(x)))];
 
   const [msgs, enrollments, meetings, ledger, prospects, rate] = await Promise.all([
-    paged<Msg>((a, b) => db.from("outreach_messages").select("outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis")
+    paged<Msg>((a, b) => db.from("outreach_messages").select("outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, step_position, variant")
       .eq("workspace_id", workspaceId).not("lead_id", "is", null).order("created_at").range(a, b)),
     paged<{ id: string; campaign_id: string; lead_id: string; audience_group_id: string | null }>((a, b) => db.from("outreach_enrollments").select("id, campaign_id, lead_id, audience_group_id").in("campaign_id", ids).range(a, b)),
-    paged<{ campaign_id: string | null; lead_id: string; status: string; qualified: boolean | null; starts_at: string; created_at: string }>((a, b) => db.from("sales_meetings").select("campaign_id, lead_id, status, qualified, starts_at, created_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
+    paged<{ campaign_id: string | null; lead_id: string; status: string; qualified: boolean | null; starts_at: string; created_at: string; confirmed_at: string | null }>((a, b) => db.from("sales_meetings").select("campaign_id, lead_id, status, qualified, starts_at, created_at, confirmed_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
     searchIds.length ? paged<{ campaign_id: string | null; prospects: number; created_at: string }>((a, b) => db.from("usage_ledger").select("campaign_id, prospects, created_at").eq("workspace_id", workspaceId).eq("kind", "consume").in("campaign_id", searchIds).range(a, b)) : Promise.resolve([]),
     searchIds.length ? paged<{ campaign_id: string; created_at: string }>((a, b) => db.from("prospects").select("campaign_id, created_at").in("campaign_id", searchIds).range(a, b)) : Promise.resolve([]),
     prospectRate(workspaceId),
@@ -72,7 +76,17 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   // Counts per bucket ("c:<campaign>" and "g:<group>"); each person once per count.
   const sets = new Map<string, Record<"contacted" | "replies" | "interested" | "requests", Set<string>>>();
   const nums = new Map<string, Counts>();
-  const keysFor = (campaign: string, group: string | null | undefined) => [`c:${campaign}`, ...(group ? [`g:${group}`] : [])];
+  // D-273: which opening each person got first (their first email's variant), per campaign.
+  const openingOf = new Map<string, string>();
+  for (const m of msgs) {
+    if (m.direction !== "outbound" || m.status !== "sent" || m.step_position !== 1 || !m.lead_id || !m.outreach_campaign_id) continue;
+    const g = m.enrollment_id ? groupOfEnrollment.get(m.enrollment_id) : groupOfLead.get(`${m.outreach_campaign_id}:${m.lead_id}`);
+    if (g) openingOf.set(`${m.outreach_campaign_id}:${m.lead_id}`, `v:${g}:${m.variant === "b" ? "b" : "a"}`);
+  }
+  const keysFor = (campaign: string, group: string | null | undefined, lead?: string | null) => {
+    const v = lead ? openingOf.get(`${campaign}:${lead}`) : undefined;
+    return [`c:${campaign}`, ...(group ? [`g:${group}`] : []), ...(v ? [v] : [])];
+  };
   const bucket = (k: string) => {
     if (!sets.has(k)) { sets.set(k, { contacted: new Set(), replies: new Set(), interested: new Set(), requests: new Set() }); nums.set(k, zeroCounts()); }
     return { s: sets.get(k)!, n: nums.get(k)! };
@@ -80,7 +94,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   for (const m of msgs) {
     if (!m.outreach_campaign_id || !m.lead_id || !ids.includes(m.outreach_campaign_id)) continue;
     const g = m.enrollment_id ? groupOfEnrollment.get(m.enrollment_id) : groupOfLead.get(`${m.outreach_campaign_id}:${m.lead_id}`);
-    for (const k of keysFor(m.outreach_campaign_id, g)) {
+    for (const k of keysFor(m.outreach_campaign_id, g, m.lead_id)) {
       const { s, n } = bucket(k);
       if (m.direction === "outbound" && m.status === "sent" && inRange(m.sent_at, range)) {
         n.sent++; if (m.delivery_status === "bounced") n.bounced++; else n.delivered++;
@@ -95,10 +109,12 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     }
   }
   for (const mt of meetings) {
-    if (!mt.campaign_id || mt.status === "canceled") continue;
-    for (const k of keysFor(mt.campaign_id, groupOfLead.get(`${mt.campaign_id}:${mt.lead_id}`))) {
+    if (!mt.campaign_id) continue;
+    for (const k of keysFor(mt.campaign_id, groupOfLead.get(`${mt.campaign_id}:${mt.lead_id}`), mt.lead_id)) {
       const { n } = bucket(k);
+      if (mt.status === "canceled") { if (inRange(mt.created_at, range)) n.canceled++; continue; }
       if (inRange(mt.created_at, range)) n.meetings++;
+      if (mt.confirmed_at && inRange(mt.created_at, range)) n.confirmed++;
       if (mt.status === "completed" && inRange(mt.starts_at, range)) n.held++;
       if (mt.qualified === true && inRange(mt.starts_at, range)) n.qualified++;
     }
@@ -108,7 +124,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     if (!f || !l.closed_at || !ids.includes(f.campaign)) continue;
     const at = Date.parse(l.closed_at);
     if (at < f.at || at - f.at > ATTRIBUTION_DAYS * DAY || !inRange(l.closed_at, range)) continue;
-    for (const k of keysFor(f.campaign, f.group)) { const { n } = bucket(k); n.customers++; n.revenueUsd += Number(l.deal_value ?? 0); }
+    for (const k of keysFor(f.campaign, f.group, l.id)) { const { n } = bucket(k); n.customers++; n.revenueUsd += Number(l.deal_value ?? 0); }
   }
   // Searches: people found and prospects used, to the group that owns the search (else the campaign).
   const searchOwner = new Map<string, { campaign: string; group: string | null }>();
@@ -133,8 +149,11 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     return {
       id: c.id, name: c.name, status: c.status, objective: c.objective ?? "meetings", channels: c.channels?.length ? c.channels : ["email"], ownerId: c.owner_id ?? c.created_by,
       createdAt: c.created_at, startsAt: c.starts_at, endsAt: c.ends_at, budgetUsd: c.budget_usd == null ? null : Number(c.budget_usd), budgetType: c.budget_type, approved: Boolean(c.approved_at),
-      countries, counts: counts(`c:${c.id}`),
-      groups: mine.map((g) => ({ id: g.id, name: g.name, status: g.status, source: g.source, counts: counts(`g:${g.id}`) })),
+      countries, counts: counts(`c:${c.id}`), dailyLimit: c.daily_limit, dailyUsd: c.budget_type === "daily" && c.budget_usd != null ? Number(c.budget_usd) : null,
+      groups: mine.map((g) => ({
+        id: g.id, name: g.name, status: g.status, source: g.source, counts: counts(`g:${g.id}`),
+        openings: (["a", "b"] as const).filter((v) => (v === "a" ? g.angle_a ?? c.goal : g.angle_b)).map((v) => ({ key: `${g.id}:${v}`, variant: v, text: (v === "a" ? g.angle_a ?? c.goal : g.angle_b) ?? "", counts: counts(`v:${g.id}:${v}`) })),
+      })),
     };
   });
 }

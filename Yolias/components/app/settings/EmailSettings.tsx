@@ -18,8 +18,8 @@ import { DEFAULT_SENDING_RULES } from "@/lib/outreach/sending-rules";
 // Connection (how mailboxes connect), Sending rules (the workspace defaults).
 
 
-/** One integration card opened (D-268): a provider's mailboxes, or the sending rules shared by every mailbox. */
-export type EmailCard = "gmail" | "imap" | "rules";
+/** One integration card opened (D-268, D-273): a provider's mailboxes and that provider's own sending rules. */
+export type EmailCard = "gmail" | "imap";
 
 export function EmailSettings({ card, onBack, backLabel }: { card: EmailCard; onBack?: () => void; backLabel?: string }) {
   const { t } = useI18n();
@@ -33,7 +33,8 @@ export function EmailSettings({ card, onBack, backLabel }: { card: EmailCard; on
   return (
     <div>
       {onBack && <button type="button" className="integration-back" onClick={onBack}><ChevronLeft className="flip-rtl" />{backLabel}</button>}
-      {card === "rules" ? <Rules state={state} reload={load} /> : <Mailboxes provider={card} state={state} reload={load} onImap={() => setImapOpen(true)} />}
+      <Mailboxes provider={card} state={state} reload={load} onImap={() => setImapOpen(true)} />
+      <div style={{ marginTop: 24 }}><Rules key={card} provider={card} state={state} reload={load} /></div>
       {imapOpen && <ImapDialog onClose={() => setImapOpen(false)} onConnected={() => { setImapOpen(false); toast(it.mailboxConnected); void load(); }} />}
     </div>
   );
@@ -246,7 +247,7 @@ function EditMailbox({ box, state, onClose, onSaved }: { box: MailboxView; state
   const toast = useToast();
   const [f, setF] = useState({ dailyLimit: box.dailyLimit, days: box.sendDays, start: box.sendStart, end: box.sendEnd, timeZone: box.timeZone });
   const [pending, start] = useTransition();
-  const fallback = state.rules.timezone ?? state.memberTimeZone ?? "UTC";
+  const fallback = (box.provider === "gmail" ? state.rulesBy.gmail : state.rulesBy.imap).timezone ?? state.memberTimeZone ?? "UTC";
   return (
     <div className="sdr-dialog-overlay" onMouseDown={(ev) => ev.target === ev.currentTarget && onClose()}>
       <form className="sdr-dialog" role="dialog" aria-modal="true" onSubmit={(ev) => {
@@ -277,23 +278,26 @@ function EditMailbox({ box, state, onClose, onSaved }: { box: MailboxView; state
 
 /* ── Connection ── */
 
-function Rules({ state, reload }: { state: EmailState | null; reload: () => void }) {
+function Rules({ provider, state, reload }: { provider: "gmail" | "imap"; state: EmailState | null; reload: () => void }) {
   const { t } = useI18n();
   const r = t.sdr.email.rules;
   const toast = useToast();
-  const [f, setF] = useState<SendingRules | null>(state?.rules ?? null);
+  const saved = state?.rulesBy[provider] ?? null;
+  const [f, setF] = useState<SendingRules | null>(saved);
   const [pending, start] = useTransition();
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { if (state && !f) setF(state.rules); }, [state, f]);
-  if (!state || !f) return <p className="sdr-panel-sub">…</p>;
+  useEffect(() => { if (saved && !f) setF(saved); }, [saved, f]);
+  if (!state || !f || !saved) return <p className="sdr-panel-sub">…</p>;
   const ro = !state.canEditRules;
-  const dirty = JSON.stringify(f) !== JSON.stringify(state.rules);
+  const dirty = JSON.stringify(f) !== JSON.stringify(saved);
+  // What each kind of mailbox allows (Google's and common hosts' published limits); Yolias keeps cold email well below them.
+  const cap = provider === "gmail" ? r.capGmail : r.capImap;
   const d = DEFAULT_SENDING_RULES;
   const zone = f.timezone ?? state.memberTimeZone ?? "UTC";
   const set = (patch: Partial<SendingRules>) => setF({ ...f, ...patch });
   return (
     <div>
-      <div className="sdr-section-head"><div><h4>{r.title}</h4><p>{r.subtitle}</p></div></div>
+      <div className="sdr-section-head"><div><h4>{provider === "gmail" ? r.titleGmail : r.titleImap}</h4><p>{r.subtitle} {cap}</p></div></div>
       <div className="sdr-rules"><div className="sdr-rules-body">
         <div className="sdr-rule">
           <div><div className="sdr-rule-label">{r.perDay}</div><div className="sdr-rule-desc">{r.perDayDesc}</div></div>
@@ -334,9 +338,9 @@ function Rules({ state, reload }: { state: EmailState | null; reload: () => void
       <p className="sdr-panel-sub" style={{ marginTop: 12 }}>{ro ? r.readOnly : r.replies}</p>
       {!ro && (
         <div className="sdr-foot">
-          <button type="button" className="sdr-btn" disabled={!dirty || pending} onClick={() => setF(state.rules)}>{r.discard}</button>
+          <button type="button" className="sdr-btn" disabled={!dirty || pending} onClick={() => setF(saved)}>{r.discard}</button>
           <button type="button" className="sdr-btn primary" disabled={!dirty || pending} onClick={() => start(async () => {
-            const res = await saveSendingRules(f);
+            const res = await saveSendingRules(f, provider);
             if (res.ok) { toast(r.saved); reload(); setF(null); } else toast(r.failed, "error");
           })}>{r.save}</button>
         </div>

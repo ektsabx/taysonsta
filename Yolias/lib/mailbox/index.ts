@@ -35,16 +35,24 @@ export async function availableProviders(): Promise<MailProvider[]> {
 }
 
 /** The workspace's email sending rules (D-256), defaults for what isn't set. */
-export async function loadSendingRules(workspaceId: string): Promise<SendingRules> {
+/**
+ * The sending rules for a kind of mailbox (D-273: each mailbox integration has
+ * its own, Gmail and IMAP/SMTP; the test mailbox follows IMAP). A kind that
+ * was never set uses the workspace's earlier shared rules.
+ */
+export async function loadSendingRules(workspaceId: string, provider?: string | null): Promise<SendingRules> {
   const { data } = await createAdminClient().from("workspaces").select("sending_rules").eq("id", workspaceId).maybeSingle();
-  return parseSendingRules(data?.sending_rules);
+  const raw = (data?.sending_rules ?? {}) as Record<string, unknown> & { by_provider?: Record<string, unknown> };
+  const kind = provider === "gmail" ? "gmail" : provider ? "imap" : null;
+  const own = kind ? raw.by_provider?.[kind] : undefined;
+  return parseSendingRules(own ?? raw);
 }
 
 /** Saves a connected account (and its refresh token) for this member. A new mailbox starts with the workspace's sending rules. */
 export async function saveMailbox(input: { workspaceId: string; userId: string; provider: MailProvider; email: string; displayName: string | null; canRead: boolean; refreshToken: string }): Promise<MailboxRow> {
   const db = createAdminClient();
   const { data: existing } = await db.from("mailboxes").select("id").eq("workspace_id", input.workspaceId).eq("user_id", input.userId).eq("provider", input.provider).maybeSingle();
-  const rules = existing ? null : await loadSendingRules(input.workspaceId);
+  const rules = existing ? null : await loadSendingRules(input.workspaceId, input.provider);
   const { data, error } = await db.from("mailboxes").upsert({
     workspace_id: input.workspaceId, user_id: input.userId, provider: input.provider, email: input.email, display_name: input.displayName,
     can_read: input.canRead, status: "connected", last_error: null, connected_at: new Date().toISOString(), sync_cursor: null,

@@ -6,7 +6,7 @@ import type { BlogPost } from "./blog";
 // Rules: no invented statistics, and only what Yolias really does: it finds
 // matching companies (and their decision makers where public data lists
 // them), uses only published or verifiable contact details, writes the emails,
-// and sends them from the member's own mailbox after one approval, with an
+// and sends them from the member's own mailbox once you launch the campaign, with an
 // unsubscribe line in every email.
 
 export const aeoPosts: BlogPost[] = [
@@ -49,7 +49,7 @@ export const aeoPosts: BlogPost[] = [
           { p: "AI can sort replies (interested, a question, not now, out of office) and suggest an answer, but the conversation with an interested buyer is yours. Track four numbers per campaign: emails sent, the share of contacted companies that replied, positive replies and meetings. Change one thing at a time: the audience, the first line or the offer." },
           { h2: "What AI should not do on its own" },
           { p: "Fully automatic mass sending hurts your domain's reputation and annoys buyers. Keep a person in charge of three moments: approving who is contacted, approving the first email of every campaign, and handling interested replies. Contact only people you have a lawful reason to contact, and follow the data protection rules that apply to you and to them." },
-          { note: "How Yolias does it: you write who you want to sell to, Yolias finds matching companies (and their decision makers where public data lists them), shows why each one fits and which ones have a published email, writes the emails, and sends them from your connected mailbox after you approve the campaign. Every campaign email has an unsubscribe line, follow-ups stop when someone replies, and out-of-office replies just delay the next email. You pay per prospect found, from $5." },
+          { note: "How Yolias does it: you write who you want to sell to, Yolias finds matching companies (and their decision makers where public data lists them), shows why each one fits and which ones have a published email, writes the emails, and sends them from your connected mailbox once you launch the campaign. Every campaign email has an unsubscribe line, follow-ups stop when someone replies, and out-of-office replies just delay the next email. You pay per prospect found, from $5." },
           { h2: "Frequently asked questions" },
           { h3: "Can AI find customers for a small business?" },
           { p: "Yes. Small businesses often benefit most, because the time saved on building lists by hand is a large share of their week. Start with one clear description and a small first list of 50 to 100 companies." },
@@ -93,7 +93,7 @@ export const aeoPosts: BlogPost[] = [
           { p: "الذكاء الاصطناعي يصنّف الردود (مهتم، سؤال، ليس الآن، خارج المكتب) ويقترح ردًا، لكن المحادثة مع المشتري المهتم لك أنت. تابع أربعة أرقام لكل حملة: الرسائل المرسلة، ونسبة الشركات التي ردّت، والردود الإيجابية، والاجتماعات. غيّر شيئًا واحدًا كل مرة: الجمهور، أو السطر الأول، أو العرض." },
           { h2: "ما لا يجب أن يفعله الذكاء الاصطناعي وحده" },
           { p: "الإرسال الجماعي التلقائي بالكامل يضر سمعة دومينك ويزعج المشترين. اجعل شخصًا مسؤولًا عن ثلاث لحظات: الموافقة على من يُتواصل معه، والموافقة على الرسالة الأولى لكل حملة، والتعامل مع الردود المهتمة. تواصل فقط مع من لديك سبب مشروع للتواصل معه، والتزم بقواعد حماية البيانات التي تنطبق عليك وعليهم." },
-          { note: "كيف يفعلها يولياس: تكتب لمن تريد أن تبيع، فيجد يولياس الشركات المطابقة (وصنّاع القرار فيها حيث تذكرهم البيانات العامة)، ويوضح لماذا تناسبك كل شركة وأيها لها بريد منشور، ويكتب الرسائل، ويرسلها من بريدك المتصل بعد موافقتك على الحملة. كل رسالة حملة فيها سطر لإلغاء الاشتراك، والمتابعات تتوقف عند الرد، وردود «خارج المكتب» تؤجل الرسالة التالية فقط. تدفع لكل عميل محتمل يُعثر عليه، بدءًا من 5 دولارات." },
+          { note: "كيف يفعلها يولياس: تكتب لمن تريد أن تبيع، فيجد يولياس الشركات المطابقة (وصنّاع القرار فيها حيث تذكرهم البيانات العامة)، ويوضح لماذا تناسبك كل شركة وأيها لها بريد منشور، ويكتب الرسائل، ويرسلها من بريدك المتصل بعد تشغيلك للحملة. كل رسالة حملة فيها سطر لإلغاء الاشتراك، والمتابعات تتوقف عند الرد، وردود «خارج المكتب» تؤجل الرسالة التالية فقط. تدفع لكل عميل محتمل يُعثر عليه، بدءًا من 5 دولارات." },
           { h2: "أسئلة شائعة" },
           { h3: "هل يمكن للذكاء الاصطناعي إيجاد عملاء لشركة صغيرة؟" },
           { p: "نعم. الشركات الصغيرة غالبًا الأكثر استفادة، لأن الوقت الذي توفره من بناء القوائم يدويًا جزء كبير من أسبوعها. ابدأ بوصف واحد واضح وقائمة أولى صغيرة من 50 إلى 100 شركة." },
@@ -144,7 +144,7 @@ export const aeoPosts: BlogPost[] = [
           { p: "Most replies come after a follow-up, not the first email. Send one or two short follow-ups a few days apart, then stop. Measure replies and meetings per market, keep the markets that answer, and drop the ones that don't." },
           { h2: "How AI shortens each step" },
           { p: "AI prospecting tools turn the one-sentence market description into a scored list, read each company's website to explain why it fits, find published contact details, and draft the first email and follow-ups. The steps stay the same; what took days of searching takes minutes. Your job moves to checking the list, approving the emails and talking to interested buyers." },
-          { note: "With Yolias you write the market in one sentence, in Arabic or English. Yolias finds matching companies (and decision makers where public data lists them), shows which have a published email, writes the campaign, and sends it from your own mailbox after you approve it. Replies come back to Conversations in Yolias, sorted, and meeting requests get your booking page." },
+          { note: "With Yolias you write the market in one sentence, in Arabic or English. Yolias finds matching companies (and decision makers where public data lists them), shows which have a published email, writes the campaign, and sends it from your own mailbox once you launch the campaign. Replies come back to Conversations in Yolias, sorted, and meeting requests get your booking page." },
           { h2: "Frequently asked questions" },
           { h3: "What is the fastest way to find B2B customers?" },
           { p: "Pick one narrow market, build a list of 50 to 100 well-matched companies, and send a short, specific email from your own mailbox with one follow-up. AI tools make the list and the drafts fast; the narrow market is what makes it work." },
@@ -188,7 +188,7 @@ export const aeoPosts: BlogPost[] = [
           { p: "معظم الردود تأتي بعد متابعة، لا بعد الرسالة الأولى. أرسل متابعة أو اثنتين قصيرتين بفاصل أيام، ثم توقف. قِس الردود والاجتماعات لكل سوق، واحتفظ بالأسواق التي ترد، واترك التي لا ترد." },
           { h2: "كيف يختصر الذكاء الاصطناعي كل خطوة" },
           { p: "أدوات البحث عن العملاء بالذكاء الاصطناعي تحوّل وصف السوق في جملة واحدة إلى قائمة مقيّمة، وتقرأ موقع كل شركة لتوضح لماذا تناسبك، وتجد بيانات التواصل المنشورة، وتكتب الرسالة الأولى والمتابعات. الخطوات نفسها لا تتغير، لكن ما كان يأخذ أيامًا من البحث يأخذ دقائق. يصبح دورك مراجعة القائمة والموافقة على الرسائل والحديث مع المشترين المهتمين." },
-          { note: "مع يولياس تكتب السوق في جملة واحدة، بالعربية أو الإنجليزية. يجد يولياس الشركات المطابقة (وصنّاع القرار حيث تذكرهم البيانات العامة)، ويوضح أيها له بريد منشور، ويكتب الحملة، ويرسلها من بريدك بعد موافقتك. الردود تصل إلى المحادثات في يولياس مصنّفة، وطلبات الاجتماع تصلها صفحة الحجز." },
+          { note: "مع يولياس تكتب السوق في جملة واحدة، بالعربية أو الإنجليزية. يجد يولياس الشركات المطابقة (وصنّاع القرار حيث تذكرهم البيانات العامة)، ويوضح أيها له بريد منشور، ويكتب الحملة، ويرسلها من بريدك بعد تشغيلك للحملة. الردود تصل إلى المحادثات في يولياس مصنّفة، وطلبات الاجتماع تصلها صفحة الحجز." },
           { h2: "أسئلة شائعة" },
           { h3: "ما أسرع طريقة لإيجاد عملاء الشركات؟" },
           { p: "اختر سوقًا محددًا، وابنِ قائمة من 50 إلى 100 شركة مطابقة جيدًا، وأرسل رسالة قصيرة ومحددة من بريدك مع متابعة واحدة. أدوات الذكاء الاصطناعي تجعل القائمة والمسودات سريعة، لكن السوق المحدد هو ما يجعلها تنجح." },

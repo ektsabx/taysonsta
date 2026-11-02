@@ -13,9 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).camp.manager.title} | Yolias` };
 }
 
-// Campaigns (owner, 2026-10-31, D-272): the ads manager. The date range lives
-// in the URL (?range=7d, or ?range=custom&from=&to=) and decides every count;
-// the rest of the table (filters, columns, breakdown, views) is in the page.
+// Campaigns (owner, 2026-10-31, D-272, D-273): the ads manager, with
+// Campaigns / Audiences / Messages. The date range lives in the URL
+// (?range=7d, or ?range=custom&from=&to=) and decides every count; the rest
+// of the table (level, filters, columns, views) is in the page.
 export default async function CampaignsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const session = await requireViewer();
   const ws = session.workspace.id;
@@ -35,7 +36,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   const hasMailbox = boxes.some((b) => b.status === "connected");
   return (
     <div className="sdr-page cm-page">
-      <header className="sdr-head"><div><h2>{t.camp.manager.title}</h2><p>{t.camp.manager.subtitle}</p></div></header>
+      <header className="sdr-head"><div><h2>{t.ag.manager.title}</h2><p>{t.ag.manager.subtitle}</p></div></header>
       {!hasMailbox && <div className="ws-note"><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>}
       <CampaignsManager lines={lines} members={members} views={(views ?? []) as never} range={range} from={from} to={to} refreshedAt={new Date().toISOString()} />
     </div>

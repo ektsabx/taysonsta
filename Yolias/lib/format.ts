@@ -14,6 +14,10 @@ export function formatDate(iso: string | Date, locale: Locale = "en", timeZone?:
   return new Intl.DateTimeFormat(intlLocale(locale), { month: "long", day: "numeric", year: "numeric", timeZone }).format(new Date(iso));
 }
 
+export function formatDateTime(iso: string | Date, locale: Locale = "en", timeZone?: string): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone }).format(new Date(iso));
+}
+
 const shortCountry: Record<string, string> = { SA: "KSA", AE: "UAE", EG: "Egypt", GB: "UK", US: "USA" };
 
 /** Country display name in the interface language (ISO alpha-2 in). */

@@ -1,13 +1,11 @@
 "use server";
 
-import type { CampaignAim } from "@/types/acquisition";
 import { hasProviderFor } from "@/lib/intel/registry";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 import { parseFilters, selectItems } from "@/services/prospects";
-import { addProspectsToCampaign, quickCampaign } from "@/app/(app)/outreach/actions";
 
 // Prospects workspace actions. The browser sends row keys ("person:<id>" /
 // "company:<id>") or "all rows matching these filters"; the server resolves
@@ -76,26 +74,3 @@ export async function removeFromSaved(target: Target): Promise<{ ok: boolean; re
   return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
 }
 
-/** Selected results → CRM → an Outreach campaign. */
-export async function addSelectionToCampaign(campaignId: string, target: Target) {
-  const { people, companies } = await resolve(target);
-  return addProspectsToCampaign(campaignId, [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))]);
-}
-
-/** Selected results → a new outreach campaign, started with drafts ready (Prospects → Send, owner brief 2026-10-19). */
-export async function sendSelectionAsCampaign(target: Target, input: { name: string; channel: string; aim?: CampaignAim; ctaUrl?: string | null }) {
-  const { people, companies } = await resolve(target);
-  return quickCampaign({ ...input, targets: [...people.map((p) => ({ kind: "person" as const, id: p.id })), ...companies.map((c) => ({ kind: "company" as const, id: c.id }))].slice(0, 500) });
-}
-
-/** Campaigns the selection can join (draft / active / paused). */
-export async function openOutreachCampaigns(): Promise<{ id: string; name: string; status: string }[]> {
-  const session = await requireSession();
-  const { data } = await (await createClient()).from("outreach_campaigns").select("id, name, status").eq("workspace_id", session.workspace.id).in("status", ["draft", "active", "paused"]).order("updated_at", { ascending: false }).limit(50);
-  return data ?? [];
-}
-
-/** A person or company page → a new outreach campaign with them; the campaign page writes the email (D-239). */
-export async function startCampaignFor(targets: { kind: "person" | "company"; id: string }[], name: string) {
-  return quickCampaign({ name: name.trim().slice(0, 160) || "Campaign", channel: "email", targets: targets.slice(0, 500) });
-}

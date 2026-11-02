@@ -4,15 +4,19 @@ import type { CampaignEventRow, CampaignRow, CompanyRow, ProspectRow, StrategyRo
 import { plainDashes } from "@/lib/text";
 
 // Sidebar history: all pinned strategies, then the most recent unpinned ones.
+/** Yolias AI's conversation history in the sidebar (D-273): the searches campaigns run for their audiences are not conversations and stay out. */
 export async function recentStrategies(workspaceId: string, limit = 12) {
   const supabase = await createClient();
-  const [{ data: pinned }, { data: recent }] = await Promise.all([
+  const [{ data: pinned }, { data: recent }, { data: owned }] = await Promise.all([
     supabase.from("strategies").select("id, title, pinned_at").eq("workspace_id", workspaceId)
       .not("pinned_at", "is", null).order("pinned_at", { ascending: false }),
     supabase.from("strategies").select("id, title, pinned_at").eq("workspace_id", workspaceId)
-      .is("pinned_at", null).order("created_at", { ascending: false }).limit(limit),
+      .is("pinned_at", null).order("created_at", { ascending: false }).limit(limit * 3),
+    supabase.from("audience_groups").select("strategy_id").eq("workspace_id", workspaceId).not("strategy_id", "is", null).limit(2000),
   ]);
-  return [...(pinned ?? []), ...(recent ?? [])].map((s) => ({ id: s.id, title: plainDashes(s.title, ": "), pinned: s.pinned_at !== null }));
+  const campaignSearch = new Set((owned ?? []).map((g) => g.strategy_id));
+  const keep = (s: { id: string }) => !campaignSearch.has(s.id);
+  return [...(pinned ?? []).filter(keep), ...(recent ?? []).filter(keep).slice(0, limit)].map((s) => ({ id: s.id, title: plainDashes(s.title, ": "), pinned: s.pinned_at !== null }));
 }
 
 export interface StrategyView {

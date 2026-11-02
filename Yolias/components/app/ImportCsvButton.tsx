@@ -9,12 +9,12 @@ import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { guessKind, guessMapping, importFields, MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, parseCsv, toImportRow, type ImportField, type ImportKind } from "@/lib/csv-import";
-import { importContacts } from "@/app/(app)/prospects/import-actions";
+import { importAudience } from "@/app/(app)/audiences/actions";
 
-// Import CSV next to Export CSV (owner brief 2026-10-12): pick a file, check
-// the column mapping and the type, see how many rows will be imported and how
-// many uploaded contacts the plan has left, then import. The server checks
-// everything again; the database enforces the limit.
+// A custom audience from a file (D-273; the import moved here from Prospects):
+// pick a file, check the column mapping and the type, name the audience, see
+// how many rows will be imported, then import. The server checks everything
+// again; the database enforces the limit.
 export function ImportCsvButton({ available, primary, label }: { available: number; primary?: boolean; label?: string }) {
   const { t, locale } = useI18n();
   const im = t.prospects.import;
@@ -25,6 +25,7 @@ export function ImportCsvButton({ available, primary, label }: { available: numb
   const [mapping, setMapping] = useState<Record<ImportField, number> | null>(null);
   const [kind, setKind] = useState<ImportKind>("company");
   const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState("");
   const [pending, start] = useTransition();
   const n = (v: number) => formatNumber(v, locale);
 
@@ -53,15 +54,16 @@ export function ImportCsvButton({ available, primary, label }: { available: numb
 
   const submit = () => {
     if (!file || !mapping) return;
+    if (!name.trim()) return setError(t.ag.aud.errors.name);
     if (mapping.name < 0) return setError(im.errors.name);
     if (!valid) return setError(im.errors.empty);
     if (valid > available) return setError(fmt(im.errors.limit, { count: n(available) }));
     start(async () => {
       setError(null);
-      const r = await callAction(() => importContacts({ fileName: file.name, kind, mapping, rows: file.rows }));
+      const r = await callAction(() => importAudience({ name: name.trim(), fileName: file.name, kind, mapping, rows: file.rows }));
       if (isNetworkFailure(r)) return setError(im.errors.failed);
       if (!r.ok) return setError(r.error);
-      toast(r.message);
+      if (r.message) toast(r.message);
       setOpen(false);
       setFile(null);
       setMapping(null);
@@ -76,11 +78,15 @@ export function ImportCsvButton({ available, primary, label }: { available: numb
         <div className="drawer-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
           <div className="drawer import-drawer" role="dialog" aria-modal="true" aria-labelledby="import-title">
             <div className="drawer-head">
-              <h3 id="import-title">{im.title}</h3>
+              <h3 id="import-title">{t.ag.aud.custom.sources.file}</h3>
               <button className="modal-close-btn" type="button" aria-label={t.common.close} onClick={close} disabled={pending}><X /></button>
             </div>
             <div className="drawer-body">
-              <p className="field-note">{im.lead}</p>
+              <p className="field-note">{t.ag.aud.custom.fileHint}</p>
+              <div className="field">
+                <label htmlFor="import-name">{t.ag.aud.name}</label>
+                <input id="import-name" className="form-input" dir="auto" maxLength={120} placeholder={t.ag.aud.namePh} value={name} onChange={(e) => setName(e.target.value)} disabled={pending} />
+              </div>
               <div className="field">
                 <label htmlFor="import-file">{im.choose}</label>
                 <input id="import-file" type="file" accept=".csv,text/csv" className="form-input" onChange={(e) => void pick(e.target.files?.[0])} disabled={pending} />

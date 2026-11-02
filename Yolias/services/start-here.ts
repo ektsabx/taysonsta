@@ -1,9 +1,9 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { StartSteps } from "@/components/app/StartHere";
 
-// Start here (owner, 2026-10-28; on the dashboard since D-270): each step is
-// done from real rows, read as the member (RLS: their workspace).
+// The next step on the dashboard (owner, 2026-10-28; D-270, D-273): each step
+// is done from real rows, read as the member (RLS: their workspace).
+export interface StartSteps { mailbox: boolean; search: boolean; campaign: boolean; booking: boolean }
 export async function startSteps(workspaceId: string, userId: string): Promise<StartSteps> {
   const db = await createClient();
   const [mailboxes, made, approved, calendar, page] = await Promise.all([

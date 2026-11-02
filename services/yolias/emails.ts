@@ -109,6 +109,10 @@ export const emailEvents: { kind: string; category: string; label: string; inApp
   { kind: "usage_limit", category: "usage", label: "نفد الرصيد", inApp: true },
   { kind: "discovery_ready", category: "usage", label: "نتائج البحث جاهزة", inApp: true },
   { kind: "daily_digest", category: "usage", label: "ملخص الصباح (اليوم)", inApp: false },
+  { kind: "leads_review", category: "usage", label: "أشخاص جدد جاهزون للمراجعة (يومي)", inApp: false },
+  { kind: "campaign_changes", category: "usage", label: "ملخص يومي لتغييرات الحملات", inApp: false },
+  { kind: "campaign_summary", category: "usage", label: "ملخص يومي لكل الحملات", inApp: false },
+  { kind: "founder_note", category: "updates", label: "رسالة شخصية من المؤسس (بعد يوم من التسجيل)", inApp: false },
   { kind: "meeting_soon", category: "usage", label: "تذكير قبل الاجتماع بساعة", inApp: false },
   { kind: "meeting_outcome", category: "usage", label: "سؤال «كيف كان الاجتماع؟»", inApp: false },
   { kind: "meeting_booked", category: "account", label: "حجز جديد من صفحة الحجز (لصاحب الصفحة)", inApp: false },
@@ -144,4 +148,20 @@ export async function setEmailEvent(bos: BosUser, kind: string, email: boolean, 
   const { error } = await ydb().from("email_settings").upsert({ kind, email_enabled: email, in_app_enabled: inApp, updated_by: bos.email, updated_at: new Date().toISOString() });
   if (error) throw error;
   await audit({ actorId: bos.userId, action: "yolias.email_event.update", entityType: "yolias_email_event", entityId: null, newValue: { email, inApp }, metadata: { kind } });
+}
+
+/** The founder's personal note (D-273): sent once, the day after sign-up, to members who keep "Personal emails from our founder" on. */
+export interface FounderNote { enabled: boolean; name: string; text_en: string; text_ar: string }
+export async function getFounderNote(): Promise<FounderNote> {
+  const { data } = await ydb().from("site_settings").select("value").eq("key", "founder_note").maybeSingle();
+  const v = (data?.value ?? {}) as Partial<FounderNote>;
+  return { enabled: v.enabled === true, name: v.name ?? "", text_en: v.text_en ?? "", text_ar: v.text_ar ?? "" };
+}
+export async function setFounderNote(bos: BosUser, input: FounderNote): Promise<void> {
+  if (input.enabled && (!input.name.trim() || !input.text_en.trim() || !input.text_ar.trim())) throw new ValidationError("الاسم والنصان مطلوبون قبل التفعيل.", {});
+  const value = { enabled: input.enabled, name: input.name.trim().slice(0, 80), text_en: input.text_en.trim().slice(0, 4000), text_ar: input.text_ar.trim().slice(0, 4000) };
+  const before = await getFounderNote();
+  const { error } = await ydb().from("site_settings").upsert({ key: "founder_note", value, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  await audit({ actorId: bos.userId, action: "yolias.founder_note.update", entityType: "yolias_setting", entityId: null, oldValue: before, newValue: value, metadata: {} });
 }

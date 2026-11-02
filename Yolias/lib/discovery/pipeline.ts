@@ -1,4 +1,5 @@
 import "server-only";
+import { dailyRoom, tomorrowUtc } from "@/lib/campaigns/budget";
 import { capture } from "@/lib/analytics/server";
 import { campaignFinished, usageAlerts } from "@/lib/email/events";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -66,6 +67,14 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   const db = createAdminClient();
   const { data: campaign } = await db.from("campaigns").select("*").eq("id", campaignId).maybeSingle();
   if (!campaign || finished.includes(campaign.status)) return;
+  // The workspace's daily budget (D-273): nothing more today once it is spent; the search waits for tomorrow.
+  const room = await dailyRoom(campaign.workspace_id);
+  if (room === 0) {
+    await db.from("campaigns").update({ status: "scheduled", next_run_at: tomorrowUtc() }).eq("id", campaignId).in("status", ["created", "queued", "awaiting_source", "scheduled"]);
+    await logEvent(campaign.workspace_id, campaignId, "plan", "Today's budget is spent. The search continues tomorrow.", "info", { key: "dailyBudget" });
+    return;
+  }
+
   const icp = parseIcp(campaign.criteria);
   if (!icp) {
     await db.from("campaigns").update({ status: "failed" }).eq("id", campaignId);
@@ -109,7 +118,7 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
   const { data: held } = await db.rpc("usage_outstanding", { p_campaign: campaignId });
   const month = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
   const already = held?.[0] && held[0].period_start === month ? Math.max(Number(held[0].outstanding ?? 0), 0) : 0;
-  const need = Math.max(left - already, 0);
+  const need = Math.min(Math.max(left - already, 0), room ?? Infinity);
   const { data: reservedRaw } = need ? await db.rpc("reserve_usage", { p_ws: campaign.workspace_id, p_campaign: campaignId, p_n: need }) : { data: 0 };
   const reserved = left ? Math.min(already + Number(reservedRaw ?? 0), left) : 0;
   if (reserved === 0) {
@@ -359,7 +368,9 @@ async function deliverPerson(
   icp: IcpCriteria, ctx: DiscoveryContext, setStage: (s: CampaignStatus) => Promise<void>, savedAt: string | null = null,
 ): Promise<"delivered" | "skipped" | "stop"> {
   await setStage("enriching");
-  const p = await enrichPerson(person, company, ctx);
+  const enriched = await enrichPerson(person, company, ctx);
+  // D-273: a decision maker without an email gets one from an email finder (only when one is enabled; pay on success).
+  const p = enriched.email ? enriched : await findEmail(enriched, company, ctx);
   const personId = companyIntelId ? await upsertPerson(p, companyIntelId, origin.get(p) ?? SHARED) : null;
   // Never deliver suppressed people (rule 34); the workspace never pays twice for the same person (docs/04).
   if (await isSuppressed({ email: p.email, linkedinUrl: p.linkedinUrl, personId })) return "skipped";
@@ -620,6 +631,15 @@ async function enrichPerson(person: PersonCandidate, company: CompanyCandidate, 
   const res = await runCapability("person.enrich", { person, company }, scopeOf(ctx));
   if (!res.ok) return person;
   const p = { ...person, ...res.data };
+  origin.set(p, origin.get(person)!);
+  return p;
+}
+
+async function findEmail(person: PersonCandidate, company: CompanyCandidate, ctx: DiscoveryContext): Promise<PersonCandidate> {
+  if (!company.domain || !person.fullName.trim()) return person;
+  const res = await runCapability("email.find", { person, company }, scopeOf(ctx));
+  if (!res.ok || !res.data?.email) return person;
+  const p = { ...person, email: res.data.email.toLowerCase(), confidence: person.confidence ?? res.data.confidence };
   origin.set(p, origin.get(person)!);
   return p;
 }

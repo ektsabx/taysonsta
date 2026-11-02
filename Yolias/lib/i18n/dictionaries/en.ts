@@ -1,5 +1,6 @@
 import { sdrEn } from "./sdr-en";
 import { campEn } from "./camp-en";
+import { agEn } from "./ag-en";
 import { wsEn } from "./ws-en";
 // English UI copy. Every key here must exist in ar.ts (enforced by the
 // Dictionary type). Placeholders use {name} and are filled with fmt().
@@ -7,7 +8,7 @@ import { wsEn } from "./ws-en";
 export const en = {
   meta: {
     title: "Yolias: Your AI Sales Agent for Business Growth",
-    description: "Autonomous customer discovery. Tell Yolias who you want to sell to.",
+    description: "The AI sales agent that books meetings with the right customers for you.",
   },
   consent: {
     text: "We use cookies to keep you signed in. With your OK, we also use analytics and ad-measurement cookies to improve Yolias and our ads.",
@@ -238,8 +239,10 @@ export const en = {
     analytics: "Analytics",
     prospects: "Prospects",
     outreach: "Outreach",
-    recentStrategy: "Recent Searches",
-    recentEmpty: "Your searches will appear here.",
+    recentStrategy: "Yolias AI chats",
+    recentEmpty: "Your conversations with Yolias AI appear here.",
+    dashboard: "Dashboard",
+    audiences: "Audiences",
     openSidebar: "Open sidebar",
     menu: "Main menu",
     closeSidebar: "Close sidebar",
@@ -312,13 +315,13 @@ export const en = {
     done: "Done",
   },
   composer: {
-    title: "Tell Yolias who you want to sell to.",
-    subtitle: "Specify your target industry, let Yolias map your ideal market, pinpoint key decision-makers, craft personalized outreach sent from your mailbox, and follow up on the replies.",
-    placeholder: "e.g. Find 100 fintech companies in UAE with 50–200 employees and extract their founders...",
+    title: "What do you want to get done?",
+    subtitle: "Ask Yolias AI about your campaigns, replies and meetings, or describe who you want to meet: it prepares the campaign for you to launch.",
+    placeholder: "e.g. Get me meetings with founders of fintech companies in the UAE with 50–200 employees",
     image: "Upload company screenshot / ICP document",
     file: "Attach ICP Specs / CSV",
-    send: "Find customers",
-    thinking: ["Reading your request…", "Understanding your market…", "Building the customer profile…", "Setting up the search…"] as string[],
+    send: "Send",
+    thinking: ["Reading your request…", "Looking at your campaigns…", "Thinking it through…", "Writing the answer…"] as string[],
     removeFile: "Remove {name}",
     errors: {
       tooLarge: "{name} is larger than 4 MB.",
@@ -334,7 +337,7 @@ export const en = {
       network: "The connection dropped. Check your connection and try again; the same request won’t start twice.",
       notFound: "Search not found.",
       campaignFailed: "Couldn’t start the search.",
-      aiNotConfigured: "Yolias AI is not configured yet: add an AI provider key (Anthropic, OpenAI or Gemini).",
+      aiNotConfigured: "Yolias AI isn’t available right now. Try again in a few minutes.",
       aiRefused: "Yolias AI couldn’t process this request. Try rephrasing it.",
       aiIncomplete: "Yolias AI returned an incomplete answer. Please try again.",
       aiBusy: "Yolias AI is busy right now. Please try again in a moment.",
@@ -379,7 +382,7 @@ export const en = {
     complete: "Customer Discovery Complete",
     discovering: "Discovering Customers",
     stopped: "Discovery Stopped",
-    awaitingSource: "Search ready · Awaiting data source",
+    awaitingSource: "Search ready · Starting soon",
     pausedQuota: "Paused · Prospects used up",
     paused: "Paused",
     partial: "Discovery Complete · Fewer Matches Than Asked",
@@ -448,12 +451,12 @@ export const en = {
     rename: "Rename",
   },
   events: {
-    plan: "Mission: {count} {unit} · {criteria}{titles}. Sources: {sources}.",
-    noSources: "none connected",
-    noCompanySource: "No company data source is connected yet. Results will be collected once one is connected.",
+    plan: "Mission: {count} {unit} · {criteria}{titles}.",
+    noSources: "",
+    noCompanySource: "This search is waiting to start. Results appear here as soon as they are found.",
     runScheduled: "Run complete: {total} of {goal} so far. The next run is scheduled.",
-    noPlaceSource: "No local business (maps) source is connected yet. Results will be collected once one is connected.",
-    noLookalikeSource: "No lookalike-companies source is connected yet. Results will be collected once one is connected.",
+    noPlaceSource: "This search is waiting to start. Results appear here as soon as they are found.",
+    noLookalikeSource: "This search is waiting to start. Results appear here as soon as they are found.",
     searchingPlaces: "Searching {source} for matching local businesses…",
     foundPlaces: "Found {count} candidate businesses.",
     completeCompanies: "Discovery complete: {count} companies delivered.",
@@ -464,6 +467,7 @@ export const en = {
     stopped: "Discovery stopped: {reason}",
     invalidCriteria: "The search criteria are invalid.",
     quotaReached: "Your {total} prospects are used up. Top up or subscribe, and this search continues by itself.",
+    dailyBudget: "Today's budget is spent. Yolias continues tomorrow.",
   },
   icp: {
     anySize: "Any size",
@@ -694,8 +698,12 @@ export const en = {
       discovery: "Discovery completed", discoveryDesc: "When a search finishes and its prospects are ready.",
       usage: "Usage alerts", usageDesc: "When you’ve used 80% and 100% of this month’s prospects.",
       billing: "Billing and receipts", billingDesc: "Receipts, renewals and changes to your plan.",
-      sales: "Morning summary and meetings", salesDesc: "Every morning: new replies, today's meetings and quiet deals. And a reminder an hour before each meeting.",
-      product: "Product updates", productDesc: "New features and tips, about once a month.",
+      sales: "Replies and meetings", salesDesc: "Every morning: new replies, today's meetings and quiet conversations. And a reminder an hour before each meeting.",
+      product: "Product updates and new features", productDesc: "New features and tips, about once a month.",
+      review: "Leads ready for your review", reviewDesc: "Once a day, when Yolias found new people for your campaigns: who they are, before it writes to them.",
+      changes: "Daily recap of changes to your campaigns", changesDesc: "Once a day, when something changed: a campaign started, paused, ended, or an audience was added.",
+      summary: "Daily summary of all your campaigns", summaryDesc: "Each morning, when your campaigns did something: emails sent, replies, meetings and spend.",
+      founder: "Personal emails from our founder", founderDesc: "A few notes from Yolias's founder, written by a person. Reply and they read it.",
     },
     usage: {
       title: "Plan usage", planLine: "{plan} · prospects delivered this month", planLineFree: "{plan} · prospects delivered", upgrade: "Upgrade",
@@ -746,11 +754,11 @@ export const en = {
       step1: "1. Share your link", step1Body: "Copy it, or share it on WhatsApp, Facebook, LinkedIn, Telegram or X.", step2: "2. A friend signs up", step2Body: "They create a new Yolias account from your link and confirm their email.", step3: "3. You earn", step3Body: "{n} prospects are added to your balance at once. They never expire.",
       joined: "Joined from your link", earned: "Prospects earned", month: "This month", monthNote: "Up to {cap} rewarded invites a month",
       recent: "Latest to join", none: "Nobody has joined from your link yet. Share it with people who sell to businesses.",
-      status: { rewarded: "+{n} prospects", capped: "Over the monthly cap", rejected: "Doesn't count" },
-      rules: "Only a new account counts, once, after its email is confirmed. A member joining your own team doesn't count.",
+      status: { rewarded: "+{n} prospects", capped: "Over the monthly cap", rejected: "Doesn't count", review: "Being reviewed" },
+      rules: "Only a new account counts, once, after its email is confirmed. Your own team, your own other emails and disposable inboxes don't count. One account per network is rewarded at once; others from the same network are reviewed by our team first.",
     },
     integration: {
-      intro: "Connect the mailbox Yolias sends your campaigns from. Nothing is sent without your approval.",
+      intro: "Connect the mailbox Yolias sends your campaigns from. It sends only for campaigns you launch, and reads the replies there.",
       channels: "Email",
       gmailDesc: "Gmail and Google Workspace. Yolias sends approved campaigns from your account and brings the replies to Inbox. It only reads the threads it started.",
       outlookDesc: "Outlook, Office 365 and Exchange. Yolias sends approved campaigns from your account and brings the replies to Inbox. It only reads the conversations it started.",
@@ -969,7 +977,7 @@ export const en = {
   site: {
     product: "Product", pricing: "Pricing", helpCenter: "Help Center", blog: "Blog", solutions: "Solutions", allSolutions: "All solutions",
     community: "Community", signIn: "Sign In", logIn: "Log in", signUp: "Sign up", dashboard: "Open Yolias", tryYolias: "Try Yolias", menu: "Open navigation menu", home: "Yolias home",
-    tagline: "Yolias is an AI-powered customer discovery and growth platform that helps with customer discovery, market research, growth strategy, and sales. Built to help businesses find, understand, and reach their ideal customers faster.",
+    tagline: "Yolias is an AI sales agent for businesses that sell services: it finds the right companies and people, writes to them from your mailbox, answers their replies and books the meetings.",
     useCases: "Use cases", affiliates: "Affiliate program", status: "Status", resources: "Resources", documentation: "Documentation", faq: "FAQ", contactSupport: "Contact Support",
     company: "Company", about: "About", contact: "Contact", careers: "Careers",
     legal: "Legal", privacy: "Privacy Policy", terms: "Terms of Service", refunds: "Refund Policy", cookies: "Cookie Policy", security: "Security",
@@ -1168,6 +1176,7 @@ export const en = {
   ws: wsEn,
   sdr: sdrEn,
   camp: campEn,
+  ag: agEn,
   errorPages: {
     notFoundCode: "404",
     notFoundTitle: "This page doesn’t exist",

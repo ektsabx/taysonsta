@@ -1,43 +1,51 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { COUNTRY_CODES } from "@/lib/country-codes";
-import { countryLabel } from "@/lib/format";
-import { TARGETING, type FieldGroup, type Option, type Targeting, type TargetingField, type TargetingKey } from "@/lib/campaigns/targeting";
+import { TARGETING, placeName, type Option, type Targeting, type TargetingField, type TargetingKey } from "@/lib/campaigns/targeting";
+import { LocationPicker } from "./LocationPicker";
 
-// The audience editor (D-272): every field comes from the targeting schema
-// (lib/campaigns/targeting.ts). Lists are searchable; a field that allows it
-// takes a custom value; include / exclude where the search can honour both.
+// The audience editor (D-272, D-273): locations in the location picker, every
+// other field from the targeting schema (lib/campaigns/targeting.ts). Lists
+// are searchable; a field that allows it takes a custom value; include /
+// exclude where the search can honour both. Exclusions sit in their own group.
 
-const GROUPS: FieldGroup[] = ["geo", "company", "people", "signals"];
+const SECTIONS = [
+  { key: "companies", fields: ["industries", "company_types", "sizes"] },
+  { key: "people", fields: ["titles", "seniority", "departments"] },
+  { key: "signals", fields: ["hiring", "funding", "technologies", "keywords"] },
+  { key: "exclusions", fields: ["exclude_companies"] },
+] as const;
 
 export function TargetingEditor({ value, onChange }: { value: Targeting; onChange: (t: Targeting) => void }) {
   const { t, locale } = useI18n();
-  const a = t.camp.wiz.audience;
+  const a = t.ag.builder.audience;
   const lang = locale === "ar" ? "ar" : "en";
-  const countries: Option[] = useMemo(() => COUNTRY_CODES.map((c) => ({ value: c, en: countryLabel(c, "en"), ar: countryLabel(c, "ar") })).filter((o) => o.en !== o.value).sort((x, y) => x[lang].localeCompare(y[lang])), [lang]);
   const set = (k: TargetingKey, side: "include" | "exclude", list: string[]) => {
     const cur = value[k] ?? { include: [] };
     onChange({ ...value, [k]: { ...cur, [side]: list } });
   };
   return (
     <div className="te">
-      <div className="ws-field">
-        <label className="ws-label" htmlFor="te-desc">{a.describe}</label>
-        <textarea id="te-desc" className="form-input" rows={2} dir="auto" maxLength={2000} placeholder={a.describePh} value={value.description ?? ""} onChange={(e) => onChange({ ...value, description: e.target.value })} />
-      </div>
-      {GROUPS.map((g) => (
-        <fieldset key={g} className="te-group">
-          <legend>{a[g]}</legend>
-          {TARGETING.filter((f) => f.group === g).map((f) => (
-            <FieldEditor key={f.id} field={f} options={f.type === "country" ? countries : f.options ?? []} include={value[f.id]?.include ?? []} exclude={value[f.id]?.exclude ?? []}
+      <fieldset className="te-group">
+        <legend>{a.locations}</legend>
+        <LocationPicker value={value} onChange={onChange} />
+      </fieldset>
+      {SECTIONS.map((g) => (
+        <fieldset key={g.key} className="te-group">
+          <legend>{a[g.key]}</legend>
+          {g.fields.map((id) => TARGETING.find((f) => f.id === id)!).map((f) => (
+            <FieldEditor key={f.id} field={f} options={f.options ?? []} include={value[f.id]?.include ?? []} exclude={value[f.id]?.exclude ?? []}
               onInclude={(l) => set(f.id, "include", l)} onExclude={(l) => set(f.id, "exclude", l)} lang={lang} />
           ))}
         </fieldset>
       ))}
+      <div className="ws-field">
+        <label className="ws-label" htmlFor="te-desc">{a.describe}</label>
+        <textarea id="te-desc" className="form-input" rows={2} dir="auto" maxLength={2000} placeholder={a.describePh} value={value.description ?? ""} onChange={(e) => onChange({ ...value, description: e.target.value })} />
+      </div>
       <p className="ws-hint">{a.logic}</p>
     </div>
   );
@@ -47,7 +55,7 @@ function FieldEditor({ field, options, include, exclude, onInclude, onExclude, l
   field: TargetingField; options: Option[]; include: string[]; exclude: string[]; onInclude: (l: string[]) => void; onExclude: (l: string[]) => void; lang: "en" | "ar";
 }) {
   const { t } = useI18n();
-  const a = t.camp.wiz.audience;
+  const a = t.ag.builder.audience;
   const [side, setSide] = useState<"include" | "exclude">("include");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -101,7 +109,7 @@ export function targetingSummary(tg: Targeting, lang: "en" | "ar", countryName: 
   return TARGETING.flatMap((f) => {
     const inc = tg[f.id]?.include ?? [], exc = tg[f.id]?.exclude ?? [];
     if (!inc.length && !exc.length) return [];
-    const name = (v: string) => (f.type === "country" ? countryName(v) : f.options?.find((o) => o.value === v)?.[lang] ?? v);
+    const name = (v: string) => (f.type === "country" ? countryName(v) : f.type === "place" ? placeName(tg, v, lang) : f.options?.find((o) => o.value === v)?.[lang] ?? v);
     if (f.type === "toggle") return [f.label[lang]];
     return [`${f.label[lang]}: ${inc.map(name).join(lang === "ar" ? " أو " : " or ")}${exc.length ? ` (− ${exc.map(name).join(", ")})` : ""}`];
   });

@@ -12,7 +12,7 @@ import { referralSettings } from "@/lib/referrals";
 export interface ReferralState {
   enabled: boolean; link: string; reward: number; monthlyCap: number;
   joined: number; earned: number; thisMonth: number;
-  recent: { name: string; at: string; status: "rewarded" | "capped" | "rejected"; prospects: number }[];
+  recent: { name: string; at: string; status: "rewarded" | "capped" | "rejected" | "review"; prospects: number }[];
 }
 
 const short = (full: string | null) => {

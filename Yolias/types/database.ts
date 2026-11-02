@@ -5,7 +5,7 @@
 export type LearningRateRow = { industry: string; country: string; aim: string; workspaces: number; contacted: number; positive: number; meetings: number; qualified: number; updated_at: string };
 
 /** D-270: what Yolias did in a campaign and why. */
-export type CampaignActivityKind = "started" | "scheduled" | "paused" | "resumed" | "completed" | "failed" | "guard" | "enrolled" | "angle" | "pace" | "note";
+export type CampaignActivityKind = "started" | "scheduled" | "paused" | "resumed" | "completed" | "failed" | "guard" | "enrolled" | "angle" | "pace" | "note" | "found" | "replied" | "meeting" | "handoff" | "learned";
 export type CampaignActivityRow = { id: number; workspace_id: string; campaign_id: string; kind: CampaignActivityKind; body: string; meta: Json; created_at: string };
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -90,6 +90,8 @@ export type WorkspaceRow = {
   updated_at: string;
   /** Email sending rules (D-256), read with parseSendingRules. */
   sending_rules: Json;
+  /** D-273: no new search work on a day the workspace already spent this (USD), or null. */
+  daily_budget_usd: number | null;
 };
 
 export type WorkspaceMemberRow = {
@@ -136,6 +138,11 @@ export type ProfileRow = {
   notify_product: boolean;
   /** Morning summary and meeting reminders by email (owner, 2026-10-29). */
   notify_sales: boolean;
+  /** D-273: the five notification types (on by default). */
+  notify_review: boolean;
+  notify_daily_changes: boolean;
+  notify_daily_summary: boolean;
+  notify_founder: boolean;
   created_at: string;
   updated_at: string;
   /** Unsubscribe links carry this token (D-243). */
@@ -163,6 +170,8 @@ export type StrategyRow = {
   customer_profile_id: string | null;
   created_at: string;
   updated_at: string;
+  /** D-273: the page Yolias AI was opened from (e.g. /outreach/<id>). */
+  page_context: string | null;
 };
 
 export type CampaignRow = {
@@ -929,8 +938,11 @@ export type IntelDatasetRecordRow = {
 
 export type ReferralRow = {
   id: string; referrer_workspace_id: string; referred_user_id: string; referred_workspace_id: string | null;
-  status: "rewarded" | "capped" | "rejected"; reason: string | null; prospects: number; signup_ip: string | null; created_at: string;
+  status: "rewarded" | "capped" | "rejected" | "review"; reason: string | null; prospects: number; signup_ip: string | null; created_at: string;
+  /** D-273: what the abuse checks saw, and Yolias Admin's decision on a held referral. */
+  signals: Json; decided_at: string | null; decided_by: string | null;
 };
+export type WorkspaceInsightsRow = { workspace_id: string; data: Json; computed_at: string };
 
 export interface Database {
   public: {
@@ -947,6 +959,7 @@ export interface Database {
       jobs: Table<JobRow, "workspace_id" | "campaign_id" | "title" | "source">;
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
       referrals: Table<ReferralRow, "referrer_workspace_id" | "referred_user_id" | "status">;
+      workspace_insights: Table<WorkspaceInsightsRow, "workspace_id">;
       invoices: Table<InvoiceRow, "workspace_id" | "amount" | "currency" | "mode" | "period_start" | "period_end" | "bill_to_email">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount" | "currency" | "mode">;
       payments: Table<PaymentRow, "workspace_id" | "kind" | "amount" | "currency" | "provider" | "mode">;

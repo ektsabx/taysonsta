@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AtSign, BookOpen, CalendarDays, MoreHorizontal, Plug, SlidersHorizontal } from "lucide-react";
+import { AtSign, BookOpen, MoreHorizontal, Plug } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
-import { GmailIcon } from "@/components/app/ConnectorIcons";
+import { GmailIcon, GoogleCalendarIcon } from "@/components/app/ConnectorIcons";
 import { mailboxState, type EmailState } from "@/app/(app)/settings/mailbox-actions";
 import { EmailSettings, ImapDialog } from "./EmailSettings";
 import { CalendarSettings } from "./CalendarSettings";
@@ -15,9 +15,9 @@ import { calendarState } from "@/app/(app)/settings/calendar-actions";
 // integration, so more can be added beside email. Opening a card shows what is
 // inside it; its ⋯ menu has "Connect" and "How to connect" (the help article
 // for that platform, with the provider's own guides). Each card holds only its
-// own thing (D-268): Gmail, IMAP/SMTP, the sending rules shared by both, and
-// Google Calendar for booked meetings.
-type CardKey = "gmail" | "imap" | "rules" | "calendar";
+// own thing (D-268, D-273): Gmail and IMAP/SMTP, each with its own sending
+// rules inside it, and Google Calendar for booked meetings.
+type CardKey = "gmail" | "imap" | "calendar";
 
 export function IntegrationsHub() {
   const { t } = useI18n();
@@ -63,8 +63,7 @@ export function IntegrationsHub() {
     { key: "gmail", name: "Gmail", desc: h.gmailDesc, icon: <GmailIcon />, connected: count("gmail"), canConnect: googleOn, connect: () => window.location.assign("/api/integrations/gmail/start"), help: "/help-center/connect-gmail" },
     { key: "imap", name: h.imapName, desc: h.imapDesc, icon: <AtSign />, connected: count("imap"), canConnect: true, connect: () => setImap(true), help: "/help-center/connect-imap-smtp" },
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    { key: "calendar", name: h.calendarName, desc: h.calendarDesc, icon: <CalendarDays />, connected: cal?.connection ? 1 : 0, canConnect: Boolean(cal?.available), connect: () => window.location.assign("/api/calendar/google/start"), help: "/help-center/deals-and-meetings" },
-    { key: "rules", name: h.rulesName, desc: h.rulesDesc, icon: <SlidersHorizontal />, connected: -1, canConnect: true, connect: () => setOpen("rules"), help: "/docs/campaigns" },
+    { key: "calendar", name: h.calendarName, desc: h.calendarDesc, icon: <GoogleCalendarIcon />, connected: cal?.connection ? 1 : 0, canConnect: Boolean(cal?.available), connect: () => window.location.assign("/api/calendar/google/start"), help: "/help-center/deals-and-meetings" },
   ];
 
   return (
@@ -80,7 +79,7 @@ export function IntegrationsHub() {
                 <span>{c.desc}</span>
               </span>
               <span className={`sdr-badge nodot ${c.connected ? "green" : "gray"}`}>
-                {c.connected < 0 ? h.rulesOn : c.connected ? fmt(h.connected, { n: String(c.connected) }) : c.canConnect ? h.notConnected : h.soon}
+                {c.connected ? fmt(h.connected, { n: String(c.connected) }) : c.canConnect ? h.notConnected : h.soon}
               </span>
             </button>
             <div className="integration-card-menu">

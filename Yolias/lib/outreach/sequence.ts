@@ -11,6 +11,8 @@ import { draftOutreach, type DraftError, type MessageTarget } from "@/lib/outrea
 import { isMessageLanguage, DEFAULT_LANGUAGE } from "@/lib/outreach/channels";
 import { aimGuidance } from "@/lib/outreach/aim";
 import { pickArm } from "@/lib/campaigns/engines";
+import { languageFor } from "@/lib/campaigns/builder";
+import { insightLines } from "@/lib/agent-core/learning";
 import type { Database, LeadRow } from "@/types/database";
 
 // Outreach campaigns (D-193): a campaign holds steps (first message +
@@ -118,9 +120,17 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   // (lib/campaigns/engines.ts): alternate until each angle has 20 leads, then favour the one that works.
   const variant = position === 1 && angleB ? pickArm(await angleArms(db, campaign.id, groupId)) as "a" | "b" : null;
   const angle = variant === "b" ? `Write this first email from this angle instead of the usual one: ${angleB}` : null;
+  // D-273: each person's language when the campaign says so ("mul"), the campaign's name and notes, and what worked before.
+  const country = lead.prospect_id
+    ? (await db.from("prospects").select("country, company:companies(country)").eq("id", lead.prospect_id).maybeSingle()).data
+    : lead.company_id ? (await db.from("companies").select("country").eq("id", lead.company_id).maybeSingle()).data : null;
+  const cc = (country as { country?: string | null; company?: { country?: string | null } | null } | null);
+  const lang = languageFor(campaign.language, cc?.country ?? cc?.company?.country ?? null);
   const r = await draftOutreach({
     workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
-    language: isMessageLanguage(campaign.language) ? campaign.language : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
+    language: isMessageLanguage(lang) ? lang : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
+    senderName: (campaign as { sender_name?: string | null }).sender_name ?? null, notes: (campaign as { instructions?: string | null }).instructions ?? null,
+    insights: await insightLines(workspaceId),
     sequence: {
       leadId: lead.id, outreachCampaignId: campaign.id, enrollmentId: e.id, stepPosition: position,
       customerProfileId: campaign.customer_profile_id ?? lead.customer_profile_id, offerId: campaign.offer_id,

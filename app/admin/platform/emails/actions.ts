@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { authorize } from "@/lib/bos/auth";
 import { handleAction, type ActionState } from "@/lib/bos/action";
-import { createAnnouncement, sendAnnouncement, setEmailEvent } from "@/services/yolias/emails";
+import { createAnnouncement, sendAnnouncement, setEmailEvent, setFounderNote } from "@/services/yolias/emails";
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
 
@@ -33,6 +33,16 @@ export async function setEmailEventAction(_prev: ActionState, fd: FormData): Pro
   return handleAction("yolias.setEmailEvent", async () => {
     const { bos } = await authorize("platform.manage", "all");
     await setEmailEvent(bos, str(fd, "kind"), fd.get("email") === "on", fd.get("in_app") === "on");
+    revalidatePath("/admin/platform/emails");
+    return { ok: true };
+  });
+}
+
+// The founder's personal note (D-273). platform.manage only; audited.
+export async function setFounderNoteAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return handleAction("yolias.setFounderNote", async () => {
+    const { bos } = await authorize("platform.manage", "all");
+    await setFounderNote(bos, { enabled: fd.get("enabled") === "on", name: str(fd, "name"), text_en: str(fd, "text_en"), text_ar: str(fd, "text_ar") });
     revalidatePath("/admin/platform/emails");
     return { ok: true };
   });

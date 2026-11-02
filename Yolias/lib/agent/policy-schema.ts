@@ -17,27 +17,19 @@ export const AGENT_TOOLS = [
   { name: "searchProspects", label: { ar: "البحث في العملاء المحتملين", en: "Search prospects" }, writes: false },
   { name: "filterProspects", label: { ar: "تصفية العملاء المحتملين", en: "Filter prospects" }, writes: false },
   { name: "getProspect", label: { ar: "عرض عميل محتمل", en: "Open a prospect" }, writes: false },
-  { name: "revealContact", label: { ar: "إظهار بيانات التواصل", en: "Reveal contact details" }, writes: false },
-  { name: "saveResults", label: { ar: "حفظ النتائج", en: "Save results" }, writes: true },
-  { name: "enrichProspect", label: { ar: "إثراء بيانات شخص", en: "Enrich a person" }, writes: true },
   { name: "listCompanies", label: { ar: "عرض الشركات", en: "List companies" }, writes: false },
   { name: "getCompany", label: { ar: "عرض شركة", en: "Open a company" }, writes: false },
-  { name: "listJobs", label: { ar: "عرض الوظائف", en: "List jobs" }, writes: false },
-  { name: "findDecisionMakers", label: { ar: "إيجاد صناع القرار", en: "Find decision makers" }, writes: true },
   { name: "researchCompany", label: { ar: "بحث عن شركة على الويب", en: "Research a company" }, writes: false },
-  { name: "getCampaign", label: { ar: "عرض حملة", en: "Open a campaign" }, writes: false },
-  { name: "updateCampaign", label: { ar: "تعديل / إيقاف حملة", en: "Change / stop a campaign" }, writes: true },
-  { name: "getStrategy", label: { ar: "عرض بحث", en: "Open a search" }, writes: false },
-  { name: "createCampaign", label: { ar: "بدء حملة", en: "Start a campaign" }, writes: true },
-  { name: "createOutreachCampaign", label: { ar: "تجهيز حملة تواصل", en: "Prepare an outreach campaign" }, writes: true },
-  { name: "getOutreachCampaign", label: { ar: "عرض حملة تواصل", en: "Open an outreach campaign" }, writes: false },
-  { name: "startOutreachCampaign", label: { ar: "بدء حملة تواصل", en: "Start an outreach campaign" }, writes: true },
-  { name: "controlOutreachCampaign", label: { ar: "إيقاف / استئناف / إلغاء حملة تواصل", en: "Pause / resume / cancel outreach" }, writes: true },
+  { name: "listCampaigns", label: { ar: "عرض الحملات", en: "List campaigns" }, writes: false },
+  { name: "createCampaignDraft", label: { ar: "تجهيز مسودة حملة", en: "Prepare a campaign draft" }, writes: true },
+  { name: "listAudiences", label: { ar: "عرض الجماهير", en: "List audiences" }, writes: false },
+  { name: "controlOutreachCampaign", label: { ar: "إيقاف / استئناف / إنهاء حملة", en: "Pause / resume / end a campaign" }, writes: true },
   { name: "listReplies", label: { ar: "الردود الواردة", en: "Replies" }, writes: false },
+  { name: "listMeetings", label: { ar: "الاجتماعات", en: "Meetings" }, writes: false },
   { name: "listLeads", label: { ar: "العملاء في المحادثات", en: "Leads in conversations" }, writes: false },
-  { name: "updateLeadStage", label: { ar: "تحديث مرحلة عميل", en: "Update a lead's stage" }, writes: true },
   { name: "excludeLead", label: { ar: "استبعاد عميل", en: "Exclude a lead" }, writes: true },
-  { name: "getAnalytics", label: { ar: "التحليلات", en: "Analytics" }, writes: false },
+  { name: "campaignPerformance", label: { ar: "أداء الحملات", en: "Campaign performance" }, writes: false },
+  { name: "campaignActivityLog", label: { ar: "سجل الحملة", en: "Campaign log" }, writes: false },
   { name: "getUsage", label: { ar: "الاستخدام", en: "Usage" }, writes: false },
   { name: "getBilling", label: { ar: "الفوترة", en: "Billing" }, writes: false },
   { name: "rememberFact", label: { ar: "تذكّر معلومة", en: "Remember a fact" }, writes: true },
@@ -117,11 +109,9 @@ export type ToolPolicy = z.infer<typeof ToolPolicySchema>;
 
 const ALL: ToolPolicy["roles"] = ["owner", "admin", "member"];
 const toolDefaults = Object.fromEntries(AGENT_TOOLS.map((t) => [t.name, {
-  // Yolias doesn't search for jobs (D-149): hiring is only a signal on companies.
-  enabled: t.name !== "listJobs",
-  // Actions that use prospects or change a campaign wait for the user's OK.
-  // Finding decision makers is free (D-146), so it runs without one (owner, 2026-10-07).
-  approval: ["createCampaign", "enrichProspect", "startOutreachCampaign"].includes(t.name),
+  enabled: true,
+  // D-273: Yolias AI only prepares a campaign draft; the member launches it in the builder, so no tool needs a chat approval.
+  approval: false,
   roles: t.name === "getBilling" ? (["owner", "admin"] as ToolPolicy["roles"]) : ALL,
 }])) as Record<string, ToolPolicy>;
 
@@ -129,7 +119,7 @@ const toolDefaults = Object.fromEntries(AGENT_TOOLS.map((t) => [t.name, {
 export const DEFAULT_POLICY: AgentPolicy = {
   identity: {
     name: "Yolias AI",
-    persona: "You are Yolias AI, the assistant inside Yolias, a B2B prospect discovery product. You help sales and growth teams find the right companies and decision makers, understand their results and act on them. You think like a sharp, practical sales researcher.",
+    persona: "You are Yolias AI, the expert colleague inside Yolias, an AI sales agent that gets B2B companies, agencies, consultants and freelancers meetings with the right customers. You help the member set up campaigns, understand their results and decide what to do next, like the best sales manager they ever worked with.",
     tone: "professional",
     language: "auto",
     arabicStyle: "match",

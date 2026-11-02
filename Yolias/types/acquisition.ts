@@ -75,6 +75,8 @@ export type MeetingRow = {
   location: string | null; google_event_id: string | null; cancel_token: string;
   /** D-270: the campaign that led to it, and whether the member judged it qualified (null = not said yet). */
   campaign_id: string | null; qualified: boolean | null;
+  /** D-273: when the guest chose or accepted the time (booking page, a time they named, or a calendar acceptance). */
+  confirmed_at: string | null;
 };
 export type WeekDay = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 export type BookingHours = Record<WeekDay, [string, string][]>;
@@ -109,6 +111,8 @@ export type OutreachCampaignRow = {
   /** D-272: objective, owner, money budget, schedule detail, channels and the saved wizard draft. */
   objective: CampaignObjective; owner_id: string | null; budget_type: "total" | "daily" | "monthly" | null; budget_usd: number | null;
   timezone: string | null; run_days: string[]; contact_from: string | null; contact_to: string | null; channels: string[]; wizard: Json | null;
+  /** D-273: the message level: the name emails are signed with and notes for Yolias. */
+  sender_name: string | null; instructions: string | null;
 };
 export type CampaignObjective = "leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
 export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
@@ -120,6 +124,8 @@ export type AudienceGroupRow = {
 export type AudienceRow = {
   id: string; workspace_id: string; kind: "saved" | "custom" | "lookalike"; name: string; targeting: Json; origin: Json; members: number;
   created_by: string | null; created_at: string; updated_at: string;
+  /** D-273 lookalikes: how far to widen (1 = closest), how many seeds, how sure. */
+  expansion: number | null; seed_size: number | null; confidence: "low" | "medium" | "high" | null;
 };
 export type SavedViewRow = { id: string; workspace_id: string; user_id: string; scope: "campaigns"; name: string; config: Json; created_at: string };
 /** D-268: a campaign books a meeting or sells through the website. */

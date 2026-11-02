@@ -34,6 +34,10 @@ const preferencesSchema = z
     notify_billing: z.boolean(),
     notify_product: z.boolean(),
     notify_sales: z.boolean(),
+    notify_review: z.boolean(),
+    notify_daily_changes: z.boolean(),
+    notify_daily_summary: z.boolean(),
+    notify_founder: z.boolean(),
     full_name: z.string().trim().min(2).max(120),
   })
   .partial();

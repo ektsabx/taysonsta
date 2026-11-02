@@ -15,6 +15,9 @@ export interface Counts {
   interested: number;
   meetingRequests: number;
   meetings: number;
+  /** D-273: booked meetings the guest chose or accepted (sales_meetings.confirmed_at). */
+  confirmed: number;
+  canceled: number;
   held: number;
   qualified: number;
   customers: number;
@@ -23,7 +26,7 @@ export interface Counts {
   prospectsUsed: number;
 }
 
-export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0 });
+export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0 });
 export const addCounts = (a: Counts, b: Counts): Counts => Object.fromEntries(Object.keys(a).map((k) => [k, a[k as keyof Counts] + b[k as keyof Counts]])) as unknown as Counts;
 
 export type MetricFormat = "count" | "pct" | "usd" | "ratio";
@@ -39,30 +42,34 @@ export interface Metric {
 const rate = (a: number, b: number) => (b > 0 ? a / b : null);
 const cost = (spend: number, n: number) => (spend > 0 && n > 0 ? spend / n : null);
 
+// D-273: Yolias sells meetings, not leads or data: no "prospects found" or
+// "qualified opportunities" columns. Cost per meeting is the headline number
+// (like cost per result in Facebook Ads), from booked meetings; the confirmed
+// and held versions sit beside it.
 export const METRICS: Metric[] = [
-  { id: "contacted", label: { en: "Contacted", ar: "تم التواصل" }, description: { en: "People sent at least one email (each person once).", ar: "أشخاص أُرسلت لهم رسالة واحدة على الأقل (كل شخص مرة)." }, format: "count", compute: (c) => c.contacted, defaultVisible: true },
-  { id: "replies", label: { en: "Replies", ar: "الردود" }, description: { en: "People who replied (automatic replies don't count).", ar: "أشخاص ردّوا (الردود التلقائية لا تُحسب)." }, format: "count", compute: (c) => c.replies, defaultVisible: true },
+  { id: "sent", label: { en: "Sent", ar: "المُرسل" }, description: { en: "Emails your mailbox sent (first emails and follow-ups).", ar: "رسائل أرسلها بريدك (الأولى والمتابعات)." }, format: "count", compute: (c) => c.sent, defaultVisible: true },
+  { id: "reply_rate", label: { en: "Reply rate", ar: "نسبة الرد" }, description: { en: "People who replied ÷ people contacted.", ar: "من ردّوا ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.replies, c.contacted), defaultVisible: true },
   { id: "interested", label: { en: "Interested", ar: "مهتمون" }, description: { en: "People whose reply showed interest or asked for a meeting.", ar: "أشخاص أظهر ردهم اهتمامًا أو طلب اجتماعًا." }, format: "count", compute: (c) => c.interested, defaultVisible: true },
   { id: "meetings", label: { en: "Meetings", ar: "الاجتماعات" }, description: { en: "Meetings booked (canceled ones excluded).", ar: "اجتماعات محجوزة (بدون الملغاة)." }, format: "count", compute: (c) => c.meetings, defaultVisible: true },
-  { id: "spend", label: { en: "Spend", ar: "الإنفاق" }, description: { en: "Prospects used × your rate per prospect.", ar: "العملاء المحتملون المستهلكون × سعر العميل المحتمل." }, format: "usd", compute: (c) => c.spendUsd, defaultVisible: true },
-  { id: "found", label: { en: "Prospects found", ar: "مكتشفون" }, description: { en: "People and companies the campaign's audiences found.", ar: "أشخاص وشركات وجدتهم جماهير الحملة." }, format: "count", compute: (c) => c.found, defaultVisible: false },
-  { id: "sent", label: { en: "Emails sent", ar: "رسائل مرسلة" }, description: { en: "Emails your mailbox accepted.", ar: "رسائل قبلها صندوق بريدك." }, format: "count", compute: (c) => c.sent, defaultVisible: false },
+  { id: "cost_per_meeting", label: { en: "Cost per meeting", ar: "تكلفة الاجتماع" }, description: { en: "Spend ÷ meetings booked.", ar: "الإنفاق ÷ الاجتماعات المحجوزة." }, format: "usd", compute: (c) => cost(c.spendUsd, c.meetings), defaultVisible: true },
+  { id: "spend", label: { en: "Spend", ar: "الإنفاق" }, description: { en: "People found for the campaign × your rate per person.", ar: "الأشخاص الذين وُجدوا للحملة × سعر الشخص." }, format: "usd", compute: (c) => c.spendUsd, defaultVisible: true },
+  { id: "contacted", label: { en: "Contacted", ar: "تم التواصل" }, description: { en: "People sent at least one email (each person once).", ar: "أشخاص أُرسلت لهم رسالة واحدة على الأقل (كل شخص مرة)." }, format: "count", compute: (c) => c.contacted, defaultVisible: false },
+  { id: "replies", label: { en: "Replies", ar: "الردود" }, description: { en: "People who replied (automatic replies don't count).", ar: "أشخاص ردّوا (الردود التلقائية لا تُحسب)." }, format: "count", compute: (c) => c.replies, defaultVisible: false },
   { id: "delivery_rate", label: { en: "Delivery rate", ar: "نسبة الوصول" }, description: { en: "Sent emails that didn't bounce.", ar: "الرسائل المرسلة التي لم ترتد." }, format: "pct", compute: (c) => rate(c.delivered, c.sent), defaultVisible: false },
-  { id: "reply_rate", label: { en: "Reply rate", ar: "نسبة الرد" }, description: { en: "Replies ÷ contacted.", ar: "الردود ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.replies, c.contacted), defaultVisible: false },
-  { id: "positive_rate", label: { en: "Positive reply rate", ar: "نسبة الردود الإيجابية" }, description: { en: "Interested ÷ contacted.", ar: "المهتمون ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.interested, c.contacted), defaultVisible: false },
-  { id: "meeting_rate", label: { en: "Meeting booking rate", ar: "نسبة حجز الاجتماعات" }, description: { en: "Meetings ÷ contacted.", ar: "الاجتماعات ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.meetings, c.contacted), defaultVisible: false },
+  { id: "bounced", label: { en: "Bounced", ar: "ارتدت" }, description: { en: "Emails that came back undelivered.", ar: "رسائل عادت دون أن تصل." }, format: "count", compute: (c) => c.bounced, defaultVisible: false },
+  { id: "positive_rate", label: { en: "Interest rate", ar: "نسبة الاهتمام" }, description: { en: "Interested ÷ contacted.", ar: "المهتمون ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.interested, c.contacted), defaultVisible: false },
+  { id: "meeting_rate", label: { en: "Meeting rate", ar: "نسبة حجز الاجتماعات" }, description: { en: "Meetings ÷ contacted.", ar: "الاجتماعات ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.meetings, c.contacted), defaultVisible: false },
+  { id: "confirmed", label: { en: "Confirmed meetings", ar: "اجتماعات مؤكدة" }, description: { en: "Booked meetings whose guest chose the time or accepted the invitation.", ar: "اجتماعات اختار ضيفها الوقت أو قبل الدعوة." }, format: "count", compute: (c) => c.confirmed, defaultVisible: false },
   { id: "held", label: { en: "Meetings held", ar: "اجتماعات تمت" }, description: { en: "Meetings that took place.", ar: "اجتماعات حدثت فعلًا." }, format: "count", compute: (c) => c.held, defaultVisible: false },
-  { id: "qualified", label: { en: "Qualified opportunities", ar: "فرص مؤهلة" }, description: { en: "Meetings you marked qualified.", ar: "اجتماعات حددتها كمؤهلة." }, format: "count", compute: (c) => c.qualified, defaultVisible: false },
-  { id: "customers", label: { en: "Customers won", ar: "عملاء مكتسبون" }, description: { en: "Deals won from people this campaign contacted first, within 180 days.", ar: "صفقات مكسوبة من أشخاص تواصلت معهم الحملة أولًا، خلال 180 يومًا." }, format: "count", compute: (c) => c.customers, defaultVisible: false },
-  { id: "conversion_rate", label: { en: "Conversion rate", ar: "نسبة التحويل" }, description: { en: "Customers ÷ contacted.", ar: "العملاء ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.customers, c.contacted), defaultVisible: false },
-  { id: "revenue", label: { en: "Revenue", ar: "الإيرادات" }, description: { en: "Value of the deals won (when you entered it).", ar: "قيمة الصفقات المكسوبة (حين تدخلها)." }, format: "usd", compute: (c) => c.revenueUsd, defaultVisible: false },
-  { id: "cost_per_contacted", label: { en: "Cost per contacted", ar: "تكلفة الشخص المتواصل معه" }, description: { en: "Spend ÷ contacted.", ar: "الإنفاق ÷ من تم التواصل معهم." }, format: "usd", compute: (c) => cost(c.spendUsd, c.contacted), defaultVisible: false },
+  { id: "canceled", label: { en: "Canceled meetings", ar: "اجتماعات ملغاة" }, description: { en: "Meetings canceled by either side.", ar: "اجتماعات ألغاها أحد الطرفين." }, format: "count", compute: (c) => c.canceled, defaultVisible: false },
+  { id: "cost_per_confirmed", label: { en: "Cost per confirmed meeting", ar: "تكلفة الاجتماع المؤكد" }, description: { en: "Spend ÷ confirmed meetings.", ar: "الإنفاق ÷ الاجتماعات المؤكدة." }, format: "usd", compute: (c) => cost(c.spendUsd, c.confirmed), defaultVisible: false },
+  { id: "cost_per_held", label: { en: "Cost per held meeting", ar: "تكلفة الاجتماع الذي تم" }, description: { en: "Spend ÷ meetings that took place.", ar: "الإنفاق ÷ الاجتماعات التي حدثت." }, format: "usd", compute: (c) => cost(c.spendUsd, c.held), defaultVisible: false },
   { id: "cost_per_reply", label: { en: "Cost per reply", ar: "تكلفة الرد" }, description: { en: "Spend ÷ replies.", ar: "الإنفاق ÷ الردود." }, format: "usd", compute: (c) => cost(c.spendUsd, c.replies), defaultVisible: false },
-  { id: "cost_per_interested", label: { en: "Cost per interested", ar: "تكلفة المهتم" }, description: { en: "Spend ÷ interested.", ar: "الإنفاق ÷ المهتمون." }, format: "usd", compute: (c) => cost(c.spendUsd, c.interested), defaultVisible: false },
-  { id: "cost_per_meeting", label: { en: "Cost per meeting", ar: "تكلفة الاجتماع" }, description: { en: "Spend ÷ meetings.", ar: "الإنفاق ÷ الاجتماعات." }, format: "usd", compute: (c) => cost(c.spendUsd, c.meetings), defaultVisible: false },
-  { id: "cost_per_qualified", label: { en: "Cost per qualified opportunity", ar: "تكلفة الفرصة المؤهلة" }, description: { en: "Spend ÷ qualified opportunities.", ar: "الإنفاق ÷ الفرص المؤهلة." }, format: "usd", compute: (c) => cost(c.spendUsd, c.qualified), defaultVisible: false },
+  { id: "customers", label: { en: "Customers won", ar: "عملاء مكتسبون" }, description: { en: "People this campaign contacted first who became customers within 180 days.", ar: "أشخاص تواصلت معهم الحملة أولًا وأصبحوا عملاء خلال 180 يومًا." }, format: "count", compute: (c) => c.customers, defaultVisible: false },
+  { id: "revenue", label: { en: "Revenue", ar: "الإيرادات" }, description: { en: "Value of the deals won (when you entered it).", ar: "قيمة الصفقات المكسوبة (حين تدخلها)." }, format: "usd", compute: (c) => c.revenueUsd, defaultVisible: false },
   { id: "roas", label: { en: "Return on spend", ar: "العائد على الإنفاق" }, description: { en: "Revenue ÷ spend, when both are known.", ar: "الإيرادات ÷ الإنفاق، حين يُعرف الاثنان." }, format: "ratio", compute: (c) => (c.spendUsd > 0 && c.revenueUsd > 0 ? c.revenueUsd / c.spendUsd : null), defaultVisible: false },
 ];
+
 
 export const metric = (id: string) => METRICS.find((m) => m.id === id) ?? null;
 export const DEFAULT_COLUMNS = METRICS.filter((m) => m.defaultVisible).map((m) => m.id);
@@ -73,7 +80,8 @@ export function formatMetric(v: number | null, format: MetricFormat, locale: "en
   if (v == null) return "–";
   const loc = locale === "ar" ? "ar-EG-u-nu-latn" : "en-US";
   if (format === "pct") return `${(v * 100).toFixed(v * 100 < 10 ? 1 : 0)}%`;
-  if (format === "usd") return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 }).format(v);
+  // Dollars always with the sign (D-273); cents below $100 when there are any.
+  if (format === "usd") { const cents = v < 100 && Math.round(v * 100) % 100 !== 0; return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).format(v); }
   if (format === "ratio") return `${v.toFixed(1)}×`;
   return new Intl.NumberFormat(loc).format(v);
 }

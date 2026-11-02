@@ -2,6 +2,9 @@ import type { ProviderAdapter } from "@/lib/intel/adapter";
 import { datasets } from "./datasets";
 import { millionVerifier } from "./millionverifier";
 import { webDiscovery } from "./web-discovery";
+import { hunter } from "./hunter";
+import { findymail } from "./findymail";
+import { leadmagic } from "./leadmagic";
 
 // Provider adapters in code (docs/10-roadmap.md phase 4, decision D-003).
 // Each adapter goes in its own file here and is listed below; Yolias then
@@ -9,4 +12,5 @@ import { webDiscovery } from "./web-discovery";
 // Never add a mock adapter that returns invented data (rule 4): the website
 // discovery adapter (D-164) stores only what a business's own site publishes.
 // The imported datasets adapter (D-248) searches what Yolias Admin imported.
-export const adapters: ProviderAdapter[] = [datasets, webDiscovery, millionVerifier];
+// D-273: Hunter, Findymail and LeadMagic (people and emails), disabled until Admin adds their keys and prices.
+export const adapters: ProviderAdapter[] = [datasets, webDiscovery, millionVerifier, hunter, findymail, leadmagic];

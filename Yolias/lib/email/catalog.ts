@@ -8,7 +8,7 @@ import type { EmailCategory } from "@/lib/email/send";
 // mail is transactional) and how it renders. Triggers live next to the
 // events (billing, pipeline, auth, admin); see docs/05 "Emails".
 
-export type Pref = "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product" | "notify_sales";
+export type Pref = "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product" | "notify_sales" | "notify_review" | "notify_daily_changes" | "notify_daily_summary" | "notify_founder";
 
 interface LegacyData {
   receipt: ReceiptInput;
@@ -61,6 +61,11 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   meeting_guest_canceled: { category: "account", pref: null },
   meeting_rebook: { category: "account", pref: null },
   announcement: { category: "updates", pref: "notify_product" },
+  // D-273: the five notification types (Settings → Notifications), on by default.
+  leads_review: { category: "usage", pref: "notify_review" },
+  campaign_changes: { category: "usage", pref: "notify_daily_changes" },
+  campaign_summary: { category: "usage", pref: "notify_daily_summary" },
+  founder_note: { category: "updates", pref: "notify_founder" },
   // Affiliate program: statements about the affiliate's own money and status.
   affiliate_update: { category: "account", pref: null },
   // Written by the team in Admin (D-215). Service messages are always sent;

@@ -13,15 +13,16 @@ import { alternativesPages, listPages } from "./seo-seed/pages-alternatives.ts";
 import { solutionPages } from "./seo-seed/pages-solutions.ts";
 import { templatePages } from "./seo-seed/pages-templates.ts";
 import { meetingAlternativesPages, meetingComparePages, meetingSolutionPages } from "./seo-seed/pages-meetings.ts";
+import { freelanceComparePages, freelanceCompetitors, freelanceSolutionPages } from "./seo-seed/pages-freelance.ts";
 import { toRow } from "./seo-seed/types.ts";
 
 const db = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 const j = (x: unknown) => x as Json;
 
-const c = await db.from("seo_competitors").upsert(competitors.map((x) => ({ ...x, last_reviewed_at: "2026-10-27T00:00:00Z", reviewed_by: "seo-seed", summary: j(x.summary), best_for: j(x.best_for), strengths: j(x.strengths), limits: j(x.limits), facts: j(x.facts), pricing: j(x.pricing) })), { onConflict: "slug", ignoreDuplicates: true }).select("id");
+const c = await db.from("seo_competitors").upsert([...competitors, ...freelanceCompetitors].map((x) => ({ ...x, last_reviewed_at: "2026-10-27T00:00:00Z", reviewed_by: "seo-seed", summary: j(x.summary), best_for: j(x.best_for), strengths: j(x.strengths), limits: j(x.limits), facts: j(x.facts), pricing: j(x.pricing) })), { onConflict: "slug", ignoreDuplicates: true }).select("id");
 if (c.error) throw c.error;
 
-const pages = [...listPages, ...comparePages, ...meetingComparePages, ...alternativesPages, ...meetingAlternativesPages, ...solutionPages, ...meetingSolutionPages, ...templatePages];
+const pages = [...listPages, ...comparePages, ...meetingComparePages, ...freelanceComparePages, ...alternativesPages, ...meetingAlternativesPages, ...solutionPages, ...meetingSolutionPages, ...freelanceSolutionPages, ...templatePages];
 const rows = pages.map((p, i) => toRow(p, i)).map((r) => ({ ...r, doc: j(r.doc), seo: j(r.seo), meta: j(r.meta) }));
 const p = await db.from("content_entries").upsert(rows, { onConflict: "kind,slug", ignoreDuplicates: true }).select("id");
 if (p.error) throw p.error;

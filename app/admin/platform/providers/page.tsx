@@ -62,6 +62,29 @@ export default async function ProvidersPage() {
         )}
       </Card>
 
+      <Card title="مقارنة الجودة والتكلفة (آخر 30 يومًا)">
+        <p className="bos-faint" style={{ fontSize: 12.5, margin: "0 0 10px" }}><Tx>التكلفة لكل سجل مقبول = تكلفة المزود ÷ الشركات التي سُلّمت للعملاء منه. نسبة النجاح = الطلبات الناجحة ÷ كل الطلبات. الأقل تكلفة لكل سجل مقبول مع نسبة قبول أعلى هو الأفضل لنفس القدرة.</Tx></p>
+        <div className="bos-table-scroll">
+          <BosTable className="bos-table">
+            <thead><tr><th><Tx>المزود</Tx></th><th><Tx>نسبة النجاح</Tx></th><th><Tx>نسبة القبول</Tx></th><th><Tx>السجلات لكل طلب</Tx></th><th><Tx>التكلفة لكل سجل مقبول</Tx></th></tr></thead>
+            <tbody>
+              {providers.filter((p) => stats.get(p.id)?.calls).map((p) => {
+                const st = stats.get(p.id)!;
+                return (
+                  <tr key={p.id}>
+                    <td>{p.name}</td>
+                    <td className="bos-num">{st.calls ? `${Math.round((st.okCalls / st.calls) * 100)}%` : "—"}</td>
+                    <td className="bos-num">{st.companies ? `${Math.round((st.delivered / st.companies) * 100)}%` : "—"}</td>
+                    <td className="bos-num">{st.calls ? (st.records / st.calls).toFixed(1) : "—"}</td>
+                    <td className="bos-num" dir="ltr">{st.delivered && st.costUsd ? `$${(st.costUsd / st.delivered).toFixed(4)}` : st.costUsd ? "—" : "$0"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </BosTable>
+        </div>
+      </Card>
+
       <Card title="خريطة القدرات">
         <BosTable className="bos-table">
           <thead><tr><th><Tx>القدرة</Tx></th><th><Tx>المزودون الجاهزون</Tx></th><th><Tx>كل المزودين</Tx></th></tr></thead>

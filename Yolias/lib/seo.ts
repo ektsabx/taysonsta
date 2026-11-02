@@ -19,23 +19,23 @@ export const HOME_TITLE = "Yolias: Your AI Sales Agent for Business Growth";
 export const HOME_TITLE_AR = "يولياس (Yolias): وكيل المبيعات بالذكاء الاصطناعي لنمو أعمالك";
 /** The home page's search snippet (D-265): under 170 characters, brand first, in each language. */
 export const HOME_DESCRIPTION = {
-  en: "Yolias, the AI sales agent for service businesses: describe your ideal customer and it finds the companies and decision makers, then emails them from your mailbox.",
-  ar: "يولياس وكيل مبيعات بالذكاء الاصطناعي للشركات التي تبيع خدمات: صِف عميلك المثالي، فيجد لك الشركات وصنّاع القرار ويراسلهم من بريدك أنت.",
+  en: "Yolias, the AI sales agent for B2B: set the meetings you want and who to meet. It finds the people, emails them from your mailbox, answers and books.",
+  ar: "يولياس وكيل مبيعات بالذكاء الاصطناعي: حدد الاجتماعات التي تريدها ومن تريد مقابلتهم، فيجد الأشخاص ويراسلهم من بريدك ويرد ويحجز الاجتماع.",
 };
 /** Search titles and snippets that differ from the page's headline (D-265 audit: titles 15–65, descriptions 50–170). */
 export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"en" | "ar", { title?: string; description?: string }>>> = {
-  product: { en: { title: "AI prospecting: one sentence to a list of buyers | Yolias", description: "Describe who you sell to. Yolias AI finds the companies and decision makers that fit, explains each match and writes outreach you approve." } },
-  about: { en: { title: "About Yolias | AI customer discovery" } },
+  product: { en: { title: "AI sales agent that books your meetings | Yolias", description: "Campaigns like an ads manager: Yolias finds the right people, emails them from your mailbox, answers replies and books meetings. Cost per meeting included." } },
+  about: { en: { title: "About Yolias | The AI sales agent" } },
   pricing: {
-    en: { description: "Yolias pricing: pay as you go or monthly. Every option has all features and unlimited users, and you pay for prospects only." },
-    ar: { description: "أسعار يولياس: ادفع حسب استخدامك أو اشترك شهريًا. كل خيار فيه كل الميزات ومستخدمون غير محدودين، وتدفع مقابل العملاء المحتملين فقط." },
+    en: { description: "Yolias pricing: pay as you go or monthly. Every option has all features and unlimited users, and you pay for the people Yolias finds for your campaigns." },
+    ar: { description: "أسعار يولياس: ادفع حسب استخدامك أو اشترك شهريًا. كل خيار فيه كل الميزات ومستخدمون غير محدودين، وتدفع مقابل الأشخاص الذين يجدهم يولياس لحملاتك." },
   },
 };
 /** How people write the brand: Arabic spelling, the product name and what it is (schema.org alternateName). */
 export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Sales Agent"];
 /** The one-line definition used everywhere Yolias is described (site, llms.txt, schema). */
-export const DEFINITION = "Yolias is an AI customer discovery platform for businesses that sell services. You describe your ideal customer in plain language, in English or Arabic, and Yolias runs a search that finds matching companies, local businesses and decision makers, explains why each one fits, prepares the outreach campaign, and sends it from your own mailbox (Gmail or any IMAP/SMTP account) only after you approve it.";
-export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: AI customer discovery for businesses that sell services" };
+export const DEFINITION = "Yolias is an AI sales agent for businesses that sell services to other businesses. You set the meetings you want and who you want to meet (campaign, audiences and message, like an ads manager), and Yolias finds the matching companies and decision makers, writes a personal email to each from your own mailbox (Gmail or any IMAP/SMTP account), follows up, answers the replies and books the meetings on your booking page and Google Calendar.";
+export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: the AI sales agent that books meetings with the right customers" };
 
 export function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200").replace(/\/$/, "");

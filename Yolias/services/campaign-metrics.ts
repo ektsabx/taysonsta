@@ -176,9 +176,9 @@ export async function campaignMetrics(workspaceId: string, opts: { ids?: string[
 
 /** What Yolias did lately, across campaigns or in one. */
 export async function campaignActivity(workspaceId: string, campaignId?: string, limit = 12) {
-  let q = createAdminClient().from("campaign_activity").select("id, campaign_id, kind, body, created_at, campaign:outreach_campaigns(name)")
+  let q = createAdminClient().from("campaign_activity").select("id, campaign_id, kind, body, meta, created_at, campaign:outreach_campaigns(name)")
     .eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(limit);
   if (campaignId) q = q.eq("campaign_id", campaignId);
   const { data } = await q;
-  return (data ?? []).map((a) => ({ id: a.id, campaignId: a.campaign_id, kind: a.kind, body: a.body, at: a.created_at, campaign: (a.campaign as unknown as { name: string } | null)?.name ?? "" }));
+  return (data ?? []).map((a) => ({ id: a.id, campaignId: a.campaign_id, kind: a.kind, body: a.body, meta: a.meta, at: a.created_at, campaign: (a.campaign as unknown as { name: string } | null)?.name ?? "" }));
 }

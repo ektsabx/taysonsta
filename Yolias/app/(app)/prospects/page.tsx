@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Bookmark, Building2, UserRound, UsersRound } from "lucide-react";
+import { Bookmark, Building2, UserRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
 import { CampaignFilter } from "@/components/app/campaigns/CampaignFilter";
-import { ImportCsvButton } from "@/components/app/ImportCsvButton";
 import { countryLabel, formatDate, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
 import { companyOutreach, statusesForProspects } from "@/services/pipeline";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
-import { hasProviderFor } from "@/lib/intel/registry";
-import { monthlyUsage } from "@/services/workspace";
 import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, prospectCountries, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,8 +36,8 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     ? (kindAsked === "people" || (kindAsked !== "companies" && !savedCounts.companies && savedCounts.people > 0) ? "people" : "companies")
     : filters.tab === "people" || (filters.tab !== "companies" && !counts.companies && counts.people > 0) ? "people" : "companies";
   const f = { ...filters, tab, bookmarked: saved || filters.bookmarked };
-  const [page, countryCodes, funding, usage, t, locale, canCollect, { data: campaignOptions }] = await Promise.all([
-    listItems(ws, f), prospectCountries(ws), fundingStages(ws), monthlyUsage(ws), getDictionary(), getLocale(), hasProviderFor("person.search"),
+  const [page, countryCodes, funding, t, locale, { data: campaignOptions }] = await Promise.all([
+    listItems(ws, f), prospectCountries(ws), fundingStages(ws), getDictionary(), getLocale(),
     (await createClient()).from("outreach_campaigns").select("id, name").eq("workspace_id", ws).neq("status", "archived").order("created_at", { ascending: false }).limit(100),
   ]);
   const pr = t.prospects;
@@ -92,10 +89,6 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
           <h2>{pr.title}</h2>
           <p>{L.subtitle}</p>
         </div>
-        <div className="sdr-head-actions">
-          <Link className="sdr-btn" href="/prospects/audiences"><UsersRound />{t.camp.aud.title}</Link>
-          <ImportCsvButton available={Math.max(usage.contacts.limit - usage.contacts.used, 0)} primary label={L.importPeople} />
-        </div>
       </header>
 
       <nav className="sdr-tabs" aria-label={pr.title}>
@@ -125,7 +118,6 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
             pageSize={PAGE_SIZE}
             query={query}
             empty={saved && !filtered ? L.emptySaved : filtered ? L.emptyFiltered : tab === "people" ? (counts.companies ? fmt(L.peopleHint, { n: formatNumber(counts.companies, locale) }) : L.emptyPeople) : L.emptyCompanies}
-            canCollect={canCollect}
           />
         </div>
       </section>
