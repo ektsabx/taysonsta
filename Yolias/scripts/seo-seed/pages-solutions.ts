@@ -87,7 +87,7 @@ export const solutionPages: SeedPage[] = [
     en: {
       title: "SEO agencies", h1: "Find SEO clients who sell online but don't show up in search",
       metaTitle: "Prospecting for SEO agencies: find clients with AI",
-      metaDescription: "Find companies that depend on search but have weak sites: e-commerce, clinics, local services, B2B firms. Yolias explains each fit and writes and sends the emails for you.",
+      metaDescription: "Find companies that depend on search but have weak sites: shops, clinics, local services. Yolias writes, sends and books the meetings.",
       lead: "The best SEO clients already know search matters to their business. Yolias helps you find companies in the industries you know, in the markets you serve, and write to them with something specific.",
       answer: "To find SEO clients, focus on businesses whose customers search before they buy (clinics, e-commerce, local services, B2B services), in one market, and look for public signs that their site needs work. Yolias finds matching companies from a plain description, explains each match and drafts the first email.",
       audience: ["SEO agencies and consultants", "Content and digital marketing agencies that sell SEO", "Freelancers who offer SEO for one industry"],
