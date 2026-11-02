@@ -8,7 +8,6 @@ import { dirOf } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
 import { Analytics } from "@/components/analytics/Analytics";
-import { SupportWidget } from "@/components/SupportWidget";
 import { siteVerification } from "@/lib/seo-server";
 import { OG_IMAGE, SITE_NAME, siteUrl } from "@/lib/seo";
 import "./globals.css";
@@ -64,7 +63,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <I18nProvider locale={locale}>
           <Analytics locale={locale} user={session ? { userId: session.userId, workspaceId: session.workspace.id, plan: session.workspace.plan, role: session.role } : null} />
         </I18nProvider>
-        <SupportWidget />
       </body>
     </html>
   );

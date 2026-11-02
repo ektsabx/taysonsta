@@ -161,6 +161,36 @@ export const agEn = {
   /** Yolias's activity log, in the reader's language (D-273; English rows are written by the worker). */
   /** D-274: the results engine (optimizer, balance, reminders, link visits, the Inbox, Prospects, the campaign's Ads-Manager page). */
   rx: {
+    build: {
+      type: "Campaign type", outreach: "Outreach", outreachDesc: "Yolias finds the companies and people you target and contacts them for you, one personal message each, then follows up and answers.",
+      leads: "Qualified leads", leadsDesc: "Yolias contacts the people you target and hands you each one who replies with interest, with the conversation, so you take it from there.", leadsTarget: "Qualified leads you want",
+      channel: "Channel", soon: "Soon",
+      channels: { email: "Email", linkedin: "LinkedIn", facebook_groups: "Facebook groups", reddit: "Reddit", quora: "Quora" },
+      channelDesc: {
+        email: "From your own mailbox, one personal email each, with follow-ups and answers in the same thread.",
+        linkedin: "Messages to decision makers on LinkedIn. Not available yet: LinkedIn doesn't allow automated messages.",
+        facebook_groups: "Helpful posts and replies in groups where your customers ask for help. Not available yet.",
+        reddit: "Answers in the communities where your customers ask questions. Not available yet.",
+        quora: "Answers to the questions your customers search for. Not available yet.",
+      },
+      contact: "Contact", contacts: { people: "People", companies: "Companies", both: "Both" },
+      contactDesc: {
+        people: "Decision makers by name (owners, managers, heads of a department): the best replies.",
+        companies: "The company's general email (info@, sales@), when no person is needed or found.",
+        both: "A person when Yolias finds one, else the company's general email.",
+      },
+      messageName: "Message name", messageNamePh: "e.g. Clinics: first email and follow-ups",
+    },
+    limit: {
+      title: "Account spending limit", of: "spent of {usd}", since: "since {date}", none: "No limit", save: "Save limit", reset: "Reset", remove: "Remove",
+      saved: "Spending limit saved.", resetDone: "The count starts again from now.", resetConfirm: "Start counting the spend again from now?",
+      reached: "The limit is reached: Yolias stops finding new people until you raise or reset it. Conversations already running continue.",
+    },
+    ask: {
+      title: "Yolias AI", newChat: "New chat", full: "Open full size",
+      suggestions: ["How did my campaigns do last week?", "Which audience brings the cheapest meetings?", "Suggest a new audience for my best campaign", "What needs me today?"],
+    },
+    nav: { yolias: "Yolias", acquisition: "Acquisition", engagement: "Engagement", workspace: "Workspace", inbox: "Inbox", leads: "Leads" },
     meet: {
       brief: "Brief", happened: "Did it happen?", held: "It happened", visitsTab: "Link visits",
       visits: {
@@ -178,8 +208,13 @@ export const agEn = {
     balance: {
       title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings held", costHeld: "Cost per held meeting", renews: "Renews {date}",
     },
-    inbox: { needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Removed from Needs you." },
-    prospects: { title: "Search results", all: "All campaigns", companies: "Companies", people: "People", withEmail: "With email", contacted: "Contacted", replied: "Replied", meetings: "Meetings", open: "Open the campaign" },
+    inbox: {
+      needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Marked as done.",
+      all: "All", allEmpty: "No conversations yet. They appear here as soon as Yolias writes to someone.", channel: "Channel", soon: "soon",
+      channels: { all: "All channels", email: "Email", whatsapp: "WhatsApp", linkedin: "LinkedIn", facebook: "Facebook" },
+      badge: "Needs you", banner: "Yolias handed this conversation to you.", handling: "Yolias is handling this conversation.",
+    },
+    prospects: { subtitle: "The companies and people your campaigns found and reached, with what came of them.", title: "Search results", all: "All campaigns", companies: "Companies", people: "People", withEmail: "With email", contacted: "Contacted", replied: "Replied", meetings: "Meetings", open: "Open the campaign" },
     dash: {
       found: "Found by Yolias", foundNote: "{companies} companies · {people} people", opened: "Opened", openedNote: "{pct} open rate (approximate)",
       replies: "Replied", repliesNote: "{pct} reply rate · {n} didn't reply", booked: "Meetings booked", bookedNote: "{pct} showed up", held: "Meetings held", heldNote: "The result",
@@ -187,7 +222,7 @@ export const agEn = {
     },
     cp: {
       toggle: "On / off", breakdown: "Breakdown", by: { none: "None", day: "Day", country: "Country", industry: "Industry", title: "Job title", group: "Audience", variant: "Opening" },
-      chart: "Performance", hideChart: "Hide chart", showChart: "Show chart", more: "More", results: "Results", costPerResult: "Cost per result", reached: "Reached",
+      exportCsv: "Export as .csv", exportXlsx: "Export as .xlsx", chart: "Performance", hideChart: "Hide chart", showChart: "Show chart", more: "More", results: "Results", costPerResult: "Cost per result", reached: "Reached",
     },
   },
   act: { optimized: "Moved budget toward the audience with better results.", found: "Found {n} new people for this campaign.", replied: "Answered a reply.", meeting: "Booked a meeting.", handoff: "Handed a conversation to you.", started: "Launched.", scheduled: "Scheduled to start.", paused: "Paused.", resumed: "Resumed.", completed: "Ended.", failed: "Stopped.", guard: "Paused to protect your mailbox.", enrolled: "People joined the campaign.", note: "Updated the campaign." },

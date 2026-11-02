@@ -82,7 +82,7 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
         startsAt: c.starts_at ?? c.started_at, endsAt: c.ends_at, mailbox: mb?.email ?? null, targetMeetings: c.target_meetings, dailyLimit: c.daily_limit,
         runDays: c.run_days ?? [], contactFrom: c.contact_from, contactTo: c.contact_to, tone: c.tone, language: c.language, instructions: c.instructions, senderName: c.sender_name,
         approved: Boolean(c.approved_at),
-        costCapUsd: c.cost_cap_usd == null ? null : Number(c.cost_cap_usd), trackOpens: c.track_opens !== false,
+        costCapUsd: c.cost_cap_usd == null ? null : Number(c.cost_cap_usd), trackOpens: c.track_opens !== false, objective: c.objective ?? "meetings",
         optimizingFor: (line.groups.map((g) => g.opt?.event).find(Boolean)) ?? null,
       }}
     />

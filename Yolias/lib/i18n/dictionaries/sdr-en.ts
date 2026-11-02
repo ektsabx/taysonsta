@@ -146,7 +146,7 @@ export const sdrEn = {
   },
   inbox: {
     live: { progress: "Writing {writing} · Sent {sent} of {total}", failed: "{n} not sent", clear: "Show all conversations" },
-    title: "Conversations", subtitle: "Every reply, in one place.", tasks: "Tasks", approvals: "Approvals",
+    title: "Conversations", subtitle: "Every conversation with your customers in one place, and Yolias as it talks to them.", tasks: "Tasks", approvals: "Approvals",
     search: "Search emails, leads…", filter: "Filter", campaignAll: "All campaigns",
     tabs: { inbox: "Inbox", replies: "Replies", to_approve: "To approve", out_of_office: "Out of office", sent: "Sent", done: "Done" },
     tabHints: { inbox: "Every conversation with a reply", replies: "Replies from leads, without out-of-office auto-replies", to_approve: "Drafts and actions waiting for your approval", out_of_office: "Auto-replies and out-of-office notices", sent: "Conversations you wrote in", done: "Conversations you closed" },

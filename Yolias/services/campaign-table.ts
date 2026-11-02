@@ -81,7 +81,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   const won = owned.length ? await paged<{ id: string; deal_value: number | null; closed_at: string | null }>((a, b) => db.from("sales_leads").select("id, deal_value, closed_at").eq("workspace_id", workspaceId).eq("stage", "closed").in("id", owned.slice(0, 5000)).range(a, b)) : [];
 
   // Counts per bucket ("c:<campaign>" and "g:<group>"); each person once per count.
-  const sets = new Map<string, Record<"contacted" | "replies" | "interested" | "requests" | "opened", Set<string>>>();
+  const sets = new Map<string, Record<"contacted" | "replies" | "interested" | "requests" | "opened" | "qualified", Set<string>>>();
   const nums = new Map<string, Counts>();
   // D-273: which opening each person got first (their first email's variant), per campaign.
   const openingOf = new Map<string, string>();
@@ -95,7 +95,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     return [`c:${campaign}`, ...(group ? [`g:${group}`] : []), ...(v ? [v] : [])];
   };
   const bucket = (k: string) => {
-    if (!sets.has(k)) { sets.set(k, { contacted: new Set(), replies: new Set(), interested: new Set(), requests: new Set(), opened: new Set() }); nums.set(k, zeroCounts()); }
+    if (!sets.has(k)) { sets.set(k, { contacted: new Set(), replies: new Set(), interested: new Set(), requests: new Set(), opened: new Set(), qualified: new Set() }); nums.set(k, zeroCounts()); }
     return { s: sets.get(k)!, n: nums.get(k)! };
   };
   for (const m of msgs) {
@@ -111,7 +111,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
       if (m.direction === "inbound" && inRange(m.received_at ?? m.created_at, range) && !isAutoReplyRow(m as never)) {
         s.replies.add(m.lead_id);
         const kind = (m.analysis as { kind?: string } | null)?.kind ?? "";
-        if (POSITIVE.has(kind)) s.interested.add(m.lead_id);
+        if (POSITIVE.has(kind)) { s.interested.add(m.lead_id); s.qualified.add(m.lead_id); }
         if (kind === "meeting_request") s.requests.add(m.lead_id);
       }
     }
@@ -121,7 +121,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     for (const k of keysFor(mt.campaign_id, groupOfLead.get(`${mt.campaign_id}:${mt.lead_id}`), mt.lead_id)) {
       const { n } = bucket(k);
       if (mt.status === "canceled") { if (inRange(mt.created_at, range)) n.canceled++; continue; }
-      if (inRange(mt.created_at, range)) n.meetings++;
+      if (inRange(mt.created_at, range)) { n.meetings++; sets.get(k)?.qualified.add(mt.lead_id); }
       if (mt.confirmed_at && inRange(mt.created_at, range)) n.confirmed++;
       if (mt.status === "completed" && inRange(mt.starts_at, range)) n.held++;
       if (mt.qualified === true && inRange(mt.starts_at, range)) n.qualified++;
@@ -163,7 +163,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   }
   const counts = (k: string): Counts => {
     const b = sets.get(k), n = nums.get(k) ?? zeroCounts();
-    return b ? { ...n, contacted: b.contacted.size, replies: b.replies.size, interested: b.interested.size, meetingRequests: b.requests.size, opened: b.opened.size } : n;
+    return b ? { ...n, contacted: b.contacted.size, replies: b.replies.size, interested: b.interested.size, meetingRequests: b.requests.size, opened: b.opened.size, qualifiedLeads: b.qualified.size } : n;
   };
 
   return camps.map((c) => {

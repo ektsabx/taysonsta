@@ -27,13 +27,15 @@ import { activityText } from "@/lib/campaigns/activity-text";
 export type CampaignTab = "activity" | "conversations" | "meetings" | "settings";
 const TABS: CampaignTab[] = ["activity", "conversations", "meetings", "settings"];
 const KPIS = ["held", "cost_per_held", "spend", "found", "sent", "open_rate", "reply_rate", "meetings"] as const;
+// D-274: a qualified-leads campaign's result and cost per result.
+const LEAD_KPIS = ["qualified_leads", "cost_per_qualified_lead", "spend", "found", "sent", "open_rate", "reply_rate", "meetings"] as const;
 
 export interface CampaignInfo {
   id: string; name: string; status: CampaignLine["status"]; budgetUsd: number | null; budgetType: "total" | "daily" | "monthly" | null;
   startsAt: string | null; endsAt: string | null; mailbox: string | null; targetMeetings: number | null; dailyLimit: number | null; runDays: string[]; contactFrom: string | null; contactTo: string | null;
   tone: string; language: string; instructions: string | null; senderName: string | null; approved: boolean;
   /** D-274 */
-  costCapUsd: number | null; trackOpens: boolean; optimizingFor: string | null;
+  costCapUsd: number | null; trackOpens: boolean; optimizingFor: string | null; objective: string;
 }
 
 export function CampaignPage({ c, tab, range, from, to, line, prev, detail, activity, recommendations, refreshedAt }: {
@@ -117,16 +119,17 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
       </header>
 
       <div className="cp-kpis">
-        {KPIS.map((id) => {
+        {(c.objective === "qualified_leads" ? LEAD_KPIS : KPIS).map((id, i) => {
           const m = metric(id)!;
           const v = m.compute(line.counts), before = prev ? m.compute(prev) : null;
           const delta = v != null && before != null && before !== 0 ? (v - before) / before : null;
-          const good = id === "cost_per_held" || id === "spend" ? (delta ?? 0) < 0 : (delta ?? 0) > 0;
+          const lead = i < 2;
+          const good = id.startsWith("cost_per") || id === "spend" ? (delta ?? 0) < 0 : (delta ?? 0) > 0;
           return (
-            <div key={id} className={`cp-kpi${id === "held" || id === "cost_per_held" ? " lead" : ""}`}>
-              <span className="cp-kpi-label">{id === "held" ? C.results : id === "cost_per_held" ? C.costPerResult : m.label[lang]}</span>
+            <div key={id} className={`cp-kpi${lead ? " lead" : ""}`}>
+              <span className="cp-kpi-label">{i === 0 ? C.results : i === 1 ? C.costPerResult : m.label[lang]}</span>
               <strong>{formatMetric(v, m.format, lang)}</strong>
-              <small>{id === "held" || id === "cost_per_held" ? m.label[lang] : delta != null && days ? <span className={good ? "up" : "down"}>{good ? <ArrowUpRight /> : <ArrowDownRight />}{`${Math.abs(Math.round(delta * 100))}%`} {fmt(P.vsPrevious, { days: String(days) })}</span> : " "}</small>
+              <small>{lead ? m.label[lang] : delta != null && days ? <span className={good ? "up" : "down"}>{good ? <ArrowUpRight /> : <ArrowDownRight />}{`${Math.abs(Math.round(delta * 100))}%`} {fmt(P.vsPrevious, { days: String(days) })}</span> : " "}</small>
             </div>
           );
         })}
@@ -200,7 +203,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
             <ul className="cp-convs">
               {detail.meetings.map((m) => (
                 <li key={m.id}>
-                  <Link href="/meetings">
+                  <Link href="/meetings?tab=bookings">
                     <strong dir="auto">{m.lead}</strong>
                     <span className={`cd-status st-${m.status === "scheduled" ? "active" : m.status === "completed" ? "completed" : "paused"}`}>{t.camp.meet[({ scheduled: "upcoming", completed: "past", no_show: "noShow", canceled: "canceled" } as const)[m.status as "scheduled"] ?? "upcoming"]}</span>
                     {m.confirmed && <span className="sdr-badge nodot green">{metric("confirmed")!.label[lang]}</span>}
@@ -210,7 +213,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
               ))}
             </ul>
           ) : <p className="ws-hint">{P.meetings.empty}</p>}
-          <Link className="sdr-btn ghost sm" href="/meetings">{P.meetings.open}</Link>
+          <Link className="sdr-btn ghost sm" href="/meetings?tab=bookings">{P.meetings.open}</Link>
         </section>
       )}
 
@@ -218,7 +221,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
         <section className="cp-card">
           <div className="cp-card-head"><h3>{P.settings.title}</h3>{!["archived", "completed"].includes(c.status) && <Link className="sdr-btn sm" href={editHref}><Pencil />{P.settings.edit}</Link>}</div>
           <dl className="cp-settings">
-            <dt>{t.ag.builder.campaign.objective}</dt><dd>{P.objective}{c.targetMeetings ? ` · ${fmt(P.target, { got: String(line.counts.held), target: String(c.targetMeetings) })}` : ""}</dd>
+            <dt>{t.ag.builder.campaign.objective}</dt><dd>{c.objective === "qualified_leads" ? t.ag.rx.build.leads : P.objective}{c.targetMeetings ? ` · ${fmt(P.target, { got: String(line.counts.held), target: String(c.targetMeetings) })}` : ""}</dd>
             <dt>{P.budget}</dt><dd>{budget}</dd>
             <dt>{O.costCap}</dt><dd>{c.costCapUsd == null ? O.noCap : usd(c.costCapUsd)}</dd>
             <dt>{P.dates}</dt><dd>{dates}</dd>

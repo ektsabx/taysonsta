@@ -1,3 +1,4 @@
+import { SupportWidget } from "@/components/SupportWidget";
 import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/app/AppShell";
 import { SIDEBAR_COOKIE, type ShellData } from "@/components/app/types";
@@ -144,5 +145,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const jar = await cookies();
   const sidebarClosed = jar.get(SIDEBAR_COOKIE)?.value === "closed";
-  return <AppShell data={data} initialClosed={sidebarClosed} >{children}</AppShell>;
+  return <><AppShell data={data} initialClosed={sidebarClosed} >{children}</AppShell><SupportWidget inApp /></>;
 }

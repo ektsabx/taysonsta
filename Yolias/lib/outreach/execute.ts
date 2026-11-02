@@ -448,6 +448,16 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     return;
   }
 
+  // A "qualified leads" campaign (D-274): an interested person is the result. Yolias answers them,
+  // then hands them to the member as a qualified lead with the conversation (a time they named is still booked).
+  if (c && c.objective === "qualified_leads" && action === "offer_times") {
+    if (analysis?.suggested_reply) await sendInThread(db, mb, leadId, messageId, c, () => analysis.suggested_reply!, "Yolias answered and handed the lead to you.");
+    await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "agent", body: "Qualified lead: replied with interest. Handed to you.", meta: { message_id: messageId, action, qualified: true } as Json });
+    await notifyUser(mb.workspace_id, mb.user_id, ar ? `عميل مؤهل: ${who}` : `Qualified lead: ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `qualified:${messageId}`);
+    await db.from("lead_tasks").insert({ workspace_id: mb.workspace_id, lead_id: leadId, title: (ar ? `عميل مؤهل: ${who}` : `Qualified lead: ${who}`).slice(0, 300), kind: "follow_up", due_at: new Date().toISOString(), source: "agent", assignee_id: mb.user_id, dedupe_key: `handoff:${messageId}` });
+    await logCampaign(db, mb.workspace_id, c.id, "replied", `${who}: qualified lead, handed to you.`, { lead_id: leadId, qualified: true });
+    return;
+  }
   if (c && (action === "book_named_time" || action === "offer_times")) {
     // The lead named a time (D-269): when it is free on the member's page, Yolias books it and confirms in the thread.
     if (action === "book_named_time" && proposed) {

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, Check, ChevronDown, Copy, Folder, Loader2, Mail, Plus, Sparkles, Trash2, Users, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, Copy, Folder, Loader2, Mail, Plus, Send, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -47,6 +47,7 @@ export interface BuilderProps {
 export function CampaignBuilder(p: BuilderProps) {
   const { t, locale } = useI18n();
   const b = t.ag.builder;
+  const K = t.ag.rx.build;
   const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
@@ -163,9 +164,37 @@ export function CampaignBuilder(p: BuilderProps) {
                 <label className="ws-label" htmlFor="cb-name">{b.campaign.name}</label>
                 <input id="cb-name" className="form-input" dir="auto" maxLength={160} placeholder={b.campaign.namePh} value={s.name} onChange={(e) => patch({ name: e.target.value })} />
               </div>
+              {/* D-274: type → objective → channel → whom to contact, each with what it means. */}
+              <div className="ws-field">
+                <span className="ws-label">{K.type}</span>
+                <div className="cb-objective on"><Send /><div><strong>{K.outreach}</strong><p>{K.outreachDesc}</p></div><Check className="cb-tick" /></div>
+              </div>
               <div className="ws-field">
                 <span className="ws-label">{b.campaign.objective}</span>
-                <div className="cb-objective on"><CalendarDays /><div><strong>{b.campaign.meetings}</strong><p>{b.campaign.meetingsDesc}</p></div><Check className="cb-tick" /></div>
+                <div className="cb-choices">
+                  {(["meetings", "qualified_leads"] as const).map((k) => (
+                    <button key={k} type="button" className={`cb-objective${s.objective === k ? " on" : ""}`} aria-pressed={s.objective === k} onClick={() => patch({ objective: k })}>
+                      {k === "meetings" ? <CalendarDays /> : <UserCheck />}<div><strong>{k === "meetings" ? b.campaign.meetings : K.leads}</strong><p>{k === "meetings" ? b.campaign.meetingsDesc : K.leadsDesc}</p></div>{s.objective === k && <Check className="cb-tick" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="ws-field">
+                <span className="ws-label">{K.channel}</span>
+                <div className="cb-choices">
+                  {(["email", "linkedin", "facebook_groups", "reddit", "quora"] as const).map((k) => (
+                    <button key={k} type="button" disabled={k !== "email"} className={`cb-objective sm${k === "email" ? " on" : ""}`} aria-pressed={k === "email"} onClick={() => patch({ channel: "email" })}>
+                      <div><strong>{K.channels[k]}{k !== "email" && <span className="cb-soon">{K.soon}</span>}</strong><p>{K.channelDesc[k]}</p></div>{k === "email" && <Check className="cb-tick" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="ws-field">
+                <span className="ws-label">{K.contact}</span>
+                <div className="sdr-seg" role="tablist">
+                  {(["people", "companies", "both"] as const).map((k) => <button key={k} type="button" role="tab" aria-selected={s.contactTarget === k} className={s.contactTarget === k ? "active" : ""} onClick={() => patch({ contactTarget: k })}>{K.contacts[k]}</button>)}
+                </div>
+                <p className="ws-hint">{K.contactDesc[s.contactTarget]}</p>
               </div>
               <div className="ws-field">
                 <span className="ws-label">{b.campaign.offer}</span>
@@ -183,7 +212,7 @@ export function CampaignBuilder(p: BuilderProps) {
                 <Link href="/ai/knowledge" className="sdr-btn ghost sm">{b.campaign.knowledgeOpen}</Link>
               </div>
               <div className="ws-field">
-                <label className="ws-label" htmlFor="cb-target">{b.campaign.result}</label>
+                <label className="ws-label" htmlFor="cb-target">{s.objective === "qualified_leads" ? K.leadsTarget : b.campaign.result}</label>
                 <input id="cb-target" className="form-input num" type="number" min={1} max={1000} value={s.targetMeetings} onChange={(e) => patch({ targetMeetings: Math.max(1, Math.min(1000, Number(e.target.value) || 1)) })} />
                 <p className="ws-hint">{b.campaign.resultHint}</p>
               </div>
@@ -299,6 +328,10 @@ export function CampaignBuilder(p: BuilderProps) {
           {level === "message" && (
             <div className="cb-form">
               <div className="ws-field">
+                <label className="ws-label" htmlFor="cb-mname">{K.messageName}</label>
+                <input id="cb-mname" className="form-input" dir="auto" maxLength={160} placeholder={K.messageNamePh} value={s.messageName} onChange={(e) => patch({ messageName: e.target.value })} />
+              </div>
+              <div className="ws-field">
                 <span className="ws-label">{b.message.mailbox}</span>
                 {p.mailboxes.length ? (
                   <select className="form-input" dir="ltr" value={s.mailboxId ?? ""} onChange={(e) => patch({ mailboxId: e.target.value || null })}>
@@ -385,7 +418,7 @@ export function CampaignBuilder(p: BuilderProps) {
           <div className="cb-summary">
             <strong dir="auto">{s.name.trim() || b.campaign.name}</strong>
             <dl>
-              <dt>{b.campaign.objective}</dt><dd>{b.campaign.meetings} · {s.targetMeetings}</dd>
+              <dt>{b.campaign.objective}</dt><dd>{s.objective === "qualified_leads" ? K.leads : b.campaign.meetings} · {s.targetMeetings}</dd>
               <dt>{b.campaign.budget}</dt><dd>{usd(s.budgetUsd)} {b.campaign.budgetTypes[s.budgetType].toLowerCase()}</dd>
               <dt>{t.ag.levels.audience}</dt><dd>{s.adSets.length}</dd>
               {capacity != null && <><dt>{b.campaign.daily}</dt><dd>{n(s.dailyLimit)}</dd></>}

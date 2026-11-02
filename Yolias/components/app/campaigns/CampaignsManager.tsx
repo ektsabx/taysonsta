@@ -14,6 +14,7 @@ import { bulkCampaigns, bulkEdit, renameCampaign } from "@/app/(app)/outreach/ma
 import { groupAction } from "@/app/(app)/outreach/[id]/actions";
 import { runOutreach } from "@/app/(app)/outreach/actions";
 import type { CampaignLine } from "@/services/campaign-table";
+import { xlsx } from "@/lib/xlsx";
 import type { BreakRow, Dimension } from "@/services/campaign-detail";
 
 // Campaigns, after Facebook Ads Manager (owner, 2026-10-31, D-272, D-273):
@@ -60,7 +61,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "created", dir: -1 });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [onlySelected, setOnlySelected] = useState(false);
-  const [open, setOpen] = useState<"filters" | "columns" | "range" | "breakdown" | null>(null);
+  const [open, setOpen] = useState<"filters" | "columns" | "range" | "breakdown" | "export" | null>(null);
   const [menu, setMenu] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [editing, setEditing] = useState(false);
@@ -162,16 +163,25 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
     if (action === "delete" && !confirm(fmt(m.confirmDelete, { n: k }))) return;
     run(() => bulkCampaigns(list, action), () => { setSelected(new Set()); setMenu(null); });
   };
-  const exportCsv = (list: Row[]) => {
+  // D-274: export as .csv or .xlsx (numbers stay numbers in the spreadsheet).
+  const exportAs = (list: Row[], kind: "csv" | "xlsx") => {
     const head = [m.colName, level === "campaigns" ? m.colStatus : m.colCampaign, ...ordered.map((c) => c.label[lang])];
-    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const body = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => formatMetric(c.compute(r.counts), c.format, lang))].map(esc).join(","));
-    const blob = new Blob([`﻿${[head.map(esc).join(","), ...body].join("\n")}`], { type: "text/csv;charset=utf-8" });
+    const name = `yolias-${level}-${new Date().toISOString().slice(0, 10)}.${kind}`;
+    let blob: Blob;
+    if (kind === "csv") {
+      const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+      const body = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => formatMetric(c.compute(r.counts), c.format, lang))].map(esc).join(","));
+      blob = new Blob([`\ufeff${[head.map(esc).join(","), ...body].join("\n")}`], { type: "text/csv;charset=utf-8" });
+    } else {
+      const rowsOut = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => { const v = c.compute(r.counts); return v == null ? null : c.format === "pct" ? Math.round(v * 10000) / 100 : Math.round(v * 100) / 100; })]);
+      blob = new Blob([xlsx(head, rowsOut, m.tabs[level]) as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    }
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `yolias-${level}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = name;
     a.click();
     URL.revokeObjectURL(a.href);
+    setOpen(null);
   };
   const toggleSel = (id: string) => setSelected((s) => { const x = new Set(s); if (x.has(id)) x.delete(id); else x.add(id); return x; });
   const allOn = level === "campaigns" && rows.length > 0 && rows.every((r) => selected.has(r.id));
@@ -282,7 +292,15 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
             </div>
           )}
         </div>
-        <button type="button" className="sdr-btn" onClick={() => exportCsv(rows)}><Download />{m.export}</button>
+        <div className="cm-wrap">
+          <button type="button" className="sdr-btn cm-toggle" aria-expanded={open === "export"} onClick={() => setOpen(open === "export" ? null : "export")}><Download />{m.export}<ChevronDown /></button>
+          {open === "export" && (
+            <div className="cm-pop cm-range">
+              <button type="button" onClick={() => exportAs(rows, "csv")}>{t.ag.rx.cp.exportCsv}</button>
+              <button type="button" onClick={() => exportAs(rows, "xlsx")}>{t.ag.rx.cp.exportXlsx}</button>
+            </div>
+          )}
+        </div>
         <button type="button" className="sdr-btn cm-refresh" disabled={pending} onClick={() => start(() => router.refresh())} title={fmt(m.updated, { time: updated })}><RefreshCw className={pending ? "spin" : ""} /><span>{pending ? m.refreshing : fmt(m.updated, { time: updated })}</span></button>
       </div>
 

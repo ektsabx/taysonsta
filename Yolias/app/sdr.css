@@ -958,3 +958,23 @@ a.meet-tag { text-decoration: none; color: inherit; }
 .db-account-left { display: flex; align-items: baseline; gap: 8px; color: var(--ink) !important; }
 .db-account-left bdi { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .db-account-left small { color: var(--muted); font-size: .85rem; }
+/* D-274: Inbox hub, conversations that need the member */
+.sdr-count.hot { background: var(--red); color: #fff; }
+.sdr-needs-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 16px 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--red) 35%, var(--line)); background: color-mix(in srgb, var(--red) 8%, transparent); font-size: .86rem; }
+.db-row1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.sl-meter { display: grid; gap: 8px; margin-bottom: 12px; }
+.sl-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sl-line strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.sl-line span, .sl-line small { color: var(--muted); font-size: .85rem; }
+.db-account-bar.full i { background: var(--red); }
+.sl-reached { margin: 0; color: var(--red); font-size: .85rem; }
+.sl-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cb-choices { display: grid; gap: 8px; }
+.cb-objective { width: 100%; text-align: start; font: inherit; color: inherit; cursor: pointer; background: var(--paper); }
+.cb-objective:disabled { cursor: not-allowed; opacity: .55; }
+.cb-objective.sm { padding-block: 10px; }
+.cb-objective.sm p { font-size: .8rem; }
+.cb-soon { margin-inline-start: 8px; padding: 1px 7px; border-radius: 999px; font-size: .68rem; font-weight: 600; background: var(--table-head); color: var(--muted); }
+.cb-objective:not(.on) { border-color: var(--line); box-shadow: none; }
+.cb-objective:not(.on) > svg:first-child { color: var(--muted); }
+.cb-objective > div { flex: 1; min-width: 0; }

@@ -1,3 +1,4 @@
+import { SupportWidget } from "@/components/SupportWidget";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { getSession } from "@/lib/session";
@@ -20,6 +21,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <SiteHeader signedIn={Boolean(session)} />
       <main>{children}</main>
       <SiteFooter signedIn={Boolean(session)} extraLinks={seoLinks} />
+      <SupportWidget />
     </div>
   );
 }

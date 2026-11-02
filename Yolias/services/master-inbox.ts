@@ -14,12 +14,12 @@ import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
 //   done         closed conversations
 // Read as the member (RLS).
 
-// D-274 (owner, 2026-11-02): the Inbox is "Needs you" only: conversations
-// Yolias handed to the member (an open hand-off task), a reply waiting for
-// their approval or draft, or a reply Yolias couldn't answer and nobody has
-// answered since. Yolias handles the rest; those threads stay reachable from
-// the campaign and the lead. The other tabs remain for links that name them.
-export const INBOX_TABS = ["needs_you", "inbox", "replies", "to_approve", "out_of_office", "sent", "done"] as const;
+// D-274 (owner, 2026-11-02): the Inbox is the hub of every conversation
+// (email today; more channels later): "All" shows every thread Yolias is
+// having, and a conversation that needs the member is marked (a hand-off
+// task, a reply waiting for approval or a draft, or a reply Yolias couldn't
+// answer and nobody has since), with its own tab and count.
+export const INBOX_TABS = ["all", "needs_you", "inbox", "replies", "to_approve", "out_of_office", "sent", "done"] as const;
 export type InboxTab = (typeof INBOX_TABS)[number];
 const term = (s: string) => s.replace(/[%,()*\\]/g, " ").trim();
 
@@ -33,6 +33,8 @@ export interface InboxListItem {
   unread: boolean;
   hasDraft: boolean;
   status: LeadStatus | null;
+  /** D-274: Yolias handed it to the member, or it waits for them. */
+  needsYou: boolean;
 }
 
 export { INBOX_SHOWS, type InboxShow };
@@ -79,7 +81,7 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
   const items: (InboxListItem & { tabs: Set<InboxTab> })[] = leads.filter((l) => !show || shows(statuses.get(l.id) ?? null, waiting.has(l.id), show)).map((l) => {
     const st = statuses.get(l.id) ?? null;
     const open = (l.thread_status ?? "open") === "open";
-    const tabs = new Set<InboxTab>();
+    const tabs = new Set<InboxTab>(["all"]);
     if (!open) tabs.add("done");
     const unanswered = Boolean(st?.lastInbound && NEEDS_YOU.has(st.lastInbound.kind) && (!st.lastOutbound || st.lastOutbound.at < st.lastInbound.at));
     if (open && (handed.has(l.id) || waiting.has(l.id) || Boolean(st?.draft) || unanswered)) tabs.add("needs_you");
@@ -92,7 +94,7 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
     return {
       leadId: l.id, name: l.name, company: l.company_name !== l.name ? l.company_name : null, at: m?.at ?? l.thread_last_message_at!,
       subject: m?.subject ?? "", preview: (m?.body ?? "").replace(/\s+/g, " ").slice(0, 160), unread: l.unread,
-      hasDraft: Boolean(st?.draft || st?.lastInbound?.suggestedReply), status: st, tabs,
+      hasDraft: Boolean(st?.draft || st?.lastInbound?.suggestedReply), status: st, tabs, needsYou: tabs.has("needs_you"),
     };
   });
   const counts = Object.fromEntries(INBOX_TABS.map((t) => [t, t === "inbox" ? items.filter((i) => i.tabs.has("inbox") && i.unread).length : items.filter((i) => i.tabs.has(t)).length])) as Record<InboxTab, number>;

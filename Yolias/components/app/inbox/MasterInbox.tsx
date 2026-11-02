@@ -1,9 +1,10 @@
 "use client";
 
-import type { InboxShow } from "@/lib/inbox-shows";
+import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
 import { LiveRefresh } from "@/components/app/LiveRefresh";
 import { setOutcome } from "@/app/(app)/meetings/actions";
 import { LOST_REASONS } from "@/components/app/ws/bits";
+import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,9 @@ interface Props {
   show: InboxShow | null;
 }
 
+// D-274: "All" first (every conversation Yolias is having), then those that need the member.
+const MAIN: InboxTab[] = ["all", "needs_you", "replies"];
+const MORE: InboxTab[] = ["inbox", "to_approve", "out_of_office", "sent", "done"];
 
 // Conversations (D-256, after AgentSDR's Master Inbox): the list with search,
 // a campaign filter and tabs; the thread in the middle with the AI draft and
@@ -47,14 +51,18 @@ export function MasterInbox(p: Props) {
   const { t, locale } = useI18n();
   const x = t.sdr.inbox;
   const router = useRouter();
+  const [more, setMore] = useState(false);
   const [cursor, setCursor] = useState(() => Math.max(0, p.items.findIndex((i) => i.leadId === p.thread?.lead.id)));
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "needs_you" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
+    const cur: Record<string, string | null> = { tab: p.tab === "all" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
+  const I = t.ag.rx.inbox;
+  const tabLabel = (k: InboxTab) => (k === "all" ? I.all : k === "needs_you" ? I.needsYou : x.tabs[k]);
+  const tabHint = (k: InboxTab) => (k === "all" || k === "needs_you" ? undefined : x.tabHints[k]);
   const [week] = useState(() => Date.now() - 7 * 86_400_000);
   const groups = useMemo(() => [
     [x.thisWeek, p.items.filter((i) => Date.parse(i.at) >= week)],
@@ -84,7 +92,7 @@ export function MasterInbox(p: Props) {
   return (
     <div className="sdr-page sdr-inbox-page">
       <header className="sdr-head">
-        <div><h2>{t.ag.rx.inbox.needsYou}</h2></div>
+        <div><h2>{x.title}</h2><p>{x.subtitle}</p></div>
       </header>
       {p.campaign && (
         <div className="sdr-live" role="status">
@@ -100,11 +108,20 @@ export function MasterInbox(p: Props) {
         <aside className="sdr-inbox-list">
           <div className="sdr-inbox-tools">
             <form method="get" action="/inbox" className="sdr-search" style={{ flex: 1, minWidth: 0 }}>
-              {p.tab !== "needs_you" && <input type="hidden" name="tab" value={p.tab} />}
+              {p.tab !== "all" && <input type="hidden" name="tab" value={p.tab} />}
               <Search /><input name="q" defaultValue={p.q} placeholder={x.search} aria-label={x.search} />
             </form>
           </div>
           <div className="sdr-inbox-filters">
+            {/* D-274: one hub for every channel; email today, the others as Yolias adds them. */}
+            <select className="sdr-input sm" aria-label={I.channel} value="email" onChange={() => {}}>
+              <option value="email">{I.channels.email}</option>
+              {(["whatsapp", "linkedin", "facebook"] as const).map((c) => <option key={c} value={c} disabled>{`${I.channels[c]} (${I.soon})`}</option>)}
+            </select>
+            <select className="sdr-input sm" aria-label={t.camp.inbox.filter} value={p.show ?? ""} onChange={(e) => router.push(href({ show: e.target.value || null, lead: null }))}>
+              <option value="">{t.camp.inbox.all}</option>
+              {INBOX_SHOWS.map((k) => <option key={k} value={k}>{{ interested: t.camp.inbox.interested, not_interested: t.camp.inbox.notInterested, needs_you: t.camp.inbox.needsYou, meeting_request: t.camp.inbox.meetingRequest, booked: t.camp.inbox.booked, replied: t.camp.inbox.replied, no_reply: t.camp.inbox.noReply }[k]}</option>)}
+            </select>
             {p.campaigns.length > 0 && (
               <select className="sdr-input sm" aria-label={t.camp.prospects.campaign} value={p.campaign?.id ?? ""} onChange={(e) => router.push(href({ campaign: e.target.value || null, lead: null }))}>
                 <option value="">{t.camp.prospects.anyCampaign}</option>
@@ -112,8 +129,15 @@ export function MasterInbox(p: Props) {
               </select>
             )}
           </div>
+          <nav className="sdr-tabs sdr-inbox-tabs">
+            {MAIN.map((k) => <Link key={k} href={href({ tab: k === "all" ? null : k, lead: null })} className={`${p.tab === k ? "active" : ""}${k === "needs_you" && p.counts.needs_you > 0 ? " needs" : ""}`} title={tabHint(k)}>{tabLabel(k)}{k === "needs_you" && p.counts.needs_you > 0 && <span className="sdr-count hot">{n(p.counts.needs_you)}</span>}</Link>)}
+            <div className="sdr-menu">
+              <button type="button" className={MORE.includes(p.tab) ? "active" : ""} aria-expanded={more} onClick={() => setMore((v) => !v)}>{MORE.includes(p.tab) ? tabLabel(p.tab) : t.sdr.common.more}<ChevronDown /></button>
+              {more && <div className="sdr-menu-panel" role="menu">{MORE.map((k) => <Link key={k} href={href({ tab: k, lead: null })} onClick={() => setMore(false)} title={tabHint(k)}>{tabLabel(k)}<span className="sdr-count" style={{ marginInlineStart: "auto" }}>{n(p.counts[k])}</span></Link>)}</div>}
+            </div>
+          </nav>
           <div className="sdr-inbox-items">
-            {!p.items.length && <div style={{ padding: 16 }}><p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : p.tab === "needs_you" ? t.ag.rx.inbox.empty : x.empty[p.tab]}</p></div>}
+            {!p.items.length && <div style={{ padding: 16 }}>{p.q || p.tab !== "all" ? <p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : p.tab === "needs_you" ? I.empty : x.empty[p.tab as keyof typeof x.empty]}</p> : <EmptyNext text={I.allEmpty} href="/outreach" label={t.emptyNext.inbox} />}</div>}
             {groups.map(([label, rows]) => rows.length > 0 && (
               <div key={label}>
                 <div className="sdr-inbox-group">{label}</div>
@@ -126,7 +150,7 @@ export function MasterInbox(p: Props) {
                         <span className="row"><strong dir="auto">{i.name}</strong>{i.company && <span className="co" dir="auto">{i.company}</span>}<time>{date(i.at)}</time></span>
                         {i.subject && <span className="subj" dir="auto">{i.subject}</span>}
                         <span className="prev" dir="auto">{i.preview}</span>
-                        {(i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.hasDraft && <span className="sdr-badge blue nodot"><PenLine size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
+                        {(i.needsYou || i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.needsYou && <span className="sdr-badge red nodot">{I.badge}</span>}{i.hasDraft && <span className="sdr-badge blue nodot"><PenLine size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
                       </span>
                     </Link>
                   );
@@ -137,7 +161,7 @@ export function MasterInbox(p: Props) {
           <div className="sdr-panel-foot">{fmt(x.count, { n: n(p.items.length) })}</div>
         </aside>
         <section className="sdr-inbox-thread">
-          {p.thread ? <Conversation {...p} thread={p.thread} backHref={href({ lead: null })} needsYou={p.tab === "needs_you" && p.items.some((i) => i.leadId === p.thread!.lead.id)} /> : (
+          {p.thread ? <Conversation {...p} thread={p.thread} backHref={href({ lead: null })} needsYou={Boolean(p.items.find((i) => i.leadId === p.thread!.lead.id)?.needsYou)} /> : (
             <div className="sdr-inbox-empty">
               <span className="sdr-stat-icon"><MailOpen /></span>
               <strong>{x.selectTitle}</strong>
@@ -211,13 +235,18 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
             </div>
           </div>
           <div className="sdr-head-actions">
-            {p.needsYou && <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => act(() => markHandled(lead.id), t.ag.rx.inbox.handledToast)}><CheckCheck />{t.ag.rx.inbox.handled}</button>}
             {status === "open"
               ? <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.markDone} aria-label={x.markDone} onClick={() => act(() => setThreadStatus(lead.id, "done"))}><CheckCheck /></button>
               : <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.reopen} aria-label={x.reopen} onClick={() => act(() => setThreadStatus(lead.id, "open"))}><RotateCcw /></button>}
             <button type="button" className={`sdr-icon-btn bordered${details ? " on" : ""}`} title={details ? x.hideDetails : x.details} aria-label={details ? x.hideDetails : x.details} aria-pressed={details} onClick={() => setDetails((d) => !d)}><PanelRight /></button>
           </div>
         </div>
+        {p.needsYou && (
+          <div className="sdr-needs-banner" role="status">
+            <span>{t.ag.rx.inbox.banner}{s?.lastInbound?.summary ? ` ${s.lastInbound.summary}` : ""}</span>
+            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => act(() => markHandled(lead.id), t.ag.rx.inbox.handledToast)}><CheckCheck />{t.ag.rx.inbox.handled}</button>
+          </div>
+        )}
         <div className="sdr-conv-body">
           {!done.length && <p className="sdr-panel-sub">{t.ws.inbox.thread.noMessages}</p>}
           {done.map((m) => {

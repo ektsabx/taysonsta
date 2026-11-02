@@ -26,21 +26,28 @@ import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 import { AskYolias } from "./AskYolias";
 
-// The menu around campaigns (owner, 2026-10-31, D-270, D-273): the dashboard
-// first, then campaigns, audiences (a section of their own) and what campaigns
-// produce (prospects, conversations, meetings), then Yolias AI (also a button
-// on every screen; its chats are listed below the menu) and Company Knowledge.
-const nav = [
-  { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
-  { href: "/outreach", key: "campaigns", icon: Send },
-  { href: "/audiences", key: "audiences", icon: UsersRound },
-  { href: "/prospects", key: "prospects", icon: UserSearch },
-  { href: "/inbox", key: "conversations", icon: MessagesSquare },
-  { href: "/meetings", key: "meetings", icon: CalendarDays },
-  { href: "/", key: "yoliasAi", icon: MessageSquareText },
-  { href: "/ai/knowledge", key: "knowledge", icon: Library },
-  // Integrations has its own page (owner, 2026-10-31, D-271), out of Settings.
-  { href: "/integrations", key: "integrations", icon: Plug },
+// The menu (owner, 2026-11-02, D-274), in four groups: Yolias (the
+// dashboard and Yolias AI), Acquisition (campaigns, the leads they bring,
+// audiences), Engagement (the Inbox of every conversation, meetings) and
+// Workspace (Company Knowledge, integrations).
+const navGroups = [
+  { key: "yolias", items: [
+    { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
+    { href: "/", key: "yoliasAi", icon: MessageSquareText },
+  ] },
+  { key: "acquisition", items: [
+    { href: "/outreach", key: "campaigns", icon: Send },
+    { href: "/prospects", key: "prospects", icon: UserSearch },
+    { href: "/audiences", key: "audiences", icon: UsersRound },
+  ] },
+  { key: "engagement", items: [
+    { href: "/inbox", key: "conversations", icon: MessagesSquare },
+    { href: "/meetings", key: "meetings", icon: CalendarDays },
+  ] },
+  { key: "workspace", items: [
+    { href: "/ai/knowledge", key: "knowledge", icon: Library },
+    { href: "/integrations", key: "integrations", icon: Plug },
+  ] },
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -199,17 +206,20 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         {/* "New search" was removed (owner, 2026-10-31, D-271): campaigns start from Campaigns, questions from Yolias AI. */}
 
         <nav className="sidebar-nav">
-          <section className="nav-group">
-            {nav.map(({ href, key, icon: Icon }) => (
+          {navGroups.map((g) => (
+          <section key={g.key} className="nav-group">
+            <h2 className="nav-heading">{t.ag.rx.nav[g.key]}</h2>
+            {g.items.map(({ href, key, icon: Icon }) => (
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{key === "integrations" ? t.settings.hub.title : key === "conversations" ? t.ag.rx.inbox.needsYou : key === "yoliasAi" || key === "prospects" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
+                  <span>{key === "integrations" ? t.settings.hub.title : key === "conversations" ? t.ag.rx.nav.inbox : key === "prospects" ? t.ag.rx.nav.leads : key === "yoliasAi" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>
             ))}
           </section>
+          ))}
 
           {pinned.length > 0 && (
             <section className="nav-group">
@@ -238,10 +248,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               </button>
             ))}
             <div className="menu-divider" />
-            <button className="menu-item" type="button" onClick={() => openSettings("integration")}>
-              <Plug />
-              <span>{t.settings.tabs.integration}</span>
-            </button>
+            {/* Integrations live in the sidebar (D-274): not repeated in this menu. */}
             {/* The welcome video shows to new accounts after signup; not repeated in this menu (owner, 2026-10-21). */}
             <div className="menu-sub" onMouseEnter={() => setHelpOpen(true)} onMouseLeave={() => setHelpOpen(false)}>
               <button className="menu-item" type="button" aria-haspopup="menu" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}>

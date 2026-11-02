@@ -12,7 +12,16 @@ type Item = Awaited<ReturnType<typeof listNotifications>>[number];
  * The bell: unread count, the latest notices, mark read (final spec phase 9).
  * One language, English, and a plain Claude-like list (owner, 2026-10-19).
  */
-const copy = { title: "Notifications", markAll: "Mark all as read", empty: "You're all caught up." };
+const copy = { title: "Notifications", markAll: "Mark all as read", empty: "You're all caught up.", unread: "Unread", tabs: { ads: "Ads", all: "All", messages: "Messages", system: "System" } };
+
+// D-274 (owner, 2026-11-02): tabs like Facebook's notifications, and an Unread switch.
+type Tab = "ads" | "all" | "messages" | "system";
+const TABS: Tab[] = ["ads", "all", "messages", "system"];
+function tabOf(it: { kind: string; link: string | null }): Exclude<Tab, "all"> {
+  if (it.kind === "meeting" || it.link?.startsWith("/inbox")) return "messages";
+  if (["outreach", "campaign", "discovery_ready", "leads_review", "campaign_changes", "campaign_summary"].includes(it.kind) || it.link?.startsWith("/outreach") || it.link?.startsWith("/search/")) return "ads";
+  return "system";
+}
 
 export function NotificationBell({ unread: initialUnread }: { unread: number }) {
   const n = copy;
@@ -20,6 +29,8 @@ export function NotificationBell({ unread: initialUnread }: { unread: number }) 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Item[] | null>(null);
   const [unread, setUnread] = useState(initialUnread);
+  const [tab, setTab] = useState<Tab>("all");
+  const [onlyUnread, setOnlyUnread] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // A fresh count from the server (after navigation / refresh) replaces the local one.
@@ -36,6 +47,7 @@ export function NotificationBell({ unread: initialUnread }: { unread: number }) 
     return () => document.removeEventListener("mousedown", close);
   }, [open]);
 
+  const shown = (items ?? []).filter((it) => (tab === "all" || tabOf(it) === tab) && (!onlyUnread || !it.read_at));
   const openItem = async (it: Item) => {
     if (!it.read_at) {
       setUnread((u) => Math.max(0, u - 1));
@@ -62,9 +74,13 @@ export function NotificationBell({ unread: initialUnread }: { unread: number }) 
               await markRead("all");
             }}>{n.markAll}</button>}
           </div>
-          {items === null ? <p className="notif-empty">Loading</p> : items.length === 0 ? <p className="notif-empty">{n.empty}</p> : (
+          <div className="notif-tabs" role="tablist">
+            {TABS.map((k) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{n.tabs[k]}</button>)}
+            <label className="notif-unread"><span>{n.unread}</span><button type="button" role="switch" aria-checked={onlyUnread} aria-label={n.unread} className={`cm-sw${onlyUnread ? " on" : ""}`} onClick={() => setOnlyUnread((v) => !v)}><i /></button></label>
+          </div>
+          {items === null ? <p className="notif-empty">Loading</p> : shown.length === 0 ? <p className="notif-empty">{n.empty}</p> : (
             <ul>
-              {items.map((it) => (
+              {shown.map((it) => (
                 <li key={it.id}>
                   <button type="button" className={it.read_at ? "" : "unread"} onClick={() => void openItem(it)}>
                     <span className="notif-dot" aria-hidden="true" />

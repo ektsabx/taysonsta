@@ -9,7 +9,7 @@ import type { NotificationRow } from "@/types/database";
 export async function listNotifications(): Promise<Pick<NotificationRow, "id" | "kind" | "title" | "body" | "link" | "read_at" | "created_at">[]> {
   const session = await requireUser();
   const db = await createClient();
-  const { data } = await db.from("notifications").select("id, kind, title, body, link, read_at, created_at").eq("user_id", session.userId).order("created_at", { ascending: false }).limit(30);
+  const { data } = await db.from("notifications").select("id, kind, title, body, link, read_at, created_at").eq("user_id", session.userId).order("created_at", { ascending: false }).limit(60);
   return data ?? [];
 }
 

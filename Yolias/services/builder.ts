@@ -65,7 +65,7 @@ export async function stateFromCampaign(campaignId: string, workspaceId: string)
   }));
   return {
     state: {
-      level: "campaign", name: c.name, offerId: c.offer_id, offer: c.description ?? "", targetMeetings: c.target_meetings ?? 10,
+      level: "campaign", name: c.name, objective: c.objective === "qualified_leads" ? "qualified_leads" : "meetings", channel: "email", contactTarget: c.contact_target ?? "people", messageName: c.message_name ?? "", offerId: c.offer_id, offer: c.description ?? "", targetMeetings: c.target_meetings ?? 10,
       budgetType: c.budget_type === "daily" ? "daily" : "total", budgetUsd: c.budget_usd == null ? 50 : Number(c.budget_usd),
       startDate: s.date, startTime: s.time, endDate: e.date, endTime: c.ends_at ? e.time : "18:00", timezone: zone,
       runDays: c.run_days?.length ? c.run_days : undefined, contactFrom: c.contact_from?.slice(0, 5) ?? "09:00", contactTo: c.contact_to?.slice(0, 5) ?? "17:00",

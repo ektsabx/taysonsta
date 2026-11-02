@@ -1,5 +1,6 @@
 "use client";
 
+import { SpendingLimit } from "@/components/app/settings/SpendingLimit";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, Bell, ChevronRight, CreditCard, Gift, Plus, RotateCw, Search, SlidersHorizontal, User, Users, X } from "lucide-react";
@@ -721,6 +722,7 @@ function BillingTab({ data }: { data: ShellData }) {
 
       {canManage && (
         <>
+          <SpendingLimit />
           <section className="billing-section" data-setting="payment">
             <h4>{b.payment}</h4>
             <div className="billing-row">

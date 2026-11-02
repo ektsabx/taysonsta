@@ -39,8 +39,6 @@ const ENTRIES: Entry[] = [
   { tab: "billing", id: "invoices", label: (t) => S(t).billing.invoices },
   { tab: "billing", id: "cancellation", label: (t) => S(t).billing.cancellation, desc: (t) => `${S(t).billing.cancelPlan} ${S(t).billing.resume}` },
   { tab: "team", id: "members", label: (t) => S(t).team.members, desc: (t) => `${S(t).team.membersDesc} ${S(t).team.invite}` },
-  { tab: "integration", id: "gmail", label: () => "Gmail", desc: (t) => S(t).integration.gmailDesc },
-  { tab: "integration", id: "imap", label: (t) => S(t).integration.imap.name, desc: (t) => S(t).integration.imap.desc },
 ];
 
 export interface SettingsHit { tab: SettingsTab; id: string; label: string; desc: string }

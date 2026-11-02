@@ -261,7 +261,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     const who = await meetingPeople(db, m.lead_id, m.created_by);
     if (who.userId) {
       const at = new Intl.DateTimeFormat(who.ar ? "ar-EG-u-nu-latn" : "en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC" }).format(new Date(m.starts_at));
-      await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, "/meetings", `meeting-soon:${m.id}`);
+      await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, "/meetings?tab=bookings", `meeting-soon:${m.id}`);
       // And by email (owner, 2026-10-29); emails are in English (D-158).
       const atEn = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC", timeZoneName: "short" }).format(new Date(m.starts_at));
       await notify("meeting_soon", await userRecipient(who.userId), { lead: who.lead, time: atEn, leadId: m.lead_id, url: m.url ?? null, brief: m.brief }, { workspaceId: m.workspace_id, dedupe: m.id });
@@ -275,7 +275,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
     .eq("status", "scheduled").is("outcome_asked_at", null).lte("starts_at", new Date(Date.now() - 2 * 3_600_000).toISOString()).limit(limit);
   for (const m of meetings ?? []) {
     const who = await meetingPeople(db, m.lead_id, m.created_by);
-    if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", "/meetings", `meeting-outcome:${m.id}`);
+    if (who.userId) await notifyMember(db, m.workspace_id, who.userId, who.ar ? `حصل إيه في الاجتماع مع ${who.lead}؟` : `How did the meeting with ${who.lead} go?`, who.ar ? "حدّث المرحلة: تم الاجتماع، أو أُرسل العرض، أو خسرنا." : "Update the stage: meeting done, proposal sent, or lost.", "/meetings?tab=bookings", `meeting-outcome:${m.id}`);
     if (who.userId) await notify("meeting_outcome", await userRecipient(who.userId), { lead: who.lead, leadId: m.lead_id }, { workspaceId: m.workspace_id, dedupe: m.id });
     await db.from("sales_meetings").update({ outcome_asked_at: now }).eq("id", m.id);
     out.reminders++;

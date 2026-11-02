@@ -41,7 +41,7 @@ export async function startGroupSearch(session: Session, g: SearchAudience, pros
     employees_min: min ?? icp.employees_min, employees_max: max ?? icp.employees_max,
     hiring: values(tg, "hiring").length ? true : icp.hiring,
     funding_stages: values(tg, "funding").length ? values(tg, "funding") : icp.funding_stages,
-    keywords: [...new Set([...icp.keywords, ...values(tg, "keywords"), ...values(tg, "technologies")])],
+    keywords: [...new Set([...icp.keywords, ...values(tg, "keywords"), ...values(tg, "technologies"), ...values(tg, "intent")])],
     exclusions: [...new Set([...icp.exclusions, ...excluded(tg, "keywords"), ...excluded(tg, "industries"), ...excluded(tg, "titles"), ...values(tg, "exclude_companies"),
       ...excluded(tg, "countries").map((c) => countryLabel(c, "en")), ...[...excluded(tg, "regions"), ...excluded(tg, "cities")].map((id) => placeName(tg, id))])],
     ...(seeds.length ? { search_type: "company_lookalikes" as const, lookalike_seeds: seeds } : {}),

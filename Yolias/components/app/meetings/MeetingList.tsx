@@ -3,11 +3,11 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, CalendarPlus, Copy, Sparkles, UserX, Video, X } from "lucide-react";
+import { CalendarCheck, Sparkles, UserX, Video, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { useToast } from "@/components/Toast";
 import { LOST_REASONS } from "@/components/app/ws/bits";
-import { addMeeting, meetingBriefAction, setMeetingQualified, setMeetingStatus, setOutcome } from "@/app/(app)/meetings/actions";
+import { meetingBriefAction, setMeetingQualified, setMeetingStatus, setOutcome } from "@/app/(app)/meetings/actions";
 import type { LeadStage, MeetingStatus } from "@/types/database";
 
 export interface MeetingItem {
@@ -24,9 +24,8 @@ type Show = "all" | "upcoming" | "past" | "no_show" | "canceled" | "qualified" |
 // Bookings (D-267, D-268): upcoming first, then the last 60 days. Before a
 // meeting: join, a brief from Yolias, cancel. After it: what came of it
 // (became a customer, didn't buy and why, no-show), the one place it's asked.
-export function MeetingList({ upcoming, past, timeZone, bookingLink, people, duration }: {
-  upcoming: MeetingItem[]; past: MeetingItem[]; timeZone: string | null; bookingLink: string; people: { id: string; name: string }[]; duration: number;
-}) {
+// D-274 (owner): no "Add a meeting" or "Copy your link" here; Yolias books, and the link is on the Booking page tab.
+export function MeetingList({ upcoming, past, timeZone }: { upcoming: MeetingItem[]; past: MeetingItem[]; timeZone: string | null }) {
   const { t, locale } = useI18n();
   const m = t.meetings;
   const o = m.outcome;
@@ -34,7 +33,6 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
   const router = useRouter();
   const [pending, start] = useTransition();
   const [briefs, setBriefs] = useState<Record<string, string>>({});
-  const [adding, setAdding] = useState(false);
   const [show, setShow] = useState<Show>("all");
   const [values, setValues] = useState<Record<string, string>>({});
   const f = t.camp.meet;
@@ -104,10 +102,6 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
   if (!upcoming.length && !past.length) return <section className="sdr-panel meet-list"><p className="meet-muted meet-empty">{m.empty}</p></section>;
   return (
     <section className="sdr-panel meet-list">
-      <div className="meet-list-head">
-        <button type="button" className="sdr-btn" onClick={() => setAdding(true)} disabled={!people.length}><CalendarPlus />{o.add}</button>
-        <button type="button" className="sdr-btn" onClick={() => { void navigator.clipboard?.writeText(bookingLink); toast(m.page.copied); }}><Copy />{m.page.copy} {m.page.link}</button>
-      </div>
       {(upcoming.length > 0 || past.length > 0) && (
         <div className="sdr-seg meet-filter" role="tablist" aria-label={f.filter}>
           {(["all", "upcoming", "past", "no_show", "canceled", "qualified", "unqualified"] as const).map((k) => (
@@ -126,34 +120,6 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
           {pa.length > 0 && (<><h3 className="meet-group">{m.past}</h3><ul>{pa.map((x) => card(x, true))}</ul></>)}
         </>);
       })()}
-      {adding && <AddMeeting people={people} duration={duration} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); toast(m.saved); router.refresh(); }} />}
     </section>
-  );
-}
-
-function AddMeeting({ people, duration, onClose, onSaved }: { people: { id: string; name: string }[]; duration: number; onClose: () => void; onSaved: () => void }) {
-  const { t } = useI18n();
-  const o = t.meetings.outcome;
-  const toast = useToast();
-  const [v, setV] = useState({ leadId: "", start: "", minutes: duration, place: "" });
-  const [pending, start] = useTransition();
-  const save = () => start(async () => {
-    const r = await addMeeting({ leadId: v.leadId, start: new Date(v.start).toISOString(), minutes: v.minutes, place: v.place });
-    if (r.ok) onSaved(); else toast(r.error, "error");
-  });
-  return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={o.add} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-card meet-form" style={{ maxWidth: 440 }}>
-        <h3 style={{ margin: 0 }}>{o.add}</h3>
-        <label>{o.who}<select className="form-input" value={v.leadId} onChange={(e) => setV({ ...v, leadId: e.target.value })}><option value="">{o.pick}</option>{people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-        <label>{o.when}<input className="form-input" type="datetime-local" value={v.start} onChange={(e) => setV({ ...v, start: e.target.value })} /></label>
-        <label>{o.length}<input className="form-input" type="number" min={10} max={480} value={v.minutes} onChange={(e) => setV({ ...v, minutes: Number(e.target.value) || duration })} /></label>
-        <label>{o.place}<input className="form-input" value={v.place} maxLength={300} onChange={(e) => setV({ ...v, place: e.target.value })} dir="auto" /></label>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          <button type="button" className="sdr-btn" onClick={onClose}>{t.ws.common.cancel}</button>
-          <button type="button" className="btn-primary" disabled={pending || !v.leadId || !v.start} onClick={save}>{t.meetings.page.save}</button>
-        </div>
-      </div>
-    </div>
   );
 }

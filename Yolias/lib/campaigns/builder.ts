@@ -44,6 +44,10 @@ export const builderSchema = z.object({
   level: z.enum(["campaign", "audience", "message"]).default("campaign"),
   // 1. Campaign
   name: z.string().max(160).default(""),
+  /** D-274: the campaign type (outreach), its objective, its channel and whom it contacts. */
+  objective: z.enum(["meetings", "qualified_leads"]).default("meetings"),
+  channel: z.enum(["email"]).default("email"),
+  contactTarget: z.enum(["people", "companies", "both"]).default("people"),
   offerId: z.string().uuid().nullable().default(null),
   offer: z.string().max(1500).default(""),
   targetMeetings: z.number().int().min(1).max(1000).default(10),
@@ -64,6 +68,7 @@ export const builderSchema = z.object({
   // 2. Audiences
   adSets: z.array(adSetSchema).min(1).max(8),
   // 3. Message
+  messageName: z.string().max(160).default(""),
   mailboxId: z.string().uuid().nullable().default(null),
   senderName: z.string().max(120).default(""),
   tone: z.enum(["direct", "friendly", "conservative"]).default("direct"),

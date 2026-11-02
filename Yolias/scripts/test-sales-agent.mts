@@ -318,7 +318,18 @@ try {
   assert.equal(held.status, "scheduled");
   assert.ok(Date.parse(held.next_run_at!) > Date.now() + 60_000, "it waits for tomorrow");
   await admin.from("workspaces").update({ daily_budget_usd: null }).eq("id", A.wsId);
-  console.log("✓ daily budget");
+  // D-274: the account spending limit holds the same way, counted from when it was set.
+  await admin.from("workspaces").update({ spending_limit_usd: 1, spending_limit_since: new Date(Date.now() - DAY).toISOString() }).eq("id", A.wsId);
+  assert.equal(await dailyRoom(A.wsId), 0, "over the account spending limit");
+  await admin.from("workspaces").update({ spending_limit_since: new Date().toISOString() }).eq("id", A.wsId);
+  assert.ok((await dailyRoom(A.wsId))! > 0, "reset: room again");
+  await admin.from("workspaces").update({ spending_limit_usd: null, spending_limit_since: null }).eq("id", A.wsId);
+  // D-274: whom a campaign contacts decides who joins it.
+  const { searchTargets } = await import("@/services/prospects.ts");
+  const tp = await searchTargets(A.wsId, search!.id, admin as never, "people"), tc = await searchTargets(A.wsId, search!.id, admin as never, "companies");
+  assert.ok(tp.length === people.length && tp.every((x) => x.kind === "person"), "people only");
+  assert.ok(tc.length === people.length && tc.every((x) => x.kind === "company"), "companies only");
+  console.log("✓ daily budget, spending limit, whom to contact");
 
   // ── 8. Daily emails only when there is news ──
   const d1 = await campaignDigestSweep({ force: true });

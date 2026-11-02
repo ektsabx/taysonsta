@@ -113,12 +113,17 @@ export function BookingForm(p: {
             {done.url && <p><a className="meet-link" href={done.url} target="_blank" rel="noreferrer">{t.join}</a></p>}
           </section>
         ) : !p.enabled ? <p className="meet-empty">{t.closed}</p> : !byDay.length ? <p className="meet-empty">{t.none}</p> : !slot ? (
-          <section>
-            <h2 className="meet-step">{t.pickDay}</h2>
-            <div className="meet-days">{byDay.map(([d]) => <button key={d} type="button" className={d === current ? "on" : ""} onClick={() => setDay(d)}>{dayLabel(d)}</button>)}</div>
-            <h2 className="meet-step">{t.pickTime}</h2>
-            <p className="meet-tz">{t.times(tz)}</p>
-            <div className="meet-times">{(byDay.find(([d]) => d === current)?.[1] ?? []).map((s) => <button key={s} type="button" dir="ltr" onClick={() => setSlot(s)}>{time(s)}</button>)}</div>
+          // D-274 (owner): like Calendly, the days one under the other and the chosen day's times beside them.
+          <section className="meet-pick">
+            <div className="meet-col">
+              <h2 className="meet-step">{t.pickDay}</h2>
+              <div className="meet-days">{byDay.map(([d, slots]) => <button key={d} type="button" className={d === current ? "on" : ""} aria-pressed={d === current} onClick={() => setDay(d)}><span>{dayLabel(d)}</span><small>{slots.length}</small></button>)}</div>
+            </div>
+            <div className="meet-col">
+              <h2 className="meet-step">{t.pickTime}</h2>
+              <p className="meet-tz">{t.times(tz)}</p>
+              <div className="meet-times">{(byDay.find(([d]) => d === current)?.[1] ?? []).map((s) => <button key={s} type="button" dir="ltr" onClick={() => setSlot(s)}>{time(s)}</button>)}</div>
+            </div>
           </section>
         ) : (
           <form className="meet-form" onSubmit={submit}>

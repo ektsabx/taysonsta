@@ -108,7 +108,7 @@ export async function optimizerSweep(): Promise<number> {
   const { data: st } = await db.from("worker_state").select("value").eq("key", key).maybeSingle();
   if ((st?.value as { day?: string } | null)?.day === today) return 0;
   await db.from("worker_state").upsert({ key, value: { day: today } as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
-  const { data: camps } = await db.from("outreach_campaigns").select("id, workspace_id, name, cost_cap_usd, approved_by, created_by").in("status", ["active", "scheduled"]).not("approved_at", "is", null).limit(500);
+  const { data: camps } = await db.from("outreach_campaigns").select("id, workspace_id, name, cost_cap_usd, approved_by, created_by, objective").in("status", ["active", "scheduled"]).not("approved_at", "is", null).limit(500);
   let n = 0;
   for (const c of camps ?? []) {
     try {
@@ -125,12 +125,13 @@ export async function optimizerSweep(): Promise<number> {
 
 type Db = ReturnType<typeof createAdminClient>;
 
-export async function optimizeCampaign(db: Db, c: { id: string; workspace_id: string; name: string; cost_cap_usd: number | null; approved_by: string | null; created_by: string | null }, day: string) {
+export async function optimizeCampaign(db: Db, c: { id: string; workspace_id: string; name: string; cost_cap_usd: number | null; approved_by: string | null; created_by: string | null; objective?: string | null }, day: string) {
   const [line] = await campaignTable(c.workspace_id, { from: null, to: null }, { ids: [c.id] });
   if (!line) return;
   const groups: GroupLine[] = line.groups.filter((g) => g.status === "active");
   if (!groups.length) return;
-  const event = pickEvent(line.counts);
+  // A qualified-leads campaign's result is a positive reply (D-274); a meetings campaign climbs the ladder.
+  const event = c.objective === "qualified_leads" ? (line.counts.interested >= EVENT_MIN ? "positive" : null) : pickEvent(line.counts);
   const { data: rows } = await db.from("audience_groups").select("id, budget_share").in("id", groups.map((g) => g.id));
   const before = new Map((rows ?? []).map((r) => [r.id, r.budget_share == null ? null : Number(r.budget_share)]));
   const { arms, capped } = allocate(

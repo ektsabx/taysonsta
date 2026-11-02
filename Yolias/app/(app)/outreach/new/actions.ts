@@ -44,8 +44,9 @@ export type BuilderResult<T = object> = ({ ok: true } & T) | { ok: false; error:
 
 function row(s: BuilderState) {
   return {
-    name: (s.name.trim() || s.adSets[0]?.name || "Campaign").slice(0, 160), objective: "meetings" as const, aim: "meeting" as const, cta_url: null,
-    description: s.offer.trim() || null, offer_id: s.offerId, channel: "email" as never, channels: ["email"],
+    name: (s.name.trim() || s.adSets[0]?.name || "Campaign").slice(0, 160), objective: s.objective, aim: "meeting" as const, cta_url: null,
+    contact_target: s.contactTarget, message_name: s.messageName.trim() || null,
+    description: s.offer.trim() || null, offer_id: s.offerId, channel: "email" as never, channels: [s.channel],
     budget_type: s.budgetType, budget_usd: s.budgetUsd, timezone: s.timezone, run_days: s.runDays,
     contact_from: s.contactFrom, contact_to: s.contactTo, daily_limit: s.dailyLimit, target_meetings: s.targetMeetings,
     cost_cap_usd: s.costCapUsd && s.costCapUsd > 0 ? s.costCapUsd : null, track_opens: s.trackOpens,

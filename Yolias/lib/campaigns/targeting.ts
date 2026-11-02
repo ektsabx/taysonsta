@@ -72,9 +72,12 @@ export const JOB_TITLES: Option[] = [
   o("Branch Manager", "مدير الفرع"), o("Product Manager", "مدير المنتج"), o("Finance Manager", "مدير مالي"),
 ];
 
+/** D-274: yearly revenue bands (USD), only where the data publishes it. */
+export const REVENUE: Option[] = [o("<1M", "أقل من مليون $"), o("1M-10M", "1–10 ملايين $"), o("10M-50M", "10–50 مليون $"), o("50M-250M", "50–250 مليون $"), o("250M+", "أكثر من 250 مليون $")];
+
 export const FUNDING: Option[] = [o("Pre-seed", "ما قبل التأسيسية"), o("Seed", "تأسيسية"), o("Series A", "الجولة A"), o("Series B", "الجولة B"), o("Series C+", "الجولة C وما بعدها")];
 
-export type TargetingKey = "countries" | "regions" | "cities" | "industries" | "company_types" | "sizes" | "hiring" | "funding" | "technologies" | "keywords" | "titles" | "seniority" | "departments" | "exclude_companies";
+export type TargetingKey = "countries" | "regions" | "cities" | "industries" | "company_types" | "sizes" | "hiring" | "funding" | "technologies" | "keywords" | "titles" | "seniority" | "departments" | "exclude_companies" | "revenue" | "decision_makers" | "intent";
 
 export const TARGETING: TargetingField[] = [
   { id: "countries", group: "geo", type: "country", label: { en: "Countries", ar: "الدول" }, operators: ["include", "exclude"], channels: ["email"], source: "search" },
@@ -84,11 +87,15 @@ export const TARGETING: TargetingField[] = [
   { id: "industries", group: "company", type: "multi", label: { en: "Industries", ar: "المجالات" }, operators: ["include", "exclude"], options: INDUSTRIES, custom: true, channels: ["email"], source: "search" },
   { id: "company_types", group: "company", type: "multi", label: { en: "Company type", ar: "نوع الشركة" }, operators: ["include"], options: COMPANY_TYPES, channels: ["email"], source: "search" },
   { id: "sizes", group: "company", type: "multi", label: { en: "Employees", ar: "عدد الموظفين" }, operators: ["include"], options: SIZES, channels: ["email"], source: "search" },
+  // D-274: revenue, decision makers only, and buying intent.
+  { id: "revenue", group: "company", type: "multi", label: { en: "Revenue (yearly)", ar: "الإيرادات السنوية" }, hint: { en: "Only where the data is published.", ar: "حيث تكون البيانات منشورة فقط." }, operators: ["include"], options: REVENUE, channels: ["email"], source: "search" },
   { id: "hiring", group: "signals", type: "toggle", label: { en: "Hiring now", ar: "توظّف الآن" }, operators: ["include"], channels: ["email"], source: "search" },
   { id: "funding", group: "signals", type: "multi", label: { en: "Funding stage", ar: "مرحلة التمويل" }, hint: { en: "Only where the data is published.", ar: "حيث تكون البيانات منشورة فقط." }, operators: ["include"], options: FUNDING, channels: ["email"], source: "search" },
+  { id: "intent", group: "signals", type: "tags", label: { en: "Buying intent (what they need now)", ar: "نية الشراء (ما يحتاجونه الآن)" }, hint: { en: "Needs or projects their site, posts or job ads show, e.g. \"opening a new branch\".", ar: "احتياجات أو مشاريع يظهرها موقعهم أو منشوراتهم أو إعلانات توظيفهم، مثل «افتتاح فرع جديد»." }, operators: ["include"], custom: true, channels: ["email"], source: "search" },
   { id: "technologies", group: "signals", type: "tags", label: { en: "Technologies they use", ar: "تقنيات يستخدمونها" }, operators: ["include"], custom: true, channels: ["email"], source: "search" },
   { id: "keywords", group: "signals", type: "tags", label: { en: "Keywords (services, needs, website topics)", ar: "كلمات مفتاحية (خدمات، احتياجات، موضوعات الموقع)" }, operators: ["include", "exclude"], custom: true, channels: ["email"], source: "search" },
   { id: "titles", group: "people", type: "multi", label: { en: "Job titles", ar: "المسميات الوظيفية" }, operators: ["include", "exclude"], options: JOB_TITLES, custom: true, channels: ["email"], source: "search" },
+  { id: "decision_makers", group: "people", type: "toggle", label: { en: "Decision makers only", ar: "أصحاب القرار فقط" }, operators: ["include"], channels: ["email"], source: "search" },
   { id: "seniority", group: "people", type: "multi", label: { en: "Seniority", ar: "المستوى الوظيفي" }, operators: ["include"], options: SENIORITY, channels: ["email"], source: "search" },
   { id: "departments", group: "people", type: "multi", label: { en: "Department", ar: "الإدارة" }, operators: ["include"], options: DEPARTMENTS, channels: ["email"], source: "search" },
   { id: "exclude_companies", group: "company", type: "tags", label: { en: "Companies never to contact", ar: "شركات لا يتم التواصل معها" }, hint: { en: "Names or websites: customers, partners, competitors.", ar: "أسماء أو مواقع: عملاؤك وشركاؤك ومنافسوك." }, operators: ["include"], custom: true, channels: ["email"], source: "search" },
@@ -130,6 +137,8 @@ export function targetingPrompt(t: Targeting, countryName: (code: string) => str
     excluded(t, "industries").length ? `Exclude industries: ${excluded(t, "industries").join(", ")}` : "",
     line("Company type", values(t, "company_types")),
     sizes.length ? `Company size (employees): ${sizes.join(" OR ")}` : "",
+    line("Yearly revenue (USD)", values(t, "revenue")),
+    line("Buying intent (needs or projects they show now)", values(t, "intent")),
     values(t, "hiring").length ? "Only companies hiring now" : "",
     line("Funding stage", values(t, "funding")),
     line("Uses technologies", values(t, "technologies")),
@@ -137,6 +146,7 @@ export function targetingPrompt(t: Targeting, countryName: (code: string) => str
     excluded(t, "keywords").length ? `Exclude: ${excluded(t, "keywords").join(", ")}` : "",
     line("Decision makers", values(t, "titles")),
     excluded(t, "titles").length ? `Not these roles: ${excluded(t, "titles").join(", ")}` : "",
+    values(t, "decision_makers").length ? "Only decision makers (owners, founders, C-level, heads and directors)" : "",
     line("Seniority", values(t, "seniority")),
     line("Department", values(t, "departments")),
     values(t, "exclude_companies").length ? `Never these companies: ${values(t, "exclude_companies").join(", ")}` : "",

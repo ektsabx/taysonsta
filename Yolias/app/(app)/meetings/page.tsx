@@ -24,16 +24,15 @@ const nowMs = () => Date.now();
 export default async function MeetingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const session = await requireSession();
   const sp = await searchParams;
-  const tab = sp.tab === "page" ? "page" : sp.tab === "visits" ? "visits" : "bookings";
+  // D-274: link visits first, then bookings, then the booking page.
+  const tab = sp.tab === "page" ? "page" : sp.tab === "bookings" ? "bookings" : "visits";
   const [t, locale] = await Promise.all([getDictionary().then((d) => d.meetings), getLocale()]);
   const page = await ensureBookingPage(session.userId, session.workspace.id, session.profile.full_name, session.email, session.profile.timezone ?? null, session.profile.language);
   const db = await createClient();
-  const [{ data: meetings }, { data: calendar }, { data: people }] = await Promise.all([
+  const [{ data: meetings }, { data: calendar }] = await Promise.all([
     db.from("sales_meetings").select("id, lead_id, title, starts_at, ends_at, url, location, status, source, guest_name, guest_email, guest_note, host_id, qualified, brief, campaign:outreach_campaigns(id, name), lead:sales_leads(name, company_name, stage)")
       .eq("workspace_id", session.workspace.id).gte("starts_at", sinceIso(60)).order("starts_at").limit(300),
     db.from("calendar_connections").select("email, status").eq("user_id", session.userId).maybeSingle(),
-    // "Add a meeting" picks from the people already in a conversation.
-    db.from("crm_leads").select("id, name, company_name").eq("workspace_id", session.workspace.id).not("thread_status", "is", null).order("last_activity_at", { ascending: false }).limit(300),
   ]);
   const rows = (meetings ?? []).map((m) => ({ ...m, lead: m.lead as unknown as { name: string; company_name: string | null; stage: LeadStage } | null, campaign: m.campaign as unknown as { id: string; name: string } | null }));
   const now = nowMs();
@@ -45,8 +44,8 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
         <div className="sdr-head-actions"><a className="sdr-btn" href={bookingUrl(page.slug)} target="_blank" rel="noreferrer"><Link2 />{t.openPage}</a></div>
       </header>
       <nav className="sdr-tabs" aria-label={t.title}>
-        <Link href="/meetings" className={tab === "bookings" ? "active" : ""} aria-current={tab === "bookings" ? "page" : undefined}><CalendarDays />{t.tabs.bookings}<span className="sdr-count">{rows.filter((m) => m.status === "scheduled" && Date.parse(m.starts_at) >= now).length}</span></Link>
-        <Link href="/meetings?tab=visits" className={tab === "visits" ? "active" : ""} aria-current={tab === "visits" ? "page" : undefined}><MousePointerClick />{V.visitsTab}</Link>
+        <Link href="/meetings" className={tab === "visits" ? "active" : ""} aria-current={tab === "visits" ? "page" : undefined}><MousePointerClick />{V.visitsTab}</Link>
+        <Link href="/meetings?tab=bookings" className={tab === "bookings" ? "active" : ""} aria-current={tab === "bookings" ? "page" : undefined}><CalendarDays />{t.tabs.bookings}<span className="sdr-count">{rows.filter((m) => m.status === "scheduled" && Date.parse(m.starts_at) >= now).length}</span></Link>
         <Link href="/meetings?tab=page" className={tab === "page" ? "active" : ""} aria-current={tab === "page" ? "page" : undefined}><Link2 />{t.tabs.page}</Link>
       </nav>
       {tab === "visits" ? <Visits workspaceId={session.workspace.id} locale={locale} timeZone={session.profile.timezone ?? null} /> : tab === "bookings" ? (
@@ -54,9 +53,6 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
           upcoming={rows.filter((m) => m.status === "scheduled" && Date.parse(m.ends_at ?? m.starts_at) >= now)}
           past={rows.filter((m) => !(m.status === "scheduled" && Date.parse(m.ends_at ?? m.starts_at) >= now)).reverse()}
           timeZone={session.profile.timezone ?? null}
-          bookingLink={bookingUrl(page.slug)}
-          people={(people ?? []).map((x) => ({ id: x.id, name: x.company_name ? `${x.name} · ${x.company_name}` : x.name }))}
-          duration={page.duration_min}
         />
       ) : (
         <BookingPageForm page={page} link={bookingUrl(page.slug)} calendar={calendar && calendar.status !== "disconnected" ? calendar.email ?? "Google" : null} zones={timeZoneChoices(page.timezone).map((z) => ({ value: z, label: timeZoneLabel(z, locale) }))} />

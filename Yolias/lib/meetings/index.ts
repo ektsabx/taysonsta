@@ -223,7 +223,7 @@ async function tellHost(db: Db, page: BookingPageRow & { host: { name: string } 
   const ar = p?.language === "ar";
   const at = new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: tz }).format(new Date(d.start));
   const title = what === "booked" ? (ar ? `${d.name} حجز اجتماعًا ${at}` : `${d.name} booked a meeting, ${at}`) : (ar ? `${d.name} ألغى اجتماع ${at}` : `${d.name} canceled the meeting on ${at}`);
-  await db.from("notifications").upsert({ user_id: page.user_id, workspace_id: page.workspace_id, kind: "meeting", title: title.slice(0, 300), body: d.note?.slice(0, 1000) ?? null, link: "/meetings", dedupe_key: `meeting-${what}:${d.meetingId}:${page.user_id}` }, { onConflict: "dedupe_key", ignoreDuplicates: true });
+  await db.from("notifications").upsert({ user_id: page.user_id, workspace_id: page.workspace_id, kind: "meeting", title: title.slice(0, 300), body: d.note?.slice(0, 1000) ?? null, link: "/meetings?tab=bookings", dedupe_key: `meeting-${what}:${d.meetingId}:${page.user_id}` }, { onConflict: "dedupe_key", ignoreDuplicates: true });
   const atEn = new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: tz, timeZoneName: "short" }).format(new Date(d.start));
   await notify(what === "booked" ? "meeting_booked" : "meeting_canceled", await userRecipient(page.user_id), { guest: d.name, guestEmail: d.email, time: atEn, leadId: d.leadId, url: d.url, note: d.note }, { workspaceId: page.workspace_id, dedupe: d.meetingId });
 }

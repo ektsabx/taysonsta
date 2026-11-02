@@ -92,6 +92,8 @@ export type WorkspaceRow = {
   sending_rules: Json;
   /** D-273: no new search work on a day the workspace already spent this (USD), or null. */
   daily_budget_usd: number | null;
+  /** D-274: the account spending limit (USD) and when its count started. */
+  spending_limit_usd: number | null; spending_limit_since: string | null;
 };
 
 export type WorkspaceMemberRow = {

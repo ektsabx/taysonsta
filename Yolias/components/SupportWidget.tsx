@@ -7,7 +7,11 @@ import { getLocale } from "@/lib/i18n/server";
 // button is always visible and opens the messenger directly (owner request,
 // 2026-10-12, replacing D-140's hidden button); "Contact support" links
 // (components/SupportLink.tsx) open it too. The AI answers as "Yolias Agent".
-export async function SupportWidget() {
+// D-274 (owner, 2026-11-02): inside the app the round button is hidden and
+// the messenger opens from Help → Get support, on the side opposite Yolias
+// AI (Yolias AI docks at the end side: right in English, left in Arabic);
+// the booking page has no messenger at all (it's the member's guests' page).
+export async function SupportWidget({ inApp = false }: { inApp?: boolean } = {}) {
   const [w, locale] = await Promise.all([supportWidget(), getLocale()]);
   if (!w) return null;
   return (
@@ -21,7 +25,8 @@ export async function SupportWidget() {
       data-lang={locale}
       // Arabic pages put the app sidebar (and its account row) on the right:
       // the launcher sits on the left so it never covers them.
-      data-position={locale === "ar" ? "left" : "right"}
+      data-position={inApp ? (locale === "ar" ? "right" : "left") : locale === "ar" ? "left" : "right"}
+      {...(inApp ? { "data-launcher": "hidden" } : {})}
     />
   );
 }

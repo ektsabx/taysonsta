@@ -117,8 +117,10 @@ export type OutreachCampaignRow = {
   sender_name: string | null; instructions: string | null;
   /** D-274: the most a meeting that took place may cost (USD), and whether recipient opens are tracked. */
   cost_cap_usd: number | null; track_opens: boolean;
+  /** D-274: who the campaign contacts, and the message level's own name. */
+  contact_target: "people" | "companies" | "both"; message_name: string | null;
 };
-export type CampaignObjective = "leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
+export type CampaignObjective = "leads" | "qualified_leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
 export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
 export type AudienceGroupRow = {
   id: string; workspace_id: string; campaign_id: string; name: string; status: "active" | "paused" | "archived"; source: AudienceSource;

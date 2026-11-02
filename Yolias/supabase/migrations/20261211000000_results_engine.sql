@@ -59,3 +59,18 @@ create index if not exists booking_visits_campaign_idx on public.booking_visits 
 alter table public.booking_visits enable row level security;
 drop policy if exists booking_visits_read on public.booking_visits;
 create policy booking_visits_read on public.booking_visits for select using (public.is_workspace_member(workspace_id));
+
+-- Account spending limit (owner, 2026-11-02, D-274), like an ads account's:
+-- the most the account spends from a start date (set or reset by an owner or
+-- admin); searches stop when it's reached. Server-written.
+alter table public.workspaces
+  add column if not exists spending_limit_usd numeric check (spending_limit_usd is null or spending_limit_usd > 0),
+  add column if not exists spending_limit_since timestamptz;
+
+-- Campaign: who it contacts (companies, people or both), the objective's
+-- second option (qualified leads) and the message level's own name.
+alter table public.outreach_campaigns
+  add column if not exists contact_target text not null default 'people' check (contact_target in ('people', 'companies', 'both')),
+  add column if not exists message_name text check (message_name is null or char_length(message_name) <= 160);
+alter table public.outreach_campaigns drop constraint if exists outreach_campaigns_objective_check;
+alter table public.outreach_campaigns add constraint outreach_campaigns_objective_check check (objective in ('leads', 'qualified_leads', 'meetings', 'opportunities', 'new_customers', 'reactivate', 'promote', 'custom'));

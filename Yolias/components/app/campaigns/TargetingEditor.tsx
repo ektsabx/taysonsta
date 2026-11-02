@@ -13,9 +13,9 @@ import { LocationPicker } from "./LocationPicker";
 // exclude where the search can honour both. Exclusions sit in their own group.
 
 const SECTIONS = [
-  { key: "companies", fields: ["industries", "company_types", "sizes"] },
-  { key: "people", fields: ["titles", "seniority", "departments"] },
-  { key: "signals", fields: ["hiring", "funding", "technologies", "keywords"] },
+  { key: "companies", fields: ["industries", "company_types", "sizes", "revenue"] },
+  { key: "people", fields: ["decision_makers", "titles", "seniority", "departments"] },
+  { key: "signals", fields: ["intent", "hiring", "funding", "technologies", "keywords"] },
   { key: "exclusions", fields: ["exclude_companies"] },
 ] as const;
 

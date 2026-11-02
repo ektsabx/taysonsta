@@ -14,7 +14,7 @@ import { requireViewer } from "@/lib/session";
 import { activeFilterCount, filterQuery, fundingStages, listItems, PAGE_SIZE, parseFilters, prospectCountries, tabCounts } from "@/services/prospects";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: `${(await getDictionary()).nav.prospects} | Yolias` };
+  return { title: `${(await getDictionary()).ag.rx.nav.leads} | Yolias` };
 }
 
 // Prospects (D-256, after AgentSDR Leads): two tabs, People and Companies
@@ -85,8 +85,8 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     <div className="sdr-page">
       <header className="sdr-head">
         <div>
-          <h2>{pr.title}</h2>
-          <p>{L.subtitle}</p>
+          <h2>{t.ag.rx.nav.leads}</h2>
+          <p>{t.ag.rx.prospects.subtitle}</p>
         </div>
       </header>
 

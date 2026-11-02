@@ -724,3 +724,28 @@ Yolias works like an ads platform whose result is a meeting that took place.
   - The builder's "Before launch" checklist is removed: Launch takes the member to the first gap with one message.
 - **Content.** The privacy policy covers opens and booking page data (updated 2026-11-02). Help, FAQ, llms.txt, SEO meta and seed pages describe optimizing for meetings held.
 - **Not done, for the owner to decide.** Managed sending domains and Outlook Calendar (listed, not requested); pay-per-result pricing (needs real cost-per-meeting data first).
+
+### D-274, second round (owner, 2026-11-02)
+- **Inbox:** the hub of every conversation again. "All" comes first; conversations that need the member get a tab, a badge and a banner with "Done". There is a channel picker (email now; WhatsApp, LinkedIn and Facebook marked "soon").
+- **Sidebar.** Four groups:
+  - Yolias: Dashboard, Yolias AI.
+  - Acquisition: Campaigns, Leads (was Prospects), Audiences.
+  - Engagement: Inbox, Meetings.
+  - Workspace: Company Knowledge, Integrations.
+  Integrations left the settings menu.
+- **Yolias AI** opens as a panel docked on the end side (the page makes room for it), with ready questions; the answer streams in the panel.
+- **Support chat:** no floating button inside the app; it opens from Help → Get support, on the side opposite Yolias AI. It is not on booking pages. The website and sign-in keep it.
+- **Dashboard:** "Good morning, <first name>". The daily budget card, "Stop all campaigns" and the "Needs you" card were removed.
+- **Account spending limit** (Settings → Billing), like an ads account's. Owners and admins can set, reset or remove it. Searches stop when the spend since the start date reaches it.
+- **Campaign setup.**
+  - Type: outreach.
+  - Objective: meetings, or qualified leads. A qualified lead is someone who replied with interest; Yolias answers them and hands them to the member. A time they name is still booked.
+  - Channel: email. LinkedIn, Facebook groups, Reddit and Quora are shown as "soon", because automated messages there break those platforms' rules.
+  - Contact: people, companies or both. This decides who joins the campaign from its searches.
+  - Every choice has a one-line explanation, and the message level has its own name.
+- **Targeting:** added revenue, decision makers only, and buying intent.
+- **Metrics added:** delivered, qualified leads (a positive reply or a booked meeting), cost per qualified lead, customer acquisition cost (spend ÷ deals won) and ROI. Renamed: Targeted companies, Contacts reached, Positive replies, Deals won, Revenue generated. Cost per meeting (spend ÷ meetings booked, at the account's own rate per person) is a default column again, beside held meetings.
+- **Exports** to .csv or .xlsx (`lib/xlsx.ts`, no dependency).
+- **Notifications** have tabs (Ads / All / Messages / System) and an Unread switch.
+- **Meetings.** Tabs are now Link visits, then Bookings, then Booking page; "Add a meeting" and "Copy your link" are gone from Bookings.
+- **Booking page** works like Calendly: a wide card in the middle, the days one under the other, and the chosen day's times beside them.

@@ -232,11 +232,16 @@ export function itemKey(i: SelectedItem) {
  * Who one search's campaign writes to: its people, and its companies that have
  * no person in the list (a company is never emailed twice, D-253).
  */
-export async function searchTargets(workspaceId: string, searchId: string, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ kind: "person" | "company"; id: string }[]> {
+/**
+ * Who a search's results put in a campaign. D-274: the campaign chooses whom
+ * it contacts: people (decision makers), companies (their general address),
+ * or both (a person when one was found, else the company).
+ */
+export async function searchTargets(workspaceId: string, searchId: string, client?: Awaited<ReturnType<typeof createClient>>, target: "people" | "companies" | "both" = "both"): Promise<{ kind: "person" | "company"; id: string }[]> {
   const { rows } = await selectItems(workspaceId, { ...parseFilters({}), campaign: searchId }, "all", 10_000, client);
   const withPerson = new Set(rows.filter((i) => i.kind === "person").map((i) => (i.row as { company_id?: string | null }).company_id).filter(Boolean));
   return rows
-    .filter((i) => i.kind === "person" || !withPerson.has(i.row.id))
+    .filter((i) => target === "people" ? i.kind === "person" : target === "companies" ? i.kind !== "person" : i.kind === "person" || !withPerson.has(i.row.id))
     .map((i) => ({ kind: i.kind === "person" ? ("person" as const) : ("company" as const), id: i.row.id }))
     .slice(0, 500);
 }

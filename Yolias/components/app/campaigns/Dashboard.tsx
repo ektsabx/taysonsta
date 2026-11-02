@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, Info, Mail, MoreHorizontal, Plus, Search, Send, Sparkles, Square } from "lucide-react";
+import { CalendarDays, Mail, MoreHorizontal, Plus, Search, Send, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatDateTime, formatNumber } from "@/lib/format";
@@ -11,11 +11,11 @@ import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { formatMetric, metric } from "@/lib/campaigns/metrics";
 import { openSettingsTab } from "@/components/app/open-settings";
-import { setDailyBudget, stopAllCampaigns } from "@/app/(app)/dashboard/actions";
 import { runOutreach } from "@/app/(app)/outreach/actions";
 import type { DashboardData, DashRange, Series } from "@/services/dashboard";
 import type { StartSteps } from "@/services/start-here";
 import { activityText } from "@/lib/campaigns/activity-text";
+import { Greeting } from "@/components/app/Greeting";
 
 // The dashboard (owner, 2026-10-31, D-273), laid out like the reference the
 // owner chose: what Yolias is doing now, the next step and the daily budget,
@@ -45,9 +45,8 @@ function Spark({ values, days, tone = "green", locale }: { values: (number | nul
   );
 }
 
-export function Dashboard({ name, data, range, campaignId, steps, canBudget, needs }: {
-  name: string; data: DashboardData; range: DashRange; campaignId: string | null; steps: StartSteps; canBudget: boolean;
-  needs: { replies: number; today: number; outcomes: number; paused: number; tryAgain: number };
+export function Dashboard({ name, data, range, campaignId, steps }: {
+  name: string | null; data: DashboardData; range: DashRange; campaignId: string | null; steps: StartSteps;
 }) {
   const { t, locale } = useI18n();
   const D = t.ag.dash;
@@ -56,8 +55,7 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
   const pathname = usePathname();
   const sp = useSearchParams();
   const toast = useToast();
-  const [pending, start] = useTransition();
-  const [cap, setCap] = useState<number | null>(data.budget.dailyUsd);
+  const [, start] = useTransition();
   const [menu, setMenu] = useState<string | null>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pct = (v: number | null) => (v == null ? "–" : `${(v * 100).toFixed(v * 100 < 10 ? 1 : 0)}%`);
@@ -74,7 +72,6 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
   const cpm = metric("cost_per_meeting")!.compute(c), cph = metric("cost_per_held")!.compute(c);
   const running = data.campaigns.filter((l) => l.status === "active" || l.status === "scheduled");
   const shown = data.campaigns.filter((l) => l.status !== "archived");
-  const sliderMax = Math.max(100, Math.ceil(((cap ?? 20) * 2) / 50) * 50);
 
   const next = !steps.search
     ? { icon: Search, title: t.startHere.search, desc: t.startHere.searchDesc, action: <Link className="sdr-btn primary" href="/outreach/new">{t.startHere.searchCta}</Link> }
@@ -100,17 +97,11 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
   ];
   const A = t.ag.rx.balance;
   const acct = data.account;
-  const needItems = [
-    needs.replies && { href: "/inbox", text: fmt(D.replies, { n: n(needs.replies) }) },
-    needs.today && { href: "/meetings", text: fmt(D.today, { n: n(needs.today) }) },
-    needs.outcomes && { href: "/meetings?show=past", text: fmt(D.outcomes, { n: n(needs.outcomes) }) },
-    needs.paused && { href: "/outreach", text: fmt(D.paused, { n: n(needs.paused) }) },
-    needs.tryAgain && { href: "/prospects?noreply=1", text: fmt(D.tryAgain, { n: n(needs.tryAgain) }) },
-  ].filter(Boolean) as { href: string; text: string }[];
 
   return (
     <div className="db">
-      <h1 className="db-name" dir="auto">{name}</h1>
+      {/* D-274: "Good morning, Youseef", like Yolias AI. */}
+      <Greeting name={name} className="db-name" />
 
       <section className={`db-live${data.live ? " on" : ""}`}>
         <span className="db-live-dot" aria-hidden />
@@ -121,7 +112,7 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
         {data.live ? <Link className="sdr-btn primary" href={`/outreach/${data.live.campaignId}`}>{t.ag.rx.prospects.open}</Link> : <Link className="sdr-btn primary" href="/outreach/new"><Plus />{D.create}</Link>}
       </section>
 
-      <div className="db-row2">
+      <div className="db-row1">
         <section className="db-card db-next">
           {next ? (
             <>
@@ -136,20 +127,6 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
               <Link className="sdr-btn" href="/outreach/new"><Plus />{D.create}</Link>
             </>
           )}
-        </section>
-        <section className="db-card db-budget">
-          <div className="db-budget-head">
-            <strong>{D.budget}</strong><span className="db-tip" title={D.budgetHint}><Info /></span>
-            <span className="db-budget-value">{cap == null ? D.noCap : usd(cap)}</span>
-          </div>
-          <input type="range" min={0} max={sliderMax} step={1} value={cap ?? 0} disabled={!canBudget} aria-label={D.budget} onChange={(e) => setCap(Number(e.target.value))} />
-          <p className="db-budget-line">{fmt(D.spentToday, { usd: usd(data.budget.spentToday) })}</p>
-          <div className="db-budget-foot">
-            <span className="db-budget-actions">
-              {canBudget && cap !== data.budget.dailyUsd && <button type="button" className="sdr-btn primary sm" disabled={pending} onClick={() => run(() => setDailyBudget(cap))}>{D.saveBudget}</button>}
-              {canBudget && data.budget.dailyUsd != null && cap === data.budget.dailyUsd && <button type="button" className="sdr-btn ghost sm" disabled={pending} onClick={() => { setCap(null); run(() => setDailyBudget(null)); }}>{D.capOff}</button>}
-            </span>
-          </div>
         </section>
       </div>
 
@@ -194,7 +171,6 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
 
       <div className="db-section-head">
         <h2>{D.campaigns} <span className="db-count">{n(shown.length)}</span></h2>
-        {running.length > 0 && <button type="button" className="sdr-btn" disabled={pending} onClick={() => { if (confirm(D.stopAllConfirm)) run(() => stopAllCampaigns()); }}><Square />{D.stopAll}</button>}
       </div>
       <section className="db-managing">
         <div className="db-managing-head">
@@ -268,10 +244,6 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
         <section className="cm-empty"><h3>{t.ag.manager.empty}</h3><p>{t.ag.manager.emptyLine}</p><Link className="sdr-btn primary" href="/outreach/new"><Plus />{t.ag.manager.create}</Link></section>
       )}
 
-      <section className="db-card db-needs">
-        <strong>{D.needs}</strong>
-        {needItems.length ? <ul>{needItems.map((x) => <li key={x.href}><Link href={x.href}>{x.text}</Link></li>)}</ul> : <p className="ws-hint">{D.needsEmpty}</p>}
-      </section>
     </div>
   );
 }
