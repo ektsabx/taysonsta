@@ -14,7 +14,12 @@ import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
 //   done         closed conversations
 // Read as the member (RLS).
 
-export const INBOX_TABS = ["inbox", "replies", "to_approve", "out_of_office", "sent", "done"] as const;
+// D-274 (owner, 2026-11-02): the Inbox is "Needs you" only: conversations
+// Yolias handed to the member (an open hand-off task), a reply waiting for
+// their approval or draft, or a reply Yolias couldn't answer and nobody has
+// answered since. Yolias handles the rest; those threads stay reachable from
+// the campaign and the lead. The other tabs remain for links that name them.
+export const INBOX_TABS = ["needs_you", "inbox", "replies", "to_approve", "out_of_office", "sent", "done"] as const;
 export type InboxTab = (typeof INBOX_TABS)[number];
 const term = (s: string) => s.replace(/[%,()*\\]/g, " ").trim();
 
@@ -46,8 +51,9 @@ function shows(st: LeadStatus | null, waiting: boolean, show: InboxShow): boolea
   }
 }
 
-export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null, show: InboxShow | null = null): Promise<{ items: InboxListItem[]; counts: Record<InboxTab, number> }> {
-  const db = await createClient();
+export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null, show: InboxShow | null = null, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ items: InboxListItem[]; counts: Record<InboxTab, number> }> {
+  // The member's client (RLS); a test passes a signed-in client of its own.
+  const db = client ?? await createClient();
   let q = db.from("crm_leads").select("*").eq("workspace_id", workspaceId).not("thread_last_message_at", "is", null);
   const s = term(search);
   if (s) q = q.or(`name.ilike.%${s}%,company_name.ilike.%${s}%,email.ilike.%${s}%`);
@@ -55,12 +61,14 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
     const { data: enr } = await db.from("outreach_enrollments").select("lead_id").eq("workspace_id", workspaceId).eq("campaign_id", campaignId).limit(5000);
     q = q.in("id", [...new Set((enr ?? []).map((e) => e.lead_id))].slice(0, 1000).concat("00000000-0000-0000-0000-000000000000"));
   }
-  const [{ data: rows }, { data: approvals }] = await Promise.all([
+  const [{ data: rows }, { data: approvals }, { data: handoffs }] = await Promise.all([
     q.order("thread_last_message_at", { ascending: false }).limit(400),
     db.from("agent_pending_actions").select("lead_id").eq("workspace_id", workspaceId).eq("status", "pending").not("lead_id", "is", null).limit(500),
+    db.from("lead_tasks").select("lead_id").eq("workspace_id", workspaceId).is("done_at", null).like("dedupe_key", "handoff:%").limit(1000),
   ]);
+  const handed = new Set((handoffs ?? []).map((h) => h.lead_id));
   const leads = (rows ?? []) as CrmLeadRow[];
-  const statuses = new Map((await leadStatuses(workspaceId, { leadIds: leads.map((l) => l.id) })).map((x) => [x.leadId, x]));
+  const statuses = new Map((await leadStatuses(workspaceId, { leadIds: leads.map((l) => l.id), client: db })).map((x) => [x.leadId, x]));
   const waiting = new Set((approvals ?? []).map((a) => a.lead_id));
   const { data: last } = leads.length
     ? await db.from("outreach_messages").select("lead_id, subject, body, received_at, sent_at, created_at").in("lead_id", leads.map((l) => l.id)).in("status", ["sent", "received"]).order("created_at", { ascending: false }).limit(leads.length * 3)
@@ -73,6 +81,8 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
     const open = (l.thread_status ?? "open") === "open";
     const tabs = new Set<InboxTab>();
     if (!open) tabs.add("done");
+    const unanswered = Boolean(st?.lastInbound && NEEDS_YOU.has(st.lastInbound.kind) && (!st.lastOutbound || st.lastOutbound.at < st.lastInbound.at));
+    if (open && (handed.has(l.id) || waiting.has(l.id) || Boolean(st?.draft) || unanswered)) tabs.add("needs_you");
     if (open && st?.lastInbound) tabs.add("inbox");
     if (open && st?.lastInbound && st.lastInbound.kind !== "out_of_office") tabs.add("replies");
     if (open && st?.lastInbound?.kind === "out_of_office") tabs.add("out_of_office");

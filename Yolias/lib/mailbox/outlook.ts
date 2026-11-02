@@ -1,6 +1,6 @@
 import "server-only";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
-import { htmlToText, isBounce, replyText } from "./mime";
+import { htmlToText, isBounce, replyText, textToHtml } from "./mime";
 import { MailboxError, type IncomingMail, type MailboxProvider } from "./types";
 
 // Outlook / Microsoft 365 through Microsoft Graph with the member's consent
@@ -69,7 +69,7 @@ export const outlook: MailboxProvider = {
     const draft = mail.replyToProviderId
       ? await call<GraphMessage>(tok, `/messages/${encodeURIComponent(mail.replyToProviderId)}/createReply`, { method: "POST", body: JSON.stringify({}) })
       : await call<GraphMessage>(tok, "/messages", { method: "POST", body: JSON.stringify({ subject: mail.subject, toRecipients: [{ emailAddress: { address: mail.to } }] }) });
-    await call(tok, `/messages/${encodeURIComponent(draft.id)}`, { method: "PATCH", body: JSON.stringify({ subject: mail.subject, body: { contentType: "Text", content: mail.body }, toRecipients: [{ emailAddress: { address: mail.to } }] }) });
+    await call(tok, `/messages/${encodeURIComponent(draft.id)}`, { method: "PATCH", body: JSON.stringify({ subject: mail.subject, body: mail.pixelUrl ? { contentType: "HTML", content: textToHtml(mail.body, mail.pixelUrl) } : { contentType: "Text", content: mail.body }, toRecipients: [{ emailAddress: { address: mail.to } }] }) });
     await call(tok, `/messages/${encodeURIComponent(draft.id)}/send`, { method: "POST" });
     return { providerMessageId: draft.id, threadId: draft.conversationId };
   },

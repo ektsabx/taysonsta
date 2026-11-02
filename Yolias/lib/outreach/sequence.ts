@@ -127,7 +127,7 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const cc = (country as { country?: string | null; company?: { country?: string | null } | null } | null);
   const lang = languageFor(campaign.language, cc?.country ?? cc?.company?.country ?? null);
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId, lead.id)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(lang) ? lang : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     senderName: (campaign as { sender_name?: string | null }).sender_name ?? null, notes: (campaign as { instructions?: string | null }).instructions ?? null,
     insights: await insightLines(workspaceId),
@@ -255,7 +255,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
 
   // A meeting in the next hour: a reminder (owner, 2026-10-29), once.
   const soon = new Date(Date.now() + 3_600_000).toISOString();
-  const { data: upcoming } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, url, created_by")
+  const { data: upcoming } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, url, created_by, brief")
     .eq("status", "scheduled").is("reminded_at", null).gte("starts_at", now).lte("starts_at", soon).limit(limit);
   for (const m of upcoming ?? []) {
     const who = await meetingPeople(db, m.lead_id, m.created_by);
@@ -264,7 +264,7 @@ export async function followUpSweep(limit = 25): Promise<{ due: number; drafted:
       await notifyMember(db, m.workspace_id, who.userId, who.ar ? `اجتماع مع ${who.lead} الساعة ${at}` : `Meeting with ${who.lead} at ${at}`, m.url ?? m.title, "/meetings", `meeting-soon:${m.id}`);
       // And by email (owner, 2026-10-29); emails are in English (D-158).
       const atEn = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: who.timeZone ?? "UTC", timeZoneName: "short" }).format(new Date(m.starts_at));
-      await notify("meeting_soon", await userRecipient(who.userId), { lead: who.lead, time: atEn, leadId: m.lead_id, url: m.url ?? null }, { workspaceId: m.workspace_id, dedupe: m.id });
+      await notify("meeting_soon", await userRecipient(who.userId), { lead: who.lead, time: atEn, leadId: m.lead_id, url: m.url ?? null, brief: m.brief }, { workspaceId: m.workspace_id, dedupe: m.id });
     }
     await db.from("sales_meetings").update({ reminded_at: now }).eq("id", m.id);
     out.reminders++;

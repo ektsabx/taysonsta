@@ -36,7 +36,7 @@ export const home: Localized<{
         { before: "Hours on Google, maps and LinkedIn looking for companies that might fit.", after: "Set your audience once: countries, cities, industries, company size and job titles. Yolias keeps finding matching companies and decision makers every day." },
         { before: "A generic first email that ignores what the company does.", after: "A different email for each person, written from your Company Knowledge and what Yolias found about them, sent from your own mailbox." },
         { before: "Replies sitting unanswered while you are busy.", after: "Yolias answers questions and objections, sends two free times and your booking page to interested people, and books the meeting." },
-        { before: "No idea what a meeting really costs you.", after: "Every campaign shows meetings booked, confirmed and held, and the cost per meeting, like an ads dashboard." },
+        { before: "No idea what a meeting really costs you.", after: "Every campaign shows meetings booked and held, and the cost per held meeting, like cost per result in an ads dashboard." },
       ],
     },
     how: {
@@ -52,7 +52,7 @@ export const home: Localized<{
       eyebrow: "WHAT YOU GET",
       title: "Built for people who sell services to businesses.",
       tiles: [
-        { title: "Campaigns like an ads manager", body: "Campaigns, audiences and messages with spend, replies, meetings and cost per meeting for each, and a daily budget you control." },
+        { title: "Campaigns like an ads manager", body: "Campaigns, audiences and messages with spend, opens, replies, meetings held and cost per held meeting for each. Yolias moves the budget toward the audiences that bring meetings, within a daily budget and cost cap you control." },
         { title: "Audiences that learn", body: "Custom audiences from your customers or past campaigns, and lookalikes of your best ones, with how sure Yolias is about each." },
         { title: "An agent that answers", body: "Questions and objections answered from your Company Knowledge; interested people get your booking page; a person is needed, you're told." },
         { title: "Arabic and English, end to end", body: "The whole product works right-to-left and left-to-right, and Yolias writes in each person's language." },
@@ -72,7 +72,8 @@ export const home: Localized<{
         { q: "How do I create a campaign?", a: "In three steps, like an ads manager: the campaign (the meetings you want, your offer, budget and dates), one or more audiences (locations, industries, company size, job titles, exclusions, or a saved, custom or lookalike audience) and the message (your mailbox, tone, language and notes, with a preview). Then you launch it." },
         { q: "Does Yolias answer replies by itself?", a: "Yes. It reads every reply in the threads it started: it answers questions and one objection from your Company Knowledge, sends two free times and your booking page to interested people, books a time someone names when you're free, and never writes again to anyone who says no or asks to stop. A complaint, a negotiation or a question it can't answer from your knowledge is handed to you." },
         { q: "Where does the data come from, and how accurate is it?", a: "From the data sources connected to Yolias and from public information such as company websites. Every record keeps its source, contact details are labelled by verification state, and anything Yolias couldn't find is shown as not available instead of being guessed." },
-        { q: "What do the numbers mean?", a: "Each campaign shows emails sent, delivery, replies, interested people, meetings booked, confirmed (the guest chose or accepted the time) and held, the spend and the cost per meeting (spend ÷ meetings booked). A number that can't be worked out yet is shown as a dash, never as zero." },
+        { q: "What do the numbers mean?", a: "Each campaign shows the people and companies Yolias found, emails sent, opened (approximate), replied and not replied, meetings booked, confirmed and held, the booking link's visits, bookings and forms left unfinished, the spend and the cost per held meeting (spend ÷ meetings that took place), the result Yolias works for. A number that can't be worked out yet is shown as a dash, never as zero." },
+        { q: "How does Yolias decide where the budget goes?", a: "Like campaign budget optimization in an ads platform: once a day it gives each audience a share of the campaign's budget from its rate of meetings held. While there are too few, it uses booked meetings, then positive replies, and a new audience gets a fair try first. An audience that clearly does worse, or costs more than your cost cap per meeting, gets no new budget. It never changes how Yolias writes, how much it sends or who it may contact." },
         { q: "What do I need to get started?", a: "A work email, a mailbox to send from (Gmail or any IMAP/SMTP account), a few lines about your company (or your website, which Yolias reads), and credit or a plan." },
         { q: "Which languages does Yolias support?", a: "The product works in Arabic and English, and Yolias writes emails in 15 languages, in each person's language when you choose it." },
         { q: "How much does Yolias cost?", a: "Pay As You Go (prepaid credit from $5, about $0.10 for each person Yolias finds and reaches) or the monthly plans Pro and Growth at a lower rate per person. Emails, replies and meetings aren't charged. All features and unlimited users on every option. See the pricing page." },
@@ -104,7 +105,7 @@ export const home: Localized<{
         { before: "ساعات على جوجل والخرائط وLinkedIn بحثًا عن شركات قد تناسبك.", after: "حدد جمهورك مرة واحدة: الدول والمدن والمجالات وحجم الشركة والمسميات الوظيفية. ويستمر يولياس في إيجاد الشركات وصنّاع القرار المطابقين كل يوم." },
         { before: "رسالة أولى عامة لا تذكر ما تفعله الشركة.", after: "رسالة مختلفة لكل شخص، مكتوبة من معرفة شركتك وما وجده يولياس عنه، تُرسل من بريدك أنت." },
         { before: "ردود بلا إجابة لأنك مشغول.", after: "يجيب يولياس عن الأسئلة والاعتراضات، ويرسل للمهتمين موعدين متاحين وصفحة الحجز، ويحجز الاجتماع." },
-        { before: "لا تعرف كم يكلفك الاجتماع فعلًا.", after: "كل حملة تعرض الاجتماعات المحجوزة والمؤكدة والتي تمت، وتكلفة الاجتماع، مثل لوحة الإعلانات." },
+        { before: "لا تعرف كم يكلفك الاجتماع فعلًا.", after: "كل حملة تعرض الاجتماعات المحجوزة والمنعقدة، وتكلفة الاجتماع المنعقد، مثل تكلفة النتيجة في لوحة الإعلانات." },
       ],
     },
     how: {
@@ -120,7 +121,7 @@ export const home: Localized<{
       eyebrow: "ما الذي تحصل عليه",
       title: "مصمم لمن يبيعون خدماتهم للشركات.",
       tiles: [
-        { title: "حملات مثل مدير الإعلانات", body: "حملات وجماهير ورسائل، لكل منها الإنفاق والردود والاجتماعات وتكلفة الاجتماع، وميزانية يومية تتحكم فيها." },
+        { title: "حملات مثل مدير الإعلانات", body: "حملات وجماهير ورسائل، لكل منها الإنفاق والفتح والردود والاجتماعات المنعقدة وتكلفة الاجتماع المنعقد. ويحرّك يولياس الميزانية نحو الجماهير التي تجلب اجتماعات، داخل ميزانية يومية وحد أقصى للتكلفة تتحكم فيهما." },
         { title: "جماهير تتعلم", body: "جماهير مخصصة من عملائك أو حملاتك السابقة، وجماهير مشابهة لأفضلهم، مع درجة ثقة يولياس في كل منها." },
         { title: "وكيل يرد بنفسه", body: "يجيب عن الأسئلة والاعتراضات من معرفة شركتك، ويرسل للمهتمين صفحة الحجز، وإذا احتاج الأمر إليك يخبرك." },
         { title: "العربية والإنجليزية بالكامل", body: "يعمل المنتج كله من اليمين لليسار ومن اليسار لليمين، ويكتب يولياس بلغة كل شخص." },
@@ -140,7 +141,8 @@ export const home: Localized<{
         { q: "كيف أنشئ حملة؟", a: "في ثلاث خطوات مثل مدير الإعلانات: الحملة (الاجتماعات التي تريدها وعرضك والميزانية والتواريخ)، وجمهور أو أكثر (المواقع والمجالات وحجم الشركة والمسميات الوظيفية والاستبعادات، أو جمهور محفوظ أو مخصص أو مشابه)، والرسالة (بريدك والأسلوب واللغة والملاحظات، مع معاينة). ثم تشغّلها." },
         { q: "هل يرد يولياس على الردود بنفسه؟", a: "نعم. يقرأ كل رد في المحادثات التي بدأها: يجيب عن الأسئلة وعن اعتراض واحد من معرفة شركتك، ويرسل للمهتمين موعدين متاحين وصفحة الحجز، ويحجز موعدًا يقترحه الشخص إذا كنت متاحًا، ولا يكتب أبدًا لمن يرفض أو يطلب التوقف. أما الشكوى أو التفاوض أو سؤال لا يجد إجابته في معرفتك فيسلّمه لك." },
         { q: "من أين تأتي البيانات، وما مدى دقتها؟", a: "من مصادر البيانات المتصلة بيولياس ومن المعلومات العامة مثل مواقع الشركات. يحتفظ كل سجل بمصدره، وتُصنَّف بيانات التواصل حسب حالة التحقق، وما لم يعثر عليه يولياس يظهر كغير متوفر بدل تخمينه." },
-        { q: "ماذا تعني الأرقام؟", a: "تعرض كل حملة الرسائل المرسلة والتسليم والردود والمهتمين والاجتماعات المحجوزة والمؤكدة (اختار الضيف الموعد أو قبل الدعوة) والتي تمت، والإنفاق وتكلفة الاجتماع (الإنفاق ÷ الاجتماعات المحجوزة). والرقم الذي لا يمكن حسابه بعد يظهر شرطة، وليس صفرًا." },
+        { q: "ماذا تعني الأرقام؟", a: "تعرض كل حملة الأشخاص والشركات التي اكتشفها يولياس، والرسائل المرسلة والتي فُتحت (تقريبيًا) والتي رُد عليها والتي لم يُرد عليها، والاجتماعات المحجوزة والمؤكدة والمنعقدة، وزيارات رابط الحجز والحجوزات منه والنماذج التي لم تكتمل، والإنفاق وتكلفة الاجتماع المنعقد (الإنفاق ÷ الاجتماعات التي حدثت)، وهي النتيجة التي يعمل لها يولياس. والرقم الذي لا يمكن حسابه بعد يظهر شرطة، وليس صفرًا." },
+        { q: "كيف يقرر يولياس أين تذهب الميزانية؟", a: "مثل تحسين ميزانية الحملة في منصات الإعلانات: مرة يوميًا يعطي كل جمهور نصيبًا من ميزانية الحملة حسب معدل الاجتماعات المنعقدة. وحين تكون قليلة يعتمد على الاجتماعات المحجوزة ثم الردود الإيجابية، ويحصل الجمهور الجديد على فرصة عادلة أولًا. والجمهور الأضعف بوضوح، أو الذي تتجاوز تكلفته الحد الأقصى الذي حددته للاجتماع، لا يحصل على ميزانية جديدة. ولا يغيّر ذلك طريقة الكتابة ولا كمية الإرسال ولا من يمكن التواصل معه." },
         { q: "ماذا أحتاج لأبدأ؟", a: "بريد عمل، وصندوق بريد للإرسال (Gmail أو أي بريد IMAP/SMTP)، وبضعة أسطر عن شركتك (أو موقعك ليقرأه يولياس)، ورصيد أو خطة." },
         { q: "ما اللغات التي يدعمها يولياس؟", a: "يعمل المنتج بالعربية والإنجليزية، ويكتب يولياس الرسائل بخمس عشرة لغة، وبلغة كل شخص عندما تختار ذلك." },
         { q: "كم تكلفة يولياس؟", a: "الدفع حسب الاستخدام (رصيد مسبق من 5 دولارات، نحو 0.10 دولار لكل شخص يجده يولياس ويتواصل معه) أو الخطتان الشهريتان برو والنمو بسعر أقل للشخص. الرسائل والردود والاجتماعات بلا رسوم. كل الميزات ومستخدمون بلا حد في كل خيار. الأسعار في صفحة الأسعار." },
@@ -168,7 +170,7 @@ export const product: Localized<{
   en: {
     eyebrow: "THE PRODUCT",
     title: "Set the meetings you want. Yolias gets them.",
-    lead: "Campaigns like an ads manager, an AI sales agent that writes, answers and books, and every number down to the cost per meeting.",
+    lead: "Campaigns like an ads manager, an AI sales agent that writes, answers and books, and every number down to the cost per held meeting.",
     primary: "Get started",
     secondary: "See pricing",
     sections: [
@@ -188,7 +190,7 @@ export const product: Localized<{
       },
       {
         title: "Results like an ads dashboard",
-        body: "Campaigns, audiences and messages in one table with sent, reply rate, interested, meetings booked, confirmed and held, spend and cost per meeting; a daily budget for the whole account and a button to stop everything.",
+        body: "Campaigns, audiences and messages in one table with an on/off switch per row: found, sent, open rate, reply rate, meetings booked and held, spend and cost per held meeting, with a breakdown by day, audience, opening, country, industry or job title; budget that moves to the best audiences, a cost cap, a daily budget for the whole account and a button to stop everything.",
       },
       {
         title: "Conversations and meetings",
@@ -221,7 +223,7 @@ export const product: Localized<{
   ar: {
     eyebrow: "المنتج",
     title: "حدد الاجتماعات التي تريدها، ويولياس يحصل عليها.",
-    lead: "حملات مثل مدير الإعلانات، ووكيل مبيعات بالذكاء الاصطناعي يكتب ويرد ويحجز، وكل رقم حتى تكلفة الاجتماع.",
+    lead: "حملات مثل مدير الإعلانات، ووكيل مبيعات بالذكاء الاصطناعي يكتب ويرد ويحجز، وكل رقم حتى تكلفة الاجتماع المنعقد.",
     primary: "ابدأ الآن",
     secondary: "عرض الأسعار",
     sections: [
@@ -241,7 +243,7 @@ export const product: Localized<{
       },
       {
         title: "نتائج مثل لوحة الإعلانات",
-        body: "الحملات والجماهير والرسائل في جدول واحد بالمُرسل ونسبة الرد والمهتمين والاجتماعات المحجوزة والمؤكدة والتي تمت، والإنفاق وتكلفة الاجتماع؛ وميزانية يومية للحساب كله وزر لإيقاف كل شيء.",
+        body: "الحملات والجماهير والرسائل في جدول واحد بزر تشغيل وإيقاف لكل صف: المكتشَفون والمُرسل ونسبة الفتح ونسبة الرد والاجتماعات المحجوزة والمنعقدة والإنفاق وتكلفة الاجتماع المنعقد، مع تفصيل حسب اليوم أو الجمهور أو الافتتاحية أو الدولة أو المجال أو المسمى الوظيفي؛ وميزانية تتحرك نحو أفضل الجماهير، وحد أقصى للتكلفة، وميزانية يومية للحساب كله وزر لإيقاف كل شيء.",
       },
       {
         title: "المحادثات والاجتماعات",

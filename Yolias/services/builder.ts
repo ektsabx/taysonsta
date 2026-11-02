@@ -69,7 +69,7 @@ export async function stateFromCampaign(campaignId: string, workspaceId: string)
       budgetType: c.budget_type === "daily" ? "daily" : "total", budgetUsd: c.budget_usd == null ? 50 : Number(c.budget_usd),
       startDate: s.date, startTime: s.time, endDate: e.date, endTime: c.ends_at ? e.time : "18:00", timezone: zone,
       runDays: c.run_days?.length ? c.run_days : undefined, contactFrom: c.contact_from?.slice(0, 5) ?? "09:00", contactTo: c.contact_to?.slice(0, 5) ?? "17:00",
-      dailyLimit: c.daily_limit ?? 30, adSets: adSets.length ? adSets : [{ key: "g0", name: "Main audience" }],
+      dailyLimit: c.daily_limit ?? 30, costCapUsd: c.cost_cap_usd == null ? null : Number(c.cost_cap_usd), trackOpens: c.track_opens !== false, adSets: adSets.length ? adSets : [{ key: "g0", name: "Main audience" }],
       mailboxId: c.mailbox_id, senderName: c.sender_name ?? "", tone: c.tone, language: c.language ?? "mul", instructions: c.instructions ?? "",
     },
     locked: c.status === "draft" ? [] : (groups ?? []).map((g) => g.name),

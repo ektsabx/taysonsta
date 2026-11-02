@@ -6,6 +6,8 @@ import { notify, siteUrl, userRecipient, type Recipient } from "@/lib/email/noti
 import { fitsPage, freeSlots, isFree, type DaySlots } from "./availability";
 import { accessToken, busyTimes, cancelEvent, createCalendar, createEvent, guestResponse, CalendarError } from "./google";
 import type { BookingPageRow, MeetingType } from "@/types/database";
+import { guestReminderDue, leadLink } from "./pure";
+export { guestReminderDue, leadLink, visitState } from "./pure";
 
 // Meetings inside Yolias (owner, 2026-10-30, D-267): each member's booking
 // page at yolias.com/meet/<slug>, bookings that land in the CRM, optional
@@ -72,22 +74,23 @@ export async function slotsByType(page: BookingPageRow): Promise<{ type: Meeting
   return pageTypes(page).map((type) => ({ type, days: freeSlots({ ...page, duration_min: type.duration_min }, b) }));
 }
 
+
 /** The member's booking page link when it's open, else null (for the emails of a meeting campaign). */
-export async function bookingLinkFor(userId: string | null): Promise<string | null> {
+export async function bookingLinkFor(userId: string | null, leadId?: string | null): Promise<string | null> {
   if (!userId) return null;
   const { data } = await createAdminClient().from("booking_pages").select("slug").eq("user_id", userId).eq("enabled", true).maybeSingle();
-  return data ? bookingUrl(data.slug) : null;
+  return data ? leadLink(bookingUrl(data.slug), leadId) : null;
 }
 
 /** The next free times of a member's page, for the agent to offer in a reply. */
-export async function nextSlots(userId: string, count = 2): Promise<{ url: string; slots: string[]; timezone: string } | null> {
+export async function nextSlots(userId: string, count = 2, leadId?: string | null): Promise<{ url: string; slots: string[]; timezone: string } | null> {
   const db = createAdminClient();
   const { data: page } = await db.from("booking_pages").select("*").eq("user_id", userId).eq("enabled", true).maybeSingle();
   if (!page) return null;
   const days = await slotsFor(page);
   // One time on each of the first days, so the guest gets a real choice.
   const picks = days.slice(0, count).map((d) => d.slots[Math.min(1, d.slots.length - 1)]);
-  return { url: bookingUrl(page.slug), slots: picks, timezone: page.timezone };
+  return { url: leadLink(bookingUrl(page.slug), leadId), slots: picks, timezone: page.timezone };
 }
 
 export type BookError = "not_found" | "closed" | "invalid" | "taken";
@@ -100,7 +103,7 @@ export function pageTypes(page: BookingPageRow): MeetingType[] {
 /** The page's rules for one meeting type (its own length). */
 const withType = (page: BookingPageRow, type: MeetingType) => ({ ...page, duration_min: type.duration_min });
 
-export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null; type?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null } | { ok: false; error: BookError }> {
+export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null; type?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null; meetingId: string } | { ok: false; error: BookError }> {
   const db = createAdminClient();
   const page = await pageBySlug(input.slug);
   if (!page) return { ok: false, error: "not_found" };
@@ -129,7 +132,7 @@ export async function book(input: { slug: string; start: string; name: string; e
  * A lead proposed a time in their reply and it is free (D-269): Yolias books
  * it on the host's page (their main meeting), like a booking from the page.
  */
-export async function bookForLead(hostId: string, leadId: string, start: string): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null } | { ok: false; error: BookError }> {
+export async function bookForLead(hostId: string, leadId: string, start: string): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null; meetingId: string } | { ok: false; error: BookError }> {
   const db = createAdminClient();
   const { data: row } = await db.from("booking_pages").select("slug").eq("user_id", hostId).maybeSingle();
   const page = row ? await pageBySlug(row.slug) : null;
@@ -182,7 +185,7 @@ async function createBooking(db: Db, page: BookingPageRow & { host: { name: stri
     hostName: page.host.name, company: page.host.company, title: type.title, start, end, timeZone: page.timezone, location: page.location, url,
     calendarInvite: Boolean(cal), cancelUrl: `${siteUrl()}/meet/c/${meeting.cancel_token}`,
   }, { workspaceId: page.workspace_id, dedupe: meeting.id });
-  return { ok: true as const, start, end, url, location: page.location };
+  return { ok: true as const, start, end, url, location: page.location, meetingId: meeting.id as string };
 }
 
 /** Cancels a booking: by the guest (their link) or by the host (Meetings). The other side is told. */
@@ -302,3 +305,111 @@ export async function confirmationSweep(): Promise<number> {
   }
   return confirmed;
 }
+
+const HOUR = 3_600_000;
+
+
+/**
+ * Before a meeting (owner, 2026-11-02, D-274): the guest is reminded a day
+ * and an hour before, with the link and a way to cancel, so fewer people miss
+ * it; and three hours before, Yolias prepares the host's brief (who they are,
+ * the conversation so far, what to ask), shown in Meetings and in the host's
+ * one-hour reminder. Every run, a few meetings at a time; each step once.
+ */
+export async function meetingPrepSweep(limit = 30): Promise<{ reminded: number; briefs: number }> {
+  const db = createAdminClient();
+  const now = Date.now();
+  const out = { reminded: 0, briefs: 0 };
+  const { data: rows } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, ends_at, created_at, url, location, host_id, created_by, guest_email, guest_name, cancel_token, guest_reminded_day_at, guest_reminded_hour_at, brief_at, lead:sales_leads(email, do_not_contact)")
+    .eq("status", "scheduled").gt("starts_at", new Date(now).toISOString()).lte("starts_at", new Date(now + 24 * HOUR).toISOString()).order("starts_at").limit(limit * 3);
+  for (const m of rows ?? []) {
+    const lead = m.lead as unknown as { email: string | null; do_not_contact: boolean } | null;
+    const to = m.guest_email ?? lead?.email ?? null;
+    const due = guestReminderDue(m);
+    if (due && to && out.reminded < limit) {
+      const host = m.host_id ?? m.created_by;
+      const { data: page } = host ? await db.from("booking_pages").select("slug, timezone").eq("user_id", host).maybeSingle() : { data: null };
+      const full = page ? await pageBySlug(page.slug) : null;
+      // Claim first, so two workers never send the same reminder.
+      const col = due === "day" ? "guest_reminded_day_at" : "guest_reminded_hour_at";
+      const stamp = new Date().toISOString();
+      const { data: claimed } = await db.from("sales_meetings").update(due === "day" ? { guest_reminded_day_at: stamp } : { guest_reminded_hour_at: stamp }).eq("id", m.id).is(col, null).select("id").maybeSingle();
+      if (claimed) {
+        await notify("meeting_guest_reminder", [{ userId: null, email: to, locale: "en", prefs: {} }], {
+          when: due, hostName: full?.host.name ?? "", company: full?.host.company ?? null, title: m.title.split(":")[0] || m.title,
+          start: m.starts_at, timeZone: page?.timezone ?? "UTC", url: m.url, location: m.location, cancelUrl: `${siteUrl()}/meet/c/${m.cancel_token}`,
+        }, { workspaceId: m.workspace_id, dedupe: `${m.id}:${due}` });
+        out.reminded++;
+      }
+    }
+    // The host's brief, three hours before (AI; skipped quietly when AI isn't set up or not allowed).
+    if (!m.brief_at && Date.parse(m.starts_at) - now <= 3 * HOUR && out.briefs < 5) {
+      const host = m.host_id ?? m.created_by;
+      if (!host) continue;
+      const { data: claimed } = await db.from("sales_meetings").update({ brief_at: new Date().toISOString() }).eq("id", m.id).is("brief_at", null).select("id").maybeSingle();
+      if (!claimed) continue;
+      const { data: p } = await db.from("profiles").select("language").eq("id", host).maybeSingle();
+      const { meetingBrief } = await import("@/lib/agents/meeting");
+      const r = await meetingBrief(m.workspace_id, host, m.id, p?.language === "ar" ? "ar" : "en").catch(() => null);
+      if (r?.ok) { await db.from("sales_meetings").update({ brief: r.brief.slice(0, 6000) }).eq("id", m.id); out.briefs++; }
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- booking link visits (D-274)
+
+const VISITOR = /^[A-Za-z0-9-]{8,64}$/;
+const UUID = /^[0-9a-f-]{36}$/i;
+const VISIT_WINDOW = 24 * HOUR;
+
+/**
+ * Someone opened a member's booking link (owner, 2026-11-02, D-274). Counted
+ * from the page itself once it has loaded in a browser (link scanners and
+ * crawlers don't run it), once per visitor per day. A link from a campaign
+ * email carries the lead (?r=), so the visit counts for that campaign.
+ */
+export async function recordVisit(slug: string, visitor: string, leadParam: string | null): Promise<string | null> {
+  if (!VISITOR.test(visitor)) return null;
+  const db = createAdminClient();
+  const { data: page } = await db.from("booking_pages").select("user_id, workspace_id, slug").eq("slug", slug).maybeSingle();
+  if (!page) return null;
+  // The lead only when it belongs to the page's workspace.
+  const { data: lead } = leadParam && UUID.test(leadParam) ? await db.from("sales_leads").select("id").eq("id", leadParam).eq("workspace_id", page.workspace_id).maybeSingle() : { data: null };
+  const since = new Date(Date.now() - VISIT_WINDOW).toISOString();
+  const { data: have } = await db.from("booking_visits").select("id, lead_id").eq("slug", slug).eq("visitor", visitor).gte("created_at", since).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (have) {
+    if (!have.lead_id && lead) await db.from("booking_visits").update({ lead_id: lead.id, campaign_id: await campaignOfLead(db, lead.id) }).eq("id", have.id);
+    return have.id;
+  }
+  // A page can't be flooded: at most 2,000 visits a day are kept.
+  const { count } = await db.from("booking_visits").select("id", { count: "exact", head: true }).eq("slug", slug).gte("created_at", since);
+  if ((count ?? 0) >= 2000) return null;
+  const { data: row } = await db.from("booking_visits").insert({
+    workspace_id: page.workspace_id, host_id: page.user_id, slug, visitor, lead_id: lead?.id ?? null, campaign_id: lead ? await campaignOfLead(db, lead.id) : null,
+  }).select("id").single();
+  return row?.id ?? null;
+}
+
+/** The visitor typed their name or email: saved like an abandoned checkout, so the host can follow up if they don't book. */
+export async function recordProgress(visitId: string, visitor: string, input: { name?: string | null; email?: string | null }): Promise<boolean> {
+  if (!UUID.test(visitId) || !VISITOR.test(visitor)) return false;
+  const name = input.name?.trim().slice(0, 120) || null;
+  const email = input.email?.trim().toLowerCase().slice(0, 254) || null;
+  if ((!name || name.length < 2) && !(email && EMAIL.test(email))) return false;
+  const db = createAdminClient();
+  const { data: v } = await db.from("booking_visits").select("id, started_at, meeting_id").eq("id", visitId).eq("visitor", visitor).maybeSingle();
+  if (!v || v.meeting_id) return false;
+  const now = new Date().toISOString();
+  await db.from("booking_visits").update({ started_at: v.started_at ?? now, ...(name && name.length >= 2 ? { name } : {}), ...(email && EMAIL.test(email) ? { email } : {}), updated_at: now }).eq("id", v.id);
+  return true;
+}
+
+/** The visit ended in a booking. */
+export async function visitBooked(visitId: string | null | undefined, visitor: string | null | undefined, meetingId: string): Promise<void> {
+  if (!visitId || !visitor || !UUID.test(visitId) || !VISITOR.test(visitor)) return;
+  await createAdminClient().from("booking_visits").update({ meeting_id: meetingId, updated_at: new Date().toISOString() }).eq("id", visitId).eq("visitor", visitor);
+}
+
+export interface VisitLine { id: string; at: string; state: "visited" | "started" | "booked"; name: string | null; email: string | null; leadId: string | null; campaign: { id: string; name: string } | null }
+

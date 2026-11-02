@@ -12,10 +12,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: page ? `${page.title} · ${page.host.name}` : "Booking", robots: noindex };
 }
 
-export default async function MeetPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ l?: string }> }) {
+export default async function MeetPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ l?: string; r?: string }> }) {
   const page = await pageBySlug((await params).slug);
   if (!page) notFound();
-  const l = (await searchParams).l;
+  const sp = await searchParams;
+  const l = sp.l;
   const locale = l === "ar" || l === "en" ? l : await getLocale();
   const types = page.enabled ? await slotsByType(page) : [];
   return (
@@ -28,6 +29,7 @@ export default async function MeetPage({ params, searchParams }: { params: Promi
       timezone={page.timezone}
       enabled={page.enabled}
       types={types}
+      lead={typeof sp.r === "string" && /^[0-9a-f-]{36}$/i.test(sp.r) ? sp.r : null}
     />
   );
 }

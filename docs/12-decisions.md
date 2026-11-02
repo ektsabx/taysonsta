@@ -685,3 +685,42 @@ Supersedes the approval parts of D-253 and the campaign UI of D-270/D-272. The m
 - **Data providers**: adapters for Hunter (person.search, email.find, email.verify), Findymail (email.find, email.verify) and LeadMagic (email.find), checked against their docs on 2026-11-02, disabled until Admin adds keys and prices. Discovery asks an email finder only for a qualified person without an email. "Exreacher" could not be found. Admin → Searches shows the providers each search used (calls, records, failures, cost); Admin → Providers compares success, acceptance and cost per accepted record. Customers never see "no data provider connected".
 - **SEO/GEO/AEO**: definition, home, product, about, help, docs and llms.txt describe the AI sales agent; comparison facts shared by all comparisons rewritten; new pages: Yolias vs Fiverr, Upwork, Freelancer.com (marketplace vs going to clients; fees as published, Fiverr's and Upwork's unverified) and solutions for service providers and founders.
 - Migration 20261210000000_sales_agent (additive). Tests: `test:sales-agent` (new, end to end), `test:referrals`, `test:agent`, unit tests for the builder, policy, learning, audiences, referrals.
+
+## D-274: The results engine (owner, 2026-11-02)
+
+Yolias works like an ads platform whose result is a meeting that took place.
+
+- **The result.** "Meetings held" and "cost per held meeting" lead the dashboard, the Campaigns table and a campaign's page (cost per result first). Booked and confirmed meetings sit beside them.
+- **The optimizer** (`lib/agent-core/optimizer.ts`, daily).
+  - Each running campaign's active audiences get a budget share by Thompson sampling on their rate of the result. The result climbs the ladder positive reply → booked → held once there are 5 of it; with fewer, every audience gets an equal share.
+  - An audience with fewer than 30 people contacted is "learning" and keeps at least an equal share. A floor (20% spread equally) keeps any audience from being starved by early bad luck.
+  - A clear loser (60+ contacted, under 2% chance of being best) gets no new budget. So does an audience over the campaign's optional cost cap per meeting. When every audience is over the cap, the member is told.
+  - Shares split each new daily or monthly budget period (`lib/campaigns/budget-split.ts`, `budgetPeriods`). A search whose share is 0 waits for tomorrow (`lib/discovery/pipeline.ts`).
+  - Moves are logged as `optimized` activity.
+  - The optimizer never touches the writing rules, sending limits, permissions or safety limits.
+  - With 3+ meetings, an auto lookalike "Like the people who booked a meeting" is kept fresh in Audiences. It is never added to a campaign by itself.
+- **Meetings** (`meetingPrepSweep`).
+  - The guest is reminded a day before (skipped when the booking was made less than a day ahead) and an hour before.
+  - Three hours before, a brief is prepared once and shown in Meetings and in the host's hour-before email.
+  - After the meeting, "It happened" or "No-show" comes first. A no-show already gets the booking page (D-269). Then come qualified and the deal.
+- **Recipient opens.**
+  - Campaign emails carry a 1×1 image at `/api/o/<message id>` (a text + HTML twin; the plain text is unchanged). This is on by default, and each campaign can turn it off (`track_opens`).
+  - Loads in the first minute after sending are ignored as scanners. The metric is labelled approximate.
+  - Stored in `recipient_opened_at` / `open_count`, apart from `opened_at` / `opened_via` (the member opening a draft in their own app, D-260).
+- **Booking link visits** (`booking_visits`).
+  - Links in campaign emails carry `?r=<lead>`. A visit is counted from the page once it runs in a browser, once per visitor per day, never for the page's own team.
+  - Typed name and email are kept like an abandoned checkout; a form left 30 minutes without booking counts as "started, didn't book".
+  - These feed the metrics visits / booked from the link / abandoned / visit-to-booking rate, plus a "Link visits" tab in Meetings with a way to write to those who left.
+- **Metrics added.** Found (people + companies), open rate, opened, didn't reply, replied after opening, show rate, the booking link metrics, and found people / companies. The defaults are found, sent, open rate, reply rate, booked, held, cost per held, spend.
+- **Account balance.** On the dashboard: what the month's plan or prepaid credit is worth, what is left, what was spent this month, the meetings held for it, and the cost per held meeting. Spend is deducted from the plan's prospects at the plan's rate, as before.
+- **"Needs you."**
+  - The Inbox lists only conversations with an open hand-off task, a reply waiting for approval or draft, or an unanswered reply that needs a person. The sidebar badge counts the same.
+  - "Done" (or the member's reply) closes the hand-off.
+- **Prospects** shows each campaign as a source card: companies, people, with email, contacted, replied, meetings. The campaign filter includes everything its audiences' searches found.
+- **Campaigns UI.**
+  - Saved views are removed, and refresh is the last toolbar button.
+  - Each row has an on/off switch.
+  - A campaign's page works like a campaign in an ads manager: the path, a switch, results, a chart, the same table scoped to its audiences and messages with a breakdown, then activity, conversations, meetings and settings (cost cap, open tracking).
+  - The builder's "Before launch" checklist is removed: Launch takes the member to the first gap with one message.
+- **Content.** The privacy policy covers opens and booking page data (updated 2026-11-02). Help, FAQ, llms.txt, SEO meta and seed pages describe optimizing for meetings held.
+- **Not done, for the owner to decide.** Managed sending domains and Outlook Calendar (listed, not requested); pay-per-result pricing (needs real cost-per-meeting data first).

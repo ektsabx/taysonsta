@@ -8,8 +8,9 @@ import { campaignDigestSweep } from "@/lib/email/campaign-digest";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { intakeSweep } from "@/lib/agent-core/intake";
 import { learningSweep } from "@/lib/agent-core/learning";
+import { optimizerSweep } from "@/lib/agent-core/optimizer";
 import { campaignScheduleSweep } from "@/lib/campaigns/schedule";
-import { confirmationSweep } from "@/lib/meetings";
+import { confirmationSweep, meetingPrepSweep } from "@/lib/meetings";
 import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 import { runQueuedEval } from "@/lib/agent/eval";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -177,10 +178,14 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
   // Guests who accepted the calendar invitation confirm their meeting (D-273).
   await confirmationSweep().catch((e) => console.error("[jobs] meeting confirmations failed", e));
+  // D-274: guest reminders (a day and an hour before) and the host's brief.
+  await meetingPrepSweep().catch((e) => console.error("[jobs] meeting prep failed", e));
   // Intake (D-273): people found for a launched campaign's audiences join its conversations.
   await intakeSweep().catch((e) => console.error("[jobs] intake failed", e));
   // Learning (D-273): once a day, what worked for each workspace (a hint for the writer).
   await learningSweep().catch((e) => console.error("[jobs] learning failed", e));
+  // The optimizer (D-274): once a day, each running campaign's budget split between its audiences.
+  await optimizerSweep().catch((e) => console.error("[jobs] optimizer failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".
   await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
   // Messaging & Automation (D-243): events → flows, due steps, campaigns, time-based events.

@@ -48,6 +48,7 @@ function row(s: BuilderState) {
     description: s.offer.trim() || null, offer_id: s.offerId, channel: "email" as never, channels: ["email"],
     budget_type: s.budgetType, budget_usd: s.budgetUsd, timezone: s.timezone, run_days: s.runDays,
     contact_from: s.contactFrom, contact_to: s.contactTo, daily_limit: s.dailyLimit, target_meetings: s.targetMeetings,
+    cost_cap_usd: s.costCapUsd && s.costCapUsd > 0 ? s.costCapUsd : null, track_opens: s.trackOpens,
     starts_at: zonedIso(s.startDate, s.startTime, s.timezone), ends_at: zonedIso(s.endDate, s.endTime, s.timezone),
     tone: s.tone as never, language: s.language, sender_name: s.senderName.trim() || null, instructions: s.instructions.trim() || null,
     // The mailbox stays in the draft's state: the server records it at launch (approveCampaign) or on edit.

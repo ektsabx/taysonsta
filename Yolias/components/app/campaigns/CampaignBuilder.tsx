@@ -99,6 +99,13 @@ export function CampaignBuilder(p: BuilderProps) {
   const mailbox = p.mailboxes.find((m) => m.id === s.mailboxId) ?? null;
   const idx = level === "campaign" ? 0 : level === "audience" ? 1 : 2;
 
+  // D-274 (owner): no checklist under the form. Launch takes the member to what's missing, with one message, instead.
+  const tryLaunch = () => {
+    const g = gaps[0];
+    if (g) { go(g.level, 0); toast(g.key === "budget" ? fmt(b.missing.budget, { usd: usd(minUsd) }) : b.missing[g.key], "error"); return; }
+    if (!confirmed) { go("message"); toast(b.missing.confirm, "error"); return; }
+    launch();
+  };
   const launch = () => call(() => launchCampaign(s, draftId, confirmed), (r) => {
     const res = r as unknown as { id: string; warnings: string[] };
     if (res.warnings.length) setWarnings(res.warnings);
@@ -222,6 +229,8 @@ export function CampaignBuilder(p: BuilderProps) {
                     <span className="ws-label">{b.campaign.hours}</span>
                     <span className="cb-pair"><input type="time" className="form-input" value={s.contactFrom} onChange={(e) => patch({ contactFrom: e.target.value })} /><span>{b.campaign.to}</span><input type="time" className="form-input" value={s.contactTo} onChange={(e) => patch({ contactTo: e.target.value })} /></span>
                     <label className="ws-field"><span className="ws-label">{b.campaign.daily}</span><input className="form-input num" type="number" min={1} max={500} value={s.dailyLimit} onChange={(e) => patch({ dailyLimit: Math.max(1, Math.min(500, Number(e.target.value) || 1)) })} /></label>
+                    <label className="ws-field"><span className="ws-label">{t.ag.rx.opt.costCap}</span><span className="cb-money"><span aria-hidden>$</span><input className="form-input num" type="number" min={0} step="1" placeholder={t.ag.rx.opt.noCap} value={s.costCapUsd ?? ""} onChange={(e) => patch({ costCapUsd: e.target.value === "" ? null : Math.max(0, Number(e.target.value) || 0) })} /></span></label>
+                    <label className="cb-check"><input type="checkbox" checked={s.trackOpens} onChange={(e) => patch({ trackOpens: e.target.checked })} />{t.ag.rx.opt.trackOpens}</label>
                     <p className="ws-hint">{b.campaign.advancedHint}</p>
                   </div>
                 )}
@@ -383,15 +392,6 @@ export function CampaignBuilder(p: BuilderProps) {
               <dt>{b.message.mailbox}</dt><dd dir="ltr">{mailbox?.email ?? "–"}</dd>
             </dl>
           </div>
-          {!editing && (gaps.length > 0 || !confirmed) && (
-            <div className="cb-missing">
-              <strong>{b.missing.title}</strong>
-              <ul>
-                {gaps.map((g) => <li key={g.key}><button type="button" onClick={() => go(g.level, 0)}>{g.key === "budget" ? fmt(b.missing.budget, { usd: usd(minUsd) }) : b.missing[g.key]}</button></li>)}
-                {!confirmed && <li><button type="button" onClick={() => go("message")}>{b.missing.confirm}</button></li>}
-              </ul>
-            </div>
-          )}
         </aside>
       </div>
 
@@ -402,7 +402,7 @@ export function CampaignBuilder(p: BuilderProps) {
         ) : editing ? (
           <button type="button" className="sdr-btn primary" disabled={pending || !s.name.trim()} onClick={save}>{busy === "save" ? <Loader2 className="spin" /> : null}{b.saveChanges}</button>
         ) : (
-          <button type="button" className="sdr-btn primary" disabled={pending || gaps.length > 0 || !confirmed} onClick={launch}>{busy === "launch" ? <><Loader2 className="spin" />{b.launching}</> : b.launch}</button>
+          <button type="button" className="sdr-btn primary" disabled={pending} onClick={tryLaunch}>{busy === "launch" ? <><Loader2 className="spin" />{b.launching}</> : b.launch}</button>
         )}
       </footer>
     </div>

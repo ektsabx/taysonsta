@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-10-29";
+export const LEGAL_UPDATED = "2026-11-02";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -38,6 +38,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { p: "Payments are made on our payment partner’s secure page: Paymob, where you pay by card (Visa, Mastercard or Meeza). If you choose to save your card there, Paymob keeps it and gives us a reference to it (a token) so renewals can be charged; we store that reference encrypted and see only the card brand and last four digits. We receive the payment result, amount, subscription status and a reference. We never receive your card number or security code." },
         { h3: "Business contact data about prospects" },
         { p: "Campaigns collect professional information about companies and their decision makers, such as name, job title, company, location and business contact channels, from the data sources Yolias connects to. Each record keeps the source it came from." },
+        { h3: "Email opens and booking pages" },
+        { p: "Campaign emails may include a small image that tells the sender whether the email was opened, unless the sender turns this off for the campaign; we record when and how many times it loaded, not who read it or where. On a booking page, we record that the page was opened (and from which campaign email, when the link came from one), and the name and email a visitor types before booking, so the page's owner can follow up if the booking isn't finished. The page's owner sees this in Yolias." },
         { h3: "Technical and usage data" },
         { p: "Sign-in events, IP address and browser information used to keep sessions secure, plus counts of discovery usage used for plan limits. We also record product events (for example: a search started, a campaign delivered results, a payment succeeded) linked to your user id, not your email, and error reports with personal details removed." },
         { h3: "Messages you send us" },
@@ -104,6 +106,8 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { p: "يتم الدفع في صفحة الدفع الآمنة لشريكنا Paymob، وتدفع بالبطاقة (فيزا أو ماستركارد أو ميزة). إذا اخترت حفظ بطاقتك هناك، يحتفظ بها Paymob ويعطينا مرجعًا لها (رمزًا) لخصم التجديدات؛ نخزّن هذا المرجع مشفّرًا ولا نرى إلا نوع البطاقة وآخر أربعة أرقام. نستلم نتيجة الدفع والمبلغ وحالة الاشتراك ومرجعًا للعملية فقط، ولا نستلم رقم بطاقتك أو رمز الأمان أبدًا." },
         { h3: "بيانات التواصل المهنية للعملاء المحتملين" },
         { p: "تجمع الحملات معلومات مهنية عن الشركات وصنّاع القرار فيها، مثل الاسم والمسمى الوظيفي والشركة والموقع وقنوات التواصل المهنية، من مصادر البيانات التي يتصل بها يولياس. ويحتفظ كل سجل بالمصدر الذي جاء منه." },
+        { h3: "فتح الرسائل وصفحات الحجز" },
+        { p: "قد تحتوي رسائل الحملات على صورة صغيرة تخبر المرسل بفتح الرسالة، ما لم يوقفها المرسل للحملة؛ ونسجل وقت تحميلها وعدد مراته، لا من قرأها ولا مكانه. وفي صفحة الحجز نسجل أن الصفحة فُتحت (ومن أي رسالة حملة إن جاء الرابط منها)، والاسم والبريد اللذين يكتبهما الزائر قبل الحجز، ليتابع صاحب الصفحة إن لم يكتمل الحجز. ويرى صاحب الصفحة ذلك في يولياس." },
         { h3: "البيانات التقنية وبيانات الاستخدام" },
         { p: "أحداث تسجيل الدخول وعنوان IP ومعلومات المتصفح لتأمين الجلسات، إضافةً إلى أعداد الاستخدام لتطبيق حدود الخطط. ونسجّل كذلك أحداث استخدام المنتج (مثل: بدء بحث، أو تسليم حملة لنتائج، أو نجاح دفعة) مرتبطة بمعرّف المستخدم وليس ببريدك، وتقارير الأخطاء بعد حذف البيانات الشخصية منها." },
         { h3: "الرسائل التي ترسلها لنا" },

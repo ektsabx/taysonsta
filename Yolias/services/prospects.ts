@@ -180,9 +180,22 @@ async function resolved(db: Client, workspaceId: string, f: ProspectFilters): Pr
     ids = [...t.prospectIds, ...t.companyIds];
   }
   if (f.outreach) {
-    // The people in the campaign, and their companies (D-270).
-    const { data } = await db.from("outreach_enrollments").select("lead:sales_leads(prospect_id, company_id)").eq("workspace_id", workspaceId).eq("campaign_id", f.outreach).limit(5000);
+    // The people in the campaign, and their companies (D-270), and (D-274) everyone its audiences' searches found:
+    // Prospects is where a campaign's people come from.
+    const [{ data }, { data: groups }, { data: camp }] = await Promise.all([
+      db.from("outreach_enrollments").select("lead:sales_leads(prospect_id, company_id)").eq("workspace_id", workspaceId).eq("campaign_id", f.outreach).limit(5000),
+      db.from("audience_groups").select("search_campaign_id").eq("workspace_id", workspaceId).eq("campaign_id", f.outreach).not("search_campaign_id", "is", null),
+      db.from("outreach_campaigns").select("source_campaign_id").eq("workspace_id", workspaceId).eq("id", f.outreach).maybeSingle(),
+    ]);
     const inCampaign = new Set((data ?? []).flatMap((e) => { const l = e.lead as unknown as { prospect_id: string | null; company_id: string | null } | null; return [l?.prospect_id, l?.company_id].filter((x): x is string => Boolean(x)); }));
+    const searches = [...new Set([...(groups ?? []).map((g) => g.search_campaign_id!), camp?.source_campaign_id].filter((x): x is string => Boolean(x)))];
+    if (searches.length) {
+      const [{ data: people }, { data: companies }] = await Promise.all([
+        db.from("prospects").select("id").eq("workspace_id", workspaceId).in("campaign_id", searches).limit(5000),
+        db.from("companies").select("id").eq("workspace_id", workspaceId).in("campaign_id", searches).limit(5000),
+      ]);
+      for (const r of [...(people ?? []), ...(companies ?? [])]) inCampaign.add(r.id);
+    }
     ids = ids ? ids.filter((id) => inCampaign.has(id)) : [...inCampaign];
   }
   return { ...f, ids: ids ?? [] };

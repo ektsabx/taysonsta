@@ -27,9 +27,9 @@ function previous(b: { from: string | null; to: string | null }): { from: string
   return { from: new Date(f - (t - f)).toISOString(), to: b.from };
 }
 
-const TABS: CampaignTab[] = ["overview", "audiences", "messages", "conversations", "meetings", "settings"];
+const TABS: CampaignTab[] = ["activity", "conversations", "meetings", "settings"];
 
-// A campaign's page (owner, 2026-10-31, D-273).
+// A campaign's page (owner, 2026-10-31, D-273), like a campaign in an ads manager (D-274).
 export default async function CampaignRoute({ params, searchParams }: PageProps<"/outreach/[id]">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -41,8 +41,8 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
   const { data: row } = await db.from("outreach_campaigns").select("*").eq("id", id).eq("workspace_id", ws).maybeSingle();
   if (!row) notFound();
   const c = row as OutreachCampaignRow;
-  const tab = (TABS.includes(one("tab") as CampaignTab) ? one("tab") : "overview") as CampaignTab;
-  const range = (["7d", "30d"] as string[]).includes(one("range")) ? (one("range") as RangePreset) : (RANGE_PRESETS as string[]).includes(one("range")) ? (one("range") as RangePreset) : "lifetime";
+  const tab = (TABS.includes(one("tab") as CampaignTab) ? one("tab") : "activity") as CampaignTab;
+  const range = (RANGE_PRESETS as string[]).includes(one("range")) ? (one("range") as RangePreset) : "lifetime";
   const bounds = rangeBounds(range, new Date(), { from: one("from"), to: one("to") });
   const prevBounds = previous(bounds);
   const [t, lines, prevLines, activity, detail, { data: mb }] = await Promise.all([
@@ -76,12 +76,14 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
 
   return (
     <CampaignPage
-      tab={tab} range={range} line={line} prev={prevLines[0]?.counts ?? null} detail={detail} activity={activity} recommendations={recs}
+      tab={tab} range={range} from={one("from")} to={one("to")} refreshedAt={new Date().toISOString()} line={line} prev={prevLines[0]?.counts ?? null} detail={detail} activity={activity} recommendations={recs}
       c={{
         id: c.id, name: c.name, status: c.status, budgetUsd: c.budget_usd == null ? null : Number(c.budget_usd), budgetType: c.budget_type,
         startsAt: c.starts_at ?? c.started_at, endsAt: c.ends_at, mailbox: mb?.email ?? null, targetMeetings: c.target_meetings, dailyLimit: c.daily_limit,
         runDays: c.run_days ?? [], contactFrom: c.contact_from, contactTo: c.contact_to, tone: c.tone, language: c.language, instructions: c.instructions, senderName: c.sender_name,
         approved: Boolean(c.approved_at),
+        costCapUsd: c.cost_cap_usd == null ? null : Number(c.cost_cap_usd), trackOpens: c.track_opens !== false,
+        optimizingFor: (line.groups.map((g) => g.opt?.event).find(Boolean)) ?? null,
       }}
     />
   );

@@ -11,14 +11,14 @@ import { inRange } from "@/lib/campaigns/metrics";
 
 const POSITIVE = new Set(["interested", "meeting_request"]);
 export type Dimension = "day" | "group" | "variant" | "step" | "industry" | "country" | "title";
-export interface BreakRow { key: string; contacted: number; sent: number; bounced: number; replies: number; interested: number; meetings: number }
+export interface BreakRow { key: string; contacted: number; sent: number; bounced: number; replies: number; interested: number; meetings: number; held: number; opened: number }
 
-type Msg = { id: string; lead_id: string | null; enrollment_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; variant: string | null; step_position: number | null; subject: string; body: string; to_email: string | null };
+type Msg = { id: string; lead_id: string | null; enrollment_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; variant: string | null; step_position: number | null; subject: string; body: string; to_email: string | null; recipient_opened_at?: string | null };
 
 export async function campaignDetail(workspaceId: string, campaignId: string, range: { from: string | null; to: string | null }) {
   const db = createAdminClient();
   const [{ data: msgsRaw }, { data: enr }, { data: groups }, { data: meetings }] = await Promise.all([
-    db.from("outreach_messages").select("id, lead_id, enrollment_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, variant, step_position, subject, body, to_email")
+    db.from("outreach_messages").select("id, lead_id, enrollment_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, variant, step_position, subject, body, to_email, recipient_opened_at")
       .eq("workspace_id", workspaceId).eq("outreach_campaign_id", campaignId).order("created_at", { ascending: false }).limit(5000),
     db.from("outreach_enrollments").select("id, lead_id, audience_group_id, status, current_step, lead:sales_leads(name, company_name, email, stage, prospect:prospects(title, country), company:companies(industry, country))").eq("campaign_id", campaignId).limit(5000),
     db.from("audience_groups").select("id, name").eq("campaign_id", campaignId),
@@ -45,13 +45,14 @@ export async function campaignDetail(workspaceId: string, campaignId: string, ra
     }
   };
   const breakdown = (dim: Dimension): BreakRow[] => {
-    const rows = new Map<string, BreakRow & { c: Set<string>; r: Set<string>; i: Set<string> }>();
-    const row = (k: string) => { if (!rows.has(k)) rows.set(k, { key: k, contacted: 0, sent: 0, bounced: 0, replies: 0, interested: 0, meetings: 0, c: new Set(), r: new Set(), i: new Set() }); return rows.get(k)!; };
+    const rows = new Map<string, BreakRow & { c: Set<string>; r: Set<string>; i: Set<string>; o: Set<string> }>();
+    const row = (k: string) => { if (!rows.has(k)) rows.set(k, { key: k, contacted: 0, sent: 0, bounced: 0, replies: 0, interested: 0, meetings: 0, held: 0, opened: 0, c: new Set(), r: new Set(), i: new Set(), o: new Set() }); return rows.get(k)!; };
     for (const m of msgs) {
       if (!m.lead_id) continue;
       if (m.direction === "outbound" && m.status === "sent" && inRange(m.sent_at, range)) {
         const k = keyFor(dim, m); if (!k) continue;
         const x = row(k); x.sent++; if (m.delivery_status === "bounced") x.bounced++; x.c.add(m.lead_id);
+        if (m.recipient_opened_at) x.o.add(m.lead_id);
       } else if (m.direction === "inbound" && inRange(m.received_at ?? m.created_at, range) && !isAutoReplyRow(m)) {
         // Replies count against the step / variant that reached the person (their first email) for those two dimensions.
         const k = dim === "step" ? "1" : keyFor(dim, m); if (!k) continue;
@@ -62,9 +63,9 @@ export async function campaignDetail(workspaceId: string, campaignId: string, ra
     for (const mt of meetings ?? []) {
       if (mt.status === "canceled" || !inRange(mt.starts_at, range)) continue;
       const fake = { lead_id: mt.lead_id, direction: "inbound", received_at: mt.starts_at, created_at: mt.starts_at } as Msg;
-      const k = dim === "step" ? "1" : keyFor(dim, fake); if (k) row(k).meetings++;
+      const k = dim === "step" ? "1" : keyFor(dim, fake); if (k) { row(k).meetings++; if (mt.status === "completed") row(k).held++; }
     }
-    return [...rows.values()].map(({ c, r, i, ...x }) => ({ ...x, contacted: c.size, replies: r.size, interested: i.size }))
+    return [...rows.values()].map(({ c, r, i, o, ...x }) => ({ ...x, contacted: c.size, replies: r.size, interested: i.size, opened: o.size }))
       .sort((a, b) => (dim === "day" || dim === "step" ? a.key.localeCompare(b.key) : b.contacted - a.contacted)).slice(0, dim === "day" ? 400 : 50);
   };
 

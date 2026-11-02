@@ -159,7 +159,37 @@ export const agAr: typeof agEn = {
     errors: { name: "أدخل اسمًا.", source: "اختر مصدر الأشخاص.", file: "تعذّرت قراءة هذا الملف.", empty: "لا يوجد أحد للإضافة.", seed: "حلّل الأساس أولًا." },
   },
 
-  act: { found: "وجد {n} شخصًا جديدًا لهذه الحملة.", replied: "رد على رد.", meeting: "حجز اجتماعًا.", handoff: "سلّمك محادثة.", started: "شُغّلت الحملة.", scheduled: "جُدولت لتبدأ.", paused: "أُوقفت.", resumed: "استؤنفت.", completed: "انتهت.", failed: "توقفت.", guard: "أُوقفت لحماية بريدك.", enrolled: "انضم أشخاص إلى الحملة.", note: "حُدّثت الحملة." },
+  rx: {
+    meet: {
+      brief: "الملخص التحضيري", happened: "هل تم الاجتماع؟", held: "تم", visitsTab: "زيارات الرابط",
+      visits: {
+        visits: "الزيارات", booked: "حجزوا", started: "بدأوا ولم يكملوا", rate: "نسبة الحجز من الزيارات", empty: "لم يفتح أحد رابط الحجز بعد.",
+        colWho: "الزائر", colFrom: "من", colWhen: "متى", colState: "الحالة", unknown: "زائر غير معروف", direct: "رابط مباشر",
+        states: { visited: "زار فقط", started: "بدأ ولم يكمل", booked: "حجز", open: "يملأ البيانات الآن" }, write: "راسله",
+      },
+    },
+    opt: {
+      learning: "في مرحلة التعلم", optimizing: "يحسّن على: {event}", learningAll: "مرحلة التعلم: ميزانية متساوية حتى {n} نتائج",
+      events: { positive: "الردود الإيجابية", booked: "الاجتماعات المحجوزة", held: "الاجتماعات المنعقدة" },
+      reasons: { learning: "في مرحلة التعلم", best: "أفضل نتائج", share: "يأخذ نصيبًا", weaker: "بدون ميزانية جديدة (نتائج أضعف)", over_cap: "بدون ميزانية جديدة (فوق حد التكلفة)" },
+      share: "{pct} من الميزانية", costCap: "حد أقصى لتكلفة الاجتماع", noCap: "بدون حد", trackOpens: "تتبّع فتح الرسائل",
+    },
+    balance: {
+      title: "رصيد الحساب", of: "من {total}", credit: "رصيد مدفوع مسبقًا", spent: "صُرف هذا الشهر", held: "اجتماعات منعقدة", costHeld: "تكلفة الاجتماع المنعقد", renews: "يتجدد {date}",
+    },
+    inbox: { needsYou: "محتاج تدخلك", empty: "لا شيء يحتاجك الآن. يولياس يتولى باقي المحادثات.", handled: "تم", handledToast: "أُزيلت من «محتاج تدخلك»." },
+    prospects: { title: "نتيجة البحث", all: "كل الحملات", companies: "شركات", people: "أشخاص", withEmail: "لهم بريد", contacted: "تم التواصل", replied: "ردّوا", meetings: "اجتماعات", open: "افتح الحملة" },
+    dash: {
+      found: "اكتشفهم يولياس", foundNote: "{companies} شركة · {people} شخص", opened: "فتحوا الرسالة", openedNote: "نسبة الفتح {pct} (تقريبية)",
+      replies: "ردّوا", repliesNote: "نسبة الرد {pct} · {n} لم يردوا", booked: "اجتماعات محجوزة", bookedNote: "حضر {pct}", held: "اجتماعات منعقدة", heldNote: "النتيجة",
+      cph: "تكلفة الاجتماع المنعقد", cphNone: "بعد أول اجتماع", cphNote: "{usd} للاجتماع المحجوز",
+    },
+    cp: {
+      toggle: "تشغيل / إيقاف", breakdown: "التفصيل", by: { none: "بدون", day: "اليوم", country: "الدولة", industry: "المجال", title: "المسمى الوظيفي", group: "الجمهور", variant: "الافتتاحية" },
+      chart: "الأداء", hideChart: "إخفاء الرسم", showChart: "عرض الرسم", more: "المزيد", results: "النتائج", costPerResult: "تكلفة النتيجة", reached: "تم الوصول",
+    },
+  },
+  act: { optimized: "حرّك الميزانية نحو الجمهور الأفضل.", found: "وجد {n} شخصًا جديدًا لهذه الحملة.", replied: "رد على رد.", meeting: "حجز اجتماعًا.", handoff: "سلّمك محادثة.", started: "شُغّلت الحملة.", scheduled: "جُدولت لتبدأ.", paused: "أُوقفت.", resumed: "استؤنفت.", completed: "انتهت.", failed: "توقفت.", guard: "أُوقفت لحماية بريدك.", enrolled: "انضم أشخاص إلى الحملة.", note: "حُدّثت الحملة." },
   dash: {
     live: "يولياس يعمل على «{name}»", liveLine: "{what}", viewConversations: "عرض المحادثات", idle: "لا توجد حملة تعمل", idleLine: "أنشئ حملة وسيبدأ يولياس في إيجاد الأشخاص المناسبين ومراسلتهم.", create: "إنشاء حملة",
     next: "الخطوة التالية", allSet: "كل شيء جاهز", allSetLine: "لدى يولياس كل ما يحتاجه. تابع الاجتماعات وهي تصل.",

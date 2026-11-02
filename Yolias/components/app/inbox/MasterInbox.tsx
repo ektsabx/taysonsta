@@ -1,10 +1,9 @@
 "use client";
 
-import { INBOX_SHOWS, type InboxShow } from "@/lib/inbox-shows";
+import type { InboxShow } from "@/lib/inbox-shows";
 import { LiveRefresh } from "@/components/app/LiveRefresh";
 import { setOutcome } from "@/app/(app)/meetings/actions";
 import { LOST_REASONS } from "@/components/app/ws/bits";
-import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +12,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { draftReplyAction, setTaskDone, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
+import { draftReplyAction, setTaskDone, markHandled, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { MessageCard, type CardMessage } from "@/components/app/ws/MessageCard";
 import { KindBadge, initials, useAgo } from "@/components/app/sdr/bits";
@@ -39,8 +38,6 @@ interface Props {
   show: InboxShow | null;
 }
 
-const MAIN: InboxTab[] = ["inbox", "replies", "to_approve"];
-const MORE: InboxTab[] = ["out_of_office", "sent", "done"];
 
 // Conversations (D-256, after AgentSDR's Master Inbox): the list with search,
 // a campaign filter and tabs; the thread in the middle with the AI draft and
@@ -50,12 +47,11 @@ export function MasterInbox(p: Props) {
   const { t, locale } = useI18n();
   const x = t.sdr.inbox;
   const router = useRouter();
-  const [more, setMore] = useState(false);
   const [cursor, setCursor] = useState(() => Math.max(0, p.items.findIndex((i) => i.leadId === p.thread?.lead.id)));
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "inbox" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
+    const cur: Record<string, string | null> = { tab: p.tab === "needs_you" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -88,7 +84,7 @@ export function MasterInbox(p: Props) {
   return (
     <div className="sdr-page sdr-inbox-page">
       <header className="sdr-head">
-        <div><h2>{x.title}</h2><p>{x.subtitle}</p></div>
+        <div><h2>{t.ag.rx.inbox.needsYou}</h2></div>
       </header>
       {p.campaign && (
         <div className="sdr-live" role="status">
@@ -104,15 +100,11 @@ export function MasterInbox(p: Props) {
         <aside className="sdr-inbox-list">
           <div className="sdr-inbox-tools">
             <form method="get" action="/inbox" className="sdr-search" style={{ flex: 1, minWidth: 0 }}>
-              {p.tab !== "inbox" && <input type="hidden" name="tab" value={p.tab} />}
+              {p.tab !== "needs_you" && <input type="hidden" name="tab" value={p.tab} />}
               <Search /><input name="q" defaultValue={p.q} placeholder={x.search} aria-label={x.search} />
             </form>
           </div>
           <div className="sdr-inbox-filters">
-            <select className="sdr-input sm" aria-label={t.camp.inbox.filter} value={p.show ?? ""} onChange={(e) => router.push(href({ show: e.target.value || null, lead: null }))}>
-              <option value="">{t.camp.inbox.all}</option>
-              {INBOX_SHOWS.map((k) => <option key={k} value={k}>{{ interested: t.camp.inbox.interested, not_interested: t.camp.inbox.notInterested, needs_you: t.camp.inbox.needsYou, meeting_request: t.camp.inbox.meetingRequest, booked: t.camp.inbox.booked, replied: t.camp.inbox.replied, no_reply: t.camp.inbox.noReply }[k]}</option>)}
-            </select>
             {p.campaigns.length > 0 && (
               <select className="sdr-input sm" aria-label={t.camp.prospects.campaign} value={p.campaign?.id ?? ""} onChange={(e) => router.push(href({ campaign: e.target.value || null, lead: null }))}>
                 <option value="">{t.camp.prospects.anyCampaign}</option>
@@ -120,15 +112,8 @@ export function MasterInbox(p: Props) {
               </select>
             )}
           </div>
-          <nav className="sdr-tabs sdr-inbox-tabs">
-            {MAIN.map((k) => <Link key={k} href={href({ tab: k === "inbox" ? null : k, lead: null })} className={p.tab === k ? "active" : ""} title={x.tabHints[k]}>{x.tabs[k]}{k === "inbox" && p.counts.inbox > 0 && <span className="sdr-count">{n(p.counts.inbox)}</span>}{k === "to_approve" && p.counts.to_approve > 0 && <span className="sdr-count">{n(p.counts.to_approve)}</span>}</Link>)}
-            <div className="sdr-menu">
-              <button type="button" className={MORE.includes(p.tab) ? "active" : ""} aria-expanded={more} onClick={() => setMore((v) => !v)}>{MORE.includes(p.tab) ? x.tabs[p.tab] : t.sdr.common.more}<ChevronDown /></button>
-              {more && <div className="sdr-menu-panel" role="menu">{MORE.map((k) => <Link key={k} href={href({ tab: k, lead: null })} onClick={() => setMore(false)} title={x.tabHints[k]}>{x.tabs[k]}<span className="sdr-count" style={{ marginInlineStart: "auto" }}>{n(p.counts[k])}</span></Link>)}</div>}
-            </div>
-          </nav>
           <div className="sdr-inbox-items">
-            {!p.items.length && <div style={{ padding: 16 }}>{p.q || p.tab !== "inbox" ? <p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : x.empty[p.tab]}</p> : <EmptyNext text={x.empty[p.tab]} href="/outreach" label={t.emptyNext.inbox} />}</div>}
+            {!p.items.length && <div style={{ padding: 16 }}><p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : p.tab === "needs_you" ? t.ag.rx.inbox.empty : x.empty[p.tab]}</p></div>}
             {groups.map(([label, rows]) => rows.length > 0 && (
               <div key={label}>
                 <div className="sdr-inbox-group">{label}</div>
@@ -152,7 +137,7 @@ export function MasterInbox(p: Props) {
           <div className="sdr-panel-foot">{fmt(x.count, { n: n(p.items.length) })}</div>
         </aside>
         <section className="sdr-inbox-thread">
-          {p.thread ? <Conversation {...p} thread={p.thread} backHref={href({ lead: null })} /> : (
+          {p.thread ? <Conversation {...p} thread={p.thread} backHref={href({ lead: null })} needsYou={p.tab === "needs_you" && p.items.some((i) => i.leadId === p.thread!.lead.id)} /> : (
             <div className="sdr-inbox-empty">
               <span className="sdr-stat-icon"><MailOpen /></span>
               <strong>{x.selectTitle}</strong>
@@ -166,7 +151,7 @@ export function MasterInbox(p: Props) {
   );
 }
 
-function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
+function Conversation(p: Props & { thread: InboxThread; backHref: string; needsYou?: boolean }) {
   const { t, locale } = useI18n();
   const x = t.sdr.inbox;
   const router = useRouter();
@@ -226,6 +211,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string }) {
             </div>
           </div>
           <div className="sdr-head-actions">
+            {p.needsYou && <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => act(() => markHandled(lead.id), t.ag.rx.inbox.handledToast)}><CheckCheck />{t.ag.rx.inbox.handled}</button>}
             {status === "open"
               ? <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.markDone} aria-label={x.markDone} onClick={() => act(() => setThreadStatus(lead.id, "done"))}><CheckCheck /></button>
               : <button type="button" className="sdr-icon-btn bordered" disabled={pending} title={x.reopen} aria-label={x.reopen} onClick={() => act(() => setThreadStatus(lead.id, "open"))}><RotateCcw /></button>}

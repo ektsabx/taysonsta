@@ -1,4 +1,4 @@
-// Plain-text email (RFC 5322) for the Gmail API, and helpers to read replies.
+// Plain-text email (RFC 5322) for the Gmail API (with an HTML twin when opens are tracked, D-274), and helpers to read replies.
 
 const b64url = (bytes: Uint8Array) => {
   let s = "";
@@ -19,19 +19,40 @@ function unsubscribeHeaders(url?: string | null): string[] {
   return url ? [`List-Unsubscribe: <${clean(url)}>`, "List-Unsubscribe-Post: List-Unsubscribe=One-Click"] : [];
 }
 
-export function buildRawEmail(m: { from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null }): string {
+const b64body = (text: string) => btoa(String.fromCharCode(...utf8(text.replace(/\r?\n/g, "\r\n")))).replace(/(.{76})/g, "$1\r\n");
+
+/**
+ * D-274: the HTML twin of a plain-text email, for recipient open tracking:
+ * the same words (escaped, links clickable, line breaks kept) and a 1×1
+ * image at the end. Nothing else changes in how the email looks.
+ */
+export function textToHtml(text: string, pixelUrl: string): string {
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const linked = esc(text).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)]/g, (u) => `<a href="${u}">${u}</a>`);
+  const dir = /[\u0600-\u06FF]/.test(text) ? ' dir="auto"' : "";
+  return `<div${dir}>${linked.replace(/\r?\n/g, "<br>")}</div><img src="${esc(pixelUrl)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px">`;
+}
+
+/** The body part(s): plain text alone, or text + HTML (multipart/alternative) when an open pixel is set. */
+function bodyParts(text: string, pixelUrl?: string | null): { headers: string[]; body: string } {
+  if (!pixelUrl) return { headers: ['Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64"], body: b64body(text) };
+  const boundary = `yolias-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  const part = (type: string, content: string) => `--${boundary}\r\nContent-Type: ${type}; charset="UTF-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${b64body(content)}\r\n`;
+  return { headers: [`Content-Type: multipart/alternative; boundary="${boundary}"`], body: `${part("text/plain", text)}${part("text/html", textToHtml(text, pixelUrl))}--${boundary}--` };
+}
+
+export function buildRawEmail(m: { from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = bodyParts(m.body, m.pixelUrl);
   const headers = [
     `From: ${m.fromName ? `${encodeHeader(clean(m.fromName))} <${clean(m.from)}>` : clean(m.from)}`,
     `To: ${clean(m.to)}`,
     `Subject: ${encodeHeader(clean(m.subject))}`,
     "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
+    ...parts.headers,
     ...(m.inReplyTo ? [`In-Reply-To: ${clean(m.inReplyTo)}`, `References: ${clean(m.inReplyTo)}`] : []),
     ...unsubscribeHeaders(m.unsubscribeUrl),
   ];
-  const body = btoa(String.fromCharCode(...utf8(m.body.replace(/\r?\n/g, "\r\n")))).replace(/(.{76})/g, "$1\r\n");
-  return b64url(utf8(`${headers.join("\r\n")}\r\n\r\n${body}`));
+  return b64url(utf8(`${headers.join("\r\n")}\r\n\r\n${parts.body}`));
 }
 
 export function decodeBase64Url(data: string): string {
@@ -89,7 +110,8 @@ export function htmlToText(html: string): string {
 // ── SMTP / IMAP mailboxes (D-238) ───────────────────────────────────────────
 
 /** A complete RFC 5322 message for SMTP (CRLF line ends, base64 UTF-8 body). */
-export function buildMessage(m: { from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null }): string {
+export function buildMessage(m: { from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = bodyParts(m.body, m.pixelUrl);
   const refs = (m.references ?? []).filter(Boolean).map(clean);
   const headers = [
     `Date: ${(m.date ?? new Date()).toUTCString().replace("GMT", "+0000")}`,
@@ -101,11 +123,9 @@ export function buildMessage(m: { from: string; fromName: string | null; to: str
     ...(refs.length ? [`References: ${refs.join(" ")}`] : []),
     ...unsubscribeHeaders(m.unsubscribeUrl),
     "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
+    ...parts.headers,
   ];
-  const body = btoa(String.fromCharCode(...utf8(m.body.replace(/\r?\n/g, "\r\n")))).replace(/(.{76})/g, "$1\r\n");
-  return `${headers.join("\r\n")}\r\n\r\n${body}\r\n`;
+  return `${headers.join("\r\n")}\r\n\r\n${parts.body}\r\n`;
 }
 
 function decodeBytes(bytes: Uint8Array, charset: string): string {

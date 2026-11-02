@@ -133,7 +133,7 @@ export interface MessageData {
   founder_note: Base & { name: string | null; founder: string; text: string };
   daily_digest: Base & { replies: number; meetings: { name: string; time: string }[]; stale: { name: string; days: number }[]; staleCount: number; won: string[]; tasks?: number };
   /** A meeting in the next hour (owner, 2026-10-29). */
-  meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null };
+  meeting_soon: Base & { lead: string; time: string; leadId: string; url: string | null; brief?: string | null };
   /** A meeting passed with no outcome recorded. */
   meeting_outcome: Base & { lead: string; leadId: string };
   /** Booking page (D-267): to the host when someone books or cancels. */
@@ -143,6 +143,8 @@ export interface MessageData {
   meeting_guest: Base & { hostName: string; company: string | null; title: string; start: string; end: string; timeZone: string; location: string | null; url: string | null; calendarInvite: boolean; cancelUrl: string };
   /** To a guest who missed the meeting (D-269): a short note and the booking page to pick another time. */
   meeting_rebook: Base & { hostName: string; company: string | null; title: string; bookingUrl: string };
+  /** D-274: to the guest, a day and an hour before: the time, the link and a way to cancel. */
+  meeting_guest_reminder: Base & { when: "day" | "hour"; hostName: string; company: string | null; title: string; start: string; timeZone: string; url: string | null; location: string | null; cancelUrl: string };
   /** To the guest when the host cancels (Google tells them itself when the event came from Google Calendar). */
   meeting_guest_canceled: Base & { title: string; start: string; timeZone: string };
   announcement: Base & { type: AnnouncementType; title: string; body: string; ctaLabel: string | null; ctaUrl: string | null };
@@ -495,7 +497,9 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     heading: T(l, `Meeting with ${d.lead}`, `اجتماع مع ${d.lead}`),
     body: [T(l, `Your meeting with <strong>${esc(d.lead)}</strong> starts at <span dir="ltr">${esc(d.time)}</span>. The conversation is in Yolias.`,
       `اجتماعك مع <strong>${esc(d.lead)}</strong> يبدأ الساعة <span dir="ltr">${esc(d.time)}</span>. المحادثة معه في يولياس.`),
-      ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : [])],
+      ...(d.url ? [T(l, `Meeting link: ${link(d.url, d.url)}`, `رابط الاجتماع: ${link(d.url, d.url)}`)] : []),
+      // D-274: the brief Yolias prepared, as plain lines.
+      ...(d.brief ? [`<strong>${T(l, "Your brief", "ملخصك التحضيري")}</strong><br>${esc(d.brief).replace(/\n/g, "<br>")}`] : [])],
     button: { label: T(l, "Open Meetings", "افتح الاجتماعات"), href: `${d.siteUrl}/meetings` },
     footnote: T(l, `${link(`${d.siteUrl}/`, "Notification settings")}`, `${link(`${d.siteUrl}/`, "إعدادات الإشعارات")}`),
   }),
@@ -553,6 +557,21 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     button: { label: "Pick another time", href: d.bookingUrl },
     footnote: `Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of ${esc(d.hostName)}.`,
   }),
+  meeting_guest_reminder: (l, d) => {
+    const when = new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(d.start));
+    const rows: [string, string][] = [["When", `<span dir="ltr">${esc(when)}</span>`], ["With", esc([d.hostName, d.company].filter(Boolean).join(", "))]];
+    if (d.url) rows.push(["Link", link(d.url, d.url)]);
+    else if (d.location) rows.push(["Where", esc(d.location)]);
+    return {
+      subject: d.when === "day" ? `Tomorrow: ${d.title} with ${d.hostName}` : `In an hour: ${d.title} with ${d.hostName}`,
+      preheader: when,
+      heading: d.when === "day" ? "See you tomorrow" : "Starting in an hour",
+      body: [d.when === "day" ? `A reminder of your meeting with ${esc(d.hostName)}.` : `Your meeting with ${esc(d.hostName)} starts in about an hour.`],
+      extra: table("en", rows),
+      button: d.url ? { label: "Join the meeting", href: d.url } : undefined,
+      footnote: `Can’t make it? ${link(d.cancelUrl, "Cancel the meeting")} so the time is freed. Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of ${esc(d.hostName)}.`,
+    };
+  },
   meeting_guest_canceled: (l, d) => ({
     subject: `Canceled: ${d.title}`,
     preheader: "The meeting was canceled.",

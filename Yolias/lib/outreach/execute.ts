@@ -14,6 +14,7 @@ import { mailboxWindow, nextGapMs, withinWindow, campaignWindow } from "@/lib/ou
 import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
 import { unsubscribeFooter, unsubscribePostUrl } from "@/lib/outreach/unsubscribe";
+import { openPixelUrl } from "@/lib/outreach/opens";
 import type { Json, MailboxRow, OutreachMessageRow } from "@/types/database";
 import type { OutreachCampaignRow } from "@/types/acquisition";
 
@@ -251,7 +252,9 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
     const { data: lead } = m.enrollment_id && m.lead_id ? await db.from("sales_leads").select("unsubscribe_token").eq("id", m.lead_id).maybeSingle() : { data: null };
     const unsub = lead?.unsubscribe_token ?? null;
     const body = unsub ? `${m.body.trimEnd()}${unsubscribeFooter(unsub, m.language ?? "en")}` : m.body;
-    const r = await provider.send(token, { from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null });
+    // D-274: campaign emails carry a 1×1 image to count recipient opens, unless the campaign turned it off.
+    const pixelUrl = m.enrollment_id && c && c.track_opens !== false ? openPixelUrl(m.id) : null;
+    const r = await provider.send(token, { from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null, pixelUrl });
     const now = new Date().toISOString();
     await db.from("outreach_messages").update({
       status: "sent", sent_at: now, sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent",
@@ -457,7 +460,7 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
       }
     }
     // Interest or a meeting request: answer, two free times and the booking page (the campaign's own link only when the page is off).
-    const page = await nextSlots(mb.user_id).catch(() => null);
+    const page = await nextSlots(mb.user_id, 2, leadId).catch(() => null);
     const link = page?.url ?? ((c.aim === "meeting" && c.cta_url) || null);
     if (link) {
       const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis?.suggested_reply ?? null, page?.slots ?? [], page?.timezone ?? null), "Yolias answered and offered two free times with your booking page.");

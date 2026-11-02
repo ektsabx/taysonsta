@@ -77,6 +77,8 @@ export type MeetingRow = {
   campaign_id: string | null; qualified: boolean | null;
   /** D-273: when the guest chose or accepted the time (booking page, a time they named, or a calendar acceptance). */
   confirmed_at: string | null;
+  /** D-274: the guest's reminders (a day and an hour before) and the brief prepared for the host. */
+  guest_reminded_day_at: string | null; guest_reminded_hour_at: string | null; brief: string | null; brief_at: string | null;
 };
 export type WeekDay = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 export type BookingHours = Record<WeekDay, [string, string][]>;
@@ -113,6 +115,8 @@ export type OutreachCampaignRow = {
   timezone: string | null; run_days: string[]; contact_from: string | null; contact_to: string | null; channels: string[]; wizard: Json | null;
   /** D-273: the message level: the name emails are signed with and notes for Yolias. */
   sender_name: string | null; instructions: string | null;
+  /** D-274: the most a meeting that took place may cost (USD), and whether recipient opens are tracked. */
+  cost_cap_usd: number | null; track_opens: boolean;
 };
 export type CampaignObjective = "leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
 export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
@@ -120,6 +124,8 @@ export type AudienceGroupRow = {
   id: string; workspace_id: string; campaign_id: string; name: string; status: "active" | "paused" | "archived"; source: AudienceSource;
   targeting: Json; audience_id: string | null; strategy_id: string | null; search_campaign_id: string | null; angle_a: string | null; angle_b: string | null;
   created_by: string | null; created_at: string; updated_at: string;
+  /** D-274: the optimizer's share of the campaign's budget (null = equal), whether it is still learning, and why. */
+  budget_share: number | null; learning: boolean; opt_state: Json;
 };
 export type AudienceRow = {
   id: string; workspace_id: string; kind: "saved" | "custom" | "lookalike"; name: string; targeting: Json; origin: Json; members: number;
@@ -158,4 +164,10 @@ export type AutomationRunStatus = "succeeded" | "partial" | "failed" | "skipped"
 export type AutomationRunRow = {
   id: number; workspace_id: string; automation_id: string; event_key: string; trigger: AutomationTrigger; lead_id: string | null;
   status: AutomationRunStatus; results: Json; error: string | null; created_at: string;
+};
+
+/** D-274: a visit to a member's booking link (server-written; the abandoned form is like an abandoned checkout). */
+export type BookingVisitRow = {
+  id: string; workspace_id: string; host_id: string; slug: string; visitor: string; lead_id: string | null; campaign_id: string | null;
+  started_at: string | null; name: string | null; email: string | null; meeting_id: string | null; created_at: string; updated_at: string;
 };

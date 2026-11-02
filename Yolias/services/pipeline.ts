@@ -47,8 +47,8 @@ export interface LeadStatus {
 const NEGATIVE = new Set<ReplyKind>(["not_interested", "stop_request"]);
 
 /** Statuses for the given leads (Prospects, Inbox), or every lead with a conversation (the pipeline). */
-export async function leadStatuses(workspaceId: string, opts: { leadIds?: string[]; limit?: number } = {}): Promise<LeadStatus[]> {
-  const db = await createClient();
+export async function leadStatuses(workspaceId: string, opts: { leadIds?: string[]; limit?: number; client?: Awaited<ReturnType<typeof createClient>> } = {}): Promise<LeadStatus[]> {
+  const db = opts.client ?? await createClient();
   let ids = opts.leadIds;
   if (!ids) {
     // The pipeline: leads who replied, and leads moved on in the CRM by hand.

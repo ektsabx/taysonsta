@@ -15,6 +15,8 @@ export interface OutgoingMail {
   replyToProviderId?: string | null;
   /** Campaign emails: the one-click unsubscribe address for the List-Unsubscribe header (Gmail, SMTP; Graph allows only X- headers). */
   unsubscribeUrl?: string | null;
+  /** D-274: a 1×1 image address for recipient open tracking (the email then also has an HTML part). */
+  pixelUrl?: string | null;
 }
 
 export interface SentMail {

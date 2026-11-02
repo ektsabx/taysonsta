@@ -32,9 +32,14 @@ function maskIp(ip: string | null): string | null {
 }
 
 // Conversations with a reply nobody opened yet (RLS: the member's workspace).
+// D-274: the badge on "Needs you" counts the people Yolias handed to the member (open hand-off tasks) and replies waiting for approval.
 async function unreadThreads(workspaceId: string): Promise<number> {
-  const { count } = await (await createClient()).from("crm_leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("unread", true);
-  return count ?? 0;
+  const db = await createClient();
+  const [{ data: tasks }, { data: pending }] = await Promise.all([
+    db.from("lead_tasks").select("lead_id").eq("workspace_id", workspaceId).is("done_at", null).like("dedupe_key", "handoff:%").limit(1000),
+    db.from("agent_pending_actions").select("lead_id").eq("workspace_id", workspaceId).eq("status", "pending").not("lead_id", "is", null).limit(500),
+  ]);
+  return new Set([...(tasks ?? []), ...(pending ?? [])].map((x) => x.lead_id)).size;
 }
 
 // The user's own phone (RLS: only its owner can read it).

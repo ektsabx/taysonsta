@@ -22,7 +22,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const ws = session.workspace.id;
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
-  const tab = (INBOX_TABS as readonly string[]).includes(one(sp.tab)) ? (one(sp.tab) as InboxTab) : "inbox";
+  const tab = (INBOX_TABS as readonly string[]).includes(one(sp.tab)) ? (one(sp.tab) as InboxTab) : "needs_you";
   const q = one(sp.q).slice(0, 100);
   const leadId = /^[0-9a-f-]{36}$/i.test(one(sp.lead)) ? one(sp.lead) : null;
   const campaignId = /^[0-9a-f-]{36}$/i.test(one(sp.campaign)) ? one(sp.campaign) : null;

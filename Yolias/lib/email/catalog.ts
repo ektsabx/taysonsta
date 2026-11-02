@@ -60,6 +60,8 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   meeting_guest: { category: "account", pref: null },
   meeting_guest_canceled: { category: "account", pref: null },
   meeting_rebook: { category: "account", pref: null },
+  // D-274: the guest is reminded a day and an hour before (they booked; it is part of the booking).
+  meeting_guest_reminder: { category: "account", pref: null },
   announcement: { category: "updates", pref: "notify_product" },
   // D-273: the five notification types (Settings → Notifications), on by default.
   leads_review: { category: "usage", pref: "notify_review" },

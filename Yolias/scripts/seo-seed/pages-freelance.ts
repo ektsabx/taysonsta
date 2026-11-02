@@ -182,7 +182,7 @@ const audienceSteps = (ex: L) => ({
     { title: "Set the result", body: "Create a campaign: the meetings you want, what you offer, the budget and the dates." },
     { title: "Choose who to reach", body: `Pick the audience from lists, or describe it, for example: "${ex.en}".` },
     { title: "Preview and launch", body: "Pick your mailbox and tone, preview Yolias's email, and launch." },
-    { title: "Take the meetings", body: "Yolias writes, follows up, answers and books; you see the meetings and the cost per meeting." },
+    { title: "Take the meetings", body: "Yolias writes, follows up, answers and books; you see the meetings held and what each one cost." },
   ],
   ar: [
     { title: "حدد النتيجة", body: "أنشئ حملة: الاجتماعات التي تريدها، وما تقدمه، والميزانية والتواريخ." },

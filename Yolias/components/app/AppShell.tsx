@@ -204,7 +204,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{key === "integrations" ? t.settings.hub.title : key === "yoliasAi" || key === "prospects" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
+                  <span>{key === "integrations" ? t.settings.hub.title : key === "conversations" ? t.ag.rx.inbox.needsYou : key === "yoliasAi" || key === "prospects" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>

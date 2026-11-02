@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { CalendarCheck, Clock, MapPin, Video } from "lucide-react";
-import { bookAction } from "./actions";
+import { bookAction, progressAction, visitAction } from "./actions";
 import type { DaySlots } from "@/lib/meetings/availability";
 import type { MeetingType } from "@/types/database";
 
@@ -31,7 +31,7 @@ const guestZone = (fallback: string) => { try { return Intl.DateTimeFormat().res
 
 export function BookingForm(p: {
   locale: "en" | "ar"; slug: string; host: { name: string; company: string | null }; title: string; location: string | null;
-  timezone: string; enabled: boolean; types: { type: MeetingType; days: DaySlots[] }[];
+  timezone: string; enabled: boolean; types: { type: MeetingType; days: DaySlots[] }[]; lead?: string | null;
 }) {
   const t = copy[p.locale];
   // Meeting types (D-269): the guest picks one when the page offers more than one.
@@ -53,6 +53,23 @@ export function BookingForm(p: {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ start: string; url: string | null; location: string | null } | null>(null);
   const [pending, start] = useTransition();
+  // D-274: the visit (counted once the page runs in a browser) and the form as it's filled, like a checkout.
+  const visit = useRef<{ id: string | null; visitor: string }>({ id: null, visitor: "" });
+  useEffect(() => {
+    let visitor = "";
+    try { visitor = localStorage.getItem("yolias_meet_visitor") ?? ""; } catch { /* storage unavailable */ }
+    if (!/^[A-Za-z0-9-]{8,64}$/.test(visitor)) {
+      visitor = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+      try { localStorage.setItem("yolias_meet_visitor", visitor); } catch { /* storage unavailable */ }
+    }
+    visit.current.visitor = visitor;
+    void visitAction({ slug: p.slug, visitor, lead: p.lead ?? null }).then((id) => { visit.current.id = id; }).catch(() => {});
+  }, [p.slug, p.lead]);
+  useEffect(() => {
+    if (!visit.current.id || done || (form.name.trim().length < 2 && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(form.email.trim()))) return;
+    const id = setTimeout(() => { void progressAction({ visitId: visit.current.id!, visitor: visit.current.visitor, name: form.name, email: form.email }).catch(() => {}); }, 1200);
+    return () => clearTimeout(id);
+  }, [form.name, form.email, done]);
   const current = day ?? byDay[0]?.[0] ?? null;
   const dayLabel = (d: string) => new Intl.DateTimeFormat(fmtLocale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
   const time = (iso: string) => new Intl.DateTimeFormat(fmtLocale, { hour: "numeric", minute: "2-digit", timeZone: tz }).format(new Date(iso));
@@ -63,7 +80,7 @@ export function BookingForm(p: {
     if (!slot) return;
     setError(null);
     start(async () => {
-      const r = await bookAction({ slug: p.slug, start: slot, type: typeKey, ...form });
+      const r = await bookAction({ slug: p.slug, start: slot, type: typeKey, ...form, visitId: visit.current.id, visitor: visit.current.visitor });
       if (r.ok) setDone(r);
       else { setError(t.errors[r.error]); if (r.error === "taken") setSlot(null); }
     });

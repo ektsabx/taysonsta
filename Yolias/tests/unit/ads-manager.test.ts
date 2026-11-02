@@ -12,9 +12,9 @@ import { referralDecision, sameInbox } from "../../lib/referrals.ts";
 
 // Yolias as an AI sales agent (D-273), on top of the ads manager registries (D-272).
 
-test("metric registry: meetings first, no lead-generation or qualified-opportunity columns, no number where none can be worked out", () => {
-  assert.deepEqual(DEFAULT_COLUMNS, ["sent", "reply_rate", "interested", "meetings", "cost_per_meeting", "spend"]);
-  assert.ok(!METRICS.some((m) => ["found", "qualified", "cost_per_qualified"].includes(m.id)), "Yolias sells meetings, not leads");
+test("metric registry: held meetings lead (D-274), no qualified-opportunity columns, no number where none can be worked out", () => {
+  assert.deepEqual(DEFAULT_COLUMNS, ["found", "sent", "open_rate", "reply_rate", "meetings", "held", "cost_per_held", "spend"]);
+  assert.ok(!METRICS.some((m) => ["qualified", "cost_per_qualified"].includes(m.id)), "no qualified opportunities");
   assert.equal(new Set(METRICS.map((m) => m.id)).size, METRICS.length, "unique ids");
   const c = zeroCounts();
   assert.equal(metric("reply_rate")!.compute(c), null, "nothing contacted: no rate");
@@ -25,6 +25,14 @@ test("metric registry: meetings first, no lead-generation or qualified-opportuni
   assert.equal(formatMetric(null, "count", "en"), "–", "unavailable is a dash, never 0");
   assert.equal(formatMetric(12.5, "usd", "ar"), "$12.50", "dollars always carry the sign");
   assert.deepEqual(cleanColumns(["meetings", "bogus", "meetings", "spend"]), ["meetings", "spend"]);
+  // D-274: found = people + companies; didn't reply; opens and the booking link.
+  assert.equal(metric("found")!.compute({ ...c, foundPeople: 3, foundCompanies: 7 }), 10);
+  assert.equal(metric("no_reply")!.compute({ ...c, contacted: 10, replies: 3 }), 7);
+  assert.equal(metric("no_reply")!.compute(c), null, "nobody contacted: no count");
+  assert.equal(metric("open_rate")!.compute({ ...c, contacted: 10, opened: 4 }), 0.4);
+  assert.equal(metric("link_rate")!.compute({ ...c, visits: 8, linkBooked: 2 }), 0.25);
+  assert.equal(metric("show_rate")!.compute({ ...c, meetings: 4, held: 3 }), 0.75);
+  assert.equal(metric("cost_per_held")!.compute({ ...c, spendUsd: 60, held: 3 }), 20);
 });
 
 test("date ranges: presets and custom", () => {

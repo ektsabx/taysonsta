@@ -5,7 +5,7 @@
 export type LearningRateRow = { industry: string; country: string; aim: string; workspaces: number; contacted: number; positive: number; meetings: number; qualified: number; updated_at: string };
 
 /** D-270: what Yolias did in a campaign and why. */
-export type CampaignActivityKind = "started" | "scheduled" | "paused" | "resumed" | "completed" | "failed" | "guard" | "enrolled" | "angle" | "pace" | "note" | "found" | "replied" | "meeting" | "handoff" | "learned";
+export type CampaignActivityKind = "started" | "scheduled" | "paused" | "resumed" | "completed" | "failed" | "guard" | "enrolled" | "angle" | "pace" | "note" | "found" | "replied" | "meeting" | "handoff" | "learned" | "optimized";
 export type CampaignActivityRow = { id: number; workspace_id: string; campaign_id: string; kind: CampaignActivityKind; body: string; meta: Json; created_at: string };
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -13,7 +13,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 import type {
   AcquisitionSource, ActorKind, AutomationRow, AutomationRunRow, BusinessOfferRow, CompetitorRow, CrmLeadRow, CustomerProfileRow,
   InboxThreadRow, LeadActivityRow, LeadRow, LeadSource, LeadStage, LeadTaskRow, MeetingRow, BookingPageRow, CalendarConnectionRow, OutreachCampaignRow, OutreachEnrollmentRow,
-  OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow, AudienceGroupRow, AudienceRow, SavedViewRow,
+  OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow, AudienceGroupRow, AudienceRow, SavedViewRow, BookingVisitRow,
 } from "./acquisition";
 export type * from "./acquisition";
 
@@ -257,6 +257,8 @@ export type OutreachMessageRow = {
   provider_thread_id: string | null; delivery_status: "sent" | "bounced" | null; attempts: number; next_attempt_at: string | null;
   /** D-268: which version of an A/B-tested first email this is. */
   variant: "a" | "b" | null;
+  /** D-274: the recipient opened it (tracking image): first time and count. */
+  recipient_opened_at: string | null; open_count: number;
 };
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;
@@ -1059,6 +1061,7 @@ export interface Database {
       audience_members: Table<{ audience_id: string; lead_id: string; workspace_id: string; added_at: string }, "audience_id" | "lead_id" | "workspace_id">;
       campaign_views: Table<SavedViewRow, "workspace_id" | "user_id" | "name">;
       campaign_activity: Table<CampaignActivityRow, "workspace_id" | "campaign_id" | "kind" | "body">;
+      booking_visits: Table<BookingVisitRow, "workspace_id" | "host_id" | "slug" | "visitor">;
       learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };

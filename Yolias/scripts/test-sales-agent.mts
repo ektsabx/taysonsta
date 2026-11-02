@@ -70,6 +70,10 @@ const { campaignDigestSweep } = await import("@/lib/email/campaign-digest.ts");
 const { executeTool } = await import("@/lib/agent/tools.ts");
 const { DEFAULT_POLICY } = await import("@/lib/agent/policy-schema.ts");
 const { metric } = await import("@/lib/campaigns/metrics.ts");
+const { recordOpen } = await import("@/lib/outreach/opens.ts");
+const { recordVisit, recordProgress, visitBooked, meetingPrepSweep, book, slotsFor } = await import("@/lib/meetings/index.ts");
+const { optimizeCampaign } = await import("@/lib/agent-core/optimizer.ts");
+const { masterInbox } = await import("@/services/master-inbox.ts");
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!, anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, svc = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 if (!/127\.0\.0\.1|localhost/.test(url)) throw new Error("Local database only.");
@@ -218,16 +222,76 @@ try {
   assert.equal(mtg!.campaign_id, campId, "credited to the campaign");
   console.log("✓ replies: answer, book, stop, hand over");
 
+  // ── 4b. D-274: opens, the booking link, guest reminders, the brief, "Needs you" ──
+  const firstOut = testOutbox().find((x) => x.to === thread(0).to_email)!;
+  assert.ok(firstOut.pixelUrl && /\/api\/o\/[0-9a-f-]{36}$/.test(firstOut.pixelUrl), "campaign emails carry the open image");
+  const { data: m0 } = await admin.from("outreach_messages").select("id").eq("lead_id", thread(0).lead_id!).eq("step_position", 1).eq("status", "sent").single();
+  await admin.from("outreach_messages").update({ sent_at: new Date(Date.now() - 10 * 60_000).toISOString() }).eq("id", m0!.id);
+  assert.equal(await recordOpen(m0!.id), true, "an open after the first minute counts");
+  await recordOpen(m0!.id);
+  const o = (await admin.from("outreach_messages").select("recipient_opened_at, open_count").eq("id", m0!.id).single()).data!;
+  assert.ok(o.recipient_opened_at && o.open_count === 2, "first open kept, each load counted");
+  assert.equal(await recordOpen("not-an-id"), false);
+  const { data: m1 } = await admin.from("outreach_messages").select("id").eq("lead_id", thread(1).lead_id!).eq("step_position", 1).eq("status", "sent").single();
+  await admin.from("outreach_messages").update({ sent_at: new Date().toISOString() }).eq("id", m1!.id);
+  assert.equal(await recordOpen(m1!.id), false, "a scanner right after sending isn't a person");
+
+  const interestReply = testOutbox().filter((x) => x.to === thread(0).to_email).at(-1)!;
+  assert.ok(interestReply.body.includes(`?r=${thread(0).lead_id}`), "the booking link in the reply carries the lead");
+  const slug = (await admin.from("booking_pages").select("slug").eq("user_id", A.userId).single()).data!.slug;
+  const v1 = await recordVisit(slug, "visitor-one-123", thread(0).lead_id!);
+  assert.ok(v1, "a visit is recorded");
+  assert.equal(await recordVisit(slug, "visitor-one-123", thread(0).lead_id!), v1, "one visit per visitor per day");
+  const v1row = (await admin.from("booking_visits").select("campaign_id, lead_id").eq("id", v1!).single()).data!;
+  assert.deepEqual([v1row.campaign_id, v1row.lead_id], [campId, thread(0).lead_id], "credited to the lead's campaign");
+  const v2 = await recordVisit(slug, "visitor-two-456", thread(1).lead_id!);
+  assert.equal(await recordProgress(v2!, "visitor-two-456", { name: "Omar", email: "omar@fleet.example" }), true, "what they typed is kept");
+  assert.equal(await recordProgress(v2!, "someone-else-999", { name: "X", email: "x@x.example" }), false, "only by the same visitor");
+  await admin.from("booking_visits").update({ updated_at: new Date(Date.now() - 2 * 3_600_000).toISOString() }).eq("id", v2!);
+  const pageRow = (await admin.from("booking_pages").select("*").eq("user_id", A.userId).single()).data!;
+  const free = (await slotsFor(pageRow as never)).flatMap((d) => d.slots);
+  const bookingDay = new Date(free.find((x) => x !== proposedIso)!);
+  const booked = await book({ slug, start: bookingDay.toISOString(), name: "Sara Ali", email: thread(0).to_email!, note: null });
+  assert.ok(booked.ok, `booked from the page: ${JSON.stringify(booked)} ${bookingDay.toISOString()}`);
+  if (booked.ok) await visitBooked(v1, "visitor-one-123", booked.meetingId);
+  await recordVisit(slug, "visitor-three-789", null);
+  const [vl] = await campaignTable(A.wsId, { from: null, to: null }, { ids: [campId] });
+  assert.deepEqual([vl.counts.visits, vl.counts.linkBooked, vl.counts.abandoned], [2, 1, 1], "visits, bookings and forms left, for the campaign (the direct visit isn't)");
+  assert.equal(vl.counts.opened, 1, "people who opened");
+  assert.ok(vl.counts.foundPeople === people.length && vl.counts.foundCompanies === people.length, "people and companies found");
+
+  // Guest reminders: a day before, then an hour before; the brief.
+  const { data: soon } = await admin.from("sales_meetings").insert({ workspace_id: A.wsId, lead_id: thread(0).lead_id!, title: "Intro: Sara", starts_at: new Date(Date.now() + 20 * 3_600_000).toISOString(), status: "scheduled", source: "agent", host_id: A.userId, created_by: A.userId, guest_email: thread(0).to_email, created_at: new Date(Date.now() - 3 * DAY).toISOString() } as never).select("id").single();
+  await meetingPrepSweep();
+  const r1m = (await admin.from("sales_meetings").select("guest_reminded_day_at, guest_reminded_hour_at").eq("id", soon!.id).single()).data!;
+  assert.ok(r1m.guest_reminded_day_at && !r1m.guest_reminded_hour_at, "the day-before reminder");
+  await meetingPrepSweep();
+  assert.equal((await admin.from("email_log").select("id", { count: "exact", head: true }).eq("kind", "meeting_guest_reminder").like("dedupe_key", `%${soon!.id}%`)).count, 1, "once per meeting");
+  await admin.from("sales_meetings").update({ starts_at: new Date(Date.now() + 40 * 60_000).toISOString() }).eq("id", soon!.id);
+  await meetingPrepSweep();
+  const r2m = (await admin.from("sales_meetings").select("guest_reminded_hour_at, brief_at").eq("id", soon!.id).single()).data!;
+  assert.ok(r2m.guest_reminded_hour_at, "the hour-before reminder");
+  assert.ok(r2m.brief_at, "the brief was prepared once");
+  await admin.from("sales_meetings").delete().eq("id", soon!.id);
+
+  // Needs you: only what Yolias handed over.
+  const needs = await masterInbox(A.wsId, "needs_you", "", null, null, A.client as never);
+  const needIds = new Set(needs.items.map((i) => i.leadId));
+  for (const i of [2, 3, 4]) assert.ok(needIds.has(thread(i).lead_id!), `handed over: ${i}`);
+  for (const i of [0, 1, 5, 6]) assert.ok(!needIds.has(thread(i).lead_id!), `Yolias handled it: ${i}`);
+  console.log("✓ opens, booking link visits, guest reminders, brief, Needs you");
+
   // ── 5. Numbers: meetings, confirmed, cost per meeting ──
   await admin.from("usage_ledger").insert({ workspace_id: A.wsId, kind: "consume", prospects: 20, period_start: new Date().toISOString().slice(0, 7) + "-01", campaign_id: search!.id, created_by: "test" } as never);
   const [line] = await campaignTable(A.wsId, { from: null, to: null }, { ids: [campId] });
-  assert.equal(line.counts.meetings, 1);
-  assert.equal(line.counts.confirmed, 1);
+  assert.equal(line.counts.meetings, 2, "the named time and the page booking");
+  assert.equal(line.counts.confirmed, 2);
   assert.ok(line.counts.spendUsd > 0, "spend from the people found");
-  assert.equal(metric("cost_per_meeting")!.compute(line.counts), line.counts.spendUsd, "cost per meeting = spend ÷ meetings");
+  assert.equal(metric("cost_per_meeting")!.compute(line.counts), line.counts.spendUsd / line.counts.meetings, "cost per meeting = spend ÷ meetings");
   assert.equal(line.groups[0].counts.contacted, people.length, "per audience");
   const dash = await dashboardData(A.wsId, "7d", null);
-  assert.equal(dash.counts.meetings, 1, "the dashboard agrees");
+  assert.equal(dash.counts.meetings, 2, "the dashboard agrees");
+  assert.ok(dash.account.totalUsd != null && dash.account.leftUsd != null, "the account balance");
   assert.equal(dash.series.days.length, 7);
   assert.ok(dash.live?.campaignId === campId, "it says what Yolias is working on");
   console.log("✓ numbers");
@@ -285,7 +349,7 @@ try {
   const list = await executeTool(ctxFor(A) as never, "listCampaigns", {});
   assert.ok(list.ok && JSON.stringify((list as { data: unknown }).data).includes("Riyadh fleets"));
   const meet = await executeTool(ctxFor(A) as never, "listMeetings", { when: "upcoming" });
-  assert.ok(meet.ok && (meet as { data: { meetings: unknown[] } }).data.meetings.length === 1);
+  assert.ok(meet.ok && (meet as { data: { meetings: unknown[] } }).data.meetings.length === 2);
   const gone = await executeTool(ctxFor(A) as never, "startOutreachCampaign", { id: campId });
   assert.ok(!gone.ok, "the old approval tool is gone");
   console.log("✓ Yolias AI tools");
@@ -298,6 +362,22 @@ try {
   const forged = await A.client.from("outreach_campaigns").update({ approved_at: new Date().toISOString(), send_mode: "mailbox" } as never).eq("id", draftId);
   assert.ok(forged.error, "launching is the server's to record");
   console.log("✓ guards");
+
+  // ── 12. D-274: the optimizer moves the budget toward results ──
+  const { data: s2 } = await admin.from("campaigns").insert({ workspace_id: A.wsId, strategy_id: strat!.id, name: "Weak audience", criteria: {}, status: "scheduled", search_type: "companies", continuous: true, quota: 10 }).select("id").single();
+  const { data: g2 } = await admin.from("audience_groups").insert({ workspace_id: A.wsId, campaign_id: campId, name: "Weak audience", source: "find_new", strategy_id: strat!.id, search_campaign_id: s2!.id, created_by: A.userId }).select("id").single();
+  const day = new Date().toISOString().slice(0, 10);
+  await optimizeCampaign(admin as never, { id: campId, workspace_id: A.wsId, name: "Riyadh fleets", cost_cap_usd: null, approved_by: A.userId, created_by: A.userId }, day);
+  const shares = (await admin.from("audience_groups").select("id, budget_share, learning, opt_state").eq("campaign_id", campId)).data!;
+  assert.ok(shares.every((g) => g.budget_share != null && g.learning), "too few results and people: learning, a share each");
+  assert.ok(Math.abs(shares.reduce((a, g) => a + Number(g.budget_share), 0) - 1) < 0.01, "the shares add up to the budget");
+  // An audience the optimizer stops: its search waits for tomorrow.
+  await admin.from("audience_groups").update({ budget_share: 0 }).eq("id", g2!.id);
+  await admin.from("campaigns").update({ status: "scheduled", next_run_at: new Date().toISOString() }).eq("id", s2!.id);
+  await runDiscovery(s2!.id);
+  const waited = (await admin.from("campaigns").select("status, next_run_at").eq("id", s2!.id).single()).data!;
+  assert.ok(waited.status === "scheduled" && Date.parse(waited.next_run_at!) > Date.now() + 60_000, "no budget today: it waits");
+  console.log("✓ optimizer");
 
   console.log("\nAll sales-agent checks passed.");
 } finally {

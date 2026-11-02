@@ -243,7 +243,7 @@ export const agentTools = [
   // ───────────── Campaigns, audiences and meetings (D-273) ─────────────
   define({
     name: "listCampaigns",
-    description: "Every campaign with its status and results (all time or the last N days): sent, contacted, replies, reply rate, interested, meetings booked / confirmed / held, spend in USD, cost per meeting, and its audiences with the same numbers. A number that can't be worked out is null.",
+    description: "Every campaign with its status and results (all time or the last N days): sent, contacted, replies, reply rate, interested, people and companies found, opened (approximate), didn't reply, meetings booked / confirmed / held (the result), spend in USD, cost per held meeting and per booked meeting, booking link visits / bookings / forms left unfinished, and its audiences with the same numbers plus the optimizer's budget share and whether the audience is still learning. A number that can't be worked out is null.",
     permission: "read",
     input: z.object({ days: z.number().int().min(1).max(365).optional() }),
     async run(ctx, input) {
@@ -252,8 +252,10 @@ export const agentTools = [
       const sum = (c: (typeof lines)[number]["counts"]) => ({
         sent: c.sent, contacted: c.contacted, replies: c.replies, replyRate: c.contacted ? c.replies / c.contacted : null, interested: c.interested,
         meetings: c.meetings, confirmed: c.confirmed, held: c.held, spendUsd: Math.round(c.spendUsd * 100) / 100, costPerMeetingUsd: c.meetings && c.spendUsd ? Math.round((c.spendUsd / c.meetings) * 100) / 100 : null,
+        costPerHeldUsd: c.held && c.spendUsd ? Math.round((c.spendUsd / c.held) * 100) / 100 : null, foundPeople: c.foundPeople, foundCompanies: c.foundCompanies, opened: c.opened, noReply: Math.max(c.contacted - c.replies, 0),
+        linkVisits: c.visits, linkBooked: c.linkBooked, linkAbandoned: c.abandoned,
       });
-      return ok({ campaigns: lines.slice(0, LIST_MAX).map((l) => ({ id: l.id, name: l.name, status: l.status, url: `/outreach/${l.id}`, ...sum(l.counts), audiences: l.groups.map((g) => ({ name: g.name, status: g.status, ...sum(g.counts) })) })) });
+      return ok({ campaigns: lines.slice(0, LIST_MAX).map((l) => ({ id: l.id, name: l.name, status: l.status, url: `/outreach/${l.id}`, ...sum(l.counts), audiences: l.groups.map((g) => ({ name: g.name, status: g.status, budgetShare: g.share, learning: g.learning, ...sum(g.counts) })) })) });
     },
   }),
   define({

@@ -159,7 +159,38 @@ export const agEn = {
   },
 
   /** Yolias's activity log, in the reader's language (D-273; English rows are written by the worker). */
-  act: { found: "Found {n} new people for this campaign.", replied: "Answered a reply.", meeting: "Booked a meeting.", handoff: "Handed a conversation to you.", started: "Launched.", scheduled: "Scheduled to start.", paused: "Paused.", resumed: "Resumed.", completed: "Ended.", failed: "Stopped.", guard: "Paused to protect your mailbox.", enrolled: "People joined the campaign.", note: "Updated the campaign." },
+  /** D-274: the results engine (optimizer, balance, reminders, link visits, the Inbox, Prospects, the campaign's Ads-Manager page). */
+  rx: {
+    meet: {
+      brief: "Brief", happened: "Did it happen?", held: "It happened", visitsTab: "Link visits",
+      visits: {
+        visits: "Visits", booked: "Booked", started: "Started, didn't book", rate: "Visit-to-booking", empty: "No one has opened your booking link yet.",
+        colWho: "Visitor", colFrom: "From", colWhen: "When", colState: "State", unknown: "Unknown visitor", direct: "Direct link",
+        states: { visited: "Visited", started: "Started, didn't book", booked: "Booked", open: "Filling in now" }, write: "Write to them",
+      },
+    },
+    opt: {
+      learning: "Learning", optimizing: "Optimizing for {event}", learningAll: "Learning: equal budget until there are {n} results",
+      events: { positive: "positive replies", booked: "booked meetings", held: "meetings held" },
+      reasons: { learning: "Learning", best: "Best results", share: "Getting a share", weaker: "No new budget (weaker results)", over_cap: "No new budget (over the cost cap)" },
+      share: "{pct} of budget", costCap: "Cost cap per meeting", noCap: "No cap", trackOpens: "Track email opens",
+    },
+    balance: {
+      title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings held", costHeld: "Cost per held meeting", renews: "Renews {date}",
+    },
+    inbox: { needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Removed from Needs you." },
+    prospects: { title: "Search results", all: "All campaigns", companies: "Companies", people: "People", withEmail: "With email", contacted: "Contacted", replied: "Replied", meetings: "Meetings", open: "Open the campaign" },
+    dash: {
+      found: "Found by Yolias", foundNote: "{companies} companies · {people} people", opened: "Opened", openedNote: "{pct} open rate (approximate)",
+      replies: "Replied", repliesNote: "{pct} reply rate · {n} didn't reply", booked: "Meetings booked", bookedNote: "{pct} showed up", held: "Meetings held", heldNote: "The result",
+      cph: "Cost per held meeting", cphNone: "After the first meeting", cphNote: "{usd} per booked meeting",
+    },
+    cp: {
+      toggle: "On / off", breakdown: "Breakdown", by: { none: "None", day: "Day", country: "Country", industry: "Industry", title: "Job title", group: "Audience", variant: "Opening" },
+      chart: "Performance", hideChart: "Hide chart", showChart: "Show chart", more: "More", results: "Results", costPerResult: "Cost per result", reached: "Reached",
+    },
+  },
+  act: { optimized: "Moved budget toward the audience with better results.", found: "Found {n} new people for this campaign.", replied: "Answered a reply.", meeting: "Booked a meeting.", handoff: "Handed a conversation to you.", started: "Launched.", scheduled: "Scheduled to start.", paused: "Paused.", resumed: "Resumed.", completed: "Ended.", failed: "Stopped.", guard: "Paused to protect your mailbox.", enrolled: "People joined the campaign.", note: "Updated the campaign." },
   dash: {
     live: "Yolias is working on “{name}”", liveLine: "{what}", viewConversations: "View conversations", idle: "No campaign is running", idleLine: "Create a campaign and Yolias starts finding and writing to the right people.", create: "Create campaign",
     next: "Next step", allSet: "You're set up", allSetLine: "Yolias has what it needs. Watch the meetings come in.",

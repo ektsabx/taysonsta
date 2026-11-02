@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, Copy, Sparkles, UserX, Video, X } from "lucide-react";
+import { CalendarCheck, CalendarPlus, Copy, Sparkles, UserX, Video, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { useToast } from "@/components/Toast";
 import { LOST_REASONS } from "@/components/app/ws/bits";
@@ -16,6 +16,8 @@ export interface MeetingItem {
   lead: { name: string; company_name: string | null; stage: LeadStage } | null;
   /** D-270: the campaign it came from and whether the member judged it qualified. */
   campaign: { id: string; name: string } | null; qualified: boolean | null;
+  /** D-274: the brief Yolias prepared before the meeting. */
+  brief?: string | null;
 }
 type Show = "all" | "upcoming" | "past" | "no_show" | "canceled" | "qualified" | "unqualified";
 
@@ -66,28 +68,33 @@ export function MeetingList({ upcoming, past, timeZone, bookingLink, people, dur
           {x.campaign && <Link className="meet-tag" href={`/outreach/${x.campaign.id}`} dir="auto">{f.campaign}: {x.campaign.name}</Link>}
           {x.location && !x.url && <span className="meet-sub" dir="auto">{x.location}</span>}
         </span>
-        {briefs[x.id] && <p className="meet-brief" dir="auto">{briefs[x.id]}</p>}
+        {(briefs[x.id] ?? x.brief) && <details className="meet-brief-box" open={Boolean(briefs[x.id])}><summary>{t.ag.rx.meet.brief}</summary><p className="meet-brief" dir="auto">{briefs[x.id] ?? x.brief}</p></details>}
       </div>
       <div className="meet-actions">
         {!isPast && x.status === "scheduled" && (<>
           {x.url && <a className="sdr-btn sm" href={x.url} target="_blank" rel="noreferrer"><Video />{m.join}</a>}
-          <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => brief(x.id)}><Sparkles />{o.prep}</button>
+          {!x.brief && !briefs[x.id] && <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => brief(x.id)}><Sparkles />{o.prep}</button>}
           <button type="button" className="sdr-icon-btn bordered" title={m.cancel} aria-label={m.cancel} disabled={pending} onClick={() => status(x.id, "canceled")}><X /></button>
         </>)}
-        {isPast && (x.status === "scheduled" || x.status === "completed") && x.qualified == null && (
+        {isPast && x.status === "scheduled" && (
+          <span className="meet-q"><span>{t.ag.rx.meet.happened}</span>
+            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => status(x.id, "completed")}><CalendarCheck />{t.ag.rx.meet.held}</button>
+            <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => status(x.id, "no_show")}><UserX />{m.noShow}</button>
+          </span>
+        )}
+        {isPast && x.status === "completed" && x.qualified == null && (
           <span className="meet-q"><span>{f.qualifiedQ}</span>
             <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setMeetingQualified(x.id, true)))}>{f.yes}</button>
             <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setMeetingQualified(x.id, false)))}>{f.no}</button>
           </span>
         )}
-        {isPast && (x.status === "scheduled" || x.status === "completed") && !decided(x) && (<>
+        {isPast && x.status === "completed" && !decided(x) && (<>
           <input className="sdr-input sm meet-value" type="number" min={0} inputMode="decimal" placeholder={f.value} title={f.valueHint} aria-label={f.value} value={values[x.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [x.id]: e.target.value }))} />
           <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(async () => done(await setOutcome(x.lead_id, true, null, x.id, values[x.id] ? Number(values[x.id]) : null)))}>{o.won}</button>
           <select className="sdr-input sm" disabled={pending} value="" aria-label={o.lost} onChange={(e) => { const r = e.target.value; if (r) start(async () => done(await setOutcome(x.lead_id, false, r, x.id))); }}>
             <option value="">{o.lost}</option>
             {LOST_REASONS.map((r) => <option key={r} value={r}>{t.ws.crm.lostReasons[r]}</option>)}
           </select>
-          {x.status === "scheduled" && <button type="button" className="sdr-icon-btn bordered" title={m.noShow} aria-label={m.noShow} disabled={pending} onClick={() => status(x.id, "no_show")}><UserX /></button>}
         </>)}
       </div>
     </li>

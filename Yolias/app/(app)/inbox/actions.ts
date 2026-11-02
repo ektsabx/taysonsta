@@ -174,6 +174,8 @@ export async function sendReply(leadId: string, body: string): Promise<MsgResult
   const saved = await saveManualDraft(leadId, body);
   if (!saved.ok) return saved;
   const sent = await sendNow(saved.messageId);
+  // D-274: the member answered: the hand-off is done.
+  if (sent.ok) await markHandled(leadId);
   // Not sent (no mailbox, limit…): the reply stays as a draft in the conversation.
   return sent;
 }
@@ -219,5 +221,16 @@ export async function setTaskDone(taskId: string, done: boolean): Promise<MsgRes
   const { data, error } = await (await createClient()).from("lead_tasks").update({ done_at: done ? new Date().toISOString() : null }).eq("id", taskId).eq("workspace_id", session.workspace.id).select("lead_id").maybeSingle();
   if (error || !data) return { ok: false, error: t.ws.common.error };
   refresh(data.lead_id);
+  return { ok: true };
+}
+
+/** D-274: the member dealt with a conversation Yolias handed to them: it leaves "Needs you". */
+export async function markHandled(leadId: string): Promise<MsgResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.common.error };
+  const db = await createClient();
+  await db.from("lead_tasks").update({ done_at: new Date().toISOString() }).eq("workspace_id", session.workspace.id).eq("lead_id", leadId).is("done_at", null).like("dedupe_key", "handoff:%");
+  revalidatePath("/inbox");
   return { ok: true };
 }

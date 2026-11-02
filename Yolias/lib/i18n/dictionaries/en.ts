@@ -468,6 +468,7 @@ export const en = {
     invalidCriteria: "The search criteria are invalid.",
     quotaReached: "Your {total} prospects are used up. Top up or subscribe, and this search continues by itself.",
     dailyBudget: "Today's budget is spent. Yolias continues tomorrow.",
+    optimizerHold: "Yolias moved this audience's budget to audiences with better results. It is checked again tomorrow.",
   },
   icp: {
     anySize: "Any size",

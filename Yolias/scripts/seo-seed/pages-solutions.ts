@@ -17,7 +17,7 @@ const steps = {
     { title: "Choose who to reach", body: `Describe the audience or pick it from lists (locations, industries, size, job titles), for example: "${ex}". Or use a custom or lookalike audience.` },
     { title: "Preview and launch", body: "Pick your mailbox, tone and language, preview the email Yolias writes for this audience, and launch." },
     { title: "Yolias works the conversations", body: "It finds the companies and decision makers, writes to each from your mailbox, follows up, answers questions and objections from your Company Knowledge, and sends interested people your booking page." },
-    { title: "Watch the meetings come in", body: "Meetings land in Meetings and Google Calendar; each campaign shows its replies, meetings and cost per meeting." },
+    { title: "Watch the meetings come in", body: "Meetings land in Meetings and Google Calendar; each campaign shows its replies, meetings held and cost per held meeting, and Yolias moves the budget to the audiences that bring them." },
   ],
   ar: (ex: string) => [
     { title: "حدد النتيجة", body: "أنشئ حملة: الاجتماعات التي تريدها، وما تقدمه، والميزانية والتواريخ." },

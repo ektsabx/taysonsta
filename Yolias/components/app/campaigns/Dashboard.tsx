@@ -71,7 +71,6 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
     router.refresh();
   });
   const s: Series = data.series;
-  const delivered = c.sent ? (c.sent - c.bounced) / c.sent : null;
   const cpm = metric("cost_per_meeting")!.compute(c), cph = metric("cost_per_held")!.compute(c);
   const running = data.campaigns.filter((l) => l.status === "active" || l.status === "scheduled");
   const shown = data.campaigns.filter((l) => l.status !== "archived");
@@ -87,18 +86,22 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
           ? { icon: Send, title: t.startHere.campaign, desc: t.startHere.campaignDesc, action: <Link className="sdr-btn primary" href="/outreach">{t.startHere.campaignCta}</Link> }
           : null;
 
-  const kpis: { key: string; label: string; value: string; note: string; values: (number | null)[]; tone?: "purple" }[] = [
+  // D-274: what Yolias found, sent, what was opened and answered, then the result: meetings held and what each cost.
+  const R = t.ag.rx.dash;
+  const kpis: { key: string; label: string; value: string; note: string; values: (number | null)[]; tone?: "purple"; lead?: boolean }[] = [
+    { key: "found", label: R.found, value: n(c.foundPeople + c.foundCompanies), note: fmt(R.foundNote, { companies: n(c.foundCompanies), people: n(c.foundPeople) }), values: s.found },
     { key: "sent", label: D.kpi.sent, value: n(c.sent), note: fmt(D.kpi.sentNote, { first: n(data.firsts), follow: n(data.followUps) }), values: s.sent },
-    { key: "meetings", label: D.kpi.meetings, value: n(c.meetings), note: fmt(D.kpi.meetingsNote, { confirmed: n(c.confirmed), held: n(c.held) }), values: s.meetings },
-    { key: "cpm", label: D.kpi.cpm, value: cpm == null ? "–" : usd(cpm), note: cpm == null ? D.kpi.cpmNone : cph == null ? " " : fmt(D.kpi.cpmNote, { usd: usd(cph) }), values: s.meetings.map((m, i) => (m ? s.spent[i] / m : 0)), tone: "purple" },
-    { key: "spent", label: D.kpi.spent, value: usd(c.spendUsd), note: data.budget.rate ? fmt(D.kpi.spentNote, { n: n(Math.round(c.spendUsd / data.budget.rate)), rate: usd(data.budget.rate) }) : " ", values: s.spent, tone: "purple" },
-    { key: "delivered", label: D.kpi.delivered, value: pct(delivered), note: fmt(D.kpi.deliveredNote, { n: n(c.bounced) }), values: s.delivered },
-    { key: "replies", label: D.kpi.replies, value: n(c.replies), note: fmt(D.kpi.repliesNote, { pct: pct(c.contacted ? c.replies / c.contacted : null) }), values: s.replies },
-    { key: "interested", label: D.kpi.interested, value: n(c.interested), note: fmt(D.kpi.interestedNote, { pct: pct(c.contacted ? c.interested / c.contacted : null) }), values: s.interested },
-    { key: "active", label: D.kpi.active, value: n(running.length), note: fmt(D.running, { n: n(running.length), total: n(shown.length) }), values: [] },
+    { key: "opened", label: R.opened, value: n(c.opened), note: fmt(R.openedNote, { pct: pct(c.contacted ? c.opened / c.contacted : null) }), values: s.opened },
+    { key: "replies", label: R.replies, value: n(c.replies), note: fmt(R.repliesNote, { pct: pct(c.contacted ? c.replies / c.contacted : null), n: n(Math.max(c.contacted - c.replies, 0)) }), values: s.replies },
+    { key: "meetings", label: R.booked, value: n(c.meetings), note: fmt(R.bookedNote, { pct: pct(c.meetings ? c.held / c.meetings : null) }), values: s.meetings },
+    { key: "held", label: R.held, value: n(c.held), note: R.heldNote, values: s.held, lead: true },
+    { key: "cph", label: R.cph, value: cph == null ? "–" : usd(cph), note: cph == null ? R.cphNone : cpm == null ? " " : fmt(R.cphNote, { usd: usd(cpm) }), values: s.held.map((m, i) => (m ? s.spent[i] / m : 0)), tone: "purple", lead: true },
+    { key: "spent", label: D.kpi.spent, value: usd(c.spendUsd), note: data.budget.rate ? fmt(D.kpi.spentNote, { n: n(Math.round(c.spendUsd / data.budget.rate)), rate: usd(data.budget.rate) }) : " ", values: s.spent, tone: "purple" },
   ];
+  const A = t.ag.rx.balance;
+  const acct = data.account;
   const needItems = [
-    needs.replies && { href: "/inbox?show=needs_you", text: fmt(D.replies, { n: n(needs.replies) }) },
+    needs.replies && { href: "/inbox", text: fmt(D.replies, { n: n(needs.replies) }) },
     needs.today && { href: "/meetings", text: fmt(D.today, { n: n(needs.today) }) },
     needs.outcomes && { href: "/meetings?show=past", text: fmt(D.outcomes, { n: n(needs.outcomes) }) },
     needs.paused && { href: "/outreach", text: fmt(D.paused, { n: n(needs.paused) }) },
@@ -115,7 +118,7 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
           <strong dir="auto">{data.live ? fmt(D.live, { name: data.live.name }) : D.idle}</strong>
           <span dir="auto">{data.live ? (data.live.what ? activityText({ kind: data.live.kind, body: data.live.what, meta: data.live.meta }, lang, t.ag.act) : formatDateTime(data.live.at, locale)) : D.idleLine}</span>
         </div>
-        {data.live ? <Link className="sdr-btn primary" href={`/inbox?campaign=${data.live.campaignId}`}>{D.viewConversations}</Link> : <Link className="sdr-btn primary" href="/outreach/new"><Plus />{D.create}</Link>}
+        {data.live ? <Link className="sdr-btn primary" href={`/outreach/${data.live.campaignId}`}>{t.ag.rx.prospects.open}</Link> : <Link className="sdr-btn primary" href="/outreach/new"><Plus />{D.create}</Link>}
       </section>
 
       <div className="db-row2">
@@ -142,15 +145,30 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
           <input type="range" min={0} max={sliderMax} step={1} value={cap ?? 0} disabled={!canBudget} aria-label={D.budget} onChange={(e) => setCap(Number(e.target.value))} />
           <p className="db-budget-line">{fmt(D.spentToday, { usd: usd(data.budget.spentToday) })}</p>
           <div className="db-budget-foot">
-            {data.budget.balanceUsd != null && <span className="db-chip">{fmt(D.balance, { usd: usd(data.budget.balanceUsd) })}</span>}
             <span className="db-budget-actions">
               {canBudget && cap !== data.budget.dailyUsd && <button type="button" className="sdr-btn primary sm" disabled={pending} onClick={() => run(() => setDailyBudget(cap))}>{D.saveBudget}</button>}
               {canBudget && data.budget.dailyUsd != null && cap === data.budget.dailyUsd && <button type="button" className="sdr-btn ghost sm" disabled={pending} onClick={() => { setCap(null); run(() => setDailyBudget(null)); }}>{D.capOff}</button>}
-              <button type="button" className="sdr-btn sm" onClick={() => openSettingsTab("billing")}>{D.topUp}</button>
             </span>
           </div>
         </section>
       </div>
+
+      {acct.totalUsd != null && acct.leftUsd != null && (
+        <section className="db-card db-account">
+          <div className="db-account-main">
+            <strong>{A.title}</strong>
+            <span className="db-account-left"><bdi dir="ltr">{usd(acct.leftUsd)}</bdi>{acct.totalUsd > 0 && <small>{fmt(A.of, { total: usd(Math.max(acct.totalUsd, acct.leftUsd)) })}</small>}</span>
+            <span>{acct.renewsAt ? fmt(A.renews, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "long" }).format(new Date(acct.renewsAt)) }) : A.credit}</span>
+            <div className="db-account-bar" role="img" aria-label={`${usd(acct.leftUsd)} ${fmt(A.of, { total: usd(acct.totalUsd) })}`}><i style={{ width: `${acct.totalUsd > 0 ? Math.min(100, (acct.leftUsd / Math.max(acct.totalUsd, acct.leftUsd)) * 100) : 0}%` }} /></div>
+          </div>
+          <button type="button" className="sdr-btn sm" onClick={() => openSettingsTab("billing")}>{D.topUp}</button>
+          <dl className="db-account-stats">
+            <div><dt>{A.spent}</dt><dd><bdi dir="ltr">{usd(acct.spentMonthUsd)}</bdi></dd></div>
+            <div><dt>{A.held}</dt><dd>{n(acct.heldMonth)}</dd></div>
+            <div><dt>{A.costHeld}</dt><dd><bdi dir="ltr">{acct.heldMonth && acct.spentMonthUsd ? usd(acct.spentMonthUsd / acct.heldMonth) : "–"}</bdi></dd></div>
+          </dl>
+        </section>
+      )}
 
       <div className="db-section-head">
         <h2>{D.performance}</h2>
@@ -166,7 +184,7 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
       </div>
       <div className="db-kpis">
         {kpis.map((k) => (
-          <article key={k.key} className={`db-kpi${k.key === "cpm" ? " lead" : ""}`}>
+          <article key={k.key} className={`db-kpi${k.lead ? " lead" : ""}`}>
             <div className="db-kpi-top"><span>{k.label}</span><small>{k.note}</small></div>
             <strong>{k.value}</strong>
             {k.values.length > 0 ? <Spark values={k.values} days={s.days} tone={k.tone === "purple" ? "purple" : "green"} locale={lang} /> : null}
@@ -197,7 +215,7 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
             <thead>
               <tr>
                 <th className="cm-name">{D.col.campaign}</th><th>{D.col.state}</th><th className="num">{D.col.sent}</th><th className="num">{D.col.replyRate}</th><th className="num">{D.col.interested}</th>
-                <th className="num">{D.col.meetings}</th><th className="num">{D.col.cpm}</th><th className="num">{D.col.spent}</th><th className="num">{D.col.cap}</th><th className="cm-actions" />
+                <th className="num">{R.booked}</th><th className="num">{R.held}</th><th className="num">{R.cph}</th><th className="num">{D.col.spent}</th><th className="num">{D.col.cap}</th><th className="cm-actions" />
               </tr>
             </thead>
             <tbody>
@@ -209,7 +227,8 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
                   <td className="num">{formatMetric(metric("reply_rate")!.compute(l.counts), "pct", lang)}</td>
                   <td className="num">{n(l.counts.interested)}</td>
                   <td className="num">{n(l.counts.meetings)}</td>
-                  <td className="num">{formatMetric(metric("cost_per_meeting")!.compute(l.counts), "usd", lang)}</td>
+                  <td className="num">{n(l.counts.held)}</td>
+                  <td className="num">{formatMetric(metric("cost_per_held")!.compute(l.counts), "usd", lang)}</td>
                   <td className="num">{usd(l.counts.spendUsd)}</td>
                   <td className="num">{l.dailyUsd != null ? usd(l.dailyUsd) : l.budgetUsd != null ? `${usd(l.budgetUsd)}` : "–"}</td>
                   <td className="cm-actions">
@@ -236,7 +255,8 @@ export function Dashboard({ name, data, range, campaignId, steps, canBudget, nee
                   <td className="num"><strong>{formatMetric(metric("reply_rate")!.compute(data.total), "pct", lang)}</strong></td>
                   <td className="num"><strong>{n(data.total.interested)}</strong></td>
                   <td className="num"><strong>{n(data.total.meetings)}</strong></td>
-                  <td className="num"><strong>{formatMetric(metric("cost_per_meeting")!.compute(data.total), "usd", lang)}</strong></td>
+                  <td className="num"><strong>{n(data.total.held)}</strong></td>
+                  <td className="num"><strong>{formatMetric(metric("cost_per_held")!.compute(data.total), "usd", lang)}</strong></td>
                   <td className="num"><strong>{usd(data.total.spendUsd)}</strong></td>
                   <td /><td />
                 </tr>

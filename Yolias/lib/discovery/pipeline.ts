@@ -74,6 +74,13 @@ export async function runDiscovery(campaignId: string, { attempt = 1 }: RunOptio
     await logEvent(campaign.workspace_id, campaignId, "plan", "Today's budget is spent. The search continues tomorrow.", "info", { key: "dailyBudget" });
     return;
   }
+  // The optimizer (D-274) gave this audience no budget today (weaker results, or over the cost cap): it waits.
+  const { data: grp } = await db.from("audience_groups").select("budget_share").eq("search_campaign_id", campaignId).maybeSingle();
+  if (grp && grp.budget_share != null && Number(grp.budget_share) === 0) {
+    await db.from("campaigns").update({ status: "scheduled", next_run_at: tomorrowUtc() }).eq("id", campaignId).in("status", ["created", "queued", "awaiting_source", "scheduled"]);
+    await logEvent(campaign.workspace_id, campaignId, "plan", "Yolias moved this audience's budget to audiences with better results. It is checked again tomorrow.", "info", { key: "optimizerHold" });
+    return;
+  }
 
   const icp = parseIcp(campaign.criteria);
   if (!icp) {

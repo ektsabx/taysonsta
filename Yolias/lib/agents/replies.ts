@@ -98,7 +98,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
           "suggested_reply: the next reply Yolias sends in this thread on the sender's behalf, in the reply's language, using only the company knowledge given; null for stop requests, not interested and out-of-office. Interested or a meeting request: thank them in one line and move to a short call (the booking link is added after). A question: answer it plainly from the knowledge, then propose a short call. An objection: acknowledge it, answer it with one relevant fact from the knowledge, no pressure, then propose a short call. 2–5 sentences, plain text, sounds like a person. Never invent prices, features, results, dates or claims about competitors.",
           `proposed_start: when the reply proposes or accepts one specific meeting day and time (for example "Tuesday at 3pm" or "the 11:00 slot works"), that moment as ISO 8601 with its UTC offset, read in the sender's time zone (${hostZone}) unless the reply names another; today is ${new Date().toISOString().slice(0, 10)}. Null when no single day and time is given.`,
-          camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", camp.cta_url, await bookingLinkFor(camp.approved_by)) : "",
+          camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", camp.cta_url, await bookingLinkFor(camp.approved_by, m.lead_id)) : "",
           `Sender's company:\n${contextText(business)}`,
           guidanceFor(s, "replies"),
         ].filter(Boolean).join("\n\n"),
