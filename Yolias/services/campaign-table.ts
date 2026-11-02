@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
-import { addCounts, inRange, zeroCounts, type Counts } from "@/lib/campaigns/metrics";
+import { addCounts, inRange, resultOf, zeroCounts, type Counts } from "@/lib/campaigns/metrics";
 import { prospectRate, ATTRIBUTION_DAYS } from "@/services/campaign-metrics";
 import type { AudienceGroupRow, OutreachCampaignRow } from "@/types/database";
 
@@ -64,7 +64,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     searchIds.length ? paged<{ campaign_id: string | null; created_at: string }>((a, b) => db.from("companies").select("campaign_id, created_at").in("campaign_id", searchIds).range(a, b)) : Promise.resolve([]),
     paged<{ campaign_id: string | null; lead_id: string | null; started_at: string | null; meeting_id: string | null; created_at: string; updated_at: string }>((a, b) => db.from("booking_visits").select("campaign_id, lead_id, started_at, meeting_id, created_at, updated_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
     // D-274: pixel events credited to these campaigns.
-    paged<{ campaign_id: string | null; group_id: string | null; lead_id: string | null; event: string; value: number | null; currency: string | null; visitor: string | null; created_at: string }>((a, b) => db.from("pixel_events").select("campaign_id, group_id, lead_id, event, value, currency, visitor, created_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
+    paged<{ campaign_id: string | null; group_id: string | null; lead_id: string | null; event: string; value: number | null; currency: string | null; visitor: string | null; created_at: string }>((a, b) => db.from("pixel_events").select("campaign_id, group_id, lead_id, event, value, currency, visitor, created_at").eq("workspace_id", workspaceId).in("campaign_id", ids).is("test_code", null).range(a, b)),
     prospectRate(workspaceId),
   ]);
 
@@ -165,6 +165,8 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   }
   // Pixel events: visits are people (each once), the others are events; purchase value in USD.
   const visitors = new Map<string, Set<string>>();
+  // Each website campaign counts its own conversion event (Purchase / Lead by default), like an ads platform's optimization event.
+  const conversionOf = new Map(camps.map((c) => [c.id, c.conversion_event ?? (c.objective === "purchases" ? "Purchase" : c.objective === "form_leads" ? "Lead" : null)]));
   for (const e of pixel) {
     if (!e.campaign_id || !inRange(e.created_at, range)) continue;
     for (const k of keysFor(e.campaign_id, e.group_id, e.lead_id)) {
@@ -173,6 +175,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
       else if (e.event === "InitiateCheckout") n.checkouts++;
       else if (e.event === "Purchase") { n.purchases++; if (e.value != null && (!e.currency || e.currency === "USD")) n.purchaseValue += Number(e.value); }
       else if (e.event === "Lead" || e.event === "CompleteRegistration") n.formLeads++;
+      if (conversionOf.get(e.campaign_id) === e.event) { n.conversions++; if (e.value != null && (!e.currency || e.currency === "USD")) n.conversionValue += Number(e.value); }
     }
   }
   for (const [k, set] of visitors) bucket(k).n.siteVisits = set.size;
@@ -181,18 +184,20 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     return b ? { ...n, contacted: b.contacted.size, replies: b.replies.size, interested: b.interested.size, meetingRequests: b.requests.size, opened: b.opened.size, qualifiedLeads: b.qualified.size } : n;
   };
 
+  // The objective's result on every line of the campaign (campaign, audiences, openings).
+  const withResult = (objective: string | null | undefined, x: Counts): Counts => ({ ...x, results: resultOf(objective, x) });
   return camps.map((c) => {
     const mine = groups.filter((g) => g.campaign_id === c.id);
     const countries = [...new Set(mine.flatMap((g) => ((g.targeting as { countries?: { include?: string[] } } | null)?.countries?.include ?? [])))];
     return {
       id: c.id, name: c.name, status: c.status, objective: c.objective ?? "meetings", channels: c.channels?.length ? c.channels : ["email"], ownerId: c.owner_id ?? c.created_by,
       createdAt: c.created_at, startsAt: c.starts_at, endsAt: c.ends_at, budgetUsd: c.budget_usd == null ? null : Number(c.budget_usd), budgetType: c.budget_type, approved: Boolean(c.approved_at),
-      countries, counts: counts(`c:${c.id}`), dailyLimit: c.daily_limit, dailyUsd: c.budget_type === "daily" && c.budget_usd != null ? Number(c.budget_usd) : null,
+      countries, counts: withResult(c.objective, counts(`c:${c.id}`)), dailyLimit: c.daily_limit, dailyUsd: c.budget_type === "daily" && c.budget_usd != null ? Number(c.budget_usd) : null,
       groups: mine.map((g) => ({
-        id: g.id, name: g.name, status: g.status, source: g.source, counts: counts(`g:${g.id}`),
+        id: g.id, name: g.name, status: g.status, source: g.source, counts: withResult(c.objective, counts(`g:${g.id}`)),
         share: g.budget_share == null ? null : Number(g.budget_share), learning: g.learning ?? true,
         opt: (g.opt_state as { event?: string | null; reason?: string | null } | null)?.reason ? { event: (g.opt_state as { event?: string | null }).event ?? null, reason: (g.opt_state as { reason?: string }).reason ?? null } : null,
-        openings: (["a", "b"] as const).filter((v) => (v === "a" ? g.angle_a ?? c.goal : g.angle_b)).map((v) => ({ key: `${g.id}:${v}`, variant: v, text: (v === "a" ? g.angle_a ?? c.goal : g.angle_b) ?? "", counts: counts(`v:${g.id}:${v}`) })),
+        openings: (["a", "b"] as const).filter((v) => (v === "a" ? g.angle_a ?? c.goal : g.angle_b)).map((v) => ({ key: `${g.id}:${v}`, variant: v, text: (v === "a" ? g.angle_a ?? c.goal : g.angle_b) ?? "", counts: withResult(c.objective, counts(`v:${g.id}:${v}`)) })),
       })),
     };
   });

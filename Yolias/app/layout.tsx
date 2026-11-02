@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { resolveTheme, THEME_COOKIE } from "@/lib/theme";
 import { ThemeCookieSync } from "@/components/ThemeCookieSync";
-import { DM_Sans, Noto_Kufi_Arabic, Source_Serif_4 } from "next/font/google";
+import { DM_Sans, IBM_Plex_Sans_Arabic, Source_Serif_4 } from "next/font/google";
 import { getSession } from "@/lib/session";
 import { dirOf } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -20,7 +20,8 @@ import "./sdr.css";
 // (next/font needs literal values here, not constants.)
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap", fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"] });
 const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap", fallback: ["Georgia", "Times New Roman", "serif"] });
-const kufi = Noto_Kufi_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap", fallback: ["Tahoma", "Geeza Pro", "Arial", "sans-serif"] });
+// D-274 (owner): Arabic in the same weight and feel as English (DM Sans): IBM Plex Sans Arabic, not the heavier Kufi.
+const kufi = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap", fallback: ["Tahoma", "Geeza Pro", "Arial", "sans-serif"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDictionary();

@@ -1,29 +1,37 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Activity, Check, Copy, RefreshCw } from "lucide-react";
+import { Activity, Check, CheckCircle2, ChevronLeft, Copy, Download, ExternalLink, RefreshCw } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { DateRange } from "@/components/app/campaigns/DateRange";
-import { savePixelSettings } from "@/app/(app)/events/actions";
+import { pollTestEvents, savePixelSettings } from "@/app/(app)/events/actions";
 import type { RangePreset } from "@/lib/campaigns/metrics";
-import type { EventsOverview } from "@/services/events";
+import type { PixelOverview, TestEvent } from "@/services/events";
 
-// Events Manager (owner, 2026-11-02, D-274), laid out like Facebook's: the
-// pixel's name, id and status on top; Overview (events by day and by name),
-// Test events (the latest events as they arrive), Setup (the code for the
-// website and for each event) and Settings (name, allowed domains).
+// One pixel in Events Manager (owner, 2026-11-02, D-274), after Facebook's:
+// the pixel's name, id and status; Overview (events by day and by name);
+// Test events (open your website with a test code and watch the events
+// arrive, with the Yolias Pixel Helper); Set up (the base code and the
+// standard events for purchases and leads); Settings (name, allowed and
+// blocked domains).
 
 export type EventsTab = "overview" | "test" | "setup" | "settings";
 const TABS: EventsTab[] = ["overview", "test", "setup", "settings"];
 const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v % 1 ? 2 : 0, minimumFractionDigits: v % 1 ? 2 : 0 }).format(v);
+// Facebook's standard events for the two website objectives (purchase first, then leads).
+const PURCHASE = ["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart", "AddToWishlist", "ViewContent", "Search", "CustomizeProduct", "StartTrial", "Subscribe", "Donate"] as const;
+const LEADS = ["Lead", "CompleteRegistration", "Contact", "SubmitApplication", "Schedule", "FindLocation"] as const;
+const VALUE_EVENTS = new Set(["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart", "AddToWishlist", "ViewContent", "StartTrial", "Subscribe", "Donate", "Lead", "CompleteRegistration"]);
+const codeFor = (e: string) => (VALUE_EVENTS.has(e) && (e === "Purchase" || e === "StartTrial" || e === "Subscribe" || e === "Donate") ? `yolias("track", "${e}", { value: 49.00, currency: "USD" });` : `yolias("track", "${e}");`);
+export const HELPER_URL = "/downloads/yolias-pixel-helper.zip";
 
-export function EventsManager({ active, data, tab, range, from, to, snippet, canManage, timeZone }: {
-  active: boolean; data: EventsOverview; tab: EventsTab; range: RangePreset; from: string; to: string; snippet: string; canManage: boolean; timeZone: string | null;
+export function EventsManager({ testCode, active, data, tab, range, from, to, snippet, canManage, timeZone }: {
+  testCode: string; active: boolean; data: PixelOverview; tab: EventsTab; range: RangePreset; from: string; to: string; snippet: string; canManage: boolean; timeZone: string | null;
 }) {
   const { t, locale } = useI18n();
   const E = t.ag.rx.ev;
@@ -33,28 +41,30 @@ export function EventsManager({ active, data, tab, range, from, to, snippet, can
   const toast = useToast();
   const [pending, start] = useTransition();
   const [copied, setCopied] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: data.pixel.name, domains: data.pixel.domains.join(", ") });
+  const [form, setForm] = useState({ name: data.pixel.name, allowed: data.pixel.allowed.join(", "), blocked: data.pixel.blocked.join(", ") });
   const n = (v: number) => formatNumber(v, locale);
+  const tz = timeZone ?? undefined;
   const go = (k: EventsTab) => { const p = new URLSearchParams(sp.toString()); if (k === "overview") p.delete("tab"); else p.set("tab", k); router.push(`${pathname}${p.size ? `?${p}` : ""}`, { scroll: false }); };
   const copy = (key: string, text: string) => { void navigator.clipboard?.writeText(text); setCopied(key); toast(E.copied); setTimeout(() => setCopied(null), 1500); };
   const peak = Math.max(1, ...data.series.map((d) => d.n));
   const code = (key: string, text: string) => (
-    <div className="ev-code"><pre dir="ltr">{text}</pre><button type="button" className="sdr-btn sm" onClick={() => copy(key, text)}>{copied === key ? <Check /> : <Copy />}{E.copy}</button></div>
+    <div className="ev-code"><pre>{text}</pre><button type="button" className="sdr-btn sm" onClick={() => copy(key, text)}>{copied === key ? <Check /> : <Copy />}{E.copy}</button></div>
   );
 
   return (
     <div className="sdr-page ev">
+      <nav className="cp-crumbs"><Link href="/events"><ChevronLeft className="flip-rtl" />{E.title}</Link><span aria-hidden>/</span><span dir="auto">{data.pixel.name}</span></nav>
       <header className="ev-head">
         <div className="ev-id">
           <span className="ev-ico"><Activity /></span>
           <div>
             <h2 dir="auto">{data.pixel.name}</h2>
-            <p dir="ltr"><span className={`ev-dot${active ? " on" : ""}`} />{active ? E.active : data.pixel.lastEventAt ? E.quiet : E.notInstalled} · ID {data.pixel.id}</p>
+            <p><span className={`ev-dot${active ? " on" : ""}`} />{active ? E.active : data.pixel.lastEventAt ? E.quiet : E.notInstalled}<span dir="ltr">· ID {data.pixel.publicId}</span></p>
           </div>
         </div>
         <div className="ev-actions">
           <button type="button" className="sdr-btn" disabled={pending} onClick={() => start(() => router.refresh())}><RefreshCw className={pending ? "spin" : ""} />{E.refresh}</button>
-          <DateRange range={range} from={from} to={to} defaultRange="30d" />
+          {tab === "overview" && <DateRange range={range} from={from} to={to} defaultRange="30d" />}
         </div>
       </header>
 
@@ -84,7 +94,7 @@ export function EventsManager({ active, data, tab, range, from, to, snippet, can
                     <td className="num">{n(e.total)}</td>
                     <td className="num">{n(e.credited)}</td>
                     <td className="num">{e.value ? usd(e.value) : "–"}</td>
-                    <td>{formatDateTime(e.last, locale, timeZone ?? undefined)}</td>
+                    <td>{formatDateTime(e.last, locale, tz)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -93,25 +103,7 @@ export function EventsManager({ active, data, tab, range, from, to, snippet, can
         </>
       )}
 
-      {tab === "test" && (
-        <section className="cp-card">
-          <div className="cp-card-head"><h3>{E.testTitle}</h3><button type="button" className="sdr-btn sm" disabled={pending} onClick={() => start(() => router.refresh())}><RefreshCw className={pending ? "spin" : ""} />{E.refresh}</button></div>
-          <p className="ws-hint">{E.testLine}</p>
-          {data.recent.length ? (
-            <ul className="ev-list">
-              {data.recent.map((r) => (
-                <li key={r.id}>
-                  <strong dir="ltr">{r.event}</strong>
-                  {r.value != null && <span className="ev-val" dir="ltr">{r.currency === "USD" || !r.currency ? usd(r.value) : `${r.value} ${r.currency}`}</span>}
-                  {r.campaign ? <Link href={`/outreach/${r.campaign.id}`} className="sdr-badge nodot green" dir="auto">{r.campaign.name}</Link> : <span className="sdr-badge nodot gray">{E.notCredited}</span>}
-                  <span className="ev-url" dir="ltr">{r.url ?? ""}</span>
-                  <small>{formatDateTime(r.at, locale, timeZone ?? undefined)}</small>
-                </li>
-              ))}
-            </ul>
-          ) : <p className="ws-hint">{E.none}</p>}
-        </section>
-      )}
+      {tab === "test" && <TestEvents pixelId={data.pixel.id} code={testCode} timeZone={tz} />}
 
       {tab === "setup" && (
         <div className="ev-setup">
@@ -119,21 +111,33 @@ export function EventsManager({ active, data, tab, range, from, to, snippet, can
             <h3>{E.step1}</h3>
             <p className="ws-hint">{E.step1Line}</p>
             {code("base", snippet)}
+            <p className="ws-hint">{E.matchingLine}</p>
+            {code("match", `yolias("init", "${data.pixel.publicId}", { em: "customer@example.com" });`)}
           </section>
           <section className="cp-card">
-            <h3>{E.step2}</h3>
-            <p className="ws-hint">{E.step2Line}</p>
-            <dl className="ev-snips">
-              <dt>Purchase</dt><dd>{code("purchase", `yolias("track", "Purchase", { value: 99.0, currency: "USD" });`)}</dd>
-              <dt>InitiateCheckout</dt><dd>{code("checkout", `yolias("track", "InitiateCheckout");`)}</dd>
-              <dt>Lead</dt><dd>{code("lead", `yolias("track", "Lead");`)}</dd>
-              <dt>{E.custom}</dt><dd>{code("custom", `yolias("trackCustom", "QuoteRequested");`)}</dd>
-            </dl>
-          </section>
-          <section className="cp-card">
-            <h3>{E.step3}</h3>
-            <p className="ws-hint">{fmt(E.step3Line, { param: "yc" })}</p>
-            <button type="button" className="sdr-btn" onClick={() => go("test")}>{E.tabs.test}</button>
+            <h3>{E.standard}</h3>
+            <p className="ws-hint">{E.standardLine}</p>
+            {([["purchase", PURCHASE], ["leads", LEADS]] as const).map(([group, list]) => (
+              <div key={group} className="ev-group">
+                <h4>{E.groups[group]}</h4>
+                <div className="cm-table-wrap">
+                  <table className="cm-table ev-std">
+                    <thead><tr><th className="cm-name">{E.colEvent}</th><th>{E.colWhen}</th><th>{E.colCode}</th></tr></thead>
+                    <tbody>
+                      {list.map((e) => (
+                        <tr key={e}>
+                          <td className="cm-name"><span className="cm-name-cell"><strong dir="ltr">{e}</strong><small>{E.kinds[e as keyof typeof E.kinds]}</small></span></td>
+                          <td className="ev-when">{E.when[e as keyof typeof E.when]}</td>
+                          <td className="ev-snip">{code(`std-${e}`, codeFor(e))}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+            <p className="ws-hint">{E.customLine}</p>
+            {code("custom", `yolias("trackCustom", "QuoteRequested");`)}
           </section>
         </div>
       )}
@@ -141,10 +145,67 @@ export function EventsManager({ active, data, tab, range, from, to, snippet, can
       {tab === "settings" && (
         <section className="cp-card ev-settings">
           <label className="ws-field"><span className="ws-label">{E.name}</span><input className="form-input" dir="auto" maxLength={80} value={form.name} disabled={!canManage} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-          <label className="ws-field"><span className="ws-label">{E.domains}</span><input className="form-input" dir="ltr" placeholder="example.com, shop.example.com" value={form.domains} disabled={!canManage} onChange={(e) => setForm({ ...form, domains: e.target.value })} /><span className="ws-hint">{E.domainsHint}</span></label>
-          {canManage && <div><button type="button" className="sdr-btn primary" disabled={pending} onClick={() => start(async () => { const r = await savePixelSettings(form); if (r.ok) { toast(r.message ?? E.saved); router.refresh(); } else toast(r.error, "error"); })}>{E.save}</button></div>}
+          <label className="ws-field"><span className="ws-label">{E.domains}</span><input className="form-input" dir="ltr" placeholder="example.com, shop.example.com" value={form.allowed} disabled={!canManage} onChange={(e) => setForm({ ...form, allowed: e.target.value })} /><span className="ws-hint">{E.domainsHint}</span></label>
+          <label className="ws-field"><span className="ws-label">{E.blocked}</span><input className="form-input" dir="ltr" placeholder="staging.example.com" value={form.blocked} disabled={!canManage} onChange={(e) => setForm({ ...form, blocked: e.target.value })} /><span className="ws-hint">{E.blockedHint}</span></label>
+          {canManage && <div><button type="button" className="sdr-btn primary" disabled={pending} onClick={() => start(async () => { const r = await savePixelSettings(data.pixel.id, form); if (r.ok) { toast(r.message ?? E.saved); router.refresh(); } else toast(r.error, "error"); })}>{E.save}</button></div>}
         </section>
       )}
+    </div>
+  );
+}
+
+/** Test events, like Facebook's: open the website with a test code; events sent from that browser show here as they arrive. */
+function TestEvents({ pixelId, code, timeZone }: { pixelId: string; code: string; timeZone?: string }) {
+  const { t, locale } = useI18n();
+  const E = t.ag.rx.ev;
+  const [url, setUrl] = useState("");
+  const [events, setEvents] = useState<TestEvent[]>([]);
+  const [listening, setListening] = useState(false);
+  const [openRow, setOpenRow] = useState<number | null>(null);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const link = useMemo(() => {
+    try { const u = new URL(/^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`); u.searchParams.set("yolias_test", code); return u.href; } catch { return null; }
+  }, [url, code]);
+  useEffect(() => {
+    if (!listening) return;
+    const poll = () => { void pollTestEvents(pixelId, code).then(setEvents).catch(() => {}); };
+    poll();
+    timer.current = setInterval(poll, 3000);
+    return () => { if (timer.current) clearInterval(timer.current); };
+  }, [listening, pixelId, code]);
+  return (
+    <div className="ev-test">
+      <section className="cp-card">
+        <h3>{E.testTitle}</h3>
+        <p className="ws-hint">{E.testLine}</p>
+        <div className="ev-test-row">
+          <input className="form-input" dir="ltr" type="url" inputMode="url" placeholder="https://www.example.com" value={url} onChange={(e) => setUrl(e.target.value)} aria-label={E.siteUrl} />
+          <a className={`sdr-btn primary${link ? "" : " disabled"}`} href={link ?? undefined} target="_blank" rel="noopener" aria-disabled={!link} onClick={(e) => { if (!link) e.preventDefault(); else setListening(true); }}><ExternalLink />{E.openSite}</a>
+        </div>
+        <p className="ws-hint">{fmt(E.testCode, { code })}</p>
+      </section>
+      <section className="cp-card">
+        <div className="cp-card-head"><h3>{E.received}</h3>{listening && <span className="ev-live"><span className="ev-dot on" />{E.listening}</span>}</div>
+        {events.length ? (
+          <ul className="ev-list">
+            {events.map((r) => (
+              <li key={r.id}>
+                <button type="button" className="ev-row" aria-expanded={openRow === r.id} onClick={() => setOpenRow(openRow === r.id ? null : r.id)}>
+                  <CheckCircle2 className="ev-ok" /><strong dir="ltr">{r.event}</strong>
+                  {r.value != null && <span className="ev-val" dir="ltr">{r.currency === "USD" || !r.currency ? usd(r.value) : `${r.value} ${r.currency}`}</span>}
+                  <span className="ev-url" dir="ltr">{r.url ?? ""}</span>
+                  <small>{formatDateTime(r.at, locale, timeZone)}</small>
+                </button>
+                {openRow === r.id && <pre className="ev-detail" dir="ltr">{JSON.stringify({ event: r.event, value: r.value, currency: r.currency, event_id: r.eventId, url: r.url, received: r.at }, null, 2)}</pre>}
+              </li>
+            ))}
+          </ul>
+        ) : <p className="ws-hint">{listening ? E.waiting : E.testEmpty}</p>}
+      </section>
+      <section className="cp-card ev-helper">
+        <div><h3>Yolias Pixel Helper</h3><p className="ws-hint">{E.helperLine}</p></div>
+        <a className="sdr-btn" href={HELPER_URL} download><Download />{E.helperGet}</a>
+      </section>
     </div>
   );
 }

@@ -100,7 +100,7 @@ html[data-theme="dark"] {
   --overlay: rgba(0, 0, 0, 0.6);
 }
 
-/* Arabic: Noto Kufi Arabic for everything (Latin falls back to DM Sans),
+/* Arabic: IBM Plex Sans Arabic (variable --font-kufi, D-274) for everything (Latin falls back to DM Sans),
    no negative tracking, no uppercase tracking on labels. */
 html[lang="ar"] {
   --font-sans: var(--font-kufi), var(--font-dm-sans), sans-serif;
@@ -112,6 +112,9 @@ html[lang="ar"] .checkout-title, html[lang="ar"] .stat-value { letter-spacing: 0
 html[lang="ar"] .nav-heading, html[lang="ar"] .artifact-box-title, html[lang="ar"] .artifact-status,
 html[lang="ar"] table.data-table th, html[lang="ar"] .plan-badge, html[lang="ar"] .coming-soon,
 html[lang="ar"] .checkout-eyebrow, html[lang="ar"] .modal-sidebar-title { letter-spacing: 0; }
+/* D-274: Arabic text as light as the English: bold reads as semibold, the same sizes. */
+html[lang="ar"] strong, html[lang="ar"] b, html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3, html[lang="ar"] h4, html[lang="ar"] th { font-weight: 600; }
+html[lang="ar"] body { font-weight: 400; line-height: 1.6; }
 /* Directional icons (arrows, panel toggles) point the other way in RTL. */
 [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
 
@@ -2585,7 +2588,7 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .ay-spacer { flex: 1; }
 .ay-home { flex: 1; overflow-y: auto; padding: 28px 20px; display: grid; align-content: start; gap: 20px; }
 .ay-hero { display: grid; justify-items: center; gap: 8px; text-align: center; }
-.ay-mark { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--purple, #7c3aed) 14%, transparent); color: var(--purple, #7c3aed); }
+.ay-mark { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
 .ay-mark svg { width: 30px; height: 30px; }
 .ay-hero h2 { margin: 0; font-size: 1.35rem; }
 .ay-hero p { margin: 0; color: var(--muted); font-size: .86rem; }
@@ -2597,7 +2600,7 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .ay-suggest { list-style: none; margin: 0; padding: 0; display: grid; }
 .ay-suggest li + li { border-top: 1px solid var(--line); }
 .ay-suggest button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 4px; border: 0; background: none; color: var(--ink); font: inherit; font-size: .9rem; text-align: start; cursor: pointer; }
-.ay-suggest button:hover { color: var(--purple, #7c3aed); }
+.ay-suggest button:hover { color: var(--red); }
 .ay-suggest svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
 .ay-thread { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 @media (max-width: 1100px) { html.ay-docked .main-area { margin-inline-end: 0; } }

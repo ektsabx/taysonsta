@@ -48,6 +48,10 @@ export const builderSchema = z.object({
   objective: z.enum(["meetings", "purchases", "form_leads", "qualified_leads"]).default("meetings"),
   /** D-274: the website page for purchases or form leads (the link Yolias sends, tracked by the pixel). */
   websiteUrl: z.string().max(500).default(""),
+  /** D-274: the pixel that measures a website objective, its conversion event, and the attribution window (days). */
+  pixelId: z.string().uuid().nullable().default(null),
+  conversionEvent: z.string().regex(/^[A-Za-z][A-Za-z0-9_]{0,39}$/).nullable().default(null),
+  attributionDays: z.union([z.literal(1), z.literal(7), z.literal(28)]).default(7),
   channel: z.enum(["email"]).default("email"),
   contactTarget: z.enum(["people", "companies", "both"]).default("people"),
   offerId: z.string().uuid().nullable().default(null),
@@ -91,14 +95,16 @@ export const emptyAdSet = (n: number, name: string): AdSet => adSetSchema.parse(
 export const minBudgetUsd = (rate: number) => Math.max(1, Math.ceil(rate * 10 * 100) / 100);
 
 /** What is missing before launch, per level (empty = ready). Mailbox and offer are checked on the server too. */
-export function missing(s: BuilderState, rate: number): { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" }[] {
-  const out: { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" }[] = [];
+export function missing(s: BuilderState, rate: number): { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" | "pixel" }[] {
+  const out: { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" | "pixel" }[] = [];
   if (!s.name.trim()) out.push({ level: "campaign", key: "name" });
   if (s.budgetUsd < minBudgetUsd(rate)) out.push({ level: "campaign", key: "budget" });
   if (s.endDate && s.startDate && s.endDate < s.startDate) out.push({ level: "campaign", key: "dates" });
   if (s.adSets.some((a) => (a.source === "audience" ? !a.audienceId : !hasAnyTargeting(a.targeting)))) out.push({ level: "audience", key: "audience" });
   // D-274: a website objective needs its page; a qualified-leads campaign contacts no one, so no mailbox.
   if ((s.objective === "purchases" || s.objective === "form_leads") && !/^https?:\/\/[^\s]+\.[^\s]+/i.test(s.websiteUrl.trim())) out.push({ level: "campaign", key: "website" });
+  // Like an ads platform: a website objective names the pixel that measures it.
+  if ((s.objective === "purchases" || s.objective === "form_leads") && !s.pixelId) out.push({ level: "campaign", key: "pixel" });
   if (s.objective !== "qualified_leads" && !s.mailboxId) out.push({ level: "message", key: "mailbox" });
   return out;
 }

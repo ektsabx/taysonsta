@@ -113,11 +113,11 @@ test("objectives: tracked links, results, presets and what each optimizes for", 
   assert.equal(trackedLink("https://shop.example.com/buy?x=1", "abc"), "https://shop.example.com/buy?x=1&yc=abc");
   assert.equal(trackedLink(null, "abc"), null);
   assert.deepEqual([aimOf("purchases"), aimOf("form_leads"), aimOf("meetings"), aimOf("qualified_leads")], ["sell", "form", "meeting", "meeting"]);
-  assert.deepEqual(RESULT_OF.purchases, { result: "purchases", cost: "cost_per_purchase" });
-  assert.ok(PRESETS.purchases.includes("purchase_roas") && PRESETS.form_leads.includes("form_leads") && PRESETS.meetings.includes("cost_per_meeting"));
-  const c = { interested: 6, meetings: 0, held: 0, purchases: 5, formLeads: 0 };
+  assert.deepEqual(RESULT_OF.purchases, { result: "conversions", cost: "cost_per_result" });
+  assert.ok(PRESETS.purchases.includes("purchase_roas") && PRESETS.form_leads.includes("results") && PRESETS.meetings[0] === "results");
+  const c = { interested: 6, meetings: 0, held: 0, conversions: 5 };
   assert.equal(eventFor("purchases", c), "purchase");
-  assert.equal(eventFor("form_leads", c), "positive", "too few forms: positive replies first");
+  assert.equal(eventFor("form_leads", { ...c, conversions: 2 }), "positive", "too few conversions: positive replies first");
   assert.equal(eventFor("qualified_leads", c), null, "finding only: equal split");
   const cpv = customMetric({ id: "x", name: "Cost per visit", a: "spend", op: "/", b: "site_visits", format: "usd" });
   assert.equal(cpv.id, "cm:x");
@@ -130,4 +130,17 @@ test("xlsx: a valid zip with the sheet", async () => {
   assert.equal(crc32(new TextEncoder().encode("hello")), 0x3610a686);
   const b = xlsx(["A", "B"], [["x", 1]]);
   assert.deepEqual([...b.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04], "zip header");
+});
+
+test("attribution window and blocked domains, like an ads platform", async () => {
+  const { withinWindow, domainAllowed, emailHash, cleanEvent } = await import("../../lib/pixel.ts");
+  const now = Date.parse("2026-11-09T10:00:00Z"), DAY = 86_400_000;
+  assert.equal(withinWindow(now - 6 * DAY, now, 7), true, "6 days after the click: counted");
+  assert.equal(withinWindow(now - 8 * DAY, now, 7), false, "8 days: outside a 7-day window");
+  assert.equal(withinWindow(now - 20 * DAY, now, 28), true, "a 28-day window");
+  assert.equal(withinWindow(null, now, 7), false);
+  assert.equal(domainAllowed("https://staging.shop.com/", [], ["staging.shop.com"]), false, "blocked");
+  assert.equal(domainAllowed("https://www.shop.com/", ["shop.com"], ["staging.shop.com"]), true);
+  assert.equal(emailHash(" Sara@Example.com "), emailHash("sara@example.com"), "normalized before hashing");
+  assert.equal(cleanEvent({ pixel: "0123456789abcdef", event: "Lead", em: emailHash("a@b.co"), test: "TEST1234" })?.test, "TEST1234");
 });

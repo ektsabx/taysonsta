@@ -21,7 +21,7 @@ export async function SupportWidget({ inApp = false }: { inApp?: boolean } = {})
       strategy="afterInteractive"
       data-icon="/brand/logo-mark.png"
       data-agent-name="Yolias Agent"
-      // Same fonts as the site (Noto Kufi Arabic in Arabic, DM Sans in English).
+      // Same fonts as the site (IBM Plex Sans Arabic in Arabic, DM Sans in English).
       data-font="inherit"
       data-lang={locale}
       // Arabic pages put the app sidebar (and its account row) on the right:

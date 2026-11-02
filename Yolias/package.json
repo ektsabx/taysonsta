@@ -13,6 +13,7 @@
     "start": "next start --port 3200",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "build:pixel-helper": "bash scripts/build-pixel-helper.sh",
     "test:unit": "node --experimental-strip-types --conditions=react-server --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
     "test:agent-control": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-control.mts",
     "test:agent": "set -a && . ./.env.local && set +a && npx -y tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-agent-tools.mts",

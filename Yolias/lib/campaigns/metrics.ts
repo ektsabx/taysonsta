@@ -39,9 +39,13 @@ export interface Counts {
   purchases: number;
   purchaseValue: number;
   formLeads: number;
+  /** D-274: the campaign's chosen conversion event (website objectives), its value, and the objective's result (like an ads platform's "Results"). */
+  conversions: number;
+  conversionValue: number;
+  results: number;
 }
 
-export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0 });
+export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0, conversions: 0, conversionValue: 0, results: 0 });
 export const addCounts = (a: Counts, b: Counts): Counts => Object.fromEntries(Object.keys(a).map((k) => [k, a[k as keyof Counts] + b[k as keyof Counts]])) as unknown as Counts;
 
 export type MetricFormat = "count" | "pct" | "usd" | "ratio";
@@ -64,6 +68,8 @@ const cost = (spend: number, n: number) => (spend > 0 && n > 0 ? spend / n : nul
 // companies), sent / opened / replied / didn't reply and the rates between
 // them, and the booking link's visits, bookings and forms left unfinished.
 export const METRICS: Metric[] = [
+  { id: "results", label: { en: "Results", ar: "النتائج" }, description: { en: "What the campaign's objective counts: meetings booked, purchases or leads on your website (its conversion event), or leads found.", ar: "ما يحسبه هدف الحملة: الاجتماعات المحجوزة، أو الشراء أو العملاء على موقعك (حدث التحويل)، أو العملاء الذين وُجدوا." }, format: "count", compute: (c) => c.results, defaultVisible: true },
+  { id: "cost_per_result", label: { en: "Cost per result", ar: "تكلفة النتيجة" }, description: { en: "Spend ÷ results.", ar: "الإنفاق ÷ النتائج." }, format: "usd", compute: (c) => cost(c.spendUsd, c.results), defaultVisible: true },
   { id: "found", label: { en: "Found by Yolias", ar: "اكتشفهم يولياس" }, description: { en: "People and companies Yolias found for the campaign.", ar: "أشخاص وشركات وجدهم يولياس للحملة." }, format: "count", compute: (c) => c.foundPeople + c.foundCompanies, defaultVisible: true },
   { id: "sent", label: { en: "Sent", ar: "المُرسل" }, description: { en: "Emails your mailbox sent (first emails and follow-ups).", ar: "رسائل أرسلها بريدك (الأولى والمتابعات)." }, format: "count", compute: (c) => c.sent, defaultVisible: true },
   { id: "open_rate", label: { en: "Open rate", ar: "نسبة الفتح" }, description: { en: "People who opened ÷ people contacted. Approximate: some mail apps load images without the person reading, and some block them.", ar: "من فتحوا ÷ من تم التواصل معهم. تقريبية: بعض تطبيقات البريد تحمّل الصور دون قراءة، وبعضها يمنعها." }, format: "pct", compute: (c) => rate(c.opened, c.contacted), defaultVisible: true },
@@ -105,9 +111,11 @@ export const METRICS: Metric[] = [
   { id: "purchases", label: { en: "Purchases", ar: "عمليات الشراء" }, description: { en: "Purchase events from people Yolias sent (pixel).", ar: "أحداث الشراء من أشخاص أرسلهم يولياس (البيكسل)." }, format: "count", compute: (c) => c.purchases, defaultVisible: false },
   { id: "cost_per_purchase", label: { en: "Cost per purchase", ar: "تكلفة الشراء" }, description: { en: "Spend ÷ purchases.", ar: "الإنفاق ÷ عمليات الشراء." }, format: "usd", compute: (c) => cost(c.spendUsd, c.purchases), defaultVisible: false },
   { id: "purchase_value", label: { en: "Purchase value", ar: "قيمة المبيعات" }, description: { en: "Total value of the purchases (USD).", ar: "إجمالي قيمة المشتريات (بالدولار)." }, format: "usd", compute: (c) => c.purchaseValue, defaultVisible: false },
-  { id: "purchase_roas", label: { en: "Purchase ROAS", ar: "العائد على الإنفاق (المبيعات)" }, description: { en: "Purchase value ÷ spend.", ar: "قيمة المبيعات ÷ الإنفاق." }, format: "ratio", compute: (c) => (c.spendUsd > 0 && c.purchaseValue > 0 ? c.purchaseValue / c.spendUsd : null), defaultVisible: false },
+  { id: "purchase_roas", label: { en: "Purchase ROAS", ar: "العائد على الإنفاق (المبيعات)" }, description: { en: "Purchase (or conversion) value ÷ spend.", ar: "قيمة المبيعات (أو التحويلات) ÷ الإنفاق." }, format: "ratio", compute: (c) => { const v = c.purchaseValue || c.conversionValue; return c.spendUsd > 0 && v > 0 ? v / c.spendUsd : null; }, defaultVisible: false },
   { id: "form_leads", label: { en: "Website leads (forms)", ar: "نماذج الموقع" }, description: { en: "Lead events (forms filled) from people Yolias sent.", ar: "أحداث ملء النموذج من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.formLeads, defaultVisible: false },
   { id: "cost_per_form_lead", label: { en: "Cost per website lead", ar: "تكلفة النموذج" }, description: { en: "Spend ÷ website leads.", ar: "الإنفاق ÷ نماذج الموقع." }, format: "usd", compute: (c) => cost(c.spendUsd, c.formLeads), defaultVisible: false },
+  { id: "conversions", label: { en: "Website conversions", ar: "تحويلات الموقع" }, description: { en: "The campaign's conversion event on your website (pixel), within the attribution window.", ar: "حدث التحويل الذي اختارته الحملة على موقعك (البيكسل)، خلال نافذة الاحتساب." }, format: "count", compute: (c) => c.conversions, defaultVisible: false },
+  { id: "conversion_value", label: { en: "Conversion value", ar: "قيمة التحويلات" }, description: { en: "Total value of the conversions (USD).", ar: "إجمالي قيمة التحويلات (بالدولار)." }, format: "usd", compute: (c) => c.conversionValue, defaultVisible: false },
   { id: "cost_per_lead", label: { en: "Cost per lead", ar: "تكلفة العميل المحتمل" }, description: { en: "Spend ÷ people and companies found that match the targeting.", ar: "الإنفاق ÷ الأشخاص والشركات المطابقين للاستهداف." }, format: "usd", compute: (c) => cost(c.spendUsd, c.foundPeople + c.foundCompanies), defaultVisible: false },
   { id: "cac", label: { en: "Customer acquisition cost", ar: "تكلفة اكتساب العميل" }, description: { en: "Spend ÷ deals won.", ar: "الإنفاق ÷ الصفقات المكسوبة." }, format: "usd", compute: (c) => cost(c.spendUsd, c.customers), defaultVisible: false },
   { id: "roi", label: { en: "ROI", ar: "العائد على الاستثمار" }, description: { en: "(Revenue − spend) ÷ spend, when both are known.", ar: "(الإيرادات − الإنفاق) ÷ الإنفاق، حين يُعرف الاثنان." }, format: "pct", compute: (c) => (c.spendUsd > 0 && c.revenueUsd > 0 ? (c.revenueUsd - c.spendUsd) / c.spendUsd : null), defaultVisible: false },
@@ -166,17 +174,24 @@ export const OBJECTIVES: Objective[] = ["meetings", "purchases", "form_leads", "
 /** Each objective's result and cost per result, like an ads platform's "Results" columns. */
 export const RESULT_OF: Record<Objective, { result: string; cost: string }> = {
   meetings: { result: "meetings", cost: "cost_per_meeting" },
-  purchases: { result: "purchases", cost: "cost_per_purchase" },
-  form_leads: { result: "form_leads", cost: "cost_per_form_lead" },
+  purchases: { result: "conversions", cost: "cost_per_result" },
+  form_leads: { result: "conversions", cost: "cost_per_result" },
   qualified_leads: { result: "found", cost: "cost_per_lead" },
 };
 
+/** Pure: the objective's result from the counts (unit-tested). */
+export function resultOf(objective: string | null | undefined, c: Counts): number {
+  if (objective === "purchases" || objective === "form_leads") return c.conversions;
+  if (objective === "qualified_leads") return c.foundPeople + c.foundCompanies;
+  return c.meetings;
+}
+
 /** Ready column sets per objective (the member can still add, move and remove columns). */
 export const PRESETS: Record<Objective, string[]> = {
-  meetings: ["found", "sent", "open_rate", "reply_rate", "interested", "visits", "meetings", "cost_per_meeting", "held", "spend"],
-  purchases: ["found", "sent", "open_rate", "reply_rate", "site_visits", "checkouts", "purchases", "cost_per_purchase", "purchase_value", "purchase_roas", "spend"],
-  form_leads: ["found", "sent", "open_rate", "reply_rate", "site_visits", "form_leads", "cost_per_form_lead", "spend"],
-  qualified_leads: ["found", "found_companies", "found_people", "cost_per_lead", "spend"],
+  meetings: ["results", "cost_per_result", "found", "sent", "open_rate", "reply_rate", "interested", "visits", "held", "spend"],
+  purchases: ["results", "cost_per_result", "conversion_value", "purchase_roas", "site_visits", "checkouts", "found", "sent", "reply_rate", "spend"],
+  form_leads: ["results", "cost_per_result", "site_visits", "found", "sent", "open_rate", "reply_rate", "spend"],
+  qualified_leads: ["results", "cost_per_result", "found_companies", "found_people", "spend"],
 };
 export const isObjective = (v: unknown): v is Objective => typeof v === "string" && (OBJECTIVES as string[]).includes(v);
 

@@ -119,6 +119,8 @@ export type OutreachCampaignRow = {
   cost_cap_usd: number | null; track_opens: boolean;
   /** D-274: who the campaign contacts, and the message level's own name. */
   contact_target: "people" | "companies" | "both"; message_name: string | null;
+  /** D-274: a website objective's pixel, conversion event and attribution window (days). */
+  pixel_id: string | null; conversion_event: string | null; attribution_days: number;
 };
 export type CampaignObjective = "leads" | "qualified_leads" | "meetings" | "purchases" | "form_leads" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
 export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
@@ -175,9 +177,10 @@ export type BookingVisitRow = {
 };
 
 /** D-274: the Yolias pixel (one per workspace) and its events, like Facebook's. */
-export type PixelRow = { id: string; workspace_id: string; public_id: string; name: string; allowed_domains: string[]; last_event_at: string | null; created_at: string };
+export type PixelRow = { id: string; workspace_id: string; public_id: string; name: string; allowed_domains: string[]; blocked_domains: string[]; created_by: string | null; last_event_at: string | null; created_at: string };
 export type PixelEventRow = {
   id: number; pixel_id: string; workspace_id: string; event: string; value: number | null; currency: string | null; url: string | null; referrer: string | null;
-  visitor: string | null; event_id: string | null; lead_id: string | null; campaign_id: string | null; group_id: string | null; created_at: string;
+  visitor: string | null; event_id: string | null; lead_id: string | null; campaign_id: string | null; group_id: string | null;
+  attribution: "click" | "view" | null; test_code: string | null; created_at: string;
 };
 export type CustomMetricRow = { id: string; workspace_id: string; name: string; a: string; op: "+" | "-" | "*" | "/"; b: string; format: "count" | "pct" | "usd" | "ratio"; created_by: string | null; created_at: string };

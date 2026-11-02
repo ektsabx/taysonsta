@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, Check, ChevronDown, ClipboardList, Copy, Folder, Loader2, Mail, Plus, Send, ShoppingCart, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ClipboardList, Copy, Folder, Loader2, Mail, Plus, Search, Send, ShoppingCart, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
+import { LEAD_EVENTS, PURCHASE_EVENTS } from "@/lib/pixel-events";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -39,8 +40,8 @@ export interface BuilderProps {
   knowledgePct: number;
   mailboxes: { id: string; email: string; dailyLimit: number }[];
   booking: { url: string | null; calendar: boolean };
-  /** D-274: whether the Yolias pixel has sent an event from the member's website yet. */
-  pixelSeen: boolean;
+  /** D-274: the workspace's pixels (for website objectives), and whether each has sent an event yet. */
+  pixels: { id: string; name: string; publicId: string; seen: boolean }[];
   audiences: { id: string; name: string; kind: "saved" | "custom" | "lookalike"; members: number }[];
   zones: { value: string; label: string }[];
   today: string;
@@ -170,15 +171,24 @@ export function CampaignBuilder(p: BuilderProps) {
               {/* D-274: type → objective → channel → whom to contact, each with what it means. */}
               <div className="ws-field">
                 <span className="ws-label">{K.type}</span>
-                <div className="cb-objective on"><Send /><div><strong>{K.outreach}</strong><p>{K.outreachDesc}</p></div><Check className="cb-tick" /></div>
+                <div className="cb-choices two">
+                  {(["outreach", "find"] as const).map((k) => {
+                    const on = k === "find" ? s.objective === "qualified_leads" : s.objective !== "qualified_leads";
+                    return (
+                      <button key={k} type="button" className={`cb-objective${on ? " on" : ""}`} aria-pressed={on} onClick={() => patch({ objective: k === "find" ? "qualified_leads" : s.objective === "qualified_leads" ? "meetings" : s.objective })}>
+                        {k === "find" ? <Search /> : <Send />}<div><strong>{K.types[k]}</strong><p>{K.typesDesc[k]}</p></div>{on && <Check className="cb-tick" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="ws-field">
                 <span className="ws-label">{b.campaign.objective}</span>
                 <div className="cb-choices">
-                  {(["meetings", "purchases", "form_leads", "qualified_leads"] as const).map((k) => {
+                  {(s.objective === "qualified_leads" ? (["qualified_leads"] as const) : (["meetings", "purchases", "form_leads"] as const)).map((k) => {
                     const Icon = { meetings: CalendarDays, purchases: ShoppingCart, form_leads: ClipboardList, qualified_leads: UserCheck }[k];
                     return (
-                      <button key={k} type="button" className={`cb-objective${s.objective === k ? " on" : ""}`} aria-pressed={s.objective === k} onClick={() => patch({ objective: k })}>
+                      <button key={k} type="button" className={`cb-objective${s.objective === k ? " on" : ""}`} aria-pressed={s.objective === k} onClick={() => patch({ objective: k, conversionEvent: null })}>
                         <Icon /><div><strong>{K.objectives[k]}</strong><p>{K.objectivesDesc[k]}</p></div>{s.objective === k && <Check className="cb-tick" />}
                       </button>
                     );
@@ -189,8 +199,36 @@ export function CampaignBuilder(p: BuilderProps) {
                 <div className="ws-field">
                   <label className="ws-label" htmlFor="cb-site">{s.objective === "purchases" ? K.sitePurchase : K.siteForm}</label>
                   <input id="cb-site" className="form-input" dir="ltr" type="url" inputMode="url" maxLength={500} placeholder="https://" value={s.websiteUrl} onChange={(e) => patch({ websiteUrl: e.target.value })} />
-                  <p className={`ws-hint${p.pixelSeen ? "" : " cb-warn"}`}>{p.pixelSeen ? K.pixelOn : K.pixelOff} <Link href="/events">{K.pixelOpen}</Link></p>
                 </div>
+              )}
+              {(s.objective === "purchases" || s.objective === "form_leads") && (() => {
+                const px = p.pixels.find((x) => x.id === s.pixelId) ?? null;
+                const events = s.objective === "purchases" ? PURCHASE_EVENTS : LEAD_EVENTS;
+                return (
+                  <div className="cb-row">
+                    <label className="ws-field"><span className="ws-label">{K.pixelPick}</span>
+                      <select className="form-input" value={s.pixelId ?? ""} onChange={(e) => patch({ pixelId: e.target.value || null })}>
+                        <option value="">{K.pixelPick}</option>
+                        {p.pixels.map((x) => <option key={x.id} value={x.id}>{x.name} · {x.publicId}</option>)}
+                      </select>
+                      {px ? <span className={`ws-hint${px.seen ? "" : " cb-warn"}`}>{px.seen ? K.pixelOn : K.pixelOff} <Link href={`/events/${px.id}`}>{K.pixelOpen}</Link></span> : <span className="ws-hint"><Link href="/events">{K.pixelOpen}</Link></span>}
+                    </label>
+                    <label className="ws-field"><span className="ws-label">{K.conversion}</span>
+                      <select className="form-input" dir="ltr" value={s.conversionEvent ?? events[0]} onChange={(e) => patch({ conversionEvent: e.target.value })}>
+                        {events.map((ev) => <option key={ev} value={ev}>{ev} · {t.ag.rx.ev.kinds[ev as keyof typeof t.ag.rx.ev.kinds]}</option>)}
+                      </select>
+                      <span className="ws-hint">{K.conversionHint}</span>
+                    </label>
+                    <label className="ws-field"><span className="ws-label">{K.attribution}</span>
+                      <select className="form-input" value={String(s.attributionDays)} onChange={(e) => patch({ attributionDays: Number(e.target.value) as 1 | 7 | 28 })}>
+                        {(["1", "7", "28"] as const).map((d) => <option key={d} value={d}>{K.attributionDays[d]}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                );
+              })()}
+              {s.objective === "qualified_leads" && (
+                <div className="cb-what"><strong>{b.message.what}</strong><ol>{K.whatFind.map((x) => <li key={x}>{x}</li>)}</ol></div>
               )}
               {s.objective !== "qualified_leads" && <div className="ws-field">
                 <span className="ws-label">{K.channel}</span>
@@ -369,14 +407,20 @@ export function CampaignBuilder(p: BuilderProps) {
                 </label>
               </div>
               <label className="ws-field"><span className="ws-label">{b.message.notes}</span><textarea className="form-input" rows={3} dir="auto" maxLength={2000} placeholder={b.message.notesPh} value={s.instructions} onChange={(e) => patch({ instructions: e.target.value })} /></label>
-              <div className="cb-note">
+              {(s.objective === "purchases" || s.objective === "form_leads") && (
+                <div className="cb-note">
+                  <strong>{K.siteNote}</strong>
+                  <span>{K.siteNoteLine} <bdi dir="ltr">{s.websiteUrl || "–"}</bdi>{s.pixelId ? ` · ${p.pixels.find((x) => x.id === s.pixelId)?.name ?? ""} · ${s.conversionEvent ?? (s.objective === "purchases" ? "Purchase" : "Lead")}` : ""}</span>
+                </div>
+              )}
+              {s.objective === "meetings" && <div className="cb-note">
                 <strong>{b.message.meetings}</strong>
                 <span>{b.message.bookingOn} {p.booking.calendar ? b.message.calendarOn : b.message.calendarOff}</span>
                 <span className="cb-note-links">
                   <Link href="/meetings?tab=page" className="sdr-btn ghost sm">{b.message.bookingOpen}</Link>
                   {!p.booking.calendar && <Link href="/integrations?card=calendar" className="sdr-btn ghost sm">{b.message.calendarConnect}</Link>}
                 </span>
-              </div>
+              </div>}
 
               {s.adSets.map((a, i) => (
                 <div key={a.key} className="cb-approach">
@@ -413,7 +457,7 @@ export function CampaignBuilder(p: BuilderProps) {
 
               <div className="cb-what">
                 <strong>{b.message.what}</strong>
-                <ol>{b.message.whatList.map((x) => <li key={x}>{x}</li>)}</ol>
+                <ol>{(s.objective === "meetings" ? b.message.whatList : K.whatSite.map((x) => fmt(x, { event: s.conversionEvent ?? (s.objective === "purchases" ? "Purchase" : "Lead"), days: String(s.attributionDays) }))).map((x) => <li key={x}>{x}</li>)}</ol>
               </div>
               {!editing && (
                 <label className="cb-confirm">
@@ -435,7 +479,7 @@ export function CampaignBuilder(p: BuilderProps) {
               <dt>{b.campaign.budget}</dt><dd>{usd(s.budgetUsd)} {b.campaign.budgetTypes[s.budgetType].toLowerCase()}</dd>
               <dt>{t.ag.levels.audience}</dt><dd>{s.adSets.length}</dd>
               {capacity != null && <><dt>{b.campaign.daily}</dt><dd>{n(s.dailyLimit)}</dd></>}
-              <dt>{b.message.mailbox}</dt><dd dir="ltr">{mailbox?.email ?? "–"}</dd>
+              {s.objective !== "qualified_leads" && <><dt>{b.message.mailbox}</dt><dd dir="ltr">{mailbox?.email ?? "–"}</dd></>}
             </dl>
           </div>
         </aside>

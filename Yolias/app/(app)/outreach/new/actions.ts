@@ -47,6 +47,9 @@ function row(s: BuilderState) {
   return {
     name: (s.name.trim() || s.adSets[0]?.name || "Campaign").slice(0, 160), objective: s.objective, aim: aimOf(s.objective), cta_url: s.objective === "purchases" || s.objective === "form_leads" ? cleanCtaUrl(s.websiteUrl) : null,
     contact_target: s.contactTarget, message_name: s.messageName.trim() || null,
+    pixel_id: s.objective === "purchases" || s.objective === "form_leads" ? s.pixelId : null,
+    conversion_event: s.objective === "purchases" ? s.conversionEvent ?? "Purchase" : s.objective === "form_leads" ? s.conversionEvent ?? "Lead" : null,
+    attribution_days: s.attributionDays,
     description: s.offer.trim() || null, offer_id: s.offerId, channel: "email" as never, channels: [s.channel],
     budget_type: s.budgetType, budget_usd: s.budgetUsd, timezone: s.timezone, run_days: s.runDays,
     contact_from: s.contactFrom, contact_to: s.contactTo, daily_limit: s.dailyLimit, target_meetings: s.targetMeetings,

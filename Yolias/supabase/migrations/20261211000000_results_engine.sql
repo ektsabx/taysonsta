@@ -81,16 +81,18 @@ alter table public.outreach_campaigns drop constraint if exists outreach_campaig
 alter table public.outreach_campaigns add constraint outreach_campaigns_aim_check check (aim in ('meeting', 'sell', 'form'));
 
 -- The Yolias pixel and Events Manager (owner, 2026-11-02, D-274), like
--- Facebook's: one pixel per workspace, installed on the member's website;
+-- Facebook's: pixels (several per workspace) installed on the member's websites;
 -- events (PageView, InitiateCheckout, Purchase, Lead and custom ones) come in
 -- through /api/px and are credited to a campaign when the visitor came from a
 -- Yolias link (?yc=<lead>). Written by the server only; members read theirs.
 create table if not exists public.pixels (
   id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null unique references public.workspaces(id) on delete cascade,
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
   public_id text not null unique check (public_id ~ '^[0-9a-f]{16}$'),
   name text not null default 'Yolias pixel' check (char_length(name) between 1 and 80),
   allowed_domains text[] not null default '{}',
+  blocked_domains text[] not null default '{}',
+  created_by uuid references auth.users(id) on delete set null,
   last_event_at timestamptz,
   created_at timestamptz not null default now()
 );
@@ -112,8 +114,13 @@ create table if not exists public.pixel_events (
   lead_id uuid references public.sales_leads(id) on delete set null,
   campaign_id uuid references public.outreach_campaigns(id) on delete set null,
   group_id uuid references public.audience_groups(id) on delete set null,
+  -- How it was credited: after a click on a Yolias link, or after an email (matched by the hashed email, like advanced matching).
+  attribution text check (attribution is null or attribution in ('click', 'view')),
+  -- Events sent while testing (Test events) carry the test code and are kept out of results.
+  test_code text check (test_code is null or test_code ~ '^[A-Z0-9]{4,12}$'),
   created_at timestamptz not null default now()
 );
+create index if not exists pixels_ws_idx on public.pixels (workspace_id);
 create unique index if not exists pixel_events_dedupe on public.pixel_events (pixel_id, event_id) where event_id is not null;
 create index if not exists pixel_events_ws_idx on public.pixel_events (workspace_id, created_at desc);
 create index if not exists pixel_events_campaign_idx on public.pixel_events (campaign_id, created_at desc) where campaign_id is not null;
@@ -137,3 +144,9 @@ create index if not exists custom_metrics_ws_idx on public.custom_metrics (works
 alter table public.custom_metrics enable row level security;
 drop policy if exists custom_metrics_read on public.custom_metrics;
 create policy custom_metrics_read on public.custom_metrics for select using (public.is_workspace_member(workspace_id));
+
+-- A website objective's pixel, its conversion event and its attribution window (days after the click or the email), like an ads platform's.
+alter table public.outreach_campaigns
+  add column if not exists pixel_id uuid references public.pixels(id) on delete set null,
+  add column if not exists conversion_event text check (conversion_event is null or conversion_event ~ '^[A-Za-z][A-Za-z0-9_]{0,39}$'),
+  add column if not exists attribution_days integer not null default 7 check (attribution_days in (1, 7, 28));

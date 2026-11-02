@@ -391,19 +391,32 @@ try {
   console.log("✓ optimizer");
 
   // ── 13. D-274: the pixel credits website events to the campaign; finding-only campaigns contact no one ──
-  const { ensurePixel, recordPixelEvent } = await import("@/lib/pixel.ts");
-  const px = await ensurePixel(A.wsId);
-  assert.equal((await ensurePixel(A.wsId)).id, px.id, "one pixel per workspace");
+  const { workspacePixels, createPixel, recordPixelEvent, emailHash } = await import("@/lib/pixel.ts");
+  const [px] = await workspacePixels(A.wsId);
+  const second = await createPixel(A.wsId, "Second shop", A.userId);
+  assert.equal((await workspacePixels(A.wsId)).length, 2, "several pixels per workspace, like an ads account");
   const yc = thread(0).lead_id!;
-  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "PageView", url: "https://shop.example.com/", yc, vid: "v-test-1" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "PageView", url: "https://shop.example.com/", yc, yct: Date.now(), vid: "v-test-1" }), "ok");
   assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "InitiateCheckout", url: "https://shop.example.com/cart", yc, vid: "v-test-1" }), "ok");
   assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Purchase", value: 120, currency: "USD", url: "https://shop.example.com/thanks", yc, vid: "v-test-1", event_id: "order-1" }), "ok");
   assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Purchase", value: 120, currency: "USD", yc, vid: "v-test-1", event_id: "order-1" }), "ignored", "the same order once");
   assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://other.example.org/" }), "ok", "events without a Yolias link are kept, not credited");
   await admin.from("pixels").update({ allowed_domains: ["example.com"] }).eq("id", px.id);
   assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://evil.test/" }), "ignored", "only allowed domains");
-  const { data: credited } = await admin.from("pixel_events").select("campaign_id, group_id").eq("pixel_id", px.id).eq("event", "Purchase").single();
-  assert.deepEqual([credited!.campaign_id, credited!.group_id], [campId, group!.id], "credited to the campaign and the audience that reached them");
+  await admin.from("pixels").update({ allowed_domains: [], blocked_domains: ["staging.example.com"] }).eq("id", px.id);
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://staging.example.com/" }), "ignored", "never blocked domains");
+  // The 7-day window (like an ads platform's): a click 8 days ago credits nothing; an email (advanced matching) within the window credits as a view.
+  assert.equal(await recordPixelEvent({ pixel: second.public_id, event: "Purchase", value: 10, yc, yct: Date.now() - 8 * DAY, event_id: "late-1" }), "ok");
+  const { data: late } = await admin.from("pixel_events").select("campaign_id").eq("event_id", "late-1").single();
+  assert.equal(late!.campaign_id, null, "outside the attribution window");
+  assert.equal(await recordPixelEvent({ pixel: second.public_id, event: "Lead", em: emailHash(thread(1).to_email!), event_id: "view-1" }), "ok");
+  const { data: view } = await admin.from("pixel_events").select("campaign_id, attribution").eq("event_id", "view-1").single();
+  assert.deepEqual([view!.campaign_id, view!.attribution], [campId, "view"], "view-through: the email Yolias sent within 7 days");
+  assert.equal(await recordPixelEvent({ pixel: second.public_id, event: "Purchase", value: 5, yc, yct: Date.now(), test: "TEST1234", event_id: "test-1" }), "ok");
+  const { data: tst } = await admin.from("pixel_events").select("campaign_id, test_code").eq("event_id", "test-1").single();
+  assert.deepEqual([tst!.campaign_id, tst!.test_code], [null, "TEST1234"], "test events are never credited");
+  const { data: credited } = await admin.from("pixel_events").select("campaign_id, group_id, attribution").eq("pixel_id", px.id).eq("event", "Purchase").single();
+  assert.deepEqual([credited!.campaign_id, credited!.group_id, credited!.attribution], [campId, group!.id, "click"], "credited to the campaign and the audience that reached them");
   const [pl] = await campaignTable(A.wsId, { from: null, to: null }, { ids: [campId] });
   assert.deepEqual([pl.counts.siteVisits, pl.counts.checkouts, pl.counts.purchases, pl.counts.purchaseValue], [1, 1, 1, 120], "website results in the campaign");
   assert.equal(pl.groups[0].counts.purchases, 1, "and its audience");

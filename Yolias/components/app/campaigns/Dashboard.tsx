@@ -143,8 +143,6 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
           <button type="button" className="sdr-btn sm" onClick={() => openSettingsTab("billing")}>{D.topUp}</button>
           <dl className="db-account-stats">
             <div><dt>{A.spent}</dt><dd><bdi dir="ltr">{usd(acct.spentMonthUsd)}</bdi></dd></div>
-            <div><dt>{A.held}</dt><dd>{n(acct.heldMonth)}</dd></div>
-            <div><dt>{A.costHeld}</dt><dd><bdi dir="ltr">{acct.heldMonth && acct.spentMonthUsd ? usd(acct.spentMonthUsd / acct.heldMonth) : "–"}</bdi></dd></div>
           </dl>
         </section>
       )}

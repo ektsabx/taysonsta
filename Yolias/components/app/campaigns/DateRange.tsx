@@ -22,6 +22,18 @@ export function DateRange({ range, from, to, defaultRange = "lifetime", presets 
   const [, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState({ from, to });
+  // The popover opens toward the side with room, so it is never cut by the screen edge (D-274).
+  const [side, setSide] = useState<"left" | "right">("left");
+  const [up, setUp] = useState(false);
+  const toggle = () => {
+    const r = ref.current?.getBoundingClientRect();
+    if (r) {
+      setSide(window.innerWidth - r.left >= 300 ? "left" : "right");
+      // Opens upward when there isn't room below (and there is more above).
+      setUp(window.innerHeight - r.bottom < 440 && r.top > window.innerHeight - r.bottom);
+    }
+    setOpen((o) => !o);
+  };
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -38,17 +50,17 @@ export function DateRange({ range, from, to, defaultRange = "lifetime", presets 
   };
   return (
     <div className="cm-wrap dr" ref={ref}>
-      <button type="button" className="sdr-btn cm-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="sdr-btn cm-toggle" aria-expanded={open} onClick={toggle}>
         <CalendarDays />{m.ranges[range]}{range === "custom" && from ? ` · ${from} – ${to}` : ""}<ChevronDown />
       </button>
       {open && (
-        <div className="cm-pop cm-range">
+        <div className={`cm-pop cm-range dr-pop ${side}${up ? " up" : ""}`}>
           {presets.filter((r) => r !== "custom").map((r) => <button key={r} type="button" className={r === range ? "on" : ""} onClick={() => set(r)}>{m.ranges[r]}</button>)}
           {presets.includes("custom") && (
             <div className="cm-custom"><strong>{m.ranges.custom}</strong>
               <div className="cm-pair">
-                <input className="sdr-input sm" type="date" aria-label={m.from} value={custom.from} onChange={(e) => setCustom({ ...custom, from: e.target.value })} />
-                <input className="sdr-input sm" type="date" aria-label={m.to} value={custom.to} min={custom.from} onChange={(e) => setCustom({ ...custom, to: e.target.value })} />
+                <input className="sdr-input sm" type="date" dir="ltr" aria-label={m.from} value={custom.from} onChange={(e) => setCustom({ ...custom, from: e.target.value })} />
+                <input className="sdr-input sm" type="date" dir="ltr" aria-label={m.to} value={custom.to} min={custom.from} onChange={(e) => setCustom({ ...custom, to: e.target.value })} />
               </div>
               <button type="button" className="sdr-btn primary" disabled={!custom.from || !custom.to} onClick={() => set("custom", custom.from, custom.to)}>{m.apply}</button>
             </div>

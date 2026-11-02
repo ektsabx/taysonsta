@@ -13,7 +13,7 @@ import { referralDecision, sameInbox } from "../../lib/referrals.ts";
 // Yolias as an AI sales agent (D-273), on top of the ads manager registries (D-272).
 
 test("metric registry: held meetings lead (D-274), no qualified-opportunity columns, no number where none can be worked out", () => {
-  assert.deepEqual(DEFAULT_COLUMNS, ["found", "sent", "open_rate", "reply_rate", "meetings", "cost_per_meeting", "held", "spend"]);
+  assert.deepEqual(DEFAULT_COLUMNS, ["results", "cost_per_result", "found", "sent", "open_rate", "reply_rate", "meetings", "cost_per_meeting", "held", "spend"]);
   assert.ok(!METRICS.some((m) => ["qualified", "cost_per_qualified"].includes(m.id)), "no qualified opportunities");
   assert.equal(new Set(METRICS.map((m) => m.id)).size, METRICS.length, "unique ids");
   const c = zeroCounts();

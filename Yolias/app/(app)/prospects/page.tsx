@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Bookmark, Building2, UserRound } from "lucide-react";
 import { ProspectTable, type TableRow } from "@/components/app/ProspectTable";
 import { ProspectToolbar } from "@/components/app/ProspectFilters";
-import { campaignSources } from "@/services/campaign-sources";
+import { CampaignFilter } from "@/components/app/campaigns/CampaignFilter";
 import { countryLabel, formatDate, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
@@ -36,8 +36,9 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     ? (kindAsked === "people" || (kindAsked !== "companies" && !savedCounts.companies && savedCounts.people > 0) ? "people" : "companies")
     : filters.tab === "people" || (filters.tab !== "companies" && !counts.companies && counts.people > 0) ? "people" : "companies";
   const f = { ...filters, tab, bookmarked: saved || filters.bookmarked };
-  const [page, countryCodes, funding, t, locale, sources] = await Promise.all([
-    listItems(ws, f), prospectCountries(ws), fundingStages(ws), getDictionary(), getLocale(), campaignSources(ws),
+  const [page, countryCodes, funding, t, locale, { data: campaignOptions }] = await Promise.all([
+    listItems(ws, f), prospectCountries(ws), fundingStages(ws), getDictionary(), getLocale(),
+    (await createClient()).from("outreach_campaigns").select("id, name").eq("workspace_id", ws).neq("status", "archived").order("created_at", { ascending: false }).limit(100),
   ]);
   const pr = t.prospects;
   const L = t.sdr.leads;
@@ -102,26 +103,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
         </div>
       )}
 
-      {/* D-274: Prospects is where each campaign's people come from: its search results, then what came of them. */}
-      {sources.length > 0 && !saved && (
-        <div className="pr-sources" role="list" aria-label={t.ag.rx.prospects.title}>
-          <Link role="listitem" href={`/prospects?tab=${tab}`} className={`pr-source all${!f.outreach ? " on" : ""}`}><strong>{t.ag.rx.prospects.all}</strong><span>{formatNumber(counts.companies + counts.people, locale)}</span></Link>
-          {sources.map((x) => (
-            <Link role="listitem" key={x.id} href={`/prospects?tab=${tab}&campaign=${x.id}`} className={`pr-source${f.outreach === x.id ? " on" : ""}`}>
-              <strong dir="auto">{x.name}</strong>
-              <dl>
-                <div><dt>{t.ag.rx.prospects.companies}</dt><dd>{formatNumber(x.companies, locale)}</dd></div>
-                <div><dt>{t.ag.rx.prospects.people}</dt><dd>{formatNumber(x.people, locale)}</dd></div>
-                <div><dt>{t.ag.rx.prospects.withEmail}</dt><dd>{formatNumber(x.withEmail, locale)}</dd></div>
-                <div><dt>{t.ag.rx.prospects.contacted}</dt><dd>{formatNumber(x.contacted, locale)}</dd></div>
-                <div><dt>{t.ag.rx.prospects.replied}</dt><dd>{formatNumber(x.replied, locale)}</dd></div>
-                <div><dt>{t.ag.rx.prospects.meetings}</dt><dd>{formatNumber(x.meetings, locale)}</dd></div>
-              </dl>
-            </Link>
-          ))}
-        </div>
-      )}
-      {f.outreach && <div><Link className="sdr-btn ghost sm" href={`/outreach/${f.outreach}`}>{t.ag.rx.prospects.open}</Link></div>}
+      <CampaignFilter campaigns={campaignOptions ?? []} />
       <section className="sdr-panel">
         <Suspense>
           <ProspectToolbar key={query} tab={tab} total={page.total} countries={countries} funding={funding} active={active} exportHref={`/prospects/export${query ? `?${query}` : ""}`} />

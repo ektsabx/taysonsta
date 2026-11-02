@@ -1,11 +1,17 @@
-import { recordPixelEvent } from "@/lib/pixel";
+import { pixelInfo, recordPixelEvent } from "@/lib/pixel";
 
 // Events from the Yolias pixel on members' websites (D-274). Sent as text/plain
-// (sendBeacon / no-cors), so no preflight; the answer is always empty.
-const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+// (sendBeacon / no-cors), so no preflight; the answer is always empty. GET
+// ?check=<pixel id> tells the Pixel Helper whether that pixel exists.
+const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
 
 export function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS });
+}
+
+export async function GET(req: Request) {
+  const id = new URL(req.url).searchParams.get("check") ?? "";
+  return Response.json(await pixelInfo(id), { headers: { ...CORS, "Cache-Control": "no-store" } });
 }
 
 export async function POST(req: Request) {

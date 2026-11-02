@@ -1,4 +1,5 @@
 import "server-only";
+import { workspacePixels } from "@/lib/pixel";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { memberMailboxes } from "@/lib/mailbox";
 import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
@@ -23,7 +24,7 @@ export async function builderContext(workspaceId: string, userId: string, zone: 
     db.from("calendar_connections").select("status").eq("user_id", userId).maybeSingle(),
     db.from("audiences").select("id, name, kind, members").eq("workspace_id", workspaceId).order("updated_at", { ascending: false }),
   ]);
-  const { data: px } = await db.from("pixels").select("last_event_at").eq("workspace_id", workspaceId).maybeSingle();
+  const pixels = await workspacePixels(workspaceId);
   const kn = (k ?? null) as unknown as Record<string, unknown> | null;
   const filled = KNOWLEDGE.filter((f) => typeof kn?.[f] === "string" && (kn[f] as string).trim().length > 20).length;
   return {
@@ -32,7 +33,7 @@ export async function builderContext(workspaceId: string, userId: string, zone: 
     knowledgePct: Math.round((filled / KNOWLEDGE.length) * 100),
     mailboxes: boxes.filter((m) => m.status === "connected").map((m) => ({ id: m.id, email: m.email, dailyLimit: m.daily_limit })),
     booking: { url: page?.enabled ? `/meet/${page.slug}` : null, calendar: cal?.status === "connected" },
-    pixelSeen: Boolean(px?.last_event_at),
+    pixels: pixels.map((x) => ({ id: x.id, name: x.name, publicId: x.public_id, seen: Boolean(x.last_event_at) })),
     audiences: (audiences ?? []).map((a) => ({ id: a.id, name: a.name, kind: a.kind as "saved" | "custom" | "lookalike", members: a.members })),
     zones: timeZoneChoices(zone).map((z) => ({ value: z, label: timeZoneLabel(z, locale) })),
     today: new Date().toISOString().slice(0, 10),
@@ -67,7 +68,7 @@ export async function stateFromCampaign(campaignId: string, workspaceId: string)
   }));
   return {
     state: {
-      level: "campaign", name: c.name, objective: c.objective === "qualified_leads" || c.objective === "purchases" || c.objective === "form_leads" ? c.objective : "meetings", websiteUrl: c.cta_url ?? "", channel: "email", contactTarget: c.contact_target ?? "people", messageName: c.message_name ?? "", offerId: c.offer_id, offer: c.description ?? "", targetMeetings: c.target_meetings ?? 10,
+      level: "campaign", name: c.name, objective: c.objective === "qualified_leads" || c.objective === "purchases" || c.objective === "form_leads" ? c.objective : "meetings", websiteUrl: c.cta_url ?? "", pixelId: c.pixel_id ?? null, conversionEvent: c.conversion_event ?? null, attributionDays: c.attribution_days === 1 || c.attribution_days === 28 ? c.attribution_days : 7, channel: "email", contactTarget: c.contact_target ?? "people", messageName: c.message_name ?? "", offerId: c.offer_id, offer: c.description ?? "", targetMeetings: c.target_meetings ?? 10,
       budgetType: c.budget_type === "daily" ? "daily" : "total", budgetUsd: c.budget_usd == null ? 50 : Number(c.budget_usd),
       startDate: s.date, startTime: s.time, endDate: e.date, endTime: c.ends_at ? e.time : "18:00", timezone: zone,
       runDays: c.run_days?.length ? c.run_days : undefined, contactFrom: c.contact_from?.slice(0, 5) ?? "09:00", contactTo: c.contact_to?.slice(0, 5) ?? "17:00",

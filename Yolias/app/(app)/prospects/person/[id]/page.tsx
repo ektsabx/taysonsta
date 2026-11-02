@@ -4,13 +4,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Building2, ExternalLink, Globe, Mail, MapPin, MessageSquare, Phone, Search, UserRound, Users } from "lucide-react";
 import { IntelligencePanel } from "@/components/app/IntelligencePanel";
 import { CompanyLogo, PersonAvatar } from "@/components/app/Media";
-import { ProspectActionButtons } from "@/components/app/ProspectActions";
 import { SaveButton } from "@/components/app/ResultActions";
 import { FacebookIcon, InstagramIcon, LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { messagesFor } from "@/services/outreach";
 import { formatDate, formatNumber, location } from "@/lib/format";
-import { gridPerson, sizeBand } from "@/lib/results";
-import type { ProspectRow } from "@/types/database";
+import { sizeBand } from "@/lib/results";
 import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
@@ -125,9 +123,6 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
 
         <section className="result-card">
           <h2 className="result-card-title"><MessageSquare /> {o.messages}</h2>
-          <div className="person-actions">
-            <ProspectActionButtons people={[gridPerson(p as unknown as ProspectRow, c ? { id: c.id, name: c.name } : null, locale)]} source="prospects" />
-          </div>
           {messages.filter((m) => m.channel === "email").length ? (
             <ul className="message-log">
               {messages.filter((m) => m.channel === "email").map((m) => (

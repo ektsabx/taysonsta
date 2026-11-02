@@ -45,14 +45,15 @@ export function pickEvent(c: { interested: number; meetings: number; held: numbe
   return null;
 }
 
-export const eventsOf = (c: { interested: number; meetings: number; held: number; purchases?: number; formLeads?: number }, e: OptEvent) =>
-  e === "held" ? c.held : e === "booked" ? c.meetings : e === "purchase" ? c.purchases ?? 0 : e === "form" ? c.formLeads ?? 0 : c.interested;
+export const eventsOf = (c: { interested: number; meetings: number; held: number; conversions?: number }, e: OptEvent) =>
+  e === "held" ? c.held : e === "booked" ? c.meetings : e === "purchase" || e === "form" ? c.conversions ?? 0 : c.interested;
 
 /** D-274: the result an objective optimizes for, from its counts (positive replies until there are enough of the result). */
-export function eventFor(objective: string | null | undefined, c: { interested: number; meetings: number; held: number; purchases: number; formLeads: number }): OptEvent | null {
+export function eventFor(objective: string | null | undefined, c: { interested: number; meetings: number; held: number; conversions: number }): OptEvent | null {
   if (objective === "qualified_leads") return null;
-  if (objective === "purchases") return c.purchases >= EVENT_MIN ? "purchase" : c.interested >= EVENT_MIN ? "positive" : null;
-  if (objective === "form_leads") return c.formLeads >= EVENT_MIN ? "form" : c.interested >= EVENT_MIN ? "positive" : null;
+  // A website objective optimizes for the campaign's own conversion event (pixel), like an ads platform.
+  if (objective === "purchases") return c.conversions >= EVENT_MIN ? "purchase" : c.interested >= EVENT_MIN ? "positive" : null;
+  if (objective === "form_leads") return c.conversions >= EVENT_MIN ? "form" : c.interested >= EVENT_MIN ? "positive" : null;
   return pickEvent(c);
 }
 

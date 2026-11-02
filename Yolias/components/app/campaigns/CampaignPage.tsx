@@ -29,8 +29,8 @@ const TABS: CampaignTab[] = ["activity", "conversations", "meetings", "settings"
 // D-274: each objective's result and cost per result first (a meetings campaign's result is a booked meeting).
 const KPIS: Record<string, string[]> = {
   meetings: ["meetings", "cost_per_meeting", "spend", "found", "sent", "open_rate", "reply_rate", "held"],
-  purchases: ["purchases", "cost_per_purchase", "purchase_value", "purchase_roas", "spend", "site_visits", "sent", "reply_rate"],
-  form_leads: ["form_leads", "cost_per_form_lead", "spend", "site_visits", "found", "sent", "open_rate", "reply_rate"],
+  purchases: ["results", "cost_per_result", "conversion_value", "purchase_roas", "spend", "site_visits", "sent", "reply_rate"],
+  form_leads: ["results", "cost_per_result", "spend", "site_visits", "found", "sent", "open_rate", "reply_rate"],
   qualified_leads: ["found", "cost_per_lead", "spend", "found_companies", "found_people"],
 };
 
