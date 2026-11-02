@@ -9,7 +9,7 @@ import { decide } from "@/lib/ai-workspace/settings";
 import { runAutomations } from "@/lib/automations/engine";
 import { draftOutreach, type DraftError, type MessageTarget } from "@/lib/outreach";
 import { isMessageLanguage, DEFAULT_LANGUAGE } from "@/lib/outreach/channels";
-import { aimGuidance } from "@/lib/outreach/aim";
+import { aimGuidance, trackedLink } from "@/lib/outreach/aim";
 import { pickArm } from "@/lib/campaigns/engines";
 import { languageFor } from "@/lib/campaigns/builder";
 import { insightLines } from "@/lib/agent-core/learning";
@@ -127,7 +127,7 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const cc = (country as { country?: string | null; company?: { country?: string | null } | null } | null);
   const lang = languageFor(campaign.language, cc?.country ?? cc?.company?.country ?? null);
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", campaign.cta_url ?? null, await bookingLinkFor(userId, lead.id)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", trackedLink(campaign.cta_url ?? null, lead.id), await bookingLinkFor(userId, lead.id)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(lang) ? lang : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     senderName: (campaign as { sender_name?: string | null }).sender_name ?? null, notes: (campaign as { instructions?: string | null }).instructions ?? null,
     insights: await insightLines(workspaceId),

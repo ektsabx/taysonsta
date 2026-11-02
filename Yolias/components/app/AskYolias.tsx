@@ -9,6 +9,7 @@ import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useToast } from "@/components/Toast";
 import { createStrategy } from "@/app/(app)/actions";
 import { AgentThread } from "@/components/app/AgentThread";
+import { YoliasMark } from "@/components/YoliasMark";
 
 // Yolias AI on every screen (owner, 2026-10-31, D-270, D-273; D-274): like
 // the business assistant in Facebook Ads Manager, a panel docked on the end
@@ -76,7 +77,7 @@ export function AskYolias() {
             </div>
           ) : (
             <div className="ay-home">
-              <div className="ay-hero"><span className="ay-mark"><Sparkles /></span><h2>{P.title}</h2><p>{a.hint}</p></div>
+              <div className="ay-hero"><YoliasMark size={56} className="ay-logo" /><h2>{P.title}</h2><p>{a.hint}</p></div>
               <div className="ay-input">
                 <textarea ref={box} rows={3} dir="auto" maxLength={4000} value={text} placeholder={a.placeholder} onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />

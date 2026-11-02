@@ -65,7 +65,7 @@ export const agEn = {
       ],
       confirm: "Yolias may email the people it finds from {mailbox}, on my behalf, and answer their replies.",
     },
-    missing: {
+    missing: { website: "Add your website page (purchase or form).",
       title: "Before you launch", name: "Name the campaign.", budget: "Set a budget of at least {usd}.", dates: "The end must be after the start.",
       audience: "Give every audience a targeting or a saved audience.", mailbox: "Connect a mailbox to send from.", confirm: "Confirm that Yolias may email on your behalf.",
     },
@@ -74,7 +74,7 @@ export const agEn = {
       search: "Yolias couldn't start finding people for “{name}”. Edit its targeting on the campaign page.",
       empty: "“{name}” had nobody to add (everyone was already contacted, or asked not to be).",
     },
-    errors: {
+    errors: { website: "Add your website page (purchase or form).",
       settings: "Check the campaign settings.", dates: "The end must be after the start and in the future.", name: "Name the campaign.",
       mailbox: "Connect a mailbox to send from.", audience: "Give every audience a targeting or a saved audience.", confirm: "Confirm that Yolias may email on your behalf.",
       preview: "Yolias couldn't write a sample right now. Try again in a moment.", approach: "Yolias couldn't write the approach right now. Try again in a moment.",
@@ -161,7 +161,36 @@ export const agEn = {
   /** Yolias's activity log, in the reader's language (D-273; English rows are written by the worker). */
   /** D-274: the results engine (optimizer, balance, reminders, link visits, the Inbox, Prospects, the campaign's Ads-Manager page). */
   rx: {
+    cm: {
+      presets: "Ready columns", presetNames: { meetings: "Meetings", purchases: "Website purchases", form_leads: "Website leads", qualified_leads: "Qualified leads" },
+      custom: "Custom metrics", create: "Create a custom metric", name: "Name", namePh: "e.g. Cost per visit", formula: "Formula", format: "Shown as",
+      formats: { count: "Number", pct: "Percent", usd: "US dollars", ratio: "Ratio" }, save: "Create", cancel: "Cancel", remove: "Delete",
+      saved: "Custom metric created.", invalid: "Choose a name and two metrics.",
+    },
+    ev: {
+      title: "Events Manager", nav: "Events Manager", active: "Active", quiet: "No events in the last 24 hours", notInstalled: "Not installed yet", refresh: "Refresh",
+      tabs: { overview: "Overview", test: "Test events", setup: "Set up", settings: "Settings" },
+      installLine: "Add the Yolias pixel to your website so Yolias can count the purchases and forms of the people it sends there.", setupCta: "Set up the pixel",
+      allEvents: "All events", colEvent: "Event", colTotal: "Total", colCredited: "From Yolias campaigns", colValue: "Value", colLast: "Last received", none: "No events yet.", custom: "Custom event",
+      kinds: { PageView: "Page view", ViewContent: "Content view", AddToCart: "Add to cart", InitiateCheckout: "Checkout started", Purchase: "Purchase", Lead: "Lead (form)", CompleteRegistration: "Registration", Contact: "Contact" },
+      testTitle: "Latest events", testLine: "Open your website in another tab and act like a visitor; each event shows here within seconds. Visits from a Yolias link are credited to their campaign.", notCredited: "Not from a campaign",
+      step1: "1. Add the base code to every page", step1Line: "Paste it in the <head> of your website, or in your site builder's \"custom code\" setting. It counts page views and remembers who came from a Yolias link.",
+      step2: "2. Add the events you need", step2Line: "Put these lines where the action happens: after a purchase (with its value), when checkout starts, or when a form is sent.",
+      step3: "3. Test", step3Line: "Links Yolias sends carry ?{param}= so each visit, purchase and form is credited to the right campaign. Send yourself a test and watch Test events.",
+      copy: "Copy", copied: "Copied.", name: "Pixel name", domains: "Allowed domains", domainsHint: "Only events from these websites are accepted (empty: any).", save: "Save", saved: "Saved.", invalid: "Check the name and the domains.",
+    },
     build: {
+      objectives: { meetings: "Meetings", purchases: "Website purchases", form_leads: "Website leads (forms)", qualified_leads: "Qualified leads" },
+      objectivesDesc: {
+        meetings: "Yolias contacts the people you target, answers them and books meetings in Yolias, where every booking is tracked.",
+        purchases: "Yolias contacts the people you target and persuades them to buy on your website; the Yolias pixel counts purchases and their value.",
+        form_leads: "Yolias contacts the people you target and invites them to fill in the form on your website; the pixel counts each form.",
+        qualified_leads: "Yolias only finds the companies and people that match your targeting and saves them in Leads. No one is contacted; you pay for each match.",
+      },
+      targets: { meetings: "Meetings you want", purchases: "Purchases you want", form_leads: "Website leads you want", qualified_leads: "Leads you want" },
+      sitePurchase: "Your product or checkout page", siteForm: "Your form page",
+      pixelOn: "The Yolias pixel is on your website: purchases and forms will be counted.", pixelOff: "Install the Yolias pixel on your website so Yolias counts purchases and forms.", pixelOpen: "Open Events Manager",
+      find: "Find",
       type: "Campaign type", outreach: "Outreach", outreachDesc: "Yolias finds the companies and people you target and contacts them for you, one personal message each, then follows up and answers.",
       leads: "Qualified leads", leadsDesc: "Yolias contacts the people you target and hands you each one who replies with interest, with the conversation, so you take it from there.", leadsTarget: "Qualified leads you want",
       channel: "Channel", soon: "Soon",
@@ -203,10 +232,10 @@ export const agEn = {
       learning: "Learning", optimizing: "Optimizing for {event}", learningAll: "Learning: equal budget until there are {n} results",
       events: { positive: "positive replies", booked: "booked meetings", held: "meetings held" },
       reasons: { learning: "Learning", best: "Best results", share: "Getting a share", weaker: "No new budget (weaker results)", over_cap: "No new budget (over the cost cap)" },
-      share: "{pct} of budget", costCap: "Cost cap per meeting", noCap: "No cap", trackOpens: "Track email opens",
+      share: "{pct} of budget", costCap: "Cost cap per result", noCap: "No cap", trackOpens: "Track email opens",
     },
     balance: {
-      title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings held", costHeld: "Cost per held meeting", renews: "Renews {date}",
+      title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings booked", costHeld: "Cost per meeting", renews: "Renews {date}",
     },
     inbox: {
       needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Marked as done.",
@@ -216,6 +245,7 @@ export const agEn = {
     },
     prospects: { subtitle: "The companies and people your campaigns found and reached, with what came of them.", title: "Search results", all: "All campaigns", companies: "Companies", people: "People", withEmail: "With email", contacted: "Contacted", replied: "Replied", meetings: "Meetings", open: "Open the campaign" },
     dash: {
+      visits: "Booking link visits", visitsNote: "{n} booked from the link", cpm: "Cost per meeting", cpmNote: "{n} meetings held", positive: "Positive replies", positiveNote: "{pct} of people reached", 
       found: "Found by Yolias", foundNote: "{companies} companies · {people} people", opened: "Opened", openedNote: "{pct} open rate (approximate)",
       replies: "Replied", repliesNote: "{pct} reply rate · {n} didn't reply", booked: "Meetings booked", bookedNote: "{pct} showed up", held: "Meetings held", heldNote: "The result",
       cph: "Cost per held meeting", cphNone: "After the first meeting", cphNote: "{usd} per booked meeting",

@@ -16,6 +16,7 @@ import type { DashboardData, DashRange, Series } from "@/services/dashboard";
 import type { StartSteps } from "@/services/start-here";
 import { activityText } from "@/lib/campaigns/activity-text";
 import { Greeting } from "@/components/app/Greeting";
+import { DateRange } from "@/components/app/campaigns/DateRange";
 
 // The dashboard (owner, 2026-10-31, D-273), laid out like the reference the
 // owner chose: what Yolias is doing now, the next step and the daily budget,
@@ -45,8 +46,8 @@ function Spark({ values, days, tone = "green", locale }: { values: (number | nul
   );
 }
 
-export function Dashboard({ name, data, range, campaignId, steps }: {
-  name: string | null; data: DashboardData; range: DashRange; campaignId: string | null; steps: StartSteps;
+export function Dashboard({ name, data, range, campaignId, steps, from = "", to = "" }: {
+  name: string | null; data: DashboardData; range: DashRange; campaignId: string | null; steps: StartSteps; from?: string; to?: string;
 }) {
   const { t, locale } = useI18n();
   const D = t.ag.dash;
@@ -69,7 +70,7 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
     router.refresh();
   });
   const s: Series = data.series;
-  const cpm = metric("cost_per_meeting")!.compute(c), cph = metric("cost_per_held")!.compute(c);
+  const cpm = metric("cost_per_meeting")!.compute(c);
   const running = data.campaigns.filter((l) => l.status === "active" || l.status === "scheduled");
   const shown = data.campaigns.filter((l) => l.status !== "archived");
 
@@ -85,14 +86,15 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
 
   // D-274: what Yolias found, sent, what was opened and answered, then the result: meetings held and what each cost.
   const R = t.ag.rx.dash;
+  // D-274: the result is a booked meeting (owner); the booking link's visits beside it.
   const kpis: { key: string; label: string; value: string; note: string; values: (number | null)[]; tone?: "purple"; lead?: boolean }[] = [
     { key: "found", label: R.found, value: n(c.foundPeople + c.foundCompanies), note: fmt(R.foundNote, { companies: n(c.foundCompanies), people: n(c.foundPeople) }), values: s.found },
-    { key: "sent", label: D.kpi.sent, value: n(c.sent), note: fmt(D.kpi.sentNote, { first: n(data.firsts), follow: n(data.followUps) }), values: s.sent },
-    { key: "opened", label: R.opened, value: n(c.opened), note: fmt(R.openedNote, { pct: pct(c.contacted ? c.opened / c.contacted : null) }), values: s.opened },
+    { key: "sent", label: D.kpi.sent, value: n(c.sent), note: fmt(R.openedNote, { pct: pct(c.contacted ? c.opened / c.contacted : null) }), values: s.sent },
     { key: "replies", label: R.replies, value: n(c.replies), note: fmt(R.repliesNote, { pct: pct(c.contacted ? c.replies / c.contacted : null), n: n(Math.max(c.contacted - c.replies, 0)) }), values: s.replies },
-    { key: "meetings", label: R.booked, value: n(c.meetings), note: fmt(R.bookedNote, { pct: pct(c.meetings ? c.held / c.meetings : null) }), values: s.meetings },
-    { key: "held", label: R.held, value: n(c.held), note: R.heldNote, values: s.held, lead: true },
-    { key: "cph", label: R.cph, value: cph == null ? "–" : usd(cph), note: cph == null ? R.cphNone : cpm == null ? " " : fmt(R.cphNote, { usd: usd(cpm) }), values: s.held.map((m, i) => (m ? s.spent[i] / m : 0)), tone: "purple", lead: true },
+    { key: "visits", label: R.visits, value: n(c.visits), note: fmt(R.visitsNote, { n: n(c.linkBooked) }), values: s.visits },
+    { key: "meetings", label: R.booked, value: n(c.meetings), note: R.heldNote, values: s.meetings, lead: true },
+    { key: "cpm", label: R.cpm, value: cpm == null ? "–" : usd(cpm), note: cpm == null ? R.cphNone : fmt(R.cpmNote, { n: n(c.held) }), values: s.meetings.map((m, i) => (m ? s.spent[i] / m : 0)), tone: "purple", lead: true },
+    { key: "interested", label: R.positive, value: n(c.interested), note: fmt(R.positiveNote, { pct: pct(c.contacted ? c.interested / c.contacted : null) }), values: s.interested },
     { key: "spent", label: D.kpi.spent, value: usd(c.spendUsd), note: data.budget.rate ? fmt(D.kpi.spentNote, { n: n(Math.round(c.spendUsd / data.budget.rate)), rate: usd(data.budget.rate) }) : " ", values: s.spent, tone: "purple" },
   ];
   const A = t.ag.rx.balance;
@@ -154,9 +156,7 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
             <option value="">{D.allCampaigns}</option>
             {shown.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
-          <select className="sdr-input sm" aria-label={D.performance} value={range} onChange={(e) => go("range", e.target.value === "7d" ? null : e.target.value)}>
-            {(["7d", "30d", "90d"] as const).map((r) => <option key={r} value={r}>{D.ranges[r]}</option>)}
-          </select>
+          <DateRange range={range} from={from} to={to} defaultRange="7d" />
         </div>
       </div>
       <div className="db-kpis">
@@ -191,7 +191,7 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
             <thead>
               <tr>
                 <th className="cm-name">{D.col.campaign}</th><th>{D.col.state}</th><th className="num">{D.col.sent}</th><th className="num">{D.col.replyRate}</th><th className="num">{D.col.interested}</th>
-                <th className="num">{R.booked}</th><th className="num">{R.held}</th><th className="num">{R.cph}</th><th className="num">{D.col.spent}</th><th className="num">{D.col.cap}</th><th className="cm-actions" />
+                <th className="num">{R.booked}</th><th className="num">{R.cpm}</th><th className="num">{R.held}</th><th className="num">{D.col.spent}</th><th className="num">{D.col.cap}</th><th className="cm-actions" />
               </tr>
             </thead>
             <tbody>
@@ -203,8 +203,8 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
                   <td className="num">{formatMetric(metric("reply_rate")!.compute(l.counts), "pct", lang)}</td>
                   <td className="num">{n(l.counts.interested)}</td>
                   <td className="num">{n(l.counts.meetings)}</td>
+                  <td className="num">{formatMetric(metric("cost_per_meeting")!.compute(l.counts), "usd", lang)}</td>
                   <td className="num">{n(l.counts.held)}</td>
-                  <td className="num">{formatMetric(metric("cost_per_held")!.compute(l.counts), "usd", lang)}</td>
                   <td className="num">{usd(l.counts.spendUsd)}</td>
                   <td className="num">{l.dailyUsd != null ? usd(l.dailyUsd) : l.budgetUsd != null ? `${usd(l.budgetUsd)}` : "–"}</td>
                   <td className="cm-actions">
@@ -231,8 +231,8 @@ export function Dashboard({ name, data, range, campaignId, steps }: {
                   <td className="num"><strong>{formatMetric(metric("reply_rate")!.compute(data.total), "pct", lang)}</strong></td>
                   <td className="num"><strong>{n(data.total.interested)}</strong></td>
                   <td className="num"><strong>{n(data.total.meetings)}</strong></td>
+                  <td className="num"><strong>{formatMetric(metric("cost_per_meeting")!.compute(data.total), "usd", lang)}</strong></td>
                   <td className="num"><strong>{n(data.total.held)}</strong></td>
-                  <td className="num"><strong>{formatMetric(metric("cost_per_held")!.compute(data.total), "usd", lang)}</strong></td>
                   <td className="num"><strong>{usd(data.total.spendUsd)}</strong></td>
                   <td /><td />
                 </tr>

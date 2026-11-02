@@ -14,7 +14,7 @@ test("optimizer: the result climbs the ladder (positive reply → booked → hel
   assert.equal(pickEvent({ interested: 0, meetings: 0, held: 0 }), null, "too little: learning");
   assert.equal(pickEvent({ interested: EVENT_MIN, meetings: 2, held: 0 }), "positive");
   assert.equal(pickEvent({ interested: 20, meetings: EVENT_MIN, held: 1 }), "booked");
-  assert.equal(pickEvent({ interested: 20, meetings: 9, held: EVENT_MIN }), "held");
+  assert.equal(pickEvent({ interested: 20, meetings: 9, held: EVENT_MIN }), "booked", "a booked meeting is the result (owner)");
   assert.equal(eventsOf({ interested: 3, meetings: 2, held: 1 }, "booked"), 2);
 });
 
@@ -90,4 +90,44 @@ test("opens: scanners in the first minute don't count; the email keeps its words
   assert.ok(plain.includes('Content-Type: text/plain; charset="UTF-8"') && !plain.includes("multipart"), "no pixel: plain text as before");
   const tracked = decodeBase64Url(buildRawEmail({ from: "a@x.test", fromName: null, to: "b@x.test", subject: "Hi", body: "Hello", pixelUrl: "https://www.yolias.com/api/o/abc" }));
   assert.ok(tracked.includes("multipart/alternative") && tracked.includes("text/plain") && tracked.includes("text/html"));
+});
+
+test("pixel: events are cleaned, custom names allowed, bad ones dropped; domains", async () => {
+  const { cleanEvent, domainAllowed } = await import("../../lib/pixel.ts");
+  const ok = cleanEvent({ pixel: "0123456789abcdef", event: "Purchase", value: "99.5", currency: "usd", yc: "11111111-2222-3333-4444-555555555555", url: "https://shop.example.com/thanks" });
+  assert.deepEqual([ok?.event, ok?.value, ok?.currency, ok?.yc], ["Purchase", 99.5, "USD", "11111111-2222-3333-4444-555555555555"]);
+  assert.equal(cleanEvent({ pixel: "0123456789abcdef", event: "QuoteRequested" })?.event, "QuoteRequested", "custom event");
+  assert.equal(cleanEvent({ pixel: "bad", event: "Purchase" }), null);
+  assert.equal(cleanEvent({ pixel: "0123456789abcdef", event: "<script>" }), null);
+  assert.equal(cleanEvent({ pixel: "0123456789abcdef", event: "Purchase", value: -5 })?.value, null, "no negative value");
+  assert.equal(cleanEvent({ pixel: "0123456789abcdef", event: "Lead", yc: "not-a-uuid" })?.yc, null);
+  assert.equal(domainAllowed("https://shop.example.com/x", []), true, "no list: any site");
+  assert.equal(domainAllowed("https://shop.example.com/x", ["example.com"]), true, "subdomains of an allowed domain");
+  assert.equal(domainAllowed("https://evil.com/?example.com", ["example.com"]), false);
+});
+
+test("objectives: tracked links, results, presets and what each optimizes for", async () => {
+  const { trackedLink, aimOf } = await import("../../lib/outreach/aim.ts");
+  const { RESULT_OF, PRESETS, customMetric, zeroCounts } = await import("../../lib/campaigns/metrics.ts");
+  const { eventFor } = await import("../../lib/agent-core/optimizer.ts");
+  assert.equal(trackedLink("https://shop.example.com/buy?x=1", "abc"), "https://shop.example.com/buy?x=1&yc=abc");
+  assert.equal(trackedLink(null, "abc"), null);
+  assert.deepEqual([aimOf("purchases"), aimOf("form_leads"), aimOf("meetings"), aimOf("qualified_leads")], ["sell", "form", "meeting", "meeting"]);
+  assert.deepEqual(RESULT_OF.purchases, { result: "purchases", cost: "cost_per_purchase" });
+  assert.ok(PRESETS.purchases.includes("purchase_roas") && PRESETS.form_leads.includes("form_leads") && PRESETS.meetings.includes("cost_per_meeting"));
+  const c = { interested: 6, meetings: 0, held: 0, purchases: 5, formLeads: 0 };
+  assert.equal(eventFor("purchases", c), "purchase");
+  assert.equal(eventFor("form_leads", c), "positive", "too few forms: positive replies first");
+  assert.equal(eventFor("qualified_leads", c), null, "finding only: equal split");
+  const cpv = customMetric({ id: "x", name: "Cost per visit", a: "spend", op: "/", b: "site_visits", format: "usd" });
+  assert.equal(cpv.id, "cm:x");
+  assert.equal(cpv.compute({ ...zeroCounts(), spendUsd: 30, siteVisits: 10 }), 3);
+  assert.equal(cpv.compute({ ...zeroCounts(), spendUsd: 30, siteVisits: 0 }), null, "never divides by zero");
+});
+
+test("xlsx: a valid zip with the sheet", async () => {
+  const { xlsx, crc32 } = await import("../../lib/xlsx.ts");
+  assert.equal(crc32(new TextEncoder().encode("hello")), 0x3610a686);
+  const b = xlsx(["A", "B"], [["x", 1]]);
+  assert.deepEqual([...b.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04], "zip header");
 });

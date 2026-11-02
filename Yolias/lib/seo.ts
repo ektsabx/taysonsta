@@ -24,7 +24,7 @@ export const HOME_DESCRIPTION = {
 };
 /** Search titles and snippets that differ from the page's headline (D-265 audit: titles 15–65, descriptions 50–170). */
 export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"en" | "ar", { title?: string; description?: string }>>> = {
-  product: { en: { title: "AI sales agent that books your meetings | Yolias", description: "Campaigns like an ads manager: Yolias finds the right people, emails them from your mailbox, answers replies and books meetings, optimizing for meetings held." } },
+  product: { en: { title: "AI sales agent that books your meetings | Yolias", description: "Campaigns like an ads manager: Yolias finds the right people, emails them from your mailbox, answers replies and books meetings, optimizing for booked meetings." } },
   about: { en: { title: "About Yolias | The AI sales agent" } },
   pricing: {
     en: { description: "Yolias pricing: pay as you go or monthly. Every option has all features and unlimited users, and you pay for the people Yolias finds for your campaigns." },

@@ -33,9 +33,15 @@ export interface Counts {
   abandoned: number;
   /** D-274: people who replied with interest or booked a meeting (a qualified lead). */
   qualifiedLeads: number;
+  /** D-274: from the Yolias pixel on the member's site, for people Yolias sent there. */
+  siteVisits: number;
+  checkouts: number;
+  purchases: number;
+  purchaseValue: number;
+  formLeads: number;
 }
 
-export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0 });
+export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0 });
 export const addCounts = (a: Counts, b: Counts): Counts => Object.fromEntries(Object.keys(a).map((k) => [k, a[k as keyof Counts] + b[k as keyof Counts]])) as unknown as Counts;
 
 export type MetricFormat = "count" | "pct" | "usd" | "ratio";
@@ -64,8 +70,8 @@ export const METRICS: Metric[] = [
   { id: "reply_rate", label: { en: "Reply rate", ar: "نسبة الرد" }, description: { en: "People who replied ÷ people contacted.", ar: "من ردّوا ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.replies, c.contacted), defaultVisible: true },
   { id: "meetings", label: { en: "Meetings booked", ar: "اجتماعات محجوزة" }, description: { en: "Meetings booked (canceled ones excluded).", ar: "اجتماعات محجوزة (بدون الملغاة)." }, format: "count", compute: (c) => c.meetings, defaultVisible: true },
   { id: "cost_per_meeting", label: { en: "Cost per meeting", ar: "تكلفة الاجتماع" }, description: { en: "Everything spent finding and contacting people ÷ meetings booked (at your rate per person).", ar: "كل ما صُرف لإيجاد الأشخاص والتواصل معهم ÷ الاجتماعات المحجوزة (بسعرك للشخص)." }, format: "usd", compute: (c) => cost(c.spendUsd, c.meetings), defaultVisible: true },
-  { id: "held", label: { en: "Meetings held", ar: "اجتماعات منعقدة" }, description: { en: "Meetings that took place: the result Yolias works for.", ar: "اجتماعات حدثت فعلًا: النتيجة التي يعمل لها يولياس." }, format: "count", compute: (c) => c.held, defaultVisible: true },
-  { id: "cost_per_held", label: { en: "Cost per held meeting", ar: "تكلفة الاجتماع المنعقد" }, description: { en: "Spend ÷ meetings that took place.", ar: "الإنفاق ÷ الاجتماعات التي حدثت." }, format: "usd", compute: (c) => cost(c.spendUsd, c.held), defaultVisible: true },
+  { id: "held", label: { en: "Meetings held", ar: "اجتماعات منعقدة" }, description: { en: "Booked meetings that took place.", ar: "اجتماعات محجوزة حدثت فعلًا." }, format: "count", compute: (c) => c.held, defaultVisible: true },
+  { id: "cost_per_held", label: { en: "Cost per held meeting", ar: "تكلفة الاجتماع المنعقد" }, description: { en: "Spend ÷ meetings that took place.", ar: "الإنفاق ÷ الاجتماعات التي حدثت." }, format: "usd", compute: (c) => cost(c.spendUsd, c.held), defaultVisible: false },
   { id: "spend", label: { en: "Spend", ar: "الإنفاق" }, description: { en: "People found for the campaign × your rate per person.", ar: "الأشخاص الذين وُجدوا للحملة × سعر الشخص." }, format: "usd", compute: (c) => c.spendUsd, defaultVisible: true },
   { id: "found_people", label: { en: "People found", ar: "أشخاص مكتشفون" }, description: { en: "People Yolias found for the campaign.", ar: "أشخاص وجدهم يولياس للحملة." }, format: "count", compute: (c) => c.foundPeople, defaultVisible: false },
   { id: "found_companies", label: { en: "Targeted companies", ar: "الشركات المستهدفة" }, description: { en: "Companies Yolias found for the campaign's audiences.", ar: "شركات وجدها يولياس لجماهير الحملة." }, format: "count", compute: (c) => c.foundCompanies, defaultVisible: false },
@@ -93,6 +99,16 @@ export const METRICS: Metric[] = [
   { id: "cost_per_reply", label: { en: "Cost per reply", ar: "تكلفة الرد" }, description: { en: "Spend ÷ replies.", ar: "الإنفاق ÷ الردود." }, format: "usd", compute: (c) => cost(c.spendUsd, c.replies), defaultVisible: false },
   { id: "customers", label: { en: "Deals won", ar: "صفقات مكسوبة" }, description: { en: "People this campaign contacted first who became customers within 180 days.", ar: "أشخاص تواصلت معهم الحملة أولًا وأصبحوا عملاء خلال 180 يومًا." }, format: "count", compute: (c) => c.customers, defaultVisible: false },
   { id: "revenue", label: { en: "Revenue generated", ar: "الإيرادات المحققة" }, description: { en: "Value of the deals won (when you entered it).", ar: "قيمة الصفقات المكسوبة (حين تدخلها)." }, format: "usd", compute: (c) => c.revenueUsd, defaultVisible: false },
+  // D-274: website objectives, measured by the Yolias pixel.
+  { id: "site_visits", label: { en: "Website visits", ar: "زيارات الموقع" }, description: { en: "People who opened your website from a Yolias link (pixel).", ar: "أشخاص فتحوا موقعك من رابط أرسله يولياس (البيكسل)." }, format: "count", compute: (c) => c.siteVisits, defaultVisible: false },
+  { id: "checkouts", label: { en: "Checkouts initiated", ar: "بدء الدفع" }, description: { en: "InitiateCheckout events from people Yolias sent.", ar: "أحداث بدء الدفع من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.checkouts, defaultVisible: false },
+  { id: "purchases", label: { en: "Purchases", ar: "عمليات الشراء" }, description: { en: "Purchase events from people Yolias sent (pixel).", ar: "أحداث الشراء من أشخاص أرسلهم يولياس (البيكسل)." }, format: "count", compute: (c) => c.purchases, defaultVisible: false },
+  { id: "cost_per_purchase", label: { en: "Cost per purchase", ar: "تكلفة الشراء" }, description: { en: "Spend ÷ purchases.", ar: "الإنفاق ÷ عمليات الشراء." }, format: "usd", compute: (c) => cost(c.spendUsd, c.purchases), defaultVisible: false },
+  { id: "purchase_value", label: { en: "Purchase value", ar: "قيمة المبيعات" }, description: { en: "Total value of the purchases (USD).", ar: "إجمالي قيمة المشتريات (بالدولار)." }, format: "usd", compute: (c) => c.purchaseValue, defaultVisible: false },
+  { id: "purchase_roas", label: { en: "Purchase ROAS", ar: "العائد على الإنفاق (المبيعات)" }, description: { en: "Purchase value ÷ spend.", ar: "قيمة المبيعات ÷ الإنفاق." }, format: "ratio", compute: (c) => (c.spendUsd > 0 && c.purchaseValue > 0 ? c.purchaseValue / c.spendUsd : null), defaultVisible: false },
+  { id: "form_leads", label: { en: "Website leads (forms)", ar: "نماذج الموقع" }, description: { en: "Lead events (forms filled) from people Yolias sent.", ar: "أحداث ملء النموذج من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.formLeads, defaultVisible: false },
+  { id: "cost_per_form_lead", label: { en: "Cost per website lead", ar: "تكلفة النموذج" }, description: { en: "Spend ÷ website leads.", ar: "الإنفاق ÷ نماذج الموقع." }, format: "usd", compute: (c) => cost(c.spendUsd, c.formLeads), defaultVisible: false },
+  { id: "cost_per_lead", label: { en: "Cost per lead", ar: "تكلفة العميل المحتمل" }, description: { en: "Spend ÷ people and companies found that match the targeting.", ar: "الإنفاق ÷ الأشخاص والشركات المطابقين للاستهداف." }, format: "usd", compute: (c) => cost(c.spendUsd, c.foundPeople + c.foundCompanies), defaultVisible: false },
   { id: "cac", label: { en: "Customer acquisition cost", ar: "تكلفة اكتساب العميل" }, description: { en: "Spend ÷ deals won.", ar: "الإنفاق ÷ الصفقات المكسوبة." }, format: "usd", compute: (c) => cost(c.spendUsd, c.customers), defaultVisible: false },
   { id: "roi", label: { en: "ROI", ar: "العائد على الاستثمار" }, description: { en: "(Revenue − spend) ÷ spend, when both are known.", ar: "(الإيرادات − الإنفاق) ÷ الإنفاق، حين يُعرف الاثنان." }, format: "pct", compute: (c) => (c.spendUsd > 0 && c.revenueUsd > 0 ? (c.revenueUsd - c.spendUsd) / c.spendUsd : null), defaultVisible: false },
   { id: "roas", label: { en: "Return on spend", ar: "العائد على الإنفاق" }, description: { en: "Revenue ÷ spend, when both are known.", ar: "الإيرادات ÷ الإنفاق، حين يُعرف الاثنان." }, format: "ratio", compute: (c) => (c.spendUsd > 0 && c.revenueUsd > 0 ? c.revenueUsd / c.spendUsd : null), defaultVisible: false },
@@ -141,3 +157,45 @@ export function rangeBounds(preset: RangePreset, now: Date, custom?: { from?: st
   }
 }
 export const inRange = (at: string | null | undefined, r: { from: string | null; to: string | null }) => Boolean(at) && (!r.from || at! >= r.from) && (!r.to || at! < r.to);
+
+// ---------------------------------------------------------------- objectives (D-274)
+
+export type Objective = "meetings" | "purchases" | "form_leads" | "qualified_leads";
+export const OBJECTIVES: Objective[] = ["meetings", "purchases", "form_leads", "qualified_leads"];
+
+/** Each objective's result and cost per result, like an ads platform's "Results" columns. */
+export const RESULT_OF: Record<Objective, { result: string; cost: string }> = {
+  meetings: { result: "meetings", cost: "cost_per_meeting" },
+  purchases: { result: "purchases", cost: "cost_per_purchase" },
+  form_leads: { result: "form_leads", cost: "cost_per_form_lead" },
+  qualified_leads: { result: "found", cost: "cost_per_lead" },
+};
+
+/** Ready column sets per objective (the member can still add, move and remove columns). */
+export const PRESETS: Record<Objective, string[]> = {
+  meetings: ["found", "sent", "open_rate", "reply_rate", "interested", "visits", "meetings", "cost_per_meeting", "held", "spend"],
+  purchases: ["found", "sent", "open_rate", "reply_rate", "site_visits", "checkouts", "purchases", "cost_per_purchase", "purchase_value", "purchase_roas", "spend"],
+  form_leads: ["found", "sent", "open_rate", "reply_rate", "site_visits", "form_leads", "cost_per_form_lead", "spend"],
+  qualified_leads: ["found", "found_companies", "found_people", "cost_per_lead", "spend"],
+};
+export const isObjective = (v: unknown): v is Objective => typeof v === "string" && (OBJECTIVES as string[]).includes(v);
+
+// ---------------------------------------------------------------- custom metrics (D-274)
+
+export interface CustomMetricDef { id: string; name: string; a: string; op: "+" | "-" | "*" | "/"; b: string; format: MetricFormat }
+
+/** Pure: a custom metric (a name and "metric op metric") as a column like the others; null when an operand can't be worked out. */
+export function customMetric(d: CustomMetricDef): Metric {
+  const A = metric(d.a), B = metric(d.b);
+  return {
+    id: `cm:${d.id}`, label: { en: d.name, ar: d.name },
+    description: { en: `${A?.label.en ?? d.a} ${d.op} ${B?.label.en ?? d.b}`, ar: `${A?.label.ar ?? d.a} ${d.op} ${B?.label.ar ?? d.b}` },
+    format: d.format, defaultVisible: false,
+    compute: (c) => {
+      const x = A?.compute(c), y = B?.compute(c);
+      if (x == null || y == null) return null;
+      if (d.op === "/") return y === 0 ? null : x / y;
+      return d.op === "+" ? x + y : d.op === "-" ? x - y : x * y;
+    },
+  };
+}

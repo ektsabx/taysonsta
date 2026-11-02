@@ -1,5 +1,6 @@
 "use server";
 
+import { aimOf, cleanCtaUrl } from "@/lib/outreach/aim";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -44,7 +45,7 @@ export type BuilderResult<T = object> = ({ ok: true } & T) | { ok: false; error:
 
 function row(s: BuilderState) {
   return {
-    name: (s.name.trim() || s.adSets[0]?.name || "Campaign").slice(0, 160), objective: s.objective, aim: "meeting" as const, cta_url: null,
+    name: (s.name.trim() || s.adSets[0]?.name || "Campaign").slice(0, 160), objective: s.objective, aim: aimOf(s.objective), cta_url: s.objective === "purchases" || s.objective === "form_leads" ? cleanCtaUrl(s.websiteUrl) : null,
     contact_target: s.contactTarget, message_name: s.messageName.trim() || null,
     description: s.offer.trim() || null, offer_id: s.offerId, channel: "email" as never, channels: [s.channel],
     budget_type: s.budgetType, budget_usd: s.budgetUsd, timezone: s.timezone, run_days: s.runDays,
@@ -242,19 +243,21 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
     const k = gaps[0].key;
     return { ok: false, error: k === "budget" ? fmt(e.budget, { usd: usd(minBudgetUsd(rate)) }) : e[k] };
   }
-  if (!confirmed) return { ok: false, error: e.confirm };
+  if (!confirmed && s.objective !== "qualified_leads") return { ok: false, error: e.confirm };
   const startsAt = zonedIso(s.startDate, s.startTime, s.timezone), endsAt = zonedIso(s.endDate, s.endTime, s.timezone);
   if (endsAt && Date.parse(endsAt) <= Math.max(Date.now(), startsAt ? Date.parse(startsAt) : 0)) return { ok: false, error: e.dates };
   const admin = createAdminClient();
-  const { data: mb } = await admin.from("mailboxes").select("id, status").eq("id", s.mailboxId!).eq("workspace_id", session.workspace.id).eq("user_id", session.userId).maybeSingle();
-  if (!mb || mb.status !== "connected") return { ok: false, error: e.mailbox };
+  // D-274: a qualified-leads campaign only finds and saves people (Leads): no mailbox, no messages.
+  const findOnly = s.objective === "qualified_leads";
+  const { data: mb } = findOnly ? { data: null } : await admin.from("mailboxes").select("id, status").eq("id", s.mailboxId!).eq("workspace_id", session.workspace.id).eq("user_id", session.userId).maybeSingle();
+  if (!findOnly && (!mb || mb.status !== "connected")) return { ok: false, error: e.mailbox };
   const research = decide(await loadAiSettings(session.workspace.id), "research", "search_prospects");
   if (s.adSets.some((a) => a.source === "new") && !research.allowed) return { ok: false, error: t.ws.ai.rules.searchBlocked };
 
   // Openings for every audience before anything starts (the writer needs them).
   const adSets: AdSet[] = [];
   for (const a of s.adSets) {
-    if (a.angleA.trim()) { adSets.push(a); continue; }
+    if (a.angleA.trim() || findOnly) { adSets.push(a); continue; }
     const r = await approachFor(session, s, a);
     if (!r) return { ok: false, error: e.approach };
     adSets.push({ ...a, ...r });
@@ -265,8 +268,8 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
   const id = saved.id;
   const db = await createClient();
   const people = budgetPeople(s, rate);
-  await db.from("outreach_campaigns").update({ budget_prospects: people || null, wizard: null, goal: adSets[0].angleA, variant_b: adSets[0].angleB || null }).eq("id", id);
-  await followUpPlan(id, session.workspace.id);
+  await db.from("outreach_campaigns").update({ budget_prospects: people || null, wizard: null, goal: adSets[0].angleA || null, variant_b: adSets[0].angleB || null }).eq("id", id);
+  if (!findOnly) await followUpPlan(id, session.workspace.id);
 
   const finders = adSets.filter((a) => a.source === "new" || a.audienceId);
   const share = finders.length ? Math.floor(people / finders.length) : 0;
@@ -276,9 +279,12 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
     if (w === "noPlan" || w === "noCredit") return { ok: false, error: w === "noPlan" ? e.noPlan : e.noCredit };
     if (w) warnings.push(w);
   }
-  const go = await approveCampaign({ workspaceId: session.workspace.id, userId: session.userId, role: session.role, campaignId: id, mailboxId: mb.id, autoReply: true, launch: true });
+  const go = await approveCampaign({ workspaceId: session.workspace.id, userId: session.userId, role: session.role, campaignId: id, mailboxId: mb?.id ?? null, autoReply: !findOnly, launch: true });
   if (!go.ok) return { ok: false, error: e.mailbox };
-  await logCampaign(admin, session.workspace.id, id, "note", "Yolias is finding the first people for each audience. It writes to each one from your mailbox in your hours, answers the replies and books the meetings.",
+  await logCampaign(admin, session.workspace.id, id, "note", findOnly
+    ? "Yolias is finding the people and companies that match each audience. They are saved in Leads; no one is contacted."
+    : s.objective === "meetings" ? "Yolias is finding the first people for each audience. It writes to each one from your mailbox in your hours, answers the replies and books the meetings."
+    : "Yolias is finding the first people for each audience. It writes to each one from your mailbox in your hours, answers the replies and sends them your website link.",
     { audiences: adSets.length, people, budget_usd: s.budgetUsd, budget_type: s.budgetType });
   revalidatePath("/outreach", "layout");
   revalidatePath("/dashboard");

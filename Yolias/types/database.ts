@@ -13,7 +13,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 import type {
   AcquisitionSource, ActorKind, AutomationRow, AutomationRunRow, BusinessOfferRow, CompetitorRow, CrmLeadRow, CustomerProfileRow,
   InboxThreadRow, LeadActivityRow, LeadRow, LeadSource, LeadStage, LeadTaskRow, MeetingRow, BookingPageRow, CalendarConnectionRow, OutreachCampaignRow, OutreachEnrollmentRow,
-  OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow, AudienceGroupRow, AudienceRow, SavedViewRow, BookingVisitRow,
+  OutreachStepRow, WorkspaceAiSettingsRow, WorkspaceKnowledgeRow, AudienceGroupRow, AudienceRow, SavedViewRow, BookingVisitRow, PixelRow, PixelEventRow, CustomMetricRow,
 } from "./acquisition";
 export type * from "./acquisition";
 
@@ -1064,6 +1064,9 @@ export interface Database {
       campaign_views: Table<SavedViewRow, "workspace_id" | "user_id" | "name">;
       campaign_activity: Table<CampaignActivityRow, "workspace_id" | "campaign_id" | "kind" | "body">;
       booking_visits: Table<BookingVisitRow, "workspace_id" | "host_id" | "slug" | "visitor">;
+      pixels: Table<PixelRow, "workspace_id" | "public_id">;
+      pixel_events: Table<PixelEventRow, "pixel_id" | "workspace_id" | "event">;
+      custom_metrics: Table<CustomMetricRow, "workspace_id" | "name" | "a" | "op" | "b">;
       learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
     };

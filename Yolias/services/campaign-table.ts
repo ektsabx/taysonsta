@@ -53,7 +53,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   const groups = (groupRows ?? []) as AudienceGroupRow[];
   const searchIds = [...new Set([...groups.map((g) => g.search_campaign_id), ...camps.map((c) => c.source_campaign_id)].filter((x): x is string => Boolean(x)))];
 
-  const [msgs, enrollments, meetings, ledger, prospects, companies, visits, rate] = await Promise.all([
+  const [msgs, enrollments, meetings, ledger, prospects, companies, visits, pixel, rate] = await Promise.all([
     paged<Msg>((a, b) => db.from("outreach_messages").select("outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, step_position, variant, recipient_opened_at")
       .eq("workspace_id", workspaceId).not("lead_id", "is", null).order("created_at").range(a, b)),
     paged<{ id: string; campaign_id: string; lead_id: string; audience_group_id: string | null }>((a, b) => db.from("outreach_enrollments").select("id, campaign_id, lead_id, audience_group_id").in("campaign_id", ids).range(a, b)),
@@ -63,6 +63,8 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     // D-274: companies found too (a search may find companies and no people yet).
     searchIds.length ? paged<{ campaign_id: string | null; created_at: string }>((a, b) => db.from("companies").select("campaign_id, created_at").in("campaign_id", searchIds).range(a, b)) : Promise.resolve([]),
     paged<{ campaign_id: string | null; lead_id: string | null; started_at: string | null; meeting_id: string | null; created_at: string; updated_at: string }>((a, b) => db.from("booking_visits").select("campaign_id, lead_id, started_at, meeting_id, created_at, updated_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
+    // D-274: pixel events credited to these campaigns.
+    paged<{ campaign_id: string | null; group_id: string | null; lead_id: string | null; event: string; value: number | null; currency: string | null; visitor: string | null; created_at: string }>((a, b) => db.from("pixel_events").select("campaign_id, group_id, lead_id, event, value, currency, visitor, created_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
     prospectRate(workspaceId),
   ]);
 
@@ -161,6 +163,19 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     const o = u.campaign_id ? searchOwner.get(u.campaign_id) : null;
     if (o && inRange(u.created_at, range)) for (const k of keysFor(o.campaign, o.group)) { const { n } = bucket(k); n.prospectsUsed += u.prospects; n.spendUsd += u.prospects * rate; }
   }
+  // Pixel events: visits are people (each once), the others are events; purchase value in USD.
+  const visitors = new Map<string, Set<string>>();
+  for (const e of pixel) {
+    if (!e.campaign_id || !inRange(e.created_at, range)) continue;
+    for (const k of keysFor(e.campaign_id, e.group_id, e.lead_id)) {
+      const { n } = bucket(k);
+      if (e.event === "PageView") { const set = visitors.get(k) ?? new Set<string>(); set.add(e.lead_id ?? e.visitor ?? ""); visitors.set(k, set); }
+      else if (e.event === "InitiateCheckout") n.checkouts++;
+      else if (e.event === "Purchase") { n.purchases++; if (e.value != null && (!e.currency || e.currency === "USD")) n.purchaseValue += Number(e.value); }
+      else if (e.event === "Lead" || e.event === "CompleteRegistration") n.formLeads++;
+    }
+  }
+  for (const [k, set] of visitors) bucket(k).n.siteVisits = set.size;
   const counts = (k: string): Counts => {
     const b = sets.get(k), n = nums.get(k) ?? zeroCounts();
     return b ? { ...n, contacted: b.contacted.size, replies: b.replies.size, interested: b.interested.size, meetingRequests: b.requests.size, opened: b.opened.size, qualifiedLeads: b.qualified.size } : n;

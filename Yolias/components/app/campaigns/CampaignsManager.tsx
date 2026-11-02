@@ -2,18 +2,19 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDown, ArrowUp, ChevronDown, Columns3, Download, Filter, Folder, Layers, Mail, MoreHorizontal, Pin, Plus, RefreshCw, Search, Users, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowDown, ArrowUp, ChevronDown, Columns3, Download, Filter, Folder, Layers, Mail, MoreHorizontal, Pin, Plus, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
-import { METRICS, DEFAULT_COLUMNS, RANGE_PRESETS, cleanColumns, formatMetric, metric, zeroCounts, addCounts, type Counts, type RangePreset } from "@/lib/campaigns/metrics";
+import { METRICS, DEFAULT_COLUMNS, OBJECTIVES, PRESETS, customMetric, formatMetric, metric, zeroCounts, addCounts, type Counts, type CustomMetricDef, type Metric, type MetricFormat, type Objective, type RangePreset } from "@/lib/campaigns/metrics";
 import { countryLabel, formatNumber } from "@/lib/format";
-import { bulkCampaigns, bulkEdit, renameCampaign } from "@/app/(app)/outreach/manager-actions";
+import { bulkCampaigns, bulkEdit, createCustomMetric, deleteCustomMetric, renameCampaign } from "@/app/(app)/outreach/manager-actions";
 import { groupAction } from "@/app/(app)/outreach/[id]/actions";
 import { runOutreach } from "@/app/(app)/outreach/actions";
 import type { CampaignLine } from "@/services/campaign-table";
+import { DateRange } from "@/components/app/campaigns/DateRange";
 import { xlsx } from "@/lib/xlsx";
 import type { BreakRow, Dimension } from "@/services/campaign-detail";
 
@@ -39,8 +40,10 @@ type Breakdown = Exclude<Dimension, "step"> | "none";
 // Breakdown rows carry message counts only: the money and search columns don't apply to them.
 const BREAKDOWN_METRICS = new Set(["sent", "contacted", "open_rate", "opened", "reply_rate", "replies", "no_reply", "open_to_reply", "interested", "positive_rate", "meetings", "held", "show_rate", "meeting_rate", "delivery_rate", "bounced"]);
 
-export function CampaignsManager({ lines, members, range, from, to, refreshedAt, scope: inCampaign, breakdowns }: {
+export function CampaignsManager({ lines, members, range, from, to, refreshedAt, scope: inCampaign, breakdowns, custom = [], objective }: {
   lines: CampaignLine[]; members: { id: string; name: string }[]; range: RangePreset; from: string; to: string; refreshedAt: string;
+  /** D-274: the workspace's custom metrics, and (inside a campaign) its objective for the ready columns. */
+  custom?: CustomMetricDef[]; objective?: Objective;
   /** D-274: inside one campaign: only its audiences and messages. */
   scope?: { campaignId: string; editHref: string } | null;
   breakdowns?: Record<Dimension, BreakRow[]> | null;
@@ -48,15 +51,19 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const { t, locale } = useI18n();
   const m = t.ag.manager;
   const router = useRouter();
-  const pathname = usePathname();
-  const sp = useSearchParams();
   const toast = useToast();
   const [pending, start] = useTransition();
   const [level, setLevel] = useState<Level>(inCampaign ? "audiences" : "campaigns");
   const [breakdown, setBreakdown] = useState<Breakdown>("none");
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<Filters>(noFilters());
-  const [columns, setColumns] = useState<string[]>(DEFAULT_COLUMNS);
+  // D-274: custom metrics are columns like the others.
+  const customs = useMemo(() => custom.map(customMetric), [custom]);
+  const mx = (id: string): Metric | null => customs.find((x) => x.id === id) ?? metric(id);
+  const clean = (ids: unknown): string[] => (Array.isArray(ids) ? [...new Set(ids.filter((x): x is string => typeof x === "string" && Boolean(mx(x))))] : DEFAULT_COLUMNS);
+  const initial = objective ? PRESETS[objective] : DEFAULT_COLUMNS;
+  const [columns, setColumns] = useState<string[]>(initial);
+  const [making, setMaking] = useState(false);
   const [pinned, setPinned] = useState<string[]>([]);
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "created", dir: -1 });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -65,19 +72,20 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const [menu, setMenu] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [editing, setEditing] = useState(false);
-  const [custom, setCustom] = useState({ from, to });
   const n = (v: number) => formatNumber(v, locale);
 
-  // The member's own column choice is remembered in this browser (a convenience; saved views are the shared way).
+  // The member's own column choice is remembered in this browser (a convenience).
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(PREF_KEY) ?? "null") as { columns?: string[]; pinned?: string[] } | null;
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (saved?.columns) setColumns(cleanColumns(saved.columns));
-      if (saved?.pinned) setPinned(cleanColumns(saved.pinned));
+      if (saved?.columns && !objective) setColumns(clean(saved.columns));
+      if (saved?.pinned) setPinned(clean(saved.pinned));
     } catch { /* storage unavailable */ }
+    // Once, on load: the remembered columns (custom metrics known at that moment).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ columns, pinned })); } catch { /* ignore */ } }, [columns, pinned]);
+  useEffect(() => { if (objective) return; try { localStorage.setItem(PREF_KEY, JSON.stringify({ columns, pinned })); } catch { /* ignore */ } }, [columns, pinned, objective]);
   useEffect(() => {
     const close = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest?.(".cm-pop, .cm-menu, .cm-toggle")) { setOpen(null); setMenu(null); } };
     document.addEventListener("mousedown", close);
@@ -85,7 +93,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   }, []);
 
   const lang = locale === "ar" ? "ar" : "en";
-  const ordered = [...columns.filter((c) => pinned.includes(c)), ...columns.filter((c) => !pinned.includes(c))].map((id) => metric(id)!).filter(Boolean);
+  const ordered = [...columns.filter((c) => pinned.includes(c)), ...columns.filter((c) => !pinned.includes(c))].map((id) => mx(id)!).filter(Boolean);
   const memberName = (id: string | null) => members.find((x) => x.id === id)?.name ?? "";
   const countries = useMemo(() => [...new Set(lines.flatMap((l) => l.countries))].sort(), [lines]);
 
@@ -106,6 +114,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
 
   // The optimizer's word on an audience (D-274): its share of the budget, or why it gets none.
   const O = t.ag.rx.opt;
+  const CM = t.ag.rx.cm;
   const C = t.ag.rx.cp;
   const optLine = (g: CampaignLine["groups"][number]) => {
     if (g.status !== "active" || g.share == null) return "";
@@ -118,6 +127,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
       ? campaigns.filter((l) => !onlySelected || selected.has(l.id)).map((l) => ({
         id: l.id, level, name: l.name, sub: [l.ownerId && members.length > 1 ? memberName(l.ownerId) : "", fmt(t.ag.manager.colPerDay, { n: String(l.dailyLimit ?? 30) })].filter(Boolean).join(" · "),
         status: l.status, statusLabel: t.ag.status[l.status], href: `/outreach/${l.id}`, counts: l.counts, campaignId: l.id, approved: l.approved, perDay: l.dailyLimit,
+        badge: l.status === "active" && l.groups.some((g) => g.status === "active" && g.learning) ? t.ag.rx.opt.learning : null,
       }))
       : level === "audiences"
         ? scope.flatMap((l) => l.groups.map((g) => ({
@@ -130,7 +140,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
           href: inCampaign ? inCampaign.editHref : `/outreach/${l.id}`, counts: o.counts, campaignId: l.id, approved: l.approved,
         }))));
     const hit = base.filter((r) => !s || r.name.toLowerCase().includes(s) || r.sub.toLowerCase().includes(s));
-    const val = (r: Row) => sort.key === "name" ? r.name.toLowerCase() : sort.key === "status" ? r.status : sort.key === "created" ? 0 : metric(sort.key)?.compute(r.counts) ?? -Infinity;
+    const val = (r: Row) => sort.key === "name" ? r.name.toLowerCase() : sort.key === "status" ? r.status : sort.key === "created" ? 0 : mx(sort.key)?.compute(r.counts) ?? -Infinity;
     return sort.key === "created" ? hit : [...hit].sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * sort.dir);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, campaigns, scope, q, sort, onlySelected, selected, lang]);
@@ -139,13 +149,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const activeFilters = filters.status.length + filters.country.length + filters.owner.length
     + [filters.createdFrom, filters.createdTo, filters.spendMin, filters.spendMax, filters.meetingsMin, filters.meetingsMax].filter((x) => x != null && x !== "").length;
 
-  const setRange = (preset: RangePreset, f = "", tt = "") => {
-    const p = new URLSearchParams(sp.toString());
-    if (preset === "lifetime") p.delete("range"); else p.set("range", preset);
-    if (preset === "custom") { p.set("from", f); p.set("to", tt); } else { p.delete("from"); p.delete("to"); }
-    start(() => router.push(`${pathname}${p.size ? `?${p}` : ""}`));
-    setOpen(null);
-  };
+
   const run = <R extends { ok: boolean; message?: string }>(fn: () => Promise<R>, after?: (r: R) => void) => start(async () => {
     const r = await callAction(fn);
     if (isNetworkFailure(r)) { toast(t.feedback.errors.network, "error"); return; }
@@ -259,24 +263,15 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
             )}
           </div>
         )}
-        <div className="cm-wrap">
-          <button type="button" className="sdr-btn cm-toggle" onClick={() => setOpen(open === "range" ? null : "range")}>{m.ranges[range]}{range === "custom" && from ? ` · ${from} – ${to}` : ""}<ChevronDown /></button>
-          {open === "range" && (
-            <div className="cm-pop cm-range">
-              {RANGE_PRESETS.filter((r) => r !== "custom").map((r) => <button key={r} type="button" className={r === range ? "on" : ""} onClick={() => setRange(r)}>{m.ranges[r]}</button>)}
-              <div className="cm-custom"><strong>{m.ranges.custom}</strong>
-                <div className="cm-pair"><input className="sdr-input sm" type="date" aria-label={m.from} value={custom.from} onChange={(e) => setCustom({ ...custom, from: e.target.value })} /><input className="sdr-input sm" type="date" aria-label={m.to} value={custom.to} min={custom.from} onChange={(e) => setCustom({ ...custom, to: e.target.value })} /></div>
-                <button type="button" className="sdr-btn primary" disabled={!custom.from || !custom.to} onClick={() => setRange("custom", custom.from, custom.to)}>{m.apply}</button></div>
-            </div>
-          )}
-        </div>
+        <DateRange range={range} from={from} to={to} />
         <div className="cm-spacer" />
         <div className="cm-wrap">
           <button type="button" className="sdr-btn cm-toggle" onClick={() => setOpen(open === "columns" ? null : "columns")}><Columns3 />{m.columns}</button>
           {open === "columns" && (
             <div className="cm-pop cm-columns">
-              {[...columns, ...METRICS.map((x) => x.id).filter((id) => !columns.includes(id))].map((id) => {
-                const mm = metric(id)!; const on = columns.includes(id); const i = columns.indexOf(id);
+              <div className="cm-presets"><strong>{CM.presets}</strong><div className="cm-chips">{OBJECTIVES.map((o) => <button key={o} type="button" className="cm-chip" onClick={() => { setColumns(PRESETS[o]); setPinned([]); }}>{CM.presetNames[o]}</button>)}</div></div>
+              {[...columns, ...[...METRICS, ...customs].map((x) => x.id).filter((id) => !columns.includes(id))].map((id) => {
+                const mm = mx(id)!; const on = columns.includes(id); const i = columns.indexOf(id);
                 return (
                   <div key={id} className="cm-col" title={mm.description[lang]}>
                     <label><input type="checkbox" checked={on} onChange={() => setColumns(on ? columns.filter((x) => x !== id) : [...columns, id])} />{mm.label[lang]}</label>
@@ -288,7 +283,11 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
                   </div>
                 );
               })}
-              <button type="button" className="sdr-btn" onClick={() => { setColumns(DEFAULT_COLUMNS); setPinned([]); }}>{m.resetColumns}</button>
+              <div className="cm-custom-list"><strong>{CM.custom}</strong>
+                {custom.map((d) => <div key={d.id} className="cm-col"><span>{d.name}</span><button type="button" aria-label={CM.remove} onClick={() => run(() => deleteCustomMetric(d.id))}><Trash2 /></button></div>)}
+                <button type="button" className="sdr-btn sm" onClick={() => { setMaking(true); setOpen(null); }}><Plus />{CM.create}</button>
+              </div>
+              <button type="button" className="sdr-btn" onClick={() => { setColumns(initial); setPinned([]); }}>{m.resetColumns}</button>
             </div>
           )}
         </div>
@@ -334,8 +333,8 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
         <table className="cm-table">
           <thead>
             <tr>
-              {level !== "messages" && <th className="cm-switch" aria-label={C.toggle} />}
               {level === "campaigns" && <th className="cm-check"><input type="checkbox" aria-label={m.tabs.campaigns} checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(rows.map((r) => r.id)))} /></th>}
+              {level !== "messages" && <th className="cm-switch">On/Off</th>}
               <th className="cm-name">{head("name", level === "campaigns" ? m.colName : level === "audiences" ? m.colAudience : m.colOpening)}</th>
               <th>{head("status", m.colStatus)}</th>
               {ordered.map((c) => <th key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`} title={c.description[lang]}>{head(c.id, c.label[lang])}</th>)}
@@ -346,15 +345,15 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
             {!rows.length && <tr><td colSpan={ordered.length + 5} className="cm-none">{level === "audiences" ? m.noAudiences : level === "messages" ? m.noMessages : m.noMatch}</td></tr>}
             {rows.map((r) => (
               <tr key={r.id} className={level === "campaigns" && selected.has(r.id) ? "sel" : ""}>
-                {level !== "messages" && <td className="cm-switch">{switchFor(r)}</td>}
                 {level === "campaigns" && <td className="cm-check"><input type="checkbox" aria-label={r.name} checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} /></td>}
+                {level !== "messages" && <td className="cm-switch">{switchFor(r)}</td>}
                 <td className="cm-name">
                   {renaming?.id === r.id ? (
                     <form onSubmit={(e) => { e.preventDefault(); run(() => renameCampaign(r.id, renaming.name), () => setRenaming(null)); }}>
                       <input className="sdr-input sm" autoFocus dir="auto" value={renaming.name} maxLength={160} onChange={(e) => setRenaming({ id: r.id, name: e.target.value })} onBlur={() => setRenaming(null)} />
                     </form>
                   ) : (
-                    <span className="cm-name-cell"><Link href={r.href} dir="auto">{r.name}</Link>{r.badge && <span className="cm-badge">{r.badge}</span>}<small dir="auto" className={level === "messages" ? "cm-clip" : ""}>{r.sub}</small></span>
+                    <span className="cm-name-cell"><span className="cm-name-row"><Link href={r.href} dir="auto">{r.name}</Link>{r.badge && <span className="cm-badge">{r.badge}</span>}</span><small dir="auto" className={level === "messages" ? "cm-clip" : ""}>{r.sub}</small></span>
                   )}
                 </td>
                 <td><span className={`cd-status st-${r.status}`}>{r.statusLabel}</span></td>
@@ -394,6 +393,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
       )}
       <p className="cm-muted cm-foot">{m.unavailable}</p>
 
+      {making && <CustomMetricForm onClose={() => setMaking(false)} onSave={(d) => run(() => createCustomMetric(d), () => setMaking(false))} pending={pending} />}
       {editing && <BulkEdit n={selected.size} members={members} onClose={() => setEditing(false)} onSave={(patch) => run(() => bulkEdit([...selected], patch), () => setEditing(false))} pending={pending} />}
     </div>
   );
@@ -420,6 +420,28 @@ function BulkEdit({ n, members, onClose, onSave, pending }: { n: number; members
             ...(owner ? { ownerId: owner } : {}), ...(end ? { endsAt: new Date(`${end}T23:59:00`).toISOString() } : {}),
             ...(daily ? { dailyLimit: Number(daily) } : {}), ...(budget ? { budgetUsd: Number(budget) } : {}),
           })}>{m.save}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CustomMetricForm({ onClose, onSave, pending }: { onClose: () => void; onSave: (d: { name: string; a: string; op: "+" | "-" | "*" | "/"; b: string; format: MetricFormat }) => void; pending: boolean }) {
+  const { t, locale } = useI18n();
+  const CM = t.ag.rx.cm;
+  const lang = locale === "ar" ? "ar" : "en";
+  const [d, setD] = useState<{ name: string; a: string; op: "+" | "-" | "*" | "/"; b: string; format: MetricFormat }>({ name: "", a: "spend", op: "/", b: "site_visits", format: "usd" });
+  const pick = (k: "a" | "b") => <select className="form-input" value={d[k]} onChange={(e) => setD({ ...d, [k]: e.target.value })}>{METRICS.map((x) => <option key={x.id} value={x.id}>{x.label[lang]}</option>)}</select>;
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={CM.create} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-card cm-edit">
+        <h3>{CM.create}</h3>
+        <label>{CM.name}<input className="form-input" dir="auto" maxLength={60} placeholder={CM.namePh} value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} /></label>
+        <label>{CM.formula}<span className="cm-formula">{pick("a")}<select className="form-input cm-op" value={d.op} onChange={(e) => setD({ ...d, op: e.target.value as "+" | "-" | "*" | "/" })}>{(["/", "*", "+", "-"] as const).map((o) => <option key={o} value={o}>{o === "/" ? "÷" : o === "*" ? "×" : o}</option>)}</select>{pick("b")}</span></label>
+        <label>{CM.format}<select className="form-input" value={d.format} onChange={(e) => setD({ ...d, format: e.target.value as MetricFormat })}>{(["count", "pct", "usd", "ratio"] as const).map((f) => <option key={f} value={f}>{CM.formats[f]}</option>)}</select></label>
+        <div className="cm-edit-actions">
+          <button type="button" className="sdr-btn" onClick={onClose}>{CM.cancel}</button>
+          <button type="button" className="sdr-btn primary" disabled={pending || !d.name.trim()} onClick={() => onSave(d)}>{CM.save}</button>
         </div>
       </div>
     </div>

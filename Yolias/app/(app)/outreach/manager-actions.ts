@@ -9,7 +9,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { setCampaignRun } from "@/lib/outreach/execute";
 import { logCampaign } from "@/lib/campaigns/activity";
-import { cleanColumns } from "@/lib/campaigns/metrics";
+import { cleanColumns, metric } from "@/lib/campaigns/metrics";
 import { duplicateCampaign } from "./actions";
 import type { Json } from "@/types/database";
 
@@ -128,5 +128,29 @@ export async function deleteView(id: string): Promise<ManagerResult> {
   const db = await createClient();
   await db.from("campaign_views").delete().eq("id", id).eq("user_id", session.userId);
   revalidatePath("/outreach");
+  return { ok: true };
+}
+
+// Custom metrics (D-274): a name and a formula of two metrics, shared by the workspace.
+const customInput = z.object({ name: z.string().trim().min(1).max(60), a: z.string().max(40), op: z.enum(["+", "-", "*", "/"]), b: z.string().max(40), format: z.enum(["count", "pct", "usd", "ratio"]) });
+
+export async function createCustomMetric(input: z.input<typeof customInput>): Promise<ManagerResult<{ id: string }>> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  const p = customInput.safeParse(input);
+  if (!p.success || !metric(p.data.a) || !metric(p.data.b)) return { ok: false, error: t.ag.rx.cm.invalid };
+  const { count } = await createAdminClient().from("custom_metrics").select("id", { count: "exact", head: true }).eq("workspace_id", session.workspace.id);
+  if ((count ?? 0) >= 30) return { ok: false, error: t.ag.rx.cm.invalid };
+  const { data, error } = await createAdminClient().from("custom_metrics").insert({ ...p.data, workspace_id: session.workspace.id, created_by: session.userId }).select("id").single();
+  if (error || !data) return { ok: false, error: t.ag.rx.cm.invalid };
+  revalidatePath("/outreach", "layout");
+  return { ok: true, id: data.id, message: t.ag.rx.cm.saved };
+}
+
+export async function deleteCustomMetric(id: string): Promise<ManagerResult> {
+  const session = await requireSession();
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "" };
+  await createAdminClient().from("custom_metrics").delete().eq("id", id).eq("workspace_id", session.workspace.id);
+  revalidatePath("/outreach", "layout");
   return { ok: true };
 }

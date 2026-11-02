@@ -254,6 +254,8 @@ export const agentTools = [
         meetings: c.meetings, confirmed: c.confirmed, held: c.held, spendUsd: Math.round(c.spendUsd * 100) / 100, costPerMeetingUsd: c.meetings && c.spendUsd ? Math.round((c.spendUsd / c.meetings) * 100) / 100 : null,
         costPerHeldUsd: c.held && c.spendUsd ? Math.round((c.spendUsd / c.held) * 100) / 100 : null, foundPeople: c.foundPeople, foundCompanies: c.foundCompanies, opened: c.opened, noReply: Math.max(c.contacted - c.replies, 0),
         linkVisits: c.visits, linkBooked: c.linkBooked, linkAbandoned: c.abandoned,
+        siteVisits: c.siteVisits, checkouts: c.checkouts, purchases: c.purchases, purchaseValueUsd: Math.round(c.purchaseValue * 100) / 100, websiteLeads: c.formLeads,
+        costPerPurchaseUsd: c.purchases && c.spendUsd ? Math.round((c.spendUsd / c.purchases) * 100) / 100 : null,
       });
       return ok({ campaigns: lines.slice(0, LIST_MAX).map((l) => ({ id: l.id, name: l.name, status: l.status, url: `/outreach/${l.id}`, ...sum(l.counts), audiences: l.groups.map((g) => ({ name: g.name, status: g.status, budgetShare: g.share, learning: g.learning, ...sum(g.counts) })) })) });
     },

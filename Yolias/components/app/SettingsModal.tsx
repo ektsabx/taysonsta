@@ -559,6 +559,8 @@ function UsageTab({ data }: { data: ShellData }) {
 
   return (
     <div className="setting-group">
+      {/* D-274 (owner): the account spending limit lives with the usage. */}
+      <SpendingLimit />
       <div className="usage-head" data-setting="plan-usage">
         <div>
           <div className="setting-label">{u.title}</div>
@@ -722,7 +724,6 @@ function BillingTab({ data }: { data: ShellData }) {
 
       {canManage && (
         <>
-          <SpendingLimit />
           <section className="billing-section" data-setting="payment">
             <h4>{b.payment}</h4>
             <div className="billing-row">

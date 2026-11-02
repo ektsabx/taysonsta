@@ -83,21 +83,7 @@ export function BookingPageForm({ page, link, calendar, zones }: {
           <label>{p.window}{select("window_days", WINDOW, (n) => fmt(p.daysN, { n: String(n) }))}</label>
         </div>
 
-        <h3>{p.moreTypes}</h3>
-        <p className="meet-muted">{p.moreTypesHint}</p>
-        <div className="meet-typelist">
-          {v.types.map((x, i) => (
-            <div key={x.key} className="meet-typerow">
-              <input className="form-input" value={x.title} maxLength={120} placeholder={p.name} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} dir="auto" />
-              <select className="form-input" value={x.duration_min} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, duration_min: Number(e.target.value) } : y)))}>
-                {DURATIONS.map((d) => <option key={d} value={d}>{minutes(d)}</option>)}
-              </select>
-              <input className="form-input" value={x.description} maxLength={500} placeholder={p.lineHint} onChange={(e) => set("types", v.types.map((y, j) => (j === i ? { ...y, description: e.target.value } : y)))} dir="auto" />
-              <button type="button" className="sdr-icon-btn" aria-label={p.removeType} onClick={() => set("types", v.types.filter((_, j) => j !== i))}><Trash2 /></button>
-            </div>
-          ))}
-          {v.types.length < 3 && <button type="button" className="sdr-btn sm" onClick={() => set("types", [...v.types, { key: `t${Date.now().toString(36).slice(-6)}`, title: "", duration_min: 15, description: "" }])}><Plus />{p.addType}</button>}
-        </div>
+        {/* D-274 (owner): one meeting per page; no extra meeting types. */}
 
         <h3>{p.hours}</h3>
         <div className="meet-week">

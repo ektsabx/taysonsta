@@ -11,6 +11,7 @@ import { getLocale } from "@/lib/i18n/server";
 // the messenger opens from Help → Get support, on the side opposite Yolias
 // AI (Yolias AI docks at the end side: right in English, left in Arabic);
 // the booking page has no messenger at all (it's the member's guests' page).
+// D-274 (owner): no floating button anywhere; "Contact support" links open it.
 export async function SupportWidget({ inApp = false }: { inApp?: boolean } = {}) {
   const [w, locale] = await Promise.all([supportWidget(), getLocale()]);
   if (!w) return null;
@@ -26,7 +27,7 @@ export async function SupportWidget({ inApp = false }: { inApp?: boolean } = {})
       // Arabic pages put the app sidebar (and its account row) on the right:
       // the launcher sits on the left so it never covers them.
       data-position={inApp ? (locale === "ar" ? "right" : "left") : locale === "ar" ? "left" : "right"}
-      {...(inApp ? { "data-launcher": "hidden" } : {})}
+      data-launcher="hidden"
     />
   );
 }

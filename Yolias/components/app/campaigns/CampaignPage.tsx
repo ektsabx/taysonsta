@@ -9,7 +9,7 @@ import { fmt } from "@/lib/i18n/config";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
-import { formatMetric, metric, type Counts, type RangePreset } from "@/lib/campaigns/metrics";
+import { formatMetric, isObjective, metric, type Counts, type CustomMetricDef, type RangePreset } from "@/lib/campaigns/metrics";
 import { deleteDraft, duplicateCampaign, runOutreach } from "@/app/(app)/outreach/actions";
 import { CampaignsManager } from "@/components/app/campaigns/CampaignsManager";
 import type { CampaignLine } from "@/services/campaign-table";
@@ -26,9 +26,13 @@ import { activityText } from "@/lib/campaigns/activity-text";
 
 export type CampaignTab = "activity" | "conversations" | "meetings" | "settings";
 const TABS: CampaignTab[] = ["activity", "conversations", "meetings", "settings"];
-const KPIS = ["held", "cost_per_held", "spend", "found", "sent", "open_rate", "reply_rate", "meetings"] as const;
-// D-274: a qualified-leads campaign's result and cost per result.
-const LEAD_KPIS = ["qualified_leads", "cost_per_qualified_lead", "spend", "found", "sent", "open_rate", "reply_rate", "meetings"] as const;
+// D-274: each objective's result and cost per result first (a meetings campaign's result is a booked meeting).
+const KPIS: Record<string, string[]> = {
+  meetings: ["meetings", "cost_per_meeting", "spend", "found", "sent", "open_rate", "reply_rate", "held"],
+  purchases: ["purchases", "cost_per_purchase", "purchase_value", "purchase_roas", "spend", "site_visits", "sent", "reply_rate"],
+  form_leads: ["form_leads", "cost_per_form_lead", "spend", "site_visits", "found", "sent", "open_rate", "reply_rate"],
+  qualified_leads: ["found", "cost_per_lead", "spend", "found_companies", "found_people"],
+};
 
 export interface CampaignInfo {
   id: string; name: string; status: CampaignLine["status"]; budgetUsd: number | null; budgetType: "total" | "daily" | "monthly" | null;
@@ -38,9 +42,9 @@ export interface CampaignInfo {
   costCapUsd: number | null; trackOpens: boolean; optimizingFor: string | null; objective: string;
 }
 
-export function CampaignPage({ c, tab, range, from, to, line, prev, detail, activity, recommendations, refreshedAt }: {
+export function CampaignPage({ c, tab, range, from, to, line, prev, detail, activity, recommendations, refreshedAt, custom = [] }: {
   c: CampaignInfo; tab: CampaignTab; range: RangePreset; from: string; to: string; line: CampaignLine; prev: Counts | null; detail: CampaignDetailData;
-  activity: { id: number; kind: string; body: string; at: string; meta?: unknown }[]; recommendations: string[]; refreshedAt: string;
+  activity: { id: number; kind: string; body: string; at: string; meta?: unknown }[]; recommendations: string[]; refreshedAt: string; custom?: CustomMetricDef[];
 }) {
   const { t, locale } = useI18n();
   const P = t.ag.page;
@@ -119,7 +123,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
       </header>
 
       <div className="cp-kpis">
-        {(c.objective === "qualified_leads" ? LEAD_KPIS : KPIS).map((id, i) => {
+        {(KPIS[c.objective] ?? KPIS.meetings).map((id, i) => {
           const m = metric(id)!;
           const v = m.compute(line.counts), before = prev ? m.compute(prev) : null;
           const delta = v != null && before != null && before !== 0 ? (v - before) / before : null;
@@ -157,7 +161,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
         ) : <p className="ws-hint">{t.ag.manager.noMessages}</p>)}
       </section>
 
-      <CampaignsManager lines={[line]} members={[]} range={range} from={from} to={to} refreshedAt={refreshedAt} scope={{ campaignId: c.id, editHref }} breakdowns={detail.breakdowns} />
+      <CampaignsManager lines={[line]} members={[]} range={range} from={from} to={to} refreshedAt={refreshedAt} scope={{ campaignId: c.id, editHref }} breakdowns={detail.breakdowns} custom={custom} objective={isObjective(c.objective) ? c.objective : "meetings"} />
 
       <nav className="cp-tabs" role="tablist">
         {TABS.map((k) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => go("tab", k === "activity" ? null : k)}>{k === "activity" ? P.activity : P.tabs[k]}</button>)}

@@ -26,8 +26,16 @@ export function SpendingLimit() {
   if (!data) return null;
   const pct = data.limitUsd ? Math.min(100, (data.spentUsd / data.limitUsd) * 100) : 0;
   return (
-    <section className="billing-section" data-setting="spending-limit">
-      <h3>{L.title}</h3>
+    <section className="sl" data-setting="spending-limit">
+      <div className="sl-row">
+        <div className="sl-label"><strong>{L.title}</strong>{data.limitUsd == null && <span>{L.none}</span>}</div>
+        {data.canManage && (
+          <div className="sl-form">
+            <span className="cb-money"><span aria-hidden>$</span><input className="form-input num" type="number" min={1} step="1" inputMode="decimal" value={value} placeholder={L.none} aria-label={L.title} onChange={(e) => setValue(e.target.value)} /></span>
+            <button type="button" className="sdr-btn primary sm" disabled={pending || !value || Number(value) === data.limitUsd} onClick={() => act(() => setSpendingLimit(Number(value)))}>{L.save}</button>
+          </div>
+        )}
+      </div>
       {data.limitUsd != null && (
         <div className="sl-meter">
           <div className="sl-line"><strong><bdi dir="ltr">{usd(data.spentUsd)}</bdi></strong><span>{fmt(L.of, { usd: usd(data.limitUsd) })}</span>{data.since && <small>{fmt(L.since, { date: formatDate(data.since, locale) })}</small>}</div>
@@ -35,12 +43,10 @@ export function SpendingLimit() {
           {pct >= 100 && <p className="sl-reached">{L.reached}</p>}
         </div>
       )}
-      {data.canManage && (
-        <div className="sl-form">
-          <span className="cb-money"><span aria-hidden>$</span><input className="form-input num" type="number" min={1} step="1" inputMode="decimal" value={value} placeholder={L.none} aria-label={L.title} onChange={(e) => setValue(e.target.value)} /></span>
-          <button type="button" className="sdr-btn primary sm" disabled={pending || !value || Number(value) === data.limitUsd} onClick={() => act(() => setSpendingLimit(Number(value)))}>{L.save}</button>
-          {data.limitUsd != null && <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => { if (confirm(L.resetConfirm)) act(() => resetSpendingLimit()); }}>{L.reset}</button>}
-          {data.limitUsd != null && <button type="button" className="sdr-btn ghost sm" disabled={pending} onClick={() => act(() => setSpendingLimit(null))}>{L.remove}</button>}
+      {data.canManage && data.limitUsd != null && (
+        <div className="sl-actions">
+          <button type="button" className="sdr-btn sm" disabled={pending} onClick={() => { if (confirm(L.resetConfirm)) act(() => resetSpendingLimit()); }}>{L.reset}</button>
+          <button type="button" className="sdr-btn ghost sm" disabled={pending} onClick={() => act(() => setSpendingLimit(null))}>{L.remove}</button>
         </div>
       )}
     </section>

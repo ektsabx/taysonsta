@@ -2579,8 +2579,7 @@ html[data-theme="dark"] .type-pill.type-person { background: #1e293b; color: #93
 @media (max-width: 640px) { .cd-cards { grid-template-columns: 1fr 1fr; gap: 8px; } .cd-cards .ov-card { padding: 12px; } }
 
 /* D-274: Yolias AI docked on the end side, like an ads manager's business assistant; the page makes room for it */
-.ay-panel { position: fixed; top: 0; bottom: 0; inset-inline-end: 0; width: 400px; z-index: 70; display: flex; flex-direction: column; background: var(--paper); border-inline-start: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.08); }
-html[dir="rtl"] .ay-panel { box-shadow: 8px 0 24px rgba(0,0,0,.08); }
+.ay-panel { position: fixed; top: 0; bottom: 0; inset-inline-end: 0; width: 400px; z-index: 70; display: flex; flex-direction: column; background: var(--paper); border-inline-start: 1px solid var(--line); }
 html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .ay-head { display: flex; align-items: center; gap: 4px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .ay-spacer { flex: 1; }
@@ -2628,3 +2627,5 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
   .meet-pick { grid-template-columns: minmax(0, 1fr); }
   .meet-days, .meet-times { max-height: none; }
 }
+
+.ay-logo { width: 56px; height: auto; display: block; }

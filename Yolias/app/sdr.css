@@ -978,3 +978,49 @@ a.meet-tag { text-decoration: none; color: inherit; }
 .cb-objective:not(.on) { border-color: var(--line); box-shadow: none; }
 .cb-objective:not(.on) > svg:first-child { color: var(--muted); }
 .cb-objective > div { flex: 1; min-width: 0; }
+.cm-name-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cm-name-row .cm-badge { margin-inline-start: 0; }
+th.cm-switch { font-size: .74rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.sl { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 16px; }
+.sl-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sl-label { display: grid; gap: 2px; }
+.sl-label span { color: var(--muted); font-size: .8rem; }
+.sl-form .cb-money { max-width: 180px; }
+.sl-actions { display: flex; gap: 8px; }
+.cb-warn { color: var(--red) !important; }
+
+/* D-274: Events Manager, after Facebook's */
+.ev-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ev-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ev-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--purple, #7c3aed) 12%, transparent); color: var(--purple, #7c3aed); flex: none; }
+.ev-id h2 { margin: 0; font-size: 1.25rem; }
+.ev-id p { margin: 2px 0 0; color: var(--muted); font-size: .82rem; display: flex; align-items: center; gap: 6px; }
+.ev-dot { width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+.ev-dot.on { background: var(--green); }
+.ev-actions { display: flex; gap: 8px; align-items: center; }
+.ev-total { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.ev-bars .cp-bar .m { width: 70%; }
+.ev-setup-note { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--purple, #7c3aed) 35%, var(--line)); background: color-mix(in srgb, var(--purple, #7c3aed) 6%, transparent); }
+.ev-setup-note span { flex: 1; min-width: 220px; color: var(--muted); font-size: .88rem; }
+.ev-code { position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--table-head); }
+.ev-code pre { margin: 0; padding: 14px 16px; padding-inline-end: 96px; overflow-x: auto; font-size: .78rem; line-height: 1.55; white-space: pre; text-align: left; }
+.ev-code .sdr-btn { position: absolute; top: 8px; inset-inline-end: 8px; }
+.ev-setup { display: grid; gap: 16px; }
+.ev-snips { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 14px; align-items: center; margin: 0; }
+.ev-snips dt { font-weight: 700; font-size: .84rem; }
+.ev-snips dd { margin: 0; min-width: 0; }
+.ev-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ev-list li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .86rem; }
+.ev-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.ev-url { color: var(--muted); font-size: .78rem; flex: 1; min-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-list small { color: var(--muted); }
+.ev-settings { display: grid; gap: 14px; max-width: 560px; }
+@media (max-width: 640px) { .ev-snips { grid-template-columns: minmax(0, 1fr); } }
+.cm-presets, .cm-custom-list { display: grid; gap: 6px; padding-bottom: 8px; margin-bottom: 6px; border-bottom: 1px solid var(--line); }
+.cm-presets strong, .cm-custom-list strong { font-size: .76rem; color: var(--muted); }
+.cm-formula { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); gap: 6px; }
+.ev-code { direction: ltr; text-align: left; }
+.ev-code .sdr-btn { right: 8px; left: auto; }
+.ev-code pre { padding-right: 96px; padding-left: 16px; }
+.ev-code { max-width: 100%; overflow: hidden; }
+.ev-code pre { white-space: pre-wrap; word-break: break-all; }

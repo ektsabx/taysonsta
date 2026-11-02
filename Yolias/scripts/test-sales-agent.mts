@@ -390,6 +390,30 @@ try {
   assert.ok(waited.status === "scheduled" && Date.parse(waited.next_run_at!) > Date.now() + 60_000, "no budget today: it waits");
   console.log("✓ optimizer");
 
+  // ── 13. D-274: the pixel credits website events to the campaign; finding-only campaigns contact no one ──
+  const { ensurePixel, recordPixelEvent } = await import("@/lib/pixel.ts");
+  const px = await ensurePixel(A.wsId);
+  assert.equal((await ensurePixel(A.wsId)).id, px.id, "one pixel per workspace");
+  const yc = thread(0).lead_id!;
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "PageView", url: "https://shop.example.com/", yc, vid: "v-test-1" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "InitiateCheckout", url: "https://shop.example.com/cart", yc, vid: "v-test-1" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Purchase", value: 120, currency: "USD", url: "https://shop.example.com/thanks", yc, vid: "v-test-1", event_id: "order-1" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Purchase", value: 120, currency: "USD", yc, vid: "v-test-1", event_id: "order-1" }), "ignored", "the same order once");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://other.example.org/" }), "ok", "events without a Yolias link are kept, not credited");
+  await admin.from("pixels").update({ allowed_domains: ["example.com"] }).eq("id", px.id);
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://evil.test/" }), "ignored", "only allowed domains");
+  const { data: credited } = await admin.from("pixel_events").select("campaign_id, group_id").eq("pixel_id", px.id).eq("event", "Purchase").single();
+  assert.deepEqual([credited!.campaign_id, credited!.group_id], [campId, group!.id], "credited to the campaign and the audience that reached them");
+  const [pl] = await campaignTable(A.wsId, { from: null, to: null }, { ids: [campId] });
+  assert.deepEqual([pl.counts.siteVisits, pl.counts.checkouts, pl.counts.purchases, pl.counts.purchaseValue], [1, 1, 1, 120], "website results in the campaign");
+  assert.equal(pl.groups[0].counts.purchases, 1, "and its audience");
+  // A qualified-leads campaign only finds and saves people.
+  const { enrollSearch } = await import("@/lib/agent-core/intake.ts");
+  await admin.from("outreach_campaigns").update({ objective: "qualified_leads" }).eq("id", campId);
+  assert.equal(await enrollSearch(admin as never, A.wsId, A.userId, campId, search!.id, group!.id), 0, "nobody joins a conversation");
+  await admin.from("outreach_campaigns").update({ objective: "meetings" }).eq("id", campId);
+  console.log("✓ pixel, website results, finding-only campaigns");
+
   console.log("\nAll sales-agent checks passed.");
 } finally {
   for (const id of users) {

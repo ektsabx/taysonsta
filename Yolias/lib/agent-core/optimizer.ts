@@ -29,7 +29,7 @@ import type { Json } from "@/types/database";
 // member chose. And once there are 3+ meetings, a lookalike of the people who
 // booked is kept up to date in Audiences for the member to use.
 
-export type OptEvent = "positive" | "booked" | "held";
+export type OptEvent = "positive" | "booked" | "held" | "purchase" | "form";
 export const EVENT_MIN = 5;
 export const LEARNING_CONTACTED = 30;
 const LOSER_CONTACTED = 60;
@@ -39,13 +39,22 @@ const SAMPLES = 2000;
 
 /** Pure: the result a campaign optimizes for, from its counts (null = still learning, equal shares). */
 export function pickEvent(c: { interested: number; meetings: number; held: number }): OptEvent | null {
-  if (c.held >= EVENT_MIN) return "held";
+  // D-274 (owner): a booked meeting is the result; held meetings are reported, not optimized for.
   if (c.meetings >= EVENT_MIN) return "booked";
   if (c.interested >= EVENT_MIN) return "positive";
   return null;
 }
 
-export const eventsOf = (c: { interested: number; meetings: number; held: number }, e: OptEvent) => (e === "held" ? c.held : e === "booked" ? c.meetings : c.interested);
+export const eventsOf = (c: { interested: number; meetings: number; held: number; purchases?: number; formLeads?: number }, e: OptEvent) =>
+  e === "held" ? c.held : e === "booked" ? c.meetings : e === "purchase" ? c.purchases ?? 0 : e === "form" ? c.formLeads ?? 0 : c.interested;
+
+/** D-274: the result an objective optimizes for, from its counts (positive replies until there are enough of the result). */
+export function eventFor(objective: string | null | undefined, c: { interested: number; meetings: number; held: number; purchases: number; formLeads: number }): OptEvent | null {
+  if (objective === "qualified_leads") return null;
+  if (objective === "purchases") return c.purchases >= EVENT_MIN ? "purchase" : c.interested >= EVENT_MIN ? "positive" : null;
+  if (objective === "form_leads") return c.formLeads >= EVENT_MIN ? "form" : c.interested >= EVENT_MIN ? "positive" : null;
+  return pickEvent(c);
+}
 
 /** A seeded random source (mulberry32), so a day's allocation is the same on every run and in tests. */
 export function seeded(seed: string): () => number {
@@ -130,8 +139,7 @@ export async function optimizeCampaign(db: Db, c: { id: string; workspace_id: st
   if (!line) return;
   const groups: GroupLine[] = line.groups.filter((g) => g.status === "active");
   if (!groups.length) return;
-  // A qualified-leads campaign's result is a positive reply (D-274); a meetings campaign climbs the ladder.
-  const event = c.objective === "qualified_leads" ? (line.counts.interested >= EVENT_MIN ? "positive" : null) : pickEvent(line.counts);
+  const event = eventFor(c.objective, line.counts);
   const { data: rows } = await db.from("audience_groups").select("id, budget_share").in("id", groups.map((g) => g.id));
   const before = new Map((rows ?? []).map((r) => [r.id, r.budget_share == null ? null : Number(r.budget_share)]));
   const { arms, capped } = allocate(

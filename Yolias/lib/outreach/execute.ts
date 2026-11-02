@@ -15,6 +15,7 @@ import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
 import { unsubscribeFooter, unsubscribePostUrl } from "@/lib/outreach/unsubscribe";
 import { openPixelUrl } from "@/lib/outreach/opens";
+import { trackedLink } from "@/lib/outreach/aim";
 import type { Json, MailboxRow, OutreachMessageRow } from "@/types/database";
 import type { OutreachCampaignRow } from "@/types/acquisition";
 
@@ -448,6 +449,18 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     return;
   }
 
+  // Purchases and form leads (D-274): interest gets the website link (tracked for this person) and a nudge, not a meeting.
+  if (c && (c.objective === "purchases" || c.objective === "form_leads") && (action === "offer_times" || action === "book_named_time")) {
+    const link = trackedLink(c.cta_url, leadId);
+    if (link) {
+      const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => linkReply(link, lang, analysis?.suggested_reply ?? null, c.objective === "form_leads" ? "form" : "buy"), c.objective === "form_leads" ? "Yolias answered and sent the form link." : "Yolias answered and sent the purchase link.");
+      if (sent) {
+        await note(c.objective === "form_leads" ? "Yolias sent the form link." : "Yolias sent the purchase link.", { link: true });
+        await logCampaign(db, mb.workspace_id, c.id, "replied", `${who} is interested. Yolias sent the ${c.objective === "form_leads" ? "form" : "purchase"} link.`, { lead_id: leadId });
+        return;
+      }
+    }
+  }
   // A "qualified leads" campaign (D-274): an interested person is the result. Yolias answers them,
   // then hands them to the member as a qualified lead with the conversation (a time they named is still booked).
   if (c && c.objective === "qualified_leads" && action === "offer_times") {
@@ -520,6 +533,16 @@ function bookingReply(link: string, lang: string | null, suggested: string | nul
   const line = times.length === 2
     ? (ar ? `يسعدني ذلك. هل يناسبك ${times[0]} أو ${times[1]} (بتوقيت ${city})؟ يمكنك تأكيد أحدهما أو اختيار وقت آخر من هنا: ${link}` : `Great. Would ${times[0]} or ${times[1]} (${city} time) work? Confirm one, or pick another time here: ${link}`)
     : (ar ? `يسعدني ذلك. اختر الوقت المناسب لك من هنا: ${link}` : `Great. Pick a time that suits you here: ${link}`);
+  return suggested ? `${suggested.trim()}\n\n${line}` : line;
+}
+
+/** The answer to interest in a purchase or form campaign (D-274): their answer, then the link, in the thread's language. */
+function linkReply(link: string, lang: string | null, suggested: string | null, kind: "buy" | "form"): string {
+  if (suggested && suggested.includes(link)) return suggested;
+  const ar = lang === "ar";
+  const line = kind === "form"
+    ? (ar ? `يسعدني ذلك. املأ النموذج القصير هنا وسنتواصل معك مباشرة: ${link}` : `Great. Fill in the short form here and we'll take it from there: ${link}`)
+    : (ar ? `يسعدني ذلك. يمكنك البدء مباشرة من هنا: ${link}` : `Great. You can get started right here: ${link}`);
   return suggested ? `${suggested.trim()}\n\n${line}` : line;
 }
 

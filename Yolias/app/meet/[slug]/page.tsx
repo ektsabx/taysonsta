@@ -18,7 +18,8 @@ export default async function MeetPage({ params, searchParams }: { params: Promi
   const sp = await searchParams;
   const l = sp.l;
   const locale = l === "ar" || l === "en" ? l : await getLocale();
-  const types = page.enabled ? await slotsByType(page) : [];
+  // D-274 (owner): the page offers one meeting, the member's own; no choice of meeting types.
+  const types = page.enabled ? (await slotsByType(page)).slice(0, 1) : [];
   return (
     <BookingForm
       locale={locale}

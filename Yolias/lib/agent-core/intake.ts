@@ -49,7 +49,9 @@ export async function intakeSweep(): Promise<{ joined: number }> {
 /** A search's people become conversations of the campaign's audience (rules applied by enrollLeads). */
 export async function enrollSearch(db: Db, ws: string, userId: string | null, outreachId: string, searchId: string, groupId: string | null): Promise<number> {
   if (!userId) return 0;
-  const { data: camp } = await db.from("outreach_campaigns").select("contact_target").eq("id", outreachId).maybeSingle();
+  const { data: camp } = await db.from("outreach_campaigns").select("contact_target, objective").eq("id", outreachId).maybeSingle();
+  // D-274: a qualified-leads campaign finds and saves people (Leads) without contacting them.
+  if (camp?.objective === "qualified_leads") return 0;
   const targets: LeadTarget[] = await searchTargets(ws, searchId, db as never, (camp?.contact_target as "people" | "companies" | "both" | undefined) ?? "both");
   if (!targets.length) return 0;
   const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", ws).limit(10000)).data ?? []).map((l) => l.id));

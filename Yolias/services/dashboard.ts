@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAutoReplyRow } from "@/lib/outreach/auto-reply";
-import { rangeBounds, zeroCounts, addCounts, type Counts } from "@/lib/campaigns/metrics";
+import { rangeBounds, zeroCounts, addCounts, type Counts, type RangePreset } from "@/lib/campaigns/metrics";
 import { campaignTable, type CampaignLine } from "@/services/campaign-table";
 import { prospectRate } from "@/services/campaign-metrics";
 import { monthlyUsage } from "@/services/workspace";
@@ -14,11 +14,12 @@ import { spentToday } from "@/lib/campaigns/budget";
 // spend and daily cap, and what Yolias did last. Real rows only; a number
 // that can't be worked out is null (shown "–").
 
-export type DashRange = "7d" | "30d" | "90d";
+// D-274: the same ranges as the Campaigns table (one date picker everywhere).
+export type DashRange = RangePreset;
 const DAY = 86_400_000;
 type Msg = { outreach_campaign_id: string | null; lead_id: string | null; direction: string; status: string; delivery_status: string | null; step_position: number | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; subject?: string; instruction?: string | null };
 
-export interface Series { days: string[]; sent: number[]; delivered: (number | null)[]; replies: number[]; interested: number[]; meetings: number[]; spent: number[]; found: number[]; opened: number[]; held: number[] }
+export interface Series { days: string[]; sent: number[]; delivered: (number | null)[]; replies: number[]; interested: number[]; meetings: number[]; spent: number[]; found: number[]; opened: number[]; held: number[]; visits: number[] }
 export interface DashboardData {
   live: { campaignId: string; name: string; what: string; at: string; kind: string; meta: unknown } | null;
   budget: { dailyUsd: number | null; spentToday: number; balanceUsd: number | null; rate: number };
@@ -39,12 +40,17 @@ async function paged<T>(q: (from: number, to: number) => PromiseLike<{ data: T[]
   return out;
 }
 
-export async function dashboardData(workspaceId: string, range: DashRange, campaignId: string | null): Promise<DashboardData> {
+export async function dashboardData(workspaceId: string, range: DashRange, campaignId: string | null, custom: { from?: string; to?: string } = {}): Promise<DashboardData> {
   const db = createAdminClient();
-  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
-  const bounds = range === "90d" ? { from: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()) - 89 * DAY).toISOString(), to: null } : rangeBounds(range, new Date());
+  const raw = rangeBounds(range, new Date(), custom);
+  // The counts follow the range; the small charts show its days (all time: the last 90).
+  const today0 = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const fromMs = raw.from ? Date.parse(raw.from) : today0 - 89 * DAY;
+  const toMs = raw.to ? Date.parse(raw.to) : today0 + DAY;
+  const days = Math.max(1, Math.min(400, Math.round((toMs - fromMs) / DAY)));
+  const bounds = { from: new Date(fromMs).toISOString(), to: raw.to };
   const [lines, rate, usage, { data: ws }, today, act] = await Promise.all([
-    campaignTable(workspaceId, bounds, {}),
+    campaignTable(workspaceId, raw, {}),
     prospectRate(workspaceId), monthlyUsage(workspaceId),
     db.from("workspaces").select("daily_budget_usd").eq("id", workspaceId).maybeSingle(),
     spentToday(workspaceId),
@@ -88,6 +94,10 @@ export async function dashboardData(workspaceId: string, range: DashRange, campa
   // Spend by day: prospects consumed by the searches behind these campaigns × the rate.
   const { data: groups } = await db.from("audience_groups").select("campaign_id, search_campaign_id").eq("workspace_id", workspaceId).not("search_campaign_id", "is", null);
   const searches = new Set((groups ?? []).filter((g) => ids.has(g.campaign_id)).map((g) => g.search_campaign_id!));
+  // D-274: booking link visits by day.
+  const visits = keys.map(() => 0);
+  const { data: vs } = await db.from("booking_visits").select("campaign_id, created_at").eq("workspace_id", workspaceId).gte("created_at", bounds.from).limit(10_000);
+  for (const v of vs ?? []) { if (!v.campaign_id || !ids.has(v.campaign_id)) continue; const i = idx.get(v.created_at.slice(0, 10)); if (i != null) visits[i]++; }
   const found = keys.map(() => 0);
   if (searches.size) {
     const list = [...searches];
@@ -107,7 +117,8 @@ export async function dashboardData(workspaceId: string, range: DashRange, campa
   const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
   const [{ data: monthLedger }, { count: heldMonth }] = await Promise.all([
     db.from("usage_ledger").select("prospects").eq("workspace_id", workspaceId).eq("kind", "consume").gte("created_at", monthStart).limit(10_000),
-    db.from("sales_meetings").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "completed").gte("starts_at", monthStart),
+    // D-274: the result is a booked meeting (any not canceled, booked this month).
+    db.from("sales_meetings").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).neq("status", "canceled").gte("created_at", monthStart),
   ]);
   const spentMonthUsd = (monthLedger ?? []).reduce((a, r) => a + Number(r.prospects ?? 0), 0) * rate;
   const prepaid = !usage.resetsAt;
@@ -120,7 +131,7 @@ export async function dashboardData(workspaceId: string, range: DashRange, campa
       spentMonthUsd, heldMonth: heldMonth ?? 0, renewsAt: usage.resetsAt, prepaid,
     },
     counts: total, firsts, followUps,
-    series: { days: keys, sent, delivered: sent.map((s, i) => (s ? (s - bounced[i]) / s : null)), replies: replies.map((x) => x.size), interested: interested.map((x) => x.size), meetings, spent, found, opened: opened.map((x) => x.size), held },
+    series: { days: keys, sent, delivered: sent.map((s, i) => (s ? (s - bounced[i]) / s : null)), replies: replies.map((x) => x.size), interested: interested.map((x) => x.size), meetings, spent, found, opened: opened.map((x) => x.size), held, visits },
     campaigns: lines, total: lines.reduce((s, l) => addCounts(s, l.counts), zeroCounts()),
     activity: rows.slice(0, 4).map((a) => ({ id: a.id, campaignId: a.campaignId, campaign: a.campaign?.name ?? "", body: a.body, at: a.at, kind: a.kind, meta: a.meta })),
   };

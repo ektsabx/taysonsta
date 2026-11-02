@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, Check, ChevronDown, Copy, Folder, Loader2, Mail, Plus, Send, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ClipboardList, Copy, Folder, Loader2, Mail, Plus, Send, ShoppingCart, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
@@ -39,6 +39,8 @@ export interface BuilderProps {
   knowledgePct: number;
   mailboxes: { id: string; email: string; dailyLimit: number }[];
   booking: { url: string | null; calendar: boolean };
+  /** D-274: whether the Yolias pixel has sent an event from the member's website yet. */
+  pixelSeen: boolean;
   audiences: { id: string; name: string; kind: "saved" | "custom" | "lookalike"; members: number }[];
   zones: { value: string; label: string }[];
   today: string;
@@ -104,7 +106,7 @@ export function CampaignBuilder(p: BuilderProps) {
   const tryLaunch = () => {
     const g = gaps[0];
     if (g) { go(g.level, 0); toast(g.key === "budget" ? fmt(b.missing.budget, { usd: usd(minUsd) }) : b.missing[g.key], "error"); return; }
-    if (!confirmed) { go("message"); toast(b.missing.confirm, "error"); return; }
+    if (!confirmed && s.objective !== "qualified_leads") { go("message"); toast(b.missing.confirm, "error"); return; }
     launch();
   };
   const launch = () => call(() => launchCampaign(s, draftId, confirmed), (r) => {
@@ -148,10 +150,11 @@ export function CampaignBuilder(p: BuilderProps) {
               const next = { ...s, level: "audience" as const, adSets: [...s.adSets, emptyAdSet(s.adSets.length + 1, fmt(b.audience.defaultName, { n: String(s.adSets.length + 1) }))] };
               setS(next); setSel(next.adSets.length - 1);
             }} disabled={s.adSets.length >= 8}><Plus />{b.audience.add}</button>
-            <button type="button" className={`cb-node child${level === "message" ? " on" : ""}`} onClick={() => go("message")}>
-              <Mail /><span><small>{t.ag.levels.message}</small>{mailbox?.email ?? b.message.mailbox}</span>
+            {/* A qualified-leads campaign sends nothing (D-274): no message level. */}
+            {s.objective !== "qualified_leads" && <button type="button" className={`cb-node child${level === "message" ? " on" : ""}`} onClick={() => go("message")}>
+              <Mail /><span><small>{t.ag.levels.message}</small>{s.messageName.trim() || mailbox?.email || b.message.mailbox}</span>
               {gaps.some((g) => g.level === "message") && <i className="cb-dot" aria-hidden />}
-            </button>
+            </button>}
           </div>
         </nav>
 
@@ -172,14 +175,24 @@ export function CampaignBuilder(p: BuilderProps) {
               <div className="ws-field">
                 <span className="ws-label">{b.campaign.objective}</span>
                 <div className="cb-choices">
-                  {(["meetings", "qualified_leads"] as const).map((k) => (
-                    <button key={k} type="button" className={`cb-objective${s.objective === k ? " on" : ""}`} aria-pressed={s.objective === k} onClick={() => patch({ objective: k })}>
-                      {k === "meetings" ? <CalendarDays /> : <UserCheck />}<div><strong>{k === "meetings" ? b.campaign.meetings : K.leads}</strong><p>{k === "meetings" ? b.campaign.meetingsDesc : K.leadsDesc}</p></div>{s.objective === k && <Check className="cb-tick" />}
-                    </button>
-                  ))}
+                  {(["meetings", "purchases", "form_leads", "qualified_leads"] as const).map((k) => {
+                    const Icon = { meetings: CalendarDays, purchases: ShoppingCart, form_leads: ClipboardList, qualified_leads: UserCheck }[k];
+                    return (
+                      <button key={k} type="button" className={`cb-objective${s.objective === k ? " on" : ""}`} aria-pressed={s.objective === k} onClick={() => patch({ objective: k })}>
+                        <Icon /><div><strong>{K.objectives[k]}</strong><p>{K.objectivesDesc[k]}</p></div>{s.objective === k && <Check className="cb-tick" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="ws-field">
+              {(s.objective === "purchases" || s.objective === "form_leads") && (
+                <div className="ws-field">
+                  <label className="ws-label" htmlFor="cb-site">{s.objective === "purchases" ? K.sitePurchase : K.siteForm}</label>
+                  <input id="cb-site" className="form-input" dir="ltr" type="url" inputMode="url" maxLength={500} placeholder="https://" value={s.websiteUrl} onChange={(e) => patch({ websiteUrl: e.target.value })} />
+                  <p className={`ws-hint${p.pixelSeen ? "" : " cb-warn"}`}>{p.pixelSeen ? K.pixelOn : K.pixelOff} <Link href="/events">{K.pixelOpen}</Link></p>
+                </div>
+              )}
+              {s.objective !== "qualified_leads" && <div className="ws-field">
                 <span className="ws-label">{K.channel}</span>
                 <div className="cb-choices">
                   {(["email", "linkedin", "facebook_groups", "reddit", "quora"] as const).map((k) => (
@@ -188,9 +201,9 @@ export function CampaignBuilder(p: BuilderProps) {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div>}
               <div className="ws-field">
-                <span className="ws-label">{K.contact}</span>
+                <span className="ws-label">{s.objective === "qualified_leads" ? K.find : K.contact}</span>
                 <div className="sdr-seg" role="tablist">
                   {(["people", "companies", "both"] as const).map((k) => <button key={k} type="button" role="tab" aria-selected={s.contactTarget === k} className={s.contactTarget === k ? "active" : ""} onClick={() => patch({ contactTarget: k })}>{K.contacts[k]}</button>)}
                 </div>
@@ -212,7 +225,7 @@ export function CampaignBuilder(p: BuilderProps) {
                 <Link href="/ai/knowledge" className="sdr-btn ghost sm">{b.campaign.knowledgeOpen}</Link>
               </div>
               <div className="ws-field">
-                <label className="ws-label" htmlFor="cb-target">{s.objective === "qualified_leads" ? K.leadsTarget : b.campaign.result}</label>
+                <label className="ws-label" htmlFor="cb-target">{K.targets[s.objective]}</label>
                 <input id="cb-target" className="form-input num" type="number" min={1} max={1000} value={s.targetMeetings} onChange={(e) => patch({ targetMeetings: Math.max(1, Math.min(1000, Number(e.target.value) || 1)) })} />
                 <p className="ws-hint">{b.campaign.resultHint}</p>
               </div>
@@ -418,7 +431,7 @@ export function CampaignBuilder(p: BuilderProps) {
           <div className="cb-summary">
             <strong dir="auto">{s.name.trim() || b.campaign.name}</strong>
             <dl>
-              <dt>{b.campaign.objective}</dt><dd>{s.objective === "qualified_leads" ? K.leads : b.campaign.meetings} · {s.targetMeetings}</dd>
+              <dt>{b.campaign.objective}</dt><dd>{K.objectives[s.objective]} · {s.targetMeetings}</dd>
               <dt>{b.campaign.budget}</dt><dd>{usd(s.budgetUsd)} {b.campaign.budgetTypes[s.budgetType].toLowerCase()}</dd>
               <dt>{t.ag.levels.audience}</dt><dd>{s.adSets.length}</dd>
               {capacity != null && <><dt>{b.campaign.daily}</dt><dd>{n(s.dailyLimit)}</dd></>}
@@ -430,7 +443,7 @@ export function CampaignBuilder(p: BuilderProps) {
 
       <footer className="cb-foot">
         <button type="button" className="sdr-btn" disabled={idx === 0 || pending} onClick={() => go(idx === 2 ? "audience" : "campaign", 0)}>{b.back}</button>
-        {idx < 2 ? (
+        {idx < (s.objective === "qualified_leads" ? 1 : 2) ? (
           <button type="button" className="sdr-btn primary" disabled={pending} onClick={() => go(idx === 0 ? "audience" : "message", 0)}>{b.next}</button>
         ) : editing ? (
           <button type="button" className="sdr-btn primary" disabled={pending || !s.name.trim()} onClick={save}>{busy === "save" ? <Loader2 className="spin" /> : null}{b.saveChanges}</button>

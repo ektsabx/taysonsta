@@ -45,7 +45,9 @@ export const builderSchema = z.object({
   // 1. Campaign
   name: z.string().max(160).default(""),
   /** D-274: the campaign type (outreach), its objective, its channel and whom it contacts. */
-  objective: z.enum(["meetings", "qualified_leads"]).default("meetings"),
+  objective: z.enum(["meetings", "purchases", "form_leads", "qualified_leads"]).default("meetings"),
+  /** D-274: the website page for purchases or form leads (the link Yolias sends, tracked by the pixel). */
+  websiteUrl: z.string().max(500).default(""),
   channel: z.enum(["email"]).default("email"),
   contactTarget: z.enum(["people", "companies", "both"]).default("people"),
   offerId: z.string().uuid().nullable().default(null),
@@ -89,13 +91,15 @@ export const emptyAdSet = (n: number, name: string): AdSet => adSetSchema.parse(
 export const minBudgetUsd = (rate: number) => Math.max(1, Math.ceil(rate * 10 * 100) / 100);
 
 /** What is missing before launch, per level (empty = ready). Mailbox and offer are checked on the server too. */
-export function missing(s: BuilderState, rate: number): { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" }[] {
-  const out: { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" }[] = [];
+export function missing(s: BuilderState, rate: number): { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" }[] {
+  const out: { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" }[] = [];
   if (!s.name.trim()) out.push({ level: "campaign", key: "name" });
   if (s.budgetUsd < minBudgetUsd(rate)) out.push({ level: "campaign", key: "budget" });
   if (s.endDate && s.startDate && s.endDate < s.startDate) out.push({ level: "campaign", key: "dates" });
   if (s.adSets.some((a) => (a.source === "audience" ? !a.audienceId : !hasAnyTargeting(a.targeting)))) out.push({ level: "audience", key: "audience" });
-  if (!s.mailboxId) out.push({ level: "message", key: "mailbox" });
+  // D-274: a website objective needs its page; a qualified-leads campaign contacts no one, so no mailbox.
+  if ((s.objective === "purchases" || s.objective === "form_leads") && !/^https?:\/\/[^\s]+\.[^\s]+/i.test(s.websiteUrl.trim())) out.push({ level: "campaign", key: "website" });
+  if (s.objective !== "qualified_leads" && !s.mailboxId) out.push({ level: "message", key: "mailbox" });
   return out;
 }
 

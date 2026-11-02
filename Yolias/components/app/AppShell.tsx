@@ -47,6 +47,7 @@ const navGroups = [
   { key: "workspace", items: [
     { href: "/ai/knowledge", key: "knowledge", icon: Library },
     { href: "/integrations", key: "integrations", icon: Plug },
+    { href: "/events", key: "events", icon: Activity },
   ] },
 ] as const;
 
@@ -213,7 +214,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
-                  <span>{key === "integrations" ? t.settings.hub.title : key === "conversations" ? t.ag.rx.nav.inbox : key === "prospects" ? t.ag.rx.nav.leads : key === "yoliasAi" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
+                  <span>{key === "integrations" ? t.settings.hub.title : key === "conversations" ? t.ag.rx.nav.inbox : key === "events" ? t.ag.rx.ev.nav : key === "prospects" ? t.ag.rx.nav.leads : key === "yoliasAi" || key === "dashboard" || key === "audiences" ? t.nav[key] : t.ws.nav[key]}</span>
                   {key === "conversations" && data.inboxUnread > 0 && <span className="nav-badge" aria-label={`${data.inboxUnread}`}>{data.inboxUnread > 99 ? "99+" : data.inboxUnread}</span>}
                 </div>
               </Link>

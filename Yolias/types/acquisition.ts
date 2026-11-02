@@ -120,7 +120,7 @@ export type OutreachCampaignRow = {
   /** D-274: who the campaign contacts, and the message level's own name. */
   contact_target: "people" | "companies" | "both"; message_name: string | null;
 };
-export type CampaignObjective = "leads" | "qualified_leads" | "meetings" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
+export type CampaignObjective = "leads" | "qualified_leads" | "meetings" | "purchases" | "form_leads" | "opportunities" | "new_customers" | "reactivate" | "promote" | "custom";
 export type AudienceSource = "find_new" | "saved" | "lookalike" | "custom" | "imported" | "previous_campaign" | "customers";
 export type AudienceGroupRow = {
   id: string; workspace_id: string; campaign_id: string; name: string; status: "active" | "paused" | "archived"; source: AudienceSource;
@@ -137,7 +137,7 @@ export type AudienceRow = {
 };
 export type SavedViewRow = { id: string; workspace_id: string; user_id: string; scope: "campaigns"; name: string; config: Json; created_at: string };
 /** D-268: a campaign books a meeting or sells through the website. */
-export type CampaignAim = "meeting" | "sell";
+export type CampaignAim = "meeting" | "sell" | "form";
 export type OutreachStepRow = {
   id: string; workspace_id: string; campaign_id: string; position: number; delay_days: number; objective: MessageObjective; instruction: string | null;
   /** D-272: a step of one audience group's own sequence (null = the campaign's). */
@@ -173,3 +173,11 @@ export type BookingVisitRow = {
   id: string; workspace_id: string; host_id: string; slug: string; visitor: string; lead_id: string | null; campaign_id: string | null;
   started_at: string | null; name: string | null; email: string | null; meeting_id: string | null; created_at: string; updated_at: string;
 };
+
+/** D-274: the Yolias pixel (one per workspace) and its events, like Facebook's. */
+export type PixelRow = { id: string; workspace_id: string; public_id: string; name: string; allowed_domains: string[]; last_event_at: string | null; created_at: string };
+export type PixelEventRow = {
+  id: number; pixel_id: string; workspace_id: string; event: string; value: number | null; currency: string | null; url: string | null; referrer: string | null;
+  visitor: string | null; event_id: string | null; lead_id: string | null; campaign_id: string | null; group_id: string | null; created_at: string;
+};
+export type CustomMetricRow = { id: string; workspace_id: string; name: string; a: string; op: "+" | "-" | "*" | "/"; b: string; format: "count" | "pct" | "usd" | "ratio"; created_by: string | null; created_at: string };

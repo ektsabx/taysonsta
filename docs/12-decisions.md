@@ -749,3 +749,28 @@ Yolias works like an ads platform whose result is a meeting that took place.
 - **Notifications** have tabs (Ads / All / Messages / System) and an Unread switch.
 - **Meetings.** Tabs are now Link visits, then Bookings, then Booking page; "Add a meeting" and "Copy your link" are gone from Bookings.
 - **Booking page** works like Calendly: a wide card in the middle, the days one under the other, and the chosen day's times beside them.
+
+### D-274, third round (owner, 2026-11-02)
+- **Objectives** (like an ads platform), all reached through outreach:
+  - Meetings: the result is a booked meeting.
+  - Website purchases (aim "sell") and Website leads / forms (aim "form"): the emails and answers send a tracked link (`?yc=<lead>`) and persuade.
+  - Qualified leads: find and save matching companies and people in Leads, contacting no one. There is no mailbox and no message level, and each match is paid for.
+- **Yolias pixel and Events Manager** (`lib/pixel.ts`, `/px.js`, `/api/px`, `/events`), like Facebook's:
+  - The base snippet goes on the member's site, with standard and custom events, values and currency, and event_id dedupe.
+  - Domain allowlist, and a rate limit per visitor.
+  - Events are credited to the campaign and audience through `yc`. Events without it are kept but not credited.
+  - Tabs: Overview, Test events, Set up and Settings.
+  - The privacy policy covers it, and the member is responsible for telling their visitors.
+- **Metrics:**
+  - Added: website visits, checkouts, purchases, cost per purchase, purchase value, purchase ROAS, website leads, cost per website lead, cost per lead.
+  - Every objective has its result and cost per result, plus ready column sets.
+  - Custom metrics (a name and "metric op metric", per workspace).
+  - The optimizer uses each objective's result. A booked meeting is the result for meetings; held meetings are reported only.
+- **UI:**
+  - One date range component everywhere (`DateRange`).
+  - The checkbox comes before the On/Off switch, with "On/Off" over it, and Learning sits next to the name.
+  - The dashboard shows booking link visits, and the booked meeting with cost per meeting as the result.
+  - Yolias AI panel: the Yolias mark, no shadow.
+  - The spending limit is in Settings → Usage, inline.
+  - The booking page shows the main meeting only.
+  - No support floating button anywhere (it opens from Get support).
