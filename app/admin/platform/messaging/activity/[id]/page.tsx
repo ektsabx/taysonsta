@@ -24,7 +24,7 @@ export default async function EnrollmentPage({ params }: { params: Promise<{ id:
   const ev = (e.context as { event?: { name?: string } | null })?.event;
   return (
     <>
-      <PageHeader title={e.email ?? e.user_id} subtitle={d.flow?.name ?? "مسار"} actions={d.flow ? <Link className="admin-btn secondary" href={`/admin/platform/messaging/flows/${d.flow.id}`}><Tx>المسار</Tx></Link> : undefined} />
+      <PageHeader title={e.email ?? e.user_id} actions={d.flow ? <Link className="admin-btn secondary" href={`/admin/platform/messaging/flows/${d.flow.id}`}><Tx>المسار</Tx></Link> : undefined} />
       <Card>
         <KeyValues items={[
           { label: "الحالة", value: <StatusBadge tone={st.tone} label={st.label} /> },

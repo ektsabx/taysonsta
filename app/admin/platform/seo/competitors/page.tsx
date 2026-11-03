@@ -23,7 +23,7 @@ export default async function SeoCompetitorsPage() {
   const usedBy = (slug: string) => pages.filter((p) => p.meta.competitor === slug || (p.meta.tools ?? []).includes(slug)).length;
   return (
     <>
-      <PageHeader title="المنافسون" subtitle="المعلومات التي تعرضها صفحات المقارنة والبدائل، بمصدرها وتاريخ مراجعتها. السعر لا يظهر في الموقع إلا بعد توثيقه." actions={manage ? <Link className="admin-btn" href="/admin/platform/seo/competitors/new"><Tx>منافس جديد</Tx></Link> : undefined} />
+      <PageHeader title="المنافسون" actions={manage ? <Link className="admin-btn" href="/admin/platform/seo/competitors/new"><Tx>منافس جديد</Tx></Link> : undefined} />
       <Card flush>
         {rows.length ? (
           <div className="bos-table-scroll"><BosTable className="bos-table">

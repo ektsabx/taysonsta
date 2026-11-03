@@ -10,7 +10,7 @@ export default async function AutomationsPage() {
   if (!(await messagingReady())) return (<><PageHeader title="الأتمتة" /><MessagingNotReady /></>);
   return (
     <>
-      <PageHeader title="الأتمتة" subtitle="مسارات تبدأ من حدث في Yolias وتنفذ خطوات: إيميل، إشعار داخل المنصة، انتظار، تفرّع." />
+      <PageHeader title="الأتمتة" />
       <FlowList kind="automation" canManage={can(bos, "platform.manage", "all")} />
     </>
   );

@@ -26,7 +26,7 @@ export default async function ReferralsPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="برنامج الدعوة" subtitle="كل مساحة عمل لها رابط دعوة. من ينشئ حسابًا جديدًا عبره يضيف عملاء محتملين لرصيد صاحب الرابط. حساب واحد مُكافأ لكل شبكة؛ والباقي يُراجَع هنا." />
+      <PageHeader title="برنامج الدعوة" />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <Card title="الإعدادات">
           <KeyValues items={[

@@ -17,7 +17,7 @@ export default async function TutorialsPage() {
   const site = (process.env.YOLIAS_SITE_URL ?? "").replace(/\/$/, "");
   return (
     <>
-      <PageHeader title="فيديوهات شرح المنصة" subtitle="الفيديوهات التي تظهر لمستخدمي يولياس من المساعدة ← شرح المنصة بالفيديو، بالترتيب هنا." />
+      <PageHeader title="فيديوهات شرح المنصة" />
       {manage && <Card title="إضافة فيديو"><TutorialForm value={null} /></Card>}
       <Card title="الفيديوهات">
         {!items.length ? <EmptyState title="لا توجد فيديوهات بعد" /> : (

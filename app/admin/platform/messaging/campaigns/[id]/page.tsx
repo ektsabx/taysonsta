@@ -27,7 +27,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const r = a?.campaigns.find((x) => x.id === c.id);
   return (
     <>
-      <PageHeader title={c.name} subtitle="حملة" actions={<Link className="admin-btn secondary" href="/admin/platform/messaging/campaigns"><Tx>كل الحملات</Tx></Link>} />
+      <PageHeader title={c.name} actions={<Link className="admin-btn secondary" href="/admin/platform/messaging/campaigns"><Tx>كل الحملات</Tx></Link>} />
       <Card>
         <KeyValues items={[
           { label: "الحالة", value: <StatusBadge tone={st.tone} label={st.label} /> },

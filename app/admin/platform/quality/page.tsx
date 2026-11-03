@@ -16,7 +16,7 @@ export default async function QualityPage() {
   const q = await dataQuality();
   return (
     <>
-      <PageHeader title="جودة بيانات العملاء المحتملين" subtitle="اكتمال البيانات والتحقق منها وحداثتها، حسب المصدر" />
+      <PageHeader title="جودة بيانات العملاء المحتملين" />
       <div className="bos-kpis">
         <KpiCard label="الأشخاص" value={num(q.people)} sub={<Tx vars={{ c: num(q.companies), l: num(q.localBusinesses) }}>{"{c} شركة · {l} نشاط محلي"}</Tx>} />
         <KpiCard label="لديهم بريد" value={pct(q.rates.email)} sub={<Tx vars={{ v: pct(q.rates.verified), i: pct(q.rates.invalid) }}>{"{v} موثّق · {i} غير صالح"}</Tx>} />

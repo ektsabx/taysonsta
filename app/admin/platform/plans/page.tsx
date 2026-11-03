@@ -19,7 +19,7 @@ export default async function PlansPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="الخطط والحصص" subtitle="الخطتان الشهريتان: السعر وعدد العملاء المحتملين كل شهر. فوترة شهرية فقط. الدفع حسب الاستخدام يُدار من المدفوعات." />
+      <PageHeader title="الخطط والحصص" />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         {SOLD.map((p) => (
           <Card key={p} title={yoliasPlanLabel[p]}>

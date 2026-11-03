@@ -18,7 +18,7 @@ export default async function DataPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="البيانات المشتركة" subtitle="الشركات والأشخاص المعاد استخدامهم بين مساحات العمل حسب الترخيص، مع مصدر كل حقل" />
+      <PageHeader title="البيانات المشتركة" />
       <div className="bos-kpis">
         <KpiCard label="الشركات" value={num(d.companies)} sub={<Tx vars={{ n: num(d.stale) }}>{"{n} بحاجة لتحديث"}</Tx>} />
         <KpiCard label="الأشخاص" value={num(d.people)} />

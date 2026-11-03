@@ -22,7 +22,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const campName = new Map(campaigns.map((x) => [x.id, x.name]));
   return (
     <>
-      <PageHeader title="سجل الأحداث والتنفيذ" subtitle="ما حدث مع كل مستخدم في كل مسار وحملة: الدخول، الرسائل، التخطي وسببه، الانتظار، الخروج، الأخطاء." />
+      <PageHeader title="سجل الأحداث والتنفيذ" />
       <Card>
         <form className="msg-filters" method="get">
           <label><span><Tx>بريد المستخدم</Tx></span><input name="email" type="email" dir="ltr" defaultValue={f.email ?? ""} /></label>

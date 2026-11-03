@@ -17,7 +17,7 @@ export default async function MessagingSettingsPage() {
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="إعدادات الرسائل" subtitle="Resend للإرسال فقط؛ القواعد والتسلسلات والأتمتة والتحليلات داخل Yolias." />
+      <PageHeader title="إعدادات الرسائل" />
       <Card title="Resend">
         <KeyValues items={[
           { label: "الإرسال", value: <StatusBadge tone={health.resend ? "success" : "danger"} label={health.resend ? "مفتاح Resend مُعدّ على Yolias" : "غير مُعدّ: الرسائل تُسجَّل «لم تُرسل» ولا يُزيَّف شيء"} /> },

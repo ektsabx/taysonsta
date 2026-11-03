@@ -18,7 +18,7 @@ export default async function CostsPage() {
   const c = await costOverview();
   return (
     <>
-      <PageHeader title="التكاليف" subtitle="تكلفة المنصة هذا الشهر: النماذج اللغوية ومزودو البيانات — كل طلب مسجّل بتكلفته" />
+      <PageHeader title="التكاليف" />
       <div className="bos-kpis">
         <KpiCard label="إجمالي التكلفة" value={usd4(c.total)} sub={c.unpriced ? <Tx vars={{ n: num(c.unpriced) }}>{"+ {n} طلب غير مسعّر"}</Tx> : undefined} />
         <KpiCard label="النماذج اللغوية" value={usd4(c.llm)} sub={<Tx vars={{ n: num(c.llmCalls), h: num(c.llmCacheHits) }}>{"{n} طلب · {h} من الذاكرة المؤقتة"}</Tx>} />

@@ -20,7 +20,7 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
   const { rows, total, pages } = await listAccounts("subscribed", filters, page);
   return (
     <>
-      <PageHeader title="الاشتراكات" subtitle={<Tx vars={{ n: num(total) }}>{"{n} حساب له اشتراك أو تجربة أو دفع سابق · الحالة من الاشتراك المؤكد"}</Tx>} />
+      <PageHeader title="الاشتراكات" subtitle={<Tx vars={{ n: num(total) }}>{"{n} حساب له اشتراك أو دفع سابق"}</Tx>} />
       <FilterBar
         searchPlaceholder="بحث بالاسم أو البريد أو المعرّف"
         filters={[

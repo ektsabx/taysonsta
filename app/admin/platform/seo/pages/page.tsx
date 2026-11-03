@@ -36,7 +36,7 @@ export default async function SeoPagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="صفحات SEO" subtitle="صفحات المقارنة والبدائل والحلول والقوالب، بالكلمة التي تستهدفها كل صفحة وأداؤها في آخر 28 يومًا"
+      <PageHeader title="صفحات SEO"
         actions={manage ? <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{seoKinds.map((k) => <Link key={k} className="admin-btn secondary" href={`/admin/platform/seo/pages/new?kind=${k}`}><Tx>{`+ ${seoKindLabel[k]}`}</Tx></Link>)}</span> : undefined} />
       <FilterBar searchPlaceholder="ابحث بالاسم أو الرابط أو الكلمة" filters={[
         { key: "kind", label: "النوع", type: "select", options: seoKinds.map((k) => ({ value: k, label: seoKindLabel[k] })) },

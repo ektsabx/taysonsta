@@ -38,7 +38,6 @@ export default async function UsersOverviewPage({ searchParams }: { searchParams
       </div>
 
       <Card title="أين يقف المستخدمون في رحلة الاشتراك">
-        <p className="bos-faint" style={{ fontSize: 12.5, marginTop: 0 }}><Tx>كل حساب في فئة واحدة حسب آخر حالة مؤكدة. اضغط على الفئة لفتح قائمة الحسابات الفعلية واتخاذ إجراء.</Tx></p>
         <div className="bos-table-scroll"><table className="bos-table">
           <tbody>
             {SEGMENTS.map((s) => (

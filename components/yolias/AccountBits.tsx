@@ -52,7 +52,7 @@ export function SubscriptionState(props: SubInput) {
 }
 
 export const segmentLabel: Record<string, string> = {
-  registered_only: "سجّل ولم يبدأ تجربة أو اشتراكًا",
+  registered_only: "سجّل ولم يشترك",
   plan_selected: "اختار خطة ولم يفتح Checkout",
   checkout_no_payment: "فتح Checkout ولم يبدأ الدفع",
   payment_pending: "بدأ الدفع ولم تكتمل النتيجة",

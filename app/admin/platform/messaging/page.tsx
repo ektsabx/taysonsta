@@ -19,7 +19,7 @@ export default async function MessagingOverviewPage() {
   const ago = (iso: string | null) => (iso ? formatDateTime(iso) : "-");
   return (
     <>
-      <PageHeader title="الرسائل والأتمتة" subtitle="الإيميلات والتسلسلات والأتمتة والإشعارات داخل Yolias. آخر 30 يومًا."
+      <PageHeader title="الرسائل والأتمتة"
         actions={<span className="msg-actions"><Link className="admin-btn secondary" href="/admin/platform/messaging/automations">الأتمتة</Link><Link className="admin-btn" href="/admin/platform/messaging/campaigns">حملة جديدة</Link></span>} />
       <div className="bos-kpis">
         <KpiCard label="أتمتة فعّالة" value={num(o.flows.automationsActive)} href="/admin/platform/messaging/automations" />

@@ -19,7 +19,7 @@ export default async function OpenSourcesPage() {
   const licence = (name: string, use: string) => <KeyValues items={[{ label: "الترخيص", value: name }, { label: "الاستخدام", value: <Tx>{use}</Tx> }]} />;
   return (
     <>
-      <PageHeader title="المصادر المفتوحة" subtitle="سحب شركات من مصادر مجانية ومفتوحة الترخيص إلى قاعدة البيانات المشتركة. كل سحبة تظهر في «البيانات المستوردة» بتقريرها، ويمكن حذفها بالمصدر." />
+      <PageHeader title="المصادر المفتوحة" />
 
       <Card title="OpenStreetMap">
         <p className="bos-faint"><Tx>أنشطة ومكاتب ومتاجر على الخريطة بأسمائها ومواقعها وهواتفها، في أي دولة. أفضل مصدر مجاني للأنشطة المحلية في مصر والخليج.</Tx></p>

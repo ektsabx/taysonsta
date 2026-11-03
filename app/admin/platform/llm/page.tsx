@@ -36,7 +36,7 @@ export default async function LlmPage({ searchParams }: { searchParams: SearchPa
 
   return (
     <>
-      <PageHeader title="النماذج اللغوية" subtitle="مسار كل مهمة مع البدائل، أسعار النماذج، والاستخدام في آخر 30 يوماً" />
+      <PageHeader title="النماذج اللغوية" />
       <Card title="مفاتيح المزودين في Yolias">
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           {(["anthropic", "openai", "gemini"] as const).map((p) => (

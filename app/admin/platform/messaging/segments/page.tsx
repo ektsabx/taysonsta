@@ -17,7 +17,7 @@ export default async function SegmentsPage() {
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="الجمهور والشرائح" subtitle="شرائح محفوظة من بيانات المستخدمين والاشتراكات والأحداث الحالية، تُستخدم في الحملات والأتمتة." />
+      <PageHeader title="الجمهور والشرائح" />
       {segments.length ? segments.map((s) => {
         const rules = rulesSchema.safeParse(s.rules);
         return (

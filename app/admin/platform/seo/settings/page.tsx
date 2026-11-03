@@ -49,7 +49,7 @@ export default async function SeoSettingsPage() {
   ) : null;
   return (
     <>
-      <PageHeader title="تكاملات SEO" subtitle="مصادر أرقام SEO وحالة كل منها. المفاتيح تُحفظ مشفرة في مركز التكاملات ولا تظهر هنا." />
+      <PageHeader title="تكاملات SEO" />
       <Card title="Google Search Console" actions={sync("gsc", "مزامنة الآن", <input type="hidden" name="days" value="90" />)}>
         <KeyValues items={[
           { label: "إثبات ملكية الموقع", value: verified ? <StatusBadge tone="success" label="رمز التحقق مضاف" /> : <StatusBadge tone="warning" label="غير مضاف" /> },

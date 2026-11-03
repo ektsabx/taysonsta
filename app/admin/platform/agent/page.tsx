@@ -53,7 +53,7 @@ export default async function AgentPage({ searchParams }: { searchParams: Promis
   const p = state.editing;
   return (
     <>
-      <PageHeader title="Yolias AI" subtitle="مركز التحكم: كيف يفكر ويتكلم ويبحث، الأدوات والموافقات، الحدود والذاكرة، الحماية والتقييم — كل تغيير في مسودة ثم نشر" />
+      <PageHeader title="Yolias AI" />
       <div className="bos-kpis" style={{ marginBottom: 12 }}>
         <KpiCard label="الإصدار المنشور" value={state.published ? `v${state.published.version}` : "—"} sub={state.published?.published_at ? `${state.published.published_by ?? ""} · ${formatDateTime(state.published.published_at)}` : undefined} />
         <KpiCard label="المسودة" value={state.draft ? `v${state.draft.version}` : <Tx>لا توجد</Tx>} sub={state.draft ? <Tx vars={{ s: state.draft.changed.length ? state.draft.changed.join(", ") : "—" }}>{"تغييرات غير منشورة: {s}"}</Tx> : <Tx>أي حفظ ينشئ مسودة</Tx>} />

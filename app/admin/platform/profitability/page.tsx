@@ -18,7 +18,7 @@ export default async function ProfitabilityPage() {
   const total = p.totals;
   return (
     <>
-      <PageHeader title="الربحية" subtitle="الإيراد مقابل تكلفة المنصة هذا الشهر — الإيراد التجريبي منفصل ولا يدخل في الهامش" />
+      <PageHeader title="الربحية" />
       <div className="bos-kpis">
         <KpiCard label="إيراد حقيقي" value={usd(total.live)} />
         <KpiCard label="ARPA" value={total.arpa == null ? "—" : usd(total.arpa)} sub={<Tx vars={{ n: num(total.paying) }}>{"{n} مساحة عمل تدفع"}</Tx>} />

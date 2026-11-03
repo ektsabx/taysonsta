@@ -18,7 +18,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   const rows = all.filter((t) => (archived ? t.status === "archived" : t.status === "active"));
   return (
     <>
-      <PageHeader title="قوالب الإيميلات" subtitle="مكتبة واحدة للتسلسلات والأتمتة والحملات. كل حفظ ينشئ نسخة جديدة."
+      <PageHeader title="قوالب الإيميلات"
         actions={<span className="msg-actions">
           <Link className="admin-btn secondary" href={archived ? "/admin/platform/messaging/templates" : "/admin/platform/messaging/templates?archived=1"}><Tx>{archived ? "القوالب الفعّالة" : "المؤرشفة"}</Tx></Link>
           {can(bos, "platform.manage", "all") && <Link className="admin-btn" href="/admin/platform/messaging/templates/new"><Tx>قالب جديد</Tx></Link>}

@@ -23,7 +23,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   const tab = (k: string, label: string) => <Link key={k} className={`msg-pill${filter === k ? " active" : ""}`} href={`/admin/platform/messaging/campaigns${k === "all" ? "" : `?status=${k}`}`}><Tx>{label}</Tx></Link>;
   return (
     <>
-      <PageHeader title="الحملات" subtitle="رسائل لمرة واحدة لشريحة من المستخدمين: إعلانات الميزات، التحديثات، إعادة التنشيط، دعوات الشركاء." />
+      <PageHeader title="الحملات" />
       <div className="msg-pills">{[tab("all", "الكل"), tab("draft", "المسودات"), tab("scheduled", "المجدولة"), tab("sent", "المرسلة"), tab("canceled", "الملغاة")]}</div>
       <Card>
         {rows.length ? (

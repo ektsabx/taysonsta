@@ -11,7 +11,7 @@ export default async function NewDatasetPage() {
   if (!(await datasetsReady())) return (<><PageHeader title="استيراد بيانات" /><DatasetsNotReady /></>);
   return (
     <>
-      <PageHeader title="استيراد بيانات" subtitle="المصدر والترخيص، ثم ربط الأعمدة بالذكاء الاصطناعي، ثم التنظيف والمطابقة مع قاعدة البيانات المشتركة." />
+      <PageHeader title="استيراد بيانات" />
       <Card><ImportWizard /></Card>
     </>
   );

@@ -25,7 +25,7 @@ export default async function JobsPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="المهام والطابور" subtitle="مهام الاكتشاف في الخلفية: الطابور، كل تشغيل، والمهام التي فشلت بعد كل المحاولات" />
+      <PageHeader title="المهام والطابور" />
       <div className="bos-kpis">
         <KpiCard label="في الطابور" value={num(Number(metrics?.queue_length ?? 0))} />
         <KpiCard label="أقدم مهمة منتظرة" value={metrics?.oldest_age_sec == null ? "—" : `${metrics.oldest_age_sec}s`} />

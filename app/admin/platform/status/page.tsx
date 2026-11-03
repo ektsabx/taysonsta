@@ -23,7 +23,7 @@ export default async function StatusManagementPage() {
   const closed = o.incidents.filter((i) => ["resolved", "completed"].includes(i.status));
   return (
     <>
-      <PageHeader title="صفحة الحالة" subtitle={<Tx>الخدمات والفحوص والأعطال والصيانة المعروضة على صفحة الحالة العامة.</Tx>} actions={<a className="admin-btn secondary small" href={yoliasLink("/status")} target="_blank" rel="noopener noreferrer"><Tx>فتح الصفحة العامة</Tx></a>} />
+      <PageHeader title="صفحة الحالة" actions={<a className="admin-btn secondary small" href={yoliasLink("/status")} target="_blank" rel="noopener noreferrer"><Tx>فتح الصفحة العامة</Tx></a>} />
       <Card title="الخدمات وآخر فحص" flush>
         <div className="bos-table-scroll">
           <BosTable className="bos-table responsive">

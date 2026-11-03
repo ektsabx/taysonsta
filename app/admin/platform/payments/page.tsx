@@ -34,7 +34,7 @@ export default async function PaymentsPage() {
 
   return (
     <>
-      <PageHeader title="المدفوعات" subtitle="مزود الدفع، مبالغ شحن الدفع حسب الاستخدام، وكل عملية دفع." />
+      <PageHeader title="المدفوعات" />
       <div className="bos-kpis">
         <KpiCard label="مدفوعات ناجحة · آخر 30 يوماً" value={totals["USD:live"] ? money(totals["USD:live"].amount, "USD") : "—"} sub={totals["USD:live"] ? <Tx vars={{ n: totals["USD:live"].succeeded, f: totals["USD:live"].failed }}>{"{n} ناجحة · {f} فاشلة"}</Tx> : undefined} />
       </div>

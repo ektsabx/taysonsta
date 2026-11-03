@@ -32,7 +32,7 @@ export default async function FlowPage({ params }: { params: Promise<{ id: strin
   const list = flow.kind === "sequence" ? "/admin/platform/messaging/sequences" : "/admin/platform/messaging/automations";
   return (
     <>
-      <PageHeader title={flow.name} subtitle={flow.kind === "sequence" ? "تسلسل إيميلات" : "أتمتة"}
+      <PageHeader title={flow.name}
         actions={<span className="msg-actions"><Link className="admin-btn secondary" href={list}><Tx>كل المسارات</Tx></Link>{canManage && <FlowStatusButtons id={flow.id} status={flow.status} testMode={flow.test_mode} />}</span>} />
       <Card>
         <KeyValues items={[

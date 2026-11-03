@@ -37,7 +37,7 @@ export default async function SeoKeywordsPage({ searchParams }: { searchParams: 
   } : empty;
   return (
     <>
-      <PageHeader title="الكلمات والفرص" subtitle="الكلمات المستهدفة ونية البحث والصفحة المناسبة لكل منها. لا يوجد مزود أحجام بحث متصل: الأحجام اليدوية مكتوب عليها أنها تقدير." />
+      <PageHeader title="الكلمات والفرص" />
       {shared.size > 0 && (
         <Card title="كلمات تتشارك نفس الصفحة">
           <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13, lineHeight: 1.8 }}>{[...shared].map(([path, kws]) => <li key={path}><span dir="ltr">{path}</span>: <span dir="auto">{kws.join("، ")}</span></li>)}</ul>

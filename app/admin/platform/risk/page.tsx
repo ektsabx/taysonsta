@@ -15,7 +15,7 @@ export default async function RiskPage() {
   const r = await riskOverview(30);
   return (
     <>
-      <PageHeader title="المخاطر" subtitle="إشارات تحذير حقيقية لكل مساحة عمل — آخر 30 يوماً" />
+      <PageHeader title="المخاطر" />
       <div className="bos-kpis">
         <KpiCard label="اشتراكات متأخرة الدفع" value={num(r.pastDue.length)} href="#past-due" />
         <KpiCard label="مساحات عمل بإشارات" value={num(r.workspaces.length)} />

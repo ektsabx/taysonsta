@@ -23,7 +23,7 @@ export default async function HealthPage() {
   const llmRate = h.llm24h.total ? Math.round((h.llm24h.failed / h.llm24h.total) * 100) : null;
   return (
     <>
-      <PageHeader title="صحة المنصة" subtitle="الحالة الآن وآخر 24 ساعة" />
+      <PageHeader title="صحة المنصة" />
       <div className="bos-kpis">
         <KpiCard label="قاعدة البيانات" value={h.db.ok ? `${h.db.latencyMs} ms` : "—"} sub={<StatusBadge tone={h.db.ok ? "success" : "danger"} label={h.db.ok ? "متصلة" : "غير متصلة"} />} />
         <KpiCard label="العامل (Worker)" value={h.worker ? formatDateTime(h.worker.lastRunAt) : "—"} sub={<StatusBadge tone={workerOk ? "success" : "danger"} label={workerOk ? "يعمل" : "متوقف"} />} />

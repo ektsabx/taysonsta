@@ -9505,6 +9505,8 @@ const en: Record<string, string> = {
  "معرّفات الخطوات مكررة.": "Two pages have the same id.",
  "إجابات صفحات الإعداد": "Onboarding answers",
  "صفحات الإعداد": "Onboarding pages",
+ "{n} حساب له اشتراك أو دفع سابق": "{n} accounts with a subscription or a past payment",
+ "سجّل ولم يشترك": "Signed up, not subscribed",
 };
 
 export default en;

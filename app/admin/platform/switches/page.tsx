@@ -25,7 +25,7 @@ export default async function SwitchesPage() {
   const badge = (on: boolean) => (on ? <StatusBadge tone="success" label="يعمل" /> : <StatusBadge tone="neutral" label="متوقف" />);
   return (
     <>
-      <PageHeader title="تشغيل وإيقاف الخدمات" subtitle="شغّل أو أوقف أي جزء في Yolias في أي وقت. الإيقاف يخفيه عن العملاء ويرفضه الخادم أيضًا، ويظهر من جديد عند التشغيل." />
+      <PageHeader title="تشغيل وإيقاف الخدمات" />
       <Card title="بوابات الدفع والشراء">
         <div className="bos-table-scroll"><table className="bos-table">
           <tbody>

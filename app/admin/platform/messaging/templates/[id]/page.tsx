@@ -23,7 +23,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ id: s
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title={t.name} subtitle={t.status === "archived" ? "مؤرشف" : "قالب إيميل"} actions={<Link className="admin-btn secondary" href="/admin/platform/messaging/templates"><Tx>كل القوالب</Tx></Link>} />
+      <PageHeader title={t.name} actions={<Link className="admin-btn secondary" href="/admin/platform/messaging/templates"><Tx>كل القوالب</Tx></Link>} />
       <ContentEditor action={saveTemplateAction} siteUrl={yoliasSiteUrl().replace(/\/$/, "")} readOnly={!canManage} value={t} />
       {canManage && <Card title="اختبار وأرشفة"><TemplateTools id={t.id} status={t.status} me={bos.email} /></Card>}
       <Card title="مستخدم في">

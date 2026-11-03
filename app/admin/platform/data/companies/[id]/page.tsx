@@ -22,7 +22,7 @@ export default async function SharedCompanyPage({ params }: { params: Promise<{ 
   const c = d.company;
   return (
     <>
-      <PageHeader title={c.name} subtitle={c.domain ?? undefined} />
+      <PageHeader title={c.name} />
       <Card title="البيانات">
         <KeyValues items={[
           { label: "القطاع", value: c.industry ?? "—" },

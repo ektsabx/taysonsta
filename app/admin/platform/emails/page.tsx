@@ -21,7 +21,7 @@ export default async function EmailsPage() {
   const canManage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="رسائل النظام" subtitle="الإيصالات والأمان والاستخدام ونتائج البحث: تشغيل وإيقاف كل حدث، وسجل كل رسالة. آخر 30 يومًا." />
+      <PageHeader title="رسائل النظام" />
       <div className="bos-kpis">
         <KpiCard label="أُرسلت" value={num(counts.sent)} />
         <KpiCard label="في الطابور" value={num(counts.queued)} />

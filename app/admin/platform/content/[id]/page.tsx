@@ -35,7 +35,7 @@ export default async function ContentEditPage({ params, searchParams }: { params
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title={id === "new" ? "صفحة جديدة" : v.ar.title || v.slug} subtitle={kindLabel[v.kind]} actions={<Link className="admin-btn secondary" href={`/admin/platform/content?kind=${v.kind}`}><Tx>كل الصفحات</Tx></Link>} />
+      <PageHeader title={id === "new" ? "صفحة جديدة" : v.ar.title || v.slug} actions={<Link className="admin-btn secondary" href={`/admin/platform/content?kind=${v.kind}`}><Tx>كل الصفحات</Tx></Link>} />
       <Card>{manage ? <ContentForm v={v} /> : <pre dir="auto" style={{ whiteSpace: "pre-wrap" }}>{v.ar.body}</pre>}</Card>
     </>
   );

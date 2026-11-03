@@ -23,7 +23,7 @@ export default async function MessagingAnalyticsPage({ searchParams }: { searchP
   const classes = ["transactional", "lifecycle", "marketing"] as const;
   return (
     <>
-      <PageHeader title="تحليلات الرسائل" subtitle="أرقام حقيقية من سجل الإرسال وأحداث Resend وأحداث الاشتراك المؤكدة."
+      <PageHeader title="تحليلات الرسائل"
         actions={<span className="msg-pills">{RANGES.map((d) => <Link key={d} className={`msg-pill${d === days ? " active" : ""}`} href={`/admin/platform/messaging/analytics?days=${d}`}><Tx vars={{ n: d }}>{"آخر {n} يومًا"}</Tx></Link>)}</span>} />
       <div className="bos-kpis">
         <KpiCard label="اشتراكات بعد رسالة" value={num(a.totalConversions)} sub={<Tx vars={{ n: a.attributionDays }}>{"خلال {n} أيام من آخر رسالة"}</Tx>} />

@@ -23,7 +23,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const path = (slug: string) => (kind === "help" ? `/help-center/${slug}` : `/${kind}/${slug}`);
   return (
     <>
-      <PageHeader title="محتوى الموقع" subtitle="صفحات مركز المساعدة والتوثيق والمدونة والصفحات القانونية لموقع Yolias، باللغتين" actions={manage && kind !== "legal" ? <Link className="admin-btn" href={`/admin/platform/content/new?kind=${kind}`}><Tx>صفحة جديدة</Tx></Link> : undefined} />
+      <PageHeader title="محتوى الموقع" actions={manage && kind !== "legal" ? <Link className="admin-btn" href={`/admin/platform/content/new?kind=${kind}`}><Tx>صفحة جديدة</Tx></Link> : undefined} />
       <Tabs tabs={contentKinds.map((k) => ({ key: k, label: kindLabel[k] }))} active={kind} baseHref="/admin/platform/content" param="kind" />
       <Card flush>
         {rows.length ? (

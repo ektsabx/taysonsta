@@ -10,7 +10,7 @@ export default async function SequencesPage() {
   if (!(await messagingReady())) return (<><PageHeader title="تسلسلات الإيميلات" /><MessagingNotReady /></>);
   return (
     <>
-      <PageHeader title="تسلسلات الإيميلات" subtitle="سلسلة رسائل مرتبطة بحدث أو حالة، بتوقيتات وشروط وانتقال وتوقف قابلة للتعديل." />
+      <PageHeader title="تسلسلات الإيميلات" />
       <FlowList kind="sequence" canManage={can(bos, "platform.manage", "all")} />
     </>
   );

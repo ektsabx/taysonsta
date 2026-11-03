@@ -22,7 +22,7 @@ export default async function DatasetsPage() {
     <>
       <PageHeader
         title="البيانات المستوردة"
-        subtitle="كل بيانات اشتريناها أو جمعناها: مصدرها وترخيصها وما أضافته لقاعدة البيانات المشتركة."
+       
         actions={manage ? <Link className="admin-btn" href="/admin/platform/datasets/new"><Tx>استيراد بيانات</Tx></Link> : undefined}
       />
       <div className="bos-kpis">
