@@ -1,3 +1,4 @@
+import { specOf } from "@/lib/engine/objectives";
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logCampaign } from "@/lib/campaigns/activity";
@@ -50,11 +51,8 @@ export const eventsOf = (c: { interested: number; meetings: number; held: number
 
 /** D-274: the result an objective optimizes for, from its counts (positive replies until there are enough of the result). */
 export function eventFor(objective: string | null | undefined, c: { interested: number; meetings: number; held: number; conversions: number }): OptEvent | null {
-  if (objective === "qualified_leads") return null;
-  // A website objective optimizes for the campaign's own conversion event (pixel), like an ads platform.
-  if (objective === "purchases") return c.conversions >= EVENT_MIN ? "purchase" : c.interested >= EVENT_MIN ? "positive" : null;
-  if (objective === "form_leads") return c.conversions >= EVENT_MIN ? "form" : c.interested >= EVENT_MIN ? "positive" : null;
-  return pickEvent(c);
+  // D-279: the objective's spec lists its events, best first (a website objective optimizes for its pixel event).
+  return specOf(objective).optimizeFor.find((e) => eventsOf(c, e) >= EVENT_MIN) ?? null;
 }
 
 /** A seeded random source (mulberry32), so a day's allocation is the same on every run and in tests. */

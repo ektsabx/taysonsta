@@ -1,4 +1,5 @@
 import "server-only";
+import { specOf } from "@/lib/engine/objectives";
 import type { WorkspaceRole } from "@/types/database";
 import { priority } from "@/lib/campaigns/engines";
 import { learnedLift, sizeBand, storedInsights } from "@/lib/agent-core/learning";
@@ -459,20 +460,22 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   }
 
   // Purchases and form leads (D-274): interest gets the website link (tracked for this person) and a nudge, not a meeting.
-  if (c && (c.objective === "purchases" || c.objective === "form_leads") && (action === "offer_times" || action === "book_named_time")) {
+  const spec = specOf(c?.objective);
+  if (c && spec.onInterest === "send_link" && (action === "offer_times" || action === "book_named_time")) {
     const link = trackedLink(c.cta_url, leadId);
     if (link) {
-      const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => linkReply(link, lang, analysis?.suggested_reply ?? null, c.objective === "form_leads" ? "form" : "buy"), c.objective === "form_leads" ? "Yolias answered and sent the form link." : "Yolias answered and sent the purchase link.");
+      const kind = spec.link === "form" ? "form" : "buy";
+      const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => linkReply(link, lang, analysis?.suggested_reply ?? null, kind), kind === "form" ? "Yolias answered and sent the form link." : "Yolias answered and sent the purchase link.");
       if (sent) {
-        await note(c.objective === "form_leads" ? "Yolias sent the form link." : "Yolias sent the purchase link.", { link: true });
-        await logCampaign(db, mb.workspace_id, c.id, "replied", `${who} is interested. Yolias sent the ${c.objective === "form_leads" ? "form" : "purchase"} link.`, { lead_id: leadId });
+        await note(kind === "form" ? "Yolias sent the form link." : "Yolias sent the purchase link.", { link: true });
+        await logCampaign(db, mb.workspace_id, c.id, "replied", `${who} is interested. Yolias sent the ${kind === "form" ? "form" : "purchase"} link.`, { lead_id: leadId });
         return;
       }
     }
   }
   // A "qualified leads" campaign (D-274): an interested person is the result. Yolias answers them,
   // then hands them to the member as a qualified lead with the conversation (a time they named is still booked).
-  if (c && c.objective === "qualified_leads" && action === "offer_times") {
+  if (c && spec.onInterest === "hand_over" && action === "offer_times") {
     if (analysis?.suggested_reply) await sendInThread(db, mb, leadId, messageId, c, () => analysis.suggested_reply!, "Yolias answered and handed the lead to you.");
     await db.from("lead_activities").insert({ workspace_id: mb.workspace_id, lead_id: leadId, kind: "agent", actor_kind: "agent", body: "Qualified lead: replied with interest. Handed to you.", meta: { message_id: messageId, action, qualified: true } as Json });
     await notifyUser(mb.workspace_id, mb.user_id, ar ? `عميل مؤهل: ${who}` : `Qualified lead: ${who}`, analysis?.summary ?? null, `/inbox?lead=${leadId}`, `qualified:${messageId}`);

@@ -1,3 +1,5 @@
+import { OBJECTIVE_SPECS, specOf, type Objective } from "@/lib/engine/objectives";
+
 // Metric registry (owner, 2026-10-31, D-272): every number the Campaigns
 // table can show is described once here (id, names, how it is computed from
 // the counts, its format, whether it is on by default). The table, its column
@@ -168,22 +170,16 @@ export const inRange = (at: string | null | undefined, r: { from: string | null;
 
 // ---------------------------------------------------------------- objectives (D-274)
 
-export type Objective = "meetings" | "purchases" | "form_leads" | "qualified_leads";
-export const OBJECTIVES: Objective[] = ["meetings", "purchases", "form_leads", "qualified_leads"];
+// D-279: objectives are entries of the Acquisition Engine (lib/engine/objectives.ts).
+export type { Objective } from "@/lib/engine/objectives";
+export { OBJECTIVES, isObjective } from "@/lib/engine/objectives";
 
 /** Each objective's result and cost per result, like an ads platform's "Results" columns. */
-export const RESULT_OF: Record<Objective, { result: string; cost: string }> = {
-  meetings: { result: "meetings", cost: "cost_per_meeting" },
-  purchases: { result: "conversions", cost: "cost_per_result" },
-  form_leads: { result: "conversions", cost: "cost_per_result" },
-  qualified_leads: { result: "found", cost: "cost_per_lead" },
-};
+export const RESULT_OF = Object.fromEntries(Object.values(OBJECTIVE_SPECS).map((s) => [s.id, s.columns])) as Record<Objective, { result: string; cost: string }>;
 
 /** Pure: the objective's result from the counts (unit-tested). */
 export function resultOf(objective: string | null | undefined, c: Counts): number {
-  if (objective === "purchases" || objective === "form_leads") return c.conversions;
-  if (objective === "qualified_leads") return c.foundPeople + c.foundCompanies;
-  return c.meetings;
+  return specOf(objective).result(c);
 }
 
 /** Ready column sets per objective (the member can still add, move and remove columns). */
@@ -193,7 +189,6 @@ export const PRESETS: Record<Objective, string[]> = {
   form_leads: ["results", "cost_per_result", "site_visits", "found", "sent", "open_rate", "reply_rate", "spend"],
   qualified_leads: ["results", "cost_per_result", "found_companies", "found_people", "spend"],
 };
-export const isObjective = (v: unknown): v is Objective => typeof v === "string" && (OBJECTIVES as string[]).includes(v);
 
 // ---------------------------------------------------------------- custom metrics (D-274)
 

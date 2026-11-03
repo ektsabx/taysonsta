@@ -1,3 +1,4 @@
+import { specOf } from "@/lib/engine/objectives";
 import { z } from "zod";
 
 // Creating a campaign (owner, 2026-10-31, D-273), after Facebook Ads Manager's
@@ -102,10 +103,11 @@ export function missing(s: BuilderState, rate: number): { level: Level; key: "na
   if (s.endDate && s.startDate && s.endDate < s.startDate) out.push({ level: "campaign", key: "dates" });
   if (s.adSets.some((a) => (a.source === "audience" ? !a.audienceId : !hasAnyTargeting(a.targeting)))) out.push({ level: "audience", key: "audience" });
   // D-274: a website objective needs its page; a qualified-leads campaign contacts no one, so no mailbox.
-  if ((s.objective === "purchases" || s.objective === "form_leads") && !/^https?:\/\/[^\s]+\.[^\s]+/i.test(s.websiteUrl.trim())) out.push({ level: "campaign", key: "website" });
+  const spec = specOf(s.objective);
+  if (spec.needsWebsite && !/^https?:\/\/[^\s]+\.[^\s]+/i.test(s.websiteUrl.trim())) out.push({ level: "campaign", key: "website" });
   // Like an ads platform: a website objective names the pixel that measures it.
-  if ((s.objective === "purchases" || s.objective === "form_leads") && !s.pixelId) out.push({ level: "campaign", key: "pixel" });
-  if (s.objective !== "qualified_leads" && !s.mailboxId) out.push({ level: "message", key: "mailbox" });
+  if (spec.needsPixel && !s.pixelId) out.push({ level: "campaign", key: "pixel" });
+  if (spec.contacts && !s.mailboxId) out.push({ level: "message", key: "mailbox" });
   return out;
 }
 

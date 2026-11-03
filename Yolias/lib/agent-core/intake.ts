@@ -1,3 +1,4 @@
+import { specOf } from "@/lib/engine/objectives";
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { addLeads, leadsCreated, type LeadTarget } from "@/lib/crm";
@@ -51,7 +52,7 @@ export async function enrollSearch(db: Db, ws: string, userId: string | null, ou
   if (!userId) return 0;
   const { data: camp } = await db.from("outreach_campaigns").select("contact_target, objective").eq("id", outreachId).maybeSingle();
   // D-274: a qualified-leads campaign finds and saves people (Leads) without contacting them.
-  if (camp?.objective === "qualified_leads") return 0;
+  if (!specOf(camp?.objective).contacts) return 0;
   const targets: LeadTarget[] = await searchTargets(ws, searchId, db as never, (camp?.contact_target as "people" | "companies" | "both" | undefined) ?? "both");
   if (!targets.length) return 0;
   const before = new Set(((await db.from("sales_leads").select("id").eq("workspace_id", ws).limit(10000)).data ?? []).map((l) => l.id));

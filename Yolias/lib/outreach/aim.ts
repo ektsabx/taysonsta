@@ -1,3 +1,4 @@
+import { specOf } from "@/lib/engine/objectives";
 import type { CampaignAim } from "@/types/acquisition";
 
 // What a campaign is for (owner 2026-10-30, D-268): book a meeting, or buy
@@ -7,7 +8,7 @@ import type { CampaignAim } from "@/types/acquisition";
 export const AIMS = ["meeting", "sell", "form"] as const satisfies readonly CampaignAim[];
 
 /** D-274: the aim behind each objective: meetings → the booking page; purchases → the website; form leads → the form. */
-export const aimOf = (objective: string | null | undefined): CampaignAim => (objective === "purchases" ? "sell" : objective === "form_leads" ? "form" : "meeting");
+export const aimOf = (objective: string | null | undefined): CampaignAim => { const l = specOf(objective).link; return l === "buy" ? "sell" : l === "form" ? "form" : "meeting"; };
 
 /**
  * D-274: the website link for one person, carrying who they are (?yc=<lead>)
