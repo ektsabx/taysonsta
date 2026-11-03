@@ -19,7 +19,7 @@ export const questionPosts: BlogPost[] = [
     doc: {
       en: {
         title: "What are the best AI lead generation tools?",
-        summary: "The best AI lead generation tool depends on the job: a contact database, a workflow builder, an email finder, a sending platform, or an AI advertising platform that reaches the customer for you.",
+        summary: "The best AI lead generation tool depends on the job: a contact database, a workflow builder, an email finder, a sender, or an AI advertising platform.",
         blocks: [
           { p: "**Short answer:** there is no single best AI lead generation tool, because the tools do different jobs. Contact databases with AI search (Apollo, ZoomInfo, Lusha, Cognism) give you people and their details. Workflow builders (Clay) let you design your own enrichment with AI research steps. Email finders (Hunter) get addresses for companies you already chose. Sending platforms (Instantly, Smartlead) send at volume. An AI advertising platform such as Yolias starts from the customers you define, finds the decision makers, writes to each one, answers the replies and books meetings, and counts every result." },
           { h2: "How to choose" },
@@ -86,7 +86,7 @@ export const questionPosts: BlogPost[] = [
     doc: {
       en: {
         title: "How can agencies find new clients?",
-        summary: "Agencies find new clients fastest by choosing a narrow niche, listing the companies in it that show a need now, and contacting the decision maker directly with proof that they looked.",
+        summary: "Agencies win clients fastest with a narrow niche, a list of companies that need them now, and a personal email to the person who decides.",
         blocks: [
           { p: "**Short answer:** pick one niche you already do great work for, list the companies in it that show a sign they need you now (hiring for a role you replace, an outdated website, a new branch, no ads running), find the person who decides, and write to them directly with one specific observation about their business and a simple question. Follow up twice, then move on. AI prospecting does the listing, research and first drafts for you; an AI advertising platform like Yolias also sends, answers and books the meeting." },
           { h2: "1. Choose a niche you can prove" },
@@ -151,7 +151,7 @@ export const questionPosts: BlogPost[] = [
     doc: {
       en: {
         title: "Which AI tools help with sales prospecting?",
-        summary: "AI helps at five steps of prospecting: finding companies, finding the decision maker, research, writing the first message and handling replies. Pick tools by the steps you want done for you.",
+        summary: "AI helps at five steps: finding companies, finding the decision maker, research, the first message and replies. Pick tools by the steps you want done.",
         blocks: [
           { p: "**Short answer:** AI sales prospecting software helps at five steps: finding companies that match your ideal customer, finding the decision maker in each, researching them, writing a personal first message, and handling the replies. Some tools cover one step (an email finder, a writing assistant); others cover all five. Yolias is an AI advertising platform that runs all five as a campaign for a result you choose (meetings, leads or sales) and shows the cost of each result." },
           { h2: "The five steps AI can do" },
@@ -179,8 +179,8 @@ export const questionPosts: BlogPost[] = [
         ],
       },
       ar: {
-        title: "ما أدوات الذكاء الاصطناعي التي تساعد في البحث عن العملاء؟",
-        summary: "يساعد الذكاء الاصطناعي في خمس خطوات: إيجاد الشركات، وإيجاد صاحب القرار، والبحث عنه، وكتابة الرسالة الأولى، والتعامل مع الردود. اختر الأدوات حسب الخطوات التي تريد أن تتم عنك.",
+        title: "ما أدوات الذكاء الاصطناعي للبحث عن العملاء؟",
+        summary: "يساعد الذكاء الاصطناعي في خمس خطوات: إيجاد الشركات وصاحب القرار، والبحث، والرسالة الأولى، والردود. اختر الأدوات حسب الخطوات التي تريدها.",
         blocks: [
           { p: "**الإجابة المختصرة:** برامج البحث عن العملاء بالذكاء الاصطناعي تساعد في خمس خطوات: إيجاد الشركات المطابقة لعميلك المثالي، وإيجاد صاحب القرار في كل منها، والبحث عنها، وكتابة رسالة أولى شخصية، والتعامل مع الردود. بعض الأدوات تغطي خطوة واحدة (أداة لإيجاد البريد، أو مساعد كتابة)، وأخرى تغطي الخمس. ويولياس منصة إعلانات بالذكاء الاصطناعي تشغّل الخطوات الخمس كحملة لنتيجة تختارها (اجتماعات أو عملاء أو مبيعات) وتعرض تكلفة كل نتيجة." },
           { h2: "الخطوات الخمس التي يقوم بها الذكاء الاصطناعي" },

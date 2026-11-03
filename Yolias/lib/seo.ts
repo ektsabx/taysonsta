@@ -80,8 +80,13 @@ export async function pageMetadata(p: { title: string; description: string; path
  * names (Calendly, Gmail…) stay as people search for them.
  */
 export function localizeTitle(title: string, locale: string): string {
-  // "Notes from the Yolias team | Yolias": the brand once is enough.
-  const once = (t: string) => t.replace(/^(.*(?:Yolias|يولياس).*) \| (?:Yolias|يولياس)$/, "$1");
+  // "Notes from the Yolias team | Yolias": the brand once is enough. A title
+  // left too short for search ("Work on Yolias") says what Yolias is instead.
+  const once = (t: string) => {
+    const m = t.match(/^(.*(?:Yolias|يولياس).*) \| (?:Yolias|يولياس)$/);
+    if (!m) return t;
+    return m[1].length >= 20 ? m[1] : `${m[1]} | ${locale === "ar" ? "منصة إعلانات بالذكاء الاصطناعي" : "AI Advertising Platform"}`;
+  };
   if (locale !== "ar") return once(title);
   return once(title
     .replace(/\s*\(Yolias\)/g, "")

@@ -116,7 +116,7 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Creating and managing campaigns",
-        summary: "Three steps like an ads manager: the campaign, its audiences and the message. Then Yolias finds, writes, answers and books, and every campaign shows its results and cost per result.",
+        summary: "Three steps like an ads manager: the campaign, its audiences and the message. Yolias finds, writes, answers and books, and shows each result and its cost.",
         blocks: [
           { p: "Open **Campaigns → Create campaign**. One page with three levels on the side; open any level to change it, and **Save draft** keeps everything:" },
           { ol: [
