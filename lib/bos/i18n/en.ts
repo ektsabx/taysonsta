@@ -9566,6 +9566,19 @@ const en: Record<string, string> = {
  "صناديق متصلة": "Connected mailboxes",
  "كل صناديق البريد": "All mailboxes",
  "تكلفة الذكاء الاصطناعي": "AI cost",
+ "عمليات الذكاء الاصطناعي": "AI operations",
+ "الاستدعاءات": "Calls",
+ "نسبة الفشل": "Failure rate",
+ "تكلفة الاستدعاء": "Cost per call",
+ "كل عملية حسب إصدار الـ prompt": "Each task by prompt version",
+ "آخر استخدام": "Last used",
+ "لا توجد استدعاءات في هذه الفترة": "No calls in this period",
+ "كتابة الرسائل والردود": "Writing emails and replies",
+ "قراءة الردود والبيانات": "Reading replies and data",
+ "فهم الطلبات": "Understanding requests",
+ "التخطيط": "Planning",
+ "الحملات (آخر 30 يومًا)": "Campaigns (last 30 days)",
+ "تكلفة 1,000 استدعاء": "Cost per 1,000 calls",
 };
 
 export default en;

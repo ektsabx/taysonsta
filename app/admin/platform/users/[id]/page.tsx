@@ -18,6 +18,7 @@ import { AccountActions } from "../_shared/AccountActions";
 import { SubscriptionActions } from "../_shared/SubscriptionActions";
 import { NoteForm } from "../_shared/NoteForm";
 import { workspaceCredit } from "@/services/yolias/payments";
+import { campaignOps } from "@/services/yolias/campaign-ops";
 
 // User 360° (D-214): everything about one Yolias account in one place. Only
 // recorded data is shown; what Yolias doesn't record says so.
@@ -25,6 +26,7 @@ import { workspaceCredit } from "@/services/yolias/payments";
 const TABS = [
   { key: "overview", label: "نظرة عامة" },
   { key: "timeline", label: "الخط الزمني" },
+  { key: "campaigns", label: "الحملات" },
   { key: "billing", label: "الاشتراكات والمدفوعات" },
   { key: "checkouts", label: "محاولات الاشتراك والدفع" },
   { key: "activity", label: "النشاط والاستخدام" },
@@ -62,6 +64,8 @@ export default async function User360Page({ params, searchParams }: { params: Pr
   // Pay As You Go balance and history (D-247), shown on the billing tab.
   const credit = tab === "billing" && a.workspace_id ? await workspaceCredit(a.workspace_id) : null;
   const ref = tab === "billing" && a.workspace_id ? await workspaceReferrals(a.workspace_id).catch(() => null) : null;
+  // One customer page (audit plan, phase 6): the workspace's campaigns with their last 30 days and alerts.
+  const camps = tab === "campaigns" && a.workspace_id ? (await campaignOps(new Date(Date.now() - 30 * 86_400_000).toISOString())).filter((c) => c.workspaceId === a.workspace_id) : [];
 
   return (
     <>
@@ -333,6 +337,18 @@ export default async function User360Page({ params, searchParams }: { params: Pr
             <p style={{ fontSize: 13 }}><Tx>محادثات الدعم من ويدجت يولياس في صندوق الدعم.</Tx> <Link className="bos-link" href={`/admin/support/inbox?q=${encodeURIComponent(a.email)}`}><Tx>بحث عن محادثات هذا البريد</Tx></Link></p>
           </Card>
         </>
+      )}
+      {tab === "campaigns" && (
+        <Card title="الحملات (آخر 30 يومًا)" flush>
+          {camps.length ? (
+            <div className="bos-table-wrap"><table className="bos-table">
+              <thead><tr><th><Tx>الحملة</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المُرسل</Tx></th><th><Tx>الارتداد</Tx></th><th><Tx>الردود</Tx></th><th><Tx>المهتمون</Tx></th><th><Tx>الاجتماعات</Tx></th><th><Tx>تنبيهات</Tx></th></tr></thead>
+              <tbody>{camps.map((c) => (
+                <tr key={c.id}><td dir="auto">{c.name}</td><td>{c.status}</td><td dir="ltr">{c.sent}</td><td dir="ltr">{c.bounced}</td><td dir="ltr">{c.replies}</td><td dir="ltr">{c.interested}</td><td dir="ltr">{c.meetings}</td><td>{c.flags.length ? <Link className="bos-link" href="/admin/platform/campaigns?show=attention"><Tx>تحتاج انتباهًا</Tx></Link> : "—"}</td></tr>
+              ))}</tbody>
+            </table></div>
+          ) : <EmptyState title="لا توجد حملات" />}
+        </Card>
       )}
     </>
   );

@@ -140,6 +140,7 @@ export const navigation: NavGroup[] = [
     items: [
       { href: "/admin/platform/agent", label: "Yolias AI", perm: "platform.read" },
       { href: "/admin/platform/llm", label: "النماذج اللغوية", perm: "platform.read" },
+      { href: "/admin/platform/ai-ops", label: "عمليات الذكاء الاصطناعي", perm: "platform.read" },
     ],
   },
   // Messaging & Automation (D-243): one section, pages only.

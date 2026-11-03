@@ -255,3 +255,4 @@ a.yd-stat:hover { border-color: var(--y-line-strong); }
 .yd-table.yd-wrap tbody th { white-space: normal; min-width: 200px; }
 .yd-table.yd-wrap summary { cursor: pointer; }
 .yd-table.yd-wrap details p { margin: 4px 0 10px; font-weight: 400; color: var(--y-text-4); white-space: normal; }
+.yd-table thead th:not(:has(button)) { padding: 8px 10px; }
