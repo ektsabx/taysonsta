@@ -50,7 +50,7 @@ export const sdrAr: typeof sdrEn = {
       imap: "IMAP / SMTP", imapDesc: "أي بريد آخر، مثل Zoho أو Hostinger أو بريد شركتك.",
       outlook: "Microsoft Outlook", outlookDesc: "الإرسال والقراءة من صناديق Microsoft 365 و Outlook.",
       powers: "الإرسال وقراءة الردود", willPower: "سيشغّل: صناديق Outlook وحملات البريد ومزامنة الردود",
-      ready: "متصل", notSetUp: "غير مُعد", available: "متاح", comingSoon: "قريبًا",
+      ready: "متصل", notSetUp: "غير مُعد", available: "متاح",
       notSetUpNote: "غير متاح بعد. استخدم IMAP / SMTP.",
       guide: "دليل الإعداد", yourMailboxes: "صناديقك", none: "لا يوجد بعد", addMailbox: "إضافة بريد", lastConnected: "آخر ربط", readsReplies: "يقرأ الردود", yes: "نعم", no: "لا",
     },

@@ -17,7 +17,6 @@ export const en = {
     essential: "Essential only",
   },
   common: {
-    comingSoon: "Coming soon",
     pending: "Pending",
     close: "Close",
     cancel: "Cancel",
@@ -202,7 +201,7 @@ export const en = {
     onThisPlan: "You’re on this plan · Continue",
     activate: "Activate {plan} · test mode",
     activating: "Activating…",
-    subscribeSoon: "Subscribe · Coming soon",
+    subscribeSoon: "Payment isn’t available right now",
     fine: "Signed in as {email}. Renews monthly until canceled. Prices don’t include applicable tax.",
     fineAnnual: "Signed in as {email}. Renews yearly until canceled. Prices don’t include applicable tax.",
     payg: {
@@ -383,7 +382,7 @@ export const en = {
     complete: "Customer Discovery Complete",
     discovering: "Discovering Customers",
     stopped: "Discovery Stopped",
-    awaitingSource: "Search ready · Starting soon",
+    awaitingSource: "Search ready · Waiting to start",
     pausedQuota: "Paused · Prospects used up",
     paused: "Paused",
     partial: "Discovery Complete · Fewer Matches Than Asked",
@@ -664,7 +663,7 @@ export const en = {
       compact: "Compact", normal: "Normal", large: "Large",
       languages: "Languages", languagesDesc: "Interface language, and the language Yolias AI writes in.",
       timezone: "Time zone", timezoneDesc: "Used for every date and time Yolias shows you.",
-      directory: "Reachable by Yolias campaigns", directoryDesc: "Your business appears to other members\u2019 campaigns that target your market.", country: "Account country", countryDesc: "The country your account was registered from. Yolias AI doesn’t use it for searches; it works from your company knowledge, customer profiles and AI agent.",
+      country: "Account country", countryDesc: "The country your account was registered from. Yolias AI doesn’t use it for searches; it works from your company knowledge, customer profiles and AI agent.",
     },
     organization: {
       name: "Company name", nameDesc: "Your company, as Yolias AI and your team see it.",
@@ -751,7 +750,7 @@ export const en = {
     hub: {
       title: "Integrations", subtitle: "The tools Yolias works through.",
       back: "All integrations", more: "Options", connect: "Connect", how: "How to connect",
-      connected: "{n} connected", notConnected: "Not connected", soon: "Not available yet",
+      connected: "{n} connected", notConnected: "Not connected", soon: "Not available",
       gmailDesc: "Gmail or Google Workspace: sends your campaigns and reads the replies.",
       imapName: "IMAP/SMTP mailbox", imapDesc: "Any other mailbox: Zoho, Hostinger, Outlook or your company mail.",
       rulesName: "Sending rules", rulesDesc: "Emails a day, the gap between emails, and sending days and hours, for every mailbox.", rulesOn: "On",

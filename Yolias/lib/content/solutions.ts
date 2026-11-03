@@ -228,7 +228,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
   }),
   "real-estate": build({
     name: { en: "Commercial Real Estate", ar: "العقار التجاري" },
-    tagline: { en: "Companies about to need space.", ar: "شركات ستحتاج مساحات قريبًا." },
+    tagline: { en: "Companies about to need space.", ar: "شركات على وشك أن تحتاج مساحات." },
     title: { en: "Reach the companies about to need new space.", ar: "صِل إلى الشركات التي ستحتاج مساحات جديدة." },
     lead: { en: "Yolias reaches growing companies and their decision makers, writes to each one about your properties and books the viewing.", ar: "يصل يولياس إلى الشركات النامية وصنّاع القرار فيها، ويكتب لكل منهم عن عقاراتك ويحجز المعاينة." },
     meta: { en: "Get commercial real estate tenants with AI campaigns: Yolias reaches growing companies and books viewings.", ar: "مستأجرون للعقار التجاري بحملات ذكية: يصل يولياس إلى الشركات النامية ويحجز المعاينات." },

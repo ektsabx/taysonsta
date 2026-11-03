@@ -233,9 +233,10 @@ export function CampaignBuilder(p: BuilderProps) {
               {s.objective !== "qualified_leads" && <div className="ws-field">
                 <span className="ws-label">{K.channel}</span>
                 <div className="cb-choices">
-                  {(["email", "linkedin", "facebook_groups", "reddit", "quora"] as const).map((k) => (
-                    <button key={k} type="button" disabled={k !== "email"} className={`cb-objective sm${k === "email" ? " on" : ""}`} aria-pressed={k === "email"} onClick={() => patch({ channel: "email" })}>
-                      <div><strong>{K.channels[k]}{k !== "email" && <span className="cb-soon">{K.soon}</span>}</strong><p>{K.channelDesc[k]}</p></div>{k === "email" && <Check className="cb-tick" />}
+                  {/* Only channels that work are shown (owner, 2026-11-03: never "coming soon"). */}
+                  {(["email"] as const).map((k) => (
+                    <button key={k} type="button" className="cb-objective sm on" aria-pressed onClick={() => patch({ channel: "email" })}>
+                      <div><strong>{K.channels[k]}</strong><p>{K.channelDesc[k]}</p></div><Check className="cb-tick" />
                     </button>
                   ))}
                 </div>

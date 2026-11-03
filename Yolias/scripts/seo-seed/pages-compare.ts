@@ -432,8 +432,8 @@ export const comparePages: SeedPage[] = [
       ar: ["تفكر بالحملات والميزانيات وتكلفة الاجتماع، مثل مدير الإعلانات.", "تريد أن تُجاب الردود وتُحجز الاجتماعات عنك.", "تبيع بالعربية والإنجليزية."],
     },
     faq: {
-      en: [{ q: "Does Yolias use LinkedIn like lemlist?", a: "Not yet. Yolias campaigns use email from your own mailbox today; more channels join the same campaigns as they launch." }],
-      ar: [{ q: "هل يستخدم يولياس LinkedIn مثل lemlist؟", a: "ليس بعد. حملات يولياس تستخدم البريد من صندوقك اليوم، وتنضم قنوات أخرى إلى الحملات نفسها عند إطلاقها." }],
+      en: [{ q: "Does Yolias use LinkedIn like lemlist?", a: "No. Yolias campaigns use email from your own mailbox." }],
+      ar: [{ q: "هل يستخدم يولياس LinkedIn مثل lemlist؟", a: "لا. حملات يولياس تستخدم البريد من بريدك أنت." }],
     },
     sources: ["https://www.lemlist.com/", "https://www.lemlist.com/pricing"],
   }),

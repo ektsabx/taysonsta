@@ -177,10 +177,8 @@ export default async function HomePage() {
           <div><Head eyebrow={c.channels.eyebrow} title={c.channels.title} body={c.channels.body} /></div>
           <div className="lp-mock lp-card">
             <p className="lp-sub">{c.channels.setting}</p>
-            {c.channels.list.map((ch) => (
-              <div className={`lp-channel${ch.live ? " live" : ""}`} key={ch.name}>
-                <span className="lp-radio" />{ch.name}<em>{ch.live ? c.channels.live : c.channels.soon}</em>
-              </div>
+            {c.channels.list.map((name) => (
+              <div className="lp-channel live" key={name}><span className="lp-radio" />{name}</div>
             ))}
           </div>
         </div>

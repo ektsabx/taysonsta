@@ -49,7 +49,7 @@ export const sdrEn = {
       imap: "IMAP / SMTP", imapDesc: "Any other mailbox: Zoho, Hostinger or your company mail.",
       outlook: "Microsoft Outlook", outlookDesc: "Send and read email from Microsoft 365 and Outlook mailboxes.",
       powers: "Sending and reading replies", willPower: "Will power: Outlook mailboxes, email campaigns and reply sync",
-      ready: "Connected", notSetUp: "Not set up", available: "Available", comingSoon: "Coming soon",
+      ready: "Connected", notSetUp: "Not set up", available: "Available",
       notSetUpNote: "Not available yet. Use IMAP / SMTP.",
       guide: "Setup guide", yourMailboxes: "Your mailboxes", none: "None yet", addMailbox: "Add mailbox", lastConnected: "Last connected", readsReplies: "Reads replies", yes: "Yes", no: "No",
     },

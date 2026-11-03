@@ -18,7 +18,6 @@ export const ar: Dictionary = {
     essential: "الأساسية فقط",
   },
   common: {
-    comingSoon: "قريبًا",
     pending: "قيد الانتظار",
     close: "إغلاق",
     cancel: "إلغاء",
@@ -203,7 +202,7 @@ export const ar: Dictionary = {
     onThisPlan: "أنت على هذه الخطة · متابعة",
     activate: "تفعيل {plan} · وضع تجريبي",
     activating: "جارٍ التفعيل…",
-    subscribeSoon: "اشترك · قريبًا",
+    subscribeSoon: "الدفع غير متاح الآن",
     fine: "مسجّل الدخول باسم {email}. يتجدد شهريًا حتى الإلغاء. الأسعار لا تشمل الضريبة المطبقة.",
     fineAnnual: "مسجّل الدخول باسم {email}. يتجدد سنويًا حتى الإلغاء. الأسعار لا تشمل الضريبة المطبقة.",
     payg: {
@@ -384,7 +383,7 @@ export const ar: Dictionary = {
     complete: "اكتمل اكتشاف العملاء",
     discovering: "جارٍ اكتشاف العملاء",
     stopped: "توقف الاكتشاف",
-    awaitingSource: "البحث جاهز · يبدأ قريبًا",
+    awaitingSource: "البحث جاهز · بانتظار البدء",
     pausedQuota: "متوقفة · نفد رصيد العملاء المحتملين",
     paused: "متوقفة مؤقتاً",
     partial: "اكتمل الاكتشاف · نتائج أقل من المطلوب",
@@ -666,7 +665,7 @@ export const ar: Dictionary = {
       compact: "مضغوط", normal: "عادي", large: "كبير",
       languages: "اللغة", languagesDesc: "لغة الواجهة، واللغة التي يكتب بها يولياس AI.",
       timezone: "المنطقة الزمنية", timezoneDesc: "تُستخدم في كل تاريخ ووقت يعرضه يولياس.",
-      directory: "متاح لحملات يولياس", directoryDesc: "يظهر نشاطك لحملات الأعضاء الآخرين التي تستهدف سوقك.", country: "بلد الحساب", countryDesc: "البلد الذي سجّلت منه حسابك. لا يستخدمه يولياس AI في البحث؛ يعتمد على ملف الشركة وملفات العملاء ووكيل الذكاء الاصطناعي.",
+      country: "بلد الحساب", countryDesc: "البلد الذي سجّلت منه حسابك. لا يستخدمه يولياس AI في البحث؛ يعتمد على ملف الشركة وملفات العملاء ووكيل الذكاء الاصطناعي.",
     },
     organization: {
       name: "اسم الشركة", nameDesc: "شركتك كما يراها Yolias AI وفريقك.",
@@ -753,7 +752,7 @@ export const ar: Dictionary = {
     hub: {
       title: "التكاملات", subtitle: "الأدوات التي يعمل بها يولياس.",
       back: "كل التكاملات", more: "خيارات", connect: "اربط", how: "طريقة الربط",
-      connected: "{n} متصل", notConnected: "غير متصل", soon: "غير متاح بعد",
+      connected: "{n} متصل", notConnected: "غير متصل", soon: "غير متاح",
       gmailDesc: "Gmail أو Google Workspace: يرسل حملاتك ويقرأ الردود عليها.",
       imapName: "بريد IMAP/SMTP", imapDesc: "أي بريد آخر، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك.",
       rulesName: "قواعد الإرسال", rulesDesc: "عدد الرسائل يوميًا والفاصل بينها وأيام وساعات الإرسال، لكل صناديق البريد.", rulesOn: "مفعّلة",

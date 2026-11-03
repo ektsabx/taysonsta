@@ -15,7 +15,7 @@ export interface Landing {
   manager: { eyebrow: string; title: string; body: string[]; actions: string[]; message: string; columns: string[]; rows: { name: string; status: "on" | "off"; channel: string; audience: string; contacted: number; replies: number; interested: number; meetings: number; spend: number }[] };
   audience: { eyebrow: string; title: string; body: string; points: string[]; example: { name: string; rows: [string, string][]; size: string } };
   budget: { eyebrow: string; title: string; body: string; message: string; stats: [string, string][]; split: { title: string; rows: [string, number][] } };
-  channels: { eyebrow: string; title: string; body: string; live: string; soon: string; list: { name: string; live: boolean }[]; setting: string };
+  channels: { eyebrow: string; title: string; body: string; list: string[]; setting: string };
   research: { eyebrow: string; title: string; body: string; points: string[]; lead: { name: string; title: string; company: string; facts: string[]; subject: string; message: string } };
   ai: { eyebrow: string; title: string; body: string; uses: string[]; chat: { q: string; a: string } };
   leads: { eyebrow: string; title: string; body: string; message: string; columns: string[]; rows: string[][] };
@@ -59,7 +59,7 @@ export const landing: Localized<Landing> = {
         { title: "Campaigns", body: "A campaign for each service, goal or market, with its objective: meetings, sales, website leads or qualified leads." },
         { title: "Audiences", body: "The companies and people you want, by industry, location, company size and job title. Save them and use them again." },
         { title: "Budget", body: "A budget in US dollars for each campaign, the spend so far, and the cost of each result." },
-        { title: "Channels", body: "Campaigns reach people by email from your own mailbox, with more channels added to the same campaigns." },
+        { title: "Channels", body: "Campaigns reach people by email from your own mailbox: Gmail, Outlook or any business mailbox." },
         { title: "Leads", body: "Every company and person a campaign found, with the campaign and audience they came from." },
         { title: "Conversations", body: "Replies from every campaign in one inbox, with Yolias answering and following up." },
         { title: "Performance", body: "Reached, replies, interested, meetings and cost per meeting for each campaign, side by side." },
@@ -98,11 +98,10 @@ export const landing: Localized<Landing> = {
     },
     channels: {
       eyebrow: "CHANNELS",
-      title: "Reach people through the right channel.",
+      title: "Reach people from your own mailbox.",
       body: "The channel is a setting of the campaign. Replies, meetings and results stay linked to the campaign that started them.",
-      live: "Live", soon: "Coming",
-      list: [{ name: "Email (Gmail, Outlook, any mailbox)", live: true }, { name: "LinkedIn", live: false }, { name: "WhatsApp Business", live: false }],
-      setting: "Campaign channel",
+      list: ["Gmail", "Outlook / Microsoft 365", "Any business mailbox (IMAP/SMTP)"],
+      setting: "Email, from the mailbox you connect",
     },
     research: {
       eyebrow: "RESEARCH AND PERSONALIZATION",
@@ -208,7 +207,7 @@ export const landing: Localized<Landing> = {
         ["Is Yolias just an email tool?", "No. Email is the channel campaigns use today. Yolias runs the campaign: the audience, finding the people, the messages, the conversations, the meetings and the results."],
         ["Can I run more than one campaign?", "Yes. Each campaign has its own objective, audiences, budget and dates."],
         ["Can I choose my audience?", "Yes: industry, countries and cities, company size, job titles, your own lists and lookalikes of your best customers."],
-        ["Which channels are available?", "Email from your own mailbox (Gmail, Outlook or any mailbox). More channels join the same campaigns as they launch."],
+        ["Which channels are available?", "Email from your own mailbox: Gmail, Outlook or any business mailbox (IMAP/SMTP)."],
         ["Can I follow my campaigns’ performance?", "Yes: reached, replies, interested, meetings, spend and cost per result for each campaign and audience, by day."],
         ["Does Yolias guarantee meetings?", "No platform can guarantee a business result. Yolias runs the acquisition process and measures every result and what it cost."],
         ["Do I need sales experience?", "No. You set the goal and the audience; Yolias does the research, writing, replies and booking."],
@@ -250,7 +249,7 @@ export const landing: Localized<Landing> = {
         { title: "الحملات", body: "حملة لكل خدمة أو هدف أو سوق، ولكل حملة هدفها: اجتماعات أو مبيعات أو عملاء من الموقع أو عملاء مؤهلون." },
         { title: "الجماهير", body: "الشركات والأشخاص الذين تريدهم حسب المجال والموقع وحجم الشركة والمسمى الوظيفي. احفظها واستخدمها مجددًا." },
         { title: "الميزانية", body: "ميزانية بالدولار لكل حملة، والإنفاق حتى الآن، وتكلفة كل نتيجة." },
-        { title: "القنوات", body: "تصل الحملات إلى الأشخاص بالبريد الإلكتروني من بريدك، وتنضم قنوات أخرى إلى الحملات نفسها." },
+        { title: "القنوات", body: "تصل الحملات إلى الأشخاص بالبريد الإلكتروني من بريدك: Gmail أو Outlook أو أي بريد عمل." },
         { title: "العملاء المحتملون", body: "كل شركة وشخص وجدتهم الحملة، مع الحملة والجمهور الذي جاؤوا منه." },
         { title: "المحادثات", body: "ردود كل الحملات في صندوق واحد، ويولياس يرد ويتابع." },
         { title: "الأداء", body: "من وصلت إليهم الحملة والردود والمهتمون والاجتماعات وتكلفة الاجتماع، لكل حملة جنبًا إلى جنب." },
@@ -289,11 +288,10 @@ export const landing: Localized<Landing> = {
     },
     channels: {
       eyebrow: "القنوات",
-      title: "تواصل مع جمهورك عبر القناة المناسبة.",
+      title: "تواصل مع جمهورك من بريدك أنت.",
       body: "القناة إعداد من إعدادات الحملة، والردود والاجتماعات والنتائج تبقى مرتبطة بالحملة التي بدأتها.",
-      live: "متاحة", soon: "قريبًا",
-      list: [{ name: "البريد الإلكتروني (Gmail وOutlook وأي بريد)", live: true }, { name: "LinkedIn", live: false }, { name: "واتساب للأعمال", live: false }],
-      setting: "قناة الحملة",
+      list: ["Gmail", "Outlook / Microsoft 365", "أي بريد عمل (IMAP/SMTP)"],
+      setting: "البريد الإلكتروني، من البريد الذي تربطه",
     },
     research: {
       eyebrow: "البحث والتخصيص",
@@ -399,7 +397,7 @@ export const landing: Localized<Landing> = {
         ["هل يولياس مجرد أداة لإرسال البريد الإلكتروني؟", "لا. البريد الإلكتروني هو القناة التي تستخدمها الحملات اليوم. يولياس يدير الحملة: الجمهور، وإيجاد الأشخاص، والرسائل، والمحادثات، والاجتماعات، والنتائج."],
         ["هل يمكنني إنشاء أكثر من حملة؟", "نعم. لكل حملة هدفها وجماهيرها وميزانيتها وتواريخها."],
         ["هل يمكنني تحديد الجمهور المستهدف؟", "نعم: المجال، والدول والمدن، وحجم الشركة، والمسميات الوظيفية، وقوائمك الخاصة، وجماهير مشابهة لأفضل عملائك."],
-        ["ما قنوات التواصل المتاحة؟", "البريد الإلكتروني من بريدك (Gmail أو Outlook أو أي بريد). وتنضم قنوات أخرى إلى الحملات نفسها عند إطلاقها."],
+        ["ما قنوات التواصل المتاحة؟", "البريد الإلكتروني من بريدك: Gmail أو Outlook أو أي بريد عمل (IMAP/SMTP)."],
         ["هل يمكنني متابعة أداء الحملات؟", "نعم: من وصلت إليهم، والردود، والمهتمون، والاجتماعات، والإنفاق، وتكلفة كل نتيجة، لكل حملة وجمهور، يومًا بيوم."],
         ["هل تضمن يولياس الحصول على اجتماعات؟", "لا تضمن أي منصة نتيجة تجارية محددة. يولياس يدير عملية اكتساب العملاء ويقيس كل نتيجة وتكلفتها."],
         ["هل أحتاج إلى خبرة في المبيعات؟", "لا. تحدد الهدف والجمهور، ويتولى يولياس البحث والكتابة والردود والحجز."],

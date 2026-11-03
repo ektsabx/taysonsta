@@ -205,8 +205,8 @@ const platforms: Platform[] = [
     chooseThem: { en: ["You want your brand seen by a whole industry.", "You have budget for awareness at LinkedIn's prices.", "You want lead forms prefilled from profiles."], ar: ["تريد أن يرى قطاع كامل علامتك.", "لديك ميزانية للوعي بأسعار LinkedIn.", "تريد نماذج معبأة من الملفات الشخصية."] },
     together: { en: "Warm a target account list with LinkedIn Ads, then let Yolias contact the decision makers at those same companies directly.", ar: "سخّن قائمة الشركات المستهدفة بإعلانات LinkedIn، ثم دع يولياس يتواصل مباشرة مع صنّاع القرار في الشركات نفسها." },
     faq: {
-      en: [{ q: "Does Yolias send LinkedIn messages?", a: "Not yet. Yolias contacts people by email from your own mailbox today; LinkedIn is among the channels coming next." }],
-      ar: [{ q: "هل يرسل يولياس رسائل على LinkedIn؟", a: "ليس بعد. يتواصل يولياس اليوم بالبريد الإلكتروني من بريدك أنت، وLinkedIn من القنوات القادمة." }],
+      en: [{ q: "Does Yolias send LinkedIn messages?", a: "No. Yolias contacts people by email from your own mailbox." }],
+      ar: [{ q: "هل يرسل يولياس رسائل على LinkedIn؟", a: "لا. يتواصل يولياس بالبريد الإلكتروني من بريدك أنت." }],
     },
     sources: ["https://business.linkedin.com/marketing-solutions/ads", "https://business.linkedin.com/marketing-solutions/ads/pricing", "https://business.linkedin.com/marketing-solutions/insight-tag"],
   },

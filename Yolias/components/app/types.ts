@@ -27,8 +27,6 @@ export interface ShellData {
     industry: string | null;
     idealCustomer: string | null;
     targetMarkets: string | null;
-    /** D-278: other Yolias campaigns can reach this business. */
-    listed: boolean;
     plan: Plan;
     /** Monthly plan price in the workspace's billing currency. */
     price: number;

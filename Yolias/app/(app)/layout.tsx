@@ -108,7 +108,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       industry: workspace.industry,
       idealCustomer: workspace.ideal_customer,
       targetMarkets: workspace.target_markets,
-      listed: workspace.listed_in_directory !== false,
       plan: workspace.plan,
       price: planPrice(plan, workspace.billing_currency) ?? plan.priceUsd,
       currency: planPrice(plan, workspace.billing_currency) == null ? "USD" : workspace.billing_currency,

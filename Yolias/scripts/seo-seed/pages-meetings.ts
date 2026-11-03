@@ -243,11 +243,11 @@ export const meetingComparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Does Yolias support Microsoft calendars like SavvyCal?", a: "Not yet. Yolias adds bookings to Google Calendar. Without Google Calendar, guests get an \"Add to Google Calendar\" link in their confirmation." },
+        { q: "Does Yolias support Microsoft calendars like SavvyCal?", a: "No. Yolias adds bookings to Google Calendar. Without Google Calendar, guests get an \"Add to Google Calendar\" link in their confirmation." },
         { q: "Can guests see their calendar on Yolias's page?", a: "No. Guests see your free times in their own time zone and pick one." },
       ],
       ar: [
-        { q: "هل يدعم يولياس تقويمات Microsoft مثل SavvyCal؟", a: "ليس بعد. يضيف يولياس الحجوزات إلى تقويم Google. ومن دونه يصل الضيف رابط «أضف إلى تقويم Google» في رسالة التأكيد." },
+        { q: "هل يدعم يولياس تقويمات Microsoft مثل SavvyCal؟", a: "لا. يضيف يولياس الحجوزات إلى تقويم Google. ومن دونه يصل الضيف رابط «أضف إلى تقويم Google» في رسالة التأكيد." },
         { q: "هل يرى الضيوف تقويمهم في صفحة يولياس؟", a: "لا. يرى الضيف مواعيدك المتاحة بتوقيته ويختار أحدها." },
       ],
     },

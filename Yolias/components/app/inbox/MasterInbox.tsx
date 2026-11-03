@@ -116,7 +116,6 @@ export function MasterInbox(p: Props) {
             {/* D-274: one hub for every channel; email today, the others as Yolias adds them. */}
             <select className="sdr-input sm" aria-label={I.channel} value="email" onChange={() => {}}>
               <option value="email">{I.channels.email}</option>
-              {(["whatsapp", "linkedin", "facebook"] as const).map((c) => <option key={c} value={c} disabled>{`${I.channels[c]} (${I.soon})`}</option>)}
             </select>
             <select className="sdr-input sm" aria-label={t.camp.inbox.filter} value={p.show ?? ""} onChange={(e) => router.push(href({ show: e.target.value || null, lead: null }))}>
               <option value="">{t.camp.inbox.all}</option>
