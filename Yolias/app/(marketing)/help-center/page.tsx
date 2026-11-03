@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata, webPageSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import Link from "@/components/LocaleLink";
-import { ChevronRight, Rocket, Sparkles, Users } from "lucide-react";
+import { CalendarDays, ChevronRight, CreditCard, Megaphone, Rocket, Users } from "lucide-react";
 import { collections, helpHero } from "@/lib/content/help";
 import { helpArticles } from "@/lib/content/store";
 import { fmt } from "@/lib/i18n/config";
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ title: `${(await getDictionary()).site.helpCenter} | Yolias`, description: helpHero[locale].lead, path: "/help-center" });
 }
 
-const icons = { rocket: Rocket, sparkles: Sparkles, users: Users };
+const icons = { rocket: Rocket, megaphone: Megaphone, users: Users, calendar: CalendarDays, card: CreditCard };
 
 export default async function HelpCenterPage() {
   const articles = await helpArticles();

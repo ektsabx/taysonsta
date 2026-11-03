@@ -3,6 +3,10 @@ import { guidePosts } from "./blog-guides";
 import { aeoPosts } from "./blog-aeo";
 import { questionPosts } from "./blog-questions";
 
+// The blog (rewritten 2026-11-03 for the campaign platform). Slugs stay, so
+// links and search results keep working. Only what Yolias does today; no
+// invented numbers.
+
 export interface BlogPost {
   slug: string;
   date: string;
@@ -11,87 +15,104 @@ export interface BlogPost {
 }
 
 export const blogHero: Localized<{ eyebrow: string; title: string; lead: string }> = {
-  en: { eyebrow: "BLOG", title: "Notes from the Yolias team", lead: "Product updates, practical guides and how we think about finding customers." },
-  ar: { eyebrow: "المدونة", title: "ملاحظات من فريق يولياس", lead: "تحديثات المنتج وأدلة عملية وطريقة تفكيرنا في العثور على العملاء." },
+  en: { eyebrow: "BLOG", title: "Notes from the Yolias team", lead: "How to run customer acquisition as campaigns: audiences, messages, budgets and results." },
+  ar: { eyebrow: "المدونة", title: "ملاحظات من فريق يولياس", lead: "كيف تدير اكتساب العملاء كحملات: الجماهير والرسائل والميزانيات والنتائج." },
 };
 
 export const posts: BlogPost[] = [
-  // Newest first: answer-first guides (lib/content/blog-aeo.ts), then long-form guides (lib/content/blog-guides.ts).
   ...questionPosts,
   ...aeoPosts,
   ...guidePosts,
   {
     slug: "introducing-yolias",
-    date: "2026-10-01",
+    date: "2026-11-03",
     category: { en: "Product", ar: "المنتج" },
     doc: {
       en: {
-        title: "Introducing Yolias",
-        summary: "A customer-discovery assistant that starts from one sentence about who you want to sell to.",
+        title: "Introducing Yolias: an advertising platform for customer acquisition",
+        summary: "Yolias runs customer acquisition the way advertisers run ads: campaigns, audiences, budgets and results, with Yolias AI doing the work in between.",
         blocks: [
-          { p: "Every B2B team has the same Monday problem: the pipeline needs new names, and building the list takes longer than working it. Someone opens a spreadsheet, a directory and a dozen tabs, and the afternoon is gone." },
-          { p: "Yolias starts from a different place. Instead of a filter panel, you get a single box and one question: who do you want to sell to? Write the answer the way you would brief a new hire: the market, the kind of company, how big, which signals matter, which people you need to reach." },
-          { h2: "What happens next" },
-          { p: "Yolias AI reads the request alongside what it already knows about your business, and turns it into a customer profile: countries and cities, industries, company size, hiring or funding signals, and the decision makers to find. Whatever you didn’t specify is filled in and shown as an assumption, so nothing is hidden." },
-          { p: "The profile becomes a campaign: a discovery mission with a target, a status and an activity log. As results arrive, each decision maker comes with a match score that explains itself: which criteria the person and their company meet." },
-          { h2: "Built for the region" },
-          { p: "Yolias works fully in Arabic and English. The interface mirrors right-to-left, requests can be written in either language, and the summaries Yolias writes follow the language you choose." },
-          { h2: "Where to start" },
-          { p: "Choose a plan on [Pricing](/pricing), describe your business during onboarding, and run your first search. The [Quickstart](/docs/quickstart) walks through it." },
+          { p: "Every business that sells to other businesses needs new customers every month. Most get them through a stack of separate tools: one to find companies, one to find contacts, one to send emails, a spreadsheet to follow up and another to report. Nobody can say what a meeting cost or which audience brought it." },
+          { p: "Ad platforms solved this problem for ads years ago. You create a campaign, pick an objective, define the audience, set a budget and read the results with the cost of each one. Yolias brings the same model to acquiring customers directly." },
+          { h2: "How it works" },
+          { ol: [
+            "**Campaign**: choose the objective (meetings, sales, website leads or qualified leads), your offer, the target and the budget in US dollars.",
+            "**Audiences**: the companies and people you want, by country and city, industry, company size and job title, or a saved, custom or lookalike audience.",
+            "**Message**: the mailbox to send from, your tone and language. Yolias AI writes a different email to each person from your Company Knowledge.",
+          ] },
+          { p: "Then Yolias AI runs the campaign: it finds the people every day within the budget, sends from your own mailbox in your hours, follows up, answers questions and objections, offers times and books meetings on your calendar." },
+          { h2: "One engine, many objectives" },
+          { p: "Under every campaign is one engine. The objective only tells it which result to pursue. A meetings campaign sends interested people to your booking page; a sales campaign sends them to your product page and the Yolias pixel counts the purchase." },
+          { h2: "Results you can manage" },
+          { p: "Every campaign shows reached, replies, interested, meetings, spend and cost per result, by day, audience, country or job title. Once a day Yolias moves the budget toward the audiences that bring results." },
+          { p: "Yolias works in Arabic and English, with unlimited users on every plan, from $5 with Pay As You Go. [Create your first campaign](/signup)." },
         ],
       },
       ar: {
-        title: "نقدّم لكم يولياس",
-        summary: "مساعد لاكتشاف العملاء يبدأ من جملة واحدة عمّن تريد أن تبيع له.",
+        title: "نقدّم لكم يولياس: منصة إعلانية لاكتساب العملاء",
+        summary: "يدير يولياس اكتساب العملاء كما يدير المعلنون إعلاناتهم: حملات وجماهير وميزانيات ونتائج، ويتولى Yolias AI العمل بينها.",
         blocks: [
-          { p: "لدى كل فريق B2B مشكلة يوم الأحد نفسها: خط المبيعات يحتاج أسماء جديدة، وبناء القائمة يستغرق وقتًا أطول من العمل عليها. يفتح أحدهم جدولًا ودليلًا وعشرات التبويبات، فيضيع اليوم." },
-          { p: "يبدأ يولياس من مكان مختلف. بدل لوحة فلاتر، تحصل على مربع واحد وسؤال واحد: لمن تريد أن تبيع؟ اكتب الإجابة كما تشرح المهمة لموظف جديد، السوق، ونوع الشركة، وحجمها، والمؤشرات المهمة، والأشخاص الذين تريد الوصول إليهم." },
-          { h2: "ما الذي يحدث بعد ذلك" },
-          { p: "يقرأ يولياس AI الطلب مع ما يعرفه عن عملك، ويحوّله إلى ملف عميل مثالي: الدول والمدن، والقطاعات، وحجم الشركة، ومؤشرات التوظيف أو التمويل، وصنّاع القرار المطلوبين. وما لم تحدده يُكمَل ويظهر كافتراض، فلا شيء مخفي." },
-          { p: "يتحول الملف إلى حملة، مهمة اكتشاف لها هدف وحالة وسجل نشاط. ومع وصول النتائج يأتي كل صانع قرار بنسبة تطابق تشرح نفسها: أي المعايير يحققها الشخص وشركته." },
-          { h2: "مصمم للمنطقة" },
-          { p: "يعمل يولياس بالكامل بالعربية والإنجليزية. تنعكس الواجهة من اليمين لليسار، ويمكن كتابة الطلبات بأي من اللغتين، وتتبع الملخصات التي يكتبها يولياس اللغة التي تختارها." },
-          { h2: "من أين تبدأ" },
-          { p: "اختر خطة من [الأسعار](/pricing)، وصِف عملك أثناء الإعداد الأولي، وابدأ أول بحث. يشرح [البدء السريع](/docs/quickstart) الخطوات." },
+          { p: "كل شركة تبيع لشركات أخرى تحتاج عملاء جددًا كل شهر. ومعظمها يحصل عليهم عبر أدوات متفرقة: أداة لإيجاد الشركات، وأخرى لبيانات التواصل، وثالثة لإرسال البريد، وجدول للمتابعة، وأخرى للتقارير. ولا أحد يعرف كم كلّف الاجتماع ولا أي جمهور جاء به." },
+          { p: "منصات الإعلانات حلّت هذه المشكلة للإعلانات منذ سنوات: تنشئ حملة، وتختار الهدف، وتحدد الجمهور، وتضبط الميزانية، وتقرأ النتائج مع تكلفة كل نتيجة. ويطبق يولياس النموذج نفسه على اكتساب العملاء مباشرة." },
+          { h2: "كيف يعمل" },
+          { ol: [
+            "**الحملة**: اختر الهدف (اجتماعات أو مبيعات أو نماذج الموقع أو عملاء مؤهلون)، وعرضك، والمستهدف، والميزانية بالدولار.",
+            "**الجماهير**: الشركات والأشخاص الذين تريدهم حسب الدولة والمدينة والمجال وحجم الشركة والمسمى الوظيفي، أو جمهور محفوظ أو مخصص أو مشابه.",
+            "**الرسالة**: البريد الذي تُرسل منه، وأسلوبك ولغتك. ويكتب Yolias AI رسالة مختلفة لكل شخص من معرفة شركتك.",
+          ] },
+          { p: "ثم يدير Yolias AI الحملة: يجد الأشخاص كل يوم في حدود الميزانية، ويرسل من بريدك في ساعاتك، ويتابع، ويجيب عن الأسئلة والاعتراضات، ويقترح المواعيد ويحجز الاجتماعات في تقويمك." },
+          { h2: "محرك واحد وأهداف متعددة" },
+          { p: "تحت كل حملة محرك واحد، والهدف يحدد له النتيجة التي يسعى إليها. حملة الاجتماعات ترسل المهتمين إلى صفحة الحجز، وحملة المبيعات ترسلهم إلى صفحة منتجك ويحسب بيكسل يولياس عملية الشراء." },
+          { h2: "نتائج تستطيع إدارتها" },
+          { p: "تعرض كل حملة من وصلت إليهم والردود والمهتمين والاجتماعات والإنفاق وتكلفة كل نتيجة، حسب اليوم أو الجمهور أو البلد أو المسمى. ومرة يوميًا يوجّه يولياس الميزانية نحو الجماهير التي تأتي بالنتائج." },
+          { p: "يعمل يولياس بالعربية والإنجليزية، مع مستخدمين بلا حد في كل خطة، ويبدأ من 5 دولارات بالدفع حسب الاستخدام. [أنشئ حملتك الأولى](/signup)." },
         ],
       },
     },
   },
   {
     slug: "writing-better-searches",
-    date: "2026-10-01",
+    date: "2026-11-03",
     category: { en: "Guides", ar: "أدلة" },
     doc: {
       en: {
-        title: "Three rewrites that make a search sharper",
-        summary: "The same request, improved step by step, and why each change helps.",
+        title: "Three changes that make a campaign audience sharper",
+        summary: "A precise audience is the biggest lever on a campaign's cost per meeting. Three changes that make it precise.",
         blocks: [
-          { p: "Yolias can work with a vague request, but every detail you add replaces an assumption with a decision. Here is one search, rewritten three times." },
-          { h2: "Start: “Find me fintech companies.”" },
-          { p: "Yolias will open a campaign, but it has to assume almost everything: your default country, any size, a target of one hundred, and decision makers inferred from what you sell. The result card lists all of those as assumptions." },
-          { h2: "Rewrite 1: add the market and size" },
-          { p: "“Find fintech companies in the UAE with 50–200 employees.” Now the market and size criteria count toward each match score, and companies outside them stop scoring well." },
-          { h2: "Rewrite 2: add a signal" },
-          { p: "“…that are hiring engineers.” Signals separate companies that look right from companies that are moving. Hiring, a recent funding round or a technology they use are all good candidates." },
-          { h2: "Rewrite 3: name the people" },
-          { p: "“…and reach the CTO or head of engineering.” Naming roles is the single biggest improvement: it decides who appears in your prospects and adds the decision-maker criterion to every score." },
-          { note: "Tip: attach a CSV of three or four of your best customers. Yolias reads it as an example of what “right” looks like." },
+          { p: "Most campaigns that disappoint have a message problem on the surface and an audience problem underneath. When the audience is broad, even a good email reaches people who can't buy. Three changes fix most of it." },
+          { h2: "1. Name the market, not the world" },
+          { p: "“Companies in the Gulf” is a region. “Real estate developers in Riyadh and Jeddah” is a market. Pick the countries and cities you can actually serve, and exclude the rest. A smaller audience you can win beats a large one you can't." },
+          { h2: "2. Describe the buyer, not the company" },
+          { p: "Industry and size choose the companies; job titles choose who reads your email. Add the two or three titles that own the problem you solve (for example Head of Sales and Marketing Director), and the seniority that signs." },
+          { h2: "3. Split, then compare" },
+          { p: "Instead of one audience with every title, create two or three audiences in the same campaign: owners, sales leaders, marketing leaders. Yolias gives each an equal share while it learns, then moves the budget toward the one that books meetings. The campaign page shows today's split." },
+          { h2: "Before you launch" },
+          { ul: [
+            "Check the number of matching companies and people Yolias already knows for each audience.",
+            "Exclude your customers and competitors in **Companies never to contact**.",
+            "Pick the offer from Company Knowledge that fits this audience.",
+          ] },
+          { p: "Read more in [Audiences](/help-center/audiences)." },
         ],
       },
       ar: {
-        title: "ثلاث إعادات صياغة تجعل بحثك أدق",
-        summary: "الطلب نفسه يتحسن خطوة بخطوة، ولماذا يفيد كل تغيير.",
+        title: "ثلاثة تغييرات تجعل جمهور حملتك أدق",
+        summary: "الجمهور الدقيق هو أكبر ما يؤثر في تكلفة الاجتماع. ثلاثة تغييرات تجعله دقيقًا.",
         blocks: [
-          { p: "يستطيع يولياس العمل مع طلب عام، لكن كل تفصيل تضيفه يستبدل افتراضًا بقرار. إليك بحثًا واحدًا أُعيدت صياغته ثلاث مرات." },
-          { h2: "البداية: «ابحث لي عن شركات تقنية مالية.»" },
-          { p: "سيفتح يولياس حملة، لكنه سيفترض كل شيء تقريبًا: دولتك الافتراضية، وأي حجم، وهدف مئة شركة، وصنّاع قرار يستنتجهم مما تبيعه. وتعرض بطاقة النتيجة كل ذلك كافتراضات." },
-          { h2: "الصياغة الأولى، أضف السوق والحجم" },
-          { p: "«ابحث عن شركات تقنية مالية في الإمارات بها 50–200 موظف.» الآن يدخل معيارا السوق والحجم في كل نسبة تطابق، وتتراجع نتائج الشركات خارجهما." },
-          { h2: "الصياغة الثانية، أضف مؤشرًا" },
-          { p: "«…وتوظّف مهندسين.» تفرّق المؤشرات بين شركات تبدو مناسبة وشركات تتحرك فعلًا. التوظيف أو جولة تمويل حديثة أو تقنية تستخدمها كلها مؤشرات جيدة." },
-          { h2: "الصياغة الثالثة، سمِّ الأشخاص" },
-          { p: "«…وأريد الوصول إلى المدير التقني أو رئيس الهندسة.» تسمية المناصب هي أكبر تحسين منفرد: تحدد من يظهر في قائمتك وتضيف معيار صانع القرار إلى كل تقييم." },
-          { note: "نصيحة: أرفق ملف CSV لثلاثة أو أربعة من أفضل عملائك. يقرأه يولياس كمثال على شكل العميل المناسب." },
+          { p: "معظم الحملات المخيبة للآمال تبدو مشكلتها في الرسالة، بينما مشكلتها الحقيقية في الجمهور. فإذا كان الجمهور واسعًا تصل حتى الرسالة الجيدة إلى من لا يستطيع الشراء. وثلاثة تغييرات تحل معظم ذلك." },
+          { h2: "1. حدد السوق لا العالم" },
+          { p: "«شركات في الخليج» منطقة، أما «المطورون العقاريون في الرياض وجدة» فسوق. اختر الدول والمدن التي تستطيع خدمتها فعلًا واستبعد الباقي. فالجمهور الأصغر الذي تستطيع كسبه أفضل من جمهور كبير لا تستطيع." },
+          { h2: "2. صف المشتري لا الشركة" },
+          { p: "المجال والحجم يختاران الشركات، والمسميات الوظيفية تختار من يقرأ رسالتك. أضف المسميين أو الثلاثة المسؤولين عن المشكلة التي تحلها (مثل مدير المبيعات ومدير التسويق)، والمستوى الذي يوقّع." },
+          { h2: "3. قسّم ثم قارن" },
+          { p: "بدل جمهور واحد بكل المسميات، أنشئ جمهورين أو ثلاثة في الحملة نفسها: الملاك، وقادة المبيعات، وقادة التسويق. يعطي يولياس كلًا منها نصيبًا متساويًا أثناء التعلم، ثم يوجّه الميزانية نحو الجمهور الذي يحجز الاجتماعات. وتعرض صفحة الحملة توزيع اليوم." },
+          { h2: "قبل الإطلاق" },
+          { ul: [
+            "راجع عدد الشركات والأشخاص المطابقين الذين يعرفهم يولياس لكل جمهور.",
+            "استبعد عملاءك ومنافسيك في **الشركات التي لا تريد التواصل معها**.",
+            "اختر من معرفة الشركة العرض الذي يناسب هذا الجمهور.",
+          ] },
+          { p: "اقرأ المزيد في [الجماهير](/help-center/audiences)." },
         ],
       },
     },

@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { articles as codeArticles, type HelpArticle, type HelpCollection } from "./help";
+import { articles as codeArticles, collections as helpCollections, type HelpArticle, type HelpCollection } from "./help";
 import { docs as codeDocs, type DocGroup, type DocPage } from "./docs";
 import { posts as codePosts, type BlogPost } from "./blog";
 import { legal as codeLegal, legalSlugs, type LegalSlug } from "./legal";
@@ -47,7 +47,10 @@ function merge<T extends { slug: string }>(code: T[], rows: Row[], kind: string,
 
 export const helpArticles = cache(async (): Promise<HelpArticle[]> =>
   merge(codeArticles, await entries(), "help", (r, base) => {
-    const collection = (r.meta.collection as HelpCollection["id"] | undefined) ?? base?.collection;
+    // Collections were regrouped (2026-11-03): an article saved under an old one takes the shipped one, or Campaigns.
+    const saved = r.meta.collection as string | undefined;
+    const known = (id: string | undefined): id is HelpCollection["id"] => Boolean(id && helpCollections.some((c) => c.id === id));
+    const collection = known(saved) ? saved : base?.collection ?? (saved ? "campaigns" : undefined);
     return collection ? { slug: r.slug, collection, doc: r.doc } : null;
   }));
 

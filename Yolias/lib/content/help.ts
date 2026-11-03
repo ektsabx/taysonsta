@@ -1,25 +1,35 @@
 import type { Doc, Localized } from "./types";
 
-// Help Center: short, task-focused answers. Reference material lives in /docs.
+// Help Center (rewritten 2026-11-03 for the campaign platform): short,
+// task-focused answers about running acquisition campaigns. Reference
+// material lives in /docs. Only what the product does today.
 
 export interface HelpCollection {
-  id: "getting-started" | "using-yolias" | "account";
-  icon: "rocket" | "sparkles" | "users";
+  id: "getting-started" | "campaigns" | "audiences-leads" | "conversations-meetings" | "account";
+  icon: "rocket" | "megaphone" | "users" | "calendar" | "card";
   text: Localized<{ title: string; description: string }>;
 }
 
 export const collections: HelpCollection[] = [
   { id: "getting-started", icon: "rocket", text: {
-    en: { title: "Getting started", description: "Signing in, choosing a plan and setting your language." },
-    ar: { title: "البداية", description: "تسجيل الدخول واختيار الخطة وضبط اللغة." },
+    en: { title: "Getting started", description: "Signing in, your mailbox, Company Knowledge and your language." },
+    ar: { title: "البداية", description: "تسجيل الدخول وربط البريد ومعرفة الشركة واللغة." },
   } },
-  { id: "using-yolias", icon: "sparkles", text: {
-    en: { title: "Using Yolias AI", description: "Searches, their statuses and exporting results." },
-    ar: { title: "استخدام يولياس AI", description: "عمليات البحث وحالاتها وتصدير النتائج." },
+  { id: "campaigns", icon: "megaphone", text: {
+    en: { title: "Campaigns", description: "Creating campaigns, objectives, budgets, results and the Yolias pixel." },
+    ar: { title: "الحملات", description: "إنشاء الحملات والأهداف والميزانيات والنتائج وبيكسل يولياس." },
   } },
-  { id: "account", icon: "users", text: {
-    en: { title: "Account & team", description: "Teammates, plan changes and deleting your account." },
-    ar: { title: "الحساب والفريق", description: "أعضاء الفريق وتغيير الخطة وحذف الحساب." },
+  { id: "audiences-leads", icon: "users", text: {
+    en: { title: "Audiences & leads", description: "Targeting, saved and lookalike audiences, leads and exports." },
+    ar: { title: "الجماهير والعملاء المحتملون", description: "الاستهداف والجماهير المحفوظة والمشابهة والعملاء المحتملون والتصدير." },
+  } },
+  { id: "conversations-meetings", icon: "calendar", text: {
+    en: { title: "Conversations & meetings", description: "Replies, what needs you, your booking page and Google Calendar." },
+    ar: { title: "المحادثات والاجتماعات", description: "الردود وما يحتاجك وصفحة الحجز وتقويم Google." },
+  } },
+  { id: "account", icon: "card", text: {
+    en: { title: "Billing & account", description: "Plans, credit, your team and your account." },
+    ar: { title: "الفوترة والحساب", description: "الخطط والرصيد والفريق والحساب." },
   } },
 ];
 
@@ -30,208 +40,161 @@ export interface HelpArticle {
 }
 
 export const articles: HelpArticle[] = [
-  {
-    slug: "prospects-workspace",
-    collection: "using-yolias",
-    doc: {
-      en: {
-        title: "Working with Prospects",
-        summary: "Tabs, filters, selecting across pages, contact details, exporting and finding decision makers.",
-        blocks: [
-          { figure: { src: "/docs/shots/en-prospects.png", alt: "The Prospects workspace", caption: "Example data.", marks: [
-            { x: 30, y: 14, label: "Tabs: People, Companies, Local Businesses." },
-            { x: 25, y: 38, label: "Tick rows, or tick the header and then “Select all matching” to act on every page." },
-            { x: 93, y: 6, label: "Export CSV." },
-          ] } },
-          { h2: "Contact details" },
-          { p: "The email and phone a person or company publishes show as soon as Yolias delivers them, labelled by verification state. Seeing them never uses extra prospects: the person was counted when Yolias delivered them." },
-          { h2: "Find decision makers at a company" },
-          { p: "On the Companies or Local Businesses tab, select companies and choose **Find decision makers**. They come with the company at no extra prospects and are saved straight to People." },
-          { h2: "Export" },
-          { p: "**Export CSV** downloads the tab as filtered; **Export selected** downloads only the rows you picked." },
-        ],
-      },
-      ar: {
-        title: "العمل في العملاء المحتملين",
-        summary: "التبويبات والتصفية والتحديد عبر الصفحات وبيانات التواصل والتصدير وإيجاد صناع القرار.",
-        blocks: [
-          { figure: { src: "/docs/shots/ar-prospects.png", alt: "مساحة العملاء المحتملين", caption: "بيانات مثال.", marks: [
-            { x: 30, y: 14, label: "التبويبات: الأشخاص والشركات والأنشطة المحلية." },
-            { x: 25, y: 38, label: "حدّد الصفوف، أو حدّد العنوان ثم «تحديد كل المطابقة» للعمل على كل الصفحات." },
-            { x: 93, y: 6, label: "تصدير CSV." },
-          ] } },
-          { h2: "بيانات التواصل" },
-          { p: "يظهر البريد والهاتف اللذان ينشرهما الشخص أو الشركة فور تسليم يولياس لهما، مصنّفين حسب حالة التحقق. ورؤيتهما لا تستهلك عملاء محتملين إضافيين: تم احتساب الشخص عند تسليمه." },
-          { h2: "إيجاد صناع القرار في شركة" },
-          { p: "في تبويب الشركات أو الأنشطة المحلية حدّد الشركات واختر **إيجاد صناع القرار**. يأتي صنّاع القرار مع الشركة دون استهلاك عملاء محتملين إضافيين، ويُحفظون مباشرة في الأشخاص." },
-          { h2: "التصدير" },
-          { p: "**تصدير CSV** ينزّل التبويب كما هو مصفّى، و**تصدير المحدد** ينزّل الصفوف التي اخترتها فقط." },
-        ],
-      },
-    },
-  },
-  {
-    slug: "deals-and-meetings",
-    collection: "using-yolias",
-    doc: {
-      en: {
-        title: "From reply to meeting",
-        summary: "From a reply to a booked meeting, your booking page, Google Calendar and Meet, reminders, the outcome after the meeting and the morning summary.",
-        blocks: [
-          { h2: "From a reply to a meeting" },
-          { p: "A meeting campaign asks for a short call; from the first follow-up its emails carry your booking page. When someone asks for a meeting, Yolias replies in the same thread with two free times and the page (when auto-reply is on for the campaign; otherwise it tells you to send it). If they name a time themselves (“Tuesday at 2”) and it's free on your page, Yolias books it, replies to confirm and sends the Google Meet invitation. Their conversation stays in **Conversations**, and the booking appears in **Meetings**." },
-          { h2: "After the meeting" },
-          { p: "In **Meetings**, a past meeting asks what came of it: **Became a customer**, or **Didn't buy** with a reason (price, timing, no need, chose a competitor, stopped replying or another reason), or **No-show**. On a no-show, Yolias emails the guest your booking page once so they can pick another time. For a purchase campaign with no meeting, the same choice is in the conversation's details. Those outcomes feed Analytics and your next searches." },
-          { h2: "Meetings" },
-          { p: "**Meetings → Booking page** is your own page at yolias.com/meet/your-name: the meeting's name, place, length, break, notice, how far ahead and your weekly hours. Add up to three more meeting types (for example a 15-minute intro and a 60-minute demo), each with its own name and length; the guest picks one. When a lead asks for a meeting, Yolias replies in the same thread with two free times and the page. Every booking lands in **Meetings → Bookings** and you get an email." },
-          { p: "Connect **Google Calendar** on the same page and every booking is added to a calendar Yolias creates in your Google Calendar, with a Google Meet link; Google sends the invitation to your guest. Yolias also reads when your main Google Calendar is busy (only the busy times, never the event details), so a time taken by another meeting is never offered. It writes only to its own calendar. Yolias emails you an hour before each meeting, and after it asks how it went so you can move the deal on." },
-          { h2: "Morning summary" },
-          { p: "Each morning around 8:00 in your time zone, Yolias emails what needs you: new replies, today's meetings and deals quiet for a week. It's the **Today** card at the top of Analytics. Turn it off in **Settings → Notifications → Morning summary and meetings**." },
-          { h2: "What wins and what loses" },
-          { p: "Analytics shows your won deals by industry and why deals were lost. New searches read the same summary: when your request leaves the industry, size or city open, Yolias leans toward what won. What you write in the request always comes first." },
-        ],
-      },
-      ar: {
-        title: "من الرد إلى الاجتماع",
-        summary: "من الرد إلى الاجتماع المحجوز، وصفحة الحجز، وتقويم Google و Meet، والتذكيرات، والنتيجة بعد الاجتماع، وملخص الصباح.",
-        blocks: [
-          { h2: "من الرد إلى الاجتماع" },
-          { p: "حملة الاجتماعات تطلب مكالمة قصيرة، ومن أول متابعة تحمل رسائلها صفحة الحجز الخاصة بك. وعندما يطلب أحدهم اجتماعًا، يرد يولياس في نفس المحادثة بموعدين متاحين والصفحة (إذا كان الرد التلقائي مفعّلًا في الحملة، وإلا يخبرك لترسلها). وإذا اقترح هو موعدًا («الثلاثاء الساعة 2») وكان متاحًا في صفحتك، يحجزه يولياس ويرد بالتأكيد ويرسل دعوة Google Meet. تبقى المحادثة في **المحادثات**، ويظهر الحجز في **الاجتماعات**." },
-          { h2: "بعد الاجتماع" },
-          { p: "في **الاجتماعات** يسألك الاجتماع السابق عن النتيجة: **صار عميلًا**، أو **لم يشترِ** مع السبب (السعر، أو التوقيت، أو لا يحتاجه، أو اختار منافسًا، أو توقف عن الرد، أو سبب آخر)، أو **لم يحضر**. وعند عدم الحضور يرسل يولياس للضيف صفحة الحجز مرة واحدة ليختار موعدًا آخر. ولحملة الشراء بلا اجتماع تجد نفس الاختيار في تفاصيل المحادثة. وهذه النتائج تغذي التحليلات وعمليات البحث القادمة." },
-          { h2: "الاجتماعات" },
-          { p: "**الاجتماعات ← صفحة الحجز** هي صفحتك الخاصة على yolias.com/meet/اسمك: اسم الاجتماع ومكانه ومدته والاستراحة وأقل مهلة وإلى متى يُتاح الحجز وساعات أسبوعك. ويمكنك إضافة حتى ثلاثة أنواع اجتماعات أخرى (مثل تعارف 15 دقيقة وعرض 60 دقيقة)، لكل منها اسم ومدة، ويختار الضيف منها. عندما يطلب العميل اجتماعًا، يرد يولياس في نفس المحادثة بموعدين متاحين ورابط الصفحة. وكل حجز يظهر في **الاجتماعات ← الحجوزات** ويصلك بريد به." },
-          { p: "اربط **تقويم Google** من نفس الصفحة، فيُضاف كل حجز إلى تقويم ينشئه يولياس داخل تقويم Google برابط Google Meet، وترسل Google الدعوة إلى ضيفك. ويقرأ يولياس أيضًا أوقات انشغالك في تقويم Google الرئيسي (أوقات الانشغال فقط، لا تفاصيل المواعيد)، فلا يعرض موعدًا محجوزًا في اجتماع آخر. ولا يكتب إلا في تقويمه الخاص. ويرسل لك يولياس بريدًا قبل كل اجتماع بساعة، وبعده يسألك كيف كان لتحدّث الصفقة." },
-          { h2: "ملخص الصباح" },
-          { p: "كل صباح نحو الساعة 8:00 بتوقيتك، يرسل لك يولياس ما يحتاجك: الردود الجديدة واجتماعات اليوم والصفقات المتوقفة منذ أسبوع. هو نفسه كارت **اليوم** أعلى صفحة التحليلات. أوقفه من **الإعدادات ← الإشعارات ← ملخص الصباح والاجتماعات**." },
-          { h2: "ما الذي يكسب وما الذي يخسر" },
-          { p: "تعرض التحليلات الصفقات المكسوبة حسب المجال وأسباب الخسارة. وتقرأ عمليات البحث الجديدة نفس الملخص: عندما يترك طلبك المجال أو الحجم أو المدينة مفتوحًا، يميل يولياس إلى ما كسبته. وما تكتبه في الطلب يأتي أولًا دائمًا." },
-        ],
-      },
-    },
-  },
-  {
-    slug: "creating-a-campaign",
-    collection: "using-yolias",
-    doc: {
-      en: {
-        title: "Creating and managing campaigns",
-        summary: "Three steps like an ads manager: the campaign, its audiences and the message. Yolias finds, writes, answers and books, and shows each result and its cost.",
-        blocks: [
-          { p: "Open **Campaigns → Create campaign**. One page with three levels on the side; open any level to change it, and **Save draft** keeps everything:" },
-          { ol: [
-            "**Campaign**: the name, the objective (book meetings), what you offer (one of your offers or your own words), the meetings you want, the budget in US dollars (total or per day; Yolias shows how many people it buys), the start and end, the time zone, and under **Days, hours and pace** the days and hours Yolias contacts new people and how many a day.",
-            "**Audiences**: one or more, like ad sets. Each finds new people for its targeting, or uses a saved audience. Locations: every country, then its regions and cities, each included or excluded. Then industries, company type and size, job titles, seniority, department, hiring, funding, technologies, keywords and companies never to contact. Yolias shows how many matching companies and people it already has; the wider market isn't guessed.",
-            "**Message**: the mailbox to send from, the name emails are signed with, the tone, the language (or each person's language), notes for Yolias, and per audience Yolias's two openings for the first email with a sample email to preview. Confirm that Yolias may email on your behalf, then **Launch campaign**.",
-          ] },
-          { h2: "After you launch" },
-          { p: "Yolias finds the people for each audience every day within your budget, writes a different email to each from your mailbox in your hours, and follows up twice. It answers questions and one objection from your Company Knowledge, sends interested people two free times and your booking page, books a time someone names when you're free, and never writes again to anyone who says no. Complaints, negotiations and questions it can't answer are handed to you." },
-          { h2: "The Campaigns page" },
-          { p: "Three tabs, like an ads manager: **Campaigns**, **Audiences** and **Messages** (each audience's openings). Select campaigns to see only their audiences and messages, or to pause, resume, duplicate, edit shared settings, archive or delete drafts at once. Each row has an on/off switch. Choose a date range and columns (found, sent, open rate, reply rate, didn't reply, meetings booked and held, cost per meeting, spend, booking link visits and more) and export. A dash means a number can't be worked out yet, not zero." },
-          { h2: "A campaign's page" },
-          { p: "Like a campaign in an ads manager: the path back to Campaigns, an on/off switch, the results with the cost per result first (the result is a **booked meeting**), a chart of the days, then its audiences and messages in the same table as Campaigns, with columns, a **breakdown** (day, audience, opening, country, industry, job title), export and the date range. Below: what Yolias did and recommends, the conversations, the meetings and the settings, including the **cost cap** per meeting and whether email opens are tracked." },
-          { h2: "Objectives" },
-          { p: "Like an ads platform, pick what the campaign is for. **Meetings**: Yolias books them inside Yolias. **Sales** and **Website leads**: Yolias sends people to your product page or form and persuades them; the **Yolias pixel** counts visits, checkouts, purchases and their value, and forms. **Qualified leads**: Yolias only finds the companies and people that match your targeting and saves them in Leads, without contacting anyone. Each objective has ready columns, and you can create your own metrics." },
-          { h2: "The Yolias pixel" },
-          { p: "In **Events Manager**, copy the base code into your website's <head>, then add the events you need (Purchase with its value, InitiateCheckout, Lead). Links Yolias sends carry who each person is, so their purchases and forms are credited to the right campaign and audience within the campaign's **attribution window** (7 days by default, like an ads platform; 1 or 28 if you choose). With **advanced matching** (the customer's email, hashed in the browser), a result is credited even without a click. You can have several pixels. In **Test events**, open your website with a test code and watch each event arrive; the **Yolias Pixel Helper** for Chrome shows the pixel and its events on any page." },
-          { h2: "How the budget moves" },
-          { p: "Once a day Yolias gives each audience a share of the campaign's budget from its rate of booked meetings (purchases or website leads for those objectives), like campaign budget optimization in an ads platform. While there are too few, it uses positive replies. A new audience is **learning** and gets a fair try first; an audience that clearly does worse, or costs more than your cost cap, gets no new budget. It never changes how Yolias writes, how much it sends or who it may contact." },
-          { p: "One person is never written to by two campaigns at once, and a mailbox whose emails bounce too much has its campaigns paused automatically, with the reason on the campaign page." },
-        ],
-      },
-      ar: {
-        title: "إنشاء الحملات وإدارتها",
-        summary: "ثلاث خطوات مثل مدير الإعلانات: الحملة وجماهيرها والرسالة. ثم يجد يولياس الأشخاص ويكتب ويرد ويحجز، وتعرض كل حملة نتائجها وتكلفة النتيجة.",
-        blocks: [
-          { p: "افتح **الحملات ← إنشاء حملة**. صفحة واحدة بثلاثة مستويات على الجانب؛ افتح أي مستوى لتعدّله، و**حفظ كمسودة** يحفظ كل شيء:" },
-          { ol: [
-            "**الحملة**: الاسم، والهدف (حجز اجتماعات)، وما تقدمه (أحد عروضك أو بكلماتك)، وعدد الاجتماعات التي تريدها، والميزانية بالدولار (إجمالية أو يومية، ويعرض يولياس عدد الأشخاص الذي تشتريه)، والبداية والنهاية، والمنطقة الزمنية، ومن **الأيام والساعات والوتيرة** أيام وساعات التواصل مع أشخاص جدد وعددهم في اليوم.",
-            "**الجماهير**: جمهور أو أكثر، مثل مجموعات الإعلانات. كل جمهور يجد أشخاصًا جددًا لاستهدافه، أو يستخدم جمهورًا محفوظًا. المواقع: كل الدول، ثم مناطقها ومدنها، تضمينًا أو استبعادًا. ثم المجالات ونوع الشركة وحجمها والمسميات الوظيفية والمستوى والإدارة والتوظيف والتمويل والتقنيات والكلمات المفتاحية والشركات التي لا يُتواصل معها. ويعرض يولياس عدد الشركات والأشخاص المطابقين لديه بالفعل، ولا يُخمَّن حجم السوق الأوسع.",
-            "**الرسالة**: البريد الذي يُرسل منه، والاسم الذي تُوقّع به الرسائل، والأسلوب، واللغة (أو لغة كل شخص)، وملاحظات ليولياس، ولكل جمهور افتتاحيتا يولياس للرسالة الأولى مع رسالة نموذجية للمعاينة. أكّد أن يولياس يمكنه المراسلة نيابةً عنك، ثم **شغّل الحملة**.",
-          ] },
-          { h2: "بعد التشغيل" },
-          { p: "يجد يولياس الأشخاص لكل جمهور كل يوم في حدود ميزانيتك، ويكتب لكل منهم رسالة مختلفة من بريدك في ساعاتك، ويتابع مرتين. ويجيب عن الأسئلة وعن اعتراض واحد من معرفة شركتك، ويرسل للمهتمين موعدين متاحين وصفحة الحجز، ويحجز موعدًا يقترحه الشخص إذا كنت متاحًا، ولا يكتب أبدًا لمن يرفض. أما الشكاوى والتفاوض والأسئلة التي لا يعرف إجابتها فيسلّمها لك." },
-          { h2: "صفحة الحملات" },
-          { p: "ثلاثة تبويبات مثل مدير الإعلانات: **الحملات** و**الجماهير** و**الرسائل** (افتتاحيات كل جمهور). حدّد حملات لترى جماهيرها ورسائلها فقط، أو لإيقافها أو استئنافها أو نسخها أو تعديل إعدادات مشتركة أو أرشفتها أو حذف المسودات دفعة واحدة. لكل صف زر تشغيل وإيقاف. اختر الفترة والأعمدة (المكتشَفون والمُرسل ونسبة الفتح ونسبة الرد ومن لم يردوا والاجتماعات المحجوزة والمنعقدة وتكلفة الاجتماع والإنفاق وزيارات رابط الحجز وغيرها) وصدّرها. الشرطة تعني أن الرقم لا يمكن حسابه بعد، وليس صفرًا." },
-          { h2: "صفحة الحملة" },
-          { p: "مثل الحملة في مدير الإعلانات: مسار العودة إلى الحملات، وزر تشغيل وإيقاف، والنتائج مع تكلفة النتيجة أولًا (النتيجة هي **اجتماع محجوز**)، ورسم للأيام، ثم جماهيرها ورسائلها في نفس جدول الحملات بالأعمدة و**التفصيل** (اليوم، الجمهور، الافتتاحية، الدولة، المجال، المسمى الوظيفي) والتصدير والفترة. وتحتها: ما فعله يولياس وتوصياته، والمحادثات، والاجتماعات، والإعدادات ومنها **الحد الأقصى لتكلفة الاجتماع** وتتبّع فتح الرسائل." },
-          { h2: "الأهداف" },
-          { p: "مثل منصات الإعلانات، اختر الهدف من الحملة. **اجتماعات**: يحجزها يولياس داخل يولياس. **المبيعات** و**نماذج الموقع**: يرسل يولياس الناس إلى صفحة منتجك أو نموذجك ويقنعهم؛ ويحسب **بيكسل يولياس** الزيارات وبدء الدفع وعمليات الشراء وقيمتها والنماذج. **عملاء مؤهلون**: يجد يولياس فقط الشركات والأشخاص المطابقين لاستهدافك ويحفظهم في العملاء المحتملين دون التواصل مع أحد. ولكل هدف أعمدة جاهزة، ويمكنك إنشاء مقاييسك الخاصة." },
-          { h2: "بيكسل يولياس" },
-          { p: "من **مدير الأحداث** انسخ الكود الأساسي إلى <head> في موقعك، ثم أضف الأحداث التي تحتاجها (Purchase مع قيمته، وInitiateCheckout، وLead). الروابط التي يرسلها يولياس تحمل هوية كل شخص، فتُحسب مشترياته ونماذجه للحملة والجمهور الصحيحين خلال **نافذة الاحتساب** (7 أيام افتراضيًا مثل منصات الإعلانات، أو يوم أو 28 يومًا إن اخترت). ومع **المطابقة المتقدمة** (بريد العميل مشفّرًا في المتصفح) تُحسب النتيجة حتى بدون نقرة. ويمكنك امتلاك أكثر من بيكسل. وفي **اختبار الأحداث** افتح موقعك بكود اختبار وتابع وصول كل حدث، وتعرض إضافة **Yolias Pixel Helper** لمتصفح Chrome البيكسل وأحداثه على أي صفحة." },
-          { h2: "كيف تتحرك الميزانية" },
-          { p: "مرة يوميًا يعطي يولياس كل جمهور نصيبًا من ميزانية الحملة حسب معدل الاجتماعات المحجوزة (أو الشراء أو النماذج لتلك الأهداف)، مثل تحسين ميزانية الحملة في منصات الإعلانات. وحين تكون قليلة يعتمد على الردود الإيجابية. الجمهور الجديد **في مرحلة التعلم** ويحصل على فرصة عادلة أولًا، والجمهور الأضعف بوضوح أو الذي تتجاوز تكلفته حدك الأقصى لا يحصل على ميزانية جديدة. ولا يغيّر ذلك طريقة الكتابة ولا كمية الإرسال ولا من يمكن التواصل معه." },
-          { p: "لا تتواصل حملتان مع نفس الشخص في نفس الوقت، وإذا ارتدت رسائل صندوق بريد بنسبة عالية تتوقف حملاته تلقائيًا مع ذكر السبب في صفحة الحملة." },
-        ],
-      },
-    },
-  },
+  // ───────────────────────── Getting started ─────────────────────────
   {
     slug: "signing-in",
     collection: "getting-started",
     doc: {
       en: {
-        title: "Signing in with a magic link",
-        summary: "Yolias has no passwords. Here is what to do when a link doesn’t arrive or no longer works.",
+        title: "Signing in",
+        summary: "Yolias signs you in with a one-time link sent to your email. What to do when it doesn't arrive or has expired.",
         blocks: [
-          { p: "Enter your work email on the [log in page](/login) and Yolias emails you a one-time link. Open it on the same device and you are in." },
-          { h2: "The email didn’t arrive" },
+          { p: "Enter your work email on the [log in page](/login) and open the link Yolias emails you, on the same device. New accounts start from [Create account](/signup)." },
+          { h2: "The email didn't arrive" },
           { ol: [
-            "Wait a minute. Delivery can take a little time.",
-            "Check spam, promotions or quarantine folders for an email from Yolias.",
-            "Make sure you typed the address you signed up with. Log in only works for existing accounts; new users start from [Create account](/signup).",
-            "Request a new link. If you request several in a row, you may need to wait a minute before the next one.",
+            "Wait a minute, then check spam, promotions and quarantine folders.",
+            "Check that the address is the one you signed up with.",
+            "Request a new link. After several requests in a row, wait a minute before the next one.",
           ] },
-          { h2: "The link says it is invalid or expired" },
-          { p: "Each link works once and expires after one hour. Open [Can’t sign in?](/recover) and request a fresh one." },
+          { h2: "The link is invalid or expired" },
+          { p: "Each link works once and for one hour. Open [Can't sign in?](/recover) and request a new one." },
         ],
       },
       ar: {
-        title: "تسجيل الدخول برابط سحري",
-        summary: "لا توجد كلمات مرور في يولياس. إليك ما تفعله إذا لم يصلك الرابط أو لم يعد يعمل.",
+        title: "تسجيل الدخول",
+        summary: "يسجّل يولياس دخولك برابط لمرة واحدة يصل إلى بريدك. ماذا تفعل إذا لم يصل الرابط أو انتهت صلاحيته.",
         blocks: [
-          { p: "أدخل بريد العمل في [صفحة تسجيل الدخول](/login) وسيرسل لك يولياس رابطًا يُستخدم مرة واحدة. افتحه على الجهاز نفسه وستدخل مباشرة." },
+          { p: "اكتب بريد عملك في [صفحة الدخول](/login) وافتح الرابط الذي يرسله يولياس على الجهاز نفسه. والحسابات الجديدة تبدأ من [إنشاء حساب](/signup)." },
           { h2: "لم يصل البريد" },
           { ol: [
-            "انتظر دقيقة، قد يتأخر الإرسال قليلًا.",
-            "تحقق من مجلدات الرسائل المزعجة أو العروض أو الحجر بحثًا عن بريد من يولياس.",
-            "تأكد من كتابة البريد الذي سجّلت به. تسجيل الدخول يعمل للحسابات الموجودة فقط؛ المستخدمون الجدد يبدؤون من [إنشاء حساب](/signup).",
-            "اطلب رابطًا جديدًا. إذا طلبت عدة روابط متتالية فقد تحتاج للانتظار دقيقة قبل الطلب التالي.",
+            "انتظر دقيقة، ثم راجع مجلدات الرسائل غير المرغوب فيها والعروض والحجر.",
+            "تأكد أن البريد هو نفسه الذي سجّلت به.",
+            "اطلب رابطًا جديدًا. وبعد عدة طلبات متتالية انتظر دقيقة قبل الطلب التالي.",
           ] },
-          { h2: "الرابط غير صالح أو منتهي الصلاحية" },
-          { p: "يعمل كل رابط مرة واحدة وتنتهي صلاحيته بعد ساعة. افتح [لا تستطيع الدخول؟](/recover) واطلب رابطًا جديدًا." },
+          { h2: "الرابط غير صالح أو منتهي" },
+          { p: "كل رابط يعمل مرة واحدة ولمدة ساعة. افتح [لا أستطيع الدخول؟](/recover) واطلب رابطًا جديدًا." },
         ],
       },
     },
   },
   {
-    slug: "choosing-a-plan",
+    slug: "connect-gmail",
     collection: "getting-started",
     doc: {
       en: {
-        title: "Pay As You Go or a monthly plan",
-        summary: "Every option has the same features; you pay for prospects only.",
+        title: "Connecting Gmail",
+        summary: "Connect your Gmail or Google Workspace mailbox so your campaigns are sent from it and the replies come back to Yolias.",
         blocks: [
-          { p: "Yolias has three options with the same features and unlimited users: **Pay As You Go**, **Growth** and **Scale**. The prospect is the only unit: writing and sending emails is never charged, uploaded contacts are unlimited, and the same prospect is never counted twice. There is no free trial and no free credit. The [pricing page](/pricing#compare) lists the numbers." },
-          { h2: "Pay As You Go" },
-          { p: "Prepaid credit with no subscription and no renewal. In Checkout, choose **Pay As You Go**, then the amount: $5, $20, $50 or $100. Checkout shows exactly how many prospects the amount gives before you pay. The credit is added once the payment is confirmed and doesn’t expire. Top up again whenever you like." },
-          { h2: "Plans" },
-          { p: "Growth ($100, 2,000 prospects) and Scale ($200, 4,000 prospects) are billed by card through Paymob, monthly or annually. Annual billing is 20% off ($80 and $160 a month, paid for the year). Each plan gives a set number of prospects every month. Cancel any time from Settings → Billing." },
-          { h2: "Switching" },
-          { p: "You can move between Pay As You Go and a plan at any time. Remaining credit stays in your account: on a plan, its monthly prospects are used first, then your credit." },
+          { ol: [
+            "Open **Integrations** in the sidebar.",
+            "On the **Gmail** card, open the ⋯ menu and choose **Connect**.",
+            "Choose your Google account and allow Yolias to send email and read the replies to the emails it sent.",
+            "You come back to Yolias with the mailbox **Connected**.",
+          ] },
+          { p: "Yolias reads only the replies in the threads it started, never the rest of your inbox. Disconnect at any time from the same card or from your Google account's security settings." },
+          { p: "Each mailbox has its own sending rules: emails per day, the gap between emails, and the days and hours it sends." },
+          { note: "When the Gmail card can't connect, connect the same mailbox with IMAP/SMTP and an app password: [Connecting another mailbox](/help-center/connect-imap-smtp)." },
         ],
       },
       ar: {
-        title: "الدفع حسب الاستخدام أو خطة شهرية",
-        summary: "كل الخيارات فيها الميزات نفسها، وتدفع مقابل العملاء المحتملين فقط.",
+        title: "ربط Gmail",
+        summary: "اربط Gmail أو بريد Google Workspace لتُرسل حملاتك منه وتعود الردود إلى يولياس.",
         blocks: [
-          { p: "في يولياس ثلاثة خيارات بالميزات نفسها ومستخدمين غير محدودين: **الدفع حسب الاستخدام** و**النمو** و**التوسع**. العميل المحتمل هو الوحدة الوحيدة: كتابة الرسائل وإرسالها بدون رسوم، وجهات الاتصال المرفوعة غير محدودة، ولا يُحسب العميل نفسه مرتين. لا توجد تجربة مجانية ولا رصيد مجاني. الأرقام في [صفحة الأسعار](/pricing#compare)." },
-          { h2: "الدفع حسب الاستخدام" },
-          { p: "رصيد مسبق الدفع بدون اشتراك وبدون تجديد. في صفحة الدفع اختر **الدفع حسب الاستخدام** ثم المبلغ: 5 أو 20 أو 50 أو 100 دولار. تعرض صفحة الدفع عدد العملاء المحتملين بالضبط قبل الدفع. يُضاف الرصيد بعد تأكيد الدفع ولا تنتهي صلاحيته، ويمكنك الشحن مرة أخرى في أي وقت." },
-          { h2: "الخطط" },
-          { p: "النمو (100 دولار، 2,000 عميل محتمل) والتوسع (200 دولار، 4,000 عميل محتمل) تُدفعان بالبطاقة عبر Paymob شهريًا أو سنويًا. الدفع السنوي بخصم 20% (80 و160 دولارًا شهريًا تُدفع عن السنة). وكل خطة تعطي عددًا ثابتًا من العملاء المحتملين كل شهر. يمكنك الإلغاء في أي وقت من الإعدادات ← الفوترة." },
-          { h2: "التبديل" },
-          { p: "يمكنك الانتقال بين الدفع حسب الاستخدام والخطة في أي وقت. الرصيد المتبقي يبقى في حسابك: مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم رصيدك." },
+          { ol: [
+            "افتح **التكاملات** من الشريط الجانبي.",
+            "في كارت **Gmail** افتح قائمة ⋯ واختر **اربط**.",
+            "اختر حساب Google واسمح ليولياس بإرسال البريد وقراءة الردود على الرسائل التي أرسلها.",
+            "تعود إلى يولياس والبريد بحالة **متصل**.",
+          ] },
+          { p: "يقرأ يولياس الردود في المحادثات التي بدأها فقط، ولا يقرأ باقي بريدك. ويمكنك فصل الربط في أي وقت من الكارت نفسه أو من إعدادات الأمان في حساب Google." },
+          { p: "لكل بريد قواعد إرسال خاصة به: عدد الرسائل يوميًا، والفاصل بين الرسائل، وأيام الإرسال وساعاته." },
+          { note: "إذا تعذّر الربط من كارت Gmail، اربط البريد نفسه عبر IMAP/SMTP بكلمة مرور تطبيق: [ربط بريد آخر](/help-center/connect-imap-smtp)." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "connect-imap-smtp",
+    collection: "getting-started",
+    doc: {
+      en: {
+        title: "Connecting another mailbox (IMAP/SMTP)",
+        summary: "Connect Outlook, Microsoft 365, Zoho, Hostinger or any business mailbox with its IMAP and SMTP settings.",
+        blocks: [
+          { ol: [
+            "Open **Integrations**, and on the **IMAP/SMTP mailbox** card choose **Connect** from the ⋯ menu.",
+            "Enter the email address and password. Yolias fills the usual server names from your domain; change them if your provider uses others.",
+            "Press **Connect**. Yolias checks the login before saving.",
+          ] },
+          { p: "With two-step sign-in on, most providers need an **app password** instead of your normal password. Create one in the provider's security settings." },
+          { h2: "Common providers" },
+          { table: {
+            head: ["Provider", "IMAP (incoming)", "SMTP (outgoing)"],
+            rows: [
+              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
+              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
+              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
+              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
+              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
+            ],
+          } },
+          { p: "Zoho accounts in Europe or India use zoho.eu or zoho.in instead of zoho.com." },
+        ],
+      },
+      ar: {
+        title: "ربط بريد آخر (IMAP/SMTP)",
+        summary: "اربط Outlook أو Microsoft 365 أو Zoho أو Hostinger أو أي بريد عمل بإعدادات IMAP وSMTP الخاصة به.",
+        blocks: [
+          { ol: [
+            "افتح **التكاملات**، وفي كارت **بريد IMAP/SMTP** اختر **اربط** من قائمة ⋯.",
+            "اكتب البريد وكلمة المرور. يملأ يولياس أسماء الخوادم المعتادة من نطاقك، وعدّلها إذا كان مزودك يستخدم غيرها.",
+            "اضغط **اربط**. يتحقق يولياس من الدخول قبل الحفظ.",
+          ] },
+          { p: "مع تفعيل التحقق بخطوتين، يحتاج معظم المزودين إلى **كلمة مرور تطبيق** بدل كلمة المرور العادية. أنشئها من إعدادات الأمان لدى المزود." },
+          { h2: "المزودون الشائعون" },
+          { table: {
+            head: ["المزود", "IMAP (الوارد)", "SMTP (الصادر)"],
+            rows: [
+              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
+              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
+              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
+              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
+              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
+            ],
+          } },
+          { p: "حسابات Zoho في أوروبا أو الهند تستخدم zoho.eu أو zoho.in بدل zoho.com." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "company-knowledge",
+    collection: "getting-started",
+    doc: {
+      en: {
+        title: "Company Knowledge",
+        summary: "What Yolias knows about your business, and how it shapes every message, answer and campaign.",
+        blocks: [
+          { p: "**Company Knowledge** holds your company profile, your offers, your competitors and the facts Yolias may use. Yolias writes it from your website when you sign up; review it and add what's missing." },
+          { ul: [
+            "**Profile**: what you sell, to whom and in which markets.",
+            "**Offers**: each service or product with its price or terms, picked per campaign.",
+            "**Competitors**: how you compare, used when someone mentions one.",
+          ] },
+          { p: "Every first email, follow-up and answer is written from it. A campaign shows how complete it is before you launch; the fuller it is, the more specific the messages." },
+        ],
+      },
+      ar: {
+        title: "معرفة الشركة",
+        summary: "ما يعرفه يولياس عن نشاطك، وكيف يشكّل كل رسالة وإجابة وحملة.",
+        blocks: [
+          { p: "تحتوي **معرفة الشركة** على ملف شركتك وعروضك ومنافسيك والحقائق التي يستخدمها يولياس. يكتبها يولياس من موقعك عند التسجيل، فراجعها وأضف ما ينقص." },
+          { ul: [
+            "**الملف**: ماذا تبيع، ولمن، وفي أي أسواق.",
+            "**العروض**: كل خدمة أو منتج بسعره أو شروطه، وتختار عرضًا لكل حملة.",
+            "**المنافسون**: كيف تختلف عنهم، ويُستخدم عندما يذكر أحد منافسًا.",
+          ] },
+          { p: "كل رسالة أولى ومتابعة وإجابة تُكتب منها. وتعرض الحملة نسبة اكتمالها قبل الإطلاق؛ وكلما اكتملت صارت الرسائل أدق." },
         ],
       },
     },
@@ -241,107 +204,533 @@ export const articles: HelpArticle[] = [
     collection: "getting-started",
     doc: {
       en: {
-        title: "Switching between Arabic and English",
-        summary: "Change the interface language, and the language Yolias answers in, in one place.",
+        title: "Arabic and English",
+        summary: "Change the interface language and the language Yolias writes in.",
         blocks: [
-          { p: "On public pages, use the language menu in the header. Inside the app, open your name at the bottom of the sidebar, choose **General**, and set **Languages**." },
-          { p: "The whole interface switches direction: right-to-left for Arabic, left-to-right for English. Search names and summaries that Yolias writes from then on follow the same language." },
-          { note: "Data that came from your sources, such as company names, stays as it was found." },
+          { p: "On public pages, use the language menu in the header. In the app, open your name at the bottom of the sidebar, choose **Settings → General**, and set **Language**." },
+          { p: "The interface switches direction with the language. In a campaign's **Message** level you choose the email language, or each person's own language." },
         ],
       },
       ar: {
-        title: "التبديل بين العربية والإنجليزية",
-        summary: "غيّر لغة الواجهة، واللغة التي يرد بها يولياس، من مكان واحد.",
+        title: "العربية والإنجليزية",
+        summary: "غيّر لغة الواجهة واللغة التي يكتب بها يولياس.",
         blocks: [
-          { p: "في الصفحات العامة استخدم قائمة اللغة في أعلى الصفحة. وداخل التطبيق اضغط على اسمك أسفل الشريط الجانبي، واختر **عام**، ثم اضبط **اللغة**." },
-          { p: "يتغير اتجاه الواجهة كلها: من اليمين لليسار للعربية، ومن اليسار لليمين للإنجليزية. وتتبع أسماء عمليات البحث والملخصات التي يكتبها يولياس بعد ذلك اللغة نفسها." },
-          { note: "البيانات القادمة من المصادر، مثل أسماء الشركات، تبقى كما وُجدت." },
+          { p: "في الصفحات العامة استخدم قائمة اللغة في الأعلى. وداخل التطبيق اضغط على اسمك أسفل الشريط الجانبي واختر **الإعدادات ← عام** ثم **اللغة**." },
+          { p: "يتغير اتجاه الواجهة مع اللغة. وفي مستوى **الرسالة** في الحملة تختار لغة الرسائل، أو لغة كل شخص." },
+        ],
+      },
+    },
+  },
+
+  // ───────────────────────── Campaigns ─────────────────────────
+  {
+    slug: "creating-a-campaign",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "Creating a campaign",
+        summary: "Three levels like an ads manager: the campaign, its audiences and the message.",
+        blocks: [
+          { p: "Open **Campaigns → Create campaign**. The three levels are on the side; **Save draft** keeps your work." },
+          { h2: "1. Campaign" },
+          { ul: [
+            "**Name** and **objective**: Meetings, Sales, Website leads or Qualified leads.",
+            "**Offer**: one of your offers from Company Knowledge, or your own words.",
+            "**Target** (meetings, sales or leads you want) and **messages a day**.",
+            "**Budget** in US dollars, total or per day. Yolias shows how many people it buys.",
+            "**Dates**, and under **Days, hours and pace**: the days and hours Yolias contacts people, a cost cap per result and open tracking.",
+          ] },
+          { h2: "2. Audiences" },
+          { p: "One or more, like ad sets: new targeting (locations, industries, company size, job titles and more) or a saved audience. See [Audiences](/help-center/audiences)." },
+          { h2: "3. Message" },
+          { p: "The mailbox it sends from, the name emails are signed with, the tone, the language and notes for Yolias. Yolias shows its two openings per audience and a sample email. Then **Launch campaign**." },
+          { h2: "After launch" },
+          { p: "Yolias finds the people for each audience every day within the budget, writes the first email for your approval, then sends from your mailbox in your hours, follows up twice, answers and books." },
+        ],
+      },
+      ar: {
+        title: "إنشاء حملة",
+        summary: "ثلاثة مستويات مثل مدير الإعلانات: الحملة وجماهيرها والرسالة.",
+        blocks: [
+          { p: "افتح **الحملات ← إنشاء حملة**. المستويات الثلاثة على الجانب، و**حفظ كمسودة** يحفظ عملك." },
+          { h2: "1. الحملة" },
+          { ul: [
+            "**الاسم** و**الهدف**: اجتماعات أو مبيعات أو نماذج الموقع أو عملاء مؤهلون.",
+            "**العرض**: أحد عروضك من معرفة الشركة، أو بكلماتك.",
+            "**المستهدف** (الاجتماعات أو المبيعات أو العملاء الذين تريدهم) و**عدد الرسائل اليومية**.",
+            "**الميزانية** بالدولار، إجمالية أو يومية، ويعرض يولياس عدد الأشخاص الذي تشتريه.",
+            "**التواريخ**، وفي **الأيام والساعات والوتيرة**: أيام التواصل وساعاته، وحد أقصى لتكلفة النتيجة، وتتبع الفتح.",
+          ] },
+          { h2: "2. الجماهير" },
+          { p: "جمهور أو أكثر مثل مجموعات الإعلانات: استهداف جديد (المواقع والمجالات وحجم الشركة والمسميات وغيرها) أو جمهور محفوظ. راجع [الجماهير](/help-center/audiences)." },
+          { h2: "3. الرسالة" },
+          { p: "البريد الذي تُرسل منه، والاسم الذي تُوقّع به الرسائل، والأسلوب، واللغة، وملاحظات ليولياس. ويعرض يولياس افتتاحيتين لكل جمهور ورسالة نموذجية. ثم **أطلق الحملة**." },
+          { h2: "بعد الإطلاق" },
+          { p: "يجد يولياس الأشخاص لكل جمهور كل يوم في حدود الميزانية، ويكتب الرسالة الأولى لموافقتك، ثم يرسل من بريدك في ساعاتك، ويتابع مرتين، ويرد ويحجز." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "campaign-objectives",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "Campaign objectives",
+        summary: "The objective tells Yolias which result to pursue and how it counts.",
+        blocks: [
+          { table: {
+            head: ["Objective", "What Yolias does with interest", "The result"],
+            rows: [
+              ["Meetings", "Offers two free times and your booking page, and books", "A booked meeting"],
+              ["Sales", "Sends the tracked link to your product or pricing page", "A purchase counted by the Yolias pixel"],
+              ["Website leads", "Sends the tracked link to your form", "A form counted by the Yolias pixel"],
+              ["Qualified leads", "Finds and saves matching companies and people, without contacting them", "A saved lead"],
+            ],
+          } },
+          { p: "Sales and Website leads need your website link and a pixel with its conversion event. Each objective has its ready columns in the Campaigns table." },
+        ],
+      },
+      ar: {
+        title: "أهداف الحملة",
+        summary: "الهدف يحدد ليولياس النتيجة التي يسعى إليها وكيف تُحسب.",
+        blocks: [
+          { table: {
+            head: ["الهدف", "ماذا يفعل يولياس مع المهتم", "النتيجة"],
+            rows: [
+              ["اجتماعات", "يقترح موعدين متاحين وصفحة الحجز ويحجز", "اجتماع محجوز"],
+              ["المبيعات", "يرسل الرابط المتتبَّع لصفحة المنتج أو الأسعار", "عملية شراء يحسبها بيكسل يولياس"],
+              ["نماذج الموقع", "يرسل الرابط المتتبَّع لنموذجك", "نموذج يحسبه بيكسل يولياس"],
+              ["عملاء مؤهلون", "يجد الشركات والأشخاص المطابقين ويحفظهم دون التواصل معهم", "عميل محتمل محفوظ"],
+            ],
+          } },
+          { p: "المبيعات ونماذج الموقع تحتاج رابط موقعك وبيكسل بحدث التحويل. ولكل هدف أعمدته الجاهزة في جدول الحملات." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "campaign-results",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "Reading campaign results",
+        summary: "The Campaigns table, its columns, the Breakdown and a campaign's page.",
+        blocks: [
+          { p: "**Campaigns** has three tabs: Campaigns, Audiences and Messages. Each row has an on/off switch, its status and channel, then your columns." },
+          { ul: [
+            "**Reached**: people sent at least one email, each once.",
+            "**Replies**: people who replied (automatic replies don't count).",
+            "**Interested**: replies that showed interest or asked for a meeting.",
+            "**Meetings**: meetings booked, canceled ones excluded.",
+            "**Spend** and **Cost per result**.",
+          ] },
+          { p: "**Columns** adds, moves and pins columns, with ready sets per objective and your own formulas. **Breakdown** splits the numbers by day, audience, message, country, industry or job title. The date range sets every number." },
+          { p: "A campaign's page shows its results with the cost per result first, a chart by day, today's split of the budget between its audiences, and its activity, conversations, meetings and settings." },
+        ],
+      },
+      ar: {
+        title: "قراءة نتائج الحملات",
+        summary: "جدول الحملات وأعمدته والتقسيم وصفحة الحملة.",
+        blocks: [
+          { p: "في **الحملات** ثلاثة تبويبات: الحملات والجماهير والرسائل. ولكل صف زر تشغيل وإيقاف، وحالته وقناته، ثم أعمدتك." },
+          { ul: [
+            "**وصلت إليهم**: أشخاص أُرسلت لهم رسالة واحدة على الأقل، وكل شخص مرة.",
+            "**الردود**: أشخاص ردّوا (الردود التلقائية لا تُحسب).",
+            "**المهتمون**: ردود فيها اهتمام أو طلب اجتماع.",
+            "**الاجتماعات**: اجتماعات محجوزة، دون الملغاة.",
+            "**الإنفاق** و**تكلفة النتيجة**.",
+          ] },
+          { p: "من **الأعمدة** تضيف الأعمدة وترتبها وتثبتها، مع مجموعات جاهزة لكل هدف ومعادلاتك الخاصة. و**التقسيم** يقسم الأرقام حسب اليوم أو الجمهور أو الرسالة أو البلد أو المجال أو المسمى. والفترة الزمنية تحدد كل الأرقام." },
+          { p: "صفحة الحملة تعرض نتائجها مع تكلفة النتيجة أولًا، ورسمًا يوميًا، وتوزيع اليوم للميزانية بين جماهيرها، ثم نشاطها ومحادثاتها واجتماعاتها وإعداداتها." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "budget-and-optimization",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "Budget and optimization",
+        summary: "How spend is counted and how Yolias moves the budget between audiences every day.",
+        blocks: [
+          { p: "Spend is the prospects a campaign uses at your rate per person. Emails, replies and meetings are never charged, and the same person is never counted twice." },
+          { h2: "Today's split between audiences" },
+          { p: "Once a day each audience gets a share of the campaign's budget from its results: booked meetings for Meetings, purchases or forms for Sales and Website leads, and positive replies while there are too few. New audiences get an equal share first (**Learning**). An audience that does clearly worse, or costs more than your cost cap, gets no new budget." },
+          { p: "The split is on the campaign's page. Yolias never changes your targeting, writing rules or sending limits." },
+          { h2: "Protection" },
+          { p: "A mailbox whose emails bounce too much has its campaigns paused, with the reason on the campaign page. One person is never written to by two campaigns at once." },
+        ],
+      },
+      ar: {
+        title: "الميزانية والتحسين",
+        summary: "كيف يُحسب الإنفاق، وكيف يوزّع يولياس الميزانية بين الجماهير كل يوم.",
+        blocks: [
+          { p: "الإنفاق هو العملاء المحتملون الذين تستخدمهم الحملة بسعرك للشخص. الرسائل والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب الشخص نفسه مرتين." },
+          { h2: "توزيع اليوم بين الجماهير" },
+          { p: "مرة يوميًا يحصل كل جمهور على نصيب من ميزانية الحملة حسب نتائجه: الاجتماعات المحجوزة لهدف الاجتماعات، والشراء أو النماذج للمبيعات ونماذج الموقع، والردود الإيجابية ما دامت النتائج قليلة. والجماهير الجديدة تأخذ نصيبًا متساويًا أولًا (**مرحلة التعلم**). والجمهور الأضعف بوضوح، أو الذي تتجاوز تكلفته الحد الأقصى، لا يأخذ ميزانية جديدة." },
+          { p: "يظهر التوزيع في صفحة الحملة. ولا يغيّر يولياس استهدافك أو قواعد الكتابة أو حدود الإرسال." },
+          { h2: "الحماية" },
+          { p: "البريد الذي ترتد رسائله بنسبة عالية تتوقف حملاته مع ذكر السبب في صفحة الحملة. ولا تراسل حملتان الشخص نفسه في الوقت نفسه." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "pixel-and-events",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "The Yolias pixel",
+        summary: "Count sales and form leads on your website and credit them to the campaign that sent each person.",
+        blocks: [
+          { ol: [
+            "Open **Events Manager** and create a pixel.",
+            "Copy the base code into your website's <head>.",
+            "Add the events you need: Purchase with its value, InitiateCheckout, Lead, CompleteRegistration or your own.",
+            "Check them with a test code or the Yolias Pixel Helper for Chrome.",
+          ] },
+          { p: "Links Yolias sends carry who each person is, so their visits, purchases and forms count for their campaign within its attribution window (7 days by default; 1 or 28 per campaign). Allowed and blocked domains keep other sites from sending events." },
+        ],
+      },
+      ar: {
+        title: "بيكسل يولياس",
+        summary: "احسب المبيعات ونماذج موقعك وانسبها للحملة التي أرسلت كل شخص.",
+        blocks: [
+          { ol: [
+            "افتح **مدير الأحداث** وأنشئ بيكسل.",
+            "انسخ الكود الأساسي إلى <head> في موقعك.",
+            "أضف الأحداث التي تحتاجها: Purchase مع قيمته، وInitiateCheckout، وLead، وCompleteRegistration، أو أحداثك الخاصة.",
+            "تحقق منها برمز اختبار أو بإضافة Yolias Pixel Helper في Chrome.",
+          ] },
+          { p: "الروابط التي يرسلها يولياس تحمل هوية كل شخص، فتُحسب زياراته ومشترياته ونماذجه لحملته خلال نافذة النسب (7 أيام افتراضيًا، أو يوم أو 28 يومًا لكل حملة). والنطاقات المسموحة والمحظورة تمنع المواقع الأخرى من إرسال أحداث." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "yolias-ai",
+    collection: "campaigns",
+    doc: {
+      en: {
+        title: "Yolias AI",
+        summary: "The engine behind every campaign, and the assistant you can ask from any screen.",
+        blocks: [
+          { p: "Yolias AI runs each campaign: it finds the companies and decision makers, writes each email from your Company Knowledge, follows up, answers, offers times and books." },
+          { p: "Open **Yolias AI** in the sidebar, or **Ask Yolias AI** on any screen, to ask about your campaigns, replies and meetings, or describe who you want to reach and let it prepare a campaign for you to review and launch." },
+        ],
+      },
+      ar: {
+        title: "Yolias AI",
+        summary: "المحرك وراء كل حملة، والمساعد الذي تسأله من أي شاشة.",
+        blocks: [
+          { p: "يدير Yolias AI كل حملة: يجد الشركات وصنّاع القرار، ويكتب كل رسالة من معرفة شركتك، ويتابع ويرد ويقترح المواعيد ويحجز." },
+          { p: "افتح **Yolias AI** من الشريط الجانبي، أو **اسأل Yolias AI** من أي شاشة، لتسأل عن حملاتك وردودك واجتماعاتك، أو صف من تريد الوصول إليه ليجهّز لك حملة تراجعها وتطلقها." },
         ],
       },
     },
   },
   {
     slug: "awaiting-data-source",
-    collection: "using-yolias",
+    collection: "campaigns",
     doc: {
       en: {
-        title: "Why a search says “Awaiting data source”",
-        summary: "Yolias understood your search, but no company data source is connected to collect results yet.",
+        title: "A campaign waiting to start",
+        summary: "What “Waiting to start” means on a campaign or search, and what happens next.",
         blocks: [
-          { p: "Every search goes through two halves. First Yolias AI turns your request into criteria and sets up the search. That part is complete when you see the target criteria and the decision makers to find. Then the search looks through connected data sources for matching companies and people." },
-          { p: "**Awaiting data source** means the first half finished and the second is waiting for a source to be connected to your workspace. Nothing is lost: the search keeps its criteria and will collect results once a source is available." },
-          { p: "See [Search progress and status](/docs/search-status) for every status a search can have." },
+          { p: "Yolias has the targeting ready, but no data source that covers this kind of search is available for your workspace. The campaign keeps everything and starts by itself once one is." },
+          { p: "To start now, change the audience to one Yolias can search (companies and people by industry, location, size and job title), or use a saved or custom audience." },
         ],
       },
       ar: {
-        title: "لماذا يظهر البحث «بانتظار مصدر بيانات»",
-        summary: "فهم يولياس بحثك، لكن لا يوجد مصدر بيانات للشركات متصل بعد لجمع النتائج.",
+        title: "حملة بانتظار البدء",
+        summary: "ماذا تعني «بانتظار البدء» في حملة أو بحث، وماذا يحدث بعدها.",
         blocks: [
-          { p: "يمر كل بحث بمرحلتين. أولًا يحوّل يولياس AI طلبك إلى معايير ويجهّز البحث، وتكتمل هذه المرحلة عندما ترى معايير الاستهداف وصنّاع القرار المطلوبين. ثم يبحث البحث في مصادر البيانات المتصلة عن الشركات والأشخاص المطابقين." },
-          { p: "**بانتظار مصدر بيانات** يعني أن المرحلة الأولى اكتملت وأن الثانية تنتظر ربط مصدر بمساحة عملك. لا يضيع شيء: يحتفظ البحث بمعاييره وسيجمع النتائج بمجرد توفر مصدر." },
-          { p: "راجع [تقدّم البحث وحالته](/docs/search-status) لمعرفة كل الحالات الممكنة للبحث." },
+          { p: "الاستهداف جاهز لدى يولياس، لكن لا يتوفر لمساحة عملك مصدر بيانات يغطي هذا النوع من البحث. وتحتفظ الحملة بكل شيء وتبدأ وحدها عند توفره." },
+          { p: "لتبدأ الآن، غيّر الجمهور إلى نوع يبحث فيه يولياس (الشركات والأشخاص حسب المجال والموقع والحجم والمسمى)، أو استخدم جمهورًا محفوظًا أو مخصصًا." },
         ],
       },
     },
   },
   {
     slug: "search-needs-attention",
-    collection: "using-yolias",
+    collection: "campaigns",
     doc: {
       en: {
-        title: "When a search needs attention",
-        summary: "What the red “Search needs attention” card means and how to continue.",
+        title: "When Yolias AI can't read a request",
+        summary: "What the red “Needs attention” card means and how to continue.",
         blocks: [
-          { p: "The card appears when Yolias AI could not turn a request into criteria, for example when the AI service was busy, or the request had nothing it could interpret." },
           { ol: [
-            "Read the message on the card; it says what went wrong.",
-            "Press **Try again**. Your request is saved, so you don’t need to retype it.",
-            "If it keeps failing, edit the request above the card to be more specific (a market, an industry and the roles you want) and send it again.",
+            "Read the card: it says what went wrong.",
+            "Press **Try again**. Your request is saved.",
+            "If it fails again, make the request more specific (a market, an industry and the roles you want) and send it again.",
           ] },
-          { note: "Retrying re-reads the text only. If your original request relied on an attached file, attach it again in a new search." },
+          { note: "Retrying reads the text only. Attach a file again in a new request if you need it." },
         ],
       },
       ar: {
-        title: "عندما يحتاج البحث انتباهك",
-        summary: "ماذا تعني بطاقة «البحث يحتاج انتباهك» الحمراء وكيف تكمل.",
+        title: "عندما لا يستطيع Yolias AI قراءة الطلب",
+        summary: "ماذا تعني بطاقة «يحتاج انتباهك» الحمراء وكيف تكمل.",
         blocks: [
-          { p: "تظهر البطاقة عندما يتعذر على يولياس AI تحويل الطلب إلى معايير، مثلًا عندما تكون خدمة الذكاء الاصطناعي مشغولة، أو لا يحتوي الطلب على ما يمكن فهمه." },
           { ol: [
-            "اقرأ الرسالة على البطاقة؛ فهي توضح ما حدث.",
-            "اضغط **حاول مرة أخرى**. طلبك محفوظ ولا تحتاج لإعادة كتابته.",
-            "إذا تكرر الفشل، عدّل الطلب أعلى البطاقة ليكون أوضح، سوق وقطاع والمناصب المطلوبة، ثم أرسله مجددًا.",
+            "اقرأ البطاقة: تذكر ما الذي حدث.",
+            "اضغط **حاول مجددًا**. طلبك محفوظ.",
+            "إذا فشل مرة أخرى، اجعل الطلب أدق (سوق ومجال والمسميات التي تريدها) وأرسله من جديد.",
           ] },
-          { note: "إعادة المحاولة تقرأ النص فقط. إذا كان طلبك الأصلي يعتمد على ملف مرفق فأرفقه من جديد في بحث جديد." },
+          { note: "إعادة المحاولة تقرأ النص فقط. أرفق الملف من جديد في طلب جديد إذا احتجته." },
+        ],
+      },
+    },
+  },
+
+  // ───────────────────────── Audiences & leads ─────────────────────────
+  {
+    slug: "audiences",
+    collection: "audiences-leads",
+    doc: {
+      en: {
+        title: "Audiences",
+        summary: "New targeting, saved targeting, custom audiences from your lists and lookalikes of your best customers.",
+        blocks: [
+          { h2: "Targeting" },
+          { p: "Every country, then its regions and cities, included or excluded; industries, company type and size, job titles, seniority, department, hiring, funding, technologies, keywords and companies never to contact. Yolias shows how many matching companies and people it already knows." },
+          { h2: "Audiences page" },
+          { ul: [
+            "**Custom**: a past campaign, your customers, people who booked, interested people, or a CSV file.",
+            "**Lookalike**: companies and people that share the traits of a base, at a similarity from 1 to 10, with the base size and a confidence.",
+            "**Saved targeting**: targeting you reuse in any campaign.",
+          ] },
+          { p: "Building an audience contacts no one. A campaign contacts people only after you launch it." },
+        ],
+      },
+      ar: {
+        title: "الجماهير",
+        summary: "استهداف جديد، واستهداف محفوظ، وجماهير مخصصة من قوائمك، وجماهير مشابهة لأفضل عملائك.",
+        blocks: [
+          { h2: "الاستهداف" },
+          { p: "كل الدول، ثم مناطقها ومدنها، تضمينًا أو استبعادًا؛ والمجالات ونوع الشركة وحجمها والمسميات والمستوى والقسم والتوظيف والتمويل والتقنيات والكلمات المفتاحية والشركات التي لا تريد التواصل معها. ويعرض يولياس عدد الشركات والأشخاص المطابقين الذين يعرفهم." },
+          { h2: "صفحة الجماهير" },
+          { ul: [
+            "**مخصص**: حملة سابقة، أو عملاؤك، أو من حجزوا، أو المهتمون، أو ملف CSV.",
+            "**مشابه**: شركات وأشخاص يشتركون في صفات جمهور أساسي، بدرجة تشابه من 1 إلى 10، مع حجم الأساس ودرجة الثقة.",
+            "**استهداف محفوظ**: استهداف تعيد استخدامه في أي حملة.",
+          ] },
+          { p: "بناء الجمهور لا يتواصل مع أحد. والحملة تتواصل مع الأشخاص بعد إطلاقها فقط." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "prospects-workspace",
+    collection: "audiences-leads",
+    doc: {
+      en: {
+        title: "Working with leads",
+        summary: "Companies and people your campaigns found, their contact details, and finding decision makers.",
+        blocks: [
+          { p: "**Leads** has three tabs: **Companies**, **People** and **Saved**. Filter by campaign, search, sort and select rows across pages." },
+          { h2: "Contact details" },
+          { p: "The business email and phone a person or company publishes show once Yolias delivers them, with their verification state. Viewing them again never uses prospects." },
+          { h2: "Find decision makers" },
+          { p: "On **Companies**, select companies and choose **Find decision makers**. They are saved to **People**." },
+          { p: "Open a company or a person to see where they came from, the campaign that reached them and every message." },
+        ],
+      },
+      ar: {
+        title: "العمل مع العملاء المحتملين",
+        summary: "الشركات والأشخاص الذين وجدتهم حملاتك، وبيانات التواصل، وإيجاد صنّاع القرار.",
+        blocks: [
+          { p: "في **العملاء المحتملون** ثلاثة تبويبات: **الشركات** و**الأشخاص** و**المحفوظون**. صفِّ حسب الحملة، وابحث، ورتّب، وحدد صفوفًا عبر الصفحات." },
+          { h2: "بيانات التواصل" },
+          { p: "يظهر البريد والهاتف المهنيان اللذان ينشرهما الشخص أو الشركة عند تسليمهما، مع حالة التحقق. وعرضهما مرة أخرى لا يستهلك عملاء محتملين." },
+          { h2: "إيجاد صنّاع القرار" },
+          { p: "في **الشركات** حدد الشركات واختر **إيجاد صنّاع القرار**. ويُحفظون في **الأشخاص**." },
+          { p: "افتح شركة أو شخصًا لترى مصدره، والحملة التي وصلت إليه، وكل رسالة." },
         ],
       },
     },
   },
   {
     slug: "exporting-prospects",
-    collection: "using-yolias",
+    collection: "audiences-leads",
     doc: {
       en: {
-        title: "Exporting prospects to CSV",
-        summary: "Download saved prospects, filtered the way you need them.",
+        title: "Exporting leads and campaigns",
+        summary: "Download leads, campaigns and audiences as CSV or Excel.",
         blocks: [
-          { ol: [
-            "On a search with results, press **Save to Prospects** to add its decision makers to your list.",
-            "Open **Prospects**. Use **Filters** to narrow by name or title, type, market or minimum match.",
-            "Press **Export CSV**. The file contains exactly the rows your filters show.",
+          { ul: [
+            "**Leads**: filter the tab, then **Export**; or select rows and choose **Export selected**.",
+            "**Campaigns**: **Export** downloads the table as shown, with your columns, as CSV or Excel.",
           ] },
-          { p: "The file opens in Excel, Numbers or Google Sheets, and column headers follow your interface language. The full column list is in [Prospects](/docs/prospects)." },
+          { p: "Column headers follow your interface language. Files open in Excel, Numbers or Google Sheets." },
         ],
       },
       ar: {
-        title: "تصدير العملاء المحتملين إلى CSV",
-        summary: "نزّل العملاء المحتملين المحفوظين في ملف CSV بالفلاتر التي تحتاجها، أو الصفوف التي حددتها فقط.",
+        title: "تصدير العملاء المحتملين والحملات",
+        summary: "نزّل العملاء المحتملين والحملات والجماهير كملف CSV أو Excel.",
+        blocks: [
+          { ul: [
+            "**العملاء المحتملون**: صفِّ التبويب ثم **تصدير**، أو حدد صفوفًا واختر **تصدير المحدد**.",
+            "**الحملات**: **تصدير** ينزّل الجدول كما يظهر، بأعمدتك، كملف CSV أو Excel.",
+          ] },
+          { p: "عناوين الأعمدة بلغة الواجهة. وتفتح الملفات في Excel أو Numbers أو Google Sheets." },
+        ],
+      },
+    },
+  },
+
+  // ───────────────────────── Conversations & meetings ─────────────────────────
+  {
+    slug: "conversations",
+    collection: "conversations-meetings",
+    doc: {
+      en: {
+        title: "Conversations",
+        summary: "Every reply from every campaign in one place, and what Yolias hands to you.",
+        blocks: [
+          { p: "**Conversations** lists every thread with its person, company and campaign. Filter by campaign or type of reply." },
+          { p: "Yolias answers questions and objections from your Company Knowledge, offers times and books. It hands you complaints, negotiations, requests for a person and questions it can't answer: those are under **Needs you**." },
+          { p: "Reply from the thread whenever you want to take over." },
+        ],
+      },
+      ar: {
+        title: "المحادثات",
+        summary: "كل رد من كل حملة في مكان واحد، وما يسلّمه يولياس لك.",
+        blocks: [
+          { p: "تعرض **المحادثات** كل محادثة مع الشخص والشركة والحملة. صفِّ حسب الحملة أو نوع الرد." },
+          { p: "يجيب يولياس عن الأسئلة والاعتراضات من معرفة شركتك، ويقترح المواعيد ويحجز. ويسلّمك الشكاوى والتفاوض وطلبات التحدث مع شخص والأسئلة التي لا يعرف إجابتها: تجدها في **يحتاجك**." },
+          { p: "رد من المحادثة نفسها متى أردت أن تتولاها." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "deals-and-meetings",
+    collection: "conversations-meetings",
+    doc: {
+      en: {
+        title: "Meetings and your booking page",
+        summary: "From a reply to a booked meeting, your booking page, Google Calendar, reminders and the outcome.",
+        blocks: [
+          { h2: "From a reply to a meeting" },
+          { p: "When someone shows interest, Yolias replies in the same thread with two free times and your booking page. If they name a time that is free, Yolias books it, confirms and sends the invitation with a Google Meet link." },
+          { h2: "Meetings page" },
+          { ul: [
+            "The top shows meetings booked in the last 30 days, the spend and the **cost per meeting**.",
+            "**Link visits**: who opened your booking link, from which campaign, and who started without booking.",
+            "**Bookings**: upcoming and past meetings. After a meeting, mark the outcome: became a customer, didn't buy (with a reason) or no-show.",
+            "**Booking page**: yolias.com/meet/your-name with up to four meeting types and your weekly hours.",
+          ] },
+          { h2: "Reminders" },
+          { p: "Guests get reminders a day and an hour before; you get a brief on the person before the meeting." },
+        ],
+      },
+      ar: {
+        title: "الاجتماعات وصفحة الحجز",
+        summary: "من الرد إلى الاجتماع المحجوز، وصفحة الحجز، وتقويم Google، والتذكيرات، والنتيجة.",
+        blocks: [
+          { h2: "من الرد إلى الاجتماع" },
+          { p: "عندما يُظهر شخص اهتمامًا، يرد يولياس في المحادثة نفسها بموعدين متاحين وصفحة الحجز. وإذا ذكر موعدًا متاحًا يحجزه يولياس ويؤكده ويرسل الدعوة برابط Google Meet." },
+          { h2: "صفحة الاجتماعات" },
+          { ul: [
+            "أعلى الصفحة: الاجتماعات المحجوزة في آخر 30 يومًا، والإنفاق، و**تكلفة الاجتماع**.",
+            "**زيارات الرابط**: من فتح رابط الحجز، ومن أي حملة، ومن بدأ ولم يحجز.",
+            "**الحجوزات**: الاجتماعات القادمة والسابقة. وبعد الاجتماع حدد نتيجته: أصبح عميلًا، أو لم يشترِ (مع السبب)، أو لم يحضر.",
+            "**صفحة الحجز**: yolias.com/meet/اسمك مع حتى أربعة أنواع اجتماعات وساعاتك الأسبوعية.",
+          ] },
+          { h2: "التذكيرات" },
+          { p: "يصل الضيف تذكير قبل الموعد بيوم وبساعة، ويصلك ملخص عن الشخص قبل الاجتماع." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "google-calendar",
+    collection: "conversations-meetings",
+    doc: {
+      en: {
+        title: "Connecting Google Calendar",
+        summary: "Bookings land on your calendar, and your busy times are never offered.",
         blocks: [
           { ol: [
-            "في بحث به نتائج، اضغط **حفظ في العملاء المحتملين** لإضافة صنّاع القرار إلى قائمتك.",
-            "افتح **العملاء المحتملون**. استخدم **الفلاتر** للتصفية حسب الاسم أو المسمى أو النوع أو السوق أو أدنى نسبة تطابق.",
-            "اضغط **تصدير CSV**. يحتوي الملف بالضبط على الصفوف التي تظهرها الفلاتر.",
+            "Open **Integrations** and choose **Connect** on the **Google Calendar** card.",
+            "Allow Yolias to see your free and busy times and add events.",
           ] },
-          { p: "يفتح الملف في Excel أو Numbers أو Google Sheets، وتتبع عناوين الأعمدة لغة الواجهة. تجد قائمة الأعمدة كاملة في [العملاء المحتملون](/docs/prospects)." },
+          { p: "Every booking is added with a Google Meet link and Google's invitation to the guest. Without Google Calendar, guests get an “Add to Google Calendar” link in their confirmation." },
+        ],
+      },
+      ar: {
+        title: "ربط تقويم Google",
+        summary: "تصل الحجوزات إلى تقويمك، ولا تُعرض أوقات انشغالك أبدًا.",
+        blocks: [
+          { ol: [
+            "افتح **التكاملات** واختر **اربط** في كارت **تقويم Google**.",
+            "اسمح ليولياس برؤية أوقات فراغك وانشغالك وإضافة الأحداث.",
+          ] },
+          { p: "يُضاف كل حجز برابط Google Meet ودعوة Google للضيف. ومن دون تقويم Google يصل الضيف رابط «أضف إلى تقويم Google» في رسالة التأكيد." },
+        ],
+      },
+    },
+  },
+
+  // ───────────────────────── Billing & account ─────────────────────────
+  {
+    slug: "choosing-a-plan",
+    collection: "account",
+    doc: {
+      en: {
+        title: "Pay As You Go or a monthly plan",
+        summary: "Every option has every feature and unlimited users; you pay for prospects only.",
+        blocks: [
+          { p: "A **prospect** is a person Yolias finds and reaches for your campaigns. It's the only unit: writing and sending emails, replies and meetings are never charged, and the same prospect is never counted twice." },
+          { table: {
+            head: ["Option", "Price", "How it works"],
+            rows: [
+              ["Pay As You Go", "From $5", "Prepaid credit ($5, $20, $50 or $100), no subscription, no expiry"],
+              ["Growth", "$100 a month", "2,000 prospects a month"],
+              ["Scale", "$200 a month", "4,000 prospects a month"],
+            ],
+          } },
+          { p: "Annual billing is 20% off. Checkout shows how many prospects an amount gives before you pay. On a plan, its monthly prospects are used first, then any credit. See [pricing](/pricing)." },
+        ],
+      },
+      ar: {
+        title: "الدفع حسب الاستخدام أو خطة شهرية",
+        summary: "كل خيار فيه كل المزايا ومستخدمون بلا حد، وتدفع مقابل العملاء المحتملين فقط.",
+        blocks: [
+          { p: "**العميل المحتمل** شخص يجده يولياس ويصل إليه لحملاتك. وهو الوحدة الوحيدة: كتابة الرسائل وإرسالها والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب العميل نفسه مرتين." },
+          { table: {
+            head: ["الخيار", "السعر", "كيف يعمل"],
+            rows: [
+              ["الدفع حسب الاستخدام", "من 5 دولارات", "رصيد مسبق (5 أو 20 أو 50 أو 100 دولار)، بلا اشتراك وبلا انتهاء"],
+              ["النمو", "100 دولار شهريًا", "2,000 عميل محتمل شهريًا"],
+              ["التوسع", "200 دولار شهريًا", "4,000 عميل محتمل شهريًا"],
+            ],
+          } },
+          { p: "الدفع السنوي بخصم 20%. وتعرض صفحة الدفع عدد العملاء الذي يعطيه المبلغ قبل الدفع. وفي الخطة تُستخدم عملاؤها الشهريون أولًا ثم الرصيد. راجع [الأسعار](/pricing)." },
+        ],
+      },
+    },
+  },
+  {
+    slug: "changing-plan",
+    collection: "account",
+    doc: {
+      en: {
+        title: "Changing or canceling your plan",
+        summary: "Move between Pay As You Go, Growth and Scale, or cancel.",
+        blocks: [
+          { p: "Owners and admins open their name in the sidebar, then **Settings → Billing**. **Adjust plan** changes it; **Cancel plan** cancels at the end of the paid period, and you can resume before then." },
+          { p: "A plan's prospects reset on the first day of each month. Credit you topped up stays until you use it. After a plan ends, campaigns stop reaching new people and everything stays saved." },
+        ],
+      },
+      ar: {
+        title: "تغيير الخطة أو إلغاؤها",
+        summary: "انتقل بين الدفع حسب الاستخدام والنمو والتوسع، أو ألغِ.",
+        blocks: [
+          { p: "يفتح المالك أو المسؤول اسمه في الشريط الجانبي ثم **الإعدادات ← الفوترة**. **تعديل الخطة** يغيّرها، و**إلغاء الخطة** يلغيها في نهاية الفترة المدفوعة، ويمكنك الاستئناف قبلها." },
+          { p: "يتجدد عملاء الخطة في أول يوم من كل شهر، ويبقى الرصيد المشحون حتى تستخدمه. وبعد انتهاء الخطة تتوقف الحملات عن الوصول إلى أشخاص جدد، ويبقى كل شيء محفوظًا." },
         ],
       },
     },
@@ -352,50 +741,42 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Adding people",
-        summary: "Add colleagues with a role: Admin, Advertiser or Analyst. Unlimited users on every plan.",
+        summary: "Add colleagues as Admin, Advertiser or Analyst. Unlimited users on every plan.",
         blocks: [
           { ol: [
-            "Open your name at the bottom of the sidebar and choose **Team**.",
-            "Press **Add people**, enter their work email, choose **Admin**, **Advertiser** or **Analyst**, and send.",
-            "They receive an email; opening it creates their account inside your workspace.",
+            "Open your name at the bottom of the sidebar, choose **Settings → Team**.",
+            "Press **Add people**, enter their work email and choose a role.",
+            "They get an email; opening it joins them to your workspace.",
           ] },
-          { p: "Pending invitations stay listed until accepted, and owners or admins can revoke them. Someone who already has their own Yolias account can’t be invited to a second workspace yet." },
+          { table: {
+            head: ["Role", "Can"],
+            rows: [
+              ["Admin", "Everything, including billing and the team"],
+              ["Advertiser", "Create and run campaigns, audiences and conversations"],
+              ["Analyst", "View campaigns and results"],
+            ],
+          } },
+          { p: "Owners and admins can change roles and revoke pending invitations." },
         ],
       },
       ar: {
         title: "إضافة أشخاص",
-        summary: "أضف زملاءك بدور: مسؤول أو معلن أو محلل. مستخدمون بلا حد في كل خطة.",
+        summary: "أضف زملاءك كمسؤول أو معلن أو محلل. مستخدمون بلا حد في كل خطة.",
         blocks: [
           { ol: [
-            "اضغط على اسمك أسفل الشريط الجانبي واختر **الفريق**.",
-            "اضغط **إضافة أشخاص**، وأدخل بريد العمل، واختر **مسؤول** أو **معلن** أو **محلل**، ثم أرسل.",
-            "يصلهم بريد إلكتروني؛ وفتحه ينشئ حسابهم داخل مساحة عملك.",
+            "اضغط على اسمك أسفل الشريط الجانبي واختر **الإعدادات ← الفريق**.",
+            "اضغط **إضافة أشخاص**، واكتب بريد العمل، واختر الدور.",
+            "يصلهم بريد، وبفتحه ينضمون إلى مساحة عملك.",
           ] },
-          { p: "تبقى الدعوات المعلقة ظاهرة حتى قبولها، ويمكن للمالك أو المسؤول إلغاؤها. ولا يمكن حاليًا دعوة شخص لديه حساب يولياس خاص به إلى مساحة عمل ثانية." },
-        ],
-      },
-    },
-  },
-  {
-    slug: "changing-plan",
-    collection: "account",
-    doc: {
-      en: {
-        title: "Changing your plan",
-        summary: "Move between Pay As You Go, Growth and Scale, or cancel.",
-        blocks: [
-          { p: "Owners and admins can change the plan. Open your name in the sidebar, choose **Billing**, then **Adjust plan**. Pick the plan and confirm. To top up credit instead, choose **Pay As You Go** in Checkout." },
-          { p: "To cancel, use **Cancel plan** under Cancellation. The plan stays active until the end of the paid period; after that new searches stop until you subscribe again, and everything stays saved. You can resume before then." },
-          { p: "Your new limits apply right away. A plan’s prospects reset on the first day of each month; credit you topped up stays until you use it." },
-        ],
-      },
-      ar: {
-        title: "تغيير خطتك",
-        summary: "انتقل بين الدفع حسب الاستخدام والنمو والتوسع، أو ألغِ الاشتراك.",
-        blocks: [
-          { p: "يمكن للمالك والمسؤول تغيير الخطة. اضغط على اسمك في الشريط الجانبي، واختر **الفوترة**، ثم **تعديل الخطة**. اختر الخطة وأكّد. ولشحن الرصيد بدلًا من ذلك، اختر **الدفع حسب الاستخدام** في صفحة الدفع." },
-          { p: "للإلغاء، استخدم **إلغاء الخطة** في قسم الإلغاء. تبقى الخطة فعالة حتى نهاية الفترة المدفوعة، وبعدها تتوقف عمليات البحث الجديدة حتى تشترك من جديد مع حفظ كل شيء. ويمكنك الاستئناف قبل ذلك." },
-          { p: "تُطبق الحدود الجديدة فورًا. يتجدد عملاء الخطة في أول يوم من كل شهر، ويبقى الرصيد الذي شحنته حتى تستخدمه." },
+          { table: {
+            head: ["الدور", "يستطيع"],
+            rows: [
+              ["مسؤول", "كل شيء، بما فيه الفوترة والفريق"],
+              ["معلن", "إنشاء الحملات وتشغيلها والجماهير والمحادثات"],
+              ["محلل", "عرض الحملات والنتائج"],
+            ],
+          } },
+          { p: "يستطيع المالك والمسؤول تغيير الأدوار وإلغاء الدعوات المعلقة." },
         ],
       },
     },
@@ -408,141 +789,26 @@ export const articles: HelpArticle[] = [
         title: "Deleting your account",
         summary: "What gets removed, and what to do first if you own a team workspace.",
         blocks: [
-          { p: "Open your name in the sidebar → **Account** → **Delete account**, and confirm." },
+          { p: "Open your name in the sidebar → **Settings → Account** → **Delete account**, and confirm." },
           { ul: [
             "Your profile is removed and you are signed out.",
-            "If you are the only member, the workspace and all its searches, campaigns, companies and prospects are deleted too.",
-            "If you own a workspace with other members, remove them first from **Team**; an owner can’t leave a team without a workspace.",
+            "If you are the only member, the workspace and its campaigns, audiences and leads are deleted too.",
+            "If others are in your workspace, remove them from **Team** first.",
           ] },
-          { note: "Deletion can’t be undone. Export anything you want to keep before you start." },
+          { note: "Deletion can't be undone. Export what you want to keep first." },
         ],
       },
       ar: {
-        title: "حذف حسابك",
-        summary: "ما الذي يُحذف، وما الذي تفعله أولًا إذا كنت تملك مساحة عمل لفريق.",
+        title: "حذف الحساب",
+        summary: "ما الذي يُحذف، وماذا تفعل أولًا إذا كنت تملك مساحة عمل فيها فريق.",
         blocks: [
-          { p: "اضغط على اسمك في الشريط الجانبي ← **الحساب** ← **حذف الحساب**، ثم أكّد." },
+          { p: "اضغط على اسمك في الشريط الجانبي ← **الإعدادات ← الحساب** ← **حذف الحساب**، وأكّد." },
           { ul: [
-            "يُحذف ملفك الشخصي ويتم تسجيل خروجك.",
-            "إذا كنت العضو الوحيد، تُحذف مساحة العمل وكل ما فيها من عمليات بحث وحملات وشركات وعملاء محتملين.",
-            "إذا كنت تملك مساحة عمل بها أعضاء آخرون، فأزلهم أولًا من **الفريق**؛ فلا يمكن للمالك ترك فريق بلا مساحة عمل.",
+            "يُحذف ملفك الشخصي ويُسجَّل خروجك.",
+            "إذا كنت العضو الوحيد، تُحذف مساحة العمل وحملاتها وجماهيرها وعملاؤها المحتملون أيضًا.",
+            "إذا كان معك آخرون في مساحة العمل، أزلهم من **الفريق** أولًا.",
           ] },
-          { note: "لا يمكن التراجع عن الحذف. صدّر ما تريد الاحتفاظ به قبل البدء." },
-        ],
-      },
-    },
-  },
-  // How to connect a mailbox (owner, 2026-10-28): "How to connect" on each Integrations card opens these.
-  {
-    slug: "connect-gmail",
-    collection: "using-yolias",
-    doc: {
-      en: {
-        title: "Connecting Gmail",
-        summary: "Connect your Gmail or Google Workspace mailbox so Yolias sends your campaigns from it and reads the replies.",
-        blocks: [
-          { ol: [
-            "Open your name at the bottom of the sidebar, choose **Settings**, then **Integrations**.",
-            "On the **Gmail** card, open the ⋯ menu and choose **Connect** (or open the card and press **Add mailbox**).",
-            "Choose your Google account and allow Yolias to send email and read the replies to the emails it sent.",
-            "You come back to Yolias with the mailbox listed as **Connected**.",
-          ] },
-          { p: "Yolias reads only the replies in the threads it started; it never reads the rest of your inbox. You can disconnect at any time from the same card, or from your Google account's security settings." },
-          { note: "If the Google button isn't available yet, connect the same Gmail mailbox with IMAP/SMTP and an app password: see [Connecting another mailbox (IMAP/SMTP)](/help-center/connect-imap-smtp)." },
-          { h2: "Official Google help" },
-          { ul: [
-            "[Sign in with app passwords](https://support.google.com/accounts/answer/185833)",
-            "[Add Gmail to another email client (IMAP)](https://support.google.com/mail/answer/7126229)",
-          ] },
-        ],
-      },
-      ar: {
-        title: "ربط Gmail",
-        summary: "اربط Gmail أو بريد Google Workspace ليرسل يولياس حملاتك منه ويقرأ الردود.",
-        blocks: [
-          { ol: [
-            "اضغط على اسمك أسفل الشريط الجانبي، واختر **الإعدادات** ثم **التكاملات**.",
-            "في كارت **Gmail** افتح قائمة ⋯ واختر **اربط** (أو افتح الكارت واضغط **إضافة صندوق بريد**).",
-            "اختر حساب Google واسمح ليولياس بإرسال البريد وقراءة الردود على الرسائل التي أرسلها.",
-            "تعود إلى يولياس وصندوق البريد ظاهر بحالة **متصل**.",
-          ] },
-          { p: "يقرأ يولياس الردود في المحادثات التي بدأها فقط، ولا يقرأ باقي بريدك. يمكنك فصل الربط في أي وقت من نفس الكارت، أو من إعدادات الأمان في حساب Google." },
-          { note: "إن لم يكن زر Google متاحًا بعد، اربط نفس بريد Gmail عبر IMAP/SMTP بكلمة مرور تطبيق: راجع [ربط بريد آخر (IMAP/SMTP)](/help-center/connect-imap-smtp)." },
-          { h2: "مساعدة Google الرسمية" },
-          { ul: [
-            "[تسجيل الدخول بكلمات مرور التطبيقات](https://support.google.com/accounts/answer/185833?hl=ar)",
-            "[إضافة Gmail إلى برنامج بريد آخر (IMAP)](https://support.google.com/mail/answer/7126229?hl=ar)",
-          ] },
-        ],
-      },
-    },
-  },
-  {
-    slug: "connect-imap-smtp",
-    collection: "using-yolias",
-    doc: {
-      en: {
-        title: "Connecting another mailbox (IMAP/SMTP)",
-        summary: "Connect any mailbox, such as Zoho, Hostinger, Outlook or your company mail, with its IMAP and SMTP settings.",
-        blocks: [
-          { ol: [
-            "Open **Integrations**, and on the **IMAP/SMTP mailbox** card choose **Connect** from the ⋯ menu.",
-            "Enter your email address and password. Yolias fills the usual server names from your domain; change them if your provider uses others.",
-            "Press **Connect**. Yolias checks the login and a test connection before saving.",
-          ] },
-          { p: "Many providers need an **app password** instead of your normal password when two-step sign-in is on. Create one in your provider's security settings and paste it in the password field." },
-          { h2: "Settings of common providers" },
-          { table: {
-            head: ["Provider", "IMAP (incoming)", "SMTP (outgoing)"],
-            rows: [
-              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
-              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
-              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
-              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
-              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
-            ],
-          } },
-          { p: "Zoho accounts in Europe or India use zoho.eu or zoho.in instead of zoho.com. For any other provider, look for “IMAP settings” in its help." },
-          { h2: "Official help from each provider" },
-          { ul: [
-            "[Google: app passwords](https://support.google.com/accounts/answer/185833)",
-            "[Zoho Mail: IMAP access](https://www.zoho.com/mail/help/imap-access.html)",
-            "[Microsoft: POP, IMAP and SMTP settings for Outlook.com](https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040)",
-            "[Yahoo: generate an app password](https://help.yahoo.com/kb/SLN15241.html)",
-          ] },
-          { note: "After connecting, Integrations shows whether your domain has SPF, DKIM and DMARC. Without them, campaign emails often land in spam." },
-        ],
-      },
-      ar: {
-        title: "ربط بريد آخر (IMAP/SMTP)",
-        summary: "اربط أي بريد، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك، بإعدادات IMAP وSMTP.",
-        blocks: [
-          { ol: [
-            "افتح **التكاملات**، وفي كارت **بريد IMAP/SMTP** اختر **اربط** من قائمة ⋯.",
-            "أدخل بريدك وكلمة المرور. يملأ يولياس أسماء الخوادم المعتادة من دومينك؛ غيّرها إن كان مزودك يستخدم غيرها.",
-            "اضغط **ربط**. يتحقق يولياس من الدخول ومن اتصال تجريبي قبل الحفظ.",
-          ] },
-          { p: "كثير من المزودين يطلبون **كلمة مرور تطبيق** بدل كلمة مرورك العادية عند تفعيل التحقق بخطوتين. أنشئها من إعدادات الأمان عند مزودك والصقها في خانة كلمة المرور." },
-          { h2: "إعدادات أشهر المزودين" },
-          { table: {
-            head: ["المزود", "IMAP (الوارد)", "SMTP (الصادر)"],
-            rows: [
-              ["Gmail / Google Workspace", "imap.gmail.com · 993", "smtp.gmail.com · 465"],
-              ["Zoho Mail", "imap.zoho.com · 993", "smtp.zoho.com · 465"],
-              ["Outlook.com / Microsoft 365", "outlook.office365.com · 993", "smtp.office365.com · 587"],
-              ["Hostinger", "imap.hostinger.com · 993", "smtp.hostinger.com · 465"],
-              ["Yahoo Mail", "imap.mail.yahoo.com · 993", "smtp.mail.yahoo.com · 465"],
-            ],
-          } },
-          { p: "حسابات Zoho في أوروبا أو الهند تستخدم zoho.eu أو zoho.in بدل zoho.com. لأي مزود آخر ابحث عن «IMAP settings» في صفحات مساعدته." },
-          { h2: "المساعدة الرسمية من كل مزود" },
-          { ul: [
-            "[Google: كلمات مرور التطبيقات](https://support.google.com/accounts/answer/185833?hl=ar)",
-            "[Zoho Mail: الوصول عبر IMAP](https://www.zoho.com/mail/help/imap-access.html)",
-            "[Microsoft: إعدادات POP وIMAP وSMTP لـ Outlook.com](https://support.microsoft.com/ar-sa/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040)",
-            "[Yahoo: إنشاء كلمة مرور تطبيق](https://help.yahoo.com/kb/SLN15241.html)",
-          ] },
-          { note: "بعد الربط، تعرض التكاملات هل في دومينك سجلات SPF وDKIM وDMARC. بدونها تذهب رسائل الحملات غالبًا إلى Spam." },
+          { note: "لا يمكن التراجع عن الحذف. صدّر ما تريد الاحتفاظ به أولًا." },
         ],
       },
     },
@@ -550,6 +816,6 @@ export const articles: HelpArticle[] = [
 ];
 
 export const helpHero: Localized<{ title: string; lead: string; collectionsTitle: string; popularTitle: string }> = {
-  en: { title: "How can we help?", lead: "Short answers about signing in, plans, searches, outreach, prospects and your team.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
-  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن تسجيل الدخول والخطط وعمليات البحث والتواصل والعملاء المحتملين وفريقك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
+  en: { title: "How can we help?", lead: "Short answers about campaigns, audiences, leads, conversations, meetings and your account.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
+  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن الحملات والجماهير والعملاء المحتملين والمحادثات والاجتماعات وحسابك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
 };
