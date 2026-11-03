@@ -29,7 +29,7 @@ export const posts: BlogPost[] = [
     category: { en: "Product", ar: "المنتج" },
     doc: {
       en: {
-        title: "Introducing Yolias: an advertising platform for customer acquisition",
+        title: "Introducing Yolias: an ad platform for acquiring customers",
         summary: "Yolias runs customer acquisition the way advertisers run ads: campaigns, audiences, budgets and results, with Yolias AI doing the work in between.",
         blocks: [
           { p: "Every business that sells to other businesses needs new customers every month. Most get them through a stack of separate tools: one to find companies, one to find contacts, one to send emails, a spreadsheet to follow up and another to report. Nobody can say what a meeting cost or which audience brought it." },
