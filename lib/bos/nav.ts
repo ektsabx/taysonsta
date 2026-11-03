@@ -45,13 +45,11 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform", label: "لوحة التحكم", perm: "platform.read" },
       { href: "/admin/platform/traffic", label: "الزوار والقنوات", perm: "platform.read" },
       { href: "/admin/platform/live", label: "المستخدمون الآن", perm: "platform.read" },
-      { href: "/admin/platform/finance", label: "المصاريف والتسويق", perm: "platform.read" },
-      { href: "/admin/platform/switches", label: "تشغيل وإيقاف الخدمات", perm: "platform.read" },
     ],
   },
   {
     key: "y_users", section: "yolias",
-    label: "المستخدمون",
+    label: "العملاء",
     icon: "y_users",
     items: [
       { href: "/admin/platform/users", label: "نظرة عامة", perm: "platform.read" },
@@ -60,14 +58,23 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/users/subscribed", label: "المستخدمون المشتركون", perm: "platform.read" },
       { href: "/admin/platform/users/suspended", label: "المستخدمون الموقوفون", perm: "platform.read" },
       { href: "/admin/platform/users/banned", label: "المستخدمون المحظورون", perm: "platform.read" },
+      { href: "/admin/platform/workspaces", label: "مساحات العمل", perm: "platform.read" },
     ],
   },
-  { key: "y_workspaces", section: "yolias", label: "مساحات العمل", icon: "y_workspaces", href: "/admin/platform/workspaces", perm: "platform.read" },
-  // Popups (owner, 2026-11-03, D-276): every window Yolias shows its members.
-  { key: "y_popups", section: "yolias", label: "النوافذ المنبثقة", icon: "y_growth", href: "/admin/platform/popups", perm: "platform.read" },
+  // Campaign operations (audit, 2026-11-03): every campaign and mailbox across accounts.
+  {
+    key: "y_ops", section: "yolias",
+    label: "عمليات الحملات",
+    icon: "y_workspaces",
+    items: [
+      { href: "/admin/platform/campaigns", label: "الحملات عبر الحسابات", perm: "platform.read" },
+      { href: "/admin/platform/deliverability", label: "جودة الإرسال", perm: "platform.read" },
+      { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
+    ],
+  },
   {
     key: "y_revenue", section: "yolias",
-    label: "الاشتراكات والإيرادات",
+    label: "المالية والإيرادات",
     icon: "y_revenue",
     items: [
       { href: "/admin/platform/conversions", label: "نظرة عامة", perm: "platform.read" },
@@ -78,6 +85,9 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/conversions/failed", label: "فشل الدفع", perm: "platform.read" },
       { href: "/admin/platform/plans", label: "الخطط والحصص", perm: "platform.read" },
       { href: "/admin/platform/profitability", label: "الربحية", perm: "platform.read" },
+      { href: "/admin/platform/finance", label: "المصاريف والتسويق", perm: "platform.read" },
+      { href: "/admin/platform/usage", label: "الاستخدام", perm: "platform.read" },
+      { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
     ],
   },
   {
@@ -89,6 +99,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/referrals", label: "برنامج الدعوة", perm: "platform.read" },
       { href: "/admin/platform/tutorials", label: "فيديوهات شرح المنصة", perm: "platform.read" },
       { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
+      { href: "/admin/platform/popups", label: "النوافذ المنبثقة", perm: "platform.read" },
     ],
   },
   // SEO Control Center (D-257): organic growth from search to paid accounts.
@@ -110,7 +121,7 @@ export const navigation: NavGroup[] = [
   // Data (owner, 2026-10-29): shared data, imports and searches in one place.
   {
     key: "y_data", section: "yolias",
-    label: "البيانات",
+    label: "الجماهير والبيانات",
     icon: "y_data",
     items: [
       { href: "/admin/platform/data", label: "البيانات المشتركة", perm: "platform.read" },
@@ -119,13 +130,12 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/datasets", label: "البيانات المستوردة", perm: "platform.read" },
       { href: "/admin/platform/datasets/new", label: "استيراد بيانات", perm: "platform.manage" },
       { href: "/admin/platform/datasets/sources", label: "المصادر المفتوحة", perm: "platform.read" },
-      { href: "/admin/platform/searches", label: "عمليات البحث", perm: "platform.read" },
       { href: "/admin/platform/providers", label: "المزودون", perm: "platform.read" },
     ],
   },
   {
     key: "y_ai", section: "yolias",
-    label: "Yolias AI والنماذج",
+    label: "الذكاء الاصطناعي والخوارزميات",
     icon: "y_ai",
     items: [
       { href: "/admin/platform/agent", label: "Yolias AI", perm: "platform.read" },
@@ -151,15 +161,6 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    key: "y_usage", section: "yolias",
-    label: "الاستخدام والتكاليف",
-    icon: "y_usage",
-    items: [
-      { href: "/admin/platform/usage", label: "الاستخدام", perm: "platform.read" },
-      { href: "/admin/platform/costs", label: "التكاليف", perm: "platform.read" },
-    ],
-  },
-  {
     key: "y_monitoring", section: "yolias",
     label: "مراقبة المنصة",
     icon: "status",
@@ -168,6 +169,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/status", label: "صفحة الحالة", perm: "platform.read" },
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },
       { href: "/admin/platform/risk", label: "المخاطر", perm: "platform.read" },
+      { href: "/admin/platform/switches", label: "تشغيل وإيقاف الخدمات", perm: "platform.read" },
     ],
   },
   // Yolias affiliate program (D-178): marketers, commissions, payouts, rules.

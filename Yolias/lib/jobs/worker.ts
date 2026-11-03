@@ -159,7 +159,37 @@ export interface TickResult {
   dead: number;
 }
 
-export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickResult> {
+const LEASE_SECONDS = 150;
+
+/**
+ * One worker run at a time (audit 2026-11-03): the cron fires every minute and
+ * a run can take longer, so a run first takes a lease in worker_state; a run
+ * that can't take it returns at once. A crashed run frees it after LEASE_SECONDS.
+ */
+async function takeLease(db: ReturnType<typeof createAdminClient>): Promise<boolean> {
+  const now = new Date().toISOString();
+  const { data: first } = await db.from("worker_state").upsert({ key: "tick.lease", value: {}, updated_at: now }, { onConflict: "key", ignoreDuplicates: true }).select("key");
+  if (first?.length) return true;
+  const stale = new Date(Date.now() - LEASE_SECONDS * 1000).toISOString();
+  const { data: won } = await db.from("worker_state").update({ updated_at: now }).eq("key", "tick.lease").lt("updated_at", stale).select("key");
+  return Boolean(won?.length);
+}
+
+async function freeLease(db: ReturnType<typeof createAdminClient>) {
+  await db.from("worker_state").update({ updated_at: new Date(0).toISOString() }).eq("key", "tick.lease");
+}
+
+export async function tick(opts: { max?: number; budgetMs?: number } = {}): Promise<TickResult> {
+  const db = createAdminClient();
+  if (!(await takeLease(db).catch(() => true))) return { taken: 0, succeeded: 0, retried: 0, dead: 0 };
+  try {
+    return await runTick(opts);
+  } finally {
+    await freeLease(db).catch(() => {});
+  }
+}
+
+async function runTick({ max = 5, budgetMs = 25_000 }: { max?: number; budgetMs?: number }): Promise<TickResult> {
   const db = createAdminClient();
   const started = Date.now();
   const result: TickResult = { taken: 0, succeeded: 0, retried: 0, dead: 0 };

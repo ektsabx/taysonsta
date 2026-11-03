@@ -272,8 +272,8 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
       from_address: mailbox.email, to_email: to, subject, approved_by: m.approved_by ?? c?.approved_by ?? null, approved_at: m.approved_at ?? c?.approved_at ?? null, error: null, next_attempt_at: null,
     }).eq("id", m.id);
     const today = now.slice(0, 10);
-    const { data: fresh } = await db.from("mailboxes").select("sent_day, sent_today").eq("id", mailbox.id).single();
-    await db.from("mailboxes").update({ sent_day: today, sent_today: (fresh?.sent_day === today ? fresh.sent_today : 0) + 1 }).eq("id", mailbox.id);
+    // One statement (audit 2026-11-03): concurrent runs can't lose a count and pass the daily limit.
+    await db.rpc("mailbox_count_sent", { p_mailbox: mailbox.id, p_day: today });
     const settings = await loadAiSettings(m.workspace_id);
     if (m.enrollment_id && m.step_position) await advanceEnrollment(m.enrollment_id, m.step_position, settings.limits.max_messages_per_lead);
     if (m.lead_id) await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "message_sent", actor_kind: c ? "agent" : "user", body: subject.slice(0, 300), meta: { message_id: m.id, from: mailbox.email } as Json });
