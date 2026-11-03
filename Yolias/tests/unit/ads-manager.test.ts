@@ -6,7 +6,7 @@ import { CHANNELS, availableChannels, cleanChannels } from "../../lib/campaigns/
 import { builderSchema, budgetPeople, scheduleCapacity, zonedIso, missing, minBudgetUsd, languageFor, hasAnyTargeting } from "../../lib/campaigns/builder.ts";
 import { campaignWindow, withinWindow } from "../../lib/outreach/sending-rules.ts";
 import { replyAction, CONVERSATION, UNITS, canDo, type ReplyContext } from "../../lib/agent-core/policy.ts";
-import { tally, hintLines, MIN_CONTACTED, type Insights } from "../../lib/agent-core/learning.ts";
+import { tally, hintLines, learnedLift, learnedFacts, isResult, MIN_CONTACTED, type Insights } from "../../lib/agent-core/learning.ts";
 import { matches, traitsAt, confidenceOf } from "../../lib/campaigns/audience.ts";
 import { referralDecision, sameInbox } from "../../lib/referrals.ts";
 
@@ -152,4 +152,25 @@ test("campaign window: running days and contact hours in its zone", () => {
   const w = campaignWindow({ run_days: ["sun", "mon", "tue", "wed", "thu"], contact_from: "09:00:00", contact_to: "17:00:00", timezone: "Asia/Riyadh" }, "UTC")!;
   assert.ok(withinWindow(w, new Date("2026-11-01T07:00:00Z")), "Sunday 10:00 Riyadh");
   assert.ok(!withinWindow(w, new Date("2026-10-30T07:00:00Z")), "Friday");
+});
+
+test("learning (D-275): results count meetings, wins and pixel conversions; the contact order and the facts follow them", () => {
+  assert.ok(isResult({ meeting: false, won: false, conversion: true }), "a pixel conversion is a result");
+  assert.ok(isResult({ meeting: false, won: true, conversion: false }), "a won deal is a result");
+  assert.ok(!isResult({ meeting: false, won: false, conversion: false }));
+  const fact = (key: string, n: number, results: number) => Array.from({ length: n }, (_, i) => ({ key, replied: i < results, positive: i < results, meeting: false, conversion: i < results }));
+  const byTitle = tally([...fact("Owner", 60, 9), ...fact("Marketing manager", 60, 1)]);
+  assert.equal(byTitle[0].value, "Owner", "best results first");
+  assert.equal(byTitle[0].results, 9);
+  const i: Insights = { contacted: 120, positive: 10, results: 10, byIndustry: [], byCountry: [], byTitle, bySize: [], openings: [], sources: [], objections: [], notInterested: [] };
+  const owner = learnedLift(i, { title: "owner" }), mm = learnedLift(i, { title: "Marketing manager" });
+  assert.ok(owner > 1.2 && owner <= 1.6, `owners move up (${owner})`);
+  assert.ok(mm < 1 && mm >= 0.6, `the weaker title moves down (${mm})`);
+  assert.equal(learnedLift(i, { title: "Unknown" }), 1, "nothing learned about this one");
+  assert.equal(learnedLift({ ...i, contacted: 20 }, { title: "Owner" }), 1, "too little data: no change");
+  const facts = learnedFacts(i);
+  assert.equal(facts[0].dim, "title");
+  assert.equal(facts[0].best.value, "Owner");
+  assert.equal(facts[0].metric, "results");
+  assert.deepEqual(learnedFacts({ ...i, byTitle: tally([...fact("A", 60, 5), ...fact("B", 60, 5)]) }), [], "no difference, nothing said");
 });

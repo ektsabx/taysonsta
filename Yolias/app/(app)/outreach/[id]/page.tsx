@@ -9,6 +9,7 @@ import { RANGE_PRESETS, rangeBounds, type RangePreset } from "@/lib/campaigns/me
 import { campaignTable } from "@/services/campaign-table";
 import { campaignActivity } from "@/services/campaign-metrics";
 import { campaignDetail } from "@/services/campaign-detail";
+import { learnedFacts, type Insights } from "@/lib/agent-core/learning";
 import { CampaignPage, type CampaignTab } from "@/components/app/campaigns/CampaignPage";
 import type { OutreachCampaignRow } from "@/types/database";
 
@@ -45,7 +46,7 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
   const range = (RANGE_PRESETS as string[]).includes(one("range")) ? (one("range") as RangePreset) : "lifetime";
   const bounds = rangeBounds(range, new Date(), { from: one("from"), to: one("to") });
   const prevBounds = previous(bounds);
-  const [t, lines, prevLines, activity, detail, { data: mb }, { data: custom }] = await Promise.all([
+  const [t, lines, prevLines, activity, detail, { data: mb }, { data: custom }, { data: ins }] = await Promise.all([
     getDictionary(),
     campaignTable(ws, bounds, { ids: [id], includeArchived: true }),
     prevBounds ? campaignTable(ws, prevBounds, { ids: [id], includeArchived: true }) : Promise.resolve([]),
@@ -53,7 +54,10 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
     campaignDetail(ws, id, bounds),
     c.mailbox_id ? createAdminClient().from("mailboxes").select("email").eq("id", c.mailbox_id).maybeSingle() : Promise.resolve({ data: null }),
     createAdminClient().from("custom_metrics").select("id, name, a, op, b, format").eq("workspace_id", ws).order("created_at"),
+    createAdminClient().from("campaign_insights").select("data").eq("campaign_id", id).eq("workspace_id", ws).maybeSingle(),
   ]);
+  // D-275: what this campaign's results taught Yolias (lib/agent-core/learning.ts).
+  const learned = learnedFacts((ins?.data as unknown as Insights | null) ?? null);
   const line = lines[0];
   if (!line) notFound();
 
@@ -77,7 +81,7 @@ export default async function CampaignRoute({ params, searchParams }: PageProps<
 
   return (
     <CampaignPage
-      custom={(custom ?? []) as never} tab={tab} range={range} from={one("from")} to={one("to")} refreshedAt={new Date().toISOString()} line={line} prev={prevLines[0]?.counts ?? null} detail={detail} activity={activity} recommendations={recs}
+      custom={(custom ?? []) as never} tab={tab} range={range} from={one("from")} to={one("to")} refreshedAt={new Date().toISOString()} line={line} prev={prevLines[0]?.counts ?? null} detail={detail} activity={activity} recommendations={recs} learned={learned}
       c={{
         id: c.id, name: c.name, status: c.status, budgetUsd: c.budget_usd == null ? null : Number(c.budget_usd), budgetType: c.budget_type,
         startsAt: c.starts_at ?? c.started_at, endsAt: c.ends_at, mailbox: mb?.email ?? null, targetMeetings: c.target_meetings, dailyLimit: c.daily_limit,

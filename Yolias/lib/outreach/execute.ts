@@ -1,6 +1,7 @@
 import "server-only";
 import type { WorkspaceRole } from "@/types/database";
 import { priority } from "@/lib/campaigns/engines";
+import { learnedLift, sizeBand, storedInsights } from "@/lib/agent-core/learning";
 import { logCampaign } from "@/lib/campaigns/activity";
 import { bookForLead, nextSlots } from "@/lib/meetings";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -172,13 +173,20 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
 
   // 1) Leads whose next step is due get their message prepared.
   const now = new Date().toISOString();
-  const { data: dueRaw } = await db.from("outreach_enrollments").select("id, current_step, next_step_at, lead:sales_leads(email, prospect:prospects(match_score, email_status))").eq("campaign_id", c.id).eq("status", "active")
-    .or(`current_step.eq.0,next_step_at.lte.${now}`).order("created_at").limit(Math.max(room * 4, 20));
+  const [{ data: dueRaw }, learned] = await Promise.all([
+    db.from("outreach_enrollments").select("id, current_step, next_step_at, lead:sales_leads(email, prospect:prospects(match_score, email_status, title, country), company:companies(industry, employee_count, country))").eq("campaign_id", c.id).eq("status", "active")
+      .or(`current_step.eq.0,next_step_at.lte.${now}`).order("created_at").limit(Math.max(room * 4, 20)),
+    storedInsights(c.workspace_id),
+  ]);
   // D-270: follow-ups first (the conversation is already open), then new leads by priority:
-  // fit, a verified email (lib/campaigns/engines.ts → priority).
+  // fit, a verified email and (D-275) what the workspace's results learned about people like them
+  // (lib/campaigns/engines.ts → priority, lib/agent-core/learning.ts → learnedLift).
+  type Due = { email: string | null; prospect: { match_score: number | null; email_status: string | null; title: string | null; country: string | null } | null; company: { industry: string | null; employee_count: number | null; country: string | null } | null } | null;
   const rank = (e: NonNullable<typeof dueRaw>[number]) => {
-    const lead = e.lead as unknown as { email: string | null; prospect: { match_score: number | null; email_status: string | null } | null } | null;
-    return e.current_step > 0 ? 2 : priority({ matchScore: lead?.prospect?.match_score ?? null, emailStatus: lead?.prospect?.email_status ?? null, contactable: Boolean(lead?.email) });
+    const lead = e.lead as unknown as Due;
+    if (e.current_step > 0) return 2;
+    const lift = learnedLift(learned, { industry: lead?.company?.industry, title: lead?.prospect?.title, size: sizeBand(lead?.company?.employee_count), country: lead?.prospect?.country ?? lead?.company?.country });
+    return priority({ matchScore: lead?.prospect?.match_score ?? null, emailStatus: lead?.prospect?.email_status ?? null, contactable: Boolean(lead?.email), learned: lift });
   };
   const due = [...(dueRaw ?? [])].sort((a, b) => rank(b) - rank(a)).slice(0, room);
   for (const e of due) {

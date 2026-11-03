@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDownRight, ArrowUpRight, ChevronLeft, Copy, MoreHorizontal, Pencil, Square, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { countryLabel, formatDate, formatDateTime } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { formatMetric, isObjective, metric, type Counts, type CustomMetricDef, type RangePreset } from "@/lib/campaigns/metrics";
@@ -15,6 +15,7 @@ import { CampaignsManager } from "@/components/app/campaigns/CampaignsManager";
 import type { CampaignLine } from "@/services/campaign-table";
 import type { CampaignDetailData } from "@/services/campaign-detail";
 import { activityText } from "@/lib/campaigns/activity-text";
+import type { Learned } from "@/lib/agent-core/learning";
 
 // A campaign from the inside (owner, 2026-11-02, D-274), like a campaign in
 // an ads manager: the path back to Campaigns, the on/off switch, the results
@@ -42,9 +43,9 @@ export interface CampaignInfo {
   costCapUsd: number | null; trackOpens: boolean; optimizingFor: string | null; objective: string;
 }
 
-export function CampaignPage({ c, tab, range, from, to, line, prev, detail, activity, recommendations, refreshedAt, custom = [] }: {
+export function CampaignPage({ c, tab, range, from, to, line, prev, detail, activity, recommendations, learned = [], refreshedAt, custom = [] }: {
   c: CampaignInfo; tab: CampaignTab; range: RangePreset; from: string; to: string; line: CampaignLine; prev: Counts | null; detail: CampaignDetailData;
-  activity: { id: number; kind: string; body: string; at: string; meta?: unknown }[]; recommendations: string[]; refreshedAt: string; custom?: CustomMetricDef[];
+  activity: { id: number; kind: string; body: string; at: string; meta?: unknown }[]; recommendations: string[]; learned?: Learned[]; refreshedAt: string; custom?: CustomMetricDef[];
 }) {
   const { t, locale } = useI18n();
   const P = t.ag.page;
@@ -174,6 +175,20 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
             {activity.length ? (
               <ul className="cp-activity">{activity.map((a) => <li key={a.id}><span dir="auto">{activityText(a, lang, t.ag.act)}</span><small>{formatDateTime(a.at, locale)}</small></li>)}</ul>
             ) : <p className="ws-hint">{P.activityEmpty}</p>}
+          </section>
+          <section className="cp-card">
+            <h3>{P.learned.title}</h3>
+            {learned.length ? (
+              <>
+                <ul className="cp-list">{learned.map((f) => (
+                  <li key={f.dim + f.best.value}>{fmt(P.learned.line, {
+                    label: P.learned.dims[f.dim], value: f.dim === "country" ? countryLabel(f.best.value, locale) : f.best.value,
+                    a: `${Math.round(f.best.rate * 100)}%`, b: `${Math.round(f.other.rate * 100)}%`, n: String(f.best.n), metric: P.learned[f.metric],
+                  })}</li>
+                ))}</ul>
+                <p className="ws-hint">{P.learned.foot}</p>
+              </>
+            ) : <p className="ws-hint">{P.learned.empty}</p>}
           </section>
           <section className="cp-card">
             <h3>{P.recommendations}</h3>

@@ -193,13 +193,15 @@ export function pickArm(arms: Arm[], r: () => number = Math.random): string {
  * signal is (hiring, funding: worth up to +50% when new, half after 14 days),
  * and whether the email is verified. Never contactable → 0.
  */
-export function priority(input: { matchScore: number | null; signalAgeDays?: number | null; emailStatus?: string | null; contactable: boolean }): number {
+export function priority(input: { matchScore: number | null; signalAgeDays?: number | null; emailStatus?: string | null; contactable: boolean; learned?: number }): number {
   if (!input.contactable) return 0;
+  // D-275: what the workspace's results say about people like this one (learnedLift, 0.6–1.6; 1 = nothing learned yet).
+  const learned = Math.min(1.6, Math.max(0.6, input.learned ?? 1));
   const fit = Math.min(Math.max(input.matchScore ?? 50, 0), 100) / 100;
   const age = input.signalAgeDays;
   const timing = age == null ? 1 : 1 + 0.5 * Math.pow(0.5, Math.max(age, 0) / 14);
   const reach = input.emailStatus === "verified" || input.emailStatus === "valid" ? 1 : input.emailStatus === "catch_all" || input.emailStatus === "risky" ? 0.6 : 0.8;
-  return fit * timing * reach;
+  return fit * timing * reach * learned;
 }
 
 // ---------------------------------------------------------------- 6. deliverability guard

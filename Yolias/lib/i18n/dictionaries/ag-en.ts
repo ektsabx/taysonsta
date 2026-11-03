@@ -115,6 +115,12 @@ export const agEn = {
     vsPrevious: "vs the previous {days} days", noPrevious: "no earlier period",
     target: "{got} of {target} meetings", byDay: "Day by day", activity: "What Yolias did", activityEmpty: "Nothing yet.",
     recommendations: "Recommendations", noRecommendations: "Recommendations appear once the campaign has enough results.",
+    learned: {
+      title: "Yolias learned", empty: "Yolias learns from every reply, meeting and sale. What it learns shows here after about 50 people contacted.",
+      line: "{label} “{value}”: {a} {metric}, against {b} for the rest ({n} people).", foot: "Yolias now contacts people like them first and writes with what worked.",
+      results: "brought a meeting, a sale or a lead", positive: "replied with interest",
+      dims: { title: "Job title", industry: "Industry", size: "Company size", country: "Country", opening: "Opening" },
+    },
     rec: {
       weakGroup: "“{name}” gets {rate} interested replies against {best} for “{bestName}”: give the stronger audience more of the budget, or narrow this one.",
       angleWins: "In “{name}”, opening {winner} gets {a} interested replies against {b}: Yolias already sends it more.",

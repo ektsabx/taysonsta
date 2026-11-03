@@ -948,6 +948,8 @@ export type ReferralRow = {
   signals: Json; decided_at: string | null; decided_by: string | null;
 };
 export type WorkspaceInsightsRow = { workspace_id: string; data: Json; computed_at: string };
+/** D-275: one campaign's insights ("Yolias learned…"), rebuilt daily. */
+export type CampaignInsightsRow = { campaign_id: string; workspace_id: string; data: Json; computed_at: string };
 
 export interface Database {
   public: {
@@ -965,6 +967,7 @@ export interface Database {
       contact_messages: Table<ContactMessageRow, "name" | "email" | "topic" | "message">;
       referrals: Table<ReferralRow, "referrer_workspace_id" | "referred_user_id" | "status">;
       workspace_insights: Table<WorkspaceInsightsRow, "workspace_id">;
+      campaign_insights: Table<CampaignInsightsRow, "campaign_id" | "workspace_id">;
       invoices: Table<InvoiceRow, "workspace_id" | "amount" | "currency" | "mode" | "period_start" | "period_end" | "bill_to_email">;
       subscription_events: Table<SubscriptionEventRow, "workspace_id" | "plan" | "status" | "amount" | "currency" | "mode">;
       payments: Table<PaymentRow, "workspace_id" | "kind" | "amount" | "currency" | "provider" | "mode">;
