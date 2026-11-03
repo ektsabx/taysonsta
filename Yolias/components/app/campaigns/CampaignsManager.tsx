@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { CHANNELS } from "@/lib/campaigns/channels";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, ChevronDown, Columns3, Download, Filter, Folder, Layers, Mail, MoreHorizontal, Pin, Plus, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
@@ -33,7 +34,7 @@ type Level = "campaigns" | "audiences" | "messages";
 type Filters = { status: string[]; country: string[]; owner: string[]; createdFrom?: string; createdTo?: string; spendMin?: number; spendMax?: number; meetingsMin?: number; meetingsMax?: number };
 const noFilters = (): Filters => ({ status: [], country: [], owner: [] });
 const STATUSES = ["draft", "scheduled", "active", "paused", "completed", "failed", "archived"] as const;
-const PREF_KEY = "yolias:campaign-columns:v2";
+const PREF_KEY = "yolias:campaign-columns:v3";
 
 interface Row { id: string; level: Level; name: string; sub: string; status: string; statusLabel: string; href: string; counts: Counts; campaignId: string; approved: boolean; groupStatus?: string; perDay?: number | null; badge?: string | null }
 type Breakdown = Exclude<Dimension, "step"> | "none";
@@ -212,6 +213,8 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
         onClick={() => r.level === "campaigns" ? run(() => runOutreach(r.id, on ? "pause" : "resume")) : run(() => groupAction(r.id, on ? "pause" : "resume"))}><i /></button>
     );
   };
+  // Channel column (owner, 2026-11-03): each row's campaign channel.
+  const channelOf = new Map(lines.map((l) => [l.id, (l.channels ?? ["email"]).map((c) => CHANNELS.find((x) => x.id === c)?.label[lang] ?? c).join(", ")]));
   // A breakdown (every campaign, or inside one): one row per day, audience, opening, country, industry or job title, with the message columns.
   const brk = breakdowns && breakdown !== "none" ? breakdowns[breakdown] : null;
   const brkCounts = (b: BreakRow): Counts => ({ ...zeroCounts(), contacted: b.contacted, sent: b.sent, bounced: b.bounced, delivered: b.sent - b.bounced, replies: b.replies, interested: b.interested, meetings: b.meetings, held: b.held, opened: b.opened });
@@ -337,12 +340,13 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
               {level !== "messages" && <th className="cm-switch">On/Off</th>}
               <th className="cm-name">{head("name", level === "campaigns" ? m.colName : level === "audiences" ? m.colAudience : m.colOpening)}</th>
               <th>{head("status", m.colStatus)}</th>
+              <th>{m.colChannel}</th>
               {ordered.map((c) => <th key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`} title={c.description[lang]}>{head(c.id, c.label[lang])}</th>)}
               <th className="cm-actions" aria-label={m.edit} />
             </tr>
           </thead>
           <tbody>
-            {!rows.length && <tr><td colSpan={ordered.length + 5} className="cm-none">{level === "audiences" ? m.noAudiences : level === "messages" ? m.noMessages : m.noMatch}</td></tr>}
+            {!rows.length && <tr><td colSpan={ordered.length + 6} className="cm-none">{level === "audiences" ? m.noAudiences : level === "messages" ? m.noMessages : m.noMatch}</td></tr>}
             {rows.map((r) => (
               <tr key={r.id} className={level === "campaigns" && selected.has(r.id) ? "sel" : ""}>
                 {level === "campaigns" && <td className="cm-check"><input type="checkbox" aria-label={r.name} checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} /></td>}
@@ -357,6 +361,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
                   )}
                 </td>
                 <td><span className={`cd-status st-${r.status}`}>{r.statusLabel}</span></td>
+                <td>{channelOf.get(r.campaignId) ?? ""}</td>
                 {ordered.map((c) => <td key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`}>{formatMetric(c.compute(r.counts), c.format, lang)}</td>)}
                 <td className="cm-actions">
                   <div className="cm-wrap">
@@ -384,7 +389,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
           </tbody>
           {rows.length > 1 && (
             <tfoot>
-              <tr>{level !== "messages" && <td />}{level === "campaigns" && <td />}<td className="cm-name"><strong>{m.total}</strong></td><td />
+              <tr>{level !== "messages" && <td />}{level === "campaigns" && <td />}<td className="cm-name"><strong>{m.total}</strong></td><td /><td />
                 {ordered.map((c) => <td key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`}><strong>{formatMetric(c.compute(totals), c.format, lang)}</strong></td>)}<td /></tr>
             </tfoot>
           )}

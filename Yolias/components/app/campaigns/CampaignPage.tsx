@@ -162,6 +162,28 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
         ) : <p className="ws-hint">{t.ag.manager.noMessages}</p>)}
       </section>
 
+      {/* Today's split between audiences (owner, 2026-11-03): the optimizer's daily shares. */}
+      {line.groups.some((g) => g.status === "active") && (
+        <section className="cp-card wide">
+          <div className="cp-card-head"><h3>{O.splitTitle}</h3></div>
+          <ul className="cp-split">
+            {line.groups.filter((g) => g.status === "active").map((g) => {
+              const active = line.groups.filter((x) => x.status === "active").length;
+              const share = g.share ?? 1 / active;
+              const reason = g.opt?.reason as keyof typeof O.reasons | undefined;
+              return (
+                <li key={g.id}>
+                  <span className="cp-split-name" dir="auto">{g.name}</span>
+                  <span className="cp-split-bar"><i style={{ width: `${Math.round(share * 100)}%` }} /></span>
+                  <b>{Math.round(share * 100)}%</b>
+                  <small>{g.share == null || g.learning ? O.reasons.learning : reason ? O.reasons[reason] : ""}</small>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       <CampaignsManager lines={[line]} members={[]} range={range} from={from} to={to} refreshedAt={refreshedAt} scope={{ campaignId: c.id, editHref }} breakdowns={detail.breakdowns} custom={custom} objective={isObjective(c.objective) ? c.objective : "meetings"} />
 
       <nav className="cp-tabs" role="tablist">

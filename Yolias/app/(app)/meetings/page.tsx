@@ -8,6 +8,8 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { bookingUrl, ensureBookingPage, visitState } from "@/lib/meetings";
 import { formatDateTime, formatNumber } from "@/lib/format";
+import { campaignTable } from "@/services/campaign-table";
+import { rangeBounds } from "@/lib/campaigns/metrics";
 import { BookingPageForm } from "@/components/app/meetings/BookingPageForm";
 import { MeetingList } from "@/components/app/meetings/MeetingList";
 
@@ -37,12 +39,22 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   const rows = (meetings ?? []).map((m) => ({ ...m, lead: m.lead as unknown as { name: string; company_name: string | null; stage: LeadStage } | null, campaign: m.campaign as unknown as { id: string; name: string } | null }));
   const now = nowMs();
   const V = (await getDictionary()).ag.rx.meet;
+  // Cost per meeting (owner, 2026-11-03): the last 30 days of every campaign, as on the home page.
+  const lines = await campaignTable(session.workspace.id, rangeBounds("30d", new Date()), { includeArchived: true });
+  const booked30 = lines.reduce((a, l) => a + l.counts.meetings, 0);
+  const spend30 = lines.reduce((a, l) => a + l.counts.spendUsd, 0);
+  const usd = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return (
     <div className="sdr-page">
       <header className="sdr-head">
         <div><h2>{t.title}</h2></div>
         <div className="sdr-head-actions"><a className="sdr-btn" href={bookingUrl(page.slug)} target="_blank" rel="noreferrer"><Link2 />{t.openPage}</a></div>
       </header>
+      <dl className="mv-stats meet-cost">
+        <div><dt>{V.cost.meetings}</dt><dd>{formatNumber(booked30, locale)}</dd></div>
+        <div><dt>{V.cost.spend}</dt><dd>{usd(spend30)}</dd></div>
+        <div><dt>{V.cost.perMeeting}</dt><dd>{booked30 ? usd(spend30 / booked30) : "–"}</dd></div>
+      </dl>
       <nav className="sdr-tabs" aria-label={t.title}>
         <Link href="/meetings" className={tab === "visits" ? "active" : ""} aria-current={tab === "visits" ? "page" : undefined}><MousePointerClick />{V.visitsTab}</Link>
         <Link href="/meetings?tab=bookings" className={tab === "bookings" ? "active" : ""} aria-current={tab === "bookings" ? "page" : undefined}><CalendarDays />{t.tabs.bookings}<span className="sdr-count">{rows.filter((m) => m.status === "scheduled" && Date.parse(m.starts_at) >= now).length}</span></Link>

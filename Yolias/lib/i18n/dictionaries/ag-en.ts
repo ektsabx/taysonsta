@@ -24,7 +24,7 @@ export const agEn = {
       people: "≈ {n} new people found and contacted with this budget ({rate} each).", peopleDaily: "≈ {n} new people a day ({rate} each).",
       minBudget: "At least {usd}.", balance: "Available in your account: {usd}", topUp: "Top up",
       schedule: "Schedule", start: "Start", end: "End", noEnd: "Until I stop it", timezone: "Time zone",
-      advanced: "Days, hours and pace", days: "Days Yolias contacts people", hours: "Hours", to: "to", daily: "New people contacted a day, at most",
+      advanced: "Days, hours and pace", days: "Days Yolias contacts people", hours: "Hours", to: "to", daily: "Messages a day",
       advancedHint: "Replies are answered at any time; only new emails follow these days and hours.",
     },
     audience: {
@@ -96,7 +96,7 @@ export const agEn = {
     confirmPause: "Pause {n} campaigns? Yolias stops sending until you resume them. Replies are still read.", confirmArchive: "Archive {n} campaigns? Sending stops and they leave the list. Their results are kept.",
     confirmDelete: "Delete {n} campaigns? Only drafts that never sent anything are deleted; the others can only be archived.",
     bulkEdit: "Edit {n} campaigns", keep: "Keep each campaign's own", owner: "Owner", endDate: "End date", daily: "New people a day", budget: "Budget (USD)", save: "Save",
-    total: "Total", colName: "Name", colStatus: "Status", colCampaign: "Campaign", colAudience: "Audience", colOpening: "Opening", colPerDay: "~{n} a day",
+    total: "Total", colName: "Name", colChannel: "Channel", colStatus: "Status", colCampaign: "Campaign", colAudience: "Audience", colOpening: "Opening", colPerDay: "~{n} a day",
     empty: "No campaigns yet", emptyLine: "Create your first campaign: say what you want, who to reach and how to speak for you. Yolias does the rest.",
     noMatch: "Nothing matches these filters.", noAudiences: "No audiences in these campaigns.", noMessages: "No messages sent yet.",
     f: { status: "Status", country: "Country", owner: "Owner", created: "Created", spend: "Spend (USD)", meetings: "Meetings", min: "Min", max: "Max" },
@@ -265,7 +265,7 @@ export const agEn = {
     },
     nav: { yolias: "Yolias", acquisition: "Acquisition", engagement: "Engagement", workspace: "Workspace", inbox: "Conversations", leads: "Leads" },
     meet: {
-      brief: "Brief", happened: "Did it happen?", held: "It happened", visitsTab: "Link visits",
+      cost: { meetings: "Meetings booked, last 30 days", spend: "Spend, last 30 days", perMeeting: "Cost per meeting" }, brief: "Brief", happened: "Did it happen?", held: "It happened", visitsTab: "Link visits",
       visits: {
         visits: "Visits", booked: "Booked", started: "Started, didn't book", rate: "Visit-to-booking", empty: "No one has opened your booking link yet.",
         colWho: "Visitor", colFrom: "From", colWhen: "When", colState: "State", unknown: "Unknown visitor", direct: "Direct link",
@@ -276,7 +276,7 @@ export const agEn = {
       learning: "Learning", optimizing: "Optimizing for {event}", learningAll: "Learning: equal budget until there are {n} results",
       events: { positive: "positive replies", booked: "booked meetings", held: "meetings held" },
       reasons: { learning: "Learning", best: "Best results", share: "Getting a share", weaker: "No new budget (weaker results)", over_cap: "No new budget (over the cost cap)" },
-      share: "{pct} of budget", costCap: "Cost cap per result", noCap: "No cap", trackOpens: "Track email opens",
+      share: "{pct} of budget", splitTitle: "Today’s split between audiences", costCap: "Cost cap per result", noCap: "No cap", trackOpens: "Track email opens",
     },
     balance: {
       title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings booked", costHeld: "Cost per meeting", renews: "Renews {date}",

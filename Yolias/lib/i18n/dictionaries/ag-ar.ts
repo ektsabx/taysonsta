@@ -25,7 +25,7 @@ export const agAr: typeof agEn = {
       people: "≈ {n} شخص جديد يُعثر عليه ويُتواصل معه بهذه الميزانية ({rate} للشخص).", peopleDaily: "≈ {n} شخص جديد يوميًا ({rate} للشخص).",
       minBudget: "على الأقل {usd}.", balance: "المتاح في حسابك: {usd}", topUp: "شحن الرصيد",
       schedule: "الجدول", start: "البداية", end: "النهاية", noEnd: "حتى أوقفها", timezone: "المنطقة الزمنية",
-      advanced: "الأيام والساعات والوتيرة", days: "الأيام التي يتواصل فيها يولياس", hours: "الساعات", to: "إلى", daily: "أقصى عدد من الأشخاص الجدد يوميًا",
+      advanced: "الأيام والساعات والوتيرة", days: "الأيام التي يتواصل فيها يولياس", hours: "الساعات", to: "إلى", daily: "عدد الرسائل اليومية",
       advancedHint: "يُرد على الردود في أي وقت؛ الرسائل الجديدة فقط تلتزم بهذه الأيام والساعات.",
     },
     audience: {
@@ -97,7 +97,7 @@ export const agAr: typeof agEn = {
     confirmPause: "إيقاف {n} حملات؟ يتوقف يولياس عن الإرسال حتى تستأنفها. وتظل الردود تُقرأ.", confirmArchive: "أرشفة {n} حملات؟ يتوقف الإرسال وتخرج من القائمة. وتبقى نتائجها.",
     confirmDelete: "حذف {n} حملات؟ تُحذف فقط المسودات التي لم ترسل شيئًا؛ والباقي يمكن أرشفته فقط.",
     bulkEdit: "تعديل {n} حملات", keep: "الإبقاء على قيمة كل حملة", owner: "المسؤول", endDate: "تاريخ النهاية", daily: "أشخاص جدد يوميًا", budget: "الميزانية (دولار)", save: "حفظ",
-    total: "الإجمالي", colName: "الاسم", colStatus: "الحالة", colCampaign: "الحملة", colAudience: "الجمهور", colOpening: "الافتتاحية", colPerDay: "~{n} يوميًا",
+    total: "الإجمالي", colName: "الاسم", colChannel: "القناة", colStatus: "الحالة", colCampaign: "الحملة", colAudience: "الجمهور", colOpening: "الافتتاحية", colPerDay: "~{n} يوميًا",
     empty: "لا توجد حملات بعد", emptyLine: "أنشئ أول حملة: قل ما تريده، ومن تريد الوصول إليه، وكيف يتحدث يولياس باسمك. ويولياس يتولى الباقي.",
     noMatch: "لا شيء يطابق هذه الفلاتر.", noAudiences: "لا توجد جماهير في هذه الحملات.", noMessages: "لم تُرسل رسائل بعد.",
     f: { status: "الحالة", country: "الدولة", owner: "المسؤول", created: "تاريخ الإنشاء", spend: "الإنفاق (دولار)", meetings: "الاجتماعات", min: "من", max: "إلى" },
@@ -264,7 +264,7 @@ export const agAr: typeof agEn = {
     },
     nav: { yolias: "يولياس", acquisition: "اكتساب العملاء", engagement: "التفاعل", workspace: "مساحة العمل", inbox: "المحادثات", leads: "العملاء المحتملون" },
     meet: {
-      brief: "الملخص التحضيري", happened: "هل تم الاجتماع؟", held: "تم", visitsTab: "زيارات الرابط",
+      cost: { meetings: "اجتماعات محجوزة، آخر 30 يومًا", spend: "الإنفاق، آخر 30 يومًا", perMeeting: "تكلفة الاجتماع" }, brief: "الملخص التحضيري", happened: "هل تم الاجتماع؟", held: "تم", visitsTab: "زيارات الرابط",
       visits: {
         visits: "الزيارات", booked: "حجزوا", started: "بدأوا ولم يكملوا", rate: "نسبة الحجز من الزيارات", empty: "لم يفتح أحد رابط الحجز بعد.",
         colWho: "الزائر", colFrom: "من", colWhen: "متى", colState: "الحالة", unknown: "زائر غير معروف", direct: "رابط مباشر",
@@ -275,7 +275,7 @@ export const agAr: typeof agEn = {
       learning: "في مرحلة التعلم", optimizing: "يحسّن على: {event}", learningAll: "مرحلة التعلم: ميزانية متساوية حتى {n} نتائج",
       events: { positive: "الردود الإيجابية", booked: "الاجتماعات المحجوزة", held: "الاجتماعات المنعقدة" },
       reasons: { learning: "في مرحلة التعلم", best: "أفضل نتائج", share: "يأخذ نصيبًا", weaker: "بدون ميزانية جديدة (نتائج أضعف)", over_cap: "بدون ميزانية جديدة (فوق حد التكلفة)" },
-      share: "{pct} من الميزانية", costCap: "حد أقصى لتكلفة النتيجة", noCap: "بدون حد", trackOpens: "تتبّع فتح الرسائل",
+      share: "{pct} من الميزانية", splitTitle: "توزيع اليوم بين الجماهير", costCap: "حد أقصى لتكلفة النتيجة", noCap: "بدون حد", trackOpens: "تتبّع فتح الرسائل",
     },
     balance: {
       title: "رصيد الحساب", of: "من {total}", credit: "رصيد مدفوع مسبقًا", spent: "صُرف هذا الشهر", held: "اجتماعات محجوزة", costHeld: "تكلفة الاجتماع", renews: "يتجدد {date}",

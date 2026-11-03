@@ -263,11 +263,20 @@ export function CampaignBuilder(p: BuilderProps) {
                 <span>{fmt(b.campaign.knowledgeLine, { pct: `${p.knowledgePct}%` })}{p.knowledgePct < 70 ? ` ${b.campaign.knowledgeThin}` : ""}</span>
                 <Link href="/ai/knowledge" className="sdr-btn ghost sm">{b.campaign.knowledgeOpen}</Link>
               </div>
-              <div className="ws-field">
-                <label className="ws-label" htmlFor="cb-target">{K.targets[s.objective]}</label>
-                <input id="cb-target" className="form-input num" type="number" min={1} max={1000} value={s.targetMeetings} onChange={(e) => patch({ targetMeetings: Math.max(1, Math.min(1000, Number(e.target.value) || 1)) })} />
-                <p className="ws-hint">{b.campaign.resultHint}</p>
+              {/* The target and the daily messages side by side (owner, 2026-11-03). */}
+              <div className="cb-pair-fields">
+                <div className="ws-field">
+                  <label className="ws-label" htmlFor="cb-target">{K.targets[s.objective]}</label>
+                  <input id="cb-target" className="form-input num" type="number" min={1} max={1000} value={s.targetMeetings} onChange={(e) => patch({ targetMeetings: Math.max(1, Math.min(1000, Number(e.target.value) || 1)) })} />
+                </div>
+                {s.objective !== "qualified_leads" && (
+                  <div className="ws-field">
+                    <label className="ws-label" htmlFor="cb-daily">{b.campaign.daily}</label>
+                    <input id="cb-daily" className="form-input num" type="number" min={1} max={500} value={s.dailyLimit} onChange={(e) => patch({ dailyLimit: Math.max(1, Math.min(500, Number(e.target.value) || 1)) })} />
+                  </div>
+                )}
               </div>
+              <p className="ws-hint">{b.campaign.resultHint}</p>
               <fieldset className="te-group">
                 <legend>{b.campaign.budget}</legend>
                 <div className="sdr-seg" role="tablist">
@@ -309,7 +318,6 @@ export function CampaignBuilder(p: BuilderProps) {
                     </div>
                     <span className="ws-label">{b.campaign.hours}</span>
                     <span className="cb-pair"><input type="time" className="form-input" value={s.contactFrom} onChange={(e) => patch({ contactFrom: e.target.value })} /><span>{b.campaign.to}</span><input type="time" className="form-input" value={s.contactTo} onChange={(e) => patch({ contactTo: e.target.value })} /></span>
-                    <label className="ws-field"><span className="ws-label">{b.campaign.daily}</span><input className="form-input num" type="number" min={1} max={500} value={s.dailyLimit} onChange={(e) => patch({ dailyLimit: Math.max(1, Math.min(500, Number(e.target.value) || 1)) })} /></label>
                     <label className="ws-field"><span className="ws-label">{t.ag.rx.opt.costCap}</span><span className="cb-money"><span aria-hidden>$</span><input className="form-input num" type="number" min={0} step="1" placeholder={t.ag.rx.opt.noCap} value={s.costCapUsd ?? ""} onChange={(e) => patch({ costCapUsd: e.target.value === "" ? null : Math.max(0, Number(e.target.value) || 0) })} /></span></label>
                     <label className="cb-check"><input type="checkbox" checked={s.trackOpens} onChange={(e) => patch({ trackOpens: e.target.checked })} />{t.ag.rx.opt.trackOpens}</label>
                     <p className="ws-hint">{b.campaign.advancedHint}</p>

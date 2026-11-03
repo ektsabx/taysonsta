@@ -76,20 +76,20 @@ export const METRICS: Metric[] = [
   { id: "sent", label: { en: "Sent", ar: "المُرسل" }, description: { en: "Emails your mailbox sent (first emails and follow-ups).", ar: "رسائل أرسلها بريدك (الأولى والمتابعات)." }, format: "count", compute: (c) => c.sent, defaultVisible: true },
   { id: "open_rate", label: { en: "Open rate", ar: "نسبة الفتح" }, description: { en: "People who opened ÷ people contacted. Approximate: some mail apps load images without the person reading, and some block them.", ar: "من فتحوا ÷ من تم التواصل معهم. تقريبية: بعض تطبيقات البريد تحمّل الصور دون قراءة، وبعضها يمنعها." }, format: "pct", compute: (c) => rate(c.opened, c.contacted), defaultVisible: true },
   { id: "reply_rate", label: { en: "Reply rate", ar: "نسبة الرد" }, description: { en: "People who replied ÷ people contacted.", ar: "من ردّوا ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.replies, c.contacted), defaultVisible: true },
-  { id: "meetings", label: { en: "Meetings booked", ar: "اجتماعات محجوزة" }, description: { en: "Meetings booked (canceled ones excluded).", ar: "اجتماعات محجوزة (بدون الملغاة)." }, format: "count", compute: (c) => c.meetings, defaultVisible: true },
+  { id: "meetings", label: { en: "Meetings", ar: "الاجتماعات" }, description: { en: "Meetings booked (canceled ones excluded).", ar: "اجتماعات محجوزة (بدون الملغاة)." }, format: "count", compute: (c) => c.meetings, defaultVisible: true },
   { id: "cost_per_meeting", label: { en: "Cost per meeting", ar: "تكلفة الاجتماع" }, description: { en: "Everything spent finding and contacting people ÷ meetings booked (at your rate per person).", ar: "كل ما صُرف لإيجاد الأشخاص والتواصل معهم ÷ الاجتماعات المحجوزة (بسعرك للشخص)." }, format: "usd", compute: (c) => cost(c.spendUsd, c.meetings), defaultVisible: true },
   { id: "held", label: { en: "Meetings held", ar: "اجتماعات منعقدة" }, description: { en: "Booked meetings that took place.", ar: "اجتماعات محجوزة حدثت فعلًا." }, format: "count", compute: (c) => c.held, defaultVisible: true },
   { id: "cost_per_held", label: { en: "Cost per held meeting", ar: "تكلفة الاجتماع المنعقد" }, description: { en: "Spend ÷ meetings that took place.", ar: "الإنفاق ÷ الاجتماعات التي حدثت." }, format: "usd", compute: (c) => cost(c.spendUsd, c.held), defaultVisible: false },
   { id: "spend", label: { en: "Spend", ar: "الإنفاق" }, description: { en: "People found for the campaign × your rate per person.", ar: "الأشخاص الذين وُجدوا للحملة × سعر الشخص." }, format: "usd", compute: (c) => c.spendUsd, defaultVisible: true },
   { id: "found_people", label: { en: "People found", ar: "أشخاص مكتشفون" }, description: { en: "People Yolias found for the campaign.", ar: "أشخاص وجدهم يولياس للحملة." }, format: "count", compute: (c) => c.foundPeople, defaultVisible: false },
   { id: "found_companies", label: { en: "Targeted companies", ar: "الشركات المستهدفة" }, description: { en: "Companies Yolias found for the campaign's audiences.", ar: "شركات وجدها يولياس لجماهير الحملة." }, format: "count", compute: (c) => c.foundCompanies, defaultVisible: false },
-  { id: "contacted", label: { en: "Contacts reached", ar: "تم الوصول إليهم" }, description: { en: "People sent at least one email (each person once).", ar: "أشخاص أُرسلت لهم رسالة واحدة على الأقل (كل شخص مرة)." }, format: "count", compute: (c) => c.contacted, defaultVisible: false },
+  { id: "contacted", label: { en: "Reached", ar: "وصلت إليهم" }, description: { en: "People sent at least one email (each person once).", ar: "أشخاص أُرسلت لهم رسالة واحدة على الأقل (كل شخص مرة)." }, format: "count", compute: (c) => c.contacted, defaultVisible: false },
   { id: "delivered", label: { en: "Delivered", ar: "وصلت" }, description: { en: "Sent emails that didn't bounce.", ar: "رسائل أُرسلت ولم ترتد." }, format: "count", compute: (c) => c.delivered, defaultVisible: false },
   { id: "opened", label: { en: "Opened", ar: "فتحوا الرسالة" }, description: { en: "People who opened at least one email (approximate).", ar: "أشخاص فتحوا رسالة واحدة على الأقل (تقريبي)." }, format: "count", compute: (c) => c.opened, defaultVisible: false },
-  { id: "replies", label: { en: "Replied", ar: "ردّوا" }, description: { en: "People who replied (automatic replies don't count).", ar: "أشخاص ردّوا (الردود التلقائية لا تُحسب)." }, format: "count", compute: (c) => c.replies, defaultVisible: false },
+  { id: "replies", label: { en: "Replies", ar: "الردود" }, description: { en: "People who replied (automatic replies don't count).", ar: "أشخاص ردّوا (الردود التلقائية لا تُحسب)." }, format: "count", compute: (c) => c.replies, defaultVisible: false },
   { id: "no_reply", label: { en: "Didn't reply", ar: "لم يردوا" }, description: { en: "People contacted who haven't replied.", ar: "أشخاص تم التواصل معهم ولم يردوا." }, format: "count", compute: (c) => (c.contacted ? Math.max(c.contacted - c.replies, 0) : null), defaultVisible: false },
   { id: "open_to_reply", label: { en: "Replied after opening", ar: "ردّوا من الفاتحين" }, description: { en: "People who replied ÷ people who opened.", ar: "من ردّوا ÷ من فتحوا." }, format: "pct", compute: (c) => rate(c.replies, c.opened), defaultVisible: false },
-  { id: "interested", label: { en: "Positive replies", ar: "ردود إيجابية" }, description: { en: "People whose reply showed interest or asked for a meeting.", ar: "أشخاص أظهر ردهم اهتمامًا أو طلب اجتماعًا." }, format: "count", compute: (c) => c.interested, defaultVisible: false },
+  { id: "interested", label: { en: "Interested", ar: "المهتمون" }, description: { en: "People whose reply showed interest or asked for a meeting.", ar: "أشخاص أظهر ردهم اهتمامًا أو طلب اجتماعًا." }, format: "count", compute: (c) => c.interested, defaultVisible: false },
   { id: "positive_rate", label: { en: "Positive reply rate", ar: "نسبة الردود الإيجابية" }, description: { en: "Positive replies ÷ contacted.", ar: "الردود الإيجابية ÷ من تم التواصل معهم." }, format: "pct", compute: (c) => rate(c.interested, c.contacted), defaultVisible: false },
   { id: "qualified_leads", label: { en: "Qualified leads", ar: "عملاء مؤهلون" }, description: { en: "People who replied with interest or booked a meeting.", ar: "أشخاص ردّوا باهتمام أو حجزوا اجتماعًا." }, format: "count", compute: (c) => c.qualifiedLeads, defaultVisible: false },
   { id: "cost_per_qualified_lead", label: { en: "Cost per qualified lead", ar: "تكلفة العميل المؤهل" }, description: { en: "Spend ÷ qualified leads.", ar: "الإنفاق ÷ العملاء المؤهلين." }, format: "usd", compute: (c) => cost(c.spendUsd, c.qualifiedLeads), defaultVisible: false },
@@ -126,7 +126,9 @@ export const METRICS: Metric[] = [
 
 
 export const metric = (id: string) => METRICS.find((m) => m.id === id) ?? null;
-export const DEFAULT_COLUMNS = METRICS.filter((m) => m.defaultVisible).map((m) => m.id);
+// The first columns (owner, 2026-11-03): Reached, Replies, Interested, Meetings; then the rest that are on by default.
+const LEAD_COLUMNS = ["results", "cost_per_result", "contacted", "replies", "interested", "meetings"];
+export const DEFAULT_COLUMNS = [...LEAD_COLUMNS, ...METRICS.filter((m) => m.defaultVisible && !LEAD_COLUMNS.includes(m.id)).map((m) => m.id)];
 /** Known metric ids only, in the given order, no repeats. */
 export const cleanColumns = (ids: unknown): string[] => (Array.isArray(ids) ? [...new Set(ids.filter((x): x is string => typeof x === "string" && Boolean(metric(x))))] : DEFAULT_COLUMNS);
 
@@ -184,7 +186,7 @@ export function resultOf(objective: string | null | undefined, c: Counts): numbe
 
 /** Ready column sets per objective (the member can still add, move and remove columns). */
 export const PRESETS: Record<Objective, string[]> = {
-  meetings: ["results", "cost_per_result", "found", "sent", "open_rate", "reply_rate", "interested", "visits", "held", "spend"],
+  meetings: ["results", "cost_per_result", "contacted", "replies", "interested", "meetings", "reply_rate", "held", "spend", "cost_per_meeting"],
   purchases: ["results", "cost_per_result", "conversion_value", "purchase_roas", "site_visits", "checkouts", "found", "sent", "reply_rate", "spend"],
   form_leads: ["results", "cost_per_result", "site_visits", "found", "sent", "open_rate", "reply_rate", "spend"],
   qualified_leads: ["results", "cost_per_result", "found_companies", "found_people", "spend"],
