@@ -609,7 +609,9 @@ export type FunnelEventRow = {
   payment_id: string | null; provider: string | null; plan: string | null; billing_period: string | null; confirmed: boolean;
   source: "client" | "server" | "webhook" | "worker" | "admin"; props: Json; occurred_at: string;
 };
-export type AppSessionRow = { id: string; user_id: string; workspace_id: string | null; started_at: string; last_seen_at: string; pings: number; device: string | null; browser: string | null; os: string | null };
+export type AppSessionRow = { id: string; user_id: string; workspace_id: string | null; started_at: string; last_seen_at: string; pings: number; device: string | null; browser: string | null; os: string | null; ip?: string | null; country?: string | null; city?: string | null };
+/** D-276: one page view (lib/visits.ts). */
+export type SiteVisitRow = { id: number; visitor: string; session: string; user_id: string | null; workspace_id: string | null; area: "site" | "app"; path: string; landing: boolean; referrer_host: string | null; channel: string | null; engine: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; country: string | null; region: string | null; city: string | null; ip: string | null; device: string | null; os: string | null; browser: string | null; locale: string | null; created_at: string };
 export type AccountStatus = "active" | "suspended" | "paused" | "banned" | "deleted";
 export type AccountModerationRow = { user_id: string; status: AccountStatus; reason: string | null; until: string | null; changed_by: string | null; changed_at: string };
 export type AccountNoteRow = { id: string; user_id: string; checkout_id: string | null; body: string; author_id: string | null; author_name: string | null; created_at: string };
@@ -1039,6 +1041,7 @@ export interface Database {
       checkout_sessions: Table<CheckoutSessionRow, never>;
       funnel_events: Table<FunnelEventRow, "event_key" | "name">;
       app_sessions: Table<AppSessionRow, "user_id">;
+      site_visits: Table<SiteVisitRow, "visitor" | "session" | "area" | "path">;
       account_moderation: Table<AccountModerationRow, "user_id" | "status">;
       account_notes: Table<AccountNoteRow, "user_id" | "body">;
       account_messages: Table<AccountMessageRow, "user_id" | "channel" | "subject" | "body">;

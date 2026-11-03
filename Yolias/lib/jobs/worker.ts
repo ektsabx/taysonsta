@@ -8,6 +8,7 @@ import { campaignDigestSweep } from "@/lib/email/campaign-digest";
 import { dispatchCampaigns, syncReplies } from "@/lib/outreach/execute";
 import { intakeSweep } from "@/lib/agent-core/intake";
 import { learningSweep } from "@/lib/agent-core/learning";
+import { clearOldIps } from "@/lib/visits";
 import { optimizerSweep } from "@/lib/agent-core/optimizer";
 import { campaignScheduleSweep } from "@/lib/campaigns/schedule";
 import { confirmationSweep, meetingPrepSweep } from "@/lib/meetings";
@@ -184,6 +185,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
   await intakeSweep().catch((e) => console.error("[jobs] intake failed", e));
   // Learning (D-273): once a day, what worked for each workspace (a hint for the writer).
   await learningSweep().catch((e) => console.error("[jobs] learning failed", e));
+  // D-276: IP addresses of page views and sessions are kept 30 days.
+  await clearOldIps().catch((e) => console.error("[jobs] clearing IPs failed", e));
   // The optimizer (D-274): once a day, each running campaign's budget split between its audiences.
   await optimizerSweep().catch((e) => console.error("[jobs] optimizer failed", e));
   // Checkout journey (D-212): quiet checkouts become "abandoned".

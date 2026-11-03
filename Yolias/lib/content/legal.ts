@@ -4,7 +4,7 @@ import type { Doc, Localized } from "./types";
 // sign-in, workspace isolation, AI processing, the cookies the app sets).
 // Have them reviewed by counsel before accepting live payments.
 
-export const LEGAL_UPDATED = "2026-11-02";
+export const LEGAL_UPDATED = "2026-11-03";
 export const legalSlugs = ["privacy", "terms", "refunds", "cookies", "security"] as const;
 export type LegalSlug = (typeof legalSlugs)[number];
 
@@ -44,6 +44,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { p: "If you install the Yolias pixel on your website, it records the events you choose (for example page views, checkouts, purchases and their value, and forms sent), the page address, the referring page and a random visitor id, kept in your visitors' browsers. When a visitor came from a link in a Yolias campaign email, or when your site sends the customer's email (hashed with SHA-256 in the browser, never in plain text), the event is linked to that contact within the campaign's attribution window (1, 7 or 28 days) so the campaign's results can be counted. You are responsible for telling your website's visitors about it and for any consent your visitors' laws require; Yolias processes this data for you." },
         { h3: "Technical and usage data" },
         { p: "Sign-in events, IP address and browser information used to keep sessions secure, plus counts of discovery usage used for plan limits. We also record product events (for example: a search started, a campaign delivered results, a payment succeeded) linked to your user id, not your email, and error reports with personal details removed." },
+        { p: "Page views on yolias.com and in the app: the page, the site that linked to it and its campaign tags, the country and city your connection comes from, your IP address, and your device, system and browser. We use them to count visits and understand which pages and channels bring customers. Your IP address is deleted after 30 days; without analytics cookies, a visitor is recognized only within the same day, without any cookie." },
         { h3: "Messages you send us" },
         { p: "What you submit through the Contact form, including your name, email, company and message." },
         { h2: "How we use information" },
@@ -114,6 +115,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
         { p: "قد تحتوي رسائل الحملات على صورة صغيرة تخبر المرسل بفتح الرسالة، ما لم يوقفها المرسل للحملة؛ ونسجل وقت تحميلها وعدد مراته، لا من قرأها ولا مكانه. وفي صفحة الحجز نسجل أن الصفحة فُتحت (ومن أي رسالة حملة إن جاء الرابط منها)، والاسم والبريد اللذين يكتبهما الزائر قبل الحجز، ليتابع صاحب الصفحة إن لم يكتمل الحجز. ويرى صاحب الصفحة ذلك في يولياس." },
         { h3: "البيانات التقنية وبيانات الاستخدام" },
         { p: "أحداث تسجيل الدخول وعنوان IP ومعلومات المتصفح لتأمين الجلسات، إضافةً إلى أعداد الاستخدام لتطبيق حدود الخطط. ونسجّل كذلك أحداث استخدام المنتج (مثل: بدء بحث، أو تسليم حملة لنتائج، أو نجاح دفعة) مرتبطة بمعرّف المستخدم وليس ببريدك، وتقارير الأخطاء بعد حذف البيانات الشخصية منها." },
+        { p: "مشاهدات الصفحات على yolias.com وداخل التطبيق: الصفحة، والموقع الذي أرسلك إليها ووسوم الحملة، والدولة والمدينة التي يأتي منها اتصالك، وعنوان IP، وجهازك ونظامه ومتصفحك. نستخدمها لعدّ الزيارات ومعرفة الصفحات والقنوات التي تجلب العملاء. يُحذف عنوان IP بعد 30 يومًا، وبدون ملفات التحليلات لا يُتعرّف على الزائر إلا خلال اليوم نفسه ودون أي ملف تعريف ارتباط." },
         { h3: "الرسائل التي ترسلها لنا" },
         { p: "ما ترسله عبر نموذج التواصل، بما في ذلك اسمك وبريدك وشركتك ورسالتك." },
         { h2: "كيف نستخدم المعلومات" },
@@ -343,6 +345,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_consent", "Essential", "Remembers your cookie choice", "1 year"],
           ["ph_…_posthog", "Analytics (with consent)", "PostHog: counts visits and product use without your email", "1 year"],
           ["yolias_ft", "Essential (measurement, first party)", "The first Yolias page of your visit, the site that linked to it and its campaign tags, so we know which pages bring new and paying accounts. No identifier, never shared or used for ads", "30 days"],
+          ["yolias_vid", "Analytics (with consent)", "A random id that recognizes a returning visitor, so Yolias can count visitors and visits", "1 year"],
           ["_clck, _clsk", "Analytics (with consent)", "Microsoft Clarity: shows where pages are hard to use", "Up to 1 year"],
           ["_ga, _ga_…", "Analytics (with consent)", "Google Analytics: counts visits from search engines and the pages they land on", "Up to 2 years"],
           ["_fbp", "Advertising (with consent)", "Meta Pixel: measures our ads (page views, checkout started, purchases)", "3 months"],
@@ -371,6 +374,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
           ["yolias_consent", "أساسي", "يتذكر اختيارك لملفات تعريف الارتباط", "سنة واحدة"],
           ["ph_…_posthog", "تحليلات (بموافقتك)", "PostHog: يحسب الزيارات واستخدام المنتج دون بريدك", "سنة واحدة"],
           ["yolias_ft", "ضروري (قياس، من الطرف الأول)", "أول صفحة في زيارتك ليولياس، والموقع الذي أرسلك إليها ووسوم الحملة، لنعرف أي الصفحات تجلب حسابات جديدة ودافعة. بدون أي معرّف، ولا يُشارك ولا يُستخدم للإعلانات", "30 يومًا"],
+          ["yolias_vid", "تحليلات (بموافقتك)", "معرّف عشوائي يتعرّف على الزائر العائد، ليعدّ يولياس الزوار والزيارات", "سنة واحدة"],
           ["_clck, _clsk", "تحليلات (بموافقتك)", "Microsoft Clarity: يوضح الأماكن الصعبة الاستخدام في الصفحات", "حتى سنة"],
           ["_ga, _ga_…", "تحليلات (بموافقتك)", "Google Analytics: يعدّ الزيارات القادمة من محركات البحث والصفحات التي تصل إليها", "حتى سنتين"],
           ["_fbp", "إعلانات (بموافقتك)", "Meta Pixel: يقيس إعلاناتنا (زيارات الصفحات وبدء الدفع وعمليات الشراء)", "3 أشهر"],

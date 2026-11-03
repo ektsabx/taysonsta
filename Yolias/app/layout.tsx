@@ -13,6 +13,8 @@ import { OG_IMAGE, SITE_NAME, siteUrl } from "@/lib/seo";
 import "./globals.css";
 import "./acquisition.css";
 import "./sdr.css";
+import { Suspense } from "react";
+import { VisitBeacon } from "@/components/VisitBeacon";
 
 // Self-hosted by next/font (same domain, cached). If a font file fails to
 // load (YOLIAS-6, flaky networks) the text stays readable in the system
@@ -61,6 +63,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body suppressHydrationWarning>
         <I18nProvider locale={locale}>{children}</I18nProvider>
         {session && <ThemeCookieSync theme={theme} />}
+        {/* Page views for Yolias Admin (D-276); Suspense because it reads the URL. */}
+        <Suspense fallback={null}><VisitBeacon locale={locale} /></Suspense>
         <I18nProvider locale={locale}>
           <Analytics locale={locale} user={session ? { userId: session.userId, workspaceId: session.workspace.id, plan: session.workspace.plan, role: session.role } : null} />
         </I18nProvider>
