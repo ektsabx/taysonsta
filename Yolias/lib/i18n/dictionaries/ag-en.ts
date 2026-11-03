@@ -263,7 +263,7 @@ export const agEn = {
       title: "Yolias AI", newChat: "New chat", full: "Open full size",
       suggestions: ["How did my campaigns do last week?", "Which audience brings the cheapest meetings?", "Suggest a new audience for my best campaign", "What needs me today?"],
     },
-    nav: { yolias: "Yolias", acquisition: "Acquisition", engagement: "Engagement", workspace: "Workspace", inbox: "Inbox", leads: "Leads" },
+    nav: { yolias: "Yolias", acquisition: "Acquisition", engagement: "Engagement", workspace: "Workspace", inbox: "Conversations", leads: "Leads" },
     meet: {
       brief: "Brief", happened: "Did it happen?", held: "It happened", visitsTab: "Link visits",
       visits: {

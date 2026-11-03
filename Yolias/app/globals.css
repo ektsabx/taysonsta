@@ -2661,6 +2661,7 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .onb-chip input { accent-color: var(--red); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 /* Phone: country code picker + number (owner, 2026-11-03). */
-.phone-field { display: flex; gap: 6px; width: 260px; max-width: 100%; }
-.phone-field .form-select { width: 108px; flex: none; }
+.phone-field { display: flex; gap: 6px; width: 320px; max-width: 100%; }
+.phone-field .form-select { width: 128px; flex: none; }
+.phone-field .form-input { min-width: 120px; }
 .phone-field .form-input { flex: 1; min-width: 0; }

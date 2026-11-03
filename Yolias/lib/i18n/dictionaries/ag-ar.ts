@@ -262,7 +262,7 @@ export const agAr: typeof agEn = {
       title: "يولياس AI", newChat: "محادثة جديدة", full: "فتح بالحجم الكامل",
       suggestions: ["كيف كان أداء حملاتي الأسبوع الماضي؟", "أي جمهور يجلب أرخص اجتماعات؟", "اقترح جمهورًا جديدًا لأفضل حملة عندي", "ما الذي يحتاجني اليوم؟"],
     },
-    nav: { yolias: "يولياس", acquisition: "الاستحواذ", engagement: "التفاعل", workspace: "مساحة العمل", inbox: "المحادثات", leads: "العملاء المحتملون" },
+    nav: { yolias: "يولياس", acquisition: "اكتساب العملاء", engagement: "التفاعل", workspace: "مساحة العمل", inbox: "المحادثات", leads: "العملاء المحتملون" },
     meet: {
       brief: "الملخص التحضيري", happened: "هل تم الاجتماع؟", held: "تم", visitsTab: "زيارات الرابط",
       visits: {

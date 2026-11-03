@@ -363,7 +363,7 @@ function AccountTab({ data }: { data: ShellData }) {
         <div className="phone-field" dir="ltr">
           <select className="form-select" aria-label={a.phoneCountry} value={dial} onChange={(e) => { setDial(e.target.value); if (phone) savePhone(e.target.value, phone); }}>
             <option value="">+</option>
-            {dialCountries(locale).map((c) => <option key={c.code} value={c.code}>{`${flagEmoji(c.code)} ${c.name} +${DIAL_CODES[c.code]}`}</option>)}
+            {dialCountries(locale).map((c) => <option key={c.code} value={c.code}>{`${flagEmoji(c.code)} +${DIAL_CODES[c.code]} ${c.name}`}</option>)}
           </select>
           <input
             type="tel"
