@@ -42,8 +42,8 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
     { title: "عملاء لوكالة التسويق بالذكاء الاصطناعي", q: "كيف تحصل وكالات التسويق على عملاء مع يولياس؟", a: "حدد الشركات التي تخدمها بأفضل شكل حسب المجال والمدينة والحجم، ويصل يولياس إلى أصحابها ومديري التسويق فيها، ويكتب لكل منهم ويحجز الاجتماع في تقويمك." },
   ),
   "software-agencies": page(
-    { title: "Get Clients for Your Software Development Company", q: "Who does Yolias reach for a software agency?", a: "Founders, CTOs and operations heads at the companies you choose, by industry, country and size, then the AI Sales Agent books the discovery call." },
-    { title: "عملاء لشركة تطوير البرمجيات بالذكاء الاصطناعي", q: "من يصل إليه يولياس لشركة البرمجيات؟", a: "المؤسسون ومديرو التقنية والعمليات في الشركات التي تختارها حسب المجال والدولة والحجم، ثم يحجز وكيل المبيعات الذكي مكالمة التعرّف." },
+    { title: "Get Clients for Your Software Development Company", q: "Who does Yolias reach for a software agency?", a: "Founders, CTOs and operations heads at the companies you choose, by industry, country and size, then the Yolias AI books the discovery call." },
+    { title: "عملاء لشركة تطوير البرمجيات بالذكاء الاصطناعي", q: "من يصل إليه يولياس لشركة البرمجيات؟", a: "المؤسسون ومديرو التقنية والعمليات في الشركات التي تختارها حسب المجال والدولة والحجم، ثم يحجز Yolias AI مكالمة التعرّف." },
   ),
   consultants: page(
     { title: "Get Consulting Clients with AI Campaigns", q: "Does Yolias write in my voice?", a: "Yes. It writes from your Company Knowledge and the tone you choose, in each person's language, and answers replies the same way." },

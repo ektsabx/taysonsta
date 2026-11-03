@@ -25,7 +25,7 @@ const labels: Record<Row, L> = {
 const rows: Row[] = ["model", "clients", "competition", "fees", "relationship", "effort", "price"];
 
 const Y: Record<Row, L> = {
-  model: { en: "An AI sales agent: finds the companies you want to work for, emails the decision makers from your own mailbox, answers replies and books the meeting", ar: "وكيل مبيعات بالذكاء الاصطناعي: يجد الشركات التي تريد العمل معها، ويراسل صنّاع القرار من بريدك، ويرد على الردود ويحجز الاجتماع" },
+  model: { en: "Yolias AI, the engine of every campaign: finds the companies you want to work for, emails the decision makers from your own mailbox, answers replies and books the meeting", ar: "Yolias AI، محرك كل حملة: يجد الشركات التي تريد العمل معها، ويراسل صنّاع القرار من بريدك، ويرد على الردود ويحجز الاجتماع" },
   clients: { en: "Companies you choose: by country, city, industry, size and the people who decide, in any market", ar: "شركات تختارها أنت: حسب الدولة والمدينة والمجال والحجم وصنّاع القرار، في أي سوق" },
   competition: { en: "None on the platform: each email is a direct conversation between you and one company", ar: "لا توجد على منصة: كل رسالة محادثة مباشرة بينك وبين شركة واحدة" },
   fees: { en: "No commission on your work: you pay for the people Yolias finds and reaches for your campaigns", ar: "لا عمولة على عملك: تدفع مقابل الأشخاص الذين يجدهم يولياس ويتواصل معهم لحملاتك" },
@@ -90,7 +90,7 @@ function versus(v: Vs): SeedPage {
 
 const commonFaq = (name: string) => ({
   en: [
-    { q: `Is Yolias a ${name} alternative?`, a: `Not in the same way. ${name} is a marketplace where clients pick among freelancers. Yolias is an AI sales agent that finds companies you choose and emails them from your mailbox, so it's a way to win clients outside a marketplace, not another marketplace.` },
+    { q: `Is Yolias a ${name} alternative?`, a: `Not in the same way. ${name} is a marketplace where clients pick among freelancers. Yolias is Yolias AI that finds companies you choose and emails them from your mailbox, so it's a way to win clients outside a marketplace, not another marketplace.` },
     { q: "Do I pay a commission on projects I win with Yolias?", a: "No. You pay for the people Yolias finds and reaches for your campaigns; the project, the price and the payment are between you and your client." },
     { q: "Can I use both?", a: `Yes. Keep ${name} for buyers who are already looking, and use Yolias to reach the companies you'd most like to work with.` },
   ],
@@ -214,10 +214,10 @@ export const freelanceSolutionPages: SeedPage[] = [
   audience("service-providers", "ai sales agent for service providers", ["how to get clients for a service business", "client acquisition for service providers", "b2b appointment setting ai"],
     {
       title: "Service providers", h1: "Meetings with the companies your service is built for",
-      metaTitle: "AI sales agent for service providers | Yolias",
+      metaTitle: "Yolias AI for service providers | Yolias",
       metaDescription: "For agencies, studios and service firms: Yolias finds companies that need your service, emails the decision makers from your mailbox and books the meetings.",
       lead: "A service business grows one client conversation at a time. Yolias starts those conversations for you with the companies you choose, and books the meetings when they're interested.",
-      answer: "To get more clients for a service business, pick the companies your service fits best, reach the person who decides with a short email about their situation, follow up, and make booking a call easy. Yolias does all of that as an AI sales agent and shows what each meeting cost.",
+      answer: "To get more clients for a service business, pick the companies your service fits best, reach the person who decides with a short email about their situation, follow up, and make booking a call easy. Yolias does all of that as Yolias AI and shows what each meeting cost.",
       audience: ["Agencies (marketing, design, development, SEO)", "IT and managed service providers", "Accounting, legal and HR firms", "Training and consulting firms"],
       criteria: ["Industries and company sizes you've served before", "Countries and cities you can serve", "The roles that buy your service", "Companies to leave out: current clients and competitors"],
       ex: "Clinics in Riyadh and Jeddah with 10–50 employees; owners and operations managers",
@@ -228,7 +228,7 @@ export const freelanceSolutionPages: SeedPage[] = [
     },
     {
       title: "مقدمو الخدمات", h1: "اجتماعات مع الشركات التي صُممت خدمتك لها",
-      metaTitle: "وكيل مبيعات بالذكاء الاصطناعي لمقدمي الخدمات | يولياس",
+      metaTitle: "Yolias AI لمقدمي الخدمات | يولياس",
       metaDescription: "للوكالات والاستوديوهات وشركات الخدمات: يجد يولياس الشركات التي تحتاج خدمتك، ويراسل صنّاع القرار من بريدك، ويحجز الاجتماعات.",
       lead: "ينمو نشاط الخدمات بمحادثة مع عميل تلو الأخرى. يبدأ يولياس هذه المحادثات نيابةً عنك مع الشركات التي تختارها، ويحجز الاجتماعات عندما تهتم.",
       answer: "لتحصل على عملاء أكثر لنشاط خدمي، اختر الشركات التي تناسبها خدمتك أكثر، وتواصل مع صاحب القرار برسالة قصيرة عن وضعه، وتابع، واجعل حجز المكالمة سهلًا. يقوم يولياس بكل ذلك كوكيل مبيعات ويعرض تكلفة كل اجتماع.",
@@ -243,7 +243,7 @@ export const freelanceSolutionPages: SeedPage[] = [
   audience("founders", "ai sales agent for founders", ["founder led sales automation", "how founders get first customers", "outbound for early stage startups"],
     {
       title: "Founders", h1: "Founder-led sales, without the founder doing the prospecting",
-      metaTitle: "AI sales agent for founders | Yolias",
+      metaTitle: "Yolias AI for founders | Yolias",
       metaDescription: "Founders: set the customers you want to meet and Yolias finds them, emails them from your mailbox, answers replies and books the meetings, with the cost per meeting.",
       lead: "Early on, the founder sells. Yolias takes the slow part off your plate: finding the right companies and people, writing to each one and handling the replies, so your time goes into the meetings.",
       answer: "Founders get first customers by talking to many well-chosen prospects quickly. Set the companies and roles you want, launch a campaign with a small daily budget, and let Yolias write, follow up and book. Watch the cost per meeting to see which audience works.",
@@ -257,7 +257,7 @@ export const freelanceSolutionPages: SeedPage[] = [
     },
     {
       title: "المؤسسون", h1: "مبيعات يقودها المؤسس، دون أن يبحث المؤسس عن العملاء بنفسه",
-      metaTitle: "وكيل مبيعات بالذكاء الاصطناعي للمؤسسين | يولياس",
+      metaTitle: "Yolias AI للمؤسسين | يولياس",
       metaDescription: "للمؤسسين: حدد العملاء الذين تريد مقابلتهم، فيجدهم يولياس ويراسلهم من بريدك ويرد ويحجز الاجتماعات، مع تكلفة الاجتماع.",
       lead: "في البداية يبيع المؤسس بنفسه. يأخذ يولياس الجزء البطيء عنك: إيجاد الشركات والأشخاص المناسبين، والكتابة لكل منهم، والتعامل مع الردود، ليذهب وقتك إلى الاجتماعات.",
       answer: "يحصل المؤسسون على أول عملائهم بالتحدث مع كثير من العملاء المختارين جيدًا بسرعة. حدد الشركات والأدوار التي تريدها، وشغّل حملة بميزانية يومية صغيرة، ودع يولياس يكتب ويتابع ويحجز. وتابع تكلفة الاجتماع لترى أي جمهور ينجح.",

@@ -85,7 +85,7 @@ function build(s: Spec): Localized<Solution> {
     name: s.name.en, tagline: s.tagline.en, title: s.title.en, lead: s.lead.en, metaDescription: s.meta.en,
     pillars: [
       { title: "New customers every week", body: `Define the ${s.buyers.en} you want. Yolias reaches new decision makers every day, within your budget.` },
-      { title: "Conversations, not impressions", body: "Every person gets a personal message from your mailbox. The AI Sales Agent answers, follows up and books the meeting." },
+      { title: "Conversations, not impressions", body: "Every person gets a personal message from your mailbox. Yolias AI answers, follows up and books the meeting." },
       { title: "Cost per result, in plain sight", body: "Every campaign shows its meetings, leads and sales and what each one cost, like an ads manager." },
     ],
     problemTitle: "Why growth stalls",
@@ -94,7 +94,7 @@ function build(s: Spec): Localized<Solution> {
     helps: [
       { title: "Campaigns like an ads manager", body: "Goal, budget, audiences and message in three steps. Budget moves to the audiences that convert." },
       { title: "Audiences of decision makers", body: "Countries and cities, industries, company size and job titles, or a lookalike of your best customers." },
-      { title: "AI Sales Agent", body: "Writes to each person, answers questions and objections, and books meetings on your calendar." },
+      { title: "Yolias AI", body: "Writes to each person, answers questions and objections, and books meetings on your calendar." },
       { title: "Pixel and revenue", body: "The Yolias pixel counts purchases and leads on your website, so every campaign shows its revenue." },
     ],
     useCasesTitle: `What ${s.name.en.toLowerCase()} run on Yolias`,
@@ -110,7 +110,7 @@ function build(s: Spec): Localized<Solution> {
     name: s.name.ar, tagline: s.tagline.ar, title: s.title.ar, lead: s.lead.ar, metaDescription: s.meta.ar,
     pillars: [
       { title: "عملاء جدد كل أسبوع", body: `حدد ${s.buyers.ar} الذين تريدهم، ويصل يولياس إلى صنّاع قرار جدد كل يوم داخل ميزانيتك.` },
-      { title: "محادثات لا مشاهدات", body: "كل شخص تصله رسالة شخصية من بريدك، ويرد وكيل المبيعات الذكي ويتابع ويحجز الاجتماع." },
+      { title: "محادثات لا مشاهدات", body: "كل شخص تصله رسالة شخصية من بريدك، ويرد Yolias AI ويتابع ويحجز الاجتماع." },
       { title: "تكلفة كل نتيجة أمامك", body: "كل حملة تعرض اجتماعاتها وعملاءها ومبيعاتها وتكلفة كل منها، مثل مدير الإعلانات." },
     ],
     problemTitle: "لماذا يتوقف النمو",
@@ -119,7 +119,7 @@ function build(s: Spec): Localized<Solution> {
     helps: [
       { title: "حملات مثل مدير الإعلانات", body: "الهدف والميزانية والجماهير والرسالة في ثلاث خطوات، وتتجه الميزانية إلى الجماهير التي تحقق نتائج." },
       { title: "جماهير من صنّاع القرار", body: "الدول والمدن، والمجالات، وحجم الشركة، والمسميات الوظيفية، أو جمهور مشابه لأفضل عملائك." },
-      { title: "وكيل مبيعات ذكي", body: "يكتب لكل شخص، ويجيب عن الأسئلة والاعتراضات، ويحجز الاجتماعات في تقويمك." },
+      { title: "Yolias AI", body: "يكتب لكل شخص، ويجيب عن الأسئلة والاعتراضات، ويحجز الاجتماعات في تقويمك." },
       { title: "البيكسل والإيرادات", body: "يحسب بيكسل يولياس المشتريات والعملاء المحتملين على موقعك، فتعرض كل حملة إيراداتها." },
     ],
     useCasesTitle: `ما الذي يطلقه ${s.name.ar} على يولياس`,

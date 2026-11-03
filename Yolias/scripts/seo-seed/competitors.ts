@@ -239,4 +239,49 @@ export const competitors: SeedCompetitor[] = [
     pricing: plans.map(([plan, p]) => ({ plan, price: p, period, source_url: pricing_url, checked_at: "2026-10-30", verified: false })),
     facts: [],
   })),
+  // Added 2026-11-03 (owner: re-evaluate competitors for the new category): an
+  // all-in-one outbound platform and an AI SDR, read from their own websites.
+  {
+    slug: "lemlist", name: "lemlist", website: "https://www.lemlist.com", pricing_url: "https://www.lemlist.com/pricing", publishes_prices: true,
+    summary: {
+      en: "An outbound platform: a lead database, verified contacts and multichannel sequences across email, LinkedIn, calls and WhatsApp, with AI agents.",
+      ar: "منصة تواصل خارجي: قاعدة عملاء وبيانات تواصل موثقة وتسلسلات متعددة القنوات عبر البريد وLinkedIn والمكالمات وواتساب، مع وكلاء ذكاء اصطناعي.",
+    },
+    best_for: { en: "Sales teams and agencies that build their own multichannel sequences.", ar: "فرق المبيعات والوكالات التي تبني تسلسلاتها متعددة القنوات بنفسها." },
+    strengths: {
+      en: ["Says it has a 650M+ lead database", "Email, LinkedIn, calls, SMS and WhatsApp steps in one sequence", "AI agents for intent signals, enrichment and messaging", "A 14-day free trial"],
+      ar: ["تقول إن لديها قاعدة من أكثر من 650 مليون عميل محتمل", "خطوات بريد وLinkedIn ومكالمات وSMS وواتساب في تسلسل واحد", "وكلاء ذكاء اصطناعي لإشارات النية والإثراء والرسائل", "تجربة مجانية 14 يومًا"],
+    },
+    limits: {
+      en: ["You design the sequences and their steps yourself", "Built around sequences and contacts, not around campaign budgets and cost per result"],
+      ar: ["تصمم التسلسلات وخطواتها بنفسك", "مبنية حول التسلسلات وجهات الاتصال، لا حول ميزانيات الحملات وتكلفة النتيجة"],
+    },
+    pricing: [], // Read once (Email $55/month, Multichannel $87/month on 2026-11-03): confirm on a second reading before listing.
+    facts: [
+      { key: "database", value: { en: "650M+ lead database (its claim)", ar: "قاعدة من أكثر من 650 مليون عميل محتمل (بحسب قولها)" }, source_url: "https://www.lemlist.com/", checked_at: "2026-11-03", verified: false as const },
+      { key: "channels", value: { en: "Email, LinkedIn, calls, SMS and WhatsApp", ar: "البريد وLinkedIn والمكالمات وSMS وواتساب" }, source_url: "https://www.lemlist.com/pricing", checked_at: "2026-11-03", verified: false as const },
+      { key: "trial", value: { en: "14-day free trial", ar: "تجربة مجانية 14 يومًا" }, source_url: "https://www.lemlist.com/", checked_at: "2026-11-03", verified: false as const },
+    ],
+  },
+  {
+    slug: "artisan", name: "Artisan", website: "https://www.artisan.co", pricing_url: "https://www.artisan.co/pricing", publishes_prices: false,
+    summary: {
+      en: "Builds AI employees for go-to-market teams. Its AI BDR, Ava, finds and enriches B2B leads, writes and sends personalized outreach, handles replies and books meetings.",
+      ar: "تبني موظفين بالذكاء الاصطناعي لفرق المبيعات والتسويق. ووكيلتها Ava تجد عملاء B2B وتثري بياناتهم، وتكتب رسائل مخصصة وترسلها، وترد على الردود وتحجز الاجتماعات.",
+    },
+    best_for: { en: "Teams that want an AI BDR to run outbound end to end.", ar: "الفرق التي تريد موظف تطوير مبيعات بالذكاء الاصطناعي يدير التواصل من البداية للنهاية." },
+    strengths: {
+      en: ["Says it has 250M+ verified contacts", "An AI BDR that finds leads, writes, replies and books meetings", "Sends from the reps' own domains", "Plan tiers from startups to enterprise"],
+      ar: ["تقول إن لديها أكثر من 250 مليون جهة اتصال موثقة", "موظف مبيعات بالذكاء الاصطناعي يجد العملاء ويكتب ويرد ويحجز", "يرسل من نطاقات فريق المبيعات نفسه", "خطط من الشركات الناشئة حتى المؤسسات"],
+    },
+    limits: {
+      en: ["Credit-based plans scoped with sales; no prices on its pricing page", "Presented as an AI employee, not as campaigns with budgets, audiences and cost per result"],
+      ar: ["خطط بالرصيد تُحدد مع فريق المبيعات؛ ولا أسعار في صفحة الأسعار", "مقدَّمة كموظف بالذكاء الاصطناعي، لا كحملات بميزانيات وجماهير وتكلفة لكل نتيجة"],
+    },
+    pricing: [],
+    facts: [
+      { key: "database", value: { en: "250M+ verified contacts (its claim)", ar: "أكثر من 250 مليون جهة اتصال موثقة (بحسب قولها)" }, source_url: "https://www.artisan.co/llms-full.txt", checked_at: "2026-11-03", verified: false as const },
+      { key: "pricing", value: { en: "Credit-based pricing with plan tiers", ar: "تسعير بالرصيد مع مستويات خطط" }, source_url: "https://www.artisan.co/pricing", checked_at: "2026-11-03", verified: false as const },
+    ],
+  },
 ];

@@ -20,6 +20,8 @@ export const keywords: K[] = [
   vs("Lusha", "lusha"),
   vs("Cognism", "cognism"),
   vs("Instantly", "instantly"),
+  vs("lemlist", "lemlist"),
+  vs("Artisan", "artisan", ["ai sdr alternative"]),
   vs("Smartlead", "smartlead"),
   vs("Hunter", "hunter", ["hunter io vs yolias"]),
   { keyword: "best lead generation tools", intent: "commercial", cluster: "lists", page_type: "compare", priority: 1, stage: "review", target_path: "/compare/best-lead-generation-tools", related: ["lead generation software", "best b2b lead generation tools", "best b2b prospecting tools", "lead generation tools for agencies"], notes: "Also serves 'best b2b prospecting tools' (same intent): one page, no second page for it." },
@@ -36,7 +38,7 @@ export const keywords: K[] = [
   { keyword: "lead generation for it service providers", intent: "commercial", cluster: "agencies", page_type: "solution", priority: 1, stage: "review", target_path: "/solutions/it-services", related: ["msp lead generation", "it services lead generation", "how to get clients for it company"] },
   { keyword: "client acquisition tools for freelancers", intent: "commercial", cluster: "agencies", page_type: "solution", priority: 2, stage: "published", target_path: "/solutions/freelancers", notes: "Served by the freelancers solution page (code)." },
   { keyword: "lead generation for saas companies", intent: "commercial", cluster: "industries", page_type: "solution", priority: 2, stage: "review", target_path: "/solutions/saas", related: ["b2b saas lead generation", "saas outbound"] },
-  { keyword: "ai sales agent for service businesses", intent: "commercial", cluster: "agencies", page_type: "solution", priority: 3, stage: "idea", notes: "Overlaps the home page and best AI sales agents. Wait for Search Console data." },
+  { keyword: "ai sales agent for service businesses", intent: "commercial", cluster: "agencies", page_type: "solution", priority: 3, stage: "idea", notes: "Overlaps the home page and best Yolias AIs. Wait for Search Console data." },
   { keyword: "lead generation for real estate companies", intent: "commercial", cluster: "industries", page_type: "solution", priority: 3, stage: "published", target_path: "/solutions/real-estate" },
 
   // Templates

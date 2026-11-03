@@ -19,12 +19,12 @@ interface Vs {
 }
 
 const labels: Record<Row, L> = {
-  find: { en: "How you find prospects", ar: "كيف تبحث عن العملاء" },
-  finds: { en: "What it finds", ar: "ما الذي يجده" },
+  find: { en: "How you set up who to reach", ar: "كيف تحدد من تصل إليه" },
+  finds: { en: "Who it reaches", ar: "من يصل إليهم" },
   why: { en: "Why each result fits", ar: "لماذا تناسب كل نتيجة" },
   contacts: { en: "Contact data", ar: "بيانات التواصل" },
-  outreach: { en: "Outreach", ar: "التواصل" },
-  replies: { en: "Replies and pipeline", ar: "الردود وإدارة العملاء" },
+  outreach: { en: "Reaching people", ar: "الوصول إلى الأشخاص" },
+  replies: { en: "Conversations and meetings", ar: "المحادثات والاجتماعات" },
   channels: { en: "Channels", ar: "القنوات" },
   users: { en: "Users", ar: "المستخدمون" },
 };
@@ -34,11 +34,11 @@ const notStated: L = { en: "Not described on its website", ar: "غير موضح 
 function versus(v: Vs): SeedPage {
   const side = (l: "en" | "ar") => ({
     title: l === "en" ? `Yolias vs ${v.name}` : `يولياس مقابل ${v.nameAr ?? v.name}`,
-    h1: l === "en" ? `Yolias vs ${v.name}: which one fits how you find clients?` : `يولياس أم ${v.nameAr ?? v.name}: أيهما يناسب طريقتك في إيجاد العملاء؟`,
+    h1: l === "en" ? `Yolias vs ${v.name}: which one fits how you acquire customers?` : `يولياس أم ${v.nameAr ?? v.name}: أيهما يناسب طريقتك في اكتساب العملاء؟`,
     metaTitle: l === "en" ? `Yolias vs ${v.name}: an honest comparison` : `يولياس مقابل ${v.nameAr ?? v.name}: مقارنة صادقة`,
     metaDescription: l === "en"
-      ? `How Yolias and ${v.name} differ in finding prospects, contact data, outreach and pricing, with sources, and when each one is the better choice.`
-      : `الفرق بين يولياس و${v.nameAr ?? v.name} في البحث عن العملاء وبيانات التواصل والتواصل والأسعار، بالمصادر، ومتى يكون كل منهما الخيار الأفضل.`,
+      ? `How Yolias and ${v.name} differ in campaigns, audiences, outreach, results and pricing, with sources, and when each one is the better choice.`
+      : `الفرق بين يولياس و${v.nameAr ?? v.name} في الحملات والجماهير والتواصل والنتائج والأسعار، بالمصادر، ومتى يكون كل منهما الخيار الأفضل.`,
     lead: v.lead[l],
     answer: v.answer[l],
     // The Yolias column is written against this competitor (compare-yolias.ts), never shared between pages.
@@ -59,7 +59,7 @@ function versus(v: Vs): SeedPage {
     kind: "compare", slug: v.slug, format: "versus", competitor: v.slug, tools: [v.slug],
     primary_keyword: v.keyword, secondary_keywords: v.secondary,
     links: [
-      { path: "/compare/best-lead-generation-tools", en: "Best lead generation tools", ar: "أفضل أدوات جذب العملاء" },
+      { path: "/compare/ai-advertising-platforms", en: "Advertising platforms for customer acquisition", ar: "منصات إعلانية لاكتساب العملاء" },
       { path: "/use-cases/ai-prospecting", en: "AI prospecting", ar: "البحث عن العملاء بالذكاء الاصطناعي" },
       { path: "/pricing", en: "Yolias pricing", ar: "أسعار يولياس" },
     ],
@@ -402,5 +402,73 @@ export const comparePages: SeedPage[] = [
       ],
     },
     sources: ["https://hunter.io/", "https://hunter.io/pricing"],
+  }),
+  versus({
+    slug: "lemlist", name: "lemlist", keyword: "yolias vs lemlist", secondary: ["lemlist vs yolias", "lemlist alternative"],
+    lead: {
+      en: "lemlist is an outbound platform where you build multichannel sequences from its lead database. Yolias is an advertising platform for acquisition campaigns: you set the objective, audience and budget, and Yolias AI runs each campaign and reports cost per result.",
+      ar: "lemlist منصة تواصل خارجي تبني فيها تسلسلات متعددة القنوات من قاعدة عملائها. أما يولياس فمنصة إعلانية لحملات اكتساب العملاء: تحدد الهدف والجمهور والميزانية، ويدير Yolias AI كل حملة ويعرض تكلفة كل نتيجة.",
+    },
+    answer: {
+      en: "Choose lemlist if your team designs its own sequences across email, LinkedIn, calls and WhatsApp. Choose Yolias if you want to manage acquisition as campaigns with budgets and cost per meeting, and let Yolias AI write, answer and book.",
+      ar: "اختر lemlist إذا كان فريقك يصمم تسلسلاته عبر البريد وLinkedIn والمكالمات وواتساب. واختر يولياس إذا أردت إدارة اكتساب العملاء كحملات بميزانيات وتكلفة لكل اجتماع، ويتولى Yolias AI الكتابة والرد والحجز.",
+    },
+    them: {
+      find: { en: "A lead database with filters and intent signals", ar: "قاعدة عملاء بفلاتر وإشارات نية" },
+      finds: { en: "Leads and verified contacts from its database", ar: "عملاء وجهات اتصال موثقة من قاعدتها" },
+      why: notStated,
+      contacts: { en: "Email and phone finders and enrichment", ar: "باحث عن البريد والهاتف وإثراء البيانات" },
+      outreach: { en: "Sequences you build, with AI-written messages", ar: "تسلسلات تبنيها، برسائل يكتبها الذكاء الاصطناعي" },
+      replies: { en: "Replies in its inbox; AI agents assist", ar: "الردود في صندوقها، مع مساعدة وكلاء الذكاء الاصطناعي" },
+      channels: { en: "Email, LinkedIn, calls, SMS and WhatsApp", ar: "البريد وLinkedIn والمكالمات وSMS وواتساب" },
+      users: notStated,
+    },
+    chooseThem: {
+      en: ["You need LinkedIn, calls and WhatsApp steps today.", "Your team writes and tunes its own sequences.", "You want a large lead database inside the sending tool."],
+      ar: ["تحتاج خطوات LinkedIn والمكالمات وواتساب الآن.", "فريقك يكتب تسلسلاته ويضبطها بنفسه.", "تريد قاعدة عملاء كبيرة داخل أداة الإرسال."],
+    },
+    chooseYolias: {
+      en: ["You think in campaigns, budgets and cost per meeting, like an ads manager.", "You want replies answered and meetings booked for you.", "You sell in Arabic and English."],
+      ar: ["تفكر بالحملات والميزانيات وتكلفة الاجتماع، مثل مدير الإعلانات.", "تريد أن تُجاب الردود وتُحجز الاجتماعات عنك.", "تبيع بالعربية والإنجليزية."],
+    },
+    faq: {
+      en: [{ q: "Does Yolias use LinkedIn like lemlist?", a: "Not yet. Yolias campaigns use email from your own mailbox today; more channels join the same campaigns as they launch." }],
+      ar: [{ q: "هل يستخدم يولياس LinkedIn مثل lemlist؟", a: "ليس بعد. حملات يولياس تستخدم البريد من صندوقك اليوم، وتنضم قنوات أخرى إلى الحملات نفسها عند إطلاقها." }],
+    },
+    sources: ["https://www.lemlist.com/", "https://www.lemlist.com/pricing"],
+  }),
+  versus({
+    slug: "artisan", name: "Artisan", keyword: "yolias vs artisan", secondary: ["artisan ai alternative", "artisan ava alternative", "ai sdr alternative"],
+    lead: {
+      en: "Artisan offers Ava, an AI BDR that runs outbound for a sales team. Yolias is an advertising platform: acquisition runs as campaigns with objectives, audiences, budgets and cost per result, and Yolias AI is the engine behind them.",
+      ar: "تقدم Artisan الوكيلة Ava، موظفة تطوير مبيعات بالذكاء الاصطناعي تدير التواصل لفريق المبيعات. أما يولياس فمنصة إعلانية: يجري اكتساب العملاء كحملات لها أهداف وجماهير وميزانيات وتكلفة لكل نتيجة، وYolias AI هو المحرك وراءها.",
+    },
+    answer: {
+      en: "Choose Artisan if you want an AI employee for your sales team with plans scoped by its sales team. Choose Yolias if you want to run acquisition like ads: pick the objective, set the budget, see spend and cost per meeting, from $5 with no sales call.",
+      ar: "اختر Artisan إذا أردت موظفًا بالذكاء الاصطناعي لفريق مبيعاتك بخطة يحددها فريق مبيعاتها. واختر يولياس إذا أردت إدارة اكتساب العملاء مثل الإعلانات: تختار الهدف وتحدد الميزانية وترى الإنفاق وتكلفة الاجتماع، من 5 دولارات بلا مكالمة مبيعات.",
+    },
+    them: {
+      find: { en: "Ava finds leads from its contact data", ar: "تجد Ava العملاء من بيانات التواصل لديها" },
+      finds: { en: "B2B leads from 250M+ verified contacts (its claim)", ar: "عملاء B2B من أكثر من 250 مليون جهة اتصال (بحسب قولها)" },
+      why: notStated,
+      contacts: { en: "Enrichment of the leads Ava finds", ar: "إثراء بيانات العملاء الذين تجدهم Ava" },
+      outreach: { en: "Ava writes and sends personalized outreach from your domains", ar: "تكتب Ava رسائل مخصصة وترسلها من نطاقاتك" },
+      replies: { en: "Ava handles replies and books meetings", ar: "ترد Ava على الردود وتحجز الاجتماعات" },
+      channels: { en: "Email", ar: "البريد" },
+      users: notStated,
+    },
+    chooseThem: {
+      en: ["You want an AI BDR presented as part of your sales team.", "You are ready to scope a plan with a sales call."],
+      ar: ["تريد موظف مبيعات بالذكاء الاصطناعي كجزء من فريقك.", "أنت مستعد لتحديد خطتك في مكالمة مبيعات."],
+    },
+    chooseYolias: {
+      en: ["You want campaigns, audiences and budgets you control, like an ads manager.", "You want to see spend and cost per result for every campaign.", "You want to start from $5, in Arabic or English."],
+      ar: ["تريد حملات وجماهير وميزانيات تتحكم فيها، مثل مدير الإعلانات.", "تريد رؤية الإنفاق وتكلفة كل نتيجة لكل حملة.", "تريد البدء من 5 دولارات، بالعربية أو الإنجليزية."],
+    },
+    faq: {
+      en: [{ q: "Is Yolias an AI SDR?", a: "Yolias is an advertising platform for acquisition campaigns. Yolias AI does the work an AI SDR does (finding, writing, replying, booking) inside campaigns you manage with budgets and results." }],
+      ar: [{ q: "هل يولياس موظف مبيعات بالذكاء الاصطناعي؟", a: "يولياس منصة إعلانية لحملات اكتساب العملاء. ويؤدي Yolias AI عمل موظف المبيعات الذكي (البحث والكتابة والرد والحجز) داخل حملات تديرها بميزانياتها ونتائجها." }],
+    },
+    sources: ["https://www.artisan.co/", "https://www.artisan.co/llms-full.txt", "https://www.artisan.co/pricing"],
   }),
 ];

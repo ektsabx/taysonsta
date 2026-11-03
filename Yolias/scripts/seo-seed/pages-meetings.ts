@@ -24,7 +24,7 @@ const labels: Record<Row, L> = {
 const rows: Row[] = ["what", "find", "reach", "book", "calendar", "team", "price"];
 
 const Y: Record<Exclude<Row, "price" | "team">, L> = {
-  what: { en: "An AI sales agent: finds matching companies and decision makers, emails them from your mailbox, and books the meeting", ar: "وكيل مبيعات بالذكاء الاصطناعي: يجد الشركات وصنّاع القرار المطابقين، ويراسلهم من بريدك، ويحجز الاجتماع" },
+  what: { en: "Yolias AI, the engine of every campaign: finds matching companies and decision makers, emails them from your mailbox, and books the meeting", ar: "Yolias AI، محرك كل حملة: يجد الشركات وصنّاع القرار المطابقين، ويراسلهم من بريدك، ويحجز الاجتماع" },
   find: { en: "You describe your ideal customer in a sentence, in Arabic or English, and Yolias finds them with a match score", ar: "تصف عميلك المثالي في جملة، بالعربية أو الإنجليزية، فيجدهم يولياس مع نسبة تطابق" },
   reach: { en: "Writes the first email and follow-ups and sends them from your Gmail or company mailbox once you launch the campaign", ar: "يكتب الرسالة الأولى والمتابعات ويرسلها من Gmail أو بريد شركتك بعد تشغيلك للحملة" },
   book: { en: "Your page at yolias.com/meet/your-name: length, break, notice, booking window and weekly hours; when a lead asks for a meeting, Yolias replies with two free times and the page", ar: "صفحتك على yolias.com/meet/اسمك: المدة والاستراحة والمهلة ومدة الإتاحة وساعات الأسبوع؛ وعندما يطلب العميل اجتماعًا يرد يولياس بموعدين متاحين والصفحة" },

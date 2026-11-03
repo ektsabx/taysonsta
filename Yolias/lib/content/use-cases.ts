@@ -77,13 +77,13 @@ const steps = {
     { title: "Choose the goal", body: "Meetings, sales, website leads or qualified leads." },
     { title: "Define the audience", body: "Countries and cities, industries, company size and job titles, or a lookalike of your best customers." },
     { title: "Launch", body: "Pick the mailbox, tone and language. Yolias finds the people, writes to each one and follows up." },
-    { title: "Get the results", body: "The AI Sales Agent answers and books. Every campaign shows its results and cost per result." },
+    { title: "Get the results", body: "Yolias AI answers and books. Every campaign shows its results and cost per result." },
   ],
   ar: [
-    { title: "اختر الهدف", body: "اجتماعات، أو مشتريات من موقعك، أو عملاء محتملون من موقعك، أو عملاء محتملون مؤهلون." },
+    { title: "اختر الهدف", body: "اجتماعات، أو مبيعات، أو عملاء محتملون من موقعك، أو عملاء محتملون مؤهلون." },
     { title: "حدد الجمهور", body: "الدول والمدن، والمجالات، وحجم الشركة، والمسميات الوظيفية، أو جمهور مشابه لأفضل عملائك." },
     { title: "أطلق الحملة", body: "اختر البريد والأسلوب واللغة، ويجد يولياس الأشخاص ويكتب لكل منهم ويتابع." },
-    { title: "احصل على النتائج", body: "يرد وكيل المبيعات الذكي ويحجز، وتعرض كل حملة نتائجها وتكلفة النتيجة." },
+    { title: "احصل على النتائج", body: "يرد Yolias AI ويحجز، وتعرض كل حملة نتائجها وتكلفة النتيجة." },
   ],
 };
 

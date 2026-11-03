@@ -21,9 +21,9 @@ export const home: Localized<{
   faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
 }> = {
   en: {
-    eyebrow: "AI ADVERTISING PLATFORM",
-    title: "Advertise to the customers you choose, not to everyone.",
-    lead: "Yolias is an AI advertising platform for customer acquisition. Instead of paying for reach and views, you define the customers you want. Yolias's AI campaigns find the companies and decision makers who fit, contact each one directly, answer their replies and bring you meetings, leads or sales, with the cost of every result.",
+    eyebrow: "YOLIAS — AI AGENTS FOR BUSINESS GROWTH",
+    title: "Run customer acquisition campaigns. Grow your business.",
+    lead: "Yolias is an advertising platform for customer acquisition campaigns. Create campaigns that target the right customers, manage how you reach them, and follow the results through to meetings, leads and sales in one place.",
     primary: "Get started",
     primaryTrial: "Start free trial",
     secondary: "See how it works",
@@ -37,7 +37,7 @@ export const home: Localized<{
       rows: [
         { before: "You pay for reach, views and clicks, and hope the right buyer is somewhere among them.", after: "You define the customers you want: countries, cities, industries, company size and job titles. Yolias reaches only the companies and decision makers who fit." },
         { before: "One ad for everyone, easy to scroll past.", after: "A personal message to each person, written from your Company Knowledge and what Yolias found about them, sent from your own mailbox." },
-        { before: "The ad stops at the click or the form; the follow-up is on you.", after: "Yolias's AI Sales Agent answers questions and objections, follows up and books the meeting on your calendar." },
+        { before: "The ad stops at the click or the form; the follow-up is on you.", after: "Yolias AI answers questions and objections, follows up and books the meeting on your calendar." },
         { before: "Costs per click and per lead keep rising as everyone bids for the same audience.", after: "Each campaign works for the result you choose (meetings, leads or sales) and shows conversions, revenue and the cost per result." },
       ],
     },
@@ -56,7 +56,7 @@ export const home: Localized<{
       tiles: [
         { title: "Campaigns like an ads manager", body: "Campaigns, audiences and messages with spend, results and cost per result for each. Yolias moves the budget toward the audiences that convert, within a daily budget and cost cap you control." },
         { title: "Prospect discovery", body: "Companies and decision makers matching your audiences, found every day with the reason each one fits; custom audiences and lookalikes of your best customers." },
-        { title: "AI Sales Agent", body: "Answers questions and objections from your Company Knowledge, sends interested people your booking page and books the meeting; when a person is needed, you're told." },
+        { title: "Yolias AI", body: "Answers questions and objections from your Company Knowledge, sends interested people your booking page and books the meeting; when a person is needed, you're told." },
         { title: "Pixel, conversions and revenue", body: "The Yolias pixel counts purchases and leads on your website, so every campaign shows its conversions, revenue and return on spend, in Arabic and English." },
       ],
     },
@@ -69,7 +69,7 @@ export const home: Localized<{
       title: "What people ask before they start",
       items: [
         { q: "What is Yolias?", a: "Yolias is an AI advertising platform for customer acquisition. Instead of paying for reach and views, you define the customers you want, and Yolias's AI campaigns find the matching companies and decision makers, contact each one directly from your own mailbox, answer the replies and book the meetings. Each campaign has a goal (meetings, leads or sales) and shows its conversions, revenue and cost per result." },
-        { q: "How is Yolias different from Facebook, Google or TikTok ads?", a: "Those platforms show an ad to an audience and charge for impressions or clicks; what happens after the click is up to you. Yolias starts from the customers you define, contacts each decision maker directly with a personal message, and its AI Sales Agent carries the conversation to a meeting, a lead or a sale. You pay for the people Yolias finds and reaches, not for views." },
+        { q: "How is Yolias different from Facebook, Google or TikTok ads?", a: "Those platforms show an ad to an audience and charge for impressions or clicks; what happens after the click is up to you. Yolias starts from the customers you define, contacts each decision maker directly with a personal message, and Yolias AI carries the conversation to a meeting, a lead or a sale. You pay for the people Yolias finds and reaches, not for views." },
         { q: "Does Yolias replace my ads?", a: "No, it adds an acquisition channel. Many businesses keep their ads for awareness and use Yolias to reach specific companies and decision makers directly, so they depend less on ad costs." },
         { q: "Is Yolias a lead database?", a: "No. Yolias doesn't sell lists or data: you pay for the people it finds and reaches for your campaigns, and what you watch is the result (meetings, leads or sales) and the cost of each." },
         { q: "Who is Yolias for?", a: "Businesses that sell to other businesses and want more customers from a channel they control: agencies, service providers, software and SaaS companies, consultants, freelancers, founders and sales teams." },
@@ -92,9 +92,9 @@ export const home: Localized<{
     },
   },
   ar: {
-    eyebrow: "منصة إعلانات بالذكاء الاصطناعي",
-    title: "أعلن للعملاء الذين تختارهم، لا للجميع.",
-    lead: "يولياس منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء. بدل أن تدفع مقابل الوصول والمشاهدات، تحدد العملاء الذين تريدهم؛ فتجد حملات يولياس الذكية الشركات وصنّاع القرار المناسبين، وتتواصل مع كل واحد منهم مباشرة، وترد على ردودهم، وتأتيك باجتماعات أو عملاء محتملين أو مبيعات، مع تكلفة كل نتيجة.",
+    eyebrow: "يولياس — وكلاء ذكاء اصطناعي لنمو الأعمال",
+    title: "أدر حملات اكتساب العملاء. ونمِّ أعمالك.",
+    lead: "يولياس منصة إعلانية لإدارة حملات اكتساب العملاء. أنشئ حملات تستهدف العملاء المناسبين، وأدر الوصول إليهم، وتابع النتائج حتى الاجتماعات والعملاء المحتملين والمبيعات من مكان واحد.",
     primary: "ابدأ الآن",
     primaryTrial: "ابدأ التجربة المجانية",
     secondary: "شاهد كيف يعمل",
@@ -108,7 +108,7 @@ export const home: Localized<{
       rows: [
         { before: "تدفع مقابل الوصول والمشاهدات والنقرات، وتأمل أن يكون المشتري المناسب بينهم.", after: "تحدد العملاء الذين تريدهم: الدول والمدن والمجالات وحجم الشركة والمسميات الوظيفية. ويصل يولياس إلى الشركات وصنّاع القرار المطابقين فقط." },
         { before: "إعلان واحد للجميع، يسهل تجاوزه.", after: "رسالة شخصية لكل شخص، مكتوبة من معرفة شركتك وما وجده يولياس عنه، تُرسل من بريدك أنت." },
-        { before: "ينتهي الإعلان عند النقرة أو النموذج، والمتابعة عليك.", after: "يجيب وكيل المبيعات الذكي في يولياس عن الأسئلة والاعتراضات، ويتابع، ويحجز الاجتماع في تقويمك." },
+        { before: "ينتهي الإعلان عند النقرة أو النموذج، والمتابعة عليك.", after: "يجيب Yolias AI عن الأسئلة والاعتراضات، ويتابع، ويحجز الاجتماع في تقويمك." },
         { before: "تكلفة النقرة والعميل المحتمل ترتفع لأن الجميع يتنافس على الجمهور نفسه.", after: "كل حملة تعمل للنتيجة التي تختارها (اجتماعات أو عملاء محتملون أو مبيعات) وتعرض التحويلات والإيرادات وتكلفة النتيجة." },
       ],
     },
@@ -116,7 +116,7 @@ export const home: Localized<{
       eyebrow: "كيف يعمل",
       title: "أطلق حملتك في ثلاث خطوات.",
       steps: [
-        { title: "اختر الهدف", body: "اجتماعات، أو مشتريات من موقعك، أو عملاء محتملون من موقعك، أو عملاء محتملون مؤهلون؛ ثم عرضك والميزانية والتواريخ." },
+        { title: "اختر الهدف", body: "اجتماعات، أو مبيعات، أو عملاء محتملون من موقعك، أو عملاء محتملون مؤهلون؛ ثم عرضك والميزانية والتواريخ." },
         { title: "حدد عملاءك", body: "جمهور أو أكثر: مواقع في أي مكان في العالم، ومجالات، وحجم الشركة، ومسميات وظيفية، واستبعادات، أو جمهور مخصص أو مشابه." },
         { title: "أطلق الحملة ودع الذكاء الاصطناعي يعمل", body: "اختر البريد والأسلوب واللغة، وعاين الرسالة. يجد يولياس الأشخاص ويتواصل معهم ويتابع ويرد ويحجز، ويحسب كل نتيجة." },
       ],
@@ -127,7 +127,7 @@ export const home: Localized<{
       tiles: [
         { title: "حملات مثل مدير الإعلانات", body: "حملات وجماهير ورسائل، لكل منها الإنفاق والنتائج وتكلفة النتيجة. ويحرّك يولياس الميزانية نحو الجماهير التي تحقق نتائج، داخل ميزانية يومية وحد أقصى للتكلفة تتحكم فيهما." },
         { title: "اكتشاف العملاء المحتملين", body: "شركات وصنّاع قرار يطابقون جماهيرك، يُكتشفون كل يوم مع سبب تطابق كل منهم؛ وجماهير مخصصة وجماهير مشابهة لأفضل عملائك." },
-        { title: "وكيل مبيعات ذكي", body: "يجيب عن الأسئلة والاعتراضات من معرفة شركتك، ويرسل للمهتمين صفحة الحجز ويحجز الاجتماع، وإذا احتاج الأمر إليك يخبرك." },
+        { title: "Yolias AI", body: "يجيب عن الأسئلة والاعتراضات من معرفة شركتك، ويرسل للمهتمين صفحة الحجز ويحجز الاجتماع، وإذا احتاج الأمر إليك يخبرك." },
         { title: "البيكسل والتحويلات والإيرادات", body: "بيكسل يولياس يحسب المشتريات والعملاء المحتملين على موقعك، فتعرض كل حملة تحويلاتها وإيراداتها والعائد على الإنفاق، بالعربية والإنجليزية." },
       ],
     },
@@ -140,7 +140,7 @@ export const home: Localized<{
       title: "أسئلة يطرحها الناس قبل البدء",
       items: [
         { q: "ما هو يولياس؟", a: "يولياس منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء. بدل أن تدفع مقابل الوصول والمشاهدات، تحدد العملاء الذين تريدهم، فتجد حملات يولياس الذكية الشركات وصنّاع القرار المطابقين، وتتواصل مع كل منهم مباشرة من بريدك، وترد على الردود، وتحجز الاجتماعات. لكل حملة هدف (اجتماعات أو عملاء محتملون أو مبيعات)، وتعرض تحويلاتها وإيراداتها وتكلفة النتيجة." },
-        { q: "ما الفرق بين يولياس وإعلانات فيسبوك وجوجل وتيك توك؟", a: "تلك المنصات تعرض إعلانًا على جمهور وتحاسبك على الظهور أو النقرات، وما يحدث بعد النقرة مسؤوليتك. أما يولياس فيبدأ من العملاء الذين تحددهم، ويتواصل مع كل صاحب قرار مباشرة برسالة شخصية، ويكمل وكيل المبيعات الذكي المحادثة حتى اجتماع أو عميل محتمل أو بيع. تدفع مقابل الأشخاص الذين يجدهم يولياس ويتواصل معهم، لا مقابل المشاهدات." },
+        { q: "ما الفرق بين يولياس وإعلانات فيسبوك وجوجل وتيك توك؟", a: "تلك المنصات تعرض إعلانًا على جمهور وتحاسبك على الظهور أو النقرات، وما يحدث بعد النقرة مسؤوليتك. أما يولياس فيبدأ من العملاء الذين تحددهم، ويتواصل مع كل صاحب قرار مباشرة برسالة شخصية، ويكمل Yolias AI المحادثة حتى اجتماع أو عميل محتمل أو بيع. تدفع مقابل الأشخاص الذين يجدهم يولياس ويتواصل معهم، لا مقابل المشاهدات." },
         { q: "هل يغني يولياس عن إعلاناتي؟", a: "لا، بل يضيف قناة لاكتساب العملاء. كثير من الشركات تُبقي إعلاناتها للانتشار، وتستخدم يولياس للوصول إلى شركات وصنّاع قرار محددين مباشرة، فيقل اعتمادها على تكلفة الإعلانات." },
         { q: "هل يولياس قاعدة بيانات عملاء؟", a: "لا. يولياس لا يبيع قوائم ولا بيانات: تدفع مقابل الأشخاص الذين يجدهم ويتواصل معهم لحملاتك، وما تتابعه هو النتيجة (اجتماعات أو عملاء محتملون أو مبيعات) وتكلفة كل منها." },
         { q: "لمن صُمم يولياس؟", a: "للشركات التي تبيع لشركات أخرى وتريد عملاء أكثر من قناة تتحكم فيها: الوكالات ومقدمو الخدمات وشركات البرمجيات وSaaS والاستشاريون والمستقلون والمؤسسون وفرق المبيعات." },
@@ -175,33 +175,33 @@ export const product: Localized<{
 }> = {
   en: {
     eyebrow: "THE PLATFORM",
-    title: "An advertising platform where every campaign reaches a real customer.",
-    lead: "Campaigns like an ads manager, prospect discovery, an AI Sales Agent that writes, answers and books, a pixel for your website, and every number down to the cost per result.",
+    title: "An advertising platform for customer acquisition campaigns.",
+    lead: "Create campaigns, define audiences, set budgets and follow every result through to meetings and sales. Yolias AI runs each campaign: it finds the people, writes to each one, answers and books.",
     primary: "Get started",
     secondary: "See pricing",
     sections: [
       {
-        title: "Create a campaign in three steps",
-        body: "Campaign: the goal (meetings, sales, website leads or qualified leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone, language and notes, with a sample email to preview before you launch.",
-        points: ["Total or daily budget, with the people it buys shown before you launch", "Days and hours to contact people, in your time zone", "Drafts saved, so you can come back"],
+        title: "Campaign Manager",
+        body: "A campaign for each service, goal or market, created in three levels like an ads manager. Campaign: the objective (meetings, sales, website leads or qualified leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone and language.",
+        points: ["Total or daily budget, with the people it buys shown before you launch", "On/off, edit, duplicate and compare campaigns", "Days and hours to contact people, in your time zone"],
       },
       {
         title: "Audiences anywhere in the world",
-        body: "Every country, then its regions and cities, included or excluded; industries, company type and size, job titles, seniority, departments, signals and companies never to contact. Or a saved audience: custom (your customers, people who booked, a past campaign, a file) or a lookalike of your best ones.",
+        body: "Every country, then its regions and cities, included or excluded; industries, company type and size, job titles, seniority, departments, signals and companies never to contact. Save an audience, build one from your own list, or a lookalike of your best customers.",
       },
       {
-        title: "An agent that works the conversation",
-        body: "Yolias finds the companies and decision makers, writes a different email to each from your Company Knowledge, sends it from your mailbox and follows up twice. It answers questions and one objection, sends interested people two free times and your booking page, and books the meeting.",
-        points: ["Answers questions and objections in each person's language", "Books meetings on your calendar", "Learns which audiences and openings bring results"],
+        title: "Yolias AI runs each campaign",
+        body: "Yolias AI finds the companies and decision makers, writes a different email to each from your Company Knowledge, sends it from your mailbox and follows up twice. It answers questions and objections, offers times and books the meeting; what needs you comes to you.",
+        points: ["Answers in each person's language", "Books meetings on your calendar", "Splits the budget daily between audiences by their results"],
       },
       {
-        title: "Results like an ads dashboard",
-        body: "Campaigns, audiences and messages in one table with an on/off switch per row: found, sent, open rate, reply rate, results and cost per result, conversions and revenue from the Yolias pixel, spend, with a breakdown by day, audience, opening, country, industry or job title; budget that moves to the best audiences, a cost cap and a daily budget for the whole account.",
+        title: "Budget and results like an ads dashboard",
+        body: "Campaigns, audiences and messages in one table with an on/off switch per row and a Breakdown by day, audience, country or job title: reached, replies, interested, meetings, spend and cost per result, conversions and revenue from the Yolias pixel.",
       },
       {
         title: "Conversations and meetings",
-        body: "Every email, reply and answer Yolias sent is in Conversations; every booking is in Meetings, on your booking page and in Google Calendar with a Meet link.",
-        points: ["Gmail or any IMAP/SMTP mailbox, each with its own sending rules", "Google Calendar busy times never offered", "Arabic and English, end to end"],
+        body: "Every reply from every campaign is in Conversations, with the campaign it came from; every booking is in Meetings, on your booking page and in Google Calendar with a Meet link.",
+        points: ["Gmail, Outlook or any IMAP/SMTP mailbox, each with its own sending rules", "Google Calendar busy times never offered", "Arabic and English, end to end"],
       },
     ],
     icp: [
@@ -212,11 +212,11 @@ export const product: Localized<{
       { label: "Decision makers", value: "Founder, CEO, CTO" },
       { label: "Assumed", value: "Target of 100 companies" },
     ],
-    stages: ["Find companies", "Find decision makers", "Write to each", "Answer replies", "Offer times", "Book the meeting"],
+    stages: ["Campaign", "Audience", "Find the people", "Write to each", "Conversation", "Meeting or sale"],
     shotCaption: "A real Yolias screen, shown with sample data.",
     more: {
-      eyebrow: "AROUND THE CORE",
-      title: "Everything else you need to work the list.",
+      eyebrow: "MORE",
+      title: "Around your campaigns.",
       tiles: [
         { title: "Yolias AI", body: "Ask about your campaigns, replies and meetings from any screen, or describe who you want to meet and it prepares the campaign for you to launch." },
         { title: "Export", body: "Download campaigns, audiences and the people Yolias reached as CSV." },
@@ -228,33 +228,33 @@ export const product: Localized<{
   },
   ar: {
     eyebrow: "المنصة",
-    title: "منصة إعلانات تصل كل حملة فيها إلى عميل حقيقي.",
-    lead: "حملات مثل مدير الإعلانات، واكتشاف للعملاء المحتملين، ووكيل مبيعات ذكي يكتب ويرد ويحجز، وبيكسل لموقعك، وكل رقم حتى تكلفة النتيجة.",
+    title: "منصة إعلانية لإدارة حملات اكتساب العملاء.",
+    lead: "أنشئ الحملات، وحدد الجماهير، واضبط الميزانيات، وتابع كل نتيجة حتى الاجتماعات والمبيعات. ويدير Yolias AI كل حملة: يجد الأشخاص، ويكتب لكل منهم، ويرد ويحجز.",
     primary: "ابدأ الآن",
     secondary: "عرض الأسعار",
     sections: [
       {
-        title: "أنشئ حملة في ثلاث خطوات",
-        body: "الحملة: الهدف (اجتماعات، أو مشتريات من موقعك، أو عملاء محتملون من موقعك، أو عملاء محتملون مؤهلون)، وعرضك، والميزانية بالدولار، والتواريخ. والجماهير: من تريد الوصول إليهم. والرسالة: بريدك والأسلوب واللغة والملاحظات، مع رسالة نموذجية تعاينها قبل التشغيل.",
-        points: ["ميزانية إجمالية أو يومية، مع عدد الأشخاص الذي تشتريه قبل التشغيل", "أيام وساعات التواصل بمنطقتك الزمنية", "مسودات محفوظة لتعود إليها"],
+        title: "مدير الحملات",
+        body: "حملة لكل خدمة أو هدف أو سوق، تُنشأ على ثلاثة مستويات مثل مدير الإعلانات. الحملة: الهدف (اجتماعات أو مبيعات أو عملاء من موقعك أو عملاء مؤهلون)، وعرضك، والميزانية بالدولار، والتواريخ. الجماهير: من تريد الوصول إليه. الرسالة: بريدك ونبرتك ولغتك.",
+        points: ["ميزانية إجمالية أو يومية، مع عدد الأشخاص الذي تشتريه قبل التشغيل", "تشغيل وإيقاف وتعديل ونسخ ومقارنة الحملات", "أيام وساعات التواصل بمنطقتك الزمنية"],
       },
       {
         title: "جماهير في أي مكان في العالم",
-        body: "كل الدول، ثم مناطقها ومدنها، تضمينًا أو استبعادًا؛ والمجالات ونوع الشركة وحجمها والمسميات الوظيفية والمستوى والإدارات والإشارات والشركات التي لا يُتواصل معها. أو جمهور محفوظ: مخصص (عملاؤك، أو من حجزوا، أو حملة سابقة، أو ملف) أو مشابه لأفضلهم.",
+        body: "كل الدول، ثم مناطقها ومدنها، تضمينًا أو استبعادًا؛ والمجالات ونوع الشركة وحجمها والمسميات الوظيفية والمستوى والأقسام والمؤشرات والشركات التي لا تريد التواصل معها. احفظ الجمهور، أو ابنه من قائمتك، أو أنشئ جمهورًا مشابهًا لأفضل عملائك.",
       },
       {
-        title: "وكيل يدير المحادثة",
-        body: "يجد يولياس الشركات وصنّاع القرار، ويكتب لكل منهم رسالة مختلفة من معرفة شركتك، ويرسلها من بريدك ويتابع مرتين. ويجيب عن الأسئلة وعن اعتراض واحد، ويرسل للمهتمين موعدين متاحين وصفحة الحجز، ويحجز الاجتماع.",
-        points: ["يجيب عن الأسئلة والاعتراضات بلغة كل شخص", "يحجز الاجتماعات في تقويمك", "يتعلم أي الجماهير والافتتاحيات تجلب نتائج"],
+        title: "Yolias AI يدير كل حملة",
+        body: "يجد Yolias AI الشركات وصنّاع القرار، ويكتب لكل منهم رسالة مختلفة من معرفة شركتك، ويرسلها من بريدك ويتابع مرتين. ويجيب عن الأسئلة والاعتراضات، ويقترح المواعيد ويحجز الاجتماع، وما يحتاجك يصلك.",
+        points: ["يرد بلغة كل شخص", "يحجز الاجتماعات في تقويمك", "يوزع الميزانية يوميًا بين الجماهير حسب نتائجها"],
       },
       {
-        title: "نتائج مثل لوحة الإعلانات",
-        body: "الحملات والجماهير والرسائل في جدول واحد بزر تشغيل وإيقاف لكل صف: المكتشَفون والمُرسل ونسبة الفتح ونسبة الرد والنتائج وتكلفة النتيجة، والتحويلات والإيرادات من بيكسل يولياس، والإنفاق، مع تفصيل حسب اليوم أو الجمهور أو الافتتاحية أو الدولة أو المجال أو المسمى الوظيفي؛ وميزانية تتحرك نحو أفضل الجماهير، وحد أقصى للتكلفة، وميزانية يومية للحساب كله.",
+        title: "الميزانية والنتائج مثل لوحة الإعلانات",
+        body: "الحملات والجماهير والرسائل في جدول واحد بزر تشغيل وإيقاف لكل صف، وتقسيم حسب اليوم أو الجمهور أو البلد أو المسمى الوظيفي: من وصلت إليهم الحملة، والردود، والمهتمون، والاجتماعات، والإنفاق، وتكلفة كل نتيجة، والتحويلات والإيرادات من بيكسل يولياس.",
       },
       {
         title: "المحادثات والاجتماعات",
-        body: "كل رسالة ورد وإجابة أرسلها يولياس في المحادثات؛ وكل حجز في الاجتماعات، وفي صفحة الحجز وتقويم Google برابط Meet.",
-        points: ["Gmail أو أي بريد IMAP/SMTP، ولكل منهما قواعد إرسال", "أوقات انشغالك في تقويم Google لا تُعرض أبدًا", "العربية والإنجليزية بالكامل"],
+        body: "كل رد من كل حملة في المحادثات مع الحملة التي جاء منها؛ وكل حجز في الاجتماعات، وفي صفحة الحجز وتقويم Google برابط Meet.",
+        points: ["Gmail أو Outlook أو أي بريد IMAP/SMTP، ولكل منها قواعد إرسال", "أوقات انشغالك في تقويم Google لا تُعرض أبدًا", "العربية والإنجليزية من البداية للنهاية"],
       },
     ],
     icp: [
@@ -265,11 +265,11 @@ export const product: Localized<{
       { label: "صنّاع القرار", value: "المؤسس، CEO، CTO" },
       { label: "افتراض", value: "هدف 100 شركة" },
     ],
-    stages: ["إيجاد الشركات", "إيجاد صنّاع القرار", "الكتابة لكل منهم", "الرد على الردود", "اقتراح المواعيد", "حجز الاجتماع"],
+    stages: ["الحملة", "الجمهور", "إيجاد الأشخاص", "الكتابة لكل منهم", "المحادثة", "اجتماع أو بيع"],
     shotCaption: "شاشة حقيقية من يولياس ببيانات توضيحية.",
     more: {
-      eyebrow: "حول المنتج الأساسي",
-      title: "كل ما تحتاجه للعمل على القائمة.",
+      eyebrow: "المزيد",
+      title: "حول حملاتك.",
       tiles: [
         { title: "يولياس AI", body: "اسأل عن حملاتك وردودك واجتماعاتك من أي شاشة، أو صف من تريد مقابلتهم فيجهّز لك الحملة لتشغّلها." },
         { title: "التصدير", body: "نزّل الحملات والجماهير والأشخاص الذين تواصل معهم يولياس كملف CSV." },

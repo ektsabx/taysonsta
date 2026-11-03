@@ -15,7 +15,7 @@ const compareLinks = (skip: string) => [
 export const listPages: SeedPage[] = [
   {
     kind: "compare", slug: "best-lead-generation-tools", format: "list",
-    tools: ["apollo", "zoominfo", "clay", "lusha", "cognism", "hunter", "instantly", "smartlead"],
+    tools: ["apollo", "zoominfo", "clay", "lusha", "cognism", "hunter", "instantly", "smartlead", "lemlist", "artisan"],
     primary_keyword: "best lead generation tools", secondary_keywords: ["best b2b prospecting tools", "b2b lead generation tools", "lead generation software", "lead generation tools for agencies"],
     links: [...compareLinks(""), { path: "/use-cases/find-clients", en: "How to find clients for a service business", ar: "كيف تجد عملاء لنشاط خدمي" }],
     sources: ["https://www.apollo.io/", "https://www.zoominfo.com/", "https://www.clay.com/", "https://www.lusha.com/", "https://www.cognism.com/", "https://hunter.io/", "https://instantly.ai/", "https://www.smartlead.ai/"],
@@ -94,7 +94,7 @@ export const alternativesPages: SeedPage[] = [
   {
     kind: "alternatives", slug: "apollo", competitor: "apollo", tools: ["zoominfo", "lusha", "cognism", "clay", "hunter"],
     primary_keyword: "apollo alternatives", secondary_keywords: ["apollo.io alternatives", "apollo io competitors", "alternatives to apollo io", "cheaper apollo alternative"],
-    links: [{ path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, ...compareLinks("apollo").slice(0, 2), { path: "/compare/best-lead-generation-tools", en: "Best lead generation tools", ar: "أفضل أدوات جذب العملاء" }],
+    links: [{ path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, ...compareLinks("apollo").slice(0, 2), { path: "/compare/ai-advertising-platforms", en: "Advertising platforms for customer acquisition", ar: "منصات إعلانية لاكتساب العملاء" }],
     sources: ["https://www.apollo.io/", "https://www.apollo.io/pricing"],
     en: {
       title: "Apollo alternatives", h1: "Apollo alternatives: what to switch to, depending on why you're leaving",
@@ -162,7 +162,7 @@ export const alternativesPages: SeedPage[] = [
   {
     kind: "alternatives", slug: "clay", competitor: "clay", tools: ["apollo", "zoominfo", "lusha", "hunter"],
     primary_keyword: "clay alternatives", secondary_keywords: ["clay.com alternatives", "clay competitors", "clay alternative for agencies", "easier alternative to clay"],
-    links: [{ path: "/compare/clay", en: "Yolias vs Clay", ar: "يولياس مقابل Clay" }, { path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, { path: "/compare/best-lead-generation-tools", en: "Best lead generation tools", ar: "أفضل أدوات جذب العملاء" }],
+    links: [{ path: "/compare/clay", en: "Yolias vs Clay", ar: "يولياس مقابل Clay" }, { path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, { path: "/compare/ai-advertising-platforms", en: "Advertising platforms for customer acquisition", ar: "منصات إعلانية لاكتساب العملاء" }],
     sources: ["https://www.clay.com/", "https://www.clay.com/pricing"],
     en: {
       title: "Clay alternatives", h1: "Clay alternatives for teams that want results, not workflows",
@@ -226,7 +226,7 @@ export const alternativesPages: SeedPage[] = [
   {
     kind: "alternatives", slug: "zoominfo", competitor: "zoominfo", tools: ["apollo", "cognism", "lusha", "clay"],
     primary_keyword: "zoominfo alternatives", secondary_keywords: ["zoominfo competitors", "cheaper zoominfo alternative", "zoominfo alternative for small business"],
-    links: [{ path: "/compare/zoominfo", en: "Yolias vs ZoomInfo", ar: "يولياس مقابل ZoomInfo" }, { path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, { path: "/compare/best-lead-generation-tools", en: "Best lead generation tools", ar: "أفضل أدوات جذب العملاء" }],
+    links: [{ path: "/compare/zoominfo", en: "Yolias vs ZoomInfo", ar: "يولياس مقابل ZoomInfo" }, { path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" }, { path: "/compare/ai-advertising-platforms", en: "Advertising platforms for customer acquisition", ar: "منصات إعلانية لاكتساب العملاء" }],
     sources: ["https://www.zoominfo.com/", "https://www.zoominfo.com/pricing"],
     en: {
       title: "ZoomInfo alternatives", h1: "ZoomInfo alternatives for smaller teams and other markets",

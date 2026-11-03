@@ -15,7 +15,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "What Yolias collects, why, who processes it with us, and the choices you have.",
       blocks: [
         { h2: "Who we are" },
-        { p: "Yolias is a customer-discovery product operated by Yolias LLC (“we”, “us”). This policy covers the Yolias website and app. For questions or requests, use the [Contact page](/contact)." },
+        { p: "Yolias is an advertising platform for customer acquisition campaigns, operated by Yolias LLC (“we”, “us”). This policy covers the Yolias website and app. For questions or requests, use the [Contact page](/contact)." },
         { h2: "Information we collect" },
         { h3: "Account and workspace" },
         { ul: [
@@ -88,7 +88,7 @@ export const legal: Record<LegalSlug, Localized<Doc>> = {
       summary: "ما الذي يجمعه يولياس، ولماذا، ومن يعالج البيانات معنا، والخيارات المتاحة لك.",
       blocks: [
         { h2: "من نحن" },
-        { p: "يولياس منتج لاكتشاف العملاء تقدمه شركة Yolias LLC («نحن»). تشمل هذه السياسة موقع يولياس وتطبيقه. للأسئلة أو الطلبات استخدم [صفحة التواصل](/contact)." },
+        { p: "يولياس منصة إعلانية لإدارة حملات اكتساب العملاء تقدمها شركة Yolias LLC («نحن»). تشمل هذه السياسة موقع يولياس وتطبيقه. للأسئلة أو الطلبات استخدم [صفحة التواصل](/contact)." },
         { h2: "المعلومات التي نجمعها" },
         { h3: "الحساب ومساحة العمل" },
         { ul: [

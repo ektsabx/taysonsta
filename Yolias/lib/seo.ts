@@ -21,8 +21,8 @@ export const HOME_TITLE = "Yolias - AI Advertising Platform for Customer Acquisi
 export const HOME_TITLE_AR = "يولياس - منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء";
 /** The home page's search snippet: under 170 characters, brand first, in each language. */
 export const HOME_DESCRIPTION = {
-  en: "Yolias is an AI advertising platform: define the customers you want, and AI campaigns reach the decision makers and bring you meetings, leads and sales.",
-  ar: "يولياس منصة إعلانات بالذكاء الاصطناعي: حدد العملاء الذين تريدهم، فتصل حملاته الذكية إلى صنّاع القرار وتأتيك باجتماعات وعملاء ومبيعات.",
+  en: "Yolias is an advertising platform for customer acquisition: create campaigns, define your audience, manage the budget and track results through to meetings and sales.",
+  ar: "يولياس منصة إعلانية لإدارة حملات اكتساب العملاء: أنشئ حملاتك، وحدد جمهورك، وأدر ميزانيتك، وتابع النتائج حتى الاجتماعات والمبيعات.",
 };
 /** Search titles and snippets that differ from the page's headline (D-265 audit: titles 15–65, descriptions 50–170). */
 export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"en" | "ar", { title?: string; description?: string }>>> = {
@@ -40,9 +40,9 @@ export const PAGE_META: Record<"product" | "about" | "pricing", Partial<Record<"
   },
 };
 /** How people write the brand: Arabic spelling, the product name and what it is (schema.org alternateName). */
-export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Advertising Platform", "منصة إعلانات يولياس", "Yolias AI Sales Agent"];
+export const BRAND_NAMES = ["يولياس", "Yolias AI", "يولياس AI", "منصة يولياس", "Yolias AI Advertising Platform", "منصة إعلانات يولياس", "Yolias Campaign Manager", "Yolias — AI Agents for Business Growth"];
 /** The one-line definition used everywhere Yolias is described (site, llms.txt, schema). */
-export const DEFINITION = "Yolias is an AI advertising platform for customer acquisition. Instead of paying for reach and views, a business defines the customers it wants (campaign, audiences and message, like an ads manager), and Yolias's AI campaigns find the matching companies and decision makers, contact each one directly with a personal email from the business's own mailbox (Gmail or any IMAP/SMTP account), follow up, answer the replies and book the meetings. Each campaign works for one goal (meetings, sales, website leads or qualified leads) and tracks its conversions, revenue and cost per result. It adds an acquisition channel next to ads on Facebook, Google, TikTok, Snapchat and LinkedIn.";
+export const DEFINITION = "Yolias is an advertising platform for customer acquisition campaigns (Yolias — AI Agents for Business Growth). Businesses create campaigns, define the companies and people they want to reach, set a budget in US dollars and follow every result through to meetings, sales and website leads, like an ads manager built for acquiring customers. Yolias AI is the engine that runs each campaign: it finds the matching companies and decision makers, writes a personal email to each from the business's own mailbox (Gmail, Outlook or any IMAP/SMTP account), follows up, answers replies and books meetings, and it splits the budget daily between audiences by their results. Each campaign has one objective (meetings, sales, website leads or qualified leads) and shows its spend and cost per result. It is an acquisition channel next to ads on Facebook, Google, TikTok, Snapchat and LinkedIn.";
 export const OG_IMAGE = { url: "/og/yolias-og.png", width: 1200, height: 630, alt: "Yolias: the AI advertising platform for customer acquisition" };
 
 export function siteUrl(): string {

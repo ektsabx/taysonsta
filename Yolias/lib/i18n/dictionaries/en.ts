@@ -938,13 +938,13 @@ export const en = {
     comparisonCopy: "Every option runs the same AI advertising platform. Top up when you need it, or take a plan.",
     card: {
       reach: "Reach {count} prospects a month", reachOnce: "Reach {count} prospects", replies: "About {low}–{high} positive replies a month", meetings: "Target about {low}–{high} booked meetings a month",
-      campaigns: "AI customer-acquisition campaigns", messages: "AI-personalized outreach messages", agent: "AI Sales Agent that answers and books", pixel: "Pixel, conversions and revenue", users: "Unlimited users",
+      campaigns: "AI customer-acquisition campaigns", messages: "AI-personalized outreach messages", agent: "Yolias AI answers and books", pixel: "Pixel, conversions and revenue", users: "Unlimited users",
       estimate: "Replies and meetings are estimates from B2B email averages (positive replies 1.5–3%, meetings 0.5–1.5% of the people reached). Results depend on your market and offer.",
     },
     feature: "Feature", coreFeatures: "Core features included on every plan", usageCapacity: "Usage capacity", included: "Included",
     features: {
       campaigns: "Campaigns, audiences and messages like an ads manager", aiLeadGeneration: "Prospect discovery: companies and decision makers", messages: "AI-personalized messages in 15 languages",
-      aiSalesAgent: "AI Sales Agent: answers, follows up and books", crm: "Meetings: your booking page, Google Calendar and Meet", pixel: "Yolias pixel and Events Manager",
+      aiSalesAgent: "Yolias AI: answers, follows up and books", crm: "Meetings: your booking page, Google Calendar and Meet", pixel: "Yolias pixel and Events Manager",
       audiences: "Custom and lookalike audiences", optimization: "Budget optimization toward results", analytics: "Results, conversions, revenue and cost per result",
       integrations: "Gmail, IMAP/SMTP and Google Calendar", unlimitedUsers: "Unlimited users", chatSupport: "Chat support",
     },
