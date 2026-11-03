@@ -420,6 +420,10 @@ try {
   const [pl] = await campaignTable(A.wsId, { from: null, to: null }, { ids: [campId] });
   assert.deepEqual([pl.counts.siteVisits, pl.counts.checkouts, pl.counts.purchases, pl.counts.purchaseValue], [1, 1, 1, 120], "website results in the campaign");
   assert.equal(pl.groups[0].counts.purchases, 1, "and its audience");
+  // Audit (2026-11-03): the same person can't inflate results: at most 3 credited InitiateCheckout a day.
+  for (let i = 0; i < 4; i++) await recordPixelEvent({ pixel: second.public_id, event: "InitiateCheckout", yc, yct: Date.now(), event_id: `cap-${i}` });
+  const { data: capped } = await admin.from("pixel_events").select("campaign_id").like("event_id", "cap-%");
+  assert.deepEqual([capped!.length, capped!.filter((x) => x.campaign_id).length], [4, 3], "kept all, credited three");
   // A qualified-leads campaign only finds and saves people.
   const { enrollSearch } = await import("@/lib/agent-core/intake.ts");
   await admin.from("outreach_campaigns").update({ objective: "qualified_leads" }).eq("id", campId);

@@ -99,6 +99,9 @@ export const withinWindow = (clickedAt: number | null, at: number, days: number)
 /** SHA-256 of a normalized email, as the browser sends it (advanced matching). */
 export const emailHash = (email: string) => createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
 
+/** Credited events of one kind per person and day (more are kept, not credited). */
+export const CREDIT_CAP = 3;
+
 /** Records one event; "ignored" for a bad, unknown, blocked, duplicate or too-frequent one. Never throws. */
 export async function recordPixelEvent(raw: IncomingEvent, now = Date.now()): Promise<"ok" | "ignored"> {
   const e = cleanEvent(raw);
@@ -113,7 +116,14 @@ export async function recordPixelEvent(raw: IncomingEvent, now = Date.now()): Pr
       if ((count ?? 0) >= 120) return "ignored";
     }
     // Test events are shown in Test events only, never credited.
-    const credit = e.test ? null : await creditFor(db, px.workspace_id, e, now);
+    let credit = e.test ? null : await creditFor(db, px.workspace_id, e, now);
+    // Audit (2026-11-03): a person reached by a campaign can't inflate its results by
+    // sending the same event over and over: at most CREDIT_CAP credited per person, event and day.
+    if (credit) {
+      const { count: credited } = await db.from("pixel_events").select("id", { count: "exact", head: true })
+        .eq("pixel_id", px.id).eq("lead_id", credit.lead).eq("event", e.event).gte("created_at", new Date(now - 86_400_000).toISOString());
+      if ((credited ?? 0) >= CREDIT_CAP) credit = null;
+    }
     const { error } = await db.from("pixel_events").insert({
       pixel_id: px.id, workspace_id: px.workspace_id, event: e.event, value: e.value, currency: e.currency, url: e.url, referrer: e.ref, visitor: e.vid, event_id: e.eventId,
       lead_id: credit?.lead ?? null, campaign_id: credit?.campaign ?? null, group_id: credit?.group ?? null, attribution: credit?.how ?? null, test_code: e.test,

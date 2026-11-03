@@ -1,3 +1,4 @@
+import { overLimit, tooMany } from "@/lib/rate-limit";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
@@ -9,6 +10,7 @@ import { recordVisit } from "@/lib/visits";
 const body = z.object({ p: z.string().max(600).regex(/^\//), r: z.string().max(600).nullable().optional(), v: z.string().max(64).nullable().optional(), l: z.string().max(5).nullable().optional() });
 
 export async function POST(request: NextRequest) {
+  if (await overLimit(request, "v")) return tooMany();
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (parsed.success) {
     const session = await getSession().catch(() => null);

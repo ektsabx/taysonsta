@@ -1,3 +1,4 @@
+import { overLimit, tooMany } from "@/lib/rate-limit";
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
@@ -10,6 +11,7 @@ const VISITOR_COOKIE = "yolias_vid";
 const input = z.object({ kind: z.enum(["docs", "help", "blog"]), slug: z.string().regex(/^[a-z0-9-]{1,120}$/), helpful: z.boolean(), locale: z.enum(["en", "ar"]).default("en") });
 
 export async function POST(request: NextRequest) {
+  if (await overLimit(request, "feedback", "STRICT_LIMITER")) return tooMany();
   const p = input.safeParse(await request.json().catch(() => null));
   if (!p.success) return NextResponse.json({ ok: false }, { status: 400 });
   const existing = request.cookies.get(VISITOR_COOKIE)?.value;

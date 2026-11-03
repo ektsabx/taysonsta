@@ -1,3 +1,4 @@
+import { overLimit, tooMany } from "@/lib/rate-limit";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { canManageTeam, getSession } from "@/lib/session";
@@ -20,6 +21,7 @@ export type AnalysisStreamEvent =
 // NDJSON events as each step starts or finishes, then the result for review.
 // Nothing is saved here. Same permissions as the server actions it replaces.
 export async function POST(request: NextRequest) {
+  if (await overLimit(request, "analysis", "STRICT_LIMITER")) return tooMany();
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = BodySchema.safeParse(await request.json().catch(() => null));

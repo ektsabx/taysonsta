@@ -1,3 +1,4 @@
+import { overLimit, tooMany } from "@/lib/rate-limit";
 import { pixelInfo, recordPixelEvent } from "@/lib/pixel";
 
 // Events from the Yolias pixel on members' websites (D-274). Sent as text/plain
@@ -15,6 +16,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (await overLimit(req, "px")) return tooMany(CORS);
   const text = (await req.text().catch(() => "")).slice(0, 8000);
   let body: unknown = null;
   try { body = JSON.parse(text); } catch { /* not JSON */ }
