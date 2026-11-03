@@ -99,6 +99,7 @@ export const navigation: NavGroup[] = [
     items: [
       { href: "/admin/platform/seo", label: "الأداء", perm: "platform.read" },
       { href: "/admin/platform/seo/pages", label: "صفحات SEO", perm: "platform.read" },
+      { href: "/admin/platform/seo/geo", label: "الظهور في الذكاء الاصطناعي", perm: "platform.read" },
       { href: "/admin/platform/seo/competitors", label: "المنافسون", perm: "platform.read" },
       { href: "/admin/platform/seo/keywords", label: "الكلمات والفرص", perm: "platform.read" },
       { href: "/admin/platform/seo/reports", label: "التقارير التجارية", perm: "platform.read" },

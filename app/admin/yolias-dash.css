@@ -220,3 +220,38 @@ a.yd-stat:hover { border-color: var(--y-line-strong); }
 .yd-list li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--y-line-faint); font-size: .82rem; }
 .yd-list small { color: var(--y-muted); white-space: nowrap; }
 @media (max-width: 760px) { .yd-bi { grid-template-columns: 1fr; } .yd-bi-label { padding-top: 0; } }
+
+/* Every Yolias page in Admin on the dashboard's look (owner, 2026-11-03):
+   app/admin/platform/layout.tsx wraps them in .yd-scope, and the shared
+   BOS parts (page title, number cards, cards, tables, tabs, key values)
+   take the same title, card, number and table styles as the dashboards. */
+.yd-scope .bos-page-header { padding-bottom: 0; border-bottom: 0; margin-bottom: 18px; }
+.yd-scope .bos-page-header h1 { font-family: inherit; font-size: 1.55rem; font-weight: 650; letter-spacing: -.01em; }
+.yd-scope .bos-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; margin-bottom: 18px; }
+.yd-scope .bos-kpi { position: relative; padding: 14px 14px 12px; border: 1px solid var(--y-line); border-radius: 12px; background: var(--y-paper); overflow: hidden; }
+.yd-scope .bos-kpi::before { content: ""; position: absolute; inset-block-start: 0; inset-inline: 0; height: 3px; background: var(--y-red); opacity: .85; }
+.yd-scope .bos-kpi a { color: inherit; text-decoration: none; }
+.yd-scope .bos-kpi-label { font-size: .74rem; font-weight: 600; color: var(--y-muted); }
+.yd-scope .bos-kpi-value { font-family: inherit; font-size: 1.5rem; font-weight: 650; margin-top: 4px; color: var(--y-ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.yd-scope .bos-kpi-sub { display: inline-flex; margin-top: 6px; padding: 1px 6px; border-radius: 6px; font-size: .7rem; font-weight: 600; color: var(--y-muted); background: var(--y-soft); }
+.yd-scope .bos-kpi-sub.up { color: #0f9f6e; background: color-mix(in srgb, #10b981 12%, transparent); }
+.yd-scope .bos-kpi-sub.down { color: var(--y-red); background: var(--y-red-soft); }
+.yd-scope .bos-card { border: 1px solid var(--y-line); border-radius: 14px; background: var(--y-paper); margin-bottom: 18px; }
+.yd-scope .bos-card-header { padding: 14px 16px 0; border-bottom: 0; }
+.yd-scope .bos-card-header h2, .yd-scope .bos-card-header h3 { font-size: .88rem; font-weight: 650; color: var(--y-ink); }
+.yd-scope .bos-card-body { padding: 12px 16px 16px; }
+.yd-scope .bos-card-body.flush { padding: 8px 0 4px; }
+.yd-scope .bos-table-wrap { border-radius: 14px; border-color: var(--y-line); }
+.yd-scope .bos-card .bos-table-wrap { border: 0; border-radius: 0; }
+.yd-scope .bos-table th { padding: 9px 12px; background: transparent; text-transform: none; letter-spacing: 0; font-size: .74rem; }
+.yd-scope .bos-table td { padding: 9px 12px; font-variant-numeric: tabular-nums; }
+.yd-scope .bos-tabs { margin-bottom: 18px; }
+.yd-scope .bos-tabs a { border-radius: 9px; }
+.yd-scope .bos-summary { border-radius: 12px; overflow: hidden; }
+.yd-scope .bos-summary-value { font-family: inherit; font-weight: 650; font-variant-numeric: tabular-nums; }
+.yd-scope .bos-kv-value { font-variant-numeric: tabular-nums; }
+.yd-scope .bos-form-section { border-radius: 14px; }
+.yd-scope .bos-empty { border-radius: 14px; }
+.yd-table.yd-wrap tbody th { white-space: normal; min-width: 200px; }
+.yd-table.yd-wrap summary { cursor: pointer; }
+.yd-table.yd-wrap details p { margin: 4px 0 10px; font-weight: 400; color: var(--y-text-4); white-space: normal; }

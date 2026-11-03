@@ -121,6 +121,17 @@ export const providers: ProviderDef[] = [
     yolias: "Yolias AI والتفكير وكتابة الرسائل (حسب توزيع النماذج في المنصة ← النماذج اللغوية).",
   },
   {
+    key: "perplexity", name: "Perplexity", category: "ai", phase: 4, testable: true,
+    description: "محرك بحث بالذكاء الاصطناعي. يستخدمه يولياس لقياس ظهوره في إجابات الذكاء الاصطناعي (GEO).",
+    fields: [
+      { key: "api_key", label: "مفتاح API", secret: true, required: true, placeholder: "pplx-…" },
+      { key: "model", label: "النموذج", placeholder: "sonar" },
+    ],
+    capabilities: ["ai.search"],
+    docs: "https://docs.perplexity.ai",
+    yolias: "قياس GEO: الأسئلة الأسبوعية على Perplexity (السيو ← الظهور في الذكاء الاصطناعي).",
+  },
+  {
     key: "yolias_google", name: "Google OAuth — Yolias (Gmail)", category: "google", phase: 0, testable: true,
     description: "يربط به عملاء يولياس بريد Gmail الخاص بهم: إرسال الحملات بعد موافقتهم وقراءة الردود في المحادثات التي بدأها يولياس فقط. في Google Cloud: فعّل Gmail API، وأضف الصلاحيات gmail.send و gmail.readonly في شاشة الموافقة (تحتاج مراجعة Google قبل الاستخدام العام)، وأضف رابط الرجوع https://<دومين يولياس>/api/integrations/gmail/callback. (الدخول بحساب Google يُضبط في Supabase Auth.)",
     fields: [

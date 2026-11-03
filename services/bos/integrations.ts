@@ -239,6 +239,8 @@ function testRequest(r: ResolvedConnection): { url: string; init?: RequestInit }
       return { url: "https://api.openai.com/v1/models", init: { headers: { Authorization: `Bearer ${s.api_key}`, ...(c.organization ? { "OpenAI-Organization": c.organization } : {}) } } };
     case "gemini":
       return { url: "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1", init: { headers: { "x-goog-api-key": s.api_key } } };
+    case "perplexity":
+      return { url: "https://api.perplexity.ai/chat/completions", init: { method: "POST", headers: { Authorization: `Bearer ${s.api_key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: c.model || "sonar", messages: [{ role: "user", content: "ping" }], max_tokens: 1 }) } };
     case "anthropic":
       return { url: "https://api.anthropic.com/v1/models?limit=1", init: { headers: { "x-api-key": s.api_key, "anthropic-version": "2023-06-01" } } };
     case "google_maps":

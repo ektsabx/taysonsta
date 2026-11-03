@@ -615,6 +615,10 @@ export type AppSessionRow = { id: string; user_id: string; workspace_id: string 
 /** D-276: the owner's monthly costs (fixed, and marketing spend per channel), entered in Yolias Admin. */
 export type FinanceEntryRow = { id: string; month: string; kind: "fixed" | "marketing"; category: string; amount_usd: number; cogs: boolean; note: string | null; created_by: string | null; created_at: string; updated_at: string };
 /** D-276: one page view (lib/visits.ts). */
+export type IntegrationKeyRow = { provider: string; config: Json; secret_id: string; hint: Json; updated_by: string | null; updated_at: string };
+export type GeoPromptRow = { id: string; text: string; lang: "en" | "ar"; topic: string | null; active: boolean; created_at: string };
+export type GeoRunRow = { id: string; started_at: string; finished_at: string | null; status: "running" | "done"; engines: string[]; total: number; trigger: "weekly" | "manual" };
+export type GeoAnswerRow = { id: string; run_id: string; prompt_id: string; engine: "openai" | "gemini" | "perplexity"; status: "pending" | "working" | "done" | "failed"; attempts: number; claimed_at: string | null; answer: string | null; mentioned: boolean | null; first_pick: boolean | null; cited: boolean | null; brands: string[]; citations: string[]; error: string | null; answered_at: string | null };
 export type SiteVisitRow = { id: number; visitor: string; session: string; user_id: string | null; workspace_id: string | null; area: "site" | "app"; path: string; landing: boolean; referrer_host: string | null; channel: string | null; engine: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; country: string | null; region: string | null; city: string | null; ip: string | null; device: string | null; os: string | null; browser: string | null; locale: string | null; created_at: string };
 export type AccountStatus = "active" | "suspended" | "paused" | "banned" | "deleted";
 export type AccountModerationRow = { user_id: string; status: AccountStatus; reason: string | null; until: string | null; changed_by: string | null; changed_at: string };
@@ -1046,6 +1050,10 @@ export interface Database {
       funnel_events: Table<FunnelEventRow, "event_key" | "name">;
       app_sessions: Table<AppSessionRow, "user_id">;
       site_visits: Table<SiteVisitRow, "visitor" | "session" | "area" | "path">;
+      geo_prompts: Table<GeoPromptRow, "text">;
+      integration_keys: Table<IntegrationKeyRow, "provider" | "secret_id">;
+      geo_runs: Table<GeoRunRow, never>;
+      geo_answers: Table<GeoAnswerRow, "run_id" | "prompt_id" | "engine">;
       yolias_finance_entries: Table<FinanceEntryRow, "month" | "kind" | "category" | "amount_usd">;
       account_moderation: Table<AccountModerationRow, "user_id" | "status">;
       account_notes: Table<AccountNoteRow, "user_id" | "body">;
