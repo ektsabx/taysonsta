@@ -69,7 +69,7 @@ export const wsEn = {
       ctaUrl: { meeting: "Booking page", sell: "Website link (sign-up or purchase)" },
       ctaPh: "https://", saveAim: "Save aim", aimSaved: "Aim saved. Yolias is writing the first email again.", badLink: "The link must start with https://",
       autopilot: "After you approve, Yolias carries on by itself, even with the site closed: it sends, follows up with those who don't reply and answers simple questions. As soon as someone is interested or asks for a meeting, it stops following up, offers your booking page (or your website link for a purchase campaign) and notifies you. Objections, requests to talk to a person, unclear replies and stop requests come to you, and every reply is in Conversations.",
-      title: "Review and approve", lead: "Nothing is sent until you approve. Check who receives it, the first message and the follow-ups.",
+      title: "Review and approve", lead: "Who receives it, the first message and the follow-ups.",
       domainWeak: "{domain} is missing {missing}, so this campaign's emails may land in spam.", domainFix: "How to fix it", recipients: "Recipients", after: "after {days} days", withEmail: "{count} with an email address. Leads without one get no emails.", dailyLimit: "Daily limit", perDay: "Up to {count} emails a day",
       sample: "First message (example)", noSample: "The first messages are prepared when you approve.",
       sendFrom: "Send from", manualOption: "Don’t send: I’ll send each message myself",

@@ -60,7 +60,7 @@ export const agEn = {
         "Yolias finds companies and people that match each audience, every day, within your budget.",
         "It writes a different email to each person, sends it from your mailbox in your hours, and follows up twice if there is no reply.",
         "It reads every reply and answers it: questions and objections from your Company Knowledge, interest with two free times and your booking page.",
-        "When someone books, the meeting appears in Meetings and on your calendar. Anyone who says no or asks to stop is never contacted again.",
+        "When someone books, the meeting appears in Meetings and on your calendar.",
         "If a reply needs you (a complaint, a negotiation, a question Yolias can't answer), it stops and tells you.",
       ],
       confirm: "Yolias may email the people it finds from {mailbox}, on my behalf, and answer their replies.",
@@ -214,7 +214,7 @@ export const agEn = {
         "It writes a different email to each person from your mailbox in your hours, with your website link, and follows up twice if there is no reply.",
         "It reads every reply and answers it from your Company Knowledge; to interested people it sends your link again and the reasons that matter to them.",
         "Your pixel counts what they do on your website ({event}) within {days} days of the click or the email, and credits it to the campaign and its audience.",
-        "Anyone who says no or asks to stop is never contacted again. If a reply needs you, Yolias stops and tells you.",
+        "Replies that need you come to you.",
       ],
       whatFind: [
         "Yolias finds the companies and people that match each audience, every day, within your budget.",

@@ -140,7 +140,7 @@ export const sdrEn = {
       aimTitle: "What is it for?",
       leadsTitle: "Who should get it?", leadsSub: "Pick people from Prospects, or everyone a search found.", fromSearch: "Everyone from a search", pickSearch: "Choose a search", fromPeople: "Pick people", pickedN: "{n} selected", searchPeople: "Search people…", noPeople: "No people or companies in Prospects yet.",
       seqTitle: "Build the sequence", seqSub: "The first email and its follow-ups. Yolias writes every email for each lead from these goals.",
-      reviewTitle: "Review and launch", reviewSub: "Nothing is sent until you approve. Yolias writes each email first; you can read and edit them on the campaign page.",
+      reviewTitle: "Review and launch", reviewSub: "Yolias writes each email; read and edit them on the campaign page.",
       add: "Add", inCampaign: "Leads in this campaign: {n}", cancel: "Cancel", continue: "Continue", backStep: "Back", finish: "Open the campaign",
     },
   },
