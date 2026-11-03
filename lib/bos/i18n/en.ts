@@ -9474,6 +9474,16 @@ const en: Record<string, string> = {
  "من 1 إلى 24 شهرًا": "From 1 to 24 months",
  "لا توجد خطة لتجديدها: فعّل خطة أولًا.": "There's no plan to renew: activate a plan first.",
  "لا يوجد اشتراك فعّال لإلغائه.": "There's no active subscription to cancel.",
+ "يظهر بعد": "Shows after",
+ "أول اجتماع محجوز": "The first booked meeting",
+ "أول رد إيجابي": "The first positive reply",
+ "إطلاق أول حملة": "The first campaign launched",
+ "رابط التقييم": "Review link",
+ "فيديو الترحيب «Hey There, I'm Yolias»": "Welcome video «Hey There, I'm Yolias»",
+ "طلب التقييم": "Review request",
+ "رابط https": "An https link",
+ "التوقيت غير صالح.": "The timing isn't valid.",
+ "النوافذ المنبثقة": "Popups",
 };
 
 export default en;

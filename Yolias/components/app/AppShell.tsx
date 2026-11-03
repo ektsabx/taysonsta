@@ -333,7 +333,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
-      {data.user.askReview && !welcomeOpen && <ReviewPrompt />}
+      {data.user.askReview && data.user.reviewUrl && !welcomeOpen && <ReviewPrompt url={data.user.reviewUrl} />}
       <ActivityPing />
       {data.planGate && !welcomeOpen && <PlanGateModal trialDays={data.planGate.trialDays} />}
       {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}

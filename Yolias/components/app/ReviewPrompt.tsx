@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, X } from "lucide-react";
 import { recordReviewPrompt } from "@/app/(app)/settings/actions";
-import { TRUSTPILOT_REVIEW_URL } from "@/lib/community";
 import { useI18n } from "@/lib/i18n/client";
 
 // A small card in the corner (never a blocking dialog), shown once per user
-// after their first search delivered results (lib/review-prompt.ts).
-export function ReviewPrompt() {
+// after a first real success (lib/review-prompt.ts; Admin → Popups).
+export function ReviewPrompt({ url }: { url: string }) {
   const { t } = useI18n();
   const r = t.review;
   const [open, setOpen] = useState(true);
@@ -33,7 +32,7 @@ export function ReviewPrompt() {
       <strong id="review-prompt-title">{r.title}</strong>
       <p>{r.body}</p>
       <div className="review-prompt-actions">
-        <a className="btn-primary" href={TRUSTPILOT_REVIEW_URL} target="_blank" rel="noopener noreferrer" onClick={() => close("opened")}>{r.cta}</a>
+        <a className="btn-primary" href={url} target="_blank" rel="noopener noreferrer" onClick={() => close("opened")}>{r.cta}</a>
         <button className="btn-secondary" type="button" onClick={() => close("dismissed")}>{r.later}</button>
       </div>
     </aside>

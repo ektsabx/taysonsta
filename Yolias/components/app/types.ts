@@ -14,6 +14,8 @@ export interface ShellData {
     phone: string | null;
     /** Show the Trustpilot request now (once per user, after a successful search). */
     askReview: boolean;
+    /** The review link (Admin → Popups), when the review request is due. */
+    reviewUrl: string | null;
   };
   preferences: Pick<ProfileRow, "theme" | "text_size" | "language" | "timezone" | "country" | "notify_campaign_done" | "notify_usage" | "notify_billing" | "notify_product" | "notify_sales" | "notify_review" | "notify_daily_changes" | "notify_daily_summary" | "notify_founder">;
   workspace: {

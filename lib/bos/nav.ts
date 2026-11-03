@@ -63,6 +63,8 @@ export const navigation: NavGroup[] = [
     ],
   },
   { key: "y_workspaces", section: "yolias", label: "مساحات العمل", icon: "y_workspaces", href: "/admin/platform/workspaces", perm: "platform.read" },
+  // Popups (owner, 2026-11-03, D-276): every window Yolias shows its members.
+  { key: "y_popups", section: "yolias", label: "النوافذ المنبثقة", icon: "y_growth", href: "/admin/platform/popups", perm: "platform.read" },
   {
     key: "y_revenue", section: "yolias",
     label: "الاشتراكات والإيرادات",

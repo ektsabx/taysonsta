@@ -6,7 +6,7 @@ import { loadWelcomeVideo } from "@/lib/welcome-video-server";
 import { canManageTeam, requireViewer } from "@/lib/session";
 import { initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { shouldAskForReview } from "@/lib/review-prompt";
+import { reviewPrompt } from "@/lib/review-prompt";
 import { getPlanCatalog } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
@@ -66,7 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     paymentsConnected(workspace),
     unreadNotifications(session.userId),
     ownPhone(session.userId),
-    shouldAskForReview(session).catch(() => false),
+    reviewPrompt(session).catch(() => null),
     loadWelcomeVideo(),
     unreadThreads(session.workspace.id),
   ]);
@@ -82,7 +82,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       avatarUrl: profile.avatar_url,
       initials: initials(profile.full_name, session.email.slice(0, 2).toUpperCase()),
       phone,
-      askReview,
+      askReview: Boolean(askReview), reviewUrl: askReview,
     },
     preferences: {
       theme: profile.theme,

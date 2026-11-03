@@ -1,19 +1,30 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Session } from "@/lib/session";
+import { POPUPS_KEY, parsePopups } from "@/lib/popups";
 
-// Trustpilot review request (2026-10-12). Asked once per user, only after a
-// real success: a search this user started has delivered results. Everyone
-// who reaches that point is asked the same way (no filtering on how happy
-// they are) and nothing is offered in return, as Trustpilot's guidelines
-// require. Once shown, it never comes back, on any device.
-
-export async function shouldAskForReview(session: Session): Promise<boolean> {
-  if (session.profile.review_prompted_at) return false;
-  const supabase = await createClient();
-  const { data: campaigns } = await supabase.from("campaigns").select("id").eq("workspace_id", session.workspace.id).eq("created_by", session.userId).limit(200);
-  if (!campaigns?.length) return false;
-  const { count } = await supabase.from("companies").select("id", { count: "exact", head: true })
-    .in("campaign_id", campaigns.map((c) => c.id)).not("delivered_at", "is", null).limit(1);
-  return (count ?? 0) > 0;
+// Review request (Trustpilot, 2026-10-12; D-276: managed in Yolias Admin →
+// Popups). Asked once per user, only after a real success in their
+// workspace, the one the owner picks: the first meeting booked (default),
+// the first interested reply, or the first campaign launched. Once shown, it
+// never comes back, on any device. Returns the review link, or null.
+export async function reviewPrompt(session: Session): Promise<string | null> {
+  if (session.profile.review_prompted_at) return null;
+  const db = createAdminClient();
+  const { data: setting } = await db.from("site_settings").select("value").eq("key", POPUPS_KEY).maybeSingle();
+  const { review } = parsePopups(setting?.value);
+  if (!review.enabled) return null;
+  const ws = session.workspace.id;
+  let reached = false;
+  if (review.trigger === "first_campaign") {
+    const { count } = await db.from("outreach_campaigns").select("id", { count: "exact", head: true }).eq("workspace_id", ws).not("approved_at", "is", null);
+    reached = (count ?? 0) > 0;
+  } else if (review.trigger === "first_positive_reply") {
+    const { count } = await db.from("outreach_messages").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("direction", "inbound").in("analysis->>kind", ["interested", "meeting_request"]);
+    reached = (count ?? 0) > 0;
+  } else {
+    const { count } = await db.from("sales_meetings").select("id", { count: "exact", head: true }).eq("workspace_id", ws).neq("status", "canceled");
+    reached = (count ?? 0) > 0;
+  }
+  return reached ? review.url : null;
 }
