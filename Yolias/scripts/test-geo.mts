@@ -34,6 +34,9 @@ setIntegrationsForTests({ openai: { api_key: "test" }, gemini: { api_key: "test"
 const { data: before } = await db.from("geo_prompts").select("id").eq("active", true);
 await db.from("geo_prompts").update({ active: false }).eq("active", true);
 const { data: prompts } = await db.from("geo_prompts").insert([{ text: "geo test prompt one", lang: "en" }, { text: "geo test prompt two", lang: "en" }]).select("id");
+// Runs already in progress locally (the dev worker's weekly run) are set aside so this one is answered.
+const { data: others } = await db.from("geo_runs").select("id").eq("status", "running");
+if (others?.length) await db.from("geo_runs").update({ status: "done" }).in("id", others.map((o) => o.id));
 const { data: run } = await db.from("geo_runs").insert({ trigger: "manual" }).select("id").single();
 try {
   for (let i = 0; i < 6; i++) await geoSweep();
@@ -48,6 +51,7 @@ try {
   assert.equal(r!.status, "done");
   console.log("GEO tracking: ok");
 } finally {
+  if (others?.length) await db.from("geo_runs").update({ status: "running", finished_at: null }).in("id", others.map((o) => o.id));
   await db.from("geo_runs").delete().eq("id", run!.id);
   await db.from("geo_prompts").delete().in("id", prompts!.map((p) => p.id));
   if (before?.length) await db.from("geo_prompts").update({ active: true }).in("id", before.map((p) => p.id));

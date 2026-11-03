@@ -98,3 +98,15 @@ export function campaignWindow(c: { run_days: string[] | null; contact_from: str
     timeZone: c.timezone && validTimeZone(c.timezone) ? c.timezone : fallbackZone,
   };
 }
+
+/**
+ * Warm-up for a new mailbox (audit, 2026-11-03): its first weeks send less, so
+ * its reputation builds before it reaches its full daily limit. Week 1: 15 a
+ * day, week 2: 25, week 3: 40, then the mailbox's own limit.
+ */
+export const RAMP = [15, 25, 40] as const;
+export function rampedLimit(limit: number, connectedAt: string | null | undefined, now = Date.now()): number {
+  if (!connectedAt) return limit;
+  const week = Math.floor((now - Date.parse(connectedAt)) / (7 * 86_400_000));
+  return week >= 0 && week < RAMP.length ? Math.min(limit, RAMP[week]) : limit;
+}

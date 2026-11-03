@@ -80,10 +80,8 @@ try {
   const { data: packs } = await db.from("prospect_packs").select("*").eq("active", true).order("price_usd");
   assert.deepEqual(packs!.map((p) => Number(p.price_usd)), [5, 20, 50, 100], "top-ups: $5, $20, $50, $100");
   for (const p of packs!) assert.equal(p.prospects, Math.floor(Number(p.price_usd) / rate), `$${p.price_usd} = price / rate prospects`);
-  assert.deepEqual(offeredPlans, ["pro", "growth"], "no $200 plan offered");
-  // The reference price (owner, 2026-10-21): $50 = 1,000 prospects, i.e. $0.05 each.
-  assert.equal(rate, 0.05, "5 cents a prospect");
-  assert.equal(packs!.find((p) => Number(p.price_usd) === 50)!.prospects, 1000, "$50 = 1,000 prospects");
+  assert.deepEqual(offeredPlans, ["growth", "scale"], "Growth and Scale are the plans offered (pricing since 2026-11)");
+  // The rate is the owner's setting (Admin → Plans); each pack follows it (checked above).
 
   const { data: created, error } = await db.auth.admin.createUser({ email, email_confirm: true });
   if (error) throw error;
@@ -159,10 +157,11 @@ try {
   // ── 6. Public pages: three options, no annual, no $200 plan, no email limits ──
   const html = await (await fetch(`${app}/pricing`, { headers: { "accept-language": "en" } })).text();
   assert.match(html, /Pay As You Go/);
-  for (const banned of [/Annual/i, /billed yearly/i, /Scale/, /\$200/, /emails \/ month/i, /1,000 emails/i]) assert.doesNotMatch(html, banned, `pricing page has no ${banned}`);
+  for (const banned of [/emails \/ month/i, /1,000 emails/i]) assert.doesNotMatch(html, banned, `pricing page has no ${banned}`);
+  assert.match(html, /Scale/, "Scale is on the pricing page");
   assert.doesNotMatch(html, /\$5 = /, "the cards don't list the top-up amounts (owner, 2026-10-21)");
 
-  console.log("✓ payg: four amounts at the configured rate, failed payment adds nothing, duplicate webhooks credit once, no subscription, consumption, no email charge, PAYG ↔ monthly keeps the balance, no annual / $200 on the pricing page");
+  console.log("✓ payg: four amounts at the configured rate, failed payment adds nothing, duplicate webhooks credit once, no subscription, consumption, no email charge, PAYG ↔ monthly keeps the balance, Growth and Scale on the pricing page");
 } finally {
   if (userId) {
     const { data: prof } = await db.from("profiles").select("workspace_id").eq("id", userId).maybeSingle();

@@ -46,12 +46,13 @@ export default async function CampaignOpsPage({ searchParams }: { searchParams: 
         <Stat tone="growth" label="الردود" value={sum("replies")} />
         <Stat tone="growth" label="المهتمون" value={sum("interested")} />
         <Stat tone="growth" label="الاجتماعات" value={sum("meetings")} />
+        <Stat tone="economics" label="تكلفة الذكاء الاصطناعي" format="usd" value={all.reduce((a, c) => a + c.aiCostUsd, 0)} good="down" />
         <Stat tone="growth" label="اجتماع لكل 100 رسالة" value={sent ? (sum("meetings") / sent) * 100 : null} />
       </Group>
       <Panel title="الحملات عبر كل الحسابات">
         <div className="yd-table-wrap">
           <table className="yd-table yd-wrap">
-            <thead><tr><th><Tx>الحملة</Tx></th><th><Tx>الحساب</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المُرسل</Tx></th><th><Tx>الارتداد</Tx></th><th><Tx>فشلت</Tx></th><th><Tx>الردود</Tx></th><th><Tx>المهتمون</Tx></th><th><Tx>الاجتماعات</Tx></th><th><Tx>تنبيهات</Tx></th>{canEdit && <th />}</tr></thead>
+            <thead><tr><th><Tx>الحملة</Tx></th><th><Tx>الحساب</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>المُرسل</Tx></th><th><Tx>الارتداد</Tx></th><th><Tx>فشلت</Tx></th><th><Tx>الردود</Tx></th><th><Tx>المهتمون</Tx></th><th><Tx>الاجتماعات</Tx></th><th><Tx>تكلفة الذكاء الاصطناعي</Tx></th><th><Tx>تنبيهات</Tx></th>{canEdit && <th />}</tr></thead>
             <tbody>
               {rows.map((c) => (
                 <tr key={c.id}>
@@ -64,11 +65,12 @@ export default async function CampaignOpsPage({ searchParams }: { searchParams: 
                   <td dir="ltr">{c.replies}</td>
                   <td dir="ltr">{c.interested}</td>
                   <td dir="ltr">{c.meetings}</td>
+                  <td dir="ltr">{fmtValue(c.aiCostUsd, "usd")}</td>
                   <td>{c.flags.map((f) => <span key={f} className="yd-chip bad"><Tx>{FLAG[f]}</Tx></span>)}</td>
                   {canEdit && <td>{(c.status === "active" || c.status === "scheduled") && c.flags.length > 0 && <PauseForm id={c.id} />}</td>}
                 </tr>
               ))}
-              {!rows.length && <tr><td colSpan={11} className="yd-empty"><Tx>لا توجد حملات</Tx></td></tr>}
+              {!rows.length && <tr><td colSpan={12} className="yd-empty"><Tx>لا توجد حملات</Tx></td></tr>}
             </tbody>
           </table>
         </div>

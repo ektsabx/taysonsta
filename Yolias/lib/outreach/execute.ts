@@ -13,7 +13,7 @@ import { replyAction, type ReplyAction, type ReplyKind } from "@/lib/agent-core/
 import { runAutomations } from "@/lib/automations/engine";
 import { postponeFollowUps, stopEnrollments } from "@/lib/crm/follow-ups";
 import { loadSendingRules, mailboxAccess, markMailboxError, MailboxError } from "@/lib/mailbox";
-import { mailboxWindow, nextGapMs, withinWindow, campaignWindow } from "@/lib/outreach/sending-rules";
+import { mailboxWindow, nextGapMs, rampedLimit, withinWindow, campaignWindow } from "@/lib/outreach/sending-rules";
 import { cleanNotificationText } from "@/lib/notification-text";
 import { advanceEnrollment, prepareNextStep } from "@/lib/outreach/sequence";
 import { unsubscribeFooter, unsubscribePostUrl } from "@/lib/outreach/unsubscribe";
@@ -163,7 +163,7 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   const today = new Date().toISOString().slice(0, 10);
   const sentToday = mailbox.sent_day === today ? mailbox.sent_today : 0;
   // The mailbox's own limit and the workspace's daily send limit, whichever is lower.
-  let room = Math.min(Math.min(mailbox.daily_limit, settings.limits.daily_send_limit) - sentToday, PER_RUN);
+  let room = Math.min(Math.min(rampedLimit(mailbox.daily_limit, mailbox.connected_at), settings.limits.daily_send_limit) - sentToday, PER_RUN);
   // D-270: and the campaign's own daily limit, when it has one.
   if (c.daily_limit) {
     const { count: campaignToday } = await db.from("outreach_messages").select("id", { count: "exact", head: true })
@@ -327,7 +327,7 @@ export async function sendMessageNow(workspaceId: string, userId: string, messag
   const mailbox = mine.find((b) => b.id === used?.mailbox_id) ?? mine.find((b) => b.id === c?.mailbox_id) ?? mine[0];
   const settings = await loadAiSettings(workspaceId);
   const today = new Date().toISOString().slice(0, 10);
-  if ((mailbox.sent_day === today ? mailbox.sent_today : 0) >= Math.min(mailbox.daily_limit, settings.limits.daily_send_limit)) return { ok: false, error: "daily_limit" };
+  if ((mailbox.sent_day === today ? mailbox.sent_today : 0) >= Math.min(rampedLimit(mailbox.daily_limit, mailbox.connected_at), settings.limits.daily_send_limit)) return { ok: false, error: "daily_limit" };
   const approvedAt = new Date().toISOString();
   await db.from("outreach_messages").update({ approved_by: userId, approved_at: approvedAt, status: "approved" }).eq("id", m.id).in("status", ["draft", "approved", "failed"]);
   const outcome = await sendOne(db, c, mailbox, { ...m, status: "approved", approved_by: userId, approved_at: approvedAt }, to);

@@ -9565,6 +9565,7 @@ const en: Record<string, string> = {
  "صناديق البريد": "Mailboxes",
  "صناديق متصلة": "Connected mailboxes",
  "كل صناديق البريد": "All mailboxes",
+ "تكلفة الذكاء الاصطناعي": "AI cost",
 };
 
 export default en;

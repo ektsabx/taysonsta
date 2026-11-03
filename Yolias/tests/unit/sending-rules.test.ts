@@ -40,3 +40,15 @@ test("the gap is a whole number of minutes between its ends", () => {
   assert.equal(nextGapMs({ gap_min: 18, gap_max: 24 }, () => 0.9999), 24 * 60_000);
   assert.equal(nextGapMs({ gap_min: 0, gap_max: 0 }), 0);
 });
+
+test("new mailboxes warm up", async () => {
+  const { rampedLimit } = await import("../../lib/outreach/sending-rules.ts");
+  const now = Date.parse("2026-11-03T00:00:00Z");
+  const ago = (d: number) => new Date(now - d * 86_400_000).toISOString();
+  assert.equal(rampedLimit(30, ago(1), now), 15);
+  assert.equal(rampedLimit(30, ago(10), now), 25);
+  assert.equal(rampedLimit(30, ago(16), now), 30);
+  assert.equal(rampedLimit(100, ago(30), now), 100);
+  assert.equal(rampedLimit(10, ago(1), now), 10);
+  assert.equal(rampedLimit(30, null, now), 30);
+});

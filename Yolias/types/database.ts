@@ -1125,7 +1125,7 @@ export interface Database {
       affiliate_log: { Args: { p_affiliate: string | null; p_actor: string; p_action: string; p_type: string | null; p_id: string | null; p_before: Json | null; p_after: Json | null }; Returns: undefined };
       usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
       mailbox_count_sent: { Args: { p_mailbox: string; p_day: string }; Returns: number };
-      admin_campaign_ops: { Args: { p_since: string }; Returns: { campaign_id: string; workspace_id: string; workspace_name: string | null; name: string; status: string; objective: string; created_at: string; approved_at: string | null; mailbox_email: string | null; daily_limit: number | null; sent: number; bounced: number; failed: number; replies: number; interested: number; meetings: number; last_sent_at: string | null }[] };
+      admin_campaign_ops: { Args: { p_since: string }; Returns: { campaign_id: string; workspace_id: string; workspace_name: string | null; name: string; status: string; objective: string; created_at: string; approved_at: string | null; mailbox_email: string | null; daily_limit: number | null; sent: number; bounced: number; failed: number; replies: number; interested: number; meetings: number; last_sent_at: string | null; ai_cost_usd: number }[] };
       admin_deliverability: { Args: { p_since: string }; Returns: { mailbox_id: string; email: string; provider: string; status: string; workspace_name: string | null; daily_limit: number; sent: number; bounced: number; replies: number; unsubscribed: number; last_error: string | null; last_synced_at: string | null }[] };
       limits_summary: { Args: { p_ws: string }; Returns: LimitsSummary[] };
       convert_trial: { Args: { p_ws: string }; Returns: boolean };

@@ -16,6 +16,7 @@ export interface OpsCampaign {
   id: string; workspaceId: string; workspace: string; name: string; status: string; objective: string;
   createdAt: string; approvedAt: string | null; mailbox: string | null; dailyLimit: number | null;
   sent: number; bounced: number; failed: number; replies: number; interested: number; meetings: number; lastSentAt: string | null;
+  aiCostUsd: number;
   flags: CampaignFlag[];
 }
 
@@ -26,7 +27,7 @@ export async function campaignOps(sinceIso: string): Promise<OpsCampaign[]> {
     const c = {
       id: r.campaign_id, workspaceId: r.workspace_id, workspace: r.workspace_name ?? "", name: r.name, status: r.status, objective: r.objective,
       createdAt: r.created_at, approvedAt: r.approved_at, mailbox: r.mailbox_email, dailyLimit: r.daily_limit,
-      sent: Number(r.sent), bounced: Number(r.bounced), failed: Number(r.failed), replies: Number(r.replies), interested: Number(r.interested), meetings: Number(r.meetings), lastSentAt: r.last_sent_at,
+      sent: Number(r.sent), bounced: Number(r.bounced), failed: Number(r.failed), replies: Number(r.replies), interested: Number(r.interested), meetings: Number(r.meetings), lastSentAt: r.last_sent_at, aiCostUsd: Number(r.ai_cost_usd),
     };
     return { ...c, flags: flagsOf(c) };
   });

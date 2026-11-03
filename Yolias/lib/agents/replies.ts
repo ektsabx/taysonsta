@@ -38,7 +38,11 @@ const AnalysisSchema = z.object({
   suggested_reply: z.string().max(2000).nullable(),
   /** D-269: a concrete meeting time the reply proposes or accepts, as ISO 8601 with its offset, else null. */
   proposed_start: z.string().max(40).nullable().optional(),
+  /** Audit (2026-11-03): how sure the reading is, 0 to 1. Below CONFIDENCE_MIN the reply goes to the member. */
+  confidence: z.number().min(0).max(1).optional(),
 });
+
+export const CONFIDENCE_MIN = 0.6;
 export type ReplyAnalysis = z.infer<typeof AnalysisSchema> & { by: "ai" | "rules" };
 
 
@@ -94,6 +98,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
         system: [
           "You read one reply from a sales prospect and classify it for the sender's team.",
           "kind: interested | meeting_request | question | objection | not_interested | stop_request | out_of_office | asks_for_human | unclear.",
+          "confidence: how sure you are of kind, from 0 to 1. Use below 0.6 when the reply is ambiguous, sarcastic, mixes intents or depends on context you don't have.",
           "suggested_stage: the CRM stage this reply justifies, or null when it changes nothing (interested → interested; a request for a meeting → interested unless a time was agreed → meeting_booked; a clear no → lost; a stop request → lost).",
           "needs_human: true only when a person must answer: a complaint, a legal matter, a negotiation of price or contract terms, or a request to talk to a person. Questions and objections Yolias can answer from the company knowledge are NOT needs_human.",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
@@ -110,6 +115,10 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
         maxTokens: 1500,
       }, (x) => { const v = AnalysisSchema.safeParse(x); return v.success ? v.data : null; }, { workspaceId, campaignId: null, promptVersion: ANALYSIS_PROMPT_VERSION });
       analysis = { ...r.data, by: "ai" };
+      // A reading Yolias isn't sure of goes to the member, never answered automatically.
+      if (analysis.kind !== "stop_request" && (analysis.confidence ?? 1) < CONFIDENCE_MIN) {
+        analysis = { ...analysis, needs_human: true, escalate_because: [...new Set([...analysis.escalate_because, "unclear_reply" as const])] };
+      }
     } catch (e) {
       if (!(e instanceof LlmNotConfiguredError)) console.error("[replies] llm", e);
     }

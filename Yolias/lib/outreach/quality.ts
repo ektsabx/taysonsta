@@ -29,7 +29,7 @@ export function draftIssues(body: string, personalizationUsed: string[], facts: 
   if (/[!！]/.test(body)) out.push("exclamation");
   if ((body.match(/[?؟]/g) ?? []).length > 2) out.push("questions");
   const n = words(body);
-  if (n < 20) out.push("too_short");
+  if (n < 12) out.push("too_short");
   if (n > 220) out.push("too_long");
   return out;
 }
