@@ -22,6 +22,10 @@ if (!/127\.0\.0\.1|localhost/.test(url)) throw new Error("Local database only.")
 const db = createClient<Database>(url, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 const stamp = Date.now().toString(36);
 const users: string[] = [];
+// Shared learning from other workspaces (demo data, other tests) would give every
+// campaign a prior: set it aside so the checks see only this test's data.
+const sharedRows = (await db.from("learning_rates").select("*")).data ?? [];
+if (sharedRows.length) await db.from("learning_rates").delete().in("aim", [...new Set(sharedRows.map((r) => r.aim))]);
 const DAY = 86_400_000;
 const iso = (ms: number) => new Date(ms).toISOString();
 
@@ -144,6 +148,7 @@ try {
   console.log("✓ deliverability guard pauses a campaign whose mailbox bounces, and says why");
   console.log("ALL PASS");
 } finally {
+  if (sharedRows.length) await db.from("learning_rates").upsert(sharedRows as never);
   for (const u of users) {
     const { data: p } = await db.from("profiles").select("workspace_id").eq("id", u).maybeSingle();
     if (p?.workspace_id) {

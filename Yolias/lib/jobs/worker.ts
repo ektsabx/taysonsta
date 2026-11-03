@@ -159,7 +159,7 @@ export interface TickResult {
   dead: number;
 }
 
-const LEASE_SECONDS = 150;
+const LEASE_SECONDS = 240;
 
 /**
  * One worker run at a time (audit 2026-11-03): the cron fires every minute and
@@ -193,38 +193,45 @@ async function runTick({ max = 5, budgetMs = 25_000 }: { max?: number; budgetMs?
   const db = createAdminClient();
   const started = Date.now();
   const result: TickResult = { taken: 0, succeeded: 0, retried: 0, dead: 0 };
-  await scheduleSweep().catch((e) => console.error("[jobs] sweep scheduling failed", e));
-  await scheduleCampaigns().catch((e) => console.error("[jobs] campaign scheduling failed", e));
-  await heartbeat().catch(() => {});
-  await scheduleStatusChecks().catch((e) => console.error("[jobs] status checks failed", e));
-  await runQueuedEval().catch((e) => console.error("[jobs] agent evaluation failed", e));
-  // Follow-up Agent: due follow-ups, scheduled messages and meeting outcomes (D-197).
-  await followUpSweep().catch((e) => console.error("[jobs] follow-up sweep failed", e));
-  // The morning summary by email (owner, 2026-10-29), at most every 15 minutes.
-  await dailyDigestSweep().catch((e) => console.error("[jobs] morning summary failed", e));
-  // The daily campaign emails (D-273): people found, changes, the summary, the founder's note.
-  await campaignDigestSweep().catch((e) => console.error("[jobs] campaign emails failed", e));
-  // Approved campaigns send from the member's mailbox; replies come back from it (D-229).
-  // Campaign dates, the deliverability guard and shared learning (D-270), before sending.
-  await campaignScheduleSweep().catch((e) => console.error("[jobs] campaign schedule failed", e));
-  await dispatchCampaigns().catch((e) => console.error("[jobs] outreach dispatch failed", e));
-  await syncReplies().catch((e) => console.error("[jobs] reply sync failed", e));
-  // Guests who accepted the calendar invitation confirm their meeting (D-273).
-  await confirmationSweep().catch((e) => console.error("[jobs] meeting confirmations failed", e));
-  // D-274: guest reminders (a day and an hour before) and the host's brief.
-  await meetingPrepSweep().catch((e) => console.error("[jobs] meeting prep failed", e));
-  // Intake (D-273): people found for a launched campaign's audiences join its conversations.
-  await intakeSweep().catch((e) => console.error("[jobs] intake failed", e));
-  // Learning (D-273): once a day, what worked for each workspace (a hint for the writer).
-  await learningSweep().catch((e) => console.error("[jobs] learning failed", e));
-  // D-276: IP addresses of page views and sessions are kept 30 days.
-  await clearOldIps().catch((e) => console.error("[jobs] clearing IPs failed", e));
-  // The optimizer (D-274): once a day, each running campaign's budget split between its audiences.
-  await optimizerSweep().catch((e) => console.error("[jobs] optimizer failed", e));
-  // Checkout journey (D-212): quiet checkouts become "abandoned".
-  await classifyCheckouts().catch((e) => console.error("[jobs] checkout classification failed", e));
-  // Messaging & Automation (D-243): events → flows, due steps, campaigns, time-based events.
-  await messagingTick().catch((e) => console.error("[jobs] messaging failed", e));
+  // Audit (2026-11-03): sending first, in order; everything else in parallel with
+  // its own time limit, so one slow step never holds back sending. Each step's
+  // time and outcome is kept in worker_state "tick.steps" for Platform health.
+  const steps: Record<string, { ms: number; ok: boolean; error?: string }> = {};
+  const step = async (name: string, fn: () => Promise<unknown>, limitMs = 20_000) => {
+    const t = Date.now();
+    try {
+      await Promise.race([fn(), new Promise((_, reject) => setTimeout(() => reject(new Error(`timed out after ${limitMs} ms`)), limitMs))]);
+      steps[name] = { ms: Date.now() - t, ok: true };
+    } catch (e) {
+      const error = e instanceof Error ? e.message : String(e);
+      steps[name] = { ms: Date.now() - t, ok: false, error: error.slice(0, 300) };
+      console.error(`[jobs] ${name} failed`, error);
+    }
+  };
+  // 1. Sending path, in order: schedules, follow-ups due, campaign dates and the
+  //    deliverability guard, then sending and the replies (D-229, D-270).
+  await step("billing.schedule", scheduleSweep, 5_000);
+  await step("campaigns.schedule", () => scheduleCampaigns(), 10_000);
+  await step("followups", followUpSweep);
+  await step("campaigns.dates", campaignScheduleSweep);
+  await step("outreach.dispatch", () => dispatchCampaigns(), 40_000);
+  await step("replies.sync", () => syncReplies(), 30_000);
+  // 2. Everything else, side by side.
+  await Promise.all([
+    step("heartbeat", heartbeat, 5_000),
+    step("status.checks", scheduleStatusChecks),
+    step("agent.eval", runQueuedEval),
+    step("digest.morning", dailyDigestSweep),
+    step("digest.campaigns", campaignDigestSweep),
+    step("meetings.confirm", confirmationSweep),
+    step("meetings.prep", meetingPrepSweep),
+    step("intake", intakeSweep),
+    step("learning", learningSweep),
+    step("ips.clear", clearOldIps),
+    step("optimizer", optimizerSweep),
+    step("checkouts", classifyCheckouts),
+    step("messaging", messagingTick),
+  ]);
   while (Date.now() - started < budgetMs && result.taken < max) {
     const { data: jobs, error } = await db.rpc("jobs_read", { p_n: 1, p_vt: VISIBILITY_SECONDS });
     if (error) throw new Error(`queue read failed: ${error.message}`);
@@ -250,11 +257,10 @@ async function runTick({ max = 5, budgetMs = 25_000 }: { max?: number; budgetMs?
       }
     }
   }
-  // D-278: Yolias members as data for other campaigns, rebuilt once a day.
-  await memberDatasetSweep().catch((e) => console.error("[jobs] member dataset failed", e));
-  // GEO tracking (D-277): the weekly questions to ChatGPT, Gemini and Perplexity,
-  // a few per call, after the queue so slow AI answers never hold jobs back.
-  await geoSweep().catch((e) => console.error("[jobs] GEO tracking failed", e));
+  // 3. Slow, after the queue: Yolias members as data (D-278, once a day) and the
+  //    weekly GEO questions (D-277), so slow AI answers never hold jobs back.
+  await Promise.all([step("members.dataset", memberDatasetSweep, 60_000), step("geo", () => geoSweep(), 60_000)]);
+  await db.from("worker_state").upsert({ key: "tick.steps", value: { at: new Date().toISOString(), totalMs: Date.now() - started, steps } as unknown as Json, updated_at: new Date().toISOString() }).then(() => undefined, () => undefined);
   return result;
 }
 
