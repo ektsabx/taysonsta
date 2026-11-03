@@ -196,7 +196,7 @@ export const product: Localized<{
       },
       {
         title: "Results like an ads dashboard",
-        body: "Campaigns, audiences and messages in one table with an on/off switch per row: found, sent, open rate, reply rate, results and cost per result, conversions and revenue from the Yolias pixel, spend, with a breakdown by day, audience, opening, country, industry or job title; budget that moves to the best audiences, a cost cap, a daily budget for the whole account and a button to stop everything.",
+        body: "Campaigns, audiences and messages in one table with an on/off switch per row: found, sent, open rate, reply rate, results and cost per result, conversions and revenue from the Yolias pixel, spend, with a breakdown by day, audience, opening, country, industry or job title; budget that moves to the best audiences, a cost cap and a daily budget for the whole account.",
       },
       {
         title: "Conversations and meetings",
@@ -249,7 +249,7 @@ export const product: Localized<{
       },
       {
         title: "نتائج مثل لوحة الإعلانات",
-        body: "الحملات والجماهير والرسائل في جدول واحد بزر تشغيل وإيقاف لكل صف: المكتشَفون والمُرسل ونسبة الفتح ونسبة الرد والنتائج وتكلفة النتيجة، والتحويلات والإيرادات من بيكسل يولياس، والإنفاق، مع تفصيل حسب اليوم أو الجمهور أو الافتتاحية أو الدولة أو المجال أو المسمى الوظيفي؛ وميزانية تتحرك نحو أفضل الجماهير، وحد أقصى للتكلفة، وميزانية يومية للحساب كله وزر لإيقاف كل شيء.",
+        body: "الحملات والجماهير والرسائل في جدول واحد بزر تشغيل وإيقاف لكل صف: المكتشَفون والمُرسل ونسبة الفتح ونسبة الرد والنتائج وتكلفة النتيجة، والتحويلات والإيرادات من بيكسل يولياس، والإنفاق، مع تفصيل حسب اليوم أو الجمهور أو الافتتاحية أو الدولة أو المجال أو المسمى الوظيفي؛ وميزانية تتحرك نحو أفضل الجماهير، وحد أقصى للتكلفة، وميزانية يومية للحساب كله.",
       },
       {
         title: "المحادثات والاجتماعات",

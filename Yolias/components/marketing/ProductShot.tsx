@@ -1,9 +1,10 @@
 import type { Locale } from "@/lib/i18n/config";
 
-// A real Yolias screen (public/screens, captured from the app with sample
-// data), in the visitor's language and theme. Both theme images are in the
+// A real Yolias screen (public/screens, captured from the app with the demo
+// account's sample data, scripts/seed-demo.mts), in the visitor's language
+// and theme. Both theme images are in the
 // page; CSS shows the one that matches html[data-theme].
-export function ProductShot({ name, locale, alt, caption, priority = false }: { name: "search" | "prospects"; locale: Locale; alt: string; caption?: string; priority?: boolean }) {
+export function ProductShot({ name, locale, alt, caption, priority = false }: { name: "campaigns" | "dashboard"; locale: Locale; alt: string; caption?: string; priority?: boolean }) {
   const src = (theme: "light" | "dark") => `/screens/${name}-${locale}-${theme}.jpg`;
   const loading = priority ? "eager" : "lazy";
   return (

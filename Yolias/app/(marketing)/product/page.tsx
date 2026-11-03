@@ -103,7 +103,7 @@ export default async function ProductPage() {
           </div>
 
           <div className="split">
-            <ProductShot name="prospects" locale={locale} alt={prospects.title} caption={c.shotCaption} />
+            <ProductShot name="campaigns" locale={locale} alt={prospects.title} caption={c.shotCaption} />
             <div>
               <h3>{prospects.title}</h3>
               <p>{prospects.body}</p>
@@ -116,7 +116,7 @@ export default async function ProductPage() {
               <p>{outreach.body}</p>
               <ul className="checklist">{outreach.points?.map((p) => <li key={p}><Check />{p}</li>)}</ul>
             </div>
-            <ProductShot name="search" locale={locale} alt={c.title} caption={c.shotCaption} />
+            <ProductShot name="dashboard" locale={locale} alt={outreach.title} caption={c.shotCaption} />
           </div>
         </div>
       </section>
