@@ -110,7 +110,7 @@ const getCommon: LL = {
 export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
   "ai-prospecting": build({
     name: { en: "AI prospecting", ar: "البحث عن العملاء بالذكاء الاصطناعي" },
-    title: { en: "AI Prospecting: Reach Your Ideal Customers Automatically", ar: "البحث عن العملاء بالذكاء الاصطناعي: صِل إلى عملائك المثاليين تلقائيًا" },
+    title: { en: "AI Prospecting: Reach Your Ideal Customers Automatically", ar: "البحث عن العملاء بالذكاء الاصطناعي: حملات تصل إليهم" },
     h1: { en: "AI prospecting that books the meeting", ar: "بحث عن العملاء بالذكاء الاصطناعي يحجز الاجتماع" },
     meta: { en: "AI prospecting with Yolias: define your ideal customers, and AI campaigns find the decision makers, write to each one and book meetings.", ar: "البحث عن العملاء بالذكاء الاصطناعي مع يولياس: حدد عملاءك المثاليين، فتجد الحملات الذكية صنّاع القرار وتكتب لكل منهم وتحجز الاجتماعات." },
     lead: { en: "Yolias turns prospecting into a campaign: you define the customer, AI does the finding, the writing, the follow-up and the booking.", ar: "يحوّل يولياس البحث عن العملاء إلى حملة: تحدد العميل، والذكاء الاصطناعي يجد ويكتب ويتابع ويحجز." },

@@ -63,6 +63,6 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
   ),
   "sales-teams": page(
     { title: "AI Prospecting and Meeting Booking for B2B Sales Teams", q: "How does Yolias fit a sales team?", a: "Each campaign targets your accounts; meetings land on each rep's calendar, and every campaign shows meetings and cost per meeting." },
-    { title: "البحث عن العملاء وحجز الاجتماعات لفرق المبيعات بالذكاء الاصطناعي", q: "كيف يناسب يولياس فريق المبيعات؟", a: "كل حملة تستهدف حساباتك، وتصل الاجتماعات إلى تقويم كل مندوب، وتعرض كل حملة اجتماعاتها وتكلفة الاجتماع." },
+    { title: "حملات اكتساب العملاء لفرق المبيعات", q: "كيف يناسب يولياس فريق المبيعات؟", a: "كل حملة تستهدف حساباتك، وتصل الاجتماعات إلى تقويم كل مندوب، وتعرض كل حملة اجتماعاتها وتكلفة الاجتماع." },
   ),
 };
