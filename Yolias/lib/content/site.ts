@@ -21,7 +21,7 @@ export const home: Localized<{
   faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
 }> = {
   en: {
-    eyebrow: "YOLIAS — AI AGENTS FOR BUSINESS GROWTH",
+    eyebrow: "YOLIAS · AI AGENTS FOR BUSINESS GROWTH",
     title: "Run customer acquisition campaigns. Grow your business.",
     lead: "Yolias is an advertising platform for customer acquisition campaigns. Create campaigns that target the right customers, manage how you reach them, and follow the results through to meetings, leads and sales in one place.",
     primary: "Get started",
@@ -92,7 +92,7 @@ export const home: Localized<{
     },
   },
   ar: {
-    eyebrow: "يولياس — وكلاء ذكاء اصطناعي لنمو الأعمال",
+    eyebrow: "يولياس · وكلاء ذكاء اصطناعي لنمو الأعمال",
     title: "أدر حملات اكتساب العملاء. ونمِّ أعمالك.",
     lead: "يولياس منصة إعلانية لإدارة حملات اكتساب العملاء. أنشئ حملات تستهدف العملاء المناسبين، وأدر الوصول إليهم، وتابع النتائج حتى الاجتماعات والعملاء المحتملين والمبيعات من مكان واحد.",
     primary: "ابدأ الآن",

@@ -34,7 +34,7 @@ export const landing: Localized<Landing> = {
   en: {
     example: "Example",
     hero: {
-      eyebrow: "YOLIAS — AI AGENTS FOR BUSINESS GROWTH",
+      eyebrow: "YOLIAS · AI AGENTS FOR BUSINESS GROWTH",
       title: "Run customer acquisition campaigns. Grow your business.",
       lead: "Everything you need to build campaigns that target the right customers, manage how you reach them, and follow the results in one place.",
       lead2: "Define your audience, launch your campaigns, and track their performance through to meetings and qualified leads.",
@@ -76,9 +76,9 @@ export const landing: Localized<Landing> = {
       message: "You don’t manage separate messages. You manage campaigns that acquire customers.",
       columns: ["Campaign", "Channel", "Audience", "Reached", "Replies", "Interested", "Meetings", "Spend", "Cost / meeting"],
       rows: [
-        { name: "Real estate developers — Riyadh", status: "on", channel: "Email", audience: "Heads of sales", contacted: 620, replies: 41, interested: 14, meetings: 6, spend: 186 },
-        { name: "Clinics — Cairo", status: "on", channel: "Email", audience: "Clinic owners", contacted: 410, replies: 22, interested: 9, meetings: 4, spend: 123 },
-        { name: "Agencies — Dubai", status: "off", channel: "Email", audience: "Founders", contacted: 280, replies: 15, interested: 5, meetings: 2, spend: 84 },
+        { name: "Real estate developers · Riyadh", status: "on", channel: "Email", audience: "Heads of sales", contacted: 620, replies: 41, interested: 14, meetings: 6, spend: 186 },
+        { name: "Clinics · Cairo", status: "on", channel: "Email", audience: "Clinic owners", contacted: 410, replies: 22, interested: 9, meetings: 4, spend: 123 },
+        { name: "Agencies · Dubai", status: "off", channel: "Email", audience: "Founders", contacted: 280, replies: 15, interested: 5, meetings: 2, spend: 84 },
       ],
     },
     audience: {
@@ -86,7 +86,7 @@ export const landing: Localized<Landing> = {
       title: "Start with the people you want to reach.",
       body: "Define the businesses you want to work with, and build a different audience for each campaign or service.",
       points: ["Industry and activity", "Countries and cities", "Company type and size, when the data has it", "Job titles and seniority", "Saved audiences you reuse", "Custom audiences from your own lists, and lookalikes of your best customers"],
-      example: { name: "Real estate developers — Riyadh", rows: [["Location", "Riyadh, Saudi Arabia"], ["Industry", "Real estate development"], ["Company size", "50–500 employees"], ["Job titles", "Head of Sales, Marketing Director, CEO"]], size: "Already known: 520 people, 410 with an email" },
+      example: { name: "Real estate developers · Riyadh", rows: [["Location", "Riyadh, Saudi Arabia"], ["Industry", "Real estate development"], ["Company size", "50–500 employees"], ["Job titles", "Head of Sales, Marketing Director, CEO"]], size: "Already known: 520 people, 410 with an email" },
     },
     budget: {
       eyebrow: "BUDGET AND CONTROL",
@@ -130,9 +130,9 @@ export const landing: Localized<Landing> = {
       message: "Never lose sight of the customers your campaigns reached.",
       columns: ["Person", "Job title", "Company", "Source", "Campaign", "Status"],
       rows: [
-        ["Khalid Al-Harbi", "Head of Sales", "Al Noor Developments", "Search", "Real estate — Riyadh", "Meeting booked"],
-        ["Mona Fathy", "Clinic Owner", "Smile Dental", "Search", "Clinics — Cairo", "Interested"],
-        ["Omar Saleh", "Founder", "Pixel Agency", "Audience", "Agencies — Dubai", "Replied"],
+        ["Khalid Al-Harbi", "Head of Sales", "Al Noor Developments", "Search", "Real estate · Riyadh", "Meeting booked"],
+        ["Mona Fathy", "Clinic Owner", "Smile Dental", "Search", "Clinics · Cairo", "Interested"],
+        ["Omar Saleh", "Founder", "Pixel Agency", "Audience", "Agencies · Dubai", "Replied"],
       ],
     },
     conversations: {
@@ -140,7 +140,7 @@ export const landing: Localized<Landing> = {
       title: "Follow every conversation from one place.",
       body: "Replies from every campaign arrive in one inbox, with the person, the campaign and the full thread. Yolias answers, follows up and books; what needs you comes to you.",
       thread: {
-        who: "Mona Fathy · Smile Dental", campaign: "Clinics — Cairo", state: "Interested",
+        who: "Mona Fathy · Smile Dental", campaign: "Clinics · Cairo", state: "Interested",
         messages: [
           { from: "them", text: "Sounds interesting. How does it work for a clinic with two branches?" },
           { from: "yolias", text: "Each branch can have its own campaign and audience. Would a 20-minute call on Tuesday or Wednesday work?" },
@@ -153,7 +153,7 @@ export const landing: Localized<Landing> = {
       title: "Connect your campaigns to the results that matter.",
       body: "Go past the number of people reached. See who is interested, which meetings were booked, and which campaigns bring them.",
       points: ["Meetings booked on your Yolias booking page and your Google Calendar", "The campaign and audience behind each meeting", "Cost per meeting from the campaign’s spend"],
-      rows: [{ who: "Mona Fathy", when: "Wed 11:00", campaign: "Clinics — Cairo" }, { who: "Khalid Al-Harbi", when: "Thu 14:30", campaign: "Real estate — Riyadh" }],
+      rows: [{ who: "Mona Fathy", when: "Wed 11:00", campaign: "Clinics · Cairo" }, { who: "Khalid Al-Harbi", when: "Thu 14:30", campaign: "Real estate · Riyadh" }],
       costLabel: "Cost per meeting",
     },
     analytics: {
@@ -225,7 +225,7 @@ export const landing: Localized<Landing> = {
   ar: {
     example: "مثال توضيحي",
     hero: {
-      eyebrow: "يولياس — وكلاء ذكاء اصطناعي لنمو الأعمال",
+      eyebrow: "يولياس · وكلاء ذكاء اصطناعي لنمو الأعمال",
       title: "أدر حملات اكتساب العملاء. ونمِّ أعمالك.",
       lead: "كل ما تحتاجه لإنشاء حملات تستهدف العملاء المناسبين، وإدارة الوصول إليهم، ومتابعة النتائج من مكان واحد.",
       lead2: "حدد جمهورك، وأطلق حملاتك، وتابع أداءها حتى الاجتماعات والعملاء المحتملين.",
@@ -267,9 +267,9 @@ export const landing: Localized<Landing> = {
       message: "أنت لا تدير رسائل منفصلة؛ أنت تدير حملات لاكتساب العملاء.",
       columns: ["الحملة", "القناة", "الجمهور", "وصلت إليهم", "الردود", "المهتمون", "الاجتماعات", "الإنفاق", "تكلفة الاجتماع"],
       rows: [
-        { name: "المطورون العقاريون — الرياض", status: "on", channel: "البريد", audience: "مديرو المبيعات", contacted: 620, replies: 41, interested: 14, meetings: 6, spend: 186 },
-        { name: "العيادات — القاهرة", status: "on", channel: "البريد", audience: "أصحاب العيادات", contacted: 410, replies: 22, interested: 9, meetings: 4, spend: 123 },
-        { name: "الوكالات — دبي", status: "off", channel: "البريد", audience: "المؤسسون", contacted: 280, replies: 15, interested: 5, meetings: 2, spend: 84 },
+        { name: "المطورون العقاريون · الرياض", status: "on", channel: "البريد", audience: "مديرو المبيعات", contacted: 620, replies: 41, interested: 14, meetings: 6, spend: 186 },
+        { name: "العيادات · القاهرة", status: "on", channel: "البريد", audience: "أصحاب العيادات", contacted: 410, replies: 22, interested: 9, meetings: 4, spend: 123 },
+        { name: "الوكالات · دبي", status: "off", channel: "البريد", audience: "المؤسسون", contacted: 280, replies: 15, interested: 5, meetings: 2, spend: 84 },
       ],
     },
     audience: {
@@ -277,7 +277,7 @@ export const landing: Localized<Landing> = {
       title: "ابدأ بالأشخاص الذين تريد الوصول إليهم.",
       body: "حدد الشركات التي تريد العمل معها، وأنشئ جمهورًا مختلفًا لكل حملة أو خدمة.",
       points: ["المجال والنشاط التجاري", "الدول والمدن", "نوع الشركة وحجمها عندما تتوفر البيانات", "المسميات الوظيفية والمستوى", "جماهير محفوظة تعيد استخدامها", "جماهير مخصصة من قوائمك، وجماهير مشابهة لأفضل عملائك"],
-      example: { name: "المطورون العقاريون — الرياض", rows: [["الموقع", "الرياض، السعودية"], ["المجال", "التطوير العقاري"], ["حجم الشركة", "50–500 موظف"], ["المسميات", "مدير المبيعات، مدير التسويق، الرئيس التنفيذي"]], size: "معروف مسبقًا: 520 شخصًا، منهم 410 لديهم بريد" },
+      example: { name: "المطورون العقاريون · الرياض", rows: [["الموقع", "الرياض، السعودية"], ["المجال", "التطوير العقاري"], ["حجم الشركة", "50–500 موظف"], ["المسميات", "مدير المبيعات، مدير التسويق، الرئيس التنفيذي"]], size: "معروف مسبقًا: 520 شخصًا، منهم 410 لديهم بريد" },
     },
     budget: {
       eyebrow: "الميزانية والتحكم",
@@ -321,9 +321,9 @@ export const landing: Localized<Landing> = {
       message: "لا تفقد أثر أي عميل وصلت إليه حملاتك.",
       columns: ["الشخص", "المسمى", "الشركة", "المصدر", "الحملة", "الحالة"],
       rows: [
-        ["خالد الحربي", "مدير المبيعات", "النور للتطوير العقاري", "بحث", "العقارات — الرياض", "اجتماع محجوز"],
-        ["منى فتحي", "صاحبة عيادة", "سمايل لطب الأسنان", "بحث", "العيادات — القاهرة", "مهتمة"],
-        ["عمر صالح", "مؤسس", "بيكسل إيجنسي", "جمهور", "الوكالات — دبي", "رد"],
+        ["خالد الحربي", "مدير المبيعات", "النور للتطوير العقاري", "بحث", "العقارات · الرياض", "اجتماع محجوز"],
+        ["منى فتحي", "صاحبة عيادة", "سمايل لطب الأسنان", "بحث", "العيادات · القاهرة", "مهتمة"],
+        ["عمر صالح", "مؤسس", "بيكسل إيجنسي", "جمهور", "الوكالات · دبي", "رد"],
       ],
     },
     conversations: {
@@ -331,7 +331,7 @@ export const landing: Localized<Landing> = {
       title: "تابع كل محادثة من مكان واحد.",
       body: "تصل ردود كل الحملات إلى صندوق واحد، مع الشخص والحملة والمحادثة كاملة. يولياس يرد ويتابع ويحجز، وما يحتاجك يصلك.",
       thread: {
-        who: "منى فتحي · سمايل لطب الأسنان", campaign: "العيادات — القاهرة", state: "مهتمة",
+        who: "منى فتحي · سمايل لطب الأسنان", campaign: "العيادات · القاهرة", state: "مهتمة",
         messages: [
           { from: "them", text: "يبدو مثيرًا للاهتمام. كيف يعمل مع عيادة لها فرعان؟" },
           { from: "yolias", text: "لكل فرع حملته وجمهوره. هل يناسبك اتصال لمدة 20 دقيقة يوم الثلاثاء أو الأربعاء؟" },
@@ -344,7 +344,7 @@ export const landing: Localized<Landing> = {
       title: "اربط حملاتك بالنتائج التي تهم أعمالك.",
       body: "لا تتوقف عند عدد من وصلت إليهم. اعرف من اهتم، وأي الاجتماعات حُجزت، وأي الحملات أتت بها.",
       points: ["اجتماعات تُحجز على صفحة الحجز في يولياس وفي تقويم Google", "الحملة والجمهور وراء كل اجتماع", "تكلفة الاجتماع من إنفاق الحملة"],
-      rows: [{ who: "منى فتحي", when: "الأربعاء 11:00", campaign: "العيادات — القاهرة" }, { who: "خالد الحربي", when: "الخميس 14:30", campaign: "العقارات — الرياض" }],
+      rows: [{ who: "منى فتحي", when: "الأربعاء 11:00", campaign: "العيادات · القاهرة" }, { who: "خالد الحربي", when: "الخميس 14:30", campaign: "العقارات · الرياض" }],
       costLabel: "تكلفة الاجتماع",
     },
     analytics: {
