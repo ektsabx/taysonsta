@@ -146,6 +146,7 @@ export const ar: Dictionary = {
     optional: "اختياري",
     contextNote: "يستخدم Yolias AI هذه البيانات لفهم عمليات البحث وإيجاد العملاء المناسبين لك. يمكنك تعديلها لاحقًا من معرفة الشركة.",
     submit: "ابدأ الآن",
+    stepOf: "الخطوة {n} من {total}", back: "رجوع", continue: "متابعة", choose: "اختر…", missing: "أجب عن «{field}».",
     errors: {
       name: "أدخل اسمك.",
       company: "أدخل اسم شركتك.",

@@ -129,6 +129,8 @@ export type ProfileRow = {
   acquisition_source: AcquisitionSource | null;
   acquisition_source_other: string | null;
   acquisition_answered_at: string | null;
+  /** D-276: answers to the owner's onboarding questions, per step and question. */
+  onboarding_answers?: Json | null;
   welcome_video_seen_at: string | null;
   theme: "light" | "dark";
   text_size: "compact" | "normal" | "large";

@@ -1,59 +1,35 @@
 import { requirePermission, can } from "@/lib/bos/auth";
-import { PageHeader, Card, KeyValues, EmptyState } from "@/components/bos/ui";
-import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
-import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
-import { acquisitionSources, getWelcomeVideo, otherSources, SOURCE_LABELS } from "@/services/yolias/onboarding";
-import { WelcomeVideoForm } from "./WelcomeVideoForm";
+import { NotConnected, connected } from "@/components/yolias/PlatformUi";
+import { Panel } from "@/components/yolias/dash/Stat";
+import { SortTable } from "@/components/yolias/dash/SortTable";
+import { acquisitionSources, getOnboardingSteps, otherSources, SOURCE_LABELS } from "@/services/yolias/onboarding";
+import { StepsEditor } from "./StepsEditor";
 
-// Yolias onboarding (D-199): the welcome video after sign-in and where new
-// users heard about Yolias ("How Did You Find Us?").
+// Onboarding (owner, 2026-11-03, D-276): the pages Yolias shows after sign-up,
+// edited here, and where new users heard about Yolias. The welcome video is
+// in Popups.
 export default async function OnboardingPage() {
   const { bos } = await requirePermission("platform.read");
-  if (!connected()) return (<><PageHeader title="الترحيب ومصادر التسجيل" /><NotConnected /></>);
-  const [video, sources, others] = await Promise.all([getWelcomeVideo(), acquisitionSources(), otherSources()]);
+  if (!connected()) return <NotConnected />;
+  const [steps, sources, others] = await Promise.all([getOnboardingSteps(), acquisitionSources(), otherSources()]);
   const manage = can(bos, "platform.manage", "all");
-  const total = sources.reduce((a, s) => a + s.users, 0) || 1;
   return (
-    <>
-      <PageHeader title="الترحيب ومصادر التسجيل" subtitle="فيديو الترحيب الذي يظهر للمستخدم مرة واحدة بعد تسجيل الدخول، ومن أين عرف المستخدمون عن Yolias." />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 16 }}>
-        <Card title="فيديو الترحيب">
-          <KeyValues items={[
-            { label: "الحالة", value: <Tx>{video.enabled && video.url ? "مفعّل" : "متوقف"}</Tx> },
-            { label: "آخر تعديل", value: video.updatedAt ? formatDateTime(video.updatedAt) : "—" },
-          ]} />
-          {manage ? <WelcomeVideoForm value={video} /> : <p className="bos-faint"><Tx>التعديل يحتاج صلاحية إدارة المنصة.</Tx></p>}
-          <p className="bos-faint" style={{ fontSize: 12 }}><Tx>يظهر الفيديو الجديد فورًا دون إعادة نشر. المستخدم الذي أغلق الفيديو يمكنه مشاهدته مرة أخرى من قائمة حسابه.</Tx></p>
-        </Card>
-        <Card title="كيف عرفوا عنا؟">
-          {!sources.length ? <EmptyState title="لا توجد بيانات بعد" /> : (
-            <div className="bos-table-scroll">
-              <BosTable className="bos-table">
-                <thead><tr><th><Tx>المصدر</Tx></th><th><Tx>المستخدمون</Tx></th><th><Tx>آخر 30 يومًا</Tx></th><th>%</th></tr></thead>
-                <tbody>
-                  {sources.map((s) => (
-                    <tr key={s.source}>
-                      <td><Tx>{SOURCE_LABELS[s.source] ?? s.source}</Tx></td>
-                      <td className="bos-num">{num(s.users)}</td>
-                      <td className="bos-num">{num(s.last30)}</td>
-                      <td className="bos-num">{Math.round((s.users / total) * 100)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </BosTable>
-            </div>
-          )}
-        </Card>
-        <Card title="إجابات «أخرى»">
-          {!others.length ? <EmptyState title="لا توجد إجابات بعد" /> : (
-            <ul style={{ display: "grid", gap: 6, fontSize: 13 }}>
-              {others.map((o, i) => <li key={i}>{o.text} <span className="bos-faint">· {o.at ? formatDateTime(o.at) : "—"}</span></li>)}
-            </ul>
-          )}
-        </Card>
+    <div className="yd">
+      <div className="yd-head"><h1><Tx>صفحات الإعداد</Tx></h1></div>
+      <Panel title="الصفحات">{manage ? <StepsEditor initial={steps} /> : null}</Panel>
+      <div className="yd-grid2">
+        <Panel title="كيف عرفوا عنا؟">
+          <SortTable firstLabel="المصدر" initial="users"
+            cols={[{ key: "users", label: "المستخدمون", bar: true }, { key: "last30", label: "آخر 30 يومًا" }]}
+            rows={sources.map((s) => ({ id: s.source, label: <Tx>{SOURCE_LABELS[s.source] ?? s.source}</Tx>, sortLabel: s.source, values: { users: s.users, last30: s.last30 } }))} />
+        </Panel>
+        <Panel title="إجابات «أخرى»">
+          <ul className="yd-list">{others.map((o, i) => <li key={i}><span>{o.text}</span><small>{o.at ? formatDateTime(o.at) : "—"}</small></li>)}</ul>
+          {!others.length && <p className="yd-empty"><Tx>لا توجد بيانات في هذه الفترة</Tx></p>}
+        </Panel>
       </div>
-    </>
+    </div>
   );
 }

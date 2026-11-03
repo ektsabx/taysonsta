@@ -10,6 +10,8 @@ import { NotFoundError } from "@/lib/bos/errors";
 import { NotConnected, MigrationNeeded, trackingReady, connected, num } from "@/components/yolias/PlatformUi";
 import { AccountStatus, SubscriptionState, money, providerLabel, segmentLabel, sourceLabel } from "@/components/yolias/AccountBits";
 import { account360, adminActionLabel, timelineOf } from "@/services/yolias/accounts";
+import { getOnboardingSteps } from "@/services/yolias/onboarding";
+import { ydb } from "@/lib/yolias/db";
 import { REASONS, STEP_LABEL } from "@/services/yolias/conversions";
 import { CheckoutStatus } from "@/app/admin/platform/conversions/_shared/CheckoutBits";
 import { AccountActions } from "../_shared/AccountActions";
@@ -50,6 +52,10 @@ export default async function User360Page({ params, searchParams }: { params: Pr
   }
   const a = d.account;
   const manage = can(bos, "platform.manage", "all");
+  // D-276: answers to the owner's onboarding questions, with the question as asked.
+  const [steps, { data: answersRow }] = await Promise.all([getOnboardingSteps(), ydb().from("profiles").select("onboarding_answers").eq("id", id).maybeSingle()]);
+  const answers = (answersRow?.onboarding_answers ?? {}) as Record<string, Record<string, string | string[]>>;
+  const onboarding = steps.flatMap((st) => st.fields.filter((f) => answers[st.id]?.[f.key] != null).map((f) => { const v = answers[st.id][f.key]; return { question: f.label.ar || f.label.en, answer: Array.isArray(v) ? v.join("، ") : v }; }));
   const base = `/admin/platform/users/${id}`;
   const firstPaid = [...d.payments].reverse().find((p) => (p.status === "succeeded" || p.status === "refunded") && p.mode === "live");
   const lastRenewal = d.subEvents.find((e) => e.status === "renewed");
@@ -105,6 +111,11 @@ export default async function User360Page({ params, searchParams }: { params: Pr
               { label: "إجمالي المسترد", value: money(a.refunded_total) },
             ]} />
           </Card>
+          {onboarding.length > 0 && (
+            <Card title="إجابات صفحات الإعداد">
+              <KeyValues items={onboarding.map((x) => ({ label: x.question, value: x.answer }))} />
+            </Card>
+          )}
           <Card title="حدود الخطة والاستخدام هذا الشهر">
             {d.usage ? (
               <KeyValues items={[

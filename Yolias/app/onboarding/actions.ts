@@ -19,6 +19,8 @@ import { requestCountry } from "@/lib/geo-server";
 import { detectPreferences } from "@/lib/regions";
 import { parseSource } from "@/lib/onboarding/source";
 import { TEMPLATE_COOKIE } from "@/lib/content/seo-pages";
+import { ONBOARDING_KEY, answersOf, parseSteps } from "@/lib/onboarding/steps";
+import { fmt } from "@/lib/i18n/config";
 
 export type OnboardingState = { error?: string; fields?: Record<string, string> };
 
@@ -39,6 +41,10 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
   // How Did You Find Us? — optional; a bad value is refused, never stored.
   const source = parseSource(fields.acquisition_source, fields.acquisition_source_other);
   if (!source.ok) return { error: (await getDictionary()).ws.sources.errors[source.error], fields };
+  // The owner's own questions (Admin → Onboarding, D-276): checked against the steps the server knows.
+  const { data: config } = await createAdminClient().from("site_settings").select("value").eq("key", ONBOARDING_KEY).maybeSingle();
+  const { answers, missing } = answersOf(parseSteps(config?.value), (name) => formData.getAll(name).map(String));
+  if (missing) return { error: fmt((await getDictionary()).onboarding.missing, { field: missing }), fields };
   const isOwner = session.role === "owner";
   let company: CompanyProfile | null = null;
   if (isOwner) {
@@ -58,6 +64,9 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     .update({ full_name: parsed.data.full_name, language: await getLocale(), onboarded_at: new Date().toISOString(), ...detected })
     .eq("id", session.userId);
   if (error) return { error: t.saveFailed, fields };
+  if (Object.keys(answers).length) {
+    await createAdminClient().from("profiles").update({ onboarding_answers: answers }).eq("id", session.userId);
+  }
   if (source.value) {
     // Written by the server once per user: a repeated submit never replaces the first answer.
     await createAdminClient().from("profiles")

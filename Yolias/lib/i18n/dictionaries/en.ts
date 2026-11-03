@@ -145,6 +145,7 @@ export const en = {
     optional: "Optional",
     contextNote: "Yolias AI uses these details to understand your searches and find customers who fit. You can change them later in Company Knowledge.",
     submit: "Get Started",
+    stepOf: "Step {n} of {total}", back: "Back", continue: "Continue", choose: "Choose…", missing: "Answer “{field}”.",
     errors: {
       name: "Enter your name.",
       company: "Enter your company name.",
