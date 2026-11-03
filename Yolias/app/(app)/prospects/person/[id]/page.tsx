@@ -13,6 +13,7 @@ import { fmt } from "@/lib/i18n/config";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { requireViewer } from "@/lib/session";
 import { getPerson } from "@/services/prospects";
+import { engagementOf, leadScore } from "@/lib/campaigns/lead-score";
 
 export async function generateMetadata({ params }: PageProps<"/prospects/person/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -61,6 +62,9 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   const place = location(p.city ?? c?.city, p.country ?? c?.country, locale);
   const email = p.email && p.email_status !== "invalid" ? p.email : null;
   const back = c ? `/prospects/company/${c.id}` : "/prospects";
+  // Lead score (audit 2026-11-03): fit and interest apart, and one score.
+  const sig = (Array.isArray(c?.signals) ? (c!.signals as unknown[]).length : 0) + ((c?.hiring_roles as number | null) ? 1 : 0);
+  const ls = leadScore({ fit: p.match_score ?? null, signals: sig, completeness: { email: Boolean(email), title: Boolean(p.title), linkedin: Boolean(p.linkedin_url), phone: Boolean(p.phone) }, engagement: engagementOf(messages) });
   const link = (url: string | null) => url && <a className="entity-link" href={url} target="_blank" rel="noreferrer">{bare(url)} <ExternalLink /></a>;
 
   const info: Tile[] = [
@@ -92,6 +96,11 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
           <div className="company-hero-main">
             <h1>{p.full_name}</h1>
             <p>{[p.title, c?.name, place].filter(Boolean).join(" · ")}</p>
+            <p className="lead-score">
+              <span className="sdr-badge nodot gray">{d.fit}: {ls.fit ?? "–"}</span>
+              <span className="sdr-badge nodot gray">{d.interest}: {ls.interest}</span>
+              <span className="sdr-badge nodot red">{d.score}: {ls.score}</span>
+            </p>
           </div>
           <div className="company-hero-actions">
             {p.linkedin_url && <a className="btn-secondary" href={p.linkedin_url} target="_blank" rel="noreferrer"><LinkedInIcon /> {r.openLinkedIn}</a>}

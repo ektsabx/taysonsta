@@ -11,6 +11,7 @@ export const agAr: typeof agEn = {
   tones: { direct: "مباشر", friendly: "ودود", conservative: "رسمي" },
 
   builder: {
+    audienceIssues: { overlap: "القيمة نفسها مضمنة ومستبعدة", no_titles: "أضف مسميات وظيفية ليصل يولياس إلى من يقرر", too_broad: "أضف موقعًا ومجالًا ليبقى الجمهور دقيقًا" },
     title: "إنشاء حملة", editTitle: "تعديل الحملة", saveDraft: "حفظ كمسودة", saved: "حُفظت المسودة.", back: "رجوع", next: "التالي", cancel: "إلغاء",
     launch: "تشغيل الحملة", launching: "جارٍ التشغيل…", saveChanges: "حفظ التعديلات", savedChanges: "حُفظت التعديلات.",
     stepOf: "الخطوة {n} من 3",

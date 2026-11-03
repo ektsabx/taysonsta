@@ -624,7 +624,7 @@ export const en = {
     next: "Next",
     emptyTab: { all: "Nothing in Prospects yet. Run a search with Yolias AI, or import a CSV.", people: "No people yet. Save decision makers from a search to see them here.", companies: "No companies yet. Save results from a company search to see them here.", local: "No local businesses yet. Save results from a local business search to see them here.", saved: "Nothing saved yet. Use the bookmark on a person, company or local business to keep it here.", jobs: "No job postings yet. They appear when a search asks for companies that are hiring." },
     detail: {
-      back: "Back to Prospects",
+      fit: "Fit", interest: "Interest", score: "Lead score", back: "Back to Prospects",
       overview: "Overview",
       intelligence: "Data intelligence",
       provenance: "Where each field came from",

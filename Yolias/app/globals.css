@@ -2664,3 +2664,4 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .phone-field { display: flex; gap: 6px; width: 320px; max-width: 100%; }
 .phone-field .form-select { width: 104px; flex: none; }
 .phone-field .form-input { flex: 1; min-width: 110px; }
+.lead-score { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

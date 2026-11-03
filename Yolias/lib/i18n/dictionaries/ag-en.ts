@@ -10,6 +10,7 @@ export const agEn = {
   tones: { direct: "Direct", friendly: "Friendly", conservative: "Formal" },
 
   builder: {
+    audienceIssues: { overlap: "the same value is included and excluded", no_titles: "add job titles so Yolias reaches the people who decide", too_broad: "add a location and an industry to keep the audience precise" },
     title: "Create campaign", editTitle: "Edit campaign", saveDraft: "Save draft", saved: "Draft saved.", back: "Back", next: "Next", cancel: "Cancel",
     launch: "Launch campaign", launching: "Launching…", saveChanges: "Save changes", savedChanges: "Changes saved.",
     stepOf: "Step {n} of 3",

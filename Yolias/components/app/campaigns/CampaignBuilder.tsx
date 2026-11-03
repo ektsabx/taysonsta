@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { audienceIssues } from "@/lib/campaigns/audience-check";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CalendarDays, Check, ChevronDown, ClipboardList, Copy, Folder, Loader2, Mail, Plus, Search, Send, ShoppingCart, Sparkles, Trash2, UserCheck, Users, X } from "lucide-react";
@@ -477,6 +478,11 @@ export function CampaignBuilder(p: BuilderProps) {
             </div>
           )}
 
+          {/* Audience checks before launch (audit 2026-11-03): warnings only. */}
+          {(() => {
+            const issues = s.adSets.filter((a) => a.source === "new").flatMap((a) => audienceIssues(a.targeting, s.contactTarget).map((i) => `${a.name}: ${b.audienceIssues[i]}`));
+            return issues.length > 0 && <ul className="cb-warnings">{issues.map((w) => <li key={w}>{w}</li>)}</ul>;
+          })()}
           {warnings.length > 0 && <ul className="cb-warnings">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
         </section>
 

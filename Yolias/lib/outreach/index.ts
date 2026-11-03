@@ -1,3 +1,4 @@
+import { draftIssues, freshSignals } from "@/lib/outreach/quality";
 import { YOLIAS_VOICE } from "@/lib/ai/voice";
 import "server-only";
 import { z } from "zod";
@@ -100,7 +101,7 @@ export interface DraftInput {
 export type DraftError = "not_found" | "no_email" | "suppressed" | "do_not_contact" | "not_configured" | "failed";
 export type DraftResult = { ok: true; message: OutreachMessageRow } | { ok: false; error: DraftError };
 
-const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, email, whatsapp, facebook_url, instagram_url";
+const companyColumns = "id, campaign_id, kind, name, domain, website, industry, description, city, country, category, employee_count, founded_year, signals, hiring_roles, rating, reviews_count, phone, email, whatsapp, facebook_url, instagram_url, created_at";
 
 type Loaded = {
   campaignId: string | null;
@@ -127,7 +128,7 @@ export async function loadTarget(workspaceId: string, target: MessageTarget): Pr
         campaignId: p.campaign_id, prospectId: p.id, companyId: p.company_id, toEmail: email,
         facts: {
           prospect: clean({ name: p.full_name, job_title: p.title, seniority: p.seniority, city: p.city, country: p.country }),
-          prospect_company: company && clean({ name: company.name, website: company.website ?? company.domain, industry: company.industry, description: company.description, city: company.city, country: company.country, employees: company.employee_count, founded: company.founded_year, signals: company.signals, open_roles: company.hiring_roles }),
+          prospect_company: company && freshSignals(clean({ name: company.name, website: company.website ?? company.domain, industry: company.industry, description: company.description, city: company.city, country: company.country, employees: company.employee_count, founded: company.founded_year, signals: company.signals, open_roles: company.hiring_roles }), company.created_at as string | null),
         },
       },
     };
@@ -142,11 +143,11 @@ export async function loadTarget(workspaceId: string, target: MessageTarget): Pr
     data: {
       campaignId: c.campaign_id, prospectId: null, companyId: c.id, toEmail: c.email,
       facts: {
-        prospect_company: clean({
+        prospect_company: freshSignals(clean({
           name: c.name, kind: c.kind === "local_business" ? "local business" : "company", website: c.website ?? c.domain, industry: c.industry, category: c.category,
           description: c.description, city: c.city, country: c.country, employees: c.employee_count, founded: c.founded_year, signals: c.signals,
           rating: c.rating, reviews: c.reviews_count,
-        }),
+        }), c.created_at),
       },
     },
   };
@@ -244,6 +245,8 @@ export async function draftOutreach(input: DraftInput): Promise<DraftResult> {
       const out = v.data as Draft;
       // A placeholder or a stock AI line means the draft isn't ready to send: try the next model.
       if (PLACEHOLDER.test(`${out.subject ?? ""} ${out.body}`) || CLICHE.test(out.body)) return null;
+      // Pre-send quality (audit 2026-11-03): no claimed fact outside the input, no shouting, readable length.
+      if (draftIssues(out.body, out.personalization_used, t.facts).length) return null;
       return out;
     }, { workspaceId: input.workspaceId, campaignId: t.campaignId, promptVersion: OUTREACH_PROMPT_VERSION });
     const { data: message, error } = await db.from("outreach_messages").insert({
