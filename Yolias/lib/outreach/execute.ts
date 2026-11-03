@@ -1,4 +1,5 @@
 import "server-only";
+import type { WorkspaceRole } from "@/types/database";
 import { priority } from "@/lib/campaigns/engines";
 import { logCampaign } from "@/lib/campaigns/activity";
 import { bookForLead, nextSlots } from "@/lib/meetings";
@@ -41,13 +42,13 @@ export type ApproveResult = { ok: true } | { ok: false; error: "not_found" | "ar
  * are prepared, the member sends them). Only the campaign's creator or a
  * workspace owner / admin approves, and only from their own mailbox.
  */
-export async function approveCampaign(input: { workspaceId: string; userId: string; role: "owner" | "admin" | "member"; campaignId: string; mailboxId: string | null; autoReply: boolean; launch?: boolean }): Promise<ApproveResult> {
+export async function approveCampaign(input: { workspaceId: string; userId: string; role: WorkspaceRole; campaignId: string; mailboxId: string | null; autoReply: boolean; launch?: boolean }): Promise<ApproveResult> {
   const db = createAdminClient();
   const { data: c } = await db.from("outreach_campaigns").select("*").eq("id", input.campaignId).eq("workspace_id", input.workspaceId).maybeSingle();
   if (!c) return { ok: false, error: "not_found" };
   const camp = c as OutreachCampaignRow;
   if (camp.status === "archived") return { ok: false, error: "archived" };
-  if (input.role === "member" && camp.created_by !== input.userId) return { ok: false, error: "denied" };
+  if (input.role === "analyst" || (input.role === "member" && camp.created_by !== input.userId)) return { ok: false, error: "denied" };
   // Launching from the campaign builder (D-273) starts before anyone is found: the audiences' searches bring the people.
   const { count } = await db.from("outreach_enrollments").select("id", { count: "exact", head: true }).eq("campaign_id", camp.id).eq("status", "active");
   if (!count && !input.launch) return { ok: false, error: "no_leads" };

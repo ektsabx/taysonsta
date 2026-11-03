@@ -85,6 +85,20 @@ export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
 
 export const canManageTeam = (s: Session) => s.role === "owner" || s.role === "admin";
 
+/**
+ * Roles like an ad account's (owner, 2026-11-02, D-275): Admin (everything,
+ * with billing and the team), Advertiser (stored as "member": campaigns,
+ * audiences, leads, conversations and meetings) and Analyst (sees the
+ * results, changes nothing). Every action that writes checks this.
+ */
+export const canEdit = (s: Pick<Session, "role">) => s.role !== "analyst";
+
+/** What a write action returns to an Analyst. */
+export async function viewOnly(): Promise<{ ok: false; error: string }> {
+  const { getDictionary } = await import("@/lib/i18n/server");
+  return { ok: false, error: (await getDictionary()).settings.errors.viewOnly };
+}
+
 type Client = Awaited<ReturnType<typeof createClient>>;
 
 /** Signed in with the link but the account has 2FA and the code isn't entered yet. */

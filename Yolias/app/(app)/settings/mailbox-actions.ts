@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canManageTeam, requireUser } from "@/lib/session";
+import { canManageTeam, requireUser, canEdit, viewOnly } from "@/lib/session";
 import { availableProviders, disconnectMailbox, loadSendingRules, memberMailboxes, saveMailbox } from "@/lib/mailbox";
 import { mailboxWindow, sendingRulesSchema, validTimeZone, type SendingRules } from "@/lib/outreach/sending-rules";
 import { testMailboxAllowed } from "@/lib/mailbox/test-provider";
@@ -52,6 +52,7 @@ const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 /** The member changes their own mailbox's daily limit and sending hours. */
 export async function updateMailboxSending(id: string, input: { dailyLimit: number; days: number[]; start: string; end: string; timeZone: string | null }): Promise<{ ok: boolean }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   const v = z.object({
     dailyLimit: z.number().int().min(1).max(500), days: z.array(z.number().int().min(0).max(6)).max(7), start: hhmm, end: hhmm,
     timeZone: z.string().max(64).nullable().refine((tz) => tz === null || validTimeZone(tz)),
@@ -67,6 +68,7 @@ export async function updateMailboxSending(id: string, input: { dailyLimit: numb
 /** The sending rules of one kind of mailbox (D-273: inside its own integration, Gmail or IMAP/SMTP). */
 export async function saveSendingRules(input: SendingRules, provider: "gmail" | "imap"): Promise<{ ok: boolean }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   if (!canManageTeam(s) || !["gmail", "imap"].includes(provider)) return { ok: false };
   const v = sendingRulesSchema.safeParse(input);
   if (!v.success || (v.data.timezone && !validTimeZone(v.data.timezone))) return { ok: false };
@@ -81,6 +83,7 @@ export async function saveSendingRules(input: SendingRules, provider: "gmail" | 
 /** Local development and tests only: a mailbox that never sends anything out. */
 export async function connectTestMailbox(): Promise<{ ok: boolean }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   if (!testMailboxAllowed()) return { ok: false };
   await saveMailbox({ workspaceId: s.workspace.id, userId: s.userId, provider: "test", email: `test-mailbox+${s.userId.slice(0, 8)}@yolias.local`, displayName: "Test mailbox", canRead: true, refreshToken: "test" });
   revalidatePath("/", "layout");
@@ -89,6 +92,7 @@ export async function connectTestMailbox(): Promise<{ ok: boolean }> {
 
 export async function removeMailbox(id: string): Promise<{ ok: boolean }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   if (!z.string().uuid().safeParse(id).success) return { ok: false };
   const { data } = await createAdminClient().from("mailboxes").select("id").eq("id", id).eq("user_id", s.userId).eq("workspace_id", s.workspace.id).maybeSingle();
   if (!data) return { ok: false };
@@ -101,6 +105,7 @@ export async function removeMailbox(id: string): Promise<{ ok: boolean }> {
 
 export async function setMailboxLimit(id: string, limit: number): Promise<{ ok: boolean }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   if (!z.string().uuid().safeParse(id).success || !Number.isInteger(limit) || limit < 1 || limit > 500) return { ok: false };
   const { error } = await createAdminClient().from("mailboxes").update({ daily_limit: limit }).eq("id", id).eq("user_id", s.userId).eq("workspace_id", s.workspace.id);
   return { ok: !error };
@@ -124,6 +129,7 @@ export interface ImapInput {
  */
 export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true } | { ok: false; error: "invalid" | "auth" | "server" | "connect" }> {
   const s = await requireUser();
+  if (!canEdit(s)) return await viewOnly() as never;
   const parsed = z.object({
     email: z.string().trim().toLowerCase().email().max(200),
     name: z.string().trim().max(120),

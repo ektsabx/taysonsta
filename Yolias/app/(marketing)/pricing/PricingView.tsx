@@ -12,6 +12,7 @@ import { monthlyRate, planName, planPrice, priceFor, type PlanTerms } from "@/li
 import type { Currency, PaidPlan } from "@/types/database";
 import { funnelEvent } from "@/lib/funnel-client";
 import { pricingFaq } from "@/lib/pricing-copy";
+import { planEstimates } from "@/lib/pricing-estimates";
 
 type PricingCopy = Dictionary["pricing"];
 type PlanId = PaidPlan;
@@ -22,9 +23,8 @@ type PlanId = PaidPlan;
 // limits are enforced with (plan_quotas, prospect_packs).
 const tiers: PlanId[] = ["growth", "scale"];
 
-// Features on every plan. CRM, pipelines and deals are listed at the owner's
-// request ahead of the CRM module (docs/21).
-const featureKeys = ["aiSalesAgent", "aiLeadGeneration", "campaigns", "teamWorkspace", "crm", "enrichment", "analytics", "integrations", "chatSupport", "unlimitedUsers"] as const;
+// What every option includes, as an advertising platform (D-275).
+const featureKeys = ["campaigns", "aiLeadGeneration", "messages", "aiSalesAgent", "crm", "pixel", "audiences", "optimization", "analytics", "integrations", "unlimitedUsers", "chatSupport"] as const;
 
 interface Props {
   signedIn: boolean;
@@ -50,8 +50,18 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
   void egp;
   const price = (plan: PlanId) => formatMoney(monthlyRate(list(plan), period), currency);
   const usd = (v: number) => formatMoney(v, "USD");
-  // The same features on every card (owner, 2026-10-21).
-  const shared = [dict.plans.contactsUnlimited, t.features.teamWorkspace, t.features.crm, t.features.enrichment, t.features.chatSupport, t.unlimitedUsers];
+  // Every card (owner, 2026-11-02, D-275): who it reaches and what that usually
+  // brings (lib/pricing-estimates.ts, marked as estimates), then the platform.
+  const C = t.card;
+  const platform = [C.campaigns, C.messages, C.agent, C.pixel, C.users];
+  const outcome = (people: number, once = false) => {
+    const e = planEstimates(people);
+    return [
+      fmt(once ? C.reachOnce : C.reach, { count: n(people) }),
+      // One-time credit has no monthly estimate; a plan does.
+      ...(!once && e.meetings.low > 0 ? [`${fmt(C.replies, { low: n(e.replies.low), high: n(e.replies.high) })}*`, `${fmt(C.meetings, { low: n(e.meetings.low), high: n(e.meetings.high) })}*`] : []),
+    ];
+  };
 
   // Picking a plan → signup (new visitors) or checkout (signed in).
   const href = (plan: PlanId | "payg") => `${signedIn ? "/checkout" : "/signup"}?plan=${plan}${plan !== "payg" && period === "annual" ? "&period=annual" : ""}`;
@@ -65,7 +75,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       name={t.payg.name}
       price={usd(min.priceUsd)}
       note={t.payg.note}
-      items={[t.payg.noExpiry, ...shared]}
+      items={[...outcome(min.prospects, true), ...platform, t.payg.noExpiry]}
       href={href("payg")}
       cta={t.payg.cta}
       foot={t.payg.foot}
@@ -78,10 +88,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       name={planName(plan, dict)}
       price={price(plan)}
       note={t.perMonth}
-      items={[
-        fmt(dict.plans.prospectsPerMonth, { count: n(plans[plan].prospects) }),
-        ...shared,
-      ]}
+      items={[...outcome(plans[plan].prospects), ...platform]}
       href={href(plan)}
       cta={t.getStarted}
       foot={period === "annual" ? fmt(dict.plans.billedYearlyAt, { amount: formatMoney(priceFor(list(plan), "annual"), currency) }) : t.paidFoot}
@@ -116,6 +123,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
             {card("scale")}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
+          <p className="prospect-note estimate-note">* {t.card.estimate}</p>
         </div>
       </section>
 

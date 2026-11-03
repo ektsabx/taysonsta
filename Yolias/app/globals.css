@@ -2640,3 +2640,7 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .period-toggle .plan-badge { font-size: .68rem; }
 .pricing-period { margin-top: 24px; }
 .checkout-period { margin-bottom: 12px; }
+
+/* Estimates under the plan cards and in checkout (D-275). */
+.estimate-note { max-width: 760px; margin-inline: auto; font-size: .78rem; }
+.checkout-estimate { margin: 10px 0 0; font-size: .74rem; line-height: 1.5; color: var(--muted); }

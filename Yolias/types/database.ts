@@ -24,7 +24,8 @@ type Table<Row, Required extends keyof Row, Rel = []> = {
   Relationships: Rel;
 };
 
-export type WorkspaceRole = "owner" | "admin" | "member";
+/** "member" is shown as Advertiser; "analyst" sees results only (D-275). */
+export type WorkspaceRole = "owner" | "admin" | "member" | "analyst";
 export type Plan = "free" | "pro" | "growth" | "scale";
 export type PaidPlan = Exclude<Plan, "free">;
 export type BillingPeriod = "monthly" | "annual";
@@ -107,7 +108,7 @@ export type WorkspaceInvitationRow = {
   id: string;
   workspace_id: string;
   email: string;
-  role: "admin" | "member";
+  role: "admin" | "member" | "analyst";
   invited_by: string | null;
   accepted_at: string | null;
   created_at: string;

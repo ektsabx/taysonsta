@@ -520,7 +520,7 @@ export async function executeTool(ctx: AgentContext, name: string, rawInput: unk
   // The owner's policy can switch a tool off or limit it to some roles —
   // never grant more than authz.ts below (D-141).
   const tp = ctx.policy?.tools[name];
-  if (tp && (!tp.enabled || !tp.roles.includes(ctx.session.role))) {
+  if (tp && (!tp.enabled || !tp.roles.includes(ctx.session.role === "analyst" ? "member" : ctx.session.role))) {
     await logCall(ctx, name, rawInput, "disabled", tp.enabled ? "role not allowed by policy" : "disabled by policy", started);
     return fail("disabled", "That isn't available here.");
   }

@@ -35,18 +35,17 @@ export function PixelList({ cards, canManage }: { cards: Card[]; canManage: bool
       </header>
       <div className="ev-cards">
         {cards.map((c) => (
-          <div key={c.id} className="integration-card ev-card-wrap">
-            <Link href={`/events/${c.id}`} className="ev-card">
+          <div key={c.id} className="integration-card">
+            <Link href={`/events/${c.id}`} className="ev-card" title={c.lastEventAt ? fmt(E.lastAt, { at: formatDateTime(c.lastEventAt, locale) }) : undefined}>
               <span className="ev-ico"><Activity /></span>
               <div className="ev-card-body">
                 <strong dir="auto">{c.name}</strong>
                 <span dir="ltr" className="ev-card-id">ID {c.publicId}</span>
-                {c.websiteUrl && <span dir="ltr" className="ev-card-site"><Globe />{c.websiteUrl.replace(/^https?:\/\//, "")}</span>}
-                <span className="ev-card-status"><span className={`ev-dot${c.active ? " on" : ""}`} />{c.active ? E.active : c.lastEventAt ? E.quiet : E.notInstalled}</span>
+                {c.websiteUrl && <span dir="ltr" className="ev-card-site"><Globe /><span>{c.websiteUrl.replace(/^https?:\/\//, "")}</span></span>}
               </div>
-              <div className="ev-card-stats">
-                <span><strong>{formatNumber(c.week, locale)}</strong><small>{E.week}</small></span>
-                {c.lastEventAt && <small>{fmt(E.lastAt, { at: formatDateTime(c.lastEventAt, locale) })}</small>}
+              <div className="ev-card-foot">
+                <span className="ev-card-status"><span className={`ev-dot${c.active ? " on" : ""}`} />{c.active ? E.active : c.lastEventAt ? E.quiet : E.notInstalled}</span>
+                <span className="ev-card-week"><strong>{formatNumber(c.week, locale)}</strong>{E.week}</span>
               </div>
             </Link>
             {canManage && (

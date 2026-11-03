@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
@@ -57,6 +57,7 @@ const customInput = z.object({ name: z.string().trim().min(1).max(120), source: 
 
 export async function createCustom(input: z.input<typeof customInput>): Promise<AudienceResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = customInput.safeParse(input);
   if (!p.success) return { ok: false, error: t.ag.aud.errors.name };
@@ -76,6 +77,7 @@ export async function createCustom(input: z.input<typeof customInput>): Promise<
 /** A custom audience from a CSV file: the contacts are imported (plan limits apply), then become the audience. */
 export async function importAudience(input: { name: string; fileName: string; kind: ImportKind; mapping: Record<ImportField, number>; rows: string[][] }): Promise<AudienceResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.prospects.import.errors;
   const name = String(input.name ?? "").trim().slice(0, 120);
@@ -125,6 +127,7 @@ export async function analyzeLookalike(input: z.input<typeof lookInput>): Promis
 
 export async function createLookalike(input: z.input<typeof lookInput> & { name: string }): Promise<AudienceResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = lookInput.safeParse(input);
   const name = String(input.name ?? "").trim().slice(0, 120);
@@ -146,6 +149,7 @@ const savedInput = z.object({ id: z.string().uuid().optional(), kind: z.literal(
 /** A saved targeting (from Audiences or from an audience in the campaign builder). */
 export async function saveAudience(input: z.input<typeof savedInput>): Promise<AudienceResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = savedInput.safeParse(input);
   if (!p.success) return { ok: false, error: t.ag.aud.errors.name };
@@ -161,6 +165,7 @@ export async function saveAudience(input: z.input<typeof savedInput>): Promise<A
 
 export async function renameAudience(id: string, name: string): Promise<AudienceResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const n = name.trim().slice(0, 120);
   if (!z.string().uuid().safeParse(id).success || !n) return { ok: false, error: t.ag.aud.errors.name };
@@ -172,6 +177,7 @@ export async function renameAudience(id: string, name: string): Promise<Audience
 /** Custom: rebuilt from its source. Lookalike: re-learned from its base (same expansion). */
 export async function refreshAudience(id: string): Promise<AudienceResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const db = await createClient();
   const { data: a } = await db.from("audiences").select("id, kind, origin, expansion").eq("id", id).eq("workspace_id", session.workspace.id).maybeSingle();
@@ -191,6 +197,7 @@ export async function refreshAudience(id: string): Promise<AudienceResult> {
 
 export async function deleteAudience(id: string): Promise<AudienceResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.ag.aud.errors.name };
   await (await createClient()).from("audiences").delete().eq("id", id).eq("workspace_id", session.workspace.id);

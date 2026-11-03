@@ -3,7 +3,7 @@
 import { hasProviderFor } from "@/lib/intel/registry";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/session";
+import { canEdit, requireSession } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 import { parseFilters, selectItems } from "@/services/prospects";
 
@@ -33,6 +33,7 @@ async function resolve(target: Target) {
 /** Decision-maker matching: queues "find the decision makers" for the selected companies / local businesses. */
 export async function findDecisionMakersAction(target: Target): Promise<{ ok: boolean; queued: number }> {
   const { session, companies } = await resolve(target);
+  if (!canEdit(session)) return { ok: false, queued: 0 };
   if (!companies.length) return { ok: false, queued: 0 };
   if (!(await hasProviderFor("person.search"))) return { ok: false, queued: 0 };
   const supabase = await createClient();
@@ -51,6 +52,7 @@ export async function findDecisionMakersAction(target: Target): Promise<{ ok: bo
 /** Removes rows from Prospects (they stay in their search's results). */
 export async function removeFromProspects(target: Target): Promise<{ ok: boolean; removed: number }> {
   const { session, people, companies } = await resolve(target);
+  if (!canEdit(session)) return { ok: false, removed: 0 };
   if (!people.length && !companies.length) return { ok: false, removed: 0 };
   const supabase = await createClient();
   const [p, c] = await Promise.all([
@@ -64,6 +66,7 @@ export async function removeFromProspects(target: Target): Promise<{ ok: boolean
 /** Removes rows from Saved (they stay in Prospects). */
 export async function removeFromSaved(target: Target): Promise<{ ok: boolean; removed: number }> {
   const { session, people, companies } = await resolve(target);
+  if (!canEdit(session)) return { ok: false, removed: 0 };
   if (!people.length && !companies.length) return { ok: false, removed: 0 };
   const supabase = await createClient();
   const [p, c] = await Promise.all([

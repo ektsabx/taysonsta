@@ -3,7 +3,7 @@
 import { campaignOfLead } from "@/lib/campaigns/activity";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
@@ -36,6 +36,7 @@ const pageInput = z.object({
 
 export async function saveBookingPage(input: z.input<typeof pageInput>): Promise<R> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).meetings.errors;
   const p = pageInput.safeParse(input);
   if (!p.success) return { ok: false, error: p.error.issues[0]?.path[0] === "slug" ? t.slug : t.invalid };
@@ -49,6 +50,7 @@ export async function saveBookingPage(input: z.input<typeof pageInput>): Promise
 
 export async function setMeetingStatus(id: string, status: MeetingStatus): Promise<R> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).meetings.errors;
   if (!z.string().uuid().safeParse(id).success || !["scheduled", "completed", "canceled", "no_show"].includes(status)) return { ok: false, error: t.invalid };
   if (status === "canceled") {
@@ -72,6 +74,7 @@ export async function setMeetingStatus(id: string, status: MeetingStatus): Promi
 /** A meeting the member arranged in a conversation (D-268): the lead, the time and the place or link. */
 export async function addMeeting(input: { leadId: string; start: string; minutes: number; place: string }): Promise<R> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).meetings.errors;
   const p = z.object({ leadId: z.string().uuid(), start: z.string().refine((v) => !Number.isNaN(Date.parse(v))), minutes: z.number().int().min(10).max(480), place: z.string().trim().max(300) }).safeParse(input);
   if (!p.success) return { ok: false, error: t.invalid };
@@ -96,6 +99,7 @@ export async function addMeeting(input: { leadId: string; start: string; minutes
 /** A short brief before the meeting: who they are, the conversation so far, what to ask (Meeting Agent). */
 export async function meetingBriefAction(meetingId: string): Promise<{ ok: true; brief: string } | { ok: false; error: string }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(meetingId).success) return { ok: false, error: t.meetings.errors.invalid };
   const { data: own } = await (await createClient()).from("sales_meetings").select("id").eq("id", meetingId).eq("workspace_id", session.workspace.id).maybeSingle();
@@ -112,6 +116,7 @@ export async function meetingBriefAction(meetingId: string): Promise<{ ok: true;
  */
 export async function setOutcome(leadId: string, won: boolean, reason?: string | null, meetingId?: string | null, dealValue?: number | null): Promise<R> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).meetings.errors;
   if (!z.string().uuid().safeParse(leadId).success) return { ok: false, error: t.invalid };
   const db = await createClient();
@@ -136,6 +141,7 @@ export async function setOutcome(leadId: string, won: boolean, reason?: string |
 /** After a meeting (D-270): was it with the right person, about a real need? Counts toward the campaign's target. */
 export async function setMeetingQualified(id: string, qualified: boolean): Promise<R> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).meetings.errors;
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.invalid };
   const db = await createClient();

@@ -26,29 +26,21 @@ import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 import { AskYolias } from "./AskYolias";
 
-// The menu (owner, 2026-11-02, D-274), in four groups: Yolias (the
-// dashboard and Yolias AI), Acquisition (campaigns, the leads they bring,
-// audiences), Engagement (the Inbox of every conversation, meetings) and
-// Workspace (Company Knowledge, integrations).
-const navGroups = [
-  { key: "yolias", items: [
-    { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
-    { href: "/", key: "yoliasAi", icon: MessageSquareText },
-  ] },
-  { key: "acquisition", items: [
-    { href: "/outreach", key: "campaigns", icon: Send },
-    { href: "/prospects", key: "prospects", icon: UserSearch },
-    { href: "/audiences", key: "audiences", icon: UsersRound },
-  ] },
-  { key: "engagement", items: [
-    { href: "/inbox", key: "conversations", icon: MessagesSquare },
-    { href: "/meetings", key: "meetings", icon: CalendarDays },
-  ] },
-  { key: "workspace", items: [
-    { href: "/ai/knowledge", key: "knowledge", icon: Library },
-    { href: "/integrations", key: "integrations", icon: Plug },
-    { href: "/events", key: "events", icon: Activity },
-  ] },
+// The menu, in the order of the work (D-274): the dashboard and Yolias AI;
+// campaigns, the leads they bring and audiences; the Inbox and meetings;
+// Company Knowledge, integrations and Events Manager. One list without group
+// headings (owner, 2026-11-02, D-275).
+const navItems = [
+  { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
+  { href: "/", key: "yoliasAi", icon: MessageSquareText },
+  { href: "/outreach", key: "campaigns", icon: Send },
+  { href: "/prospects", key: "prospects", icon: UserSearch },
+  { href: "/audiences", key: "audiences", icon: UsersRound },
+  { href: "/inbox", key: "conversations", icon: MessagesSquare },
+  { href: "/meetings", key: "meetings", icon: CalendarDays },
+  { href: "/ai/knowledge", key: "knowledge", icon: Library },
+  { href: "/integrations", key: "integrations", icon: Plug },
+  { href: "/events", key: "events", icon: Activity },
 ] as const;
 
 const isActive = (pathname: string, href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -207,10 +199,8 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         {/* "New search" was removed (owner, 2026-10-31, D-271): campaigns start from Campaigns, questions from Yolias AI. */}
 
         <nav className="sidebar-nav">
-          {navGroups.map((g) => (
-          <section key={g.key} className="nav-group">
-            <h2 className="nav-heading">{t.ag.rx.nav[g.key]}</h2>
-            {g.items.map(({ href, key, icon: Icon }) => (
+          <section className="nav-group">
+            {navItems.map(({ href, key, icon: Icon }) => (
               <Link key={href} href={href} prefetch className={`nav-item${isActive(pathname, href) ? " active" : ""}`}>
                 <div className="nav-item-inner">
                   <Icon />
@@ -220,7 +210,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
               </Link>
             ))}
           </section>
-          ))}
 
           {pinned.length > 0 && (
             <section className="nav-group">
@@ -316,6 +305,8 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
             <Menu />
           </button>
         </div>
+        {/* Analyst (D-275): sees everything, changes nothing; the server enforces it. */}
+        {data.role === "analyst" && <div className="view-only-bar" role="status">{t.settings.errors.viewOnly}</div>}
         {data.planGate && (
           <div className="plan-gate-banner" role="status">
             <span>{data.planGate.trialDays ? fmt(t.planGate.bannerTrial, { days: data.planGate.trialDays }) : t.planGate.banner}</span>

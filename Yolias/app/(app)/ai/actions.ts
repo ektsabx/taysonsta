@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { mergeSettings, settingsInput, type SettingsInput } from "@/lib/ai-workspace/settings";
@@ -100,6 +100,7 @@ const profileInput = z.object({
 });
 export async function saveProfile(input: z.input<typeof profileInput>): Promise<AiResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws.ai.profiles.errors;
   const p = profileInput.safeParse(input);
   if (!p.success) return { ok: false, error: p.error.issues[0]?.path[0] === "name" ? t.name : (await getDictionary()).ws.common.error };
@@ -118,6 +119,7 @@ export async function saveProfile(input: z.input<typeof profileInput>): Promise<
 
 export async function setDefaultProfile(id: string): Promise<AiResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws;
   if (!uuid.safeParse(id).success) return { ok: false, error: t.common.notFound };
   const db = await createClient();
@@ -130,6 +132,7 @@ export async function setDefaultProfile(id: string): Promise<AiResult> {
 
 export async function deleteProfile(id: string): Promise<AiResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws;
   if (!uuid.safeParse(id).success) return { ok: false, error: t.common.notFound };
   const { error } = await (await createClient()).from("customer_profiles").delete().eq("id", id).eq("workspace_id", session.workspace.id);

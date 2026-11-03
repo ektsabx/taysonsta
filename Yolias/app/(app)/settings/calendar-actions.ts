@@ -1,6 +1,6 @@
 "use server";
 
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calendarConfigured } from "@/lib/meetings/google";
@@ -17,6 +17,7 @@ export async function calendarState(): Promise<{ available: boolean; connection:
 
 export async function disconnectCalendar(): Promise<{ ok: true }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   await createAdminClient().rpc("clear_calendar_token", { p_user: session.userId });
   return { ok: true };
 }

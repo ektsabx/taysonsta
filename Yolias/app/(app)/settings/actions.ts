@@ -167,7 +167,7 @@ export async function deleteAccount(): Promise<ActionResult> {
 
 const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
-  role: z.enum(["admin", "member"]),
+  role: z.enum(["admin", "member", "analyst"]),
 });
 
 export async function inviteMember(input: z.input<typeof inviteSchema>): Promise<ActionResult> {
@@ -207,6 +207,23 @@ export async function revokeInvitation(id: string): Promise<ActionResult> {
   const session = await requireSession();
   if (!canManageTeam(session)) return { ok: false, error: (await getDictionary()).settings.errors.onlyAdminsManage };
   await createAdminClient().from("workspace_invitations").delete().eq("id", id).eq("workspace_id", session.workspace.id).is("accepted_at", null);
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Change a member's role (owners and admins; never the owner's, never your own). */
+export async function changeMemberRole(userId: string, role: "admin" | "member" | "analyst"): Promise<ActionResult> {
+  const session = await requireSession();
+  const t = (await getDictionary()).settings.errors;
+  if (!canManageTeam(session)) return { ok: false, error: t.onlyAdminsManage };
+  if (!z.enum(["admin", "member", "analyst"]).safeParse(role).success || !z.string().uuid().safeParse(userId).success) return { ok: false, error: t.memberNotFound };
+  if (userId === session.userId) return { ok: false, error: t.cantChangeOwnRole };
+  const admin = createAdminClient();
+  const { data: member } = await admin.from("workspace_members").select("role").eq("workspace_id", session.workspace.id).eq("user_id", userId).maybeSingle();
+  if (!member) return { ok: false, error: t.memberNotFound };
+  if (member.role === "owner") return { ok: false, error: t.ownerCantBeRemoved };
+  const { error } = await admin.from("workspace_members").update({ role }).eq("workspace_id", session.workspace.id).eq("user_id", userId);
+  if (error) return { ok: false, error: t.saveFailed };
   revalidatePath("/", "layout");
   return { ok: true };
 }

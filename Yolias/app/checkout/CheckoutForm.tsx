@@ -8,6 +8,7 @@ import { formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { monthlyRate, planName, priceFor, priceForEgp } from "@/lib/plans";
+import { planEstimates } from "@/lib/pricing-estimates";
 import type { BillingPeriod, Currency, PaidPlan, Plan } from "@/types/database";
 import { metaTrack, track } from "@/lib/analytics/client";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
@@ -180,13 +181,15 @@ export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialP
         <div className="checkout-included">
           <div className="checkout-included-title">{fmt(c.includedIn, { plan: name })}</div>
           <ul>
-            <li><Check aria-hidden="true" /> <span>{c.sameFeatures}</span></li>
-            <li><Check aria-hidden="true" /> <span>{c.teamWorkspace}</span></li>
-            <li><Check aria-hidden="true" /> <span>{c.unlimitedUsers}</span></li>
-            <li><Check aria-hidden="true" /> <span>{fmt(c.credits, { count: n(plan.prospects) })}</span></li>
-            <li><Check aria-hidden="true" /> <span>{c.contactsUnlimited}</span></li>
-            <li><Check aria-hidden="true" /> <span>{t.pricing.noCommitment}</span></li>
+            {/* What the plan reaches and usually brings, then the platform (D-275, lib/pricing-estimates). */}
+            {[
+              fmt(t.pricing.card.reach, { count: n(plan.prospects) }),
+              `${fmt(t.pricing.card.replies, { low: n(planEstimates(plan.prospects).replies.low), high: n(planEstimates(plan.prospects).replies.high) })}*`,
+              `${fmt(t.pricing.card.meetings, { low: n(planEstimates(plan.prospects).meetings.low), high: n(planEstimates(plan.prospects).meetings.high) })}*`,
+              t.pricing.card.campaigns, t.pricing.card.messages, t.pricing.card.agent, t.pricing.card.pixel, t.pricing.card.users, t.pricing.noCommitment,
+            ].map((line) => <li key={line}><Check aria-hidden="true" /> <span>{line}</span></li>)}
           </ul>
+          <p className="checkout-estimate">* {t.pricing.card.estimate}</p>
         </div>
         )}
       </section>

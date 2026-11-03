@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
 import { spentSince } from "@/lib/campaigns/budget";
@@ -26,6 +26,7 @@ export async function getSpendingLimit(): Promise<SpendingLimit> {
 
 export async function setSpendingLimit(usd: number | null): Promise<LimitResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.ws.outreach.errors.notFound };
   const p = z.number().min(1).max(10_000_000).nullable().safeParse(usd);
@@ -44,6 +45,7 @@ export async function setSpendingLimit(usd: number | null): Promise<LimitResult>
 /** Starts the count again from now (the limit stays). */
 export async function resetSpendingLimit(): Promise<LimitResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.ws.outreach.errors.notFound };
   await createAdminClient().from("workspaces").update({ spending_limit_since: new Date().toISOString() }).eq("id", session.workspace.id).not("spending_limit_usd", "is", null);

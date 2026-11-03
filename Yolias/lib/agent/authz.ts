@@ -16,6 +16,8 @@ export const rolePermissions: Record<WorkspaceRole, readonly AgentPermission[]> 
   owner: [...memberPermissions, "billing.read"],
   admin: [...memberPermissions, "billing.read"],
   member: memberPermissions,
+  // Analyst (D-275): asks and reads, never changes anything.
+  analyst: ["read"],
 };
 
 export interface AgentActor {

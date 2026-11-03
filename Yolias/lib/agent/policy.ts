@@ -1,4 +1,5 @@
 import "server-only";
+import type { WorkspaceRole } from "@/types/database";
 import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AGENT_TOOLS, normalizePolicy, type AgentPolicy } from "@/lib/agent/policy-schema";
@@ -94,10 +95,12 @@ export function buildSystemPrompt(p: AgentPolicy): string {
 }
 
 /** Tools offered to the model for this user: enabled and allowed for their role (authz.ts still decides). */
-export function allowedTools(p: AgentPolicy, role: "owner" | "admin" | "member"): Set<string> {
+export function allowedTools(p: AgentPolicy, role: WorkspaceRole): Set<string> {
   return new Set(AGENT_TOOLS.filter((t) => {
     const tp = p.tools[t.name];
-    if (!tp?.enabled || !tp.roles.includes(role)) return false;
+    // An Analyst gets the read-only tools an Advertiser has (D-275).
+    if (!tp?.enabled || !tp.roles.includes(role === "analyst" ? "member" : role)) return false;
+    if (role === "analyst" && t.writes) return false;
     if ((t.name === "rememberFact" || t.name === "forgetFact") && !p.memory.enabled) return false;
     if (t.name === "researchCompany" && (!p.research.enabled || p.research.maxSearchesPerTurn === 0)) return false;
     return true;

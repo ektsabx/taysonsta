@@ -101,7 +101,7 @@ export const FIELDS: FieldDef[] = [
   { id: "prospects", label: "عدد العملاء المحتملين المكتشفين", type: "number" },
   { id: "language", label: "لغة المستخدم", type: "enum", options: [{ value: "ar", label: "العربية" }, { value: "en", label: "English" }] },
   { id: "country", label: "الدولة (رمز من حرفين)", type: "text" },
-  { id: "role", label: "الدور في مساحة العمل", type: "enum", options: [{ value: "owner", label: "المالك" }, { value: "admin", label: "مسؤول" }, { value: "member", label: "عضو" }] },
+  { id: "role", label: "الدور في مساحة العمل", type: "enum", options: [{ value: "owner", label: "المالك" }, { value: "admin", label: "مسؤول" }, { value: "member", label: "معلن" }, { value: "analyst", label: "محلل" }] },
   { id: "marketing_opt_in", label: "وافق على رسائل تحديثات المنتج", type: "bool" },
   { id: "event.plan", label: "الحدث: الخطة", type: "text" },
   { id: "event.reason", label: "الحدث: السبب", type: "text" },

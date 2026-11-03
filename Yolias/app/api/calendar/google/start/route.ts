@@ -10,6 +10,8 @@ const STATE = "yolias_calendar_state";
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.redirect(new URL("/login", siteUrl()));
+  // An Analyst sees results only: no mailbox or calendar to send and book with (D-275).
+  if (session.role === "analyst") return NextResponse.redirect(new URL("/integrations?card=calendar&calendar=failed", siteUrl()));
   const nonce = crypto.randomUUID();
   try {
     const res = NextResponse.redirect(await authorizeUrl(nonce, `${siteUrl()}/api/calendar/google/callback`));

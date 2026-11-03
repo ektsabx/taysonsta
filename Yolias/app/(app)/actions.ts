@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import type { StrategyAttachment } from "@/lib/ai/strategy";
 import { AttachmentError, readAttachments } from "@/lib/attachments";
 import { confirmSetup, titleFrom, understandAndLaunch } from "@/lib/discovery/launch";
@@ -22,6 +22,7 @@ const DEDUPE_MS = 2 * 60_000;
 // never lost, even if understanding fails.
 export async function createStrategy(formData: FormData): Promise<StrategyResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const prompt = String(formData.get("prompt") ?? "").trim();
   if (prompt.length > MAX_PROMPT) return { ok: false, error: t.strategy.errors.tooLong };
@@ -67,6 +68,7 @@ export async function createStrategy(formData: FormData): Promise<StrategyResult
 // so only the text request is re-read).
 export async function retryStrategy(strategyId: string): Promise<StrategyResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const supabase = await createClient();
   const { data: strategy } = await supabase.from("strategies").select("id, prompt, status").eq("id", strategyId).maybeSingle();
@@ -86,6 +88,7 @@ export async function retryStrategy(strategyId: string): Promise<StrategyResult>
 // delivered (not the companies kept only as context of a people search).
 export async function saveToProspects(campaignId: string): Promise<{ ok: boolean; saved: number }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const supabase = await createClient();
   const now = new Date().toISOString();
   const [{ data }, { data: companies }] = await Promise.all([
@@ -120,7 +123,7 @@ export async function renameStrategy(id: string, title: string): Promise<{ ok: b
 }
 
 export async function deleteStrategy(id: string): Promise<{ ok: boolean }> {
-  await requireSession();
+  if (!canEdit(await requireSession())) return { ok: false };
   const supabase = await createClient();
   const { error } = await supabase.from("strategies").delete().eq("id", id);
   revalidatePath("/", "layout");
@@ -141,6 +144,7 @@ export async function rateReply(messageId: number, rating: 1 | -1 | null): Promi
 /** The member confirmed the Campaign Setup (D-167): the search starts on these criteria. */
 export async function confirmCampaignSetup(strategyId: string, criteria: unknown): Promise<{ ok: boolean; blocked?: "noPlan" | "noCredit" }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   if (!/^[0-9a-f-]{36}$/i.test(strategyId)) return { ok: false };
   const icp = parseIcp(criteria);
   if (!icp) return { ok: false };

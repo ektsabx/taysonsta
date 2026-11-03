@@ -84,7 +84,7 @@ export const agEn = {
   },
 
   manager: {
-    title: "Campaigns", subtitle: "Every campaign, its audiences and its messages, with the results you pay for: meetings.",
+    title: "Campaigns", subtitle: "Every campaign, its audiences and its messages, with their results and cost per result.",
     create: "Create campaign", tabs: { campaigns: "Campaigns", audiences: "Audiences", messages: "Messages" }, selectedHint: "Showing what's in {n} selected campaigns", showAllLevels: "Show all",
     search: "Search", filters: "Filters", clearFilters: "Clear filters",
     ranges: { lifetime: "All time", today: "Today", yesterday: "Yesterday", "7d": "Last 7 days", "14d": "Last 14 days", "30d": "Last 30 days", this_month: "This month", last_month: "Last month", custom: "Custom range" },

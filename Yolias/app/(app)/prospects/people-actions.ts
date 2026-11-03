@@ -4,7 +4,7 @@ import { capture } from "@/lib/analytics/server";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { enqueue } from "@/lib/jobs/queue";
 
 // Result cards (D-147): reveal decision makers' contacts, bookmark a company
@@ -21,6 +21,7 @@ const ids = (v: string[]) => [...new Set(v.filter((i) => uuid.test(i)))].slice(0
  */
 export async function setSaved(kind: "person" | "company", id: string, saved: boolean): Promise<{ ok: boolean }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   if (!uuid.test(id)) return { ok: false };
   const db = await createClient();
   const now = new Date().toISOString();
@@ -34,6 +35,7 @@ export async function setSaved(kind: "person" | "company", id: string, saved: bo
 /** "Collect decision makers" for delivered companies (saved or not). Free: the company was the result (D-146). */
 export async function collectDecisionMakers(companyIds: string[]): Promise<{ ok: boolean; queued: number }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const list = ids(companyIds);
   if (!list.length) return { ok: false, queued: 0 };
   // Without a source for people nothing would run: say so instead of spinning.

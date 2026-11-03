@@ -5,7 +5,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { countryLabel } from "@/lib/format";
@@ -63,6 +63,7 @@ function row(s: BuilderState) {
 
 export async function saveDraft(input: unknown, draftId: string | null): Promise<BuilderResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
   if (!p.success) return { ok: false, error: t.ag.builder.errors.settings };
@@ -147,6 +148,7 @@ async function approachFor(session: Awaited<ReturnType<typeof requireSession>>, 
 
 export async function writeApproach(input: unknown, key: string): Promise<BuilderResult<{ angleA: string; angleB: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
   const a = p.success ? p.data.adSets.find((x) => x.key === key) : null;
@@ -158,6 +160,7 @@ export async function writeApproach(input: unknown, key: string): Promise<Builde
 /** A sample first email for a typical person of one audience (nothing saved, nothing sent). */
 export async function previewEmail(input: unknown, key: string): Promise<BuilderResult<{ subject: string; body: string; who: string; angleA: string; angleB: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
   const a = p.success ? p.data.adSets.find((x) => x.key === key) : null;
@@ -234,6 +237,7 @@ async function followUpPlan(campaignId: string, ws: string) {
 
 export async function launchCampaign(input: unknown, draftId: string | null, confirmed: boolean): Promise<BuilderResult<{ id: string; warnings: string[] }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.ag.builder.errors;
   const p = builderSchema.safeParse(input);
@@ -297,6 +301,7 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
 /** A launched campaign: its settings and message change; new audiences start; running audiences keep their targeting. */
 export async function updateCampaign(id: string, input: unknown): Promise<BuilderResult<{ warnings: string[] }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.ag.builder.errors;
   const p = builderSchema.safeParse(input);

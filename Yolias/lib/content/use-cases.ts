@@ -328,6 +328,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       limitsTitle: "Limits to know",
       limits: [limitsEn.contacts, "When no one is found in the role, the company still appears so you can research it yourself.", limitsEn.coverage],
       faq: [
+        { q: "How do I find decision-makers in companies?", a: "Start from the companies that fit (industry, country, size), then the job title that usually decides for what you sell: the founder or owner in small companies, the head of the department in larger ones. Use contact details the company publishes or that can be verified, never guessed. In Yolias you add the job titles to a campaign's audience and it finds the decision makers at each matching company, then writes to each one." },
         { q: "Does Yolias give personal emails of decision makers?", a: "No. Yolias shows the business contact details a company publishes and labels contact channels by verification state. It doesn’t promise a personal email for every person." },
         { q: "Which roles can I search for?", a: "Any role you can describe, such as founder, CEO, COO, head of marketing, HR manager or plant manager." },
         { q: "What if Yolias can’t find the person?", a: "The company still appears with its details, and the result says that no one in that role was found." },
@@ -363,6 +364,7 @@ export const useCases: Record<UseCaseSlug, Localized<UseCase>> = {
       limitsTitle: "حدود يجب معرفتها",
       limits: [limitsAr.contacts, "عندما لا يوجد أحد في المنصب تظهر الشركة مع ذلك لتبحث فيها بنفسك.", limitsAr.coverage],
       faq: [
+        { q: "كيف أجد صنّاع القرار في الشركات؟", a: "ابدأ بالشركات المناسبة (المجال والدولة والحجم)، ثم المسمى الوظيفي الذي يقرر عادة فيما تبيعه: المؤسس أو المالك في الشركات الصغيرة، ورئيس القسم في الأكبر. استخدم بيانات التواصل التي تنشرها الشركة أو يمكن التحقق منها، ولا تخمّنها أبدًا. وفي يولياس تضيف المسميات الوظيفية إلى جمهور الحملة فيجد صنّاع القرار في كل شركة مطابقة ثم يكتب لكل منهم." },
         { q: "هل يعطي يولياس البريد الشخصي لصنّاع القرار؟", a: "لا. يعرض يولياس بيانات التواصل التي تنشرها الشركة، ويصنّف قنوات التواصل حسب حالة التحقق، ولا يعد ببريد شخصي لكل شخص." },
         { q: "ما المناصب التي يمكنني البحث عنها؟", a: "أي منصب يمكنك وصفه، مثل المؤسس أو الرئيس التنفيذي أو مدير العمليات أو رئيس التسويق أو مدير الموارد البشرية أو مدير المصنع." },
         { q: "ماذا لو لم يجد يولياس الشخص؟", a: "تظهر الشركة مع بياناتها، وتوضح النتيجة أنه لم يُعثر على أحد في هذا المنصب." },

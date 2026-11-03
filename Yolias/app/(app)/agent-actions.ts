@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
 import { START_BLOCKED, executeTool } from "@/lib/agent/tools";
 import { activePolicy } from "@/lib/agent/policy";
 import { AGENT_TOOLS } from "@/lib/agent/policy-schema";
@@ -17,6 +17,7 @@ import type { Json } from "@/types/database";
 // permissions and RLS apply exactly as if they had done it themselves.
 export async function decideAgentAction(id: string, approve: boolean): Promise<{ ok: boolean; error?: string }> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const a = t.agent.approval;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, error: a.notFound };

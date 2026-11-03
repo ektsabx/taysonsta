@@ -121,6 +121,7 @@ export const alternativesPages: SeedPage[] = [
         { ol: ["Write down ten companies you'd love as clients.", "Ask each tool for companies like them in your market.", "Count how many results you would actually contact, and how many have a usable contact.", "Compare what that costs for your team for a month."] },
       ],
       faq: [
+        { q: "What are the best Apollo alternatives?", a: "It depends on why you are leaving Apollo: Cognism or Lusha for phone numbers, ZoomInfo for a larger enterprise dataset with intent, Clay to build your own enrichment, Hunter for emails at companies you chose, and Yolias if you want an AI advertising platform that finds the decision makers you define, writes to them from your own mailbox and books the meetings." },
         { q: "What is the cheapest Apollo alternative?", a: "It depends on your volume and team size. Per-user tools get expensive as the team grows; Yolias has unlimited users on every plan and charges for prospects only, while Hunter charges per email found. Price your real monthly usage on each pricing page." },
         { q: "Is Yolias an Apollo alternative for agencies?", a: "Yes, for agencies that sell services and want matching companies explained and emailed from their own mailbox. Agencies that need large phone-number lists will want a contact data provider as well." },
       ],
@@ -151,6 +152,7 @@ export const alternativesPages: SeedPage[] = [
         { ol: ["اكتب عشر شركات تتمنى أن تكون عملاءك.", "اطلب من كل أداة شركات تشبهها في سوقك.", "احسب كم نتيجة ستتواصل معها فعلًا، وكم منها لها بيانات تواصل صالحة.", "قارن تكلفة ذلك لفريقك لمدة شهر."] },
       ],
       faq: [
+        { q: "ما أفضل بدائل Apollo؟", a: "يعتمد على سبب تركك لـ Apollo: Cognism أو Lusha لأرقام الهاتف، وZoomInfo لبيانات مؤسسية أوسع مع إشارات النية، وClay لبناء الإثراء بنفسك، وHunter للبريد في شركات اخترتها، ويولياس إذا أردت منصة إعلانات بالذكاء الاصطناعي تجد صنّاع القرار الذين تحددهم وتكتب لهم من بريدك وتحجز الاجتماعات." },
         { q: "ما أرخص بديل لـ Apollo؟", a: "يعتمد على حجمك وحجم فريقك. الأدوات التي تُسعّر لكل مستخدم تغلو مع نمو الفريق؛ ويولياس بعدد غير محدود من المستخدمين في كل الخطط ويحسب العملاء المحتملين فقط، وHunter يحسب لكل بريد يجده. احسب استخدامك الشهري الحقيقي على صفحة أسعار كل أداة." },
         { q: "هل يولياس بديل لـ Apollo للوكالات؟", a: "نعم، للوكالات التي تبيع خدمات وتريد شركات مطابقة مشروحة ومراسلة من بريدها. أما الوكالات التي تحتاج قوائم أرقام هاتف كبيرة فستحتاج مزود بيانات تواصل أيضًا." },
       ],
@@ -185,6 +187,7 @@ export const alternativesPages: SeedPage[] = [
         ] } },
       ],
       faq: [
+        { q: "What tools are alternatives to Clay?", a: "Apollo, ZoomInfo or Lusha if you want a ready contact database instead of building enrichment, Hunter if you only need emails for companies you picked, and Yolias if you want the research, the emails and the follow-up done for you as a campaign that brings meetings, leads or sales." },
         { q: "Is there an easier alternative to Clay?", a: "If your main use was finding and qualifying companies and writing first emails, Yolias does that from a plain description without a workflow to build. If you used Clay mainly for contact enrichment, a contact database is simpler." },
         { q: "Can I keep Clay and add Yolias?", a: "Yes. Export a list from either one as CSV and import it into the other." },
       ],
@@ -213,6 +216,7 @@ export const alternativesPages: SeedPage[] = [
         ] } },
       ],
       faq: [
+        { q: "ما الأدوات البديلة لـ Clay؟", a: "Apollo أو ZoomInfo أو Lusha إذا أردت قاعدة جهات اتصال جاهزة بدل بناء الإثراء، وHunter إذا كنت تحتاج البريد فقط لشركات اخترتها، ويولياس إذا أردت أن يتم البحث والرسائل والمتابعة عنك كحملة تأتيك باجتماعات أو عملاء أو مبيعات." },
         { q: "هل يوجد بديل أسهل من Clay؟", a: "إذا كان استخدامك الأساسي إيجاد الشركات وتقييمها وكتابة الرسائل الأولى، فيولياس يفعل ذلك من وصف بسيط دون مسار تبنيه. وإذا كنت تستخدم Clay أساسًا لإثراء جهات الاتصال، فقاعدة جهات اتصال أبسط." },
         { q: "هل يمكنني الإبقاء على Clay وإضافة يولياس؟", a: "نعم. صدّر قائمة من أي منهما كملف CSV واستوردها في الآخر." },
       ],

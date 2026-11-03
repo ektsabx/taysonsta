@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { confirmSent } from "@/lib/outreach/sequence";
 import { draftReply, logReply } from "@/lib/agents/replies";
@@ -27,6 +27,7 @@ const refresh = (_leadId?: string | null) => {
 
 export async function updateDraft(messageId: string, subject: string, body: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const e = (await getDictionary()).ws.messages.errors;
   if (!uuid.safeParse(messageId).success) return { ok: false, error: e.not_found };
   const db = await createClient();
@@ -43,6 +44,7 @@ export async function updateDraft(messageId: string, subject: string, body: stri
 
 export async function discardMessage(messageId: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const e = (await getDictionary()).ws.messages.errors;
   const db = await createClient();
   const { data, error } = await db.from("outreach_messages").update({ status: "canceled" }).eq("id", messageId).eq("workspace_id", session.workspace.id).in("status", ["draft", "approved", "failed"]).select("lead_id").maybeSingle();
@@ -53,6 +55,7 @@ export async function discardMessage(messageId: string): Promise<MsgResult> {
 
 export async function markMessageSent(messageId: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const e = (await getDictionary()).ws.messages.errors;
   if (!uuid.safeParse(messageId).success) return { ok: false, error: e.not_found };
   const r = await confirmSent(await createClient(), session.workspace.id, session.userId, messageId);
@@ -65,6 +68,7 @@ export async function markMessageSent(messageId: string): Promise<MsgResult> {
 /** Plans when the member will send a draft (no mailbox: a reminder fires at that time). Null clears it. */
 export async function scheduleMessage(messageId: string, at: string | null): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const e = (await getDictionary()).ws.messages.errors;
   if (!uuid.safeParse(messageId).success) return { ok: false, error: e.not_found };
   const when = at && !Number.isNaN(Date.parse(at)) ? new Date(at).toISOString() : null;
@@ -88,6 +92,7 @@ const replyInput = z.object({
 
 export async function logReplyAction(input: z.input<typeof replyInput>): Promise<MsgResult<{ analysis: unknown }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = replyInput.safeParse(input);
   if (!p.success) return { ok: false, error: t.ws.common.error };
@@ -99,6 +104,7 @@ export async function logReplyAction(input: z.input<typeof replyInput>): Promise
 
 export async function draftReplyAction(leadId: string, instruction: string): Promise<MsgResult<{ messageId: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
   const { data: own } = await (await createClient()).from("sales_leads").select("id").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
@@ -115,6 +121,7 @@ export async function draftReplyAction(leadId: string, instruction: string): Pro
 
 export async function setThreadStatus(leadId: string, status: ThreadStatus): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success || !["open", "done", "other"].includes(status)) return { ok: false, error: t.ws.common.error };
   const { data, error } = await (await createClient()).from("inbox_threads").update({ status }).eq("lead_id", leadId).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
@@ -134,6 +141,7 @@ export async function markThreadRead(leadId: string): Promise<MsgResult> {
 /** A reply the member writes (or the AI's suggested reply, used as is): saved as a draft in the conversation. */
 export async function saveManualDraft(leadId: string, body: string): Promise<MsgResult<{ messageId: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.crm.errors.notFound };
   const text = String(body ?? "").trim();
@@ -159,6 +167,7 @@ export async function saveManualDraft(leadId: string, body: string): Promise<Msg
 /** Sends a prepared email now from the member's own mailbox (D-239): the click is the approval. */
 export async function sendNow(messageId: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(messageId).success) return { ok: false, error: t.ws.messages.errors.not_found };
   const { sendMessageNow } = await import("@/lib/outreach/execute");
@@ -183,6 +192,7 @@ export async function sendReply(leadId: string, body: string): Promise<MsgResult
 /** Interested / Not interested / Needs follow-up (D-239). */
 export async function setThreadLabel(leadId: string, label: "interested" | "not_interested" | "follow_up" | null): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success || (label !== null && !["interested", "not_interested", "follow_up"].includes(label))) return { ok: false, error: t.ws.common.error };
   const { data, error } = await (await createClient()).from("inbox_threads").update({ label }).eq("lead_id", leadId).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
@@ -197,6 +207,7 @@ export async function setThreadLabel(leadId: string, label: "interested" | "not_
  */
 export async function setReplyKind(leadId: string, kind: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const { REPLY_KINDS } = await import("@/lib/automations/schema");
   const { labelFor } = await import("@/lib/agents/replies");
@@ -216,6 +227,7 @@ export async function setReplyKind(leadId: string, kind: string): Promise<MsgRes
 /** A task on the conversation done or open again (tasks live with the conversation, D-268). */
 export async function setTaskDone(taskId: string, done: boolean): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(taskId).success) return { ok: false, error: t.ws.common.notFound };
   const { data, error } = await (await createClient()).from("lead_tasks").update({ done_at: done ? new Date().toISOString() : null }).eq("id", taskId).eq("workspace_id", session.workspace.id).select("lead_id").maybeSingle();
@@ -227,6 +239,7 @@ export async function setTaskDone(taskId: string, done: boolean): Promise<MsgRes
 /** D-274: the member dealt with a conversation Yolias handed to them: it leaves "Needs you". */
 export async function markHandled(leadId: string): Promise<MsgResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(leadId).success) return { ok: false, error: t.ws.common.error };
   const db = await createClient();

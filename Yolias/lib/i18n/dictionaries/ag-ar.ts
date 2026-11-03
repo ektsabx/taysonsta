@@ -85,7 +85,7 @@ export const agAr: typeof agEn = {
   },
 
   manager: {
-    title: "الحملات", subtitle: "كل حملة وجماهيرها ورسائلها، مع النتيجة التي تدفع من أجلها: الاجتماعات.",
+    title: "الحملات", subtitle: "كل حملة وجماهيرها ورسائلها، مع نتائجها وتكلفة النتيجة.",
     create: "إنشاء حملة", tabs: { campaigns: "الحملات", audiences: "الجماهير", messages: "الرسائل" }, selectedHint: "يعرض محتوى {n} حملات محددة", showAllLevels: "عرض الكل",
     search: "بحث", filters: "الفلاتر", clearFilters: "مسح الفلاتر",
     ranges: { lifetime: "كل الوقت", today: "اليوم", yesterday: "أمس", "7d": "آخر 7 أيام", "14d": "آخر 14 يومًا", "30d": "آخر 30 يومًا", this_month: "هذا الشهر", last_month: "الشهر الماضي", custom: "فترة مخصصة" },

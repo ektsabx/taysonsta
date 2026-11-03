@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/session";
+import { requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
@@ -16,6 +16,7 @@ export type DetailResult<T = object> = ({ ok: true; message?: string } & T) | { 
 
 export async function groupAction(groupId: string, action: "pause" | "resume" | "archive"): Promise<DetailResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(groupId).success || !["pause", "resume", "archive"].includes(action)) return { ok: false, error: t.ws.outreach.errors.notFound };
   const db = await createClient();

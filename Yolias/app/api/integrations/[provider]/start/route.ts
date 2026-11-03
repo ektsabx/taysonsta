@@ -12,6 +12,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pro
   if (provider !== "gmail" && provider !== "outlook") return NextResponse.json({ error: "notFound" }, { status: 404 });
   const session = await getSession();
   if (!session) return NextResponse.redirect(new URL("/login", siteUrl()));
+  // An Analyst sees results only: no mailbox or calendar to send and book with (D-275).
+  if (session.role === "analyst") return NextResponse.redirect(new URL("/integrations?mailbox=failed", siteUrl()));
   const nonce = crypto.randomUUID();
   try {
     const url = await mailboxProvider(provider).authorizeUrl(`${provider}.${nonce}`, `${siteUrl()}/api/integrations/${provider}/callback`);

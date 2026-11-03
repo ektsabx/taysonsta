@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { canManageTeam, requireSession } from "@/lib/session";
+import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
@@ -31,6 +31,7 @@ function websiteOf(v: string): string | null | undefined {
 /** Create a pixel from the "Create a pixel" window: its name and (optional) website, like Facebook's and TikTok's. */
 export async function createPixelAction(input: { name: string; website: string }): Promise<EventsResult<{ id: string }>> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.ws.outreach.errors.notFound };
   const n = z.string().trim().min(1).max(80).safeParse(input.name);
@@ -47,6 +48,7 @@ export async function createPixelAction(input: { name: string; website: string }
 /** Edit a pixel's name and website (the card's ⋯ menu and the pixel page's title). */
 export async function editPixelAction(pixelId: string, input: { name: string; website?: string }): Promise<EventsResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session) || !z.string().uuid().safeParse(pixelId).success) return { ok: false, error: t.ws.outreach.errors.notFound };
   const n = z.string().trim().min(1).max(80).safeParse(input.name);
@@ -69,6 +71,7 @@ export async function editPixelAction(pixelId: string, input: { name: string; we
  */
 export async function deletePixelAction(pixelId: string): Promise<EventsResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session) || !z.string().uuid().safeParse(pixelId).success) return { ok: false, error: t.ws.outreach.errors.notFound };
   const db = createAdminClient();
@@ -86,6 +89,7 @@ export async function deletePixelAction(pixelId: string): Promise<EventsResult> 
 
 export async function savePixelSettings(pixelId: string, input: { name: string; website: string; allowed: string; blocked: string }): Promise<EventsResult> {
   const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session) || !z.string().uuid().safeParse(pixelId).success) return { ok: false, error: t.ws.outreach.errors.notFound };
   const name = z.string().trim().min(1).max(80).safeParse(input.name);
