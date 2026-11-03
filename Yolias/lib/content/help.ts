@@ -351,24 +351,24 @@ export const articles: HelpArticle[] = [
     collection: "account",
     doc: {
       en: {
-        title: "Inviting teammates",
-        summary: "Bring colleagues into your workspace. Every plan includes unlimited users.",
+        title: "Adding people",
+        summary: "Add colleagues with a role: Admin, Advertiser or Analyst. Unlimited users on every plan.",
         blocks: [
           { ol: [
             "Open your name at the bottom of the sidebar and choose **Team**.",
-            "Press **Invite User**, enter their work email, choose **Member** or **Admin**, and send.",
+            "Press **Add people**, enter their work email, choose **Admin**, **Advertiser** or **Analyst**, and send.",
             "They receive an email; opening it creates their account inside your workspace.",
           ] },
           { p: "Pending invitations stay listed until accepted, and owners or admins can revoke them. Someone who already has their own Yolias account can’t be invited to a second workspace yet." },
         ],
       },
       ar: {
-        title: "دعوة أعضاء الفريق",
-        summary: "أضف زملاءك إلى مساحة عملك، كل الخطط تشمل مستخدمين غير محدودين.",
+        title: "إضافة أشخاص",
+        summary: "أضف زملاءك بدور: مسؤول أو معلن أو محلل. مستخدمون بلا حد في كل خطة.",
         blocks: [
           { ol: [
             "اضغط على اسمك أسفل الشريط الجانبي واختر **الفريق**.",
-            "اضغط **دعوة مستخدم**، وأدخل بريد العمل، واختر **عضو** أو **مسؤول**، ثم أرسل.",
+            "اضغط **إضافة أشخاص**، وأدخل بريد العمل، واختر **مسؤول** أو **معلن** أو **محلل**، ثم أرسل.",
             "يصلهم بريد إلكتروني؛ وفتحه ينشئ حسابهم داخل مساحة عملك.",
           ] },
           { p: "تبقى الدعوات المعلقة ظاهرة حتى قبولها، ويمكن للمالك أو المسؤول إلغاؤها. ولا يمكن حاليًا دعوة شخص لديه حساب يولياس خاص به إلى مساحة عمل ثانية." },

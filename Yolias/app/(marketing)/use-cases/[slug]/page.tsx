@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // One search intent, answered directly first, then how Yolias handles it,
-// its limits and real questions (lib/content/use-cases.ts).
+// and real questions (lib/content/use-cases.ts).
 export default async function UseCasePage({ params }: Props) {
   const { slug } = await params;
   if (!isUseCaseSlug(slug)) notFound();
@@ -103,12 +103,14 @@ export default async function UseCasePage({ params }: Props) {
         </div>
       </section>
 
-      <section className="section">
-        <div className="site-width split">
-          <h2 className="solution-h2">{u.limitsTitle}</h2>
-          <ul className="solution-list">{u.limits.map((x) => <li key={x.slice(0, 24)}>{x}</li>)}</ul>
-        </div>
-      </section>
+      {u.limits.length > 0 && (
+        <section className="section">
+          <div className="site-width split">
+            <h2 className="solution-h2">{u.limitsTitle}</h2>
+            <ul className="solution-list">{u.limits.map((x) => <li key={x.slice(0, 24)}>{x}</li>)}</ul>
+          </div>
+        </section>
+      )}
 
       <Faq title={c.faqTitle} items={u.faq} />
 

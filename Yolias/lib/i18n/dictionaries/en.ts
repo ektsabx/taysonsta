@@ -767,7 +767,7 @@ export const en = {
       rules: "Only a new account counts, once, after its email is confirmed. Your own team, your own other emails and disposable inboxes don't count. One account per network is rewarded at once; others from the same network are reviewed by our team first.",
     },
     integration: {
-      intro: "Connect the mailbox Yolias sends your campaigns from. It sends only for campaigns you launch, and reads the replies there.",
+      intro: "Connect the mailbox Yolias sends your campaigns from and reads the replies in.",
       channels: "Email",
       gmailDesc: "Gmail and Google Workspace. Yolias sends approved campaigns from your account and brings the replies to Inbox. It only reads the threads it started.",
       outlookDesc: "Outlook, Office 365 and Exchange. Yolias sends approved campaigns from your account and brings the replies to Inbox. It only reads the conversations it started.",

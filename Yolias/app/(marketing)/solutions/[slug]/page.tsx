@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // (lib/content/solutions.ts). Order (owner brief 2026-10-12, after the way
 // warp.co/startups presents solutions): the problem-led promise with quick
 // facts, three numbered outcomes, the problem, how Yolias helps, examples,
-// steps, honest limits, objections (FAQ) and a closing call to action.
+// steps, objections (FAQ) and a closing call to action.
 export default async function SolutionPage({ params }: Props) {
   const { slug } = await params;
   if (!isSolutionSlug(slug)) {
@@ -135,17 +135,19 @@ export default async function SolutionPage({ params }: Props) {
           <h2 className="solution-h2">{s.valueTitle}</h2>
           <div className="prose">
             <p>{s.value}</p>
-            <p className="solution-note">{c.note}</p>
+            {c.note && <p className="solution-note">{c.note}</p>}
           </div>
         </div>
       </section>
 
-      <section className="section">
-        <div className="site-width split">
-          <h2 className="solution-h2">{seo.limitsTitle}</h2>
-          <ul className="solution-list">{seo.limits.map((l) => <li key={l.slice(0, 24)}>{l}</li>)}</ul>
-        </div>
-      </section>
+      {seo.limits.length > 0 && (
+        <section className="section">
+          <div className="site-width split">
+            <h2 className="solution-h2">{seo.limitsTitle}</h2>
+            <ul className="solution-list">{seo.limits.map((l) => <li key={l.slice(0, 24)}>{l}</li>)}</ul>
+          </div>
+        </section>
+      )}
 
       <Faq title={seo.faqTitle} items={seo.faq} />
 
