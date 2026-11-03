@@ -13,6 +13,7 @@ import { account360, adminActionLabel, timelineOf } from "@/services/yolias/acco
 import { REASONS, STEP_LABEL } from "@/services/yolias/conversions";
 import { CheckoutStatus } from "@/app/admin/platform/conversions/_shared/CheckoutBits";
 import { AccountActions } from "../_shared/AccountActions";
+import { SubscriptionActions } from "../_shared/SubscriptionActions";
 import { NoteForm } from "../_shared/NoteForm";
 import { workspaceCredit } from "@/services/yolias/payments";
 
@@ -89,13 +90,12 @@ export default async function User360Page({ params, searchParams }: { params: Pr
               { label: "الدور", value: a.role ?? "—" },
             ]} />
           </Card>
-          <Card title="الاشتراك">
+          <Card title="الاشتراك" actions={manage && a.workspace_id ? <SubscriptionActions workspaceId={a.workspace_id} plan={a.plan ?? ""} period={a.billing_period ?? null} /> : undefined}>
             <KeyValues items={[
               { label: "الحالة", value: <SubscriptionState {...a} /> },
               { label: "رحلة الاشتراك", value: <Tx>{segmentLabel[a.segment] ?? a.segment}</Tx> },
               { label: "الخطة", value: <span dir="ltr">{a.plan}{a.billing_period ? ` · ${a.billing_period}` : ""}</span> },
               { label: "مزود الدفع", value: a.billing_provider ? <Tx>{providerLabel[a.billing_provider] ?? a.billing_provider}</Tx> : "—" },
-              { label: "بداية التجربة / نهايتها", value: a.trial_started_at ? `${dt(a.trial_started_at)} ← ${dt(a.trial_ends_at)}` : <Tx>لم يبدأ تجربة</Tx> },
               { label: "نهاية الفترة الحالية", value: dt(a.current_period_end) },
               { label: "التجديد التلقائي", value: a.subscription_status === "active" ? (a.cancel_at_period_end ? <Tx>متوقف (ملغى عند نهاية الفترة)</Tx> : <Tx>مفعّل</Tx>) : "—" },
               { label: "أول اشتراك مدفوع", value: firstPaid ? dt(firstPaid.paid_at) : "—" },

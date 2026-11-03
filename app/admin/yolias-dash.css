@@ -184,3 +184,10 @@ a.yd-stat:hover { border-color: var(--y-line-strong); }
 .yd-check input { accent-color: var(--y-red); }
 .yd-inline-form { display: inline; }
 @media (max-width: 760px) { .yd-field.wide { grid-column: auto; } }
+
+.yd-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.yd-btn.danger { color: var(--y-red); }
+.yd-btn.danger-solid { background: var(--y-red); border-color: var(--y-red); color: #fff; }
+.yd-form.one { grid-template-columns: 1fr; }
+.yd-pick { height: 32px; max-width: 190px; padding: 0 8px; border: 1px solid var(--y-line); border-radius: 8px; background: var(--y-paper); color: var(--y-ink); font: inherit; font-size: .78rem; }
+.yd-actions .yd-btn { height: 32px; }

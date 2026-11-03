@@ -9462,6 +9462,18 @@ const en: Record<string, string> = {
  "{c} طلب · {r} سجل · {f} فشل": "{c} requests · {r} records · {f} failed",
  "المزودون المستخدمون": "Providers used",
  "حسب الاستخدام": "Pay As You Go",
+ "تفعيل خطة بدون دفع": "Activate a plan without payment",
+ "تجديد الاشتراك": "Renew the subscription",
+ "إلغاء عند نهاية الفترة": "Cancel at the end of the period",
+ "إلغاء الآن": "Cancel now",
+ "إجراء على الاشتراك…": "Subscription action…",
+ "المدة بالشهور": "Length in months",
+ "تأكيد الإلغاء": "Confirm cancellation",
+ "اختر خطة": "Choose a plan",
+ "المدة غير صالحة.": "The length isn't valid.",
+ "من 1 إلى 24 شهرًا": "From 1 to 24 months",
+ "لا توجد خطة لتجديدها: فعّل خطة أولًا.": "There's no plan to renew: activate a plan first.",
+ "لا يوجد اشتراك فعّال لإلغائه.": "There's no active subscription to cancel.",
 };
 
 export default en;
