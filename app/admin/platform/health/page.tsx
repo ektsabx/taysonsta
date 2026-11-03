@@ -7,6 +7,7 @@ import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
 import { platformHealth } from "@/services/yolias/health";
+import { ydb } from "@/lib/yolias/db";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
 
 const Yes = ({ on, label }: { on: boolean; label?: string }) => <StatusBadge tone={on ? "success" : "neutral"} label={label ?? (on ? "مُعدّ" : "غير مُعدّ")} />;
@@ -18,7 +19,10 @@ export default async function HealthPage() {
   const { bos } = await requirePermission("platform.read");
   if (!connected()) return (<><PageHeader title="صحة المنصة" /><NotConnected /></>);
   const alertCfg = await getSetting("platform_alerts");
-  const [h, alerts] = await Promise.all([platformHealth(), measureAlerts(alertCfg).catch(() => [])]);
+  const [h, alerts, { data: stepsRow }] = await Promise.all([platformHealth(), measureAlerts(alertCfg).catch(() => []), ydb().from("worker_state").select("value").eq("key", "tick.steps").maybeSingle()]);
+  // The last worker run, step by step (audit plan, phase 8): time and outcome of each.
+  const run = (stepsRow?.value ?? null) as { at: string; totalMs: number; steps: Record<string, { ms: number; ok: boolean; error?: string }> } | null;
+  const steps = run ? Object.entries(run.steps).sort((a, b) => b[1].ms - a[1].ms) : [];
   const workerOk = h.worker != null && h.worker.ageSec < 120;
   const llmRate = h.llm24h.total ? Math.round((h.llm24h.failed / h.llm24h.total) * 100) : null;
   return (
@@ -32,6 +36,23 @@ export default async function HealthPage() {
         <KpiCard label="رسائل البريد" value={num(h.email24h.sent)} sub={<Tx vars={{ n: num(h.email24h.failed) }}>{"{n} فشلت"}</Tx>} />
         <KpiCard label="تشغيلات فاشلة" value={num(h.runsFailed24h)} />
       </div>
+
+      <Card title="آخر تشغيل للعامل خطوة بخطوة" actions={run ? <span dir="ltr">{formatDateTime(run.at)} · {num(run.totalMs)} ms</span> : undefined} flush>
+        {steps.length ? (
+          <BosTable className="bos-table">
+            <thead><tr><th><Tx>الخطوة</Tx></th><th><Tx>الزمن</Tx></th><th><Tx>النتيجة</Tx></th></tr></thead>
+            <tbody>
+              {steps.map(([name, x]) => (
+                <tr key={name}>
+                  <td dir="ltr"><code>{name}</code></td>
+                  <td dir="ltr">{num(x.ms)} ms</td>
+                  <td>{x.ok ? <StatusBadge tone={x.ms > 15_000 ? "warning" : "success"} label={x.ms > 15_000 ? "بطيئة" : "نجحت"} /> : <><StatusBadge tone="danger" label="فشلت" /> <span dir="auto">{x.error}</span></>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </BosTable>
+        ) : <EmptyState title="لم يعمل العامل بعد" />}
+      </Card>
 
       <Card title="الخدمات المُعدّة في Yolias">
         {h.configured ? (

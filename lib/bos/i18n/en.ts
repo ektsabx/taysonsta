@@ -9579,6 +9579,8 @@ const en: Record<string, string> = {
  "التخطيط": "Planning",
  "الحملات (آخر 30 يومًا)": "Campaigns (last 30 days)",
  "تكلفة 1,000 استدعاء": "Cost per 1,000 calls",
+ "آخر تشغيل للعامل خطوة بخطوة": "Last worker run, step by step",
+ "بطيئة": "Slow",
 };
 
 export default en;
