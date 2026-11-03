@@ -212,8 +212,8 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
         onClick={() => r.level === "campaigns" ? run(() => runOutreach(r.id, on ? "pause" : "resume")) : run(() => groupAction(r.id, on ? "pause" : "resume"))}><i /></button>
     );
   };
-  // A breakdown (inside a campaign): one row per day, audience, opening, country, industry or job title, with the message columns.
-  const brk = inCampaign && breakdowns && breakdown !== "none" ? breakdowns[breakdown] : null;
+  // A breakdown (every campaign, or inside one): one row per day, audience, opening, country, industry or job title, with the message columns.
+  const brk = breakdowns && breakdown !== "none" ? breakdowns[breakdown] : null;
   const brkCounts = (b: BreakRow): Counts => ({ ...zeroCounts(), contacted: b.contacted, sent: b.sent, bounced: b.bounced, delivered: b.sent - b.bounced, replies: b.replies, interested: b.interested, meetings: b.meetings, held: b.held, opened: b.opened });
   const brkCols = ordered.filter((c) => BREAKDOWN_METRICS.has(c.id));
 
@@ -253,7 +253,9 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
             </div>
           )}
         </div>}
-        {inCampaign && breakdowns && (
+        <DateRange range={range} from={from} to={to} />
+        <div className="cm-spacer" />
+        {breakdowns && (
           <div className="cm-wrap">
             <button type="button" className={`sdr-btn cm-toggle${breakdown !== "none" ? " on" : ""}`} onClick={() => setOpen(open === "breakdown" ? null : "breakdown")}><Layers />{C.breakdown}{breakdown !== "none" ? `: ${C.by[breakdown]}` : ""}<ChevronDown /></button>
             {open === "breakdown" && (
@@ -263,8 +265,6 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
             )}
           </div>
         )}
-        <DateRange range={range} from={from} to={to} />
-        <div className="cm-spacer" />
         <div className="cm-wrap">
           <button type="button" className="sdr-btn cm-toggle" onClick={() => setOpen(open === "columns" ? null : "columns")}><Columns3 />{m.columns}</button>
           {open === "columns" && (

@@ -39,7 +39,7 @@ export const questionPosts: BlogPost[] = [
             ["AI advertising platform for customer acquisition", "Yolias", "You want AI to reach the customers you define and bring back meetings, leads or sales"],
           ] } },
           { h2: "Where Yolias fits" },
-          { p: "Yolias works like an ads manager, but its campaigns reach people one by one instead of showing an ad. You choose the goal (meetings, website purchases, website leads or qualified leads), the audiences (countries, industries, company size, job titles) and the message. Yolias finds the matching companies and decision makers, writes a personal email to each from your own mailbox, follows up, and its AI Sales Agent answers questions and books the meeting. The Yolias pixel counts purchases and leads on your website. Its channel today is email." },
+          { p: "Yolias works like an ads manager, but its campaigns reach people one by one instead of showing an ad. You choose the goal (meetings, sales, website leads or qualified leads), the audiences (countries, industries, company size, job titles) and the message. Yolias finds the matching companies and decision makers, writes a personal email to each from your own mailbox, follows up, and its AI Sales Agent answers questions and books the meeting. The Yolias pixel counts purchases and leads on your website. Its channel today is email." },
           { h2: "Frequently asked questions" },
           { h3: "Are AI lead generation tools worth it for a small team?" },
           { p: "Yes, when they remove the slowest step. For a small team that is usually building the list and following up, which is why tools that do both save the most time." },

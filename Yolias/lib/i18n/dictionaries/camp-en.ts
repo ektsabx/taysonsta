@@ -120,7 +120,7 @@ export const campEn = {
     goal: {
       title: "What should this campaign get you?",
       meeting: "Qualified meetings", meetingDesc: "Yolias asks for a short call and books it on your booking page.",
-      sell: "Purchases on your website", sellDesc: "Yolias sends people to your website to buy.",
+      sell: "Sales", sellDesc: "Yolias sends people to your website to buy.",
       link: "Website link", linkHint: "Where people buy. Starts with https://",
     },
     audience: {

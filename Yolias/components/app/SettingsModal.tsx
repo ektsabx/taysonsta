@@ -7,6 +7,8 @@ import { Activity, Bell, ChevronRight, CreditCard, Gift, Plus, RotateCw, Search,
 import { IMAGE_ACCEPT, checkImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/client";
 import { countryLabel, formatDate, formatMoney, formatNumber } from "@/lib/format";
+import { DIAL_CODES, joinPhone, splitPhone } from "@/lib/dial-codes";
+import { flagEmoji } from "@/lib/country-codes";
 import { COUNTRIES, timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
@@ -14,7 +16,7 @@ import { planName, priceFor, topPlan } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
 import { buyProspectPack } from "@/app/checkout/actions";
 import { ReferralSettings } from "./settings/ReferralSettings";
-import { changeEmail, changeMemberRole, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult } from "@/app/(app)/settings/actions";
+import { changeEmail, changeMemberRole, deleteAccount, inviteMember, refreshUsage, removeMember, revokeInvitation, setAvatar, setDirectoryListing, setPlanCanceled, signOut, updatePhone, updatePreferences, type ActionResult } from "@/app/(app)/settings/actions";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { metaTrack, track } from "@/lib/analytics/client";
 import type { SettingsTab, ShellData } from "./types";
@@ -36,6 +38,10 @@ interface Props {
   tab: SettingsTab;
   onTab: (t: SettingsTab) => void;
   onClose: () => void;
+}
+
+function dialCountries(locale: "en" | "ar") {
+  return Object.keys(DIAL_CODES).map((code) => ({ code, name: countryLabel(code, locale) })).sort((x, y) => x.name.localeCompare(y.name, locale));
 }
 
 export function SettingsModal({ data, tab, onTab, onClose }: Props) {
@@ -180,6 +186,8 @@ function GeneralTab({ data }: { data: ShellData }) {
   // The language row always reflects the interface language actually shown.
   const [prefs, setPrefs] = useState({ ...data.preferences, language: locale });
   const { error, run } = useSave();
+  const [listed, setListed] = useState(data.workspace.listed);
+  const manage = data.role === "owner" || data.role === "admin";
 
   const change = <K extends keyof typeof prefs>(key: K, value: (typeof prefs)[K]) => {
     setPrefs((p) => ({ ...p, [key]: value }));
@@ -224,6 +232,14 @@ function GeneralTab({ data }: { data: ShellData }) {
           {COUNTRIES.map((c) => <option key={c} value={c}>{countryLabel(c, locale)}</option>)}
         </select>
       </SettingRow>
+      {manage && (
+        <SettingRow id="directory" label={g.directory} desc={g.directoryDesc}>
+          <label className="switch">
+            <input type="checkbox" checked={listed} aria-label={g.directory} onChange={(e) => { const v = e.target.checked; setListed(v); run(() => setDirectoryListing(v)); }} />
+            <span className="slider" />
+          </label>
+        </SettingRow>
+      )}
       {error && <p className="form-error">{error}</p>}
     </div>
   );
@@ -232,7 +248,7 @@ function GeneralTab({ data }: { data: ShellData }) {
 /* ─────────────── Account ─────────────── */
 
 function AccountTab({ data }: { data: ShellData }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const a = t.settings.account;
   const [name, setName] = useState(data.user.name);
   const [avatarUrl, setAvatarUrl] = useState(data.user.avatarUrl);
@@ -259,14 +275,19 @@ function AccountTab({ data }: { data: ShellData }) {
     if (name.trim() && name.trim() !== data.user.name) run(() => updatePreferences({ full_name: name }));
   };
 
-  const [phone, setPhone] = useState(data.user.phone ?? "");
+  // Country picker + the number (owner, 2026-11-03); saved as one E.164 number.
+  const initial = splitPhone(data.user.phone, data.preferences.country);
+  const [dial, setDial] = useState(initial.country ?? "");
+  const [phone, setPhone] = useState(initial.national);
   const [savedPhone, setSavedPhone] = useState(data.user.phone ?? "");
-  const savePhone = () => {
-    if (phone.trim() === savedPhone) return;
+  const savePhone = (country = dial, national = phone) => {
+    const full = joinPhone(country || null, national);
+    if (full === savedPhone) return;
     run(async () => {
-      const r = await updatePhone(phone);
+      const r = await updatePhone(full);
       if (r.ok) {
-        setPhone(r.phone ?? "");
+        const next = splitPhone(r.phone, country);
+        setPhone(next.national);
         setSavedPhone(r.phone ?? "");
       }
       return r;
@@ -339,19 +360,22 @@ function AccountTab({ data }: { data: ShellData }) {
       </SettingRow>
 
       <SettingRow id="phone" label={a.phone} desc={a.phoneDesc}>
-        <div style={{ width: 200 }}>
+        <div className="phone-field" dir="ltr">
+          <select className="form-select" aria-label={a.phoneCountry} value={dial} onChange={(e) => { setDial(e.target.value); if (phone) savePhone(e.target.value, phone); }}>
+            <option value="">+</option>
+            {dialCountries(locale).map((c) => <option key={c.code} value={c.code}>{`${flagEmoji(c.code)} ${c.name} +${DIAL_CODES[c.code]}`}</option>)}
+          </select>
           <input
             type="tel"
-            dir="ltr"
             inputMode="tel"
-            autoComplete="tel"
+            autoComplete="tel-national"
             className="form-input"
             placeholder={a.phonePlaceholder}
             aria-label={a.phone}
-            maxLength={40}
+            maxLength={24}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            onBlur={savePhone}
+            onBlur={() => savePhone()}
             onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
           />
         </div>

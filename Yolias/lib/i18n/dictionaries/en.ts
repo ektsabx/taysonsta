@@ -664,7 +664,7 @@ export const en = {
       compact: "Compact", normal: "Normal", large: "Large",
       languages: "Languages", languagesDesc: "Interface language, and the language Yolias AI writes in.",
       timezone: "Time zone", timezoneDesc: "Used for every date and time Yolias shows you.",
-      country: "Account country", countryDesc: "The country your account was registered from. Yolias AI doesn’t use it for searches; it works from your company knowledge, customer profiles and AI agent.",
+      directory: "Reachable by Yolias campaigns", directoryDesc: "Your business appears to other members\u2019 campaigns that target your market.", country: "Account country", countryDesc: "The country your account was registered from. Yolias AI doesn’t use it for searches; it works from your company knowledge, customer profiles and AI agent.",
     },
     organization: {
       name: "Company name", nameDesc: "Your company, as Yolias AI and your team see it.",
@@ -678,7 +678,7 @@ export const en = {
     account: {
       avatar: "Avatar", avatarDesc: "Your profile avatar.", change: "Change", uploading: "Uploading…",
       fullName: "Full Name", fullNameDesc: "Workspace user name.",
-      phone: "Phone number",  phoneDesc: "With the country code, e.g. +20 100 123 4567. Only you can see it.", phonePlaceholder: "+1 415 555 0123", phoneSaved: "Phone number saved",
+      phone: "Phone number",  phoneDesc: "Choose the country and type your number.", phoneCountry: "Country", phonePlaceholder: "415 555 0123", phoneSaved: "Phone number saved",
       email: "Email", emailDesc: "Your verified account email address.", verified: "Verified",
       changeEmail: "Change", newEmail: "New email address", sendChange: "Send confirmation", cancel: "Cancel",
       emailChangeSent: "Check both inboxes: confirm the change from your current and your new address.",

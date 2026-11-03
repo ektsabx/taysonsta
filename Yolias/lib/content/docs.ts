@@ -144,7 +144,7 @@ export const docs: DocPage[] = [
           { h2: "Goals" },
           { table: { head: ["Goal", "The result"], rows: [
             ["Meetings", "A booked meeting"],
-            ["Website purchases", "A purchase the Yolias pixel counts on your site"],
+            ["Sales", "A purchase the Yolias pixel counts on your site"],
             ["Website leads", "A form or registration the pixel counts"],
             ["Qualified leads", "A matching company and person saved to Leads (no outreach)"],
           ] } },

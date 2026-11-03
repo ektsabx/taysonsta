@@ -74,7 +74,7 @@ interface Spec {
 
 const steps = {
   en: [
-    { title: "Choose the goal", body: "Meetings, website purchases, website leads or qualified leads." },
+    { title: "Choose the goal", body: "Meetings, sales, website leads or qualified leads." },
     { title: "Define the audience", body: "Countries and cities, industries, company size and job titles, or a lookalike of your best customers." },
     { title: "Launch", body: "Pick the mailbox, tone and language. Yolias finds the people, writes to each one and follows up." },
     { title: "Get the results", body: "The AI Sales Agent answers and books. Every campaign shows its results and cost per result." },

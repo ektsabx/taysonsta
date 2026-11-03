@@ -45,7 +45,7 @@ export const home: Localized<{
       eyebrow: "HOW IT WORKS",
       title: "Launch a campaign in three steps.",
       steps: [
-        { title: "Choose the goal", body: "Meetings, website purchases, website leads or qualified leads; then what you offer, the budget and the dates." },
+        { title: "Choose the goal", body: "Meetings, sales, website leads or qualified leads; then what you offer, the budget and the dates." },
         { title: "Define your customers", body: "One or more audiences: locations anywhere in the world, industries, company size, job titles and exclusions, or a custom or lookalike audience." },
         { title: "Launch, and let the AI work", body: "Pick the mailbox, the tone and the language, and preview the message. Yolias finds the people, contacts them, follows up, answers and books, and counts every result." },
       ],
@@ -182,7 +182,7 @@ export const product: Localized<{
     sections: [
       {
         title: "Create a campaign in three steps",
-        body: "Campaign: the goal (meetings, website purchases, website leads or qualified leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone, language and notes, with a sample email to preview before you launch.",
+        body: "Campaign: the goal (meetings, sales, website leads or qualified leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone, language and notes, with a sample email to preview before you launch.",
         points: ["Total or daily budget, with the people it buys shown before you launch", "Days and hours to contact people, in your time zone", "Drafts saved, so you can come back"],
       },
       {

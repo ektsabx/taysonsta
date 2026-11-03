@@ -167,7 +167,7 @@ export const agAr: typeof agEn = {
 
   rx: {
     cm: {
-      presets: "أعمدة جاهزة", presetNames: { meetings: "الاجتماعات", purchases: "الشراء من الموقع", form_leads: "نماذج الموقع", qualified_leads: "العملاء المؤهلون" },
+      presets: "أعمدة جاهزة", presetNames: { meetings: "الاجتماعات", purchases: "المبيعات", form_leads: "نماذج الموقع", qualified_leads: "العملاء المؤهلون" },
       custom: "مقاييس مخصصة", create: "إنشاء مقياس مخصص", name: "الاسم", namePh: "مثال: تكلفة الزيارة", formula: "المعادلة", format: "يُعرض كـ",
       formats: { count: "رقم", pct: "نسبة مئوية", usd: "دولار أمريكي", ratio: "نسبة" }, save: "إنشاء", cancel: "إلغاء", remove: "حذف",
       saved: "تم إنشاء المقياس المخصص.", invalid: "اختر اسمًا ومقياسين.",
@@ -223,7 +223,7 @@ export const agAr: typeof agEn = {
       siteNote: "موقعك", siteNoteLine: "يرسل يولياس هذا الرابط ويتتبعه ببيكسلك:", pixelPick: "البيكسل", conversion: "حدث التحويل", conversionHint: "ما يُحسب نتيجةً على موقعك.",
       attribution: "نافذة الاحتساب", attributionDays: { "1": "يوم واحد بعد النقرة أو الرسالة", "7": "7 أيام بعد النقرة أو الرسالة", "28": "28 يومًا بعد النقرة أو الرسالة" },
       types: { outreach: "التواصل", find: "إيجاد عملاء" }, typesDesc: { outreach: "يجد يولياس من تستهدفهم ويتواصل معهم نيابةً عنك، برسالة شخصية لكل واحد، ثم يتابع ويرد.", find: "يجد يولياس الشركات والأشخاص المطابقين لاستهدافك ويحفظهم في العملاء المحتملين، دون التواصل مع أحد." },
-      objectives: { meetings: "اجتماعات", purchases: "الشراء من الموقع", form_leads: "نماذج الموقع", qualified_leads: "عملاء مؤهلون (Qualified Leads)" },
+      objectives: { meetings: "اجتماعات", purchases: "المبيعات", form_leads: "نماذج الموقع", qualified_leads: "عملاء مؤهلون (Qualified Leads)" },
       objectivesDesc: {
         meetings: "يتواصل يولياس مع من تستهدفهم، ويرد عليهم، ويحجز الاجتماعات داخل يولياس حيث يُتابع كل حجز.",
         purchases: "يتواصل يولياس مع من تستهدفهم ويقنعهم بالشراء من موقعك؛ ويحسب بيكسل يولياس عمليات الشراء وقيمتها.",

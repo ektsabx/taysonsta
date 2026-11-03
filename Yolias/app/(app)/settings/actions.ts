@@ -283,6 +283,18 @@ export async function updateOrganization(input: Record<"name" | "website" | "ind
   return { ok: true };
 }
 
+// D-278: whether other members' campaigns can reach this business (the daily
+// rebuild of the "Yolias members" dataset follows it). Owners and admins only.
+export async function setDirectoryListing(listed: boolean): Promise<ActionResult> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
+  const { error } = await createAdminClient().from("workspaces").update({ listed_in_directory: Boolean(listed) }).eq("id", session.workspace.id);
+  if (error) return { ok: false, error: t.settings.errors.saveFailed };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export interface CreditEntry { at: string; kind: "topup" | "used" | "adjust"; prospects: number; search: string | null }
 
 /**

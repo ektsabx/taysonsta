@@ -44,7 +44,8 @@ export interface GrowthData {
   kpis: Record<
     | "views" | "visits" | "visitors" | "signups" | "signupRate" | "activationRate" | "paidConversion" | "newPaying" | "activePaying" | "churnRate"
     | "revenue" | "arppu" | "mrr" | "arr" | "runRate" | "repeatRate" | "cac" | "ltv" | "ltvCac" | "payback" | "grossMargin" | "profit" | "profitMargin"
-    | "avgRecurring" | "activeAdvertisers" | "campaigns" | "appSessions" | "nrr" | "costToServe" | "marketing" | "fixed",
+    | "avgRecurring" | "activeAdvertisers" | "campaigns" | "appSessions" | "nrr" | "costToServe" | "marketing" | "fixed"
+    | "checkouts" | "triedToPay" | "acv",
     Metric
   >;
   growth: { signups: { day: Metric; month: Metric; year: Metric }; revenue: { day: Metric; month: Metric; year: Metric }; paying: { day: Metric; month: Metric; year: Metric } };
@@ -69,7 +70,7 @@ export async function growthDashboard(f: GrowthFilters): Promise<GrowthData> {
   const iso = (t: number) => new Date(t).toISOString();
   const yearAgo = until - 366 * DAY;
 
-  const [profiles, attribution, workspaces, invoices, events, plans, firstVisits, campaigns, sessions, finance, costsNow, costsPrev, trafficNow, trafficPrev] = await Promise.all([
+  const [profiles, attribution, workspaces, invoices, events, plans, firstVisits, campaigns, sessions, finance, costsNow, costsPrev, trafficNow, trafficPrev, checkouts] = await Promise.all([
     all<{ id: string; workspace_id: string | null; created_at: string; onboarded_at: string | null }>((a, b) => db.from("profiles").select("id, workspace_id, created_at, onboarded_at").range(a, b)),
     all<{ user_id: string; channel: string | null }>((a, b) => db.from("signup_attribution").select("user_id, channel").range(a, b)),
     all<{ id: string; name: string | null; plan: string; subscription_status: string; billing_period: string | null; created_by: string | null; created_at: string }>((a, b) => db.from("workspaces").select("id, name, plan, subscription_status, billing_period, created_by, created_at").range(a, b)),
@@ -85,6 +86,8 @@ export async function growthDashboard(f: GrowthFilters): Promise<GrowthData> {
     db.rpc("admin_costs_daily", { p_since: iso(prevSince), p_until: iso(since) }),
     db.rpc("admin_traffic_daily", { p_since: iso(since), p_until: iso(until), p_area: "site" }),
     db.rpc("admin_traffic_daily", { p_since: iso(prevSince), p_until: iso(since), p_area: "site" }),
+    // The checkout journey (D-212): who opened checkout and who started paying.
+    all<{ user_id: string | null; opened_at: string; payment_started_at: string | null }>((a, b) => db.from("checkout_sessions").select("user_id, opened_at, payment_started_at").range(a, b)),
   ]);
   // Page views are counted from the day tracking started (D-276): rates that
   // compare visitors with sign-ups only use the days both were counted.
@@ -115,6 +118,11 @@ export async function growthDashboard(f: GrowthFilters): Promise<GrowthData> {
   const launched = new Map<string, number>();
   for (const c of campaigns) if (c.approved_at) { const t = Date.parse(c.approved_at); const was = launched.get(c.workspace_id); if (was == null || t < was) launched.set(c.workspace_id, t); }
   const activated = (ps: typeof sNow) => ps.filter((p) => p.workspace_id && launched.has(p.workspace_id)).length;
+  // Checkout (owner, 2026-11-03): people, not sessions; each once per period.
+  const openedIn = (a: number, b: number) => new Set(checkouts.filter((c) => c.user_id && inRange(c.opened_at, a, b) && userPasses(c.user_id)).map((c) => c.user_id)).size;
+  const triedIn = (a: number, b: number) => new Set(checkouts.filter((c) => c.user_id && c.payment_started_at && inRange(c.payment_started_at, a, b) && userPasses(c.user_id)).map((c) => c.user_id)).size;
+  const everOpened = new Set(checkouts.filter((c) => c.user_id).map((c) => c.user_id));
+  const everTried = new Set(checkouts.filter((c) => c.user_id && c.payment_started_at).map((c) => c.user_id));
 
   // ── money ──
   const usdInvoices = invoices.filter((i) => (i.currency ?? "USD") === "USD" && wsPasses(i.workspace_id));
@@ -313,6 +321,10 @@ export async function growthDashboard(f: GrowthFilters): Promise<GrowthData> {
     costToServe: metric(cogsNow, cogsPrev),
     marketing: metric(mktNow, mktPrev),
     fixed: metric(fixedNow, fixedPrev),
+    checkouts: metric(openedIn(since, until), openedIn(prevSince, since)),
+    triedToPay: metric(triedIn(since, until), triedIn(prevSince, since)),
+    // ACV: a paying customer's yearly value (ARR ÷ subscribers paying now).
+    acv: metric(ratio(mrr * 12, activeNow.length), ratio(mrrPrev * 12, activePrevList.length)),
   };
 
   return {
@@ -325,7 +337,8 @@ export async function growthDashboard(f: GrowthFilters): Promise<GrowthData> {
       ...(filteredTraffic || tracked > since ? [] : [{ key: "visitors", n: sum(trafficNow.data, "visitors") }]),
       { key: "signups", n: sNow.length },
       { key: "onboarded", n: sNow.filter((p) => p.onboarded_at).length },
-      { key: "activated", n: activated(sNow) },
+      { key: "checkout", n: sNow.filter((p) => everOpened.has(p.id)).length },
+      { key: "tried", n: sNow.filter((p) => everTried.has(p.id)).length },
       { key: "paying", n: sNow.filter((p) => p.workspace_id && firstPaid.has(p.workspace_id)).length },
     ],
     channels, countries,

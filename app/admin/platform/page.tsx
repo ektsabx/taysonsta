@@ -70,6 +70,9 @@ export default async function YoliasDashboard({ searchParams }: { searchParams: 
         <Stat tone="growth" label="الزيارات" value={k.visits.value} prev={k.visits.prev} change={k.visits.change} spark={s.visits} href="/admin/platform/traffic" />
         <Stat tone="growth" label="مشاهدات الصفحات" value={k.views.value} prev={k.views.prev} change={k.views.change} href="/admin/platform/traffic" />
         <Stat tone="growth" label="التسجيلات" value={k.signups.value} prev={k.signups.prev} change={k.signups.change} spark={s.signups} href="/admin/platform/users" />
+        <Stat tone="growth" label="فتحوا صفحة الدفع" value={k.checkouts.value} prev={k.checkouts.prev} change={k.checkouts.change} href="/admin/platform/conversions/funnel" />
+        <Stat tone="growth" label="حاولوا الدفع" value={k.triedToPay.value} prev={k.triedToPay.prev} change={k.triedToPay.change} href="/admin/platform/conversions/abandoned" />
+        <Stat tone="growth" label="دفعوا" value={k.newPaying.value} prev={k.newPaying.prev} change={k.newPaying.change} />
         <Stat tone="growth" label="نسبة التسجيل" value={k.signupRate.value} prev={k.signupRate.prev} change={k.signupRate.change} format="pct" />
         <Stat tone="growth" label="نسبة التفعيل" value={k.activationRate.value} prev={k.activationRate.prev} change={k.activationRate.change} format="pct" />
         <Stat tone="growth" label="التحويل إلى الدفع" value={k.paidConversion.value} prev={k.paidConversion.prev} change={k.paidConversion.change} format="pct" />
@@ -80,6 +83,7 @@ export default async function YoliasDashboard({ searchParams }: { searchParams: 
         <Stat tone="revenue" label="MRR" value={k.mrr.value} prev={k.mrr.prev} change={k.mrr.change} format="usd" />
         <Stat tone="revenue" label="ARR" value={k.arr.value} prev={k.arr.prev} change={k.arr.change} format="usd" />
         <Stat tone="revenue" label="Run Rate" value={k.runRate.value} prev={k.runRate.prev} change={k.runRate.change} format="usd" />
+        <Stat tone="revenue" label="ACV" value={k.acv.value} prev={k.acv.prev} change={k.acv.change} format="usd" />
         <Stat tone="revenue" label="ARPPU" value={k.arppu.value} prev={k.arppu.prev} change={k.arppu.change} format="usd" />
         <Stat tone="revenue" label="متوسط الإنفاق المتكرر" value={k.avgRecurring.value} prev={k.avgRecurring.prev} change={k.avgRecurring.change} format="usd" />
       </Group>
@@ -118,7 +122,7 @@ export default async function YoliasDashboard({ searchParams }: { searchParams: 
 
       <div className="yd-grid3">
         <Panel title="رحلة العميل">
-          <Funnel steps={d.funnel.map((f) => ({ label: ({ visitors: "زاروا الموقع", signups: "سجّلوا", onboarded: "أكملوا الإعداد", activated: "أطلقوا حملة", paying: "دفعوا" } as Record<string, string>)[f.key], n: f.n }))} />
+          <Funnel steps={d.funnel.map((f) => ({ label: ({ visitors: "زاروا الموقع", signups: "سجّلوا", onboarded: "أكملوا الإعداد", checkout: "فتحوا صفحة الدفع", tried: "حاولوا الدفع", activated: "أطلقوا حملة", paying: "دفعوا" } as Record<string, string>)[f.key], n: f.n }))} />
         </Panel>
         <Panel title="النمو والإلغاء">
           <div className="yd-kv">

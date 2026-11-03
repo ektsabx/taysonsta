@@ -63,7 +63,7 @@ export const wsAr: Dictionary["ws"] = {
     objectives: { introduction: "تعريف", sales: "بيع", meeting: "حجز اجتماع", follow_up: "متابعة", partnership: "شراكة", referral: "طلب توجيه" },
     channels: { email: "البريد الإلكتروني" },
     launch: {
-      aim: "هدف الحملة", aims: { meeting: "حجز اجتماع", sell: "الشراء من الموقع" },
+      aim: "هدف الحملة", aims: { meeting: "حجز اجتماع", sell: "المبيعات" },
       aimHints: { meeting: "يولياس يتواصل ويتابع ويرسل صفحة الحجز الخاصة بك، وعندما يحجز العميل يظهر الاجتماع في الاجتماعات.", sell: "من غير اجتماعات: يولياس يرسل رابط موقعك ويجاوب الأسئلة حتى يسجّل العميل أو يشتري." },
       ctaUrl: { meeting: "صفحة الحجز", sell: "رابط الموقع (التسجيل أو الشراء)" },
       ctaPh: "https://", saveAim: "حفظ الهدف", aimSaved: "اتحفظ الهدف. يولياس يكتب الرسالة الأولى من جديد.", badLink: "اللينك لازم يبدأ بـ https://",

@@ -9538,6 +9538,8 @@ const en: Record<string, string> = {
  "من 5 إلى 500 حرف": "5 to 500 characters",
  "هناك قياس يعمل الآن.": "A measurement is already running.",
  "أضف مفتاح OpenAI أو Gemini أو Perplexity في التكاملات أولًا.": "Add an OpenAI, Gemini or Perplexity key in Integrations first.",
+ "فتحوا صفحة الدفع": "Opened checkout",
+ "حاولوا الدفع": "Tried to pay",
 };
 
 export default en;

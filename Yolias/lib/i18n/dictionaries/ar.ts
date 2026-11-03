@@ -666,7 +666,7 @@ export const ar: Dictionary = {
       compact: "مضغوط", normal: "عادي", large: "كبير",
       languages: "اللغة", languagesDesc: "لغة الواجهة، واللغة التي يكتب بها يولياس AI.",
       timezone: "المنطقة الزمنية", timezoneDesc: "تُستخدم في كل تاريخ ووقت يعرضه يولياس.",
-      country: "بلد الحساب", countryDesc: "البلد الذي سجّلت منه حسابك. لا يستخدمه يولياس AI في البحث؛ يعتمد على ملف الشركة وملفات العملاء ووكيل الذكاء الاصطناعي.",
+      directory: "متاح لحملات يولياس", directoryDesc: "يظهر نشاطك لحملات الأعضاء الآخرين التي تستهدف سوقك.", country: "بلد الحساب", countryDesc: "البلد الذي سجّلت منه حسابك. لا يستخدمه يولياس AI في البحث؛ يعتمد على ملف الشركة وملفات العملاء ووكيل الذكاء الاصطناعي.",
     },
     organization: {
       name: "اسم الشركة", nameDesc: "شركتك كما يراها Yolias AI وفريقك.",
@@ -680,7 +680,7 @@ export const ar: Dictionary = {
     account: {
       avatar: "الصورة الشخصية", avatarDesc: "صورة ملفك الشخصي.", change: "تغيير", uploading: "جارٍ الرفع…",
       fullName: "الاسم الكامل", fullNameDesc: "اسم المستخدم في مساحة العمل.",
-      phone: "رقم الهاتف",  phoneDesc: "مع رمز الدولة، مثل ‎+20 100 123 4567. لا يراه أحد غيرك.", phonePlaceholder: "+20 100 123 4567", phoneSaved: "تم حفظ رقم الهاتف",
+      phone: "رقم الهاتف",  phoneDesc: "اختر الدولة واكتب رقمك.", phoneCountry: "الدولة", phonePlaceholder: "100 123 4567", phoneSaved: "تم حفظ رقم الهاتف",
       email: "البريد الإلكتروني", emailDesc: "بريد حسابك الموثّق.", verified: "موثّق",
       changeEmail: "تغيير", newEmail: "البريد الإلكتروني الجديد", sendChange: "إرسال التأكيد", cancel: "إلغاء",
       emailChangeSent: "راجع البريدين: أكّد التغيير من عنوانك الحالي ومن العنوان الجديد.",

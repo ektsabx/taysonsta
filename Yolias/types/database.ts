@@ -81,6 +81,7 @@ export type WorkspaceRow = {
   trial_ends_at: string | null;
   /** A converted trial's usage from an earlier month: {period, prospects, emails, contacts}. */
   trial_carry: Json | null;
+  listed_in_directory: boolean;
   billing_provider: BillingProvider | null;
   /** First Pay As You Go top-up (D-247): the workspace can use Yolias without a subscription. */
   credit_started_at: string | null;

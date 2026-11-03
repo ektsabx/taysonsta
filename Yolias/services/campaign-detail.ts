@@ -15,15 +15,18 @@ export interface BreakRow { key: string; contacted: number; sent: number; bounce
 
 type Msg = { id: string; lead_id: string | null; enrollment_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; variant: string | null; step_position: number | null; subject: string; body: string; to_email: string | null; recipient_opened_at?: string | null };
 
-export async function campaignDetail(workspaceId: string, campaignId: string, range: { from: string | null; to: string | null }) {
+/** campaignId null: every campaign of the workspace (the manager's Breakdown, owner 2026-11-03). */
+export async function campaignDetail(workspaceId: string, campaignId: string | null, range: { from: string | null; to: string | null }) {
   const db = createAdminClient();
-  const [{ data: msgsRaw }, { data: enr }, { data: groups }, { data: meetings }] = await Promise.all([
-    db.from("outreach_messages").select("id, lead_id, enrollment_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, variant, step_position, subject, body, to_email, recipient_opened_at")
-      .eq("workspace_id", workspaceId).eq("outreach_campaign_id", campaignId).order("created_at", { ascending: false }).limit(5000),
-    db.from("outreach_enrollments").select("id, lead_id, audience_group_id, status, current_step, lead:sales_leads(name, company_name, email, stage, prospect:prospects(title, country), company:companies(industry, country))").eq("campaign_id", campaignId).limit(5000),
-    db.from("audience_groups").select("id, name").eq("campaign_id", campaignId),
-    db.from("sales_meetings").select("id, lead_id, title, starts_at, status, qualified, source, confirmed_at, lead:sales_leads(name, company_name)").eq("workspace_id", workspaceId).eq("campaign_id", campaignId).order("starts_at", { ascending: false }).limit(500),
-  ]);
+  const cap = campaignId ? 5000 : 20000;
+  const msgQ = db.from("outreach_messages").select("id, lead_id, enrollment_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, variant, step_position, subject, body, to_email, recipient_opened_at")
+    .eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(cap);
+  const enrQ = db.from("outreach_enrollments").select("id, lead_id, audience_group_id, status, current_step, lead:sales_leads(name, company_name, email, stage, prospect:prospects(title, country), company:companies(industry, country))").eq("workspace_id", workspaceId).limit(cap);
+  const grpQ = db.from("audience_groups").select("id, name").eq("workspace_id", workspaceId);
+  const mtgQ = db.from("sales_meetings").select("id, lead_id, title, starts_at, status, qualified, source, confirmed_at, lead:sales_leads(name, company_name)").eq("workspace_id", workspaceId).order("starts_at", { ascending: false }).limit(campaignId ? 500 : 5000);
+  const [{ data: msgsRaw }, { data: enr }, { data: groups }, { data: meetings }] = await Promise.all(campaignId
+    ? [msgQ.eq("outreach_campaign_id", campaignId), enrQ.eq("campaign_id", campaignId), grpQ.eq("campaign_id", campaignId), mtgQ.eq("campaign_id", campaignId)]
+    : [msgQ.not("outreach_campaign_id", "is", null), enrQ, grpQ, mtgQ.not("campaign_id", "is", null)]);
   const msgs = (msgsRaw ?? []) as Msg[];
   type Lead = { name: string; company_name: string | null; email: string | null; stage: string; prospect: { title: string | null; country: string | null } | null; company: { industry: string | null; country: string | null } | null };
   const leadOf = new Map((enr ?? []).map((e) => [e.lead_id, e.lead as unknown as Lead | null]));

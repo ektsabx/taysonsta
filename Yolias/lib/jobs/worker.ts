@@ -10,6 +10,7 @@ import { intakeSweep } from "@/lib/agent-core/intake";
 import { learningSweep } from "@/lib/agent-core/learning";
 import { clearOldIps } from "@/lib/visits";
 import { geoSweep } from "@/lib/ai-visibility/run";
+import { memberDatasetSweep } from "@/lib/datasets/members";
 import { optimizerSweep } from "@/lib/agent-core/optimizer";
 import { campaignScheduleSweep } from "@/lib/campaigns/schedule";
 import { confirmationSweep, meetingPrepSweep } from "@/lib/meetings";
@@ -219,6 +220,8 @@ export async function tick({ max = 5, budgetMs = 25_000 } = {}): Promise<TickRes
       }
     }
   }
+  // D-278: Yolias members as data for other campaigns, rebuilt once a day.
+  await memberDatasetSweep().catch((e) => console.error("[jobs] member dataset failed", e));
   // GEO tracking (D-277): the weekly questions to ChatGPT, Gemini and Perplexity,
   // a few per call, after the queue so slow AI answers never hold jobs back.
   await geoSweep().catch((e) => console.error("[jobs] GEO tracking failed", e));

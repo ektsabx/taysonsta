@@ -168,7 +168,7 @@ export const agEn = {
   /** D-274: the results engine (optimizer, balance, reminders, link visits, the Inbox, Prospects, the campaign's Ads-Manager page). */
   rx: {
     cm: {
-      presets: "Ready columns", presetNames: { meetings: "Meetings", purchases: "Website purchases", form_leads: "Website leads", qualified_leads: "Qualified leads" },
+      presets: "Ready columns", presetNames: { meetings: "Meetings", purchases: "Sales", form_leads: "Website leads", qualified_leads: "Qualified leads" },
       custom: "Custom metrics", create: "Create a custom metric", name: "Name", namePh: "e.g. Cost per visit", formula: "Formula", format: "Shown as",
       formats: { count: "Number", pct: "Percent", usd: "US dollars", ratio: "Ratio" }, save: "Create", cancel: "Cancel", remove: "Delete",
       saved: "Custom metric created.", invalid: "Choose a name and two metrics.",
@@ -224,7 +224,7 @@ export const agEn = {
       siteNote: "Your website", siteNoteLine: "Yolias sends this link and tracks it with your pixel:", pixelPick: "Pixel", conversion: "Conversion event", conversionHint: "What counts as a result on your website.",
       attribution: "Attribution window", attributionDays: { "1": "1 day after the click or the email", "7": "7 days after the click or the email", "28": "28 days after the click or the email" },
       types: { outreach: "Outreach", find: "Find customers" }, typesDesc: { outreach: "Yolias finds the people you target and contacts them for you, one personal message each, then follows up and answers.", find: "Yolias finds the companies and people that match your targeting and saves them in Leads, without contacting anyone." },
-      objectives: { meetings: "Meetings", purchases: "Website purchases", form_leads: "Website leads (forms)", qualified_leads: "Qualified leads" },
+      objectives: { meetings: "Meetings", purchases: "Sales", form_leads: "Website leads (forms)", qualified_leads: "Qualified leads" },
       objectivesDesc: {
         meetings: "Yolias contacts the people you target, answers them and books meetings in Yolias, where every booking is tracked.",
         purchases: "Yolias contacts the people you target and persuades them to buy on your website; the Yolias pixel counts purchases and their value.",
