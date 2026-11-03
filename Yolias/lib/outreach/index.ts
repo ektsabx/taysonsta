@@ -1,3 +1,4 @@
+import { YOLIAS_VOICE } from "@/lib/ai/voice";
 import "server-only";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -14,7 +15,7 @@ import type { MessageObjective, MessageTone, OutreachMessageRow } from "@/types/
 // invented facts). Every message is kept in outreach_messages (text,
 // objective, tone, the facts it used, when it was sent and opened).
 
-export const OUTREACH_PROMPT_VERSION = "outreach-2026-10-31";
+export const OUTREACH_PROMPT_VERSION = "outreach-2026-11-03-voice";
 
 const facts = z.array(z.string().min(1).max(200)).max(6);
 const EmailSchema = z.object({
@@ -165,6 +166,7 @@ function emailPrompt(input: Pick<DraftInput, "instruction" | "objective" | "tone
     EMAIL_BRIEF,
     `Objective (the message has this one goal only): ${OBJECTIVES[input.objective]}`,
     `Tone: ${TONES[input.tone]} Return tone = "${input.tone}".`,
+    YOLIAS_VOICE,
     PERSONALIZATION,
     STYLE,
     `If reason_for_contacting is given, build the message around it. Write in ${language}${input.language === "ar" ? " (clear Modern Standard Arabic)" : ""}.`,
