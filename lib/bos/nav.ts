@@ -42,7 +42,10 @@ export const navigation: NavGroup[] = [
     label: "Yolias",
     icon: "platform",
     items: [
-      { href: "/admin/platform", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform", label: "لوحة التحكم", perm: "platform.read" },
+      { href: "/admin/platform/traffic", label: "الزوار والقنوات", perm: "platform.read" },
+      { href: "/admin/platform/live", label: "المستخدمون الآن", perm: "platform.read" },
+      { href: "/admin/platform/finance", label: "المصاريف والتسويق", perm: "platform.read" },
       { href: "/admin/platform/switches", label: "تشغيل وإيقاف الخدمات", perm: "platform.read" },
     ],
   },

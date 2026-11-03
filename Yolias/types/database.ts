@@ -610,6 +610,8 @@ export type FunnelEventRow = {
   source: "client" | "server" | "webhook" | "worker" | "admin"; props: Json; occurred_at: string;
 };
 export type AppSessionRow = { id: string; user_id: string; workspace_id: string | null; started_at: string; last_seen_at: string; pings: number; device: string | null; browser: string | null; os: string | null; ip?: string | null; country?: string | null; city?: string | null };
+/** D-276: the owner's monthly costs (fixed, and marketing spend per channel), entered in Yolias Admin. */
+export type FinanceEntryRow = { id: string; month: string; kind: "fixed" | "marketing"; category: string; amount_usd: number; cogs: boolean; note: string | null; created_by: string | null; created_at: string; updated_at: string };
 /** D-276: one page view (lib/visits.ts). */
 export type SiteVisitRow = { id: number; visitor: string; session: string; user_id: string | null; workspace_id: string | null; area: "site" | "app"; path: string; landing: boolean; referrer_host: string | null; channel: string | null; engine: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; country: string | null; region: string | null; city: string | null; ip: string | null; device: string | null; os: string | null; browser: string | null; locale: string | null; created_at: string };
 export type AccountStatus = "active" | "suspended" | "paused" | "banned" | "deleted";
@@ -1042,6 +1044,7 @@ export interface Database {
       funnel_events: Table<FunnelEventRow, "event_key" | "name">;
       app_sessions: Table<AppSessionRow, "user_id">;
       site_visits: Table<SiteVisitRow, "visitor" | "session" | "area" | "path">;
+      yolias_finance_entries: Table<FinanceEntryRow, "month" | "kind" | "category" | "amount_usd">;
       account_moderation: Table<AccountModerationRow, "user_id" | "status">;
       account_notes: Table<AccountNoteRow, "user_id" | "body">;
       account_messages: Table<AccountMessageRow, "user_id" | "channel" | "subject" | "body">;
@@ -1133,6 +1136,11 @@ export interface Database {
       set_integration_keys: { Args: { p_provider: string; p_config: Record<string, string>; p_secrets: Record<string, string>; p_by: string | null }; Returns: undefined };
       clear_integration_keys: { Args: { p_provider: string }; Returns: undefined };
       integration_values: { Args: Record<string, never>; Returns: { provider: string; config: Record<string, string>; secrets: Record<string, string> }[] };
+      // D-276: Yolias Admin dashboard totals (supabase/migrations/20261216000000_admin_metrics.sql).
+      admin_traffic_daily: { Args: { p_since: string; p_until: string; p_area?: string | null }; Returns: { day: string; views: number; visits: number; visitors: number }[] };
+      admin_traffic_by: { Args: { p_since: string; p_until: string; p_dim: string; p_area?: string | null; p_limit?: number }; Returns: { key: string; views: number; visits: number; visitors: number }[] };
+      admin_live_visitors: { Args: { p_minutes?: number }; Returns: { visitor: string; user_id: string | null; workspace_id: string | null; area: string; path: string; country: string | null; city: string | null; ip: string | null; device: string | null; os: string | null; browser: string | null; channel: string | null; last_at: string; views: number; visits_total: number }[] };
+      admin_costs_daily: { Args: { p_since: string; p_until: string }; Returns: { day: string; llm: number; provider: number }[] };
       admin_profitability: { Args: { p_since: string }; Returns: { workspace_id: string; name: string; plan: Plan; currency: Currency; revenue_live: number; revenue_test: number; llm_cost: number; provider_cost: number; unpriced_calls: number; prospects: number }[] };
       jobs_enqueue: { Args: { p_kind: string; p_payload: Json; p_delay: number }; Returns: number };
       jobs_read: { Args: { p_n: number; p_vt: number }; Returns: { msg_id: number; read_ct: number; enqueued_at: string; kind: string; payload: Json }[] };

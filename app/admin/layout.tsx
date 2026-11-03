@@ -14,6 +14,7 @@ import type { Metadata } from "next";
 import "./admin.css";
 import "./bos.css";
 import "./yolias.css";
+import "./yolias-dash.css";
 
 // Yolias Admin: the BOS runs on the Yolias design system (app/admin/yolias.css)
 // with a fixed identity, so company branding colours/fonts no longer apply here.
