@@ -154,13 +154,13 @@ try {
     const contents = body.contents as { role: string; parts: Record<string, unknown>[] }[];
     if (step === 1) {
       assert.ok((body.tools as { functionDeclarations: unknown[] }[])[0].functionDeclarations.length >= 10);
-      return { status: 200, json: { modelVersion: "gemini-test-001", candidates: [{ content: { role: "model", parts: [{ functionCall: { id: "fc_1", name: "getCampaign", args: {} }, thoughtSignature: "sig-abc" }] } }], usageMetadata: { promptTokenCount: 60, candidatesTokenCount: 8 } } };
+      return { status: 200, json: { modelVersion: "gemini-test-001", candidates: [{ content: { role: "model", parts: [{ functionCall: { id: "fc_1", name: "listCampaigns", args: {} }, thoughtSignature: "sig-abc" }] } }], usageMetadata: { promptTokenCount: 60, candidatesTokenCount: 8 } } };
     }
     const modelTurn = contents.at(-2)!;
     assert.equal(modelTurn.role, "model");
     assert.equal(modelTurn.parts[0].thoughtSignature, "sig-abc", "thought signature sent back");
     const fr = contents.at(-1)!.parts[0].functionResponse as { id: string; name: string; response: { result: { ok: boolean } } };
-    assert.equal(fr.name, "getCampaign");
+    assert.equal(fr.name, "listCampaigns");
     assert.equal(fr.id, "fc_1");
     assert.equal(fr.response.result.ok, true);
     return { status: 200, json: { modelVersion: "gemini-test-001", candidates: [{ content: { role: "model", parts: [{ text: "Here are your latest campaigns." }] }, finishReason: "STOP" }], usageMetadata: { promptTokenCount: 90, candidatesTokenCount: 9 } } };
@@ -169,7 +169,7 @@ try {
   assert.equal(a2.provider, "gemini");
   console.log("✓ Agent: OpenAI 500 → Gemini function call → reply");
 
-  // 4) No fallback after a side effect: OpenAI starts a campaign, then fails.
+  // 4) No fallback after a side effect: OpenAI writes a campaign draft, then fails.
   step = 0;
   let geminiCalled = false;
   // createCampaign itself parses the search with the LLM (no tools); only
@@ -181,18 +181,19 @@ try {
   openaiHandler = (body) => {
     if (!body.tools) return { status: 503, json: {} };
     step++;
-    if (step === 1) return { status: 200, json: { model: "gpt-test-1", choices: [{ finish_reason: "tool_calls", message: { content: null, tool_calls: [{ id: "call_2", type: "function", function: { name: "createCampaign", arguments: JSON.stringify({ request: "Heads of sales at fintechs in Riyadh (fallback test)" }) } }] } }], usage: { prompt_tokens: 50, completion_tokens: 10 } } };
+    if (step === 1) return { status: 200, json: { model: "gpt-test-1", choices: [{ finish_reason: "tool_calls", message: { content: null, tool_calls: [{ id: "call_2", type: "function", function: { name: "createCampaignDraft", arguments: JSON.stringify({ name: "Fallback test campaign", audiences: [{ name: "Fintech Riyadh", countries: ["SA"], titles: ["Head of Sales"] }] }) } }] } }], usage: { prompt_tokens: 50, completion_tokens: 10 } } };
     return { status: 500, json: {} };
   };
   await assert.rejects(runAgent(agentCtx, [{ role: "user", text: "Start it" }], { scope: "user" }));
-  assert.equal(geminiCalled, false, "Gemini not asked after a campaign was started");
+  assert.equal(geminiCalled, false, "Gemini not asked after a campaign draft was written");
   console.log("✓ No provider switch after a tool changed something");
   console.log("ALL PASS");
 } finally {
   await intel.from("settings").upsert({ key: "llm_routing", value: before?.value ?? { default: [{ provider: "anthropic", model: "claude-opus-5-5" }] } });
   await intel.from("llm_calls").delete().in("model", ["gpt-test", "gemini-test"]);
   await admin.from("strategies").delete().like("prompt", "Heads of sales at fintechs in Riyadh (fallback test)%");
-  await admin.from("agent_tool_calls").delete().is("conversation_id", null).in("tool", ["getUsage", "getCampaign", "createCampaign"]);
+  await admin.from("outreach_campaigns").delete().eq("name", "Fallback test campaign");
+  await admin.from("agent_tool_calls").delete().is("conversation_id", null).in("tool", ["getUsage", "listCampaigns", "getCampaign", "createCampaign", "createCampaignDraft"]);
   await intel.from("llm_calls").delete().eq("strategy_id", strategyId);
   s1.close();
   s2.close();
