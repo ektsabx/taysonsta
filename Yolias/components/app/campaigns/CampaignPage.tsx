@@ -10,7 +10,7 @@ import { countryLabel, formatDate, formatDateTime } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { formatMetric, isObjective, metric, type Counts, type CustomMetricDef, type RangePreset } from "@/lib/campaigns/metrics";
-import { deleteDraft, duplicateCampaign, runOutreach } from "@/app/(app)/outreach/actions";
+import { deleteDraft, duplicateCampaign, runOutreach } from "@/app/(app)/campaigns/actions";
 import { CampaignsManager } from "@/components/app/campaigns/CampaignsManager";
 import type { CampaignLine } from "@/services/campaign-table";
 import type { CampaignDetailData } from "@/services/campaign-detail";
@@ -82,7 +82,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
   const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "14d" ? 14 : 0;
   const draft = c.status === "draft";
   const live = c.status === "active" || c.status === "scheduled";
-  const editHref = draft ? `/outreach/new?draft=${c.id}` : `/outreach/${c.id}/edit`;
+  const editHref = draft ? `/campaigns/new?draft=${c.id}` : `/campaigns/${c.id}/edit`;
   const budget = c.budgetUsd == null ? "–" : fmt(c.budgetType === "daily" ? P.perDay : P.total, { usd: usd(c.budgetUsd) });
   const dates = c.startsAt ? (c.endsAt ? fmt(P.fromTo, { from: formatDate(c.startsAt, locale), to: formatDate(c.endsAt, locale) }) : fmt(P.fromOpen, { from: formatDate(c.startsAt, locale) })) : "–";
   const daily = detail.breakdowns.day;
@@ -95,7 +95,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
   return (
     <div className="sdr-page cp">
       <nav className="cp-crumbs" aria-label={t.ag.manager.title}>
-        <Link href="/outreach"><ChevronLeft className="flip-rtl" />{t.ag.manager.title}</Link>
+        <Link href="/campaigns"><ChevronLeft className="flip-rtl" />{t.ag.manager.title}</Link>
         <span aria-hidden>/</span>
         <span dir="auto">{c.name}</span>
       </nav>
@@ -113,10 +113,10 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
             <button type="button" className="sdr-btn" aria-expanded={menu} aria-label={C.more} onClick={() => setMenu((x) => !x)}><MoreHorizontal /></button>
             {menu && (
               <div className="cm-menu" role="menu">
-                <button role="menuitem" type="button" disabled={pending} onClick={() => run(() => duplicateCampaign(c.id), (r) => router.push(`/outreach/new?draft=${(r as unknown as { id: string }).id}`))}><Copy />{P.duplicate}</button>
+                <button role="menuitem" type="button" disabled={pending} onClick={() => run(() => duplicateCampaign(c.id), (r) => router.push(`/campaigns/new?draft=${(r as unknown as { id: string }).id}`))}><Copy />{P.duplicate}</button>
                 {(live || c.status === "paused") && <button role="menuitem" type="button" disabled={pending} onClick={() => { if (confirm(P.endConfirm)) run(() => runOutreach(c.id, "end")); }}><Square />{P.end}</button>}
                 {!draft && c.status !== "archived" && <button role="menuitem" type="button" disabled={pending} onClick={() => { if (confirm(P.archiveConfirm)) run(() => runOutreach(c.id, "cancel")); }}>{P.archive}</button>}
-                {draft && <button role="menuitem" type="button" className="danger" disabled={pending} onClick={() => { if (confirm(P.deleteConfirm)) run(() => deleteDraft(c.id), () => router.push("/outreach")); }}><Trash2 />{P.deleteDraft}</button>}
+                {draft && <button role="menuitem" type="button" className="danger" disabled={pending} onClick={() => { if (confirm(P.deleteConfirm)) run(() => deleteDraft(c.id), () => router.push("/campaigns")); }}><Trash2 />{P.deleteDraft}</button>}
               </div>
             )}
           </div>

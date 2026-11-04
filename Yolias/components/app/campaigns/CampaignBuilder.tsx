@@ -15,7 +15,7 @@ import { languageLabels, messageLanguages } from "@/lib/outreach/channels";
 import { budgetPeople, emptyAdSet, minBudgetUsd, missing, scheduleCapacity, type AdSet, type BuilderState, type Level } from "@/lib/campaigns/builder";
 import type { Targeting } from "@/lib/campaigns/targeting";
 import type { Estimate } from "@/lib/campaigns/audience";
-import { checkAudiences, launchCampaign, previewEmail, saveDraft, updateCampaign, writeApproach } from "@/app/(app)/outreach/new/actions";
+import { checkAudiences, launchCampaign, previewEmail, saveDraft, updateCampaign, writeApproach } from "@/app/(app)/campaigns/new/actions";
 import { saveAudience } from "@/app/(app)/audiences/actions";
 import { TargetingEditor } from "./TargetingEditor";
 
@@ -85,7 +85,7 @@ export function CampaignBuilder(p: BuilderProps) {
     if (editing) return;
     call(() => saveDraft(next, draftId), (r) => {
       const id = (r as unknown as { id: string }).id;
-      if (id !== draftId) { setDraftId(id); window.history.replaceState(null, "", `/outreach/new?draft=${id}`); }
+      if (id !== draftId) { setDraftId(id); window.history.replaceState(null, "", `/campaigns/new?draft=${id}`); }
       if (!silent) toast(b.saved);
     });
   };
@@ -114,13 +114,13 @@ export function CampaignBuilder(p: BuilderProps) {
   const launch = () => call(() => launchCampaign(s, draftId, confirmed), (r) => {
     const res = r as unknown as { id: string; warnings: string[] };
     if (res.warnings.length) setWarnings(res.warnings);
-    router.push(`/outreach/${res.id}`);
+    router.push(`/campaigns/${res.id}`);
   }, "launch");
   const save = () => call(() => updateCampaign(p.campaignId!, s), (r) => {
     const w = (r as unknown as { warnings: string[] }).warnings;
     if (w.length) setWarnings(w);
     toast(b.savedChanges);
-    router.push(`/outreach/${p.campaignId}`);
+    router.push(`/campaigns/${p.campaignId}`);
   }, "save");
 
   return (
@@ -132,7 +132,7 @@ export function CampaignBuilder(p: BuilderProps) {
         </div>
         <div className="cb-top-actions">
           {!editing && <button type="button" className="sdr-btn" disabled={pending} onClick={() => persist(s, false)}>{b.saveDraft}</button>}
-          <Link href={editing ? `/outreach/${p.campaignId}` : "/outreach"} className="sdr-icon-btn" aria-label={b.cancel}><X /></Link>
+          <Link href={editing ? `/campaigns/${p.campaignId}` : "/campaigns"} className="sdr-icon-btn" aria-label={b.cancel}><X /></Link>
         </div>
       </header>
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUp, Loader2, Maximize2, MessageSquareText, Plus, Sparkles, X } from "lucide-react";
+import { ArrowUp, Loader2, Maximize2, MessageSquareText, Plus, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useToast } from "@/components/Toast";
@@ -20,7 +20,7 @@ import { YoliasMark } from "@/components/YoliasMark";
 
 const OPEN_CLASS = "ay-docked";
 
-export function AskYolias() {
+export function AskYolias({ chats }: { chats: { id: string; title: string }[] }) {
   const { t } = useI18n();
   const a = t.camp.ai;
   const P = t.ag.rx.ask;
@@ -86,11 +86,18 @@ export function AskYolias() {
               <ul className="ay-suggest">
                 {P.suggestions.map((s) => <li key={s}><button type="button" disabled={pending} onClick={() => send(s)}><MessageSquareText />{s}</button></li>)}
               </ul>
+              {/* The same conversations as the sidebar's Yolias AI (owner, 2026-11-05). */}
+              {chats.length > 0 && (
+                <div className="ay-chats">
+                  <h3>{t.nav.recentStrategy}</h3>
+                  {chats.slice(0, 6).map((c) => <Link key={c.id} href={`/search/${c.id}`} dir="auto" onClick={() => setOpen(false)}>{c.title}</Link>)}
+                </div>
+              )}
             </div>
           )}
         </aside>
       )}
-      {!open && <div className="ask-yolias"><button type="button" className="ask-fab" aria-expanded={open} onClick={() => setOpen(true)}><Sparkles /><span>{a.open}</span></button></div>}
+      {!open && <div className="ask-yolias"><button type="button" className="ask-fab" aria-expanded={open} onClick={() => setOpen(true)}><MessageSquareText /><span>{t.nav.yoliasAi}</span></button></div>}
     </>
   );
 }

@@ -22,7 +22,7 @@ const uuid = z.string().uuid();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const refresh = (_leadId?: string | null) => {
   revalidatePath("/inbox");
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
 };
 
 export async function updateDraft(messageId: string, subject: string, body: string): Promise<MsgResult> {

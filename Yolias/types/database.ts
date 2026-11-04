@@ -1127,6 +1127,8 @@ export interface Database {
       mailbox_count_sent: { Args: { p_mailbox: string; p_day: string }; Returns: number };
       admin_campaign_ops: { Args: { p_since: string }; Returns: { campaign_id: string; workspace_id: string; workspace_name: string | null; name: string; status: string; objective: string; created_at: string; approved_at: string | null; mailbox_email: string | null; daily_limit: number | null; sent: number; bounced: number; failed: number; replies: number; interested: number; meetings: number; last_sent_at: string | null; ai_cost_usd: number }[] };
       admin_llm_ops: { Args: { p_since: string }; Returns: { task: string; prompt_version: string; calls: number; failed: number; cache_hits: number; avg_latency_ms: number | null; p95_latency_ms: number | null; cost_usd: number; models: string[]; first_at: string; last_at: string }[] };
+      campaign_breakdowns: { Args: { p_ws: string; p_from: string | null; p_to: string | null }; Returns: { dim: string; key: string; contacted: number; sent: number; bounced: number; replies: number; interested: number; meetings: number; held: number; opened: number }[] };
+      campaign_cost_window: { Args: { p_ws: string; p_since: string }; Returns: { meetings: number; prospects: number }[] };
       admin_deliverability: { Args: { p_since: string }; Returns: { mailbox_id: string; email: string; provider: string; status: string; workspace_name: string | null; daily_limit: number; sent: number; bounced: number; replies: number; unsubscribed: number; last_error: string | null; last_synced_at: string | null }[] };
       limits_summary: { Args: { p_ws: string }; Returns: LimitsSummary[] };
       convert_trial: { Args: { p_ws: string }; Returns: boolean };

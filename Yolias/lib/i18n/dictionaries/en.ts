@@ -284,11 +284,11 @@ export const en = {
     page: {
       intro: "Your own page where people book a meeting with you. Yolias shares it with leads who ask for a meeting, and every booking reaches your email and your CRM.",
       link: "Your link", copy: "Copy", copied: "Copied", open: "Open the page",
-      google: "Google Calendar and Google Meet", googleLead: "Connect your Google account and every meeting booked on this page, or by Yolias, is added to a new calendar in Google Calendar with a Google Meet link, and Google sends the invitation to your guest.",
-      googlePoints: ["A Google Meet link ready for every meeting", "A separate calendar inside Google Calendar, with your guests invited", "Yolias only touches the calendar it creates; your other calendars stay private"],
+      google: "Google Calendar", googleLead: "Connect your Google account and every meeting booked on this page, or by Yolias, is added to a new calendar in Google Calendar, and Google sends the invitation to your guest.",
+      googlePoints: ["A separate calendar inside Google Calendar, with your guests invited", "Yolias only touches the calendar it creates; your other calendars stay private"],
       connect: "Connect Google Calendar", connectedAs: "Connected as {email}", disconnect: "Disconnect", reconnect: "Reconnect", notConfigured: "Google sign-in isn't set up in Yolias yet.",
       calendar: { connected: "Google Calendar is connected.", denied: "Google Calendar wasn't connected: permission was declined.", failed: "Google Calendar couldn't be connected. Try again.", not_configured: "Google sign-in isn't set up in Yolias yet." },
-      taking: "Taking bookings", address: "Address", name: "Meeting name", location: "Place", locationHint: "A Google Meet or Zoom link, a phone number or an address. Empty with Google Calendar connected: a Google Meet link.",
+      taking: "Taking bookings", address: "Address", name: "Meeting name", location: "Place", locationHint: "A meeting link, a phone number or an address.",
       line: "A line for visitors", lineHint: "Example: a 30-minute intro call about our product.", duration: "Length", timezone: "Time zone", buffer: "Break between meetings",
       notice: "Shortest notice", window: "Open for booking", hours: "Weekly hours", unavailable: "Unavailable", addRange: "Add hours", save: "Save",
       moreTypes: "More meeting types", moreTypesHint: "Besides the meeting above, up to three more (for example a 15-minute intro and a 45-minute demo). Guests pick one.", addType: "Add a meeting type", removeType: "Remove this type",
@@ -754,7 +754,7 @@ export const en = {
       gmailDesc: "Gmail or Google Workspace: sends your campaigns and reads the replies.",
       imapName: "IMAP/SMTP mailbox", imapDesc: "Any other mailbox: Zoho, Hostinger, Outlook or your company mail.",
       rulesName: "Sending rules", rulesDesc: "Emails a day, the gap between emails, and sending days and hours, for every mailbox.", rulesOn: "On",
-      calendarName: "Google Calendar", calendarDesc: "Every booked meeting goes to a calendar Yolias creates, with a Google Meet link and Google's invitation to your guest.",
+      calendarName: "Google Calendar", calendarDesc: "Every booked meeting goes to a calendar Yolias creates, with Google's invitation to your guest.",
     },
     referral: {
       title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} prospects to your balance. They never expire.",
@@ -943,7 +943,7 @@ export const en = {
     feature: "Feature", coreFeatures: "Core features included on every plan", usageCapacity: "Usage capacity", included: "Included",
     features: {
       campaigns: "Campaigns, audiences and messages like an ads manager", aiLeadGeneration: "Prospect discovery: companies and decision makers", messages: "AI-personalized messages in 15 languages",
-      aiSalesAgent: "Yolias AI: answers, follows up and books", crm: "Meetings: your booking page, Google Calendar and Meet", pixel: "Yolias pixel and Events Manager",
+      aiSalesAgent: "Yolias AI: answers, follows up and books", crm: "Meetings: your booking page, Google Calendar", pixel: "Yolias pixel and Events Manager",
       audiences: "Custom and lookalike audiences", optimization: "Budget optimization toward results", analytics: "Results, conversions, revenue and cost per result",
       integrations: "Gmail, IMAP/SMTP and Google Calendar", unlimitedUsers: "Unlimited users", chatSupport: "Chat support",
     },

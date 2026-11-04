@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
-import { CalendarCheck, Clock, MapPin, Video } from "lucide-react";
+import { CalendarCheck, Clock, MapPin } from "lucide-react";
 import { bookAction, progressAction, visitAction } from "./actions";
 import type { DaySlots } from "@/lib/meetings/availability";
 import type { MeetingType } from "@/types/database";
@@ -92,7 +92,7 @@ export function BookingForm(p: {
         <header className="meet-head">
           <p className="meet-host">{[p.host.name, p.host.company].filter(Boolean).join(" · ")}</p>
           <h1 dir="auto">{chosen?.type.title ?? p.title}</h1>
-          <p className="meet-facts"><span><Clock size={15} />{t.minutes(chosen?.type.duration_min ?? 30)}</span>{p.location ? <span dir="auto"><MapPin size={15} />{p.location}</span> : <span><Video size={15} />Google Meet</span>}</p>
+          <p className="meet-facts"><span><Clock size={15} />{t.minutes(chosen?.type.duration_min ?? 30)}</span>{p.location && <span dir="auto"><MapPin size={15} />{p.location}</span>}</p>
           {chosen?.type.description && <p className="meet-desc" dir="auto">{chosen.type.description}</p>}
           {p.types.length > 1 && !done && (
             <div className="meet-types" role="radiogroup" aria-label={t.pickType}>

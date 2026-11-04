@@ -29,7 +29,7 @@ export async function groupAction(groupId: string, action: "pause" | "resume" | 
   // Its people wait (or go on).
   await db.from("outreach_enrollments").update({ status: action === "resume" ? "active" : "paused" }).eq("audience_group_id", groupId).in("status", action === "resume" ? ["paused"] : ["active"]);
   await logCampaign(createAdminClient(), session.workspace.id, g.campaign_id, action === "resume" ? "resumed" : "paused", `Audience “${g.name}”: ${action === "resume" ? "resumed" : action === "pause" ? "paused" : "archived"}.`, { group: groupId, by: session.userId });
-  revalidatePath(`/outreach/${g.campaign_id}`);
-  revalidatePath("/outreach");
+  revalidatePath(`/campaigns/${g.campaign_id}`);
+  revalidatePath("/campaigns");
   return { ok: true, message: t.ag.page.saved };
 }

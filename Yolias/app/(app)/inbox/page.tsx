@@ -38,7 +38,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const connected = boxes.find((m) => m.status === "connected") ?? null;
   return (
     <MasterInbox
-      tab={tab} counts={list.counts} items={list.items} q={q}
+      tab={tab} counts={list.counts} items={list.all} q={q}
       thread={thread} status={status} hasMailbox={Boolean(connected)} mailboxEmail={connected?.email ?? null} timeZone={session.profile.timezone ?? null}
       campaign={live} campaigns={campaignOptions ?? []} show={show}
     />

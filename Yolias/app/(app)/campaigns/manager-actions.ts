@@ -2,14 +2,15 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireSession, requireViewer, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { setCampaignRun } from "@/lib/outreach/execute";
 import { logCampaign } from "@/lib/campaigns/activity";
-import { cleanColumns, metric } from "@/lib/campaigns/metrics";
+import { RANGE_PRESETS, cleanColumns, metric, rangeBounds, type RangePreset } from "@/lib/campaigns/metrics";
+import { workspaceBreakdowns } from "@/services/campaign-detail";
 import { duplicateCampaign } from "./actions";
 import type { Json } from "@/types/database";
 
@@ -44,7 +45,7 @@ export async function bulkCampaigns(campaignIds: string[], action: "pause" | "re
     }
     if (ok) done++; else skipped++;
   }
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   revalidatePath("/dashboard");
   const msg = action === "delete" && skipped ? fmt(m.deletedSome, { done: String(done), skipped: String(skipped) }) : fmt(m.done, { n: String(done) });
   return { ok: true, done, skipped, message: msg };
@@ -59,7 +60,7 @@ export async function renameCampaign(id: string, name: string): Promise<ManagerR
   const db = await createClient();
   const { data, error } = await db.from("outreach_campaigns").update({ name: n }).eq("id", id).eq("workspace_id", session.workspace.id).select("id").maybeSingle();
   if (error || !data) return { ok: false, error: t.ws.outreach.errors.notFound };
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true };
 }
 
@@ -94,7 +95,7 @@ export async function bulkEdit(campaignIds: string[], patch: z.input<typeof shar
   if (error) return { ok: false, error: t.ag.builder.errors.settings };
   const admin = createAdminClient();
   for (const c of data ?? []) await logCampaign(admin, session.workspace.id, c.id, "note", "Settings changed (bulk edit).", { by: session.userId, fields: Object.keys(row) });
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true, done: data?.length ?? 0, message: fmt(t.ag.manager.done, { n: String(data?.length ?? 0) }) };
 }
 
@@ -120,7 +121,7 @@ export async function saveView(name: string, config: z.input<typeof viewConfig>)
     config: { ...c.data, columns: cleanColumns(c.data.columns), pinned: cleanColumns(c.data.pinned) } as unknown as Json,
   }).select("id").single();
   if (error || !data) return { ok: false, error: t.ag.manager.errors.view };
-  revalidatePath("/outreach");
+  revalidatePath("/campaigns");
   return { ok: true, id: data.id, message: t.ag.manager.viewSaved };
 }
 
@@ -130,7 +131,7 @@ export async function deleteView(id: string): Promise<ManagerResult> {
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.ag.manager.errors.view };
   const db = await createClient();
   await db.from("campaign_views").delete().eq("id", id).eq("user_id", session.userId);
-  revalidatePath("/outreach");
+  revalidatePath("/campaigns");
   return { ok: true };
 }
 
@@ -147,7 +148,7 @@ export async function createCustomMetric(input: z.input<typeof customInput>): Pr
   if ((count ?? 0) >= 30) return { ok: false, error: t.ag.rx.cm.invalid };
   const { data, error } = await createAdminClient().from("custom_metrics").insert({ ...p.data, workspace_id: session.workspace.id, created_by: session.userId }).select("id").single();
   if (error || !data) return { ok: false, error: t.ag.rx.cm.invalid };
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true, id: data.id, message: t.ag.rx.cm.saved };
 }
 
@@ -156,6 +157,13 @@ export async function deleteCustomMetric(id: string): Promise<ManagerResult> {
   if (!canEdit(session)) return await viewOnly() as never;
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "" };
   await createAdminClient().from("custom_metrics").delete().eq("id", id).eq("workspace_id", session.workspace.id);
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true };
+}
+
+/** The Breakdown across every campaign, when the member opens it. */
+export async function loadBreakdowns(range: string, from: string, to: string) {
+  const session = await requireViewer();
+  const preset = (RANGE_PRESETS as string[]).includes(range) ? (range as RangePreset) : "lifetime";
+  return workspaceBreakdowns(session.workspace.id, rangeBounds(preset, new Date(), { from, to }));
 }

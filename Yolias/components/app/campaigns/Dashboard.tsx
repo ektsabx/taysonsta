@@ -11,7 +11,7 @@ import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { formatMetric, metric } from "@/lib/campaigns/metrics";
 import { openSettingsTab } from "@/components/app/open-settings";
-import { runOutreach } from "@/app/(app)/outreach/actions";
+import { runOutreach } from "@/app/(app)/campaigns/actions";
 import type { DashboardData, DashRange, Series } from "@/services/dashboard";
 import type { StartSteps } from "@/services/start-here";
 import { activityText } from "@/lib/campaigns/activity-text";
@@ -75,13 +75,13 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
   const shown = data.campaigns.filter((l) => l.status !== "archived");
 
   const next = !steps.search
-    ? { icon: Search, title: t.startHere.search, desc: t.startHere.searchDesc, action: <Link className="sdr-btn primary" href="/outreach/new">{t.startHere.searchCta}</Link> }
+    ? { icon: Search, title: t.startHere.search, desc: t.startHere.searchDesc, action: <Link className="sdr-btn primary" href="/campaigns/new">{t.startHere.searchCta}</Link> }
     : !steps.mailbox
       ? { icon: Mail, title: t.startHere.mailbox, desc: t.startHere.mailboxDesc, action: <button type="button" className="sdr-btn primary" onClick={() => openSettingsTab("integration")}>{t.startHere.mailboxCta}</button> }
       : !steps.booking
         ? { icon: CalendarDays, title: t.startHere.booking, desc: t.startHere.bookingDesc, action: <Link className="sdr-btn primary" href="/meetings?tab=page">{t.startHere.bookingCta}</Link> }
         : !steps.campaign
-          ? { icon: Send, title: t.startHere.campaign, desc: t.startHere.campaignDesc, action: <Link className="sdr-btn primary" href="/outreach">{t.startHere.campaignCta}</Link> }
+          ? { icon: Send, title: t.startHere.campaign, desc: t.startHere.campaignDesc, action: <Link className="sdr-btn primary" href="/campaigns">{t.startHere.campaignCta}</Link> }
           : null;
 
   // D-274: what Yolias found, sent, what was opened and answered, then the result: meetings held and what each cost.
@@ -111,7 +111,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
           <strong dir="auto">{data.live ? fmt(D.live, { name: data.live.name }) : D.idle}</strong>
           <span dir="auto">{data.live ? (data.live.what ? activityText({ kind: data.live.kind, body: data.live.what, meta: data.live.meta }, lang, t.ag.act) : formatDateTime(data.live.at, locale)) : D.idleLine}</span>
         </div>
-        {data.live ? <Link className="sdr-btn primary" href={`/outreach/${data.live.campaignId}`}>{t.ag.rx.prospects.open}</Link> : <Link className="sdr-btn primary" href="/outreach/new"><Plus />{D.create}</Link>}
+        {data.live ? <Link className="sdr-btn primary" href={`/campaigns/${data.live.campaignId}`}>{t.ag.rx.prospects.open}</Link> : <Link className="sdr-btn primary" href="/campaigns/new"><Plus />{D.create}</Link>}
       </section>
 
       <div className="db-row1">
@@ -126,7 +126,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
             <>
               <span className="db-next-ico"><Sparkles /></span>
               <div><small>{D.next}</small><strong>{D.allSet}</strong><p>{D.allSetLine}</p></div>
-              <Link className="sdr-btn" href="/outreach/new"><Plus />{D.create}</Link>
+              <Link className="sdr-btn" href="/campaigns/new"><Plus />{D.create}</Link>
             </>
           )}
         </section>
@@ -178,7 +178,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
         {data.activity.length > 0 && (
           <ul className="db-activity">
             {data.activity.slice(0, 3).map((a) => (
-              <li key={a.id}><Link href={`/outreach/${a.campaignId}`}><strong dir="auto">{a.campaign}</strong><span dir="auto">{activityText(a, lang, t.ag.act)}</span></Link><small>{formatDateTime(a.at, locale)}</small></li>
+              <li key={a.id}><Link href={`/campaigns/${a.campaignId}`}><strong dir="auto">{a.campaign}</strong><span dir="auto">{activityText(a, lang, t.ag.act)}</span></Link><small>{formatDateTime(a.at, locale)}</small></li>
             ))}
           </ul>
         )}
@@ -195,7 +195,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
             <tbody>
               {shown.map((l) => (
                 <tr key={l.id}>
-                  <td className="cm-name"><Link href={`/outreach/${l.id}`} dir="auto">{l.name}</Link></td>
+                  <td className="cm-name"><Link href={`/campaigns/${l.id}`} dir="auto">{l.name}</Link></td>
                   <td><span className={`cd-status st-${l.status}`}>{t.ag.status[l.status]}</span>{(l.status === "active" || l.status === "scheduled") && <small className="db-perday">{fmt(D.perDay, { n: n(l.dailyLimit ?? 30) })}</small>}</td>
                   <td className="num">{n(l.counts.sent)}</td>
                   <td className="num">{formatMetric(metric("reply_rate")!.compute(l.counts), "pct", lang)}</td>
@@ -210,8 +210,8 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
                       <button type="button" className="sdr-icon-btn cm-toggle" aria-label={t.ag.manager.edit} aria-expanded={menu === l.id} onClick={() => setMenu(menu === l.id ? null : l.id)}><MoreHorizontal /></button>
                       {menu === l.id && (
                         <div className="cm-menu" role="menu" onMouseLeave={() => setMenu(null)}>
-                          <Link role="menuitem" href={`/outreach/${l.id}`}>{t.ag.manager.view}</Link>
-                          {l.status !== "archived" && l.status !== "completed" && <Link role="menuitem" href={l.status === "draft" ? `/outreach/new?draft=${l.id}` : `/outreach/${l.id}/edit`}>{t.ag.manager.edit}</Link>}
+                          <Link role="menuitem" href={`/campaigns/${l.id}`}>{t.ag.manager.view}</Link>
+                          {l.status !== "archived" && l.status !== "completed" && <Link role="menuitem" href={l.status === "draft" ? `/campaigns/new?draft=${l.id}` : `/campaigns/${l.id}/edit`}>{t.ag.manager.edit}</Link>}
                           {l.status === "active" && <button role="menuitem" type="button" onClick={() => { setMenu(null); run(() => runOutreach(l.id, "pause")); }}>{t.ag.manager.pause}</button>}
                           {l.status === "paused" && l.approved && <button role="menuitem" type="button" onClick={() => { setMenu(null); run(() => runOutreach(l.id, "resume")); }}>{t.ag.manager.resume}</button>}
                         </div>
@@ -239,7 +239,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
           </table>
         </div>
       ) : (
-        <section className="cm-empty"><h3>{t.ag.manager.empty}</h3><p>{t.ag.manager.emptyLine}</p><Link className="sdr-btn primary" href="/outreach/new"><Plus />{t.ag.manager.create}</Link></section>
+        <section className="cm-empty"><h3>{t.ag.manager.empty}</h3><p>{t.ag.manager.emptyLine}</p><Link className="sdr-btn primary" href="/campaigns/new"><Plus />{t.ag.manager.create}</Link></section>
       )}
 
     </div>

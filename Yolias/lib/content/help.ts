@@ -614,7 +614,7 @@ export const articles: HelpArticle[] = [
         summary: "From a reply to a booked meeting, your booking page, Google Calendar, reminders and the outcome.",
         blocks: [
           { h2: "From a reply to a meeting" },
-          { p: "When someone shows interest, Yolias replies in the same thread with two free times and your booking page. If they name a time that is free, Yolias books it, confirms and sends the invitation with a Google Meet link." },
+          { p: "When someone shows interest, Yolias replies in the same thread with two free times and your booking page. If they name a time that is free, Yolias books it, confirms and adds it to both calendars." },
           { h2: "Meetings page" },
           { ul: [
             "The top shows meetings booked in the last 30 days, the spend and the **cost per meeting**.",
@@ -631,7 +631,7 @@ export const articles: HelpArticle[] = [
         summary: "من الرد إلى الاجتماع المحجوز، وصفحة الحجز، وتقويم Google، والتذكيرات، والنتيجة.",
         blocks: [
           { h2: "من الرد إلى الاجتماع" },
-          { p: "عندما يُظهر شخص اهتمامًا، يرد يولياس في المحادثة نفسها بموعدين متاحين وصفحة الحجز. وإذا ذكر موعدًا متاحًا يحجزه يولياس ويؤكده ويرسل الدعوة برابط Google Meet." },
+          { p: "عندما يُظهر شخص اهتمامًا، يرد يولياس في المحادثة نفسها بموعدين متاحين وصفحة الحجز. وإذا ذكر موعدًا متاحًا يحجزه يولياس ويؤكده ويضيفه إلى التقويم." },
           { h2: "صفحة الاجتماعات" },
           { ul: [
             "أعلى الصفحة: الاجتماعات المحجوزة في آخر 30 يومًا، والإنفاق، و**تكلفة الاجتماع**.",
@@ -657,7 +657,7 @@ export const articles: HelpArticle[] = [
             "Open **Integrations** and choose **Connect** on the **Google Calendar** card.",
             "Allow Yolias to see your free and busy times and add events.",
           ] },
-          { p: "Every booking is added with a Google Meet link and Google's invitation to the guest. Without Google Calendar, guests get an “Add to Google Calendar” link in their confirmation." },
+          { p: "Every booking is added to your calendar with Google's invitation to the guest. Without Google Calendar, guests get an “Add to Google Calendar” link in their confirmation." },
         ],
       },
       ar: {
@@ -668,7 +668,7 @@ export const articles: HelpArticle[] = [
             "افتح **التكاملات** واختر **اربط** في كارت **تقويم Google**.",
             "اسمح ليولياس برؤية أوقات فراغك وانشغالك وإضافة الأحداث.",
           ] },
-          { p: "يُضاف كل حجز برابط Google Meet ودعوة Google للضيف. ومن دون تقويم Google يصل الضيف رابط «أضف إلى تقويم Google» في رسالة التأكيد." },
+          { p: "يُضاف كل حجز إلى تقويمك مع دعوة Google للضيف. ومن دون تقويم Google يصل الضيف رابط «أضف إلى تقويم Google» في رسالة التأكيد." },
         ],
       },
     },

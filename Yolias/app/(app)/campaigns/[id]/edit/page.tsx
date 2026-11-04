@@ -20,8 +20,8 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { data: c } = await createAdminClient().from("outreach_campaigns").select("status").eq("id", id).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!c) notFound();
-  if (c.status === "draft") redirect(`/outreach/new?draft=${id}`);
-  if (c.status === "archived" || c.status === "completed") redirect(`/outreach/${id}`);
+  if (c.status === "draft") redirect(`/campaigns/new?draft=${id}`);
+  if (c.status === "archived" || c.status === "completed") redirect(`/campaigns/${id}`);
   const from = await stateFromCampaign(id, session.workspace.id);
   const parsed = from ? builderSchema.safeParse(from.state) : null;
   if (!from || !parsed?.success) notFound();

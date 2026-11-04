@@ -8,8 +8,8 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { bookingUrl, ensureBookingPage, visitState } from "@/lib/meetings";
 import { formatDateTime, formatNumber } from "@/lib/format";
-import { campaignTable } from "@/services/campaign-table";
-import { rangeBounds } from "@/lib/campaigns/metrics";
+import { prospectRate } from "@/services/campaign-metrics";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { BookingPageForm } from "@/components/app/meetings/BookingPageForm";
 import { MeetingList } from "@/components/app/meetings/MeetingList";
 
@@ -39,10 +39,10 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   const rows = (meetings ?? []).map((m) => ({ ...m, lead: m.lead as unknown as { name: string; company_name: string | null; stage: LeadStage } | null, campaign: m.campaign as unknown as { id: string; name: string } | null }));
   const now = nowMs();
   const V = (await getDictionary()).ag.rx.meet;
-  // Cost per meeting (owner, 2026-11-03): the last 30 days of every campaign, as on the home page.
-  const lines = await campaignTable(session.workspace.id, rangeBounds("30d", new Date()), { includeArchived: true });
-  const booked30 = lines.reduce((a, l) => a + l.counts.meetings, 0);
-  const spend30 = lines.reduce((a, l) => a + l.counts.spendUsd, 0);
+  // Cost per meeting (owner, 2026-11-03): the last 30 days of every campaign, counted in the database.
+  const [{ data: cost }, rate] = await Promise.all([createAdminClient().rpc("campaign_cost_window", { p_ws: session.workspace.id, p_since: sinceIso(30) }), prospectRate(session.workspace.id)]);
+  const booked30 = Number(cost?.[0]?.meetings ?? 0);
+  const spend30 = Number(cost?.[0]?.prospects ?? 0) * rate;
   const usd = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return (
     <div className="sdr-page">
@@ -104,7 +104,7 @@ async function Visits({ workspaceId, locale, timeZone }: { workspaceId: string; 
             {rows.map((r) => (
               <tr key={r.id}>
                 <td><span className="sdr-cell-main" dir="auto">{r.name || r.email || V.unknown}</span>{r.name && r.email && <span className="sdr-cell-sub" dir="ltr">{r.email}</span>}</td>
-                <td>{r.campaign ? <Link href={`/outreach/${r.campaign.id}`} dir="auto">{r.campaign.name}</Link> : <span className="sdr-cell-sub">{V.direct}</span>}</td>
+                <td>{r.campaign ? <Link href={`/campaigns/${r.campaign.id}`} dir="auto">{r.campaign.name}</Link> : <span className="sdr-cell-sub">{V.direct}</span>}</td>
                 <td><span className={`sdr-badge nodot ${r.state === "booked" ? "green" : r.state === "started" ? "amber" : "gray"}`}>{V.states[r.state]}</span></td>
                 <td>{formatDateTime(r.created_at, locale, timeZone ?? undefined)}</td>
                 <td className="num">{r.state === "started" && r.lead_id ? <Link className="sdr-btn ghost sm" href={`/inbox?lead=${r.lead_id}`}>{V.write}</Link> : r.state === "started" && r.email ? <a className="sdr-btn ghost sm" href={`mailto:${r.email}`}>{V.write}</a> : null}</td>

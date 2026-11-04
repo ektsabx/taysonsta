@@ -28,7 +28,7 @@ const Y: Record<Exclude<Row, "price" | "team">, L> = {
   find: { en: "You describe your ideal customer in a sentence, in Arabic or English, and Yolias finds them with a match score", ar: "تصف عميلك المثالي في جملة، بالعربية أو الإنجليزية، فيجدهم يولياس مع نسبة تطابق" },
   reach: { en: "Writes the first email and follow-ups and sends them from your Gmail or company mailbox once you launch the campaign", ar: "يكتب الرسالة الأولى والمتابعات ويرسلها من Gmail أو بريد شركتك بعد تشغيلك للحملة" },
   book: { en: "Your page at yolias.com/meet/your-name: length, break, notice, booking window and weekly hours; when a lead asks for a meeting, Yolias replies with two free times and the page", ar: "صفحتك على yolias.com/meet/اسمك: المدة والاستراحة والمهلة ومدة الإتاحة وساعات الأسبوع؛ وعندما يطلب العميل اجتماعًا يرد يولياس بموعدين متاحين والصفحة" },
-  calendar: { en: "Google Calendar: busy times in your main calendar are never offered; each booking goes to a calendar Yolias creates, with a Google Meet link and Google's invitation; email reminder an hour before", ar: "تقويم Google: أوقات انشغالك في تقويمك الرئيسي لا تُعرض أبدًا؛ وكل حجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
+  calendar: { en: "Google Calendar: busy times in your main calendar are never offered; each booking goes to a calendar Yolias creates, with Google's invitation; email reminder an hour before", ar: "تقويم Google: أوقات انشغالك في تقويمك الرئيسي لا تُعرض أبدًا؛ وكل حجز يُضاف إلى تقويم ينشئه يولياس، مع دعوة من Google؛ وتذكير بالبريد قبلها بساعة" },
 };
 const YT: L = { en: "One booking page per member with up to four meeting types, booked one-to-one; no round-robin or routing forms", ar: "صفحة حجز واحدة لكل عضو بحتى أربعة أنواع اجتماعات، والحجز فردي؛ لا توزيع دوري ولا نماذج توجيه" };
 const YP = (en: string, ar: string): L => ({ en: `Pay As You Go from $5, or Growth $100 and Scale $200 a month (20% off annually), unlimited users; the booking page is included. ${en}`, ar: `الدفع حسب الاستخدام من 5 دولارات، أو النمو بـ 100 والتوسع بـ 200 دولار شهريًا (بخصم 20% سنويًا)، ومستخدمون بلا حد؛ وصفحة الحجز مشمولة. ${ar}` });
@@ -118,12 +118,12 @@ export const meetingComparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Can Yolias replace Calendly?", a: "For one-to-one sales meetings booked from your outreach, yes: every member has a booking page with weekly hours and up to four meeting types, busy times in Google Calendar are never offered, and bookings go to Google Calendar with a Meet link. For team scheduling, routing, payments or Outlook, keep Calendly." },
+        { q: "Can Yolias replace Calendly?", a: "For one-to-one sales meetings booked from your outreach, yes: every member has a booking page with weekly hours and up to four meeting types, busy times in Google Calendar are never offered, and bookings go to Google Calendar. For team scheduling, routing, payments or Outlook, keep Calendly." },
         { q: "Is Yolias cheaper than Calendly?", a: "For scheduling alone, Calendly's Standard plan at $10 a seat is cheaper. Yolias costs more than a scheduler because it also finds and emails your prospects; its booking page is included, with unlimited users." },
         { q: "Can I use both?", a: "Yes. Yolias offers its own booking page to leads who ask for a meeting; you can keep Calendly for your other meetings." },
       ],
       ar: [
-        { q: "هل يمكن أن يحل يولياس محل Calendly؟", a: "لاجتماعات المبيعات الفردية التي تأتي من تواصلك، نعم: لكل عضو صفحة حجز بساعات أسبوعية وحتى أربعة أنواع اجتماعات، ولا تُعرض أوقات انشغالك في تقويم Google، وتذهب الحجوزات إلى تقويم Google برابط Meet. أما جدولة الفرق والتوجيه والدفع وOutlook فاحتفظ لها بـ Calendly." },
+        { q: "هل يمكن أن يحل يولياس محل Calendly؟", a: "لاجتماعات المبيعات الفردية التي تأتي من تواصلك، نعم: لكل عضو صفحة حجز بساعات أسبوعية وحتى أربعة أنواع اجتماعات، ولا تُعرض أوقات انشغالك في تقويم Google، وتذهب الحجوزات إلى تقويم Google. أما جدولة الفرق والتوجيه والدفع وOutlook فاحتفظ لها بـ Calendly." },
         { q: "هل يولياس أرخص من Calendly؟", a: "للجدولة وحدها، خطة Standard في Calendly بـ 10 دولارات للمقعد أرخص. يولياس أغلى من أداة الجدولة لأنه يجد عملاءك ويراسلهم أيضًا، وصفحة الحجز مشمولة، بمستخدمين بلا حد." },
         { q: "هل يمكن استخدام الاثنين؟", a: "نعم. يقدّم يولياس صفحة الحجز الخاصة به للعملاء الذين يطلبون اجتماعًا، ويمكنك الإبقاء على Calendly لاجتماعاتك الأخرى." },
       ],
@@ -327,7 +327,7 @@ export const meetingAlternativesPages: SeedPage[] = [{
         ["More meetings with the right people", "Yolias", "Finds matching companies, emails them from your mailbox and books them on your page"],
       ] } },
       { h2: "How Yolias fits next to a scheduler" },
-      { p: "Schedulers assume someone already wants to meet you. Yolias starts before that: you describe your ideal customer, it finds the companies and decision makers, writes the emails and follow-ups, and when someone asks for a meeting it replies with two free times and your booking page. Every booking lands in Meetings and in Google Calendar with a Meet link." },
+      { p: "Schedulers assume someone already wants to meet you. Yolias starts before that: you describe your ideal customer, it finds the companies and decision makers, writes the emails and follow-ups, and when someone asks for a meeting it replies with two free times and your booking page. Every booking lands in Meetings and in Google Calendar." },
       { note: "Yolias's booking page is one-to-one and works with Google Calendar only; it skips busy times in your main Google Calendar but not in Outlook or iCloud. Keep a scheduler if you need team pages, routing or payments." },
     ],
     faq: [
@@ -358,7 +358,7 @@ export const meetingAlternativesPages: SeedPage[] = [{
         ["اجتماعات أكثر مع الأشخاص المناسبين", "يولياس", "يجد الشركات المطابقة ويراسلها من بريدك ويحجز في صفحتك"],
       ] } },
       { h2: "كيف يعمل يولياس بجانب أداة الجدولة" },
-      { p: "تفترض أدوات الجدولة أن شخصًا يريد مقابلتك بالفعل. أما يولياس فيبدأ قبل ذلك: تصف عميلك المثالي، فيجد الشركات وصنّاع القرار، ويكتب الرسائل والمتابعات، وعندما يطلب أحدهم اجتماعًا يرد بموعدين متاحين وصفحة الحجز الخاصة بك. وكل حجز يظهر في الاجتماعات وفي تقويم Google برابط Meet." },
+      { p: "تفترض أدوات الجدولة أن شخصًا يريد مقابلتك بالفعل. أما يولياس فيبدأ قبل ذلك: تصف عميلك المثالي، فيجد الشركات وصنّاع القرار، ويكتب الرسائل والمتابعات، وعندما يطلب أحدهم اجتماعًا يرد بموعدين متاحين وصفحة الحجز الخاصة بك. وكل حجز يظهر في الاجتماعات وفي تقويم Google." },
       { note: "صفحة الحجز في يولياس فردية وتعمل مع تقويم Google فقط؛ تتجنب أوقات انشغالك في تقويم Google الرئيسي، لكن لا ترى Outlook أو iCloud. احتفظ بأداة جدولة إذا كنت تحتاج صفحات فرق أو توجيهًا أو دفعًا." },
     ],
     faq: [
@@ -382,7 +382,7 @@ export const meetingSolutionPages: SeedPage[] = [
       lead: "A booking link only helps once someone wants to talk. Yolias does the work that gets you there: it finds the companies that fit, writes to them, follows up, and turns a \"yes, let's talk\" into a meeting on your calendar.",
       answer: "To book more sales meetings, reach the right decision makers with a short, specific email, follow up a few times, and make booking a single click when they agree. Yolias runs that sequence: it finds the prospects, sends the emails from your own mailbox once you launch the campaign, and replies to meeting requests with two free times and your Yolias booking page.",
       audience: ["Agencies and consultants who sell through calls", "Founders doing their own sales", "Small sales teams without SDRs"],
-      criteria: ["A clear description of who you want to meet", "A meeting campaign goal, so every email asks for a short call", "Booking hours that leave room for other work", "Google Calendar connected, for Meet links and invitations"],
+      criteria: ["A clear description of who you want to meet", "A meeting campaign goal, so every email asks for a short call", "Booking hours that leave room for other work", "Google Calendar connected, for invitations"],
       steps: [
         { title: "Describe who you want to meet", body: "For example: \"Marketing managers at private schools in Cairo and Giza.\" Yolias turns it into criteria and finds matching schools and people." },
         { title: "Approve a meeting campaign", body: "Yolias writes the first email and follow-ups; from the first follow-up they carry your booking page." },
@@ -391,12 +391,12 @@ export const meetingSolutionPages: SeedPage[] = [
       ],
       blocks: [
         { h2: "What happens when someone books" },
-        { ul: ["They pick a time in their own time zone on yolias.com/meet/your-name.", "You get an email and a notice; they get a confirmation with a cancel link.", "With Google Calendar connected, the event has a Google Meet link and Google sends the invitation.", "Yolias reminds you by email an hour before, and can write a short brief about the company and the conversation."] },
+        { ul: ["They pick a time in their own time zone on yolias.com/meet/your-name.", "You get an email and a notice; they get a confirmation with a cancel link.", "With Google Calendar connected, Google sends the invitation.", "Yolias reminds you by email an hour before, and can write a short brief about the company and the conversation."] },
         { note: "Yolias doesn't promise a number of meetings: results depend on your market, your offer and the contacts available for it." },
       ],
       faq: [
         { q: "Is Yolias an AI appointment setter?", a: "Yes, for email: it finds prospects, writes and sends the emails once you launch the campaign, answers meeting requests with free times and books the meeting on your page. It works by email only." },
-        { q: "Do I need Calendly to use it?", a: "No. Every member has a booking page in Yolias. Connect Google Calendar for Meet links and invitations." },
+        { q: "Do I need Calendly to use it?", a: "No. Every member has a booking page in Yolias. Connect Google Calendar for invitations." },
         { q: "Can Yolias book a time the lead suggests in their reply?", a: "It offers your free times and the page; when the lead picks one, the meeting is booked. If they propose another time, you can add the meeting in Meetings." },
       ],
       cta: CTA.en,
@@ -408,7 +408,7 @@ export const meetingSolutionPages: SeedPage[] = [
       lead: "رابط الحجز لا يفيد إلا عندما يريد أحدهم التحدث. ويولياس يقوم بالعمل الذي يوصلك إلى ذلك: يجد الشركات المناسبة، ويراسلها، ويتابع، ويحوّل «نعم، لنتحدث» إلى اجتماع في تقويمك.",
       answer: "لتحجز اجتماعات مبيعات أكثر، صِل إلى صنّاع القرار المناسبين برسالة قصيرة ومحددة، وتابع عدة مرات، واجعل الحجز ضغطة واحدة عندما يوافقون. ويولياس يدير هذا التسلسل: يجد العملاء، ويرسل الرسائل من بريدك بعد تشغيلك للحملة، ويرد على طلبات الاجتماع بموعدين متاحين وصفحة الحجز الخاصة بك في يولياس.",
       audience: ["الوكالات والاستشاريون الذين يبيعون عبر المكالمات", "المؤسسون الذين يبيعون بأنفسهم", "فرق المبيعات الصغيرة بلا مندوبي تواصل"],
-      criteria: ["وصف واضح لمن تريد مقابلتهم", "هدف الحملة حجز اجتماع، لتطلب كل رسالة مكالمة قصيرة", "ساعات حجز تترك وقتًا لعملك الآخر", "ربط تقويم Google لروابط Meet والدعوات"],
+      criteria: ["وصف واضح لمن تريد مقابلتهم", "هدف الحملة حجز اجتماع، لتطلب كل رسالة مكالمة قصيرة", "ساعات حجز تترك وقتًا لعملك الآخر", "ربط تقويم Google للدعوات"],
       steps: [
         { title: "صِف من تريد مقابلتهم", body: "مثلًا: «مديرو التسويق في المدارس الخاصة في القاهرة والجيزة». يحوّله يولياس إلى معايير ويجد المدارس والأشخاص المطابقين." },
         { title: "وافق على حملة اجتماعات", body: "يكتب يولياس الرسالة الأولى والمتابعات، ومن أول متابعة تحمل صفحة الحجز الخاصة بك." },
@@ -417,12 +417,12 @@ export const meetingSolutionPages: SeedPage[] = [
       ],
       blocks: [
         { h2: "ماذا يحدث عندما يحجز أحدهم" },
-        { ul: ["يختار موعدًا بتوقيته في yolias.com/meet/اسمك.", "يصلك بريد وإشعار، ويصله تأكيد فيه رابط للإلغاء.", "مع ربط تقويم Google يحمل الحدث رابط Google Meet وترسل Google الدعوة.", "يذكّرك يولياس بالبريد قبلها بساعة، ويمكنه كتابة ملخص قصير عن الشركة والمحادثة."] },
+        { ul: ["يختار موعدًا بتوقيته في yolias.com/meet/اسمك.", "يصلك بريد وإشعار، ويصله تأكيد فيه رابط للإلغاء.", "مع ربط تقويم Google ترسل Google الدعوة.", "يذكّرك يولياس بالبريد قبلها بساعة، ويمكنه كتابة ملخص قصير عن الشركة والمحادثة."] },
         { note: "لا يَعِد يولياس بعدد معين من الاجتماعات: النتائج تعتمد على سوقك وعرضك وبيانات التواصل المتاحة له." },
       ],
       faq: [
         { q: "هل يولياس منسّق مواعيد بالذكاء الاصطناعي؟", a: "نعم، بالبريد: يجد العملاء، ويكتب الرسائل ويرسلها بعد تشغيلك للحملة، ويرد على طلبات الاجتماع بمواعيد متاحة ويحجز في صفحتك. ويعمل بالبريد فقط." },
-        { q: "هل أحتاج Calendly لاستخدامه؟", a: "لا. لكل عضو صفحة حجز في يولياس. اربط تقويم Google لروابط Meet والدعوات." },
+        { q: "هل أحتاج Calendly لاستخدامه؟", a: "لا. لكل عضو صفحة حجز في يولياس. اربط تقويم Google للدعوات." },
         { q: "هل يحجز يولياس موعدًا يقترحه العميل في رده؟", a: "يقدّم مواعيدك المتاحة والصفحة، وعندما يختار العميل أحدها يُحجز الاجتماع. وإذا اقترح موعدًا آخر يمكنك إضافة الاجتماع من صفحة الاجتماعات." },
       ],
       cta: CTA.ar,
@@ -434,15 +434,15 @@ export const meetingSolutionPages: SeedPage[] = [
     links: meetLinks, sources: [],
     en: {
       title: "Booking page", h1: "A booking page that comes with the outreach that fills it",
-      metaTitle: "Booking page with Google Meet, included with Yolias",
-      metaDescription: "Your own page at yolias.com/meet/your-name: weekly hours, length, breaks and notice, Google Calendar and Meet, and bookings that land with the conversation.",
+      metaTitle: "Booking page with Google Calendar, included with Yolias",
+      metaDescription: "Your own page at yolias.com/meet/your-name: weekly hours, length, breaks and notice, Google Calendar, and bookings that land with the conversation.",
       lead: "Every Yolias member gets a booking page. What makes it different from a standalone scheduler is what's connected to it: the campaigns that send it, the replies that lead to it, and the Meetings page where every booking ends up.",
       answer: "A good sales booking page shows only the times you really want to meet, in the guest's time zone, asks for a name and email and nothing more, and sends both sides a confirmation. Yolias's page does that and is shared by the agent whenever a lead asks for a meeting.",
       audience: ["Consultants and agencies who meet clients online", "Teams that want each member's own link", "Anyone who books calls from cold email"],
-      criteria: ["Weekly hours with up to three ranges a day", "Meeting length, a break between meetings and the shortest notice", "How many days ahead people can book", "A place: Google Meet, Zoom, a phone number or an address"],
+      criteria: ["Weekly hours with up to three ranges a day", "Meeting length, a break between meetings and the shortest notice", "How many days ahead people can book", "A place: a meeting link, a phone number or an address"],
       steps: [
         { title: "Set your hours", body: "In Meetings → Booking page, choose your days and hours, the meeting length and the break after each meeting." },
-        { title: "Connect Google Calendar", body: "In Integrations. Yolias creates its own calendar there and adds a Google Meet link to every booking." },
+        { title: "Connect Google Calendar", body: "In Integrations. Yolias creates its own calendar there and adds every booking." },
         { title: "Share it, or let Yolias do it", body: "Copy the link, or let your meeting campaigns include it and answer meeting requests with two free times." },
       ],
       blocks: [
@@ -459,15 +459,15 @@ export const meetingSolutionPages: SeedPage[] = [
     },
     ar: {
       title: "صفحة الحجز", h1: "صفحة حجز يأتي معها التواصل الذي يملؤها",
-      metaTitle: "صفحة حجز مواعيد مع Google Meet ضمن يولياس",
+      metaTitle: "صفحة حجز مواعيد مع تقويم Google ضمن يولياس",
       metaDescription: "صفحتك على yolias.com/meet/اسمك: ساعات الأسبوع والمدة والاستراحات والمهلة، وتقويم Google وMeet، وحجوزات تصل مع المحادثة.",
       lead: "كل عضو في يولياس لديه صفحة حجز. وما يميزها عن أداة جدولة منفصلة هو ما يرتبط بها: الحملات التي ترسلها، والردود التي تقود إليها، وصفحة الاجتماعات التي ينتهي إليها كل حجز.",
       answer: "صفحة حجز المبيعات الجيدة تعرض فقط الأوقات التي تريد فعلًا الاجتماع فيها، بتوقيت الضيف، وتطلب الاسم والبريد فقط، وترسل للطرفين تأكيدًا. وصفحة يولياس تفعل ذلك، ويشاركها الوكيل كلما طلب عميل اجتماعًا.",
       audience: ["الاستشاريون والوكالات الذين يقابلون العملاء عبر الإنترنت", "الفرق التي تريد رابطًا خاصًا لكل عضو", "كل من يحجز مكالمات من البريد البارد"],
-      criteria: ["ساعات أسبوعية حتى ثلاث فترات في اليوم", "مدة الاجتماع والاستراحة بين الاجتماعات وأقل مهلة", "عدد الأيام المتاحة للحجز مقدمًا", "المكان: Google Meet أو Zoom أو رقم هاتف أو عنوان"],
+      criteria: ["ساعات أسبوعية حتى ثلاث فترات في اليوم", "مدة الاجتماع والاستراحة بين الاجتماعات وأقل مهلة", "عدد الأيام المتاحة للحجز مقدمًا", "المكان: رابط اجتماع أو رقم هاتف أو عنوان"],
       steps: [
         { title: "حدّد ساعاتك", body: "من الاجتماعات ← صفحة الحجز، اختر أيامك وساعاتك ومدة الاجتماع والاستراحة بعد كل اجتماع." },
-        { title: "اربط تقويم Google", body: "من التكاملات. ينشئ يولياس تقويمه الخاص هناك ويضيف رابط Google Meet لكل حجز." },
+        { title: "اربط تقويم Google", body: "من التكاملات. ينشئ يولياس تقويمه الخاص هناك ويضيف كل حجز." },
         { title: "شاركها أو دع يولياس يشاركها", body: "انسخ الرابط، أو دع حملات الاجتماعات تضيفه وترد على طلبات الاجتماع بموعدين متاحين." },
       ],
       blocks: [

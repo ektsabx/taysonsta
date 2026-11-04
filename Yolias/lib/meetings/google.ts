@@ -5,8 +5,8 @@ import { integrationSecret, loadIntegrations } from "@/lib/integrations";
 // as Gmail (Yolias Admin → Integrations → google_oauth). One scope beyond the
 // sign-in: calendar.app.created, so Yolias can only create and edit calendars
 // it made itself; the member's other calendars stay private. On connect
-// Yolias creates "Yolias meetings"; every booking becomes an event there with
-// a Google Meet link, and Google emails the invitation to the guest.
+// Yolias creates "Yolias meetings"; every booking becomes an event there and
+// Google emails the invitation to the guest.
 
 const AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
@@ -71,18 +71,17 @@ export async function createCalendar(token: string, timeZone: string): Promise<s
   return c.id;
 }
 
-export interface EventInput { summary: string; description: string; start: string; end: string; timeZone: string; guest: { email: string; name: string }; location: string | null; meet: boolean }
+export interface EventInput { summary: string; description: string; start: string; end: string; timeZone: string; guest: { email: string; name: string }; location: string | null }
 
-/** One event with the guest invited (Google sends the invitation) and, if asked, a Google Meet link. */
-export async function createEvent(token: string, calendarId: string, e: EventInput): Promise<{ id: string; meetUrl: string | null }> {
+/** One event with the guest invited (Google sends the invitation). */
+export async function createEvent(token: string, calendarId: string, e: EventInput): Promise<{ id: string }> {
   const body = {
     summary: e.summary, description: e.description, location: e.location ?? undefined,
     start: { dateTime: e.start, timeZone: e.timeZone }, end: { dateTime: e.end, timeZone: e.timeZone },
     attendees: [{ email: e.guest.email, displayName: e.guest.name }],
-    ...(e.meet ? { conferenceData: { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: "hangoutsMeet" } } } } : {}),
   };
-  const r = await call<{ id: string; hangoutLink?: string }>(token, `/calendars/${encodeURIComponent(calendarId)}/events?conferenceDataVersion=1&sendUpdates=all`, { method: "POST", body: JSON.stringify(body) });
-  return { id: r.id, meetUrl: r.hangoutLink ?? null };
+  const r = await call<{ id: string }>(token, `/calendars/${encodeURIComponent(calendarId)}/events?sendUpdates=all`, { method: "POST", body: JSON.stringify(body) });
+  return { id: r.id };
 }
 
 /** The guest's answer to the invitation on an event Yolias created (D-273): accepted, declined, tentative or not answered. */

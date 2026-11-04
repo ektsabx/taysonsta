@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { memberMailboxes } from "@/lib/mailbox";
 import { RANGE_PRESETS, rangeBounds, type RangePreset } from "@/lib/campaigns/metrics";
 import { campaignTable } from "@/services/campaign-table";
-import { campaignDetail } from "@/services/campaign-detail";
 import { CampaignsManager } from "@/components/app/campaigns/CampaignsManager";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,14 +24,12 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   const range = (RANGE_PRESETS as string[]).includes(one("range")) ? (one("range") as RangePreset) : "lifetime";
   const from = one("from"), to = one("to");
   const bounds = rangeBounds(range, new Date(), { from, to });
-  const [t, lines, boxes, { data: memberRows }, { data: custom }, detail] = await Promise.all([
+  const [t, lines, boxes, { data: memberRows }, { data: custom }] = await Promise.all([
     getDictionary(),
     campaignTable(ws, bounds, { includeArchived: true }),
     memberMailboxes(ws, session.userId),
     createAdminClient().from("profiles").select("id, full_name, email").eq("workspace_id", ws),
     createAdminClient().from("custom_metrics").select("id, name, a, op, b, format").eq("workspace_id", ws).order("created_at"),
-    // The Breakdown across every campaign (owner, 2026-11-03).
-    campaignDetail(ws, null, bounds),
   ]);
   const members = (memberRows ?? []).map((p) => ({ id: p.id, name: p.full_name || p.email || "" }));
   const hasMailbox = boxes.some((b) => b.status === "connected");
@@ -40,7 +37,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
     <div className="sdr-page cm-page">
       <header className="sdr-head"><div><h2>{t.ag.manager.title}</h2><p>{t.ag.manager.subtitle}</p></div></header>
       {!hasMailbox && <div className="ws-note"><Info /><span><strong>{t.ws.common.notConnectedTitle}.</strong> {t.ws.common.mailboxNotConnected}</span></div>}
-      <CampaignsManager lines={lines} members={members} range={range} from={from} to={to} refreshedAt={new Date().toISOString()} custom={(custom ?? []) as never} breakdowns={detail.breakdowns} />
+      <CampaignsManager lines={lines} members={members} range={range} from={from} to={to} refreshedAt={new Date().toISOString()} custom={(custom ?? []) as never} />
     </div>
   );
 }

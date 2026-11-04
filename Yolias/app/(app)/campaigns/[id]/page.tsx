@@ -13,7 +13,7 @@ import { learnedFacts, type Insights } from "@/lib/agent-core/learning";
 import { CampaignPage, type CampaignTab } from "@/components/app/campaigns/CampaignPage";
 import type { OutreachCampaignRow } from "@/types/database";
 
-export async function generateMetadata({ params }: PageProps<"/outreach/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/campaigns/[id]">): Promise<Metadata> {
   const { id } = await params;
   const t = await getDictionary();
   if (!/^[0-9a-f-]{36}$/i.test(id)) return { title: `${t.ag.manager.title} | Yolias` };
@@ -31,7 +31,7 @@ function previous(b: { from: string | null; to: string | null }): { from: string
 const TABS: CampaignTab[] = ["activity", "conversations", "meetings", "settings"];
 
 // A campaign's page (owner, 2026-10-31, D-273), like a campaign in an ads manager (D-274).
-export default async function CampaignRoute({ params, searchParams }: PageProps<"/outreach/[id]">) {
+export default async function CampaignRoute({ params, searchParams }: PageProps<"/campaigns/[id]">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const sp = await searchParams;

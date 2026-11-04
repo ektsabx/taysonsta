@@ -63,7 +63,7 @@ export function MeetingList({ upcoming, past, timeZone }: { upcoming: MeetingIte
           {x.status !== "scheduled" && <span className="meet-tag">{m.status[x.status]}</span>}
           {decided(x) && <span className="meet-tag">{x.lead?.stage === "closed" ? o.won : o.lost}</span>}
           {x.qualified != null && <span className="meet-tag">{x.qualified ? f.qualified : f.unqualified}</span>}
-          {x.campaign && <Link className="meet-tag" href={`/outreach/${x.campaign.id}`} dir="auto">{f.campaign}: {x.campaign.name}</Link>}
+          {x.campaign && <Link className="meet-tag" href={`/campaigns/${x.campaign.id}`} dir="auto">{f.campaign}: {x.campaign.name}</Link>}
           {x.location && !x.url && <span className="meet-sub" dir="auto">{x.location}</span>}
         </span>
         {(briefs[x.id] ?? x.brief) && <details className="meet-brief-box" open={Boolean(briefs[x.id])}><summary>{t.ag.rx.meet.brief}</summary><p className="meet-brief" dir="auto">{briefs[x.id] ?? x.brief}</p></details>}

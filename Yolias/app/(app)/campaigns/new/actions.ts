@@ -75,7 +75,7 @@ export async function saveDraft(input: unknown, draftId: string | null): Promise
   }
   const { data, error } = await db.from("outreach_campaigns").insert({ ...r, workspace_id: session.workspace.id, created_by: session.userId, owner_id: session.userId }).select("id").single();
   if (error || !data) return { ok: false, error: t.ag.builder.errors.settings };
-  revalidatePath("/outreach");
+  revalidatePath("/campaigns");
   return { ok: true, id: data.id };
 }
 
@@ -293,7 +293,7 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
     : s.objective === "meetings" ? "Yolias is finding the first people for each audience. It writes to each one from your mailbox in your hours, answers the replies and books the meetings."
     : "Yolias is finding the first people for each audience. It writes to each one from your mailbox in your hours, answers the replies and sends them your website link.",
     { audiences: adSets.length, people, budget_usd: s.budgetUsd, budget_type: s.budgetType });
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   revalidatePath("/dashboard");
   return { ok: true, id, warnings };
 }
@@ -340,7 +340,7 @@ export async function updateCampaign(id: string, input: unknown): Promise<Builde
     }
   }
   await logCampaign(createAdminClient(), session.workspace.id, id, "note", fresh.length ? `Settings changed; ${fresh.length} new ${fresh.length === 1 ? "audience" : "audiences"} started.` : "Settings changed.", { by: session.userId });
-  revalidatePath(`/outreach/${id}`);
-  revalidatePath("/outreach");
+  revalidatePath(`/campaigns/${id}`);
+  revalidatePath("/campaigns");
   return { ok: true, warnings };
 }

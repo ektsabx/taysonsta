@@ -35,7 +35,7 @@ export function ApprovalCard({ id, summary, status, campaignId = null }: { id: s
       <p className="approval-summary" dir="auto">{summary}</p>
       {!done && campaignId && (
         <div className="approval-actions">
-          <Link className="btn-primary" href={`/outreach/${campaignId}`}><Check /> {a.reviewCampaign}</Link>
+          <Link className="btn-primary" href={`/campaigns/${campaignId}`}><Check /> {a.reviewCampaign}</Link>
         </div>
       )}
       {!done && !campaignId && (

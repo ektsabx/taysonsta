@@ -23,7 +23,7 @@ export async function runOutreach(campaignId: string, action: "pause" | "resume"
   const t = (await getDictionary()).ws.outreach;
   if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel", "end"].includes(action)) return { ok: false, error: t.errors.notFound };
   if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -47,7 +47,7 @@ export async function duplicateCampaign(id: string): Promise<OutreachResult<{ id
     sender_name: src?.sender_name ?? null, instructions: src?.instructions ?? null, wizard: { ...state, mailboxId: src?.mailbox_id ?? null } as unknown as Json,
   }).select("id").single();
   if (error || !copy) return { ok: false, error: t.ws.outreach.errors.name };
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true, id: copy.id, message: t.ag.page.duplicated };
 }
 
@@ -62,6 +62,6 @@ export async function deleteDraft(id: string): Promise<OutreachResult> {
   if (count) return { ok: false, error: t.ws.outreach.errors.notFound };
   const { data } = await db.from("outreach_campaigns").delete().eq("id", id).eq("workspace_id", session.workspace.id).eq("status", "draft").select("id");
   if (!data?.length) return { ok: false, error: t.ws.outreach.errors.notFound };
-  revalidatePath("/outreach", "layout");
+  revalidatePath("/campaigns", "layout");
   return { ok: true };
 }

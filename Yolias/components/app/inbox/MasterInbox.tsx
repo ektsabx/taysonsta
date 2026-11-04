@@ -25,7 +25,7 @@ import type { LeadStatus } from "@/services/pipeline";
 interface Props {
   tab: InboxTab;
   counts: Record<InboxTab, number>;
-  items: InboxListItem[];
+  items: (InboxListItem & { tabs: InboxTab[] })[];
   q: string;
   thread: InboxThread | null;
   status: LeadStatus | null;
@@ -52,22 +52,34 @@ export function MasterInbox(p: Props) {
   const x = t.sdr.inbox;
   const router = useRouter();
   const [more, setMore] = useState(false);
-  const [cursor, setCursor] = useState(() => Math.max(0, p.items.findIndex((i) => i.leadId === p.thread?.lead.id)));
+  // Tabs switch in the browser: every tab's rows are already here (owner, 2026-11-05).
+  const [tab, setTab] = useState<InboxTab>(p.tab);
+  useEffect(() => setTab(p.tab), [p.tab]);
+  const items = useMemo(() => p.items.filter((i) => i.tabs.includes(tab)), [p.items, tab]);
+  const [opening, setOpening] = useState<string | null>(null);
+  useEffect(() => setOpening(null), [p.thread?.lead.id]);
+  const [cursor, setCursor] = useState(() => Math.max(0, p.items.filter((i) => i.tabs.includes(p.tab)).findIndex((i) => i.leadId === p.thread?.lead.id)));
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: p.tab === "all" ? null : p.tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
+    const cur: Record<string, string | null> = { tab: tab === "all" ? null : tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
   const I = t.ag.rx.inbox;
+  const pick = (e: React.MouseEvent, k: InboxTab) => {
+    if (p.thread || e.metaKey || e.ctrlKey) return; // a thread is open: the link closes it
+    e.preventDefault();
+    setTab(k);
+    window.history.replaceState(null, "", href({ tab: k === "all" ? null : k, lead: null }));
+  };
   const tabLabel = (k: InboxTab) => (k === "all" ? I.all : k === "needs_you" ? I.needsYou : x.tabs[k]);
   const tabHint = (k: InboxTab) => (k === "all" || k === "needs_you" ? undefined : x.tabHints[k]);
   const [week] = useState(() => Date.now() - 7 * 86_400_000);
   const groups = useMemo(() => [
-    [x.thisWeek, p.items.filter((i) => Date.parse(i.at) >= week)],
-    [x.earlier, p.items.filter((i) => Date.parse(i.at) < week)],
-  ] as const, [p.items, week, x.thisWeek, x.earlier]);
+    [x.thisWeek, items.filter((i) => Date.parse(i.at) >= week)],
+    [x.earlier, items.filter((i) => Date.parse(i.at) < week)],
+  ] as const, [items, week, x.thisWeek, x.earlier]);
   const date = (iso: string) => {
     const d = new Date(iso);
     const opts: Intl.DateTimeFormatOptions = Date.parse(iso) >= week ? { weekday: "short" } : { month: "short", day: "numeric" };
@@ -81,8 +93,8 @@ export function MasterInbox(p: Props) {
       if (el.closest("input, textarea, select, [contenteditable=true]") || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "j" || e.key === "k") {
         e.preventDefault();
-        setCursor((c) => Math.max(0, Math.min(p.items.length - 1, c + (e.key === "j" ? 1 : -1))));
-      } else if (e.key === "Enter" && p.items[cursor]) router.push(href({ lead: p.items[cursor]!.leadId }));
+        setCursor((c) => Math.max(0, Math.min(items.length - 1, c + (e.key === "j" ? 1 : -1))));
+      } else if (e.key === "Enter" && items[cursor]) router.push(href({ lead: items[cursor]!.leadId }));
       else if (e.key === "Escape" && p.thread) router.push(href({ lead: null }));
     };
     window.addEventListener("keydown", on);
@@ -98,7 +110,7 @@ export function MasterInbox(p: Props) {
         <div className="sdr-live" role="status">
           <LiveRefresh active={p.campaign.active && p.campaign.writing > 0} />
           {p.campaign.active && p.campaign.writing > 0 ? <Loader2 className="spin" /> : <CheckCheck />}
-          <Link className="sdr-live-name" href={`/outreach/${p.campaign.id}`}>{p.campaign.name}</Link>
+          <Link className="sdr-live-name" href={`/campaigns/${p.campaign.id}`}>{p.campaign.name}</Link>
           <span>{fmt(x.live.progress, { writing: n(p.campaign.writing), sent: n(p.campaign.sent), total: n(p.campaign.leads) })}</span>
           {p.campaign.failed > 0 && <span className="sdr-live-bad">{fmt(x.live.failed, { n: n(p.campaign.failed) })}</span>}
           <Link className="sdr-live-x" href="/inbox" aria-label={x.live.clear}><X size={14} /></Link>
@@ -129,21 +141,21 @@ export function MasterInbox(p: Props) {
             )}
           </div>
           <nav className="sdr-tabs sdr-inbox-tabs">
-            {MAIN.map((k) => <Link key={k} href={href({ tab: k === "all" ? null : k, lead: null })} className={`${p.tab === k ? "active" : ""}${k === "needs_you" && p.counts.needs_you > 0 ? " needs" : ""}`} title={tabHint(k)}>{tabLabel(k)}{k === "needs_you" && p.counts.needs_you > 0 && <span className="sdr-count hot">{n(p.counts.needs_you)}</span>}</Link>)}
+            {MAIN.map((k) => <Link key={k} href={href({ tab: k === "all" ? null : k, lead: null })} onClick={(e) => pick(e, k)} className={`${tab === k ? "active" : ""}${k === "needs_you" && p.counts.needs_you > 0 ? " needs" : ""}`} title={tabHint(k)}>{tabLabel(k)}{k === "needs_you" && p.counts.needs_you > 0 && <span className="sdr-count hot">{n(p.counts.needs_you)}</span>}</Link>)}
             <div className="sdr-menu">
-              <button type="button" className={MORE.includes(p.tab) ? "active" : ""} aria-expanded={more} onClick={() => setMore((v) => !v)}>{MORE.includes(p.tab) ? tabLabel(p.tab) : t.sdr.common.more}<ChevronDown /></button>
-              {more && <div className="sdr-menu-panel" role="menu">{MORE.map((k) => <Link key={k} href={href({ tab: k, lead: null })} onClick={() => setMore(false)} title={tabHint(k)}>{tabLabel(k)}<span className="sdr-count" style={{ marginInlineStart: "auto" }}>{n(p.counts[k])}</span></Link>)}</div>}
+              <button type="button" className={MORE.includes(tab) ? "active" : ""} aria-expanded={more} onClick={() => setMore((v) => !v)}>{MORE.includes(tab) ? tabLabel(tab) : t.sdr.common.more}<ChevronDown /></button>
+              {more && <div className="sdr-menu-panel" role="menu">{MORE.map((k) => <Link key={k} href={href({ tab: k, lead: null })} onClick={(e) => { setMore(false); pick(e, k); }} title={tabHint(k)}>{tabLabel(k)}<span className="sdr-count" style={{ marginInlineStart: "auto" }}>{n(p.counts[k])}</span></Link>)}</div>}
             </div>
           </nav>
           <div className="sdr-inbox-items">
-            {!p.items.length && <div style={{ padding: 16 }}>{p.q || p.tab !== "all" ? <p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : p.tab === "needs_you" ? I.empty : x.empty[p.tab as keyof typeof x.empty]}</p> : <EmptyNext text={I.allEmpty} href="/outreach" label={t.emptyNext.inbox} />}</div>}
+            {!items.length && <div style={{ padding: 16 }}>{p.q || tab !== "all" ? <p className="sdr-panel-sub">{p.q ? t.sdr.leads.emptyFiltered : tab === "needs_you" ? I.empty : x.empty[tab as keyof typeof x.empty]}</p> : <EmptyNext text={I.allEmpty} href="/campaigns" label={t.emptyNext.inbox} />}</div>}
             {groups.map(([label, rows]) => rows.length > 0 && (
               <div key={label}>
                 <div className="sdr-inbox-group">{label}</div>
                 {rows.map((i) => {
-                  const idx = p.items.indexOf(i);
+                  const idx = items.indexOf(i);
                   return (
-                    <Link key={i.leadId} href={href({ lead: i.leadId })} className={`sdr-inbox-item${i.leadId === p.thread?.lead.id ? " active" : ""}${idx === cursor ? " cursor" : ""}${i.unread ? " unread" : ""}`}>
+                    <Link key={i.leadId} href={href({ lead: i.leadId })} onClick={() => setOpening(i.leadId)} className={`sdr-inbox-item${i.leadId === (opening ?? p.thread?.lead.id) ? " active" : ""}${idx === cursor ? " cursor" : ""}${i.unread ? " unread" : ""}`}>
                       <span className="sdr-avatar plain">{initials(i.name)}</span>
                       <span className="sdr-inbox-item-main">
                         <span className="row"><strong dir="auto">{i.name}</strong>{i.company && <span className="co" dir="auto">{i.company}</span>}<time>{date(i.at)}</time></span>
@@ -157,7 +169,7 @@ export function MasterInbox(p: Props) {
               </div>
             ))}
           </div>
-          <div className="sdr-panel-foot">{fmt(x.count, { n: n(p.items.length) })}</div>
+          <div className="sdr-panel-foot">{fmt(x.count, { n: n(items.length) })}</div>
         </aside>
         <section className="sdr-inbox-thread">
           {p.thread ? <Conversation {...p} thread={p.thread} backHref={href({ lead: null })} needsYou={Boolean(p.items.find((i) => i.leadId === p.thread!.lead.id)?.needsYou)} /> : (
@@ -315,7 +327,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
           <dl className="sdr-dl">
             <dt className="h">{x.crm}</dt>
             <dt>{x.stage}</dt><dd>{t.ws.stages[lead.stage]}{s?.bucket ? ` · ${t.sdr.buckets[s.bucket]}` : ""}</dd>
-            <dt>{x.sequence}</dt><dd>{s?.campaigns.length ? s.campaigns.map((c) => <Link key={c.id} href={`/outreach/${c.id}`} className="sdr-link">{c.name}</Link>) : x.none}</dd>
+            <dt>{x.sequence}</dt><dd>{s?.campaigns.length ? s.campaigns.map((c) => <Link key={c.id} href={`/campaigns/${c.id}`} className="sdr-link">{c.name}</Link>) : x.none}</dd>
             <dt>{x.nextStep}</dt><dd>{s?.draft ? x.draftWaiting : s?.followUp ? fmt(x.nextFollowUp, { date: when(s.followUp.at) }) : x.none}</dd>
             <dt>{x.lastReply}</dt><dd>{ago(s?.lastInbound?.at) ?? x.none}</dd>
             <dt>{x.lastSent}</dt><dd>{ago(s?.lastOutbound?.at) ?? x.none}</dd>

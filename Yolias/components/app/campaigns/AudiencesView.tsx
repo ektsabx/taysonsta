@@ -103,7 +103,7 @@ export function AudiencesView({ audiences, campaigns, importAvailable }: { audie
                       <button type="button" className="sdr-icon-btn" aria-label={A.edit} aria-expanded={menu === a.id} onClick={() => setMenu(menu === a.id ? null : a.id)}><MoreHorizontal /></button>
                       {menu === a.id && (
                         <div className="sdr-menu-panel" role="menu" onMouseLeave={() => setMenu(null)}>
-                          <Link role="menuitem" href="/outreach/new">{A.use}</Link>
+                          <Link role="menuitem" href="/campaigns/new">{A.use}</Link>
                           <button type="button" role="menuitem" onClick={() => { setMenu(null); setEditing(a); }}>{a.kind === "saved" ? A.edit : A.rename}</button>
                           {a.kind !== "saved" && (a.origin as { source?: string }).source !== "file" && <button type="button" role="menuitem" disabled={pending} onClick={() => { setMenu(null); run(() => refreshAudience(a.id)); }}>{A.refresh}</button>}
                           <hr />

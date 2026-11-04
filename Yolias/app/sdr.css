@@ -1109,3 +1109,8 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .cp-split small { color: var(--muted); }
 @media (max-width: 640px) { .cp-split li { grid-template-columns: 1fr 3rem; } .cp-split-bar { grid-column: 1 / -1; grid-row: 2; } .cp-split small { grid-column: 1 / -1; } }
 .meet-cost { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+
+/* The builder follows its own width, so it stays clean when Yolias AI is docked beside it (owner, 2026-11-05). */
+.cb { container: cb / inline-size; }
+@container cb (max-width: 1040px) { .cb-body { grid-template-columns: 190px minmax(0, 1fr); } .cb-side { display: none; } .cb-forecast-inline { display: grid; } }
+@container cb (max-width: 760px) { .cb-body { grid-template-columns: minmax(0, 1fr); } .cb-tree { border-inline-end: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; gap: 6px; padding: 8px; } .cb-children { display: contents; } .cb-node { width: auto; flex-shrink: 0; max-width: 200px; } .cb-add { flex-shrink: 0; } .cb-choices.two { grid-template-columns: minmax(0, 1fr); } }

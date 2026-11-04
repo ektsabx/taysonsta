@@ -257,7 +257,7 @@ export const agentTools = [
         siteVisits: c.siteVisits, checkouts: c.checkouts, purchases: c.purchases, purchaseValueUsd: Math.round(c.purchaseValue * 100) / 100, websiteLeads: c.formLeads,
         costPerPurchaseUsd: c.purchases && c.spendUsd ? Math.round((c.spendUsd / c.purchases) * 100) / 100 : null,
       });
-      return ok({ campaigns: lines.slice(0, LIST_MAX).map((l) => ({ id: l.id, name: l.name, status: l.status, url: `/outreach/${l.id}`, ...sum(l.counts), audiences: l.groups.map((g) => ({ name: g.name, status: g.status, budgetShare: g.share, learning: g.learning, ...sum(g.counts) })) })) });
+      return ok({ campaigns: lines.slice(0, LIST_MAX).map((l) => ({ id: l.id, name: l.name, status: l.status, url: `/campaigns/${l.id}`, ...sum(l.counts), audiences: l.groups.map((g) => ({ name: g.name, status: g.status, budgetShare: g.share, learning: g.learning, ...sum(g.counts) })) })) });
     },
   }),
   define({
@@ -296,7 +296,7 @@ export const agentTools = [
         language: state.language, tone: state.tone as never, sender_name: state.senderName || null, wizard: state as unknown as Json,
       }).select("id").single();
       if (error || !data) throw error ?? new Error("draft insert failed");
-      return ok({ draftUrl: `/outreach/new?draft=${data.id}`, mailboxConnected: boxes.length > 0, note: "A draft only. The user opens the link, checks Campaign, Audiences and Message, and presses Launch." });
+      return ok({ draftUrl: `/campaigns/new?draft=${data.id}`, mailboxConnected: boxes.length > 0, note: "A draft only. The user opens the link, checks Campaign, Audiences and Message, and presses Launch." });
     },
   }),
   define({

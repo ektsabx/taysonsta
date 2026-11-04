@@ -11,9 +11,9 @@ import { useToast } from "@/components/Toast";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { METRICS, DEFAULT_COLUMNS, OBJECTIVES, PRESETS, customMetric, formatMetric, metric, zeroCounts, addCounts, type Counts, type CustomMetricDef, type Metric, type MetricFormat, type Objective, type RangePreset } from "@/lib/campaigns/metrics";
 import { countryLabel, formatNumber } from "@/lib/format";
-import { bulkCampaigns, bulkEdit, createCustomMetric, deleteCustomMetric, renameCampaign } from "@/app/(app)/outreach/manager-actions";
-import { groupAction } from "@/app/(app)/outreach/[id]/actions";
-import { runOutreach } from "@/app/(app)/outreach/actions";
+import { bulkCampaigns, bulkEdit, createCustomMetric, deleteCustomMetric, loadBreakdowns, renameCampaign } from "@/app/(app)/campaigns/manager-actions";
+import { groupAction } from "@/app/(app)/campaigns/[id]/actions";
+import { runOutreach } from "@/app/(app)/campaigns/actions";
 import type { CampaignLine } from "@/services/campaign-table";
 import { DateRange } from "@/components/app/campaigns/DateRange";
 import { xlsx } from "@/lib/xlsx";
@@ -56,6 +56,16 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const [pending, start] = useTransition();
   const [level, setLevel] = useState<Level>(inCampaign ? "audiences" : "campaigns");
   const [breakdown, setBreakdown] = useState<Breakdown>("none");
+  // Across every campaign the Breakdown loads when it's opened, so the page itself opens at once.
+  const [loadedBrk, setLoadedBrk] = useState<Record<Dimension, BreakRow[]> | null>(null);
+  const allBrk = breakdowns ?? loadedBrk;
+  useEffect(() => { setLoadedBrk(null); }, [range, from, to]);
+  useEffect(() => {
+    if (inCampaign || breakdown === "none" || loadedBrk) return;
+    let live = true;
+    void loadBreakdowns(range, from, to).then((r) => { if (live) setLoadedBrk(r); });
+    return () => { live = false; };
+  }, [inCampaign, breakdown, loadedBrk, range, from, to]);
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<Filters>(noFilters());
   // D-274: custom metrics are columns like the others.
@@ -127,18 +137,18 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
     const base: Row[] = level === "campaigns"
       ? campaigns.filter((l) => !onlySelected || selected.has(l.id)).map((l) => ({
         id: l.id, level, name: l.name, sub: [l.ownerId && members.length > 1 ? memberName(l.ownerId) : "", fmt(t.ag.manager.colPerDay, { n: String(l.dailyLimit ?? 30) })].filter(Boolean).join(" · "),
-        status: l.status, statusLabel: t.ag.status[l.status], href: `/outreach/${l.id}`, counts: l.counts, campaignId: l.id, approved: l.approved, perDay: l.dailyLimit,
+        status: l.status, statusLabel: t.ag.status[l.status], href: `/campaigns/${l.id}`, counts: l.counts, campaignId: l.id, approved: l.approved, perDay: l.dailyLimit,
         badge: l.status === "active" && l.groups.some((g) => g.status === "active" && g.learning) ? t.ag.rx.opt.learning : null,
       }))
       : level === "audiences"
         ? scope.flatMap((l) => l.groups.map((g) => ({
           id: g.id, level, name: g.name, sub: [inCampaign ? "" : l.name, optLine(g)].filter(Boolean).join(" · "), status: l.status === "active" ? g.status : l.status, statusLabel: l.status === "active" ? t.ag.groupStatus[g.status] : t.ag.status[l.status],
-          href: inCampaign ? inCampaign.editHref : `/outreach/${l.id}`, counts: g.counts, campaignId: l.id, approved: l.approved, groupStatus: g.status,
+          href: inCampaign ? inCampaign.editHref : `/campaigns/${l.id}`, counts: g.counts, campaignId: l.id, approved: l.approved, groupStatus: g.status,
           badge: g.status === "active" && l.status === "active" && g.learning ? t.ag.rx.opt.learning : null,
         })))
         : scope.flatMap((l) => l.groups.flatMap((g) => g.openings.map((o) => ({
           id: o.key, level, name: `${t.ag.builder.message[o.variant === "a" ? "angleA" : "angleB"]} · ${g.name}`, sub: o.text, status: l.status, statusLabel: t.ag.status[l.status],
-          href: inCampaign ? inCampaign.editHref : `/outreach/${l.id}`, counts: o.counts, campaignId: l.id, approved: l.approved,
+          href: inCampaign ? inCampaign.editHref : `/campaigns/${l.id}`, counts: o.counts, campaignId: l.id, approved: l.approved,
         }))));
     const hit = base.filter((r) => !s || r.name.toLowerCase().includes(s) || r.sub.toLowerCase().includes(s));
     const val = (r: Row) => sort.key === "name" ? r.name.toLowerCase() : sort.key === "status" ? r.status : sort.key === "created" ? 0 : mx(sort.key)?.compute(r.counts) ?? -Infinity;
@@ -216,13 +226,13 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   // Channel column (owner, 2026-11-03): each row's campaign channel.
   const channelOf = new Map(lines.map((l) => [l.id, (l.channels ?? ["email"]).map((c) => CHANNELS.find((x) => x.id === c)?.label[lang] ?? c).join(", ")]));
   // A breakdown (every campaign, or inside one): one row per day, audience, opening, country, industry or job title, with the message columns.
-  const brk = breakdowns && breakdown !== "none" ? breakdowns[breakdown] : null;
+  const brk = breakdown !== "none" ? allBrk?.[breakdown] ?? [] : null;
   const brkCounts = (b: BreakRow): Counts => ({ ...zeroCounts(), contacted: b.contacted, sent: b.sent, bounced: b.bounced, delivered: b.sent - b.bounced, replies: b.replies, interested: b.interested, meetings: b.meetings, held: b.held, opened: b.opened });
   const brkCols = ordered.filter((c) => BREAKDOWN_METRICS.has(c.id));
 
   if (!lines.length) {
     return (
-      <section className="cm-empty"><Folder /><h3>{m.empty}</h3><p>{m.emptyLine}</p><Link className="sdr-btn primary" href="/outreach/new"><Plus />{m.create}</Link></section>
+      <section className="cm-empty"><Folder /><h3>{m.empty}</h3><p>{m.emptyLine}</p><Link className="sdr-btn primary" href="/campaigns/new"><Plus />{m.create}</Link></section>
     );
   }
 
@@ -240,7 +250,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
       </div>
 
       <div className="cm-toolbar">
-        {inCampaign ? <Link className="sdr-btn primary" href={inCampaign.editHref}><Plus />{t.ag.page.audiences.add}</Link> : <Link className="sdr-btn primary" href="/outreach/new"><Plus />{m.create}</Link>}
+        {inCampaign ? <Link className="sdr-btn primary" href={inCampaign.editHref}><Plus />{t.ag.page.audiences.add}</Link> : <Link className="sdr-btn primary" href="/campaigns/new"><Plus />{m.create}</Link>}
         <label className="cm-search"><Search /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={m.search} aria-label={m.search} /></label>
         {!inCampaign && <div className="cm-wrap">
           <button type="button" className={`sdr-btn cm-toggle${activeFilters ? " on" : ""}`} onClick={() => setOpen(open === "filters" ? null : "filters")}><Filter />{m.filters}{activeFilters > 0 && <span className="sdr-count">{activeFilters}</span>}</button>
@@ -258,7 +268,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
         </div>}
         <DateRange range={range} from={from} to={to} />
         <div className="cm-spacer" />
-        {breakdowns && (
+        {(breakdowns || !inCampaign) && (
           <div className="cm-wrap">
             <button type="button" className={`sdr-btn cm-toggle${breakdown !== "none" ? " on" : ""}`} onClick={() => setOpen(open === "breakdown" ? null : "breakdown")}><Layers />{C.breakdown}{breakdown !== "none" ? `: ${C.by[breakdown]}` : ""}<ChevronDown /></button>
             {open === "breakdown" && (
@@ -370,7 +380,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
                       <div className="cm-menu" role="menu">
                         <Link role="menuitem" href={r.href}>{m.view}</Link>
                         {level === "campaigns" && <>
-                          <Link role="menuitem" href={r.status === "draft" ? `/outreach/new?draft=${r.id}` : `/outreach/${r.id}/edit`}>{m.edit}</Link>
+                          <Link role="menuitem" href={r.status === "draft" ? `/campaigns/new?draft=${r.id}` : `/campaigns/${r.id}/edit`}>{m.edit}</Link>
                           <button role="menuitem" type="button" onClick={() => { setRenaming({ id: r.id, name: r.name }); setMenu(null); }}>{m.rename}</button>
                           <button role="menuitem" type="button" onClick={() => bulk("duplicate", [r.id])}>{m.duplicate}</button>
                           {r.status === "active" && <button role="menuitem" type="button" onClick={() => bulk("pause", [r.id])}>{m.pause}</button>}

@@ -285,11 +285,11 @@ export const ar: Dictionary = {
     page: {
       intro: "صفحتك الخاصة ليحجز الناس اجتماعًا معك. يشاركها يولياس مع العملاء الذين يطلبون اجتماعًا، وكل حجز يصلك على بريدك وفي إدارة العملاء.",
       link: "رابطك", copy: "نسخ", copied: "تم النسخ", open: "افتح الصفحة",
-      google: "تقويم Google و Google Meet", googleLead: "اربط حسابك على Google، وكل اجتماع يُحجز من هذه الصفحة أو يحجزه يولياس يُضاف إلى تقويم جديد داخل تقويم Google برابط Google Meet، وترسل Google الدعوة إلى ضيفك.",
-      googlePoints: ["رابط Google Meet جاهز لكل اجتماع", "تقويم مستقل داخل تقويم Google، وضيوفك مدعوون فيه", "لا نتعامل إلا مع التقويم الذي ننشئه، وتبقى تقويماتك الأخرى خاصة بك"],
+      google: "تقويم Google", googleLead: "اربط حسابك على Google، وكل اجتماع يُحجز من هذه الصفحة أو يحجزه يولياس يُضاف إلى تقويم جديد داخل تقويم Google، وترسل Google الدعوة إلى ضيفك.",
+      googlePoints: ["تقويم مستقل داخل تقويم Google، وضيوفك مدعوون فيه", "لا نتعامل إلا مع التقويم الذي ننشئه، وتبقى تقويماتك الأخرى خاصة بك"],
       connect: "اربط تقويم Google", connectedAs: "مرتبط بـ {email}", disconnect: "فصل", reconnect: "أعد الربط", notConfigured: "تسجيل الدخول بـ Google غير مفعّل في يولياس بعد.",
       calendar: { connected: "تم ربط تقويم Google.", denied: "لم يتم ربط تقويم Google: رُفض الإذن.", failed: "تعذر ربط تقويم Google. حاول مرة أخرى.", not_configured: "تسجيل الدخول بـ Google غير مفعّل في يولياس بعد." },
-      taking: "مفتوحة للحجز", address: "العنوان", name: "اسم الاجتماع", location: "المكان", locationHint: "رابط Google Meet أو Zoom، أو رقم هاتف، أو عنوان. اتركه فارغًا مع ربط تقويم Google ليُنشأ رابط Google Meet.",
+      taking: "مفتوحة للحجز", address: "العنوان", name: "اسم الاجتماع", location: "المكان", locationHint: "رابط اجتماع، أو رقم هاتف، أو عنوان.",
       line: "سطر للزوار", lineHint: "مثال: مكالمة تعارف لمدة 30 دقيقة عن منتجنا.", duration: "المدة", timezone: "المنطقة الزمنية", buffer: "استراحة بين الاجتماعات",
       notice: "أقل مهلة قبل الاجتماع", window: "الحجز متاح لمدة", hours: "ساعات الأسبوع", unavailable: "غير متاح", addRange: "أضف ساعات", save: "حفظ",
       moreTypes: "أنواع اجتماعات أخرى", moreTypesHint: "بجانب الاجتماع أعلاه، حتى ثلاثة أنواع أخرى (مثلًا تعارف 15 دقيقة وعرض 45 دقيقة). يختار الضيف أحدها.", addType: "أضف نوع اجتماع", removeType: "احذف هذا النوع",
@@ -756,7 +756,7 @@ export const ar: Dictionary = {
       gmailDesc: "Gmail أو Google Workspace: يرسل حملاتك ويقرأ الردود عليها.",
       imapName: "بريد IMAP/SMTP", imapDesc: "أي بريد آخر، مثل Zoho أو Hostinger أو Outlook أو بريد شركتك.",
       rulesName: "قواعد الإرسال", rulesDesc: "عدد الرسائل يوميًا والفاصل بينها وأيام وساعات الإرسال، لكل صناديق البريد.", rulesOn: "مفعّلة",
-      calendarName: "تقويم Google", calendarDesc: "كل اجتماع يُحجز يُضاف إلى تقويم ينشئه يولياس، برابط Google Meet ودعوة من Google لضيفك.",
+      calendarName: "تقويم Google", calendarDesc: "كل اجتماع يُحجز يُضاف إلى تقويم ينشئه يولياس، مع دعوة من Google لضيفك.",
     },
     referral: {
       title: "رابط دعوتك", desc: "كل شخص ينشئ حسابًا جديدًا في يولياس من رابطك يضيف لك {n} عميل محتمل، لا تنتهي صلاحيتها.",
@@ -945,7 +945,7 @@ export const ar: Dictionary = {
     feature: "الميزة", coreFeatures: "ميزات أساسية متضمنة في كل خطة", usageCapacity: "سعة الاستخدام", included: "متضمن",
     features: {
       campaigns: "حملات وجماهير ورسائل مثل مدير الإعلانات", aiLeadGeneration: "اكتشاف العملاء المحتملين: الشركات وصنّاع القرار", messages: "رسائل مخصصة بالذكاء الاصطناعي بـ 15 لغة",
-      aiSalesAgent: "Yolias AI: يرد ويتابع ويحجز", crm: "الاجتماعات: صفحة الحجز وتقويم Google و Meet", pixel: "بيكسل يولياس ومدير الأحداث",
+      aiSalesAgent: "Yolias AI: يرد ويتابع ويحجز", crm: "الاجتماعات: صفحة الحجز وتقويم Google", pixel: "بيكسل يولياس ومدير الأحداث",
       audiences: "جماهير مخصصة ومشابهة", optimization: "توجيه الميزانية نحو النتائج", analytics: "النتائج والتحويلات والإيرادات وتكلفة النتيجة",
       integrations: "Gmail وبريد IMAP/SMTP وتقويم Google", unlimitedUsers: "مستخدمون بلا حد", chatSupport: "دعم عبر المحادثة",
     },

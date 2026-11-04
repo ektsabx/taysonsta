@@ -33,7 +33,7 @@ import { AskYolias } from "./AskYolias";
 const navItems = [
   { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
   { href: "/", key: "yoliasAi", icon: MessageSquareText },
-  { href: "/outreach", key: "campaigns", icon: Send },
+  { href: "/campaigns", key: "campaigns", icon: Send },
   { href: "/prospects", key: "prospects", icon: UserSearch },
   { href: "/audiences", key: "audiences", icon: UsersRound },
   { href: "/inbox", key: "conversations", icon: MessagesSquare },
@@ -328,7 +328,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
           </div>
         )}
         {children}
-        <AskYolias />
+        <AskYolias chats={data.recent} />
       </main>
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}

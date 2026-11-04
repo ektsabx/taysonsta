@@ -32,6 +32,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Baseline security headers on every response. Framing is limited to
   // Yolias itself (the support widget is served from /support-widget).
+  // Campaigns moved from /outreach (owner, 2026-11-05); links in emails already sent keep working.
+  async redirects() {
+    return [
+      { source: "/outreach", destination: "/campaigns", permanent: true },
+      { source: "/outreach/:path*", destination: "/campaigns/:path*", permanent: true },
+    ];
+  },
   async headers() {
     return [{
       source: "/:path*",

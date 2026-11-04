@@ -200,7 +200,7 @@ export const product: Localized<{
       },
       {
         title: "Conversations and meetings",
-        body: "Every reply from every campaign is in Conversations, with the campaign it came from; every booking is in Meetings, on your booking page and in Google Calendar with a Meet link.",
+        body: "Every reply from every campaign is in Conversations, with the campaign it came from; every booking is in Meetings, on your booking page and in Google Calendar.",
         points: ["Gmail, Outlook or any IMAP/SMTP mailbox, each with its own sending rules", "Google Calendar busy times never offered", "Arabic and English, end to end"],
       },
     ],
@@ -253,7 +253,7 @@ export const product: Localized<{
       },
       {
         title: "المحادثات والاجتماعات",
-        body: "كل رد من كل حملة في المحادثات مع الحملة التي جاء منها؛ وكل حجز في الاجتماعات، وفي صفحة الحجز وتقويم Google برابط Meet.",
+        body: "كل رد من كل حملة في المحادثات مع الحملة التي جاء منها؛ وكل حجز في الاجتماعات، وفي صفحة الحجز وتقويم Google.",
         points: ["Gmail أو Outlook أو أي بريد IMAP/SMTP، ولكل منها قواعد إرسال", "أوقات انشغالك في تقويم Google لا تُعرض أبدًا", "العربية والإنجليزية من البداية للنهاية"],
       },
     ],

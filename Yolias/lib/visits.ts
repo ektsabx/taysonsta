@@ -18,7 +18,7 @@ const VISIT_GAP_MS = 30 * 60_000;
 export const IP_DAYS = 30;
 const BOT = /bot|crawl|spider|slurp|preview|headless|lighthouse|pingdom|uptime|monitor|curl|wget|python-requests|axios|node-fetch|facebookexternalhit|whatsapp|telegram/i;
 // Paths of the app (signed-in); everything else is the website.
-const APP = /^\/(dashboard|outreach|prospects|audiences|inbox|meetings|ai|integrations|events|search|settings|notifications|checkout|onboarding|billing|invoices|start)(\/|$)|^\/$/;
+const APP = /^\/(dashboard|campaigns|outreach|prospects|audiences|inbox|meetings|ai|integrations|events|search|settings|notifications|checkout|onboarding|billing|invoices|start)(\/|$)|^\/$/;
 
 export interface Geo { country: string | null; region: string | null; city: string | null; ip: string | null }
 

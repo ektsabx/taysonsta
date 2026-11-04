@@ -168,7 +168,7 @@ export async function optimizeCampaign(db: Db, c: { id: string; workspace_id: st
     if (user) await db.from("notifications").upsert({
       user_id: user, workspace_id: c.workspace_id, kind: "campaign", title: `Over the cost cap: ${c.name}`.slice(0, 300),
       body: "Every audience costs more per meeting than the cap you set, so Yolias holds new budget for now. Raise the cap or change the audiences.",
-      link: `/outreach/${c.id}`, dedupe_key: `cost-cap:${c.id}:${day}:${user}`,
+      link: `/campaigns/${c.id}`, dedupe_key: `cost-cap:${c.id}:${day}:${user}`,
     }, { onConflict: "dedupe_key", ignoreDuplicates: true });
   }
 }

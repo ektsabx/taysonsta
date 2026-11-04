@@ -156,7 +156,7 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   // Only the approver's own, connected mailbox in this workspace.
   if (!mailbox || mailbox.user_id !== c.approved_by || mailbox.workspace_id !== c.workspace_id || mailbox.status !== "connected") {
     await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
+    await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, "The mailbox it sends from isn't connected. Reconnect it in Integrations, then resume the campaign.", `/campaigns/${c.id}`, `paused-mailbox:${c.id}:${new Date().toISOString().slice(0, 10)}`);
     return res;
   }
   const settings = await loadAiSettings(c.workspace_id);
@@ -285,7 +285,7 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
       if (err.kind === "auth") await markMailboxError(mailbox.id, "The mailbox permission expired or was removed. Reconnect it in Integrations.");
       if (c) {
         await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", c.id);
-        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Integrations, then resume the campaign.", `/outreach/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
+        await notifyUser(c.workspace_id, mailbox.user_id, `Campaign paused: ${c.name}`, "Yolias couldn't send from your mailbox. Reconnect it in Integrations, then resume the campaign.", `/campaigns/${c.id}`, `paused-auth:${c.id}:${new Date().toISOString().slice(0, 13)}`);
       }
       return "stop";
     }
@@ -598,7 +598,7 @@ async function pauseOnBounces(db: Db, campaignId: string) {
   const { data: paused } = await db.from("outreach_campaigns").update({ status: "paused" }).eq("id", campaignId).eq("status", "active").select("id, workspace_id, name, approved_by").maybeSingle();
   if (!paused) return;
   const pct = Math.round(((bounced ?? 0) / sent) * 100);
-  await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/outreach/${campaignId}`, `paused-bounces:${campaignId}`);
+  await notifyUser(paused.workspace_id, paused.approved_by, `Campaign paused: ${paused.name}`, `${bounced} of ${sent} emails bounced (${pct}%). Sending stopped to protect your mailbox. Check the email addresses, then resume the campaign.`, `/campaigns/${campaignId}`, `paused-bounces:${campaignId}`);
 }
 
 export async function notifyUser(workspaceId: string, userId: string | null, title: string, body: string | null, link: string, dedupe: string) {

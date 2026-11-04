@@ -53,7 +53,7 @@ function shows(st: LeadStatus | null, waiting: boolean, show: InboxShow): boolea
   }
 }
 
-export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null, show: InboxShow | null = null, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ items: InboxListItem[]; counts: Record<InboxTab, number> }> {
+export async function masterInbox(workspaceId: string, tab: InboxTab, search: string, campaignId: string | null = null, show: InboxShow | null = null, client?: Awaited<ReturnType<typeof createClient>>): Promise<{ items: InboxListItem[]; all: (InboxListItem & { tabs: InboxTab[] })[]; counts: Record<InboxTab, number> }> {
   // The member's client (RLS); a test passes a signed-in client of its own.
   const db = client ?? await createClient();
   let q = db.from("crm_leads").select("*").eq("workspace_id", workspaceId).not("thread_last_message_at", "is", null);
@@ -78,7 +78,10 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
   const latest = new Map<string, { subject: string; body: string; at: string }>();
   for (const m of last ?? []) if (m.lead_id && !latest.has(m.lead_id)) latest.set(m.lead_id, { subject: m.subject, body: m.body, at: m.received_at ?? m.sent_at ?? m.created_at });
 
-  const items: (InboxListItem & { tabs: Set<InboxTab> })[] = leads.filter((l) => !show || shows(statuses.get(l.id) ?? null, waiting.has(l.id), show)).map((l) => {
+  // A conversation is a message that went out or came in, or one waiting for approval.
+  // A draft of a campaign that never launched isn't one (owner, 2026-11-05).
+  const real = leads.filter((l) => latest.has(l.id) || waiting.has(l.id));
+  const items: (InboxListItem & { tabs: Set<InboxTab> })[] = real.filter((l) => !show || shows(statuses.get(l.id) ?? null, waiting.has(l.id), show)).map((l) => {
     const st = statuses.get(l.id) ?? null;
     const open = (l.thread_status ?? "open") === "open";
     const tabs = new Set<InboxTab>(["all"]);
@@ -98,7 +101,8 @@ export async function masterInbox(workspaceId: string, tab: InboxTab, search: st
     };
   });
   const counts = Object.fromEntries(INBOX_TABS.map((t) => [t, t === "inbox" ? items.filter((i) => i.tabs.has("inbox") && i.unread).length : items.filter((i) => i.tabs.has(t)).length])) as Record<InboxTab, number>;
-  return { items: items.filter((i) => i.tabs.has(tab)).map(({ tabs: _t, ...i }) => { void _t; return i; }), counts };
+  // Every tab's rows go to the page, which switches tabs in the browser with no server trip (owner, 2026-11-05).
+  return { items: items.filter((i) => i.tabs.has(tab)).map(({ tabs: _t, ...i }) => { void _t; return i; }), all: items.map((i) => ({ ...i, tabs: [...i.tabs] })), counts };
 }
 
 /** A campaign being written and sent, for the strip on top of Conversations (D-269). */

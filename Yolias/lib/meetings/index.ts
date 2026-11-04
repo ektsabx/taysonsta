@@ -11,7 +11,7 @@ export { guestReminderDue, leadLink, visitState } from "./pure";
 
 // Meetings inside Yolias (owner, 2026-10-30, D-267): each member's booking
 // page at yolias.com/meet/<slug>, bookings that land in the CRM, optional
-// Google Calendar with a Meet link, emails to the host and the guest, and a
+// Google Calendar, emails to the host and the guest, and a
 // cancel link for the guest. Server only; the public page reads through here.
 
 type Db = ReturnType<typeof createAdminClient>;
@@ -159,17 +159,17 @@ async function createBooking(db: Db, page: BookingPageRow & { host: { name: stri
   await meetingChanged(db, page.workspace_id, meeting, null, source === "agent" ? "agent" : "system").catch((e) => console.error("[meetings] stage", e));
   await db.from("lead_activities").insert({ workspace_id: page.workspace_id, lead_id: who.leadId, kind: "meeting_scheduled", actor_kind: source === "agent" ? "agent" : "system", body: source === "agent" ? `Yolias booked "${type.title}" at the time the lead proposed.` : `Booked "${type.title}" from the booking page.`, meta: { meeting_id: meeting.id, source } });
 
-  // Google Calendar (optional): the event with the guest invited, and a Meet link when no place is set.
+  // Google Calendar (optional): the booking lands on the host's calendar with the guest invited.
+  // Meetings are booked through Yolias (owner, 2026-11-05): no Google Meet link is created.
   let url: string | null = null;
   const cal = await calendarAccess(db, page.user_id);
   if (cal) {
     try {
       const ev = await createEvent(cal.token, cal.calendarId, {
         summary: `${type.title}: ${who.name}`, description: [type.description, who.note && `Note from ${who.name}: ${who.note}`, "Booked with Yolias."].filter(Boolean).join("\n\n"),
-        start, end, timeZone: page.timezone, guest: { email: who.email, name: who.name }, location: page.location, meet: !page.location,
+        start, end, timeZone: page.timezone, guest: { email: who.email, name: who.name }, location: page.location,
       });
-      url = ev.meetUrl;
-      await db.from("sales_meetings").update({ google_event_id: ev.id, ...(url ? { url } : {}) }).eq("id", meeting.id);
+      await db.from("sales_meetings").update({ google_event_id: ev.id }).eq("id", meeting.id);
     } catch (e) {
       await calendarFailed(db, page.user_id, e);
     }

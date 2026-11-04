@@ -39,7 +39,7 @@ export async function campaignScheduleSweep(): Promise<{ started: number; ended:
     await db.from("outreach_messages").update({ status: "canceled" }).eq("outreach_campaign_id", c.id).eq("direction", "outbound").in("status", ["draft", "approved"]);
     if (c.source_campaign_id) await db.from("campaigns").update({ continuous: false, next_run_at: null }).eq("id", c.source_campaign_id);
     await logCampaign(db, c.workspace_id, c.id, "completed", "Ended on its end date. Replies already in Conversations stay there.");
-    await notifyUser(c.workspace_id, c.approved_by ?? c.created_by, `Campaign ended: ${c.name}`, "It reached its end date. Its results stay on the campaign page.", `/outreach/${c.id}`, `ended:${c.id}`);
+    await notifyUser(c.workspace_id, c.approved_by ?? c.created_by, `Campaign ended: ${c.name}`, "It reached its end date. Its results stay on the campaign page.", `/campaigns/${c.id}`, `ended:${c.id}`);
   }
 
   out.paused = await deliverabilityGuard(db);
@@ -69,7 +69,7 @@ async function deliverabilityGuard(db: Db): Promise<number> {
       if (!done?.length) continue;
       paused++;
       await logCampaign(db, c.workspace_id, c.id, "guard", reason, { sent: health.sent, bounced: health.bounced });
-      await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, reason, `/outreach/${c.id}`, `guard:${c.id}:${new Date().toISOString().slice(0, 10)}`);
+      await notifyUser(c.workspace_id, c.approved_by, `Campaign paused: ${c.name}`, reason, `/campaigns/${c.id}`, `guard:${c.id}:${new Date().toISOString().slice(0, 10)}`);
     }
   }
   return paused;

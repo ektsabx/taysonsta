@@ -19,7 +19,7 @@ type Tab = "ads" | "all" | "messages" | "system";
 const TABS: Tab[] = ["ads", "all", "messages", "system"];
 function tabOf(it: { kind: string; link: string | null }): Exclude<Tab, "all"> {
   if (it.kind === "meeting" || it.link?.startsWith("/inbox")) return "messages";
-  if (["outreach", "campaign", "discovery_ready", "leads_review", "campaign_changes", "campaign_summary"].includes(it.kind) || it.link?.startsWith("/outreach") || it.link?.startsWith("/search/")) return "ads";
+  if (["outreach", "campaign", "discovery_ready", "leads_review", "campaign_changes", "campaign_summary"].includes(it.kind) || it.link?.startsWith("/campaigns") || it.link?.startsWith("/search/")) return "ads";
   return "system";
 }
 
