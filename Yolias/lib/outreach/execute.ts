@@ -1,3 +1,4 @@
+import { clickLink } from "@/lib/email-links";
 import "server-only";
 import { specOf } from "@/lib/engine/objectives";
 import type { WorkspaceRole } from "@/types/database";
@@ -462,7 +463,7 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
   // Purchases and form leads (D-274): interest gets the website link (tracked for this person) and a nudge, not a meeting.
   const spec = specOf(c?.objective);
   if (c && spec.onInterest === "send_link" && (action === "offer_times" || action === "book_named_time")) {
-    const link = trackedLink(c.cta_url, leadId);
+    const link = await clickLink(trackedLink(c.cta_url, leadId), { workspaceId: c.workspace_id, leadId, campaignId: c.id });
     if (link) {
       const kind = spec.link === "form" ? "form" : "buy";
       const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => linkReply(link, lang, analysis?.suggested_reply ?? null, kind), kind === "form" ? "Yolias answered and sent the form link." : "Yolias answered and sent the purchase link.");
@@ -496,7 +497,7 @@ async function handleReply(db: Db, mb: MailboxRow, leadId: string, messageId: st
     }
     // Interest or a meeting request: answer, two free times and the booking page (the campaign's own link only when the page is off).
     const page = await nextSlots(mb.user_id, 2, leadId).catch(() => null);
-    const link = page?.url ?? ((c.aim === "meeting" && c.cta_url) || null);
+    const link = await clickLink(page?.url ?? ((c.aim === "meeting" && c.cta_url) || null), { workspaceId: c.workspace_id, leadId, campaignId: c.id });
     if (link) {
       const sent = await sendInThread(db, mb, leadId, messageId, c, (lang) => bookingReply(link, lang, analysis?.suggested_reply ?? null, page?.slots ?? [], page?.timezone ?? null), "Yolias answered and offered two free times with your booking page.");
       if (sent) {

@@ -60,7 +60,7 @@ function versus(v: Vs): SeedPage {
     primary_keyword: v.keyword, secondary_keywords: v.secondary,
     links: [
       { path: "/compare/ai-advertising-platforms", en: "Advertising platforms for customer acquisition", ar: "منصات إعلانية لاكتساب العملاء" },
-      { path: "/use-cases/ai-prospecting", en: "AI prospecting", ar: "البحث عن العملاء بالذكاء الاصطناعي" },
+      { path: "/use-cases/ai-prospecting", en: "AI customer acquisition", ar: "البحث عن العملاء بالذكاء الاصطناعي" },
       { path: "/pricing", en: "Yolias pricing", ar: "أسعار يولياس" },
     ],
     sources: v.sources,
@@ -85,13 +85,13 @@ export const comparePages: SeedPage[] = [
       why: notStated,
       contacts: { en: "Email addresses and phone numbers revealed with credits; waterfall enrichment", ar: "عناوين بريد وأرقام هاتف تُكشف بالرصيد، مع إثراء متعدد المصادر" },
       outreach: { en: "Email sequences, and agents that write outreach and follow up", ar: "تسلسلات بريد، ووكلاء يكتبون الرسائل ويتابعون" },
-      replies: { en: "Meetings and pipeline features in the platform; 200+ integrations including CRMs (its claim)", ar: "ميزات للاجتماعات والصفقات، وأكثر من 200 تكامل منها أنظمة CRM (بحسب قوله)" },
+      replies: { en: "Meetings and pipeline features in the platform; 200+ integrations including sales tools (its claim)", ar: "ميزات للاجتماعات والصفقات، وأكثر من 200 تكامل منها أدوات المبيعات (بحسب قوله)" },
       channels: { en: "Email and phone (parallel dialer)", ar: "البريد والهاتف (اتصال متوازٍ)" },
       users: { en: "Priced per user", ar: "السعر لكل مستخدم" },
     },
     chooseThem: {
-      en: ["You need phone numbers and want to call from the same tool.", "Your team already works with filters and wants the biggest possible contact pool.", "You want deep CRM integrations today."],
-      ar: ["تحتاج أرقام الهاتف وتريد الاتصال من نفس الأداة.", "فريقك يعمل بالفلاتر ويريد أكبر عدد ممكن من جهات الاتصال.", "تحتاج تكاملات CRM عميقة الآن."],
+      en: ["You need phone numbers and want to call from the same tool.", "Your team already works with filters and wants the biggest possible contact pool.", "You want deep sales tool integrations today."],
+      ar: ["تحتاج أرقام الهاتف وتريد الاتصال من نفس الأداة.", "فريقك يعمل بالفلاتر ويريد أكبر عدد ممكن من جهات الاتصال.", "تحتاج تكاملات عميقة مع أدوات المبيعات الآن."],
     },
     chooseYolias: {
       en: ["You sell services and find it easier to describe a good client than to set twenty filters.", "You work in Arabic, or sell into the Gulf and Egypt, and want the whole product in Arabic.", "You want each company explained (why it fits) before you write to it.", "You want a whole team on one plan: every plan has unlimited users."],
@@ -127,13 +127,13 @@ export const comparePages: SeedPage[] = [
       why: { en: "Scoring you set up, using intent and engagement signals", ar: "تقييم تضبطه بنفسك باستخدام إشارات النية والتفاعل" },
       contacts: { en: "Waterfall enrichment across providers; phone enrichment on paid plans", ar: "إثراء متتابع عبر المزودين، وإثراء أرقام الهاتف في الخطط المدفوعة" },
       outreach: { en: "Writes 1:1 messages programmatically; sends through Clay Sequencer or a connected tool", ar: "يكتب رسائل فردية برمجيًا، ويرسل عبر Clay Sequencer أو أداة متصلة" },
-      replies: { en: "CRM sync and enrichment; replies live in your sending tool", ar: "مزامنة وإثراء CRM، والردود في أداة الإرسال" },
+      replies: { en: "Sales tool sync and enrichment; replies live in your sending tool", ar: "مزامنة مع أدوات المبيعات وإثراء، والردود في أداة الإرسال" },
       channels: { en: "Email and ad audiences through integrations", ar: "البريد وجماهير الإعلانات عبر التكاملات" },
       users: { en: "Unlimited seats on every plan", ar: "عدد غير محدود من المستخدمين في كل الخطط" },
     },
     chooseThem: {
-      en: ["You have a RevOps or growth person who will build and maintain workflows.", "You want to combine many paid data providers and control every step.", "You need CRM auto-sync and custom HTTP API steps."],
-      ar: ["لديك شخص في العمليات أو النمو سيبني المسارات ويحافظ عليها.", "تريد الجمع بين مزودي بيانات مدفوعين كثيرين والتحكم في كل خطوة.", "تحتاج مزامنة CRM تلقائية وخطوات HTTP مخصصة."],
+      en: ["You have a RevOps or growth person who will build and maintain workflows.", "You want to combine many paid data providers and control every step.", "You need automatic sales tool sync and custom HTTP API steps."],
+      ar: ["لديك شخص في العمليات أو النمو سيبني المسارات ويحافظ عليها.", "تريد الجمع بين مزودي بيانات مدفوعين كثيرين والتحكم في كل خطوة.", "تحتاج مزامنة تلقائية مع أدوات المبيعات وخطوات HTTP مخصصة."],
     },
     chooseYolias: {
       en: ["You want results this week without learning a workflow builder.", "You'd rather describe the customer in a sentence, in English or Arabic.", "You want finding, writing, sending from your mailbox and replies in one place."],
@@ -164,8 +164,8 @@ export const comparePages: SeedPage[] = [
       ar: "ZoomInfo منصة بيانات ومعلومات للمؤسسات تُشترى عبر فريق مبيعاتها. أما يولياس فأداة ذاتية الخدمة للشركات التي تبيع خدمات وتريد شركات مطابقة وتواصلًا توافق عليه دون عقد مؤسسي.",
     },
     answer: {
-      en: "Choose ZoomInfo if you are a larger sales and marketing organisation that needs broad contact data, intent signals and CRM integrations and buys through a sales process. Choose Yolias if you want to start today with a monthly plan or Pay As You Go, describe your customer in plain language and send from your own mailbox.",
-      ar: "اختر ZoomInfo إذا كنت مؤسسة مبيعات وتسويق كبيرة تحتاج بيانات واسعة وإشارات نية وتكاملات CRM وتشتري عبر فريق مبيعات. واختر يولياس إذا أردت البدء اليوم بخطة شهرية أو بالدفع حسب الاستخدام، وتصف عميلك بلغة طبيعية، وترسل من بريدك.",
+      en: "Choose ZoomInfo if you are a larger sales and marketing organisation that needs broad contact data, intent signals and sales tool integrations and buys through a sales process. Choose Yolias if you want to start today with a monthly plan or Pay As You Go, describe your customer in plain language and send from your own mailbox.",
+      ar: "اختر ZoomInfo إذا كنت مؤسسة مبيعات وتسويق كبيرة تحتاج بيانات واسعة وإشارات نية وتكاملات مع أدوات المبيعات وتشتري عبر فريق مبيعات. واختر يولياس إذا أردت البدء اليوم بخطة شهرية أو بالدفع حسب الاستخدام، وتصف عميلك بلغة طبيعية، وترسل من بريدك.",
     },
     them: {
       find: { en: "Search over its data, intent insights and AI agents in its GTM Workspace", ar: "البحث في بياناته، وإشارات النية، ووكلاء ذكاء اصطناعي في GTM Workspace" },
@@ -202,8 +202,8 @@ export const comparePages: SeedPage[] = [
   versus({
     slug: "lusha", name: "Lusha", keyword: "yolias vs lusha", secondary: ["lusha vs yolias"],
     lead: {
-      en: "Lusha gives you the email and phone number of a person you already found, in the browser or the CRM. Yolias helps you find which companies and people to approach in the first place, and prepares the emails.",
-      ar: "Lusha يعطيك البريد ورقم الهاتف لشخص وجدته بالفعل، في المتصفح أو CRM. أما يولياس فيساعدك أولًا في إيجاد الشركات والأشخاص الذين تتواصل معهم، ويجهّز الرسائل.",
+      en: "Lusha gives you the email and phone number of a person you already found, in the browser or your sales tools. Yolias helps you find which companies and people to approach in the first place, and prepares the emails.",
+      ar: "Lusha يعطيك البريد ورقم الهاتف لشخص وجدته بالفعل، في المتصفح أو أدوات المبيعات. أما يولياس فيساعدك أولًا في إيجاد الشركات والأشخاص الذين تتواصل معهم، ويجهّز الرسائل.",
     },
     answer: {
       en: "Choose Lusha if you already know who you want and need verified emails and phone numbers for them. Choose Yolias if your problem is finding the right companies for your services and writing to them from your own mailbox.",
@@ -290,12 +290,12 @@ export const comparePages: SeedPage[] = [
       ar: "اختر Instantly إذا كنت تدير حملات بكميات كبيرة عبر صناديق بريد كثيرة وتحتاج أدوات التدفئة ووصول الرسائل. واختر يولياس إذا أردت مساعدة في تحديد من تراسل، مع شرح لكل شركة، ورسالة شخصية من Gmail أو بريد شركتك بعد تشغيلك للحملة.",
     },
     them: {
-      find: { en: "A B2B lead database with filters, on separate credit plans", ar: "قاعدة عملاء B2B بفلاتر، بخطط رصيد منفصلة" },
+      find: { en: "A lead database with filters, on separate credit plans", ar: "قاعدة عملاء B2B بفلاتر، بخطط رصيد منفصلة" },
       finds: { en: "Leads from its database", ar: "عملاء من قاعدة بياناته" },
       why: notStated,
       contacts: { en: "Email enrichment on its lead plans", ar: "إثراء البريد في خطط العملاء" },
       outreach: { en: "Campaigns across unlimited email accounts with warmup; AI writes and personalises", ar: "حملات عبر حسابات بريد غير محدودة مع التدفئة، والذكاء الاصطناعي يكتب ويخصص" },
-      replies: { en: "Unibox replies, an AI reply agent and an AI-powered CRM", ar: "صندوق ردود موحد، ووكيل رد بالذكاء الاصطناعي، وCRM" },
+      replies: { en: "Unibox replies, an AI reply agent and an AI-powered sales pipeline", ar: "صندوق ردود موحد، ووكيل رد بالذكاء الاصطناعي، ومتابعة المبيعات" },
       channels: { en: "Email", ar: "البريد" },
       users: notStated,
     },
@@ -335,7 +335,7 @@ export const comparePages: SeedPage[] = [
       why: notStated,
       contacts: { en: "Verified emails per month by plan", ar: "عدد رسائل متحقق منها شهريًا حسب الخطة" },
       outreach: { en: "Campaigns across unlimited mailboxes with warmup and sender rotation", ar: "حملات عبر صناديق غير محدودة مع التدفئة وتدوير المرسلين" },
-      replies: { en: "A unified inbox (unibox) and CRM access", ar: "صندوق وارد موحد (unibox) ووصول إلى CRM" },
+      replies: { en: "A unified inbox (unibox) and sales pipeline access", ar: "صندوق وارد موحد (unibox) ووصول إلى أدوات المبيعات" },
       channels: { en: "Email", ar: "البريد" },
       users: notStated,
     },
@@ -389,7 +389,7 @@ export const comparePages: SeedPage[] = [
     },
     chooseYolias: {
       en: ["You don't know yet which companies to target.", "You want each company explained against your offer.", "You want replies sorted and leads tracked in a pipeline."],
-      ar: ["لا تعرف بعد أي الشركات تستهدف.", "تريد شرح كل شركة مقابل عرضك.", "تريد تصنيف الردود ومتابعة العملاء في إدارة العملاء."],
+      ar: ["لا تعرف بعد أي الشركات تستهدف.", "تريد شرح كل شركة مقابل عرضك.", "تريد تصنيف الردود ومتابعة العملاء."],
     },
     faq: {
       en: [

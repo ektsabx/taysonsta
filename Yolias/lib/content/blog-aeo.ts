@@ -62,7 +62,7 @@ export const aeoPosts: BlogPost[] = [
     category: { en: "Guides", ar: "أدلة" },
     doc: {
       en: {
-        title: "How to find B2B customers: a step-by-step guide",
+        title: "How to find customers for your business: a step-by-step guide",
         summary: "From the market you choose to the meeting on your calendar, in six steps you can measure.",
         blocks: [
           { p: "**Short answer:** choose a market you can serve, list the decision makers in it, reach each one with a short personal message from your own mailbox, follow up, answer every reply and book the meeting. Measure the cost of each meeting and keep the audiences that bring them." },
@@ -82,7 +82,7 @@ export const aeoPosts: BlogPost[] = [
         ],
       },
       ar: {
-        title: "البحث عن عملاء الشركات B2B: دليل خطوة بخطوة",
+        title: "كيف تجد عملاء لنشاطك: دليل خطوة بخطوة",
         summary: "من السوق الذي تختاره إلى الاجتماع في تقويمك، في ست خطوات تستطيع قياسها.",
         blocks: [
           { p: "**الإجابة المختصرة:** اختر سوقًا تستطيع خدمته، وحدد صنّاع القرار فيه، وتواصل مع كل منهم برسالة قصيرة شخصية من بريدك، وتابع، وأجب عن كل رد، واحجز الاجتماع. ثم قِس تكلفة كل اجتماع واحتفظ بالجماهير التي تأتي به." },

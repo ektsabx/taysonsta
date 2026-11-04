@@ -606,6 +606,14 @@ html[data-theme="dark"] .mk .final-section .form-panel { border-color: var(--lin
 .mk .lp-hero h1 { font-size: clamp(2.4rem, 5vw, 4.2rem); }
 .mk .lp-lead2 { margin-top: .6rem; }
 .mk .lp-center { margin-inline: auto; text-align: center; }
+/* The home page reads from the centre, in both languages (owner, 2026-11-05). */
+.mk .lp-home .lp-hero-copy, .mk .lp-home .section-head { margin-inline: auto; text-align: center; }
+.mk .lp-home .eyebrow { justify-content: center; }
+.mk .lp-home .lp-hero .site-width { justify-items: center; }
+.mk .lp-home .lp-hero-shot { width: 100%; }
+.mk .lp-home .lp-p, .mk .lp-home .lp-message, .mk .lp-home .lp-note { text-align: center; }
+.mk .lp-home .lp-chips { justify-content: center; }
+.mk .lp-home .lp-split > div:not(.lp-mock) .lp-checks { width: fit-content; max-width: 100%; margin-inline: auto; }
 .mk .lp-split { display: grid; gap: 3rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; }
 .mk .lp-split .section-head { margin-bottom: 1.5rem; }
 .mk .lp-p { margin-top: .9rem; color: var(--text-2); line-height: 1.75; font-size: 1rem; }

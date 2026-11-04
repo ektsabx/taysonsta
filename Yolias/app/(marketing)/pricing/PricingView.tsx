@@ -59,7 +59,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
     return [
       fmt(once ? C.reachOnce : C.reach, { count: n(people) }),
       // One-time credit has no monthly estimate; a plan does.
-      ...(!once && e.meetings.low > 0 ? [`${fmt(C.replies, { low: n(e.replies.low), high: n(e.replies.high) })}*`, `${fmt(C.meetings, { low: n(e.meetings.low), high: n(e.meetings.high) })}*`] : []),
+      ...(!once && e.meetings.low > 0 ? [`${fmt(C.replies, { low: n(e.replies.low), high: n(e.replies.high) })}`, `${fmt(C.meetings, { low: n(e.meetings.low), high: n(e.meetings.high) })}`] : []),
     ];
   };
 
@@ -123,7 +123,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
             {card("scale")}
           </div>
           <p className="prospect-note">{t.noCommitment}</p>
-          <p className="prospect-note estimate-note">* {t.card.estimate}</p>
+          <p className="prospect-note estimate-note">{t.card.estimate}</p>
         </div>
       </section>
 

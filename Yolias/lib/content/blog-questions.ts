@@ -18,7 +18,7 @@ export const questionPosts: BlogPost[] = [
         blocks: [
           { p: "**Short answer:** there is no single best tool; there are four kinds, and the right one depends on what you're missing. If you need contact data, use a database. If you need to send at volume, use a sending platform. If you want results managed like advertising, use an acquisition campaign platform." },
           { h2: "1. Contact databases" },
-          { p: "ZoomInfo, Lusha, Cognism and Apollo.io sell access to large B2B contact and company databases with filters and enrichment. You still write, send and follow up yourself." },
+          { p: "ZoomInfo, Lusha, Cognism and Apollo.io sell access to large contact and company databases with filters and enrichment. You still write, send and follow up yourself." },
           { h2: "2. Data and enrichment workflows" },
           { p: "Clay pulls data from many vendors into tables with AI research agents. Powerful for teams with an operator to build the workflows." },
           { h2: "3. Sending platforms" },
@@ -109,10 +109,10 @@ export const questionPosts: BlogPost[] = [
     category: { en: "Questions", ar: "أسئلة" },
     doc: {
       en: {
-        title: "Which AI tools help with sales prospecting?",
-        summary: "AI now covers each prospecting step. The difference is whether a tool does one step or runs the whole campaign.",
+        title: "Which AI tools help you acquire customers?",
+        summary: "AI now covers each step of acquiring a customer. The difference is whether a tool does one step or runs the whole campaign.",
         blocks: [
-          { p: "**Short answer:** AI tools now help with every prospecting step: finding companies and decision makers, researching them, writing personal emails, answering replies and booking meetings. Single-step tools need you to connect them; campaign platforms like Yolias run all the steps and report cost per meeting." },
+          { p: "**Short answer:** AI tools now help with every step of acquiring a customer: finding companies and decision makers, researching them, writing personal emails, answering replies and booking meetings. Single-step tools need you to connect them; campaign platforms like Yolias run all the steps and report cost per meeting." },
           { h2: "The steps, and what AI does in each" },
           { table: {
             head: ["Step", "What AI does"],

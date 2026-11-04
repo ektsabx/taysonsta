@@ -20,8 +20,8 @@ export const listPages: SeedPage[] = [
     links: [...compareLinks(""), { path: "/use-cases/find-clients", en: "How to find clients for a service business", ar: "كيف تجد عملاء لنشاط خدمي" }],
     sources: ["https://www.apollo.io/", "https://www.zoominfo.com/", "https://www.clay.com/", "https://www.lusha.com/", "https://www.cognism.com/", "https://hunter.io/", "https://instantly.ai/", "https://www.smartlead.ai/"],
     en: {
-      title: "Best lead generation tools", h1: "The best B2B lead generation tools, by what you need",
-      metaTitle: "Best B2B lead generation tools, compared by job",
+      title: "Best lead generation tools", h1: "The best customer acquisition tools, by what you need",
+      metaTitle: "Best customer acquisition tools, compared by job",
       metaDescription: "Lead generation tools do four jobs: contact data, enrichment, email finding and sending. How to choose, and what Apollo, Clay, Hunter, Yolias and others are for.",
       lead: "\"Lead generation tool\" covers four different jobs. Most teams need two or three of them, and the best tool depends on which job is your bottleneck.",
       answer: "There is no single best lead generation tool. Contact databases (Apollo, ZoomInfo, Lusha, Cognism) give you people and their details; workflow tools (Clay) let you build enrichment yourself; email finders (Hunter) get addresses for companies you chose; senders (Instantly, Smartlead) deliver volume. Yolias covers finding the right companies from a plain description and the outreach from your own mailbox.",
@@ -54,8 +54,8 @@ export const listPages: SeedPage[] = [
       cta: CTA.en,
     },
     ar: {
-      title: "أفضل أدوات جذب العملاء", h1: "أفضل أدوات جذب عملاء B2B حسب ما تحتاجه",
-      metaTitle: "أفضل أدوات جذب عملاء B2B مقارنة حسب المهمة",
+      title: "أفضل أدوات جذب العملاء", h1: "أفضل أدوات اكتساب العملاء حسب ما تحتاجه",
+      metaTitle: "أفضل أدوات اكتساب العملاء مقارنة حسب المهمة",
       metaDescription: "أدوات جذب العملاء تؤدي أربع مهام مختلفة: بيانات التواصل، والإثراء، وإيجاد البريد، والإرسال. كيف تختار، ولماذا يصلح كل من Apollo وClay وHunter ويولياس وغيرها.",
       lead: "«أداة جذب العملاء» تشمل أربع مهام مختلفة. معظم الفرق تحتاج اثنتين أو ثلاثًا منها، وأفضل أداة تعتمد على المهمة التي تعطلك.",
       answer: "لا توجد أداة واحدة هي الأفضل. قواعد جهات الاتصال (Apollo وZoomInfo وLusha وCognism) تعطيك الأشخاص وبياناتهم، وأدوات المسارات (Clay) تتيح لك بناء الإثراء بنفسك، وأدوات إيجاد البريد (Hunter) تجلب العناوين لشركات اخترتها، وأدوات الإرسال (Instantly وSmartlead) للكميات الكبيرة. أما يولياس فيغطي إيجاد الشركات المناسبة من وصف بسيط والتواصل من بريدك.",

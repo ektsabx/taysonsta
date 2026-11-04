@@ -54,7 +54,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       why: { en: "A plain match score with the criteria met, rather than intent data you have to interpret", ar: "نسبة تطابق واضحة مع المعايير المحققة، بدل بيانات نية تحتاج إلى تفسير" },
       contacts: { en: "Published business contacts, labelled by verification; nothing to export with credits", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق؛ لا شيء تصدّره برصيد" },
       outreach: { en: "Emails and follow-ups written and sent from your mailbox, so you don't need a second tool to reach the list", ar: "رسائل ومتابعات تُكتب وتُرسل من بريدك، فلا تحتاج أداة ثانية للوصول إلى القائمة" },
-      replies: { en: "Replies and the meetings they lead to stay in Yolias; CSV export when you want them in a CRM", ar: "الردود والاجتماعات التي تقود إليها تبقى في يولياس، مع تصدير CSV متى أردتها في نظام آخر" },
+      replies: { en: "Replies and the meetings they lead to stay in Yolias; CSV export when you want them elsewhere", ar: "الردود والاجتماعات التي تقود إليها تبقى في يولياس، مع تصدير CSV متى أردتها في نظام آخر" },
       channels: { en: "Email from your own account", ar: "البريد من حسابك" },
       users: { en: "Public prices from $5, unlimited users, no sales quote", ar: "أسعار معلنة تبدأ من 5 دولارات، ومستخدمون بلا حد، بلا عرض سعر من المبيعات" },
     },

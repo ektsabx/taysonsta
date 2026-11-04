@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function OnboardingPage() {
   const session = await requireUser();
   // Onboarding comes before the plan (owner, 2026-10-29).
-  if (session.profile.onboarded_at) redirect(canUseApp(session.workspace) ? "/" : "/checkout");
+  if (session.profile.onboarded_at) redirect("/");
   const [t, locale, { data: config }] = await Promise.all([getDictionary(), getLocale(), createAdminClient().from("site_settings").select("value").eq("key", ONBOARDING_KEY).maybeSingle()]);
   // The pages and their wording come from Yolias Admin → Onboarding (D-276).
   const steps = parseSteps(config?.value);

@@ -4,7 +4,7 @@
 
 export const wsEn = {
   nav: {
-    campaigns: "Campaigns", conversations: "Conversations", meetings: "Meetings", outreach: "Outreach", inbox: "Inbox", crm: "CRM", aiWorkspace: "AI Workspace",
+    campaigns: "Campaigns", conversations: "Conversations", meetings: "Meetings", outreach: "Outreach", inbox: "Inbox", crm: "Deals", aiWorkspace: "AI Workspace",
     knowledge: "Company Knowledge", profiles: "Customer Profiles", agents: "AI Agent", rules: "Rules & Permissions", automations: "Automations",
     watchVideo: "Watch the intro video",
   },
@@ -50,7 +50,7 @@ export const wsEn = {
       sentStatus: { sent: "Sent", bounced: "Bounced", replied: "Replied", failed: "Failed" }, noSent: "Nothing sent yet.",
     },
     title: "Outreach", subtitle: "Emails and follow-ups to your prospects.",
-    newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Prospects or the CRM.",
+    newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Prospects.",
     colName: "Campaign", colStatus: "Status", colLeads: "Leads", colDrafts: "Drafts", colSent: "Sent", colReplies: "Replies", colMeetings: "Meetings", colUpdated: "Updated",
     status: { draft: "Draft", active: "Active", paused: "Paused", archived: "Archived" },
     form: {
@@ -85,7 +85,7 @@ export const wsEn = {
     },
     actions: { activate: "Activate", pause: "Pause", resume: "Resume", archive: "Archive", prepare: "Prepare drafts", preparing: "Preparing…", addLeads: "Add leads", remove: "Remove from campaign" },
     prepared: "{count} drafts prepared.", prepareSkipped: "{count} skipped (no step, limit reached, already prepared or not allowed).",
-    leadsTitle: "Leads in this campaign", noLeads: "No leads yet. Add them from Prospects (select → Add to outreach) or from the CRM.",
+    leadsTitle: "Leads in this campaign", noLeads: "No leads yet. Add them from Prospects (select → Add to outreach).",
     colLead: "Lead", colStep: "Step", colEnroll: "Status", colNext: "Next follow-up", colLast: "Last message",
     enrollStatus: { active: "Active", paused: "Paused", replied: "Replied", completed: "Finished", stopped: "Stopped" },
     addLeadsTitle: "Add people you have contacted", addLeadsEmpty: "Nobody to add yet. Send to people from Prospects first.", addSelected: "Add {count}",
@@ -128,11 +128,11 @@ export const wsEn = {
     title: "Inbox", subtitle: "Replies to your campaigns, sorted.",
     filters: { all: "All", unread: "Unread", interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up", sent: "Sent", done: "Done", others: "Others" },
     labels: { interested: "Interested", not_interested: "Not interested", follow_up: "Needs follow-up" }, label: "Label",
-    convert: "Move to CRM", converted: "Moved to the CRM as Interested.",
+    convert: "Mark as interested", converted: "Marked as interested.",
     composer: { placeholder: "Write your reply…", send: "Send", sending: "Sending…", suggest: "Suggest a reply with AI", suggesting: "Writing…", sent: "Reply sent.", noMailbox: "Connect your mailbox in Integrations to reply from here.", draftReady: "Yolias wrote a reply. Review it, then send." },
 
     empty: "No conversations here yet.", emptyAll: "No replies yet. Replies to your campaigns arrive here automatically.", select: "Select a conversation.",
-    thread: { campaign: "Campaign", openCrm: "Open in CRM", openCampaign: "Open campaign", noMessages: "No messages in this conversation yet.", markDone: "Mark done", reopen: "Reopen", markOther: "Move to Others", markRead: "Mark read" },
+    thread: { campaign: "Campaign", openCrm: "Open lead", openCampaign: "Open campaign", noMessages: "No messages in this conversation yet.", markDone: "Mark done", reopen: "Reopen", markOther: "Move to Others", markRead: "Mark read" },
     reply: {
       logTitle: "Log a reply you received", logHint: "Paste the reply from your email. Yolias stops the follow-ups, reads it and suggests the next step.",
       body: "Their reply", channel: "Received on", receivedAt: "Received at", from: "From (optional)", save: "Log reply", logged: "Reply logged.",
@@ -146,8 +146,8 @@ export const wsEn = {
     reminders: "Reminders", scheduled: "Scheduled", stage: "Stage", search: "Search conversations…", show: "Show", channel: "Channel",
   },
   crm: {
-    title: "CRM", subtitle: "Your deals.",
-    table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", empty: "No deals yet. Open a conversation with an interested lead and choose “Move to CRM”.",
+    title: "Deals", subtitle: "Your deals.",
+    table: "Table", kanban: "Kanban", fromConversations: "Open Conversations", empty: "No deals yet. Open a conversation with an interested lead and choose “Mark as interested”.",
     emptyFiltered: "No leads match these filters.",
     cols: { name: "Lead", company: "Company", contact: "Contact", source: "Source", campaign: "Campaign", campaignDate: "Campaign date", owner: "Owner", stage: "Stage", value: "Deal value", followUp: "Next follow-up", meeting: "Next meeting", lastActivity: "Last activity", added: "Added" },
     sources: { search: "Yolias search", import: "CSV import", manual: "Added manually" },
@@ -163,7 +163,7 @@ export const wsEn = {
       fitUnknown: "Not enough data to judge fit.", fitChecks: { industry: "Industry", size: "Company size", country: "Country", title: "Job title", include: "Include keywords", exclude: "Exclude keywords" },
       fitResult: { match: "Match", miss: "No match", unknown: "Unknown" }, noCampaigns: "Not in any outreach campaign.", noMessages: "No messages yet.",
       noTasks: "No open reminders.", noMeetings: "No meetings yet.", noTimeline: "No history yet.", approvals: "Waiting for your approval",
-      approve: "Approve", reject: "Reject", openInInbox: "Open conversation", deleteLead: "Remove from CRM", deleteHint: "Removes the lead and its CRM history. Search results stay in Prospects.",
+      approve: "Approve", reject: "Reject", openInInbox: "Open conversation", deleteLead: "Remove lead", deleteHint: "Removes the lead and its history. Search results stay in Prospects.",
       matchScore: "Search match", profile: "Customer profile",
     },
     activity: {
@@ -222,7 +222,7 @@ export const wsEn = {
     },
     agents: {
       title: "AI Agent", subtitle: "One agent works on your customer acquisition. Give it a goal and rules, choose what it may do on its own and what needs your approval.",
-      mainName: "Yolias Agent", mainDesc: "Yolias AI is your agent: you talk to it, it searches, writes, reads replies, follows up, prepares meetings and keeps the CRM current, within the permissions below.",
+      mainName: "Yolias Agent", mainDesc: "Yolias AI is your agent: you talk to it, it searches, writes, reads replies, follows up, prepares meetings and keeps every lead current, within the permissions below.",
       goal: "Goal", goalHint: "What you want the agent to achieve. It uses this in every search, message and reply.", goalPh: "e.g. 10 intro calls a month with logistics companies in Saudi Arabia",
       capabilities: "Capabilities", capabilitiesHint: "What the agent can do. Switch a capability off, give it its own instructions, and choose what it does on its own or after your approval.",
       enabled: "On", disabled: "Off", instructions: "Instructions for this capability", instructionsPh: "e.g. Always mention our free trial.", inputs: "Uses", outputs: "Produces", actions: "Can do",
@@ -233,7 +233,7 @@ export const wsEn = {
         replies: { name: "Replies", desc: "Reads the replies you log, classifies them, suggests the next stage and a reply, and escalates what needs you.", inputs: "Logged replies, the conversation, Company Knowledge", outputs: "Reply analysis, stage suggestions, reply drafts, escalations" },
         follow_up: { name: "Follow-up", desc: "Watches every campaign’s schedule: reminds you of due follow-ups and scheduled messages and can prepare the next follow-up.", inputs: "Campaign steps, sent messages, Rules", outputs: "Reminders, follow-up drafts" },
         meeting: { name: "Meetings", desc: "Prepares a meeting brief and reminds you to record the outcome. Creating calendar events needs a calendar integration (not connected).", inputs: "Meeting, lead history, Company Knowledge", outputs: "Meeting briefs, outcome reminders" },
-        crm: { name: "CRM updates", desc: "Moves deals between stages when replies and meetings justify it, automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
+        crm: { name: "Stage updates", desc: "Moves deals between stages when replies and meetings justify it, automatically or after your approval.", inputs: "Reply analysis, meetings", outputs: "Stage changes or approval requests" },
       },
       pending: "Waiting for approval", noPending: "Nothing waiting for approval.", approved: "Approved.", rejected: "Rejected.",
     },
@@ -242,7 +242,7 @@ export const wsEn = {
       matrix: "Permissions", agent: "Agent", modes: { auto: "Automatic", approve: "Needs approval", deny: "Not allowed" },
       actions: {
         search_prospects: "Search for prospects", update_leads: "Create or update leads", prepare_messages: "Prepare messages", send_messages: "Send messages (connected channels)",
-        analyze_replies: "Analyse replies", schedule_follow_ups: "Schedule follow-ups", update_crm_stage: "Update CRM stages", manage_meetings: "Create or change meetings",
+        analyze_replies: "Analyse replies", schedule_follow_ups: "Schedule follow-ups", update_crm_stage: "Update lead stages", manage_meetings: "Create or change meetings",
       },
       sendNote: "No sending channel is connected, so nothing is sent automatically whatever is chosen here.",
       limits: "Sending limits", limitFields: {
@@ -261,13 +261,13 @@ export const wsEn = {
       title: "Automations", subtitle: "When something happens to a lead, do the next step for you. Automations never send messages.",
       new: "New automation", empty: "No automations yet. Start from an example below.", templates: "Examples", useTemplate: "Use",
       name: "Name", trigger: "When", conditions: "Only if", actionsLabel: "Then", enabled: "On", runs: "Runs", lastRun: "Last run", history: "Run history", noRuns: "No runs yet.",
-      triggers: { "lead.created": "A lead is added to the CRM", "lead.stage_changed": "A lead’s stage changes", "meeting.booked": "A meeting is booked", "meeting.completed": "A meeting is completed", "reply.received": "A reply is logged", "enrollment.finished": "A campaign ends with no reply" },
+      triggers: { "lead.created": "A lead is added", "lead.stage_changed": "A lead’s stage changes", "meeting.booked": "A meeting is booked", "meeting.completed": "A meeting is completed", "reply.received": "A reply is logged", "enrollment.finished": "A campaign ends with no reply" },
       cond: { to_stages: "New stage is", from_stages: "Previous stage was", reply_kinds: "Reply is", min_deal_value: "Deal value at least" },
       actionTypes: { create_task: "Create a reminder", notify: "Notify", add_note: "Add a note", stop_follow_ups: "Stop follow-ups", set_stage: "Move to stage" },
       actionFields: { title: "Text", due: "Due in (days)", stage: "Stage", text: "Note" }, addAction: "Add action",
       runStatus: { succeeded: "Done", partial: "Partly done", failed: "Failed", skipped: "Skipped", needs_approval: "Waiting for approval" },
       templateNames: { interested: "Interested → follow up", booked: "Meeting booked → stop follow-ups", completed: "Meeting completed → next step", lost: "Lost → stop outreach" },
-      setStageNote: "Moving a stage follows Rules & Permissions → CRM Agent.", deleted: "Deleted. History kept.",
+      setStageNote: "Moving a stage follows Rules & Permissions → Yolias Agent.", deleted: "Deleted. History kept.",
       errors: { name: "Enter a name.", actions: "Add at least one action.", invalid: "Check the fields of each action." },
     },
   },

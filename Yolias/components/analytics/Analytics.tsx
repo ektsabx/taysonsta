@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { identify, loadClarity, loadGa4, loadMetaPixel, metaTrack, resetIdentity } from "@/lib/analytics/client";
+import { identify, loadClarity, loadGa4, loadMetaPixel, loadYoliasPixel, metaTrack, resetIdentity, yoliasPageView } from "@/lib/analytics/client";
 import { CONSENT_EVENT, readConsent, type Consent } from "@/lib/analytics/consent";
 import { ConsentBanner } from "./ConsentBanner";
 import { encodeFirstTouch, firstTouch, FIRST_TOUCH_COOKIE, FIRST_TOUCH_MAX_AGE, isLandingPath } from "@/lib/attribution";
@@ -28,7 +28,7 @@ export interface AnalyticsUser {
 
 // Who is signed in (PostHog person = user id, no email), the cookie banner,
 // and the scripts that need consent: Meta Pixel and Microsoft Clarity.
-export function Analytics({ user, locale }: { user: AnalyticsUser | null; locale: string }) {
+export function Analytics({ user, locale, ownPixel = null }: { user: AnalyticsUser | null; locale: string; ownPixel?: string | null }) {
   const [consent, setConsent] = useState<Consent | null | undefined>(undefined);
   const pathname = usePathname();
 
@@ -49,7 +49,7 @@ export function Analytics({ user, locale }: { user: AnalyticsUser | null; locale
   // Meta PageView on every page (the first one is sent by the base code).
   const [firstPath] = useState(pathname);
   useEffect(() => {
-    if (pathname !== firstPath) metaTrack("PageView");
+    if (pathname !== firstPath) { metaTrack("PageView"); yoliasPageView(); }
   }, [pathname, firstPath]);
 
   // The landing page is kept for every visitor (owner, 2026-10-28): first-party, no identifier.
@@ -60,9 +60,10 @@ export function Analytics({ user, locale }: { user: AnalyticsUser | null; locale
   useEffect(() => {
     if (consent !== "all") return;
     loadMetaPixel();
+    loadYoliasPixel(ownPixel);
     loadClarity();
     loadGa4();
-  }, [consent, user]);
+  }, [consent, user, ownPixel]);
 
   return consent === null ? <ConsentBanner /> : null;
 }

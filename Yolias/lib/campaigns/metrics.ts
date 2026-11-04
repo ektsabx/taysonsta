@@ -37,6 +37,10 @@ export interface Counts {
   qualifiedLeads: number;
   /** D-274: from the Yolias pixel on the member's site, for people Yolias sent there. */
   siteVisits: number;
+  /** Owner, 2026-11-05: people who clicked a link in an email, signed up (CompleteRegistration) and became active (Activated). */
+  linkClicks: number;
+  signups: number;
+  activated: number;
   checkouts: number;
   purchases: number;
   purchaseValue: number;
@@ -47,7 +51,7 @@ export interface Counts {
   results: number;
 }
 
-export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0, conversions: 0, conversionValue: 0, results: 0 });
+export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, linkClicks: 0, signups: 0, activated: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0, conversions: 0, conversionValue: 0, results: 0 });
 export const addCounts = (a: Counts, b: Counts): Counts => Object.fromEntries(Object.keys(a).map((k) => [k, a[k as keyof Counts] + b[k as keyof Counts]])) as unknown as Counts;
 
 export type MetricFormat = "count" | "pct" | "usd" | "ratio";
@@ -108,8 +112,12 @@ export const METRICS: Metric[] = [
   { id: "customers", label: { en: "Deals won", ar: "صفقات مكسوبة" }, description: { en: "People this campaign contacted first who became customers within 180 days.", ar: "أشخاص تواصلت معهم الحملة أولًا وأصبحوا عملاء خلال 180 يومًا." }, format: "count", compute: (c) => c.customers, defaultVisible: false },
   { id: "revenue", label: { en: "Revenue generated", ar: "الإيرادات المحققة" }, description: { en: "Value of the deals won (when you entered it).", ar: "قيمة الصفقات المكسوبة (حين تدخلها)." }, format: "usd", compute: (c) => c.revenueUsd, defaultVisible: false },
   // D-274: website objectives, measured by the Yolias pixel.
-  { id: "site_visits", label: { en: "Website visits", ar: "زيارات الموقع" }, description: { en: "People who opened your website from a Yolias link (pixel).", ar: "أشخاص فتحوا موقعك من رابط أرسله يولياس (البيكسل)." }, format: "count", compute: (c) => c.siteVisits, defaultVisible: false },
-  { id: "checkouts", label: { en: "Checkouts initiated", ar: "بدء الدفع" }, description: { en: "InitiateCheckout events from people Yolias sent.", ar: "أحداث بدء الدفع من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.checkouts, defaultVisible: false },
+  // Owner, 2026-11-05: the path from the email to the customer, on by default.
+  { id: "link_clicks", label: { en: "Link clicks", ar: "نقرات الرابط" }, description: { en: "People who clicked a link in an email (mail scanners don't count).", ar: "أشخاص ضغطوا رابطًا داخل الرسالة (لا تُحسب أنظمة فحص البريد)." }, format: "count", compute: (c) => c.linkClicks, defaultVisible: true },
+  { id: "site_visits", label: { en: "Visits", ar: "الزيارات" }, description: { en: "People who opened your website (pixel) or your booking page from a Yolias link.", ar: "أشخاص فتحوا موقعك (البيكسل) أو صفحة الحجز من رابط أرسله يولياس." }, format: "count", compute: (c) => c.siteVisits + c.visits, defaultVisible: true },
+  { id: "signups", label: { en: "Signups", ar: "التسجيلات" }, description: { en: "CompleteRegistration events from people Yolias sent.", ar: "أحداث التسجيل من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.signups, defaultVisible: true },
+  { id: "activated", label: { en: "Activated", ar: "المفعّلون" }, description: { en: "Activated events from people Yolias sent.", ar: "أحداث التفعيل من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.activated, defaultVisible: true },
+  { id: "checkouts", label: { en: "Checkout", ar: "بدء الدفع" }, description: { en: "InitiateCheckout events from people Yolias sent.", ar: "أحداث بدء الدفع من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.checkouts, defaultVisible: true },
   { id: "purchases", label: { en: "Purchases", ar: "عمليات الشراء" }, description: { en: "Purchase events from people Yolias sent (pixel).", ar: "أحداث الشراء من أشخاص أرسلهم يولياس (البيكسل)." }, format: "count", compute: (c) => c.purchases, defaultVisible: false },
   { id: "cost_per_purchase", label: { en: "Cost per purchase", ar: "تكلفة الشراء" }, description: { en: "Spend ÷ purchases.", ar: "الإنفاق ÷ عمليات الشراء." }, format: "usd", compute: (c) => cost(c.spendUsd, c.purchases), defaultVisible: false },
   { id: "purchase_value", label: { en: "Purchase value", ar: "قيمة المبيعات" }, description: { en: "Total value of the purchases (USD).", ar: "إجمالي قيمة المشتريات (بالدولار)." }, format: "usd", compute: (c) => c.purchaseValue, defaultVisible: false },

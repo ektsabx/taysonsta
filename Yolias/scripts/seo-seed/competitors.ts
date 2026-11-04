@@ -46,8 +46,8 @@ export const competitors: SeedCompetitor[] = [
   {
     slug: "clay", name: "Clay", website: "https://www.clay.com", pricing_url: "https://www.clay.com/pricing", publishes_prices: true,
     summary: {
-      en: "A data enrichment and go-to-market workflow tool: tables and a visual canvas that pull data from many vendors, AI research agents (Claygent), scoring and CRM sync.",
-      ar: "أداة لإثراء البيانات وبناء مسارات المبيعات والتسويق: جداول ولوحة مرئية تجمع البيانات من مزودين كثيرين، ووكلاء بحث بالذكاء الاصطناعي (Claygent)، وتقييم العملاء، ومزامنة مع CRM.",
+      en: "A data enrichment and go-to-market workflow tool: tables and a visual canvas that pull data from many vendors, AI research agents (Claygent), scoring and sales tool sync.",
+      ar: "أداة لإثراء البيانات وبناء مسارات المبيعات والتسويق: جداول ولوحة مرئية تجمع البيانات من مزودين كثيرين، ووكلاء بحث بالذكاء الاصطناعي (Claygent)، وتقييم العملاء، ومزامنة مع أدوات المبيعات.",
     },
     best_for: { en: "Growth and RevOps teams that build their own enrichment and outbound workflows and want to combine many data providers.", ar: "فرق النمو والعمليات التي تبني مسارات الإثراء والتواصل بنفسها وتريد الجمع بين مزودي بيانات كثيرين." },
     strengths: {
@@ -72,10 +72,10 @@ export const competitors: SeedCompetitor[] = [
   {
     slug: "zoominfo", name: "ZoomInfo", website: "https://www.zoominfo.com", pricing_url: "https://www.zoominfo.com/pricing", publishes_prices: false,
     summary: {
-      en: "An enterprise B2B data and intelligence platform for sales, marketing and RevOps: contact and company data, intent signals, AI agents in its GTM Workspace and many integrations.",
+      en: "An enterprise contact data and intelligence platform for sales, marketing and RevOps: contact and company data, intent signals, AI agents in its GTM Workspace and many integrations.",
       ar: "منصة بيانات ومعلومات B2B للمؤسسات، لفرق المبيعات والتسويق والعمليات: بيانات جهات الاتصال والشركات، وإشارات نية الشراء، ووكلاء ذكاء اصطناعي في GTM Workspace، وتكاملات كثيرة.",
     },
-    best_for: { en: "Larger sales and marketing organisations that need broad data, intent and CRM integrations and buy through a sales process.", ar: "مؤسسات المبيعات والتسويق الأكبر التي تحتاج بيانات واسعة وإشارات نية وتكاملات CRM وتشتري عبر فريق مبيعات." },
+    best_for: { en: "Larger sales and marketing organisations that need broad data, intent and sales tool integrations and buy through a sales process.", ar: "مؤسسات المبيعات والتسويق الأكبر التي تحتاج بيانات واسعة وإشارات نية وتكاملات مع أدوات المبيعات وتشتري عبر فريق مبيعات." },
     strengths: {
       en: ["Says it covers 500M+ contacts and 100M+ companies", "Intent and account intelligence", "Native Salesforce, HubSpot and Dynamics 365 integrations and 120+ other tools (its claim)"],
       ar: ["تقول إنها تغطي أكثر من 500 مليون جهة اتصال و100 مليون شركة", "إشارات نية الشراء ومعلومات الحسابات", "تكامل مباشر مع Salesforce وHubSpot وDynamics 365 وأكثر من 120 أداة أخرى (بحسب قولها)"],
@@ -93,10 +93,10 @@ export const competitors: SeedCompetitor[] = [
   {
     slug: "lusha", name: "Lusha", website: "https://www.lusha.com", pricing_url: "https://www.lusha.com/pricing/", publishes_prices: true,
     summary: {
-      en: "A B2B contact data and enrichment tool with a browser extension, a workspace, an API and CRM integrations; contacts are revealed with credits.",
-      ar: "أداة لبيانات جهات اتصال B2B وإثرائها، مع إضافة للمتصفح ومساحة عمل وواجهة برمجة وتكاملات CRM؛ وتُكشف جهات الاتصال بالرصيد.",
+      en: "A contact data and enrichment tool with a browser extension, a workspace, an API and sales tool integrations; contacts are revealed with credits.",
+      ar: "أداة لبيانات جهات اتصال B2B وإثرائها، مع إضافة للمتصفح ومساحة عمل وواجهة برمجة وتكاملات مع أدوات المبيعات؛ وتُكشف جهات الاتصال بالرصيد.",
     },
-    best_for: { en: "Sellers who want emails and phone numbers for people they already found, inside the browser or the CRM.", ar: "البائعون الذين يريدون البريد وأرقام الهاتف لأشخاص وجدوهم بالفعل، داخل المتصفح أو CRM." },
+    best_for: { en: "Sellers who want emails and phone numbers for people they already found, inside the browser or your sales tools.", ar: "البائعون الذين يريدون البريد وأرقام الهاتف لأشخاص وجدوهم بالفعل، داخل المتصفح أو أدوات المبيعات." },
     strengths: {
       en: ["Says it has 515M+ verified contacts and 29M+ companies", "Browser extension, API and MCP with one credit balance", "Says it is GDPR and CCPA compliant with SOC 2 Type II and ISO certifications", "A free plan"],
       ar: ["تقول إن لديها أكثر من 515 مليون جهة اتصال موثقة و29 مليون شركة", "إضافة متصفح وواجهة برمجة وMCP برصيد واحد", "تقول إنها متوافقة مع GDPR وCCPA ولديها SOC 2 Type II وشهادات ISO", "خطة مجانية"],
@@ -119,8 +119,8 @@ export const competitors: SeedCompetitor[] = [
   {
     slug: "cognism", name: "Cognism", website: "https://www.cognism.com", pricing_url: "https://www.cognism.com/pricing", publishes_prices: false,
     summary: {
-      en: "A B2B contact data provider known for phone-verified mobile numbers and European coverage, with intent signals, enrichment and CRM exports.",
-      ar: "مزود بيانات جهات اتصال B2B معروف بأرقام الجوال المتحقق منها هاتفيًا وتغطية أوروبا، مع إشارات نية الشراء والإثراء والتصدير إلى CRM.",
+      en: "A contact data provider known for phone-verified mobile numbers and European coverage, with intent signals, enrichment and exports to sales tools.",
+      ar: "مزود بيانات جهات اتصال B2B معروف بأرقام الجوال المتحقق منها هاتفيًا وتغطية أوروبا، مع إشارات نية الشراء والإثراء والتصدير إلى أدوات المبيعات.",
     },
     best_for: { en: "Teams that call decision makers, especially in Europe, and need compliance features.", ar: "الفرق التي تتصل بصنّاع القرار هاتفيًا، خاصة في أوروبا، وتحتاج ميزات الامتثال." },
     strengths: {
@@ -140,13 +140,13 @@ export const competitors: SeedCompetitor[] = [
   {
     slug: "instantly", name: "Instantly", website: "https://instantly.ai", pricing_url: "https://instantly.ai/pricing", publishes_prices: true,
     summary: {
-      en: "A cold email platform for sending at volume: unlimited email accounts, warmup, deliverability tools, a B2B lead database sold separately, a CRM and AI reply agents.",
-      ar: "منصة بريد بارد للإرسال بكميات كبيرة: حسابات بريد غير محدودة، وتدفئة البريد، وأدوات وصول الرسائل، وقاعدة عملاء B2B تُباع منفصلة، وCRM، ووكلاء رد بالذكاء الاصطناعي.",
+      en: "A cold email platform for sending at volume: unlimited email accounts, warmup, deliverability tools, a lead database sold separately, a sales pipeline and AI reply agents.",
+      ar: "منصة بريد بارد للإرسال بكميات كبيرة: حسابات بريد غير محدودة، وتدفئة البريد، وأدوات وصول الرسائل، وقاعدة عملاء B2B تُباع منفصلة، ومتابعة للمبيعات، ووكلاء رد بالذكاء الاصطناعي.",
     },
     best_for: { en: "Agencies and teams that run high-volume cold email across many mailboxes.", ar: "الوكالات والفرق التي تدير بريدًا باردًا بكميات كبيرة عبر صناديق بريد كثيرة." },
     strengths: {
-      en: ["Unlimited email accounts and warmup on its outreach plans", "Deliverability and inbox placement tools", "A lead database and a CRM in the same company", "AI agents for outbound and replies"],
-      ar: ["حسابات بريد وتدفئة غير محدودة في خطط الإرسال", "أدوات لوصول الرسائل إلى صندوق الوارد", "قاعدة عملاء وCRM من نفس الشركة", "وكلاء ذكاء اصطناعي للتواصل والردود"],
+      en: ["Unlimited email accounts and warmup on its outreach plans", "Deliverability and inbox placement tools", "A lead database and a sales pipeline in the same company", "AI agents for outbound and replies"],
+      ar: ["حسابات بريد وتدفئة غير محدودة في خطط الإرسال", "أدوات لوصول الرسائل إلى صندوق الوارد", "قاعدة عملاء ومتابعة المبيعات من نفس الشركة", "وكلاء ذكاء اصطناعي للتواصل والردود"],
     },
     limits: {
       en: ["Outreach and lead data are separate plans with separate prices", "Built for volume senders: you bring your own sending domains and mailboxes and look after them"],
@@ -155,7 +155,7 @@ export const competitors: SeedCompetitor[] = [
     pricing: [], // Its pricing page gave our reader inconsistent numbers: check https://instantly.ai/pricing and add them.
     facts: [
       fact("accounts", "Unlimited email accounts and unlimited warmup on outreach plans", "حسابات بريد وتدفئة غير محدودة في خطط الإرسال", "https://instantly.ai/pricing"),
-      fact("leads", "B2B lead database on separate credit plans", "قاعدة عملاء B2B بخطط رصيد منفصلة", "https://instantly.ai/pricing"),
+      fact("leads", "lead database on separate credit plans", "قاعدة عملاء B2B بخطط رصيد منفصلة", "https://instantly.ai/pricing"),
     ],
   },
   {

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
+import { canManageTeam, requireMember, canEdit, viewOnly } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
 import { spentSince } from "@/lib/campaigns/budget";
@@ -17,7 +17,7 @@ export type LimitResult = { ok: true; message?: string } | { ok: false; error: s
 export interface SpendingLimit { limitUsd: number | null; spentUsd: number; since: string | null; canManage: boolean }
 
 export async function getSpendingLimit(): Promise<SpendingLimit> {
-  const session = await requireSession();
+  const session = await requireMember();
   const { data: ws } = await createAdminClient().from("workspaces").select("spending_limit_usd, spending_limit_since").eq("id", session.workspace.id).maybeSingle();
   const limit = ws?.spending_limit_usd == null ? null : Number(ws.spending_limit_usd);
   const since = ws?.spending_limit_since ?? null;
@@ -25,7 +25,7 @@ export async function getSpendingLimit(): Promise<SpendingLimit> {
 }
 
 export async function setSpendingLimit(usd: number | null): Promise<LimitResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.ws.outreach.errors.notFound };
@@ -44,7 +44,7 @@ export async function setSpendingLimit(usd: number | null): Promise<LimitResult>
 
 /** Starts the count again from now (the limit stays). */
 export async function resetSpendingLimit(): Promise<LimitResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.ws.outreach.errors.notFound };

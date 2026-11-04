@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession, requireViewer, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, requireViewer, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
@@ -24,7 +24,7 @@ const ids = z.array(z.string().uuid()).min(1).max(200);
 
 /** Pause / resume / archive / delete / duplicate several campaigns. Delete removes drafts that never sent; the rest is archived instead. */
 export async function bulkCampaigns(campaignIds: string[], action: "pause" | "resume" | "archive" | "delete" | "duplicate"): Promise<ManagerResult<{ done: number; skipped: number }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const m = t.ag.manager;
@@ -52,7 +52,7 @@ export async function bulkCampaigns(campaignIds: string[], action: "pause" | "re
 }
 
 export async function renameCampaign(id: string, name: string): Promise<ManagerResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const n = name.trim().slice(0, 160);
@@ -73,7 +73,7 @@ const sharedEdit = z.object({
 
 /** Edit the same fields on several campaigns; fields left out keep each campaign's own value. */
 export async function bulkEdit(campaignIds: string[], patch: z.input<typeof sharedEdit>): Promise<ManagerResult<{ done: number }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = ids.safeParse(campaignIds), q = sharedEdit.safeParse(patch);
@@ -111,7 +111,7 @@ const viewConfig = z.object({
 });
 
 export async function saveView(name: string, config: z.input<typeof viewConfig>): Promise<ManagerResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = await getDictionary();
   const n = name.trim().slice(0, 80), c = viewConfig.safeParse(config);
   if (!n || !c.success) return { ok: false, error: t.ag.manager.errors.view };
@@ -126,7 +126,7 @@ export async function saveView(name: string, config: z.input<typeof viewConfig>)
 }
 
 export async function deleteView(id: string): Promise<ManagerResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.ag.manager.errors.view };
   const db = await createClient();
@@ -139,7 +139,7 @@ export async function deleteView(id: string): Promise<ManagerResult> {
 const customInput = z.object({ name: z.string().trim().min(1).max(60), a: z.string().max(40), op: z.enum(["+", "-", "*", "/"]), b: z.string().max(40), format: z.enum(["count", "pct", "usd", "ratio"]) });
 
 export async function createCustomMetric(input: z.input<typeof customInput>): Promise<ManagerResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = customInput.safeParse(input);
@@ -153,7 +153,7 @@ export async function createCustomMetric(input: z.input<typeof customInput>): Pr
 }
 
 export async function deleteCustomMetric(id: string): Promise<ManagerResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "" };
   await createAdminClient().from("custom_metrics").delete().eq("id", id).eq("workspace_id", session.workspace.id);

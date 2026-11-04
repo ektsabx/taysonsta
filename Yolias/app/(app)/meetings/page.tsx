@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { LeadStage } from "@/types/database";
 import Link from "next/link";
 import { CalendarDays, Link2, MousePointerClick } from "lucide-react";
-import { requireSession } from "@/lib/session";
+import { requireMember } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
@@ -24,7 +24,7 @@ const sinceIso = (days: number) => new Date(Date.now() - days * 86_400_000).toIS
 const nowMs = () => Date.now();
 
 export default async function MeetingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const session = await requireSession();
+  const session = await requireMember();
   const sp = await searchParams;
   // D-274: link visits first, then bookings, then the booking page.
   const tab = sp.tab === "page" ? "page" : sp.tab === "bookings" ? "bookings" : "visits";

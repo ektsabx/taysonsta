@@ -16,6 +16,7 @@ import { switches } from "@/lib/switches";
 import { creditRate, topUps } from "@/lib/credits";
 import { toEgp, usdToEgp } from "@/lib/payments/fx";
 import { openCheckout } from "@/lib/funnel";
+import { ownEvent } from "@/lib/own-pixel";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).checkout.eyebrow} | Yolias`, robots: noindex };
@@ -49,6 +50,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
   const checkoutId = canManageTeam(session) && !(current && current === initial)
     ? await openCheckout(ws, session.userId, { plan: initial, period: initialPeriod, amountUsd: (() => { const m = planPrice(plans[initial], currency); return m == null ? null : priceFor(m, initialPeriod); })(), trialOffered: false })
     : null;
+  if (checkoutId) await ownEvent("InitiateCheckout", { email: session.email, eventId: `checkout:${checkoutId}` });
   const initialError = error === "admins" ? errors.admins : error === "not_connected" ? errors.notConnected : error === "plan" ? errors.choosePlan : error === "payment" ? errors.paymentFailed : null;
 
   return (

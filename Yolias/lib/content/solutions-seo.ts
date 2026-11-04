@@ -62,7 +62,7 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
     { title: "عملاء العقار التجاري: شركات تحتاج مساحات", q: "كيف يجد يولياس الشركات التي تحتاج مساحات؟", a: "استهدف الشركات النامية حسب المدينة والحجم والتوظيف وصنّاع القرار فيها، ويكتب يولياس عن عقاراتك ويحجز المعاينة." },
   ),
   "sales-teams": page(
-    { title: "AI Prospecting and Meeting Booking for B2B Sales Teams", q: "How does Yolias fit a sales team?", a: "Each campaign targets your accounts; meetings land on each rep's calendar, and every campaign shows meetings and cost per meeting." },
+    { title: "AI Customer Acquisition Campaigns for Sales Teams", q: "How does Yolias fit a sales team?", a: "Each campaign targets your accounts; meetings land on each rep's calendar, and every campaign shows meetings and cost per meeting." },
     { title: "حملات اكتساب العملاء لفرق المبيعات", q: "كيف يناسب يولياس فريق المبيعات؟", a: "كل حملة تستهدف حساباتك، وتصل الاجتماعات إلى تقويم كل مندوب، وتعرض كل حملة اجتماعاتها وتكلفة الاجتماع." },
   ),
 };

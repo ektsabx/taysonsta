@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { canManageTeam, requireSession, canEdit, viewOnly } from "@/lib/session";
+import { canManageTeam, requireMember, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { loadAiSettings } from "@/lib/ai-workspace/server";
 import { mergeSettings, settingsInput, type SettingsInput } from "@/lib/ai-workspace/settings";
@@ -18,7 +18,7 @@ const uuid = z.string().uuid();
 const text = (max: number) => z.string().trim().max(max).transform((v) => v || null);
 
 async function manager() {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = (await getDictionary()).ws;
   return { session, t, allowed: canManageTeam(session) };
 }
@@ -99,7 +99,7 @@ const profileInput = z.object({
   regions: text(300), budget: text(300), customer_type: z.enum(["b2b", "b2c", "both"]), extra_criteria: text(2000),
 });
 export async function saveProfile(input: z.input<typeof profileInput>): Promise<AiResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws.ai.profiles.errors;
   const p = profileInput.safeParse(input);
@@ -118,7 +118,7 @@ export async function saveProfile(input: z.input<typeof profileInput>): Promise<
 }
 
 export async function setDefaultProfile(id: string): Promise<AiResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws;
   if (!uuid.safeParse(id).success) return { ok: false, error: t.common.notFound };
@@ -131,7 +131,7 @@ export async function setDefaultProfile(id: string): Promise<AiResult> {
 }
 
 export async function deleteProfile(id: string): Promise<AiResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws;
   if (!uuid.safeParse(id).success) return { ok: false, error: t.common.notFound };

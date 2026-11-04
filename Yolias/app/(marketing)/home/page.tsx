@@ -54,11 +54,11 @@ export default async function HomePage() {
   const cpm = (r: (typeof m.rows)[number]) => (r.meetings ? usd(Math.round((r.spend / r.meetings) * 100) / 100) : "–");
 
   return (
-    <>
+    <div className="lp-home">
       <JsonLd nodes={[organizationSchema(), websiteSchema(), faqSchema(faq)]} />
 
       {/* 2. Hero */}
-      <section className="page-hero lp-hero">
+      <section className="page-hero center lp-hero">
         <div className="site-width">
           <div className="lp-hero-copy">
             <p className="eyebrow">{c.hero.eyebrow}</p>
@@ -318,6 +318,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

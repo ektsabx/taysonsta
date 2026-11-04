@@ -1,12 +1,13 @@
 "use server";
 
+import { prospectRate } from "@/services/campaign-metrics";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { verifyImageFile } from "@/lib/uploads/image";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canManageTeam, requireSession, requireUser } from "@/lib/session";
+import { canManageTeam, requireMember, requireUser } from "@/lib/session";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
 import { THEME_COOKIE, themeCookieOptions } from "@/lib/theme";
@@ -100,9 +101,33 @@ export async function refreshUsage(): Promise<{ prospects: number; allowance: nu
   return { prospects: usage.prospects, allowance: usage.allowance, extra: usage.extra, resetsAt: usage.resetsAt, emails: usage.emails, contacts: usage.contacts, trialEndsAt: usage.trialEndsAt, checkedAt: new Date().toISOString() };
 }
 
+/**
+ * Credit and billing (owner, 2026-11-05): the balance in dollars at this
+ * account's rate, and what it went on. People found for a campaign count under
+ * running campaigns, people from a search under discovery. Writing and sending
+ * are never charged, and viewing contact data again is free, so those lines
+ * stay empty.
+ */
+export async function billingOverview(): Promise<{ balanceUsd: number; resetsAt: string | null; spent: Record<"search" | "data" | "messages" | "campaigns", number> }> {
+  const session = await requireUser();
+  const ws = session.workspace.id;
+  const db = createAdminClient();
+  const [usage, rate, ledger, camps, groups] = await Promise.all([
+    monthlyUsage(ws), prospectRate(ws),
+    db.from("usage_ledger").select("campaign_id, prospects").eq("workspace_id", ws).eq("kind", "consume").limit(20000),
+    db.from("outreach_campaigns").select("source_campaign_id").eq("workspace_id", ws).not("source_campaign_id", "is", null),
+    db.from("audience_groups").select("search_campaign_id").eq("workspace_id", ws).not("search_campaign_id", "is", null),
+  ]);
+  const owned = new Set([...(camps.data ?? []).map((c) => c.source_campaign_id), ...(groups.data ?? []).map((g) => g.search_campaign_id)]);
+  const spent = { search: 0, data: 0, messages: 0, campaigns: 0 };
+  for (const l of ledger.data ?? []) spent[l.campaign_id && owned.has(l.campaign_id) ? "campaigns" : "search"] += l.prospects * rate;
+  const left = Math.max(0, usage.allowance - usage.prospects) + usage.extra;
+  return { balanceUsd: Math.round(left * rate * 100) / 100, resetsAt: usage.resetsAt, spent };
+}
+
 // Cancel keeps the paid plan until the end of the period, then Free.
 export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
   const ok = await setCancelAtPeriodEnd(session.workspace, cancel, session.userId);
@@ -171,7 +196,7 @@ const inviteSchema = z.object({
 });
 
 export async function inviteMember(input: z.input<typeof inviteSchema>): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = (await getDictionary()).settings.errors;
   if (!canManageTeam(session)) return { ok: false, error: t.onlyAdminsInvite };
   const parsed = inviteSchema.safeParse(input);
@@ -204,7 +229,7 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
 }
 
 export async function revokeInvitation(id: string): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canManageTeam(session)) return { ok: false, error: (await getDictionary()).settings.errors.onlyAdminsManage };
   await createAdminClient().from("workspace_invitations").delete().eq("id", id).eq("workspace_id", session.workspace.id).is("accepted_at", null);
   revalidatePath("/", "layout");
@@ -213,7 +238,7 @@ export async function revokeInvitation(id: string): Promise<ActionResult> {
 
 /** Change a member's role (owners and admins; never the owner's, never your own). */
 export async function changeMemberRole(userId: string, role: "admin" | "member" | "analyst"): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = (await getDictionary()).settings.errors;
   if (!canManageTeam(session)) return { ok: false, error: t.onlyAdminsManage };
   if (!z.enum(["admin", "member", "analyst"]).safeParse(role).success || !z.string().uuid().safeParse(userId).success) return { ok: false, error: t.memberNotFound };
@@ -229,7 +254,7 @@ export async function changeMemberRole(userId: string, role: "admin" | "member" 
 }
 
 export async function removeMember(userId: string): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = (await getDictionary()).settings.errors;
   if (!canManageTeam(session)) return { ok: false, error: t.onlyAdminsManage };
   if (userId === session.userId) return { ok: false, error: t.cantRemoveSelf };
@@ -271,7 +296,7 @@ export async function changeEmail(input: z.input<typeof emailChangeSchema>): Pro
 // (lib/company-profile.ts). Yolias AI uses it to understand searches.
 // Owners and admins only; workspace rows are written by the server.
 export async function updateOrganization(input: Record<"name" | "website" | "industry" | "offering" | "ideal_customer" | "target_markets", string>): Promise<ActionResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = await getDictionary();
   if (!canManageTeam(session)) return { ok: false, error: t.checkout.onlyAdmins };
   const parsed = companyProfileSchema(t.onboarding.errors).safeParse(input);

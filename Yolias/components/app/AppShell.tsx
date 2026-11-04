@@ -21,7 +21,6 @@ import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
 import { WelcomeVideoModal } from "./WelcomeVideoModal";
-import { PlanGateModal } from "./PlanGateModal";
 import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
 import { AskYolias } from "./AskYolias";
@@ -335,7 +334,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
       {data.user.askReview && data.user.reviewUrl && !welcomeOpen && <ReviewPrompt url={data.user.reviewUrl} />}
       <ActivityPing />
-      {data.planGate && !welcomeOpen && <PlanGateModal trialDays={data.planGate.trialDays} />}
       {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}
     </div>
     </ToastProvider>

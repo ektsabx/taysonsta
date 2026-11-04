@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Activity, Check, CheckCircle2, ChevronLeft, Copy, Download, ExternalLink, Pencil, RefreshCw, X } from "lucide-react";
+import { Activity, Check, CheckCircle2, ChevronLeft, Copy, ExternalLink, Pencil, RefreshCw, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatDateTime, formatNumber } from "@/lib/format";
@@ -28,7 +28,6 @@ const PURCHASE = ["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart",
 const LEADS = ["Lead", "CompleteRegistration", "Contact", "SubmitApplication", "Schedule", "FindLocation"] as const;
 const VALUE_EVENTS = new Set(["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart", "AddToWishlist", "ViewContent", "StartTrial", "Subscribe", "Donate", "Lead", "CompleteRegistration"]);
 const codeFor = (e: string) => (VALUE_EVENTS.has(e) && (e === "Purchase" || e === "StartTrial" || e === "Subscribe" || e === "Donate") ? `yolias("track", "${e}", { value: 49.00, currency: "USD" });` : `yolias("track", "${e}");`);
-export const HELPER_URL = "/downloads/yolias-pixel-helper.zip";
 
 export function EventsManager({ testCode, active, data, tab, range, from, to, snippet, canManage, timeZone }: {
   testCode: string; active: boolean; data: PixelOverview; tab: EventsTab; range: RangePreset; from: string; to: string; snippet: string; canManage: boolean; timeZone: string | null;
@@ -227,7 +226,7 @@ function TestEvents({ pixelId, code, website, timeZone }: { pixelId: string; cod
       </section>
       <section className="cp-card ev-helper">
         <div><h3>Yolias Pixel Helper</h3><p className="ws-hint">{E.helperLine}</p></div>
-        <a className="sdr-btn" href={HELPER_URL} download><Download />{E.helperGet}</a>
+        <Link className="sdr-btn" href="/integrations/pixel-helper">{E.helperGet}</Link>
       </section>
     </div>
   );

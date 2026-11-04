@@ -33,7 +33,7 @@ export const affiliatesPage: Localized<{
     audiences: [
       { title: "Agencies and consultants", body: "Recommend Yolias to clients who need a steady list of companies to sell to, and earn while they use it." },
       { title: "Creators and educators", body: "Teach sales, marketing or freelancing? Show Yolias in a tutorial or a newsletter and share your link." },
-      { title: "Communities and founders", body: "Run a founder group, a B2B community or a startup program? Give your members a faster way to find customers." },
+      { title: "Communities and founders", body: "Run a founder group, a business community or a startup program? Give your members a faster way to find customers." },
     ],
     whyTitle: "Why Yolias is easy to recommend",
     why: [
@@ -104,7 +104,7 @@ export const affiliatesPage: Localized<{
     audiences: [
       { title: "الوكالات والاستشاريون", body: "رشّح يولياس لعملائك الذين يحتاجون قائمة ثابتة من الشركات للبيع لها، واربح أثناء استخدامهم له." },
       { title: "صناع المحتوى والمدربون", body: "تشرح المبيعات أو التسويق أو العمل الحر؟ اعرض يولياس في درس أو نشرة بريدية وشارك رابطك." },
-      { title: "المجتمعات ورواد الأعمال", body: "تدير مجتمع مؤسسين أو مجتمع B2B أو برنامج شركات ناشئة؟ امنح أعضاءك طريقة أسرع للعثور على العملاء." },
+      { title: "المجتمعات ورواد الأعمال", body: "تدير مجتمع مؤسسين أو مجتمع أعمال أو برنامج شركات ناشئة؟ امنح أعضاءك طريقة أسرع للعثور على العملاء." },
     ],
     whyTitle: "لماذا يسهل ترشيح يولياس",
     why: [

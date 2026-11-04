@@ -245,11 +245,11 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
     value: { en: "One lease covers months of campaigns. Every viewing has a clear cost.", ar: "عقد إيجار واحد يغطي شهورًا من الحملات. ولكل معاينة تكلفة واضحة." },
   }),
   "sales-teams": build({
-    name: { en: "B2B Sales Teams", ar: "فرق مبيعات الشركات" },
+    name: { en: "Sales Teams", ar: "فرق المبيعات" },
     tagline: { en: "More qualified meetings for every rep.", ar: "اجتماعات مؤهلة أكثر لكل مندوب." },
     title: { en: "More qualified meetings for your sales team.", ar: "اجتماعات مؤهلة أكثر لفريق المبيعات." },
-    lead: { en: "Yolias runs prospecting as an AI campaign: it reaches the accounts you target, answers the replies and books meetings on each rep's calendar.", ar: "يشغّل يولياس البحث عن العملاء كحملة ذكية: يصل إلى الحسابات التي تستهدفها، ويرد على الردود، ويحجز الاجتماعات في تقويم كل مندوب." },
-    meta: { en: "AI prospecting for B2B sales teams: Yolias reaches target accounts, answers replies and books meetings for every rep.", ar: "البحث عن العملاء بالذكاء الاصطناعي لفرق مبيعات الشركات: يصل يولياس إلى الحسابات المستهدفة ويرد ويحجز الاجتماعات لكل مندوب." },
+    lead: { en: "Yolias runs customer acquisition as an AI campaign: it reaches the accounts you target, answers the replies and books meetings on each rep's calendar.", ar: "يشغّل يولياس البحث عن العملاء كحملة ذكية: يصل إلى الحسابات التي تستهدفها، ويرد على الردود، ويحجز الاجتماعات في تقويم كل مندوب." },
+    meta: { en: "AI customer acquisition campaigns for sales teams: Yolias reaches target accounts, answers replies and books meetings for every rep.", ar: "البحث عن العملاء بالذكاء الاصطناعي لفرق المبيعات: يصل يولياس إلى الحسابات المستهدفة ويرد ويحجز الاجتماعات لكل مندوب." },
     buyers: { en: "accounts", ar: "الحسابات" },
     problem: {
       en: ["Reps spend most of the week researching and writing instead of selling.", "Ads and inbound don't cover the accounts you actually want."],

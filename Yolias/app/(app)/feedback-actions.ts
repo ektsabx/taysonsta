@@ -4,7 +4,7 @@ import { after } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { verifyImageFile } from "@/lib/uploads/image";
-import { requireSession } from "@/lib/session";
+import { requireMember } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { notifyTeam, recentDuplicate, reportsLimited } from "@/lib/support/messages";
@@ -26,7 +26,7 @@ function cleanPath(v: unknown): string | null {
 }
 
 export async function submitFeedback(formData: FormData): Promise<FeedbackResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   const t = (await getDictionary()).feedback.errors;
   // Honeypot.
   if (String(formData.get("website") ?? "")) return { ok: true };

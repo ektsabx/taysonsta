@@ -10,7 +10,7 @@ export const guidePosts: BlogPost[] = [
     category: { en: "Guides", ar: "أدلة" },
     doc: {
       en: {
-        title: "AI sales automation: a practical guide for B2B teams",
+        title: "AI sales automation: a practical guide for growing businesses",
         summary: "What to automate, what to keep human, and how to judge it by meetings and cost per meeting.",
         blocks: [
           { p: "AI can now do most of the repetitive work between “who should we sell to” and “a meeting on the calendar”. The teams that get results from it automate the work, not the judgment, and measure it like advertising." },
@@ -42,7 +42,7 @@ export const guidePosts: BlogPost[] = [
         ],
       },
       ar: {
-        title: "أتمتة المبيعات بالذكاء الاصطناعي: دليل عملي لفرق B2B",
+        title: "أتمتة المبيعات بالذكاء الاصطناعي: دليل عملي للأعمال النامية",
         summary: "ماذا تؤتمت، وماذا تُبقي للإنسان، وكيف تحكم عليها بالاجتماعات وتكلفة الاجتماع.",
         blocks: [
           { p: "يستطيع الذكاء الاصطناعي اليوم أداء معظم العمل المتكرر بين «لمن نبيع؟» و«اجتماع في التقويم». والفرق التي تحقق نتائج منه تؤتمت العمل لا القرار، وتقيسه كما تقيس الإعلانات." },
@@ -89,7 +89,7 @@ export const guidePosts: BlogPost[] = [
           { ul: [
             "Spend per campaign and per audience.",
             "Cost per interested reply, cost per meeting, cost per customer.",
-            "Match the cost period to when those customers actually closed; B2B deals take time.",
+            "Match the cost period to when those customers actually closed; Larger deals take time.",
           ] },
           { h2: "Leak 1: the audience" },
           { p: "The cheapest meeting comes from a precise audience. Narrow the market, target the titles that own the problem, exclude current customers and competitors, and compare two or three audiences instead of one broad one." },
@@ -111,7 +111,7 @@ export const guidePosts: BlogPost[] = [
           { ul: [
             "الإنفاق لكل حملة ولكل جمهور.",
             "تكلفة الرد المهتم، وتكلفة الاجتماع، وتكلفة العميل.",
-            "طابق فترة التكلفة مع وقت إغلاق تلك الصفقات فعلًا؛ فصفقات B2B تأخذ وقتًا.",
+            "طابق فترة التكلفة مع وقت إغلاق تلك الصفقات فعلًا؛ فالصفقات الكبيرة تأخذ وقتًا.",
           ] },
           { h2: "التسرب 1: الجمهور" },
           { p: "أرخص اجتماع يأتي من جمهور دقيق. ضيّق السوق، واستهدف المسميات المسؤولة عن المشكلة، واستبعد العملاء الحاليين والمنافسين، وقارن جمهورين أو ثلاثة بدل جمهور واحد واسع." },

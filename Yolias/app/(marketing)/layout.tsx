@@ -14,7 +14,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
   const seoLinks = [
     ...(has("compare") ? [{ href: "/compare", label: locale === "ar" ? "المقارنات" : "Comparisons" }] : []),
     ...(has("alternatives") ? [{ href: "/alternatives", label: locale === "ar" ? "البدائل" : "Alternatives" }] : []),
-    ...(has("template") ? [{ href: "/templates", label: locale === "ar" ? "قوالب البحث" : "Prospecting templates" }] : []),
+    ...(has("template") ? [{ href: "/templates", label: locale === "ar" ? "قوالب الحملات" : "Campaign templates" }] : []),
   ];
   return (
     <div className="mk" id="top">

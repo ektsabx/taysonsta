@@ -351,7 +351,7 @@ export const agentTools = [
   }),
   define({
     name: "listLeads",
-    description: "Leads (people Yolias has contacted or who booked a meeting; Yolias has no CRM page: they are in Conversations and Meetings), optionally by stage (new, interested, meeting_booked, meeting_completed, proposal, negotiation, closed = won, lost) or a name search.",
+    description: "Leads (people Yolias has contacted or who booked a meeting; they are in Conversations and Meetings), optionally by stage (new, interested, meeting_booked, meeting_completed, proposal, negotiation, closed = won, lost) or a name search.",
     permission: "read",
     input: z.object({ stage: z.enum(["new", "interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"]).optional(), q: z.string().trim().max(100).optional() }),
     async run(ctx, input) {

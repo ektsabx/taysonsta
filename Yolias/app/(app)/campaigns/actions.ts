@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { setCampaignRun } from "@/lib/outreach/execute";
 import { stateFromCampaign } from "@/services/builder";
@@ -18,7 +18,7 @@ export type OutreachResult<T = object> = ({ ok: true; message?: string } & T) | 
 const uuid = z.string().uuid();
 
 export async function runOutreach(campaignId: string, action: "pause" | "resume" | "cancel" | "end"): Promise<OutreachResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws.outreach;
   if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel", "end"].includes(action)) return { ok: false, error: t.errors.notFound };
@@ -30,7 +30,7 @@ export async function runOutreach(campaignId: string, action: "pause" | "resume"
 
 /** A copy of the campaign as a new draft in the builder (its settings, audiences and message), without its people or results. */
 export async function duplicateCampaign(id: string): Promise<OutreachResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(id).success) return { ok: false, error: t.ws.outreach.errors.notFound };
@@ -53,7 +53,7 @@ export async function duplicateCampaign(id: string): Promise<OutreachResult<{ id
 
 /** Deletes a draft that never sent anything. */
 export async function deleteDraft(id: string): Promise<OutreachResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!uuid.safeParse(id).success) return { ok: false, error: t.ws.outreach.errors.notFound };

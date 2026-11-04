@@ -2,11 +2,15 @@
 
 import { aimOf, cleanCtaUrl } from "@/lib/outreach/aim";
 import { z } from "zod";
+import { ownEvent } from "@/lib/own-pixel";
+import { canUseApp } from "@/lib/plans";
+import { intel } from "@/lib/intel/db";
+import { startBlock } from "@/lib/discovery/launch";
 import { Filled, type CampaignFill } from "@/lib/campaigns/fill";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { countryLabel } from "@/lib/format";
@@ -42,7 +46,7 @@ import type { Json } from "@/types/database";
 //  updateCampaign  edit a launched campaign (its settings and message) and add
 //                  audiences; a running audience's targeting stays as it is.
 
-export type BuilderResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
+export type BuilderResult<T = object> = ({ ok: true } & T) | { ok: false; error: string; needsCredit?: boolean };
 
 function row(s: BuilderState) {
   return {
@@ -63,7 +67,7 @@ function row(s: BuilderState) {
 }
 
 export async function saveDraft(input: unknown, draftId: string | null): Promise<BuilderResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
@@ -76,6 +80,8 @@ export async function saveDraft(input: unknown, draftId: string | null): Promise
   }
   const { data, error } = await db.from("outreach_campaigns").insert({ ...r, workspace_id: session.workspace.id, created_by: session.userId, owner_id: session.userId }).select("id").single();
   if (error || !data) return { ok: false, error: t.ag.builder.errors.settings };
+  // Activated (owner, 2026-11-05): the account built its first campaign. The event id keeps it to once.
+  await ownEvent("Activated", { email: session.email, eventId: `activated:${session.workspace.id}` });
   revalidatePath("/campaigns");
   return { ok: true, id: data.id };
 }
@@ -84,7 +90,7 @@ const adSetsInput = z.array(z.object({ source: z.enum(["new", "audience"]), audi
 
 /** Per audience: the matching companies and people Yolias already has (a saved audience: its size). */
 export async function checkAudiences(input: unknown): Promise<BuilderResult<{ estimates: Estimate[] }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   const p = adSetsInput.safeParse(input);
   if (!p.success) return { ok: false, error: (await getDictionary()).ag.builder.errors.audience };
   const ws = session.workspace.id;
@@ -111,7 +117,7 @@ async function audienceOf(ws: string, a: AdSet): Promise<{ targeting: Targeting;
   return { targeting: (aud?.targeting ?? {}) as Targeting, seeds: aud?.kind === "lookalike" ? origin.seeds ?? [] : [], kind: aud?.kind === "custom" ? "list" : "search", audienceName: aud?.name ?? null };
 }
 
-async function knowledgeText(ws: string, session: Awaited<ReturnType<typeof requireSession>>, s: BuilderState): Promise<string> {
+async function knowledgeText(ws: string, session: Awaited<ReturnType<typeof requireMember>>, s: BuilderState): Promise<string> {
   const db = await createClient();
   const { data: k } = await db.from("workspace_knowledge").select("about, value_proposition, services, products, differentiators, case_studies, pricing").eq("workspace_id", ws).maybeSingle();
   const { data: offer } = s.offerId ? await db.from("business_offers").select("name, description").eq("id", s.offerId).eq("workspace_id", ws).maybeSingle() : { data: null };
@@ -124,7 +130,7 @@ async function knowledgeText(ws: string, session: Awaited<ReturnType<typeof requ
 
 const Approach = z.object({ angle_a: z.string().min(5).max(600), angle_b: z.string().min(5).max(600) });
 
-async function approachFor(session: Awaited<ReturnType<typeof requireSession>>, s: BuilderState, a: AdSet): Promise<{ angleA: string; angleB: string } | null> {
+async function approachFor(session: Awaited<ReturnType<typeof requireMember>>, s: BuilderState, a: AdSet): Promise<{ angleA: string; angleB: string } | null> {
   const ws = session.workspace.id;
   const aud = await audienceOf(ws, a);
   const who = targetingPrompt(aud.targeting, (c) => countryLabel(c, "en")) || (aud.audienceName ? `People in the audience "${aud.audienceName}"` : a.name);
@@ -148,14 +154,23 @@ async function approachFor(session: Awaited<ReturnType<typeof requireSession>>, 
 }
 
 export async function writeApproach(input: unknown, key: string): Promise<BuilderResult<{ angleA: string; angleB: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
   const a = p.success ? p.data.adSets.find((x) => x.key === key) : null;
   if (!p.success || !a) return { ok: false, error: t.ag.builder.errors.settings };
+  if (await freeAiSpent(session)) return { ok: false, error: t.ag.builder.errors.freeAi, needsCredit: true };
   const r = await approachFor(session, p.data, a);
   return r ? { ok: true, ...r } : { ok: false, error: t.ag.builder.errors.approach };
+}
+
+/** Free accounts: AI help in the builder up to a daily limit, so a free signup can't run up model costs. */
+const FREE_AI_PER_DAY = 30;
+async function freeAiSpent(session: Awaited<ReturnType<typeof requireMember>>): Promise<boolean> {
+  if (canUseApp(session.workspace)) return false;
+  const { count } = await intel().from("llm_calls").select("id", { count: "exact", head: true }).eq("workspace_id", session.workspace.id).gte("created_at", new Date(Date.now() - 86_400_000).toISOString());
+  return (count ?? 0) >= FREE_AI_PER_DAY;
 }
 
 /**
@@ -164,9 +179,10 @@ export async function writeApproach(input: unknown, key: string): Promise<Builde
  * the member to review. Nothing is saved or launched here.
  */
 export async function fillCampaign(): Promise<BuilderResult<{ fill: CampaignFill }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
+  if (await freeAiSpent(session)) return { ok: false, error: t.ag.builder.errors.freeAi, needsCredit: true };
   const ws = session.workspace.id;
   const knowledge = contextText(await loadBusinessContext(ws));
   if (!knowledge.trim()) return { ok: false, error: t.ag.builder.errors.fillNoKnowledge };
@@ -193,9 +209,10 @@ export async function fillCampaign(): Promise<BuilderResult<{ fill: CampaignFill
 
 /** A sample first email for a typical person of one audience (nothing saved, nothing sent). */
 export async function previewEmail(input: unknown, key: string): Promise<BuilderResult<{ subject: string; body: string; who: string; angleA: string; angleB: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
+  if (await freeAiSpent(session)) return { ok: false, error: t.ag.builder.errors.freeAi, needsCredit: true };
   const p = builderSchema.safeParse(input);
   const a = p.success ? p.data.adSets.find((x) => x.key === key) : null;
   if (!p.success || !a) return { ok: false, error: t.ag.builder.errors.settings };
@@ -226,7 +243,7 @@ export async function previewEmail(input: unknown, key: string): Promise<Builder
 }
 
 /** Starts one audience: a search for a targeting or lookalike, or the people of a custom audience. Returns a warning or null. */
-async function startAudience(session: Awaited<ReturnType<typeof requireSession>>, campaignId: string, a: AdSet, share: number, endsAt: string | null): Promise<string | "noPlan" | "noCredit" | null> {
+async function startAudience(session: Awaited<ReturnType<typeof requireMember>>, campaignId: string, a: AdSet, share: number, endsAt: string | null): Promise<string | "noPlan" | "noCredit" | null> {
   const t = await getDictionary();
   const w = t.ag.builder.warnings;
   const db = await createClient();
@@ -270,7 +287,7 @@ async function followUpPlan(campaignId: string, ws: string) {
 }
 
 export async function launchCampaign(input: unknown, draftId: string | null, confirmed: boolean): Promise<BuilderResult<{ id: string; warnings: string[] }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.ag.builder.errors;
@@ -294,6 +311,12 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
   if (!findOnly && (!mb || mb.status !== "connected")) return { ok: false, error: e.mailbox };
   const research = decide(await loadAiSettings(session.workspace.id), "research", "search_prospects");
   if (s.adSets.some((a) => a.source === "new") && !research.allowed) return { ok: false, error: t.ws.ai.rules.searchBlocked };
+  // Free signup (owner, 2026-11-05): the first payment comes here. The campaign stays saved as a draft.
+  const block = await startBlock(session);
+  if (block) {
+    await saveDraft(s, draftId);
+    return { ok: false, error: block === "noPlan" ? e.noPlan : e.noCredit, needsCredit: true };
+  }
 
   // Openings for every audience before anything starts (the writer needs them).
   const adSets: AdSet[] = [];
@@ -334,7 +357,7 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
 
 /** A launched campaign: its settings and message change; new audiences start; running audiences keep their targeting. */
 export async function updateCampaign(id: string, input: unknown): Promise<BuilderResult<{ warnings: string[] }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.ag.builder.errors;

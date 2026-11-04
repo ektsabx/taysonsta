@@ -20,8 +20,8 @@ export interface CommunityCopy {
 
 export const communityPage: Localized<CommunityCopy> = {
   en: {
-    seoTitle: "Yolias Community | Finding B2B customers with AI",
-    metaDescription: "The Yolias community on Facebook: founders, agencies and sales teams sharing what works to find B2B customers with AI, in English and Arabic.",
+    seoTitle: "Yolias Community | AI Advertising Platform for Customer Acquisition",
+    metaDescription: "The Yolias community on Facebook: founders, agencies and sales teams sharing what works to acquire customers with AI ad campaigns, in English and Arabic.",
     eyebrow: "COMMUNITY",
     title: "The Yolias community",
     lead: "A group for people who sell to businesses: founders, freelancers, agencies and sales teams who want to find the right customers and write outreach that gets answered. Free, in English and Arabic.",
@@ -36,7 +36,7 @@ export const communityPage: Localized<CommunityCopy> = {
     ],
     forTitle: "Who it's for",
     forList: [
-      "Founders who do their own sales and need a steady flow of B2B customers.",
+      "Founders who do their own sales and need a steady flow of customers.",
       "Freelancers and agencies looking for clients in Egypt, the Gulf and beyond.",
       "Sales and business development teams who want better lists and better first emails.",
       "Anyone starting out: beginners' questions are welcome. You don't need a Yolias account to join.",
@@ -70,8 +70,8 @@ export const communityPage: Localized<CommunityCopy> = {
     final: { title: "Find customers with people doing the same", body: "Join the group, introduce yourself and ask your first question today.", primary: "Join the group on Facebook" },
   },
   ar: {
-    seoTitle: "مجتمع يولياس | إيجاد عملاء الشركات بالذكاء الاصطناعي",
-    metaDescription: "مجتمع يولياس على فيسبوك: رواد أعمال ووكالات وفرق مبيعات يتشاركون ما ينجح في إيجاد عملاء الشركات بالذكاء الاصطناعي، بالعربية والإنجليزية.",
+    seoTitle: "مجتمع يولياس | منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء",
+    metaDescription: "مجتمع يولياس على فيسبوك: رواد أعمال ووكالات وفرق مبيعات يتشاركون ما ينجح في منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء، بالعربية والإنجليزية.",
     eyebrow: "المجتمع",
     title: "مجتمع يولياس",
     lead: "مجموعة لمن يبيع للشركات: رواد أعمال ومستقلون ووكالات وفرق مبيعات يريدون إيجاد العملاء المناسبين وكتابة رسائل يُرد عليها. مجانية، بالعربية والإنجليزية.",
@@ -86,7 +86,7 @@ export const communityPage: Localized<CommunityCopy> = {
     ],
     forTitle: "لمن هذا المجتمع",
     forList: [
-      "رواد الأعمال الذين يبيعون بأنفسهم ويحتاجون تدفقًا ثابتًا من عملاء الشركات.",
+      "رواد الأعمال الذين يبيعون بأنفسهم ويحتاجون تدفقًا ثابتًا من العملاء.",
       "المستقلون والوكالات الذين يبحثون عن عملاء في مصر والخليج وغيرها.",
       "فرق المبيعات وتطوير الأعمال التي تريد قوائم أفضل ورسائل أولى أفضل.",
       "كل من يبدأ: أسئلة المبتدئين مرحب بها، ولا تحتاج حسابًا في يولياس للانضمام.",

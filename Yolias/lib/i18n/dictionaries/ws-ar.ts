@@ -4,7 +4,7 @@ import type { Dictionary } from "./en";
 
 export const wsAr: Dictionary["ws"] = {
   nav: {
-    campaigns: "الحملات", conversations: "المحادثات", meetings: "الاجتماعات", outreach: "التواصل", inbox: "صندوق الوارد", crm: "إدارة العملاء", aiWorkspace: "مساحة الذكاء الاصطناعي",
+    campaigns: "الحملات", conversations: "المحادثات", meetings: "الاجتماعات", outreach: "التواصل", inbox: "صندوق الوارد", crm: "الصفقات", aiWorkspace: "مساحة الذكاء الاصطناعي",
     knowledge: "معرفة الشركة", profiles: "ملفات العملاء", agents: "وكيل الذكاء الاصطناعي", rules: "القواعد والصلاحيات", automations: "الأتمتة",
     watchVideo: "شاهد الفيديو التعريفي",
   },
@@ -50,7 +50,7 @@ export const wsAr: Dictionary["ws"] = {
       sentStatus: { sent: "أُرسلت", bounced: "ارتدّت", replied: "ردّ", failed: "فشلت" }, noSent: "لم يُرسل شيء بعد.",
     },
     title: "التواصل", subtitle: "الرسائل والمتابعات لعملائك المحتملين.",
-    newCampaign: "حملة جديدة", empty: "لا توجد حملات تواصل بعد. أنشئ حملة ثم أضف العملاء من العملاء المحتملين أو من إدارة العملاء.",
+    newCampaign: "حملة جديدة", empty: "لا توجد حملات تواصل بعد. أنشئ حملة ثم أضف العملاء من العملاء المحتملين.",
     colName: "الحملة", colStatus: "الحالة", colLeads: "العملاء", colDrafts: "المسودات", colSent: "المُرسلة", colReplies: "الردود", colMeetings: "الاجتماعات", colUpdated: "آخر تحديث",
     status: { draft: "مسودة", active: "نشطة", paused: "متوقفة مؤقتًا", archived: "مؤرشفة" },
     form: {
@@ -85,7 +85,7 @@ export const wsAr: Dictionary["ws"] = {
     stats: { leads: "العملاء", drafts: "مسودات جاهزة", sent: "مُرسلة", failed: "فشلت", bounced: "ارتدّت", replies: "ردود", interested: "مهتمون", notInterested: "غير مهتمين", optedOut: "طلبوا الإيقاف", meetings: "اجتماعات", noData: "تظهر الأرقام عند إرسال الرسائل وتسجيل الردود." },
     actions: { activate: "تفعيل", pause: "إيقاف مؤقت", resume: "استئناف", archive: "أرشفة", prepare: "تجهيز المسودات", preparing: "جارٍ التجهيز…", addLeads: "إضافة عملاء", remove: "إزالة من الحملة" },
     prepared: "تم تجهيز {count} مسودة.", prepareSkipped: "تم تخطي {count} (لا توجد خطوة، أو بلغ الحد، أو جُهّزت مسبقًا، أو غير مسموح).",
-    leadsTitle: "العملاء في هذه الحملة", noLeads: "لا يوجد عملاء بعد. أضفهم من العملاء المحتملين (حدد ← إضافة إلى حملة تواصل) أو من إدارة العملاء.",
+    leadsTitle: "العملاء في هذه الحملة", noLeads: "لا يوجد عملاء بعد. أضفهم من العملاء المحتملين (حدد ← إضافة إلى حملة تواصل).",
     colLead: "العميل", colStep: "الخطوة", colEnroll: "الحالة", colNext: "المتابعة القادمة", colLast: "آخر رسالة",
     enrollStatus: { active: "نشط", paused: "متوقف مؤقتًا", replied: "ردّ", completed: "انتهى", stopped: "متوقف" },
     addLeadsTitle: "أضف أشخاصًا تواصلت معهم", addLeadsEmpty: "لا يوجد من تضيفه بعد. أرسل لأشخاص من العملاء المحتملين أولًا.", addSelected: "إضافة {count}",
@@ -128,11 +128,11 @@ export const wsAr: Dictionary["ws"] = {
     title: "صندوق الوارد", subtitle: "ردود حملاتك في مكان واحد. يولياس يقرأها ويصنّفها ويقترح الرد.",
     filters: { all: "الكل", unread: "غير المقروءة", interested: "مهتم", not_interested: "غير مهتم", follow_up: "يحتاج متابعة", sent: "المُرسلة", done: "المنتهية", others: "أخرى" },
     labels: { interested: "مهتم", not_interested: "غير مهتم", follow_up: "يحتاج متابعة" }, label: "التصنيف",
-    convert: "حوّل لإدارة العملاء", converted: "انتقل إلى إدارة العملاء كمهتم.",
+    convert: "تحديد كمهتم", converted: "تم التحديد كمهتم.",
     composer: { placeholder: "اكتب ردك…", send: "إرسال", sending: "جارٍ الإرسال…", suggest: "اقترح ردًا بالذكاء الاصطناعي", suggesting: "جارٍ الكتابة…", sent: "أُرسل الرد.", noMailbox: "اربط صندوق بريدك من التكاملات للرد من هنا.", draftReady: "كتب يولياس ردًا. راجعه ثم أرسله." },
 
     empty: "لا توجد محادثات هنا بعد.", emptyAll: "لا توجد ردود بعد. ردود حملاتك تصل هنا تلقائيًا.", select: "اختر محادثة.",
-    thread: { campaign: "الحملة", openCrm: "فتح في إدارة العملاء", openCampaign: "فتح الحملة", noMessages: "لا توجد رسائل في هذه المحادثة بعد.", markDone: "تعليم كمنتهية", reopen: "إعادة فتح", markOther: "نقل إلى أخرى", markRead: "تعليم كمقروءة" },
+    thread: { campaign: "الحملة", openCrm: "فتح العميل", openCampaign: "فتح الحملة", noMessages: "لا توجد رسائل في هذه المحادثة بعد.", markDone: "تعليم كمنتهية", reopen: "إعادة فتح", markOther: "نقل إلى أخرى", markRead: "تعليم كمقروءة" },
     reply: {
       logTitle: "سجّل ردًا وصلك", logHint: "الصق الرد من بريدك. يوقف يولياس المتابعات ويقرأ الرد ويقترح الخطوة التالية.",
       body: "ردّهم", channel: "وصل عبر", receivedAt: "وقت الوصول", from: "من (اختياري)", save: "تسجيل الرد", logged: "تم تسجيل الرد.",
@@ -146,8 +146,8 @@ export const wsAr: Dictionary["ws"] = {
     reminders: "التذكيرات", scheduled: "مجدولة", stage: "المرحلة", search: "ابحث في المحادثات…", show: "عرض", channel: "القناة",
   },
   crm: {
-    title: "إدارة العملاء", subtitle: "صفقاتك.",
-    table: "جدول", kanban: "كانبان", fromConversations: "فتح المحادثات", empty: "لا توجد صفقات بعد. افتح محادثة مع عميل مهتم واختر «حوّل لإدارة العملاء».",
+    title: "الصفقات", subtitle: "صفقاتك.",
+    table: "جدول", kanban: "كانبان", fromConversations: "فتح المحادثات", empty: "لا توجد صفقات بعد. افتح محادثة مع عميل مهتم واختر «تحديد كمهتم».",
     emptyFiltered: "لا يوجد عملاء يطابقون هذه الفلاتر.",
     cols: { name: "العميل", company: "الشركة", contact: "التواصل", source: "المصدر", campaign: "الحملة", campaignDate: "تاريخ الحملة", owner: "المسؤول", stage: "المرحلة", value: "قيمة الصفقة", followUp: "المتابعة القادمة", meeting: "الاجتماع القادم", lastActivity: "آخر تفاعل", added: "تاريخ الإضافة" },
     sources: { search: "بحث يولياس", import: "استيراد CSV", manual: "إضافة يدوية" },
@@ -163,7 +163,7 @@ export const wsAr: Dictionary["ws"] = {
       fitUnknown: "لا توجد بيانات كافية للحكم على التوافق.", fitChecks: { industry: "المجال", size: "حجم الشركة", country: "الدولة", title: "المسمى الوظيفي", include: "كلمات التضمين", exclude: "كلمات الاستبعاد" },
       fitResult: { match: "مطابق", miss: "غير مطابق", unknown: "غير معروف" }, noCampaigns: "ليس في أي حملة تواصل.", noMessages: "لا توجد رسائل بعد.",
       noTasks: "لا توجد تذكيرات مفتوحة.", noMeetings: "لا توجد اجتماعات بعد.", noTimeline: "لا يوجد سجل بعد.", approvals: "بانتظار موافقتك",
-      approve: "موافقة", reject: "رفض", openInInbox: "فتح المحادثة", deleteLead: "إزالة من إدارة العملاء", deleteHint: "يزيل العميل وسجله في إدارة العملاء. تبقى نتائج البحث في العملاء المحتملين.",
+      approve: "موافقة", reject: "رفض", openInInbox: "فتح المحادثة", deleteLead: "إزالة العميل", deleteHint: "يزيل العميل وسجله. تبقى نتائج البحث في العملاء المحتملين.",
       matchScore: "تطابق البحث", profile: "ملف العميل",
     },
     activity: {
@@ -223,7 +223,7 @@ export const wsAr: Dictionary["ws"] = {
     },
     agents: {
       title: "وكيل الذكاء الاصطناعي", subtitle: "وكيل واحد يعمل على اكتساب عملائك. حدّد له هدفًا وقواعد، واختر ما يفعله وحده وما يحتاج موافقتك.",
-      mainName: "وكيل يولياس", mainDesc: "Yolias AI هو وكيلك: تتحدث معه، فيبحث ويكتب ويقرأ الردود ويتابع ويجهّز الاجتماعات ويحدّث إدارة العملاء، في حدود الصلاحيات بالأسفل.",
+      mainName: "وكيل يولياس", mainDesc: "Yolias AI هو وكيلك: تتحدث معه، فيبحث ويكتب ويقرأ الردود ويتابع ويجهّز الاجتماعات ويحدّث مراحل العملاء، في حدود الصلاحيات بالأسفل.",
       goal: "الهدف", goalHint: "ما تريد أن يحققه الوكيل. يستخدمه في كل بحث ورسالة ورد.", goalPh: "مثال: 10 مكالمات تعريفية شهريًا مع شركات لوجستية في السعودية",
       capabilities: "القدرات", capabilitiesHint: "ما يستطيع الوكيل فعله. أوقف أي قدرة، أو أعطها تعليمات خاصة، واختر ما تفعله وحدها أو بعد موافقتك.",
       enabled: "مفعّل", disabled: "متوقف", instructions: "تعليمات لهذه القدرة", instructionsPh: "مثال: اذكر دائمًا الفترة التجريبية المجانية.", inputs: "يستخدم", outputs: "ينتج", actions: "يستطيع",
@@ -234,7 +234,7 @@ export const wsAr: Dictionary["ws"] = {
         replies: { name: "الردود", desc: "يقرأ الردود التي تسجلها ويصنفها ويقترح المرحلة التالية وردًا مناسبًا ويصعّد ما يحتاجك.", inputs: "الردود المسجلة، المحادثة، معرفة الشركة", outputs: "تحليل الرد، اقتراحات المرحلة، مسودات الرد، التصعيد" },
         follow_up: { name: "المتابعة", desc: "يراقب جدول كل حملة: يذكّرك بالمتابعات المستحقة والرسائل المجدولة ويمكنه تجهيز المتابعة التالية.", inputs: "خطوات الحملة، الرسائل المرسلة، القواعد", outputs: "تذكيرات، مسودات متابعة" },
         meeting: { name: "الاجتماعات", desc: "يجهز ملخصًا للاجتماع ويذكّرك بتسجيل نتيجته. إنشاء أحداث التقويم يحتاج تكامل تقويم (غير متصل).", inputs: "الاجتماع، سجل العميل، معرفة الشركة", outputs: "ملخصات الاجتماعات، تذكيرات النتائج" },
-        crm: { name: "تحديث إدارة العملاء", desc: "ينقل الصفقات بين المراحل عندما تبرر الردود والاجتماعات ذلك، تلقائيًا أو بعد موافقتك.", inputs: "تحليل الردود، الاجتماعات", outputs: "تغيير المراحل أو طلبات موافقة" },
+        crm: { name: "تحديث المراحل", desc: "ينقل الصفقات بين المراحل عندما تبرر الردود والاجتماعات ذلك، تلقائيًا أو بعد موافقتك.", inputs: "تحليل الردود، الاجتماعات", outputs: "تغيير المراحل أو طلبات موافقة" },
       },
       pending: "بانتظار الموافقة", noPending: "لا يوجد ما ينتظر الموافقة.", approved: "تمت الموافقة.", rejected: "تم الرفض.",
     },
@@ -243,7 +243,7 @@ export const wsAr: Dictionary["ws"] = {
       matrix: "الصلاحيات", agent: "الوكيل", modes: { auto: "تلقائي", approve: "يحتاج موافقة", deny: "غير مسموح" },
       actions: {
         search_prospects: "البحث عن العملاء", update_leads: "إنشاء العملاء أو تحديثهم", prepare_messages: "إعداد الرسائل", send_messages: "إرسال الرسائل (القنوات المتصلة)",
-        analyze_replies: "تحليل الردود", schedule_follow_ups: "جدولة المتابعات", update_crm_stage: "تحديث مراحل إدارة العملاء", manage_meetings: "إنشاء الاجتماعات أو تعديلها",
+        analyze_replies: "تحليل الردود", schedule_follow_ups: "جدولة المتابعات", update_crm_stage: "تحديث مراحل العملاء", manage_meetings: "إنشاء الاجتماعات أو تعديلها",
       },
       sendNote: "لا توجد قناة إرسال متصلة، لذلك لا يُرسل شيء تلقائيًا مهما كان الاختيار هنا.",
       limits: "حدود الإرسال", limitFields: {
@@ -262,13 +262,13 @@ export const wsAr: Dictionary["ws"] = {
       title: "الأتمتة", subtitle: "عندما يحدث شيء لعميل، تنفَّذ الخطوة التالية عنك. الأتمتة لا ترسل رسائل أبدًا.",
       new: "أتمتة جديدة", empty: "لا توجد أتمتة بعد. ابدأ من أحد الأمثلة بالأسفل.", templates: "أمثلة", useTemplate: "استخدام",
       name: "الاسم", trigger: "عندما", conditions: "بشرط", actionsLabel: "نفّذ", enabled: "مفعّلة", runs: "مرات التشغيل", lastRun: "آخر تشغيل", history: "سجل التشغيل", noRuns: "لم تعمل بعد.",
-      triggers: { "lead.created": "يُضاف عميل إلى إدارة العملاء", "lead.stage_changed": "تتغير مرحلة العميل", "meeting.booked": "يُحجز اجتماع", "meeting.completed": "ينتهي اجتماع", "reply.received": "يُسجَّل رد", "enrollment.finished": "تنتهي حملة دون رد" },
+      triggers: { "lead.created": "يُضاف عميل", "lead.stage_changed": "تتغير مرحلة العميل", "meeting.booked": "يُحجز اجتماع", "meeting.completed": "ينتهي اجتماع", "reply.received": "يُسجَّل رد", "enrollment.finished": "تنتهي حملة دون رد" },
       cond: { to_stages: "المرحلة الجديدة", from_stages: "المرحلة السابقة", reply_kinds: "نوع الرد", min_deal_value: "قيمة الصفقة لا تقل عن" },
       actionTypes: { create_task: "إنشاء تذكير", notify: "إشعار", add_note: "إضافة ملاحظة", stop_follow_ups: "إيقاف المتابعات", set_stage: "نقل إلى مرحلة" },
       actionFields: { title: "النص", due: "بعد (أيام)", stage: "المرحلة", text: "الملاحظة" }, addAction: "إضافة إجراء",
       runStatus: { succeeded: "تم", partial: "تم جزئيًا", failed: "فشل", skipped: "تم التخطي", needs_approval: "بانتظار الموافقة" },
       templateNames: { interested: "مهتم ← متابعة", booked: "حجز اجتماع ← إيقاف المتابعات", completed: "انتهاء الاجتماع ← الخطوة التالية", lost: "خسارة ← إيقاف التواصل" },
-      setStageNote: "نقل المرحلة يتبع القواعد والصلاحيات ← وكيل إدارة العملاء.", deleted: "تم الحذف. السجل محفوظ.",
+      setStageNote: "نقل المرحلة يتبع القواعد والصلاحيات ← وكيل يولياس.", deleted: "تم الحذف. السجل محفوظ.",
       errors: { name: "أدخل الاسم.", actions: "أضف إجراءً واحدًا على الأقل.", invalid: "راجع حقول كل إجراء." },
     },
   },

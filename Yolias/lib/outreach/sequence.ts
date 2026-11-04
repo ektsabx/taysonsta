@@ -1,5 +1,6 @@
 import "server-only";
 import { bookingLinkFor } from "@/lib/meetings";
+import { clickLink } from "@/lib/email-links";
 import { notify, userRecipient } from "@/lib/email/notify";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -127,7 +128,7 @@ export async function prepareNextStep(workspaceId: string, userId: string, enrol
   const cc = (country as { country?: string | null; company?: { country?: string | null } | null } | null);
   const lang = languageFor(campaign.language, cc?.country ?? cc?.company?.country ?? null);
   const r = await draftOutreach({
-    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", trackedLink(campaign.cta_url ?? null, lead.id), await bookingLinkFor(userId, lead.id)), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
+    workspaceId, userId, target, channel: "email", instruction: [aimGuidance(campaign.aim ?? "meeting", await clickLink(trackedLink(campaign.cta_url ?? null, lead.id), { workspaceId, leadId: lead.id, campaignId: campaign.id }), await clickLink(await bookingLinkFor(userId, lead.id), { workspaceId, leadId: lead.id, campaignId: campaign.id })), angleA, step.instruction, angle].filter(Boolean).join("\n") || null,
     language: isMessageLanguage(lang) ? lang : DEFAULT_LANGUAGE, objective: step.objective, tone: campaign.tone, agent,
     senderName: (campaign as { sender_name?: string | null }).sender_name ?? null, notes: (campaign as { instructions?: string | null }).instructions ?? null,
     insights: await insightLines(workspaceId),

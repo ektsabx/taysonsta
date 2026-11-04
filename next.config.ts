@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["admin.localhost"],
   // No loading screens in Yolias Admin (owner, 2026-10-29): pages opened in
   // the last minute come back at once, and the sidebar prefetches its pages.
-  experimental: { staleTimes: { dynamic: 60, static: 600 } },
+  experimental: { staleTimes: { dynamic: 60, static: 600 }, serverActions: { bodySizeLimit: "32mb" } },
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "127.0.0.1", port: "54421", pathname: "/storage/v1/object/public/**" },

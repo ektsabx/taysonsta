@@ -1,6 +1,7 @@
 import { YOLIAS_VOICE } from "@/lib/ai/voice";
 import "server-only";
 import { bookingLinkFor } from "@/lib/meetings";
+import { clickLink } from "@/lib/email-links";
 import { aimGuidance, isAim, trackedLink } from "@/lib/outreach/aim";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -99,13 +100,13 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "You read one reply from a sales prospect and classify it for the sender's team.",
           "kind: interested | meeting_request | question | objection | not_interested | stop_request | out_of_office | asks_for_human | unclear.",
           "confidence: how sure you are of kind, from 0 to 1. Use below 0.6 when the reply is ambiguous, sarcastic, mixes intents or depends on context you don't have.",
-          "suggested_stage: the CRM stage this reply justifies, or null when it changes nothing (interested → interested; a request for a meeting → interested unless a time was agreed → meeting_booked; a clear no → lost; a stop request → lost).",
+          "suggested_stage: the lead stage this reply justifies, or null when it changes nothing (interested → interested; a request for a meeting → interested unless a time was agreed → meeting_booked; a clear no → lost; a stop request → lost).",
           "needs_human: true only when a person must answer: a complaint, a legal matter, a negotiation of price or contract terms, or a request to talk to a person. Questions and objections Yolias can answer from the company knowledge are NOT needs_human.",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",
           "suggested_reply: the next reply Yolias sends in this thread on the sender's behalf, in the reply's language, using only the company knowledge given; null for stop requests, not interested and out-of-office. Interested or a meeting request: thank them in one line and move to a short call (the booking link is added after). A question: answer it plainly from the knowledge, then propose a short call. An objection: acknowledge it, answer it with one relevant fact from the knowledge, no pressure, then propose a short call. 2–5 sentences, plain text, sounds like a person. Never invent prices, features, results, dates or claims about competitors.",
           `proposed_start: when the reply proposes or accepts one specific meeting day and time (for example "Tuesday at 3pm" or "the 11:00 slot works"), that moment as ISO 8601 with its UTC offset, read in the sender's time zone (${hostZone}) unless the reply names another; today is ${new Date().toISOString().slice(0, 10)}. Null when no single day and time is given.`,
           `For suggested_reply:\n${YOLIAS_VOICE}`,
-          camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", trackedLink(camp.cta_url, m.lead_id), await bookingLinkFor(camp.approved_by, m.lead_id)) : "",
+          camp ? aimGuidance(isAim(camp.aim) ? camp.aim : "meeting", await clickLink(trackedLink(camp.cta_url, m.lead_id), { workspaceId, leadId: m.lead_id, campaignId: m.outreach_campaign_id }), await clickLink(await bookingLinkFor(camp.approved_by, m.lead_id), { workspaceId, leadId: m.lead_id, campaignId: m.outreach_campaign_id })) : "",
           `Sender's company:\n${contextText(business)}`,
           guidanceFor(s, "replies"),
         ].filter(Boolean).join("\n\n"),

@@ -85,6 +85,23 @@ type MetaEvent = "PageView" | "InitiateCheckout" | "Purchase" | "CompleteRegistr
 const pendingMeta: unknown[][] = [];
 
 /** Meta Pixel base code (developers.facebook.com), run only after consent. Sends the first PageView. */
+/** Yolias's own pixel on yolias.com (owner, 2026-11-05), after consent like Meta's. */
+export function loadYoliasPixel(id: string | null) {
+  const w = window as unknown as { yolias?: ((...a: unknown[]) => void) & { q?: unknown[][] } };
+  if (!id || w.yolias) return;
+  const y = ((...a: unknown[]) => { (y.q = y.q ?? []).push(a); }) as ((...a: unknown[]) => void) & { q?: unknown[][] };
+  w.yolias = y;
+  const s = document.createElement("script");
+  s.async = true; s.src = "/px.js";
+  document.head.appendChild(s);
+  y("init", id);
+  y("track", "PageView");
+}
+
+export function yoliasPageView() {
+  (window as unknown as { yolias?: (...a: unknown[]) => void }).yolias?.("track", "PageView");
+}
+
 export function loadMetaPixel() {
   const w = window as unknown as { fbq?: Fbq; _fbq?: Fbq };
   if (!META_PIXEL_ID || w.fbq) return;

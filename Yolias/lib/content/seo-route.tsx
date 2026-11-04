@@ -44,16 +44,16 @@ export async function loadSeoPage(kind: SeoKind, slug: string) {
 
 const indexCopy: Record<Exclude<SeoKind, "solution">, Record<Locale, { title: string; lead: string; description: string }>> = {
   compare: {
-    en: { title: "Yolias compared", lead: "How Yolias, the AI advertising platform for customer acquisition, compares with ad platforms (Facebook, Google, TikTok, Snapchat, LinkedIn, X) and with prospecting, data and outreach tools: who each one is for, what it does and what it doesn't, from each product's own pages.", description: "Yolias compared with Facebook, Google, TikTok, Snapchat and LinkedIn ads, and with lead generation, B2B data and outreach tools, with sources." },
+    en: { title: "Yolias compared", lead: "How Yolias, the AI advertising platform for customer acquisition, compares with ad platforms (Facebook, Google, TikTok, Snapchat, LinkedIn, X) and with data and sending tools: who each one is for, what it does and what it doesn't, from each product's own pages.", description: "Yolias compared with Facebook, Google, TikTok, Snapchat and LinkedIn ads, and with data and sending tools, with sources." },
     ar: { title: "مقارنات يولياس", lead: "كيف يقارن يولياس، منصة الإعلانات بالذكاء الاصطناعي لاكتساب العملاء، بمنصات الإعلانات (فيسبوك وجوجل وتيك توك وسناب شات ولينكدإن وإكس) وبأدوات البحث عن العملاء والبيانات والتواصل: لمن تناسب كل منها، وما الذي تفعله وما لا تفعله، من صفحات كل منتج الرسمية.", description: "مقارنة يولياس بإعلانات فيسبوك وجوجل وتيك توك وسناب شات ولينكدإن، وبأدوات جذب العملاء وبيانات الشركات والتواصل، مع المصادر." },
   },
   alternatives: {
-    en: { title: "Alternatives to prospecting tools", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular prospecting and outreach tools, with selection criteria and when Yolias is a good fit." },
+    en: { title: "Alternatives to customer acquisition tools", lead: "Looking for another tool? What to weigh when you switch, and the options worth a look for each one.", description: "Alternatives to popular customer acquisition tools, with selection criteria and when Yolias is a good fit." },
     ar: { title: "بدائل أدوات البحث عن العملاء", lead: "تبحث عن أداة أخرى؟ ما الذي تزنه عند التبديل، والخيارات التي تستحق النظر لكل أداة.", description: "بدائل لأدوات البحث عن العملاء والتواصل الشائعة، مع معايير الاختيار ومتى يكون يولياس مناسبًا." },
   },
   template: {
-    en: { title: "Prospecting templates", lead: "Ready-made ways to find the right companies and people: the criteria, the steps and a request you can open in Yolias AI and edit.", description: "B2B prospecting templates: find companies by industry, location and size, and the decision makers in them, then open the template in Yolias." },
-    ar: { title: "قوالب البحث عن العملاء", lead: "طرق جاهزة لإيجاد الشركات والأشخاص المناسبين: المعايير والخطوات وطلب تفتحه في Yolias AI وتعدّله.", description: "قوالب للبحث عن عملاء B2B: اعثر على الشركات حسب القطاع والموقع والحجم وعلى صنّاع القرار فيها، ثم افتح القالب في يولياس." },
+    en: { title: "Campaign templates", lead: "Ready-made ways to find the right companies and people: the criteria, the steps and a request you can open in Yolias AI and edit.", description: "Campaign templates: find companies by industry, location and size, and the decision makers in them, then open the template in Yolias." },
+    ar: { title: "قوالب الحملات", lead: "طرق جاهزة لإيجاد الشركات والأشخاص المناسبين: المعايير والخطوات وطلب تفتحه في Yolias AI وتعدّله.", description: "قوالب حملات اكتساب العملاء: اعثر على الشركات حسب القطاع والموقع والحجم وعلى صنّاع القرار فيها، ثم افتح القالب في يولياس." },
   },
 };
 

@@ -2681,3 +2681,25 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .ay-chats h3 { margin: 0 0 4px; font-size: .72rem; font-weight: 600; color: var(--muted); }
 .ay-chats a { padding: 7px 8px; border-radius: 8px; font-size: .84rem; color: var(--text-3); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ay-chats a:hover { background: var(--hover); }
+
+/* Credit and billing (owner, 2026-11-05). */
+.credit-page { gap: 22px; }
+.credit-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.credit-head h3 { font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+.credit-head p { margin-top: 4px; color: var(--muted); font-size: .86rem; }
+.credit-balance { display: grid; gap: 4px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.credit-balance > span { color: var(--muted); font-size: .84rem; }
+.credit-balance strong { font-size: 2.1rem; font-weight: 700; line-height: 1.2; color: var(--ink); justify-self: start; font-variant-numeric: tabular-nums; }
+.credit-balance em { font-style: normal; color: var(--ink); font-size: .86rem; font-weight: 600; }
+.credit-balance small { color: var(--muted); font-size: .78rem; }
+.credit-sub { font-size: .95rem; font-weight: 700; color: var(--ink); }
+.credit-note { margin-top: 2px; color: var(--muted); font-size: .82rem; }
+.credit-packs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+.credit-packs li { display: grid; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.credit-packs strong { font-size: 1.25rem; font-weight: 700; color: var(--ink); justify-self: start; }
+.credit-packs span { color: var(--muted); font-size: .8rem; }
+.credit-packs button { margin-top: 6px; width: 100%; }
+.credit-lines { margin: 10px 0 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.credit-lines li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: .87rem; color: var(--ink); }
+.credit-lines li:last-child { border-bottom: 0; }
+.credit-lines b { font-weight: 600; font-variant-numeric: tabular-nums; }

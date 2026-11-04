@@ -1,13 +1,13 @@
 "use server";
 
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calendarConfigured } from "@/lib/meetings/google";
 
 // Integrations → Google Calendar (D-268): the member's connection.
 export async function calendarState(): Promise<{ available: boolean; connection: { email: string | null; status: string; error: string | null } | null }> {
-  const session = await requireSession();
+  const session = await requireMember();
   const [{ data }, available] = await Promise.all([
     (await createClient()).from("calendar_connections").select("email, status, error").eq("user_id", session.userId).maybeSingle(),
     calendarConfigured(),
@@ -16,7 +16,7 @@ export async function calendarState(): Promise<{ available: boolean; connection:
 }
 
 export async function disconnectCalendar(): Promise<{ ok: true }> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   await createAdminClient().rpc("clear_calendar_token", { p_user: session.userId });
   return { ok: true };

@@ -9598,6 +9598,19 @@ const en: Record<string, string> = {
  "المرات": "Times",
  "لا توجد مدفوعات في هذه الفترة": "No payments in this period",
  "آخر 100 دفعة": "Latest 100 payments",
+ "إضافات وتكاملات يولياس": "Yolias add-ons and integrations",
+ "الصور والإصدارات والروابط التي تظهر للعملاء في صفحة التكاملات.": "The screenshots, versions and links customers see on the Integrations page.",
+ "الصور الحالية (حدد ما تريد حذفه)": "Current screenshots (select to delete)",
+ "إضافة صور (PNG أو JPG أو WEBP حتى 8 ميجا)": "Add screenshots (PNG, JPG or WEBP, up to 8 MB)",
+ "رقم الإصدار": "Version",
+ "رابط Chrome Web Store": "Chrome Web Store link",
+ "نسخة جديدة من الإضافة (ZIP حتى 25 ميجا)": "New extension version (ZIP, up to 25 MB)",
+ "النسخة الحالية": "Current version",
+ "يولياس بيكسل": "Yolias Pixel",
+ "بريد IMAP/SMTP": "IMAP/SMTP mailbox",
+ "تقويم Google": "Google Calendar",
+ "بيكسل موقع يولياس": "Yolias website pixel",
+ "رقم البيكسل من مدير الأحداث في حسابك على يولياس": "Pixel ID from Events Manager in your Yolias account",
 };
 
 export default en;

@@ -23,7 +23,7 @@ const tpl = (slug: string, keyword: string, secondary: string[], en: Omit<Side, 
 export const templatePages: SeedPage[] = [
   tpl("companies-by-industry", "find companies by industry", ["list of companies by industry", "how to find companies in a specific industry", "industry company list"], {
     title: "Find companies by industry", h1: "How to find companies in a specific industry",
-    metaTitle: "Find companies by industry: a prospecting template",
+    metaTitle: "Find customers by industry: a campaign template",
     metaDescription: "A step-by-step template to build a list of companies in one industry: define it precisely, add size and area, check each company, then reach the right person.",
     lead: "\"Companies in healthcare\" is too broad to sell to. This template narrows an industry into a list you can actually contact.",
     answer: "Name the industry the way companies describe themselves (\"dental clinics\", not \"healthcare\"), add a location and a size range, then check each company's own website for what it does. Yolias does this from one sentence and shows which criteria each company met.",
@@ -46,7 +46,7 @@ export const templatePages: SeedPage[] = [
     ],
   }, {
     title: "البحث عن الشركات حسب القطاع", h1: "كيف تجد شركات في قطاع محدد",
-    metaTitle: "البحث عن الشركات حسب القطاع: قالب عملي",
+    metaTitle: "البحث عن العملاء حسب القطاع: قالب حملة",
     metaDescription: "قالب خطوة بخطوة لبناء قائمة شركات في قطاع واحد: حدده بدقة، وأضف الحجم والمنطقة، وافحص كل شركة، ثم تواصل مع الشخص المناسب.",
     lead: "«شركات في القطاع الصحي» واسعة جدًا للبيع. هذا القالب يضيّق القطاع إلى قائمة تستطيع التواصل معها فعلًا.",
     answer: "سمِّ القطاع كما تصف الشركات نفسها («عيادات أسنان» لا «الرعاية الصحية»)، وأضف موقعًا ونطاق حجم، ثم راجع موقع كل شركة لترى ما تفعله. يفعل يولياس ذلك من جملة واحدة ويوضح المعايير التي حققتها كل شركة.",
@@ -70,7 +70,7 @@ export const templatePages: SeedPage[] = [
   }),
   tpl("companies-by-location", "find companies by location", ["find businesses in a city", "list of companies in my area", "local companies list"], {
     title: "Find companies by location", h1: "How to find companies in a city or area",
-    metaTitle: "Find companies by location: a city prospecting template",
+    metaTitle: "Find customers by location: a city campaign template",
     metaDescription: "Build a list of companies or local businesses in one city or district: choose the area, the type of business and a signal of need, then check and contact them.",
     lead: "Location matters when you meet clients in person, serve one city, or sell to local businesses. This template builds a list for one area at a time.",
     answer: "Pick one city or district, one type of business and one sign of need, then search businesses on the map and companies with an address there. Yolias searches local businesses by category and area as well as companies, and shows the contact details each one publishes.",
@@ -93,7 +93,7 @@ export const templatePages: SeedPage[] = [
     ],
   }, {
     title: "البحث عن الشركات حسب الموقع", h1: "كيف تجد شركات في مدينة أو منطقة",
-    metaTitle: "البحث عن الشركات حسب الموقع: قالب للمدن",
+    metaTitle: "البحث عن العملاء حسب الموقع: قالب للمدن",
     metaDescription: "ابنِ قائمة شركات أو أنشطة محلية في مدينة أو حي واحد: اختر المنطقة ونوع النشاط وإشارة حاجة، ثم راجعها وتواصل معها.",
     lead: "الموقع مهم عندما تقابل العملاء شخصيًا، أو تخدم مدينة واحدة، أو تبيع لأنشطة محلية. هذا القالب يبني قائمة لمنطقة واحدة في كل مرة.",
     answer: "اختر مدينة أو حيًا واحدًا، ونوع نشاط واحدًا، وإشارة حاجة واحدة، ثم ابحث عن الأنشطة على الخريطة والشركات التي لها عنوان هناك. يبحث يولياس عن الأنشطة المحلية حسب النوع والمنطقة وعن الشركات أيضًا، ويعرض بيانات التواصل التي تنشرها كل منها.",
@@ -117,11 +117,11 @@ export const templatePages: SeedPage[] = [
   }, [{ path: "/use-cases/local-business-leads", en: "Local business leads", ar: "عملاء من الأنشطة المحلية" }]),
   tpl("companies-by-size", "find companies by size", ["find companies by number of employees", "find small businesses", "find mid-size companies"], {
     title: "Find companies by size", h1: "How to find companies of the right size for your offer",
-    metaTitle: "Find companies by size: match your offer to company size",
+    metaTitle: "Find customers by company size: match your offer to company size",
     metaDescription: "A template to choose the company size your offer fits, by employees or branches, and find companies in that range, with the role that decides at each size.",
     lead: "The same service sells differently to a 10-person company and a 500-person one. This template picks the size that fits your price and finds companies in it.",
     answer: "Work backwards from your price: who can pay it every month and still needs outside help? Express that as an employee range or number of branches, add industry and area, and remember the decision maker changes with size. Yolias takes the range in your description and matches it where the data sources publish company size.",
-    audience: ["Agencies with a clear minimum budget", "B2B services priced per seat or per site"],
+    audience: ["Agencies with a clear minimum budget", "professional services priced per seat or per site"],
     criteria: ["An employee range or number of branches", "Who decides at that size", "Industry and area"],
     steps: [
       { title: "Set the range from your price", body: "If your retainer is high, very small companies can't pay; very large ones have teams in-house." },
@@ -144,7 +144,7 @@ export const templatePages: SeedPage[] = [
     metaDescription: "قالب لاختيار حجم الشركة الذي يناسب عرضك، بعدد الموظفين أو الفروع، وإيجاد شركات ضمنه، مع صاحب القرار في كل حجم.",
     lead: "نفس الخدمة تُباع بشكل مختلف لشركة من 10 أشخاص وأخرى من 500. هذا القالب يختار الحجم المناسب لسعرك ويجد شركات ضمنه.",
     answer: "ابدأ من سعرك: من يستطيع دفعه شهريًا ويحتاج مساعدة خارجية؟ عبّر عن ذلك بنطاق موظفين أو عدد فروع، وأضف القطاع والمنطقة، وتذكّر أن صاحب القرار يتغير مع الحجم. يأخذ يولياس النطاق من وصفك ويطابقه حيث تنشر مصادر البيانات حجم الشركة.",
-    audience: ["الوكالات التي لديها حد أدنى واضح للميزانية", "خدمات B2B المسعّرة لكل مستخدم أو لكل فرع"],
+    audience: ["الوكالات التي لديها حد أدنى واضح للميزانية", "الخدمات المهنية المسعّرة لكل مستخدم أو لكل فرع"],
     criteria: ["نطاق موظفين أو عدد فروع", "من يقرر عند هذا الحجم", "القطاع والمنطقة"],
     steps: [
       { title: "حدد النطاق من سعرك", body: "إن كان اشتراكك مرتفعًا فالشركات الصغيرة جدًا لا تستطيع الدفع، والكبيرة جدًا لديها فرق داخلية." },
@@ -222,9 +222,9 @@ export const templatePages: SeedPage[] = [
     ],
   }),
   tpl("companies-in-saudi-arabia", "find companies in saudi arabia", ["b2b leads saudi arabia", "list of companies in riyadh", "saudi companies list", "prospecting in saudi arabia"], {
-    title: "Find companies in Saudi Arabia", h1: "How to find B2B clients in Saudi Arabia",
-    metaTitle: "Find companies in Saudi Arabia: a B2B template",
-    metaDescription: "Prospecting in Saudi Arabia: which cities, the Sunday to Thursday week, Arabic and English outreach, company registration, and a ready request to open in Yolias.",
+    title: "Find companies in Saudi Arabia", h1: "How to find customers in Saudi Arabia",
+    metaTitle: "Find customers in Saudi Arabia: a customer acquisition template",
+    metaDescription: "Customer acquisition in Saudi Arabia: which cities, the Sunday to Thursday week, Arabic and English outreach, company registration, and a ready request to open in Yolias.",
     lead: "Selling into Saudi Arabia works best with a narrow list, outreach in the language your buyer uses, and timing that fits the local week. This template sets that up.",
     answer: "Pick one city (Riyadh, Jeddah or the Eastern Province), one industry and a size range; write in Arabic or in both languages; send on working days, Sunday to Thursday. Yolias searches Saudi companies from a plain description in Arabic or English and sends from your mailbox on the days and hours you set.",
     audience: ["Agencies and service firms from the region or abroad selling into Saudi Arabia", "SaaS companies entering the Saudi market"],
@@ -243,11 +243,11 @@ export const templatePages: SeedPage[] = [
     ],
     faq: [
       { q: "Should I write to Saudi companies in Arabic or English?", a: "Arabic is a safe default for owner-led and mid-size companies; English often works in larger and international companies. Yolias can write the email in either language." },
-      { q: "When is the best time to send B2B emails in Saudi Arabia?", a: "On working days, Sunday to Thursday, during business hours in Riyadh time. Set these as the sending days and hours of your mailbox in Yolias." },
+      { q: "When is the best time to send emails in Saudi Arabia?", a: "On working days, Sunday to Thursday, during business hours in Riyadh time. Set these as the sending days and hours of your mailbox in Yolias." },
     ],
   }, {
-    title: "البحث عن الشركات في السعودية", h1: "كيف تجد عملاء B2B في السعودية",
-    metaTitle: "البحث عن الشركات في السعودية: قالب لعملاء B2B",
+    title: "البحث عن الشركات في السعودية", h1: "كيف تجد عملاء في السعودية",
+    metaTitle: "البحث عن العملاء في السعودية: قالب حملة",
     metaDescription: "قالب عملي للبحث عن العملاء في السعودية: المدن، وأسبوع العمل من الأحد إلى الخميس، والتواصل بالعربية والإنجليزية، وتسجيل الشركات، وطلب تفتحه في يولياس.",
     lead: "البيع في السعودية ينجح أكثر بقائمة محددة، وتواصل باللغة التي يستخدمها المشتري، وتوقيت يناسب أسبوع العمل المحلي. هذا القالب يجهّز ذلك.",
     answer: "اختر مدينة واحدة (الرياض أو جدة أو المنطقة الشرقية)، وقطاعًا واحدًا، ونطاق حجم؛ واكتب بالعربية أو باللغتين؛ وأرسل في أيام العمل من الأحد إلى الخميس. يبحث يولياس عن الشركات السعودية من وصف بسيط بالعربية أو الإنجليزية، ويرسل من بريدك في الأيام والساعات التي تحددها.",
@@ -267,13 +267,13 @@ export const templatePages: SeedPage[] = [
     ],
     faq: [
       { q: "هل أكتب للشركات السعودية بالعربية أم بالإنجليزية؟", a: "العربية اختيار آمن للشركات التي يديرها مالكها والشركات المتوسطة، والإنجليزية تنجح غالبًا في الشركات الأكبر والدولية. ويستطيع يولياس كتابة الرسالة بأي من اللغتين." },
-      { q: "ما أفضل وقت لإرسال رسائل B2B في السعودية؟", a: "في أيام العمل من الأحد إلى الخميس، خلال ساعات العمل بتوقيت الرياض. اضبطها كأيام وساعات الإرسال لصندوق بريدك في يولياس." },
+      { q: "ما أفضل وقت لإرسال الرسائل في السعودية؟", a: "في أيام العمل من الأحد إلى الخميس، خلال ساعات العمل بتوقيت الرياض. اضبطها كأيام وساعات الإرسال لصندوق بريدك في يولياس." },
     ],
   }),
   tpl("companies-in-uae", "find companies in the uae", ["b2b leads uae", "list of companies in dubai", "uae companies list", "prospecting in dubai"], {
-    title: "Find companies in the UAE", h1: "How to find B2B clients in the UAE",
-    metaTitle: "Find companies in the UAE: a B2B prospecting template",
-    metaDescription: "A practical template for prospecting in the UAE: emirates and free zones, the Monday to Friday week, English and Arabic outreach, and a request to open in Yolias.",
+    title: "Find companies in the UAE", h1: "How to find customers in the UAE",
+    metaTitle: "Find customers in the UAE: a customer acquisition template",
+    metaDescription: "A practical template for customer acquisition in the UAE: emirates and free zones, the Monday to Friday week, English and Arabic outreach, and a request to open in Yolias.",
     lead: "The UAE mixes local companies, regional headquarters and free zone businesses, mostly working in English. This template narrows that mix to a list you can contact.",
     answer: "Pick one emirate (usually Dubai or Abu Dhabi), decide whether you want mainland companies, free zone companies or both, add an industry and a size, and write in English unless your buyer prefers Arabic. Yolias searches from a plain description and sends from your mailbox within the sending days you set.",
     audience: ["Agencies and consultancies selling into Dubai and Abu Dhabi", "Companies using the UAE as a regional base"],
@@ -294,8 +294,8 @@ export const templatePages: SeedPage[] = [
       { q: "Should I write in English or Arabic in the UAE?", a: "English is the default in most companies; Arabic can help with local family businesses and government-related entities." },
     ],
   }, {
-    title: "البحث عن الشركات في الإمارات", h1: "كيف تجد عملاء B2B في الإمارات",
-    metaTitle: "البحث عن الشركات في الإمارات: قالب لعملاء B2B",
+    title: "البحث عن الشركات في الإمارات", h1: "كيف تجد عملاء في الإمارات",
+    metaTitle: "البحث عن العملاء في الإمارات: قالب حملة",
     metaDescription: "قالب عملي للبحث عن العملاء في الإمارات: الإمارات والمناطق الحرة، وأسبوع العمل من الاثنين إلى الجمعة، والتواصل بالإنجليزية والعربية، وطلب تفتحه في يولياس.",
     lead: "تجمع الإمارات بين شركات محلية ومقار إقليمية وشركات في المناطق الحرة، يعمل معظمها بالإنجليزية. هذا القالب يضيّق هذا المزيج إلى قائمة تستطيع التواصل معها.",
     answer: "اختر إمارة واحدة (غالبًا دبي أو أبوظبي)، وحدد هل تريد شركات البر الرئيسي أم المناطق الحرة أم الاثنين، وأضف قطاعًا وحجمًا، واكتب بالإنجليزية إلا إذا كان المشتري يفضل العربية. يبحث يولياس من وصف بسيط ويرسل من بريدك في أيام الإرسال التي تحددها.",
@@ -318,9 +318,9 @@ export const templatePages: SeedPage[] = [
     ],
   }),
   tpl("businesses-in-egypt", "find businesses in egypt", ["list of companies in egypt", "b2b leads egypt", "companies in cairo", "prospecting in egypt"], {
-    title: "Find businesses in Egypt", h1: "How to find B2B clients and local businesses in Egypt",
-    metaTitle: "Find businesses in Egypt: a B2B prospecting template",
-    metaDescription: "Prospecting in Egypt: Cairo, Giza, Alexandria and the new cities, the Sunday to Thursday week, Arabic outreach and published business contacts, with a ready request.",
+    title: "Find businesses in Egypt", h1: "How to find customers and local businesses in Egypt",
+    metaTitle: "Find customers in Egypt: a customer acquisition template",
+    metaDescription: "Customer acquisition in Egypt: Cairo, Giza, Alexandria and the new cities, the Sunday to Thursday week, Arabic outreach and published business contacts, with a ready request.",
     lead: "Many Egyptian businesses publish a phone number or a social page before an email address, and many decisions sit with the owner. This template accounts for both.",
     answer: "Pick one area (for example New Cairo, Sheikh Zayed, Nasr City or Alexandria), one type of business, and write in Egyptian-friendly Arabic or in English for larger companies; send Sunday to Thursday. Yolias searches companies and local businesses from a plain description and shows the contact details each one publishes, which in Egypt are often a phone or a social page.",
     audience: ["Agencies, studios and freelancers in Egypt", "Regional companies selling into Egypt"],
@@ -339,11 +339,11 @@ export const templatePages: SeedPage[] = [
     ],
     faq: [
       { q: "How do I find companies in Egypt?", a: "Company websites, map data, chambers of commerce and industry directories. Directories usually forbid copying; a focused search by area and type, then checking each business, works better." },
-      { q: "Is email effective in Egypt?", a: "With larger companies and B2B services, yes. Many small businesses answer phone and social messages faster, so use the channel each one publishes." },
+      { q: "Is email effective in Egypt?", a: "With larger companies and professional services, yes. Many small businesses answer phone and social messages faster, so use the channel each one publishes." },
     ],
   }, {
-    title: "البحث عن الأنشطة في مصر", h1: "كيف تجد عملاء B2B وأنشطة محلية في مصر",
-    metaTitle: "البحث عن الشركات في مصر: قالب لعملاء B2B",
+    title: "البحث عن الأنشطة في مصر", h1: "كيف تجد عملاء وأنشطة محلية في مصر",
+    metaTitle: "البحث عن العملاء في مصر: قالب حملة",
     metaDescription: "البحث عن العملاء في مصر: القاهرة والجيزة والإسكندرية والمدن الجديدة، وأسبوع العمل من الأحد إلى الخميس، والتواصل بالعربية، وبيانات التواصل المنشورة، مع طلب جاهز.",
     lead: "كثير من الأنشطة في مصر تنشر رقم هاتف أو صفحة تواصل قبل البريد، وكثير من القرارات بيد المالك. هذا القالب يراعي الأمرين.",
     answer: "اختر منطقة واحدة (مثل التجمع الخامس أو الشيخ زايد أو مدينة نصر أو الإسكندرية)، ونوع نشاط واحدًا، واكتب بعربية قريبة من المصريين أو بالإنجليزية للشركات الأكبر، وأرسل من الأحد إلى الخميس. يبحث يولياس عن الشركات والأنشطة المحلية من وصف بسيط ويعرض بيانات التواصل التي تنشرها كل منها، وهي في مصر غالبًا رقم هاتف أو صفحة تواصل.",
@@ -363,7 +363,7 @@ export const templatePages: SeedPage[] = [
     ],
     faq: [
       { q: "كيف أجد شركات في مصر؟", a: "مواقع الشركات، وبيانات الخرائط، والغرف التجارية، وأدلة القطاعات. الأدلة تمنع غالبًا النسخ؛ والبحث المركّز حسب المنطقة والنوع ثم مراجعة كل نشاط يعمل أفضل." },
-      { q: "هل البريد الإلكتروني فعّال في مصر؟", a: "مع الشركات الأكبر وخدمات B2B نعم. وكثير من الأنشطة الصغيرة ترد على الهاتف ورسائل التواصل أسرع، فاستخدم القناة التي ينشرها كل نشاط." },
+      { q: "هل البريد الإلكتروني فعّال في مصر؟", a: "مع الشركات الأكبر والخدمات المهنية نعم. وكثير من الأنشطة الصغيرة ترد على الهاتف ورسائل التواصل أسرع، فاستخدم القناة التي ينشرها كل نشاط." },
     ],
   }),
 ];

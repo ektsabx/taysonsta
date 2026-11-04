@@ -43,7 +43,7 @@ const Y: Record<Row, L> = {
   pay: { en: "The people Yolias finds and reaches for your campaigns; emails, replies and meetings aren't charged", ar: "الأشخاص الذين يجدهم يولياس ويتواصل معهم لحملاتك؛ والرسائل والردود والاجتماعات بلا رسوم" },
   after: { en: "Its AI Sales Agent answers questions and objections, follows up and books the meeting on your calendar", ar: "يجيب وكيل المبيعات الذكي عن الأسئلة والاعتراضات، ويتابع، ويحجز الاجتماع في تقويمك" },
   results: { en: "Meetings, website purchases and leads (with the Yolias pixel), revenue and cost per result, per campaign and audience", ar: "الاجتماعات، والمشتريات والعملاء المحتملون من موقعك (ببيكسل يولياس)، والإيرادات وتكلفة النتيجة، لكل حملة وجمهور" },
-  fit: { en: "B2B customer acquisition: reaching specific companies and the people who decide there", ar: "اكتساب عملاء الشركات: الوصول إلى شركات محددة وإلى من يملك القرار فيها" },
+  fit: { en: "customer acquisition: reaching specific companies and the people who decide there", ar: "اكتساب العملاء: الوصول إلى شركات محددة وإلى من يملك القرار فيها" },
 };
 
 const yoliasLimits: LL = {
@@ -92,13 +92,13 @@ const platforms: Platform[] = [
     together: { en: "Run Facebook Ads for awareness and retargeting, and Yolias to reach the companies and decision makers who will never click an ad. The Yolias pixel counts the purchases and leads its campaigns bring, so you see each channel's results side by side.", ar: "شغّل إعلانات فيسبوك للوعي وإعادة الاستهداف، ويولياس للوصول إلى الشركات وصنّاع القرار الذين لن ينقروا على إعلان أبدًا. ويحسب بيكسل يولياس المشتريات والعملاء المحتملين الذين تأتي بهم حملاته، فترى نتائج كل قناة جنبًا إلى جنب." },
     faq: {
       en: [
-        { q: "Is Yolias an alternative to Facebook Ads?", a: "For B2B customer acquisition, yes: instead of showing an ad and paying for views, Yolias reaches the companies and decision makers you define and contacts each one directly. For consumer reach and awareness, Facebook Ads does a job Yolias doesn't." },
-        { q: "Why do Facebook Ads often struggle for B2B?", a: "Facebook targets people by interests and behaviour, not by company and job title, so a B2B ad is shown to many people who can't buy. Yolias targets named companies and roles." },
+        { q: "Is Yolias an alternative to Facebook Ads?", a: "For customer acquisition, yes: instead of showing an ad and paying for views, Yolias reaches the companies and decision makers you define and contacts each one directly. For consumer reach and awareness, Facebook Ads does a job Yolias doesn't." },
+        { q: "Why do Facebook Ads often struggle to reach specific buyers?", a: "Facebook targets people by interests and behaviour, not by company and job title, so an ad is shown to many people who can't buy. Yolias targets named companies and roles." },
         { q: "Does Yolias have a pixel like the Meta Pixel?", a: "Yes. The Yolias pixel counts page views, purchases and leads on your website and credits them to the campaign that brought each person, within a 7-day attribution window by default." },
       ],
       ar: [
-        { q: "هل يولياس بديل لإعلانات فيسبوك؟", a: "لاكتساب عملاء الشركات نعم: بدل أن تعرض إعلانًا وتدفع مقابل المشاهدات، يصل يولياس إلى الشركات وصنّاع القرار الذين تحددهم ويتواصل مع كل منهم مباشرة. أما الانتشار لدى المستهلكين والوعي بالعلامة فإعلانات فيسبوك تؤدي دورًا لا يؤديه يولياس." },
-        { q: "لماذا لا تنجح إعلانات فيسبوك غالبًا مع B2B؟", a: "يستهدف فيسبوك الناس حسب الاهتمامات والسلوك، لا حسب الشركة والمسمى الوظيفي، فيظهر إعلان الشركات لكثيرين لا يملكون قرار الشراء. أما يولياس فيستهدف شركات ومناصب بعينها." },
+        { q: "هل يولياس بديل لإعلانات فيسبوك؟", a: "لاكتساب العملاء نعم: بدل أن تعرض إعلانًا وتدفع مقابل المشاهدات، يصل يولياس إلى الشركات وصنّاع القرار الذين تحددهم ويتواصل مع كل منهم مباشرة. أما الانتشار لدى المستهلكين والوعي بالعلامة فإعلانات فيسبوك تؤدي دورًا لا يؤديه يولياس." },
+        { q: "لماذا لا تصل إعلانات فيسبوك غالبًا إلى المشتري المحدد؟", a: "يستهدف فيسبوك الناس حسب الاهتمامات والسلوك، لا حسب الشركة والمسمى الوظيفي، فيظهر إعلان الشركات لكثيرين لا يملكون قرار الشراء. أما يولياس فيستهدف شركات ومناصب بعينها." },
         { q: "هل لدى يولياس بيكسل مثل بيكسل Meta؟", a: "نعم. بيكسل يولياس يحسب مشاهدات الصفحات والمشتريات والعملاء المحتملين على موقعك وينسبها للحملة التي جاءت بكل شخص، خلال نافذة احتساب 7 أيام افتراضيًا." },
       ],
     },
@@ -110,7 +110,7 @@ const platforms: Platform[] = [
     summary: { en: "Google's advertising platform: search, display, YouTube, Shopping and Performance Max campaigns, bought in an auction.", ar: "منصة إعلانات جوجل: حملات البحث والشبكة الإعلانية ويوتيوب والتسوق وPerformance Max، تُشترى بمزاد." },
     best_for: { en: "Capturing people who are already searching for what you sell.", ar: "التقاط من يبحثون بالفعل عما تبيعه." },
     strengths: { en: ["Reaches people at the moment they search", "Search, YouTube, display and Shopping in one account", "Conversion tracking and smart bidding", "Pay per click on search ads"], ar: ["يصل إلى الناس لحظة بحثهم", "البحث ويوتيوب والشبكة الإعلانية والتسوق في حساب واحد", "تتبع التحويلات والمزايدة الذكية", "الدفع لكل نقرة في إعلانات البحث"] },
-    limits: { en: ["Works only when people already search for your service; it doesn't create demand at a named company", "Clicks on competitive B2B keywords are priced by auction and can be expensive"], ar: ["يعمل فقط عندما يبحث الناس بالفعل عن خدمتك، ولا يخلق الطلب لدى شركة بعينها", "النقرات على كلمات B2B التنافسية بسعر المزاد وقد تكون مكلفة"] },
+    limits: { en: ["Works only when people already search for your service; it doesn't create demand at a named company", "Clicks on competitive keywords are priced by auction and can be expensive"], ar: ["يعمل فقط عندما يبحث الناس بالفعل عن خدمتك، ولا يخلق الطلب لدى شركة بعينها", "النقرات على الكلمات التنافسية بسعر المزاد وقد تكون مكلفة"] },
     them: {
       starts: { en: "Keywords people search for, plus audiences and placements", ar: "كلمات يبحث عنها الناس، مع جماهير ومواضع عرض" },
       reach: { en: "People searching on Google, watching YouTube or browsing partner sites", ar: "من يبحثون في جوجل أو يشاهدون يوتيوب أو يتصفحون المواقع الشريكة" },
@@ -125,11 +125,11 @@ const platforms: Platform[] = [
     together: { en: "Search ads catch the buyers who come looking; Yolias reaches the ones who never search. Together they cover both halves of the market.", ar: "إعلانات البحث تلتقط المشترين الذين يبحثون، ويولياس يصل إلى من لا يبحثون أبدًا. ومعًا يغطيان نصفي السوق." },
     faq: {
       en: [
-        { q: "Is Yolias an alternative to Google Ads?", a: "It is a different channel. Google Ads captures existing search demand; Yolias creates conversations with companies that fit your offer. B2B businesses often use Yolias when search volume for their service is small or clicks are expensive." },
+        { q: "Is Yolias an alternative to Google Ads?", a: "It is a different channel. Google Ads captures existing search demand; Yolias creates conversations with companies that fit your offer. Businesses often use Yolias when search volume for their service is small or clicks are expensive." },
         { q: "Do I pay per click with Yolias?", a: "No. You pay for the people Yolias finds and reaches for your campaigns; emails, replies and meetings aren't charged." },
       ],
       ar: [
-        { q: "هل يولياس بديل لإعلانات جوجل؟", a: "هو قناة مختلفة. إعلانات جوجل تلتقط الطلب الموجود في البحث، ويولياس يفتح محادثات مع شركات يناسبها عرضك. وكثيرًا ما تستخدم شركات B2B يولياس عندما يكون البحث عن خدمتها قليلًا أو تكون النقرات مكلفة." },
+        { q: "هل يولياس بديل لإعلانات جوجل؟", a: "هو قناة مختلفة. إعلانات جوجل تلتقط الطلب الموجود في البحث، ويولياس يفتح محادثات مع شركات يناسبها عرضك. وكثيرًا ما تستخدم الشركات يولياس عندما يكون البحث عن خدمتها قليلًا أو تكون النقرات مكلفة." },
         { q: "هل أدفع لكل نقرة مع يولياس؟", a: "لا. تدفع مقابل الأشخاص الذين يجدهم يولياس ويتواصل معهم لحملاتك، والرسائل والردود والاجتماعات بلا رسوم." },
       ],
     },
@@ -155,8 +155,8 @@ const platforms: Platform[] = [
     chooseThem: { en: ["Your customers are consumers, especially younger ones.", "You can produce short videos every week.", "You want awareness for a new product."], ar: ["عملاؤك مستهلكون، خاصة الشباب.", "تستطيع إنتاج فيديوهات قصيرة كل أسبوع.", "تريد الوعي بمنتج جديد."] },
     together: { en: "TikTok builds your brand with consumers; Yolias brings in the business customers, partners and distributors that a feed won't reach.", ar: "تيك توك يبني علامتك لدى المستهلكين، ويولياس يأتيك بالعملاء من الشركات والشركاء والموزعين الذين لن تصلهم الصفحة." },
     faq: {
-      en: [{ q: "Can TikTok Ads work for B2B?", a: "Sometimes, for awareness. But TikTok can't target a company or a job title, so most of the spend reaches people who can't buy. Yolias reaches named companies and roles directly." }],
-      ar: [{ q: "هل تنجح إعلانات تيك توك مع B2B؟", a: "أحيانًا للوعي. لكن تيك توك لا يستهدف شركة أو مسمى وظيفيًا، فيذهب معظم الإنفاق إلى من لا يملكون قرار الشراء. أما يولياس فيصل إلى شركات ومناصب بعينها مباشرة." }],
+      en: [{ q: "Can TikTok Ads bring customers directly?", a: "Sometimes, for awareness. But TikTok can't target a company or a job title, so most of the spend reaches people who can't buy. Yolias reaches named companies and roles directly." }],
+      ar: [{ q: "هل تجلب إعلانات تيك توك عملاء مباشرة؟", a: "أحيانًا للوعي. لكن تيك توك لا يستهدف شركة أو مسمى وظيفيًا، فيذهب معظم الإنفاق إلى من لا يملكون قرار الشراء. أما يولياس فيصل إلى شركات ومناصب بعينها مباشرة." }],
     },
     sources: ["https://ads.tiktok.com", "https://ads.tiktok.com/help/article/bidding-strategies", "https://ads.tiktok.com/help/article/tiktok-pixel"],
   },
@@ -180,8 +180,8 @@ const platforms: Platform[] = [
     chooseThem: { en: ["You sell to consumers in Saudi Arabia, the UAE or Kuwait.", "Your audience is under 35.", "AR lenses or vertical video suit your product."], ar: ["تبيع للمستهلكين في السعودية أو الإمارات أو الكويت.", "جمهورك تحت 35 عامًا.", "عدسات الواقع المعزز أو الفيديو العمودي تناسب منتجك."] },
     together: { en: "Use Snapchat for consumer demand and Yolias for the companies you sell to, the partners and the distributors.", ar: "استخدم سناب شات للطلب لدى المستهلكين، ويولياس للشركات التي تبيع لها وللشركاء والموزعين." },
     faq: {
-      en: [{ q: "Is Snapchat good for B2B in Saudi Arabia?", a: "Snapchat reaches a large share of people in Saudi Arabia, but it can't target a company or a job title. To reach decision makers at Saudi companies directly, Yolias finds them and contacts each one." }],
-      ar: [{ q: "هل سناب شات مناسب لـ B2B في السعودية؟", a: "يصل سناب شات إلى نسبة كبيرة من الناس في السعودية، لكنه لا يستهدف شركة أو مسمى وظيفيًا. وللوصول إلى صنّاع القرار في الشركات السعودية مباشرة، يجدهم يولياس ويتواصل مع كل منهم." }],
+      en: [{ q: "Is Snapchat good for reaching decision makers in Saudi Arabia?", a: "Snapchat reaches a large share of people in Saudi Arabia, but it can't target a company or a job title. To reach decision makers at Saudi companies directly, Yolias finds them and contacts each one." }],
+      ar: [{ q: "هل سناب شات مناسب للوصول إلى صناع القرار في السعودية؟", a: "يصل سناب شات إلى نسبة كبيرة من الناس في السعودية، لكنه لا يستهدف شركة أو مسمى وظيفيًا. وللوصول إلى صنّاع القرار في الشركات السعودية مباشرة، يجدهم يولياس ويتواصل مع كل منهم." }],
     },
     sources: ["https://forbusiness.snapchat.com", "https://forbusiness.snapchat.com/advertising", "https://businesshelp.snapchat.com/s/article/snap-pixel-about"],
   },
@@ -189,7 +189,7 @@ const platforms: Platform[] = [
     slug: "linkedin-ads", name: "LinkedIn Ads", nameAr: "إعلانات لينكدإن", website: "https://business.linkedin.com/marketing-solutions/ads", pricing_url: "https://business.linkedin.com/marketing-solutions/ads/pricing",
     keyword: "linkedin ads alternative", secondary: ["yolias vs linkedin ads", "linkedin ads cost", "بديل إعلانات لينكدإن", "إعلانات لينكدإن"],
     summary: { en: "LinkedIn's advertising platform: sponsored posts, messages and lead gen forms targeted by company, job title and industry, bought in an auction.", ar: "منصة إعلانات LinkedIn: منشورات ورسائل ممولة ونماذج لجذب العملاء تُستهدف حسب الشركة والمسمى الوظيفي والمجال، وتُشترى بمزاد." },
-    best_for: { en: "B2B awareness and lead forms targeted by company and job title.", ar: "الوعي لدى الشركات ونماذج العملاء المحتملين المستهدفة حسب الشركة والمسمى الوظيفي." },
+    best_for: { en: "Awareness and lead forms targeted by company and job title.", ar: "الوعي لدى الشركات ونماذج العملاء المحتملين المستهدفة حسب الشركة والمسمى الوظيفي." },
     strengths: { en: ["Targeting by company, job title, seniority and industry", "Lead Gen Forms prefilled from the profile", "Insight Tag for conversions", "Matched audiences from company lists"], ar: ["استهداف حسب الشركة والمسمى الوظيفي والأقدمية والمجال", "نماذج جذب العملاء معبأة من الملف الشخصي", "وسم Insight لقياس التحويلات", "جماهير مطابقة من قوائم الشركات"] },
     limits: { en: ["Clicks and impressions on LinkedIn are priced by auction and are usually among the most expensive", "An ad in the feed; the conversation after the form is yours"], ar: ["النقرات والظهور على LinkedIn بسعر المزاد وهي عادة من الأغلى", "إعلان في الصفحة؛ والمحادثة بعد النموذج عليك"] },
     them: {
@@ -198,10 +198,10 @@ const platforms: Platform[] = [
       pay: { en: "Clicks, impressions or sends, priced in an auction", ar: "النقرات أو الظهور أو الإرسال، بسعر يحدده المزاد" },
       after: { en: "A Lead Gen Form or a visit; the follow-up is yours", ar: "نموذج عميل محتمل أو زيارة؛ والمتابعة عليك" },
       results: { en: "Leads and conversions with the Insight Tag", ar: "العملاء المحتملون والتحويلات بوسم Insight" },
-      fit: { en: "B2B awareness and lead forms by company and role", ar: "الوعي لدى الشركات ونماذج العملاء حسب الشركة والمنصب" },
+      fit: { en: "Awareness and lead forms by company and role", ar: "الوعي لدى الشركات ونماذج العملاء حسب الشركة والمنصب" },
     },
     lead: { en: "LinkedIn Ads is the ad platform closest to Yolias: both target by company and job title. The difference is what happens next. LinkedIn shows an ad; Yolias writes to each person and carries the conversation to a meeting.", ar: "إعلانات LinkedIn أقرب منصات الإعلانات إلى يولياس: كلاهما يستهدف حسب الشركة والمسمى الوظيفي. والفرق فيما يحدث بعد ذلك: LinkedIn يعرض إعلانًا، ويولياس يكتب لكل شخص ويكمل المحادثة حتى الاجتماع." },
-    answer: { en: "Choose LinkedIn Ads for B2B awareness and lead forms across a large professional audience. Choose Yolias when you want each decision maker contacted personally, the replies answered and the meeting booked, paying for the people reached rather than for clicks.", ar: "اختر إعلانات LinkedIn للوعي لدى الشركات ونماذج العملاء المحتملين عبر جمهور مهني كبير. واختر يولياس عندما تريد التواصل مع كل صاحب قرار شخصيًا، والرد على الردود، وحجز الاجتماع، مع الدفع مقابل الأشخاص الذين وصلت إليهم لا مقابل النقرات." },
+    answer: { en: "Choose LinkedIn Ads for awareness and lead forms across a large professional audience. Choose Yolias when you want each decision maker contacted personally, the replies answered and the meeting booked, paying for the people reached rather than for clicks.", ar: "اختر إعلانات LinkedIn للوعي لدى الشركات ونماذج العملاء المحتملين عبر جمهور مهني كبير. واختر يولياس عندما تريد التواصل مع كل صاحب قرار شخصيًا، والرد على الردود، وحجز الاجتماع، مع الدفع مقابل الأشخاص الذين وصلت إليهم لا مقابل النقرات." },
     chooseThem: { en: ["You want your brand seen by a whole industry.", "You have budget for awareness at LinkedIn's prices.", "You want lead forms prefilled from profiles."], ar: ["تريد أن يرى قطاع كامل علامتك.", "لديك ميزانية للوعي بأسعار LinkedIn.", "تريد نماذج معبأة من الملفات الشخصية."] },
     together: { en: "Warm a target account list with LinkedIn Ads, then let Yolias contact the decision makers at those same companies directly.", ar: "سخّن قائمة الشركات المستهدفة بإعلانات LinkedIn، ثم دع يولياس يتواصل مباشرة مع صنّاع القرار في الشركات نفسها." },
     faq: {
@@ -249,7 +249,7 @@ function versus(p: Platform): SeedPage {
   const side = (l: "en" | "ar") => ({
     title: l === "en" ? `Yolias vs ${p.name}` : `يولياس مقابل ${p.nameAr}`,
     h1: l === "en" ? `Yolias vs ${p.name}: reach an audience, or reach the customer?` : `يولياس أم ${p.nameAr}: تصل إلى جمهور، أم إلى العميل نفسه؟`,
-    metaTitle: l === "en" ? `${p.name} alternative for B2B: Yolias vs ${p.name}` : `بديل ${p.nameAr} للشركات: يولياس مقابل ${p.nameAr}`,
+    metaTitle: l === "en" ? `${p.name} alternative for customer acquisition: Yolias vs ${p.name}` : `بديل ${p.nameAr} لاكتساب العملاء: يولياس مقابل ${p.nameAr}`,
     metaDescription: l === "en"
       ? `${p.name} or Yolias? How an ad platform and an AI advertising platform for customer acquisition differ in targeting, cost, follow-up and results.`
       : `${p.nameAr} أم يولياس؟ الفرق بين منصة إعلانات ومنصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء في الاستهداف والتكلفة والمتابعة والنتائج.`,
@@ -291,7 +291,7 @@ const hub: SeedPage = {
     metaTitle: "AI Advertising Platform vs Facebook, Google & TikTok Ads",
     metaDescription: "Facebook, Google, TikTok, Snapchat, LinkedIn and X ads compared with Yolias, the AI advertising platform that reaches the customers you choose.",
     lead: "Every ad platform sells attention: an audience sees your ad, and you pay for the views or clicks. Yolias is an AI advertising platform built the other way round: you choose the customer, and the AI goes to them.",
-    answer: "For consumer reach and awareness, Facebook, Instagram, TikTok and Snapchat ads are hard to beat; for people already searching, Google Ads; for B2B awareness by job title, LinkedIn Ads. When you sell to businesses and want specific companies and decision makers contacted directly, with the follow-up done for you and results counted, Yolias adds the channel the others don't cover.",
+    answer: "For consumer reach and awareness, Facebook, Instagram, TikTok and Snapchat ads are hard to beat; for people already searching, Google Ads; for awareness by job title, LinkedIn Ads. When you sell to businesses and want specific companies and decision makers contacted directly, with the follow-up done for you and results counted, Yolias adds the channel the others don't cover.",
     criteria: [
       "**Who you sell to:** consumers at scale, or a defined list of companies and roles.",
       "**Demand:** do buyers already search for you, or do you need to start the conversation?",
@@ -306,7 +306,7 @@ const hub: SeedPage = {
         ["Google Ads", "Capturing search demand", "Clicks, impressions or views (auction)"],
         ["TikTok Ads", "Consumer reach with short video", "Impressions, views or clicks (auction)"],
         ["Snapchat Ads", "Young consumers, strong in the Gulf", "Impressions, swipes or actions (auction)"],
-        ["LinkedIn Ads", "B2B awareness by company and job title", "Clicks, impressions or sends (auction)"],
+        ["LinkedIn Ads", "Awareness by company and job title", "Clicks, impressions or sends (auction)"],
         ["X Ads", "Visibility in live conversations", "Engagements, clicks or views (auction)"],
         ["Yolias", "Reaching named companies and decision makers directly, with an AI Sales Agent", "The people found and reached"],
       ] } },
@@ -315,7 +315,7 @@ const hub: SeedPage = {
     ],
     faq: [
       { q: "What is an AI advertising platform?", a: "A platform where AI runs the campaign for a result you choose. In Yolias, AI finds the customers who match your audiences, writes to each one, answers the replies and books meetings, and optimizes the budget toward the audiences that convert." },
-      { q: "Which advertising platform is best for B2B?", a: "For awareness by job title, LinkedIn Ads. For buyers already searching, Google Ads. To reach specific companies and decision makers directly and have the conversation carried to a meeting, Yolias." },
+      { q: "Which advertising platform is best for customer acquisition?", a: "For awareness by job title, LinkedIn Ads. For buyers already searching, Google Ads. To reach specific companies and decision makers directly and have the conversation carried to a meeting, Yolias." },
       { q: "Should I stop my ads to use Yolias?", a: "No. Yolias adds an acquisition channel. Keep the ads that work, and use Yolias to reach the customers ads don't." },
     ],
     cta: CTA.en,
@@ -350,7 +350,7 @@ const hub: SeedPage = {
     ],
     faq: [
       { q: "ما هي منصة الإعلانات بالذكاء الاصطناعي؟", a: "منصة يدير فيها الذكاء الاصطناعي الحملة لتحقيق نتيجة تختارها. في يولياس يجد الذكاء الاصطناعي العملاء المطابقين لجماهيرك، ويكتب لكل منهم، ويرد على الردود ويحجز الاجتماعات، ويوجّه الميزانية نحو الجماهير التي تحقق نتائج." },
-      { q: "ما أفضل منصة إعلانات للشركات (B2B)؟", a: "للوعي حسب المسمى الوظيفي إعلانات لينكدإن، ولمن يبحثون بالفعل إعلانات جوجل، وللوصول المباشر إلى شركات وصنّاع قرار محددين مع إكمال المحادثة حتى الاجتماع يولياس." },
+      { q: "ما أفضل منصة إعلانات لاكتساب العملاء؟", a: "للوعي حسب المسمى الوظيفي إعلانات لينكدإن، ولمن يبحثون بالفعل إعلانات جوجل، وللوصول المباشر إلى شركات وصنّاع قرار محددين مع إكمال المحادثة حتى الاجتماع يولياس." },
       { q: "هل أوقف إعلاناتي لأستخدم يولياس؟", a: "لا. يولياس يضيف قناة لاكتساب العملاء. أبقِ الإعلانات التي تنجح، واستخدم يولياس للوصول إلى العملاء الذين لا تصلهم الإعلانات." },
     ],
     cta: CTA.ar,

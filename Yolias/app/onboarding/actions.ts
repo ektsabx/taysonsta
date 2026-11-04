@@ -1,5 +1,6 @@
 "use server";
 
+import { ownEvent } from "@/lib/own-pixel";
 import { saveFirstCustomerProfile } from "@/lib/ai-workspace/customer-from-site";
 import { canUseApp } from "@/lib/plans";
 import { pendingPlan } from "@/lib/session";
@@ -106,16 +107,17 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     await attributeSignup(session.userId, ref, h.get("cf-connecting-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null);
   }
 
+  await ownEvent("CompleteRegistration", { email: session.email, eventId: `signup:${session.userId}` });
   await welcome(session.userId, parsed.data.full_name);
   await communityInvite(session.userId, parsed.data.full_name);
   await capture(session.userId, "onboarding_completed", {
     workspace_id: session.workspace.id, role: session.role, plan: session.workspace.plan,
     has_ideal_customer: Boolean(company?.ideal_customer), industry: company?.industry ?? null, acquisition_source: source.value?.source ?? null,
   });
-  // Onboarding comes before the plan (owner, 2026-10-29): Yolias shows it understood the business, then the plan.
+  // Free signup (owner, 2026-11-05): straight into Yolias, unless a plan was picked on the pricing page.
   if (!canUseApp(session.workspace)) {
     const plan = await pendingPlan(session);
-    redirect(plan ? `/checkout?plan=${plan}` : "/checkout");
+    if (plan) redirect(`/checkout?plan=${plan}`);
   }
   // The dashboard is the account's home (D-270); a template from the website waits in Yolias AI's box.
   redirect((await cookies()).get(TEMPLATE_COOKIE) ? "/" : "/dashboard");

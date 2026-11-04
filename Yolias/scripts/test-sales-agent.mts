@@ -177,7 +177,7 @@ try {
   let n = answers();
   await ask(0, "Sounds interesting, tell me more");
   assert.equal(answers(), n + 1, "interest is answered at once");
-  assert.ok(testOutbox().at(-1)!.body.includes("/meet/"), "with the booking page");
+  assert.ok(/\/(meet|l)\//.test(testOutbox().at(-1)!.body), "with the booking page");
   assert.equal(await handoffs(thread(0).lead_id!), 0, "no hand-off for interest");
 
   n = answers();
@@ -237,7 +237,8 @@ try {
   assert.equal(await recordOpen(m1!.id), false, "a scanner right after sending isn't a person");
 
   const interestReply = testOutbox().filter((x) => x.to === thread(0).to_email).at(-1)!;
-  assert.ok(interestReply.body.includes(`?r=${thread(0).lead_id}`), "the booking link in the reply carries the lead");
+  const { data: leadLinks } = await admin.from("email_links").select("code, url").eq("lead_id", thread(0).lead_id!);
+  assert.ok((leadLinks ?? []).some((l) => interestReply.body.includes(`/l/${l.code}`) && l.url.includes(`?r=${thread(0).lead_id}`)), "the booking link in the reply carries the lead");
   const slug = (await admin.from("booking_pages").select("slug").eq("user_id", A.userId).single()).data!.slug;
   const v1 = await recordVisit(slug, "visitor-one-123", thread(0).lead_id!);
   assert.ok(v1, "a visit is recorded");

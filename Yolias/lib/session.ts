@@ -64,6 +64,17 @@ export async function requireSession(): Promise<Session> {
 }
 
 /**
+ * Free signup (owner, 2026-11-05): a member builds a whole campaign before
+ * paying; the first payment comes at launch, from $5. Everything that spends
+ * credit keeps its own check (startBlock), so nothing runs unpaid.
+ */
+export async function requireMember(): Promise<Session> {
+  const session = await requireUser();
+  if (!session.profile.onboarded_at) redirect("/onboarding");
+  return session;
+}
+
+/**
  * App pages (not actions): a signed-in member may look around Yolias before
  * choosing a plan (owner brief 2026-10-19). The shell then asks them to pick
  * a plan and add a card to start the free trial; every action still calls
@@ -77,9 +88,8 @@ export async function requireViewer(): Promise<Session> {
 }
 
 /** Where a signed-in user should continue to next. */
-export function nextStep(session: Session): "/checkout" | "/onboarding" | "/" {
+export function nextStep(session: Session): "/onboarding" | "/" {
   if (!session.profile.onboarded_at) return "/onboarding";
-  if (!canUseApp(session.workspace)) return "/checkout";
   return "/";
 }
 

@@ -53,7 +53,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   const groups = (groupRows ?? []) as AudienceGroupRow[];
   const searchIds = [...new Set([...groups.map((g) => g.search_campaign_id), ...camps.map((c) => c.source_campaign_id)].filter((x): x is string => Boolean(x)))];
 
-  const [msgs, enrollments, meetings, ledger, prospects, companies, visits, pixel, rate] = await Promise.all([
+  const [msgs, enrollments, meetings, ledger, prospects, companies, visits, pixel, rate, clicks] = await Promise.all([
     paged<Msg>((a, b) => db.from("outreach_messages").select("outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, step_position, variant, recipient_opened_at")
       .eq("workspace_id", workspaceId).not("lead_id", "is", null).order("created_at").range(a, b)),
     paged<{ id: string; campaign_id: string; lead_id: string; audience_group_id: string | null }>((a, b) => db.from("outreach_enrollments").select("id, campaign_id, lead_id, audience_group_id").in("campaign_id", ids).range(a, b)),
@@ -66,6 +66,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
     // D-274: pixel events credited to these campaigns.
     paged<{ campaign_id: string | null; group_id: string | null; lead_id: string | null; event: string; value: number | null; currency: string | null; visitor: string | null; created_at: string }>((a, b) => db.from("pixel_events").select("campaign_id, group_id, lead_id, event, value, currency, visitor, created_at").eq("workspace_id", workspaceId).in("campaign_id", ids).is("test_code", null).range(a, b)),
     prospectRate(workspaceId),
+    paged<{ campaign_id: string | null; lead_id: string; first_click_at: string }>((a, b) => db.from("email_links").select("campaign_id, lead_id, first_click_at").in("campaign_id", ids).not("first_click_at", "is", null).range(a, b)),
   ]);
 
   // Which group each enrollment and each (campaign, lead) belongs to.
@@ -159,6 +160,13 @@ export async function campaignTable(workspaceId: string, range: { from: string |
       else if (v.started_at && Date.now() - Date.parse(v.updated_at) > ABANDON_MS) n.abandoned++;
     }
   }
+  // Owner, 2026-11-05: each person once per campaign, on their first click.
+  const clicked = new Set<string>();
+  for (const c of clicks) {
+    if (!c.campaign_id || !inRange(c.first_click_at, range) || clicked.has(`${c.campaign_id}:${c.lead_id}`)) continue;
+    clicked.add(`${c.campaign_id}:${c.lead_id}`);
+    for (const k of keysFor(c.campaign_id, groupOfLead.get(`${c.campaign_id}:${c.lead_id}`) ?? null, c.lead_id)) bucket(k).n.linkClicks++;
+  }
   for (const u of ledger) {
     const o = u.campaign_id ? searchOwner.get(u.campaign_id) : null;
     if (o && inRange(u.created_at, range)) for (const k of keysFor(o.campaign, o.group)) { const { n } = bucket(k); n.prospectsUsed += u.prospects; n.spendUsd += u.prospects * rate; }
@@ -174,7 +182,8 @@ export async function campaignTable(workspaceId: string, range: { from: string |
       if (e.event === "PageView") { const set = visitors.get(k) ?? new Set<string>(); set.add(e.lead_id ?? e.visitor ?? ""); visitors.set(k, set); }
       else if (e.event === "InitiateCheckout") n.checkouts++;
       else if (e.event === "Purchase") { n.purchases++; if (e.value != null && (!e.currency || e.currency === "USD")) n.purchaseValue += Number(e.value); }
-      else if (e.event === "Lead" || e.event === "CompleteRegistration") n.formLeads++;
+      else if (e.event === "Lead" || e.event === "CompleteRegistration") { n.formLeads++; if (e.event === "CompleteRegistration") n.signups++; }
+      else if (e.event === "Activated") n.activated++;
       if (conversionOf.get(e.campaign_id) === e.event) { n.conversions++; if (e.value != null && (!e.currency || e.currency === "USD")) n.conversionValue += Number(e.value); }
     }
   }

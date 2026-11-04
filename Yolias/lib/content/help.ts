@@ -685,6 +685,7 @@ export const articles: HelpArticle[] = [
         title: "Pay As You Go or a monthly plan",
         summary: "Every option has every feature and unlimited users; you pay for prospects only.",
         blocks: [
+          { p: "Signing up is free. Build your campaign, then pay when you launch it, from $5." },
           { p: "A **prospect** is a person Yolias finds and reaches for your campaigns. It's the only unit: writing and sending emails, replies and meetings are never charged, and the same prospect is never counted twice." },
           { table: {
             head: ["Option", "Price", "How it works"],
@@ -701,6 +702,7 @@ export const articles: HelpArticle[] = [
         title: "الدفع حسب الاستخدام أو خطة شهرية",
         summary: "كل خيار فيه كل المزايا ومستخدمون بلا حد، وتدفع مقابل العملاء المحتملين فقط.",
         blocks: [
+          { p: "التسجيل مجاني. ابنِ حملتك ثم ادفع عند إطلاقها، من 5 دولارات." },
           { p: "**العميل المحتمل** شخص يجده يولياس ويصل إليه لحملاتك. وهو الوحدة الوحيدة: كتابة الرسائل وإرسالها والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب العميل نفسه مرتين." },
           { table: {
             head: ["الخيار", "السعر", "كيف يعمل"],

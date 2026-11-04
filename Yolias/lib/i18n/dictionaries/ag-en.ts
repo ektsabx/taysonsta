@@ -10,7 +10,7 @@ export const agEn = {
   tones: { direct: "Direct", friendly: "Friendly", conservative: "Formal" },
 
   builder: {
-    forecast: { title: "What this campaign can bring", reach: "People reached", found: "People found", days: "Time to reach them", daysValue: "{n} days", replies: "Interested replies", meetings: "Meetings", known: "Matching people known", note: "An estimate from B2B averages. Results depend on your market and offer." },
+    forecast: { title: "What this campaign can bring", reach: "People reached", found: "People found", days: "Time to reach them", daysValue: "{n} days", replies: "Interested replies", meetings: "Meetings", known: "Matching people known", note: "An estimate from campaign averages. Results depend on your market and offer." },
     fill: { title: "Build it with Yolias", line: "Yolias sets up the whole campaign from what it knows about your company. You review it and launch.", action: "Build with Yolias", working: "Yolias is building it…", done: "Campaign ready to review" },
     audienceIssues: { overlap: "the same value is included and excluded", no_titles: "add job titles so Yolias reaches the people who decide", too_broad: "add a location and an industry to keep the audience precise" },
     title: "Create campaign", editTitle: "Edit campaign", saveDraft: "Save draft", saved: "Draft saved.", back: "Back", next: "Next", cancel: "Cancel",
@@ -81,7 +81,7 @@ export const agEn = {
       settings: "Check the campaign settings.", dates: "The end must be after the start and in the future.", name: "Name the campaign.",
       mailbox: "Connect a mailbox to send from.", audience: "Give every audience a targeting or a saved audience.", confirm: "Confirm that Yolias may email on your behalf.",
       preview: "Yolias couldn't write a sample right now. Try again in a moment.", approach: "Yolias couldn't write the approach right now. Try again in a moment.",
-      noPlan: "Top up or choose a plan to launch a campaign.", noCredit: "Your balance is empty. Top up to launch this campaign.", budget: "Set a budget of at least {usd}.",
+      freeAi: "Top up from $5 to keep using Yolias AI today.", noPlan: "Top up or choose a plan to launch a campaign.", noCredit: "Your balance is empty. Top up to launch this campaign.", budget: "Set a budget of at least {usd}.",
       locked: "This campaign is running: its audiences' targeting can't change. Add a new audience instead.",
     },
   },
@@ -209,7 +209,7 @@ export const agEn = {
       save: "Save", saved: "Saved.", invalid: "Check the name and the domains.",
       testTitle: "Test browser events", testLine: "Enter your website and open it from here. Events your browser sends while testing show below as they arrive, and they never count in your results.",
       siteUrl: "Website URL", openSite: "Open website", testCode: "Test code: {code}", received: "Events received", listening: "Listening", waiting: "Waiting for events from your website…", testEmpty: "Open your website above to start.",
-      helperLine: "The Yolias Pixel Helper for Chrome shows, on any website, whether a Yolias pixel is installed and every event it sends, with its parameters and any problems.", helperGet: "Download Pixel Helper",
+      helperLine: "The Yolias Pixel Helper for Chrome shows, on any website, whether a Yolias pixel is installed and every event it sends, with its parameters and any problems.", helperGet: "Explore Yolias Pixel",
     },
     build: {
       whatSite: [

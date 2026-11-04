@@ -134,7 +134,7 @@ export const en = {
     noWebsite: "No website? Fill it in yourself",
     websitePlaceholder: "example.com",
     industry: "Industry",
-    industryPlaceholder: "e.g. B2B software, logistics, real estate",
+    industryPlaceholder: "e.g. software, logistics, real estate",
     offering: "Products and services",
     offeringPlaceholder: "What you sell, and the problem it solves...",
     idealCustomer: "Ideal customer profile",
@@ -264,7 +264,7 @@ export const en = {
     joinCommunity: "Join Community",
   },
   planGate: {
-    banner: "You’re exploring Yolias. Top up credit or choose a plan to start finding customers.",
+    banner: "Build your campaign for free. Top up from $5 when you launch.",
     bannerTrial: "You’re exploring Yolias. Choose a plan and add your card to start your {days}-day free trial.",
     title: "Start your free trial",
     titleNoTrial: "Top up or choose a plan",
@@ -274,7 +274,7 @@ export const en = {
     later: "Keep exploring",
   },
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
-  share: { on: "Share on", message: "I use Yolias to find B2B customers with AI: it finds the right companies, writes the emails and sends them from my own mailbox. Try it with my link:" },
+  share: { on: "Share on", message: "I use Yolias to acquire customers with AI ad campaigns: it finds the right companies, writes the emails and sends them from my own mailbox. Try it with my link:" },
   emptyNext: { campaigns: "Pick leads for a campaign", crm: "Open conversations", prospects: "Start a search", inbox: "Open campaigns" },
   meetings: {
     title: "Meetings", tabs: { bookings: "Bookings", page: "Booking page" },
@@ -282,7 +282,7 @@ export const en = {
     source: { booking: "Booking page", agent: "Yolias", manual: "Added by hand" }, status: { scheduled: "Scheduled", completed: "Done", canceled: "Canceled", no_show: "No-show" },
     join: "Join", done: "Done", noShow: "No-show", cancel: "Cancel", cancelConfirm: "Cancel this meeting? The guest will be told.", saved: "Saved.", guestNote: "Their note",
     page: {
-      intro: "Your own page where people book a meeting with you. Yolias shares it with leads who ask for a meeting, and every booking reaches your email and your CRM.",
+      intro: "Your own page where people book a meeting with you. Yolias shares it with leads who ask for a meeting, and every booking reaches your email and your Meetings.",
       link: "Your link", copy: "Copy", copied: "Copied", open: "Open the page",
       google: "Google Calendar", googleLead: "Connect your Google account and every meeting booked on this page, or by Yolias, is added to a new calendar in Google Calendar, and Google sends the invitation to your guest.",
       googlePoints: ["A separate calendar inside Google Calendar, with your guests invited", "Yolias only touches the calendar it creates; your other calendars stay private"],
@@ -439,7 +439,7 @@ export const en = {
       getCampaign: "Checking the search…", updateCampaign: "Updating the search…", getStrategy: "Reading the search…",
       createCampaign: "Starting a new search…", getAnalytics: "Reading your analytics…", getUsage: "Checking your usage…", getBilling: "Checking billing…",
       createOutreachCampaign: "Preparing the campaign…", getOutreachCampaign: "Reading the campaign…", startOutreachCampaign: "Starting the campaign…", controlOutreachCampaign: "Updating the campaign…",
-      listReplies: "Reading replies…", listLeads: "Reading your CRM…", updateLeadStage: "Updating the CRM…", excludeLead: "Excluding the lead…",
+      listReplies: "Reading replies…", listLeads: "Reading your leads…", updateLeadStage: "Updating the lead…", excludeLead: "Excluding the lead…",
     },
     copy: "Copy",
     copied: "Copied",
@@ -707,6 +707,12 @@ export const en = {
       founder: "Personal emails from our founder", founderDesc: "A few notes from Yolias's founder, written by a person. Reply and they read it.",
     },
     usage: {
+      wallet: {
+        title: "Credit and billing", lead: "Manage your balance, purchases and usage in Yolias.",
+        balance: "Your available balance", available: "Available to use", prepaid: "Prepaid credit · Never expires", renews: "Renews on {date}",
+        topUp: "Top up", packs: "Credit packs", packName: "{amount} of usage credit", buy: "Buy", added: "Credit added.",
+        spent: "Your usage", search: "Search and audience discovery", data: "Customer data lookup", messages: "Message creation and outreach", campaigns: "Running ad campaigns",
+      },
       title: "Plan usage", planLine: "{plan} · prospects delivered this month", planLineFree: "{plan} · prospects delivered", upgrade: "Upgrade",
       prospects: "Prospects", value: "{used} / {total}",
       prospectsDesc: "Each company or local business Yolias delivers uses one prospect, however much data comes with it. Its decision makers come with it, free.",
@@ -755,6 +761,20 @@ export const en = {
       imapName: "IMAP/SMTP mailbox", imapDesc: "Any other mailbox: Zoho, Hostinger, Outlook or your company mail.",
       rulesName: "Sending rules", rulesDesc: "Emails a day, the gap between emails, and sending days and hours, for every mailbox.", rulesOn: "On",
       calendarName: "Google Calendar", calendarDesc: "Every booked meeting goes to a calendar Yolias creates, with Google's invitation to your guest.",
+      apps: {
+        subtitle: "Connect Yolias to the tools you work with.", search: "Search", none: "No integration matches your search.",
+        categories: { all: "All", email: "Email", calendar: "Calendar", tracking: "Tracking" },
+        details: "Details", install: "Install", by: "Published by Yolias", version: "Version {v}", active: "{n} active",
+        pricing: "Pricing", free: "Free", contact: "Contact",
+        store: "Add from Chrome Web Store", manual: "Download and install it yourself",
+        installTitle: "Install it yourself", installSteps: ["Download the file and unzip it.", "Open chrome://extensions and turn on Developer mode.", "Choose Load unpacked and select the unzipped folder."],
+        items: {
+          gmail: { name: "Gmail", short: "Send your campaigns from Gmail or Google Workspace and read every reply in Yolias.", about: "Your campaigns go out from your own Gmail or Google Workspace address, and every reply lands in Conversations.", points: ["Sends from your own address", "Reads replies to your campaigns", "Sending days, hours and daily limits for each mailbox"] },
+          imap: { name: "IMAP/SMTP mailbox", short: "Connect any other mailbox: Zoho, Hostinger, Outlook or your company mail.", about: "Connect any mailbox with its IMAP and SMTP details. Yolias sends your campaigns from it and reads the replies.", points: ["Works with any email provider", "Reads replies to your campaigns", "Sending days, hours and daily limits for each mailbox"] },
+          "google-calendar": { name: "Google Calendar", short: "Every booked meeting goes to a calendar Yolias creates, with Google's invitation to your guest.", about: "Meetings booked through Yolias land in a calendar Yolias creates in your Google account, and your guest gets Google's invitation.", points: ["Booked meetings appear in your calendar", "Your guest gets Google's invitation", "Busy times are skipped on your booking page"] },
+          "pixel-helper": { name: "Yolias Pixel", short: "See on any website whether a Yolias pixel is installed and every event it sends.", about: "A Chrome extension that shows, on any website, whether a Yolias pixel is installed and every event it sends, with its parameters and any problems.", points: ["Shows the pixel on any website", "Lists every event with its parameters", "Points out problems in the setup"] },
+        },
+      },
     },
     referral: {
       title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} prospects to your balance. They never expire.",
@@ -938,7 +958,7 @@ export const en = {
     card: {
       reach: "Reach {count} prospects a month", reachOnce: "Reach {count} prospects", replies: "About {low}–{high} positive replies a month", meetings: "Target about {low}–{high} booked meetings a month",
       campaigns: "AI customer-acquisition campaigns", messages: "AI-personalized outreach messages", agent: "Yolias AI answers and books", pixel: "Pixel, conversions and revenue", users: "Unlimited users",
-      estimate: "Replies and meetings are estimates from B2B email averages (positive replies 1.5–3%, meetings 0.5–1.5% of the people reached). Results depend on your market and offer.",
+      estimate: "Replies and meetings are estimates from email campaign averages (positive replies 1.5–3%, meetings 0.5–1.5% of the people reached). Results depend on your market and offer.",
     },
     feature: "Feature", coreFeatures: "Core features included on every plan", usageCapacity: "Usage capacity", included: "Included",
     features: {
@@ -961,7 +981,7 @@ export const en = {
     noCardSetup: "No credit card required • Setup in minutes",
     setupMinutes: "Setup in minutes",
     payg: {
-      name: "Pay As You Go", note: "minimum top-up", cta: "Top up credit", foot: "One payment · No subscription",
+      name: "Pay As You Go", note: "minimum top-up", cta: "Top up credit", foot: "Free signup · Pay at launch · No subscription",
       unit: "Pay only for the prospects you get", option: "{amount} = {count} prospects", noRenewal: "No subscription, no renewal", sameFeatures: "Every Yolias feature",
       byCredit: "By credit", from: "From {amount}", noExpiry: "Credit with no expiry date",
     },
@@ -973,7 +993,7 @@ export const en = {
       ["Can I switch between Pay As You Go and a monthly plan?", "Yes, any time. Your remaining credit stays in your account when you subscribe, and you can still top up while on a plan."],
       ["Are taxes included in the displayed prices?", "No. Prices shown don’t include applicable tax."],
       ["What is a prospect?", "A person Yolias finds and reaches for your campaigns: a decision maker at a company that matches your audience. It’s the only thing you pay for, and the same prospect is never counted twice."],
-      ["How are the reply and meeting numbers worked out?", "From B2B email averages for a personal first email with two follow-ups: about 1.5–3% of the people reached reply with interest and 0.5–1.5% book a meeting. They are estimates, not a promise; your market, offer and audience decide the real numbers, and each campaign shows them."],
+      ["How are the reply and meeting numbers worked out?", "From email campaign averages for a personal first email with two follow-ups: about 1.5–3% of the people reached reply with interest and 0.5–1.5% book a meeting. They are estimates, not a promise; your market, offer and audience decide the real numbers, and each campaign shows them."],
       ["Are emails charged?", "No. Writing emails, sending them from your connected mailbox, replies and meetings are never charged, and viewing your prospects again is free."],
       ["What happens when I run out?", "Your campaigns stop reaching new people until you top up or your plan renews; conversations already started continue. Campaigns pick up again by themselves once you have prospects."],
       ["What happens after I sign up?", "You confirm your email with a sign-in link, choose your plan at checkout, then tell Yolias about your company (or let it read your website). Then you create your first campaign: the goal, the customers you want and the message."],

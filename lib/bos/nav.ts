@@ -340,6 +340,7 @@ export const navigation: NavGroup[] = [
         href: "/admin/settings/integrations", label: "مركز التكاملات", perm: ["integrations.manage", "conversations.manage"], hrefPerm: "integrations.manage",
         children: [
           { href: "/admin/settings/integrations", label: "الخدمات والمفاتيح", perm: "integrations.manage", all: "integrations.manage" },
+          { href: "/admin/settings/integrations/apps", label: "إضافات وتكاملات يولياس", perm: "integrations.manage", all: "integrations.manage" },
         ],
       },
       { href: "/admin/settings/security", label: "الأمان", perm: "settings.manage" },

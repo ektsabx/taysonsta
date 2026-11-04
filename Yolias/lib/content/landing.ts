@@ -34,12 +34,12 @@ export const landing: Localized<Landing> = {
   en: {
     example: "Example",
     hero: {
-      eyebrow: "YOLIAS · AI AGENTS FOR BUSINESS GROWTH",
+      eyebrow: "Yolias · AI Advertising Platform for Customer Acquisition",
       title: "Run customer acquisition campaigns. Grow your business.",
       lead: "Everything you need to build campaigns that target the right customers, manage how you reach them, and follow the results in one place.",
       lead2: "Define your audience, launch your campaigns, and track their performance through to meetings and qualified leads.",
       primary: "Get started", secondary: "Explore the platform",
-      under: "One platform to run your growth campaigns.",
+      under: "Free signup. Pay when you launch, from $5.",
       shotAlt: "Yolias Campaigns: each campaign with its status, audience, people reached, replies, meetings, spend and cost per meeting",
     },
     intro: {
@@ -224,12 +224,12 @@ export const landing: Localized<Landing> = {
   ar: {
     example: "مثال توضيحي",
     hero: {
-      eyebrow: "يولياس · وكلاء ذكاء اصطناعي لنمو الأعمال",
+      eyebrow: "يولياس · منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء",
       title: "أدر حملات اكتساب العملاء. ونمِّ أعمالك.",
       lead: "كل ما تحتاجه لإنشاء حملات تستهدف العملاء المناسبين، وإدارة الوصول إليهم، ومتابعة النتائج من مكان واحد.",
       lead2: "حدد جمهورك، وأطلق حملاتك، وتابع أداءها حتى الاجتماعات والعملاء المحتملين.",
       primary: "ابدأ الآن", secondary: "استكشف المنصة",
-      under: "منصة واحدة لإدارة حملات نمو أعمالك.",
+      under: "التسجيل مجاني، والدفع عند إطلاق حملتك من 5 دولارات.",
       shotAlt: "الحملات في يولياس: كل حملة بحالتها وجمهورها ومن وصلت إليهم والردود والاجتماعات والإنفاق وتكلفة الاجتماع",
     },
     intro: {

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, canEdit, viewOnly } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDictionary } from "@/lib/i18n/server";
@@ -35,7 +35,7 @@ async function sourceLeads(workspaceId: string, source: CustomSource, campaignId
 
 /** Preview before building: how many people, how many can be emailed, how many asked not to be contacted. */
 export async function previewCustom(source: CustomSource, campaignId: string | null): Promise<AudienceResult<{ total: number; withEmail: number; doNotContact: number }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!(CUSTOM_SOURCES as readonly string[]).includes(source)) return { ok: false, error: (await getDictionary()).ag.aud.errors.source };
   const ids = await sourceLeads(session.workspace.id, source, campaignId);
   const { data } = ids.length ? await createAdminClient().from("sales_leads").select("email, do_not_contact").eq("workspace_id", session.workspace.id).in("id", ids.slice(0, 5000)) : { data: [] };
@@ -56,7 +56,7 @@ async function fill(workspaceId: string, audienceId: string, ids: string[]): Pro
 const customInput = z.object({ name: z.string().trim().min(1).max(120), source: z.enum(CUSTOM_SOURCES), campaignId: z.string().uuid().nullable().optional() });
 
 export async function createCustom(input: z.input<typeof customInput>): Promise<AudienceResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = customInput.safeParse(input);
@@ -76,7 +76,7 @@ export async function createCustom(input: z.input<typeof customInput>): Promise<
 
 /** A custom audience from a CSV file: the contacts are imported (plan limits apply), then become the audience. */
 export async function importAudience(input: { name: string; fileName: string; kind: ImportKind; mapping: Record<ImportField, number>; rows: string[][] }): Promise<AudienceResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const e = t.prospects.import.errors;
@@ -119,14 +119,14 @@ export async function importAudience(input: { name: string; fileName: string; ki
 const lookInput = z.object({ base: z.enum(["customers", "meetings", "interested", "audience"]), audienceId: z.string().uuid().nullable().optional(), expansion: z.number().int().min(1).max(10) });
 
 export async function analyzeLookalike(input: z.input<typeof lookInput>): Promise<AudienceResult<{ lookalike: Lookalike }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   const p = lookInput.safeParse(input);
   if (!p.success) return { ok: false, error: (await getDictionary()).ag.aud.errors.source };
   return { ok: true, lookalike: await lookalike(session.workspace.id, p.data.base as SeedKind, p.data.audienceId ?? undefined, p.data.expansion) };
 }
 
 export async function createLookalike(input: z.input<typeof lookInput> & { name: string }): Promise<AudienceResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = lookInput.safeParse(input);
@@ -148,7 +148,7 @@ const savedInput = z.object({ id: z.string().uuid().optional(), kind: z.literal(
 
 /** A saved targeting (from Audiences or from an audience in the campaign builder). */
 export async function saveAudience(input: z.input<typeof savedInput>): Promise<AudienceResult<{ id: string }>> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = savedInput.safeParse(input);
@@ -164,7 +164,7 @@ export async function saveAudience(input: z.input<typeof savedInput>): Promise<A
 }
 
 export async function renameAudience(id: string, name: string): Promise<AudienceResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const n = name.trim().slice(0, 120);
@@ -176,7 +176,7 @@ export async function renameAudience(id: string, name: string): Promise<Audience
 
 /** Custom: rebuilt from its source. Lookalike: re-learned from its base (same expansion). */
 export async function refreshAudience(id: string): Promise<AudienceResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const db = await createClient();
@@ -196,7 +196,7 @@ export async function refreshAudience(id: string): Promise<AudienceResult> {
 }
 
 export async function deleteAudience(id: string): Promise<AudienceResult> {
-  const session = await requireSession();
+  const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: t.ag.aud.errors.name };

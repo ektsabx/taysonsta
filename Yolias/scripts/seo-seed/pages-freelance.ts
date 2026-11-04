@@ -203,7 +203,7 @@ function audience(slug: string, keyword: string, secondary: string[], en: { titl
     links: [
       { path: "/solutions/freelancers", en: "Freelancers", ar: "المستقلون" },
       { path: "/solutions/consultants", en: "Consultants", ar: "الاستشاريون" },
-      { path: "/solutions/sales-teams", en: "B2B sales teams", ar: "فرق المبيعات" },
+      { path: "/solutions/sales-teams", en: "Sales teams", ar: "فرق المبيعات" },
       { path: "/compare/apollo", en: "Yolias vs Apollo", ar: "يولياس مقابل Apollo" },
     ],
     en: side(en, "en"), ar: side(ar, "ar"),
@@ -242,12 +242,12 @@ export const freelanceSolutionPages: SeedPage[] = [
     }),
   audience("founders", "ai sales agent for founders", ["founder led sales automation", "how founders get first customers", "outbound for early stage startups"],
     {
-      title: "Founders", h1: "Founder-led sales, without the founder doing the prospecting",
+      title: "Founders", h1: "Founder-led sales, without the founder running the campaigns",
       metaTitle: "Yolias AI for founders | Yolias",
       metaDescription: "Founders: set the customers you want to meet and Yolias finds them, emails them from your mailbox, answers replies and books the meetings, with the cost per meeting.",
       lead: "Early on, the founder sells. Yolias takes the slow part off your plate: finding the right companies and people, writing to each one and handling the replies, so your time goes into the meetings.",
       answer: "Founders get first customers by talking to many well-chosen prospects quickly. Set the companies and roles you want, launch a campaign with a small daily budget, and let Yolias write, follow up and book. Watch the cost per meeting to see which audience works.",
-      audience: ["Pre-seed and seed startups", "Founders of B2B SaaS and service companies", "Solo founders without a sales team"],
+      audience: ["Pre-seed and seed startups", "Founders of SaaS and service businesses", "Solo founders without a sales team"],
       criteria: ["Your best early customers (start a lookalike audience from them)", "The roles that feel the problem you solve", "Countries where you can sell and support"],
       ex: "Fintech startups in the UAE and Saudi Arabia with 10–100 employees; founders and CTOs",
       faq: [
@@ -261,7 +261,7 @@ export const freelanceSolutionPages: SeedPage[] = [
       metaDescription: "للمؤسسين: حدد العملاء الذين تريد مقابلتهم، فيجدهم يولياس ويراسلهم من بريدك ويرد ويحجز الاجتماعات، مع تكلفة الاجتماع.",
       lead: "في البداية يبيع المؤسس بنفسه. يأخذ يولياس الجزء البطيء عنك: إيجاد الشركات والأشخاص المناسبين، والكتابة لكل منهم، والتعامل مع الردود، ليذهب وقتك إلى الاجتماعات.",
       answer: "يحصل المؤسسون على أول عملائهم بالتحدث مع كثير من العملاء المختارين جيدًا بسرعة. حدد الشركات والأدوار التي تريدها، وشغّل حملة بميزانية يومية صغيرة، ودع يولياس يكتب ويتابع ويحجز. وتابع تكلفة الاجتماع لترى أي جمهور ينجح.",
-      audience: ["الشركات الناشئة في مراحلها الأولى", "مؤسسو شركات SaaS والخدمات B2B", "المؤسسون المنفردون بلا فريق مبيعات"],
+      audience: ["الشركات الناشئة في مراحلها الأولى", "مؤسسو شركات SaaS والخدمات المهنية", "المؤسسون المنفردون بلا فريق مبيعات"],
       criteria: ["أفضل عملائك الأوائل (ابدأ منهم جمهورًا مشابهًا)", "الأدوار التي تشعر بالمشكلة التي تحلها", "الدول التي تستطيع البيع والدعم فيها"],
       ex: "شركات التقنية المالية الناشئة في الإمارات والسعودية (10–100 موظف)؛ المؤسسون والمديرون التقنيون",
       faq: [

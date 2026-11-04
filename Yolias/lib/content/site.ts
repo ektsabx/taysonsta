@@ -21,13 +21,13 @@ export const home: Localized<{
   faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
 }> = {
   en: {
-    eyebrow: "YOLIAS · AI AGENTS FOR BUSINESS GROWTH",
+    eyebrow: "Yolias · AI Advertising Platform for Customer Acquisition",
     title: "Run customer acquisition campaigns. Grow your business.",
     lead: "Yolias is an advertising platform for customer acquisition campaigns. Create campaigns that target the right customers, manage how you reach them, and follow the results through to meetings, leads and sales in one place.",
     primary: "Get started",
     primaryTrial: "Start free trial",
     secondary: "See how it works",
-    reassure: "All features on every plan · Unlimited users · Cancel anytime",
+    reassure: "Free signup · Pay at launch, from $5 · Unlimited users",
     reassureTrial: "{days}-day free trial · All features on every plan · Cancel anytime",
     compare: {
       eyebrow: "WHY YOLIAS",
@@ -92,13 +92,13 @@ export const home: Localized<{
     },
   },
   ar: {
-    eyebrow: "يولياس · وكلاء ذكاء اصطناعي لنمو الأعمال",
+    eyebrow: "يولياس · منصة إعلانات بالذكاء الاصطناعي لاكتساب العملاء",
     title: "أدر حملات اكتساب العملاء. ونمِّ أعمالك.",
     lead: "يولياس منصة إعلانية لإدارة حملات اكتساب العملاء. أنشئ حملات تستهدف العملاء المناسبين، وأدر الوصول إليهم، وتابع النتائج حتى الاجتماعات والعملاء المحتملين والمبيعات من مكان واحد.",
     primary: "ابدأ الآن",
     primaryTrial: "ابدأ التجربة المجانية",
     secondary: "شاهد كيف يعمل",
-    reassure: "كل الميزات في كل خطة · مستخدمون غير محدودين · إلغاء في أي وقت",
+    reassure: "تسجيل مجاني · الدفع عند الإطلاق من 5 دولارات · مستخدمون غير محدودين",
     reassureTrial: "تجربة مجانية {days} أيام · كل الميزات في كل خطة · إلغاء في أي وقت",
     compare: {
       eyebrow: "لماذا يولياس",
@@ -206,7 +206,7 @@ export const product: Localized<{
     ],
     icp: [
       { label: "Market", value: "Saudi Arabia" },
-      { label: "Industry", value: "B2B SaaS" },
+      { label: "Industry", value: "SaaS" },
       { label: "Company size", value: "20–200 employees" },
       { label: "Signals", value: "Hiring: sales, engineering" },
       { label: "Decision makers", value: "Founder, CEO, CTO" },
@@ -259,7 +259,7 @@ export const product: Localized<{
     ],
     icp: [
       { label: "السوق", value: "السعودية" },
-      { label: "القطاع", value: "B2B SaaS" },
+      { label: "القطاع", value: "SaaS" },
       { label: "حجم الشركة", value: "20–200 موظف" },
       { label: "المؤشرات", value: "توظيف: مبيعات، هندسة" },
       { label: "صنّاع القرار", value: "المؤسس، CEO، CTO" },
@@ -298,7 +298,7 @@ export const about: Localized<{
       "Yolias is that platform. A campaign has a goal, audiences and a message, like an ads manager. Yolias finds the decision makers, writes to each one, answers, follows up, books the meeting and counts every result and what it cost.",
       "We build it in Arabic and English from day one, for the markets we know best and the companies everywhere that sell the way they do.",
       "Under every campaign is one engine, Yolias AI. It understands the offer, finds the companies and people, writes each message, holds the conversation, follows up and measures the result; the campaign objective tells it which result to pursue: meetings, sales, website leads or qualified leads.",
-      "Yolias is for agencies, consultants, service providers, freelancers and small and mid-sized B2B companies that want new customers every month, not only large sales teams. Each of them runs acquisition the way advertisers run ads: a campaign for each service, its own audience and budget, and its results next to the others.",
+      "Yolias is for agencies, consultants, service providers, freelancers and businesses of any size that want new customers every month, not only large sales teams. Each of them runs acquisition the way advertisers run ads: a campaign for each service, its own audience and budget, and its results next to the others.",
     ],
     principlesEyebrow: "WHAT WE BELIEVE",
     principlesTitle: "How Yolias works.",

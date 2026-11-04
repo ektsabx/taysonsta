@@ -1087,6 +1087,7 @@ export interface Database {
       booking_visits: Table<BookingVisitRow, "workspace_id" | "host_id" | "slug" | "visitor">;
       pixels: Table<PixelRow, "workspace_id" | "public_id">;
       pixel_events: Table<PixelEventRow, "pixel_id" | "workspace_id" | "event">;
+      email_links: Table<{ code: string; workspace_id: string; lead_id: string; campaign_id: string | null; url: string; clicks: number; first_click_at: string | null; last_click_at: string | null; created_at: string }, "code" | "workspace_id" | "lead_id" | "url">;
       custom_metrics: Table<CustomMetricRow, "workspace_id" | "name" | "a" | "op" | "b">;
       learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;
       content_feedback: Table<{ kind: "docs" | "help" | "blog"; slug: string; visitor_id: string; helpful: boolean; locale: "en" | "ar"; created_at: string; updated_at: string }, "kind" | "slug" | "visitor_id" | "helpful">;
@@ -1124,6 +1125,7 @@ export interface Database {
       affiliate_stats: { Args: { p_affiliate: string; p_since: string }; Returns: { visits: number; signups: number; paying: number }[] };
       affiliate_log: { Args: { p_affiliate: string | null; p_actor: string; p_action: string; p_type: string | null; p_id: string | null; p_before: Json | null; p_after: Json | null }; Returns: undefined };
       usage_summary: { Args: { p_ws: string }; Returns: UsageSummary[] };
+      email_link_click: { Args: { p_code: string }; Returns: string | null };
       mailbox_count_sent: { Args: { p_mailbox: string; p_day: string }; Returns: number };
       admin_campaign_ops: { Args: { p_since: string }; Returns: { campaign_id: string; workspace_id: string; workspace_name: string | null; name: string; status: string; objective: string; created_at: string; approved_at: string | null; mailbox_email: string | null; daily_limit: number | null; sent: number; bounced: number; failed: number; replies: number; interested: number; meetings: number; last_sent_at: string | null; ai_cost_usd: number }[] };
       admin_llm_ops: { Args: { p_since: string }; Returns: { task: string; prompt_version: string; calls: number; failed: number; cache_hits: number; avg_latency_ms: number | null; p95_latency_ms: number | null; cost_usd: number; models: string[]; first_at: string; last_at: string }[] };
