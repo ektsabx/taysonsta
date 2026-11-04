@@ -25,7 +25,6 @@ async function all(since: string | null, until: string | null): Promise<PaymentR
 
 export async function paymentsDashboard(since: string, until: string) {
   const a = Date.parse(since), b = Date.parse(until);
-  const prevSince = new Date(a - (b - a)).toISOString();
   const everything = await all(null, until);
   const inRange = (r: PaymentRow, x: number, y: number) => { const t = Date.parse(r.created_at); return t >= x && t < y; };
   const now = everything.filter((r) => inRange(r, a, b));
