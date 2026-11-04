@@ -174,7 +174,7 @@ export const wsAr: Dictionary["ws"] = {
     meeting: {
       title: "العنوان", titlePh: "مكالمة تعريفية", startsAt: "التاريخ والوقت", endsAt: "ينتهي", url: "رابط الاجتماع", urlPh: "https://meet.google.com/…", notes: "ملاحظات", status: "الحالة",
       statuses: { scheduled: "مجدول", completed: "تم", canceled: "ملغى", no_show: "لم يحضر" },
-      linkHint: "الصق الرابط الذي أنشأته في Google Meet أو Zoom أو Teams. لا يستطيع يولياس إنشاء الاجتماعات أو الروابط بنفسه (لا يوجد تقويم متصل).",
+      linkHint: "الصق رابط الاجتماع.",
       brief: "تجهيز ملخص", briefing: "جارٍ التجهيز…", saved: "تم حفظ الاجتماع.", errors: { title: "أدخل العنوان.", time: "اختر التاريخ والوقت.", url: "أدخل رابطًا يبدأ بـ https://", end: "يجب أن يكون الانتهاء بعد البداية." },
     },
     errors: { notFound: "العميل غير موجود.", value: "أدخل مبلغًا صحيحًا.", currency: "استخدم رمز عملة من 3 أحرف، مثل USD.", task: "أدخل التذكير.", note: "اكتب ملاحظة أولًا." },

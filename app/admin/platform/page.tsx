@@ -93,7 +93,7 @@ export default async function YoliasDashboard({ searchParams }: { searchParams: 
         <Stat tone="customers" label="عملاء يدفعون الآن" value={k.activePaying.value} prev={k.activePaying.prev} change={k.activePaying.change} href="/admin/platform/users/subscribed" />
         <Stat tone="customers" label="المعلنون النشطون" value={k.activeAdvertisers.value} prev={k.activeAdvertisers.prev} change={k.activeAdvertisers.change} />
         <Stat tone="customers" label="نسبة الإلغاء" value={k.churnRate.value} prev={k.churnRate.prev} change={k.churnRate.change} format="pct" good="down" />
-        <Stat tone="customers" label="تكرار الشراء" value={k.repeatRate.value} format="pct" />
+        <Stat tone="customers" label="Repeat Rate %" value={k.repeatRate.value} format="pct" />
         <Stat tone="customers" label="NRR" value={k.nrr.value} format="pct" />
       </Group>
 

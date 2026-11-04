@@ -67,7 +67,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
           timeZone={session.profile.timezone ?? null}
         />
       ) : (
-        <BookingPageForm page={page} link={bookingUrl(page.slug)} calendar={calendar && calendar.status !== "disconnected" ? calendar.email ?? "Google" : null} zones={timeZoneChoices(page.timezone).map((z) => ({ value: z, label: timeZoneLabel(z, locale) }))} />
+        <BookingPageForm page={page} link={bookingUrl(page.slug)} calendar={calendar && calendar.status !== "disconnected" ? calendar.email ?? "Google" : null} zones={timeZoneChoices(page.timezone, locale).map((z) => ({ value: z, label: timeZoneLabel(z, locale) }))} />
       )}
     </div>
   );

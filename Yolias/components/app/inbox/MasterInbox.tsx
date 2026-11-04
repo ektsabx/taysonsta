@@ -53,11 +53,14 @@ export function MasterInbox(p: Props) {
   const router = useRouter();
   const [more, setMore] = useState(false);
   // Tabs switch in the browser: every tab's rows are already here (owner, 2026-11-05).
-  const [tab, setTab] = useState<InboxTab>(p.tab);
-  useEffect(() => setTab(p.tab), [p.tab]);
+  const [picked, setPicked] = useState<{ from: InboxTab; tab: InboxTab } | null>(null);
+  const tab = picked?.from === p.tab ? picked.tab : p.tab;
+  const setTab = (k: InboxTab) => setPicked({ from: p.tab, tab: k });
   const items = useMemo(() => p.items.filter((i) => i.tabs.includes(tab)), [p.items, tab]);
-  const [opening, setOpening] = useState<string | null>(null);
-  useEffect(() => setOpening(null), [p.thread?.lead.id]);
+  const [clicked, setClicked] = useState<{ from: string | null; lead: string } | null>(null);
+  const openNow = p.thread?.lead.id ?? null;
+  const opening = clicked?.from === openNow ? clicked.lead : null;
+  const setOpening = (lead: string) => setClicked({ from: openNow, lead });
   const [cursor, setCursor] = useState(() => Math.max(0, p.items.filter((i) => i.tabs.includes(p.tab)).findIndex((i) => i.leadId === p.thread?.lead.id)));
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {

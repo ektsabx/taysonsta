@@ -2,6 +2,7 @@
 
 import { aimOf, cleanCtaUrl } from "@/lib/outreach/aim";
 import { z } from "zod";
+import { Filled, type CampaignFill } from "@/lib/campaigns/fill";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -10,7 +11,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { countryLabel } from "@/lib/format";
 import { startGroupSearch } from "@/lib/campaigns/group-search";
-import { loadAiSettings } from "@/lib/ai-workspace/server";
+import { contextText, loadAiSettings, loadBusinessContext } from "@/lib/ai-workspace/server";
 import { decide } from "@/lib/ai-workspace/settings";
 import { LlmNotConfiguredError, runStructured } from "@/lib/ai/llm";
 import { tasks } from "@/lib/ai/orchestrator";
@@ -155,6 +156,39 @@ export async function writeApproach(input: unknown, key: string): Promise<Builde
   if (!p.success || !a) return { ok: false, error: t.ag.builder.errors.settings };
   const r = await approachFor(session, p.data, a);
   return r ? { ok: true, ...r } : { ok: false, error: t.ag.builder.errors.approach };
+}
+
+/**
+ * The whole campaign from what Yolias knows about the company (owner,
+ * 2026-11-05): name, offer, target, budget, messages a day and audiences, for
+ * the member to review. Nothing is saved or launched here.
+ */
+export async function fillCampaign(): Promise<BuilderResult<{ fill: CampaignFill }>> {
+  const session = await requireSession();
+  if (!canEdit(session)) return await viewOnly() as never;
+  const t = await getDictionary();
+  const ws = session.workspace.id;
+  const knowledge = contextText(await loadBusinessContext(ws));
+  if (!knowledge.trim()) return { ok: false, error: t.ag.builder.errors.fillNoKnowledge };
+  const { $schema: _drop, ...schema } = z.toJSONSchema(Filled) as Record<string, unknown>;
+  void _drop;
+  try {
+    const r = await runStructured(tasks.extraction, {
+      system: [
+        "You set up one B2B customer acquisition campaign for this company, using only what its knowledge says.",
+        "name: short, the market and the audience. offer: what the campaign sells, in one or two sentences. meetings: a realistic target. budget_usd: at least 5, a sensible first test. messages_per_day: 15 to 40.",
+        "audiences: one to three different groups of decision makers who would buy. countries as ISO codes from the company's target markets; industries; job titles of the people who decide; company sizes.",
+        "Never invent clients, numbers or results.",
+        `Write in ${session.profile.language === "ar" ? "Arabic" : "English"}.`,
+      ].join("\n"),
+      parts: [{ kind: "text", text: `${knowledge}\n\n${await insightLines(ws)}`.slice(0, 9000) }],
+      schema, schemaName: "campaign_fill", maxTokens: 1200,
+    }, (x) => { const v = Filled.safeParse(x); return v.success ? v.data : null; }, { workspaceId: ws, campaignId: null, promptVersion: "builder-fill-2026-11-05" });
+    return { ok: true, fill: r.data };
+  } catch (e) {
+    if (!(e instanceof LlmNotConfiguredError)) console.error("[builder] fill", e instanceof Error ? e.message : e);
+    return { ok: false, error: t.ag.builder.errors.fill };
+  }
 }
 
 /** A sample first email for a typical person of one audience (nothing saved, nothing sent). */

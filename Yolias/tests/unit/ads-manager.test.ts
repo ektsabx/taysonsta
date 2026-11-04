@@ -77,7 +77,7 @@ test("campaign builder: three levels, defaults, what's missing, budget, capacity
   assert.deepEqual(s.runDays, ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]);
   const gaps = missing(s, 0.1).map((g) => g.key);
   assert.deepEqual(gaps, ["name", "audience", "mailbox"]);
-  assert.equal(minBudgetUsd(0.1), 1);
+  assert.equal(minBudgetUsd(0.1), 5);
   assert.ok(missing({ ...s, budgetUsd: 0.5 }, 0.1).some((g) => g.key === "budget"));
   assert.equal(budgetPeople({ budgetUsd: 50 }, 0.1), 500);
   assert.equal(scheduleCapacity({ startDate: "2026-11-01", endDate: "2026-11-07", runDays: ["sun", "mon"], dailyLimit: 20 }, "2026-10-31"), 40);

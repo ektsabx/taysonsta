@@ -232,12 +232,13 @@ export const articles: HelpArticle[] = [
         summary: "Three levels like an ads manager: the campaign, its audiences and the message.",
         blocks: [
           { p: "Open **Campaigns → Create campaign**. The three levels are on the side; **Save draft** keeps your work." },
+          { p: "**Build with Yolias** fills the whole campaign from your Company Knowledge: name, offer, target, budget, messages a day and audiences. Review it and launch." },
           { h2: "1. Campaign" },
           { ul: [
             "**Name** and **objective**: Meetings, Sales, Website leads or Qualified leads.",
             "**Offer**: one of your offers from Company Knowledge, or your own words.",
             "**Target** (meetings, sales or leads you want) and **messages a day**.",
-            "**Budget** in US dollars, total or per day. Yolias shows how many people it buys.",
+            "**Budget** in US dollars, total or per day, $5 minimum. The summary shows the people it reaches, the days it takes, and the replies and meetings to expect.",
             "**Dates**, and under **Days, hours and pace**: the days and hours Yolias contacts people, a cost cap per result and open tracking.",
           ] },
           { h2: "2. Audiences" },
@@ -253,12 +254,13 @@ export const articles: HelpArticle[] = [
         summary: "ثلاثة مستويات مثل مدير الإعلانات: الحملة وجماهيرها والرسالة.",
         blocks: [
           { p: "افتح **الحملات ← إنشاء حملة**. المستويات الثلاثة على الجانب، و**حفظ كمسودة** يحفظ عملك." },
+          { p: "**أنشئها مع يولياس** يملأ الحملة كاملة من معرفة شركتك: الاسم والعرض والمستهدف والميزانية وعدد الرسائل اليومية والجماهير. راجعها وأطلقها." },
           { h2: "1. الحملة" },
           { ul: [
             "**الاسم** و**الهدف**: اجتماعات أو مبيعات أو نماذج الموقع أو عملاء مؤهلون.",
             "**العرض**: أحد عروضك من معرفة الشركة، أو بكلماتك.",
             "**المستهدف** (الاجتماعات أو المبيعات أو العملاء الذين تريدهم) و**عدد الرسائل اليومية**.",
-            "**الميزانية** بالدولار، إجمالية أو يومية، ويعرض يولياس عدد الأشخاص الذي تشتريه.",
+            "**الميزانية** بالدولار، إجمالية أو يومية، وأقلها 5 دولارات. ويعرض الملخص من تصل إليهم والمدة والردود والاجتماعات المتوقعة.",
             "**التواريخ**، وفي **الأيام والساعات والوتيرة**: أيام التواصل وساعاته، وحد أقصى لتكلفة النتيجة، وتتبع الفتح.",
           ] },
           { h2: "2. الجماهير" },

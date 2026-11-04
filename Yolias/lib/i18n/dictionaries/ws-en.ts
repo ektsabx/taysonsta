@@ -174,7 +174,7 @@ export const wsEn = {
     meeting: {
       title: "Title", titlePh: "Intro call", startsAt: "Date & time", endsAt: "Ends", url: "Meeting link", urlPh: "https://meet.google.com/…", notes: "Notes", status: "Status",
       statuses: { scheduled: "Scheduled", completed: "Completed", canceled: "Canceled", no_show: "No-show" },
-      linkHint: "Paste the link you created in Google Meet, Zoom or Teams. Yolias can’t create meetings or links itself (no calendar connected).",
+      linkHint: "Paste the meeting link.",
       brief: "Prepare brief", briefing: "Preparing…", saved: "Meeting saved.", errors: { title: "Enter a title.", time: "Choose a date and time.", url: "Enter a link starting with https://", end: "The end must be after the start." },
     },
     errors: { notFound: "Lead not found.", value: "Enter a valid amount.", currency: "Use a 3-letter currency code, e.g. USD.", task: "Enter the reminder.", note: "Write a note first." },

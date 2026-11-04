@@ -57,15 +57,15 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const [level, setLevel] = useState<Level>(inCampaign ? "audiences" : "campaigns");
   const [breakdown, setBreakdown] = useState<Breakdown>("none");
   // Across every campaign the Breakdown loads when it's opened, so the page itself opens at once.
-  const [loadedBrk, setLoadedBrk] = useState<Record<Dimension, BreakRow[]> | null>(null);
-  const allBrk = breakdowns ?? loadedBrk;
-  useEffect(() => { setLoadedBrk(null); }, [range, from, to]);
+  const brkKey = `${range}|${from}|${to}`;
+  const [loadedBrk, setLoadedBrk] = useState<{ key: string; data: Record<Dimension, BreakRow[]> } | null>(null);
+  const allBrk = breakdowns ?? (loadedBrk?.key === brkKey ? loadedBrk.data : null);
   useEffect(() => {
-    if (inCampaign || breakdown === "none" || loadedBrk) return;
+    if (inCampaign || breakdown === "none" || loadedBrk?.key === brkKey) return;
     let live = true;
-    void loadBreakdowns(range, from, to).then((r) => { if (live) setLoadedBrk(r); });
+    void loadBreakdowns(range, from, to).then((data) => { if (live) setLoadedBrk({ key: brkKey, data }); });
     return () => { live = false; };
-  }, [inCampaign, breakdown, loadedBrk, range, from, to]);
+  }, [inCampaign, breakdown, loadedBrk, brkKey, range, from, to]);
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<Filters>(noFilters());
   // D-274: custom metrics are columns like the others.

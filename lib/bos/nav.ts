@@ -45,6 +45,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform", label: "لوحة التحكم", perm: "platform.read" },
       { href: "/admin/platform/traffic", label: "الزوار والقنوات", perm: "platform.read" },
       { href: "/admin/platform/live", label: "المستخدمون الآن", perm: "platform.read" },
+      { href: "/admin/platform/recent-payments", label: "آخر المدفوعات", perm: "platform.read" },
     ],
   },
   {

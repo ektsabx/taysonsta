@@ -10,6 +10,8 @@ export const agEn = {
   tones: { direct: "Direct", friendly: "Friendly", conservative: "Formal" },
 
   builder: {
+    forecast: { title: "What this campaign can bring", reach: "People reached", found: "People found", days: "Time to reach them", daysValue: "{n} days", replies: "Interested replies", meetings: "Meetings", known: "Matching people known", note: "An estimate from B2B averages. Results depend on your market and offer." },
+    fill: { title: "Build it with Yolias", line: "Yolias sets up the whole campaign from what it knows about your company. You review it and launch.", action: "Build with Yolias", working: "Yolias is building it…", done: "Campaign ready to review" },
     audienceIssues: { overlap: "the same value is included and excluded", no_titles: "add job titles so Yolias reaches the people who decide", too_broad: "add a location and an industry to keep the audience precise" },
     title: "Create campaign", editTitle: "Edit campaign", saveDraft: "Save draft", saved: "Draft saved.", back: "Back", next: "Next", cancel: "Cancel",
     launch: "Launch campaign", launching: "Launching…", saveChanges: "Save changes", savedChanges: "Changes saved.",
@@ -23,7 +25,7 @@ export const agEn = {
       result: "Meetings you want", resultHint: "A target, not a promise: the campaign shows how it is going against it.",
       budget: "Budget", budgetTypes: { total: "Total", daily: "Per day" }, amount: "Amount in US dollars",
       people: "≈ {n} new people found and contacted with this budget ({rate} each).", peopleDaily: "≈ {n} new people a day ({rate} each).",
-      minBudget: "At least {usd}.", balance: "Available in your account: {usd}", topUp: "Top up",
+      minBudget: "The smallest budget for a campaign is {usd}.", balance: "Available in your account: {usd}", topUp: "Top up",
       schedule: "Schedule", start: "Start", end: "End", noEnd: "Until I stop it", timezone: "Time zone",
       advanced: "Days, hours and pace", days: "Days Yolias contacts people", hours: "Hours", to: "to", daily: "Messages a day",
       advancedHint: "Replies are answered at any time; only new emails follow these days and hours.",
@@ -75,7 +77,7 @@ export const agEn = {
       search: "Yolias couldn't start finding people for “{name}”. Edit its targeting on the campaign page.",
       empty: "“{name}” had nobody to add (everyone was already contacted, or asked not to be).",
     },
-    errors: { pixel: "Choose the pixel that measures this objective.", website: "Add your website page (purchase or form).",
+    errors: { fill: "Yolias couldn’t build the campaign. Try again.", fillNoKnowledge: "Add your company in Company Knowledge first.", pixel: "Choose the pixel that measures this objective.", website: "Add your website page (purchase or form).",
       settings: "Check the campaign settings.", dates: "The end must be after the start and in the future.", name: "Name the campaign.",
       mailbox: "Connect a mailbox to send from.", audience: "Give every audience a targeting or a saved audience.", confirm: "Confirm that Yolias may email on your behalf.",
       preview: "Yolias couldn't write a sample right now. Try again in a moment.", approach: "Yolias couldn't write the approach right now. Try again in a moment.",

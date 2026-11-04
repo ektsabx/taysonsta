@@ -12,10 +12,12 @@ import { formatNumber } from "@/lib/format";
 import { callAction, isNetworkFailure } from "@/lib/action-client";
 import { useToast } from "@/components/Toast";
 import { languageLabels, messageLanguages } from "@/lib/outreach/channels";
+import { campaignForecast } from "@/lib/pricing-estimates";
 import { budgetPeople, emptyAdSet, minBudgetUsd, missing, scheduleCapacity, type AdSet, type BuilderState, type Level } from "@/lib/campaigns/builder";
 import type { Targeting } from "@/lib/campaigns/targeting";
 import type { Estimate } from "@/lib/campaigns/audience";
-import { checkAudiences, launchCampaign, previewEmail, saveDraft, updateCampaign, writeApproach } from "@/app/(app)/campaigns/new/actions";
+import { checkAudiences, fillCampaign, launchCampaign, previewEmail, saveDraft, updateCampaign, writeApproach } from "@/app/(app)/campaigns/new/actions";
+import { applyFill, type CampaignFill } from "@/lib/campaigns/fill";
 import { saveAudience } from "@/app/(app)/audiences/actions";
 import { TargetingEditor } from "./TargetingEditor";
 
@@ -102,6 +104,35 @@ export function CampaignBuilder(p: BuilderProps) {
   const capacity = scheduleCapacity(s, p.today);
   const minUsd = minBudgetUsd(p.rate);
   const mailbox = p.mailboxes.find((m) => m.id === s.mailboxId) ?? null;
+  // What this budget and these messages a day can bring (owner, 2026-11-05). An estimate.
+  const fc = campaignForecast(s.budgetType === "daily" ? people * Math.max(1, capacity != null && s.dailyLimit ? Math.ceil(capacity / s.dailyLimit) : 30) : people, s.dailyLimit, capacity);
+  const known = Object.values(estimates).reduce((x, e) => x + e.known, 0);
+  const span = (e: { low: number; high: number }) => `${n(e.low)}–${n(e.high)}`;
+  const F = b.forecast;
+  const forecastBox = (
+    <div className="cb-forecast">
+      <strong>{F.title}</strong>
+      <dl>
+        {s.objective === "qualified_leads" ? <><dt>{F.found}</dt><dd>{n(fc.reach)}</dd></> : <>
+          <dt>{F.reach}</dt><dd>{n(fc.reach)}</dd>
+          {fc.days != null && <><dt>{F.days}</dt><dd>{fmt(F.daysValue, { n: n(fc.days) })}</dd></>}
+          <dt>{F.replies}</dt><dd>{span(fc.replies)}</dd>
+          {s.objective === "meetings" && <><dt>{F.meetings}</dt><dd>{span(fc.meetings)}</dd></>}
+        </>}
+        {known > 0 && <><dt>{F.known}</dt><dd>{n(known)}</dd></>}
+      </dl>
+      <small>{F.note}</small>
+    </div>
+  );
+  const [filling, startFill] = useTransition();
+  const fill = () => startFill(async () => {
+    const r = await callAction(() => fillCampaign());
+    if (isNetworkFailure(r)) { toast(t.feedback.errors.network, "error"); return; }
+    if (!r.ok) { toast((r as unknown as { error: string }).error, "error"); return; }
+    const f = (r as unknown as { fill: CampaignFill }).fill;
+    setS((cur) => applyFill(cur, f));
+    toast(b.fill.done, "success");
+  });
   const idx = level === "campaign" ? 0 : level === "audience" ? 1 : 2;
 
   // D-274 (owner): no checklist under the form. Launch takes the member to what's missing, with one message, instead.
@@ -165,6 +196,11 @@ export function CampaignBuilder(p: BuilderProps) {
 
           {level === "campaign" && (
             <div className="cb-form">
+              {/* The whole campaign from Company Knowledge, in one press (owner, 2026-11-05). */}
+              <div className="cb-fill">
+                <div><strong>{b.fill.title}</strong><p>{b.fill.line}</p></div>
+                <button type="button" className="sdr-btn primary" disabled={filling} onClick={fill}>{filling ? <Loader2 className="spin" /> : <Sparkles />}{filling ? b.fill.working : b.fill.action}</button>
+              </div>
               <div className="ws-field">
                 <label className="ws-label" htmlFor="cb-name">{b.campaign.name}</label>
                 <input id="cb-name" className="form-input" dir="auto" maxLength={160} placeholder={b.campaign.namePh} value={s.name} onChange={(e) => patch({ name: e.target.value })} />
@@ -289,8 +325,9 @@ export function CampaignBuilder(p: BuilderProps) {
                   <span className="cb-money-unit">USD</span>
                 </label>
                 <p className="ws-hint">
-                  {fmt(s.budgetType === "daily" ? b.campaign.peopleDaily : b.campaign.people, { n: n(people), rate: usd(p.rate, 3) })} {fmt(b.campaign.minBudget, { usd: usd(minUsd) })}
+                  {fmt(s.budgetType === "daily" ? b.campaign.peopleDaily : b.campaign.people, { n: n(people), rate: usd(p.rate, 3) })}
                 </p>
+                {s.budgetUsd < minUsd && <p className="form-error" role="alert">{fmt(b.campaign.minBudget, { usd: usd(minUsd) })}</p>}
                 {p.balanceUsd != null && <p className="ws-hint">{fmt(b.campaign.balance, { usd: usd(p.balanceUsd) })} · <Link href="/?settings=billing">{b.campaign.topUp}</Link></p>}
               </fieldset>
               <fieldset className="te-group">
@@ -305,7 +342,7 @@ export function CampaignBuilder(p: BuilderProps) {
                   </label>
                 </div>
                 <label className="ws-field"><span className="ws-label">{b.campaign.timezone}</span>
-                  <select className="form-input" dir="ltr" value={s.timezone} onChange={(e) => patch({ timezone: e.target.value })}>{p.zones.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}</select>
+                  <select className="form-input" dir="auto" value={s.timezone} onChange={(e) => patch({ timezone: e.target.value })}>{p.zones.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}</select>
                 </label>
                 <button type="button" className="cb-more" aria-expanded={advanced} onClick={() => setAdvanced((v) => !v)}><ChevronDown className={advanced ? "up" : ""} />{b.campaign.advanced}</button>
                 {advanced && (
@@ -478,6 +515,7 @@ export function CampaignBuilder(p: BuilderProps) {
             </div>
           )}
 
+          <div className="cb-forecast-inline">{forecastBox}</div>
           {/* Audience checks before launch (audit 2026-11-03): warnings only. */}
           {(() => {
             const issues = s.adSets.filter((a) => a.source === "new").flatMap((a) => audienceIssues(a.targeting, s.contactTarget).map((i) => `${a.name}: ${b.audienceIssues[i]}`));
@@ -496,6 +534,7 @@ export function CampaignBuilder(p: BuilderProps) {
               {capacity != null && <><dt>{b.campaign.daily}</dt><dd>{n(s.dailyLimit)}</dd></>}
               {s.objective !== "qualified_leads" && <><dt>{b.message.mailbox}</dt><dd dir="ltr">{mailbox?.email ?? "–"}</dd></>}
             </dl>
+            {forecastBox}
           </div>
         </aside>
       </div>

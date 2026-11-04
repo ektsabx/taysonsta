@@ -93,7 +93,9 @@ export type Level = (typeof LEVELS)[number];
 export const emptyAdSet = (n: number, name: string): AdSet => adSetSchema.parse({ key: `a${Date.now().toString(36)}${n}`, name });
 
 /** The smallest budget that can do anything: ten people at the member's rate. */
-export const minBudgetUsd = (rate: number) => Math.max(1, Math.ceil(rate * 10 * 100) / 100);
+/** The smallest campaign budget (owner, 2026-11-05). */
+export const MIN_BUDGET_USD = 5;
+export const minBudgetUsd = (_rate?: number) => MIN_BUDGET_USD;
 
 /** What is missing before launch, per level (empty = ready). Mailbox and offer are checked on the server too. */
 export function missing(s: BuilderState, rate: number): { level: Level; key: "name" | "budget" | "dates" | "audience" | "mailbox" | "website" | "pixel" }[] {

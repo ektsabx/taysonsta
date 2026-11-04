@@ -35,7 +35,7 @@ export async function builderContext(workspaceId: string, userId: string, zone: 
     booking: { url: page?.enabled ? `/meet/${page.slug}` : null, calendar: cal?.status === "connected" },
     pixels: pixels.map((x) => ({ id: x.id, name: x.name, publicId: x.public_id, seen: Boolean(x.last_event_at) })),
     audiences: (audiences ?? []).map((a) => ({ id: a.id, name: a.name, kind: a.kind as "saved" | "custom" | "lookalike", members: a.members })),
-    zones: timeZoneChoices(zone).map((z) => ({ value: z, label: timeZoneLabel(z, locale) })),
+    zones: timeZoneChoices(zone, locale).map((z) => ({ value: z, label: timeZoneLabel(z, locale) })),
     today: new Date().toISOString().slice(0, 10),
   };
 }

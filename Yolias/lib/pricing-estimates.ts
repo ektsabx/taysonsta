@@ -21,3 +21,16 @@ const range = (people: number, r: { low: number; high: number }): Estimate => ({
 export function planEstimates(peopleReached: number): { replies: Estimate; meetings: Estimate } {
   return { replies: range(peopleReached, POSITIVE_REPLY_RATE), meetings: range(peopleReached, MEETING_RATE) };
 }
+
+export interface CampaignForecast { reach: number; days: number | null; replies: Estimate; meetings: Estimate }
+
+/**
+ * What a campaign's budget and messages a day can bring (owner, 2026-11-05):
+ * the people it reaches (the budget, capped by what the schedule can send),
+ * how long that takes, and the same ranges as the pricing cards. An estimate,
+ * shown as one.
+ */
+export function campaignForecast(people: number, perDay: number, capacity: number | null): CampaignForecast {
+  const reach = Math.max(0, capacity == null ? people : Math.min(people, capacity));
+  return { reach, days: perDay > 0 && reach > 0 ? Math.ceil(reach / perDay) : null, ...planEstimates(reach) };
+}

@@ -5,7 +5,7 @@ import { AlertCircle, AtSign, ChevronLeft, Clock, Gauge, Mail, MailCheck, MoreHo
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
-import { timeZoneChoices } from "@/lib/regions";
+import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { useToast } from "@/components/Toast";
 import { GmailIcon } from "@/components/app/ConnectorIcons";
 import { connectImapMailbox, connectTestMailbox, mailboxDomainChecks, mailboxState, removeMailbox, saveSendingRules, updateMailboxSending, type EmailState, type MailboxView } from "@/app/(app)/settings/mailbox-actions";
@@ -232,11 +232,12 @@ function DayPicker({ value, onChange }: { value: number[]; onChange: (d: number[
 }
 
 function ZoneSelect({ value, onChange, emptyLabel }: { value: string | null; onChange: (v: string | null) => void; emptyLabel?: string }) {
-  const zones = useMemo(() => timeZoneChoices(value ?? "UTC"), [value]);
+  const { locale } = useI18n();
+  const zones = useMemo(() => timeZoneChoices(value ?? "UTC", locale), [value, locale]);
   return (
-    <select className="sdr-input" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} dir="ltr">
+    <select className="sdr-input" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} dir="auto">
       {emptyLabel !== undefined && <option value="">{emptyLabel}</option>}
-      {zones.map((z) => <option key={z} value={z}>{z}</option>)}
+      {zones.map((z) => <option key={z} value={z}>{timeZoneLabel(z, locale)}</option>)}
     </select>
   );
 }

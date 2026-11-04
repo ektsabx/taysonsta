@@ -52,7 +52,7 @@ export function GeneralTab({ data }: { data: ShellData }) {
       </SettingRow>
       <SettingRow id="timezone" label={g.timezone} desc={g.timezoneDesc}>
         <select className="form-select" value={prefs.timezone} onChange={(e) => change("timezone", e.target.value)}>
-          {timeZoneChoices(prefs.timezone).map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
+          {timeZoneChoices(prefs.timezone, locale).map((tz) => <option key={tz} value={tz}>{timeZoneLabel(tz, locale)}</option>)}
         </select>
       </SettingRow>
       <SettingRow id="country" label={g.country} desc={g.countryDesc}>

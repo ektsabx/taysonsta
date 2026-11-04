@@ -1114,3 +1114,14 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .cb { container: cb / inline-size; }
 @container cb (max-width: 1040px) { .cb-body { grid-template-columns: 190px minmax(0, 1fr); } .cb-side { display: none; } .cb-forecast-inline { display: grid; } }
 @container cb (max-width: 760px) { .cb-body { grid-template-columns: minmax(0, 1fr); } .cb-tree { border-inline-end: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; gap: 6px; padding: 8px; } .cb-children { display: contents; } .cb-node { width: auto; flex-shrink: 0; max-width: 200px; } .cb-add { flex-shrink: 0; } .cb-choices.two { grid-template-columns: minmax(0, 1fr); } }
+/* Forecast and "build with Yolias" (owner, 2026-11-05). */
+.cb-forecast { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.cb-forecast strong { font-size: .82rem; }
+.cb-forecast dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; margin: 0; font-size: .8rem; }
+.cb-forecast dt { color: var(--muted); }
+.cb-forecast dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: end; }
+.cb-forecast small { color: var(--muted); font-size: .72rem; line-height: 1.5; }
+.cb-forecast-inline { display: none; margin-top: 16px; }
+.cb-fill { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--red-line); border-radius: 12px; background: var(--red-soft); }
+.cb-fill strong { font-size: .92rem; }
+.cb-fill p { margin: 2px 0 0; color: var(--muted); font-size: .82rem; }
