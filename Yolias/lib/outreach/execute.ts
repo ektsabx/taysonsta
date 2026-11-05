@@ -1,4 +1,6 @@
 import { clickLink } from "@/lib/email-links";
+import { isSpamBlock, type MailFile } from "@/lib/mailbox/mime";
+import type { InboxFile } from "@/lib/inbox-channels";
 import "server-only";
 import { specOf } from "@/lib/engine/objectives";
 import type { WorkspaceRole } from "@/types/database";
@@ -244,6 +246,18 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   return res;
 }
 
+/** The files a member attached to a reply, read from storage for sending. */
+async function messageFiles(db: Db, m: OutreachMessageRow): Promise<MailFile[]> {
+  const list = (m.attachments ?? []) as unknown as InboxFile[];
+  const out: MailFile[] = [];
+  for (const f of list) {
+    const { data, error } = await db.storage.from("inbox-files").download(f.path);
+    if (error || !data) throw new Error(`attachment not found: ${f.name}`);
+    out.push({ name: f.name, type: f.type, data: new Uint8Array(await data.arrayBuffer()) });
+  }
+  return out;
+}
+
 /** Claims the message, sends it, records the result. "stop" = the mailbox can't send now (auth / rate). */
 async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRow, m: OutreachMessageRow, to: string): Promise<"sent" | "failed" | "retry" | "stop"> {
   const { data: claimed } = await db.from("outreach_messages").update({ status: "sending", mailbox_id: mailbox.id, attempts: m.attempts + 1 })
@@ -266,7 +280,8 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
     const body = unsub ? `${m.body.trimEnd()}${unsubscribeFooter(unsub, m.language ?? "en")}` : m.body;
     // D-274: campaign emails carry a 1×1 image to count recipient opens, unless the campaign turned it off.
     const pixelUrl = m.enrollment_id && c && c.track_opens !== false ? openPixelUrl(m.id) : null;
-    const r = await provider.send(token, { from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null, pixelUrl });
+    const files = await messageFiles(db, m);
+    const r = await provider.send(token, { files, from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null, pixelUrl });
     const now = new Date().toISOString();
     await db.from("outreach_messages").update({
       status: "sent", sent_at: now, sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent",
@@ -372,7 +387,7 @@ async function syncMailbox(db: Db, mb: MailboxRow) {
       .eq("workspace_id", mb.workspace_id).eq("provider_thread_id", inc.threadId).eq("direction", "outbound").eq("status", "sent").order("sent_at", { ascending: false }).limit(1).maybeSingle();
     if (!ours?.lead_id) continue;
     if (inc.bounce) {
-      const { data: marked } = await db.from("outreach_messages").update({ delivery_status: "bounced" }).eq("id", ours.id).neq("delivery_status", "bounced").select("id");
+      const { data: marked } = await db.from("outreach_messages").update({ delivery_status: "bounced", spam_blocked: isSpamBlock(`${inc.subject}\n${inc.body}`) }).eq("id", ours.id).neq("delivery_status", "bounced").select("id");
       if (marked?.length) {
         res.bounces++;
         if (ours.enrollment_id) await db.from("outreach_enrollments").update({ status: "stopped", stop_reason: "bounced", next_step_at: null }).eq("id", ours.enrollment_id).in("status", ["active", "paused"]);

@@ -284,7 +284,7 @@ export const agEn = {
     balance: {
       title: "Account balance", of: "of {total}", credit: "Prepaid balance", spent: "Spent this month", held: "Meetings booked", costHeld: "Cost per meeting", renews: "Renews {date}",
     },
-    inbox: {
+    inbox: { tags: { add: "Add tag", remove: "Remove tag", filter: "Tag", all: "All tags" }, tools: { file: "Attach a file", image: "Add an image", gif: "Add a GIF", emoji: "Emoji", voice: "Record a voice note", stop: "Stop recording", remove: "Remove", uploading: "Uploading…", tooMany: "Up to 5 files in one reply.", tooBig: "A file can be up to 10 MB.", blocked: "This file type can't be sent.", failed: "The file couldn't be added. Try again.", noMic: "Allow the microphone in your browser to record." }, 
       needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Marked as done.",
       all: "All", allEmpty: "No conversations yet. They appear here as soon as Yolias writes to someone.", channel: "Channel", soon: "soon",
       channels: { all: "All channels", email: "Email", whatsapp: "WhatsApp", linkedin: "LinkedIn", facebook: "Facebook" },

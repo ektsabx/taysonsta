@@ -4,6 +4,8 @@
 
 import type { MailProvider } from "@/types/database";
 
+import type { MailFile } from "./mime";
+
 export interface OutgoingMail {
   from: string;
   fromName: string | null;
@@ -17,6 +19,8 @@ export interface OutgoingMail {
   unsubscribeUrl?: string | null;
   /** D-274: a 1×1 image address for recipient open tracking (the email then also has an HTML part). */
   pixelUrl?: string | null;
+  /** Files sent with a reply. */
+  files?: MailFile[];
 }
 
 export interface SentMail {

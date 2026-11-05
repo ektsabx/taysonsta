@@ -1,10 +1,11 @@
 "use server";
 
+import { MAX_FILE_BYTES, MAX_FILES, cleanTag, type InboxFile } from "@/lib/inbox-channels";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireSession, canEdit, viewOnly } from "@/lib/session";
+import { requireMember, requireSession, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { confirmSent } from "@/lib/outreach/sequence";
 import { draftReply, logReply } from "@/lib/agents/replies";
@@ -178,10 +179,49 @@ export async function sendNow(messageId: string): Promise<MsgResult> {
   return { ok: true };
 }
 
+const BLOCKED_FILE = /\.(exe|bat|cmd|com|scr|js|vbs|jar|msi|ps1|sh|apk)$/i;
+
+/** A file for a reply, kept privately until it is sent (owner, 2026-11-05). */
+export async function uploadInboxFile(fd: FormData): Promise<{ ok: true; file: InboxFile } | { ok: false; error: string }> {
+  const session = await requireSession();
+  const t = await getDictionary();
+  const L = t.ag.rx.inbox.tools;
+  if (!canEdit(session)) return { ok: false, error: L.failed };
+  const f = fd.get("file");
+  if (!(f instanceof File) || !f.size || f.size > MAX_FILE_BYTES) return { ok: false, error: L.tooBig };
+  if (BLOCKED_FILE.test(f.name)) return { ok: false, error: L.blocked };
+  const name = f.name.slice(-120);
+  const path = `${session.workspace.id}/${crypto.randomUUID()}-${name.replace(/[^\p{L}\p{N}._-]+/gu, "-")}`;
+  const { error } = await createAdminClient().storage.from("inbox-files").upload(path, await f.arrayBuffer(), { contentType: f.type || "application/octet-stream" });
+  if (error) { console.error("[inbox] upload", error.message); return { ok: false, error: L.failed }; }
+  return { ok: true, file: { path, name, type: f.type || "application/octet-stream", size: f.size } };
+}
+
+/** A tag on a conversation, to filter by it (owner, 2026-11-05). */
+export async function setLeadTag(leadId: string, tag: string, on: boolean): Promise<MsgResult> {
+  const session = await requireMember();
+  if (!canEdit(session)) return await viewOnly() as never;
+  const t = await getDictionary();
+  const v = cleanTag(tag);
+  if (!uuid.safeParse(leadId).success || !v) return { ok: false, error: t.ws.crm.errors.notFound };
+  const db = createAdminClient();
+  const { data: lead } = await db.from("sales_leads").select("id").eq("id", leadId).eq("workspace_id", session.workspace.id).maybeSingle();
+  if (!lead) return { ok: false, error: t.ws.crm.errors.notFound };
+  const { error } = on
+    ? await db.from("lead_tags").upsert({ workspace_id: session.workspace.id, lead_id: leadId, tag: v, created_by: session.userId })
+    : await db.from("lead_tags").delete().eq("lead_id", leadId).eq("tag", v);
+  if (error) return { ok: false, error: t.ws.messages.errors.failed };
+  refresh(leadId);
+  return { ok: true };
+}
+
 /** Writes and sends a reply in the conversation, from the member's mailbox. */
-export async function sendReply(leadId: string, body: string): Promise<MsgResult> {
-  const saved = await saveManualDraft(leadId, body);
+export async function sendReply(leadId: string, body: string, files: InboxFile[] = []): Promise<MsgResult> {
+  const session = await requireSession();
+  const mine = files.filter((f) => f.path.startsWith(`${session.workspace.id}/`)).slice(0, MAX_FILES);
+  const saved = await saveManualDraft(leadId, body.trim() || mine.map((f) => f.name).join(", "));
   if (!saved.ok) return saved;
+  if (mine.length) await createAdminClient().from("outreach_messages").update({ attachments: JSON.parse(JSON.stringify(mine)) }).eq("id", saved.messageId);
   const sent = await sendNow(saved.messageId);
   // D-274: the member answered: the hand-off is done.
   if (sent.ok) await markHandled(leadId);

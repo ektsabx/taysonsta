@@ -251,6 +251,8 @@ export type MessageOpenedVia = "gmail" | "outlook" | "mail_app" | "linkedin" | "
 export type MessageObjective = "introduction" | "sales" | "meeting" | "follow_up" | "partnership" | "referral";
 export type MessageTone = "conservative" | "direct" | "friendly";
 export type OutreachMessageRow = {
+  attachments: Json;
+  spam_blocked: boolean;
   id: string; workspace_id: string; prospect_id: string | null; company_id: string | null; campaign_id: string | null; created_by: string | null; channel: MessageChannel;
   to_email: string | null; subject: string; body: string; language: string; instruction: string | null; status: OutreachStatus;
   mailbox_id: string | null; provider_message_id: string | null; error: string | null; model: string | null; cost_usd: number | null;
@@ -1087,6 +1089,7 @@ export interface Database {
       booking_visits: Table<BookingVisitRow, "workspace_id" | "host_id" | "slug" | "visitor">;
       pixels: Table<PixelRow, "workspace_id" | "public_id">;
       pixel_events: Table<PixelEventRow, "pixel_id" | "workspace_id" | "event">;
+      lead_tags: Table<{ workspace_id: string; lead_id: string; tag: string; created_by: string | null; created_at: string }, "workspace_id" | "lead_id" | "tag">;
       email_links: Table<{ code: string; workspace_id: string; lead_id: string; campaign_id: string | null; url: string; clicks: number; first_click_at: string | null; last_click_at: string | null; created_at: string }, "code" | "workspace_id" | "lead_id" | "url">;
       custom_metrics: Table<CustomMetricRow, "workspace_id" | "name" | "a" | "op" | "b">;
       learning_rates: Table<LearningRateRow, "industry" | "country" | "aim" | "workspaces" | "contacted" | "positive" | "meetings" | "qualified">;

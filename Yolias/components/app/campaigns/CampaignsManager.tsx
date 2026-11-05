@@ -106,6 +106,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
   const lang = locale === "ar" ? "ar" : "en";
   const ordered = [...columns.filter((c) => pinned.includes(c)), ...columns.filter((c) => !pinned.includes(c))].map((id) => mx(id)!).filter(Boolean);
   const memberName = (id: string | null) => members.find((x) => x.id === id)?.name ?? "";
+  const ownerOf = useMemo(() => new Map(lines.map((l) => [l.id, l.ownerId])), [lines]);
   const countries = useMemo(() => [...new Set(lines.flatMap((l) => l.countries))].sort(), [lines]);
 
   // Campaigns after the filters; the other levels come from them (and from the selection, like Ads Manager).
@@ -185,7 +186,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
     let blob: Blob;
     if (kind === "csv") {
       const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-      const body = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => formatMetric(c.compute(r.counts), c.format, lang))].map(esc).join(","));
+      const body = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => (c.id === "owner" ? memberName(ownerOf.get(r.campaignId) ?? null) : formatMetric(c.compute(r.counts), c.format, lang)))].map(esc).join(","));
       blob = new Blob([`\ufeff${[head.map(esc).join(","), ...body].join("\n")}`], { type: "text/csv;charset=utf-8" });
     } else {
       const rowsOut = list.map((r) => [r.name, level === "campaigns" ? r.statusLabel : r.sub, ...ordered.map((c) => { const v = c.compute(r.counts); return v == null ? null : c.format === "pct" ? Math.round(v * 10000) / 100 : Math.round(v * 100) / 100; })]);
@@ -372,7 +373,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
                 </td>
                 <td><span className={`cd-status st-${r.status}`}>{r.statusLabel}</span></td>
                 <td>{channelOf.get(r.campaignId) ?? ""}</td>
-                {ordered.map((c) => <td key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`}>{formatMetric(c.compute(r.counts), c.format, lang)}</td>)}
+                {ordered.map((c) => <td key={c.id} className={`num${pinned.includes(c.id) ? " pinned" : ""}`}>{c.id === "owner" ? memberName(ownerOf.get(r.campaignId) ?? null) || "–" : formatMetric(c.compute(r.counts), c.format, lang)}</td>)}
                 <td className="cm-actions">
                   <div className="cm-wrap">
                     <button type="button" className="sdr-icon-btn cm-toggle" aria-label={m.edit} aria-expanded={menu === r.id} onClick={() => setMenu(menu === r.id ? null : r.id)}><MoreHorizontal /></button>

@@ -203,12 +203,12 @@ function AddMailbox({ provider, state, reload, onImap }: { provider: "gmail" | "
   const [pending, start] = useTransition();
   const has = (p: string) => state?.mailboxes.some((m) => m.provider === p && m.status !== "disconnected");
   if (provider === "gmail") {
-    return state?.available.includes("gmail") && !has("gmail") ? <a className="sdr-btn primary" href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a> : null;
+    return state?.available.includes("gmail") ? <a className="sdr-btn primary" href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a> : null;
   }
   return (
     <span style={{ display: "flex", gap: 8 }}>
       {state?.available.includes("test") && !has("test") && <button type="button" className="sdr-btn" disabled={pending} onClick={() => start(async () => { await connectTestMailbox(); reload(); })}><Plug />{a.addTest}</button>}
-      {!has("imap") && <button type="button" className="sdr-btn primary" disabled={!state} onClick={onImap}><AtSign />{a.addImap}</button>}
+      {<button type="button" className="sdr-btn primary" disabled={!state} onClick={onImap}><AtSign />{a.addImap}</button>}
     </span>
   );
 }

@@ -6,14 +6,16 @@ import { setOutcome } from "@/app/(app)/meetings/actions";
 import { LOST_REASONS } from "@/components/app/ws/bits";
 import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ReplyTools } from "./ReplyTools";
+import type { InboxFile } from "@/lib/inbox-channels";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Loader2, Mail, MailOpen, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound, X } from "lucide-react";
+import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Loader2, Mail, MailOpen, Paperclip, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { draftReplyAction, setTaskDone, markHandled, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
+import { setLeadTag, draftReplyAction, setTaskDone, markHandled, markThreadRead, sendReply, setReplyKind, setThreadStatus } from "@/app/(app)/inbox/actions";
 import { LinkedInIcon } from "@/components/app/ConnectorIcons";
 import { MessageCard, type CardMessage } from "@/components/app/ws/MessageCard";
 import { KindBadge, initials, useAgo } from "@/components/app/sdr/bits";
@@ -34,6 +36,8 @@ interface Props {
   timeZone: string | null;
   /** The campaign being watched (?campaign=), with its live counts. */
   campaign: { id: string; name: string; active: boolean; leads: number; writing: number; sent: number; failed: number } | null;
+  /** Owner, 2026-11-05: tags on the conversation, and the filter by tag. */
+  tag: string | null; allTags: string[]; leadTags: string[];
   /** D-270: filter by campaign and by what the conversation shows. */
   campaigns: { id: string; name: string }[];
   show: InboxShow | null;
@@ -65,7 +69,7 @@ export function MasterInbox(p: Props) {
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tab: tab === "all" ? null : tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
+    const cur: Record<string, string | null> = { tag: p.tag, tab: tab === "all" ? null : tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -136,6 +140,12 @@ export function MasterInbox(p: Props) {
               <option value="">{t.camp.inbox.all}</option>
               {INBOX_SHOWS.map((k) => <option key={k} value={k}>{{ interested: t.camp.inbox.interested, not_interested: t.camp.inbox.notInterested, needs_you: t.camp.inbox.needsYou, meeting_request: t.camp.inbox.meetingRequest, booked: t.camp.inbox.booked, replied: t.camp.inbox.replied, no_reply: t.camp.inbox.noReply }[k]}</option>)}
             </select>
+            {p.allTags.length > 0 && (
+              <select className="sdr-input sm" aria-label={I.tags.filter} value={p.tag ?? ""} onChange={(e) => router.push(href({ tag: e.target.value || null, lead: null }))}>
+                <option value="">{I.tags.all}</option>
+                {p.allTags.map((g) => <option key={g} value={g}>{g}</option>)}
+              </select>
+            )}
             {p.campaigns.length > 0 && (
               <select className="sdr-input sm" aria-label={t.camp.prospects.campaign} value={p.campaign?.id ?? ""} onChange={(e) => router.push(href({ campaign: e.target.value || null, lead: null }))}>
                 <option value="">{t.camp.prospects.anyCampaign}</option>
@@ -199,6 +209,8 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
   const [details, setDetails] = useState(true);
   const [composing, setComposing] = useState(false);
   const [body, setBody] = useState("");
+  const [files, setFiles] = useState<InboxFile[]>([]);
+  const [newTag, setNewTag] = useState("");
   const [showDraft, setShowDraft] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   const { lead } = p.thread;
@@ -255,6 +267,13 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
             <button type="button" className={`sdr-icon-btn bordered${details ? " on" : ""}`} title={details ? x.hideDetails : x.details} aria-label={details ? x.hideDetails : x.details} aria-pressed={details} onClick={() => setDetails((d) => !d)}><PanelRight /></button>
           </div>
         </div>
+        <div className="sdr-conv-tags">
+          {p.leadTags.map((g) => <span key={g} className="sdr-tag" dir="auto">{g}<button type="button" aria-label={t.ag.rx.inbox.tags.remove} disabled={pending} onClick={() => act(() => setLeadTag(lead.id, g, false))}><X size={11} /></button></span>)}
+          <form onSubmit={(e) => { e.preventDefault(); const v = newTag.trim(); if (v) { setNewTag(""); act(() => setLeadTag(lead.id, v, true)); } }}>
+            <input className="sdr-tag-input" list="sdr-tags" dir="auto" value={newTag} maxLength={40} placeholder={t.ag.rx.inbox.tags.add} aria-label={t.ag.rx.inbox.tags.add} onChange={(e) => setNewTag(e.target.value)} />
+            <datalist id="sdr-tags">{p.allTags.map((g) => <option key={g} value={g} />)}</datalist>
+          </form>
+        </div>
         {p.needsYou && (
           <div className="sdr-needs-banner" role="status">
             <span>{t.ag.rx.inbox.banner}{s?.lastInbound?.summary ? ` ${s.lastInbound.summary}` : ""}</span>
@@ -277,6 +296,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
                 </div>
                 {m.subject && <div className="sdr-mail-subj" dir="auto">{m.subject}</div>}
                 <div className="sdr-mail-body" dir="auto">{m.body}</div>
+                {((m.attachments ?? []) as unknown as InboxFile[]).length > 0 && <ul className="sdr-mail-files">{((m.attachments ?? []) as unknown as InboxFile[]).map((f) => <li key={f.path}><a href={`/api/inbox-file?path=${encodeURIComponent(f.path)}`} target="_blank" rel="noopener" dir="auto"><Paperclip size={13} />{f.name}</a></li>)}</ul>}
                 {m.status === "failed" && m.error && <p className="form-error">{m.error}</p>}
                 {!inbound && m.delivery_status === "bounced" && <span className="sdr-badge red">{t.ws.inbox.bounced}</span>}
               </article>
@@ -307,9 +327,10 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
             <div className="sdr-reply-box">
               {!p.hasMailbox && <p className="sdr-panel-sub">{x.noMailbox}</p>}
               <textarea ref={box} className="sdr-input" dir="auto" rows={5} value={body} maxLength={5000} placeholder={fmt(x.replyTo, { name: lead.name })} onChange={(e) => setBody(e.target.value)} />
+              <ReplyTools channel="email" files={files} onFiles={setFiles} disabled={pending} onEmoji={(e) => setBody((b) => b + e)} />
               <div className="sdr-foot" style={{ marginTop: 0 }}>
                 <button type="button" className="sdr-btn" disabled={pending} onClick={() => act(async () => { const r = await draftReplyAction(lead.id, body); if (r.ok) setBody(""); return r; }, t.ws.inbox.composer.draftReady)}><PenLine />{x.suggest}</button>
-                <button type="button" className="sdr-btn primary" disabled={pending || !body.trim() || !p.hasMailbox} onClick={() => act(async () => { const r = await sendReply(lead.id, body); if (r.ok) { setBody(""); setComposing(false); } return r; }, x.sent)}><Send />{x.send}</button>
+                <button type="button" className="sdr-btn primary" disabled={pending || (!body.trim() && !files.length) || !p.hasMailbox} onClick={() => act(async () => { const r = await sendReply(lead.id, body, files); if (r.ok) { setFiles([]); setBody(""); setComposing(false); } return r; }, x.sent)}><Send />{x.send}</button>
               </div>
             </div>
           )}

@@ -39,6 +39,9 @@ export interface Counts {
   siteVisits: number;
   /** Owner, 2026-11-05: people who clicked a link in an email, signed up (CompleteRegistration) and became active (Activated). */
   linkClicks: number;
+  /** Owner, 2026-11-05: emails that failed to send, and bounces refused as spam. */
+  errors: number;
+  spam: number;
   signups: number;
   activated: number;
   checkouts: number;
@@ -51,7 +54,7 @@ export interface Counts {
   results: number;
 }
 
-export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, linkClicks: 0, signups: 0, activated: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0, conversions: 0, conversionValue: 0, results: 0 });
+export const zeroCounts = (): Counts => ({ found: 0, contacted: 0, sent: 0, delivered: 0, bounced: 0, replies: 0, interested: 0, meetingRequests: 0, meetings: 0, confirmed: 0, canceled: 0, held: 0, qualified: 0, customers: 0, revenueUsd: 0, spendUsd: 0, prospectsUsed: 0, foundPeople: 0, foundCompanies: 0, opened: 0, visits: 0, linkBooked: 0, abandoned: 0, qualifiedLeads: 0, siteVisits: 0, linkClicks: 0, errors: 0, spam: 0, signups: 0, activated: 0, checkouts: 0, purchases: 0, purchaseValue: 0, formLeads: 0, conversions: 0, conversionValue: 0, results: 0 });
 export const addCounts = (a: Counts, b: Counts): Counts => Object.fromEntries(Object.keys(a).map((k) => [k, a[k as keyof Counts] + b[k as keyof Counts]])) as unknown as Counts;
 
 export type MetricFormat = "count" | "pct" | "usd" | "ratio";
@@ -89,7 +92,7 @@ export const METRICS: Metric[] = [
   { id: "found_companies", label: { en: "Targeted companies", ar: "الشركات المستهدفة" }, description: { en: "Companies Yolias found for the campaign's audiences.", ar: "شركات وجدها يولياس لجماهير الحملة." }, format: "count", compute: (c) => c.foundCompanies, defaultVisible: false },
   { id: "contacted", label: { en: "Reached", ar: "وصلت إليهم" }, description: { en: "People sent at least one email (each person once).", ar: "أشخاص أُرسلت لهم رسالة واحدة على الأقل (كل شخص مرة)." }, format: "count", compute: (c) => c.contacted, defaultVisible: false },
   { id: "delivered", label: { en: "Delivered", ar: "وصلت" }, description: { en: "Sent emails that didn't bounce.", ar: "رسائل أُرسلت ولم ترتد." }, format: "count", compute: (c) => c.delivered, defaultVisible: false },
-  { id: "opened", label: { en: "Opened", ar: "فتحوا الرسالة" }, description: { en: "People who opened at least one email (approximate).", ar: "أشخاص فتحوا رسالة واحدة على الأقل (تقريبي)." }, format: "count", compute: (c) => c.opened, defaultVisible: false },
+  { id: "opened", label: { en: "Opened", ar: "فتحوا الرسالة" }, description: { en: "People who opened at least one email (approximate).", ar: "أشخاص فتحوا رسالة واحدة على الأقل (تقريبي)." }, format: "count", compute: (c) => c.opened, defaultVisible: true },
   { id: "replies", label: { en: "Replies", ar: "الردود" }, description: { en: "People who replied (automatic replies don't count).", ar: "أشخاص ردّوا (الردود التلقائية لا تُحسب)." }, format: "count", compute: (c) => c.replies, defaultVisible: false },
   { id: "no_reply", label: { en: "Didn't reply", ar: "لم يردوا" }, description: { en: "People contacted who haven't replied.", ar: "أشخاص تم التواصل معهم ولم يردوا." }, format: "count", compute: (c) => (c.contacted ? Math.max(c.contacted - c.replies, 0) : null), defaultVisible: false },
   { id: "open_to_reply", label: { en: "Replied after opening", ar: "ردّوا من الفاتحين" }, description: { en: "People who replied ÷ people who opened.", ar: "من ردّوا ÷ من فتحوا." }, format: "pct", compute: (c) => rate(c.replies, c.opened), defaultVisible: false },
@@ -113,6 +116,10 @@ export const METRICS: Metric[] = [
   { id: "revenue", label: { en: "Revenue generated", ar: "الإيرادات المحققة" }, description: { en: "Value of the deals won (when you entered it).", ar: "قيمة الصفقات المكسوبة (حين تدخلها)." }, format: "usd", compute: (c) => c.revenueUsd, defaultVisible: false },
   // D-274: website objectives, measured by the Yolias pixel.
   // Owner, 2026-11-05: the path from the email to the customer, on by default.
+  { id: "owner", label: { en: "Owner", ar: "المالك" }, description: { en: "The team member who created the campaign.", ar: "عضو الفريق الذي أنشأ الحملة." }, format: "count", compute: () => null, defaultVisible: true },
+  { id: "not_opened", label: { en: "Not opened", ar: "لم يفتحوا" }, description: { en: "People contacted who haven't opened an email.", ar: "أشخاص تواصلت معهم ولم يفتحوا الرسالة." }, format: "count", compute: (c) => (c.contacted ? Math.max(0, c.contacted - c.opened) : null), defaultVisible: true },
+  { id: "errors", label: { en: "Errors", ar: "الأخطاء" }, description: { en: "Emails that couldn't be sent.", ar: "رسائل تعذر إرسالها." }, format: "count", compute: (c) => c.errors, defaultVisible: true },
+  { id: "spam", label: { en: "Spam", ar: "سبام" }, description: { en: "Emails the receiving server refused as spam or by a block list.", ar: "رسائل رفضها خادم المستلم كرسائل مزعجة أو بقائمة حظر." }, format: "count", compute: (c) => c.spam, defaultVisible: true },
   { id: "link_clicks", label: { en: "Link clicks", ar: "نقرات الرابط" }, description: { en: "People who clicked a link in an email (mail scanners don't count).", ar: "أشخاص ضغطوا رابطًا داخل الرسالة (لا تُحسب أنظمة فحص البريد)." }, format: "count", compute: (c) => c.linkClicks, defaultVisible: true },
   { id: "site_visits", label: { en: "Visits", ar: "الزيارات" }, description: { en: "People who opened your website (pixel) or your booking page from a Yolias link.", ar: "أشخاص فتحوا موقعك (البيكسل) أو صفحة الحجز من رابط أرسله يولياس." }, format: "count", compute: (c) => c.siteVisits + c.visits, defaultVisible: true },
   { id: "signups", label: { en: "Signups", ar: "التسجيلات" }, description: { en: "CompleteRegistration events from people Yolias sent.", ar: "أحداث التسجيل من أشخاص أرسلهم يولياس." }, format: "count", compute: (c) => c.signups, defaultVisible: true },

@@ -51,13 +51,13 @@ export async function loadSendingRules(workspaceId: string, provider?: string | 
 /** Saves a connected account (and its refresh token) for this member. A new mailbox starts with the workspace's sending rules. */
 export async function saveMailbox(input: { workspaceId: string; userId: string; provider: MailProvider; email: string; displayName: string | null; canRead: boolean; refreshToken: string }): Promise<MailboxRow> {
   const db = createAdminClient();
-  const { data: existing } = await db.from("mailboxes").select("id").eq("workspace_id", input.workspaceId).eq("user_id", input.userId).eq("provider", input.provider).maybeSingle();
+  const { data: existing } = await db.from("mailboxes").select("id").eq("workspace_id", input.workspaceId).eq("user_id", input.userId).eq("provider", input.provider).eq("email", input.email).maybeSingle();
   const rules = existing ? null : await loadSendingRules(input.workspaceId, input.provider);
   const { data, error } = await db.from("mailboxes").upsert({
     workspace_id: input.workspaceId, user_id: input.userId, provider: input.provider, email: input.email, display_name: input.displayName,
     can_read: input.canRead, status: "connected", last_error: null, connected_at: new Date().toISOString(), sync_cursor: null,
     ...(rules ? { daily_limit: rules.daily_per_mailbox, send_days: rules.days, send_start: rules.start, send_end: rules.end, time_zone: rules.timezone } : {}),
-  }, { onConflict: "workspace_id,user_id,provider" }).select("*").single();
+  }, { onConflict: "workspace_id,user_id,provider,email" }).select("*").single();
   if (error || !data) throw error ?? new Error("mailbox not saved");
   const { error: tokenError } = await db.rpc("set_mailbox_token", { p_mailbox: data.id, p_token: input.refreshToken });
   if (tokenError) throw tokenError;

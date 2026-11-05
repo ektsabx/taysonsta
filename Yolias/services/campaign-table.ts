@@ -29,7 +29,7 @@ export interface CampaignLine {
   dailyLimit: number | null; dailyUsd: number | null;
 }
 
-type Msg = { outreach_campaign_id: string | null; enrollment_id: string | null; lead_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; step_position: number | null; variant: string | null; recipient_opened_at: string | null };
+type Msg = { spam_blocked: boolean; outreach_campaign_id: string | null; enrollment_id: string | null; lead_id: string | null; direction: string; status: string; delivery_status: string | null; sent_at: string | null; received_at: string | null; created_at: string; analysis: unknown; step_position: number | null; variant: string | null; recipient_opened_at: string | null };
 
 async function paged<T>(q: (from: number, to: number) => PromiseLike<{ data: T[] | null }>, cap = 50_000): Promise<T[]> {
   const out: T[] = [];
@@ -54,7 +54,7 @@ export async function campaignTable(workspaceId: string, range: { from: string |
   const searchIds = [...new Set([...groups.map((g) => g.search_campaign_id), ...camps.map((c) => c.source_campaign_id)].filter((x): x is string => Boolean(x)))];
 
   const [msgs, enrollments, meetings, ledger, prospects, companies, visits, pixel, rate, clicks] = await Promise.all([
-    paged<Msg>((a, b) => db.from("outreach_messages").select("outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, step_position, variant, recipient_opened_at")
+    paged<Msg>((a, b) => db.from("outreach_messages").select("spam_blocked, outreach_campaign_id, enrollment_id, lead_id, direction, status, delivery_status, sent_at, received_at, created_at, analysis, step_position, variant, recipient_opened_at")
       .eq("workspace_id", workspaceId).not("lead_id", "is", null).order("created_at").range(a, b)),
     paged<{ id: string; campaign_id: string; lead_id: string; audience_group_id: string | null }>((a, b) => db.from("outreach_enrollments").select("id, campaign_id, lead_id, audience_group_id").in("campaign_id", ids).range(a, b)),
     paged<{ campaign_id: string | null; lead_id: string; status: string; qualified: boolean | null; starts_at: string; created_at: string; confirmed_at: string | null }>((a, b) => db.from("sales_meetings").select("campaign_id, lead_id, status, qualified, starts_at, created_at, confirmed_at").eq("workspace_id", workspaceId).in("campaign_id", ids).range(a, b)),
@@ -108,8 +108,10 @@ export async function campaignTable(workspaceId: string, range: { from: string |
       const { s, n } = bucket(k);
       if (m.direction === "outbound" && m.status === "sent" && inRange(m.sent_at, range)) {
         n.sent++; if (m.delivery_status === "bounced") n.bounced++; else n.delivered++;
+        if (m.spam_blocked) n.spam++;
         s.contacted.add(m.lead_id);
       }
+      if (m.direction === "outbound" && m.status === "failed" && inRange(m.created_at, range)) n.errors++;
       if (m.direction === "outbound" && m.recipient_opened_at && inRange(m.recipient_opened_at, range)) s.opened.add(m.lead_id);
       if (m.direction === "inbound" && inRange(m.received_at ?? m.created_at, range) && !isAutoReplyRow(m as never)) {
         s.replies.add(m.lead_id);

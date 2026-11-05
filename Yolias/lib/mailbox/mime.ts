@@ -33,6 +33,24 @@ export function textToHtml(text: string, pixelUrl: string): string {
   return `<div${dir}>${linked.replace(/\r?\n/g, "<br>")}</div><img src="${esc(pixelUrl)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px">`;
 }
 
+export interface MailFile { name: string; type: string; data: Uint8Array }
+
+/** Files sent with a reply (owner, 2026-11-05): the body and each file in multipart/mixed. */
+function withFiles(parts: { headers: string[]; body: string }, files?: MailFile[]): { headers: string[]; body: string } {
+  if (!files?.length) return parts;
+  const boundary = `yolias-mix-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  const b64 = (d: Uint8Array) => {
+    let s = "";
+    for (let i = 0; i < d.length; i += 0x8000) s += String.fromCharCode(...d.subarray(i, i + 0x8000));
+    return btoa(s).replace(/(.{76})/g, "$1\r\n");
+  };
+  const file = (f: MailFile) => `--${boundary}\r\nContent-Type: ${clean(f.type) || "application/octet-stream"}; name="${encodeHeader(clean(f.name))}"\r\nContent-Disposition: attachment; filename="${encodeHeader(clean(f.name))}"\r\nContent-Transfer-Encoding: base64\r\n\r\n${b64(f.data)}\r\n`;
+  return { headers: [`Content-Type: multipart/mixed; boundary="${boundary}"`], body: `--${boundary}\r\n${parts.headers.join("\r\n")}\r\n\r\n${parts.body}\r\n${files.map(file).join("")}--${boundary}--` };
+}
+
+/** A delivery failure that says the message was refused as spam or by a block list (unit-tested). */
+export const isSpamBlock = (text: string) => /\bspam\b|blacklist|block ?list|blocked|reputation|5\.7\.1|policy (violation|reasons)|رسائل غير مرغوب/i.test(text);
+
 /** The body part(s): plain text alone, or text + HTML (multipart/alternative) when an open pixel is set. */
 function bodyParts(text: string, pixelUrl?: string | null): { headers: string[]; body: string } {
   if (!pixelUrl) return { headers: ['Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64"], body: b64body(text) };
@@ -41,8 +59,8 @@ function bodyParts(text: string, pixelUrl?: string | null): { headers: string[];
   return { headers: [`Content-Type: multipart/alternative; boundary="${boundary}"`], body: `${part("text/plain", text)}${part("text/html", textToHtml(text, pixelUrl))}--${boundary}--` };
 }
 
-export function buildRawEmail(m: { from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
-  const parts = bodyParts(m.body, m.pixelUrl);
+export function buildRawEmail(m: { files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = withFiles(bodyParts(m.body, m.pixelUrl), m.files);
   const headers = [
     `From: ${m.fromName ? `${encodeHeader(clean(m.fromName))} <${clean(m.from)}>` : clean(m.from)}`,
     `To: ${clean(m.to)}`,
@@ -110,8 +128,8 @@ export function htmlToText(html: string): string {
 // ── SMTP / IMAP mailboxes (D-238) ───────────────────────────────────────────
 
 /** A complete RFC 5322 message for SMTP (CRLF line ends, base64 UTF-8 body). */
-export function buildMessage(m: { from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
-  const parts = bodyParts(m.body, m.pixelUrl);
+export function buildMessage(m: { files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = withFiles(bodyParts(m.body, m.pixelUrl), m.files);
   const refs = (m.references ?? []).filter(Boolean).map(clean);
   const headers = [
     `Date: ${(m.date ?? new Date()).toUTCString().replace("GMT", "+0000")}`,

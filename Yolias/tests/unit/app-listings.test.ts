@@ -12,3 +12,16 @@ test("an integration keeps its defaults until Admin changes them", () => {
   assert.equal(isAppKey("gmail"), true);
   assert.equal(isAppKey("nope"), false);
 });
+
+import { buildMessage, isSpamBlock } from "../../lib/mailbox/mime.ts";
+import { toolsFor, cleanTag } from "../../lib/inbox-channels.ts";
+
+test("a reply carries its files; spam refusals are told apart", () => {
+  const raw = buildMessage({ from: "a@b.co", fromName: null, to: "c@d.co", subject: "Hi", body: "Hello", messageId: "<1@b.co>", files: [{ name: "note.txt", type: "text/plain", data: new TextEncoder().encode("x") }] });
+  assert.match(raw, /multipart\/mixed/);
+  assert.match(raw, /filename="note.txt"/);
+  assert.equal(isSpamBlock("550 5.7.1 Message rejected as spam"), true);
+  assert.equal(isSpamBlock("550 user unknown"), false);
+  assert.ok(toolsFor("email").includes("voice"));
+  assert.equal(cleanTag("  hot   lead "), "hot lead");
+});
