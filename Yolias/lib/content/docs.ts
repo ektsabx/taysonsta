@@ -1,3 +1,4 @@
+import { docGuides } from "./docs-guides";
 import type { Doc, Localized } from "./types";
 
 // Documentation (rewritten for the AI advertising platform, owner 2026-11-03,
@@ -24,7 +25,7 @@ export interface DocPage {
   doc: Localized<Doc>;
 }
 
-export const docs: DocPage[] = [
+const baseDocs: DocPage[] = [
   {
     slug: "tour",
     group: "start",
@@ -514,3 +515,6 @@ export const docs: DocPage[] = [
     },
   },
 ];
+
+/** Pages rewritten in full replace their short version. */
+export const docs: typeof baseDocs = baseDocs.map((d) => (docGuides[d.slug] ? { ...d, doc: docGuides[d.slug] } : d));

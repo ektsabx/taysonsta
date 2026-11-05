@@ -51,7 +51,7 @@ export const longDocs: Record<string, Localized<Doc>> = {
         { p: "Sara runs a small agency and sends from sara@agency.example on Google Workspace. She connects the mailbox, keeps 30 emails a day and sets her hours to 10:00 to 16:00 in her time zone. She creates a campaign and chooses the mailbox under **Send from**. Yolias sends within those hours, about one email every 20 minutes, and every reply appears in **Conversations** and in her Gmail." },
         { h2: "Requirements and limits" },
         { ul: [
-          "Each member connects one Gmail mailbox, and one other mailbox through IMAP/SMTP. To send from more addresses, invite teammates: every plan has unlimited users.",
+          "You can connect several mailboxes, and each campaign sends from the one you choose.",
           "A campaign sends from one mailbox.",
           "A mailbox belongs to the member who connected it.",
           "Members with view-only access can't connect a mailbox.",
@@ -117,7 +117,7 @@ export const longDocs: Record<string, Localized<Doc>> = {
         { p: "تدير سارة وكالة صغيرة وترسل من sara@agency.example على Google Workspace. تربط البريد، وتبقي 30 رسالة يوميًا، وتضبط ساعاتها من 10:00 إلى 16:00 بتوقيتها. ثم تنشئ حملة وتختار البريد في **الإرسال من**. يرسل يولياس في هذه الساعات، برسالة كل 20 دقيقة تقريبًا، ويظهر كل رد في **المحادثات** وفي Gmail." },
         { h2: "المتطلبات والقيود" },
         { ul: [
-          "يربط كل عضو بريد Gmail واحدًا، وبريدًا آخر واحدًا عبر IMAP/SMTP. وللإرسال من عناوين أكثر ادعُ أعضاء فريقك: كل الخطط بمستخدمين بلا حد.",
+          "يمكنك ربط أكثر من بريد، وترسل كل حملة من البريد الذي تختاره.",
           "ترسل الحملة من بريد واحد.",
           "يتبع البريد العضو الذي ربطه.",
           "لا يستطيع أعضاء المشاهدة فقط ربط بريد.",

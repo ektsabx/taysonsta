@@ -746,3 +746,21 @@ html[lang="ar"] .mk .lp-message { font-family: inherit; font-weight: 600; }
 .mk .wf-demo-nav button { display: inline-flex; align-items: center; gap: 6px; }
 .mk .wf-demo-nav svg { width: 15px; height: 15px; }
 html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
+
+/* Solution pages: what a buyer needs (owner, 2026-11-05). */
+.mk .sd-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.mk .sd-table table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.mk .sd-table th, .mk .sd-table td { padding: 13px 16px; border-bottom: 1px solid var(--row); text-align: start; vertical-align: top; line-height: 1.5; }
+.mk .sd-table tr:last-child th, .mk .sd-table tr:last-child td { border-bottom: 0; }
+.mk .sd-table thead th { color: var(--faint); font-size: .8rem; font-weight: 600; }
+.mk .sd-table tbody th { color: var(--black); font-weight: 600; white-space: nowrap; }
+.mk .sd-table td { color: var(--text-2); }
+.mk .sd-table .sd-us { color: var(--black); font-weight: 600; background: var(--red-pale); }
+.mk .sd-note { margin-top: .9rem; color: var(--faint); font-size: .82rem; }
+.mk .sd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px 24px; margin: 0; padding: 0; list-style: none; }
+.mk .sd-grid li { display: flex; gap: 10px; color: var(--text-2); line-height: 1.55; }
+.mk .sd-grid svg { flex: none; width: 16px; height: 16px; margin-top: 4px; color: var(--red); }
+.mk .sd-month { display: grid; gap: 12px; margin: 0 0 1.6rem; padding: 0; list-style: none; }
+.mk .sd-month li { display: grid; grid-template-columns: 7rem 1fr; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--row); }
+.mk .sd-month strong { color: var(--black); }
+.mk .sd-month span { color: var(--text-2); line-height: 1.6; }

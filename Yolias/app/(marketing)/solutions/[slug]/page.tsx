@@ -7,6 +7,7 @@ import { home } from "@/lib/content/site";
 import { solutionSeo } from "@/lib/content/solutions-seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
+import { SolutionDeep } from "@/components/marketing/SolutionDeep";
 import { breadcrumbSchema, faqSchema, webPageSchema } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
 import { loadSeoPage, renderSeoPage, seoMetadata } from "@/lib/content/seo-route";
@@ -36,7 +37,8 @@ export default async function SolutionPage({ params }: Props) {
   if (!isSolutionSlug(slug)) {
     const page = await loadSeoPage("solution", slug);
     if (!page) notFound();
-    return renderSeoPage(page);
+    const locale = await getLocale();
+    return <>{await renderSeoPage(page)}<SolutionDeep name={locale === "ar" ? "أصحاب الأعمال" : "businesses like yours"} locale={locale} /></>;
   }
   const locale = await getLocale();
   const s = solutions[slug][locale];
@@ -171,6 +173,7 @@ export default async function SolutionPage({ params }: Props) {
         </div>
       </section>
 
+      <SolutionDeep name={s.name} locale={locale} />
       <section className="cta-band">
         <div className="site-width">
           <h2 className="display-font">{c.cta.title}</h2>
