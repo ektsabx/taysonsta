@@ -100,6 +100,7 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/referrals", label: "برنامج الدعوة", perm: "platform.read" },
       { href: "/admin/platform/tutorials", label: "فيديوهات شرح المنصة", perm: "platform.read" },
       { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
+      { href: "/admin/platform/use-cases", label: "حالات الاستخدام", perm: "platform.read" },
       { href: "/admin/platform/popups", label: "النوافذ المنبثقة", perm: "platform.read" },
     ],
   },

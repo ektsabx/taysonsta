@@ -9611,6 +9611,20 @@ const en: Record<string, string> = {
  "تقويم Google": "Google Calendar",
  "بيكسل موقع يولياس": "Yolias website pixel",
  "رقم البيكسل من مدير الأحداث في حسابك على يولياس": "Pixel ID from Events Manager in your Yolias account",
+ "حالات الاستخدام": "Use cases",
+ "حالة جديدة": "New use case",
+ "تعديل الحالة": "Edit use case",
+ "لا توجد حالات بعد": "No use cases yet",
+ "رابط القالب (اختياري)": "Template link (optional)",
+ "حالات ذات صلة (روابط مفصولة بفاصلة)": "Related use cases (links, comma separated)",
+ "عنوان SEO": "SEO title",
+ "وصف SEO": "SEO description",
+ "قبل أن نبدأ (كل سطر فقرة)": "Before we begin (one paragraph per line)",
+ "كيف يعمل (كل سطر نقطة)": "How it works (one point per line)",
+ "ما استخدمناه (كل سطر: الاسم | الدور)": "What we used (each line: name | role)",
+ "حذف الخطوة": "Delete step",
+ "إضافة خطوة": "Add step",
+ "ماذا تفعل بالنتائج (كل سطر نقطة)": "Act on the results (one point per line)",
 };
 
 export default en;

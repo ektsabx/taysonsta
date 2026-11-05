@@ -1,13 +1,14 @@
 import Link from "@/components/LocaleLink";
 import { Check } from "lucide-react";
+import { WorkflowDemo } from "./WorkflowDemo";
 import type { Locale } from "@/lib/i18n/config";
-import { workflowLabels, workflowOf, type Workflow } from "@/lib/content/workflows";
+import { workflowLabels, type Workflow } from "@/lib/content/workflows";
 
 // A use case as a working guide (owner, 2026-11-05): the problem, what it uses,
 // then numbered steps beside real screenshots.
-export function WorkflowView({ w, locale }: { w: Workflow; locale: Locale }) {
+export function WorkflowView({ w, locale, all }: { w: Workflow; locale: Locale; all: Workflow[] }) {
   const x = w.text[locale], L = workflowLabels[locale];
-  const related = w.related.map(workflowOf).filter((r): r is Workflow => Boolean(r));
+  const related = w.related.map((s) => all.find((x) => x.slug === s)).filter((r): r is Workflow => Boolean(r));
   return (
     <div className="wf">
       <section className="page-hero">
@@ -36,7 +37,8 @@ export function WorkflowView({ w, locale }: { w: Workflow; locale: Locale }) {
       </section>
       <section className="section alt">
         <div className="site-width">
-          <h2 className="solution-h2">{L.steps}</h2>
+          <WorkflowDemo steps={x.steps} locale={locale} />
+          <h2 className="solution-h2 wf-gap">{L.steps}</h2>
           <ol className="wf-steps">
             {x.steps.map((s, i) => (
               <li key={s.title}>

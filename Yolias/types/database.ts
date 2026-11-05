@@ -271,7 +271,7 @@ export type OutreachMessageRow = {
 export type WorkspaceActivityRow = {
   id: number; workspace_id: string; user_id: string | null; kind: "export"; format: "csv" | null; source: string | null; rows: number; created_at: string;
 };
-export type ContentKind = "help" | "docs" | "blog" | "legal" | SeoContentKind;
+export type ContentKind = "help" | "docs" | "blog" | "legal" | SeoContentKind | "use_case";
 export type SeoContentKind = "compare" | "alternatives" | "solution" | "template";
 export type ContentEntryRow = {
   id: string; kind: ContentKind; slug: string; meta: Json; doc: Json; status: "draft" | "scheduled" | "published" | "hidden"; sort: number;

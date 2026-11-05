@@ -732,3 +732,17 @@ html[lang="ar"] .mk .lp-message { font-family: inherit; font-weight: 600; }
 .mk .wf-steps figcaption { margin-top: 8px; color: var(--faint); font-size: .74rem; text-align: center; }
 .mk .wf-act { margin-top: 1rem; }
 @media (max-width: 900px) { .mk .wf-cols, .mk .wf-steps > li { grid-template-columns: minmax(0, 1fr); } .mk .wf-side { position: static; } }
+
+.mk .wf-demo { border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+.mk .wf-demo-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: .88rem; color: var(--text-2); }
+.mk .wf-demo-head strong { color: var(--black); }
+.mk .wf-demo-stage { position: relative; }
+.mk .wf-demo-stage img { display: block; width: 100%; }
+.mk .wf-spot { position: absolute; padding: 0; border: 2px solid var(--red); border-radius: 10px; background: color-mix(in srgb, var(--red) 14%, transparent); cursor: pointer; animation: wf-pulse 1.6s ease-out infinite; }
+@keyframes wf-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+@media (prefers-reduced-motion: reduce) { .mk .wf-spot { animation: none; } }
+.mk .wf-demo-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); font-size: .88rem; color: var(--text-2); }
+.mk .wf-demo-nav { display: flex; gap: 8px; }
+.mk .wf-demo-nav button { display: inline-flex; align-items: center; gap: 6px; }
+.mk .wf-demo-nav svg { width: 15px; height: 15px; }
+html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }

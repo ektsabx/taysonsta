@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "@/components/LocaleLink";
-import { useCases, useCaseSlugs, useCasesPage } from "@/lib/content/use-cases";
+import { useCasesPage } from "@/lib/content/use-cases";
+import { allWorkflows } from "@/services/workflows";
 import { getLocale } from "@/lib/i18n/server";
 import { breadcrumbSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
@@ -14,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function UseCasesPage() {
   const locale = await getLocale();
   const c = useCasesPage[locale];
+  const list = await allWorkflows();
   return (
     <>
       <JsonLd nodes={[webPageSchema({ title: c.title, description: c.metaDescription, path: "/use-cases", type: "CollectionPage" }), breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.title, path: "/use-cases" }])]} />
@@ -27,13 +29,13 @@ export default async function UseCasesPage() {
       <section className="section">
         <div className="site-width">
           <ul className="solutions-grid">
-            {useCaseSlugs.map((slug) => {
-              const u = useCases[slug][locale];
+            {list.map((w) => {
+              const u = w.text[locale];
               return (
-                <li key={slug}>
-                  <Link className="solution-card" href={`/use-cases/${slug}`}>
-                    <strong>{u.h1}</strong>
-                    <span>{u.metaDescription}</span>
+                <li key={w.slug}>
+                  <Link className="solution-card" href={`/use-cases/${w.slug}`}>
+                    <strong>{u.title}</strong>
+                    <span>{u.lead}</span>
                   </Link>
                 </li>
               );
