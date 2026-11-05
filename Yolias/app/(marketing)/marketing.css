@@ -771,7 +771,7 @@ html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
 .mk .post-article .doc-title-row { margin-top: .6rem; }
 .mk .wf .solution-h2 { margin-bottom: 1rem; }
 .mk .wf .prose > p { color: var(--text-2); }
-.mk .wf-demo-nav .btn-solid, .mk .wf-demo-nav .btn-ghost { height: 38px; padding: 0 14px; font-size: .84rem; cursor: pointer; }
+.mk .wf-demo-nav .btn-solid, .mk .wf-demo-nav .btn-ghost { cursor: pointer; }
 .mk .wf-demo-nav button:disabled { opacity: .45; cursor: default; }
 .mk .wf-demo { margin-bottom: 1rem; }
 .mk .wf .hero-actions { margin-top: 1.6rem; }
@@ -787,3 +787,26 @@ html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
 .mk .sd-mail strong { color: var(--black); }
 .mk .sd-mail p { margin-top: .8rem; color: var(--text-2); line-height: 1.8; white-space: pre-line; }
 .mk .sd-h3 { margin: 1.6rem 0 .8rem; font-size: 1.05rem; font-weight: 700; color: var(--black); }
+
+/* One rhythm for every public page (audit, 2026-11-05): the same space under
+   the header, the same page title, the same section padding, text at a readable
+   width, and on small screens the article before its side menu. */
+.mk { --gap-top: 72px; --gap-hero-end: 64px; --gap-section: 88px; }
+.mk .page-hero, .mk .lp-hero, .mk .help-hero { padding: var(--gap-top) 0 var(--gap-hero-end); }
+.mk .hero-fade { padding: var(--gap-top) 0 var(--gap-hero-end); }
+.mk .doc-layout, .mk .post-article { padding-top: var(--gap-top); }
+.mk .page-hero h1, .mk .lp-hero h1, .mk .help-hero h1, .mk .hero-title { font-size: clamp(2.4rem, 4.8vw, 4rem); }
+.mk .section { padding-block: var(--gap-section); }
+.mk .seo-reviewed { padding-top: 0; }
+.mk .section-head p, .mk .prose p { max-width: 74ch; }
+.mk .section-head.lp-center p, .mk .lp-home .section-head p, .mk .faq-centered .section-head p { margin-inline: auto; }
+.mk .status-block h2 { margin-bottom: 14px; }
+/* doc-layout's own padding wiped the page gutter, so text touched the screen edge on phones. */
+.mk .site-width.doc-layout { padding-inline: 30px; }
+@media (max-width: 1100px) {
+  .mk .doc-layout.with-nav > .doc-main { order: -1; }
+}
+@media (max-width: 760px) {
+  .mk { --gap-top: 48px; --gap-hero-end: 44px; --gap-section: 60px; }
+  .mk .site-width.doc-layout { padding-inline: 18px; }
+}

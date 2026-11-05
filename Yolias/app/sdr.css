@@ -1188,3 +1188,13 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .sdr-reply-files svg { width: 12px; height: 12px; }
 
 .sdr-intent { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
+
+/* One size for buttons and page titles inside Yolias (audit, 2026-11-05). */
+.sdr-btn { height: 36px; }
+.sdr-btn.sm { height: 32px; }
+.sdr-page .btn-primary, .sdr-page .btn-secondary, .cb .btn-primary, .cb .btn-secondary { min-height: 36px; }
+.sdr-head h2, .app-store-head h2, .sdr-page > header h2 { font-size: 1.55rem; line-height: 1.3; }
+.page-view .view-header { padding-top: 28px; }
+.page-view .view-title-group h2 { font-size: 1.55rem; font-weight: 600; line-height: 1.3; }
+.page-view .btn-primary, .page-view .btn-secondary { min-height: 36px; }
+.btn-primary.ws-btn-sm, .btn-secondary.ws-btn-sm, .sdr-btn.sm { min-height: 32px; }
