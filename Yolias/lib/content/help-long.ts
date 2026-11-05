@@ -28,13 +28,12 @@ export const longDocs: Record<string, Localized<Doc>> = {
         { p: "You need a Google account, and permission to edit in your Yolias workspace. It takes about two minutes." },
         { ol: [
           "Open **Integrations** in the sidebar.",
-          "On the **Gmail** card, choose **Connect**. The Gmail page opens.",
-          "Choose **Gmail or Google Workspace**. Google's sign-in page opens.",
+          "On the **Gmail** card, choose **Connect**. Google's sign-in page opens.",
           "Choose the account you want to send from.",
           "Read the permissions and choose **Continue** or **Allow**.",
-          "You return to **Integrations** with the message **Mailbox connected**.",
+          "You return to the Gmail page in Yolias with the message **Mailbox connected**, and the mailbox is listed.",
         ] },
-        { p: "**How to know it worked:** the Gmail card shows **1 connected**. Open **Details**, then **Manage**, and the mailbox is listed with its address." },
+        { p: "**How to know it worked:** the Gmail card shows **1 connected**. The Gmail page lists the mailbox with its address. To add another, choose **Gmail or Google Workspace** there." },
         { h2: "Set the sending rules" },
         { p: "Open **Integrations**, choose **Gmail**, then **Manage**, and open **Sending rules**. A new mailbox starts with:" },
         { table: { head: ["Rule", "Starting value"], rows: [
@@ -94,13 +93,12 @@ export const longDocs: Record<string, Localized<Doc>> = {
         { p: "تحتاج إلى حساب Google وصلاحية التعديل في مساحة عملك. يستغرق الأمر دقيقتين تقريبًا." },
         { ol: [
           "افتح **التكاملات** من الشريط الجانبي.",
-          "في كارت **Gmail** اختر **اربط**. تفتح صفحة Gmail.",
-          "اختر **Gmail أو Google Workspace**. تفتح صفحة الدخول من Google.",
+          "في كارت **Gmail** اختر **اربط**. تفتح صفحة الدخول من Google.",
           "اختر الحساب الذي تريد الإرسال منه.",
           "اقرأ الأذونات واختر **متابعة** أو **سماح**.",
-          "تعود إلى **التكاملات** مع رسالة تؤكد ربط البريد.",
+          "تعود إلى صفحة Gmail في يولياس مع رسالة تؤكد الربط، ويظهر البريد فيها.",
         ] },
-        { p: "**كيف تعرف أن الربط نجح:** يعرض كارت Gmail عبارة **1 متصل**. افتح **التفاصيل** ثم **إدارة**، وستجد البريد بعنوانه." },
+        { p: "**كيف تعرف أن الربط نجح:** يعرض كارت Gmail عبارة **1 متصل**. وتعرض صفحة Gmail البريد بعنوانه. ولإضافة بريد آخر اختر **Gmail أو Google Workspace** هناك." },
         { h2: "اضبط قواعد الإرسال" },
         { p: "افتح **التكاملات** ثم **Gmail** ثم **إدارة**، وافتح **قواعد الإرسال**. يبدأ البريد الجديد بما يلي:" },
         { table: { head: ["القاعدة", "القيمة الأولى"], rows: [

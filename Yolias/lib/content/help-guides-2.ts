@@ -162,10 +162,11 @@ export const guides2: Record<string, Localized<Doc>> = {
   conversations: guide({
     en: {
       title: "Conversations", summary: "Read every thread, take over when needed, tag conversations and reply with files, images, GIFs, emoji or a voice note.",
-      what: ["**Conversations** lists every thread with its person, company and campaign. A conversation appears once something was sent or received."],
+      what: ["**Conversations** lists every thread with its person, company and campaign. A conversation appears once something was sent or received. Yolias AI reads each reply and shows how likely the person is to buy."],
       how: ["Yolias answers questions and objections from your Company Knowledge, offers times and books. It hands you complaints, negotiations, requests for a person and questions it can't answer; those show under **Needs you**.", "The reply box offers what the channel supports. On email: files, images, GIFs, emoji and voice notes, sent as attachments."],
       steps: [
         { title: "Reply yourself", items: ["Open a conversation.", "Choose the reply bar.", "Write your reply, or let Yolias draft one.", "Use the tools to attach a file, image or GIF, add an emoji, or record a voice note.", "Send it."], done: "Your reply appears in the thread and goes out from your mailbox." },
+        { title: "Read the buying intent", items: ["Open a conversation that has a reply.", "Under the name, read **Buying intent**: high, medium or low, with the words that show it.", "To focus on likely buyers, pick **High intent** in the **Buying intent** filter."], done: "The list shows only those conversations, each with its badge." },
         { title: "Tag a conversation", items: ["Open it.", "Type in **Add tag** under the name and press Enter.", "To see all conversations with a tag, pick it in the **Tag** filter."], done: "The tag shows on the conversation and the list filters to it." },
       ],
       needs: ["Up to 5 files in one reply, 10 MB each. Program files can't be sent.", "Voice notes need your browser's microphone permission.", "Replying needs a connected mailbox."],
@@ -174,10 +175,11 @@ export const guides2: Record<string, Localized<Doc>> = {
     },
     ar: {
       title: "المحادثات", summary: "اقرأ كل محادثة، وتولَّ الرد عند الحاجة، وأضف التاجات، ورد بالملفات والصور وGIF والإيموجي والتسجيل الصوتي.",
-      what: ["تعرض **المحادثات** كل محادثة مع شخصها وشركتها وحملتها. وتظهر المحادثة بعد إرسال شيء أو استلامه."],
+      what: ["تعرض **المحادثات** كل محادثة مع شخصها وشركتها وحملتها. وتظهر المحادثة بعد إرسال شيء أو استلامه. ويقرأ Yolias AI كل رد ويعرض مدى احتمال شراء الشخص."],
       how: ["يجيب يولياس عن الأسئلة والاعتراضات من معرفة شركتك، ويعرض المواعيد ويحجز. ويسلمك الشكاوى والتفاوض وطلبات التحدث مع شخص والأسئلة التي لا يستطيع إجابتها، وتظهر فيما يحتاجك.", "يعرض مربع الرد ما تدعمه القناة. في البريد: الملفات والصور وGIF والإيموجي والتسجيلات الصوتية، وتُرسل كمرفقات."],
       steps: [
         { title: "رد بنفسك", items: ["افتح محادثة.", "اختر شريط الرد.", "اكتب ردك أو دع يولياس يكتب مسودة.", "استخدم الأدوات لإرفاق ملف أو صورة أو GIF أو إضافة إيموجي أو تسجيل صوتي.", "أرسله."], done: "يظهر ردك في المحادثة ويخرج من بريدك." },
+        { title: "اقرأ نية الشراء", items: ["افتح محادثة بها رد.", "تحت الاسم اقرأ **نية الشراء**: عالية أو متوسطة أو منخفضة مع الكلمات الدالة عليها.", "للتركيز على المرجح شراؤهم اختر **نية عالية** من فلتر **نية الشراء**."], done: "تعرض القائمة هذه المحادثات فقط، ولكل منها شارتها." },
         { title: "أضف تاجًا", items: ["افتح المحادثة.", "اكتب في **إضافة تاج** تحت الاسم واضغط Enter.", "لعرض كل المحادثات بتاج معين اختره من فلتر **التاج**."], done: "يظهر التاج في المحادثة وتتصفى القائمة به." },
       ],
       needs: ["حتى 5 ملفات في الرد، 10 ميجا لكل ملف. ولا يمكن إرسال ملفات البرامج.", "يحتاج التسجيل الصوتي إلى إذن الميكروفون في متصفحك.", "يحتاج الرد إلى بريد متصل."],
