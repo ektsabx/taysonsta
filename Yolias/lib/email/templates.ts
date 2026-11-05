@@ -488,23 +488,23 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
     <div style="font-family:${ar ? FONT_AR : FONT_EN};font-size:13px;color:${C.muted};padding-top:8px">${ar ? `${u.used} / ${u.total} عميل محتمل` : `${u.used} / ${u.total} prospects`}</div>`;
   return {
     subject: !u.resetsAt
-      ? full ? (ar ? "استخدمت كل العملاء المحتملين المجانيين" : "You’ve used all your free prospects") : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين` : `You’ve used ${pct}% of your free prospects`
+      ? full ? (ar ? "استخدمت كل العملاء المجانيين" : "You’ve used all your free leads") : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين` : `You’ve used ${pct}% of your free prospects`
       : full
-      ? ar ? "استخدمت كل العملاء المحتملين لهذا الشهر" : "You’ve used all of this month’s prospects"
+      ? ar ? "استخدمت كل العملاء لهذا الشهر" : "You’ve used all of this month’s leads"
       : ar ? `استخدمت ${pct}% من العملاء المحتملين لهذا الشهر` : `You’ve used ${pct}% of this month’s prospects`,
     html: !u.resetsAt ? layout({
       locale,
       siteUrl: u.siteUrl,
-      preheader: ar ? "تشمل الخطة المجانية عملاء محتملين للبداية." : "The Free plan includes prospects to get you started.",
-      heading: full ? (ar ? "استخدمت العملاء المحتملين المجانيين" : "You’ve used your free prospects") : ar ? "اقتربت من نهاية العملاء المحتملين المجانيين" : "You’re close to the end of your free prospects",
+      preheader: ar ? "تشمل الخطة المجانية عملاء للبداية." : "The Free plan includes leads to get you started.",
+      heading: full ? (ar ? "استخدمت العملاء المجانيين" : "You’ve used your free leads") : ar ? "اقتربت من نهاية العملاء المجانيين" : "You’re close to the end of your free leads",
       body: [
         full
-          ? ar ? "توقف يولياس عن إضافة عملاء محتملين جدد. اختر خطة أو اشترِ عملاء محتملين إضافيين من الإعدادات ← الاستخدام لتتابع الاكتشاف." : "Yolias has paused adding new prospects. Pick a plan, or buy more prospects in Settings → Usage, to keep discovering."
+          ? ar ? "توقف يولياس عن إضافة عملاء جدد. اختر خطة أو اشترِ عملاء إضافيين من الإعدادات ← الاستخدام لتتابع الاكتشاف." : "Yolias has paused adding new leads. Pick a plan, or buy more leads in Settings → Usage, to keep discovering."
           : ar ? `استخدمت ${pct}% من العملاء المحتملين المجانيين. اختر خطة في أي وقت لتحصل على عملاء محتملين كل شهر.` : `You’ve used ${pct}% of your free prospects. Pick a plan any time to get prospects every month.`,
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "الخطط المدفوعة تشمل رصيداً جديداً من العملاء المحتملين كل شهر." : "Paid plans include a new prospect allowance every month.",
+      footnote: ar ? "الخطط المدفوعة تشمل رصيداً جديداً من العملاء كل شهر." : "Paid plans include a new lead allowance every month.",
     }) : layout({
       locale,
       siteUrl: u.siteUrl,
@@ -521,7 +521,7 @@ export function usageAlertEmail(locale: EmailLocale, u: UsageAlertInput): Render
       ],
       extra: bar,
       button: { label: ar ? "عرض الخطط" : "See plans", href: `${u.siteUrl}/checkout` },
-      footnote: ar ? "يُحسب الاستخدام بالعملاء المحتملين الذين تم تسليمهم فقط." : "Only delivered prospects count toward your usage.",
+      footnote: ar ? "يُحسب الاستخدام بالعملاء الذين تم تسليمهم فقط." : "Only delivered leads count toward your usage.",
     }),
   };
 }

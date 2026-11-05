@@ -33,7 +33,7 @@ const navItems = [
   { href: "/dashboard", key: "dashboard", icon: ChartColumnIncreasing },
   { href: "/", key: "yoliasAi", icon: MessageSquareText },
   { href: "/campaigns", key: "campaigns", icon: Send },
-  { href: "/prospects", key: "prospects", icon: UserSearch },
+  { href: "/leads", key: "prospects", icon: UserSearch },
   { href: "/audiences", key: "audiences", icon: UsersRound },
   { href: "/inbox", key: "conversations", icon: MessagesSquare },
   { href: "/meetings", key: "meetings", icon: CalendarDays },

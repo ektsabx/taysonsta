@@ -431,11 +431,11 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
   prospects_added: (l, d) => ({
     subject: T(l, `${d.added} prospects added to your workspace`, `تمت إضافة ${d.added} عميل محتمل إلى مساحة عملك`),
     preheader: T(l, `This month’s allowance is now ${d.allowance}.`, `أصبح رصيد هذا الشهر ${d.allowance}.`),
-    heading: T(l, "Prospects added", "تمت إضافة عملاء محتملين"),
+    heading: T(l, "Leads added", "تمت إضافة عملاء"),
     body: [T(l, `<strong>${d.added}</strong> prospects were added to your workspace for this month${d.reason ? ` (${esc(d.reason)})` : ""}. Your allowance is now <strong>${d.allowance}</strong>.`,
       `تمت إضافة <strong>${d.added}</strong> عميل محتمل إلى مساحة عملك لهذا الشهر${d.reason ? ` (${esc(d.reason)})` : ""}. أصبح رصيدك <strong>${d.allowance}</strong>.`)],
     button: { label: T(l, "Start a search", "ابدأ البحث"), href: `${d.siteUrl}/` },
-    footnote: T(l, "Unused prospects reset at the start of next month.", "يتجدد الرصيد غير المستخدم في بداية الشهر القادم."),
+    footnote: T(l, "Unused leads reset at the start of next month.", "يتجدد الرصيد غير المستخدم في بداية الشهر القادم."),
   }),
 
   /* Sales (Today, meetings) */
@@ -444,8 +444,8 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     preheader: T(l, "Yolias found them yesterday and is writing to them.", "وجدهم يولياس أمس ويكتب إليهم."),
     heading: T(l, "Ready for your review", "جاهزون لمراجعتك"),
     body: [T(l, "Yolias found these people for your campaigns in the last day. It writes to each one in your campaign's hours; you can look at who they are first.", "وجد يولياس هؤلاء الأشخاص لحملاتك خلال اليوم الماضي. يكتب لكل واحد منهم في ساعات حملتك؛ ويمكنك أن تراجع من هم أولًا.")],
-    extra: table(l, d.campaigns.map((c) => [esc(c.name), link(`${d.siteUrl}/prospects?campaign=${c.id}`, T(l, `${c.found} people`, `${c.found} شخص`))])),
-    button: { label: T(l, "See who they are", "شاهد من هم"), href: `${d.siteUrl}/prospects` },
+    extra: table(l, d.campaigns.map((c) => [esc(c.name), link(`${d.siteUrl}/leads?campaign=${c.id}`, T(l, `${c.found} people`, `${c.found} شخص`))])),
+    button: { label: T(l, "See who they are", "شاهد من هم"), href: `${d.siteUrl}/leads` },
     footnote: T(l, `Sent once a day when Yolias found new people. ${link(`${d.siteUrl}/?settings=notifications`, "Turn off in Notification settings")}`, `يصلك مرة يوميًا عندما يجد يولياس أشخاصًا جددًا. ${link(`${d.siteUrl}/?settings=notifications`, "أوقفه من إعدادات الإشعارات")}`),
   }),
   campaign_changes: (l, d) => ({

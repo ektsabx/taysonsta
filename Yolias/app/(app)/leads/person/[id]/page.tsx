@@ -15,7 +15,7 @@ import { requireViewer } from "@/lib/session";
 import { getPerson } from "@/services/prospects";
 import { engagementOf, leadScore } from "@/lib/campaigns/lead-score";
 
-export async function generateMetadata({ params }: PageProps<"/prospects/person/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/leads/person/[id]">): Promise<Metadata> {
   const { id } = await params;
   const p = /^[0-9a-f-]{36}$/i.test(id) ? await getPerson(id) : null;
   return { title: p ? `${p.full_name} | Yolias` : "Yolias" };
@@ -46,7 +46,7 @@ function Tiles({ items, empty }: { items: Tile[]; empty: string }) {
 // 2026-10-07): photo and name, their information as tiles (contact masked
 // until revealed), their company, the messages Yolias prepared and the data
 // intelligence behind the record.
-export default async function PersonPage({ params }: PageProps<"/prospects/person/[id]">) {
+export default async function PersonPage({ params }: PageProps<"/leads/person/[id]">) {
   const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -61,7 +61,7 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
   const c = p.company;
   const place = location(p.city ?? c?.city, p.country ?? c?.country, locale);
   const email = p.email && p.email_status !== "invalid" ? p.email : null;
-  const back = c ? `/prospects/company/${c.id}` : "/prospects";
+  const back = c ? `/leads/company/${c.id}` : "/leads";
   // Lead score (audit 2026-11-03): fit and interest apart, and one score.
   const sig = (Array.isArray(c?.signals) ? (c!.signals as unknown[]).length : 0) + ((c?.hiring_roles as number | null) ? 1 : 0);
   const ls = leadScore({ fit: p.match_score ?? null, signals: sig, completeness: { email: Boolean(email), title: Boolean(p.title), linkedin: Boolean(p.linkedin_url), phone: Boolean(p.phone) }, engagement: engagementOf(messages) });
@@ -117,7 +117,7 @@ export default async function PersonPage({ params }: PageProps<"/prospects/perso
             <h2 className="result-card-title"><Building2 /> {d.company}</h2>
             {c ? (
               <>
-                <Link className="person-company" href={`/prospects/company/${c.id}`}>
+                <Link className="person-company" href={`/leads/company/${c.id}`}>
                   <CompanyLogo name={c.name} logoUrl={c.logo_url} domain={c.domain} size={40} />
                   <strong>{c.name}</strong>
                 </Link>

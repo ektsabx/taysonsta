@@ -122,7 +122,7 @@ export const alternativesPages: SeedPage[] = [
       ],
       faq: [
         { q: "What are the best Apollo alternatives?", a: "It depends on why you are leaving Apollo: Cognism or Lusha for phone numbers, ZoomInfo for a larger enterprise dataset with intent, Clay to build your own enrichment, Hunter for emails at companies you chose, and Yolias if you want an AI advertising platform that finds the decision makers you define, writes to them from your own mailbox and books the meetings." },
-        { q: "What is the cheapest Apollo alternative?", a: "It depends on your volume and team size. Per-user tools get expensive as the team grows; Yolias has unlimited users on every plan and charges for prospects only, while Hunter charges per email found. Price your real monthly usage on each pricing page." },
+        { q: "What is the cheapest Apollo alternative?", a: "It depends on your volume and team size. Per-user tools get expensive as the team grows; Yolias has unlimited users on every plan and charges for leads only, while Hunter charges per email found. Price your real monthly usage on each pricing page." },
         { q: "Is Yolias an Apollo alternative for agencies?", a: "Yes, for agencies that sell services and want matching companies explained and emailed from their own mailbox. Agencies that need large phone-number lists will want a contact data provider as well." },
       ],
       cta: CTA.en,
@@ -153,7 +153,7 @@ export const alternativesPages: SeedPage[] = [
       ],
       faq: [
         { q: "ما أفضل بدائل Apollo؟", a: "يعتمد على سبب تركك لـ Apollo: Cognism أو Lusha لأرقام الهاتف، وZoomInfo لبيانات مؤسسية أوسع مع إشارات النية، وClay لبناء الإثراء بنفسك، وHunter للبريد في شركات اخترتها، ويولياس إذا أردت منصة إعلانات بالذكاء الاصطناعي تجد صنّاع القرار الذين تحددهم وتكتب لهم من بريدك وتحجز الاجتماعات." },
-        { q: "ما أرخص بديل لـ Apollo؟", a: "يعتمد على حجمك وحجم فريقك. الأدوات التي تُسعّر لكل مستخدم تغلو مع نمو الفريق؛ ويولياس بعدد غير محدود من المستخدمين في كل الخطط ويحسب العملاء المحتملين فقط، وHunter يحسب لكل بريد يجده. احسب استخدامك الشهري الحقيقي على صفحة أسعار كل أداة." },
+        { q: "ما أرخص بديل لـ Apollo؟", a: "يعتمد على حجمك وحجم فريقك. الأدوات التي تُسعّر لكل مستخدم تغلو مع نمو الفريق؛ ويولياس بعدد غير محدود من المستخدمين في كل الخطط ويحسب العملاء فقط، وHunter يحسب لكل بريد يجده. احسب استخدامك الشهري الحقيقي على صفحة أسعار كل أداة." },
         { q: "هل يولياس بديل لـ Apollo للوكالات؟", a: "نعم، للوكالات التي تبيع خدمات وتريد شركات مطابقة مشروحة ومراسلة من بريدها. أما الوكالات التي تحتاج قوائم أرقام هاتف كبيرة فستحتاج مزود بيانات تواصل أيضًا." },
       ],
       cta: CTA.ar,
@@ -183,7 +183,7 @@ export const alternativesPages: SeedPage[] = [
           ["Find companies that match your ICP", "Yolias (describe the ICP in plain language)"],
           ["Enrich contacts with emails and phones", "Apollo, Lusha, ZoomInfo"],
           ["Find emails for a list of domains", "Hunter"],
-          ["Write a personalised first line per prospect", "Yolias (writes the whole first email from your Company Knowledge)"],
+          ["Write a personalised first line per lead", "Yolias (writes the whole first email from your Company Knowledge)"],
         ] } },
       ],
       faq: [
@@ -202,7 +202,7 @@ export const alternativesPages: SeedPage[] = [
       criteria: [
         "**من سيشغّل الأداة:** شخص متفرغ للعمليات، أم الشخص الذي يبيع أيضًا.",
         "**لماذا كنت تستخدم Clay:** إيجاد الشركات، أو إثراء جهات الاتصال، أو التقييم، أو كتابة سطور مخصصة.",
-        "**تكلفة متوقعة:** الإجراءات والرصيد مقابل السعر لكل مستخدم أو لكل عميل محتمل.",
+        "**تكلفة متوقعة:** الإجراءات والرصيد مقابل السعر لكل مستخدم أو لكل عميل.",
       ],
       blocks: [
         { h2: "ما الذي تخسره وتحتفظ به عند ترك Clay" },

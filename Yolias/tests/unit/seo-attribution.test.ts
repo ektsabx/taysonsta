@@ -34,7 +34,7 @@ test("channels", () => {
 
 test("only public website pages are landing pages", () => {
   for (const p of ["/", "/compare/apollo", "/templates/companies-in-uae", "/pricing", "/r/abc"]) assert.ok(isLandingPath(p), p);
-  for (const p of ["/api/funnel", "/login", "/prospects", "/preview/seo/x", "/start", "/brand/logo.png", "/_next/static/x.js"]) assert.ok(!isLandingPath(p), p);
+  for (const p of ["/api/funnel", "/login", "/leads", "/preview/seo/x", "/start", "/brand/logo.png", "/_next/static/x.js"]) assert.ok(!isLandingPath(p), p);
 });
 
 const doc = (title: string) => ({ title, summary: "Lead", blocks: [{ p: "Body" }] });

@@ -96,7 +96,7 @@ export async function saveToProspects(campaignId: string): Promise<{ ok: boolean
     supabase.from("companies").update({ saved_at: now }).eq("workspace_id", session.workspace.id).eq("campaign_id", campaignId).is("saved_at", null).not("delivered_at", "is", null).select("id"),
   ]);
   const saved = (data?.length ?? 0) + (companies?.length ?? 0);
-  revalidatePath("/prospects");
+  revalidatePath("/leads");
   revalidatePath("/analytics");
   return { ok: true, saved };
 }

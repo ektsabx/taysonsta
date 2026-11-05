@@ -16,7 +16,7 @@ import { gridPerson, sizeBand } from "@/lib/results";
 import { requireViewer } from "@/lib/session";
 import { getCompany } from "@/services/prospects";
 
-export async function generateMetadata({ params }: PageProps<"/prospects/company/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/leads/company/[id]">): Promise<Metadata> {
   const { id } = await params;
   const c = /^[0-9a-f-]{36}$/i.test(id) ? await getCompany(id) : null;
   return { title: c ? `${c.company.name} | Yolias` : "Yolias" };
@@ -28,7 +28,7 @@ const bare = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/,
 // A company or local business (D-147, owner's reference): logo, brief,
 // company information, its decision makers as cards (reveal, select, start
 // outreach), open roles and the data intelligence behind it.
-export default async function CompanyPage({ params }: PageProps<"/prospects/company/[id]">) {
+export default async function CompanyPage({ params }: PageProps<"/leads/company/[id]">) {
   const session = await requireViewer();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -44,7 +44,7 @@ export default async function CompanyPage({ params }: PageProps<"/prospects/comp
   const size = c.employee_count != null ? fmt(r.employees, { count: sizeBand(c.employee_count) ?? n(c.employee_count) }) : null;
   const site = c.website ?? (c.domain ? c.domain : null);
   const meta = [local ? c.category : c.industry, place, size].filter(Boolean);
-  const back = "/prospects?tab=companies";
+  const back = "/leads?tab=companies";
 
   const csv = t.prospects.csv;
   const email = { icon: <Mail />, label: csv.email, ltr: true, value: c.email && <a className="entity-link" href={`mailto:${c.email}`}>{c.email}</a> };

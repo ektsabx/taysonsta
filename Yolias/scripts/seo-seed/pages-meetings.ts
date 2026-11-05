@@ -95,8 +95,8 @@ export const meetingComparePages: SeedPage[] = [
       ar: "Calendly أشهر أداة جدولة: تشارك رابطًا فيختار الناس موعدًا. هو يحجز الاجتماعات التي يريدها الناس بالفعل. أما يولياس فيعمل قبل ذلك بخطوة: يجد الشركات التي يجب أن تقابلها، ويراسلها، وعندما توافق يحجز الاجتماع في صفحتك.",
     },
     answer: {
-      en: "Keep Calendly if your calendar is already full of people who want to meet you and you need team scheduling, routing and payments. Choose Yolias if the problem is getting those meetings in the first place: it finds the prospects, emails them, and its booking page is part of every plan.",
-      ar: "احتفظ بـ Calendly إذا كان تقويمك ممتلئًا بأشخاص يريدون مقابلتك وتحتاج جدولة الفرق والتوجيه والدفع. واختر يولياس إذا كانت المشكلة هي الحصول على هذه الاجتماعات أصلًا: فهو يجد العملاء المحتملين ويراسلهم، وصفحة الحجز جزء من كل خطة.",
+      en: "Keep Calendly if your calendar is already full of people who want to meet you and you need team scheduling, routing and payments. Choose Yolias if the problem is getting those meetings in the first place: it finds the leads, emails them, and its booking page is part of every plan.",
+      ar: "احتفظ بـ Calendly إذا كان تقويمك ممتلئًا بأشخاص يريدون مقابلتك وتحتاج جدولة الفرق والتوجيه والدفع. واختر يولياس إذا كانت المشكلة هي الحصول على هذه الاجتماعات أصلًا: فهو يجد العملاء ويراسلهم، وصفحة الحجز جزء من كل خطة.",
     },
     them: {
       what: { en: "Scheduling: \"All the work around meetings, handled\" (its homepage), with an AI scheduling assistant and meeting notes", ar: "جدولة: «كل العمل حول الاجتماعات» (من صفحته الرئيسية)، مع مساعد جدولة بالذكاء الاصطناعي وملاحظات الاجتماعات" },
@@ -119,7 +119,7 @@ export const meetingComparePages: SeedPage[] = [
     faq: {
       en: [
         { q: "Can Yolias replace Calendly?", a: "For one-to-one sales meetings booked from your outreach, yes: every member has a booking page with weekly hours and up to four meeting types, busy times in Google Calendar are never offered, and bookings go to Google Calendar. For team scheduling, routing, payments or Outlook, keep Calendly." },
-        { q: "Is Yolias cheaper than Calendly?", a: "For scheduling alone, Calendly's Standard plan at $10 a seat is cheaper. Yolias costs more than a scheduler because it also finds and emails your prospects; its booking page is included, with unlimited users." },
+        { q: "Is Yolias cheaper than Calendly?", a: "For scheduling alone, Calendly's Standard plan at $10 a seat is cheaper. Yolias costs more than a scheduler because it also finds and emails your leads; its booking page is included, with unlimited users." },
         { q: "Can I use both?", a: "Yes. Yolias offers its own booking page to leads who ask for a meeting; you can keep Calendly for your other meetings." },
       ],
       ar: [
@@ -155,7 +155,7 @@ export const meetingComparePages: SeedPage[] = [
       ar: ["تريد الاستضافة الذاتية أو البناء على واجهة برمجة للجدولة.", "تحتاج أنواع أحداث وتقويمات وتطبيقات كثيرة مجانًا.", "فريقك يحتاج نماذج توجيه وأحداثًا جماعية."],
     },
     chooseYolias: {
-      en: ["Scheduling isn't your problem; an empty pipeline is.", "You want the agent that writes to prospects to also offer the times.", "You want everything, from search to the booked meeting, in one Arabic and English product."],
+      en: ["Scheduling isn't your problem; an empty pipeline is.", "You want the agent that writes to leads to also offer the times.", "You want everything, from search to the booked meeting, in one Arabic and English product."],
       ar: ["مشكلتك ليست الجدولة بل مسار مبيعات فارغ.", "تريد أن يقدّم الوكيل الذي يراسل العملاء المواعيد أيضًا.", "تريد كل شيء، من البحث إلى الاجتماع المحجوز، في منتج واحد بالعربية والإنجليزية."],
     },
     faq: {
@@ -175,7 +175,7 @@ export const meetingComparePages: SeedPage[] = [
   versus({
     slug: "chili-piper", name: "Chili Piper", keyword: "yolias vs chili piper", secondary: ["chili piper alternative", "chili piper alternative for small teams", "chili piper pricing alternative"],
     lead: {
-      en: "Chili Piper turns inbound demand into meetings: forms route each lead to the right rep and book them on the spot, priced for revenue teams. Yolias is for teams that don't have that inbound flow yet: it creates the demand by finding and emailing prospects, then books them.",
+      en: "Chili Piper turns inbound demand into meetings: forms route each lead to the right rep and book them on the spot, priced for revenue teams. Yolias is for teams that don't have that inbound flow yet: it creates the demand by finding and emailing leads, then books them.",
       ar: "Chili Piper يحوّل الطلب الوارد إلى اجتماعات: النماذج توجّه كل عميل إلى المندوب المناسب وتحجز فورًا، بأسعار مصممة لفرق الإيرادات. أما يولياس فللفرق التي لا تملك هذا الطلب الوارد بعد: يصنع الطلب بإيجاد العملاء ومراسلتهم، ثم يحجز لهم.",
     },
     answer: {
@@ -220,7 +220,7 @@ export const meetingComparePages: SeedPage[] = [
       ar: "SavvyCal أداة جدولة تركّز على من يحجز: يرى تقويمه فوق مواعيدك ليختار، مع استطلاعات وترتيب للأوقات. أما يولياس فيركّز على من يجب أن تقابلهم أصلًا، ويحجز لهم في صفحة بسيطة.",
     },
     answer: {
-      en: "Use SavvyCal for a polished booking experience across Google, Microsoft, iCloud and Fastmail calendars. Use Yolias to find and email the prospects who will book, with the page included.",
+      en: "Use SavvyCal for a polished booking experience across Google, Microsoft, iCloud and Fastmail calendars. Use Yolias to find and email the leads who will book, with the page included.",
       ar: "استخدم SavvyCal لتجربة حجز مصقولة عبر تقويمات Google وMicrosoft وiCloud وFastmail. واستخدم يولياس لإيجاد العملاء الذين سيحجزون ومراسلتهم، مع الصفحة مشمولة.",
     },
     them: {
@@ -272,7 +272,7 @@ export const meetingComparePages: SeedPage[] = [
       team: { en: "Round-robin and collective meetings on the Agency plan", ar: "توزيع دوري واجتماعات جماعية في خطة Agency" },
       price: { en: "Free; Individual $29 and Agency $79 one time; Pro $12 a month (its pricing page, 30 Oct 2026)", ar: "مجانية؛ وIndividual بـ 29 وAgency بـ 79 دولارًا لمرة واحدة؛ وPro بـ 12 دولارًا شهريًا (صفحة أسعاره، 30 أكتوبر 2026)" },
     },
-    yPrice: YP("A scheduler alone costs less; Yolias is priced for finding and emailing prospects too.", "أداة الجدولة وحدها أقل تكلفة؛ وسعر يولياس يشمل إيجاد العملاء ومراسلتهم أيضًا."),
+    yPrice: YP("A scheduler alone costs less; Yolias is priced for finding and emailing leads too.", "أداة الجدولة وحدها أقل تكلفة؛ وسعر يولياس يشمل إيجاد العملاء ومراسلتهم أيضًا."),
     chooseThem: {
       en: ["You only need a booking page and want to pay once.", "You charge for sessions at booking time.", "You need group or recurring bookings."],
       ar: ["تحتاج صفحة حجز فقط وتريد الدفع مرة واحدة.", "تحصّل ثمن الجلسات عند الحجز.", "تحتاج حجوزات جماعية أو متكررة."],
@@ -283,11 +283,11 @@ export const meetingComparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Does Yolias charge per booking?", a: "No. The booking page is part of every plan. Yolias charges for the prospects it finds; emails and bookings aren't charged." },
+        { q: "Does Yolias charge per booking?", a: "No. The booking page is part of every plan. Yolias charges for the leads it finds; emails and bookings aren't charged." },
         { q: "Can I take payments on Yolias's booking page?", a: "No. Use TidyCal or another tool for paid sessions." },
       ],
       ar: [
-        { q: "هل يحسب يولياس رسومًا لكل حجز؟", a: "لا. صفحة الحجز جزء من كل خطة. يحسب يولياس العملاء المحتملين الذين يجدهم، ولا تُحسب الرسائل ولا الحجوزات." },
+        { q: "هل يحسب يولياس رسومًا لكل حجز؟", a: "لا. صفحة الحجز جزء من كل خطة. يحسب يولياس العملاء الذين يجدهم، ولا تُحسب الرسائل ولا الحجوزات." },
         { q: "هل يمكنني تحصيل مدفوعات في صفحة حجز يولياس؟", a: "لا. استخدم TidyCal أو أداة أخرى للجلسات المدفوعة." },
       ],
     },
@@ -331,8 +331,8 @@ export const meetingAlternativesPages: SeedPage[] = [{
       { note: "Yolias's booking page is one-to-one and works with Google Calendar only; it skips busy times in your main Google Calendar but not in Outlook or iCloud. Keep a scheduler if you need team pages, routing or payments." },
     ],
     faq: [
-      { q: "What is the cheapest Calendly alternative?", a: "For scheduling alone, Cal.com's free plan for one user or TidyCal's one-time price. Yolias isn't the cheapest scheduler; it's priced for finding and emailing prospects, with the booking page included." },
-      { q: "What's the best Calendly alternative for sales?", a: "If your reps need inbound routing, Chili Piper. If you need outbound meetings with new prospects, Yolias, because it does the outreach that fills the calendar." },
+      { q: "What is the cheapest Calendly alternative?", a: "For scheduling alone, Cal.com's free plan for one user or TidyCal's one-time price. Yolias isn't the cheapest scheduler; it's priced for finding and emailing leads, with the booking page included." },
+      { q: "What's the best Calendly alternative for sales?", a: "If your reps need inbound routing, Chili Piper. If you need outbound meetings with new leads, Yolias, because it does the outreach that fills the calendar." },
       { q: "Is there a Calendly alternative in Arabic?", a: "Yolias's app, booking page and emails work in Arabic and English, and guests see times in their own time zone." },
     ],
     cta: CTA.en,
@@ -377,10 +377,10 @@ export const meetingSolutionPages: SeedPage[] = [
     links: meetLinks, sources: [],
     en: {
       title: "Booking sales meetings", h1: "Book sales meetings with the right companies, with AI",
-      metaTitle: "AI meeting booking: from prospect to booked call",
+      metaTitle: "AI meeting booking: from lead to booked call",
       metaDescription: "Yolias finds matching companies, emails the decision makers from your mailbox, offers two free times when they reply, and books the meeting on your page.",
       lead: "A booking link only helps once someone wants to talk. Yolias does the work that gets you there: it finds the companies that fit, writes to them, follows up, and turns a \"yes, let's talk\" into a meeting on your calendar.",
-      answer: "To book more sales meetings, reach the right decision makers with a short, specific email, follow up a few times, and make booking a single click when they agree. Yolias runs that sequence: it finds the prospects, sends the emails from your own mailbox once you launch the campaign, and replies to meeting requests with two free times and your Yolias booking page.",
+      answer: "To book more sales meetings, reach the right decision makers with a short, specific email, follow up a few times, and make booking a single click when they agree. Yolias runs that sequence: it finds the leads, sends the emails from your own mailbox once you launch the campaign, and replies to meeting requests with two free times and your Yolias booking page.",
       audience: ["Agencies and consultants who sell through calls", "Founders doing their own sales", "Small sales teams without SDRs"],
       criteria: ["A clear description of who you want to meet", "A meeting campaign goal, so every email asks for a short call", "Booking hours that leave room for other work", "Google Calendar connected, for invitations"],
       steps: [
@@ -395,7 +395,7 @@ export const meetingSolutionPages: SeedPage[] = [
         { note: "Yolias doesn't promise a number of meetings: results depend on your market, your offer and the contacts available for it." },
       ],
       faq: [
-        { q: "Is Yolias an AI appointment setter?", a: "Yes, for email: it finds prospects, writes and sends the emails once you launch the campaign, answers meeting requests with free times and books the meeting on your page. It works by email only." },
+        { q: "Is Yolias an AI appointment setter?", a: "Yes, for email: it finds leads, writes and sends the emails once you launch the campaign, answers meeting requests with free times and books the meeting on your page. It works by email only." },
         { q: "Do I need Calendly to use it?", a: "No. Every member has a booking page in Yolias. Connect Google Calendar for invitations." },
         { q: "Can Yolias book a time the lead suggests in their reply?", a: "It offers your free times and the page; when the lead picks one, the meeting is booked. If they propose another time, you can add the meeting in Meetings." },
       ],
@@ -451,7 +451,7 @@ export const meetingSolutionPages: SeedPage[] = [
         { note: "Yolias reads busy times from your main Google Calendar and never offers them. Meetings in Outlook or iCloud aren't seen, so keep your hours clear of them." },
       ],
       faq: [
-        { q: "Is the booking page free?", a: "It's included in every Yolias plan, with unlimited users. Yolias charges for the prospects it finds, not for bookings." },
+        { q: "Is the booking page free?", a: "It's included in every Yolias plan, with unlimited users. Yolias charges for the leads it finds, not for bookings." },
         { q: "Can I change my link?", a: "Yes, the address after yolias.com/meet/ is yours to set." },
         { q: "What happens if a guest cancels?", a: "The time is free again on your page, you get an email, and the Google Calendar event is removed." },
       ],
@@ -476,7 +476,7 @@ export const meetingSolutionPages: SeedPage[] = [
         { note: "يقرأ يولياس أوقات انشغالك في تقويم Google الرئيسي ولا يعرضها أبدًا. أما مواعيد Outlook أو iCloud فلا يراها، فاجعل ساعاتك خالية منها." },
       ],
       faq: [
-        { q: "هل صفحة الحجز مجانية؟", a: "مشمولة في كل خطط يولياس، بمستخدمين بلا حد. يحسب يولياس العملاء المحتملين الذين يجدهم، لا الحجوزات." },
+        { q: "هل صفحة الحجز مجانية؟", a: "مشمولة في كل خطط يولياس، بمستخدمين بلا حد. يحسب يولياس العملاء الذين يجدهم، لا الحجوزات." },
         { q: "هل يمكنني تغيير الرابط؟", a: "نعم، العنوان بعد yolias.com/meet/ تختاره أنت." },
         { q: "ماذا يحدث إذا ألغى الضيف؟", a: "يعود الموعد متاحًا في صفحتك، ويصلك بريد، ويُحذف حدث تقويم Google." },
       ],

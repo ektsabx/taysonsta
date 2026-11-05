@@ -99,12 +99,12 @@ export const comparePages: SeedPage[] = [
     },
     faq: {
       en: [
-        { q: "Is Yolias cheaper than Apollo?", a: "It depends on how you use them. Apollo is priced per user with credits; Yolias has Pay As You Go credit or a monthly plan, with unlimited users and emails that are never charged. Compare both pricing pages with your team size and the number of prospects you need." },
+        { q: "Is Yolias cheaper than Apollo?", a: "It depends on how you use them. Apollo is priced per user with credits; Yolias has Pay As You Go credit or a monthly plan, with unlimited users and emails that are never charged. Compare both pricing pages with your team size and the number of leads you need." },
         { q: "Does Yolias have a contact database like Apollo?", a: "No. Yolias doesn't sell access to a contact database. It searches the data sources connected to it and public information such as company websites for each request, and shows what it found with its source." },
         { q: "Can I move from Apollo to Yolias?", a: "You can bring a list as a CSV to find similar companies or to start outreach. There is no direct import from Apollo." },
       ],
       ar: [
-        { q: "هل يولياس أرخص من Apollo؟", a: "يعتمد على طريقة استخدامك. Apollo بسعر لكل مستخدم مع رصيد، ويولياس بالدفع حسب الاستخدام أو خطة شهرية، بعدد غير محدود من المستخدمين والبريد لا يُحسب عليك. قارن صفحتي الأسعار بحجم فريقك وعدد العملاء المحتملين الذين تحتاجهم." },
+        { q: "هل يولياس أرخص من Apollo؟", a: "يعتمد على طريقة استخدامك. Apollo بسعر لكل مستخدم مع رصيد، ويولياس بالدفع حسب الاستخدام أو خطة شهرية، بعدد غير محدود من المستخدمين والبريد لا يُحسب عليك. قارن صفحتي الأسعار بحجم فريقك وعدد العملاء الذين تحتاجهم." },
         { q: "هل لدى يولياس قاعدة جهات اتصال مثل Apollo؟", a: "لا. يولياس لا يبيع الوصول إلى قاعدة جهات اتصال، بل يبحث في مصادر البيانات المتصلة به وفي المعلومات العامة مثل مواقع الشركات لكل طلب، ويعرض ما وجده بمصدره." },
         { q: "هل يمكنني الانتقال من Apollo إلى يولياس؟", a: "يمكنك رفع قائمة كملف CSV لإيجاد شركات مشابهة أو لبدء التواصل. لا يوجد استيراد مباشر من Apollo." },
       ],
@@ -220,7 +220,7 @@ export const comparePages: SeedPage[] = [
       users: { en: "Per plan; a Scale plan for teams of 5+", ar: "حسب الخطة، وخطة Scale للفرق من خمسة أشخاص فأكثر" },
     },
     chooseThem: {
-      en: ["You call prospects and need direct phone numbers.", "You prospect on LinkedIn or company sites and want contact details in one click.", "You need certified compliance (SOC 2, ISO) for contact data."],
+      en: ["You call leads and need direct phone numbers.", "You lead on LinkedIn or company sites and want contact details in one click.", "You need certified compliance (SOC 2, ISO) for contact data."],
       ar: ["تتصل بالعملاء وتحتاج أرقامًا مباشرة.", "تبحث على LinkedIn أو مواقع الشركات وتريد بيانات التواصل بنقرة.", "تحتاج امتثالًا موثقًا (SOC 2 وISO) لبيانات التواصل."],
     },
     chooseYolias: {

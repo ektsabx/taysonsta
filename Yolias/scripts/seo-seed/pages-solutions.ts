@@ -102,7 +102,7 @@ export const solutionPages: SeedPage[] = [
       ],
       faq: [
         { q: "How do SEO agencies get clients?", a: "Mostly referrals and their own content, and outbound to a focused list. For outbound, pick one industry and one market, find companies with a clear content gap, and send a short, specific email." },
-        { q: "Does Yolias check a prospect's SEO?", a: "No. It finds companies that match your criteria and shows what they publish. Use your SEO tool to check the ones you want to contact." },
+        { q: "Does Yolias check a lead's SEO?", a: "No. It finds companies that match your criteria and shows what they publish. Use your SEO tool to check the ones you want to contact." },
         { q: "Can I find Arabic-speaking businesses?", a: "Yes. You can describe the client in Arabic or English and search markets such as Saudi Arabia, the UAE and Egypt; results depend on the data sources connected to Yolias." },
       ],
       cta: CTA.en,

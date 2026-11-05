@@ -6,7 +6,6 @@ import { Check, Plus, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
-import { ImapDialog } from "@/components/app/settings/EmailSettings";
 import { APP_CATEGORY, APP_KEYS, type AppCategory, type AppKey } from "@/lib/app-listings";
 import { AppLogo, startUrl, useAppState } from "./shared";
 
@@ -19,7 +18,6 @@ export function AppStore() {
   const s = useAppState();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<AppCategory | "all">("all");
-  const [imap, setImap] = useState(false);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get("mailbox");
     if (!p) return;
@@ -34,7 +32,7 @@ export function AppStore() {
     return APP_KEYS.filter((k) => (cat === "all" || APP_CATEGORY[k] === cat) && (!f || `${a.items[k].name} ${a.items[k].short}`.toLowerCase().includes(f)));
   }, [q, cat, a]);
   const cats: (AppCategory | "all")[] = ["all", "email", "calendar", "tracking"];
-  const connect = (k: AppKey) => { const u = startUrl(k); if (u) window.location.assign(u); else setImap(true); };
+  const connect = (k: AppKey) => { const u = startUrl(k); if (u) window.location.assign(u); };
 
   return (
     <div className="sdr-page app-store">
@@ -59,14 +57,15 @@ export function AppStore() {
                   ? <Link className="sdr-btn" href={`/integrations/${k}`}><Plus />{a.install}</Link>
                   : n > 0
                     ? <Link className="sdr-btn" href={`/integrations/${k}`}><Check />{fmt(h.connected, { n: String(n) })}</Link>
-                    : <button type="button" className="sdr-btn" disabled={!s.ready || !s.canConnect(k)} onClick={() => connect(k)}><Plus />{s.ready && !s.canConnect(k) ? h.soon : h.connect}</button>}
+                    : k === "gmail" || k === "imap"
+                      ? <Link className="sdr-btn" href={`/integrations/${k}/connect`}><Plus />{h.connect}</Link>
+                      : <button type="button" className="sdr-btn" disabled={!s.ready || !s.canConnect(k)} onClick={() => connect(k)}><Plus />{s.ready && !s.canConnect(k) ? h.soon : h.connect}</button>}
               </div>
             </article>
           );
         })}
       </div>
       {!shown.length && <p className="ws-hint app-none">{a.none}</p>}
-      {imap && <ImapDialog onClose={() => setImap(false)} onConnected={() => { setImap(false); toast(t.settings.integration.mailboxConnected); s.load(); }} />}
     </div>
   );
 }

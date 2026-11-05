@@ -22,7 +22,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       outreach: { en: "Once you launch the campaign, emails and follow-ups go from your own mailbox at a human pace, with an unsubscribe line", ar: "بعد تشغيل الحملة تخرج الرسائل والمتابعات من بريدك بوتيرة بشرية مع سطر لإلغاء الاشتراك" },
       replies: { en: "Replies come back sorted with a suggested answer; a meeting request gets two free times and your booking page", ar: "تعود الردود مصنّفة مع رد مقترح، وطلب الاجتماع يُرد عليه بموعدين متاحين وصفحة الحجز" },
       channels: { en: "Email from your own mailbox; no dialer", ar: "البريد من صندوق بريدك؛ لا اتصال هاتفي" },
-      users: { en: "Unlimited users; you pay for prospects found, not per seat", ar: "مستخدمون بلا حد؛ تدفع مقابل العملاء الذين يُعثر عليهم، لا لكل مقعد" },
+      users: { en: "Unlimited users; you pay for leads found, not per seat", ar: "مستخدمون بلا حد؛ تدفع مقابل العملاء الذين يُعثر عليهم، لا لكل مقعد" },
     },
     limits: [
       { en: "It has no built-in dialer or call recording like Apollo; outreach is email.", ar: "ليس فيه اتصال هاتفي ولا تسجيل مكالمات مثل Apollo؛ التواصل بالبريد." },
@@ -39,7 +39,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       outreach: { en: "Writes and sends the emails itself, from your Gmail or company mailbox, once you launch the campaign", ar: "يكتب الرسائل ويرسلها بنفسه، من Gmail أو بريد شركتك، بعد تشغيلك للحملة" },
       replies: { en: "Replies land in Yolias, not in a separate sending tool, sorted with a suggested answer", ar: "تصل الردود إلى يولياس، لا إلى أداة إرسال منفصلة، مصنّفة مع رد مقترح" },
       channels: { en: "Email from your own mailbox; no ad audiences", ar: "البريد من صندوقك؛ لا جماهير إعلانية" },
-      users: { en: "Unlimited users, like Clay, with pricing per prospect instead of credits per action", ar: "مستخدمون بلا حد مثل Clay، والسعر لكل عميل محتمل بدل رصيد لكل إجراء" },
+      users: { en: "Unlimited users, like Clay, with pricing per lead instead of credits per action", ar: "مستخدمون بلا حد مثل Clay، والسعر لكل عميل بدل رصيد لكل إجراء" },
     },
     limits: [
       { en: "It is not a programmable workspace: you can't add your own columns, formulas or 200 data vendors.", ar: "ليس مساحة قابلة للبرمجة: لا تضيف أعمدة أو معادلات أو 200 مزود بيانات." },
@@ -103,7 +103,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       find: { en: "The list comes first: you describe the customer and Yolias finds them, instead of buying leads on a separate plan", ar: "القائمة أولًا: تصف العميل ويجده يولياس، بدل شراء عملاء على خطة منفصلة" },
       finds: { en: "Companies chosen for your service, each explained, rather than a bulk lead export", ar: "شركات مختارة لخدمتك، كل منها مشروح، بدل تصدير جماعي للعملاء" },
       why: { en: "A match score and the criteria met, so you write to fewer, better-fitting companies", ar: "نسبة تطابق والمعايير المحققة، فتراسل شركات أقل وأنسب" },
-      contacts: { en: "Published business contacts labelled by verification, included in the price per prospect", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق، ضمن سعر العميل المحتمل" },
+      contacts: { en: "Published business contacts labelled by verification, included in the price per lead", ar: "بيانات تواصل منشورة مصنّفة حسب التحقق، ضمن سعر العميل" },
       outreach: { en: "Fewer, researched emails from your real mailbox, within daily limits, rather than volume across many warmed-up inboxes", ar: "رسائل أقل ومدروسة من بريدك الحقيقي ضمن حد يومي، بدل كميات عبر صناديق كثيرة مُدفّأة" },
       replies: { en: "A sorted inbox with suggested answers; stop requests and out-of-office replies are handled for you", ar: "صندوق وارد مصنّف مع ردود مقترحة، وطلبات التوقف وردود «خارج المكتب» تُعالج تلقائيًا" },
       channels: { en: "Email, like Instantly", ar: "البريد، مثل Instantly" },
@@ -124,7 +124,7 @@ export const yoliasVs: Record<string, { rows: Record<CompareRow, L>; limits: L[]
       outreach: { en: "Writes each email from what it learned about the company and sends from your own mailbox once you launch the campaign", ar: "يكتب كل رسالة مما عرفه عن الشركة ويرسلها من بريدك بعد تشغيلك للحملة" },
       replies: { en: "Replies sorted with a suggested answer; meeting requests are booked on your page in Meetings", ar: "ردود مصنّفة مع رد مقترح، وطلبات الاجتماع تُحجز في صفحتك وتظهر في الاجتماعات" },
       channels: { en: "Email from your own mailbox", ar: "البريد من صندوقك" },
-      users: { en: "Unlimited users; price per prospect found, sending included", ar: "مستخدمون بلا حد؛ السعر لكل عميل محتمل يُعثر عليه والإرسال مشمول" },
+      users: { en: "Unlimited users; price per lead found, sending included", ar: "مستخدمون بلا حد؛ السعر لكل عميل يُعثر عليه والإرسال مشمول" },
     },
     limits: [
       { en: "No sender rotation, warmup network or white-label client accounts like Smartlead.", ar: "لا تدوير للمرسلين ولا شبكة تدفئة ولا حسابات عملاء بعلامتك مثل Smartlead." },

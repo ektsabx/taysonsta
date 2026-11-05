@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // (companies and local businesses), each a panel with search, filters and the
 // table; bulk actions, import and export stay. Contacts reach the browser only
 // once revealed (the table only says whether an email / phone exists).
-export default async function ProspectsPage({ searchParams }: PageProps<"/prospects">) {
+export default async function ProspectsPage({ searchParams }: PageProps<"/leads">) {
   const session = await requireViewer();
   const sp = await searchParams;
   const filters = parseFilters(sp);
@@ -59,13 +59,14 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
     return {
       key: r.key,
       kind: r.item_type,
-      href: person ? `/prospects/person/${r.id}` : `/prospects/company/${r.id}`,
+      href: person ? `/leads/person/${r.id}` : `/leads/company/${r.id}`,
       name: r.name,
       title: person ? r.title : null,
+      source: r.campaign_origin === "import" ? "import" : "search",
       imageUrl: r.image_url,
       domain: r.domain,
       company: person ? r.company_name : null,
-      companyHref: person && r.company_id ? `/prospects/company/${r.company_id}` : null,
+      companyHref: person && r.company_id ? `/leads/company/${r.company_id}` : null,
       companyDomain: person ? r.domain : null,
       companyLogo: person && r.company_id ? companyLogos.get(r.company_id) ?? null : null,
       hasEmail: Boolean(r.email) && r.email_status !== "invalid",
@@ -81,7 +82,7 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
 
   const query = saved ? [filterQuery({ ...f, tab: "saved" as const, bookmarked: false }, { page: undefined }), `kind=${tab}`].filter(Boolean).join("&") : filterQuery(f, { page: undefined });
   const filtered = active > 0 || Boolean(f.q);
-  const tabHref = (k: "people" | "companies") => `/prospects?tab=${k}${f.outreach ? `&campaign=${f.outreach}` : ""}`;
+  const tabHref = (k: "people" | "companies") => `/leads?tab=${k}${f.outreach ? `&campaign=${f.outreach}` : ""}`;
   return (
     <div className="sdr-page">
       <header className="sdr-head">
@@ -94,19 +95,19 @@ export default async function ProspectsPage({ searchParams }: PageProps<"/prospe
       <nav className="sdr-tabs" aria-label={pr.title}>
         <Link href={tabHref("companies")} className={!saved && tab === "companies" ? "active" : ""} aria-current={!saved && tab === "companies" ? "page" : undefined}><Building2 />{L.tabs.companies}<span className="sdr-count">{formatNumber(counts.companies, locale)}</span></Link>
         <Link href={tabHref("people")} className={!saved && tab === "people" ? "active" : ""} aria-current={!saved && tab === "people" ? "page" : undefined}><UserRound />{L.tabs.people}<span className="sdr-count">{formatNumber(counts.people, locale)}</span></Link>
-        <Link href="/prospects?tab=saved" className={saved ? "active" : ""} aria-current={saved ? "page" : undefined}><Bookmark />{L.tabs.saved}<span className="sdr-count">{formatNumber(counts.saved, locale)}</span></Link>
+        <Link href="/leads?tab=saved" className={saved ? "active" : ""} aria-current={saved ? "page" : undefined}><Bookmark />{L.tabs.saved}<span className="sdr-count">{formatNumber(counts.saved, locale)}</span></Link>
       </nav>
       {saved && (
         <div className="sdr-seg" style={{ alignSelf: "flex-start" }} role="tablist" aria-label={L.tabs.saved}>
-          <Link role="tab" aria-selected={tab === "companies"} className={tab === "companies" ? "active" : ""} href="/prospects?tab=saved&kind=companies">{L.tabs.companies} <span className="sdr-count">{formatNumber(savedCounts.companies, locale)}</span></Link>
-          <Link role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} href="/prospects?tab=saved&kind=people">{L.tabs.people} <span className="sdr-count">{formatNumber(savedCounts.people, locale)}</span></Link>
+          <Link role="tab" aria-selected={tab === "companies"} className={tab === "companies" ? "active" : ""} href="/leads?tab=saved&kind=companies">{L.tabs.companies} <span className="sdr-count">{formatNumber(savedCounts.companies, locale)}</span></Link>
+          <Link role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} href="/leads?tab=saved&kind=people">{L.tabs.people} <span className="sdr-count">{formatNumber(savedCounts.people, locale)}</span></Link>
         </div>
       )}
 
       <CampaignFilter campaigns={campaignOptions ?? []} />
       <section className="sdr-panel">
         <Suspense>
-          <ProspectToolbar key={query} tab={tab} total={page.total} countries={countries} funding={funding} active={active} exportHref={`/prospects/export${query ? `?${query}` : ""}`} />
+          <ProspectToolbar key={query} tab={tab} total={page.total} countries={countries} funding={funding} active={active} exportHref={`/leads/export${query ? `?${query}` : ""}`} />
         </Suspense>
         <div className="sdr-panel-body">
           <ProspectTable

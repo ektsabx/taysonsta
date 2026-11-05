@@ -246,7 +246,7 @@ export const freelanceSolutionPages: SeedPage[] = [
       metaTitle: "Yolias AI for founders | Yolias",
       metaDescription: "Founders: set the customers you want to meet and Yolias finds them, emails them from your mailbox, answers replies and books the meetings, with the cost per meeting.",
       lead: "Early on, the founder sells. Yolias takes the slow part off your plate: finding the right companies and people, writing to each one and handling the replies, so your time goes into the meetings.",
-      answer: "Founders get first customers by talking to many well-chosen prospects quickly. Set the companies and roles you want, launch a campaign with a small daily budget, and let Yolias write, follow up and book. Watch the cost per meeting to see which audience works.",
+      answer: "Founders get first customers by talking to many well-chosen leads quickly. Set the companies and roles you want, launch a campaign with a small daily budget, and let Yolias write, follow up and book. Watch the cost per meeting to see which audience works.",
       audience: ["Pre-seed and seed startups", "Founders of SaaS and service businesses", "Solo founders without a sales team"],
       criteria: ["Your best early customers (start a lookalike audience from them)", "The roles that feel the problem you solve", "Countries where you can sell and support"],
       ex: "Fintech startups in the UAE and Saudi Arabia with 10–100 employees; founders and CTOs",

@@ -53,6 +53,7 @@ export default async function HelpArticlePage({ params }: PageProps<"/help-cente
           <CopyPageButton markdown={toMarkdown(doc, siteUrl())} />
         </div>
         <p className="doc-summary">{doc.summary}</p>
+        {doc.updated && <p className="doc-updated">{locale === "ar" ? "آخر تحديث" : "Last updated"}: <time dateTime={doc.updated}>{doc.updated}</time></p>}
         <div className="doc-divider" />
         <Prose blocks={doc.blocks} />
         <ArticleFeedback kind="help" slug={slug} />

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { Download } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { exportedPeople } from "@/app/(app)/prospects/message-actions";
+import { exportedPeople } from "@/app/(app)/leads/message-actions";
 import type { GridPerson } from "./PeopleGrid";
 
 // Prospect actions (D-239, D-273): people reach a campaign through its
@@ -35,7 +35,7 @@ export function ProspectActionButtons({ people, source, onExport }: { people: Gr
     <>
       <button className="btn-secondary" type="button" onClick={exportCsv}><Download /> {t.outreach.exportCsv}</button>
       {!onExport && (
-        <form ref={exportForm} method="post" action="/prospects/export" hidden>
+        <form ref={exportForm} method="post" action="/leads/export" hidden>
           <input type="hidden" name="query" value="tab=people" />
           {people.map((p) => <input key={p.id} type="hidden" name="id" value={p.id} />)}
         </form>

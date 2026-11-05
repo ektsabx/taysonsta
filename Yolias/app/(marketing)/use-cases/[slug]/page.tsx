@@ -7,6 +7,8 @@ import { getLocale } from "@/lib/i18n/server";
 import { breadcrumbSchema, faqSchema, pageMetadata, webPageSchema } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/JsonLd";
 import { Faq } from "@/components/marketing/Faq";
+import { WorkflowView } from "@/components/marketing/WorkflowView";
+import { workflowOf } from "@/lib/content/workflows";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,7 +19,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   if (!isUseCaseSlug(slug)) return { title: "Yolias" };
-  const u = useCases[slug][await getLocale()];
+  const locale = await getLocale();
+  const w = workflowOf(slug);
+  if (w) return pageMetadata({ title: w.text[locale].seoTitle, description: w.text[locale].seoDescription, path: `/use-cases/${slug}` });
+  const u = useCases[slug][locale];
   return pageMetadata({ title: `${u.title} | Yolias`, description: u.metaDescription, path: `/use-cases/${slug}` });
 }
 
@@ -27,8 +32,21 @@ export default async function UseCasePage({ params }: Props) {
   const { slug } = await params;
   if (!isUseCaseSlug(slug)) notFound();
   const locale = await getLocale();
-  const u = useCases[slug][locale];
+  const w = workflowOf(slug);
   const c = useCasesPage[locale];
+  if (w) {
+    const x = w.text[locale];
+    return (
+      <>
+        <JsonLd nodes={[
+          webPageSchema({ title: x.seoTitle, description: x.seoDescription, path: `/use-cases/${slug}` }),
+          breadcrumbSchema([{ name: "Yolias", path: "/" }, { name: c.title, path: "/use-cases" }, { name: x.name, path: `/use-cases/${slug}` }]),
+        ]} />
+        <WorkflowView w={w} locale={locale} />
+      </>
+    );
+  }
+  const u = useCases[slug][locale];
   const related = useCaseSlugs.filter((x) => x !== slug).slice(0, 3);
   const path = `/use-cases/${slug}`;
   return (

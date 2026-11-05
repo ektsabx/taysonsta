@@ -9,7 +9,7 @@ export const wsEn = {
     watchVideo: "Watch the intro video",
   },
   conversations: {
-    title: "Conversations", subtitle: "Every conversation with a prospect.",
+    title: "Conversations", subtitle: "Every conversation with a lead.",
     tabs: { threads: "Conversations", campaigns: "Campaigns" },
     filteredBy: "Conversations of the campaign", clearFilter: "All conversations", campaignSettings: "Campaign settings",
   },
@@ -49,8 +49,8 @@ export const wsEn = {
       sentCols: { lead: "Lead", to: "Email address", subject: "Email", sentAt: "Sent at", sentBy: "Sent by", status: "Status" },
       sentStatus: { sent: "Sent", bounced: "Bounced", replied: "Replied", failed: "Failed" }, noSent: "Nothing sent yet.",
     },
-    title: "Outreach", subtitle: "Emails and follow-ups to your prospects.",
-    newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Prospects.",
+    title: "Outreach", subtitle: "Emails and follow-ups to your leads.",
+    newCampaign: "New campaign", empty: "No outreach campaigns yet. Create one, then add leads from Leads.",
     colName: "Campaign", colStatus: "Status", colLeads: "Leads", colDrafts: "Drafts", colSent: "Sent", colReplies: "Replies", colMeetings: "Meetings", colUpdated: "Updated",
     status: { draft: "Draft", active: "Active", paused: "Paused", archived: "Archived" },
     form: {
@@ -85,18 +85,18 @@ export const wsEn = {
     },
     actions: { activate: "Activate", pause: "Pause", resume: "Resume", archive: "Archive", prepare: "Prepare drafts", preparing: "Preparing…", addLeads: "Add leads", remove: "Remove from campaign" },
     prepared: "{count} drafts prepared.", prepareSkipped: "{count} skipped (no step, limit reached, already prepared or not allowed).",
-    leadsTitle: "Leads in this campaign", noLeads: "No leads yet. Add them from Prospects (select → Add to outreach).",
+    leadsTitle: "Leads in this campaign", noLeads: "No leads yet. Add them from Leads (select → Add to outreach).",
     colLead: "Lead", colStep: "Step", colEnroll: "Status", colNext: "Next follow-up", colLast: "Last message",
     enrollStatus: { active: "Active", paused: "Paused", replied: "Replied", completed: "Finished", stopped: "Stopped" },
-    addLeadsTitle: "Add people you have contacted", addLeadsEmpty: "Nobody to add yet. Send to people from Prospects first.", addSelected: "Add {count}",
+    addLeadsTitle: "Add people you have contacted", addLeadsEmpty: "Nobody to add yet. Send to people from Leads first.", addSelected: "Add {count}",
     enrolled: "{count} added.", skipped: {
       do_not_contact: "{count} asked not to be contacted", suppressed: "{count} on the do-not-contact list", already_enrolled: "{count} already in this campaign",
       recently_contacted: "{count} contacted recently (re-contact rule)", no_contact: "{count} without contact details", in_other_campaign: "{count} already being contacted by another campaign",
     },
-    errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no prospects yet." },
+    errors: { name: "Enter a campaign name.", steps: "Add at least the first message.", notFound: "Campaign not found.", archived: "This campaign is archived.", noProspects: "That search campaign has no leads yet." },
     started: "Campaign created. Yolias is writing the emails.",
-    source: "Start from a search campaign", sourceNone: "No, I’ll add leads later", sourceHint: "Its prospects join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
-    send: { button: "Send", title: "Send to {count} selected", lead: "Yolias creates a campaign with these prospects, starts it and prepares the first messages. You review and send them from Outreach or the Inbox.", name: "Campaign name", channel: "Channel", start: "Create and prepare messages", orExisting: "Or add them to an existing campaign", defaultName: "Campaign {date}" },
+    source: "Start from a search campaign", sourceNone: "No, I’ll add leads later", sourceHint: "Its leads join this campaign, it starts right away and Yolias prepares the first messages for you to send.",
+    send: { button: "Send", title: "Send to {count} selected", lead: "Yolias creates a campaign with these leads, starts it and prepares the first messages. You review and send them from Outreach or the Inbox.", name: "Campaign name", channel: "Channel", start: "Create and prepare messages", orExisting: "Or add them to an existing campaign", defaultName: "Campaign {date}" },
     pickCampaign: "Add to outreach campaign", pickCampaignTitle: "Choose a campaign", noCampaigns: "No active or draft campaigns. Create one in Outreach first.",
   },
   send: {
@@ -163,7 +163,7 @@ export const wsEn = {
       fitUnknown: "Not enough data to judge fit.", fitChecks: { industry: "Industry", size: "Company size", country: "Country", title: "Job title", include: "Include keywords", exclude: "Exclude keywords" },
       fitResult: { match: "Match", miss: "No match", unknown: "Unknown" }, noCampaigns: "Not in any outreach campaign.", noMessages: "No messages yet.",
       noTasks: "No open reminders.", noMeetings: "No meetings yet.", noTimeline: "No history yet.", approvals: "Waiting for your approval",
-      approve: "Approve", reject: "Reject", openInInbox: "Open conversation", deleteLead: "Remove lead", deleteHint: "Removes the lead and its history. Search results stay in Prospects.",
+      approve: "Approve", reject: "Reject", openInInbox: "Open conversation", deleteLead: "Remove lead", deleteHint: "Removes the lead and its history. Search results stay in Leads.",
       matchScore: "Search match", profile: "Customer profile",
     },
     activity: {
@@ -190,9 +190,9 @@ export const wsEn = {
       },
       hints: {
         about: "What you do, for whom, since when.", services: "The services you provide.", products: "The products you sell.", pricing: "Prices or ranges you’re happy for AI to mention.",
-        differentiators: "Why customers choose you.", case_studies: "Real results with real customers only.", faqs: "Questions prospects ask and your answers.",
+        differentiators: "Why customers choose you.", case_studies: "Real results with real customers only.", faqs: "Questions leads ask and your answers.",
         reply_policy: "How to answer: what to promise, what never to say, when to hand over to a person.",
-        value_proposition: "The main reason to buy from you, in a sentence or two.", contact: "Public email, phone and address prospects may use.",
+        value_proposition: "The main reason to buy from you, in a sentence or two.", contact: "Public email, phone and address leads may use.",
       },
       analyze: {
         title: "Fill this in from your website", lead: "Yolias reads your public pages (home, about, services, products, pricing, contact, FAQ) and fills the fields below. You review everything before saving.",
@@ -241,7 +241,7 @@ export const wsEn = {
       title: "Rules & Permissions", subtitle: "What each agent may do, what needs your approval, and when it must stop and ask you. Enforced on the server for every action.",
       matrix: "Permissions", agent: "Agent", modes: { auto: "Automatic", approve: "Needs approval", deny: "Not allowed" },
       actions: {
-        search_prospects: "Search for prospects", update_leads: "Create or update leads", prepare_messages: "Prepare messages", send_messages: "Send messages (connected channels)",
+        search_prospects: "Search for leads", update_leads: "Create or update leads", prepare_messages: "Prepare messages", send_messages: "Send messages (connected channels)",
         analyze_replies: "Analyse replies", schedule_follow_ups: "Schedule follow-ups", update_crm_stage: "Update lead stages", manage_meetings: "Create or change meetings",
       },
       sendNote: "No sending channel is connected, so nothing is sent automatically whatever is chosen here.",

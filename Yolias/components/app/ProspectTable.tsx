@@ -9,8 +9,8 @@ import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { removeFromProspects, removeFromSaved, type Target } from "@/app/(app)/prospects/actions";
-import { exportedPeople } from "@/app/(app)/prospects/message-actions";
+import { removeFromProspects, removeFromSaved, type Target } from "@/app/(app)/leads/actions";
+import { exportedPeople } from "@/app/(app)/leads/message-actions";
 import type { Bucket, ReplyKind } from "@/services/pipeline";
 import { RowMenu } from "./sdr/bits";
 import { CompanyLogo, PersonAvatar } from "./Media";
@@ -37,7 +37,9 @@ export interface TableRow {
   website: string | null;
   /** Campaigns this prospect is in (Outreach column). */
   campaigns: { id: string; name: string }[];
-  /** Where the lead stands (CRM column); null before it's a lead. */
+  /** How Yolias got this person or company. */
+  source: "search" | "import";
+  /** Where the lead stands (Status column); null before it's a lead. */
   crm: { stage: string; kind: ReplyKind | null; bucket: Bucket | null; followUpAt: string | null; doNotContact: boolean; contacted: boolean } | null;
   /** Companies: saved people at this company. */
   people: number;
@@ -75,8 +77,8 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.key));
   const count = selected.size;
   const target = (): Target => ({ ids: [...selected] });
-  const href = (p: number) => `/prospects?${[query, p > 1 ? `page=${p}` : ""].filter(Boolean).join("&")}`;
-  const sortHref = (s: string) => `/prospects?${[query.split("&").filter((x) => x && !x.startsWith("sort=")).join("&"), s ? `sort=${s}` : ""].filter(Boolean).join("&")}`;
+  const href = (p: number) => `/leads?${[query, p > 1 ? `page=${p}` : ""].filter(Boolean).join("&")}`;
+  const sortHref = (s: string) => `/leads?${[query.split("&").filter((x) => x && !x.startsWith("sort=")).join("&"), s ? `sort=${s}` : ""].filter(Boolean).join("&")}`;
   const sortNow = new URLSearchParams(query).get("sort") ?? "match";
   const hasPeople = tab === "people";
 
@@ -131,14 +133,18 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
               <th className="col-check"><input type="checkbox" checked={pageAll} onChange={togglePage} aria-label={pr.selectAllPage} disabled={!rows.length} /></th>
               {tab === "people" ? (<>
                 {sortTh(L.colName, "name")}
+                <th>{L.colTitle}</th>
                 <th>{L.colCompany}</th>
-                <th>{L.colReach}</th>
+                <th>{L.colSource}</th>
                 <th>{L.colOutreach}</th>
                 <th>{L.colCrm}</th>
+                <th>{L.colReach}</th>
               </>) : (<>
                 {sortTh(L.colCompany, "name")}
                 <th className="num">{L.colPeople}</th>
+                <th>{L.colSource}</th>
                 <th>{L.colOutreach}</th>
+                <th>{L.colCrm}</th>
                 <th>{L.colLinks}</th>
                 {sortTh(L.colUpdated, "newest")}
               </>)}
@@ -146,7 +152,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={7} className="empty">{query ? empty : <EmptyNext text={empty} href="/" label={t.emptyNext.prospects} />}</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={9} className="empty">{query ? empty : <EmptyNext text={empty} href="/" label={t.emptyNext.prospects} />}</td></tr>}
             {rows.map((r) => {
               const on = selected.has(r.key);
               return (
@@ -156,9 +162,10 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
                     <td style={{ maxWidth: 260 }}>
                       <Link className="sdr-who" href={r.href} style={{ textDecoration: "none" }}>
                         <PersonAvatar name={r.name} photoUrl={r.imageUrl} size={32} />
-                        <div><span className="sdr-cell-main" dir="auto">{r.name}</span><span className="sdr-cell-sub" dir="auto">{r.title ?? "-"}</span></div>
+                        <span className="sdr-cell-main" dir="auto">{r.name}</span>
                       </Link>
                     </td>
+                    <td style={{ maxWidth: 200 }}><span className="sdr-cell-sub" dir="auto">{r.title ?? "-"}</span></td>
                     <td style={{ maxWidth: 220 }}>
                       {r.company ? (
                         <div className="sdr-who">
@@ -167,6 +174,9 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
                         </div>
                       ) : <span className="sdr-cell-sub">-</span>}
                     </td>
+                    <td><span className="sdr-cell-sub">{L.sources[r.source]}</span></td>
+                    <td style={{ maxWidth: 220 }}>{outreachCell(r)}</td>
+                    <td><CrmCell crm={r.crm} /></td>
                     <td>
                       <span className="sdr-reach">
                         <span className={r.hasEmail ? "on mail" : ""} title={L.reachEmail} aria-label={L.reachEmail}><Mail /></span>
@@ -174,8 +184,6 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
                         <span className={r.hasPhone ? "on" : ""} title={L.reachPhone} aria-label={L.reachPhone}><Phone /></span>
                       </span>
                     </td>
-                    <td style={{ maxWidth: 220 }}>{outreachCell(r)}</td>
-                    <td><CrmCell crm={r.crm} /></td>
                   </>) : (<>
                     <td style={{ maxWidth: 300 }}>
                       <Link className="sdr-who" href={r.href} style={{ textDecoration: "none" }}>
@@ -184,7 +192,9 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
                       </Link>
                     </td>
                     <td className="num">{n(r.people)}</td>
-                    <td style={{ maxWidth: 280 }}>{outreachCell(r)}</td>
+                    <td><span className="sdr-cell-sub">{L.sources[r.source]}</span></td>
+                    <td style={{ maxWidth: 240 }}>{outreachCell(r)}</td>
+                    <td><CrmCell crm={r.crm} /></td>
                     <td>
                       <span className="sdr-reach">
                         {r.website ? <a className="on" href={r.website} target="_blank" rel="noreferrer" title={L.website} aria-label={L.website}><Globe /></a> : <span><Globe /></span>}
@@ -235,7 +245,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
           <button type="button" className="icon-btn selection-clear" aria-label={pr.clearSelection} title={pr.clearSelection} onClick={clear}><X /></button>
         </div>
       )}
-      <form ref={exportForm} method="post" action="/prospects/export" hidden>
+      <form ref={exportForm} method="post" action="/leads/export" hidden>
         <input type="hidden" name="query" value={query} />
         {[...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
       </form>

@@ -6,7 +6,7 @@ import { UsersRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { useToast } from "@/components/Toast";
-import { findDecisionMakersAction } from "@/app/(app)/prospects/actions";
+import { findDecisionMakersAction } from "@/app/(app)/leads/actions";
 
 export function FindPeopleButton({ id, disabled }: { id: string; tab?: "companies" | "local"; disabled: boolean }) {
   const { t } = useI18n();

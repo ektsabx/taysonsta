@@ -144,7 +144,7 @@ try {
 
   const a1 = await runAgent(agentCtx, [{ role: "user", text: "How many prospects do I have left?" }], { scope: "user" });
   assert.equal(a1.provider, "openai");
-  assert.match(a1.reply, /prospects left/);
+  assert.match(a1.reply, /leads left/);
   console.log("✓ Agent on OpenAI: tool call → reply");
 
   openaiHandler = () => ({ status: 500, json: {} });

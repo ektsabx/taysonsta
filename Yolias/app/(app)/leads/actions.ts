@@ -45,7 +45,7 @@ export async function findDecisionMakersAction(target: Target): Promise<{ ok: bo
   for (let i = 0; i < companyIds.length; i += 20) {
     await enqueue("company.people", { workspaceId: session.workspace.id, companyIds: companyIds.slice(i, i + 20) });
   }
-  revalidatePath("/prospects", "layout");
+  revalidatePath("/leads", "layout");
   return { ok: true, queued: companyIds.length };
 }
 
@@ -59,7 +59,7 @@ export async function removeFromProspects(target: Target): Promise<{ ok: boolean
     people.length ? supabase.from("prospects").update({ saved_at: null }).eq("workspace_id", session.workspace.id).in("id", people.map((r) => r.id)).select("id") : { data: [] },
     companies.length ? supabase.from("companies").update({ saved_at: null }).eq("workspace_id", session.workspace.id).in("id", companies.map((r) => r.id)).select("id") : { data: [] },
   ]);
-  revalidatePath("/prospects", "layout");
+  revalidatePath("/leads", "layout");
   return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
 }
 
@@ -73,7 +73,7 @@ export async function removeFromSaved(target: Target): Promise<{ ok: boolean; re
     people.length ? supabase.from("prospects").update({ bookmarked_at: null }).eq("workspace_id", session.workspace.id).in("id", people.map((r) => r.id)).select("id") : { data: [] },
     companies.length ? supabase.from("companies").update({ bookmarked_at: null }).eq("workspace_id", session.workspace.id).in("id", companies.map((r) => r.id)).select("id") : { data: [] },
   ]);
-  revalidatePath("/prospects", "layout");
+  revalidatePath("/leads", "layout");
   return { ok: true, removed: (p.data?.length ?? 0) + (c.data?.length ?? 0) };
 }
 

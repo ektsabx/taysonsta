@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
-import { collectDecisionMakers, setSaved } from "@/app/(app)/prospects/people-actions";
+import { collectDecisionMakers, setSaved } from "@/app/(app)/leads/people-actions";
 
 /** Save a person, company or local business (Prospects → Saved, D-159). */
 export function SaveButton({ kind, id, saved, compact = false }: { kind: "person" | "company"; id: string; saved: boolean; compact?: boolean }) {

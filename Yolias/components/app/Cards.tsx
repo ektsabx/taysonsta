@@ -57,9 +57,9 @@ export function PersonCard({ person, showCompany = true, selected = false, onTog
         <Select label={p.name} checked={selected} onToggle={onToggle} />
         <PersonAvatar name={p.name} photoUrl={p.photoUrl} size={52} />
         <div className="person-card-id">
-          <Link className="person-card-name" href={`/prospects/person/${p.id}`}>{p.name}</Link>
+          <Link className="person-card-name" href={`/leads/person/${p.id}`}>{p.name}</Link>
           {p.title && <div className="person-card-title">{p.title}</div>}
-          {showCompany && p.company && <div className="person-card-sub">{p.companyId ? <Link href={`/prospects/company/${p.companyId}`}>{p.company}</Link> : p.company}</div>}
+          {showCompany && p.company && <div className="person-card-sub">{p.companyId ? <Link href={`/leads/company/${p.companyId}`}>{p.company}</Link> : p.company}</div>}
           {p.place && <div className="person-card-sub">{p.place}</div>}
           {p.emailStatus === "verified" && <span className="chip-ok">{r.verified}</span>}
         </div>
@@ -75,7 +75,7 @@ export function PersonCard({ person, showCompany = true, selected = false, onTog
         <dd dir={p.revealed && p.phone ? "ltr" : undefined}>{p.revealed ? (p.phone ?? <span className="muted">{r.notFound}</span>) : p.hasPhone ? <span className="ok">{r.available}</span> : <span className="muted">{r.notFound}</span>}</dd>
       </dl>
       <div className="person-card-actions">
-        <Link className="btn-secondary" href={`/prospects/person/${p.id}`}>{r.viewProfile} <ExternalLink /></Link>
+        <Link className="btn-secondary" href={`/leads/person/${p.id}`}>{r.viewProfile} <ExternalLink /></Link>
       </div>
     </li>
   );
@@ -93,7 +93,7 @@ export function CompanyCard({ company: c, selected = false, onToggle }: { compan
         <Select label={c.name} checked={selected} onToggle={onToggle} />
         <CompanyLogo name={c.name} logoUrl={c.logoUrl} domain={c.domain} size={44} />
         <div className="company-card-id">
-          <Link className="company-card-name" href={`/prospects/company/${c.id}`}>{c.name}</Link>
+          <Link className="company-card-name" href={`/leads/company/${c.id}`}>{c.name}</Link>
           {site && <a className="company-card-site" href={site.startsWith("http") ? site : `https://${site}`} target="_blank" rel="noreferrer" dir="ltr">{site.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")} <ExternalLink /></a>}
         </div>
         <SaveButton kind="company" id={c.id} saved={c.bookmarked} compact />
@@ -117,9 +117,9 @@ export function CompanyCard({ company: c, selected = false, onToggle }: { compan
         )}
       </div>
       <div className="company-card-actions">
-        <Link className="btn-secondary" href={`/prospects/company/${c.id}`}>{r.viewCompany}</Link>
+        <Link className="btn-secondary" href={`/leads/company/${c.id}`}>{r.viewCompany}</Link>
         {c.people.length ? (
-          <Link className="btn-outline-accent" href={`/prospects/company/${c.id}#decision-makers`}>{r.viewDecisionMakers}</Link>
+          <Link className="btn-outline-accent" href={`/leads/company/${c.id}#decision-makers`}>{r.viewDecisionMakers}</Link>
         ) : !c.canCollect || c.peopleStatus === "done" ? null : (
           <CollectButton id={c.id} running={c.peopleStatus === "running" || c.peopleStatus === "queued"} />
         )}

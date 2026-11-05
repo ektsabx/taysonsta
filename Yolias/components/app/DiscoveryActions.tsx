@@ -19,11 +19,11 @@ export function SaveToProspectsButton({ campaignId, alreadySaved, disabled }: { 
       type="button"
       disabled={disabled || pending}
       onClick={() => {
-        if (saved) return router.push("/prospects");
+        if (saved) return router.push("/leads");
         start(async () => {
           await saveToProspects(campaignId);
           setSaved(true);
-          setTimeout(() => router.push("/prospects"), 500);
+          setTimeout(() => router.push("/leads"), 500);
         });
       }}
     >

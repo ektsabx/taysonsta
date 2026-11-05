@@ -73,7 +73,7 @@ function linkFor(kind: EmailKind, data: Record<string, unknown>): string | null 
   if (typeof data.invoiceId === "string" && data.invoiceId !== "sample") return `/invoices/${data.invoiceId}`;
   if (typeof data.strategyId === "string") return `/search/${data.strategyId}`;
   if (kind === "affiliate_update") return "/partners";
-  if (kind.startsWith("usage_") || kind === "prospects_added") return "/prospects";
+  if (kind.startsWith("usage_") || kind === "prospects_added") return "/leads";
   if (kind.startsWith("plan_") || kind.startsWith("subscription_") || kind.startsWith("payment_")) return "/checkout";
   if (kind === "announcement" && typeof data.ctaUrl === "string" && data.ctaUrl.startsWith("/")) return data.ctaUrl;
   return null;

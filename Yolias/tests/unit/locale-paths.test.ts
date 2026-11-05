@@ -10,7 +10,7 @@ test("website pages get /ar, the app and sign-in keep one URL", () => {
   assert.equal(localizedHref("/compare/apollo#faq", "ar"), "/ar/compare/apollo#faq");
   assert.equal(localizedHref("/ar/pricing", "en"), "/pricing");
   assert.equal(localizedHref("/ar/pricing", "ar"), "/ar/pricing", "never /ar/ar");
-  for (const p of ["/signup", "/login", "/prospects", "/start?template=x", "/api/locale", "/r/abc"]) assert.equal(localizedHref(p, "ar"), p, p);
+  for (const p of ["/signup", "/login", "/leads", "/start?template=x", "/api/locale", "/r/abc"]) assert.equal(localizedHref(p, "ar"), p, p);
   assert.equal(localizedHref("https://example.com/pricing", "ar"), "https://example.com/pricing");
   assert.equal(localizedHref("//evil.example/pricing", "ar"), "//evil.example/pricing");
   assert.ok(isLocalizedPath("/templates/companies-in-uae") && isLocalizedPath("/partners/terms") && !isLocalizedPath("/pricingx") && !isLocalizedPath("/preview/seo/x"));

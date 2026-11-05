@@ -45,7 +45,7 @@ export function ProspectToolbar({ tab, total, countries, funding, active, export
     // Filters inside Saved stay in Saved (owner, 2026-10-28).
     if (sp.get("tab") === "saved") { q.set("tab", "saved"); q.set("kind", tab); } else q.set("tab", tab);
     for (const k of KEYS) if (next[k]) q.set(k, next[k]);
-    return `/prospects?${q}`;
+    return `/leads?${q}`;
   };
   const go = (next: Record<Key, string>) => router.push(qs(next));
   const set = (k: Key, v: string, now = false) => {

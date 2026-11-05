@@ -1144,7 +1144,7 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .app-card p { flex: 1; min-height: 4.2em; color: var(--muted); font-size: .86rem; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .app-logo { width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--line); display: grid; place-items: center; flex: none; overflow: hidden; background: #fff; color: #111; }
 .app-logo svg { width: 24px; height: 24px; }
-.app-logo img { width: 100%; height: 100%; object-fit: cover; }
+.app-logo img { width: 68%; height: 68%; object-fit: contain; }
 .app-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .app-actions .sdr-btn { justify-content: center; }
 .app-grow { flex: 1; }
@@ -1170,5 +1170,4 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .app-steps { display: grid; gap: 6px; margin: 0; list-style: decimal; padding-inline-start: 18px; color: var(--muted); font-size: .87rem; line-height: 1.6; }
 .app-links a { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; }
 .app-links svg { width: 15px; height: 15px; color: var(--muted); }
-.app-settings { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
 @media (max-width: 900px) { .app-detail-grid { grid-template-columns: minmax(0, 1fr); } .app-info { order: -1; } }

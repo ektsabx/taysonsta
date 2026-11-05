@@ -235,7 +235,7 @@ export const competitors: SeedCompetitor[] = [
       [["Free", "$0"], ["Individual (one time)", "$29"], ["Agency (one time)", "$79"], ["Pro", "$12"]], "as listed"],
   ] as const).map(([slug, name, website, pricing_url, summary, best_for, plans, period]): SeedCompetitor => ({
     slug, name, website, pricing_url, publishes_prices: true, summary, best_for,
-    strengths: { en: [], ar: [] }, limits: { en: ["Books meetings people already want; it doesn't find prospects or send outreach"], ar: ["يحجز اجتماعات يريدها الناس بالفعل؛ لا يجد عملاء ولا يرسل تواصلًا"] },
+    strengths: { en: [], ar: [] }, limits: { en: ["Books meetings people already want; it doesn't find leads or send outreach"], ar: ["يحجز اجتماعات يريدها الناس بالفعل؛ لا يجد عملاء ولا يرسل تواصلًا"] },
     pricing: plans.map(([plan, p]) => ({ plan, price: p, period, source_url: pricing_url, checked_at: "2026-10-30", verified: false })),
     facts: [],
   })),
@@ -250,7 +250,7 @@ export const competitors: SeedCompetitor[] = [
     best_for: { en: "Sales teams and agencies that build their own multichannel sequences.", ar: "فرق المبيعات والوكالات التي تبني تسلسلاتها متعددة القنوات بنفسها." },
     strengths: {
       en: ["Says it has a 650M+ lead database", "Email, LinkedIn, calls, SMS and WhatsApp steps in one sequence", "AI agents for intent signals, enrichment and messaging", "A 14-day free trial"],
-      ar: ["تقول إن لديها قاعدة من أكثر من 650 مليون عميل محتمل", "خطوات بريد وLinkedIn ومكالمات وSMS وواتساب في تسلسل واحد", "وكلاء ذكاء اصطناعي لإشارات النية والإثراء والرسائل", "تجربة مجانية 14 يومًا"],
+      ar: ["تقول إن لديها قاعدة من أكثر من 650 مليون عميل", "خطوات بريد وLinkedIn ومكالمات وSMS وواتساب في تسلسل واحد", "وكلاء ذكاء اصطناعي لإشارات النية والإثراء والرسائل", "تجربة مجانية 14 يومًا"],
     },
     limits: {
       en: ["You design the sequences and their steps yourself", "Built around sequences and contacts, not around campaign budgets and cost per result"],
@@ -258,7 +258,7 @@ export const competitors: SeedCompetitor[] = [
     },
     pricing: [], // Read once (Email $55/month, Multichannel $87/month on 2026-11-03): confirm on a second reading before listing.
     facts: [
-      { key: "database", value: { en: "650M+ lead database (its claim)", ar: "قاعدة من أكثر من 650 مليون عميل محتمل (بحسب قولها)" }, source_url: "https://www.lemlist.com/", checked_at: "2026-11-03", verified: false as const },
+      { key: "database", value: { en: "650M+ lead database (its claim)", ar: "قاعدة من أكثر من 650 مليون عميل (بحسب قولها)" }, source_url: "https://www.lemlist.com/", checked_at: "2026-11-03", verified: false as const },
       { key: "channels", value: { en: "Email, LinkedIn, calls, SMS and WhatsApp", ar: "البريد وLinkedIn والمكالمات وSMS وواتساب" }, source_url: "https://www.lemlist.com/pricing", checked_at: "2026-11-03", verified: false as const },
       { key: "trial", value: { en: "14-day free trial", ar: "تجربة مجانية 14 يومًا" }, source_url: "https://www.lemlist.com/", checked_at: "2026-11-03", verified: false as const },
     ],

@@ -16,6 +16,8 @@ export type Block =
 export interface Doc {
   title: string;
   summary: string;
+  /** Last updated (help and docs), shown under the title. */
+  updated?: string;
   blocks: Block[];
 }
 

@@ -110,6 +110,6 @@ export function classify(ft: FirstTouch | null, selfHosts: string[]): { channel:
 
 /** Pages whose first touch is worth keeping: the public website, not the app, auth flows or APIs. */
 export function isLandingPath(path: string): boolean {
-  return !/^\/(api|auth|_next|login|signup|recover|two-factor|onboarding|checkout|billing|invoices|search|prospects|analytics|outreach|inbox|crm|ai|settings|conversations|notifications|preview|start|dev|support-widget|unsubscribe)(\/|$)/.test(path)
+  return !/^\/(api|auth|_next|login|signup|recover|two-factor|onboarding|checkout|billing|invoices|search|prospects|leads|analytics|outreach|inbox|crm|ai|settings|conversations|notifications|preview|start|dev|support-widget|unsubscribe)(\/|$)/.test(path)
     && !/\.[a-z0-9]{2,5}$/i.test(path);
 }

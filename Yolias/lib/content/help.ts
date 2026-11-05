@@ -1,3 +1,4 @@
+import { longDocs } from "./help-long";
 import type { Doc, Localized } from "./types";
 
 // Help Center (rewritten 2026-11-03 for the campaign platform): short,
@@ -21,7 +22,7 @@ export const collections: HelpCollection[] = [
   } },
   { id: "audiences-leads", icon: "users", text: {
     en: { title: "Audiences & leads", description: "Targeting, saved and lookalike audiences, leads and exports." },
-    ar: { title: "الجماهير والعملاء المحتملون", description: "الاستهداف والجماهير المحفوظة والمشابهة والعملاء المحتملون والتصدير." },
+    ar: { title: "الجماهير والعملاء", description: "الاستهداف والجماهير المحفوظة والمشابهة والعملاء والتصدير." },
   } },
   { id: "conversations-meetings", icon: "calendar", text: {
     en: { title: "Conversations & meetings", description: "Replies, what needs you, your booking page and Google Calendar." },
@@ -39,7 +40,7 @@ export interface HelpArticle {
   doc: Localized<Doc>;
 }
 
-export const articles: HelpArticle[] = [
+const baseArticles: HelpArticle[] = [
   // ───────────────────────── Getting started ─────────────────────────
   {
     slug: "signing-in",
@@ -303,7 +304,7 @@ export const articles: HelpArticle[] = [
               ["اجتماعات", "يقترح موعدين متاحين وصفحة الحجز ويحجز", "اجتماع محجوز"],
               ["المبيعات", "يرسل الرابط المتتبَّع لصفحة المنتج أو الأسعار", "عملية شراء يحسبها بيكسل يولياس"],
               ["نماذج الموقع", "يرسل الرابط المتتبَّع لنموذجك", "نموذج يحسبه بيكسل يولياس"],
-              ["عملاء مؤهلون", "يجد الشركات والأشخاص المطابقين ويحفظهم دون التواصل معهم", "عميل محتمل محفوظ"],
+              ["عملاء مؤهلون", "يجد الشركات والأشخاص المطابقين ويحفظهم دون التواصل معهم", "عميل محفوظ"],
             ],
           } },
           { p: "المبيعات ونماذج الموقع تحتاج رابط موقعك وبيكسل بحدث التحويل. ولكل هدف أعمدته الجاهزة في جدول الحملات." },
@@ -357,7 +358,7 @@ export const articles: HelpArticle[] = [
         title: "Budget and optimization",
         summary: "How spend is counted and how Yolias moves the budget between audiences every day.",
         blocks: [
-          { p: "Spend is the prospects a campaign uses at your rate per person. Emails, replies and meetings are never charged, and the same person is never counted twice." },
+          { p: "Spend is the leads a campaign uses at your rate per person. Emails, replies and meetings are never charged, and the same person is never counted twice." },
           { h2: "Today's split between audiences" },
           { p: "Once a day each audience gets a share of the campaign's budget from its results: booked meetings for Meetings, purchases or forms for Sales and Website leads, and positive replies while there are too few. New audiences get an equal share first (**Learning**). An audience that does clearly worse, or costs more than your cost cap, gets no new budget." },
           { p: "The split is on the campaign's page. Yolias never changes your targeting, writing rules or sending limits." },
@@ -369,7 +370,7 @@ export const articles: HelpArticle[] = [
         title: "الميزانية والتحسين",
         summary: "كيف يُحسب الإنفاق، وكيف يوزّع يولياس الميزانية بين الجماهير كل يوم.",
         blocks: [
-          { p: "الإنفاق هو العملاء المحتملون الذين تستخدمهم الحملة بسعرك للشخص. الرسائل والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب الشخص نفسه مرتين." },
+          { p: "الإنفاق هو العملاء الذين تستخدمهم الحملة بسعرك للشخص. الرسائل والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب الشخص نفسه مرتين." },
           { h2: "توزيع اليوم بين الجماهير" },
           { p: "مرة يوميًا يحصل كل جمهور على نصيب من ميزانية الحملة حسب نتائجه: الاجتماعات المحجوزة لهدف الاجتماعات، والشراء أو النماذج للمبيعات ونماذج الموقع، والردود الإيجابية ما دامت النتائج قليلة. والجماهير الجديدة تأخذ نصيبًا متساويًا أولًا (**مرحلة التعلم**). والجمهور الأضعف بوضوح، أو الذي تتجاوز تكلفته الحد الأقصى، لا يأخذ ميزانية جديدة." },
           { p: "يظهر التوزيع في صفحة الحملة. ولا يغيّر يولياس استهدافك أو قواعد الكتابة أو حدود الإرسال." },
@@ -533,19 +534,19 @@ export const articles: HelpArticle[] = [
         blocks: [
           { p: "**Leads** has three tabs: **Companies**, **People** and **Saved**. Filter by campaign, search, sort and select rows across pages." },
           { h2: "Contact details" },
-          { p: "The business email and phone a person or company publishes show once Yolias delivers them, with their verification state. Viewing them again never uses prospects." },
+          { p: "The business email and phone a person or company publishes show once Yolias delivers them, with their verification state. Viewing them again never uses leads." },
           { h2: "Find decision makers" },
           { p: "On **Companies**, select companies and choose **Find decision makers**. They are saved to **People**." },
           { p: "Open a company or a person to see where they came from, the campaign that reached them and every message." },
         ],
       },
       ar: {
-        title: "العمل مع العملاء المحتملين",
+        title: "العمل مع العملاء",
         summary: "الشركات والأشخاص الذين وجدتهم حملاتك، وبيانات التواصل، وإيجاد صنّاع القرار.",
         blocks: [
-          { p: "في **العملاء المحتملون** ثلاثة تبويبات: **الشركات** و**الأشخاص** و**المحفوظون**. صفِّ حسب الحملة، وابحث، ورتّب، وحدد صفوفًا عبر الصفحات." },
+          { p: "في **العملاء** ثلاثة تبويبات: **الشركات** و**الأشخاص** و**المحفوظون**. صفِّ حسب الحملة، وابحث، ورتّب، وحدد صفوفًا عبر الصفحات." },
           { h2: "بيانات التواصل" },
-          { p: "يظهر البريد والهاتف المهنيان اللذان ينشرهما الشخص أو الشركة عند تسليمهما، مع حالة التحقق. وعرضهما مرة أخرى لا يستهلك عملاء محتملين." },
+          { p: "يظهر البريد والهاتف المهنيان اللذان ينشرهما الشخص أو الشركة عند تسليمهما، مع حالة التحقق. وعرضهما مرة أخرى لا يستهلك عملاء." },
           { h2: "إيجاد صنّاع القرار" },
           { p: "في **الشركات** حدد الشركات واختر **إيجاد صنّاع القرار**. ويُحفظون في **الأشخاص**." },
           { p: "افتح شركة أو شخصًا لترى مصدره، والحملة التي وصلت إليه، وكل رسالة." },
@@ -569,11 +570,11 @@ export const articles: HelpArticle[] = [
         ],
       },
       ar: {
-        title: "تصدير العملاء المحتملين والحملات",
-        summary: "نزّل العملاء المحتملين والحملات والجماهير كملف CSV أو Excel.",
+        title: "تصدير العملاء والحملات",
+        summary: "نزّل العملاء والحملات والجماهير كملف CSV أو Excel.",
         blocks: [
           { ul: [
-            "**العملاء المحتملون**: صفِّ التبويب ثم **تصدير**، أو حدد صفوفًا واختر **تصدير المحدد**.",
+            "**العملاء**: صفِّ التبويب ثم **تصدير**، أو حدد صفوفًا واختر **تصدير المحدد**.",
             "**الحملات**: **تصدير** ينزّل الجدول كما يظهر، بأعمدتك، كملف CSV أو Excel.",
           ] },
           { p: "عناوين الأعمدة بلغة الواجهة. وتفتح الملفات في Excel أو Numbers أو Google Sheets." },
@@ -683,33 +684,33 @@ export const articles: HelpArticle[] = [
     doc: {
       en: {
         title: "Pay As You Go or a monthly plan",
-        summary: "Every option has every feature and unlimited users; you pay for prospects only.",
+        summary: "Every option has every feature and unlimited users; you pay for leads only.",
         blocks: [
           { p: "Signing up is free. Build your campaign, then pay when you launch it, from $5." },
-          { p: "A **prospect** is a person Yolias finds and reaches for your campaigns. It's the only unit: writing and sending emails, replies and meetings are never charged, and the same prospect is never counted twice." },
+          { p: "A **lead** is a person Yolias finds and reaches for your campaigns. It's the only unit: writing and sending emails, replies and meetings are never charged, and the same lead is never counted twice." },
           { table: {
             head: ["Option", "Price", "How it works"],
             rows: [
               ["Pay As You Go", "From $5", "Prepaid credit ($5, $20, $50 or $100), no subscription, no expiry"],
-              ["Growth", "$100 a month", "2,000 prospects a month"],
-              ["Scale", "$200 a month", "4,000 prospects a month"],
+              ["Growth", "$100 a month", "2,000 leads a month"],
+              ["Scale", "$200 a month", "4,000 leads a month"],
             ],
           } },
-          { p: "Annual billing is 20% off. Checkout shows how many prospects an amount gives before you pay. On a plan, its monthly prospects are used first, then any credit. See [pricing](/pricing)." },
+          { p: "Annual billing is 20% off. Checkout shows how many leads an amount gives before you pay. On a plan, its monthly leads are used first, then any credit. See [pricing](/pricing)." },
         ],
       },
       ar: {
         title: "الدفع حسب الاستخدام أو خطة شهرية",
-        summary: "كل خيار فيه كل المزايا ومستخدمون بلا حد، وتدفع مقابل العملاء المحتملين فقط.",
+        summary: "كل خيار فيه كل المزايا ومستخدمون بلا حد، وتدفع مقابل العملاء فقط.",
         blocks: [
           { p: "التسجيل مجاني. ابنِ حملتك ثم ادفع عند إطلاقها، من 5 دولارات." },
-          { p: "**العميل المحتمل** شخص يجده يولياس ويصل إليه لحملاتك. وهو الوحدة الوحيدة: كتابة الرسائل وإرسالها والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب العميل نفسه مرتين." },
+          { p: "**العميل** شخص يجده يولياس ويصل إليه لحملاتك. وهو الوحدة الوحيدة: كتابة الرسائل وإرسالها والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب العميل نفسه مرتين." },
           { table: {
             head: ["الخيار", "السعر", "كيف يعمل"],
             rows: [
               ["الدفع حسب الاستخدام", "من 5 دولارات", "رصيد مسبق (5 أو 20 أو 50 أو 100 دولار)، بلا اشتراك وبلا انتهاء"],
-              ["النمو", "100 دولار شهريًا", "2,000 عميل محتمل شهريًا"],
-              ["التوسع", "200 دولار شهريًا", "4,000 عميل محتمل شهريًا"],
+              ["النمو", "100 دولار شهريًا", "2,000 عميل شهريًا"],
+              ["التوسع", "200 دولار شهريًا", "4,000 عميل شهريًا"],
             ],
           } },
           { p: "الدفع السنوي بخصم 20%. وتعرض صفحة الدفع عدد العملاء الذي يعطيه المبلغ قبل الدفع. وفي الخطة تُستخدم عملاؤها الشهريون أولًا ثم الرصيد. راجع [الأسعار](/pricing)." },
@@ -726,7 +727,7 @@ export const articles: HelpArticle[] = [
         summary: "Move between Pay As You Go, Growth and Scale, or cancel.",
         blocks: [
           { p: "Owners and admins open their name in the sidebar, then **Settings → Billing**. **Adjust plan** changes it; **Cancel plan** cancels at the end of the paid period, and you can resume before then." },
-          { p: "A plan's prospects reset on the first day of each month. Credit you topped up stays until you use it. After a plan ends, campaigns stop reaching new people and everything stays saved." },
+          { p: "A plan's leads reset on the first day of each month. Credit you topped up stays until you use it. After a plan ends, campaigns stop reaching new people and everything stays saved." },
         ],
       },
       ar: {
@@ -821,5 +822,8 @@ export const articles: HelpArticle[] = [
 
 export const helpHero: Localized<{ title: string; lead: string; collectionsTitle: string; popularTitle: string }> = {
   en: { title: "How can we help?", lead: "Short answers about campaigns, audiences, leads, conversations, meetings and your account.", collectionsTitle: "Browse by topic", popularTitle: "All articles" },
-  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن الحملات والجماهير والعملاء المحتملين والمحادثات والاجتماعات وحسابك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
+  ar: { title: "كيف يمكننا مساعدتك؟", lead: "إجابات قصيرة عن الحملات والجماهير والعملاء والمحادثات والاجتماعات وحسابك.", collectionsTitle: "تصفح حسب الموضوع", popularTitle: "كل المقالات" },
 };
+
+/** Articles rewritten in full replace their short version. */
+export const articles: HelpArticle[] = baseArticles.map((a) => (longDocs[a.slug] ? { ...a, doc: longDocs[a.slug] } : a));

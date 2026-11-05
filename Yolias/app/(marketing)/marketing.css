@@ -705,3 +705,30 @@ html[lang="ar"] .mk .lp-message { font-family: inherit; font-weight: 600; }
   .mk .lp-stats strong { font-size: 1.1rem; }
 }
 .mk ul.lp-mock { padding: 20px; }
+
+/* Use cases as working guides (owner, 2026-11-05). */
+.mk .doc-updated, .mk .wf-date { margin-top: .6rem; color: var(--faint); font-size: .8rem; }
+.mk .wf-cols { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 3rem; align-items: start; }
+.mk .wf-gap { margin-top: 2.4rem; }
+.mk .wf-how { margin: 1rem 0 0; padding-inline-start: 1.3rem; list-style: decimal; color: var(--text-2); line-height: 1.9; }
+.mk .wf-side { position: sticky; top: 88px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.mk .wf-side h2 { font-size: .95rem; font-weight: 700; color: var(--black); }
+.mk .wf-side h2:not(:first-child) { margin-top: 1.4rem; }
+.mk .wf-side ul { display: grid; gap: 12px; margin: 12px 0 0; padding: 0; list-style: none; }
+.mk .wf-side li { display: grid; gap: 2px; font-size: .87rem; }
+.mk .wf-side li span { color: var(--faint); line-height: 1.55; }
+.mk .wf-side li a, .mk .wf-res { color: var(--red-text); text-decoration: none; font-weight: 600; font-size: .87rem; }
+.mk .wf-res { display: inline-block; margin-top: 10px; }
+.mk .wf-steps { display: grid; gap: 3.2rem; margin: 2rem 0 0; padding: 0; list-style: none; }
+.mk .wf-steps > li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 2.4rem; align-items: start; }
+.mk .wf-steps h3 { margin-top: .3rem; font-size: 1.25rem; font-weight: 700; color: var(--black); }
+.mk .wf-steps p { margin-top: .7rem; color: var(--text-2); line-height: 1.75; font-size: .96rem; }
+.mk .wf-steps .wf-n { margin-top: 0; color: var(--red-text); font-size: .78rem; font-weight: 700; }
+.mk .wf-where { font-size: .86rem !important; }
+.mk .wf-result { display: flex; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: .88rem !important; }
+.mk .wf-result svg { flex: none; width: 15px; height: 15px; margin-top: 5px; color: var(--red); }
+.mk .wf-steps figure { margin: 0; }
+.mk .wf-steps img { display: block; width: 100%; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 40px var(--shadow); }
+.mk .wf-steps figcaption { margin-top: 8px; color: var(--faint); font-size: .74rem; text-align: center; }
+.mk .wf-act { margin-top: 1rem; }
+@media (max-width: 900px) { .mk .wf-cols, .mk .wf-steps > li { grid-template-columns: minmax(0, 1fr); } .mk .wf-side { position: static; } }

@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
   // Campaigns moved from /outreach (owner, 2026-11-05); links in emails already sent keep working.
   async redirects() {
     return [
+      { source: "/prospects", destination: "/leads", permanent: true },
+      { source: "/prospects/:path*", destination: "/leads/:path*", permanent: true },
       { source: "/outreach", destination: "/campaigns", permanent: true },
       { source: "/outreach/:path*", destination: "/campaigns/:path*", permanent: true },
     ];

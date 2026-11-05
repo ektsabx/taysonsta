@@ -28,7 +28,7 @@ export async function setSaved(kind: "person" | "company", id: string, saved: bo
   const table = kind === "person" ? "prospects" : "companies";
   const { data, error } = await db.from(table).update({ bookmarked_at: saved ? now : null }).eq("id", id).eq("workspace_id", session.workspace.id).select("id");
   if (saved && data?.length) await db.from(table).update({ saved_at: now }).eq("id", id).is("saved_at", null);
-  revalidatePath("/prospects", "layout");
+  revalidatePath("/leads", "layout");
   return { ok: !error && Boolean(data?.length) };
 }
 
@@ -49,7 +49,7 @@ export async function collectDecisionMakers(companyIds: string[]): Promise<{ ok:
     await enqueue("company.people", { workspaceId: session.workspace.id, companyIds: queued.slice(i, i + 20) });
   }
   await capture(session.userId, "decision_makers_requested", { workspace_id: session.workspace.id, companies: queued.length });
-  revalidatePath("/prospects", "layout");
+  revalidatePath("/leads", "layout");
   revalidatePath("/search", "layout");
   return { ok: true, queued: queued.length };
 }

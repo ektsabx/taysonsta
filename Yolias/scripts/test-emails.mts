@@ -134,7 +134,7 @@ try {
   const fromOf = (subject: RegExp) => mine.find((c) => subject.test(c.subject))?.from;
   assert.equal(fromOf(/Welcome to the Yolias Pro plan/), "Yolias <billing@yolias.test>");
   assert.equal(fromOf(/Payment successful/), "Yolias Billing <billing@yolias.test>");
-  assert.equal(fromOf(/prospects/), "Yolias <usage@yolias.test>");
+  assert.equal(fromOf(/leads/), "Yolias <usage@yolias.test>");
   assert.equal(fromOf(/New sign-in/), "Yolias Security <security@yolias.test>");
   assert.equal(fromOf(/Introducing Saved conversations/), "Yolias <updates@yolias.test>");
   assert.equal(fromOf(/Welcome to Yolias$/), "Yolias <no-reply@yolias.test>");

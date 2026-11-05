@@ -11,6 +11,8 @@ export const isAppKey = (v: unknown): v is AppKey => typeof v === "string" && (A
 
 export interface AppListing { screenshots: string[]; version: string | null; downloadUrl: string | null; storeUrl: string | null }
 
+// Google's own product images for its tools; Admin can replace them.
+const DEFAULT_SHOTS: Partial<Record<AppKey, string[]>> = { gmail: ["/integrations/gmail-1.png", "/integrations/gmail-2.png"], "google-calendar": ["/integrations/google-calendar-1.png", "/integrations/google-calendar-2.png"] };
 const HELPER_ZIP = "/downloads/yolias-pixel-helper.zip";
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.length > 0) : []);
@@ -19,7 +21,7 @@ const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => ty
 export function listingOf(key: AppKey, saved: unknown, locale: "en" | "ar"): AppListing {
   const s = (saved && typeof saved === "object" ? (saved as Record<string, unknown>)[key] : null) as Record<string, unknown> | null;
   const shots = list(s?.screenshots);
-  const fallback = key === "pixel-helper" ? [`/integrations/pixel-helper-${locale}.png`] : [`/integrations/${key}-${locale}.png`];
+  const fallback = DEFAULT_SHOTS[key]?.length ? DEFAULT_SHOTS[key]! : [`/integrations/${key}-${locale}.png`];
   return {
     screenshots: shots.length ? shots : fallback,
     version: text(s?.version) ?? (key === "pixel-helper" ? "1.0.0" : null),
