@@ -1027,7 +1027,7 @@ export const ar: Dictionary = {
     copyPage: "نسخ الصفحة", copied: "تم النسخ", helpfulQuestion: "هل كان هذا المقال مفيدًا؟", helpfulYes: "نعم", helpfulNo: "لا", helpfulThanks: "شكرًا على رأيك.",
     backTo: "العودة إلى {page}",
     readMore: "اقرأ المزيد",
-    minRead: "قراءة {count} دقائق",
+    minRead: "مدة القراءة: {count} د",
   },
   help: {
     searchPlaceholder: "ابحث في المقالات…",

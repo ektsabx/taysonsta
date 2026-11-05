@@ -57,8 +57,8 @@ export function AppStore() {
                   ? <Link className="sdr-btn" href={`/integrations/${k}`}><Plus />{a.install}</Link>
                   : n > 0
                     ? <Link className="sdr-btn" href={`/integrations/${k}`}><Check />{fmt(h.connected, { n: String(n) })}</Link>
-                    : k === "gmail" || k === "imap"
-                      ? <Link className="sdr-btn" href={`/integrations/${k}/connect`}><Plus />{h.connect}</Link>
+                    : k === "imap"
+                      ? <Link className="sdr-btn" href="/integrations/imap/connect?add=1"><Plus />{h.connect}</Link>
                       : <button type="button" className="sdr-btn" disabled={!s.ready || !s.canConnect(k)} onClick={() => connect(k)}><Plus />{s.ready && !s.canConnect(k) ? h.soon : h.connect}</button>}
               </div>
             </article>

@@ -764,3 +764,26 @@ html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
 .mk .sd-month li { display: grid; grid-template-columns: 7rem 1fr; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--row); }
 .mk .sd-month strong { color: var(--black); }
 .mk .sd-month span { color: var(--text-2); line-height: 1.6; }
+
+/* Article column: a readable line, with air under the header (owner, 2026-11-05). */
+.mk .post-article { width: min(760px, calc(100% - 32px)); max-width: 760px; margin-inline: auto; padding-block: 3.5rem 4rem; }
+.mk .post-article .post-meta { margin-top: 1.4rem; }
+.mk .post-article .doc-title-row { margin-top: .6rem; }
+.mk .wf .solution-h2 { margin-bottom: 1rem; }
+.mk .wf .prose > p { color: var(--text-2); }
+.mk .wf-demo-nav .btn-solid, .mk .wf-demo-nav .btn-ghost { height: 38px; padding: 0 14px; font-size: .84rem; cursor: pointer; }
+.mk .wf-demo-nav button:disabled { opacity: .45; cursor: default; }
+.mk .wf-demo { margin-bottom: 1rem; }
+.mk .wf .hero-actions { margin-top: 1.6rem; }
+.mk .wf-steps figcaption { line-height: 1.4; }
+@media (max-width: 560px) { .mk .wf-demo-head, .mk .wf-demo-foot { padding: 12px 14px; } .mk .wf-steps { gap: 2.2rem; } .mk .wf-steps > li { gap: 1.2rem; } .mk .wf-side { padding: 16px; } }
+.mk .site-width.pricing-narrow { max-width: 900px; }
+
+.mk .sd-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.mk .sd-cards article { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.mk .sd-cards h3 { font-size: 1.05rem; font-weight: 700; color: var(--black); line-height: 1.4; }
+.mk .sd-cards p { margin-top: .6rem; color: var(--text-2); line-height: 1.7; font-size: .94rem; }
+.mk .sd-mail { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.mk .sd-mail strong { color: var(--black); }
+.mk .sd-mail p { margin-top: .8rem; color: var(--text-2); line-height: 1.8; white-space: pre-line; }
+.mk .sd-h3 { margin: 1.6rem 0 .8rem; font-size: 1.05rem; font-weight: 700; color: var(--black); }

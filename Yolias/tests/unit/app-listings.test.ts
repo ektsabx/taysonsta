@@ -25,3 +25,11 @@ test("a reply carries its files; spam refusals are told apart", () => {
   assert.ok(toolsFor("email").includes("voice"));
   assert.equal(cleanTag("  hot   lead "), "hot lead");
 });
+
+import { buyingIntent } from "../../lib/buying-intent.ts";
+test("buying intent: Yolias AI's reading, else the kind of reply", () => {
+  assert.equal(buyingIntent("low", "interested"), "low");
+  assert.equal(buyingIntent(null, "meeting_request"), "high");
+  assert.equal(buyingIntent(undefined, "objection"), "medium");
+  assert.equal(buyingIntent(null, "out_of_office"), null);
+});

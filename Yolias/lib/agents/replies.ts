@@ -27,13 +27,16 @@ import type { Database, Json, LeadStage, MessageChannel } from "@/types/database
 // and the CRM stage moves only as Rules & Permissions allow.
 
 type Db = SupabaseClient<Database>;
-export const ANALYSIS_PROMPT_VERSION = "replies-2026-11-03-voice";
+export const ANALYSIS_PROMPT_VERSION = "replies-2026-11-05-intent";
 
 const STAGES = ["interested", "meeting_booked", "meeting_completed", "proposal", "negotiation", "closed", "lost"] as const;
 const AnalysisSchema = z.object({
   kind: z.enum(REPLY_KINDS),
   summary: z.string().min(1).max(400),
   suggested_stage: z.enum(STAGES).nullable(),
+  /** Owner, 2026-11-05: how likely this person is to buy, from the whole conversation. */
+  buying_intent: z.enum(["high", "medium", "low"]).nullable().optional(),
+  buying_reason: z.string().max(200).nullable().optional(),
   needs_human: z.boolean(),
   escalate_because: z.array(z.enum(["unclear_reply", "objection", "asks_for_human", "stop_request", "unverified_info"])).max(5),
   suggested_reply: z.string().max(2000).nullable(),
@@ -100,6 +103,7 @@ export async function analyzeReply(workspaceId: string, userId: string, messageI
           "You read one reply from a sales prospect and classify it for the sender's team.",
           "kind: interested | meeting_request | question | objection | not_interested | stop_request | out_of_office | asks_for_human | unclear.",
           "confidence: how sure you are of kind, from 0 to 1. Use below 0.6 when the reply is ambiguous, sarcastic, mixes intents or depends on context you don't have.",
+          "buying_intent: from the whole thread, how likely this person is to buy: high (asks price, timing or next steps, wants a meeting), medium (curious, asks questions, has objections they want answered), low (no need, not now, refuses). buying_reason: the words that show it, in one short line, in the reply's language.",
           "suggested_stage: the lead stage this reply justifies, or null when it changes nothing (interested → interested; a request for a meeting → interested unless a time was agreed → meeting_booked; a clear no → lost; a stop request → lost).",
           "needs_human: true only when a person must answer: a complaint, a legal matter, a negotiation of price or contract terms, or a request to talk to a person. Questions and objections Yolias can answer from the company knowledge are NOT needs_human.",
           "escalate_because: which of unclear_reply, objection, asks_for_human, stop_request, unverified_info apply. unverified_info = they ask about facts not in the sender's company knowledge.",

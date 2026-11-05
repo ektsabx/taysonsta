@@ -8,6 +8,9 @@ import { EmptyNext } from "@/components/app/EmptyNext";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ReplyTools } from "./ReplyTools";
 import type { InboxFile } from "@/lib/inbox-channels";
+import { BUYING_INTENTS } from "@/lib/buying-intent";
+
+const INTENT_TONE = { high: "green", medium: "amber", low: "gray" } as const;
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCheck, ChevronDown, ChevronLeft, ExternalLink, Loader2, Mail, MailOpen, Paperclip, PanelRight, PenLine, Reply, RotateCcw, Search, Send, UserRound, X } from "lucide-react";
@@ -37,7 +40,7 @@ interface Props {
   /** The campaign being watched (?campaign=), with its live counts. */
   campaign: { id: string; name: string; active: boolean; leads: number; writing: number; sent: number; failed: number } | null;
   /** Owner, 2026-11-05: tags on the conversation, and the filter by tag. */
-  tag: string | null; allTags: string[]; leadTags: string[];
+  tag: string | null; intent: string | null; allTags: string[]; leadTags: string[];
   /** D-270: filter by campaign and by what the conversation shows. */
   campaigns: { id: string; name: string }[];
   show: InboxShow | null;
@@ -69,7 +72,7 @@ export function MasterInbox(p: Props) {
   const n = (v: number) => formatNumber(v, locale);
   const href = (patch: Record<string, string | null>) => {
     const s = new URLSearchParams();
-    const cur: Record<string, string | null> = { tag: p.tag, tab: tab === "all" ? null : tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
+    const cur: Record<string, string | null> = { intent: p.intent, tag: p.tag, tab: tab === "all" ? null : tab, q: p.q || null, lead: p.thread?.lead.id ?? null, campaign: p.campaign?.id ?? null, show: p.show, ...patch };
     for (const [k, v] of Object.entries(cur)) if (v) s.set(k, v);
     return `/inbox${s.size ? `?${s}` : ""}`;
   };
@@ -140,6 +143,10 @@ export function MasterInbox(p: Props) {
               <option value="">{t.camp.inbox.all}</option>
               {INBOX_SHOWS.map((k) => <option key={k} value={k}>{{ interested: t.camp.inbox.interested, not_interested: t.camp.inbox.notInterested, needs_you: t.camp.inbox.needsYou, meeting_request: t.camp.inbox.meetingRequest, booked: t.camp.inbox.booked, replied: t.camp.inbox.replied, no_reply: t.camp.inbox.noReply }[k]}</option>)}
             </select>
+            <select className="sdr-input sm" aria-label={I.intent.filter} value={p.intent ?? ""} onChange={(e) => router.push(href({ intent: e.target.value || null, lead: null }))}>
+              <option value="">{I.intent.all}</option>
+              {BUYING_INTENTS.map((k) => <option key={k} value={k}>{I.intent[k]}</option>)}
+            </select>
             {p.allTags.length > 0 && (
               <select className="sdr-input sm" aria-label={I.tags.filter} value={p.tag ?? ""} onChange={(e) => router.push(href({ tag: e.target.value || null, lead: null }))}>
                 <option value="">{I.tags.all}</option>
@@ -174,7 +181,7 @@ export function MasterInbox(p: Props) {
                         <span className="row"><strong dir="auto">{i.name}</strong>{i.company && <span className="co" dir="auto">{i.company}</span>}<time>{date(i.at)}</time></span>
                         {i.subject && <span className="subj" dir="auto">{i.subject}</span>}
                         <span className="prev" dir="auto">{i.preview}</span>
-                        {(i.needsYou || i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.needsYou && <span className="sdr-badge red nodot">{I.badge}</span>}{i.hasDraft && <span className="sdr-badge blue nodot"><PenLine size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
+                        {(i.needsYou || i.hasDraft || i.status?.lastInbound) && <span className="chips">{i.needsYou && <span className="sdr-badge red nodot">{I.badge}</span>}{i.status?.lastInbound?.intent && <span className={`sdr-badge nodot ${INTENT_TONE[i.status.lastInbound.intent]}`}>{I.intent[i.status.lastInbound.intent]}</span>}{i.hasDraft && <span className="sdr-badge blue nodot"><PenLine size={11} />{x.aiDraft}</span>}{i.status?.lastInbound && <KindBadge kind={i.status.lastInbound.kind} />}</span>}
                       </span>
                     </Link>
                   );
@@ -267,6 +274,7 @@ function Conversation(p: Props & { thread: InboxThread; backHref: string; needsY
             <button type="button" className={`sdr-icon-btn bordered${details ? " on" : ""}`} title={details ? x.hideDetails : x.details} aria-label={details ? x.hideDetails : x.details} aria-pressed={details} onClick={() => setDetails((d) => !d)}><PanelRight /></button>
           </div>
         </div>
+        {s?.lastInbound?.intent && <div className="sdr-intent" role="status"><span className={`sdr-badge nodot ${INTENT_TONE[s.lastInbound.intent]}`}>{t.ag.rx.inbox.intent.label}: {t.ag.rx.inbox.intent[s.lastInbound.intent]}</span>{s.lastInbound.intentReason && <span dir="auto">{s.lastInbound.intentReason}</span>}</div>}
         <div className="sdr-conv-tags">
           {p.leadTags.map((g) => <span key={g} className="sdr-tag" dir="auto">{g}<button type="button" aria-label={t.ag.rx.inbox.tags.remove} disabled={pending} onClick={() => act(() => setLeadTag(lead.id, g, false))}><X size={11} /></button></span>)}
           <form onSubmit={(e) => { e.preventDefault(); const v = newTag.trim(); if (v) { setNewTag(""); act(() => setLeadTag(lead.id, v, true)); } }}>

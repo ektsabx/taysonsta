@@ -44,7 +44,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
         articleSchema({ title: doc.title, description: doc.summary, path: `/blog/${slug}`, date: post.date }),
         breadcrumbSchema([{ name: t.site.blog, path: "/blog" }, { name: doc.title, path: `/blog/${slug}` }]),
       ]} />
-      <article className="site-width max-w-[780px] py-16">
+      <article className="site-width post-article">
         <Link href="/blog" className="crumbs inline-flex"><ArrowLeft width={14} height={14} className="flip-rtl" /> {fmt(t.site.backTo, { page: t.site.blog })}</Link>
         <div className="post-meta">
           <b>{post.category[locale]}</b>

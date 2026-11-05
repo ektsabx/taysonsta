@@ -174,13 +174,13 @@ export function CampaignBuilder(p: BuilderProps) {
       <div className="cb-body">
         <nav className="cb-tree" aria-label={b.title}>
           <button type="button" className={`cb-node${level === "campaign" ? " on" : ""}`} onClick={() => go("campaign")}>
-            <Folder /><span><small>{t.ag.levels.campaign}</small>{s.name.trim() || b.campaign.name}</span>
+            <Folder /><span title={s.name}><small>{t.ag.levels.campaign}</small>{s.name.trim() || b.campaign.name}</span>
             {gaps.some((g) => g.level === "campaign") && <i className="cb-dot" aria-hidden />}
           </button>
           <div className="cb-children">
             {s.adSets.map((a, i) => (
               <button key={a.key} type="button" className={`cb-node child${level === "audience" && sel === i ? " on" : ""}`} onClick={() => go("audience", i)}>
-                <Users /><span><small>{t.ag.levels.audience}</small>{a.name}</span>
+                <Users /><span title={a.name}><small>{t.ag.levels.audience}</small>{a.name}</span>
               </button>
             ))}
             <button type="button" className="cb-add" onClick={() => {

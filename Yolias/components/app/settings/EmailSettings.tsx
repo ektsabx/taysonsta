@@ -26,9 +26,17 @@ export function EmailSettings({ card, onBack, backLabel }: { card: EmailCard; on
   const it = t.settings.integration;
   const toast = useToast();
   const [state, setState] = useState<EmailState | null>(null);
-  const [imapOpen, setImapOpen] = useState(false);
+  const [imapOpen, setImapOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("add") === "1");
   const load = () => mailboxState().then(setState).catch(() => setState(null));
   useEffect(() => { void load(); }, []);
+  // Back from Google (owner, 2026-11-05): say what happened on this page.
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get("mailbox");
+    if (!m) return;
+    toast({ connected: it.mailboxConnected, denied: it.mailboxDenied, not_configured: it.mailboxNotConfigured }[m] ?? it.mailboxFailed, m === "connected" ? undefined : "error");
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
@@ -203,7 +211,7 @@ function AddMailbox({ provider, state, reload, onImap }: { provider: "gmail" | "
   const [pending, start] = useTransition();
   const has = (p: string) => state?.mailboxes.some((m) => m.provider === p && m.status !== "disconnected");
   if (provider === "gmail") {
-    return state?.available.includes("gmail") ? <a className="sdr-btn primary" href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a> : null;
+    return !state ? null : state.available.includes("gmail") ? <a className="sdr-btn primary" href="/api/integrations/gmail/start"><GmailIcon />{a.addGmail}</a> : <a className="sdr-btn" href="/integrations/imap/connect?add=1"><AtSign />{a.addImap}</a>;
   }
   return (
     <span style={{ display: "flex", gap: 8 }}>

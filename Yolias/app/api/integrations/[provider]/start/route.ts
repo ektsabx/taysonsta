@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pro
   const session = await getSession();
   if (!session) return NextResponse.redirect(new URL("/login", siteUrl()));
   // An Analyst sees results only: no mailbox or calendar to send and book with (D-275).
-  if (session.role === "analyst") return NextResponse.redirect(new URL("/integrations?mailbox=failed", siteUrl()));
+  if (session.role === "analyst") return NextResponse.redirect(new URL("/integrations/gmail/connect?mailbox=failed", siteUrl()));
   const nonce = crypto.randomUUID();
   try {
     const url = await mailboxProvider(provider).authorizeUrl(`${provider}.${nonce}`, `${siteUrl()}/api/integrations/${provider}/callback`);
@@ -22,6 +22,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pro
     return res;
   } catch (e) {
     const reason = e instanceof MailboxError && e.kind === "not_configured" ? "not_configured" : "failed";
-    return NextResponse.redirect(new URL(`/integrations?mailbox=${reason}`, siteUrl()));
+    return NextResponse.redirect(new URL(`/integrations/gmail/connect?mailbox=${reason}`, siteUrl()));
   }
 }

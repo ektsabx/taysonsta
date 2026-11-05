@@ -615,13 +615,13 @@ a.meet-tag { text-decoration: none; color: inherit; }
 .cb-step { color: var(--muted); font-size: .8rem; }
 .cb-top-actions { display: flex; align-items: center; gap: 8px; }
 .cb-body { display: grid; grid-template-columns: 230px minmax(0, 1fr) 260px; min-height: 0; }
-.cb-tree { border-inline-end: 1px solid var(--line); padding: 12px 10px; display: grid; align-content: start; gap: 4px; background: var(--table-head); }
-.cb-children { display: grid; gap: 4px; padding-inline-start: 14px; border-inline-start: 1px solid var(--line); margin-inline-start: 14px; }
+.cb-tree { border-inline-end: 1px solid var(--line); padding: 12px 10px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 4px; min-width: 0; background: var(--table-head); }
+.cb-children { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 4px; padding-inline-start: 14px; border-inline-start: 1px solid var(--line); margin-inline-start: 14px; }
 .cb-node { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; text-align: start; background: none; border: 1px solid transparent; border-radius: 9px; padding: 8px 10px; color: var(--ink); font: inherit; cursor: pointer; }
 .cb-node > svg { width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; }
-.cb-node > span { display: grid; min-width: 0; font-size: .84rem; font-weight: 500; }
+.cb-node > span { display: block; flex: 1; min-width: 0; font-size: .84rem; font-weight: 500; }
 .cb-node > span, .cb-node > span small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cb-node small { color: var(--muted); font-size: .7rem; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
+.cb-node small { display: block; color: var(--muted); font-size: .7rem; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
 .cb-node:hover { background: var(--hover); }
 .cb-node.on { background: var(--paper); border-color: var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
 .cb-node.on > svg { color: var(--red); }
@@ -1186,3 +1186,5 @@ input[type="date"], input[type="time"], input[type="datetime-local"] { direction
 .sdr-reply-files li, .sdr-mail-files a { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-size: .78rem; text-decoration: none; }
 .sdr-reply-files button { display: inline-flex; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
 .sdr-reply-files svg { width: 12px; height: 12px; }
+
+.sdr-intent { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .8rem; }

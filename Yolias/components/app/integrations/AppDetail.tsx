@@ -46,8 +46,8 @@ export function AppDetail({ app, listing }: { app: AppKey; listing: AppListing }
                 {n > 0 && <span className="app-state"><Check />{fmt(a.active, { n: String(n) })}</span>}
                 {app === "google-calendar" && c
                   ? <button type="button" className="sdr-btn" disabled={pending} onClick={() => start(async () => { await disconnectCalendar(); s.load(); })}>{p.disconnect}</button>
-                  : mail
-                    ? <Link className="sdr-btn primary" href={`/integrations/${app}/connect`}>{n > 0 ? <Settings2 /> : <Plus />}{n > 0 ? a.manage : h.connect}</Link>
+                  : mail && (n > 0 || app === "imap")
+                    ? <Link className="sdr-btn primary" href={`/integrations/${app}/connect${n > 0 ? "" : "?add=1"}`}>{n > 0 ? <Settings2 /> : <Plus />}{n > 0 ? a.manage : h.connect}</Link>
                     : <button type="button" className="sdr-btn primary" disabled={!s.ready || !s.canConnect(app)} onClick={connect}><Plus />{s.ready && !s.canConnect(app) ? h.soon : h.connect}</button>}
               </>
             )}

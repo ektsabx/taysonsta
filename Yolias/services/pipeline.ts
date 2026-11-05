@@ -1,3 +1,4 @@
+import { buyingIntent, type BuyingIntent } from "@/lib/buying-intent";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { REPLY_KINDS } from "@/lib/automations/schema";
@@ -30,7 +31,7 @@ export interface LeadStatus {
   doNotContact: boolean;
   lastActivityAt: string;
   /** Their latest reply and how Yolias read it. */
-  lastInbound: { id: string; body: string; subject: string; at: string; kind: ReplyKind; summary: string | null; suggestedReply: string | null } | null;
+  lastInbound: { intent: BuyingIntent | null; intentReason: string | null; id: string; body: string; subject: string; at: string; kind: ReplyKind; summary: string | null; suggestedReply: string | null } | null;
   lastOutbound: { at: string; subject: string; from: string | null } | null;
   /** A reply waiting for the member: an unsent draft written after their latest message. */
   draft: { id: string; subject: string; body: string } | null;
@@ -79,7 +80,7 @@ export async function leadStatuses(workspaceId: string, opts: { leadIds?: string
     const done = ms.filter((m) => m.status === "sent" || m.status === "received").sort((a, b) => Date.parse(at(b)) - Date.parse(at(a)));
     const inbound = done.find((m) => m.direction === "inbound") ?? null;
     const outbound = done.find((m) => m.direction === "outbound") ?? null;
-    const analysis = (inbound?.analysis ?? null) as { kind?: string; summary?: string; suggested_reply?: string | null } | null;
+    const analysis = (inbound?.analysis ?? null) as { kind?: string; summary?: string; suggested_reply?: string | null; buying_intent?: string | null; buying_reason?: string | null } | null;
     const kind: ReplyKind = analysis?.kind && (REPLY_KINDS as readonly string[]).includes(analysis.kind) ? (analysis.kind as ReplyKind) : "unclassified";
     // A draft the member still has to send: not a campaign step, written after their latest reply.
     const draftRow = inbound ? ms.find((m) => m.direction === "outbound" && (m.status === "draft" || m.status === "approved") && !m.step_position && Date.parse(m.created_at) >= Date.parse(at(inbound))) ?? null : null;
@@ -99,7 +100,7 @@ export async function leadStatuses(workspaceId: string, opts: { leadIds?: string
     return {
       leadId: l.id, name: l.name, companyName: l.company_name, companyId: l.company_id, prospectId: l.prospect_id, domain: l.company?.domain ?? null, logoUrl: l.company?.logo_url ?? null,
       email: l.email, stage: l.stage, doNotContact: l.do_not_contact, lastActivityAt: l.last_activity_at,
-      lastInbound: inbound ? { id: inbound.id, body: inbound.body, subject: inbound.subject, at: at(inbound), kind, summary: analysis?.summary ?? null, suggestedReply: analysis?.suggested_reply ?? null } : null,
+      lastInbound: inbound ? { intent: buyingIntent(analysis?.buying_intent, kind), intentReason: analysis?.buying_reason ?? null, id: inbound.id, body: inbound.body, subject: inbound.subject, at: at(inbound), kind, summary: analysis?.summary ?? null, suggestedReply: analysis?.suggested_reply ?? null } : null,
       lastOutbound: outbound ? { at: at(outbound), subject: outbound.subject, from: outbound.from_address } : null,
       draft: draftRow ? { id: draftRow.id, subject: draftRow.subject, body: draftRow.body } : null,
       followUp: next ? { at: next.next_step_at!, campaign: next.campaign?.name ?? "" } : null,

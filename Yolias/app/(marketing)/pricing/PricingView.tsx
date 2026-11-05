@@ -182,7 +182,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       </section>
 
       <section id="faq" className="bg-[var(--paper)] py-20 lg:py-28">
-        <div className="site-width max-w-[900px]">
+        <div className="site-width pricing-narrow">
           <div className="text-center">
             <p className="eyebrow">{t.faqEyebrow}</p>
             <h2 className="display-font mt-4 text-[clamp(2.45rem,5vw,4.2rem)] font-semibold leading-[1.04] tracking-[-.05em]">{t.faqTitle}</h2>

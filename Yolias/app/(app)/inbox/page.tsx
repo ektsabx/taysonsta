@@ -5,6 +5,7 @@ import { memberMailboxes } from "@/lib/mailbox";
 import { inboxThread } from "@/services/inbox";
 import { INBOX_SHOWS, INBOX_TABS, campaignLive, masterInbox, type InboxShow, type InboxTab } from "@/services/master-inbox";
 import { createClient } from "@/lib/supabase/server";
+import { BUYING_INTENTS } from "@/lib/buying-intent";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { leadStatuses } from "@/services/pipeline";
 import { MasterInbox } from "@/components/app/inbox/MasterInbox";
@@ -41,10 +42,11 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const tagsOf = new Map<string, string[]>();
   for (const r of tagRows ?? []) tagsOf.set(r.lead_id, [...(tagsOf.get(r.lead_id) ?? []), r.tag]);
   const tag = one(sp.tag).slice(0, 40) || null;
-  const items = tag ? list.all.filter((i) => tagsOf.get(i.leadId)?.includes(tag)) : list.all;
+  const intent = (BUYING_INTENTS as string[]).includes(one(sp.intent)) ? one(sp.intent) : null;
+  const items = list.all.filter((i) => (!tag || tagsOf.get(i.leadId)?.includes(tag)) && (!intent || i.status?.lastInbound?.intent === intent));
   return (
     <MasterInbox
-      tab={tab} counts={list.counts} items={items} q={q} tag={tag} allTags={[...new Set((tagRows ?? []).map((r) => r.tag))].sort()} leadTags={leadId ? tagsOf.get(leadId) ?? [] : []}
+      tab={tab} counts={list.counts} items={items} q={q} tag={tag} intent={intent} allTags={[...new Set((tagRows ?? []).map((r) => r.tag))].sort()} leadTags={leadId ? tagsOf.get(leadId) ?? [] : []}
       thread={thread} status={status} hasMailbox={Boolean(connected)} mailboxEmail={connected?.email ?? null} timeZone={session.profile.timezone ?? null}
       campaign={live} campaigns={campaignOptions ?? []} show={show}
     />

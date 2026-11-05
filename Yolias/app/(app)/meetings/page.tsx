@@ -50,17 +50,12 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
         <div><h2>{t.title}</h2></div>
         <div className="sdr-head-actions"><a className="sdr-btn" href={bookingUrl(page.slug)} target="_blank" rel="noreferrer"><Link2 />{t.openPage}</a></div>
       </header>
-      <dl className="mv-stats meet-cost">
-        <div><dt>{V.cost.meetings}</dt><dd>{formatNumber(booked30, locale)}</dd></div>
-        <div><dt>{V.cost.spend}</dt><dd>{usd(spend30)}</dd></div>
-        <div><dt>{V.cost.perMeeting}</dt><dd>{booked30 ? usd(spend30 / booked30) : "–"}</dd></div>
-      </dl>
       <nav className="sdr-tabs" aria-label={t.title}>
         <Link href="/meetings" className={tab === "visits" ? "active" : ""} aria-current={tab === "visits" ? "page" : undefined}><MousePointerClick />{V.visitsTab}</Link>
         <Link href="/meetings?tab=bookings" className={tab === "bookings" ? "active" : ""} aria-current={tab === "bookings" ? "page" : undefined}><CalendarDays />{t.tabs.bookings}<span className="sdr-count">{rows.filter((m) => m.status === "scheduled" && Date.parse(m.starts_at) >= now).length}</span></Link>
         <Link href="/meetings?tab=page" className={tab === "page" ? "active" : ""} aria-current={tab === "page" ? "page" : undefined}><Link2 />{t.tabs.page}</Link>
       </nav>
-      {tab === "visits" ? <Visits workspaceId={session.workspace.id} locale={locale} timeZone={session.profile.timezone ?? null} /> : tab === "bookings" ? (
+      {tab === "visits" ? <Visits workspaceId={session.workspace.id} locale={locale} timeZone={session.profile.timezone ?? null} cost={{ booked: formatNumber(booked30, locale), spend: usd(spend30), per: booked30 ? usd(spend30 / booked30) : "–" }} /> : tab === "bookings" ? (
         <MeetingList
           upcoming={rows.filter((m) => m.status === "scheduled" && Date.parse(m.ends_at ?? m.starts_at) >= now)}
           past={rows.filter((m) => !(m.status === "scheduled" && Date.parse(m.ends_at ?? m.starts_at) >= now)).reverse()}
@@ -78,7 +73,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
  * campaign), who started the form and left (like an abandoned checkout, with
  * what they typed), and who booked. The last 30 days.
  */
-async function Visits({ workspaceId, locale, timeZone }: { workspaceId: string; locale: "en" | "ar"; timeZone: string | null }) {
+async function Visits({ workspaceId, locale, timeZone, cost }: { workspaceId: string; locale: "en" | "ar"; timeZone: string | null; cost: { booked: string; spend: string; per: string } }) {
   const t = (await getDictionary()).ag.rx.meet;
   const V = t.visits;
   const db = await createClient();
@@ -88,10 +83,12 @@ async function Visits({ workspaceId, locale, timeZone }: { workspaceId: string; 
   const n = (x: number) => formatNumber(x, locale);
   const booked = rows.filter((r) => r.state === "booked").length;
   const started = rows.filter((r) => r.state === "started").length;
-  if (!rows.length) return <section className="sdr-panel meet-list"><p className="meet-muted meet-empty">{V.empty}</p></section>;
+  const costStats = <><div><dt>{t.cost.meetings}</dt><dd>{cost.booked}</dd></div><div><dt>{t.cost.spend}</dt><dd>{cost.spend}</dd></div><div><dt>{t.cost.perMeeting}</dt><dd>{cost.per}</dd></div></>;
+  if (!rows.length) return <section className="sdr-panel meet-list"><dl className="mv-stats">{costStats}</dl><p className="meet-muted meet-empty">{V.empty}</p></section>;
   return (
     <section className="sdr-panel">
       <dl className="mv-stats">
+        {costStats}
         <div><dt>{V.visits}</dt><dd>{n(rows.length)}</dd></div>
         <div><dt>{V.booked}</dt><dd>{n(booked)}</dd></div>
         <div><dt>{V.started}</dt><dd>{n(started)}</dd></div>
