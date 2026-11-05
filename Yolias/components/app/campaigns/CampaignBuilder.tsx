@@ -332,7 +332,7 @@ export function CampaignBuilder(p: BuilderProps) {
                   {fmt(s.budgetType === "daily" ? b.campaign.peopleDaily : b.campaign.people, { n: n(people), rate: usd(p.rate, 3) })}
                 </p>
                 {s.budgetUsd < minUsd && <p className="form-error" role="alert">{fmt(b.campaign.minBudget, { usd: usd(minUsd) })}</p>}
-                {p.balanceUsd != null && <p className="ws-hint">{fmt(b.campaign.balance, { usd: usd(p.balanceUsd) })} · <Link href="/?settings=billing">{b.campaign.topUp}</Link></p>}
+                {p.balanceUsd != null && <p className="ws-hint">{fmt(b.campaign.balance, { usd: usd(p.balanceUsd) })} · <Link href="/dashboard?settings=usage">{b.campaign.topUp}</Link></p>}
               </fieldset>
               <fieldset className="te-group">
                 <legend>{b.campaign.schedule}</legend>
