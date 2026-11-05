@@ -21,6 +21,7 @@ export function SiteFooter({ signedIn = false, extraLinks = [] }: { signedIn?: b
       links: [
         { href: "/use-cases", label: s.useCases },
         ...extraLinks,
+        { href: "/help-center", label: s.helpCenter },
         { href: "/docs", label: s.documentation },
         { href: "/blog", label: s.blog },
       ],
@@ -31,7 +32,6 @@ export function SiteFooter({ signedIn = false, extraLinks = [] }: { signedIn?: b
         { href: "/about", label: s.about },
         { href: "/careers", label: s.careers },
         { href: "/community", label: s.community },
-        { href: "/help-center", label: s.helpCenter },
         { href: "/affiliates", label: s.affiliates },
         // Contact = Contact Support: opens the support messenger (owner, 2026-10-20).
         { href: "/contact?topic=support", label: s.contactSupport },

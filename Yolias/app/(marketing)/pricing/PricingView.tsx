@@ -73,10 +73,10 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       key="payg"
       onPick={() => funnelEvent("plan_selected", { plan: "payg" })}
       name={t.payg.name}
-      price={usd(min.priceUsd)}
+      price={t.payg.price}
       note={t.payg.note}
-      items={[...outcome(min.prospects, true), ...platform, t.payg.noExpiry]}
-      href={href("payg")}
+      items={[t.payg.onLaunch, ...platform, t.payg.noExpiry]}
+      href={signedIn ? "/dashboard?settings=usage" : "/signup?plan=payg"}
       cta={t.payg.cta}
       foot={t.payg.foot}
     />

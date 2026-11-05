@@ -140,7 +140,7 @@ export function Dashboard({ name, data, range, campaignId, steps, from = "", to 
             <span>{acct.renewsAt ? fmt(A.renews, { date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { day: "numeric", month: "long" }).format(new Date(acct.renewsAt)) }) : A.credit}</span>
             <div className="db-account-bar" role="img" aria-label={`${usd(acct.leftUsd)} ${fmt(A.of, { total: usd(acct.totalUsd) })}`}><i style={{ width: `${acct.totalUsd > 0 ? Math.min(100, (acct.leftUsd / Math.max(acct.totalUsd, acct.leftUsd)) * 100) : 0}%` }} /></div>
           </div>
-          <button type="button" className="sdr-btn sm" onClick={() => openSettingsTab("billing")}>{D.topUp}</button>
+          <button type="button" className="sdr-btn sm" onClick={() => openSettingsTab("usage")}>{D.topUp}</button>
           <dl className="db-account-stats">
             <div><dt>{A.spent}</dt><dd><bdi dir="ltr">{usd(acct.spentMonthUsd)}</bdi></dd></div>
           </dl>

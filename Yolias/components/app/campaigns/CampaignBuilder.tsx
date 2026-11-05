@@ -81,7 +81,7 @@ export function CampaignBuilder(p: BuilderProps) {
       if (isNetworkFailure(r)) { toast(t.feedback.errors.network, "error"); return; }
       if (!r.ok) {
         toast((r as unknown as { error: string }).error, "error");
-        if ((r as unknown as { needsCredit?: boolean }).needsCredit) router.push("/checkout");
+        if ((r as unknown as { needsCredit?: boolean }).needsCredit) router.push("/dashboard?settings=usage");
         return;
       }
       then(r);

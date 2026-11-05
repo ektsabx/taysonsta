@@ -981,7 +981,7 @@ export const en = {
     noCardSetup: "No credit card required • Setup in minutes",
     setupMinutes: "Setup in minutes",
     payg: {
-      name: "Pay As You Go", note: "minimum top-up", cta: "Top up credit", foot: "Free signup · Pay at launch · No subscription",
+      name: "Pay As You Go", price: "Free", note: "to sign up", onLaunch: "Top up when you launch a campaign", cta: "Sign up free", foot: "No subscription",
       unit: "Pay only for the leads you get", option: "{amount} = {count} leads", noRenewal: "No subscription, no renewal", sameFeatures: "Every Yolias feature",
       byCredit: "By credit", from: "From {amount}", noExpiry: "Credit with no expiry date",
     },
