@@ -810,3 +810,4 @@ html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
   .mk { --gap-top: 48px; --gap-hero-end: 44px; --gap-section: 60px; }
   .mk .site-width.doc-layout { padding-inline: 18px; }
 }
+.mk .page-hero .site-width > h1:first-child { margin-top: 0; }
