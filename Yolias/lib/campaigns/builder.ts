@@ -68,7 +68,7 @@ export const builderSchema = z.object({
   runDays: z.array(z.enum(["sun", "mon", "tue", "wed", "thu", "fri", "sat"])).min(1).default(["sun", "mon", "tue", "wed", "thu", "fri", "sat"]),
   contactFrom: z.string().regex(/^\d{2}:\d{2}$/).default("09:00"),
   contactTo: z.string().regex(/^\d{2}:\d{2}$/).default("17:00"),
-  dailyLimit: z.number().int().min(1).max(500).default(30),
+  dailyLimit: z.number().int().min(1).max(50).default(30),
   /** D-274: the most a meeting that took place may cost (null = no cap), and recipient open tracking. */
   costCapUsd: z.number().min(0).max(100_000).nullable().default(null),
   trackOpens: z.boolean().default(true),

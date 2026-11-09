@@ -23,7 +23,7 @@ interface Props {
 }
 
 const bands: EmployeeBand[] = ["1-10", "11-50", "51-200", "201-1000", "1001-5000", "5000+"];
-const KEYS = ["q", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "saved", "sort"] as const;
+const KEYS = ["campaign", "q", "country", "city", "min", "verified", "titles", "industry", "employees", "domain", "company", "hiring", "signals", "funding", "saved", "sort"] as const;
 type Key = (typeof KEYS)[number];
 
 // The head of the Prospects panel (D-256, after AgentSDR Leads): title and

@@ -54,7 +54,7 @@ export async function updateMailboxSending(id: string, input: { dailyLimit: numb
   const s = await requireUser();
   if (!canEdit(s)) return await viewOnly() as never;
   const v = z.object({
-    dailyLimit: z.number().int().min(1).max(500), days: z.array(z.number().int().min(0).max(6)).max(7), start: hhmm, end: hhmm,
+    dailyLimit: z.number().int().min(1).max(50), days: z.array(z.number().int().min(0).max(6)).max(7), start: hhmm, end: hhmm,
     timeZone: z.string().max(64).nullable().refine((tz) => tz === null || validTimeZone(tz)),
   }).safeParse(input);
   if (!z.string().uuid().safeParse(id).success || !v.success) return { ok: false };

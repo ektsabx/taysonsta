@@ -1,6 +1,10 @@
 import { longDocs } from "./help-long";
 import { guides1 } from "./help-guides-1";
 import { guides2 } from "./help-guides-2";
+import { helpA } from "./full/help-a";
+import { helpB } from "./full/help-b";
+import { helpC } from "./full/help-c";
+import { helpD } from "./full/help-d";
 import type { Doc, Localized } from "./types";
 
 // Help Center (rewritten 2026-11-03 for the campaign platform): short,
@@ -828,5 +832,5 @@ export const helpHero: Localized<{ title: string; lead: string; collectionsTitle
 };
 
 /** Articles rewritten in full replace their short version. */
-const fullDocs: Record<string, Localized<Doc>> = { ...guides1, ...guides2, ...longDocs };
+const fullDocs: Record<string, Localized<Doc>> = { ...guides1, ...guides2, ...longDocs, ...helpA, ...helpB, ...helpC, ...helpD };
 export const articles: HelpArticle[] = baseArticles.map((a) => (fullDocs[a.slug] ? { ...a, doc: fullDocs[a.slug] } : a));

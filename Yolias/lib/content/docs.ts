@@ -1,4 +1,8 @@
 import { docGuides } from "./docs-guides";
+import { docsE } from "./full/docs-e";
+import { docsF } from "./full/docs-f";
+
+const fullDocs = { ...docGuides, ...docsE, ...docsF };
 import type { Doc, Localized } from "./types";
 
 // Documentation (rewritten for the AI advertising platform, owner 2026-11-03,
@@ -517,4 +521,4 @@ const baseDocs: DocPage[] = [
 ];
 
 /** Pages rewritten in full replace their short version. */
-export const docs: typeof baseDocs = baseDocs.map((d) => (docGuides[d.slug] ? { ...d, doc: docGuides[d.slug] } : d));
+export const docs: typeof baseDocs = baseDocs.map((d) => (fullDocs[d.slug] ? { ...d, doc: fullDocs[d.slug] } : d));

@@ -12,7 +12,7 @@ import { z } from "zod";
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const sendingRulesSchema = z.object({
-  daily_per_mailbox: z.number().int().min(1).max(500),
+  daily_per_mailbox: z.number().int().min(1).max(50),
   gap_min: z.number().int().min(0).max(240),
   gap_max: z.number().int().min(0).max(240),
   days: z.array(z.number().int().min(0).max(6)).max(7),

@@ -169,7 +169,7 @@ export const sdrAr: typeof sdrEn = {
     needs: "يحتاج إجراء", needsHint: "ردّهم هو آخر رسالة، أو مسودة رد تنتظرك.", needsNote: "رد أو مسودة تنتظرك",
     waiting: "في انتظارهم", waitingNote: "تم الرد عليهم، أو متابعة مجدولة",
     exhausted: "انتهت المتابعات", exhaustedHint: "أنت آخر من كتب، ولا شيء مجدول، ولم يردوا منذ أسبوع أو أكثر.", exhaustedNote: "أُرسلت كل المتابعات ولا رد بعد",
-    board: "لوحة", list: "قائمة", potential: "المحتملون (بدون «غير مهتم»)", everyone: "الكل",
+    board: "لوحة", list: "قائمة", potential: "المهتمون (بدون «غير مهتم»)", everyone: "الكل",
     colSub: { needs_action: "رد أو مسودة تنتظرك", waiting: "تم الرد عليهم، أو متابعة مجدولة", exhausted: "أُرسلت كل المتابعات ولا رد بعد" },
     listTitle: "الصفقات المفتوحة", listSub: "{n} عميل · الأحدث نشاطًا أولًا", all: "الكل", needsShort: "يحتاج إجراء", waitingShort: "في انتظارهم", exhaustedShort: "انتهت",
     colContact: "العميل", colClass: "التصنيف", colLatest: "آخر رد", colDraft: "مسودة الرد", colStatus: "الحالة",

@@ -49,7 +49,7 @@ export const wsAr: Dictionary["ws"] = {
       sentCols: { lead: "العميل", to: "البريد", subject: "الرسالة", sentAt: "أُرسلت في", sentBy: "أُرسلت من", status: "الحالة" },
       sentStatus: { sent: "أُرسلت", bounced: "ارتدّت", replied: "ردّ", failed: "فشلت" }, noSent: "لم يُرسل شيء بعد.",
     },
-    title: "التواصل", subtitle: "الرسائل والمتابعات لعملائك المحتملين.",
+    title: "التواصل", subtitle: "الرسائل والمتابعات لعملائك.",
     newCampaign: "حملة جديدة", empty: "لا توجد حملات تواصل بعد. أنشئ حملة ثم أضف العملاء من العملاء.",
     colName: "الحملة", colStatus: "الحالة", colLeads: "العملاء", colDrafts: "المسودات", colSent: "المُرسلة", colReplies: "الردود", colMeetings: "الاجتماعات", colUpdated: "آخر تحديث",
     status: { draft: "مسودة", active: "نشطة", paused: "متوقفة مؤقتًا", archived: "مؤرشفة" },

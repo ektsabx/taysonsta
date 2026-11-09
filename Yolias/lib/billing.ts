@@ -200,7 +200,8 @@ export async function settleSubscription(ws: WorkspaceRow, now = new Date()): Pr
   const unpaid = Boolean(ws.subscription_status === "past_due" && end && end.getTime() + RENEWAL_GRACE_DAYS * DAY <= now.getTime());
   if (!canceledEnded && !unpaid) return ws;
   const db = createAdminClient();
-  const next = { subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
+  // The plan itself ends too (audit, 2026-11-09): otherwise its monthly leads kept coming after the end.
+  const next = { plan: "free" as const, subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
   // Conditioned on the old period end, so two requests can't end it twice.
   const { data: moved } = await db.from("workspaces").update(next).eq("id", ws.id).eq("current_period_end", ws.current_period_end!).select("id").maybeSingle();
   if (!moved) return ws;
@@ -223,7 +224,8 @@ async function settleTrial(ws: WorkspaceRow, now: Date): Promise<WorkspaceRow> {
   const end = ws.trial_ends_at ? new Date(ws.trial_ends_at) : null;
   if (!end || end.getTime() + TRIAL_GRACE_DAYS * DAY > now.getTime()) return ws;
   const db = createAdminClient();
-  const next = { subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
+  // The plan itself ends too (audit, 2026-11-09): otherwise its monthly leads kept coming after the end.
+  const next = { plan: "free" as const, subscription_status: "canceled" as const, current_period_end: null, cancel_at_period_end: false };
   const { data: moved } = await db.from("workspaces").update(next).eq("id", ws.id).eq("subscription_status", "trialing").eq("trial_ends_at", ws.trial_ends_at!).select("id").maybeSingle();
   if (!moved) return ws;
   await db.from("subscription_events").insert({

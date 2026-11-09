@@ -25,7 +25,7 @@ const TABS: EventsTab[] = ["overview", "test", "setup", "settings"];
 const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v % 1 ? 2 : 0, minimumFractionDigits: v % 1 ? 2 : 0 }).format(v);
 // Facebook's standard events for the two website objectives (purchase first, then leads).
 const PURCHASE = ["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart", "AddToWishlist", "ViewContent", "Search", "CustomizeProduct", "StartTrial", "Subscribe", "Donate"] as const;
-const LEADS = ["Lead", "CompleteRegistration", "Contact", "SubmitApplication", "Schedule", "FindLocation"] as const;
+const LEADS = ["Lead", "CompleteRegistration", "Activated", "Contact", "SubmitApplication", "Schedule", "FindLocation"] as const;
 const VALUE_EVENTS = new Set(["Purchase", "InitiateCheckout", "AddPaymentInfo", "AddToCart", "AddToWishlist", "ViewContent", "StartTrial", "Subscribe", "Donate", "Lead", "CompleteRegistration"]);
 const codeFor = (e: string) => (VALUE_EVENTS.has(e) && (e === "Purchase" || e === "StartTrial" || e === "Subscribe" || e === "Donate") ? `yolias("track", "${e}", { value: 49.00, currency: "USD" });` : `yolias("track", "${e}");`);
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { creditRate } from "@/lib/credits";
 import { prospectRate } from "@/services/campaign-metrics";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -121,8 +122,12 @@ export async function billingOverview(): Promise<{ balanceUsd: number; resetsAt:
   const owned = new Set([...(camps.data ?? []).map((c) => c.source_campaign_id), ...(groups.data ?? []).map((g) => g.search_campaign_id)]);
   const spent = { search: 0, data: 0, messages: 0, campaigns: 0 };
   for (const l of ledger.data ?? []) spent[l.campaign_id && owned.has(l.campaign_id) ? "campaigns" : "search"] += l.prospects * rate;
-  const left = Math.max(0, usage.allowance - usage.prospects) + usage.extra;
-  return { balanceUsd: Math.round(left * rate * 100) / 100, resetsAt: usage.resetsAt, spent };
+  // Available leads, after what running campaigns hold (audit, 2026-11-09): bought credit at the credit price, a plan's leads at the plan price.
+  const credit = await creditRate();
+  const paid = rate !== credit;
+  const fromCredit = paid ? Math.min(usage.extra, usage.available) : usage.available;
+  const fromPlan = Math.max(0, usage.available - fromCredit);
+  return { balanceUsd: Math.round((fromCredit * credit + fromPlan * rate) * 100) / 100, resetsAt: usage.resetsAt, spent };
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.
@@ -263,6 +268,9 @@ export async function removeMember(userId: string): Promise<ActionResult> {
   if (!member) return { ok: false, error: t.memberNotFound };
   if (member.role === "owner") return { ok: false, error: t.ownerCantBeRemoved };
   await admin.from("workspace_members").delete().eq("workspace_id", session.workspace.id).eq("user_id", userId);
+  // Their mailboxes in this workspace stop sending (audit, 2026-11-09): campaigns using them pause on the next send.
+  await admin.from("mailboxes").update({ status: "disconnected" }).eq("workspace_id", session.workspace.id).eq("user_id", userId);
+  await admin.from("booking_pages").update({ enabled: false }).eq("workspace_id", session.workspace.id).eq("user_id", userId);
   // A removed member gets their own empty workspace back so their account keeps working.
   const { data: ws } = await admin.from("workspaces").insert({ created_by: userId }).select("id").single();
   if (ws) {

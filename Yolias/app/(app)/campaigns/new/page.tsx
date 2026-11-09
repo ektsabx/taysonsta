@@ -12,10 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Create campaign (owner, 2026-10-31, D-273): Campaign → Audiences → Message.
 // ?draft=<id> reopens a saved draft where the member left it.
-export default async function NewCampaignPage({ searchParams }: { searchParams: Promise<{ draft?: string }> }) {
+export default async function NewCampaignPage({ searchParams }: { searchParams: Promise<{ draft?: string; audience?: string }> }) {
   const session = await requireViewer();
   const ws = session.workspace.id;
-  const { draft } = await searchParams;
+  const { draft, audience } = await searchParams;
   const db = await createClient();
   const [t, locale, saved] = await Promise.all([
     getDictionary(), getLocale(),
@@ -27,6 +27,9 @@ export default async function NewCampaignPage({ searchParams }: { searchParams: 
     timezone: zone, senderName: session.profile.full_name ?? "", mailboxId: ctx.mailboxes[0]?.id ?? null,
     adSets: [emptyAdSet(1, `${t.ag.levels.audience} 1`)],
   });
+  // "Use in a campaign" from Audiences: that audience is already chosen (audit, 2026-11-09).
+  const picked = audience && /^[0-9a-f-]{36}$/i.test(audience) ? (await db.from("audiences").select("id, name").eq("id", audience).eq("workspace_id", ws).maybeSingle()).data : null;
+  if (picked) fresh.adSets = [{ ...emptyAdSet(1, picked.name), source: "audience", audienceId: picked.id }];
   // A draft saved by this builder reopens as it was; an older draft is read from the campaign itself.
   let resumed = saved.data?.wizard ? builderSchema.safeParse(saved.data.wizard) : null;
   if (saved.data && !resumed?.success) {

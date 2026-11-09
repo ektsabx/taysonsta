@@ -74,7 +74,7 @@ export const agEn = {
     },
     warnings: { moreBudget: "The total budget grew. Add an audience to use it: running audiences keep the budget they started with.",
       budget: "“{name}” has too little budget to find people (at least 10 people per audience).",
-      search: "Yolias couldn't start finding people for “{name}”. Edit its targeting on the campaign page.",
+      search: "Yolias couldn't start finding people for “{name}”. Add a new audience with different targeting.",
       empty: "“{name}” had nobody to add (everyone was already contacted, or asked not to be).",
     },
     errors: { mailboxMine: "Choose a mailbox you connected yourself. Each person launches from their own mailbox.",  fill: "Yolias couldn’t build the campaign. Try again.", fillNoKnowledge: "Add your company in Company Knowledge first.", pixel: "Choose the pixel that measures this objective.", website: "Add your website page (purchase or form).",
@@ -194,7 +194,7 @@ export const agEn = {
         Purchase: "Purchase", CustomizeProduct: "Customize product", StartTrial: "Start trial", Subscribe: "Subscribe", Donate: "Donate",
         Lead: "Lead", CompleteRegistration: "Complete registration", Activated: "Activated", Contact: "Contact", SubmitApplication: "Submit application", Schedule: "Schedule", FindLocation: "Find location",
       },
-      when: {
+      when: { Activated: "A new user becomes active after signing up (for example, builds their first project).", 
         ViewContent: "A product or key page is viewed.", Search: "A search is made on your site.", AddToCart: "A product is added to the cart.", AddToWishlist: "A product is added to a wishlist.",
         InitiateCheckout: "Checkout starts.", AddPaymentInfo: "Payment details are added at checkout.", Purchase: "A purchase is completed (with its value).", CustomizeProduct: "A product is customized.",
         StartTrial: "A free trial starts.", Subscribe: "A paid subscription starts.", Donate: "A donation is made.",

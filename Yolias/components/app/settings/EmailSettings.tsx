@@ -268,7 +268,7 @@ function EditMailbox({ box, state, onClose, onSaved }: { box: MailboxView; state
       }}>
         <div className="sdr-dialog-head"><h4>{fmt(e.title, { email: box.email })}</h4><p>{e.subtitle}</p></div>
         <div className="sdr-dialog-body">
-          <label><span>{e.limit}</span><input className="sdr-input num" type="number" min={1} max={500} required value={f.dailyLimit} onChange={(ev) => setF({ ...f, dailyLimit: Number(ev.target.value) })} /></label>
+          <label><span>{e.limit}</span><input className="sdr-input num" type="number" min={1} max={50} required value={f.dailyLimit} onChange={(ev) => setF({ ...f, dailyLimit: Number(ev.target.value) })} /></label>
           <div><span style={{ display: "block", fontSize: ".8rem", fontWeight: 500, marginBottom: 6 }}>{e.days}</span><DayPicker value={f.days} onChange={(days) => setF({ ...f, days })} /></div>
           <div className="sdr-grid2">
             <label><span>{e.from}</span><input className="sdr-input" type="time" required value={f.start} onChange={(ev) => setF({ ...f, start: ev.target.value })} /></label>
@@ -311,7 +311,7 @@ function Rules({ provider, state, reload }: { provider: "gmail" | "imap"; state:
         <div className="sdr-rule">
           <div><div className="sdr-rule-label">{r.perDay}</div><div className="sdr-rule-desc">{r.perDayDesc}</div></div>
           <div className="sdr-rule-ctl">
-            <div className="row"><input className="sdr-input num" type="number" min={1} max={500} disabled={ro} value={f.daily_per_mailbox} onChange={(e) => set({ daily_per_mailbox: Number(e.target.value) })} /><span className="unit">{r.unitDay}</span></div>
+            <div className="row"><input className="sdr-input num" type="number" min={1} max={50} disabled={ro} value={f.daily_per_mailbox} onChange={(e) => set({ daily_per_mailbox: Number(e.target.value) })} /><span className="unit">{r.unitDay}</span></div>
             <span className="hint">{fmt(r.defaultPerDay, { n: d.daily_per_mailbox })}</span>
           </div>
         </div>

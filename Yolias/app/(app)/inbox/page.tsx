@@ -46,7 +46,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const items = list.all.filter((i) => (!tag || tagsOf.get(i.leadId)?.includes(tag)) && (!intent || i.status?.lastInbound?.intent === intent));
   return (
     <MasterInbox
-      tab={tab} counts={list.counts} items={items} q={q} tag={tag} intent={intent} allTags={[...new Set((tagRows ?? []).map((r) => r.tag))].sort()} leadTags={leadId ? tagsOf.get(leadId) ?? [] : []}
+      tab={tab} counts={tag || intent ? Object.fromEntries(INBOX_TABS.map((k) => [k, k === "inbox" ? items.filter((i) => i.tabs.includes(k) && i.unread).length : items.filter((i) => i.tabs.includes(k)).length])) as typeof list.counts : list.counts} items={items} q={q} tag={tag} intent={intent} allTags={[...new Set((tagRows ?? []).map((r) => r.tag))].sort()} leadTags={leadId ? tagsOf.get(leadId) ?? [] : []}
       thread={thread} status={status} hasMailbox={Boolean(connected)} mailboxEmail={connected?.email ?? null} timeZone={session.profile.timezone ?? null}
       campaign={live} campaigns={campaignOptions ?? []} show={show}
     />

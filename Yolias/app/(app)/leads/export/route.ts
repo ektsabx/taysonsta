@@ -23,6 +23,7 @@ const csvCell = (v: unknown) => {
 async function exportCsv(filters: ProspectFilters, ids: string[] | "all") {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (session.role === "analyst") return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const h = (await getDictionary()).prospects.csv;
   const { rows } = await selectItems(session.workspace.id, filters, ids);
   const people0 = rows.flatMap((i) => (i.kind === "person" ? [i.row] : []));

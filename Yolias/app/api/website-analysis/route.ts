@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { canManageTeam, getSession } from "@/lib/session";
 import { canUseApp } from "@/lib/plans";
+import { intel } from "@/lib/intel/db";
+
+// Free accounts read their website again within the same daily AI limit as the campaign builder (audit, 2026-11-09).
+async function freeAiLeft(ws: string) {
+  const { count } = await intel().from("llm_calls").select("id", { count: "exact", head: true }).eq("workspace_id", ws).gte("created_at", new Date(Date.now() - 86_400_000).toISOString());
+  return (count ?? 0) < 30;
+}
 import { getDictionary } from "@/lib/i18n/server";
 import { analyzeWebsite, type AnalysisProgress, type WebsiteAnalysis } from "@/lib/website-analysis";
 
@@ -31,7 +38,7 @@ export async function POST(request: NextRequest) {
   const allowed = body.data.context === "onboarding"
     // Onboarding comes before the plan (owner, 2026-10-29): the owner may analyse their site once, before onboarding is done.
     ? session.role === "owner" && !session.profile.onboarded_at
-    : canUseApp(session.workspace) && Boolean(session.profile.onboarded_at) && canManageTeam(session);
+    : Boolean(session.profile.onboarded_at) && canManageTeam(session) && (canUseApp(session.workspace) || await freeAiLeft(session.workspace.id));
   if (!allowed) return NextResponse.json({ error: body.data.context === "onboarding" ? errors.failed : t.common.onlyManagers }, { status: 403 });
 
   const encoder = new TextEncoder();
