@@ -262,7 +262,7 @@ export function CampaignPage({ c, tab, range, from, to, line, prev, detail, acti
         <section className="cp-card">
           <div className="cp-card-head"><h3>{P.settings.title}</h3>{!["archived", "completed"].includes(c.status) && <Link className="sdr-btn sm" href={editHref}><Pencil />{P.settings.edit}</Link>}</div>
           <dl className="cp-settings">
-            <dt>{t.ag.builder.campaign.objective}</dt><dd>{c.objective === "qualified_leads" ? t.ag.rx.build.leads : P.objective}{c.targetMeetings ? ` · ${fmt(P.target, { got: String(line.counts.held), target: String(c.targetMeetings) })}` : ""}</dd>
+            <dt>{t.ag.builder.campaign.objective}</dt><dd>{t.ag.rx.build.objectives[c.objective as keyof typeof t.ag.rx.build.objectives] ?? P.objective}{c.targetMeetings && c.objective === "meetings" ? ` · ${fmt(P.target, { got: String(line.counts.held), target: String(c.targetMeetings) })}` : ""}</dd>
             <dt>{P.budget}</dt><dd>{budget}</dd>
             <dt>{O.costCap}</dt><dd>{c.costCapUsd == null ? O.noCap : usd(c.costCapUsd)}</dd>
             <dt>{P.dates}</dt><dd>{dates}</dd>

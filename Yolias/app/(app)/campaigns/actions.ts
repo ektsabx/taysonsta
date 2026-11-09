@@ -41,7 +41,7 @@ export async function duplicateCampaign(id: string): Promise<OutreachResult<{ id
   const state = { ...from.state, name: `${String(from.state.name)} (2)`.slice(0, 160), startDate: "", endDate: "", adSets: (from.state.adSets as { angleA?: string }[]).map((a, i) => ({ ...a, key: `d${i}${Date.now().toString(36)}` })) };
   const { data: copy, error } = await db.from("outreach_campaigns").insert({
     workspace_id: session.workspace.id, created_by: session.userId, owner_id: session.userId, name: String(state.name), description: src?.description ?? null,
-    channel: "email" as never, channels: ["email"], language: src?.language ?? "mul", tone: src?.tone ?? "direct", offer_id: src?.offer_id ?? null, objective: "meetings", aim: "meeting",
+    channel: "email" as never, channels: ["email"], language: src?.language ?? "mul", tone: src?.tone ?? "direct", offer_id: src?.offer_id ?? null, objective: src?.objective ?? "meetings", aim: src?.aim ?? "meeting", cta_url: src?.cta_url ?? null, conversion_event: src?.conversion_event ?? null, attribution_days: src?.attribution_days ?? 7,
     target_meetings: src?.target_meetings ?? null, daily_limit: src?.daily_limit ?? null, budget_type: src?.budget_type ?? "total", budget_usd: src?.budget_usd ?? null,
     timezone: src?.timezone ?? null, run_days: src?.run_days, contact_from: src?.contact_from ?? null, contact_to: src?.contact_to ?? null,
     sender_name: src?.sender_name ?? null, instructions: src?.instructions ?? null, wizard: { ...state, mailboxId: src?.mailbox_id ?? null } as unknown as Json,

@@ -72,12 +72,12 @@ export const agEn = {
       title: "Before you launch", name: "Name the campaign.", budget: "Set a budget of at least {usd}.", dates: "The end must be after the start.",
       audience: "Give every audience a targeting or a saved audience.", mailbox: "Connect a mailbox to send from.", confirm: "Confirm that Yolias may email on your behalf.",
     },
-    warnings: {
+    warnings: { moreBudget: "The total budget grew. Add an audience to use it: running audiences keep the budget they started with.",
       budget: "“{name}” has too little budget to find people (at least 10 people per audience).",
       search: "Yolias couldn't start finding people for “{name}”. Edit its targeting on the campaign page.",
       empty: "“{name}” had nobody to add (everyone was already contacted, or asked not to be).",
     },
-    errors: { fill: "Yolias couldn’t build the campaign. Try again.", fillNoKnowledge: "Add your company in Company Knowledge first.", pixel: "Choose the pixel that measures this objective.", website: "Add your website page (purchase or form).",
+    errors: { mailboxMine: "Choose a mailbox you connected yourself. Each person launches from their own mailbox.",  fill: "Yolias couldn’t build the campaign. Try again.", fillNoKnowledge: "Add your company in Company Knowledge first.", pixel: "Choose the pixel that measures this objective.", website: "Add your website page (purchase or form).",
       settings: "Check the campaign settings.", dates: "The end must be after the start and in the future.", name: "Name the campaign.",
       mailbox: "Connect a mailbox to send from.", audience: "Give every audience a targeting or a saved audience.", confirm: "Confirm that Yolias may email on your behalf.",
       preview: "Yolias couldn't write a sample right now. Try again in a moment.", approach: "Yolias couldn't write the approach right now. Try again in a moment.",
@@ -192,7 +192,7 @@ export const agEn = {
       kinds: {
         PageView: "Page view", ViewContent: "View content", Search: "Search", AddToCart: "Add to cart", AddToWishlist: "Add to wishlist", InitiateCheckout: "Initiate checkout", AddPaymentInfo: "Add payment info",
         Purchase: "Purchase", CustomizeProduct: "Customize product", StartTrial: "Start trial", Subscribe: "Subscribe", Donate: "Donate",
-        Lead: "Lead", CompleteRegistration: "Complete registration", Contact: "Contact", SubmitApplication: "Submit application", Schedule: "Schedule", FindLocation: "Find location",
+        Lead: "Lead", CompleteRegistration: "Complete registration", Activated: "Activated", Contact: "Contact", SubmitApplication: "Submit application", Schedule: "Schedule", FindLocation: "Find location",
       },
       when: {
         ViewContent: "A product or key page is viewed.", Search: "A search is made on your site.", AddToCart: "A product is added to the cart.", AddToWishlist: "A product is added to a wishlist.",
@@ -240,7 +240,7 @@ export const agEn = {
       find: "Find",
       type: "Campaign type", outreach: "Outreach", outreachDesc: "Yolias finds the companies and people you target and contacts them for you, one personal message each, then follows up and answers.",
       leads: "Qualified leads", leadsDesc: "Yolias contacts the people you target and hands you each one who replies with interest, with the conversation, so you take it from there.", leadsTarget: "Qualified leads you want",
-      channel: "Channel", soon: "Soon",
+      channel: "Channel",
       channels: { email: "Email", linkedin: "LinkedIn", facebook_groups: "Facebook groups", reddit: "Reddit", quora: "Quora" },
       channelDesc: {
         email: "From your own mailbox, one personal email each, with follow-ups and answers in the same thread.",
@@ -277,7 +277,7 @@ export const agEn = {
     },
     opt: {
       learning: "Learning", optimizing: "Optimizing for {event}", learningAll: "Learning: equal budget until there are {n} results",
-      events: { positive: "positive replies", booked: "booked meetings", held: "meetings held" },
+      events: { positive: "positive replies", booked: "booked meetings", held: "meetings held", purchase: "purchases", form: "website forms" },
       reasons: { learning: "Learning", best: "Best results", share: "Getting a share", weaker: "No new budget (weaker results)", over_cap: "No new budget (over the cost cap)" },
       share: "{pct} of budget", splitTitle: "Today’s split between audiences", costCap: "Cost cap per result", noCap: "No cap", trackOpens: "Track email opens",
     },
@@ -286,7 +286,7 @@ export const agEn = {
     },
     inbox: { intent: { label: "Buying intent", filter: "Buying intent", all: "Any buying intent", high: "High intent", medium: "Medium intent", low: "Low intent" }, tags: { add: "Add tag", remove: "Remove tag", filter: "Tag", all: "All tags" }, tools: { file: "Attach a file", image: "Add an image", gif: "Add a GIF", emoji: "Emoji", voice: "Record a voice note", stop: "Stop recording", remove: "Remove", uploading: "Uploading…", tooMany: "Up to 5 files in one reply.", tooBig: "A file can be up to 10 MB.", blocked: "This file type can't be sent.", failed: "The file couldn't be added. Try again.", noMic: "Allow the microphone in your browser to record." }, 
       needsYou: "Needs you", empty: "Nothing needs you. Yolias handles the other conversations.", handled: "Done", handledToast: "Marked as done.",
-      all: "All", allEmpty: "No conversations yet. They appear here as soon as Yolias writes to someone.", channel: "Channel", soon: "soon",
+      all: "All", allEmpty: "No conversations yet. They appear here as soon as Yolias writes to someone.", channel: "Channel",
       channels: { all: "All channels", email: "Email", whatsapp: "WhatsApp", linkedin: "LinkedIn", facebook: "Facebook" },
       badge: "Needs you", banner: "Yolias handed this conversation to you.", handling: "Yolias is handling this conversation.",
     },

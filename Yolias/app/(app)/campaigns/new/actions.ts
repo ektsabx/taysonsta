@@ -308,7 +308,7 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
   // D-274: a qualified-leads campaign only finds and saves people (Leads): no mailbox, no messages.
   const findOnly = s.objective === "qualified_leads";
   const { data: mb } = findOnly ? { data: null } : await admin.from("mailboxes").select("id, status").eq("id", s.mailboxId!).eq("workspace_id", session.workspace.id).eq("user_id", session.userId).maybeSingle();
-  if (!findOnly && (!mb || mb.status !== "connected")) return { ok: false, error: e.mailbox };
+  if (!findOnly && (!mb || mb.status !== "connected")) return { ok: false, error: e.mailboxMine };
   const research = decide(await loadAiSettings(session.workspace.id), "research", "search_prospects");
   if (s.adSets.some((a) => a.source === "new") && !research.allowed) return { ok: false, error: t.ws.ai.rules.searchBlocked };
   // Free signup (owner, 2026-11-05): the first payment comes here. The campaign stays saved as a draft.
@@ -365,7 +365,7 @@ export async function updateCampaign(id: string, input: unknown): Promise<Builde
   if (!p.success || !z.string().uuid().safeParse(id).success) return { ok: false, error: e.settings };
   const s = p.data;
   const db = await createClient();
-  const { data: c } = await db.from("outreach_campaigns").select("id, status, approved_at").eq("id", id).eq("workspace_id", session.workspace.id).maybeSingle();
+  const { data: c } = await db.from("outreach_campaigns").select("id, status, approved_at, budget_prospects, budget_type").eq("id", id).eq("workspace_id", session.workspace.id).maybeSingle();
   if (!c || c.status === "archived" || c.status === "completed") return { ok: false, error: e.settings };
   if (!s.name.trim()) return { ok: false, error: e.name };
   const endsAt = zonedIso(s.endDate, s.endTime, s.timezone);
@@ -388,7 +388,11 @@ export async function updateCampaign(id: string, input: unknown): Promise<Builde
   const warnings: string[] = [];
   if (fresh.length) {
     const rate = await prospectRate(session.workspace.id);
-    const share = Math.floor(budgetPeople(s, rate) / Math.max(fresh.length, 1));
+    // A total budget is shared, never added to: new audiences get only what the budget grew by (audit, 2026-11-09).
+    const people = budgetPeople(s, rate);
+    const pool = s.budgetType === "total" && c.budget_prospects != null ? Math.max(0, people - c.budget_prospects) : people;
+    const share = Math.floor(pool / Math.max(fresh.length, 1));
+    if (s.budgetType === "total") await createAdminClient().from("outreach_campaigns").update({ budget_prospects: people || null }).eq("id", id);
     for (const a of fresh) {
       const ready = a.angleA.trim() ? a : { ...a, ...((await approachFor(session, s, a)) ?? {}) };
       const w = await startAudience(session, id, ready as AdSet, share, endsAt);
@@ -396,6 +400,8 @@ export async function updateCampaign(id: string, input: unknown): Promise<Builde
       if (w) warnings.push(w);
     }
   }
+  // More total budget with no new audience: say how it can be used instead of keeping it unused silently.
+  if (!fresh.length && s.budgetType === "total" && c.budget_prospects != null && budgetPeople(s, await prospectRate(session.workspace.id)) > c.budget_prospects) warnings.push(t.ag.builder.warnings.moreBudget);
   await logCampaign(createAdminClient(), session.workspace.id, id, "note", fresh.length ? `Settings changed; ${fresh.length} new ${fresh.length === 1 ? "audience" : "audiences"} started.` : "Settings changed.", { by: session.userId });
   revalidatePath(`/campaigns/${id}`);
   revalidatePath("/campaigns");
