@@ -127,7 +127,9 @@ export interface ImapInput {
  * SMTP login) before it's saved; the settings and password go to Vault.
  * Ports pick the security: 993 / 465 = TLS, 143 / 587 / 2525 = STARTTLS.
  */
-export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true } | { ok: false; error: "invalid" | "auth" | "server" | "connect" }> {
+export type ImapConnectError = "invalid" | "sender" | `${"imap" | "smtp"}_${"auth" | "server" | "connect"}`;
+
+export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true } | { ok: false; error: ImapConnectError }> {
   const s = await requireUser();
   if (!canEdit(s)) return await viewOnly() as never;
   const parsed = z.object({
@@ -142,8 +144,7 @@ export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true }
   }).safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const v = parsed.data;
-  const { verifyAccount } = await import("@/lib/mailbox/imap");
-  const { MailboxError } = await import("@/lib/mailbox/types");
+  const { verifyAccount, VerifyError } = await import("@/lib/mailbox/imap");
   const local = (h: string) => /^(127\.0\.0\.1|localhost)$/.test(h);
   const account = {
     email: v.email, name: v.name || null, user: v.user, pass: v.pass,
@@ -153,8 +154,11 @@ export async function connectImapMailbox(input: ImapInput): Promise<{ ok: true }
   try {
     await verifyAccount(account);
   } catch (e) {
-    const kind = e instanceof MailboxError ? e.kind : "unavailable";
-    return { ok: false, error: kind === "auth" ? "auth" : kind === "rejected" ? "server" : "connect" };
+    // The member is told which server failed (incoming or outgoing) and why.
+    const side = e instanceof VerifyError ? e.side : "imap";
+    const kind = e instanceof VerifyError ? e.kind : "unavailable";
+    if (kind === "sender") return { ok: false, error: "sender" };
+    return { ok: false, error: `${side}_${kind === "auth" ? "auth" : kind === "rejected" ? "server" : "connect"}` as const };
   }
   await saveMailbox({ workspaceId: s.workspace.id, userId: s.userId, provider: "imap", email: v.email, displayName: v.name || null, canRead: true, refreshToken: JSON.stringify(account) });
   revalidatePath("/", "layout");

@@ -37,7 +37,8 @@ const smtp = createServer((s: Socket) => {
       if (authStep === 2 || authStep === 9) { const ok = authStep === 2 && Buffer.from(line, "base64").toString() === PASS; authStep = 0; say(ok ? "235 ok" : "535 bad credentials"); continue; }
       if (/^EHLO/i.test(line)) { say("250-smtp.acme.test"); say("250 AUTH LOGIN"); }
       else if (/^AUTH LOGIN/i.test(line)) { authStep = 1; say("334 VXNlcm5hbWU6"); }
-      else if (/^MAIL FROM:<(.+)>/i.test(line)) { from = line.match(/<(.+)>/)![1]; say("250 ok"); }
+      else if (/^MAIL FROM:<(.+)>/i.test(line)) { from = line.match(/<(.+)>/)![1]; say(from === USER ? "250 ok" : "553 not your address"); }
+      else if (/^RSET/i.test(line)) say("250 ok");
       else if (/^RCPT TO:<(.+)>/i.test(line)) { to = line.match(/<(.+)>/)![1]; say("250 ok"); }
       else if (/^DATA/i.test(line)) { inData = true; data = ""; say("354 go"); }
       else if (/^QUIT/i.test(line)) { say("221 bye"); s.end(); }
@@ -48,15 +49,26 @@ const smtp = createServer((s: Socket) => {
 
 // ── IMAP stand-in: an INBOX with a few messages ──
 const inbox: { uid: number; raw: string }[] = [];
+const sentBox: string[] = [];
 const imap = createServer((s: Socket) => {
   let buf = "";
+  let append: { tag: string; left: number; data: string } | null = null;
   const say = (l: string) => s.write(`${l}\r\n`);
   s.on("error", () => {});
   say("* OK IMAP ready");
   s.on("data", (d) => {
     buf += d.toString("latin1");
     let i;
-    while ((i = buf.indexOf("\r\n")) >= 0) {
+    for (;;) {
+      if (append) {
+        if (Buffer.byteLength(buf, "latin1") < append.left + 2) break;
+        sentBox.push(Buffer.from(buf.slice(0, append.left), "latin1").toString("utf8"));
+        buf = buf.slice(append.left + 2);
+        say(`${append.tag} OK [APPENDUID 1 ${sentBox.length}] done`);
+        append = null;
+        continue;
+      }
+      if ((i = buf.indexOf("\r\n")) < 0) break;
       const line = buf.slice(0, i);
       buf = buf.slice(i + 2);
       const [tag, cmd, ...rest] = line.split(" ");
@@ -78,6 +90,14 @@ const imap = createServer((s: Socket) => {
           s.write(")\r\n");
         }
         say(`${tag} OK done`);
+      } else if (/^LIST$/i.test(cmd)) {
+        say('* LIST (\\HasNoChildren) "/" "INBOX"');
+        say('* LIST (\\HasNoChildren \\Sent) "/" "Sent Items"');
+        say(`${tag} OK done`);
+      } else if (/^APPEND$/i.test(cmd)) {
+        const m = args.match(/^"Sent Items" \(\\Seen\) \{(\d+)\}$/);
+        if (!m) say(`${tag} NO wrong folder`);
+        else { append = { tag, left: Number(m[1]), data: "" }; say("+ go"); }
       } else if (/^LOGOUT$/i.test(cmd)) { say("* BYE"); say(`${tag} OK`); s.end(); }
       else say(`${tag} BAD unknown`);
     }
@@ -96,13 +116,17 @@ const token = JSON.stringify(account);
 try {
   // Login check.
   await verifyAccount(account);
-  await assert.rejects(verifyAccount({ ...account, pass: "wrong" }), (e: Error & { kind?: string }) => e.kind === "auth");
+  await assert.rejects(verifyAccount({ ...account, pass: "wrong" }), (e: Error & { kind?: string; side?: string }) => e.kind === "auth" && e.side === "imap");
+  await assert.rejects(verifyAccount({ ...account, email: "someone@else.test" }), (e: Error & { kind?: string; side?: string }) => e.kind === "sender" && e.side === "smtp", "SMTP must accept the address as sender");
+  await assert.rejects(verifyAccount({ ...account, smtp: { ...account.smtp, port: 1 } }), (e: Error & { side?: string }) => e.side === "smtp", "an unreachable SMTP server is named");
 
   // Send: first message, then a follow-up in the same thread.
   const first = await imapProvider.send(token, { from: USER, fromName: "Sara Ali", to: "omar@client.test", subject: "Quick idea for Client Co", body: "Hi Omar,\n.\nA line starting with a dot." });
   assert.match(first.providerMessageId, /^<[0-9a-f-]+@acme\.test>$/);
   assert.equal(first.threadId, first.providerMessageId);
   const d1 = delivered.at(-1)!;
+  assert.equal(sentBox.length, 1, "a copy is kept in the Sent folder (the one marked \\Sent)");
+  assert.match(sentBox[0], new RegExp(`Message-ID: ${first.providerMessageId}`), "the Sent copy is the same message");
   assert.equal(d1.from, USER); assert.equal(d1.to, "omar@client.test");
   assert.match(d1.data, new RegExp(`Message-ID: ${first.providerMessageId}`));
   assert.match(d1.data, /From: "?Sara Ali"? <sara@acme\.test>|From: Sara Ali <sara@acme\.test>/);

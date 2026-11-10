@@ -6,9 +6,10 @@ import { MailboxError, type IncomingMail, type MailboxProvider, type OutgoingMai
 // Any mailbox with IMAP + SMTP (D-238): the member's own email account on
 // their host (Zoho, Hostinger, GoDaddy, cPanel, Yahoo, iCloud, a company
 // server…), connected with its server settings and password (usually an
-// "app password"). Sending: SMTP. Replies: IMAP, read-only (EXAMINE), only
-// messages that answer a thread Yolias started (In-Reply-To / References) are
-// read. The settings and password are kept together in Supabase Vault (the
+// "app password"). Sending: SMTP, then a copy is appended to the mailbox's
+// Sent folder so the member sees it in their own mail app. Replies: IMAP,
+// read-only (EXAMINE), only messages that answer a thread Yolias started
+// (In-Reply-To / References) are read. The settings and password are kept together in Supabase Vault (the
 // mailbox's token), never in the database or the browser.
 
 export interface ImapAccount {
@@ -152,6 +153,26 @@ class Imap {
     }
   }
 
+  /** APPEND with a synchronizing literal: the server says "+" before the bytes. */
+  async append(box: string, message: string): Promise<void> {
+    const tag = `Y${++this.seq}`;
+    const bytes = Buffer.byteLength(message, "utf8");
+    await this.c.write(`${tag} APPEND ${quote(box)} (\\Seen) {${bytes}}\r\n`);
+    for (;;) {
+      const line = await this.c.readLine();
+      if (line.startsWith("+")) break;
+      if (line.startsWith(`${tag} `)) throw new MailboxError("rejected", `imap append: ${line.slice(0, 160)}`);
+    }
+    await this.c.write(`${message}\r\n`);
+    for (;;) {
+      const line = await this.c.readLine();
+      if (line.startsWith(`${tag} `)) {
+        if (!/^\S+ OK/i.test(line)) throw new MailboxError("rejected", `imap append: ${line.slice(0, 160)}`);
+        return;
+      }
+    }
+  }
+
   close() {
     this.c.write("Z LOGOUT\r\n").catch(() => {}).finally(() => this.c.close());
   }
@@ -161,17 +182,70 @@ const quote = (s: string) => `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const imapDate = (d: Date) => `${d.getUTCDate()}-${MONTHS[d.getUTCMonth()]}-${d.getUTCFullYear()}`;
 
-/** Checks the account works (IMAP login and SMTP login) before it's saved. */
+/** Which side of the account failed the check, and why. */
+export class VerifyError extends Error {
+  constructor(public side: "imap" | "smtp", public kind: MailboxError["kind"] | "sender", message: string) {
+    super(message);
+  }
+}
+const wrap = (side: "imap" | "smtp", e: unknown) => new VerifyError(side, e instanceof MailboxError ? e.kind : "unavailable", e instanceof Error ? e.message : String(e));
+
+/**
+ * Checks the account works before it's saved: IMAP login and the inbox, SMTP
+ * login, and that the SMTP server accepts this address as the sender (MAIL
+ * FROM, then RSET: nothing is sent).
+ */
 export async function verifyAccount(a: ImapAccount): Promise<void> {
+  try {
+    const i = await Imap.open(a);
+    try {
+      await i.run("EXAMINE INBOX");
+    } finally {
+      i.close();
+    }
+  } catch (e) {
+    throw wrap("imap", e);
+  }
+  let c: LineConn;
+  try {
+    c = await smtpSession(a);
+  } catch (e) {
+    throw wrap("smtp", e);
+  }
+  try {
+    await smtpCmd(c, `MAIL FROM:<${a.email}>`, [250]).catch((e) => { throw new VerifyError("smtp", "sender", e instanceof Error ? e.message : "mail from"); });
+    await smtpCmd(c, "RSET", [250]).catch(() => {});
+    await c.write("QUIT\r\n").catch(() => {});
+  } finally {
+    c.close();
+  }
+}
+
+/** The mailbox's Sent folder: the one marked \\Sent (RFC 6154), else a usual name. */
+async function sentFolder(i: Imap): Promise<string | null> {
+  const list = await i.run(`LIST "" "*"`).catch(() => [] as Untagged[]);
+  const boxes = list.map((u) => {
+    const m = u.text.match(/^\* LIST \(([^)]*)\) (?:"[^"]*"|NIL) (.+)$/i);
+    if (!m) return null;
+    const raw = m[2].trim();
+    return { flags: m[1], name: raw.startsWith('"') ? raw.slice(1, -1).replace(/\\(["\\])/g, "$1") : raw };
+  }).filter((b): b is { flags: string; name: string } => Boolean(b));
+  const marked = boxes.find((b) => /\\Sent\b/i.test(b.flags));
+  if (marked) return marked.name;
+  const usual = ["Sent", "Sent Items", "Sent Messages", "INBOX.Sent", "INBOX/Sent", "Sent Mail"];
+  return usual.map((n) => boxes.find((b) => b.name.toLowerCase() === n.toLowerCase())?.name).find(Boolean) ?? null;
+}
+
+/** Keeps a copy of a sent message in the Sent folder. A failure never fails the send. */
+async function saveToSent(a: ImapAccount, message: string): Promise<void> {
   const i = await Imap.open(a);
   try {
-    await i.run("EXAMINE INBOX");
+    const box = await sentFolder(i);
+    if (!box) return;
+    await i.append(box, message.replace(/\r?\n/g, "\r\n"));
   } finally {
     i.close();
   }
-  const c = await smtpSession(a);
-  await c.write("QUIT\r\n").catch(() => {});
-  c.close();
 }
 
 /** Replies to our threads in the inbox, newest 300 messages of the last 30 days. */
@@ -233,7 +307,10 @@ export const imapProvider: MailboxProvider = {
     const messageId = `<${crypto.randomUUID()}@${domain}>`;
     // Follow-ups answer the last message we sent and keep the whole thread in References.
     const refs = [...new Set([mail.threadId, mail.replyToProviderId].filter((x): x is string => Boolean(x)))];
-    await smtpSend(a, mail.to, buildMessage({ brand: mail.brand, files: mail.files, from: a.email, fromName: mail.fromName ?? a.name, to: mail.to, subject: mail.subject, body: mail.body, messageId, inReplyTo: mail.replyToProviderId ?? mail.threadId ?? null, references: refs, unsubscribeUrl: mail.unsubscribeUrl, pixelUrl: mail.pixelUrl }));
+    // The Sent copy carries no tracking pixel: opening it in the member's own mail app isn't an open.
+    const base = { brand: mail.brand, files: mail.files, from: a.email, fromName: mail.fromName ?? a.name, to: mail.to, subject: mail.subject, body: mail.body, messageId, inReplyTo: mail.replyToProviderId ?? mail.threadId ?? null, references: refs, unsubscribeUrl: mail.unsubscribeUrl };
+    await smtpSend(a, mail.to, buildMessage({ ...base, pixelUrl: mail.pixelUrl }));
+    await saveToSent(a, buildMessage({ ...base, pixelUrl: null })).catch((e) => console.error("[imap] sent copy", e instanceof Error ? e.message : e));
     return { providerMessageId: messageId, threadId: mail.threadId ?? messageId };
   },
   async replies(token, ownAddress, threadIds) {
