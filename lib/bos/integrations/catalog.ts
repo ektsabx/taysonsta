@@ -61,6 +61,20 @@ export const providers: ProviderDef[] = [
     docs: "https://developer.millionverifier.com/",
     yolias: "التحقق من بريد العملاء المحتملين قبل تسليمهم (مزود email.verify).",
   },
+  // Twilio (owner, 2026-11-10): kept here, ready for SMS and WhatsApp when Yolias adds those channels.
+  {
+    key: "twilio", name: "Twilio", category: "email", phase: 20, testable: false,
+    description: "مفاتيح Twilio لرسائل SMS وواتساب.",
+    fields: [
+      { key: "account_sid", label: "Account SID", required: true, placeholder: "AC…" },
+      { key: "auth_token", label: "Auth Token", secret: true, required: true },
+      { key: "messaging_service_sid", label: "Messaging Service SID", placeholder: "MG…" },
+      { key: "from_number", label: "رقم الإرسال", placeholder: "+1…" },
+      { key: "whatsapp_from", label: "رقم واتساب", placeholder: "whatsapp:+1…" },
+    ],
+    capabilities: ["sms.send", "whatsapp.send"],
+    docs: "https://www.twilio.com/docs",
+  },
   {
     key: "resend", name: "Resend", category: "email", phase: 4, testable: true,
     description: "إرسال البريد (الإشعارات، الدعوات، رسائل العملاء) مع تتبع التسليم عبر Webhook.",

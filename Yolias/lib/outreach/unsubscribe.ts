@@ -19,7 +19,15 @@ export const unsubscribePostUrl = (token: string) => `${site()}/api/u/${token}`;
 /** The line added under each campaign email, in the email's language (Arabic or English). */
 export function unsubscribeFooter(token: string, lang: string): string {
   const url = unsubscribePageUrl(token, lang);
-  return lang === "ar" ? `\n\n--\nإذا كنت لا ترغب في تلقي رسائل أخرى مني: ${url}` : `\n\n--\nIf you'd rather not hear from me again: ${url}`;
+  const line: Record<string, string> = {
+    ar: "إذا كنت لا ترغب في تلقي رسائل أخرى مني", en: "If you'd rather not hear from me again", fr: "Si vous préférez ne plus recevoir mes messages",
+    es: "Si prefieres no recibir más mensajes míos", de: "Wenn Sie keine weiteren Nachrichten von mir erhalten möchten", pt: "Se preferir não receber mais mensagens minhas",
+    it: "Se preferisci non ricevere altri miei messaggi", tr: "Benden başka mesaj almak istemiyorsanız", nl: "Als je liever geen berichten meer van mij ontvangt",
+  };
+  return `
+
+--
+${line[lang] ?? line.en}: ${url}`;
 }
 
 export async function leadByUnsubscribeToken(token: string) {

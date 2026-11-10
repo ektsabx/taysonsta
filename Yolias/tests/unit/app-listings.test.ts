@@ -33,3 +33,10 @@ test("buying intent: Yolias AI's reading, else the kind of reply", () => {
   assert.equal(buyingIntent(undefined, "objection"), "medium");
   assert.equal(buyingIntent(null, "out_of_office"), null);
 });
+
+import { buildRawEmail as raw2 } from "../../lib/mailbox/mime.ts";
+test("emails sent through Yolias carry the Yolias line with a link", () => {
+  const b64 = raw2({ from: "a@b.co", fromName: null, to: "c@d.co", subject: "Hi", body: "Hello", brand: { text: "Sent with Yolias", cta: "Find your next customers now", url: "https://www.yolias.com/?utm_source=sent_with_yolias" } });
+  const txt = Buffer.from(b64.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+  assert.match(txt, /multipart\/alternative/);
+});

@@ -4,7 +4,7 @@
 
 import type { MailProvider } from "@/types/database";
 
-import type { MailFile } from "./mime";
+import type { MailBrand, MailFile } from "./mime";
 
 export interface OutgoingMail {
   from: string;
@@ -21,6 +21,7 @@ export interface OutgoingMail {
   pixelUrl?: string | null;
   /** Files sent with a reply. */
   files?: MailFile[];
+  brand?: MailBrand | null;
 }
 
 export interface SentMail {

@@ -11,10 +11,10 @@ export async function setReferralProgramAction(_prev: ActionState, formData: For
     const { bos } = await authorize("platform.manage", "all");
     await setReferralProgram(bos, {
       enabled: formData.get("enabled") === "on",
-      prospects: Number(formData.get("prospects")),
+      usd: Number(formData.get("usd")),
       monthlyCap: Number(formData.get("monthly_cap")),
     });
-    revalidatePath("/admin/platform/referrals");
+    revalidatePath("/admin/platform/referrals", "layout");
     return { ok: true };
   });
 }

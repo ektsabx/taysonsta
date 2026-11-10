@@ -26,12 +26,17 @@ const b64body = (text: string) => btoa(String.fromCharCode(...utf8(text.replace(
  * the same words (escaped, links clickable, line breaks kept) and a 1×1
  * image at the end. Nothing else changes in how the email looks.
  */
-export function textToHtml(text: string, pixelUrl: string): string {
+export function textToHtml(text: string, pixelUrl: string | null, brand?: MailBrand | null): string {
   const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const linked = esc(text).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)]/g, (u) => `<a href="${u}">${u}</a>`);
   const dir = /[\u0600-\u06FF]/.test(text) ? ' dir="auto"' : "";
-  return `<div${dir}>${linked.replace(/\r?\n/g, "<br>")}</div><img src="${esc(pixelUrl)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px">`;
+  const foot = brand ? `<p style="margin-top:16px;color:#8a8a8a;font-size:12px"${dir}>${esc(brand.text)} – <a href="${esc(brand.url)}" style="color:#8a8a8a">${esc(brand.cta)}</a></p>` : "";
+  const img = pixelUrl ? `<img src="${esc(pixelUrl)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px">` : "";
+  return `<div${dir}>${linked.replace(/\r?\n/g, "<br>")}</div>${foot}${img}`;
 }
+
+/** "Sent with Yolias" under emails sent through Yolias (owner, 2026-11-10): a line and a link that opens Yolias. */
+export interface MailBrand { text: string; cta: string; url: string }
 
 export interface MailFile { name: string; type: string; data: Uint8Array }
 
@@ -52,15 +57,16 @@ function withFiles(parts: { headers: string[]; body: string }, files?: MailFile[
 export const isSpamBlock = (text: string) => /\bspam\b|blacklist|block ?list|blocked|reputation|5\.7\.1|policy (violation|reasons)|رسائل غير مرغوب/i.test(text);
 
 /** The body part(s): plain text alone, or text + HTML (multipart/alternative) when an open pixel is set. */
-function bodyParts(text: string, pixelUrl?: string | null): { headers: string[]; body: string } {
-  if (!pixelUrl) return { headers: ['Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64"], body: b64body(text) };
+function bodyParts(body: string, pixelUrl?: string | null, brand?: MailBrand | null): { headers: string[]; body: string } {
+  const text = brand ? `${body.trimEnd()}\n\n${brand.text} – ${brand.cta}: ${brand.url}` : body;
+  if (!pixelUrl && !brand) return { headers: ['Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64"], body: b64body(text) };
   const boundary = `yolias-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
   const part = (type: string, content: string) => `--${boundary}\r\nContent-Type: ${type}; charset="UTF-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${b64body(content)}\r\n`;
-  return { headers: [`Content-Type: multipart/alternative; boundary="${boundary}"`], body: `${part("text/plain", text)}${part("text/html", textToHtml(text, pixelUrl))}--${boundary}--` };
+  return { headers: [`Content-Type: multipart/alternative; boundary="${boundary}"`], body: `${part("text/plain", text)}${part("text/html", textToHtml(body, pixelUrl ?? null, brand))}--${boundary}--` };
 }
 
-export function buildRawEmail(m: { files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
-  const parts = withFiles(bodyParts(m.body, m.pixelUrl), m.files);
+export function buildRawEmail(m: { brand?: MailBrand | null; files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; inReplyTo?: string | null; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = withFiles(bodyParts(m.body, m.pixelUrl, m.brand), m.files);
   const headers = [
     `From: ${m.fromName ? `${encodeHeader(clean(m.fromName))} <${clean(m.from)}>` : clean(m.from)}`,
     `To: ${clean(m.to)}`,
@@ -128,8 +134,8 @@ export function htmlToText(html: string): string {
 // ── SMTP / IMAP mailboxes (D-238) ───────────────────────────────────────────
 
 /** A complete RFC 5322 message for SMTP (CRLF line ends, base64 UTF-8 body). */
-export function buildMessage(m: { files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
-  const parts = withFiles(bodyParts(m.body, m.pixelUrl), m.files);
+export function buildMessage(m: { brand?: MailBrand | null; files?: MailFile[]; from: string; fromName: string | null; to: string; subject: string; body: string; messageId: string; inReplyTo?: string | null; references?: string[]; date?: Date; unsubscribeUrl?: string | null; pixelUrl?: string | null }): string {
+  const parts = withFiles(bodyParts(m.body, m.pixelUrl, m.brand), m.files);
   const refs = (m.references ?? []).filter(Boolean).map(clean);
   const headers = [
     `Date: ${(m.date ?? new Date()).toUTCString().replace("GMT", "+0000")}`,

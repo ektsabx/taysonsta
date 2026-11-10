@@ -5,8 +5,8 @@ import { BosTable } from "@/components/bos/BosTable";
 import { Tx } from "@/components/bos/I18n";
 import { formatDateTime } from "@/lib/bos/format";
 import { NotConnected, connected, num } from "@/components/yolias/PlatformUi";
-import { getReferralProgram, referralOverview } from "@/services/yolias/referrals";
-import { ReferralForm, ReviewForm } from "./ReferralForm";
+import { getReferralProgram, referralOverview, usdFor } from "@/services/yolias/referrals";
+import { ReviewForm } from "./ReferralForm";
 
 const STATUS: Record<string, { tone: "success" | "warning" | "neutral" | "danger"; label: string }> = {
   rewarded: { tone: "success", label: "مُكافأ" }, capped: { tone: "warning", label: "تجاوز الحد الشهري" }, rejected: { tone: "neutral", label: "لا يُحتسب" }, review: { tone: "danger", label: "قيد المراجعة" },
@@ -26,21 +26,21 @@ export default async function ReferralsPage() {
   const manage = can(bos, "platform.manage", "all");
   return (
     <>
-      <PageHeader title="برنامج الدعوة" />
+      <PageHeader title="برنامج الدعوة: نظرة عامة" />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <Card title="الإعدادات">
           <KeyValues items={[
             { label: "الحالة", value: program.enabled ? <StatusBadge tone="success" label="مفعّل" /> : <StatusBadge tone="neutral" label="متوقف" /> },
-            { label: "المكافأة", value: <Tx vars={{ n: num(program.prospects) }}>{"{n} عميل محتمل لكل تسجيل"}</Tx> },
+            { label: "المكافأة", value: <Tx vars={{ n: `$${program.usd}` }}>{"{n} رصيد لكل تسجيل"}</Tx> },
             { label: "الحد الشهري", value: num(program.monthlyCap) },
           ]} />
-          {manage ? <ReferralForm value={program} /> : <p className="bos-faint"><Tx>التعديل يحتاج صلاحية إدارة المنصة.</Tx></p>}
+          {manage ? <Link className="admin-btn small" href="/admin/platform/referrals/settings"><Tx>تعديل الإعدادات</Tx></Link> : <p className="bos-faint"><Tx>التعديل يحتاج صلاحية إدارة المنصة.</Tx></p>}
         </Card>
         <Card title="الأرقام">
           <KeyValues items={[
             { label: "تسجيلات عبر روابط الدعوة", value: num(o.total) },
             { label: "مُكافأة", value: num(o.rewarded) },
-            { label: "عملاء محتملون مُنحوا", value: num(o.prospects) },
+            { label: "الرصيد الممنوح", value: `$${await usdFor(o.prospects)}` },
             { label: "آخر 30 يومًا", value: num(o.last30) },
           ]} />
         </Card>
@@ -48,7 +48,7 @@ export default async function ReferralsPage() {
           {!o.top.length ? <EmptyState title="لا توجد دعوات بعد" /> : (
             <div className="bos-table-scroll">
               <BosTable className="bos-table">
-                <thead><tr><th><Tx>مساحة العمل</Tx></th><th><Tx>تسجيلات</Tx></th><th><Tx>عملاء محتملون</Tx></th></tr></thead>
+                <thead><tr><th><Tx>مساحة العمل</Tx></th><th><Tx>تسجيلات</Tx></th><th><Tx>العملاء الممنوحون</Tx></th></tr></thead>
                 <tbody>{o.top.map((t) => <tr key={t.workspaceId}><td><Link className="bos-link" href={`/admin/platform/workspaces/${t.workspaceId}`}>{t.name}</Link></td><td className="bos-num">{num(t.count)}</td><td className="bos-num">{num(t.prospects)}</td></tr>)}</tbody>
               </BosTable>
             </div>
@@ -69,27 +69,6 @@ export default async function ReferralsPage() {
                     <td><Tx>{r.signals.map((x) => SIGNAL[x] ?? x).join("، ") || SIGNAL[r.reason ?? ""] || "—"}</Tx></td>
                     <td dir="ltr">{r.ip ?? "—"}</td>
                     {manage ? <td><ReviewForm id={r.id} /></td> : null}
-                  </tr>
-                ))}
-              </tbody>
-            </BosTable>
-          </div>
-        )}
-      </Card>
-      <Card title="آخر التسجيلات">
-        {!o.recent.length ? <EmptyState title="لا توجد تسجيلات عبر روابط الدعوة بعد" /> : (
-          <div className="bos-table-scroll">
-            <BosTable className="bos-table">
-              <thead><tr><th><Tx>التاريخ</Tx></th><th><Tx>صاحب الرابط</Tx></th><th><Tx>الحساب الجديد</Tx></th><th><Tx>الحالة</Tx></th><th><Tx>السبب</Tx></th><th><Tx>عملاء محتملون</Tx></th></tr></thead>
-              <tbody>
-                {o.recent.map((r) => (
-                  <tr key={r.id}>
-                    <td>{formatDateTime(r.at)}</td>
-                    <td><Link className="bos-link" href={`/admin/platform/workspaces/${r.referrerId}`}>{r.referrer}</Link></td>
-                    <td dir="ltr">{r.referred}</td>
-                    <td><StatusBadge tone={STATUS[r.status]?.tone ?? "neutral"} label={STATUS[r.status]?.label ?? r.status} /></td>
-                    <td><Tx>{SIGNAL[r.reason ?? ""] ?? "—"}</Tx></td>
-                    <td className="bos-num">{num(r.prospects)}</td>
                   </tr>
                 ))}
               </tbody>

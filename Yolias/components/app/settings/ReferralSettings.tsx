@@ -17,7 +17,7 @@ export function ReferralSettings({ link }: { link: string }) {
   useEffect(() => { referralState().then(setS).catch(() => setS(null)); }, []);
   const n = (v: number) => formatNumber(v, locale);
   // The link shows at once (from the app shell); the numbers fill in when they arrive.
-  const state: ReferralState = s ?? { enabled: true, link, reward: 50, monthlyCap: 20, joined: 0, earned: 0, thisMonth: 0, recent: [] };
+  const state: ReferralState = s ?? { enabled: true, link, reward: 5, monthlyCap: 20, joined: 0, earned: 0, thisMonth: 0, recent: [] };
   const loading = !s;
   return (
     <div className="setting-group">
@@ -45,7 +45,7 @@ export function ReferralSettings({ link }: { link: string }) {
       )}
       <div className="referral-stats">
         <div><span>{r.joined}</span><strong>{n(state.joined)}</strong></div>
-        <div><span>{r.earned}</span><strong>{n(state.earned)}</strong></div>
+        <div><span>{r.earned}</span><strong>{`$${state.earned}`}</strong></div>
         <div><span>{r.month}</span><strong>{n(state.thisMonth)}</strong><em>{fmt(r.monthNote, { cap: n(state.monthlyCap) })}</em></div>
       </div>
       <div className="setting-label" style={{ marginTop: 18 }}>{r.recent}</div>

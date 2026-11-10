@@ -44,6 +44,7 @@ export const navigation: NavGroup[] = [
     items: [
       { href: "/admin/platform", label: "لوحة التحكم", perm: "platform.read" },
       { href: "/admin/platform/traffic", label: "الزوار والقنوات", perm: "platform.read" },
+      { href: "/admin/platform/links", label: "الروابط والمصادر", perm: "platform.read" },
       { href: "/admin/platform/live", label: "المستخدمون الآن", perm: "platform.read" },
       { href: "/admin/platform/recent-payments", label: "آخر المدفوعات", perm: "platform.read" },
     ],
@@ -97,7 +98,6 @@ export const navigation: NavGroup[] = [
     icon: "y_growth",
     items: [
       { href: "/admin/platform/onboarding", label: "صفحات الإعداد", perm: "platform.read" },
-      { href: "/admin/platform/referrals", label: "برنامج الدعوة", perm: "platform.read" },
       { href: "/admin/platform/tutorials", label: "فيديوهات شرح المنصة", perm: "platform.read" },
       { href: "/admin/platform/content", label: "محتوى الموقع", perm: "platform.read" },
       { href: "/admin/platform/use-cases", label: "حالات الاستخدام", perm: "platform.read" },
@@ -173,6 +173,17 @@ export const navigation: NavGroup[] = [
       { href: "/admin/platform/jobs", label: "المهام والطابور", perm: "platform.read" },
       { href: "/admin/platform/risk", label: "المخاطر", perm: "platform.read" },
       { href: "/admin/platform/switches", label: "تشغيل وإيقاف الخدمات", perm: "platform.read" },
+    ],
+  },
+  // Yolias referral program (owner, 2026-11-10): its own section, like the affiliate program.
+  {
+    key: "referrals", section: "yolias",
+    label: "برنامج الدعوة",
+    icon: "affiliates",
+    items: [
+      { href: "/admin/platform/referrals", label: "نظرة عامة", perm: "platform.read" },
+      { href: "/admin/platform/referrals/list", label: "الإحالات", perm: "platform.read" },
+      { href: "/admin/platform/referrals/settings", label: "إعدادات البرنامج", perm: "platform.read" },
     ],
   },
   // Yolias affiliate program (D-178): marketers, commissions, payouts, rules.

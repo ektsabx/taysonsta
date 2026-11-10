@@ -1,4 +1,5 @@
 import "server-only";
+import { creditRate } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/types/database";
 
@@ -22,13 +23,15 @@ import type { Json } from "@/types/database";
 export const REFERRAL_COOKIE = "yl_invite";
 export const REFERRAL_DAYS = 30;
 
-export interface ReferralSettings { enabled: boolean; prospects: number; monthlyCap: number }
+// Owner, 2026-11-10: the reward is credit in dollars ($5 by default), added as leads at the credit price.
+export interface ReferralSettings { enabled: boolean; usd: number; prospects: number; monthlyCap: number }
 
 export async function referralSettings(): Promise<ReferralSettings> {
   const { data } = await createAdminClient().from("site_settings").select("value").eq("key", "referral_program").maybeSingle();
-  const v = (data?.value ?? {}) as { enabled?: boolean; prospects?: number; monthly_cap?: number };
+  const v = (data?.value ?? {}) as { enabled?: boolean; usd?: number; monthly_cap?: number };
   const n = (x: unknown, d: number) => (Number.isInteger(x) && (x as number) >= 0 ? (x as number) : d);
-  return { enabled: v.enabled !== false, prospects: n(v.prospects, 50), monthlyCap: n(v.monthly_cap, 20) };
+  const usd = typeof v.usd === "number" && v.usd >= 0 ? v.usd : 5;
+  return { enabled: v.enabled !== false, usd, prospects: Math.round(usd / (await creditRate())), monthlyCap: n(v.monthly_cap, 20) };
 }
 
 export const validReferralCode = (code: string) => /^[a-z0-9]{6,20}$/.test(code);
@@ -108,6 +111,7 @@ export async function recordReferral(userId: string, code: string, ip: string | 
 
 /** The reward: prospects that never expire, and a notice to the workspace's owners and admins. */
 export async function grantReferral(db: ReturnType<typeof createAdminClient>, referralId: string, workspaceId: string, prospects: number) {
+  const usd = Math.round(prospects * (await creditRate()) * 100) / 100;
   await db.from("usage_ledger").insert({
     workspace_id: workspaceId, kind: "grant", prospects, period_start: monthStart().toISOString().slice(0, 10), reason: `referral:${referralId}`, created_by: "referral",
   });
@@ -117,7 +121,7 @@ export async function grantReferral(db: ReturnType<typeof createAdminClient>, re
     const ar = langs?.find((p) => p.id === a.user_id)?.language === "ar";
     await db.from("notifications").insert({
       user_id: a.user_id, workspace_id: workspaceId, kind: "referral",
-      title: ar ? `انضم شخص عبر رابط دعوتك: +${prospects} عميل محتمل` : `Someone joined with your invite link: +${prospects} prospects`,
+      title: ar ? `انضم شخص عبر رابط دعوتك: +$${usd} رصيد` : `Someone joined with your invite link: +$${usd} credit`,
       body: ar ? "أضفناها إلى رصيدك، ولا تنتهي صلاحيتها." : "They're in your balance and never expire.",
       link: "/?settings=referral", dedupe_key: `referral:${referralId}:${a.user_id}`,
     }).then(({ error: e }) => e && console.error("[referral] notify", e.message));

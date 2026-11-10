@@ -34,6 +34,8 @@ export default async function RecentPaymentsPage({ searchParams }: { searchParam
         <Stat tone="revenue" label="مدفوعات ناجحة" value={s.paid} prev={b.paid} change={d.change("paid")} />
         <Stat tone="revenue" label="عملاء دفعوا" value={s.customers} prev={b.customers} change={d.change("customers")} />
         <Stat tone="revenue" label="متوسط الدفعة" format="usd" value={s.average} prev={b.average} />
+        <Stat tone="revenue" label="الاشتراكات من الإيرادات" format="pct" value={s.revenue ? (d.byKind.find((k) => k.key === "subscription")?.revenue ?? 0) / s.revenue : null} />
+        <Stat tone="revenue" label="الشحن (حسب الاستخدام) من الإيرادات" format="pct" value={s.revenue ? (d.byKind.find((k) => k.key === "prospect_pack")?.revenue ?? 0) / s.revenue : null} />
       </Group>
       <Group title="العملاء" tone="customers">
         <Stat tone="customers" label="Repeat Rate %" format="pct" value={d.repeat} />

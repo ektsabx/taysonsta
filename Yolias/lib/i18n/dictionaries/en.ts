@@ -777,12 +777,12 @@ export const en = {
       },
     },
     referral: {
-      title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds {n} leads to your balance. They never expire.",
+      title: "Your invite link", desc: "Everyone who creates a new Yolias account from your link adds ${n} of credit to your balance. It never expires.",
       copy: "Copy link", copied: "Copied", off: "The invite program is paused right now.",
-      step1: "1. Share your link", step1Body: "Copy it, or share it on WhatsApp, Facebook, LinkedIn, Telegram or X.", step2: "2. A friend signs up", step2Body: "They create a new Yolias account from your link and confirm their email.", step3: "3. You earn", step3Body: "{n} leads are added to your balance at once. They never expire.",
-      joined: "Joined from your link", earned: "Leads earned", month: "This month", monthNote: "Up to {cap} rewarded invites a month",
+      step1: "1. Share your link", step1Body: "Copy it, or share it on WhatsApp, Facebook, LinkedIn, Telegram or X.", step2: "2. A friend signs up", step2Body: "They create a new Yolias account from your link and confirm their email.", step3: "3. You earn", step3Body: "${n} of credit is added to your balance at once. It never expires.",
+      joined: "Joined from your link", earned: "Credit earned", month: "This month", monthNote: "Up to {cap} rewarded invites a month",
       recent: "Latest to join", none: "Nobody has joined from your link yet. Share it with people who sell to businesses.",
-      status: { rewarded: "+{n} leads", capped: "Over the monthly cap", rejected: "Doesn't count", review: "Being reviewed" },
+      status: { rewarded: "+${n}", capped: "Over the monthly cap", rejected: "Doesn't count", review: "Being reviewed" },
       rules: "Only a new account counts, once, after its email is confirmed. Your own team, your own other emails and disposable inboxes don't count. One account per network is rewarded at once; others from the same network are reviewed by our team first.",
     },
     integration: {

@@ -9,22 +9,31 @@ import type { BosUser } from "@/lib/bos/auth";
 // the monthly cap live in Yolias site_settings "referral_program", read live
 // by Yolias (no deploy needed). Rows: Yolias public.referrals.
 
-export interface ReferralProgram { enabled: boolean; prospects: number; monthlyCap: number }
+// Owner, 2026-11-10: the reward is credit in dollars ($5 by default). Yolias adds it as leads at its credit price.
+export interface ReferralProgram { enabled: boolean; usd: number; monthlyCap: number }
+
+async function creditRate(): Promise<number> {
+  const { data } = await ydb().from("site_settings").select("value").eq("key", "credits").maybeSingle();
+  const v = Number((data?.value as { usd_per_prospect?: number } | null)?.usd_per_prospect);
+  return Number.isFinite(v) && v > 0 ? v : 0.1;
+}
+export const leadsFor = async (usd: number) => Math.round(usd / (await creditRate()));
+export const usdFor = async (leads: number) => Math.round(leads * (await creditRate()) * 100) / 100;
 
 export async function getReferralProgram(): Promise<ReferralProgram> {
   const { data } = await ydb().from("site_settings").select("value").eq("key", "referral_program").maybeSingle();
-  const v = (data?.value ?? {}) as { enabled?: boolean; prospects?: number; monthly_cap?: number };
-  return { enabled: v.enabled !== false, prospects: Number.isInteger(v.prospects) ? v.prospects! : 50, monthlyCap: Number.isInteger(v.monthly_cap) ? v.monthly_cap! : 20 };
+  const v = (data?.value ?? {}) as { enabled?: boolean; usd?: number; monthly_cap?: number };
+  return { enabled: v.enabled !== false, usd: typeof v.usd === "number" && v.usd >= 0 ? v.usd : 5, monthlyCap: Number.isInteger(v.monthly_cap) ? v.monthly_cap! : 20 };
 }
 
 export async function setReferralProgram(bos: BosUser, input: ReferralProgram): Promise<void> {
-  if (!Number.isInteger(input.prospects) || input.prospects < 0 || input.prospects > 10_000) throw new ValidationError("عدد العملاء المحتملين غير صالح.", { prospects: "من 0 إلى 10,000" });
-  if (!Number.isInteger(input.monthlyCap) || input.monthlyCap < 0 || input.monthlyCap > 1_000) throw new ValidationError("الحد الشهري غير صالح.", { monthly_cap: "من 0 إلى 1,000" });
+  if (!Number.isFinite(input.usd) || input.usd < 0 || input.usd > 1_000) throw new ValidationError("المكافأة بالدولار غير صالحة.", { usd: "من 0 إلى 1000" });
+  if (!Number.isInteger(input.monthlyCap) || input.monthlyCap < 0 || input.monthlyCap > 1_000) throw new ValidationError("الحد الشهري غير صالح.", { monthly_cap: "من 0 إلى 1000" });
   const before = await getReferralProgram();
-  const value = { enabled: input.enabled, prospects: input.prospects, monthly_cap: input.monthlyCap };
+  const value = { enabled: input.enabled, usd: Math.round(input.usd * 100) / 100, monthly_cap: input.monthlyCap };
   const { error } = await ydb().from("site_settings").upsert({ key: "referral_program", value, updated_at: new Date().toISOString() });
   if (error) throw error;
-  await audit({ actorId: bos.userId, action: "yolias.referral_program.update", entityType: "yolias_setting", entityId: null, oldValue: before, newValue: input, metadata: { key: "referral_program" } });
+  await audit({ actorId: bos.userId, action: "yolias.referral_program.update", entityType: "yolias_setting", entityId: null, oldValue: before, newValue: input, metadata: {} });
 }
 
 export interface ReferralRow { id: string; at: string; status: string; reason: string | null; signals: string[]; ip: string | null; prospects: number; referrer: string; referrerId: string; referred: string }
@@ -87,7 +96,7 @@ export async function decideReferral(bos: BosUser, id: string, decision: "approv
   const { data: r } = await db.from("referrals").select("id, status, referrer_workspace_id").eq("id", id).maybeSingle();
   if (!r || r.status !== "review") throw new ValidationError("هذه الإحالة ليست قيد المراجعة.", {});
   const program = await getReferralProgram();
-  const prospects = decision === "approve" ? program.prospects : 0;
+  const prospects = decision === "approve" ? await leadsFor(program.usd) : 0;
   const { data: moved } = await db.from("referrals").update({ status: decision === "approve" ? "rewarded" : "rejected", prospects, decided_at: new Date().toISOString(), decided_by: bos.userId })
     .eq("id", id).eq("status", "review").select("id");
   if (!moved?.length) return;
@@ -97,8 +106,7 @@ export async function decideReferral(bos: BosUser, id: string, decision: "approv
     const { data: admins } = await db.from("workspace_members").select("user_id").eq("workspace_id", r.referrer_workspace_id).in("role", ["owner", "admin"]);
     for (const a of admins ?? []) {
       await db.from("notifications").insert({
-        user_id: a.user_id, workspace_id: r.referrer_workspace_id, kind: "referral", title: `Someone joined with your invite link: +${prospects} prospects`,
-        body: "They're in your balance and never expire.", link: "/?settings=referral", dedupe_key: `referral:${id}:${a.user_id}`,
+        user_id: a.user_id, workspace_id: r.referrer_workspace_id, kind: "referral", title: `Someone joined with your invite link: +$${program.usd} credit`, body: "It's in your balance and never expires.", link: "/?settings=referral", dedupe_key: `referral:${id}:${a.user_id}`,
       });
     }
   }

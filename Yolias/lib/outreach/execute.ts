@@ -1,5 +1,5 @@
 import { clickLink } from "@/lib/email-links";
-import { isSpamBlock, type MailFile } from "@/lib/mailbox/mime";
+import { isSpamBlock, type MailBrand, type MailFile } from "@/lib/mailbox/mime";
 import type { InboxFile } from "@/lib/inbox-channels";
 import "server-only";
 import { specOf } from "@/lib/engine/objectives";
@@ -246,6 +246,12 @@ async function runCampaign(db: Db, c: OutreachCampaignRow) {
   return res;
 }
 
+/** "Sent with Yolias" on every email sent through Yolias (owner, 2026-11-10). The link carries a UTM source. */
+export function sentWithYolias(lang: string): MailBrand {
+  const url = "https://www.yolias.com/?utm_source=sent_with_yolias&utm_medium=email&utm_campaign=footer";
+  return lang === "ar" ? { text: "تم إرسال هذه الرسالة بواسطة Yolias", cta: "ابدأ باكتشاف عملائك الآن", url } : { text: "Sent with Yolias", cta: "Find your next customers now", url };
+}
+
 /** The files a member attached to a reply, read from storage for sending. */
 async function messageFiles(db: Db, m: OutreachMessageRow): Promise<MailFile[]> {
   const list = (m.attachments ?? []) as unknown as InboxFile[];
@@ -281,7 +287,7 @@ async function sendOne(db: Db, c: OutreachCampaignRow | null, mailbox: MailboxRo
     // D-274: campaign emails carry a 1×1 image to count recipient opens, unless the campaign turned it off.
     const pixelUrl = m.enrollment_id && c && c.track_opens !== false ? openPixelUrl(m.id) : null;
     const files = await messageFiles(db, m);
-    const r = await provider.send(token, { files, from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null, pixelUrl });
+    const r = await provider.send(token, { brand: sentWithYolias(m.language ?? "en"), files, from: mailbox.email, fromName: mailbox.display_name ?? sender?.full_name ?? null, to, subject, body, threadId: prev?.provider_thread_id ?? null, replyToProviderId: prev?.provider_message_id ?? null, unsubscribeUrl: unsub ? unsubscribePostUrl(unsub) : null, pixelUrl });
     const now = new Date().toISOString();
     await db.from("outreach_messages").update({
       status: "sent", sent_at: now, sent_via: "mailbox", provider_message_id: r.providerMessageId, provider_thread_id: r.threadId, delivery_status: "sent",
