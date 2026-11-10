@@ -838,7 +838,7 @@ export const en = {
       rateLimited: "Too many attempts. Wait a minute and try again.",
       onlyAdminsInvite: "Only workspace admins can invite people.",
       invalidEmail: "Enter a valid email address.",
-      hasAccount: "This email already has a Yolias account.",
+      hasAccount: "This email already uses Yolias in a team or with campaigns of its own.",
       inviteFailed: "Couldn’t create the invitation.",
       inviteEmailFailed: "Couldn’t send the invitation email.",
       onlyAdminsManage: "Only workspace admins can manage the team.",

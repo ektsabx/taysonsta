@@ -211,8 +211,26 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
   // Every plan includes unlimited users.
   const admin = createAdminClient();
 
-  const { data: existing } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
-  if (existing) return { ok: false, error: t.hasAccount };
+  const { data: existing } = await admin.from("profiles").select("id, workspace_id").eq("email", email).maybeSingle();
+  if (existing) {
+    // Someone with an empty account of their own (for example a member removed earlier) joins at once (audit, 2026-11-09).
+    if (existing.id === session.userId) return { ok: false, error: t.hasAccount };
+    const own = existing.workspace_id;
+    const [{ count: members }, { count: camps }, { count: paid }] = own ? await Promise.all([
+      admin.from("workspace_members").select("user_id", { count: "exact", head: true }).eq("workspace_id", own),
+      admin.from("outreach_campaigns").select("id", { count: "exact", head: true }).eq("workspace_id", own),
+      admin.from("payments").select("id", { count: "exact", head: true }).eq("workspace_id", own).eq("status", "succeeded"),
+    ]) : [{ count: 0 }, { count: 0 }, { count: 0 }];
+    if (own === session.workspace.id || (members ?? 0) > 1 || (camps ?? 0) > 0 || (paid ?? 0) > 0) return { ok: false, error: t.hasAccount };
+    if (own) await admin.from("workspace_members").delete().eq("workspace_id", own).eq("user_id", existing.id);
+    const { error: joinError } = await admin.from("workspace_members").insert({ workspace_id: session.workspace.id, user_id: existing.id, role });
+    if (joinError) return { ok: false, error: t.inviteFailed };
+    await admin.from("profiles").update({ workspace_id: session.workspace.id }).eq("id", existing.id);
+    await admin.from("workspace_invitations").upsert({ workspace_id: session.workspace.id, email, role, invited_by: session.userId, accepted_at: new Date().toISOString() }, { onConflict: "workspace_id,email" });
+    await admin.from("notifications").insert({ user_id: existing.id, workspace_id: session.workspace.id, kind: "team", title: "You joined a team on Yolias", body: session.workspace.name ?? null, link: "/dashboard", dedupe_key: `joined:${session.workspace.id}:${existing.id}` });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  }
 
   const { error } = await admin
     .from("workspace_invitations")

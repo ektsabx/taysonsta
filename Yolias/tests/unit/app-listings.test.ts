@@ -40,3 +40,11 @@ test("emails sent through Yolias carry the Yolias line with a link", () => {
   const txt = Buffer.from(b64.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
   assert.match(txt, /multipart\/alternative/);
 });
+
+import { workWeekFor } from "../../lib/outreach/sending-rules.ts";
+test("a new mailbox sends on its country's working week", () => {
+  assert.deepEqual(workWeekFor("EG"), [0, 1, 2, 3, 4]);
+  assert.deepEqual(workWeekFor("sa"), [0, 1, 2, 3, 4]);
+  assert.deepEqual(workWeekFor("AE"), [1, 2, 3, 4, 5]);
+  assert.deepEqual(workWeekFor(null), [1, 2, 3, 4, 5]);
+});

@@ -25,6 +25,12 @@ export type SendingRules = z.infer<typeof sendingRulesSchema>;
 /** AgentSDR's defaults: 30 a day, 18 to 24 minutes apart, Monday to Friday 09:00 to 18:00. */
 export const DEFAULT_SENDING_RULES: SendingRules = { daily_per_mailbox: 30, gap_min: 18, gap_max: 24, days: [1, 2, 3, 4, 5], start: "09:00", end: "18:00", timezone: null };
 
+/** Countries whose working week runs Sunday to Thursday (owner, 2026-11-10: Egypt and most of the Gulf). */
+const SUN_THU = new Set(["SA", "EG", "KW", "QA", "BH", "OM", "JO", "IQ", "YE", "LY", "DZ", "SY", "PS", "SD", "IL"]);
+
+/** The working days to send on in a country: Sunday to Thursday where that is the week, else Monday to Friday (unit-tested). */
+export const workWeekFor = (country: string | null | undefined): number[] => (country && SUN_THU.has(country.toUpperCase()) ? [0, 1, 2, 3, 4] : [1, 2, 3, 4, 5]);
+
 /** A stored value read leniently: each bad or missing key falls back to its default. */
 export function parseSendingRules(raw: unknown): SendingRules {
   const v = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};

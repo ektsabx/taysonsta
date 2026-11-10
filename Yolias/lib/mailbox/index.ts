@@ -1,4 +1,5 @@
 import "server-only";
+import { countryForTimeZone } from "@/lib/regions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { MailboxRow, MailProvider } from "@/types/database";
 import { gmail } from "./gmail";
@@ -6,7 +7,7 @@ import { outlook } from "./outlook";
 import { imapProvider } from "./imap";
 import { testMailboxAllowed, testProvider } from "./test-provider";
 import { MailboxError, type MailboxProvider } from "./types";
-import { parseSendingRules, type SendingRules } from "@/lib/outreach/sending-rules";
+import { parseSendingRules, type SendingRules, workWeekFor } from "@/lib/outreach/sending-rules";
 
 export { MailboxError } from "./types";
 export type { IncomingMail, OutgoingMail, SentMail } from "./types";
@@ -41,11 +42,21 @@ export async function availableProviders(): Promise<MailProvider[]> {
  * was never set uses the workspace's earlier shared rules.
  */
 export async function loadSendingRules(workspaceId: string, provider?: string | null): Promise<SendingRules> {
-  const { data } = await createAdminClient().from("workspaces").select("sending_rules").eq("id", workspaceId).maybeSingle();
+  const { data } = await createAdminClient().from("workspaces").select("sending_rules, billing_country, created_by").eq("id", workspaceId).maybeSingle();
   const raw = (data?.sending_rules ?? {}) as Record<string, unknown> & { by_provider?: Record<string, unknown> };
   const kind = provider === "gmail" ? "gmail" : provider ? "imap" : null;
-  const own = kind ? raw.by_provider?.[kind] : undefined;
-  return parseSendingRules(own ?? raw);
+  const own = (kind ? raw.by_provider?.[kind] : undefined) as Record<string, unknown> | undefined;
+  const rules = parseSendingRules(own ?? raw);
+  // No days chosen yet: the working week of the account's country (owner, 2026-11-10).
+  if (!Array.isArray((own ?? raw).days)) {
+    let country = data?.billing_country ?? null;
+    if (!country && data?.created_by) {
+      const { data: p } = await createAdminClient().from("profiles").select("timezone").eq("id", data.created_by).maybeSingle();
+      country = p?.timezone ? countryForTimeZone(p.timezone) : null;
+    }
+    rules.days = workWeekFor(country);
+  }
+  return rules;
 }
 
 /** Saves a connected account (and its refresh token) for this member. A new mailbox starts with the workspace's sending rules. */
