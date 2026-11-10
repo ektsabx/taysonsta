@@ -24,8 +24,8 @@ test("yolias knowledge: sync adds published, AI-allowed articles the agent finds
   assert.ok(again.ok && again.added === 0 && again.updated === 0 && again.archived === 0);
 
   // The agent's retrieval finds pricing and the partner terms.
-  const pricing = await retrieveKb({ kb_category_ids: [] }, "plans prices Growth Scale", "en");
+  const pricing = await retrieveKb({ kb_category_ids: [] }, "annual price plan monthly", "en");
   assert.ok(pricing.some((a) => a.slug.startsWith("yolias-pricing")), "pricing found");
-  const terms = await retrieveKb({ kb_category_ids: [] }, "الشريك", "ar");
+  const terms = await retrieveKb({ kb_category_ids: [] }, "عمولة السحب الحد الأدنى", "ar");
   assert.ok(terms.some((a) => a.slug.startsWith("yolias-affiliates")), "partner terms found in Arabic");
 });

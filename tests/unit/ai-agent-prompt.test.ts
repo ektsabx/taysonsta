@@ -59,3 +59,16 @@ test("prompt wraps KB/history/question as data and strips forged tags", () => {
   assert.equal((prompt.match(/<question>/g) ?? []).length, 1);
   assert.ok(prompt.includes('slug="reset"'));
 });
+
+test("knowledge search: rare words and title matches rank first, not a word every article has", async () => {
+  const { rankByQuestion } = await import("../../lib/bos/ai-agent-prompt.ts");
+  const rows = [
+    { title: "Yolias campaigns", content: "Yolias runs campaigns. Yolias finds people." },
+    { title: "Yolias meetings", content: "Yolias books meetings on your booking page." },
+    { title: "Yolias Partner Program terms", content: "Partner commission, payouts and the minimum withdrawal for Yolias partners." },
+    { title: "Yolias pricing", content: "Yolias plans and prices." },
+  ];
+  assert.equal(rankByQuestion("Yolias partner withdrawal minimum", rows, 1)[0].title, "Yolias Partner Program terms");
+  assert.equal(rankByQuestion("how much are Yolias prices", rows, 1)[0].title, "Yolias pricing");
+  assert.equal(rankByQuestion("", rows, 2).length, 2, "no words: the first rows, unchanged");
+});

@@ -9,7 +9,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/bos/errors
 import { aiGenerate, parseAiJson, type AiRequest, type AiResult } from "@/services/bos/ai";
 import { addMessage, pickAgent, type Conversation } from "@/services/bos/conversations";
 import {
-  aiShouldHandle, buildAgentPrompt, chunkText, detectLanguage, htmlToText, matchRoute, matchesKeyword, toOrQuery,
+  aiShouldHandle, buildAgentPrompt, chunkText, detectLanguage, htmlToText, matchRoute, matchesKeyword, rankByQuestion, toOrQuery,
   type ActivationRules, type AgentPromptConfig, type KbSnippet, type RoutingRule, type WorkingHours,
 } from "@/lib/bos/ai-agent-prompt";
 import type { AiProvider } from "@/lib/bos/integrations/catalog";
@@ -147,19 +147,20 @@ export async function retrieveKb(agent: Pick<AiAgent, "kb_category_ids"> & Parti
   const out: KbSnippet[] = [];
   if (agent.use_kb !== false) {
     const run = async (lang: "ar" | "en" | null) => {
-      let r = db().from("kb_articles").select("id, slug, title, content, language").eq("status", "published").eq("ai_allowed", true).eq("audience", "public").textSearch("search", q, { config: "simple" }).limit(limit);
+      // A wider set of matches, then the best ones first (rankByQuestion).
+      let r = db().from("kb_articles").select("id, slug, title, content, language").eq("status", "published").eq("ai_allowed", true).eq("audience", "public").textSearch("search", q, { config: "simple" }).limit(60);
       if (agent.kb_category_ids.length) r = r.in("category_id", agent.kb_category_ids);
       if (lang) r = r.eq("language", lang);
       const { data } = await r;
-      return data ?? [];
+      return rankByQuestion(question, data ?? [], limit);
     };
     let rows = await run(language);
     if (!rows.length) rows = await run(null); // answer from the other language rather than nothing
     out.push(...rows.map((a) => ({ id: a.id, slug: a.slug, title: a.title, content: a.content.slice(0, 6000) })));
   }
   if (agent.id) {
-    const { data: chunks } = await db().from("ai_agent_chunks").select("id, source_id, idx, title, content").eq("agent_id", agent.id).textSearch("search", q, { config: "simple" }).limit(limit);
-    out.push(...(chunks ?? []).map((c) => ({ id: String(c.id), slug: `src-${c.source_id}-${c.idx}`, title: c.title, content: c.content })));
+    const { data: chunks } = await db().from("ai_agent_chunks").select("id, source_id, idx, title, content").eq("agent_id", agent.id).textSearch("search", q, { config: "simple" }).limit(60);
+    out.push(...rankByQuestion(question, (chunks ?? []).map((c) => ({ ...c, title: c.title ?? "" })), limit).map((c) => ({ id: String(c.id), slug: `src-${c.source_id}-${c.idx}`, title: c.title, content: c.content })));
   }
   return out.slice(0, limit * 2);
 }

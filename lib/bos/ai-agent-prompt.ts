@@ -45,12 +45,36 @@ const stop = new Set(["the", "a", "an", "is", "are", "to", "of", "and", "or", "i
 // Builds an OR tsquery ("a | b | c") from free text; only letters/digits
 // survive, so the customer can't inject tsquery syntax.
 export function toOrQuery(text: string, max = 12) {
+  return queryTerms(text, max).join(" | ");
+}
+
+/** The meaningful words of a question (lowercase, no stop words, no repeats). */
+export function queryTerms(text: string, max = 12): string[] {
   const words = text
     .toLowerCase()
     .split(/[^\p{L}\p{N}]+/u)
     .filter((w) => w.length > 1 && !stop.has(w));
-  const uniq = [...new Set(words)].slice(0, max);
-  return uniq.join(" | ");
+  return [...new Set(words)].slice(0, max);
+}
+
+/**
+ * Best matches first (owner, 2026-11-10): the full-text search returns every
+ * row with any word of the question, in no order. A word found in few rows
+ * counts more than one found in all (like "Yolias"), and a word in the title
+ * counts three times one in the text. Pure, unit-tested.
+ */
+export function rankByQuestion<T extends { title: string; content: string }>(question: string, rows: T[], limit: number): T[] {
+  const terms = queryTerms(question);
+  if (!terms.length || rows.length <= 1) return rows.slice(0, limit);
+  const lower = rows.map((r) => ({ t: r.title.toLowerCase(), c: r.content.toLowerCase() }));
+  const df = terms.map((w) => lower.filter((r) => r.t.includes(w) || r.c.includes(w)).length);
+  const n = rows.length;
+  const score = (i: number) => terms.reduce((sum, w, k) => {
+    if (!df[k]) return sum;
+    const idf = Math.log(1 + n / df[k]);
+    return sum + (lower[i].t.includes(w) ? 3 * idf : 0) + (lower[i].c.includes(w) ? idf : 0);
+  }, 0);
+  return rows.map((r, i) => ({ r, s: score(i), i })).sort((a, b) => b.s - a.s || a.i - b.i).slice(0, limit).map((x) => x.r);
 }
 
 const toneRule = { friendly: "Warm and friendly, short paragraphs.", formal: "Formal and professional.", concise: "Very concise — 1–3 sentences." };
