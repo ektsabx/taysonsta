@@ -988,17 +988,18 @@ export const helpD: Record<string, Localized<Doc>> = {
           "Under **Role**, choose **Admin**, **Advertiser** or **Analyst**. Each choice shows what the role does. **Advertiser** is selected by default.",
           "Press **Send invitation**.",
         ] },
-        { p: "**How to know it worked:** the window closes and the person appears in **People** with the role you chose. Yolias sends them an email with a sign-in link, written in the language you use Yolias in." },
+        { p: "**How to know it worked:** the window closes and the invitation appears under **People** as the email address with **Invitation sent · (role)** and **Pending**. Yolias emails them a link to the invitation, in their language if they already use Yolias, otherwise in yours. They join only when they accept it." },
         { p: "**If it didn't work:** the window stays open with a message. See Troubleshooting below." },
         { p: "Each invitation is for one email address. To add several people, repeat the steps for each one." },
 
         { h2: "What happens when they open the email?" },
         { ol: [
-          "They press the link in the email and are signed in to your workspace. No password is needed.",
+          "The link opens the invitation page, **Join (workspace) on Yolias**, with who invited them, the role and the email it is for.",
+          "Without a Yolias account, they press **Create your account and join** and confirm their email from the link Yolias sends. The new account is in your workspace with the role you chose.",
+          "With an account, they press **Sign in** on the same page, then **Join the team**. An empty account of their own, such as the one a removed member gets, is replaced by your workspace.",
           "Yolias asks for their name in a short welcome step. Your company details come from the workspace, so they don't enter them again.",
-          "They land in Yolias with the role you chose.",
         ] },
-        { p: "If the link in the email doesn't work or has expired, they open the sign-in page and enter the same email to get a new link." },
+        { p: "The invitation is for one email address: signed in with another one, the page asks them to sign in with the invited address. An account that has its own campaigns, payments or team can't join, and the page says why. The link works until the invitation is accepted or revoked." },
         { p: "From then on they sign in from the sign-in page with the same email, like any member. See [Signing in](/help-center/signing-in)." },
 
         { h2: "What does each person set up for themselves?" },
@@ -1027,7 +1028,7 @@ export const helpD: Record<string, Localized<Doc>> = {
           "Confirm **Remove (name) from the workspace?**.",
         ] },
         { p: "**How to know it worked:** the person disappears from **People** and loses access to your workspace at once. What they created, campaigns, leads, conversations and meetings, stays in your workspace." },
-        { p: "Their account isn't deleted: Yolias gives them a new, empty workspace of their own, and they go through the welcome steps again the next time they sign in. Because their email still has a Yolias account, it can't be invited again later." },
+        { p: "Their account isn't deleted: Yolias gives them a new, empty workspace of their own, and they go through the welcome steps again the next time they sign in. You can invite them again later; they accept the new invitation from its link." },
 
         { h2: "Before you remove someone" },
         { ul: [
@@ -1037,7 +1038,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "Revoke an invitation" },
-        { p: "An invitation still waiting for an account is listed under **People** as the email address with Invitation sent · (role) and **Pending**. Press the X next to it to revoke it. Once the person appears with their name and role, use **Remove** instead." },
+        { p: "An invitation waiting to be accepted is listed under **People** as the email address with Invitation sent · (role) and **Pending**. Press the X next to it to revoke it; its link stops working. Once the person appears with their name and role, use **Remove** instead." },
 
         { h2: "Example" },
         { p: "A dental supplies company runs Yolias with three people. The founder, the Owner, adds the sales manager as **Admin** to handle billing and the team, a salesperson as **Advertiser** who connects her Gmail and her Google Calendar and runs her own campaigns, and the accountant as **Analyst** to follow spend and cost per meeting. Six months later the salesperson leaves: the Admin removes her, and her campaigns, leads and past meetings stay in the workspace." },
@@ -1060,16 +1061,18 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "Troubleshooting" },
-        { h3: "This email already has a Yolias account." },
-        { p: "The person already signed up, was invited before, or was removed from a workspace. An existing account can't be invited. Invite another address of theirs, or they delete their account first." },
+        { h3: "This person is already in your team." },
+        { p: "They are listed under **People** already. Change their role there if needed." },
         { h3: "Enter a valid email address." },
         { p: "Check the address for typos and spaces." },
         { h3: "Couldn’t send the invitation email." },
         { p: "Nothing was created. Try again in a few minutes." },
         { h3: "The invitation email didn't arrive" },
-        { p: "Ask them to check spam. They are already in **People**, so they can also open the sign-in page, enter the same email, and sign in from the link Yolias sends." },
+        { p: "Ask them to check spam. To send it again, press **Add people** with the same email: the same invitation is sent once more." },
         { h3: "They see questions about their own company" },
-        { p: "They signed up on their own instead of using the invitation, so Yolias created a separate workspace for them. Their email now has an account and can't be invited. They can delete that account from **Settings → Account**, and you invite them again." },
+        { p: "They signed up on their own instead of from the invitation, so Yolias created a separate workspace for them. They open the invitation link again and press **Join the team**: while that workspace has no campaigns, payments or team, yours replaces it." },
+        { h3: "The invitation page says it can't be used" },
+        { p: "The invitation was revoked or already accepted. Send a new one with **Add people**." },
         { h3: "Add people doesn't appear" },
         { p: "Your role is Advertiser or Analyst. Ask the Owner or an Admin." },
 
@@ -1126,17 +1129,18 @@ export const helpD: Record<string, Localized<Doc>> = {
           "في **الدور** اختر **مسؤول** أو **معلن** أو **محلل**، ويعرض كل خيار ما يستطيعه الدور. والاختيار الافتراضي **معلن**.",
           "اضغط **إرسال الدعوة**.",
         ] },
-        { p: "**كيف تعرف أن الإضافة تمت:** تُغلق النافذة ويظهر الشخص في **الأشخاص** بالدور الذي اخترته. ويرسل إليه يولياس بريدًا فيه رابط دخول، مكتوبًا باللغة التي تستخدم بها يولياس." },
+        { p: "**كيف تعرف أن الإضافة تمت:** تُغلق النافذة وتظهر الدعوة في **الأشخاص** بعنوان البريد ومعه **تم إرسال الدعوة · (الدور)** ووسم **قيد الانتظار**. ويرسل إليه يولياس بريدًا فيه رابط الدعوة، بلغته إن كان يستخدم يولياس، وإلا بلغتك. ولا ينضم إلا عندما يقبلها." },
         { p: "**إذا لم تتم:** تبقى النافذة مفتوحة ومعها رسالة. راجع حل المشكلات أدناه." },
         { p: "كل دعوة لعنوان بريد واحد. ولإضافة عدة أشخاص كرر الخطوات لكل شخص منهم، واختر لكل واحد الدور الذي يناسب عمله." },
 
         { h2: "ماذا يحدث عندما يفتح البريد؟" },
         { ol: [
-          "يضغط الرابط في البريد فيدخل إلى مساحة عملك، دون الحاجة إلى كلمة مرور.",
+          "يفتح الرابط صفحة الدعوة **انضم إلى (مساحة العمل) على يولياس**، وفيها من دعاه والدور والبريد الذي أُرسلت إليه.",
+          "إذا لم يكن له حساب في يولياس يضغط **أنشئ حسابك وانضم** ويؤكد بريده من الرابط الذي يرسله يولياس، فيصبح الحساب الجديد في مساحة عملك بالدور الذي اخترته.",
+          "وإذا كان له حساب يضغط **سجّل الدخول** في الصفحة نفسها ثم **انضم إلى الفريق**. والحساب الفارغ الخاص به، مثل الذي يحصل عليه العضو بعد إزالته، تحل محله مساحة عملك.",
           "يطلب يولياس اسمه في خطوة ترحيب قصيرة. أما بيانات شركتك فتأتي من مساحة العمل، فلا يكتبها مرة أخرى.",
-          "يدخل إلى يولياس بالدور الذي اخترته.",
         ] },
-        { p: "وإذا لم يعمل الرابط الموجود في البريد أو انتهت صلاحيته، يفتح صفحة تسجيل الدخول ويكتب البريد نفسه ليصله رابط جديد، ولا يحتاج إلى دعوة أخرى." },
+        { p: "الدعوة لعنوان بريد واحد: فإذا دخل ببريد آخر تطلب منه الصفحة الدخول بالبريد المدعو. والحساب الذي له حملات أو مدفوعات أو فريق خاص به لا يستطيع الانضمام، وتوضح الصفحة السبب. ويعمل الرابط حتى تُقبل الدعوة أو تُلغى." },
         { p: "وبعد ذلك يدخل من صفحة تسجيل الدخول بالبريد نفسه مثل أي عضو، فيصله رابط دخول جديد في كل مرة. راجع [تسجيل الدخول](/help-center/signing-in). ويرى من أول دخول ما في مساحة العمل من حملات وعملاء ومحادثات واجتماعات، في حدود دوره." },
 
         { h2: "ماذا يضبط كل شخص لنفسه؟" },
@@ -1165,7 +1169,7 @@ export const helpD: Record<string, Localized<Doc>> = {
           "أكّد **إزالة (الاسم) من مساحة العمل؟**.",
         ] },
         { p: "**كيف تعرف أن الإزالة تمت:** يختفي الشخص من **الأشخاص** ويفقد الوصول إلى مساحة عملك في الحال، حتى لو كان داخل يولياس في تلك اللحظة. ويبقى ما أنشأه، من حملات وعملاء ومحادثات واجتماعات، في مساحة عملك، ويستطيع بقية الأعضاء متابعته." },
-        { p: "لا يُحذف حسابه: يمنحه يولياس مساحة عمل جديدة فارغة خاصة به، ويمر بخطوات الترحيب مرة أخرى عند دخوله التالي. ولأن بريده ما زال له حساب في يولياس، لا يمكن دعوته مرة أخرى لاحقًا." },
+        { p: "لا يُحذف حسابه: يمنحه يولياس مساحة عمل جديدة فارغة خاصة به، ويمر بخطوات الترحيب مرة أخرى عند دخوله التالي. ويمكنك دعوته مرة أخرى لاحقًا، فيقبل الدعوة الجديدة من رابطها." },
 
         { h2: "قبل أن تزيل شخصًا" },
         { ul: [
@@ -1175,7 +1179,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "ألغِ دعوة" },
-        { p: "الدعوة التي ما زالت تنتظر إنشاء الحساب تظهر في **الأشخاص** بعنوان البريد ومعه: تم إرسال الدعوة · (الدور) ووسم **قيد الانتظار**. اضغط X بجوارها لإلغائها. وبعد أن يظهر الشخص باسمه ودوره استخدم الإزالة بدلًا من ذلك." },
+        { p: "الدعوة التي تنتظر القبول تظهر في **الأشخاص** بعنوان البريد ومعه: تم إرسال الدعوة · (الدور) ووسم **قيد الانتظار**. اضغط X بجوارها لإلغائها، فيتوقف رابطها عن العمل. وبعد أن يظهر الشخص باسمه ودوره استخدم الإزالة بدلًا من ذلك." },
 
         { h2: "مثال" },
         { p: "شركة مستلزمات أسنان تعمل على يولياس بثلاثة أشخاص. يضيف المؤسس، وهو المالك، مدير المبيعات بدور **مسؤول** ليتولى الفوترة والفريق، ومندوبة مبيعات بدور **معلن** تربط Gmail وتقويم Google الخاصين بها وتشغّل حملاتها، والمحاسب بدور **محلل** ليتابع الإنفاق وتكلفة الاجتماع. يفتح المحاسب الحملات والاجتماعات ويرى الرصيد والاستهلاك في صفحة الاستخدام، لكنه لا يرى الفواتير لأنها للمالك والمسؤول فقط. وبعد ستة أشهر تغادر المندوبة، فيزيلها المسؤول، وتبقى حملاتها وعملاؤها واجتماعاتها السابقة في مساحة العمل." },
@@ -1198,16 +1202,18 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "حل المشكلات" },
-        { h3: "هذا البريد لديه حساب يولياس بالفعل." },
-        { p: "سجّل الشخص من قبل، أو دُعي من قبل، أو أُزيل من مساحة عمل. ولا يمكن دعوة حساب موجود، فادعُ بريدًا آخر له، أو يحذف حسابه أولًا." },
+        { h3: "هذا الشخص موجود في فريقك بالفعل." },
+        { p: "يظهر بالفعل في **الأشخاص**، ويمكنك تغيير دوره من هناك." },
         { h3: "أدخل بريدًا إلكترونيًا صالحًا." },
         { p: "راجع العنوان بحثًا عن خطأ في الكتابة أو مسافة زائدة في أوله أو آخره، ثم أعد المحاولة." },
         { h3: "تعذّر إرسال بريد الدعوة." },
         { p: "لم يُنشأ شيء. حاول مرة أخرى بعد دقائق." },
         { h3: "لم يصل بريد الدعوة" },
-        { p: "اطلب منه مراجعة الرسائل غير المرغوب فيها. وبما أنه ظاهر بالفعل في **الأشخاص**، يستطيع أيضًا فتح صفحة تسجيل الدخول وكتابة البريد نفسه والدخول من الرابط الذي يرسله يولياس." },
+        { p: "اطلب منه مراجعة الرسائل غير المرغوب فيها. ولإرسالها مرة أخرى اضغط **إضافة أشخاص** بالبريد نفسه، فتُرسل الدعوة نفسها من جديد." },
         { h3: "يرى أسئلة عن شركته الخاصة" },
-        { p: "سجّل بنفسه بدل استخدام الدعوة، فأنشأ له يولياس مساحة عمل منفصلة. وأصبح لبريده حساب لا يمكن دعوته. يستطيع حذف هذا الحساب من **الإعدادات ← الحساب**، ثم تدعوه أنت من جديد." },
+        { p: "سجّل بنفسه بدل التسجيل من الدعوة، فأنشأ له يولياس مساحة عمل منفصلة. يفتح رابط الدعوة مرة أخرى ويضغط **انضم إلى الفريق**، وما دامت مساحة عمله بلا حملات ولا مدفوعات ولا فريق تحل محلها مساحة عملك." },
+        { h3: "تقول صفحة الدعوة إنه لا يمكن استخدامها" },
+        { p: "أُلغيت الدعوة أو قُبلت بالفعل. أرسل دعوة جديدة من **إضافة أشخاص**." },
         { h3: "لا يظهر زر إضافة أشخاص" },
         { p: "دورك معلن أو محلل. اطلب ذلك من المالك أو أحد المسؤولين." },
 

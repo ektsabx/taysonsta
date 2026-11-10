@@ -2,6 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { isToken, JOIN_COOKIE } from "@/lib/team/join";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isBillingPeriod, isPlan, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
@@ -78,7 +79,9 @@ export async function sendMagicLink(requested: MagicLinkMode, _prev: MagicLinkSt
   const text = (k: string) => String(formData.get(k) ?? "").trim().slice(0, 160) || undefined;
   // Yolias Partners sign-ups (D-206) are marked, with the terms version they accepted.
   const partner = formData.get("partner") === "1";
-  const metadata = { full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) || plan === "payg" ? plan : undefined, locale: await getLocale(), terms_accepted_at: new Date().toISOString(),
+  // From a team invitation link (audit, 2026-11-10): the new account joins that team.
+  const joinToken = (await cookies()).get(JOIN_COOKIE)?.value;
+  const metadata = { ...(isToken(joinToken) ? { invite_token: joinToken } : {}), full_name: text("full_name"), company: text("company"), plan_intent: isPlan(plan) || plan === "payg" ? plan : undefined, locale: await getLocale(), terms_accepted_at: new Date().toISOString(),
     ...(partner ? { partner: true, partner_terms: text("partner_terms") } : {}) };
 
   // Many link requests for one account in an hour ⇒ a security email (lib/email/events.ts).

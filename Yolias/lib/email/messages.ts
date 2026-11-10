@@ -106,6 +106,7 @@ export type AnnouncementType = "new_feature" | "feature_available" | "feature_up
 export interface MessageData {
   welcome: Base & { name: string | null };
   community_invite: Base & { name: string | null; communityUrl: string };
+  team_invite: Base & { inviter: string; workspace: string; role: "admin" | "member" | "analyst"; joinUrl: string };
   account_deleted: Base & { email: string };
   new_sign_in: SignInData;
   suspicious_sign_in: Base & { attempts: number; windowMinutes: number };
@@ -268,6 +269,20 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
 
   /* Subscription */
   // Sent once, after the account is set up (onboarding), never on later sign-ins.
+  team_invite: (l, d) => {
+    const role = { admin: T(l, "Admin", "مسؤول"), member: T(l, "Advertiser", "معلن"), analyst: T(l, "Analyst", "محلل") }[d.role];
+    return {
+      subject: T(l, `${d.inviter} invited you to ${d.workspace} on Yolias`, `دعاك ${d.inviter} إلى ${d.workspace} على يولياس`),
+      preheader: T(l, `Join as ${role} and run customer acquisition campaigns together.`, `انضم بدور ${role} وأديروا حملات اكتساب العملاء معًا.`),
+      heading: T(l, `Join ${esc(d.workspace)} on Yolias`, `انضم إلى ${esc(d.workspace)} على يولياس`),
+      body: [
+        T(l, `${esc(d.inviter)} invited you to the ${esc(d.workspace)} workspace as <strong>${role}</strong>.`, `دعاك ${esc(d.inviter)} إلى مساحة عمل ${esc(d.workspace)} بدور <strong>${role}</strong>.`),
+        T(l, "Open the invitation to join. You join only when you accept it.", "افتح الدعوة للانضمام. لا تنضم إلا عندما تقبلها."),
+      ],
+      button: { label: T(l, "Open the invitation", "افتح الدعوة"), href: d.joinUrl },
+      footnote: T(l, `If you didn’t expect this invitation, ignore this email: nothing happens until you accept.`, `إذا لم تتوقع هذه الدعوة فتجاهل هذه الرسالة، فلا يحدث شيء حتى تقبلها.`),
+    };
+  },
   community_invite: (l, d) => ({
     subject: T(l, "Join the Yolias community", "انضم إلى مجتمع يولياس"),
     preheader: T(l, "Swap ideas with other Yolias users and hear about new features first.", "تبادل الأفكار مع مستخدمي يولياس وتعرّف على الميزات الجديدة أولًا."),

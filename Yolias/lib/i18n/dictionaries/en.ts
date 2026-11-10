@@ -66,6 +66,14 @@ export const en = {
     annualSave: "Save 20%",
   },
   auth: {
+    join: {
+      title: "Team invitation", heading: "Join {workspace} on Yolias", lead: "{inviter} invited you to {workspace} as {role}.", forEmail: "The invitation is for {email}.",
+      create: "Create your account and join", haveAccount: "Already have an account?", signIn: "Sign in", accept: "Join the team", open: "Open Yolias",
+      wrongEmail: "This invitation is for {email}, and you're signed in as {current}. Sign in with {email} to accept it.", switchAccount: "Sign in with another account",
+      invalidTitle: "This invitation can't be used", invalid: "The link is wrong, or the invitation was withdrawn. Ask the person who invited you to send a new one.", used: "This invitation was already accepted.",
+      inTitle: "You're in {workspace}", in: "You joined as {role}.",
+      errors: { signin: "Sign in to accept the invitation.", invalid: "This invitation can't be used anymore. Ask for a new one.", email: "This invitation is for another email address.", team: "Your account runs its own workspace with a team. Make someone else its owner first, or accept with another email.", data: "Your account has its own campaigns or payments, so joining would leave them behind. Accept with another email.", otherTeam: "You're already in another team. Ask its owner or an admin to remove you first.", failed: "Couldn't join. Try again." },
+    },
     consent: "By signing up, I agree to the {terms}, acknowledge the {privacy}, and confirm I’m at least 18 years old.",
     consentTerms: "Terms of Use",
     consentPrivacy: "Privacy Policy",
@@ -840,7 +848,7 @@ export const en = {
       phoneInvalid: "Enter the number with its country code, starting with +, e.g. +44 20 7946 0958.",
       invalidAvatar: "Invalid avatar.",
       avatarFailed: "Couldn’t update the avatar.",
-      ownerWithTeam: "Make another member the owner in Team, or remove your team members first. The workspace owner can’t leave a team behind.", onlyOwnerTransfers: "Only the workspace owner can make someone else the owner.",
+      alreadyMember: "This person is already in your team.", ownerWithTeam: "Make another member the owner in Team, or remove your team members first. The workspace owner can’t leave a team behind.", onlyOwnerTransfers: "Only the workspace owner can make someone else the owner.",
       deleteFailed: "Couldn’t delete the account. Please try again.",
       sameEmail: "That’s already your email.",
       emailTaken: "This email already has a Yolias account.",

@@ -8,6 +8,7 @@ import { capture } from "@/lib/analytics/server";
 import { attributeSignup } from "@/lib/affiliates";
 import { AFFILIATE_COOKIE } from "@/lib/affiliates/program";
 import { NEXT_COOKIE } from "@/lib/partners";
+import { isToken, JOIN_COOKIE } from "@/lib/team/join";
 import { FIRST_TOUCH_COOKIE } from "@/lib/attribution";
 import { recordSignupSource } from "@/lib/attribution-server";
 
@@ -60,7 +61,10 @@ export async function GET(request: NextRequest) {
   const next = request.cookies.get(NEXT_COOKIE)?.value;
   // The dashboard is the account's home (D-270); a template opened from the website waits in Yolias AI's box.
   let dest = request.cookies.get(TEMPLATE_COOKIE) ? "/" : "/dashboard";
-  if (next === "/partners") dest = "/partners";
+  // A team invitation being followed: back to it, to accept (or see that the new account joined).
+  const join = request.cookies.get(JOIN_COOKIE)?.value;
+  if (isToken(join)) dest = `/join/${join}`;
+  else if (next === "/partners") dest = "/partners";
   else if (auth.user?.user_metadata?.partner === true) {
     const { data: prof } = await supabase.from("profiles").select("workspace:workspaces(subscription_status)").eq("id", auth.user.id).maybeSingle();
     const status = (prof?.workspace as unknown as { subscription_status?: string } | null)?.subscription_status;
@@ -68,6 +72,7 @@ export async function GET(request: NextRequest) {
   }
   const res = NextResponse.redirect(new URL(dest, url.origin));
   if (next) res.cookies.delete(NEXT_COOKIE);
+  if (join) res.cookies.delete(JOIN_COOKIE);
   if (request.cookies.get(REFERRAL_COOKIE)) res.cookies.delete(REFERRAL_COOKIE);
   return res;
 }

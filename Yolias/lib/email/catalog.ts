@@ -26,6 +26,8 @@ const entries: { [K in EmailKind]: { category: EmailCategory; pref: Pref | null 
   // doesn't wait for "Product updates", which is off until a user turns it on.
   // Admin can switch it off (Platform → Emails).
   community_invite: { category: "account", pref: null },
+  // A teammate invited this address (audit, 2026-11-10): the link opens /join/<token>, where the person accepts.
+  team_invite: { category: "account", pref: null },
   account_deleted: { category: "account", pref: null },
   new_sign_in: { category: "security", pref: null },
   suspicious_sign_in: { category: "security", pref: null },

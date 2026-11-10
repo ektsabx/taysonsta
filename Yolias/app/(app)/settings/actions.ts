@@ -16,7 +16,7 @@ import { setCancelAtPeriodEnd } from "@/lib/billing";
 import { capture } from "@/lib/analytics/server";
 import { companyProfileSchema } from "@/lib/company-profile";
 import { securityAlert } from "@/lib/email/events";
-import { notify } from "@/lib/email/notify";
+import { notify, siteUrl } from "@/lib/email/notify";
 import { COUNTRIES, isValidTimeZone } from "@/lib/regions";
 import { normalizePhone } from "@/lib/phone";
 import { monthlyUsage } from "@/services/workspace";
@@ -211,42 +211,30 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
   // Every plan includes unlimited users.
   const admin = createAdminClient();
 
-  const { data: existing } = await admin.from("profiles").select("id, workspace_id").eq("email", email).maybeSingle();
+  // An invitation is a link the person accepts on /join/<token> (audit, 2026-11-10): nobody joins a team before they accept.
+  const { data: existing } = await admin.from("profiles").select("id, language").eq("email", email).maybeSingle();
   if (existing) {
-    // Someone with an empty account of their own (for example a member removed earlier) joins at once (audit, 2026-11-09).
-    if (existing.id === session.userId) return { ok: false, error: t.hasAccount };
-    const own = existing.workspace_id;
-    const [{ count: members }, { count: camps }, { count: paid }] = own ? await Promise.all([
-      admin.from("workspace_members").select("user_id", { count: "exact", head: true }).eq("workspace_id", own),
-      admin.from("outreach_campaigns").select("id", { count: "exact", head: true }).eq("workspace_id", own),
-      admin.from("payments").select("id", { count: "exact", head: true }).eq("workspace_id", own).eq("status", "succeeded"),
-    ]) : [{ count: 0 }, { count: 0 }, { count: 0 }];
-    if (own === session.workspace.id || (members ?? 0) > 1 || (camps ?? 0) > 0 || (paid ?? 0) > 0) return { ok: false, error: t.hasAccount };
-    if (own) await admin.from("workspace_members").delete().eq("workspace_id", own).eq("user_id", existing.id);
-    const { error: joinError } = await admin.from("workspace_members").insert({ workspace_id: session.workspace.id, user_id: existing.id, role });
-    if (joinError) return { ok: false, error: t.inviteFailed };
-    await admin.from("profiles").update({ workspace_id: session.workspace.id }).eq("id", existing.id);
-    await admin.from("workspace_invitations").upsert({ workspace_id: session.workspace.id, email, role, invited_by: session.userId, accepted_at: new Date().toISOString() }, { onConflict: "workspace_id,email" });
-    const { data: lang } = await admin.from("profiles").select("language").eq("id", existing.id).maybeSingle();
-    await admin.from("notifications").insert({ user_id: existing.id, workspace_id: session.workspace.id, kind: "team", title: lang?.language === "ar" ? "انضممت إلى فريق على يولياس" : "You joined a team on Yolias", body: session.workspace.name ?? null, link: "/dashboard", dedupe_key: `joined:${session.workspace.id}:${existing.id}` });
-    revalidatePath("/", "layout");
-    return { ok: true };
+    const { data: already } = await admin.from("workspace_members").select("user_id").eq("workspace_id", session.workspace.id).eq("user_id", existing.id).maybeSingle();
+    if (already) return { ok: false, error: t.alreadyMember };
   }
-
-  const { error } = await admin
+  const { data: inv, error } = await admin
     .from("workspace_invitations")
-    .upsert({ workspace_id: session.workspace.id, email, role, invited_by: session.userId, accepted_at: null }, { onConflict: "workspace_id,email" });
-  if (error) return { ok: false, error: t.inviteFailed };
+    .upsert({ workspace_id: session.workspace.id, email, role, invited_by: session.userId, accepted_at: null }, { onConflict: "workspace_id,email" })
+    .select("token").single();
+  if (error || !inv) return { ok: false, error: t.inviteFailed };
 
-  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
-  const { error: mailError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: site ? `${site}/auth/confirm` : undefined,
-    // The invitation email is written in the inviter's language.
-    data: { locale: await getLocale() },
-  });
-  if (mailError) {
-    await admin.from("workspace_invitations").delete().eq("workspace_id", session.workspace.id).eq("email", email);
+  const joinUrl = `${siteUrl()}/join/${inv.token}`;
+  const inviter = session.profile.full_name || session.email;
+  const workspace = session.workspace.name || inviter;
+  const locale = existing ? (existing.language === "ar" ? "ar" as const : "en" as const) : (await getLocale()) === "ar" ? "ar" as const : "en" as const;
+  const sent = await notify("team_invite", [{ userId: null, email, locale, prefs: {} }], { inviter, workspace, role, joinUrl }, { workspaceId: session.workspace.id, ignorePrefs: true });
+  if (!sent) {
+    await admin.from("workspace_invitations").delete().eq("workspace_id", session.workspace.id).eq("email", email).is("accepted_at", null);
     return { ok: false, error: t.inviteEmailFailed };
+  }
+  // Someone who already has an account also sees it in Yolias.
+  if (existing) {
+    await admin.from("notifications").insert({ user_id: existing.id, workspace_id: null, kind: "team", title: locale === "ar" ? `دعاك ${inviter} إلى ${workspace}` : `${inviter} invited you to ${workspace}`, body: null, link: `/join/${inv.token}`, dedupe_key: `invite:${inv.token}:${Date.now()}` });
   }
   revalidatePath("/", "layout");
   return { ok: true };

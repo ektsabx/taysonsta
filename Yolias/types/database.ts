@@ -112,6 +112,7 @@ export type WorkspaceInvitationRow = {
   role: "admin" | "member" | "analyst";
   invited_by: string | null;
   accepted_at: string | null;
+  token: string;
   created_at: string;
 };
 
