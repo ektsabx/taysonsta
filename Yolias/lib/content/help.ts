@@ -5,6 +5,7 @@ import { helpA } from "./full/help-a";
 import { helpB } from "./full/help-b";
 import { helpC } from "./full/help-c";
 import { helpD } from "./full/help-d";
+import { helpE } from "./full/help-e";
 import type { Doc, Localized } from "./types";
 
 // Help Center (rewritten 2026-11-03 for the campaign platform): short,
@@ -833,4 +834,26 @@ export const helpHero: Localized<{ title: string; lead: string; collectionsTitle
 
 /** Articles rewritten in full replace their short version. */
 const fullDocs: Record<string, Localized<Doc>> = { ...guides1, ...guides2, ...longDocs, ...helpA, ...helpB, ...helpC, ...helpD };
-export const articles: HelpArticle[] = baseArticles.map((a) => (fullDocs[a.slug] ? { ...a, doc: fullDocs[a.slug] } : a));
+/**
+ * Articles for the parts of Yolias that had none (owner, 2026-11-10), placed
+ * in their collections: the checklist and the dashboard open Getting started.
+ */
+const added: { slug: string; collection: HelpCollection["id"]; after?: string }[] = [
+  { slug: "first-campaign-checklist", collection: "getting-started" },
+  { slug: "dashboard", collection: "getting-started", after: "first-campaign-checklist" },
+  { slug: "integrations", collection: "getting-started", after: "dashboard" },
+  { slug: "notifications", collection: "account" },
+  { slug: "account-settings", collection: "account", after: "notifications" },
+];
+function withAdded(list: HelpArticle[]): HelpArticle[] {
+  const out = [...list];
+  for (const a of added) {
+    const item: HelpArticle = { slug: a.slug, collection: a.collection, doc: helpE[a.slug] };
+    // After a given article, or first in its collection; at the end when neither is found.
+    const at = a.after ? out.findIndex((x) => x.slug === a.after) + 1 : out.findIndex((x) => x.collection === a.collection);
+    const found = a.after ? at > 0 : at >= 0;
+    out.splice(found ? at : out.length, 0, item);
+  }
+  return out;
+}
+export const articles: HelpArticle[] = withAdded(baseArticles.map((a) => (fullDocs[a.slug] ? { ...a, doc: fullDocs[a.slug] } : a)));

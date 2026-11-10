@@ -1,0 +1,1353 @@
+import type { Doc, Localized } from "../types";
+
+// Help Center articles for the parts of Yolias that had none (owner,
+// 2026-11-10: "explain everything inside Yolias"): the dashboard, the first
+// campaign checklist, Integrations, notifications and account settings. Checked against the code on 2026-11-10.
+export const helpE: Record<string, Localized<Doc>> = {
+  dashboard: {
+    en: {
+      title: "The dashboard",
+      summary: "What the dashboard shows: what Yolias is working on, your next step, your balance, the performance of your campaigns over a period, and every campaign with its results and cost per meeting.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "The dashboard is your account's home. It is the first page you see after signing in, and **Dashboard** at the top of the sidebar brings you back to it. In one screen it answers four questions: is Yolias working right now, what should you do next, how much budget is left, and what are your campaigns bringing in. This article explains each part of the page, where every number comes from, and how to read them together." },
+
+        { h2: "What is on the dashboard?" },
+        { p: "From top to bottom, the page has six parts:" },
+        { ol: [
+          "**Greeting.** Good morning, Good afternoon or Good evening with your first name, following the time on your device.",
+          "**What Yolias is doing now.** A line that shows the running campaign Yolias last worked on and what it did.",
+          "**Next step.** The one setup step that matters most right now, with a button that takes you to it.",
+          "**Account balance.** What your plan or credit is worth, what is left, and what was spent this month.",
+          "**Performance.** Eight numbers for a period you choose, each with a small day-by-day chart.",
+          "**Campaigns.** What Yolias did last, then a table of every campaign with its state, results, spend and daily cap.",
+        ] },
+        { p: "Every number is counted on the server from what really happened in your account: emails sent, replies received, meetings booked, leads found. A number that can't be worked out yet, such as a cost per meeting before the first meeting, shows a dash (–) instead of a guess." },
+
+        { h2: "What Yolias is doing now" },
+        { p: "The strip under the greeting has a dot that is lit while a campaign is running." },
+        { ul: [
+          "**When a campaign is running** (Active or Scheduled), it reads **Yolias is working on “(campaign name)”**, followed by the last thing Yolias did for it, such as finding people, sending an email or booking a meeting. **Open the campaign** opens that campaign's page.",
+          "**When nothing is running**, it reads **No campaign is running** and **Create a campaign and Yolias starts finding and writing to the right people.**, with a **Create campaign** button that opens the campaign builder.",
+        ] },
+        { p: "If several campaigns are running, the strip shows the one with the most recent activity. The full list is further down, under **Campaigns**." },
+
+        { h2: "Next step" },
+        { p: "The **Next step** card shows one step at a time, in this order, and moves on by itself when the step is done:" },
+        { table: { head: ["Step", "Shown until", "Button"], rows: [
+          ["**Create your first campaign**", "The workspace has a campaign, even a draft", "**Create it** opens the campaign builder"],
+          ["**Connect your mailbox**", "A Gmail or IMAP/SMTP mailbox in the workspace is connected", "**Connect** opens Integrations"],
+          ["**Set your booking page**", "You connected Google Calendar, or saved a change to your booking page", "**Set it** opens Meetings → Booking page"],
+          ["**Review your first campaign**", "A campaign was launched (approved to send)", "**Open campaigns** opens the Campaigns page"],
+        ] } },
+        { p: "When all four are done, the card reads **You're set up** with **Yolias has what it needs. Watch the meetings come in.** and a **Create campaign** button. The booking page step is personal: it checks your own calendar and booking page, so a teammate who joins later sees it until they set theirs." },
+        { note: "The dashboard card shows one step. The **Get ready for your first campaign!** checklist, in the corner of every page, shows all seven setup steps at once. See [Get ready for your first campaign](/help-center/first-campaign-checklist)." },
+
+        { h2: "Account balance" },
+        { p: "This card treats your account like an ad account: what you have to spend, and what is left." },
+        { ul: [
+          "**Account balance** shows what is left in US dollars, and **of $(total)**, the value of your month's plan leads or your credit, at your price per lead.",
+          "Under it: **Renews (date)** on a monthly plan, or **Prepaid balance** on Pay As You Go, where credit doesn't expire.",
+          "The bar shows how much of the total is left.",
+          "**Spent this month** is the value of the leads used since the 1st of the month, across all campaigns.",
+          "**Top up** opens **Settings → Usage**, where you buy credit or change plan.",
+        ] },
+        { p: "Spend in Yolias is leads found: each company or local business a campaign finds uses one lead at your price per lead. Emails, follow-ups, replies and meetings don't cost extra. See [Pay As You Go or a monthly plan](/help-center/choosing-a-plan)." },
+
+        { h2: "Performance" },
+        { p: "**Performance** shows eight numbers for one period. Above them are two controls:" },
+        { ul: [
+          "**All campaigns**: pick one campaign to see only its numbers, or keep **All campaigns**.",
+          "**The date range**: **Last 7 days** by default. The menu offers **All time**, **Today**, **Yesterday**, **Last 7 days**, **Last 14 days**, **Last 30 days**, **This month**, **Last month** and **Custom range** with **From** and **To** dates.",
+        ] },
+        { p: "Your choice is kept in the page address, so a refresh, the back button or a shared link shows the same view. The numbers and the campaign table both follow the period." },
+        { table: { head: ["Number", "What it counts", "The line under it"], rows: [
+          ["**Found by Yolias**", "Companies and people Yolias found for your campaigns in the period", "(n) companies · (n) people"],
+          ["**Sent**", "Campaign emails sent: first emails and follow-ups", "Open rate, marked approximate"],
+          ["**Replied**", "People who replied (each person once; automatic replies such as out-of-office are left out)", "Reply rate and how many didn't reply"],
+          ["**Booking link visits**", "Visits to your booking page from campaign links", "How many booked from the link"],
+          ["**Meetings booked**", "Meetings booked from your campaigns, not canceled", "The result"],
+          ["**Cost per meeting**", "Spend ÷ meetings booked", "Meetings held, or After the first meeting when there is none yet"],
+          ["**Positive replies**", "People whose reply was interested or asked for a meeting", "Share of the people reached"],
+          ["**Spent**", "Leads used by your campaigns × your price per lead", "(n) people × (price per lead)"],
+        ] } },
+        { p: "**Meetings booked** and **Cost per meeting** are highlighted: a booked meeting is the result Yolias works for. Each card has a small chart with one point per day of the period (for **All time**, the last 90 days), so you can see whether a number is rising or falling, not just its total." },
+        { p: "The open rate is approximate because many mail apps load images ahead of time or block them; read it as a trend, not an exact count. Replies, meetings and spend are exact." },
+
+        { h2: "Campaigns" },
+        { p: "Under **Campaigns (n)**, the box **Yolias is managing your campaigns** lists the last three things Yolias did across your campaigns, each with the campaign's name and the time. Click one to open that campaign." },
+        { p: "The table lists every campaign except archived ones:" },
+        { table: { head: ["Column", "Meaning"], rows: [
+          ["**Campaign**", "The name. Click it to open the campaign."],
+          ["**State**", "Draft, Scheduled, Active, Paused, Ended or Stopped. A running campaign also shows about how many emails it sends a day."],
+          ["**Sent**", "Emails sent in the period."],
+          ["**Reply rate**", "Replies ÷ people reached."],
+          ["**Interested**", "People who replied with interest."],
+          ["**Meetings booked**", "Meetings booked from the campaign."],
+          ["**Cost per meeting**", "The campaign's spend ÷ its meetings booked."],
+          ["**Meetings held**", "Booked meetings that took place."],
+          ["**Spent**", "The campaign's spend in the period."],
+          ["**Daily cap**", "The budget per day. A campaign with a total or monthly budget shows that amount instead."],
+        ] } },
+        { p: "With more than one campaign, a **Total** row adds them up and shows **(n) of (total) running**. The three dots at the end of a row open **Open**, **Edit** (a draft opens in the builder), **Pause** for an active campaign and **Resume** for a paused one that was launched before." },
+        { p: "With no campaign yet, the table is replaced by **No campaigns yet** and a **Create campaign** button." },
+
+        { h2: "Examples" },
+        { p: "Sara runs a cleaning company in Riyadh. On Monday morning her dashboard reads **Yolias is working on “Office managers, Riyadh”** with the last email sent a few minutes ago. **Performance** for **Last 7 days** shows 412 sent, 31 replied, 6 meetings booked and a cost per meeting of $18. In the table, her second campaign has a reply rate half as high and no meetings, so she opens it and changes its audience." },
+        { p: "Omar has just signed up. The strip says **No campaign is running** and the **Next step** card says **Create your first campaign**. After he creates one, the card moves to **Connect your mailbox**; once Gmail is connected it moves to **Set your booking page**, then **Review your first campaign**, and finally **You're set up**." },
+
+        { h2: "Permissions" },
+        { ul: [
+          "Every member sees the dashboard, including Analysts.",
+          "Pausing and resuming campaigns from the table needs the Admin or Advertiser role. An Analyst who tries is told their role can see results but not change them.",
+          "Spend and balance come from the workspace, so everyone sees the same figures.",
+        ] },
+
+        { h2: "Questions" },
+        { h3: "Does the dashboard update by itself?" },
+        { p: "The numbers are counted when the page opens. Reload the page, or open it again from the sidebar, to see the latest emails, replies and meetings." },
+        { h3: "Why is a number on the dashboard different from the campaign page?" },
+        { p: "Check that both show the same period and the same campaign. The dashboard defaults to **Last 7 days** and all campaigns; a campaign page can be set to another range. With the same period and campaign, the numbers match: they come from the same rows." },
+        { h3: "Where do I set a daily limit for all campaigns together?" },
+        { p: "Each campaign has its own budget, set in the campaign builder. See [Budget and optimization](/help-center/budget-and-optimization)." },
+
+        { h2: "Troubleshooting" },
+        { h3: "The numbers are all zero" },
+        { p: "Check the date range and the campaign menu: a short range, or one campaign that hasn't sent yet, shows zeros. Choose **All time** and **All campaigns** to see everything." },
+        { h3: "Cost per meeting shows a dash" },
+        { p: "No meeting was booked in the period, so there is nothing to divide by. It fills in with the first booked meeting." },
+        { h3: "The account balance card isn't shown" },
+        { p: "The card needs your price per lead. It appears once the workspace has a plan or credit." },
+        { h3: "The Next step card still asks for the booking page" },
+        { p: "Connect Google Calendar, or open **Meetings → Booking page** and save a change. The step checks your own page, not a teammate's." },
+
+        { h2: "Related articles" },
+        { ul: [
+          "[Reading campaign results](/help-center/campaign-results)",
+          "[Budget and optimization](/help-center/budget-and-optimization)",
+          "[Get ready for your first campaign](/help-center/first-campaign-checklist)",
+          "[Pay As You Go or a monthly plan](/help-center/choosing-a-plan)",
+        ] },
+      ],
+    },
+    ar: {
+      title: "لوحة التحكم",
+      summary: "ما تعرضه لوحة التحكم: ما يعمل عليه يولياس الآن، وخطوتك التالية، ورصيدك، وأداء حملاتك خلال فترة تختارها، وكل حملة بنتائجها وتكلفة الاجتماع فيها.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "لوحة التحكم هي صفحة حسابك الرئيسية. تظهر لك أولًا بعد تسجيل الدخول، ويعيدك إليها **لوحة التحكم** أعلى الشريط الجانبي. وتجيب في شاشة واحدة عن أربعة أسئلة: هل يعمل يولياس الآن، وما خطوتك التالية، وكم بقي من الميزانية، وماذا تجلب حملاتك. يشرح هذا المقال كل جزء في الصفحة، ومصدر كل رقم، وكيف تقرأ الأرقام معًا." },
+
+        { h2: "ماذا تعرض لوحة التحكم؟" },
+        { p: "من الأعلى إلى الأسفل، في الصفحة ستة أجزاء:" },
+        { ol: [
+          "**التحية.** صباح الخير أو مساء الخير مع اسمك الأول، حسب الوقت في جهازك.",
+          "**ما يفعله يولياس الآن.** سطر يعرض الحملة العاملة التي عمل عليها يولياس أخيرًا وما فعله.",
+          "**الخطوة التالية.** خطوة الإعداد الأهم الآن، مع زر ينقلك إليها.",
+          "**رصيد الحساب.** قيمة خطتك أو رصيدك، والمتبقي منه، وما صُرف هذا الشهر.",
+          "**الأداء.** ثمانية أرقام لفترة تختارها، ولكل رقم رسم صغير يومًا بيوم.",
+          "**الحملات.** آخر ما فعله يولياس، ثم جدول بكل حملة وحالتها ونتائجها وإنفاقها وحدها اليومي.",
+        ] },
+        { p: "كل رقم يُحسب على الخادم مما حدث فعلًا في حسابك: الرسائل المرسلة، والردود الواردة، والاجتماعات المحجوزة، والعملاء المكتشفون. والرقم الذي لا يمكن حسابه بعد، مثل تكلفة الاجتماع قبل أول اجتماع، تظهر مكانه شرطة (–) لا تقدير." },
+
+        { h2: "ما يفعله يولياس الآن" },
+        { p: "في الشريط تحت التحية نقطة تضيء ما دامت هناك حملة تعمل." },
+        { ul: [
+          "**عندما تعمل حملة** (نشطة أو مجدولة) يظهر **يولياس يعمل على «(اسم الحملة)»**، وتحته آخر ما فعله يولياس لها، مثل إيجاد أشخاص أو إرسال رسالة أو حجز اجتماع. و**افتح الحملة** يفتح صفحة الحملة.",
+          "**عندما لا تعمل أي حملة** يظهر **لا توجد حملة تعمل** و**أنشئ حملة وسيبدأ يولياس في إيجاد الأشخاص المناسبين ومراسلتهم.**، مع زر **إنشاء حملة** الذي يفتح منشئ الحملات.",
+        ] },
+        { p: "إذا كانت عدة حملات تعمل، يعرض الشريط الحملة صاحبة أحدث نشاط، والقائمة كاملة في الأسفل تحت **الحملات**." },
+
+        { h2: "الخطوة التالية" },
+        { p: "يعرض كارت **الخطوة التالية** خطوة واحدة في كل مرة بهذا الترتيب، وينتقل وحده إلى ما بعدها عند إتمامها:" },
+        { table: { head: ["الخطوة", "تظهر حتى", "الزر"], rows: [
+          ["**أنشئ أول حملة**", "تصبح في مساحة العمل حملة، ولو مسودة", "**أنشئها** يفتح منشئ الحملات"],
+          ["**اربط بريدك**", "يتصل بريد Gmail أو IMAP/SMTP في مساحة العمل", "**ربط البريد** يفتح التكاملات"],
+          ["**اضبط صفحة الحجز**", "تربط تقويم Google، أو تحفظ تعديلًا في صفحة الحجز", "**اضبطها** يفتح الاجتماعات ← صفحة الحجز"],
+          ["**راجع أول حملة**", "تُطلق حملة (توافق على إرسالها)", "**فتح الحملات** يفتح صفحة الحملات"],
+        ] } },
+        { p: "وعند إتمام الأربع يظهر **كل شيء جاهز** و**لدى يولياس كل ما يحتاجه. تابع الاجتماعات وهي تصل.** مع زر **إنشاء حملة**. وخطوة صفحة الحجز شخصية: تفحص تقويمك وصفحة حجزك أنت، فيراها الزميل الذي ينضم لاحقًا حتى يضبط صفحته." },
+        { note: "كارت لوحة التحكم يعرض خطوة واحدة. أما قائمة **استعد لحملتك الأولى!** في زاوية كل صفحة فتعرض خطوات الإعداد السبع معًا. راجع [استعد لحملتك الأولى](/help-center/first-campaign-checklist)." },
+
+        { h2: "رصيد الحساب" },
+        { p: "يعامل هذا الكارت حسابك كحساب إعلانات: ما لديك لتنفقه، وما بقي منه." },
+        { ul: [
+          "**رصيد الحساب** يعرض المتبقي بالدولار الأمريكي، و**من $(الإجمالي)**: قيمة عملاء خطتك الشهرية أو رصيدك، بسعر العميل الخاص بك.",
+          "وتحته **يتجدد (التاريخ)** في الخطة الشهرية، أو **رصيد مدفوع مسبقًا** في الدفع حسب الاستخدام، حيث لا ينتهي الرصيد.",
+          "يعرض الشريط نسبة ما بقي من الإجمالي.",
+          "**صُرف هذا الشهر** قيمة العملاء المستخدمين منذ أول الشهر، في كل الحملات.",
+          "**شحن الرصيد** يفتح **الإعدادات ← الاستخدام**، حيث تشتري رصيدًا أو تغيّر خطتك.",
+        ] },
+        { p: "الإنفاق في يولياس هو العملاء المكتشفون: كل شركة أو نشاط محلي تجده الحملة يستخدم عميلًا واحدًا بسعر العميل الخاص بك. أما الرسائل والمتابعات والردود والاجتماعات فلا تكلّف شيئًا إضافيًا. راجع [الدفع حسب الاستخدام أو الخطة الشهرية](/help-center/choosing-a-plan)." },
+
+        { h2: "الأداء" },
+        { p: "يعرض **الأداء** ثمانية أرقام لفترة واحدة، وفوقها أداتان:" },
+        { ul: [
+          "**كل الحملات**: اختر حملة واحدة لترى أرقامها وحدها، أو اترك **كل الحملات**.",
+          "**الفترة**: **آخر 7 أيام** افتراضيًا. وفي القائمة **كل الوقت** و**اليوم** و**أمس** و**آخر 7 أيام** و**آخر 14 يومًا** و**آخر 30 يومًا** و**هذا الشهر** و**الشهر الماضي** و**فترة مخصصة** بتاريخي **من** و**إلى**.",
+        ] },
+        { p: "يُحفظ اختيارك في عنوان الصفحة، فيعرض التحديث أو زر الرجوع أو الرابط المشترك العرض نفسه. وتتبع الأرقام وجدول الحملات الفترة المختارة معًا." },
+        { table: { head: ["الرقم", "ما يحسبه", "السطر تحته"], rows: [
+          ["**اكتشفهم يولياس**", "الشركات والأشخاص الذين وجدهم يولياس لحملاتك في الفترة", "(n) شركة · (n) شخص"],
+          ["**المُرسل**", "رسائل الحملات المرسلة: الرسائل الأولى والمتابعات", "نسبة الفتح، مع وصفها بالتقريبية"],
+          ["**ردّوا**", "الأشخاص الذين ردّوا (كل شخص مرة، دون الردود التلقائية مثل رسائل الغياب)", "نسبة الرد وعدد من لم يردوا"],
+          ["**زيارات رابط الاجتماع**", "زيارات صفحة حجزك من روابط الحملات", "عدد من حجزوا من الرابط"],
+          ["**اجتماعات محجوزة**", "الاجتماعات المحجوزة من حملاتك وغير الملغاة", "النتيجة"],
+          ["**تكلفة الاجتماع**", "الإنفاق ÷ الاجتماعات المحجوزة", "الاجتماعات المنعقدة، أو بعد أول اجتماع إن لم يوجد بعد"],
+          ["**ردود إيجابية**", "الأشخاص الذين أبدوا اهتمامًا أو طلبوا اجتماعًا في ردهم", "نسبتهم ممن تم الوصول إليهم"],
+          ["**الإنفاق**", "العملاء الذين استخدمتهم حملاتك × سعر العميل", "(n) شخص × (سعر العميل)"],
+        ] } },
+        { p: "**اجتماعات محجوزة** و**تكلفة الاجتماع** مميزتان، لأن الاجتماع المحجوز هو النتيجة التي يعمل يولياس من أجلها. ولكل كارت رسم صغير فيه نقطة لكل يوم من الفترة (ومع **كل الوقت** آخر 90 يومًا)، فترى هل الرقم يرتفع أم ينخفض، لا مجموعه فقط." },
+        { p: "نسبة الفتح تقريبية لأن كثيرًا من تطبيقات البريد تحمّل الصور مسبقًا أو تمنعها، فاقرأها كاتجاه لا كعدد دقيق. أما الردود والاجتماعات والإنفاق فدقيقة." },
+
+        { h2: "الحملات" },
+        { p: "تحت **الحملات (n)** يعرض صندوق **يولياس يدير حملاتك** آخر ثلاثة أشياء فعلها يولياس في حملاتك، ومع كل منها اسم الحملة والوقت. اضغط أيًا منها لتفتح الحملة." },
+        { p: "ويعرض الجدول كل حملة ما عدا المؤرشفة:" },
+        { table: { head: ["العمود", "معناه"], rows: [
+          ["**الحملة**", "الاسم، واضغطه لفتح الحملة."],
+          ["**الحالة**", "مسودة أو مجدولة أو نشطة أو متوقفة أو انتهت أو توقفت. وتعرض الحملة العاملة أيضًا عدد الرسائل التقريبي الذي ترسله يوميًا."],
+          ["**المُرسل**", "الرسائل المرسلة في الفترة."],
+          ["**نسبة الرد**", "الردود ÷ الأشخاص الذين وصلت إليهم."],
+          ["**مهتمون**", "الأشخاص الذين ردوا باهتمام."],
+          ["**اجتماعات محجوزة**", "الاجتماعات المحجوزة من الحملة."],
+          ["**تكلفة الاجتماع**", "إنفاق الحملة ÷ اجتماعاتها المحجوزة."],
+          ["**اجتماعات منعقدة**", "الاجتماعات المحجوزة التي تمت فعلًا."],
+          ["**الإنفاق**", "إنفاق الحملة في الفترة."],
+          ["**الحد اليومي**", "الميزانية اليومية. والحملة ذات الميزانية الإجمالية أو الشهرية تعرض مبلغها بدلًا من ذلك."],
+        ] } },
+        { p: "مع أكثر من حملة يجمعها صف **الإجمالي** ويعرض **(n) من (الإجمالي) تعمل**. وتفتح النقاط الثلاث في آخر الصف **فتح** و**تعديل** (المسودة تُفتح في المنشئ)، و**إيقاف** للحملة النشطة، و**استئناف** للحملة المتوقفة التي أُطلقت من قبل." },
+        { p: "وإذا لم تكن هناك حملة بعد، يحل محل الجدول **لا توجد حملات بعد** وزر **إنشاء حملة**." },
+
+        { h2: "أمثلة" },
+        { p: "تدير سارة شركة تنظيف في الرياض. صباح الاثنين تعرض لوحتها **يولياس يعمل على «مديرو المكاتب، الرياض»** وآخر رسالة أُرسلت قبل دقائق. ويعرض **الأداء** في **آخر 7 أيام** 412 رسالة مرسلة و31 ردًا و6 اجتماعات محجوزة وتكلفة اجتماع 18 دولارًا. وفي الجدول نسبة الرد في حملتها الثانية نصف الأولى بلا اجتماعات، فتفتحها وتغيّر جمهورها." },
+        { p: "سجّل عمر للتو. يقول الشريط **لا توجد حملة تعمل** ويقول كارت **الخطوة التالية** **أنشئ أول حملة**. وبعد أن ينشئها ينتقل الكارت إلى **اربط بريدك**، ثم بعد ربط Gmail إلى **اضبط صفحة الحجز**، ثم **راجع أول حملة**، وأخيرًا **كل شيء جاهز**." },
+
+        { h2: "الصلاحيات" },
+        { ul: [
+          "يرى لوحة التحكم كل الأعضاء، ومنهم المحللون.",
+          "إيقاف الحملات واستئنافها من الجدول يحتاج دور مسؤول أو معلن، والمحلل الذي يحاول تظهر له رسالة أن دوره يرى النتائج ولا يغيّرها.",
+          "الإنفاق والرصيد من مساحة العمل، فيرى الجميع الأرقام نفسها.",
+        ] },
+
+        { h2: "أسئلة" },
+        { h3: "هل تتحدث لوحة التحكم وحدها؟" },
+        { p: "تُحسب الأرقام عند فتح الصفحة. أعد تحميلها أو افتحها مرة أخرى من الشريط الجانبي لترى أحدث الرسائل والردود والاجتماعات." },
+        { h3: "لماذا يختلف رقم في لوحة التحكم عن صفحة الحملة؟" },
+        { p: "تأكد أن الاثنين يعرضان الفترة نفسها والحملة نفسها. فلوحة التحكم تبدأ بـ **آخر 7 أيام** وكل الحملات، وقد تكون صفحة الحملة على فترة أخرى. ومع الفترة والحملة نفسيهما تتطابق الأرقام لأنها من الصفوف نفسها." },
+        { h3: "أين أضبط حدًا يوميًا لكل الحملات معًا؟" },
+        { p: "لكل حملة ميزانيتها التي تضبطها في منشئ الحملات. راجع [الميزانية والتحسين](/help-center/budget-and-optimization)." },
+
+        { h2: "حل المشكلات" },
+        { h3: "كل الأرقام صفر" },
+        { p: "راجع الفترة وقائمة الحملات: الفترة القصيرة، أو حملة واحدة لم ترسل بعد، تعرض أصفارًا. اختر **كل الوقت** و**كل الحملات** لترى كل شيء." },
+        { h3: "تكلفة الاجتماع تعرض شرطة" },
+        { p: "لم يُحجز اجتماع في الفترة، فلا يوجد ما تُقسم عليه. وتظهر القيمة مع أول اجتماع محجوز." },
+        { h3: "كارت رصيد الحساب لا يظهر" },
+        { p: "يحتاج الكارت سعر العميل الخاص بك، ويظهر بمجرد أن يصبح لمساحة العمل خطة أو رصيد." },
+        { h3: "كارت الخطوة التالية ما زال يطلب صفحة الحجز" },
+        { p: "اربط تقويم Google، أو افتح **الاجتماعات ← صفحة الحجز** واحفظ تعديلًا. فالخطوة تفحص صفحتك أنت لا صفحة زميلك." },
+
+        { h2: "مقالات ذات صلة" },
+        { ul: [
+          "[قراءة نتائج الحملة](/help-center/campaign-results)",
+          "[الميزانية والتحسين](/help-center/budget-and-optimization)",
+          "[استعد لحملتك الأولى](/help-center/first-campaign-checklist)",
+          "[الدفع حسب الاستخدام أو الخطة الشهرية](/help-center/choosing-a-plan)",
+        ] },
+      ],
+    },
+  },
+  "first-campaign-checklist": {
+    en: {
+      title: "Get ready for your first campaign",
+      summary: "The checklist that opens after signup: the seven steps a campaign needs before it reaches customers, how each one is marked done, and how to fold or hide the list.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "After you finish the welcome steps, a card titled **Get ready for your first campaign!** opens in the bottom corner of Yolias. It lists the seven things a campaign needs before it can reach your customers, with a link to each, and ticks them off as you do them. This article explains every step, how Yolias decides a step is done, and how to use the card." },
+
+        { h2: "Where is the checklist?" },
+        { p: "The card sits in the bottom corner of every page inside Yolias, next to the sidebar (on a phone or a narrow window, at the bottom of the screen, above the Yolias AI button). It opens by itself the first time, after the welcome video closes." },
+        { ul: [
+          "The heading **Get ready for your first campaign!** and the progress, such as **3/7 completed**.",
+          "A red bar that fills as steps are done.",
+          "The line **Complete these steps so your campaigns reach your customers. Invite your teammates to work on them with you.**",
+          "The seven steps. A done step has a green tick and its title struck through; an open step has an empty circle.",
+          "**Need help from your teammates? Invite them**, shown while you are the only person in the workspace.",
+        ] },
+
+        { h2: "The seven steps" },
+        { table: { head: ["Step", "Marked done when", "Clicking it opens"], rows: [
+          ["**Complete Company Knowledge**", "At least four of these fields have a real answer (more than 20 characters): About the company, Services, Products, Pricing, Competitive advantages, Case studies, FAQ, Value proposition", "Company Knowledge"],
+          ["**Connect a mailbox**", "A Gmail or IMAP/SMTP mailbox in the workspace is connected", "Integrations"],
+          ["**Set up your booking page**", "Your booking page is on and has a meeting place or link", "Meetings → Booking page"],
+          ["**Install the Yolias pixel**", "One of the workspace's pixels has received an event from a website", "Events Manager"],
+          ["**Add credit**", "The workspace has a plan or credit, with leads available", "Settings → Usage"],
+          ["**Create a campaign**", "The workspace has a campaign, even a draft", "The campaign builder"],
+          ["**Launch your first campaign**", "A campaign has been launched (approved to send)", "Campaigns"],
+        ] } },
+        { p: "Each step is checked against what your account really has, every time a page opens. Nothing is ticked because you clicked it: connect the mailbox and the tick appears; disconnect it and the tick goes away." },
+
+        { h2: "Why each step matters" },
+        { h3: "Complete Company Knowledge" },
+        { p: "Yolias AI writes every email and every reply from Company Knowledge: what you sell, to whom, at what price, and why customers choose you. With four or more fields filled, the emails speak about your business instead of in general terms. See [Company Knowledge](/help-center/company-knowledge)." },
+        { h3: "Connect a mailbox" },
+        { p: "Campaigns send from your own mailbox, and replies come back to it, so Yolias can answer them in the same thread. Without a connected mailbox a campaign can't be launched. See [Connecting Gmail](/help-center/connect-gmail) and [Connecting another mailbox](/help-center/connect-imap-smtp)." },
+        { h3: "Set up your booking page" },
+        { p: "When a lead is interested, Yolias offers your booking page so they pick a free time themselves. The page needs to be on and to say where the meeting happens: a video link, a phone number or an address. See [Meetings and your booking page](/help-center/deals-and-meetings)." },
+        { h3: "Install the Yolias pixel" },
+        { p: "The pixel counts what people do on your website after a campaign reached them: visits, sign-ups, form leads and purchases. It is required for Sales and Website leads campaigns and useful for every other one. The step is done when the first event arrives, so install the code and open your site once. See [The Yolias pixel](/help-center/pixel-and-events)." },
+        { h3: "Add credit" },
+        { p: "Campaigns use leads, at your price per lead. Top up from $5 with Pay As You Go, or choose a monthly plan. Building and saving a campaign is free; credit is needed to launch it. See [Pay As You Go or a monthly plan](/help-center/choosing-a-plan)." },
+        { h3: "Create a campaign" },
+        { p: "Choose the objective, the budget and the audiences in the campaign builder. A saved draft already counts. See [Creating a campaign](/help-center/creating-a-campaign)." },
+        { h3: "Launch your first campaign" },
+        { p: "Launching confirms the campaign: Yolias starts finding the people of each audience and writing to them from your mailbox, in your sending hours." },
+
+        { h2: "Fold, open or hide the card" },
+        { ul: [
+          "**Fold it:** press the heading or the arrow. The card shrinks to its heading, progress and bar. Press again to open it.",
+          "**Hide it:** press the X (**Hide**). The card disappears from this browser.",
+          "**When everything is done** the card disappears by itself.",
+        ] },
+        { p: "Folding and hiding are remembered by the browser you use: on another computer or browser, the card shows again. The steps themselves are the same everywhere, because they come from your account." },
+
+        { h2: "Who sees the checklist?" },
+        { ul: [
+          "The Owner, Admins and Advertisers, once they have finished the welcome steps.",
+          "Analysts don't see it, because they can't change the account.",
+          "The steps belong to the workspace, except **Set up your booking page**, which checks your own booking page. A teammate who joins later sees the workspace steps already done and sets up their own page.",
+        ] },
+
+        { h2: "Example" },
+        { p: "Nadia signs up for her accounting firm. After the welcome video the card shows **0/7 completed**. She fills About the company, Services, Pricing and FAQ in Company Knowledge (1/7), connects her Google Workspace mailbox (2/7), turns on her booking page with a Google Meet link (3/7), and tops up $20 (4/7). She creates a campaign for clinic owners in Cairo (5/7) and launches it (6/7). Her website has no pixel yet, so the card stays folded at **6/7** until she installs it the next day and the first page view arrives." },
+
+        { h2: "Before you start" },
+        { p: "Have these ready and the seven steps take about twenty minutes:" },
+        { ul: [
+          "Your website address, and a short description of what you sell, to whom and at what price. Yolias can read your website to fill Company Knowledge for you.",
+          "The mailbox you want campaigns to send from, and its password or an app password if it isn't Gmail.",
+          "Where your meetings happen: a Google Meet or Zoom link, a phone number, or an office address.",
+          "Access to your website's code or its tag manager, to paste the pixel.",
+          "A card, to top up from $5 or choose a plan.",
+        ] },
+
+        { h2: "What happens after you launch" },
+        { p: "Once the seventh step is done, Yolias takes over the daily work:" },
+        { ol: [
+          "It finds the people of each audience, within the budget, every day the campaign runs.",
+          "It writes a different first email to each person from Company Knowledge and sends it from your mailbox, in your sending hours, within the mailbox's daily limit.",
+          "It follows up with people who don't reply, and answers those who do.",
+          "When someone is interested, it offers your booking page; the meeting lands in **Meetings** and, with Google Calendar connected, in your calendar.",
+          "Every morning you can receive a summary by email, and the dashboard shows the results with the cost per meeting.",
+        ] },
+
+        { h2: "How long each step takes" },
+        { table: { head: ["Step", "Usually takes"], rows: [
+          ["Company Knowledge", "5 minutes when Yolias reads your website, then a quick review"],
+          ["Mailbox", "1 minute for Gmail; 3 minutes for IMAP/SMTP with an app password"],
+          ["Booking page", "3 minutes: hours, meeting length and the meeting link"],
+          ["Pixel", "5 minutes with access to your website"],
+          ["Credit", "2 minutes on the payment page"],
+          ["Campaign", "5 minutes in the builder"],
+          ["Launch", "One click after reviewing the summary"],
+        ] } },
+
+        { h2: "Questions" },
+        { h3: "Do I have to do the steps in order?" },
+        { p: "No. Each step is checked on its own; do them in any order. The order on the card is simply the one that gets a campaign ready fastest." },
+        { h3: "Can I launch a campaign before every step is done?" },
+        { p: "A campaign needs a connected mailbox and credit to launch, and its own settings: objective, budget and audiences. The pixel is required only for Sales and Website leads campaigns. Company Knowledge and the booking page aren't required, but emails and meetings are better with them." },
+        { h3: "Does the checklist cost anything?" },
+        { p: "No. Only leads found by a launched campaign use your balance." },
+        { h3: "My teammate finished a step. Is it done for me too?" },
+        { p: "Yes for the workspace steps: Company Knowledge, mailbox, pixel, credit, campaign and launch. No for the booking page, which each member sets for themselves." },
+
+        { h2: "Another example" },
+        { p: "Tarek joins his company's workspace as an Advertiser, invited by the Owner, who already finished the setup. His card opens at **6/7 completed**: Company Knowledge, mailbox, pixel, credit, campaign and launch are done for the workspace. Only **Set up your booking page** is open, because it is his own. He sets his hours and his Zoom link, the card reaches **7/7** and disappears. He then connects his own mailbox in Integrations so his campaigns send from his address, not the Owner's." },
+
+        { h2: "Troubleshooting" },
+        { h3: "Company Knowledge is filled but not ticked" },
+        { p: "Four fields need a real answer of more than 20 characters each. A one-word answer doesn't count. Open Company Knowledge and complete four of the eight fields listed above." },
+        { h3: "The booking page step isn't ticked" },
+        { p: "Check that the page is turned on and has a meeting place or link. Saving the hours alone isn't enough." },
+        { h3: "The pixel step isn't ticked" },
+        { p: "The code is installed but no event has arrived. Open a page of your website where the code is, then reload Yolias. If it still isn't ticked, check the allowed domains of the pixel in Events Manager." },
+        { h3: "The card disappeared" },
+        { p: "Either every step is done, or it was hidden with the X in this browser. A different browser shows it again while steps remain." },
+
+        { h3: "Add credit stays open after I paid" },
+        { p: "The step is ticked once the payment provider confirms the payment, which usually takes a few seconds. Reload the page. If it is still open, check **Settings → Billing** for the invoice." },
+
+        { h2: "Related articles" },
+        { ul: [
+          "[The dashboard](/help-center/dashboard)",
+          "[Creating a campaign](/help-center/creating-a-campaign)",
+          "[Company Knowledge](/help-center/company-knowledge)",
+          "[The Yolias pixel](/help-center/pixel-and-events)",
+        ] },
+      ],
+    },
+    ar: {
+      title: "استعد لحملتك الأولى",
+      summary: "القائمة التي تُفتح بعد التسجيل: الخطوات السبع التي تحتاجها الحملة قبل أن تصل إلى العملاء، وكيف تُعلَّم كل خطوة مكتملة، وكيف تطوي القائمة أو تخفيها.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "بعد أن تنهي خطوات الترحيب، يُفتح في الزاوية السفلية من يولياس كارت عنوانه **استعد لحملتك الأولى!**. يعرض الأشياء السبعة التي تحتاجها الحملة قبل أن تصل إلى عملائك، مع رابط لكل منها، ويعلّمها مكتملة كلما أنجزتها. يشرح هذا المقال كل خطوة، وكيف يقرر يولياس أن الخطوة اكتملت، وكيف تستخدم الكارت." },
+
+        { h2: "أين القائمة؟" },
+        { p: "يظهر الكارت في الزاوية السفلية لكل صفحة داخل يولياس بجانب الشريط الجانبي (وفي الهاتف أو النافذة الضيقة أسفل الشاشة فوق زر Yolias AI). ويُفتح وحده أول مرة بعد إغلاق فيديو الترحيب." },
+        { ul: [
+          "العنوان **استعد لحملتك الأولى!** والتقدم، مثل **اكتمل 3 من 7**.",
+          "شريط أحمر يمتلئ كلما اكتملت خطوة.",
+          "السطر **أكمل هذه الخطوات لتصل حملاتك إلى عملائك. ادعُ فريقك ليعملوا عليها معك.**",
+          "الخطوات السبع: المكتملة عليها علامة خضراء وعنوانها مشطوب، والمفتوحة دائرة فارغة.",
+          "**تحتاج مساعدة من فريقك؟ ادعُهم**، ويظهر ما دمت الشخص الوحيد في مساحة العمل.",
+        ] },
+
+        { h2: "الخطوات السبع" },
+        { table: { head: ["الخطوة", "تكتمل عندما", "الضغط عليها يفتح"], rows: [
+          ["**أكمل معرفة الشركة**", "يكون في أربعة على الأقل من هذه الحقول إجابة حقيقية (أكثر من 20 حرفًا): عن الشركة، والخدمات، والمنتجات، والأسعار، والمميزات التنافسية، ودراسات الحالة، والأسئلة الشائعة، والقيمة التي تقدمها", "معرفة الشركة"],
+          ["**اربط بريدًا**", "يتصل بريد Gmail أو IMAP/SMTP في مساحة العمل", "التكاملات"],
+          ["**اضبط صفحة الحجز**", "تكون صفحة حجزك مفعّلة وفيها مكان الاجتماع أو رابطه", "الاجتماعات ← صفحة الحجز"],
+          ["**ثبّت بيكسل يولياس**", "يستقبل أحد بيكسلات مساحة العمل حدثًا من موقع", "مدير الأحداث"],
+          ["**اشحن رصيدك**", "يكون لمساحة العمل خطة أو رصيد وفيها عملاء متاحون", "الإعدادات ← الاستخدام"],
+          ["**أنشئ حملة**", "تكون في مساحة العمل حملة، ولو مسودة", "منشئ الحملات"],
+          ["**شغّل حملتك الأولى**", "تُطلق حملة (توافق على إرسالها)", "الحملات"],
+        ] } },
+        { p: "تُفحص كل خطوة مقابل ما في حسابك فعلًا عند فتح أي صفحة. فلا تُعلَّم خطوة لأنك ضغطتها: اربط البريد فتظهر العلامة، وافصله فتختفي." },
+
+        { h2: "لماذا كل خطوة مهمة" },
+        { h3: "أكمل معرفة الشركة" },
+        { p: "يكتب Yolias AI كل رسالة وكل رد من معرفة الشركة: ما تبيعه، ولمن، وبأي سعر، ولماذا يختاركم العملاء. ومع أربعة حقول أو أكثر تتحدث الرسائل عن نشاطك لا بكلام عام. راجع [معرفة الشركة](/help-center/company-knowledge)." },
+        { h3: "اربط بريدًا" },
+        { p: "ترسل الحملات من بريدك أنت، وتعود الردود إليه، فيرد عليها يولياس في المحادثة نفسها. ولا يمكن إطلاق حملة دون بريد متصل. راجع [ربط Gmail](/help-center/connect-gmail) و[ربط بريد آخر](/help-center/connect-imap-smtp)." },
+        { h3: "اضبط صفحة الحجز" },
+        { p: "عندما يهتم العميل يعرض عليه يولياس صفحة حجزك ليختار وقتًا متاحًا بنفسه. وتحتاج الصفحة أن تكون مفعّلة وأن تذكر مكان الاجتماع: رابط فيديو أو رقم هاتف أو عنوان. راجع [الاجتماعات وصفحة الحجز](/help-center/deals-and-meetings)." },
+        { h3: "ثبّت بيكسل يولياس" },
+        { p: "يحسب البيكسل ما يفعله الناس في موقعك بعد أن تصل إليهم الحملة: الزيارات والتسجيلات ونماذج الموقع والمشتريات. وهو مطلوب لحملات المبيعات ونماذج الموقع ومفيد لكل حملة أخرى. وتكتمل الخطوة مع وصول أول حدث، فثبّت الكود وافتح موقعك مرة. راجع [بيكسل يولياس](/help-center/pixel-and-events)." },
+        { h3: "اشحن رصيدك" },
+        { p: "تستخدم الحملات العملاء بسعر العميل الخاص بك. اشحن من 5 دولارات بالدفع حسب الاستخدام أو اختر خطة شهرية. وبناء الحملة وحفظها مجاني، والرصيد مطلوب لإطلاقها. راجع [الدفع حسب الاستخدام أو الخطة الشهرية](/help-center/choosing-a-plan)." },
+        { h3: "أنشئ حملة" },
+        { p: "اختر الهدف والميزانية والجماهير في منشئ الحملات، والمسودة المحفوظة تُحسب. راجع [إنشاء حملة](/help-center/creating-a-campaign)." },
+        { h3: "شغّل حملتك الأولى" },
+        { p: "الإطلاق يؤكد الحملة: يبدأ يولياس إيجاد أشخاص كل جمهور ومراسلتهم من بريدك في ساعات إرسالك." },
+
+        { h2: "اطوِ الكارت أو افتحه أو أخفِه" },
+        { ul: [
+          "**لطيّه:** اضغط العنوان أو السهم، فيصغر الكارت إلى عنوانه وتقدمه وشريطه. واضغط مرة أخرى لفتحه.",
+          "**لإخفائه:** اضغط X (**إخفاء**)، فيختفي الكارت من هذا المتصفح.",
+          "**عند اكتمال كل الخطوات** يختفي الكارت وحده.",
+        ] },
+        { p: "يتذكر المتصفح الذي تستخدمه الطي والإخفاء، ففي جهاز أو متصفح آخر يظهر الكارت من جديد. أما الخطوات نفسها فواحدة في كل مكان لأنها من حسابك." },
+
+        { h2: "من يرى القائمة؟" },
+        { ul: [
+          "المالك والمسؤولون والمعلنون، بعد إنهاء خطوات الترحيب.",
+          "لا يراها المحللون لأنهم لا يغيّرون الحساب.",
+          "الخطوات خاصة بمساحة العمل، ما عدا **اضبط صفحة الحجز** التي تفحص صفحة حجزك أنت. فالزميل الذي ينضم لاحقًا يرى خطوات مساحة العمل مكتملة ويضبط صفحته بنفسه.",
+        ] },
+
+        { h2: "مثال" },
+        { p: "تسجّل نادية لمكتب المحاسبة الخاص بها. بعد فيديو الترحيب يعرض الكارت **اكتمل 0 من 7**. تملأ عن الشركة والخدمات والأسعار والأسئلة الشائعة في معرفة الشركة (1 من 7)، وتربط بريد Google Workspace (2 من 7)، وتفعّل صفحة حجزها برابط Google Meet (3 من 7)، وتشحن 20 دولارًا (4 من 7). ثم تنشئ حملة لأصحاب العيادات في القاهرة (5 من 7) وتطلقها (6 من 7). ولم يكن في موقعها بيكسل بعد، فيبقى الكارت مطويًا عند **6 من 7** حتى تثبّته في اليوم التالي ويصل أول حدث مشاهدة صفحة." },
+
+        { h2: "قبل أن تبدأ" },
+        { p: "جهّز هذه الأشياء فتستغرق الخطوات السبع نحو عشرين دقيقة:" },
+        { ul: [
+          "عنوان موقعك، ووصفًا قصيرًا لما تبيعه ولمن وبأي سعر. ويستطيع يولياس قراءة موقعك ليملأ معرفة الشركة عنك.",
+          "البريد الذي تريد أن ترسل منه الحملات، وكلمة مروره أو كلمة مرور التطبيقات إن لم يكن Gmail.",
+          "مكان اجتماعاتك: رابط Google Meet أو Zoom، أو رقم هاتف، أو عنوان مكتب.",
+          "إمكانية الوصول إلى كود موقعك أو مدير الوسوم فيه، للصق البيكسل.",
+          "بطاقة دفع، للشحن من 5 دولارات أو اختيار خطة.",
+        ] },
+
+        { h2: "ماذا يحدث بعد الإطلاق" },
+        { p: "بعد إتمام الخطوة السابعة يتولى يولياس العمل اليومي:" },
+        { ol: [
+          "يجد أشخاص كل جمهور في حدود الميزانية، في كل يوم تعمل فيه الحملة.",
+          "يكتب رسالة أولى مختلفة لكل شخص من معرفة الشركة، ويرسلها من بريدك في ساعات إرسالك، في حدود الحد اليومي للبريد.",
+          "يتابع من لا يرد، ويجيب من يرد.",
+          "عندما يهتم شخص يعرض عليه صفحة حجزك، فيصل الاجتماع إلى **الاجتماعات**، وإلى تقويمك إن كان تقويم Google مرتبطًا.",
+          "ويمكن أن يصلك كل صباح ملخص بالبريد، وتعرض لوحة التحكم النتائج مع تكلفة الاجتماع.",
+        ] },
+
+        { h2: "الوقت الذي تستغرقه كل خطوة" },
+        { table: { head: ["الخطوة", "تستغرق عادةً"], rows: [
+          ["معرفة الشركة", "5 دقائق عندما يقرأ يولياس موقعك، ثم مراجعة سريعة"],
+          ["البريد", "دقيقة لـ Gmail، و3 دقائق لـ IMAP/SMTP بكلمة مرور تطبيقات"],
+          ["صفحة الحجز", "3 دقائق: الساعات ومدة الاجتماع ورابطه"],
+          ["البيكسل", "5 دقائق مع إمكانية الوصول إلى موقعك"],
+          ["الرصيد", "دقيقتان في صفحة الدفع"],
+          ["الحملة", "5 دقائق في المنشئ"],
+          ["الإطلاق", "ضغطة واحدة بعد مراجعة الملخص"],
+        ] } },
+
+        { h2: "أسئلة" },
+        { h3: "هل يجب أن أنفذ الخطوات بالترتيب؟" },
+        { p: "لا. تُفحص كل خطوة وحدها، فنفّذها بأي ترتيب. والترتيب في الكارت هو ببساطة الأسرع لتجهيز حملة." },
+        { h3: "هل أستطيع إطلاق حملة قبل إتمام كل الخطوات؟" },
+        { p: "تحتاج الحملة لإطلاقها إلى بريد متصل ورصيد، وإلى إعداداتها: الهدف والميزانية والجماهير. والبيكسل مطلوب فقط لحملات المبيعات ونماذج الموقع. أما معرفة الشركة وصفحة الحجز فليستا شرطًا، لكن الرسائل والاجتماعات أفضل بهما." },
+        { h3: "هل للقائمة تكلفة؟" },
+        { p: "لا. وحدهم العملاء الذين تجدهم حملة مُطلقة يستخدمون رصيدك." },
+        { h3: "أنهى زميلي خطوة، فهل اكتملت عندي أيضًا؟" },
+        { p: "نعم لخطوات مساحة العمل: معرفة الشركة والبريد والبيكسل والرصيد والحملة والإطلاق. ولا لصفحة الحجز، التي يضبطها كل عضو لنفسه." },
+
+        { h2: "مثال آخر" },
+        { p: "ينضم طارق إلى مساحة عمل شركته بدور معلن بدعوة من المالك الذي أنهى الإعداد بالفعل. فيُفتح كارته على **اكتمل 6 من 7**: معرفة الشركة والبريد والبيكسل والرصيد والحملة والإطلاق مكتملة لمساحة العمل، وتبقى **اضبط صفحة الحجز** وحدها لأنها خاصة به. يضبط ساعاته ورابط Zoom الخاص به، فيصل الكارت إلى **اكتمل 7 من 7** ويختفي. ثم يربط بريده في التكاملات لترسل حملاته من عنوانه لا من عنوان المالك." },
+
+        { h2: "حل المشكلات" },
+        { h3: "معرفة الشركة مكتملة لكنها غير معلّمة" },
+        { p: "تحتاج أربعة حقول إلى إجابة حقيقية أطول من 20 حرفًا لكل منها، والإجابة بكلمة واحدة لا تُحسب. افتح معرفة الشركة وأكمل أربعة من الحقول الثمانية المذكورة أعلاه." },
+        { h3: "خطوة صفحة الحجز غير معلّمة" },
+        { p: "تأكد أن الصفحة مفعّلة وفيها مكان الاجتماع أو رابطه، فحفظ الساعات وحده لا يكفي." },
+        { h3: "خطوة البيكسل غير معلّمة" },
+        { p: "الكود مثبّت لكن لم يصل حدث. افتح صفحة في موقعك فيها الكود، ثم أعد تحميل يولياس. وإن لم تُعلَّم بعدها فراجع النطاقات المسموح بها للبيكسل في مدير الأحداث." },
+        { h3: "اختفى الكارت" },
+        { p: "إما أن كل الخطوات اكتملت، أو أُخفي بعلامة X في هذا المتصفح. ويظهر في متصفح آخر ما دامت هناك خطوات." },
+
+        { h3: "خطوة اشحن رصيدك ما زالت مفتوحة بعد الدفع" },
+        { p: "تُعلَّم الخطوة بعد أن يؤكد مزود الدفع الدفعة، وعادةً يستغرق ذلك ثواني. أعد تحميل الصفحة، وإن بقيت مفتوحة فراجع الفاتورة في **الإعدادات ← الفوترة**." },
+
+        { h2: "مقالات ذات صلة" },
+        { ul: [
+          "[لوحة التحكم](/help-center/dashboard)",
+          "[إنشاء حملة](/help-center/creating-a-campaign)",
+          "[معرفة الشركة](/help-center/company-knowledge)",
+          "[بيكسل يولياس](/help-center/pixel-and-events)",
+        ] },
+      ],
+    },
+  },
+  integrations: {
+    en: {
+      title: "Integrations",
+      summary: "The Integrations page: every tool Yolias works through as a card, what each one does, how to connect, manage or disconnect it, and who in the team can do it.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "Integrations is where Yolias connects to the tools you already use: the mailboxes your campaigns send from, the calendar your meetings go to, and the browser extension that checks your pixel. Open it from **Integrations** in the sidebar. This article explains the page, each integration on it, and what changes in Yolias when you connect one." },
+
+        { h2: "What is on the Integrations page?" },
+        { p: "The page opens with the title **Integrations** and **Connect Yolias to the tools you work with.** Under it:" },
+        { ul: [
+          "**Search** finds an integration by its name or description.",
+          "**All**, **Email**, **Calendar** and **Tracking** filter the cards by kind.",
+          "A card for each integration: its logo, name and one line on what it does, with **Details** and a second button that shows its state.",
+        ] },
+        { table: { head: ["Second button", "Meaning"], rows: [
+          ["**Connect**", "Not connected yet. Press it to start connecting."],
+          ["**(n) connected**", "Connected; the number is how many accounts are connected (for example two Gmail mailboxes). Press it to manage them."],
+          ["**Install**", "An add-on you install in your browser (the Yolias Pixel extension)."],
+          ["**Not available**", "Connecting through Google isn't set up in Yolias at the moment, so the button is off. Your other integrations keep working."],
+        ] } },
+
+        { h2: "The integrations" },
+        { table: { head: ["Integration", "Kind", "What it does"], rows: [
+          ["**Gmail**", "Email", "Sends your campaigns from your Gmail or Google Workspace address and brings every reply into Conversations."],
+          ["**IMAP/SMTP mailbox**", "Email", "The same with any other mailbox: Zoho, Hostinger, Outlook or your company mail, connected with its server settings."],
+          ["**Google Calendar**", "Calendar", "Puts every booked meeting on a calendar Yolias creates in your Google account, sends your guest Google's invitation, and skips your busy times on your booking page."],
+          ["**Yolias Pixel**", "Tracking", "A Chrome extension that shows, on any website, whether a Yolias pixel is installed and every event it sends."],
+        ] } },
+        { p: "The Yolias pixel itself, the code on your website that counts visits and purchases, is managed in **Events Manager**, not here. The extension is the tool that checks it. See [The Yolias pixel](/help-center/pixel-and-events)." },
+
+        { h2: "An integration's page" },
+        { p: "**Details** opens the integration's own page. On the left are screenshots; on the right:" },
+        { ul: [
+          "The logo, the name and a line with its kind, **Published by Yolias** and the version when there is one.",
+          "The main button: **Connect**, **Manage** (for connected mailboxes), **Disconnect** (for a connected Google Calendar), or for the extension **Add from Chrome Web Store** and **Download and install it yourself**.",
+          "**(n) active** when accounts are connected.",
+          "What it does, and three points on what you get.",
+          "**Pricing**: **Free**. Integrations cost nothing; you pay only for leads.",
+          "**Contact**: **How to connect**, a link to the Help Center article for this integration, and support@yolias.com.",
+        ] },
+        { p: "**Integrations** with the back arrow at the top returns to all cards." },
+
+        { h2: "Connect an integration" },
+        { h3: "Gmail" },
+        { ol: [
+          "On the **Gmail** card, press **Connect**.",
+          "Google opens. Choose the account and allow what Yolias asks for.",
+          "You come back to Yolias with the message that the mailbox is connected.",
+        ] },
+        { p: "Full steps and what Yolias can and can't read: [Connecting Gmail](/help-center/connect-gmail)." },
+        { h3: "IMAP/SMTP mailbox" },
+        { ol: [
+          "On the **IMAP/SMTP mailbox** card, press **Connect**.",
+          "Enter the email address, the password or app password and the server details. Yolias fills the usual server names from your domain.",
+          "Press **Check and connect**. Yolias signs in to both servers and confirms the sending address before saving.",
+        ] },
+        { p: "Server names by provider and every error message: [Connecting another mailbox](/help-center/connect-imap-smtp)." },
+        { h3: "Google Calendar" },
+        { ol: [
+          "On the **Google Calendar** card, press **Connect**.",
+          "Choose your Google account and allow the calendar permissions.",
+          "Back in Yolias, the page shows **Google Calendar is connected.** and the account it is connected as.",
+        ] },
+        { p: "What the connection reads and writes: [Connecting Google Calendar](/help-center/google-calendar)." },
+        { h3: "Yolias Pixel extension" },
+        { p: "Open **Details** on the **Yolias Pixel** card. Press **Add from Chrome Web Store** when it is listed there, or **Download and install it yourself** and follow the three steps on the page: download and unzip the file, open chrome://extensions and turn on Developer mode, then choose Load unpacked and select the folder." },
+
+        { h2: "Manage or disconnect" },
+        { ul: [
+          "**Mailboxes:** press **(n) connected** or **Manage**. The page lists your mailboxes with their state, sent today and left today, sending hours, the daily limit during warm-up, and the sending rules. From there you add another mailbox, change a mailbox's sending, reconnect it, or remove it.",
+          "**Google Calendar:** open its page and press **Disconnect**. Yolias deletes its access; the Yolias meetings calendar and its events stay in your Google account.",
+          "**The extension:** remove it from chrome://extensions like any other extension.",
+        ] },
+
+        { h2: "Whose integration is it?" },
+        { p: "Mailboxes and Google Calendar belong to the member who connected them:" },
+        { ul: [
+          "Each member connects their own mailbox. A campaign sends from the mailbox of the member who chose it, and replies arrive in that member's conversations.",
+          "Each member connects their own Google Calendar; meetings booked on their page go to their calendar.",
+          "The Owner or an Admin can't connect a mailbox or calendar for a colleague. Each person does it from their own login.",
+          "A member removed from the team has their mailboxes disconnected and their booking page turned off in that workspace.",
+        ] },
+
+        { h2: "Permissions" },
+        { ul: [
+          "Every member can open Integrations and see the cards.",
+          "Connecting, changing and removing a mailbox, and connecting Google Calendar, needs the Owner, Admin or Advertiser role. Analysts see the page without changing it.",
+          "Workspace sending rules, the defaults every mailbox starts with, can be changed by the Owner and Admins.",
+        ] },
+
+        { h2: "Example" },
+        { p: "A training company has two salespeople. Each opens Integrations from their own login: Hana connects her Google Workspace address with **Gmail**, and Karim, whose company mail is on Hostinger, uses **IMAP/SMTP mailbox**. Both connect **Google Calendar**. Hana's campaigns send from her address and her meetings go to her calendar; Karim's do the same with his. The marketing lead installs the **Yolias Pixel** extension to check that the pixel on the course sign-up page sends **Lead** events." },
+
+        { h2: "Before you connect" },
+        { table: { head: ["Integration", "What you need"], rows: [
+          ["**Gmail**", "A Gmail or Google Workspace address you can sign in to. A Google Workspace admin may need to allow Yolias for the organization."],
+          ["**IMAP/SMTP mailbox**", "The address, its password (or an app password when two-step verification is on), and the incoming and outgoing server names and ports from your provider. IMAP must be allowed on the account."],
+          ["**Google Calendar**", "Your Google account, and a time zone set on your booking page first: the Yolias meetings calendar is created in it."],
+          ["**Yolias Pixel extension**", "Google Chrome on a computer."],
+        ] } },
+
+        { h2: "What changes in Yolias after you connect" },
+        { ul: [
+          "**A mailbox:** the campaign builder lists it under the mailbox to send from, the mailbox starts its warm-up (15 emails a day in the first week, 25 in the second, 40 in the third), and replies to your campaigns start arriving in **Conversations**.",
+          "**Google Calendar:** new bookings appear in your Google account with Google's invitation to the guest, and your booking page and the times Yolias offers in replies skip your busy times.",
+          "**The extension:** a Yolias icon in Chrome's toolbar that you open on any page of your website to see the pixel and its events.",
+        ] },
+
+        { h2: "Mailbox states and sending rules" },
+        { p: "On a mailbox's **Manage** page, each mailbox shows one of three states:" },
+        { table: { head: ["State", "Meaning", "What to do"], rows: [
+          ["**Connected**", "Sending and reading replies", "Nothing."],
+          ["**Needs attention**", "The provider refused Yolias, usually after a password change or removed access. Campaigns using it pause on their next send.", "Reconnect the mailbox."],
+          ["**Disconnected**", "Removed, or its member left the team", "Connect it again, or choose another mailbox for the campaign."],
+        ] } },
+        { p: "Every new mailbox starts with the workspace's sending rules:" },
+        { ul: [
+          "**30 emails a day** per mailbox, up to 50, after the warm-up weeks.",
+          "**18 to 24 minutes** between two emails from the same mailbox, chosen at random within the range.",
+          "**Sending days**: Sunday to Thursday when the workspace is in Egypt, Saudi Arabia, Kuwait, Qatar, Bahrain, Oman, Jordan, Iraq and the other countries whose week runs Sunday to Thursday; Monday to Friday elsewhere.",
+          "**Sending hours**: 09:00 to 18:00 in the mailbox's time zone, or yours when the mailbox has none.",
+        ] },
+        { p: "You can change the days, hours and daily limit for one mailbox with **Edit sending**, and the Owner or an Admin can change the workspace defaults." },
+
+        { h2: "Questions" },
+        { h3: "Can I connect more than one mailbox?" },
+        { p: "Yes. Each member can connect several mailboxes, Gmail and IMAP/SMTP together. Each campaign sends from one of them, and each mailbox has its own daily limit." },
+        { h3: "Does Yolias read all my email?" },
+        { p: "No. Yolias reads replies to the threads its campaigns started, to bring them into Conversations. The details are in [Connecting Gmail](/help-center/connect-gmail)." },
+        { h3: "Do integrations cost anything?" },
+        { p: "No. Every integration is free on every option. You pay only for leads found." },
+
+        { h2: "Another example" },
+        { p: "A real estate broker connected Gmail a month ago, then changed his Google password. The next morning his mailbox shows **Needs attention** and his campaign pauses before its next email. He opens **Integrations → Gmail → Manage**, reconnects the mailbox with the new access, resumes the campaign from the dashboard, and Yolias continues where it stopped, in the same threads." },
+
+        { h2: "Troubleshooting" },
+        { h3: "Connect shows Not available" },
+        { p: "Connecting with Google is off in Yolias at the moment. Use **IMAP/SMTP mailbox** with an app password for a Google address in the meantime, and contact support@yolias.com." },
+        { h3: "I connected Gmail but the card still says Connect" },
+        { p: "Google returned without the permissions Yolias needs, for example when a box was left unticked. Press **Connect** again and allow everything Yolias asks for." },
+        { h3: "A mailbox shows Needs attention" },
+        { p: "The password changed or the access was removed in Google. Open **Manage** and reconnect it." },
+        { h3: "Google Calendar shows a red message" },
+        { p: "Google stopped answering for the account, or Yolias can't see your busy times. The message says which; reconnect and allow all the calendar permissions." },
+
+        { h2: "Related articles" },
+        { ul: [
+          "[Connecting Gmail](/help-center/connect-gmail)",
+          "[Connecting another mailbox (IMAP/SMTP)](/help-center/connect-imap-smtp)",
+          "[Connecting Google Calendar](/help-center/google-calendar)",
+          "[The Yolias pixel](/help-center/pixel-and-events)",
+        ] },
+      ],
+    },
+    ar: {
+      title: "التكاملات",
+      summary: "صفحة التكاملات: كل أداة يعمل بها يولياس في كارت، وما تفعله كل واحدة، وكيف تربطها أو تديرها أو تفصلها، ومن في الفريق يستطيع ذلك.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "التكاملات هي المكان الذي يتصل فيه يولياس بالأدوات التي تستخدمها: صناديق البريد التي ترسل منها حملاتك، والتقويم الذي تصل إليه اجتماعاتك، وإضافة المتصفح التي تفحص البيكسل. افتحها من **التكاملات** في الشريط الجانبي. يشرح هذا المقال الصفحة، وكل تكامل فيها، وما يتغير في يولياس عندما تربط واحدًا منها." },
+
+        { h2: "ماذا في صفحة التكاملات؟" },
+        { p: "تبدأ الصفحة بعنوان **التكاملات** و**اربط يولياس بالأدوات التي تعمل بها.**، وتحته:" },
+        { ul: [
+          "**بحث** يجد التكامل باسمه أو وصفه.",
+          "**الكل** و**البريد** و**التقويم** و**التتبع** تصفّي الكروت حسب النوع.",
+          "كارت لكل تكامل: شعاره واسمه وسطر عما يفعله، مع **التفاصيل** وزر ثانٍ يعرض حالته.",
+        ] },
+        { table: { head: ["الزر الثاني", "معناه"], rows: [
+          ["**اربط**", "غير متصل بعد. اضغطه لتبدأ الربط."],
+          ["**(n) متصل**", "متصل، والرقم عدد الحسابات المتصلة (مثل بريدَي Gmail). اضغطه لإدارتها."],
+          ["**تثبيت**", "إضافة تثبّتها في متصفحك (إضافة يولياس بيكسل)."],
+          ["**غير متاح**", "الربط عبر Google غير مفعّل في يولياس حاليًا، فالزر معطّل. وتستمر تكاملاتك الأخرى في العمل."],
+        ] } },
+
+        { h2: "التكاملات" },
+        { table: { head: ["التكامل", "النوع", "ما يفعله"], rows: [
+          ["**Gmail**", "البريد", "يرسل حملاتك من عنوان Gmail أو Google Workspace الخاص بك، ويجلب كل رد إلى المحادثات."],
+          ["**بريد IMAP/SMTP**", "البريد", "الشيء نفسه مع أي بريد آخر: Zoho أو Hostinger أو Outlook أو بريد شركتك، ويُربط ببيانات خوادمه."],
+          ["**تقويم Google**", "التقويم", "يضع كل اجتماع محجوز في تقويم ينشئه يولياس في حسابك على Google، ويرسل لضيفك دعوة Google، ويتخطى أوقات انشغالك في صفحة الحجز."],
+          ["**يولياس بيكسل**", "التتبع", "إضافة لمتصفح Chrome تعرض على أي موقع هل بيكسل يولياس مثبت، وكل حدث يرسله."],
+        ] } },
+        { p: "أما بيكسل يولياس نفسه، أي الكود الذي في موقعك ويحسب الزيارات والمشتريات، فيُدار من **مدير الأحداث** لا من هنا، والإضافة هي الأداة التي تفحصه. راجع [بيكسل يولياس](/help-center/pixel-and-events)." },
+
+        { h2: "صفحة التكامل" },
+        { p: "يفتح **التفاصيل** صفحة التكامل. على أحد الجانبين صور الشاشة، وعلى الآخر:" },
+        { ul: [
+          "الشعار والاسم وسطر فيه النوع و**من يولياس** والإصدار إن وُجد.",
+          "الزر الرئيسي: **اربط**، أو **إدارة** للبريد المتصل، أو **فصل** لتقويم Google المتصل، أو للإضافة **أضفه من Chrome Web Store** و**حمّله وثبّته بنفسك**.",
+          "**(n) نشط** عندما تكون هناك حسابات متصلة.",
+          "ما يفعله التكامل، وثلاث نقاط عما تحصل عليه.",
+          "**السعر**: **مجاني**. التكاملات لا تكلّف شيئًا، وتدفع مقابل العملاء فقط.",
+          "**التواصل**: **طريقة الربط**، وهو رابط مقال مركز المساعدة الخاص بالتكامل، وsupport@yolias.com.",
+        ] },
+        { p: "ويعيدك **التكاملات** مع سهم الرجوع أعلى الصفحة إلى كل الكروت." },
+
+        { h2: "اربط تكاملًا" },
+        { h3: "Gmail" },
+        { ol: [
+          "في كارت **Gmail** اضغط **اربط**.",
+          "تُفتح Google. اختر الحساب واسمح بما يطلبه يولياس.",
+          "تعود إلى يولياس مع رسالة أن البريد تم ربطه.",
+        ] },
+        { p: "الخطوات كاملة وما يستطيع يولياس قراءته وما لا يستطيع: [ربط Gmail](/help-center/connect-gmail)." },
+        { h3: "بريد IMAP/SMTP" },
+        { ol: [
+          "في كارت **بريد IMAP/SMTP** اضغط **اربط**.",
+          "اكتب عنوان البريد وكلمة المرور أو كلمة مرور التطبيقات وبيانات الخوادم، ويملأ يولياس أسماء الخوادم المعتادة من نطاقك.",
+          "اضغط **تحقق واربط**. يدخل يولياس إلى الخادمين ويتأكد من عنوان الإرسال قبل الحفظ.",
+        ] },
+        { p: "أسماء الخوادم حسب المزود وكل رسالة خطأ: [ربط بريد آخر](/help-center/connect-imap-smtp)." },
+        { h3: "تقويم Google" },
+        { ol: [
+          "في كارت **تقويم Google** اضغط **اربط**.",
+          "اختر حسابك على Google واسمح بأذونات التقويم.",
+          "عند عودتك إلى يولياس تعرض الصفحة **تم ربط تقويم Google.** والحساب المرتبط.",
+        ] },
+        { p: "ما يقرؤه الربط وما يكتبه: [ربط تقويم Google](/help-center/google-calendar)." },
+        { h3: "إضافة يولياس بيكسل" },
+        { p: "افتح **التفاصيل** في كارت **يولياس بيكسل**. واضغط **أضفه من Chrome Web Store** عندما تكون منشورة هناك، أو **حمّله وثبّته بنفسك** واتبع الخطوات الثلاث في الصفحة: حمّل الملف وفك ضغطه، وافتح chrome://extensions وفعّل وضع المطور، ثم اختر Load unpacked وحدد المجلد." },
+
+        { h2: "الإدارة والفصل" },
+        { ul: [
+          "**صناديق البريد:** اضغط **(n) متصل** أو **إدارة**. تعرض الصفحة صناديقك بحالتها وما أُرسل اليوم والمتبقي اليوم وساعات الإرسال والحد اليومي أثناء الإحماء وقواعد الإرسال. ومنها تضيف بريدًا آخر، أو تغيّر إرسال بريد، أو تعيد ربطه، أو تحذفه.",
+          "**تقويم Google:** افتح صفحته واضغط **فصل**. يحذف يولياس وصوله، ويبقى تقويم Yolias meetings وأحداثه في حسابك على Google.",
+          "**الإضافة:** احذفها من chrome://extensions مثل أي إضافة أخرى.",
+        ] },
+
+        { h2: "لمن التكامل؟" },
+        { p: "صناديق البريد وتقويم Google ملك العضو الذي ربطها:" },
+        { ul: [
+          "كل عضو يربط بريده. والحملة ترسل من بريد العضو الذي اختاره، وتصل الردود إلى محادثات ذلك العضو.",
+          "كل عضو يربط تقويم Google الخاص به، وتذهب الاجتماعات المحجوزة من صفحته إلى تقويمه.",
+          "لا يستطيع المالك أو المسؤول ربط بريد أو تقويم لزميل، فكل شخص يفعل ذلك من حسابه.",
+          "العضو الذي يُزال من الفريق تُفصل صناديق بريده وتُغلق صفحة حجزه في مساحة العمل تلك.",
+        ] },
+
+        { h2: "الصلاحيات" },
+        { ul: [
+          "يستطيع كل عضو فتح التكاملات ورؤية الكروت.",
+          "ربط البريد وتعديله وحذفه، وربط تقويم Google، يحتاج دور المالك أو المسؤول أو المعلن. ويرى المحللون الصفحة دون تغييرها.",
+          "قواعد الإرسال لمساحة العمل، أي القيم التي يبدأ بها كل بريد، يغيّرها المالك والمسؤولون.",
+        ] },
+
+        { h2: "مثال" },
+        { p: "شركة تدريب فيها بائعان. كل منهما يفتح التكاملات من حسابه: تربط هناء عنوان Google Workspace الخاص بها عبر **Gmail**، ويستخدم كريم، وبريد شركته على Hostinger، **بريد IMAP/SMTP**. ويربط كلاهما **تقويم Google**. فترسل حملات هناء من عنوانها وتذهب اجتماعاتها إلى تقويمها، وكذلك كريم. ويثبّت مسؤول التسويق إضافة **يولياس بيكسل** ليتأكد أن البيكسل في صفحة التسجيل في الدورات يرسل أحداث **Lead**." },
+
+        { h2: "قبل الربط" },
+        { table: { head: ["التكامل", "ما تحتاجه"], rows: [
+          ["**Gmail**", "عنوان Gmail أو Google Workspace تستطيع الدخول إليه. وقد يحتاج مسؤول Google Workspace إلى السماح بيولياس للمؤسسة."],
+          ["**بريد IMAP/SMTP**", "العنوان وكلمة مروره (أو كلمة مرور التطبيقات عند تفعيل التحقق بخطوتين)، وأسماء خادمي الوارد والصادر ومنافذهما من مزودك. ويجب أن يكون IMAP مسموحًا للحساب."],
+          ["**تقويم Google**", "حسابك على Google، ومنطقة زمنية مضبوطة في صفحة حجزك أولًا، لأن تقويم Yolias meetings يُنشأ بها."],
+          ["**إضافة يولياس بيكسل**", "متصفح Google Chrome على حاسوب."],
+        ] } },
+
+        { h2: "ما الذي يتغير في يولياس بعد الربط" },
+        { ul: [
+          "**البريد:** يظهر في منشئ الحملات ضمن البريد الذي تُرسل منه، ويبدأ الإحماء (15 رسالة يوميًا في الأسبوع الأول، و25 في الثاني، و40 في الثالث)، وتبدأ الردود على حملاتك في الوصول إلى **المحادثات**.",
+          "**تقويم Google:** تظهر الحجوزات الجديدة في حسابك على Google مع دعوة Google للضيف، وتتخطى صفحة حجزك والمواعيد التي يقترحها يولياس في الردود أوقات انشغالك.",
+          "**الإضافة:** أيقونة يولياس في شريط أدوات Chrome، تفتحها في أي صفحة من موقعك لترى البيكسل وأحداثه.",
+        ] },
+
+        { h2: "حالات البريد وقواعد الإرسال" },
+        { p: "في صفحة **إدارة** يعرض كل بريد واحدة من ثلاث حالات:" },
+        { table: { head: ["الحالة", "معناها", "ما تفعله"], rows: [
+          ["**متصل**", "يرسل ويقرأ الردود", "لا شيء."],
+          ["**يحتاج انتباهًا**", "رفض المزود يولياس، غالبًا بعد تغيير كلمة المرور أو إزالة الوصول. وتتوقف الحملات التي تستخدمه عند إرسالها التالي.", "أعد ربط البريد."],
+          ["**غير متصل**", "حُذف، أو غادر صاحبه الفريق", "اربطه من جديد، أو اختر بريدًا آخر للحملة."],
+        ] } },
+        { p: "ويبدأ كل بريد جديد بقواعد الإرسال في مساحة العمل:" },
+        { ul: [
+          "**30 رسالة يوميًا** لكل بريد، حتى 50، بعد أسابيع الإحماء.",
+          "**18 إلى 24 دقيقة** بين رسالتين من البريد نفسه، تُختار عشوائيًا داخل المدى.",
+          "**أيام الإرسال**: من الأحد إلى الخميس عندما تكون مساحة العمل في مصر أو السعودية أو الكويت أو قطر أو البحرين أو عُمان أو الأردن أو العراق وباقي الدول التي يبدأ أسبوعها بالأحد، ومن الاثنين إلى الجمعة في غيرها.",
+          "**ساعات الإرسال**: من 09:00 إلى 18:00 بالمنطقة الزمنية للبريد، أو بمنطقتك إن لم يكن له منطقة.",
+        ] },
+        { p: "وتستطيع تغيير أيام وساعات وحد بريد واحد من **تعديل الإرسال**، ويستطيع المالك أو المسؤول تغيير القيم الافتراضية لمساحة العمل." },
+
+        { h2: "أسئلة" },
+        { h3: "هل أستطيع ربط أكثر من بريد؟" },
+        { p: "نعم. يستطيع كل عضو ربط عدة صناديق بريد، Gmail وIMAP/SMTP معًا. وكل حملة ترسل من واحد منها، ولكل بريد حده اليومي." },
+        { h3: "هل يقرأ يولياس كل بريدي؟" },
+        { p: "لا. يقرأ يولياس الردود على المحادثات التي بدأتها حملاته ليجلبها إلى المحادثات. والتفاصيل في [ربط Gmail](/help-center/connect-gmail)." },
+        { h3: "هل للتكاملات تكلفة؟" },
+        { p: "لا. كل التكاملات مجانية في كل الخيارات، وتدفع مقابل العملاء المكتشفين فقط." },
+
+        { h2: "مثال آخر" },
+        { p: "ربط وسيط عقاري Gmail قبل شهر، ثم غيّر كلمة مرور حسابه على Google. وفي الصباح التالي يظهر بريده **يحتاج انتباهًا** وتتوقف حملته قبل رسالتها التالية. فيفتح **التكاملات ← Gmail ← إدارة**، ويعيد ربط البريد بالوصول الجديد، ويستأنف الحملة من لوحة التحكم، فيكمل يولياس من حيث توقف وفي المحادثات نفسها." },
+
+        { h2: "حل المشكلات" },
+        { h3: "يظهر غير متاح بدل اربط" },
+        { p: "الربط عبر Google متوقف في يولياس حاليًا. استخدم **بريد IMAP/SMTP** بكلمة مرور تطبيقات لعنوان Google في هذه الأثناء، وتواصل مع support@yolias.com." },
+        { h3: "ربطت Gmail لكن الكارت ما زال يقول اربط" },
+        { p: "عادت Google دون الأذونات التي يحتاجها يولياس، مثلًا إذا تُرك مربع دون علامة. اضغط **اربط** مرة أخرى واسمح بكل ما يطلبه يولياس." },
+        { h3: "بريد بحالة يحتاج انتباهًا" },
+        { p: "تغيرت كلمة المرور أو أُزيل الوصول من Google. افتح **إدارة** وأعد ربطه." },
+        { h3: "يظهر في تقويم Google رسالة حمراء" },
+        { p: "توقفت Google عن الاستجابة لهذا الحساب، أو لا يرى يولياس أوقات انشغالك. والرسالة توضح أيهما، فأعد الربط واسمح بكل أذونات التقويم." },
+
+        { h2: "مقالات ذات صلة" },
+        { ul: [
+          "[ربط Gmail](/help-center/connect-gmail)",
+          "[ربط بريد آخر (IMAP/SMTP)](/help-center/connect-imap-smtp)",
+          "[ربط تقويم Google](/help-center/google-calendar)",
+          "[بيكسل يولياس](/help-center/pixel-and-events)",
+        ] },
+      ],
+    },
+  },
+  notifications: {
+    en: {
+      title: "Notifications",
+      summary: "How Yolias tells you what happened: the bell inside Yolias, the emails it sends, the eight email switches in Settings, and the messages you always receive.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "Yolias works while you are away: it finds people, sends emails, reads replies and books meetings. Notifications are how it tells you what happened and what needs you. They come two ways: the **bell** inside Yolias, and **emails** to the address you sign in with. This article explains both, every email switch in Settings, and the messages that can't be turned off." },
+
+        { h2: "The bell" },
+        { p: "The bell is at the top of the sidebar, next to the Yolias logo. A red number on it counts your unread notifications (99+ above 99). Press it to open the panel." },
+        { ul: [
+          "**Notifications** at the top, with **Mark all as read** while something is unread.",
+          "Four tabs: **Ads** for your campaigns and searches, **All**, **Messages** for replies and meetings, and **System** for your account, billing and security.",
+          "The **Unread** switch shows only what you haven't opened.",
+          "The list: your latest 60 notifications, newest first. An unread one has a dot. Each shows its title, sometimes a second line, and how long ago it arrived.",
+        ] },
+        { p: "Click a notification to mark it read and open what it is about: the campaign, the conversation, the meeting or the setting. **You're all caught up.** means there is nothing in that tab." },
+        { p: "The bell panel is in English. The notifications are yours alone: teammates have their own bell, even in the same workspace." },
+
+        { h2: "Emails" },
+        { p: "Yolias emails the address you sign in with, in the language you use Yolias in (Settings → General). Most emails can be switched off; some can't, because they protect your account or your money." },
+        { h3: "The email switches" },
+        { p: "Open your name at the bottom of the sidebar, then **Settings → Notifications**. The page starts with **Choose which emails Yolias sends to (your email).** and lists eight switches. All are on for a new account." },
+        { table: { head: ["Switch", "What it sends"], rows: [
+          ["**Leads ready for your review**", "Once a day, when Yolias found new people for your campaigns: who they are, before it writes to them."],
+          ["**Daily recap of changes to your campaigns**", "Once a day, when something changed: a campaign started, paused, ended, or an audience was added."],
+          ["**Daily summary of all your campaigns**", "Each morning, when your campaigns did something: emails sent, replies, meetings and spend."],
+          ["**Product updates and new features**", "New features and tips, about once a month."],
+          ["**Personal emails from our founder**", "A few notes written by Yolias's founder. Reply and they read it."],
+          ["**Replies and meetings**", "Every morning: new replies, today's meetings and quiet conversations. A reminder an hour before each meeting, and a request to record how each meeting went."],
+          ["**Usage alerts**", "When you've used 80% and 100% of the month's leads, and when leads are added to your account."],
+          ["**Billing and receipts**", "Receipts, invoices, renewals, refunds and changes to your plan."],
+        ] } },
+        { p: "A switch saves as soon as you change it; there is no Save button. A message under the switches tells you if a change couldn't be saved." },
+        { h3: "Emails you always receive" },
+        { ul: [
+          "**Security:** a new sign-in from a device you haven't used, a suspicious sign-in, and changes to your email, sign-in or two-step verification.",
+          "**Payments that need you:** a failed payment, an overdue invoice, a card that needs attention, a paused or restored plan.",
+          "**Meetings on your booking page:** a new booking and a cancellation, with the guest's name and time.",
+          "**Account:** the welcome email, a team invitation, messages the Yolias team writes to your account, the confirmation after deleting your account, and updates from the affiliate program if you are in it.",
+        ] },
+        { p: "Your guests also receive emails from Yolias: the confirmation of their booking, reminders a day and an hour before, and a message if the meeting is canceled. These go to the guest, in the language they booked in, not to you. See [Meetings and your booking page](/help-center/deals-and-meetings)." },
+
+        { h2: "Turn an email off" },
+        { ol: [
+          "Open your name at the bottom of the sidebar, then **Settings**.",
+          "Choose **Notifications**.",
+          "Turn off the switch for the email you don't want.",
+        ] },
+        { p: "**How to know it worked:** the switch stays off when you open the page again. The next email of that kind isn't sent; one already on its way may still arrive." },
+
+        { h2: "Which settings belong to whom?" },
+        { ul: [
+          "The switches are personal: each member chooses their own emails, and changing yours doesn't change a teammate's.",
+          "Every member can change their switches, including Analysts.",
+          "Billing emails go to the Owner and Admins, the roles that pay and manage billing.",
+        ] },
+
+        { h2: "Examples" },
+        { p: "Laila runs campaigns for a dental clinic group. She keeps **Replies and meetings** on, so every morning she sees the new replies and the day's meetings, and gets a reminder an hour before each one. She turns off **Daily summary of all your campaigns** because she reads the dashboard instead." },
+        { p: "Ahmed is the accountant, added as an Analyst. He turns off everything except **Billing and receipts** and **Usage alerts**, so he hears about money and leads, not replies." },
+
+        { h2: "What the main emails contain" },
+        { table: { head: ["Email", "Subject", "Inside"], rows: [
+          ["Leads ready for your review", "(n) new people found for your campaigns", "The people Yolias found in the last day, by campaign, with **See who they are**. Yolias writes to them in the campaign's hours; you can look first."],
+          ["Daily summary", "Yesterday: (n) sent, (n) replies, (n) meetings", "All campaigns together, then one line per campaign with sent, replies, meetings and spend, and **Open the dashboard**."],
+          ["Daily recap of changes", "What changed in your campaigns (n)", "Each change of the last day: a campaign started, paused or ended, an audience added. Sent only when something changed."],
+          ["Morning email (Replies and meetings)", "Today: (n) new replies, (n) meetings today", "New replies, today's meetings with their times, open tasks, and conversations that went quiet with how many days."],
+          ["Meeting reminder", "Meeting with (lead) at (time)", "Sent within the hour before: who, when, the meeting link, and a short brief from the conversation."],
+          ["Meeting outcome", "How did the meeting with (lead) go?", "A button to record the outcome in Meetings, which teaches Yolias which companies to find next."],
+        ] } },
+
+        { h2: "Which tab does a notification go to?" },
+        { table: { head: ["Tab", "What lands there"], rows: [
+          ["**Ads**", "Campaigns and searches: people found, leads ready for review, campaign changes and summaries."],
+          ["**Messages**", "Replies in Conversations and meetings."],
+          ["**System**", "Everything else: billing, usage, security, your team and your account."],
+          ["**All**", "Every notification, newest first."],
+        ] } },
+
+        { h2: "Suggested settings by role" },
+        { table: { head: ["Role", "Keep on", "Turn off if you like"], rows: [
+          ["Owner", "Billing and receipts, Usage alerts, Daily summary", "Leads ready for your review, if an Advertiser reviews them"],
+          ["Admin", "Billing and receipts, Usage alerts, Daily recap of changes", "Personal emails from our founder"],
+          ["Advertiser", "Replies and meetings, Leads ready for your review", "Billing and receipts, which an Advertiser can't act on"],
+          ["Analyst", "Daily summary, Usage alerts", "Replies and meetings"],
+        ] } },
+        { p: "Whatever you choose, the bell keeps every notification, so nothing is lost by turning an email off." },
+
+        { h2: "Notices that also appear in the bell" },
+        { p: "Some emails also leave a notice in the bell, so you see them inside Yolias: plan and billing changes, receipts and invoices, failed payments, usage alerts and leads added, discoveries ready, product announcements, and security notices such as a new sign-in. Replies, meetings, team invitations and your campaigns' daily emails have their own notices." },
+
+        { h2: "Questions" },
+        { h3: "Can I get notifications on my phone?" },
+        { p: "The emails reach your phone through your mail app. Yolias has no separate phone app; open yolias.com in your phone's browser to see the bell." },
+        { h3: "Do my teammates get my notifications?" },
+        { p: "No. Each member has their own bell and their own email switches. Replies arrive to the member whose mailbox the conversation is on." },
+        { h3: "How long are notifications kept?" },
+        { p: "The bell shows your latest 60. Older ones aren't shown, but the things they point to, campaigns, conversations and meetings, stay in Yolias." },
+
+        { h2: "Another example" },
+        { p: "Rami runs Yolias alone for his software company. He keeps every email on for the first two weeks to learn what Yolias does. Once the campaigns run steadily, he turns off **Daily recap of changes to your campaigns** and **Leads ready for your review**, and keeps **Replies and meetings**, **Usage alerts** and **Billing and receipts**. When his balance reaches 80% of the month's leads he gets the usage alert by email and in the bell, tops up from **Settings → Usage**, and his campaigns keep finding people without a gap." },
+
+        { h3: "Does turning an email off stop the work it reports?" },
+        { p: "No. The switches decide only which emails you receive. Your campaigns keep finding people, sending, answering and booking meetings whatever you choose here." },
+
+        { h2: "Troubleshooting" },
+        { h3: "I don't receive any emails" },
+        { p: "Check your spam or promotions folder, and add the Yolias sending address to your contacts. Check the switches in **Settings → Notifications**. Security and payment emails are always sent, so if even those are missing, the address may be wrong: see **Settings → Account**." },
+        { h3: "The bell shows a number but the list is empty" },
+        { p: "A tab or the **Unread** switch is filtering the list. Choose **All** and turn **Unread** off." },
+        { h3: "The emails are in the wrong language" },
+        { p: "Emails follow the language in **Settings → General**. Change it there. See [Arabic and English](/help-center/switching-language)." },
+        { h3: "I turned an email off but got one more" },
+        { p: "It was already on its way when you changed the switch. The next one isn't sent." },
+
+        { h3: "The meeting reminder didn't arrive" },
+        { p: "Reminders are sent for meetings booked in Yolias, within the hour before they start, when **Replies and meetings** is on. A meeting you added only in your own calendar has no reminder from Yolias." },
+        { h3: "Can I delete a notification?" },
+        { p: "No. You can mark one or all as read; read notifications stay in the list until newer ones push them past the latest 60." },
+
+        { h2: "Related articles" },
+        { ul: [
+          "[Your account settings](/help-center/account-settings)",
+          "[Conversations](/help-center/conversations)",
+          "[Meetings and your booking page](/help-center/deals-and-meetings)",
+          "[Arabic and English](/help-center/switching-language)",
+        ] },
+      ],
+    },
+    ar: {
+      title: "الإشعارات",
+      summary: "كيف يخبرك يولياس بما حدث: الجرس داخل يولياس، والرسائل التي يرسلها إلى بريدك، ومفاتيح البريد الثمانية في الإعدادات، والرسائل التي تصلك دائمًا.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "يعمل يولياس وأنت بعيد: يجد الأشخاص، ويرسل الرسائل، ويقرأ الردود، ويحجز الاجتماعات. والإشعارات هي طريقته في إخبارك بما حدث وبما يحتاجك. وتصلك بطريقتين: **الجرس** داخل يولياس، و**رسائل البريد** إلى العنوان الذي تسجّل به الدخول. يشرح هذا المقال الطريقتين، وكل مفتاح بريد في الإعدادات، والرسائل التي لا يمكن إيقافها." },
+
+        { h2: "الجرس" },
+        { p: "الجرس أعلى الشريط الجانبي بجانب شعار يولياس، وعليه رقم أحمر بعدد إشعاراتك غير المقروءة (و99+ فوق 99). اضغطه لتفتح اللوحة." },
+        { ul: [
+          "**Notifications** في الأعلى، ومعه **Mark all as read** ما دام هناك غير مقروء.",
+          "أربعة تبويبات: **Ads** لحملاتك وعمليات البحث، و**All**، و**Messages** للردود والاجتماعات، و**System** لحسابك والفوترة والأمان.",
+          "مفتاح **Unread** يعرض ما لم تفتحه فقط.",
+          "القائمة: آخر 60 إشعارًا لك، الأحدث أولًا. وغير المقروء عليه نقطة، ولكل إشعار عنوان، وأحيانًا سطر ثانٍ، ومتى وصل.",
+        ] },
+        { p: "اضغط الإشعار ليُعلَّم مقروءًا ويفتح ما يخصه: الحملة أو المحادثة أو الاجتماع أو الإعداد. و**You're all caught up.** تعني أنه لا شيء في هذا التبويب." },
+        { p: "لوحة الجرس بالإنجليزية. والإشعارات لك وحدك، فلكل زميل جرسه حتى في مساحة العمل نفسها." },
+
+        { h2: "رسائل البريد" },
+        { p: "يرسل يولياس إلى العنوان الذي تسجّل به الدخول، باللغة التي تستخدم بها يولياس (الإعدادات ← عام). ويمكن إيقاف معظم الرسائل، وبعضها لا يُوقف لأنه يحمي حسابك أو مالك." },
+        { h3: "مفاتيح البريد" },
+        { p: "افتح اسمك أسفل الشريط الجانبي، ثم **الإعدادات ← الإشعارات**. تبدأ الصفحة بـ **اختر رسائل البريد التي يرسلها يولياس إلى (بريدك).** وتعرض ثمانية مفاتيح، كلها مفعّلة للحساب الجديد." },
+        { table: { head: ["المفتاح", "ما يرسله"], rows: [
+          ["**أشخاص جاهزون لمراجعتك**", "مرة يوميًا عندما يجد يولياس أشخاصًا جددًا لحملاتك: من هم، قبل أن يكتب إليهم."],
+          ["**ملخص يومي لتغييرات حملاتك**", "مرة يوميًا عندما يتغير شيء: بدأت حملة أو توقفت أو انتهت، أو أُضيف جمهور."],
+          ["**ملخص يومي لكل حملاتك**", "كل صباح عندما تعمل حملاتك: الرسائل المرسلة والردود والاجتماعات والإنفاق."],
+          ["**تحديثات المنتج والميزات الجديدة**", "ميزات جديدة ونصائح، مرة تقريبًا كل شهر."],
+          ["**رسائل شخصية من مؤسسنا**", "رسائل قليلة يكتبها مؤسس يولياس بنفسه. رد عليها وسيقرؤها."],
+          ["**الردود والاجتماعات**", "كل صباح: الردود الجديدة واجتماعات اليوم والمحادثات المتوقفة. وتذكير قبل كل اجتماع بساعة، وطلب تسجيل ما انتهى إليه كل اجتماع."],
+          ["**تنبيهات الاستخدام**", "عند استخدام 80% و100% من عملاء الشهر، وعند إضافة عملاء إلى حسابك."],
+          ["**الفوترة والإيصالات**", "الإيصالات والفواتير والتجديدات والاستردادات والتغييرات على خطتك."],
+        ] } },
+        { p: "يُحفظ المفتاح بمجرد تغييره، فلا يوجد زر حفظ. وتظهر رسالة تحت المفاتيح إذا تعذّر حفظ تغيير." },
+        { h3: "رسائل تصلك دائمًا" },
+        { ul: [
+          "**الأمان:** تسجيل دخول جديد من جهاز لم تستخدمه، وتسجيل دخول مريب، والتغييرات على بريدك أو تسجيل الدخول أو التحقق بخطوتين.",
+          "**مدفوعات تحتاجك:** دفعة فشلت، أو فاتورة متأخرة، أو بطاقة تحتاج انتباهًا، أو خطة أُوقفت أو أُعيدت.",
+          "**الاجتماعات في صفحة حجزك:** حجز جديد وإلغاء، مع اسم الضيف والموعد.",
+          "**الحساب:** رسالة الترحيب، ودعوة إلى فريق، والرسائل التي يكتبها فريق يولياس إلى حسابك، وتأكيد حذف حسابك، وتحديثات برنامج الأفلييت إن كنت فيه.",
+        ] },
+        { p: "ويستلم ضيوفك أيضًا رسائل من يولياس: تأكيد حجزهم، وتذكيرًا قبل الاجتماع بيوم وبساعة، ورسالة إذا أُلغي الاجتماع. وهذه تصل إلى الضيف باللغة التي حجز بها لا إليك. راجع [الاجتماعات وصفحة الحجز](/help-center/deals-and-meetings)." },
+
+        { h2: "أوقف رسالة" },
+        { ol: [
+          "افتح اسمك أسفل الشريط الجانبي، ثم **الإعدادات**.",
+          "اختر **الإشعارات**.",
+          "أوقف مفتاح الرسالة التي لا تريدها.",
+        ] },
+        { p: "**كيف تعرف أن الإيقاف تم:** يبقى المفتاح متوقفًا عندما تفتح الصفحة مرة أخرى، ولا تُرسل الرسالة التالية من هذا النوع. وقد تصل رسالة كانت في طريقها بالفعل." },
+
+        { h2: "لمن هذه الإعدادات؟" },
+        { ul: [
+          "المفاتيح شخصية: كل عضو يختار رسائله، وتغيير مفاتيحك لا يغيّر مفاتيح زميلك.",
+          "يستطيع كل عضو تغيير مفاتيحه، ومنهم المحللون.",
+          "رسائل الفوترة تصل إلى المالك والمسؤولين، وهما الدوران اللذان يدفعان ويديران الفوترة.",
+        ] },
+
+        { h2: "أمثلة" },
+        { p: "تدير ليلى حملات مجموعة عيادات أسنان. تُبقي **الردود والاجتماعات** مفعّلًا، فترى كل صباح الردود الجديدة واجتماعات اليوم، ويصلها تذكير قبل كل اجتماع بساعة. وتوقف **ملخص يومي لكل حملاتك** لأنها تقرأ لوحة التحكم بدلًا منه." },
+        { p: "أحمد المحاسب، وأُضيف بدور محلل. يوقف كل شيء ما عدا **الفوترة والإيصالات** و**تنبيهات الاستخدام**، فيعرف ما يخص المال والعملاء لا الردود." },
+
+        { h2: "ما في الرسائل الرئيسية" },
+        { table: { head: ["الرسالة", "العنوان", "المحتوى"], rows: [
+          ["أشخاص جاهزون لمراجعتك", "(n) شخص جديد لحملاتك", "الأشخاص الذين وجدهم يولياس في آخر يوم حسب الحملة، مع زر لرؤيتهم. يكتب إليهم يولياس في ساعات الحملة، وتستطيع رؤيتهم أولًا."],
+          ["الملخص اليومي", "أمس: (n) مرسلة، (n) ردود، (n) اجتماعات", "كل الحملات معًا، ثم سطر لكل حملة بالمرسل والردود والاجتماعات والإنفاق، وزر لفتح لوحة التحكم."],
+          ["ملخص التغييرات اليومي", "ما تغيّر في حملاتك (n)", "كل تغيير في آخر يوم: بدأت حملة أو توقفت أو انتهت، أو أُضيف جمهور. ولا يُرسل إلا عند حدوث تغيير."],
+          ["رسالة الصباح (الردود والاجتماعات)", "اليوم: (n) رد جديد، (n) اجتماع اليوم", "الردود الجديدة، واجتماعات اليوم بمواعيدها، والمهام المفتوحة، والمحادثات المتوقفة مع عدد أيامها."],
+          ["تذكير الاجتماع", "اجتماع مع (العميل) في (الوقت)", "يُرسل خلال الساعة السابقة: مع من، ومتى، ورابط الاجتماع، وملخص قصير من المحادثة."],
+          ["نتيجة الاجتماع", "كيف كان الاجتماع مع (العميل)؟", "زر لتسجيل النتيجة في الاجتماعات، فيتعلم يولياس أي الشركات يجد بعد ذلك."],
+        ] } },
+
+        { h2: "إلى أي تبويب يذهب الإشعار؟" },
+        { table: { head: ["التبويب", "ما يصل إليه"], rows: [
+          ["**Ads**", "الحملات وعمليات البحث: الأشخاص المكتشفون، والأشخاص الجاهزون للمراجعة، وتغييرات الحملات وملخصاتها."],
+          ["**Messages**", "الردود في المحادثات والاجتماعات."],
+          ["**System**", "كل ما عدا ذلك: الفوترة والاستخدام والأمان وفريقك وحسابك."],
+          ["**All**", "كل الإشعارات، الأحدث أولًا."],
+        ] } },
+
+        { h2: "إعدادات مقترحة حسب الدور" },
+        { table: { head: ["الدور", "اتركها مفعّلة", "أوقفها إن أردت"], rows: [
+          ["المالك", "الفوترة والإيصالات، وتنبيهات الاستخدام، والملخص اليومي", "أشخاص جاهزون لمراجعتك، إن كان معلن يراجعهم"],
+          ["المسؤول", "الفوترة والإيصالات، وتنبيهات الاستخدام، وملخص التغييرات اليومي", "رسائل شخصية من مؤسسنا"],
+          ["المعلن", "الردود والاجتماعات، وأشخاص جاهزون لمراجعتك", "الفوترة والإيصالات، لأن المعلن لا يتصرف فيها"],
+          ["المحلل", "الملخص اليومي، وتنبيهات الاستخدام", "الردود والاجتماعات"],
+        ] } },
+        { p: "ومهما اخترت يحتفظ الجرس بكل إشعار، فلا يضيع شيء بإيقاف رسالة بريد." },
+
+        { h2: "إشعارات تظهر في الجرس أيضًا" },
+        { p: "تترك بعض الرسائل إشعارًا في الجرس أيضًا لتراها داخل يولياس: تغييرات الخطة والفوترة، والإيصالات والفواتير، والمدفوعات الفاشلة، وتنبيهات الاستخدام وإضافة العملاء، واكتمال الاكتشاف، وإعلانات المنتج، وإشعارات الأمان مثل تسجيل دخول جديد. وللردود والاجتماعات ودعوات الفريق والرسائل اليومية لحملاتك إشعاراتها الخاصة." },
+
+        { h2: "أسئلة" },
+        { h3: "هل تصلني الإشعارات على هاتفي؟" },
+        { p: "تصل الرسائل إلى هاتفك عبر تطبيق البريد. وليس ليولياس تطبيق هاتف منفصل، فافتح yolias.com في متصفح هاتفك لترى الجرس." },
+        { h3: "هل تصل إشعاراتي إلى زملائي؟" },
+        { p: "لا. لكل عضو جرسه ومفاتيح بريده. وتصل الردود إلى العضو الذي تجري المحادثة على بريده." },
+        { h3: "كم تبقى الإشعارات؟" },
+        { p: "يعرض الجرس آخر 60 إشعارًا. ولا يظهر الأقدم منها، لكن ما تشير إليه من حملات ومحادثات واجتماعات يبقى في يولياس." },
+
+        { h2: "مثال آخر" },
+        { p: "يدير رامي يولياس وحده لشركة البرمجيات الخاصة به. يُبقي كل الرسائل مفعّلة في الأسبوعين الأولين ليتعرف على ما يفعله يولياس. وبعد أن تستقر الحملات يوقف **ملخص يومي لتغييرات حملاتك** و**أشخاص جاهزون لمراجعتك**، ويُبقي **الردود والاجتماعات** و**تنبيهات الاستخدام** و**الفوترة والإيصالات**. وعندما يصل استخدامه إلى 80% من عملاء الشهر يصله تنبيه الاستخدام بالبريد وفي الجرس، فيشحن من **الإعدادات ← الاستخدام**، وتستمر حملاته في إيجاد الأشخاص دون انقطاع." },
+
+        { h3: "هل يوقف إيقاف الرسالة العمل الذي تُبلغ عنه؟" },
+        { p: "لا. المفاتيح تحدد فقط الرسائل التي تصلك، وتستمر حملاتك في إيجاد الأشخاص والإرسال والرد وحجز الاجتماعات مهما اخترت هنا." },
+
+        { h2: "حل المشكلات" },
+        { h3: "لا تصلني أي رسالة" },
+        { p: "راجع مجلد الرسائل غير المرغوب فيها أو العروض، وأضف عنوان إرسال يولياس إلى جهات اتصالك. وراجع المفاتيح في **الإعدادات ← الإشعارات**. ورسائل الأمان والمدفوعات تُرسل دائمًا، فإذا لم تصلك حتى هذه فقد يكون العنوان خطأ: راجع **الإعدادات ← الحساب**." },
+        { h3: "الجرس عليه رقم لكن القائمة فارغة" },
+        { p: "تبويب أو مفتاح **Unread** يصفّي القائمة. اختر **All** وأوقف **Unread**." },
+        { h3: "الرسائل بلغة خاطئة" },
+        { p: "تتبع الرسائل اللغة في **الإعدادات ← عام**، فغيّرها من هناك. راجع [العربية والإنجليزية](/help-center/switching-language)." },
+        { h3: "أوقفت رسالة لكن وصلتني واحدة أخرى" },
+        { p: "كانت في طريقها بالفعل عندما غيّرت المفتاح، والرسالة التالية لا تُرسل." },
+
+        { h3: "لم يصل تذكير الاجتماع" },
+        { p: "تُرسل التذكيرات للاجتماعات المحجوزة في يولياس، خلال الساعة السابقة لبدايتها، عندما يكون **الردود والاجتماعات** مفعّلًا. والاجتماع الذي أضفته في تقويمك وحده لا يصله تذكير من يولياس." },
+        { h3: "هل أستطيع حذف إشعار؟" },
+        { p: "لا. تستطيع تعليم إشعار أو كل الإشعارات مقروءة، وتبقى المقروءة في القائمة حتى تدفعها الأحدث خارج آخر 60." },
+
+        { h2: "مقالات ذات صلة" },
+        { ul: [
+          "[إعدادات حسابك](/help-center/account-settings)",
+          "[المحادثات](/help-center/conversations)",
+          "[الاجتماعات وصفحة الحجز](/help-center/deals-and-meetings)",
+          "[العربية والإنجليزية](/help-center/switching-language)",
+        ] },
+      ],
+    },
+  },
+  "account-settings": {
+    en: {
+      title: "Your account settings",
+      summary: "Where Settings is and what each tab holds, then every option in General and Account: theme, text size, language, time zone, photo, name, phone, email, two-factor authentication and your signed-in devices.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "Settings holds what belongs to you as a person: how Yolias looks, the language it speaks to you in, your time zone, your profile and the security of your sign-in. It also gathers your notifications, usage, billing, team and referral link. This article explains how to open Settings, then every option on the **General** and **Account** tabs. The other tabs have their own articles, linked below." },
+
+        { h2: "Open Settings" },
+        { ol: [
+          "At the bottom of the sidebar, click your name.",
+          "In the menu, choose **Settings**.",
+        ] },
+        { p: "Settings opens over the page you were on. On the left is the list of tabs and **Search settings**, which finds an option by name (type time zone, phone or theme, for example). Close Settings with the X at the top and you are back where you were." },
+        { table: { head: ["Tab", "What it holds", "Article"], rows: [
+          ["**General**", "Theme, text size, language, time zone, account country", "This article"],
+          ["**Account**", "Photo, name, phone, email, two-factor authentication, devices, deleting the account", "This article"],
+          ["**Notifications**", "Which emails Yolias sends you", "[Notifications](/help-center/notifications)"],
+          ["**Usage**", "Your balance, leads used and top-ups", "[Pay As You Go or a monthly plan](/help-center/choosing-a-plan)"],
+          ["**Billing**", "Plan, saved card and invoices (Owner and Admins)", "[Changing or canceling your plan](/help-center/changing-plan)"],
+          ["**Team**", "People in the workspace and their roles", "[Adding people](/help-center/inviting-teammates)"],
+          ["**Referral**", "Your invite link and the credit it earned", "In Settings → Referral"],
+        ] } },
+
+        { h2: "General" },
+        { p: "Every option on this tab saves the moment you change it. There is no Save button, and a message appears under the options only if a change couldn't be saved." },
+        { table: { head: ["Option", "Choices", "What it changes"], rows: [
+          ["**Theme**", "Light, Dark", "The colors of Yolias on this screen, at once."],
+          ["**Text size**", "Compact, Normal, Large", "The size of text across Yolias."],
+          ["**Languages**", "English, العربية", "The language of the interface and the language Yolias AI writes to you in. Arabic also turns the layout right to left."],
+          ["**Time zone**", "A list of time zones", "Every date and time Yolias shows you: campaigns, conversations, meetings, the dashboard."],
+          ["**Account country**", "A list of countries", "The country your account was registered from. Yolias AI doesn't use it for searches."],
+        ] } },
+        { p: "The interface language doesn't decide the language of your campaign emails: each campaign has its own language, and each lead is written to in the language that suits them. See [Arabic and English](/help-center/switching-language)." },
+        { p: "Your time zone also matters for sending: a mailbox without its own sending time zone sends in yours, and your booking page offers times in the zone you set on it." },
+
+        { h2: "Account" },
+        { h3: "Avatar" },
+        { p: "Your photo appears next to your name at the bottom of the sidebar and in the team list. Press **Change** and choose a PNG, JPEG or WebP image up to 10 MB. The button reads **Uploading…** until it is saved. Without a photo, Yolias shows your initials." },
+        { h3: "Full Name" },
+        { p: "The name your teammates see. It is also the sender name of your campaign emails when neither the campaign nor the mailbox sets one. Type it and press Enter, or click elsewhere: it saves when you leave the field." },
+        { h3: "Phone number" },
+        { p: "Choose the country code, then type your number without it. It saves when you leave the field, with **Phone number saved** to confirm. A number that isn't valid for the chosen country isn't saved, and the field says so." },
+        { h3: "Email" },
+        { p: "The address you sign in with, marked **Verified** once confirmed. To change it:" },
+        { ol: [
+          "Press **Change** next to your email.",
+          "Type the **New email address** and press **Send confirmation**.",
+          "Open both inboxes: confirm the change from your current address and from the new one.",
+        ] },
+        { p: "**How to know it worked:** after both confirmations, you sign in with the new address and Settings shows it. Your current address gets a notice that the email was changed. Until both are confirmed, the old address keeps working. **Cancel** closes the form without changing anything." },
+        { h3: "Two-Factor Authentication" },
+        { p: "Two-factor authentication adds a 6-digit code from an authenticator app to every sign-in, after the email link. Press **Turn on**, scan the QR code with Google Authenticator, 1Password, Authy or a similar app (or enter the key shown under it), type the 6-digit code and press **Verify and turn on**. It then shows **On**, with **Turn off** beside it. Full steps and what to do if you lose your phone: [Signing in](/help-center/signing-in)." },
+        { h3: "Devices & Active Sessions" },
+        { p: "Shows the browser you are using now, marked **(Current Session)** and **Active Now**. **Log out of all devices** signs you out everywhere at once, including this browser. Use it after signing in on a shared or lost computer; you then sign in again with your email. Other browsers you signed in from aren't listed one by one: the button covers all of them." },
+        { h3: "Delete account" },
+        { p: "At the bottom, **Delete account** permanently removes your profile and, if you are the only person in the workspace, the workspace and its data. You confirm it in a dialog; it can't be undone. Read [Deleting your account](/help-center/deleting-account) first." },
+
+        { h2: "What is personal and what is shared?" },
+        { ul: [
+          "Personal, for you alone: everything on General and Account, your notifications, your mailboxes, your calendar and your booking page.",
+          "Shared by the whole workspace: Company Knowledge, campaigns, audiences, leads, conversations, the balance, the plan and the team.",
+          "Changing your language, theme or time zone never changes a teammate's.",
+        ] },
+
+        { h2: "Examples" },
+        { p: "Khaled works from Dubai for a company registered in Egypt. He sets **Time zone** to Dubai, so his meetings and conversations show Dubai times; his **Account country** stays Egypt. He sets **Languages** to العربية and Yolias turns right to left, while his English campaign keeps writing to its leads in English." },
+        { p: "Mona signed in on a client's laptop and forgot to sign out. From her own computer she opens **Settings → Account** and presses **Log out of all devices**, then signs in again on her computer." },
+
+        { h2: "Before you change your email" },
+        { ul: [
+          "Make sure you can open the new inbox: the change waits for a confirmation from it.",
+          "Your mailboxes connected in Integrations don't change. Changing the address you sign in with doesn't change the address your campaigns send from.",
+          "If two-factor authentication is on, it stays on with the same authenticator app.",
+        ] },
+
+        { h2: "Keep your account secure" },
+        { ul: [
+          "Turn on two-factor authentication, especially for the Owner and Admins, who manage billing and the team.",
+          "Sign in only from the link Yolias emails you. Yolias never asks for a password, and never sends a sign-in link you didn't request.",
+          "When an email says **New sign-in** from a device you don't recognize, open **Settings → Account** and press **Log out of all devices**.",
+          "Use a work address you control. If you leave the company, ask the Owner to remove you, or hand the workspace over first if you are the Owner.",
+        ] },
+
+        { h2: "Where your time zone is used" },
+        { table: { head: ["Place", "Which time zone"], rows: [
+          ["Dates and times on the dashboard, campaigns, conversations and meetings", "Your **Time zone** in General"],
+          ["The morning email and meeting reminders", "Your **Time zone** in General"],
+          ["When a mailbox sends", "The mailbox's own time zone if set; otherwise yours"],
+          ["The times your booking page offers", "The time zone set on your booking page; each guest sees them in their own"],
+          ["A campaign's start and end", "The time zone chosen in the campaign builder"],
+        ] } },
+        { p: "When you travel, change **Time zone** to see your meetings in local time. Your mailboxes and booking page keep their own settings until you change them." },
+
+        { h2: "Questions" },
+        { h3: "Can a teammate change my settings?" },
+        { p: "No. Only you can change your General and Account options. The Owner and Admins can change your role or remove you from the workspace, in **Settings → Team**." },
+        { h3: "Does dark mode follow my phone?" },
+        { p: "The theme is the one you choose here, Light or Dark, and it applies wherever you sign in." },
+        { h3: "Why does Yolias show a different time than my computer?" },
+        { p: "Yolias uses the **Time zone** in General, not your computer's clock. Set it to where you work." },
+
+        { h2: "Another example" },
+        { p: "Yasmin changes jobs within the same group of companies and her email address changes from yasmin@oldbrand.example to yasmin@newbrand.example. She opens **Settings → Account**, presses **Change** next to her email, enters the new address and presses **Send confirmation**. She confirms from both inboxes, then signs in with the new address. Her campaigns keep sending from the mailbox connected in Integrations; to send from the new address too, she connects it there as a second mailbox and chooses it in her next campaign." },
+
+        { h3: "Can one email have two Yolias accounts?" },
+        { p: "No. One email address has one Yolias account, and an account works in one workspace at a time. To work for two separate companies, use a different email for each." },
+
+        { h2: "Troubleshooting" },
+        { h3: "Search settings finds nothing" },
+        { p: "Try one word from the option's name, such as zone instead of time zone setting." },
+        { h3: "The photo doesn't upload" },
+        { p: "Use a PNG, JPEG or WebP image under 10 MB. Other formats, such as HEIC from some phones, are refused: save the photo as JPEG first." },
+        { h3: "The confirmation for my new email didn't arrive" },
+        { p: "Check spam in both inboxes. Each address must confirm. Press **Change** again to send the confirmation once more." },
+        { h3: "The language changed but some text is still in the other language" },
+        { p: "Reload the page. Content you wrote, such as campaign names, stays in the language you wrote it in. The bell panel is always in English." },
+
+        { h3: "The two-factor code is refused" },
+        { p: "Codes change every 30 seconds and depend on your phone's clock. Set the phone's date and time to automatic, then type the code that is showing now." },
+        { h3: "My phone number isn't saved" },
+        { p: "The number didn't match the country you chose. Pick the right country code, then type the number without it and without a leading zero where your country drops it." },
+
+        { h2: "Related articles" },
+        { ul: [
+          "[Signing in](/help-center/signing-in)",
+          "[Notifications](/help-center/notifications)",
+          "[Arabic and English](/help-center/switching-language)",
+          "[Deleting your account](/help-center/deleting-account)",
+        ] },
+      ],
+    },
+    ar: {
+      title: "إعدادات حسابك",
+      summary: "أين الإعدادات وما في كل تبويب، ثم كل خيار في عام والحساب: المظهر وحجم النص واللغة والمنطقة الزمنية والصورة والاسم والهاتف والبريد والمصادقة الثنائية والأجهزة التي سجّلت منها الدخول.",
+      updated: "2026-11-10",
+      blocks: [
+        { p: "تحتوي الإعدادات على ما يخصك أنت: شكل يولياس، واللغة التي يخاطبك بها، ومنطقتك الزمنية، وملفك الشخصي، وأمان تسجيل دخولك. وتجمع أيضًا إشعاراتك واستخدامك والفوترة والفريق ورابط الإحالة. يشرح هذا المقال كيف تفتح الإعدادات، ثم كل خيار في تبويبَي **عام** و**الحساب**. ولباقي التبويبات مقالاتها في الروابط أدناه." },
+
+        { h2: "افتح الإعدادات" },
+        { ol: [
+          "أسفل الشريط الجانبي اضغط اسمك.",
+          "اختر **الإعدادات** من القائمة.",
+        ] },
+        { p: "تُفتح الإعدادات فوق الصفحة التي كنت فيها. وعلى جانبها قائمة التبويبات و**ابحث في الإعدادات**، الذي يجد الخيار باسمه (اكتب المنطقة الزمنية أو الهاتف أو المظهر مثلًا). وأغلقها بعلامة X في الأعلى لتعود حيث كنت." },
+        { table: { head: ["التبويب", "ما فيه", "المقال"], rows: [
+          ["**عام**", "المظهر وحجم النص واللغة والمنطقة الزمنية وبلد الحساب", "هذا المقال"],
+          ["**الحساب**", "الصورة والاسم والهاتف والبريد والمصادقة الثنائية والأجهزة وحذف الحساب", "هذا المقال"],
+          ["**الإشعارات**", "الرسائل التي يرسلها إليك يولياس", "[الإشعارات](/help-center/notifications)"],
+          ["**الاستخدام**", "رصيدك والعملاء المستخدمون والشحن", "[الدفع حسب الاستخدام أو الخطة الشهرية](/help-center/choosing-a-plan)"],
+          ["**الفوترة**", "الخطة والبطاقة المحفوظة والفواتير (للمالك والمسؤولين)", "[تغيير خطتك أو إلغاؤها](/help-center/changing-plan)"],
+          ["**الفريق**", "الأشخاص في مساحة العمل وأدوارهم", "[إضافة الأشخاص](/help-center/inviting-teammates)"],
+          ["**الإحالة**", "رابط دعوتك والرصيد الذي ربحته", "في الإعدادات ← الإحالة"],
+        ] } },
+
+        { h2: "عام" },
+        { p: "يُحفظ كل خيار في هذا التبويب لحظة تغييره، فلا يوجد زر حفظ، وتظهر رسالة تحت الخيارات فقط إذا تعذّر حفظ تغيير." },
+        { table: { head: ["الخيار", "الاختيارات", "ما يغيّره"], rows: [
+          ["**المظهر**", "فاتح، داكن", "ألوان يولياس على هذه الشاشة، في الحال."],
+          ["**حجم النص**", "مضغوط، عادي، كبير", "حجم النص في يولياس كله."],
+          ["**اللغة**", "English، العربية", "لغة الواجهة، واللغة التي يكتب لك بها Yolias AI. والعربية تجعل الاتجاه من اليمين إلى اليسار."],
+          ["**المنطقة الزمنية**", "قائمة بالمناطق الزمنية", "كل تاريخ ووقت يعرضه لك يولياس: الحملات والمحادثات والاجتماعات ولوحة التحكم."],
+          ["**بلد الحساب**", "قائمة بالدول", "البلد الذي سجّلت منه حسابك، ولا يستخدمه Yolias AI في البحث."],
+        ] } },
+        { p: "لغة الواجهة لا تحدد لغة رسائل حملاتك: لكل حملة لغتها، ويُكتب لكل عميل باللغة التي تناسبه. راجع [العربية والإنجليزية](/help-center/switching-language)." },
+        { p: "ومنطقتك الزمنية مهمة للإرسال أيضًا: البريد الذي ليس له منطقة إرسال خاصة يرسل بمنطقتك، وتعرض صفحة حجزك المواعيد بالمنطقة التي ضبطتها فيها." },
+
+        { h2: "الحساب" },
+        { h3: "الصورة الشخصية" },
+        { p: "تظهر صورتك بجانب اسمك أسفل الشريط الجانبي وفي قائمة الفريق. اضغط **تغيير** واختر صورة PNG أو JPEG أو WebP حتى 10 ميجابايت. ويعرض الزر **جارٍ الرفع…** حتى تُحفظ. وبدون صورة يعرض يولياس الحروف الأولى من اسمك." },
+        { h3: "الاسم الكامل" },
+        { p: "الاسم الذي يراه زملاؤك، وهو أيضًا اسم المرسل في رسائل حملاتك إذا لم تحدده الحملة ولا البريد. اكتبه واضغط Enter أو اضغط في مكان آخر، فيُحفظ عند مغادرة الخانة." },
+        { h3: "رقم الهاتف" },
+        { p: "اختر رمز الدولة ثم اكتب رقمك بدونه. يُحفظ عند مغادرة الخانة مع رسالة **تم حفظ رقم الهاتف**. والرقم غير الصالح للدولة المختارة لا يُحفظ، وتوضح الخانة ذلك." },
+        { h3: "البريد الإلكتروني" },
+        { p: "العنوان الذي تسجّل به الدخول، وعليه **موثّق** بعد تأكيده. ولتغييره:" },
+        { ol: [
+          "اضغط **تغيير** بجانب بريدك.",
+          "اكتب **البريد الإلكتروني الجديد** واضغط **إرسال التأكيد**.",
+          "افتح البريدين: أكّد التغيير من عنوانك الحالي ومن العنوان الجديد.",
+        ] },
+        { p: "**كيف تعرف أن التغيير تم:** بعد التأكيدين تسجّل الدخول بالعنوان الجديد وتعرضه الإعدادات، ويصل إلى عنوانك السابق إشعار بتغيير البريد. وحتى يكتمل التأكيدان يظل العنوان القديم يعمل. و**إلغاء** يغلق النموذج دون تغيير شيء." },
+        { h3: "المصادقة الثنائية" },
+        { p: "تضيف المصادقة الثنائية رمزًا من 6 أرقام من تطبيق مصادقة إلى كل تسجيل دخول، بعد رابط البريد. اضغط **تفعيل**، وامسح رمز QR بتطبيق Google Authenticator أو 1Password أو Authy أو ما يشبهها (أو أدخل المفتاح الظاهر تحته)، واكتب الرمز المكوّن من 6 أرقام واضغط **تحقّق وفعّل**. فتظهر **مفعّلة** وبجانبها **إيقاف**. والخطوات كاملة وما تفعله إذا فقدت هاتفك في [تسجيل الدخول](/help-center/signing-in)." },
+        { h3: "الأجهزة والجلسات النشطة" },
+        { p: "يعرض المتصفح الذي تستخدمه الآن مع **(الجلسة الحالية)** و**نشط الآن**. و**تسجيل الخروج من كل الأجهزة** يُخرجك من كل مكان مرة واحدة، ومنه هذا المتصفح. استخدمه بعد الدخول من جهاز مشترك أو مفقود، ثم سجّل الدخول من جديد ببريدك. ولا تُعرض المتصفحات الأخرى التي دخلت منها واحدًا واحدًا، فالزر يشملها كلها." },
+        { h3: "حذف الحساب" },
+        { p: "في الأسفل يحذف **حذف الحساب** ملفك الشخصي نهائيًا، وإذا كنت الشخص الوحيد في مساحة العمل يحذف مساحة العمل وبياناتها. وتؤكد ذلك في نافذة، ولا يمكن التراجع. اقرأ [حذف حسابك](/help-center/deleting-account) أولًا." },
+
+        { h2: "ما الشخصي وما المشترك؟" },
+        { ul: [
+          "شخصي لك وحدك: كل ما في عام والحساب، وإشعاراتك، وصناديق بريدك، وتقويمك، وصفحة حجزك.",
+          "مشترك بين مساحة العمل كلها: معرفة الشركة، والحملات، والجماهير، والعملاء، والمحادثات، والرصيد، والخطة، والفريق.",
+          "تغيير لغتك أو مظهرك أو منطقتك الزمنية لا يغيّرها لزميلك أبدًا.",
+        ] },
+
+        { h2: "أمثلة" },
+        { p: "يعمل خالد من دبي لشركة مسجلة في مصر. يضبط **المنطقة الزمنية** على دبي، فتظهر اجتماعاته ومحادثاته بتوقيت دبي، ويبقى **بلد الحساب** مصر. ويضبط **اللغة** على العربية فيتحول يولياس إلى اليمين إلى اليسار، بينما تظل حملته الإنجليزية تكتب لعملائها بالإنجليزية." },
+        { p: "سجّلت منى الدخول من حاسوب عميل ونسيت تسجيل الخروج. فتفتح من حاسوبها **الإعدادات ← الحساب** وتضغط **تسجيل الخروج من كل الأجهزة**، ثم تسجّل الدخول من جديد على حاسوبها." },
+
+        { h2: "قبل تغيير بريدك" },
+        { ul: [
+          "تأكد أنك تستطيع فتح البريد الجديد، فالتغيير ينتظر تأكيدًا منه.",
+          "صناديق البريد المرتبطة في التكاملات لا تتغير، فتغيير العنوان الذي تسجّل به الدخول لا يغيّر العنوان الذي ترسل منه حملاتك.",
+          "إذا كانت المصادقة الثنائية مفعّلة فتبقى مفعّلة بتطبيق المصادقة نفسه.",
+        ] },
+
+        { h2: "حافظ على أمان حسابك" },
+        { ul: [
+          "فعّل المصادقة الثنائية، خاصة للمالك والمسؤولين الذين يديرون الفوترة والفريق.",
+          "سجّل الدخول فقط من الرابط الذي يرسله لك يولياس بالبريد. فيولياس لا يطلب كلمة مرور أبدًا، ولا يرسل رابط دخول لم تطلبه.",
+          "إذا وصلتك رسالة **تسجيل دخول جديد** من جهاز لا تعرفه، فافتح **الإعدادات ← الحساب** واضغط **تسجيل الخروج من كل الأجهزة**.",
+          "استخدم بريد عمل تملكه. وإذا تركت الشركة فاطلب من المالك إزالتك، أو سلّم مساحة العمل أولًا إن كنت المالك.",
+        ] },
+
+        { h2: "أين تُستخدم منطقتك الزمنية" },
+        { table: { head: ["المكان", "أي منطقة زمنية"], rows: [
+          ["التواريخ والأوقات في لوحة التحكم والحملات والمحادثات والاجتماعات", "**المنطقة الزمنية** في عام"],
+          ["رسالة الصباح وتذكيرات الاجتماعات", "**المنطقة الزمنية** في عام"],
+          ["وقت إرسال البريد", "المنطقة الزمنية للبريد إن ضُبطت، وإلا منطقتك"],
+          ["المواعيد التي تعرضها صفحة حجزك", "المنطقة الزمنية المضبوطة في صفحة الحجز، ويراها كل ضيف بمنطقته"],
+          ["بداية الحملة ونهايتها", "المنطقة الزمنية المختارة في منشئ الحملات"],
+        ] } },
+        { p: "عند السفر غيّر **المنطقة الزمنية** لترى اجتماعاتك بالتوقيت المحلي. وتحتفظ صناديق بريدك وصفحة حجزك بإعداداتها حتى تغيّرها." },
+
+        { h2: "أسئلة" },
+        { h3: "هل يستطيع زميل تغيير إعداداتي؟" },
+        { p: "لا. أنت وحدك تغيّر خيارات عام والحساب. ويستطيع المالك والمسؤولون تغيير دورك أو إزالتك من مساحة العمل من **الإعدادات ← الفريق**." },
+        { h3: "هل يتبع الوضع الداكن هاتفي؟" },
+        { p: "المظهر هو ما تختاره هنا، فاتح أو داكن، ويُطبَّق أينما سجّلت الدخول." },
+        { h3: "لماذا يعرض يولياس وقتًا مختلفًا عن حاسوبي؟" },
+        { p: "يستخدم يولياس **المنطقة الزمنية** في عام لا ساعة حاسوبك، فاضبطها على مكان عملك." },
+
+        { h2: "مثال آخر" },
+        { p: "تنتقل ياسمين إلى وظيفة أخرى داخل مجموعة الشركات نفسها، فيتغير بريدها من yasmin@oldbrand.example إلى yasmin@newbrand.example. تفتح **الإعدادات ← الحساب**، وتضغط **تغيير** بجانب بريدها، وتكتب العنوان الجديد وتضغط **إرسال التأكيد**. ثم تؤكد من البريدين وتسجّل الدخول بالعنوان الجديد. وتظل حملاتها ترسل من البريد المرتبط في التكاملات، وللإرسال من العنوان الجديد أيضًا تربطه هناك بريدًا ثانيًا وتختاره في حملتها التالية." },
+
+        { h3: "هل يمكن أن يكون للبريد الواحد حسابان في يولياس؟" },
+        { p: "لا. لكل عنوان بريد حساب واحد في يولياس، ويعمل الحساب في مساحة عمل واحدة في كل مرة. وللعمل مع شركتين منفصلتين استخدم بريدًا مختلفًا لكل منهما." },
+
+        { h2: "حل المشكلات" },
+        { h3: "البحث في الإعدادات لا يجد شيئًا" },
+        { p: "جرّب كلمة واحدة من اسم الخيار، مثل المنطقة بدل إعداد المنطقة الزمنية." },
+        { h3: "الصورة لا تُرفع" },
+        { p: "استخدم صورة PNG أو JPEG أو WebP أقل من 10 ميجابايت. والصيغ الأخرى، مثل HEIC في بعض الهواتف، مرفوضة، فاحفظ الصورة بصيغة JPEG أولًا." },
+        { h3: "لم يصل تأكيد البريد الجديد" },
+        { p: "راجع الرسائل غير المرغوب فيها في البريدين، فكل عنوان يجب أن يؤكد. واضغط **تغيير** مرة أخرى لإرسال التأكيد من جديد." },
+        { h3: "تغيرت اللغة لكن بعض النصوص ما زالت باللغة الأخرى" },
+        { p: "أعد تحميل الصفحة. والمحتوى الذي كتبته، مثل أسماء الحملات، يبقى باللغة التي كتبته بها، ولوحة الجرس دائمًا بالإنجليزية." },
+
+        { h3: "رمز المصادقة الثنائية مرفوض" },
+        { p: "تتغير الرموز كل 30 ثانية وتعتمد على ساعة هاتفك. اضبط التاريخ والوقت في الهاتف على التلقائي، ثم اكتب الرمز الظاهر الآن." },
+        { h3: "رقم هاتفي لا يُحفظ" },
+        { p: "لم يطابق الرقم الدولة التي اخترتها. اختر رمز الدولة الصحيح، ثم اكتب الرقم بدونه ودون الصفر الأول حيث تحذفه دولتك." },
+
+        { h2: "مقالات ذات صلة" },
+        { ul: [
+          "[تسجيل الدخول](/help-center/signing-in)",
+          "[الإشعارات](/help-center/notifications)",
+          "[العربية والإنجليزية](/help-center/switching-language)",
+          "[حذف حسابك](/help-center/deleting-account)",
+        ] },
+      ],
+    },
+  },
+};
