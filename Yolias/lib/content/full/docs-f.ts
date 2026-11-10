@@ -1163,13 +1163,13 @@ export const docsF: Record<string, Localized<Doc>> = {
         { p: "A Yolias account is one workspace shared by a team. Everyone in it sees the same campaigns, leads, conversations, meetings and results, and every plan includes unlimited users at no extra cost. What a person can change depends on their role, which works like an ad account's: an Admin runs everything, an Advertiser runs campaigns, and an Analyst reads the results. This page describes the roles, the rules behind them and what stays personal to each member. To invite someone, see [Inviting teammates](/help-center/inviting-teammates)." },
         { h2: "The roles" },
         { table: { head: ["Role", "In short"], rows: [
-          ["Owner", "The person who created the workspace. Full control, like an Admin. The role can't be changed and the owner can't be removed."],
+          ["Owner", "The person who created the workspace, or the member the previous Owner handed it to. Full control, like an Admin. The Owner can't be removed, and only the Owner can make someone else the Owner."],
           ["Admin", "Full control: campaigns, billing, integrations and people."],
           ["Advertiser", "Creates and runs campaigns, audiences, leads, conversations and meetings."],
           ["Analyst", "Sees campaigns, results and reports. Can't change anything."],
         ] } },
         { p: "Admin, Advertiser and Analyst are the roles you can give. Every write action in Yolias checks the role on the server, so a hidden button is never the only protection." },
-        { p: "The Owner role is given to whoever created the workspace, never by invitation, and Settings has no way to hand it to another member. To have someone else run the account fully, make them an Admin: day to day, an admin has the same powers. The only difference is that the owner can't be removed or have their role changed." },
+        { p: "The Owner role is given to whoever created the workspace, never by invitation. The Owner can hand it to another member in **Settings → Team** with the crown next to their name; the previous Owner becomes an Admin. Day to day, an Admin has the same powers. The differences: the Owner can't be removed or have their role changed by an Admin, and only the Owner can make someone else the Owner." },
         { h2: "What each role can do" },
         { table: { head: ["Action", "Owner and Admin", "Advertiser", "Analyst"], rows: [
           ["See every page, result and report", "Yes", "Yes", "Yes"],
@@ -1275,13 +1275,13 @@ export const docsF: Record<string, Localized<Doc>> = {
         { p: "حساب يولياس مساحة عمل واحدة يتشاركها الفريق. كل من فيها يرى الحملات والعملاء والمحادثات والاجتماعات والنتائج نفسها، وكل الخطط تشمل عددًا غير محدود من المستخدمين دون أي تكلفة إضافية. أما ما يستطيع كل شخص تغييره فيحدده دوره، والأدوار تعمل مثل أدوار حسابات الإعلانات: المسؤول يدير كل شيء، والمعلن يدير الحملات، والمحلل يقرأ النتائج. تشرح هذه الصفحة الأدوار والقواعد التي تقوم عليها وما يبقى خاصًا بكل عضو. أما خطوات دعوة شخص فتجدها في [دعوة أعضاء الفريق](/help-center/inviting-teammates)." },
         { h2: "الأدوار" },
         { table: { head: ["الدور", "باختصار"], rows: [
-          ["المالك", "الشخص الذي أنشأ مساحة العمل. تحكم كامل مثل المسؤول، ولا يمكن تغيير دوره ولا إزالته."],
+          ["المالك", "الشخص الذي أنشأ مساحة العمل، أو العضو الذي سلّمه المالك السابق إياها. تحكم كامل مثل المسؤول، ولا يمكن إزالته، والمالك وحده يستطيع جعل شخص آخر مالكًا."],
           ["مسؤول", "تحكم كامل: الحملات والفوترة والتكاملات والأشخاص."],
           ["معلن", "ينشئ الحملات ويديرها، والجماهير والعملاء والمحادثات والاجتماعات."],
           ["محلل", "يرى الحملات والنتائج والتقارير، ولا يغيّر شيئًا."],
         ] } },
         { p: "الأدوار التي يمكنك منحها هي: مسؤول، ومعلن، ومحلل. ويفحص يولياس الدور على الخادم في كل إجراء يغيّر شيئًا، فإخفاء الزر في الواجهة ليس هو الحماية الوحيدة." },
-        { p: "دور المالك يُمنح تلقائيًا لمن أنشأ مساحة العمل، ولا يُمنح بدعوة. ولا توجد في الإعدادات طريقة لنقل هذا الدور إلى عضو آخر، فإذا أردت أن يدير شخص آخر الحساب بالكامل فامنحه دور مسؤول، إذ يملك المسؤول الصلاحيات نفسها في الاستخدام اليومي: الحملات، والفوترة، والبيكسلات، والفريق، ومعرفة الشركة. والفرق الوحيد أن المالك لا يمكن إزالته ولا تغيير دوره، بينما يستطيع أي مسؤول تغيير دور مسؤول آخر أو إزالته." },
+        { p: "دور المالك يُمنح تلقائيًا لمن أنشأ مساحة العمل، ولا يُمنح بدعوة. ويستطيع المالك تسليمه لعضو آخر من **الإعدادات ← الفريق** بالتاج بجانب اسمه، فيصبح المالك السابق مسؤولًا. ويملك المسؤول الصلاحيات نفسها في الاستخدام اليومي: الحملات، والفوترة، والبيكسلات، والفريق، ومعرفة الشركة. والفرق أن المالك لا يمكن إزالته ولا يغيّر مسؤول دوره، والمالك وحده يستطيع جعل شخص آخر مالكًا، بينما يستطيع أي مسؤول تغيير دور مسؤول آخر أو إزالته." },
         { h2: "ما يستطيعه كل دور" },
         { table: { head: ["الإجراء", "المالك والمسؤول", "المعلن", "المحلل"], rows: [
           ["رؤية كل الصفحات والنتائج والتقارير", "نعم", "نعم", "نعم"],

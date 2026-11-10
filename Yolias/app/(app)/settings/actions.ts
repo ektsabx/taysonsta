@@ -227,7 +227,8 @@ export async function inviteMember(input: z.input<typeof inviteSchema>): Promise
     if (joinError) return { ok: false, error: t.inviteFailed };
     await admin.from("profiles").update({ workspace_id: session.workspace.id }).eq("id", existing.id);
     await admin.from("workspace_invitations").upsert({ workspace_id: session.workspace.id, email, role, invited_by: session.userId, accepted_at: new Date().toISOString() }, { onConflict: "workspace_id,email" });
-    await admin.from("notifications").insert({ user_id: existing.id, workspace_id: session.workspace.id, kind: "team", title: "You joined a team on Yolias", body: session.workspace.name ?? null, link: "/dashboard", dedupe_key: `joined:${session.workspace.id}:${existing.id}` });
+    const { data: lang } = await admin.from("profiles").select("language").eq("id", existing.id).maybeSingle();
+    await admin.from("notifications").insert({ user_id: existing.id, workspace_id: session.workspace.id, kind: "team", title: lang?.language === "ar" ? "انضممت إلى فريق على يولياس" : "You joined a team on Yolias", body: session.workspace.name ?? null, link: "/dashboard", dedupe_key: `joined:${session.workspace.id}:${existing.id}` });
     revalidatePath("/", "layout");
     return { ok: true };
   }
@@ -272,6 +273,28 @@ export async function changeMemberRole(userId: string, role: "admin" | "member" 
   if (member.role === "owner") return { ok: false, error: t.ownerCantBeRemoved };
   const { error } = await admin.from("workspace_members").update({ role }).eq("workspace_id", session.workspace.id).eq("user_id", userId);
   if (error) return { ok: false, error: t.saveFailed };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/**
+ * Ownership transfer (audit, 2026-11-10): the owner makes another member the
+ * owner and becomes an admin. One owner at a time; the new owner is told.
+ */
+export async function transferOwnership(userId: string): Promise<ActionResult> {
+  const session = await requireMember();
+  const t = (await getDictionary()).settings.errors;
+  if (session.role !== "owner") return { ok: false, error: t.onlyOwnerTransfers };
+  if (!z.string().uuid().safeParse(userId).success || userId === session.userId) return { ok: false, error: t.memberNotFound };
+  const admin = createAdminClient();
+  const { data: member } = await admin.from("workspace_members").select("role").eq("workspace_id", session.workspace.id).eq("user_id", userId).maybeSingle();
+  if (!member) return { ok: false, error: t.memberNotFound };
+  // New owner first, so the workspace is never without one.
+  const { error } = await admin.from("workspace_members").update({ role: "owner" }).eq("workspace_id", session.workspace.id).eq("user_id", userId);
+  if (error) return { ok: false, error: t.saveFailed };
+  await admin.from("workspace_members").update({ role: "admin" }).eq("workspace_id", session.workspace.id).eq("user_id", session.userId);
+  const { data: who } = await admin.from("profiles").select("language").eq("id", userId).maybeSingle();
+  await admin.from("notifications").insert({ user_id: userId, workspace_id: session.workspace.id, kind: "team", title: who?.language === "ar" ? "أصبحت مالك مساحة العمل هذه" : "You are now the owner of this workspace", body: session.workspace.name ?? null, link: "/dashboard?settings=team", dedupe_key: `owner:${session.workspace.id}:${userId}:${Date.now()}` });
   revalidatePath("/", "layout");
   return { ok: true };
 }

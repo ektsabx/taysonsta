@@ -1054,7 +1054,7 @@ export const helpD: Record<string, Localized<Doc>> = {
 
         { h2: "Important notes" },
         { ul: [
-          "Yolias has no option to transfer ownership: the Owner stays the Owner while their account exists. To change the Owner, contact [support](/contact?topic=support).",
+          "To hand the workspace to someone else, the Owner opens **Settings → Team** and presses the crown next to that member (**Make {name} the owner**), then confirms. The member becomes the Owner and is notified; the previous Owner becomes an Admin. Only the Owner can do this.",
           "The Owner can't delete their account while other people are in the workspace. See [Deleting your account](/help-center/deleting-account).",
           "Removing someone doesn't disconnect what they connected in Google; they can remove Yolias from their Google account's security settings.",
         ] },
@@ -1192,7 +1192,7 @@ export const helpD: Record<string, Localized<Doc>> = {
 
         { h2: "ملاحظات مهمة" },
         { ul: [
-          "لا يوجد في يولياس خيار لنقل الملكية: يبقى المالك مالكًا ما دام حسابه موجودًا. وإذا احتجت تغيير المالك فتواصل مع [الدعم](/contact?topic=support).",
+          "لتسليم مساحة العمل لشخص آخر يفتح المالك **الإعدادات ← الفريق** ويضغط التاج بجانب العضو (**اجعل {name} المالك**) ثم يؤكد. فيصبح العضو المالك ويصله إشعار، ويصبح المالك السابق مسؤولًا. والمالك وحده يستطيع ذلك.",
           "لا يستطيع المالك حذف حسابه ما دام في مساحة العمل أشخاص آخرون. راجع [حذف حسابك](/help-center/deleting-account).",
           "إزالة شخص لا تفصل ما ربطه في Google، ويستطيع هو إزالة يولياس من إعدادات الأمان في حسابه على Google.",
         ] },
@@ -1285,8 +1285,8 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "Troubleshooting" },
-        { h3: "Remove your team members first. The workspace owner can’t leave a team behind." },
-        { p: "You are the Owner and other people are in the workspace, including people invited who never signed in. Remove them in **Settings → Team**, then try again." },
+        { h3: "Make another member the owner in Team, or remove your team members first. The workspace owner can’t leave a team behind." },
+        { p: "You are the Owner and other people are in the workspace. In **Settings → Team**, make one of them the owner with the crown next to their name, or remove them, then try again." },
         { h3: "Couldn’t delete the account. Please try again." },
         { p: "The deletion didn't complete. Reload the page and try again. If it repeats, contact [support](/contact?topic=support)." },
         { h3: "I deleted my account by mistake" },
@@ -1363,8 +1363,8 @@ export const helpD: Record<string, Localized<Doc>> = {
         ] },
 
         { h2: "حل المشكلات" },
-        { h3: "أزل أعضاء فريقك أولًا، إذ لا يمكن لمالك مساحة العمل ترك فريق خلفه." },
-        { p: "أنت المالك وفي مساحة العمل أشخاص آخرون، ومنهم من دُعي ولم يدخل بعد. أزلهم من **الإعدادات ← الفريق** ثم حاول مرة أخرى." },
+        { h3: "اجعل عضوًا آخر المالك من صفحة الفريق، أو أزل أعضاء فريقك أولًا، إذ لا يمكن لمالك مساحة العمل ترك فريق خلفه." },
+        { p: "أنت المالك وفي مساحة العمل أشخاص آخرون. من **الإعدادات ← الفريق** اجعل أحدهم المالك بالتاج بجانب اسمه، أو أزلهم، ثم حاول مرة أخرى." },
         { h3: "تعذّر حذف الحساب. حاول مرة أخرى." },
         { p: "لم يكتمل الحذف. أعد تحميل الصفحة وحاول مرة أخرى، وإذا تكرر فتواصل مع [الدعم](/contact?topic=support)." },
         { h3: "حذفت حسابي بالخطأ" },

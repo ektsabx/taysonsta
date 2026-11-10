@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Crown, Plus, X } from "lucide-react";
 import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
-import { changeMemberRole, inviteMember, removeMember, revokeInvitation } from "@/app/(app)/settings/actions";
+import { changeMemberRole, inviteMember, removeMember, revokeInvitation, transferOwnership } from "@/app/(app)/settings/actions";
 import type { ShellData } from "../types";
 import { useSave } from "./shared";
 
@@ -93,6 +93,18 @@ export function TeamTab({ data }: { data: ShellData }) {
                 </select>
               ) : (
                 <span className="plan-badge">{roleLabel(m.role)}</span>
+              )}
+              {data.role === "owner" && m.user_id !== data.user.id && (
+                <button
+                  className="modal-close-btn"
+                  type="button"
+                  aria-label={fmt(tm.makeOwner, { name: m.name })}
+                  title={fmt(tm.makeOwner, { name: m.name })}
+                  disabled={pending}
+                  onClick={() => window.confirm(fmt(tm.makeOwnerConfirm, { name: m.name })) && run(() => transferOwnership(m.user_id))}
+                >
+                  <Crown />
+                </button>
               )}
               {canManage && m.role !== "owner" && m.user_id !== data.user.id && (
                 <button

@@ -765,7 +765,7 @@ export const ar: Dictionary = {
     team: {
       members: "الأشخاص", membersDesc: "كل من يمكنه الوصول إلى هذا الحساب، ودوره.",
       invite: "إضافة أشخاص", invitePlaceholder: "colleague@company.com", invitationSent: "تم إرسال الدعوة · {role}",
-      removeConfirm: "إزالة {name} من مساحة العمل؟", removeLabel: "إزالة {name}", revokeLabel: "إلغاء دعوة {email}",
+      removeConfirm: "إزالة {name} من مساحة العمل؟", makeOwner: "اجعل {name} المالك", makeOwnerConfirm: "هل تجعل {name} مالك مساحة العمل؟ تصبح أنت مسؤولًا، ولا يستطيع جعل شخص آخر مالكًا إلا المالك الجديد.", ownerMoved: "أصبح {name} المالك.", removeLabel: "إزالة {name}", revokeLabel: "إلغاء دعوة {email}",
       addTitle: "إضافة أشخاص", email: "البريد الإلكتروني", assign: "الدور", roleLabel: "دور {name}", send: "إرسال الدعوة", cancel: "إلغاء",
       roles: { owner: "المالك", admin: "مسؤول", member: "معلن", analyst: "محلل" },
       roleDesc: {
@@ -842,7 +842,7 @@ export const ar: Dictionary = {
       phoneInvalid: "أدخل الرقم مع رمز الدولة بدءًا بعلامة +، مثل ‎+966 50 123 4567.",
       invalidAvatar: "صورة غير صالحة.",
       avatarFailed: "تعذّر تحديث الصورة.",
-      ownerWithTeam: "أزل أعضاء فريقك أولًا، إذ لا يمكن لمالك مساحة العمل ترك فريق خلفه.",
+      ownerWithTeam: "اجعل عضوًا آخر المالك من صفحة الفريق، أو أزل أعضاء فريقك أولًا، إذ لا يمكن لمالك مساحة العمل ترك فريق خلفه.", onlyOwnerTransfers: "مالك مساحة العمل وحده يستطيع جعل شخص آخر مالكًا.",
       deleteFailed: "تعذّر حذف الحساب. حاول مرة أخرى.",
       sameEmail: "هذا هو بريدك الحالي بالفعل.",
       emailTaken: "هذا البريد لديه حساب في يولياس بالفعل.",

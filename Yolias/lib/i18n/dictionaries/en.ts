@@ -763,7 +763,7 @@ export const en = {
     team: {
       members: "People", membersDesc: "Everyone with access to this account, and their role.",
       invite: "Add people", invitePlaceholder: "colleague@company.com", invitationSent: "Invitation sent · {role}",
-      removeConfirm: "Remove {name} from the workspace?", removeLabel: "Remove {name}", revokeLabel: "Revoke invitation for {email}",
+      removeConfirm: "Remove {name} from the workspace?", makeOwner: "Make {name} the owner", makeOwnerConfirm: "Make {name} the owner of this workspace? You become an admin, and only the new owner can make someone else the owner.", ownerMoved: "{name} is now the owner.", removeLabel: "Remove {name}", revokeLabel: "Revoke invitation for {email}",
       addTitle: "Add people", email: "Email", assign: "Role", roleLabel: "Role of {name}", send: "Send invitation", cancel: "Cancel",
       roles: { owner: "Owner", admin: "Admin", member: "Advertiser", analyst: "Analyst" },
       roleDesc: {
@@ -840,7 +840,7 @@ export const en = {
       phoneInvalid: "Enter the number with its country code, starting with +, e.g. +44 20 7946 0958.",
       invalidAvatar: "Invalid avatar.",
       avatarFailed: "Couldn’t update the avatar.",
-      ownerWithTeam: "Remove your team members first. The workspace owner can’t leave a team behind.",
+      ownerWithTeam: "Make another member the owner in Team, or remove your team members first. The workspace owner can’t leave a team behind.", onlyOwnerTransfers: "Only the workspace owner can make someone else the owner.",
       deleteFailed: "Couldn’t delete the account. Please try again.",
       sameEmail: "That’s already your email.",
       emailTaken: "This email already has a Yolias account.",
