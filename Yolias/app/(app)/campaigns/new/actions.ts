@@ -1,6 +1,9 @@
 "use server";
 
-import { aimOf, cleanCtaUrl } from "@/lib/outreach/aim";
+import { aimGuidance, aimOf, cleanCtaUrl } from "@/lib/outreach/aim";
+
+/** What the first email leads to, by the campaign's objective (the builder's openings and preview follow it). */
+const GOAL = { meeting: "a short meeting", sell: "a purchase on the website, with no meeting", form: "filling in the form on the website, with no meeting" } as const;
 import { z } from "zod";
 import { ownEvent } from "@/lib/own-pixel";
 import { canUseApp } from "@/lib/plans";
@@ -137,7 +140,7 @@ async function approachFor(session: Awaited<ReturnType<typeof requireMember>>, s
   try {
     const r = await runStructured(tasks.extraction, {
       system: [
-        "You plan the first cold email of a B2B campaign whose only goal is a short meeting. Propose two different openings for this audience: angle_a = the most direct (the outcome this audience most likely wants, tied to the offer), angle_b = a clearly different one worth testing (a different problem, proof or reason now).",
+        `You plan the first email of a campaign whose only goal is ${GOAL[aimOf(s.objective)]}. Propose two different openings for this audience: angle_a = the most direct (the outcome this audience most likely wants, tied to the offer), angle_b = a clearly different one worth testing (a different problem, proof or reason now).`,
         "Each opening is one or two sentences: what the email leads with and the proof it uses. Use only the facts given; never invent numbers, clients or results.",
         `Write in ${session.profile.language === "ar" ? "Arabic" : "English"}.`,
       ].join("\n"),
@@ -234,7 +237,7 @@ export async function previewEmail(input: unknown, key: string): Promise<Builder
   const lang = languageFor(s.language, country);
   const r = await writeSample({
     workspaceId: session.workspace.id, userId: session.userId, facts, offerId: s.offerId,
-    instruction: [`Campaign aim: book a short meeting. The call to action is a short call.`, angles.angleA, s.offer.trim() ? `The offer: ${s.offer.trim()}` : ""].filter(Boolean).join("\n"),
+    instruction: [aimGuidance(aimOf(s.objective), s.objective === "purchases" || s.objective === "form_leads" ? cleanCtaUrl(s.websiteUrl) : null), angles.angleA, s.offer.trim() ? `The offer: ${s.offer.trim()}` : ""].filter(Boolean).join("\n"),
     language: isMessageLanguage(lang) ? lang : "en", tone: s.tone, senderName: s.senderName, notes: s.instructions, insights: await insightLines(session.workspace.id),
   });
   if (!r) return { ok: false, error: t.ag.builder.errors.preview };
