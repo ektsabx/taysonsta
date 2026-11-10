@@ -4,12 +4,12 @@ import { EmptyNext } from "@/components/app/EmptyNext";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Globe, Mail, Phone, Trash2, X } from "lucide-react";
+import { ArrowUpDown, BookmarkMinus, ChevronLeft, ChevronRight, Download, ExternalLink, Globe, Mail, Phone, Trash2, UsersRound, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { formatNumber } from "@/lib/format";
 import { useToast } from "@/components/Toast";
-import { removeFromProspects, removeFromSaved, type Target } from "@/app/(app)/leads/actions";
+import { findDecisionMakersAction, removeFromProspects, removeFromSaved, type Target } from "@/app/(app)/leads/actions";
 import { exportedPeople } from "@/app/(app)/leads/message-actions";
 import type { Bucket, ReplyKind } from "@/services/pipeline";
 import { RowMenu } from "./sdr/bits";
@@ -70,19 +70,22 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
   const toast = useToast();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // "Select all N matching": the action then targets the filters, every page included.
+  const [allMatching, setAllMatching] = useState(false);
   const [pending, start] = useTransition();
   const exportForm = useRef<HTMLFormElement>(null);
   const n = (v: number) => formatNumber(v, locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageAll = rows.length > 0 && rows.every((r) => selected.has(r.key));
-  const count = selected.size;
-  const target = (): Target => ({ ids: [...selected] });
+  const count = allMatching ? total : selected.size;
+  const target = (): Target => (allMatching ? { all: query } : { ids: [...selected] });
   const href = (p: number) => `/leads?${[query, p > 1 ? `page=${p}` : ""].filter(Boolean).join("&")}`;
   const sortHref = (s: string) => `/leads?${[query.split("&").filter((x) => x && !x.startsWith("sort=")).join("&"), s ? `sort=${s}` : ""].filter(Boolean).join("&")}`;
   const sortNow = new URLSearchParams(query).get("sort") ?? "match";
   const hasPeople = tab === "people";
 
   const toggle = (key: string) => {
+    setAllMatching(false);
     setSelected((s) => {
       const next = new Set(s);
       if (next.has(key)) next.delete(key);
@@ -91,9 +94,11 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
     });
   };
   const togglePage = () => {
+    setAllMatching(false);
     setSelected(pageAll ? new Set() : new Set(rows.map((r) => r.key)));
   };
   const clear = () => {
+    setAllMatching(false);
     setSelected(new Set());
   };
   const run = (fn: () => Promise<string | null>) =>
@@ -224,8 +229,17 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
 
       {count > 0 && (
         <div className="selection-bar" role="region" aria-label={fmt(pr.selected, { count: n(count) })}>
-          <span className="selection-count">{fmt(pr.selected, { count: n(count) })}</span>
+          <span className="selection-count">{allMatching ? fmt(pr.allMatching, { count: n(total) }) : fmt(pr.selected, { count: n(count) })}</span>
+          {!allMatching && pageAll && total > rows.length && (
+            <button type="button" className="sdr-btn sm" onClick={() => setAllMatching(true)}>{fmt(pr.selectAllMatching, { count: n(total) })}</button>
+          )}
           <span className="selection-actions">
+            {!hasPeople && (
+              <button type="button" className="btn-secondary icon-only" disabled={pending} aria-label={pr.findPeople} title={pr.findPeople} onClick={() => run(async () => {
+                const r = await findDecisionMakersAction(target());
+                return r.ok ? (r.queued ? fmt(pr.findPeopleQueued, { count: n(r.queued) }) : pr.findPeopleNone) : r.reason === "view" ? t.settings.errors.viewOnly : pr.findPeopleOff;
+              })}><UsersRound /></button>
+            )}
             <button type="button" className="btn-secondary icon-only" aria-label={t.outreach.exportCsv} title={t.outreach.exportCsv} onClick={() => {
               exportForm.current?.requestSubmit();
               if (hasPeople) void exportedPeople(count, "prospects");
@@ -247,7 +261,7 @@ export function ProspectTable({ tab, rows, total, page, pageSize, query, empty }
       )}
       <form ref={exportForm} method="post" action="/leads/export" hidden>
         <input type="hidden" name="query" value={query} />
-        {[...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
+        {allMatching ? <input type="hidden" name="all" value="1" /> : [...selected].map((id) => <input key={id} type="hidden" name="id" value={id} />)}
       </form>
     </div>
   );

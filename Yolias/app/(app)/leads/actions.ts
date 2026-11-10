@@ -31,11 +31,11 @@ async function resolve(target: Target) {
  * prospects — the person was already counted when delivered.
  */
 /** Decision-maker matching: queues "find the decision makers" for the selected companies / local businesses. */
-export async function findDecisionMakersAction(target: Target): Promise<{ ok: boolean; queued: number }> {
+export async function findDecisionMakersAction(target: Target): Promise<{ ok: boolean; queued: number; reason?: "view" | "off" }> {
   const { session, companies } = await resolve(target);
-  if (!canEdit(session)) return { ok: false, queued: 0 };
-  if (!companies.length) return { ok: false, queued: 0 };
-  if (!(await hasProviderFor("person.search"))) return { ok: false, queued: 0 };
+  if (!canEdit(session)) return { ok: false, queued: 0, reason: "view" };
+  if (!companies.length) return { ok: true, queued: 0 };
+  if (!(await hasProviderFor("person.search"))) return { ok: false, queued: 0, reason: "off" };
   const supabase = await createClient();
   const { data } = await supabase.from("companies").update({ people_requested_at: new Date().toISOString(), people_status: "queued" })
     .eq("workspace_id", session.workspace.id).in("id", companies.map((c) => c.id))

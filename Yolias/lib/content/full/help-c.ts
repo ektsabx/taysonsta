@@ -452,10 +452,11 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "Act on several rows" },
         { ol: [
           "Tick the checkbox at the start of each row you want, or the one in the header to select every row on the page.",
-          "The selection bar shows \"{count} selected\" with its actions: export (the download icon) and remove.",
+          "The selection bar shows \"{count} selected\" with its actions: export (the download icon), remove, and on the Companies, Local and All tabs **Find decision makers** (the people icon).",
+          "When every row on the page is ticked and more rows match, the bar offers **Select all {count} matching**. The actions then cover every matching row on every page, not only the 50 you see.",
           "Press **Clear selection** (the X) to start over.",
         ] },
-        { p: "The table shows 50 rows per page, with **Previous** and **Next** below it. A selection covers the current page only: moving to another page clears it. To act on every matching row, use **Export CSV** from the **More** menu, which takes all rows of the current view. See [Exporting leads and campaigns](/help-center/exporting-prospects)." },
+        { p: "The table shows 50 rows per page, with **Previous** and **Next** below it. A selection covers the current page and clears when you move to another page; **Select all {count} matching** extends it to every matching row. **Export CSV** from the **More** menu also takes all rows of the current view. See [Exporting leads and campaigns](/help-center/exporting-prospects)." },
 
         { h2: "Examples" },
         { ul: [
@@ -618,10 +619,11 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "تعامل مع عدة صفوف" },
         { ol: [
           "ضع علامة في المربع أول كل صف تريده، أو في مربع العنوان لتحديد كل صفوف الصفحة.",
-          "يعرض شريط التحديد «تم تحديد {count}» مع إجراءاته: التصدير (أيقونة التنزيل) والإزالة.",
+          "يعرض شريط التحديد «تم تحديد {count}» مع إجراءاته: التصدير (أيقونة التنزيل)، والإزالة، و**إيجاد صناع القرار** (أيقونة الأشخاص) في تبويبات الشركات والأنشطة المحلية والكل.",
+          "إذا حددت كل صفوف الصفحة وكانت هناك صفوف مطابقة أخرى، يعرض الشريط **تحديد كل الـ{count} المطابقة**، فتشمل الإجراءات كل الصفوف المطابقة في كل الصفحات لا الخمسين الظاهرة فقط.",
           "اضغط **إلغاء التحديد** (علامة X) لتبدأ من جديد.",
         ] },
-        { p: "يعرض الجدول 50 صفًا في الصفحة، وتحته **السابق** و**التالي**. والتحديد يشمل الصفحة الحالية فقط، والانتقال إلى صفحة أخرى يلغيه. وللعمل على كل الصفوف المطابقة استخدم **تصدير CSV** من قائمة **المزيد**، فهو يأخذ كل صفوف العرض الحالي. راجع [تصدير العملاء والحملات](/help-center/exporting-prospects)." },
+        { p: "يعرض الجدول 50 صفًا في الصفحة، وتحته **السابق** و**التالي**. والتحديد يشمل الصفحة الحالية ويُلغى عند الانتقال إلى صفحة أخرى، و**تحديد كل الـ{count} المطابقة** يمدّه إلى كل الصفوف المطابقة. ويأخذ **تصدير CSV** من قائمة **المزيد** أيضًا كل صفوف العرض الحالي. راجع [تصدير العملاء والحملات](/help-center/exporting-prospects)." },
 
         { h2: "أمثلة" },
         { ul: [
@@ -675,7 +677,7 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "What you can export" },
         { table: { head: ["From", "What you get", "Format"], rows: [
           ["Leads, **More** menu, **Export CSV**", "Every row of the current view: the tab, search, filters, campaign and sort you set", "CSV"],
-          ["Leads, selection bar, the download icon", "Only the rows you ticked on the current page", "CSV"],
+          ["Leads, selection bar, the download icon", "The rows you ticked on the current page, or every matching row after **Select all {count} matching**", "CSV"],
           ["A company's page, **Decision makers**", "The decision makers you select on that page", "CSV"],
           ["Campaigns, **Export**", "The current table (Campaigns, Audiences or Messages) with the columns and dates shown", "CSV or .xlsx"],
         ] } },
@@ -714,7 +716,7 @@ export const helpC: Record<string, Localized<Doc>> = {
           "In the selection bar (\"{count} selected\"), press the download icon (**Export CSV**).",
           "The file holds only the selected rows, with the columns of the current tab.",
         ] },
-        { p: "A selection covers the current page, up to 50 rows, and clears when you move to another page. To export more, use **Export CSV** from the **More** menu with filters instead." },
+        { p: "A selection covers the current page, up to 50 rows, and clears when you move to another page. To export every matching row, tick the header checkbox, press **Select all {count} matching** in the bar, then the download icon, or use **Export CSV** from the **More** menu." },
         { h3: "Decision makers of one company" },
         { p: "Open a company's page. In **Decision makers**, tick people or **Select all**, then press **Export CSV** in the bar that appears. The file uses the People columns." },
 
@@ -783,7 +785,7 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "Permissions and requirements" },
         { ul: [
           "Every role can export, including Analysts.",
-          "One leads file holds up to 10,000 rows. A selection holds up to 50.",
+          "One leads file holds up to 10,000 rows. A selection holds the 50 rows of a page, or every matching row with **Select all {count} matching**.",
           "Each leads export is recorded in the workspace's user activity, with the tab and the number of rows.",
           "Exporting uses no leads and changes nothing in Leads or campaigns. The file is a copy of the data at the moment you download it.",
         ] },
@@ -802,7 +804,7 @@ export const helpC: Record<string, Localized<Doc>> = {
           ["Some emails are empty", "They failed verification, or the source didn't publish one."],
           ["My campaign filter wasn't applied", "Applying a search or filters resets it. Pick the campaign last, then export."],
           ["The Excel option is missing in Leads", "Leads export as CSV only. Excel and Sheets open CSV files directly."],
-          ["Only some rows downloaded after I selected all", "The header checkbox selects the current page. Use **Export CSV** from the **More** menu for every matching row."],
+          ["Only some rows downloaded after I selected all", "The header checkbox selects the current page. Press **Select all {count} matching** in the bar before exporting, or use **Export CSV** from the **More** menu."],
           ["A campaign column is missing from the file", "Turn it on in **Columns** and export again. The file takes visible columns only."],
           ["The Saved export mixes people and companies", "That is by design. Filter the **Type** column in your spreadsheet to separate them."],
         ] } },
@@ -825,7 +827,7 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "ما الذي يمكنك تصديره" },
         { table: { head: ["من", "ما تحصل عليه", "الصيغة"], rows: [
           ["العملاء، قائمة **المزيد**، **تصدير CSV**", "كل صفوف العرض الحالي: التبويب والبحث والفلاتر والحملة والترتيب", "CSV"],
-          ["العملاء، شريط التحديد، أيقونة التنزيل", "الصفوف التي حددتها في الصفحة الحالية فقط", "CSV"],
+          ["العملاء، شريط التحديد، أيقونة التنزيل", "الصفوف التي حددتها في الصفحة الحالية، أو كل الصفوف المطابقة بعد **تحديد كل الـ{count} المطابقة**", "CSV"],
           ["صفحة شركة، قسم **صنّاع القرار**", "صنّاع القرار الذين تحددهم في الصفحة", "CSV"],
           ["الحملات، **تصدير**", "الجدول الحالي (الحملات أو الجماهير أو الرسائل) بأعمدته وتواريخه الظاهرة", "CSV أو xlsx."],
         ] } },
@@ -864,7 +866,7 @@ export const helpC: Record<string, Localized<Doc>> = {
           "في شريط التحديد («تم تحديد {count}») اضغط أيقونة التنزيل (**تصدير CSV**).",
           "يحتوي الملف الصفوف المحددة فقط، بأعمدة التبويب الحالي.",
         ] },
-        { p: "التحديد يشمل الصفحة الحالية فقط، حتى 50 صفًا، ويُلغى عند الانتقال إلى صفحة أخرى. ولتصدير أكثر من ذلك استخدم **تصدير CSV** من قائمة **المزيد** مع الفلاتر." },
+        { p: "التحديد يشمل الصفحة الحالية، حتى 50 صفًا، ويُلغى عند الانتقال إلى صفحة أخرى. ولتصدير كل الصفوف المطابقة حدد مربع العنوان، ثم اضغط **تحديد كل الـ{count} المطابقة** في الشريط، ثم أيقونة التنزيل، أو استخدم **تصدير CSV** من قائمة **المزيد**." },
         { h3: "صنّاع القرار في شركة واحدة" },
         { p: "افتح صفحة الشركة، وفي قسم **صنّاع القرار** حدد أشخاصًا أو اضغط **تحديد الكل**، ثم اضغط **تصدير CSV** في الشريط الذي يظهر. ويستخدم الملف أعمدة الأشخاص." },
 
@@ -941,7 +943,7 @@ export const helpC: Record<string, Localized<Doc>> = {
         { h2: "الصلاحيات والمتطلبات" },
         { ul: [
           "كل الأدوار تستطيع التصدير، ومنها المحلل.",
-          "يحتوي ملف العملاء حتى 10,000 صف، والتحديد حتى 50 صفًا.",
+          "يحتوي ملف العملاء حتى 10,000 صف، والتحديد صفوف الصفحة الخمسين، أو كل الصفوف المطابقة مع **تحديد كل الـ{count} المطابقة**.",
           "يُسجَّل كل تصدير للعملاء في نشاط المستخدمين بمساحة العمل، مع التبويب وعدد الصفوف.",
           "لا يحتاج التصدير إلى رصيد، ولا يغيّر شيئًا في العملاء أو الحملات: هو نسخة من البيانات كما هي لحظة التنزيل، فإذا تغيرت البيانات بعدها فصدّر ملفًا جديدًا.",
         ] },
@@ -960,7 +962,7 @@ export const helpC: Record<string, Localized<Doc>> = {
           ["بعض الإيميلات فارغة", "فشل التحقق منها، أو لم ينشرها المصدر."],
           ["لم يُطبَّق اختيار الحملة", "تطبيق البحث أو الفلاتر يعيده إلى كل الحملات. اختر الحملة في النهاية ثم صدّر."],
           ["لا يوجد خيار Excel في العملاء", "العملاء يُصدَّرون بصيغة CSV فقط، وExcel وSheets يفتحانها مباشرة."],
-          ["نُزّلت بعض الصفوف فقط بعد تحديد الكل", "مربع العنوان يحدد الصفحة الحالية. استخدم **تصدير CSV** من قائمة **المزيد** لكل الصفوف المطابقة."],
+          ["نُزّلت بعض الصفوف فقط بعد تحديد الكل", "مربع العنوان يحدد الصفحة الحالية. اضغط **تحديد كل الـ{count} المطابقة** في الشريط قبل التصدير، أو استخدم **تصدير CSV** من قائمة **المزيد**."],
           ["ملف الحملات ينقصه عمود أراه في الجدول", "تأكد أن العمود مفعّل في **الأعمدة**، ثم صدّر مجددًا؛ فالملف يأخذ الأعمدة الظاهرة فقط وبترتيبها."],
           ["تصدير المحفوظات فيه شركات وأشخاص معًا", "هذا مقصود: ملف المحفوظات يجمع النوعين. صفِّ عمود **النوع** في برنامج الجداول لفصلهما."],
         ] } },
