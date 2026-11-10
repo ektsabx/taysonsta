@@ -71,7 +71,7 @@ export type MeetingRow = {
   status: MeetingStatus; notes: string | null; created_by: string | null; created_at: string; updated_at: string;
   reminded_at: string | null; outcome_asked_at: string | null;
   /** D-267: where it came from, the guest of a booking, its host and the Google event. */
-  source: "manual" | "booking" | "agent"; host_id: string | null; guest_name: string | null; guest_email: string | null; guest_note: string | null;
+  source: "manual" | "booking" | "agent"; host_id: string | null; guest_name: string | null; guest_email: string | null; guest_note: string | null; guest_locale: "en" | "ar";
   location: string | null; google_event_id: string | null; cancel_token: string;
   /** D-270: the campaign that led to it, and whether the member judged it qualified (null = not said yet). */
   campaign_id: string | null; qualified: boolean | null;

@@ -44,6 +44,7 @@ interface Copy {
   footnote: string;
 }
 const T = (l: EmailLocale, en: string, ar: string) => (l === "ar" ? ar : en);
+const BY = `<a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a>`;
 function render(l: EmailLocale, siteUrl: string, c: Copy): RenderedEmail {
   return { subject: c.subject, html: layout({ locale: l, siteUrl, preheader: c.preheader, heading: c.heading, body: c.body, button: c.button, extra: c.extra, footnote: c.footnote }) };
 }
@@ -533,52 +534,60 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     footnote: T(l, `${link(`${d.siteUrl}/meetings?tab=bookings`, "Your meetings")}`, `${link(`${d.siteUrl}/meetings?tab=bookings`, "اجتماعاتك")}`),
   }),
   meeting_guest: (l, d) => {
-    const when = (iso: string) => new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(iso));
+    const when = (iso: string) => new Intl.DateTimeFormat(l === "ar" ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(iso));
     const g = (iso: string) => iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
     const add = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${d.title} with ${d.hostName}`)}&dates=${g(d.start)}/${g(d.end)}${d.url || d.location ? `&location=${encodeURIComponent(d.url ?? d.location ?? "")}` : ""}`;
-    const rows: [string, string][] = [["When", `<span dir="ltr">${esc(when(d.start))}</span>`], ["With", esc([d.hostName, d.company].filter(Boolean).join(", "))]];
-    if (d.url) rows.push(["Link", link(d.url, d.url)]);
-    else if (d.location) rows.push(["Where", esc(d.location)]);
+    const rows: [string, string][] = [[T(l, "When", "الموعد"), `<span dir="ltr">${esc(when(d.start))}</span>`], [T(l, "With", "مع"), esc([d.hostName, d.company].filter(Boolean).join(l === "ar" ? "، " : ", "))]];
+    if (d.url) rows.push([T(l, "Link", "الرابط"), link(d.url, d.url)]);
+    else if (d.location) rows.push([T(l, "Where", "المكان"), esc(d.location)]);
     return {
-      subject: `Confirmed: ${d.title} with ${d.hostName}`,
+      subject: T(l, `Confirmed: ${d.title} with ${d.hostName}`, `تم التأكيد: ${d.title} مع ${d.hostName}`),
       preheader: when(d.start),
-      heading: "Your meeting is booked",
-      body: [`${esc(d.hostName)} will see you on <span dir="ltr">${esc(when(d.start))}</span>.`, d.calendarInvite ? "A calendar invitation is on its way from Google Calendar." : `${link(add, "Add it to Google Calendar")}.`],
-      extra: table("en", rows),
-      button: { label: "Cancel the meeting", href: d.cancelUrl },
-      footnote: `You booked this on ${esc(d.hostName)}’s booking page on <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a>. If you can’t make it, cancel with the button above so the time is freed.`,
+      heading: T(l, "Your meeting is booked", "تم حجز اجتماعك"),
+      body: [T(l, `${esc(d.hostName)} will see you on <span dir="ltr">${esc(when(d.start))}</span>.`, `سيقابلك ${esc(d.hostName)} في <span dir="ltr">${esc(when(d.start))}</span>.`),
+        d.calendarInvite ? T(l, "A calendar invitation is on its way from Google Calendar.", "تصلك دعوة التقويم من Google Calendar.") : `${link(add, T(l, "Add it to Google Calendar", "أضفه إلى Google Calendar"))}.`],
+      extra: table(l, rows),
+      button: { label: T(l, "Cancel the meeting", "إلغاء الاجتماع"), href: d.cancelUrl },
+      footnote: T(l, `You booked this on ${esc(d.hostName)}’s booking page on ${BY}. If you can’t make it, cancel with the button above so the time is freed.`,
+        `حجزت هذا الموعد من صفحة حجز ${esc(d.hostName)} على ${BY}. إن لم تستطع الحضور فألغه من الزر أعلاه ليصبح الوقت متاحًا.`),
     };
   },
   meeting_rebook: (l, d) => ({
-    subject: `Shall we find another time? (${d.title})`,
-    preheader: `${d.hostName} would still like to meet.`,
-    heading: "We missed you",
-    body: [`It looks like the meeting with ${esc(d.hostName)}${d.company ? ` (${esc(d.company)})` : ""} didn’t happen. No problem: pick another time that suits you.`],
-    button: { label: "Pick another time", href: d.bookingUrl },
-    footnote: `Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of ${esc(d.hostName)}.`,
+    subject: T(l, `Shall we find another time? (${d.title})`, `هل نختار موعدًا آخر؟ (${d.title})`),
+    preheader: T(l, `${d.hostName} would still like to meet.`, `ما زال ${d.hostName} يرغب في مقابلتك.`),
+    heading: T(l, "We missed you", "افتقدناك"),
+    body: [T(l, `It looks like the meeting with ${esc(d.hostName)}${d.company ? ` (${esc(d.company)})` : ""} didn’t happen. No problem: pick another time that suits you.`,
+      `يبدو أن الاجتماع مع ${esc(d.hostName)}${d.company ? ` (${esc(d.company)})` : ""} لم يتم. اختر موعدًا آخر يناسبك.`)],
+    button: { label: T(l, "Pick another time", "اختر موعدًا آخر"), href: d.bookingUrl },
+    footnote: T(l, `Sent by ${BY} on behalf of ${esc(d.hostName)}.`, `أرسلها ${BY} نيابةً عن ${esc(d.hostName)}.`),
   }),
   meeting_guest_reminder: (l, d) => {
-    const when = new Intl.DateTimeFormat("en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(d.start));
-    const rows: [string, string][] = [["When", `<span dir="ltr">${esc(when)}</span>`], ["With", esc([d.hostName, d.company].filter(Boolean).join(", "))]];
-    if (d.url) rows.push(["Link", link(d.url, d.url)]);
-    else if (d.location) rows.push(["Where", esc(d.location)]);
+    const when = new Intl.DateTimeFormat(l === "ar" ? "ar-EG-u-nu-latn" : "en-US", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: d.timeZone, timeZoneName: "short" }).format(new Date(d.start));
+    const rows: [string, string][] = [[T(l, "When", "الموعد"), `<span dir="ltr">${esc(when)}</span>`], [T(l, "With", "مع"), esc([d.hostName, d.company].filter(Boolean).join(l === "ar" ? "، " : ", "))]];
+    if (d.url) rows.push([T(l, "Link", "الرابط"), link(d.url, d.url)]);
+    else if (d.location) rows.push([T(l, "Where", "المكان"), esc(d.location)]);
+    const day = d.when === "day";
     return {
-      subject: d.when === "day" ? `Tomorrow: ${d.title} with ${d.hostName}` : `In an hour: ${d.title} with ${d.hostName}`,
+      subject: day ? T(l, `Tomorrow: ${d.title} with ${d.hostName}`, `غدًا: ${d.title} مع ${d.hostName}`) : T(l, `In an hour: ${d.title} with ${d.hostName}`, `بعد ساعة: ${d.title} مع ${d.hostName}`),
       preheader: when,
-      heading: d.when === "day" ? "See you tomorrow" : "Starting in an hour",
-      body: [d.when === "day" ? `A reminder of your meeting with ${esc(d.hostName)}.` : `Your meeting with ${esc(d.hostName)} starts in about an hour.`],
-      extra: table("en", rows),
-      button: d.url ? { label: "Join the meeting", href: d.url } : undefined,
-      footnote: `Can’t make it? ${link(d.cancelUrl, "Cancel the meeting")} so the time is freed. Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of ${esc(d.hostName)}.`,
+      heading: day ? T(l, "See you tomorrow", "نراك غدًا") : T(l, "Starting in an hour", "يبدأ بعد ساعة"),
+      body: [day ? T(l, `A reminder of your meeting with ${esc(d.hostName)}.`, `تذكير باجتماعك مع ${esc(d.hostName)}.`) : T(l, `Your meeting with ${esc(d.hostName)} starts in about an hour.`, `يبدأ اجتماعك مع ${esc(d.hostName)} بعد ساعة تقريبًا.`)],
+      extra: table(l, rows),
+      button: d.url ? { label: T(l, "Join the meeting", "انضم إلى الاجتماع"), href: d.url } : undefined,
+      footnote: T(l, `Can’t make it? ${link(d.cancelUrl, "Cancel the meeting")} so the time is freed. Sent by ${BY} on behalf of ${esc(d.hostName)}.`,
+        `لا تستطيع الحضور؟ ${link(d.cancelUrl, "ألغِ الاجتماع")} ليصبح الوقت متاحًا. أرسلها ${BY} نيابةً عن ${esc(d.hostName)}.`),
     };
   },
-  meeting_guest_canceled: (l, d) => ({
-    subject: `Canceled: ${d.title}`,
-    preheader: "The meeting was canceled.",
-    heading: "Meeting canceled",
-    body: [`The meeting “${esc(d.title)}” on <span dir="ltr">${esc(new Intl.DateTimeFormat("en-US", { dateStyle: "full", timeStyle: "short", timeZone: d.timeZone }).format(new Date(d.start)))}</span> was canceled by the host.`],
-    footnote: `Sent by <a href="https://www.yolias.com/?utm_source=meeting_email&amp;utm_medium=referral" style="color:inherit;font-weight:600">Yolias</a> on behalf of the host.`,
-  }),
+  meeting_guest_canceled: (l, d) => {
+    const at = new Intl.DateTimeFormat(l === "ar" ? "ar-EG-u-nu-latn" : "en-US", { dateStyle: "full", timeStyle: "short", timeZone: d.timeZone }).format(new Date(d.start));
+    return {
+      subject: T(l, `Canceled: ${d.title}`, `أُلغي: ${d.title}`),
+      preheader: T(l, "The meeting was canceled.", "أُلغي الاجتماع."),
+      heading: T(l, "Meeting canceled", "أُلغي الاجتماع"),
+      body: [T(l, `The meeting “${esc(d.title)}” on <span dir="ltr">${esc(at)}</span> was canceled by the host.`, `ألغى المضيف اجتماع «${esc(d.title)}» في <span dir="ltr">${esc(at)}</span>.`)],
+      footnote: T(l, `Sent by ${BY} on behalf of the host.`, `أرسلها ${BY} نيابةً عن المضيف.`),
+    };
+  },
 
   /* Product updates */
   announcement: (l, d) => ({

@@ -61,7 +61,14 @@ async function busy(db: Db, hostId: string, days: number) {
     calendarAccess(db, hostId),
   ]);
   const own = (data ?? []).map((m) => ({ start: m.starts_at, end: m.ends_at ?? new Date(Date.parse(m.starts_at) + 30 * 60_000).toISOString() }));
-  return cal ? [...own, ...(await busyTimes(cal.token, from, to))] : own;
+  if (!cal) return own;
+  // Without the free/busy permission (connections from before D-269, or the
+  // box left unticked) Google answers nothing: the member sees why.
+  const r = await busyTimes(cal.token, from, to);
+  const { data: c } = await db.from("calendar_connections").select("error").eq("user_id", hostId).maybeSingle();
+  if (r.denied && c?.error !== "busy") await db.from("calendar_connections").update({ error: "busy" }).eq("user_id", hostId);
+  if (!r.denied && c?.error === "busy") await db.from("calendar_connections").update({ error: null }).eq("user_id", hostId);
+  return [...own, ...r.busy];
 }
 
 export async function slotsFor(page: BookingPageRow): Promise<DaySlots[]> {
@@ -103,7 +110,7 @@ export function pageTypes(page: BookingPageRow): MeetingType[] {
 /** The page's rules for one meeting type (its own length). */
 const withType = (page: BookingPageRow, type: MeetingType) => ({ ...page, duration_min: type.duration_min });
 
-export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null; type?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null; meetingId: string } | { ok: false; error: BookError }> {
+export async function book(input: { slug: string; start: string; name: string; email: string; note?: string | null; type?: string | null; locale?: string | null }): Promise<{ ok: true; start: string; end: string; url: string | null; location: string | null; meetingId: string } | { ok: false; error: BookError }> {
   const db = createAdminClient();
   const page = await pageBySlug(input.slug);
   if (!page) return { ok: false, error: "not_found" };
@@ -125,7 +132,7 @@ export async function book(input: { slug: string; start: string; name: string; e
     leadId = made?.id ?? (await db.from("sales_leads").select("id").eq("workspace_id", page.workspace_id).eq("lead_key", `email:${email}`).maybeSingle()).data?.id ?? null;
   }
   if (!leadId) return { ok: false, error: "invalid" };
-  return createBooking(db, page, type, { leadId, name, email, note }, start, "booking");
+  return createBooking(db, page, type, { leadId, name, email, note, locale: input.locale === "ar" ? "ar" : "en" }, start, "booking");
 }
 
 /**
@@ -142,14 +149,16 @@ export async function bookForLead(hostId: string, leadId: string, start: string)
   if (!lead?.email) return { ok: false, error: "invalid" };
   const at = new Date(start).toISOString();
   if (!fitsPage(page, await busy(db, page.user_id, page.window_days), at)) return { ok: false, error: "taken" };
-  return createBooking(db, page, pageTypes(page)[0], { leadId: lead.id, name: lead.name, email: lead.email, note: null }, at, "agent");
+  // The guest is answered in the language of the campaign email they replied to.
+  const { data: last } = await db.from("outreach_messages").select("language").eq("lead_id", lead.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  return createBooking(db, page, pageTypes(page)[0], { leadId: lead.id, name: lead.name, email: lead.email, note: null, locale: last?.language === "ar" ? "ar" : "en" }, at, "agent");
 }
 
-async function createBooking(db: Db, page: BookingPageRow & { host: { name: string; company: string | null } }, type: MeetingType, who: { leadId: string; name: string; email: string; note: string | null }, start: string, source: "booking" | "agent") {
+async function createBooking(db: Db, page: BookingPageRow & { host: { name: string; company: string | null } }, type: MeetingType, who: { leadId: string; name: string; email: string; note: string | null; locale: "en" | "ar" }, start: string, source: "booking" | "agent") {
   const end = new Date(Date.parse(start) + type.duration_min * 60_000).toISOString();
   const { data: meeting, error } = await db.from("sales_meetings").insert({
     workspace_id: page.workspace_id, lead_id: who.leadId, title: `${type.title}: ${who.name}`.slice(0, 200), starts_at: start, ends_at: end, status: "scheduled",
-    source, host_id: page.user_id, guest_name: who.name, guest_email: who.email, guest_note: who.note, location: page.location, created_by: page.user_id,
+    source, host_id: page.user_id, guest_name: who.name, guest_email: who.email, guest_note: who.note, guest_locale: who.locale, location: page.location, created_by: page.user_id,
     campaign_id: await campaignOfLead(db, who.leadId),
     // D-273: the guest picked this time (booking page) or named it in the thread (agent): confirmed.
     confirmed_at: new Date().toISOString(),
@@ -180,7 +189,7 @@ async function createBooking(db: Db, page: BookingPageRow & { host: { name: stri
   }
 
   await tellHost(db, page, "booked", { meetingId: meeting.id, leadId: who.leadId, name: who.name, email: who.email, start, url, note: who.note });
-  const guest: Recipient = { userId: null, email: who.email, locale: "en", prefs: {} };
+  const guest: Recipient = { userId: null, email: who.email, locale: who.locale, prefs: {} };
   await notify("meeting_guest", [guest], {
     hostName: page.host.name, company: page.host.company, title: type.title, start, end, timeZone: page.timezone, location: page.location, url,
     calendarInvite: Boolean(cal), cancelUrl: `${siteUrl()}/meet/c/${meeting.cancel_token}`,
@@ -200,9 +209,12 @@ export async function cancelMeeting(by: { token: string } | { id: string; userId
   }
   await db.from("sales_meetings").update({ status: "canceled", notes: [m.notes, reason && `Canceled: ${reason.slice(0, 300)}`].filter(Boolean).join("\n").slice(0, 6000) || null }).eq("id", m.id);
   const host = m.host_id ?? m.created_by;
+  // Google tells the guest when it cancels the event itself; otherwise (no
+  // event, calendar disconnected, or Google refused) Yolias emails the guest.
+  let googleTold = false;
   if (m.google_event_id && host) {
     const cal = await calendarAccess(db, host);
-    if (cal) await cancelEvent(cal.token, cal.calendarId, m.google_event_id).catch((e) => calendarFailed(db, host, e));
+    if (cal) googleTold = await cancelEvent(cal.token, cal.calendarId, m.google_event_id).then((done) => done, async (e) => { await calendarFailed(db, host, e); return false; });
   }
   await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "meeting_updated", actor_kind: "token" in by ? "system" : "user", actor_id: "id" in by ? by.userId : null, body: "token" in by ? "The guest canceled the meeting." : "Meeting canceled.", meta: { meeting_id: m.id } });
   const { data: page } = host ? await db.from("booking_pages").select("*").eq("user_id", host).maybeSingle() : { data: null };
@@ -210,9 +222,8 @@ export async function cancelMeeting(by: { token: string } | { id: string; userId
     const full = await pageBySlug(page.slug);
     if (full) await tellHost(db, full, "canceled", { meetingId: m.id, leadId: m.lead_id, name: m.guest_name ?? "", email: m.guest_email ?? "", start: m.starts_at, url: m.url, note: reason ?? null });
   }
-  if ("id" in by && m.guest_email && !m.google_event_id) {
-    // Google tells the guest itself when the event had been sent from Google Calendar.
-    await notify("meeting_guest_canceled", [{ userId: null, email: m.guest_email, locale: "en", prefs: {} }], { title: m.title, start: m.starts_at, timeZone: page?.timezone ?? "UTC" }, { workspaceId: m.workspace_id, dedupe: m.id });
+  if ("id" in by && m.guest_email && !googleTold) {
+    await notify("meeting_guest_canceled", [{ userId: null, email: m.guest_email, locale: m.guest_locale === "ar" ? "ar" : "en", prefs: {} }], { title: m.title, start: m.starts_at, timeZone: page?.timezone ?? "UTC" }, { workspaceId: m.workspace_id, dedupe: m.id });
   }
   return true;
 }
@@ -252,13 +263,13 @@ async function calendarAccess(db: Db, userId: string): Promise<{ token: string; 
 
 async function calendarFailed(db: Db, userId: string, e: unknown) {
   console.error("[meetings] google calendar", e instanceof Error ? e.message : e);
-  await db.from("calendar_connections").update({ status: "error", error: e instanceof CalendarError && e.kind === "auth" ? "Reconnect Google Calendar" : "Google Calendar didn't answer" }).eq("user_id", userId);
+  await db.from("calendar_connections").update({ status: "error", error: e instanceof CalendarError && e.kind === "auth" ? "auth" : "failed" }).eq("user_id", userId);
 }
 
 /** A guest who missed the meeting gets the host's booking page to pick another time (D-269). Once per meeting. */
 export async function offerRebooking(meetingId: string): Promise<boolean> {
   const db = createAdminClient();
-  const { data: m } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, host_id, created_by, guest_email, lead:sales_leads(email, do_not_contact)").eq("id", meetingId).maybeSingle();
+  const { data: m } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, host_id, created_by, guest_email, guest_locale, lead:sales_leads(email, do_not_contact)").eq("id", meetingId).maybeSingle();
   if (!m) return false;
   const lead = m.lead as unknown as { email: string | null; do_not_contact: boolean } | null;
   const to = m.guest_email ?? lead?.email ?? null;
@@ -268,7 +279,7 @@ export async function offerRebooking(meetingId: string): Promise<boolean> {
   if (!row?.enabled) return false;
   const page = await pageBySlug(row.slug);
   if (!page) return false;
-  await notify("meeting_rebook", [{ userId: null, email: to, locale: "en", prefs: {} }], {
+  await notify("meeting_rebook", [{ userId: null, email: to, locale: m.guest_locale === "ar" ? "ar" : "en", prefs: {} }], {
     hostName: page.host.name, company: page.host.company, title: m.title.split(":")[0] || page.title, bookingUrl: bookingUrl(page.slug),
   }, { workspaceId: m.workspace_id, dedupe: m.id });
   await db.from("lead_activities").insert({ workspace_id: m.workspace_id, lead_id: m.lead_id, kind: "agent", actor_kind: "agent", body: "No-show: Yolias sent the booking page to pick another time.", meta: { meeting_id: m.id } });
@@ -320,7 +331,7 @@ export async function meetingPrepSweep(limit = 30): Promise<{ reminded: number; 
   const db = createAdminClient();
   const now = Date.now();
   const out = { reminded: 0, briefs: 0 };
-  const { data: rows } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, ends_at, created_at, url, location, host_id, created_by, guest_email, guest_name, cancel_token, guest_reminded_day_at, guest_reminded_hour_at, brief_at, lead:sales_leads(email, do_not_contact)")
+  const { data: rows } = await db.from("sales_meetings").select("id, workspace_id, lead_id, title, starts_at, ends_at, created_at, url, location, host_id, created_by, guest_email, guest_locale, guest_name, cancel_token, guest_reminded_day_at, guest_reminded_hour_at, brief_at, lead:sales_leads(email, do_not_contact)")
     .eq("status", "scheduled").gt("starts_at", new Date(now).toISOString()).lte("starts_at", new Date(now + 24 * HOUR).toISOString()).order("starts_at").limit(limit * 3);
   for (const m of rows ?? []) {
     const lead = m.lead as unknown as { email: string | null; do_not_contact: boolean } | null;
@@ -335,7 +346,7 @@ export async function meetingPrepSweep(limit = 30): Promise<{ reminded: number; 
       const stamp = new Date().toISOString();
       const { data: claimed } = await db.from("sales_meetings").update(due === "day" ? { guest_reminded_day_at: stamp } : { guest_reminded_hour_at: stamp }).eq("id", m.id).is(col, null).select("id").maybeSingle();
       if (claimed) {
-        await notify("meeting_guest_reminder", [{ userId: null, email: to, locale: "en", prefs: {} }], {
+        await notify("meeting_guest_reminder", [{ userId: null, email: to, locale: m.guest_locale === "ar" ? "ar" : "en", prefs: {} }], {
           when: due, hostName: full?.host.name ?? "", company: full?.host.company ?? null, title: m.title.split(":")[0] || m.title,
           start: m.starts_at, timeZone: page?.timezone ?? "UTC", url: m.url, location: m.location, cancelUrl: `${siteUrl()}/meet/c/${m.cancel_token}`,
         }, { workspaceId: m.workspace_id, dedupe: `${m.id}:${due}` });

@@ -95,7 +95,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { ul: [
           "Without **Place**, a meeting has no place or link. Yolias doesn't create video links.",
           "The booking page opens in the visitor's language. Add ?l=ar or ?l=en to the link to choose Arabic or English.",
-          "Confirmation, reminder and cancellation emails to guests are written in English.",
+          "Confirmation, reminder, rebooking and cancellation emails reach the guest in the language they booked in: the language of your booking page when they booked there, or the language of the campaign email they replied to when Yolias booked the time in the conversation.",
           "Times on the cards use the time zone in your profile; the public page shows each guest their own time zone.",
           "Booking pages aren't shown in search engines.",
         ] },
@@ -208,7 +208,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { ul: [
           "من دون **المكان** لا يكون للاجتماع مكان أو رابط، ولا ينشئ يولياس روابط فيديو.",
           "تُفتح صفحة الحجز بلغة الزائر. أضف ?l=ar أو ?l=en إلى الرابط لتحديد العربية أو الإنجليزية.",
-          "رسائل التأكيد والتذكير والإلغاء التي تصل الضيوف مكتوبة بالإنجليزية.",
+          "تصل رسائل التأكيد والتذكير وإعادة الحجز والإلغاء إلى الضيف باللغة التي حجز بها: لغة صفحة الحجز إذا حجز منها، أو لغة رسالة الحملة التي ردّ عليها إذا حجز يولياس الموعد في المحادثة.",
           "المواعيد في الكروت بالمنطقة الزمنية المحددة في ملفك، والصفحة العامة تعرض لكل ضيف مواعيده بتوقيته.",
           "لا تظهر صفحات الحجز في محركات البحث.",
         ] },
@@ -244,7 +244,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { ul: [
           "Every new booking becomes an event in your Google account, with the guest invited. Google emails the invitation to the guest.",
           "Your booking page, and the times Yolias offers in replies, skip times that are busy in your main Google calendar.",
-          "When a meeting is canceled in Yolias, by you or by the guest, the event is removed and Google tells the guest.",
+          "When a meeting is canceled in Yolias, by you or by the guest, the event is removed and Google tells the guest. If Google can't remove it (the calendar was disconnected or the event is gone), Yolias emails the guest the cancellation itself.",
         ] },
         { p: "Yolias doesn't create video links, Google Meet included. The event carries the **Place** you set on your [booking page](/help-center/deals-and-meetings)." },
 
@@ -319,7 +319,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "Important notes" },
         { ul: [
           "Google is still reviewing the Yolias app. Until the review is complete, Google can show a warning on the permission screen or limit which accounts can connect.",
-          "Each time you connect, Yolias creates a new **Yolias meetings** calendar. After disconnecting and connecting again you can see two calendars with that name; events booked before the reconnection stay on the older one.",
+          "Connecting the same Google account again keeps the same **Yolias meetings** calendar, so meetings stay in one place. Connecting a different Google account creates a new calendar there; meetings booked before stay on the calendar of the first account.",
           "If you cancel a meeting whose event was created under an earlier connection, or while Google Calendar is disconnected, the event stays in Google and the guest isn't sent a cancellation. Tell the guest yourself and delete the event in Google Calendar.",
           "Meetings booked before you connected aren't copied to Google.",
           "If Google doesn't answer when a meeting is booked, the meeting is still saved in Yolias and both emails are sent; only the Google event is missing.",
@@ -337,9 +337,9 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h3: "Google Calendar didn't answer appears in red" },
         { p: "Google refused or didn't answer a request, for example after you deleted the Yolias meetings calendar. The message clears by itself on the next successful request. If it stays, disconnect and connect again." },
         { h3: "A busy time is still offered" },
-        { p: "Check that the event is on your main calendar and marked **Busy**, not **Free**. If you connected before busy times were read, or didn't allow the free and busy permission, disconnect and connect again." },
+        { p: "Check that the event is on your main calendar and marked **Busy**, not **Free**. If you connected before busy times were read, or didn't allow the free and busy permission, the Google Calendar page in Integrations says Yolias can't see when you're busy. Disconnect and connect again, and allow it." },
         { h3: "I see two Yolias meetings calendars" },
-        { p: "You connected more than once. New bookings go to the newest one. Keep the older calendar until its meetings have passed, then delete it in Google Calendar." },
+        { p: "Connections made before Yolias kept the calendar on reconnect created a new one each time. New bookings go to the newest one. Keep the older calendar until its meetings have passed, then delete it in Google Calendar." },
         { h3: "Meetings are offered at the wrong hour" },
         { p: "Your weekly hours are read in the **Time zone** of your booking page, not in your Google Calendar's time zone. Correct the time zone on the **Booking page** tab and press **Save**." },
         { h3: "The guest didn't get Google's invitation" },
@@ -361,7 +361,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { ul: [
           "يصبح كل حجز جديد حدثًا في حسابك على Google والضيف مدعو إليه، وترسل Google الدعوة إلى بريد الضيف.",
           "تتخطى صفحة حجزك، والمواعيد التي يعرضها يولياس في ردوده، الأوقات المشغولة في تقويمك الرئيسي على Google.",
-          "عند إلغاء اجتماع في يولياس، منك أو من الضيف، يُحذف الحدث وتُبلغ Google الضيف.",
+          "عند إلغاء اجتماع في يولياس، منك أو من الضيف، يُحذف الحدث وتُبلغ Google الضيف. وإذا تعذّر على Google حذفه (فُصل التقويم أو لم يعد الحدث موجودًا) يرسل يولياس إلى الضيف رسالة الإلغاء بنفسه.",
         ] },
         { p: "لا ينشئ يولياس روابط فيديو، ولا روابط Google Meet. ويحمل الحدث **المكان** الذي حددته في [صفحة الحجز](/help-center/deals-and-meetings)." },
 
@@ -436,7 +436,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "ملاحظات مهمة" },
         { ul: [
           "ما زالت Google تراجع تطبيق يولياس. وحتى تكتمل المراجعة قد تعرض Google تحذيرًا في شاشة الأذونات، أو تحدد الحسابات التي تستطيع الربط.",
-          "في كل مرة تربط فيها ينشئ يولياس تقويم **Yolias meetings** جديدًا. فبعد الفصل وإعادة الربط قد ترى تقويمين بهذا الاسم، وتبقى أحداث ما قبل إعادة الربط في التقويم الأقدم.",
+          "إعادة ربط حساب Google نفسه تُبقي تقويم **Yolias meetings** نفسه، فتبقى الاجتماعات في مكان واحد. أما ربط حساب Google آخر فينشئ تقويمًا جديدًا فيه، وتبقى الاجتماعات السابقة في تقويم الحساب الأول.",
           "إذا ألغيت اجتماعًا أُنشئ حدثه في ربط سابق، أو ألغيته والتقويم مفصول، يبقى الحدث في Google ولا يُرسل إلى الضيف إشعار بالإلغاء. أبلغ الضيف بنفسك واحذف الحدث من تقويم Google.",
           "لا تُنسخ إلى Google الاجتماعات المحجوزة قبل الربط.",
           "إذا لم تستجب Google وقت الحجز يُحفظ الاجتماع في يولياس وتُرسل الرسالتان، ولا يغيب إلا حدث Google.",
@@ -454,9 +454,9 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h3: "تظهر رسالة حمراء: Google Calendar didn't answer" },
         { p: "رفضت Google طلبًا أو لم تستجب له، مثلًا بعد حذفك تقويم Yolias meetings. وتختفي الرسالة وحدها عند أول طلب ناجح، فإن بقيت فافصل التقويم واربطه مجددًا." },
         { h3: "ما زال وقت مشغول يُعرض" },
-        { p: "تأكد أن الحدث في تقويمك الرئيسي وبحالة **مشغول** وليس **متاح**. وإذا ربطت قبل أن يبدأ يولياس في قراءة أوقات الانشغال، أو لم تسمح بإذن الفراغ والانشغال، فافصل التقويم واربطه مجددًا." },
+        { p: "تأكد أن الحدث في تقويمك الرئيسي وبحالة **مشغول** وليس **متاح**. وإذا ربطت قبل أن يبدأ يولياس في قراءة أوقات الانشغال، أو لم تسمح بإذن الفراغ والانشغال، تعرض صفحة تقويم Google في التكاملات أن يولياس لا يرى أوقات انشغالك. افصل التقويم واربطه مجددًا واسمح بالإذن." },
         { h3: "أرى تقويمين باسم Yolias meetings" },
-        { p: "ربطت أكثر من مرة، والحجوزات الجديدة تذهب إلى أحدثهما. احتفظ بالتقويم الأقدم حتى تمر اجتماعاته، ثم احذفه من تقويم Google." },
+        { p: "الربط المتكرر قبل أن يحتفظ يولياس بالتقويم عند إعادة الربط كان ينشئ تقويمًا جديدًا كل مرة، والحجوزات الجديدة تذهب إلى أحدثهما. احتفظ بالتقويم الأقدم حتى تمر اجتماعاته، ثم احذفه من تقويم Google." },
         { h3: "تُعرض المواعيد في ساعة خاطئة" },
         { p: "تُقرأ ساعاتك الأسبوعية بحسب **المنطقة الزمنية** المحددة في صفحة الحجز، وليس بحسب المنطقة الزمنية لتقويم Google. صحح المنطقة الزمنية في تبويب **صفحة الحجز** ثم اضغط **حفظ**." },
         { h3: "لم تصل الضيف دعوة Google" },

@@ -53,7 +53,7 @@ export function AppDetail({ app, listing }: { app: AppKey; listing: AppListing }
             )}
           </div>
           {notice && p.calendar[notice as keyof typeof p.calendar] && <p className={notice === "connected" ? "meet-ok" : "meet-error"}>{p.calendar[notice as keyof typeof p.calendar]}</p>}
-          {c?.status === "error" && app === "google-calendar" && <p className="meet-error">{c.error}</p>}
+          {c?.error && app === "google-calendar" && <p className="meet-error">{c.error === "busy" ? p.calErrors.busy : c.error === "auth" || c.error === "Reconnect Google Calendar" ? p.calErrors.auth : p.calErrors.failed}</p>}
           {c && app === "google-calendar" && <p className="ws-hint">{fmt(p.connectedAs, { email: c.email ?? "Google" })}</p>}
           <p className="app-about">{item.about}</p>
           <ul className="app-points">{item.points.map((x) => <li key={x}><Check />{x}</li>)}</ul>

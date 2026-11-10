@@ -80,7 +80,7 @@ export function BookingForm(p: {
     if (!slot) return;
     setError(null);
     start(async () => {
-      const r = await bookAction({ slug: p.slug, start: slot, type: typeKey, ...form, visitId: visit.current.id, visitor: visit.current.visitor });
+      const r = await bookAction({ slug: p.slug, start: slot, type: typeKey, locale: p.locale, ...form, visitId: visit.current.id, visitor: visit.current.visitor });
       if (r.ok) setDone(r);
       else { setError(t.errors[r.error]); if (r.error === "taken") setSlot(null); }
     });

@@ -497,7 +497,7 @@ export const docsF: Record<string, Localized<Doc>> = {
           "**Host reminder:** within the hour before the meeting, the host gets a notification and an email that includes the brief.",
         ] },
         { h2: "Cancellations" },
-        { p: "The guest cancels from the link in their email, with an optional reason (up to 300 characters); the host is told by notification and email. The host cancels with the X in Bookings after confirming **Cancel this meeting? The guest will be told.** When the meeting is in Google Calendar, the event is deleted and Google tells the guest; otherwise Yolias emails the guest. A canceled meeting frees its time on the page." },
+        { p: "The guest cancels from the link in their email, with an optional reason (up to 300 characters); the host is told by notification and email. The host cancels with the X in Bookings after confirming **Cancel this meeting? The guest will be told.** When the meeting is in Google Calendar, the event is deleted and Google tells the guest; otherwise, or when Google can't delete it, Yolias emails the guest. A canceled meeting frees its time on the page." },
         { h2: "After the meeting" },
         { p: "A past meeting that is still scheduled asks **Did it happen?** with two answers:" },
         { ul: [
@@ -532,7 +532,7 @@ export const docsF: Record<string, Localized<Doc>> = {
         ] },
         { h2: "Important notes" },
         { ul: [
-          "Emails Yolias sends to guests are in English. The booking page itself follows the visitor's language.",
+          "Emails Yolias sends to guests follow the language they booked in, Arabic or English. The booking page itself follows the visitor's language.",
           "Turning **Taking bookings** off stops new bookings at once; the page shows that it isn't taking bookings, and Yolias stops offering times.",
           "Changing the address breaks links sent earlier with the old one.",
         ] },
@@ -608,7 +608,7 @@ export const docsF: Record<string, Localized<Doc>> = {
           "**تذكير صاحب الصفحة:** خلال الساعة السابقة للاجتماع يصله إشعار ورسالة بريد فيها الملخص.",
         ] },
         { h2: "الإلغاء" },
-        { p: "يلغي الضيف من الرابط الموجود في بريده، ويمكنه كتابة سبب اختياري (حتى 300 حرف)، ويُبلَّغ صاحب الصفحة بإشعار وبريد. ويلغي صاحب الصفحة بعلامة X في الحجوزات بعد تأكيد رسالة **إلغاء هذا الاجتماع؟ سيتم إبلاغ الضيف.** وإذا كان الاجتماع في تقويم Google يُحذف الحدث منه وتبلّغ Google الضيف، وإلا يرسل يولياس إلى الضيف بريدًا بالإلغاء. والاجتماع الملغى يحرر موعده في الصفحة ليحجزه غيره." },
+        { p: "يلغي الضيف من الرابط الموجود في بريده، ويمكنه كتابة سبب اختياري (حتى 300 حرف)، ويُبلَّغ صاحب الصفحة بإشعار وبريد. ويلغي صاحب الصفحة بعلامة X في الحجوزات بعد تأكيد رسالة **إلغاء هذا الاجتماع؟ سيتم إبلاغ الضيف.** وإذا كان الاجتماع في تقويم Google يُحذف الحدث منه وتبلّغ Google الضيف، وإلا أو إذا تعذّر الحذف يرسل يولياس إلى الضيف بريدًا بالإلغاء. والاجتماع الملغى يحرر موعده في الصفحة ليحجزه غيره." },
         { h2: "بعد الاجتماع" },
         { p: "الاجتماع الذي مضى موعده وما زال مجدولًا يعرض سؤال **هل تم الاجتماع؟** بإجابتين:" },
         { ul: [
@@ -644,7 +644,7 @@ export const docsF: Record<string, Localized<Doc>> = {
         ] },
         { h2: "ملاحظات مهمة" },
         { ul: [
-          "الرسائل التي يرسلها يولياس إلى الضيوف باللغة الإنجليزية، أما صفحة الحجز نفسها فتتبع لغة الزائر.",
+          "الرسائل التي يرسلها يولياس إلى الضيوف باللغة التي حجزوا بها، العربية أو الإنجليزية، أما صفحة الحجز نفسها فتتبع لغة الزائر.",
           "إيقاف **مفتوحة للحجز** يوقف الحجوزات الجديدة فورًا، فتعرض الصفحة أنها لا تستقبل حجوزات، ويتوقف يولياس عن اقتراح المواعيد.",
           "تغيير العنوان يعطّل الروابط التي أُرسلت من قبل بالعنوان القديم.",
         ] },

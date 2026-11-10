@@ -65,6 +65,15 @@ async function call<T>(token: string, path: string, init: RequestInit = {}): Pro
   return (res.status === 204 ? null : await res.json()) as T;
 }
 
+/** true when this Google account can still open the calendar (a reconnect keeps the same "Yolias meetings"). */
+export async function calendarExists(token: string, calendarId: string): Promise<boolean> {
+  try {
+    return Boolean(await call<{ id: string } | null>(token, `/calendars/${encodeURIComponent(calendarId)}`));
+  } catch {
+    return false;
+  }
+}
+
 /** The calendar Yolias owns in the member's Google Calendar. */
 export async function createCalendar(token: string, timeZone: string): Promise<string> {
   const c = await call<{ id: string }>(token, "/calendars", { method: "POST", body: JSON.stringify({ summary: "Yolias meetings", description: "Meetings booked through Yolias.", timeZone }) });
@@ -92,16 +101,22 @@ export async function guestResponse(token: string, calendarId: string, eventId: 
   return s === "accepted" || s === "declined" || s === "tentative" || s === "needsAction" ? s : null;
 }
 
-export async function cancelEvent(token: string, calendarId: string, eventId: string): Promise<void> {
-  await call(token, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: "DELETE" });
+/** true when Google deleted the event (and told the guest); false when it wasn't in this calendar. */
+export async function cancelEvent(token: string, calendarId: string, eventId: string): Promise<boolean> {
+  const res = await fetch(`${API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000) });
+  if (res.status === 401 || res.status === 403) throw new CalendarError("auth", `calendar ${res.status}`);
+  if (res.status === 404 || res.status === 410) return false;
+  if (!res.ok) throw new CalendarError("failed", `calendar ${res.status}`);
+  return true;
 }
 
-/** Busy times in the member's primary calendar (needs calendar.freebusy; connections from before D-269 return none). */
-export async function busyTimes(token: string, from: string, to: string): Promise<{ start: string; end: string }[]> {
-  try {
-    const r = await call<{ calendars?: Record<string, { busy?: { start: string; end: string }[] }> }>(token, "/freeBusy", { method: "POST", body: JSON.stringify({ timeMin: from, timeMax: to, items: [{ id: "primary" }] }) });
-    return r?.calendars?.primary?.busy ?? [];
-  } catch {
-    return [];
-  }
+/** Busy times in the member's primary calendar. denied: the connection has no calendar.freebusy permission. */
+export async function busyTimes(token: string, from: string, to: string): Promise<{ busy: { start: string; end: string }[]; denied: boolean }> {
+  const res = await fetch(`${API}/freeBusy`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ timeMin: from, timeMax: to, items: [{ id: "primary" }] }), signal: AbortSignal.timeout(20_000) }).catch(() => null);
+  if (!res) return { busy: [], denied: false };
+  if (res.status === 401 || res.status === 403) return { busy: [], denied: true };
+  if (!res.ok) return { busy: [], denied: false };
+  const r = await res.json().catch(() => null) as { calendars?: Record<string, { busy?: { start: string; end: string }[]; errors?: { reason?: string }[] }> } | null;
+  const p = r?.calendars?.primary;
+  return { busy: p?.busy ?? [], denied: Boolean(p?.errors?.some((e) => e.reason === "notFound" || e.reason === "forbidden" || e.reason === "insufficientPermissions")) };
 }

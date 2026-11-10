@@ -18,6 +18,6 @@ export async function calendarState(): Promise<{ available: boolean; connection:
 export async function disconnectCalendar(): Promise<{ ok: true }> {
   const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
-  await createAdminClient().rpc("clear_calendar_token", { p_user: session.userId });
+  await createAdminClient().rpc("disconnect_calendar", { p_user: session.userId });
   return { ok: true };
 }

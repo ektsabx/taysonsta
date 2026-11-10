@@ -1144,6 +1144,7 @@ export interface Database {
       set_calendar_token: { Args: { p_user: string; p_token: string }; Returns: undefined };
       calendar_token: { Args: { p_user: string }; Returns: string | null };
       clear_calendar_token: { Args: { p_user: string }; Returns: undefined };
+      disconnect_calendar: { Args: { p_user: string }; Returns: undefined };
       mailbox_token: { Args: { p_mailbox: string }; Returns: string | null };
       clear_mailbox_token: { Args: { p_mailbox: string }; Returns: undefined };
       workspace_analytics: { Args: { p_ws: string; p_since: string }; Returns: Json };

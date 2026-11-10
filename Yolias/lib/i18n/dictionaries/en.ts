@@ -301,6 +301,7 @@ export const en = {
       google: "Google Calendar", googleLead: "Connect your Google account and every meeting booked on this page, or by Yolias, is added to a new calendar in Google Calendar, and Google sends the invitation to your guest.",
       googlePoints: ["A separate calendar inside Google Calendar, with your guests invited", "Yolias only touches the calendar it creates; your other calendars stay private"],
       connect: "Connect Google Calendar", connectedAs: "Connected as {email}", disconnect: "Disconnect", reconnect: "Reconnect", notConfigured: "Google sign-in isn't set up in Yolias yet.",
+      calErrors: { auth: "Google Calendar stopped answering for this account. Reconnect it.", failed: "Google Calendar didn't answer. Yolias tries again on the next booking.", busy: "Yolias can't see when you're busy in Google Calendar, so your booking page offers every hour in your working hours. Reconnect and allow access to your free/busy times." },
       calendar: { connected: "Google Calendar is connected.", denied: "Google Calendar wasn't connected: permission was declined.", failed: "Google Calendar couldn't be connected. Try again.", not_configured: "Google sign-in isn't set up in Yolias yet." },
       taking: "Taking bookings", address: "Address", name: "Meeting name", location: "Place", locationHint: "A meeting link, a phone number or an address.",
       line: "A line for visitors", lineHint: "Example: a 30-minute intro call about our product.", duration: "Length", timezone: "Time zone", buffer: "Break between meetings",
