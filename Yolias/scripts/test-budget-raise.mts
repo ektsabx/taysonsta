@@ -14,7 +14,8 @@ if (error) throw error;
 const userId = created.user!.id;
 try {
   const wsId = (await db.from("profiles").select("workspace_id").eq("id", userId).single()).data!.workspace_id!;
-  await db.from("usage_ledger").insert({ workspace_id: wsId, kind: "grant", prospects: 100, period_start: new Date().toISOString().slice(0, 10), reason: "prospect_pack:test-budget-raise" });
+  const { error: le } = await db.from("usage_ledger").insert({ workspace_id: wsId, kind: "grant", prospects: 100, period_start: new Date().toISOString().slice(0, 10), reason: `prospect_pack:test-budget-raise-${Date.now()}` });
+  if (le) throw le;
   const { data: camp } = await db.from("outreach_campaigns").insert({ workspace_id: wsId, name: "Raise test", status: "active", budget_type: "total", budget_usd: 10, budget_prospects: 40 }).select("id").single();
   const searches = [];
   for (const name of ["Owners", "Sales leaders", "Paused"]) {
@@ -42,6 +43,7 @@ try {
   assert.ok(more <= 60, `held ${more}, never more than the balance`);
   console.log("✓ total budget raise: growth split across running audiences by share, held from the balance");
 } finally {
-  await db.from("workspace_members").delete().eq("user_id", userId);
+  const ws = (await db.from("profiles").select("workspace_id").eq("id", userId).maybeSingle()).data?.workspace_id;
   await db.auth.admin.deleteUser(userId);
+  if (ws) await db.from("workspaces").delete().eq("id", ws);
 }

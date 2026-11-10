@@ -2,6 +2,7 @@ import { clickLink } from "@/lib/email-links";
 import { isSpamBlock, type MailBrand, type MailFile } from "@/lib/mailbox/mime";
 import type { InboxFile } from "@/lib/inbox-channels";
 import "server-only";
+import { planLapsed } from "@/lib/plans";
 import { specOf } from "@/lib/engine/objectives";
 import type { WorkspaceRole } from "@/types/database";
 import { priority } from "@/lib/campaigns/engines";
@@ -102,6 +103,9 @@ export async function setCampaignRun(workspaceId: string, campaignId: string, ac
   }
   if (action === "resume") {
     if (!c.approved_at || (c.ends_at && Date.parse(c.ends_at) <= Date.now())) return false;
+    // Owner, 2026-11-10: a plan that ended with no credit resumes nothing until it is renewed (every caller: page, bulk, Yolias AI).
+    const { data: ws } = await db.from("workspaces").select("subscription_status, credit_started_at").eq("id", workspaceId).maybeSingle();
+    if (ws && planLapsed(ws)) return false;
     const later = Boolean(c.starts_at && Date.parse(c.starts_at) > Date.now());
     const done = !(await db.from("outreach_campaigns").update({ status: later ? "scheduled" : "active", failure_reason: null }).eq("id", c.id)).error;
     if (done) {

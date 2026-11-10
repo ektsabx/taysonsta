@@ -1,4 +1,5 @@
 "use server";
+import { planLapsed } from "@/lib/plans";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -22,6 +23,8 @@ export async function runOutreach(campaignId: string, action: "pause" | "resume"
   if (!canEdit(session)) return await viewOnly() as never;
   const t = (await getDictionary()).ws.outreach;
   if (!uuid.safeParse(campaignId).success || !["pause", "resume", "cancel", "end"].includes(action)) return { ok: false, error: t.errors.notFound };
+  // The plan ended with no credit (owner, 2026-11-10): nothing resumes until it is renewed.
+  if (action === "resume" && planLapsed(session.workspace)) return { ok: false, error: (await getDictionary()).planGate.lapsed };
   if (!(await setCampaignRun(session.workspace.id, campaignId, action))) return { ok: false, error: t.errors.notFound };
   revalidatePath("/campaigns", "layout");
   revalidatePath("/dashboard");

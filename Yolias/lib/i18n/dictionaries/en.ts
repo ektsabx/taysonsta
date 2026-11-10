@@ -287,6 +287,8 @@ export const en = {
   },
   planGate: {
     banner: "Build your campaign for free. Top up from $20 when you launch.",
+    lapsed: "Your plan ended, so your campaigns are paused and nothing new runs. Your conversations, emails, meetings and data are all here to read. Renew to pick up where you left off.",
+    renew: "Renew",
     bannerTrial: "You’re exploring Yolias. Choose a plan and add your card to start your {days}-day free trial.",
     title: "Start your free trial",
     titleNoTrial: "Top up or choose a plan",

@@ -303,8 +303,8 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
         {data.role === "analyst" && <div className="view-only-bar" role="status">{t.settings.errors.viewOnly}</div>}
         {data.planGate && (
           <div className="plan-gate-banner" role="status">
-            <span>{data.planGate.trialDays ? fmt(t.planGate.bannerTrial, { days: data.planGate.trialDays }) : t.planGate.banner}</span>
-            <Link href="/checkout">{t.planGate.cta}</Link>
+            <span>{data.planGate.lapsed ? t.planGate.lapsed : data.planGate.trialDays ? fmt(t.planGate.bannerTrial, { days: data.planGate.trialDays }) : t.planGate.banner}</span>
+            <Link href="/checkout">{data.planGate.lapsed ? t.planGate.renew : t.planGate.cta}</Link>
           </div>
         )}
         {pastDue && (

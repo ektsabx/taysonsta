@@ -68,6 +68,15 @@ export function canUseApp(ws: Pick<WorkspaceRow, "subscription_status"> & { cred
   return hasActivePlan(ws) || Boolean(ws.credit_started_at);
 }
 
+/**
+ * The plan ended and there is no Pay As You Go credit (owner, 2026-11-10):
+ * campaigns are paused and nothing new runs, while conversations, emails,
+ * meetings and every record stay readable. Renewing restores everything.
+ */
+export function planLapsed(ws: Pick<WorkspaceRow, "subscription_status"> & { credit_started_at?: string | null }): boolean {
+  return ws.subscription_status === "canceled" && !canUseApp(ws);
+}
+
 export function isPaidPlan(v: unknown): v is PaidPlan {
   return typeof v === "string" && (paidPlans as string[]).includes(v);
 }

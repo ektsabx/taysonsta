@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPaidPlan, paidPlans, planPrice, priceFor } from "@/lib/plans";
+import { isPaidPlan, paidPlans, planLapsed, planPrice, priceFor } from "@/lib/plans";
 import { canStartTrial, trialLimits } from "@/lib/trial";
 import { resumeQuotaPaused } from "@/lib/discovery/campaign-control";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
@@ -212,7 +212,30 @@ export async function settleSubscription(ws: WorkspaceRow, now = new Date()): Pr
     workspace_id: ws.id, plan: ws.plan, status: "ended", amount: 0, currency: ws.billing_currency, billing_period: ws.billing_period, mode: eventMode(ws),
   });
   await planEnded(ws, unpaid ? "unpaid" : "canceled");
+  await pauseWhenLapsed({ ...ws, ...next });
   return { ...ws, ...next };
+}
+
+/**
+ * Owner, 2026-11-10: when the plan ends and there is no Pay As You Go credit,
+ * running campaigns pause (sending, follow-ups, Yolias AI's replies and
+ * finding people stop). Nothing is deleted; replies keep arriving and stay
+ * readable. They are marked so the member knows why, and resume after renewal.
+ */
+export async function pauseWhenLapsed(ws: WorkspaceRow): Promise<number> {
+  if (!planLapsed(ws)) return 0;
+  const db = createAdminClient();
+  const { data: running } = await db.from("outreach_campaigns").select("id").eq("workspace_id", ws.id).in("status", ["active", "scheduled"]);
+  if (!running?.length) return 0;
+  const { setCampaignRun } = await import("@/lib/outreach/execute");
+  let n = 0;
+  for (const c of running) {
+    if (await setCampaignRun(ws.id, c.id, "pause")) {
+      await db.from("outreach_campaigns").update({ failure_reason: "plan_ended" }).eq("id", c.id);
+      n++;
+    }
+  }
+  return n;
 }
 
 /**
@@ -232,6 +255,7 @@ async function settleTrial(ws: WorkspaceRow, now: Date): Promise<WorkspaceRow> {
     workspace_id: ws.id, plan: ws.plan, status: "trial_ended", amount: 0, currency: ws.billing_currency, billing_period: ws.billing_period, mode: eventMode(ws),
   });
   await planEnded(ws, "trial");
+  await pauseWhenLapsed({ ...ws, ...next });
   return { ...ws, ...next };
 }
 

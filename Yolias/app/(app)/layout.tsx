@@ -11,7 +11,7 @@ import { getPlanCatalog } from "@/lib/plan-catalog";
 import { billingTestMode } from "@/lib/billing";
 import { unreadNotifications } from "@/services/workspace";
 import { billingRoute, paymentsConnected } from "@/lib/payments";
-import { canUseApp, planPrice } from "@/lib/plans";
+import { canUseApp, planLapsed, planPrice } from "@/lib/plans";
 import { recentStrategies } from "@/services/strategies";
 import { listInvoices, listPacks, monthlyUsage, savedCard, teamMembers } from "@/services/workspace";
 import type { Metadata as NoindexMetadata } from "next";
@@ -141,7 +141,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     welcome: { video: welcomeVideo, show: Boolean(welcomeVideo) && !profile.welcome_video_seen_at },
     inboxUnread,
     // No free trial (D-246, D-254): the gate never offers one.
-    planGate: canUseApp(workspace) ? null : { trialDays: null },
+    planGate: canUseApp(workspace) ? null : { trialDays: null, lapsed: planLapsed(workspace) },
   };
 
   const jar = await cookies();

@@ -65,7 +65,8 @@ export interface ShellData {
   /** Inbox conversations with an unread reply (sidebar badge). */
   inboxUnread: number;
   /** No active plan yet: the member is looking around; null = has a plan. trialDays = null when no trial is offered. */
-  planGate: { trialDays: number | null } | null;
+  /** lapsed: the plan ended with no credit; campaigns are paused and the data stays readable (owner, 2026-11-10). */
+  planGate: { trialDays: number | null; lapsed: boolean } | null;
 }
 
 export type SettingsTab = "general" | "account" | "notifications" | "usage" | "billing" | "team" | "integration" | "referral";

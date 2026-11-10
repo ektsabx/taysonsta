@@ -785,10 +785,10 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "What happens when a plan ends?" },
         { ul: [
           "Until the end date, the plan works as usual: its leads, campaigns and conversations.",
-          "After it, campaigns stop finding new people, and owners and Admins receive an email that the plan ended.",
-          "Campaigns, audiences, leads, conversations, meetings and invoices stay saved.",
-          "Credit you bought stays and doesn't expire. With credit left, you can keep launching campaigns on Pay As You Go.",
-          "To come back to a plan, choose one on the checkout page and pay. Campaigns paused for lack of leads continue by themselves.",
+          "After it, with no Pay As You Go credit, running campaigns pause: Yolias stops sending, following up, replying and finding new people, and nothing new can be launched or resumed. Each paused campaign records that the plan ended. Owners and Admins receive an email, and a banner across Yolias says the plan ended with a **Renew** button.",
+          "Nothing is deleted. Campaigns, audiences, leads, conversations, emails, meetings and invoices stay in Yolias to read, and replies that arrive are still added to Conversations.",
+          "Credit you bought stays. With credit, the plan ending doesn't pause anything: campaigns keep running on Pay As You Go.",
+          "To continue, renew a plan or top up on the checkout page. Full access returns at once; then resume your campaigns from the campaign page, the Campaigns table or the dashboard.",
         ] },
 
         { h2: "What if a renewal isn't paid?" },
@@ -886,10 +886,10 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "ماذا يحدث عند انتهاء الخطة؟" },
         { ul: [
           "حتى تاريخ الانتهاء تعمل الخطة كالمعتاد: عملاؤها وحملاتها ومحادثاتها.",
-          "بعده تتوقف الحملات عن إيجاد أشخاص جدد، ويصل إلى المالك والمسؤولين بريد بانتهاء الخطة.",
-          "تبقى الحملات والجماهير والعملاء والمحادثات والاجتماعات والفواتير محفوظة.",
-          "يبقى الرصيد الذي اشتريته ولا تنتهي صلاحيته. وإذا بقي لديك رصيد تستطيع مواصلة تشغيل الحملات بالدفع حسب الاستخدام.",
-          "للعودة إلى خطة اختر واحدة من صفحة الدفع وادفع، وتستأنف الحملات التي توقفت لنفاد العملاء عملها وحدها.",
+          "بعده، إذا لم يكن لديك رصيد بالدفع حسب الاستخدام، تتوقف الحملات العاملة: يتوقف يولياس عن الإرسال والمتابعة والرد وإيجاد أشخاص جدد، ولا يمكن إطلاق شيء جديد أو استئنافه. وتسجّل كل حملة متوقفة أن الخطة انتهت. ويصل إلى المالك والمسؤولين بريد، ويظهر في يولياس شريط بانتهاء الخطة مع زر **تجديد**.",
+          "لا يُحذف شيء. تبقى الحملات والجماهير والعملاء والمحادثات والرسائل والاجتماعات والفواتير في يولياس للقراءة، وتظل الردود الواردة تُضاف إلى المحادثات.",
+          "يبقى الرصيد الذي اشتريته. ومع وجود رصيد لا يوقف انتهاء الخطة شيئًا، فتستمر الحملات بالدفع حسب الاستخدام.",
+          "للمتابعة جدّد خطة أو اشحن رصيدك من صفحة الدفع، فيعود الوصول الكامل فورًا، ثم استأنف حملاتك من صفحة الحملة أو جدول الحملات أو لوحة التحكم.",
         ] },
 
         { h2: "ماذا لو لم يُدفع التجديد؟" },

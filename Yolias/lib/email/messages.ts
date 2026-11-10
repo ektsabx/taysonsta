@@ -366,12 +366,17 @@ const messages: { [K in MessageKind]: (l: EmailLocale, d: MessageData[K]) => Cop
     button: { label: T(l, "See plans", "عرض الخطط"), href: `${d.siteUrl}/checkout` },
     footnote: billingNote(l, d.siteUrl),
   }),
+  // Owner, 2026-11-10: the plan ended with no credit. Campaigns pause, nothing is deleted, renewing restores everything.
   subscription_paused: (l, d) => ({
-    subject: T(l, "Your Yolias subscription has been paused", "تم إيقاف اشتراكك في يولياس مؤقتًا"),
-    preheader: T(l, "New searches are paused until it’s resolved.", "عمليات البحث الجديدة متوقفة حتى يتم الحل."),
-    heading: T(l, "Your subscription has been paused", "تم إيقاف اشتراكك مؤقتًا"),
-    body: [T(l, `<strong>${esc(d.planName)}</strong> is paused${d.reason ? `: ${esc(d.reason)}` : "."} Your searches and prospects stay saved.`, `تم إيقاف <strong>${esc(d.planName)}</strong> مؤقتًا${d.reason ? `: ${esc(d.reason)}` : "."} تبقى عمليات البحث والعملاء المحتملون محفوظين.`)],
-    button: { label: T(l, "Manage billing", "إدارة الفوترة"), href: `${d.siteUrl}/` },
+    subject: T(l, "Your Yolias plan has ended", "انتهت خطتك في يولياس"),
+    preheader: T(l, "Your campaigns are paused. Your conversations, meetings and data are kept.", "توقفت حملاتك، ومحادثاتك واجتماعاتك وبياناتك محفوظة."),
+    heading: T(l, "Your plan has ended", "انتهت خطتك"),
+    body: [
+      T(l, `<strong>${esc(d.planName)}</strong> has ended${d.reason ? `: ${esc(d.reason)}` : "."}`, `انتهت <strong>${esc(d.planName)}</strong>${d.reason ? `: ${esc(d.reason)}` : "."}`),
+      T(l, "Your campaigns are paused: Yolias stops sending, following up, replying and finding new people. Your conversations, emails, meetings and every record stay in Yolias to read.", "توقفت حملاتك: يتوقف يولياس عن الإرسال والمتابعة والرد وإيجاد أشخاص جدد. وتبقى محادثاتك ورسائلك واجتماعاتك وكل سجلاتك في يولياس للقراءة."),
+      T(l, "Renew your plan or top up to continue, then resume your campaigns from where they stopped.", "جدّد خطتك أو اشحن رصيدك للمتابعة، ثم استأنف حملاتك من حيث توقفت."),
+    ],
+    button: { label: T(l, "Renew", "تجديد"), href: `${d.siteUrl}/checkout` },
     footnote: billingNote(l, d.siteUrl),
   }),
   access_restored: (l, d) => ({
