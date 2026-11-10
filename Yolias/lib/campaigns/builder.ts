@@ -58,7 +58,7 @@ export const builderSchema = z.object({
   offerId: z.string().uuid().nullable().default(null),
   offer: z.string().max(1500).default(""),
   targetMeetings: z.number().int().min(1).max(1000).default(10),
-  budgetType: z.enum(["total", "daily"]).default("total"),
+  budgetType: z.enum(["total", "daily", "monthly"]).default("total"),
   budgetUsd: z.number().min(0).max(1_000_000).default(50),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal("")).default(""),
   startTime: z.string().regex(/^\d{2}:\d{2}$/).default("09:00"),

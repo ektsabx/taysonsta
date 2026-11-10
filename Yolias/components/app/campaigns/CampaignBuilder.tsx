@@ -109,7 +109,9 @@ export function CampaignBuilder(p: BuilderProps) {
   const minUsd = minBudgetUsd(p.rate);
   const mailbox = p.mailboxes.find((m) => m.id === s.mailboxId) ?? null;
   // What this budget and these messages a day can bring (owner, 2026-11-05). An estimate.
-  const fc = campaignForecast(s.budgetType === "daily" ? people * Math.max(1, capacity != null && s.dailyLimit ? Math.ceil(capacity / s.dailyLimit) : 30) : people, s.dailyLimit, capacity);
+  // Daily and monthly budgets repeat each period: the schedule's days (or a 30-day month without an end date).
+  const days = Math.max(1, capacity != null && s.dailyLimit ? Math.ceil(capacity / s.dailyLimit) : 30);
+  const fc = campaignForecast(s.budgetType === "daily" ? people * days : s.budgetType === "monthly" ? people * Math.max(1, Math.ceil(days / 30)) : people, s.dailyLimit, capacity);
   const known = Object.values(estimates).reduce((x, e) => x + e.known, 0);
   const span = (e: { low: number; high: number }) => `${n(e.low)}–${n(e.high)}`;
   const F = b.forecast;
@@ -321,7 +323,7 @@ export function CampaignBuilder(p: BuilderProps) {
               <fieldset className="te-group">
                 <legend>{b.campaign.budget}</legend>
                 <div className="sdr-seg" role="tablist">
-                  {(["total", "daily"] as const).map((k) => <button key={k} type="button" role="tab" aria-selected={s.budgetType === k} className={s.budgetType === k ? "active" : ""} onClick={() => patch({ budgetType: k })}>{b.campaign.budgetTypes[k]}</button>)}
+                  {(p.initial.budgetType === "monthly" ? (["total", "daily", "monthly"] as const) : (["total", "daily"] as const)).map((k) => <button key={k} type="button" role="tab" aria-selected={s.budgetType === k} className={s.budgetType === k ? "active" : ""} onClick={() => patch({ budgetType: k })}>{b.campaign.budgetTypes[k]}</button>)}
                 </div>
                 <label className="cb-money">
                   <span aria-hidden>$</span>
@@ -329,7 +331,7 @@ export function CampaignBuilder(p: BuilderProps) {
                   <span className="cb-money-unit">USD</span>
                 </label>
                 <p className="ws-hint">
-                  {fmt(s.budgetType === "daily" ? b.campaign.peopleDaily : b.campaign.people, { n: n(people), rate: usd(p.rate, 3) })}
+                  {fmt(s.budgetType === "daily" ? b.campaign.peopleDaily : s.budgetType === "monthly" ? b.campaign.peopleMonthly : b.campaign.people, { n: n(people), rate: usd(p.rate, 3) })}
                 </p>
                 {s.budgetUsd < minUsd && <p className="form-error" role="alert">{fmt(b.campaign.minBudget, { usd: usd(minUsd) })}</p>}
                 {p.balanceUsd != null && <p className="ws-hint">{fmt(b.campaign.balance, { usd: usd(p.balanceUsd) })} · <Link href="/dashboard?settings=usage">{b.campaign.topUp}</Link></p>}

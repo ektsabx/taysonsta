@@ -105,8 +105,7 @@ async function budgetPeriods(db: Db) {
     if (!(rate > 0)) continue;
     const perPeriod = Math.floor(Number(c.budget_usd) / rate);
     const periods = c.budget_type === "daily" ? Math.floor((Date.now() - start) / DAY) + 1 : monthsBetween(start, Date.now()) + 1;
-    const { data: groups } = await db.from("audience_groups").select("id, search_campaign_id, budget_share").eq("campaign_id", c.id).eq("status", "active").not("search_campaign_id", "is", null);
-    const list = (groups ?? []).map((g) => ({ id: g.id, search: g.search_campaign_id!, share: g.budget_share == null ? null : Number(g.budget_share) }));
+    const list = await runningAudiences(db, c.id);
     if (!list.length || perPeriod < 1) continue;
     // Periods already funded (the first at launch). Before D-274 there was no record: count from the searches' quotas.
     const key = `budget-periods:${c.id}`;
@@ -120,21 +119,40 @@ async function budgetPeriods(db: Db) {
       if (!st) await db.from("worker_state").upsert({ key, value: { funded } as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
       continue;
     }
-    const split = splitPeriod(perPeriod * (periods - funded), list);
     await db.from("worker_state").upsert({ key, value: { funded: periods } as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
-    for (const g of list) {
-      const add = split.get(g.id) ?? 0;
-      if (add <= 0) continue;
-      const { data: s } = await db.from("campaigns").select("id, quota, status, deadline").eq("id", g.search).maybeSingle();
-      if (!s || ["failed", "canceled"].includes(s.status)) continue;
-      if (s.deadline && Date.parse(s.deadline) <= Date.now()) continue;
-      const { data: got } = await db.rpc("reserve_usage", { p_ws: c.workspace_id, p_campaign: g.search, p_n: add });
-      const n = Number(got ?? 0);
-      if (n <= 0) continue;
-      await db.from("campaigns").update({ quota: s.quota + n, continuous: true, status: "scheduled", next_run_at: new Date().toISOString(), completed_at: null, partial_reason: null }).eq("id", g.search);
-      await logCampaign(db, c.workspace_id, c.id, "note", `New ${c.budget_type === "daily" ? "day" : "month"} of budget: up to ${n} more prospects for this audience.`, { search: g.search, group_id: g.id, prospects: n });
-    }
+    await fundAudiences(db, c.workspace_id, c.id, perPeriod * (periods - funded), list, (n) => `New ${c.budget_type === "daily" ? "day" : "month"} of budget: up to ${n} more prospects for this audience.`);
   }
+}
+
+/** The running audiences of a campaign that can take more budget. */
+export async function runningAudiences(db: Db, campaignId: string): Promise<{ id: string; search: string; share: number | null }[]> {
+  const { data: groups } = await db.from("audience_groups").select("id, search_campaign_id, budget_share").eq("campaign_id", campaignId).eq("status", "active").not("search_campaign_id", "is", null);
+  return (groups ?? []).map((g) => ({ id: g.id, search: g.search_campaign_id!, share: g.budget_share == null ? null : Number(g.budget_share) }));
+}
+
+/**
+ * Gives `total` more people to running audiences, split by their current
+ * shares (the daily optimizer's split): each audience's search gets a larger
+ * quota and runs again. Returns how many were added (credit permitting).
+ */
+export async function fundAudiences(db: Db, workspaceId: string, campaignId: string, total: number, list: { id: string; search: string; share: number | null }[], note: (n: number) => string): Promise<number> {
+  if (total < 1 || !list.length) return 0;
+  const split = splitPeriod(total, list);
+  let added = 0;
+  for (const g of list) {
+    const add = split.get(g.id) ?? 0;
+    if (add <= 0) continue;
+    const { data: s } = await db.from("campaigns").select("id, quota, status, deadline").eq("id", g.search).maybeSingle();
+    if (!s || ["failed", "canceled"].includes(s.status)) continue;
+    if (s.deadline && Date.parse(s.deadline) <= Date.now()) continue;
+    const { data: got } = await db.rpc("reserve_usage", { p_ws: workspaceId, p_campaign: g.search, p_n: add });
+    const n = Number(got ?? 0);
+    if (n <= 0) continue;
+    await db.from("campaigns").update({ quota: s.quota + n, continuous: true, status: "scheduled", next_run_at: new Date().toISOString(), completed_at: null, partial_reason: null }).eq("id", g.search);
+    await logCampaign(db, workspaceId, campaignId, "note", note(n), { search: g.search, group_id: g.id, prospects: n });
+    added += n;
+  }
+  return added;
 }
 
 function monthsBetween(a: number, b: number): number {

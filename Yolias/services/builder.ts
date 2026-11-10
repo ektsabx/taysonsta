@@ -69,7 +69,7 @@ export async function stateFromCampaign(campaignId: string, workspaceId: string)
   return {
     state: {
       level: "campaign", name: c.name, objective: c.objective === "qualified_leads" || c.objective === "purchases" || c.objective === "form_leads" ? c.objective : "meetings", websiteUrl: c.cta_url ?? "", pixelId: c.pixel_id ?? null, conversionEvent: c.conversion_event ?? null, attributionDays: c.attribution_days === 1 || c.attribution_days === 28 ? c.attribution_days : 7, channel: "email", contactTarget: c.contact_target ?? "people", messageName: c.message_name ?? "", offerId: c.offer_id, offer: c.description ?? "", targetMeetings: c.target_meetings ?? 10,
-      budgetType: c.budget_type === "daily" ? "daily" : "total", budgetUsd: c.budget_usd == null ? 50 : Number(c.budget_usd),
+      budgetType: c.budget_type === "daily" || c.budget_type === "monthly" ? c.budget_type : "total", budgetUsd: c.budget_usd == null ? 50 : Number(c.budget_usd),
       startDate: s.date, startTime: s.time, endDate: e.date, endTime: c.ends_at ? e.time : "18:00", timezone: zone,
       runDays: c.run_days?.length ? c.run_days : undefined, contactFrom: c.contact_from?.slice(0, 5) ?? "09:00", contactTo: c.contact_to?.slice(0, 5) ?? "17:00",
       dailyLimit: c.daily_limit ?? 30, costCapUsd: c.cost_cap_usd == null ? null : Number(c.cost_cap_usd), trackOpens: c.track_opens !== false, adSets: adSets.length ? adSets : [{ key: "g0", name: "Main audience" }],

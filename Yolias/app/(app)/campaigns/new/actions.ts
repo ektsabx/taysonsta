@@ -16,6 +16,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireMember, canEdit, viewOnly } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
+import { fundAudiences, runningAudiences } from "@/lib/campaigns/schedule";
 import { countryLabel } from "@/lib/format";
 import { startGroupSearch } from "@/lib/campaigns/group-search";
 import { contextText, loadAiSettings, loadBusinessContext } from "@/lib/ai-workspace/server";
@@ -403,8 +404,18 @@ export async function updateCampaign(id: string, input: unknown): Promise<Builde
       if (w) warnings.push(w);
     }
   }
-  // More total budget with no new audience: say how it can be used instead of keeping it unused silently.
-  if (!fresh.length && s.budgetType === "total" && c.budget_prospects != null && budgetPeople(s, await prospectRate(session.workspace.id)) > c.budget_prospects) warnings.push(t.ag.builder.warnings.moreBudget);
+  // More total budget with no new audience goes to the running audiences, split as the optimizer splits them (audit, 2026-11-10).
+  const grown = !fresh.length && s.budgetType === "total" && c.approved_at && c.budget_prospects != null ? budgetPeople(s, await prospectRate(session.workspace.id)) - c.budget_prospects : 0;
+  if (grown > 0) {
+    const admin = createAdminClient();
+    const running = await runningAudiences(admin, id);
+    if (!running.length) warnings.push(t.ag.builder.warnings.moreBudget);
+    else {
+      const added = await fundAudiences(admin, session.workspace.id, id, grown, running, (n) => `Total budget raised: up to ${n} more prospects for this audience.`);
+      if (added > 0) await admin.from("outreach_campaigns").update({ budget_prospects: c.budget_prospects! + added }).eq("id", id);
+      warnings.push(fmt(added < grown ? t.ag.builder.warnings.budgetShort : t.ag.builder.warnings.budgetAdded, { n: String(added) }));
+    }
+  }
   await logCampaign(createAdminClient(), session.workspace.id, id, "note", fresh.length ? `Settings changed; ${fresh.length} new ${fresh.length === 1 ? "audience" : "audiences"} started.` : "Settings changed.", { by: session.userId });
   revalidatePath(`/campaigns/${id}`);
   revalidatePath("/campaigns");
