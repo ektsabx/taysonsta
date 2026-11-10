@@ -190,8 +190,8 @@ export const landing: Localized<Landing> = {
       title: "Choose how you run your campaigns.",
       body: "Every option includes every Yolias feature and unlimited users.",
       points: [
-        "Pay As You Go: prepaid credit from $5, no subscription, no expiry.",
-        "Growth ($100/month) and Scale ($200/month): monthly leads.",
+        "Pay As You Go: free to sign up, top up from $5 when you launch. No subscription, credit never expires.",
+        "Yolias Growth: $100 a month for 2,000 leads. Yolias Scale: $200 a month for 4,000 leads. Annual billing is 20% off.",
         "You pay for the leads Yolias finds and reaches. Emails, replies and meetings are not charged.",
         "Cancel from Settings any time; your plan runs to the end of the period you paid for.",
         "Pay by card on our payment partner’s secure page.",
@@ -379,8 +379,8 @@ export const landing: Localized<Landing> = {
       title: "اختر الطريقة المناسبة لإدارة حملاتك.",
       body: "كل خيار يشمل كل مزايا يولياس وعدد مستخدمين غير محدود.",
       points: [
-        "الدفع حسب الاستخدام: رصيد مسبق من 5 دولارات، بلا اشتراك وبلا انتهاء صلاحية.",
-        "النمو (100 دولار شهريًا) والتوسع (200 دولار شهريًا): عملاء كل شهر.",
+        "الدفع حسب الاستخدام: التسجيل مجاني، وتشحن من 5 دولارات عند التشغيل. بلا اشتراك، والرصيد لا تنتهي صلاحيته.",
+        "يولياس للنمو: 100 دولار شهريًا مقابل 2,000 عميل. يولياس للتوسع: 200 دولار شهريًا مقابل 4,000 عميل. والفوترة السنوية بخصم 20%.",
         "تدفع مقابل العملاء الذين يجدهم يولياس ويصل إليهم. الرسائل والردود والاجتماعات لا تُحتسب.",
         "ألغِ من الإعدادات في أي وقت؛ وتبقى خطتك حتى نهاية الفترة المدفوعة.",
         "الدفع بالبطاقة على صفحة شريك الدفع الآمنة.",

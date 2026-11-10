@@ -59,6 +59,11 @@ export function SiteFooter({ signedIn = false, extraLinks = [] }: { signedIn?: b
               <BrandLogo tone="light" />
             </Link>
             <p className="mt-4 max-w-[320px] text-sm leading-6 text-neutral-300">{s.tagline}</p>
+            {/* Product Hunt (owner, 2026-11-10). The image is Product Hunt's own badge. */}
+            <a className="mt-4 inline-flex" href="https://www.producthunt.com/products/yolias-find-your-next-customers?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-yolias" target="_blank" rel="noopener noreferrer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt="Yolias on Product Hunt" width={250} height={54} loading="lazy" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1273354&theme=dark&t=1794121789244" />
+            </a>
             <div className="mt-4 flex items-center gap-4" aria-label={s.social}>
               {socials.map(({ label, href, Icon }) => (
                 <a key={label} className="footer-link focus-ring rounded" href={href} target="_blank" rel="noopener noreferrer" aria-label={label}><Icon /></a>

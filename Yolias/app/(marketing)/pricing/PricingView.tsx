@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "@/components/LocaleLink";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, CircleAlert } from "lucide-react";
 import { sendMagicLink } from "@/app/(auth)/actions";
 import { ConsentText } from "@/app/(auth)/ConsentText";
 import { formatMoney, formatNumber } from "@/lib/format";
@@ -53,14 +53,16 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
   // Every card (owner, 2026-11-02, D-275): who it reaches and what that usually
   // brings (lib/pricing-estimates.ts, marked as estimates), then the platform.
   const C = t.card;
-  const platform = [C.campaigns, C.messages, C.agent, C.pixel, C.users];
+  // Every line has its explanation behind an info mark (owner, 2026-11-10).
+  const H = t.cardHelp;
+  const platform: Item[] = [{ text: C.campaigns, help: H.campaigns }, { text: C.messages, help: H.messages }, { text: C.agent, help: H.agent }, { text: C.pixel, help: H.pixel }, { text: C.users, help: H.users }];
   const outcome = (people: number, once = false) => {
     const e = planEstimates(people);
     return [
-      fmt(once ? C.reachOnce : C.reach, { count: n(people) }),
+      { text: fmt(once ? C.reachOnce : C.reach, { count: n(people) }), help: H.reach },
       // One-time credit has no monthly estimate; a plan does.
-      ...(!once && e.meetings.low > 0 ? [`${fmt(C.replies, { low: n(e.replies.low), high: n(e.replies.high) })}`, `${fmt(C.meetings, { low: n(e.meetings.low), high: n(e.meetings.high) })}`] : []),
-    ];
+      ...(!once && e.meetings.low > 0 ? [{ text: fmt(C.replies, { low: n(e.replies.low), high: n(e.replies.high) }), help: H.replies }, { text: fmt(C.meetings, { low: n(e.meetings.low), high: n(e.meetings.high) }), help: H.meetings }] : []),
+    ] as Item[];
   };
 
   // Picking a plan → signup (new visitors) or checkout (signed in).
@@ -75,7 +77,7 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
       name={t.payg.name}
       price={t.payg.price}
       note={t.payg.note}
-      items={[t.payg.onLaunch, ...platform, t.payg.noExpiry]}
+      items={[{ text: t.payg.onLaunch, help: H.onLaunch }, ...platform, { text: t.payg.noExpiry, help: H.noExpiry }]}
       href={signedIn ? "/dashboard?settings=usage" : "/signup?plan=payg"}
       cta={t.payg.cta}
       foot={t.payg.foot}
@@ -208,8 +210,10 @@ export function PricingView({ signedIn, plans, currency, trialDays, egp, topUps 
   );
 }
 
+type Item = { text: string; help: string };
+
 function PlanCard({ name, price, note, billed, items, href, cta, foot, recommended, onPick }: {
-  name: string; price: string; note: string; billed?: string; items: string[]; href: string; cta: string; foot: string; recommended?: string; onPick?: () => void;
+  name: string; price: string; note: string; billed?: string; items: Item[]; href: string; cta: string; foot: string; recommended?: string; onPick?: () => void;
 }) {
   return (
     <article className={`pricing-card${recommended ? " recommended" : ""}`}>
@@ -221,7 +225,11 @@ function PlanCard({ name, price, note, billed, items, href, cta, foot, recommend
       <div className="plan-divider" />
       <ul className="plan-list">
         {items.map((item, i) => (
-          <li key={item}><Check width={17} height={17} /><span>{i === 0 ? <strong>{item}</strong> : item}</span></li>
+          <li key={item.text}>
+            <Check width={17} height={17} />
+            <span>{i === 0 ? <strong>{item.text}</strong> : item.text}</span>
+            <span className="plan-help" tabIndex={0} role="button" aria-label={item.help}><CircleAlert width={14} height={14} /><span role="tooltip">{item.help}</span></span>
+          </li>
         ))}
       </ul>
       <Link className={`${recommended ? "primary-button" : "outline-button"} focus-ring mt-auto w-full`} href={href} onClick={onPick}>{cta}</Link>
