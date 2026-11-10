@@ -20,6 +20,7 @@ import { ReviewPrompt } from "./ReviewPrompt";
 import { ToastProvider } from "@/components/Toast";
 import { StrategyNavItem } from "./StrategyNavItem";
 import { SIDEBAR_COOKIE, type SettingsTab, type ShellData } from "./types";
+import { SetupChecklist } from "./SetupChecklist";
 import { WelcomeVideoModal } from "./WelcomeVideoModal";
 import { ActivityPing } from "./ActivityPing";
 import { OPEN_SETTINGS_EVENT } from "./open-settings";
@@ -332,6 +333,7 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
 
       {settingsTab && <SettingsModal data={data} tab={settingsTab} onTab={setSettingsTab} onClose={() => setSettingsTab(null)} />}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+      {!welcomeOpen && <SetupChecklist />}
       {data.user.askReview && data.user.reviewUrl && !welcomeOpen && <ReviewPrompt url={data.user.reviewUrl} />}
       <ActivityPing />
       {welcomeOpen && data.welcome.video && <WelcomeVideoModal video={data.welcome.video} onClose={() => setWelcomeOpen(false)} />}

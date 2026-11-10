@@ -2602,7 +2602,10 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .ay-suggest button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 4px; border: 0; background: none; color: var(--ink); font: inherit; font-size: .9rem; text-align: start; cursor: pointer; }
 .ay-suggest button:hover { color: var(--red); }
 .ay-suggest svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
-.ay-thread { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.ay-thread { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; }
+/* The conversation scrolls inside the panel; the box to write in stays at the bottom (owner, 2026-11-10). */
+.ay-thread .agent-thread { margin-top: 0; max-width: none; flex: 1; }
+.ay-thread .agent-composer { position: sticky; bottom: 0; z-index: 1; background: var(--paper); padding-bottom: 8px; }
 @media (max-width: 1100px) { html.ay-docked .main-area { margin-inline-end: 0; } }
 @media (max-width: 640px) { .ay-panel { width: 100vw; } }
 .notif-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 12px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
@@ -2703,3 +2706,31 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .credit-lines li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: .87rem; color: var(--ink); }
 .credit-lines li:last-child { border-bottom: 0; }
 .credit-lines b { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Get ready for your first campaign (owner, 2026-11-10). */
+.setup { position: fixed; z-index: 60; inset-inline-start: 284px; bottom: 20px; width: min(380px, calc(100vw - 40px)); border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 18px 50px rgba(0,0,0,.18); overflow: hidden; }
+.setup-head { display: flex; align-items: center; gap: 4px; padding: 12px 10px 10px 14px; }
+.setup-toggle { flex: 1; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; border: 0; background: none; color: var(--ink); font: inherit; text-align: start; cursor: pointer; padding: 0; }
+.setup-toggle strong { font-size: .95rem; }
+.setup-toggle span { grid-column: 1; color: var(--muted); font-size: .78rem; }
+.setup-toggle svg { grid-row: 1 / 3; grid-column: 2; width: 18px; height: 18px; color: var(--muted); }
+.setup-close { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.setup-close:hover { background: var(--hover); }
+.setup-close svg { width: 16px; height: 16px; }
+.setup-bar { height: 4px; margin: 0 14px; border-radius: 4px; background: var(--hover); overflow: hidden; }
+.setup-bar i { display: block; height: 100%; background: var(--red); }
+.setup-body { padding: 10px 8px 12px; max-height: min(60vh, 520px); overflow-y: auto; }
+.setup-lead { margin: 0 6px 10px; color: var(--muted); font-size: .8rem; line-height: 1.55; }
+.setup-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.setup-steps a, .setup-steps button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; text-align: start; text-decoration: none; cursor: pointer; }
+.setup-steps a:hover, .setup-steps button:hover { background: var(--hover); }
+.setup-steps svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
+.setup-steps svg.ok { color: #16a34a; }
+.setup-steps svg.go { width: 15px; height: 15px; }
+.setup-steps span { display: grid; gap: 1px; flex: 1; min-width: 0; }
+.setup-steps b { font-size: .86rem; font-weight: 600; }
+.setup-steps em { font-style: normal; color: var(--muted); font-size: .76rem; line-height: 1.45; }
+.setup-steps li.done b { color: var(--muted); text-decoration: line-through; }
+.setup-team { display: flex; align-items: center; gap: 8px; margin: 10px 6px 0; padding: 0; border: 0; background: none; color: var(--red); font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.setup-team svg { width: 16px; height: 16px; }
+@media (max-width: 900px) { .setup { inset-inline-start: 12px; bottom: 76px; } }

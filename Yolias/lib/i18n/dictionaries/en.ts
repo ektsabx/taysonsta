@@ -263,6 +263,20 @@ export const en = {
     reportBug: "Feedback / Report a Bug",
     joinCommunity: "Join Community",
   },
+  firstRun: {
+    title: "Get ready for your first campaign!", progress: "{done}/{total} completed", hide: "Hide",
+    lead: "Complete these steps so your campaigns reach your customers. Invite your teammates to work on them with you.",
+    team: "Need help from your teammates? Invite them",
+    steps: {
+      knowledge: { title: "Complete Company Knowledge", body: "What you sell and to whom. Yolias writes every email from it." },
+      mailbox: { title: "Connect a mailbox", body: "Gmail or any business mailbox. Campaigns send from it." },
+      booking: { title: "Set up your booking page", body: "Your hours and the place or link of your meetings." },
+      pixel: { title: "Install the Yolias pixel", body: "Counts visits, signups and purchases on your website." },
+      credit: { title: "Add credit", body: "Top up from $5 or choose a plan." },
+      campaign: { title: "Create a campaign", body: "An objective, a budget and your audiences." },
+      launch: { title: "Launch your first campaign", body: "Yolias starts finding and reaching people." },
+    },
+  },
   planGate: {
     banner: "Build your campaign for free. Top up from $5 when you launch.",
     bannerTrial: "You’re exploring Yolias. Choose a plan and add your card to start your {days}-day free trial.",
