@@ -61,7 +61,7 @@ test("prompt wraps KB/history/question as data and strips forged tags", () => {
 });
 
 test("knowledge search: rare words and title matches rank first, not a word every article has", async () => {
-  const { rankByQuestion } = await import("../../lib/bos/ai-agent-prompt.ts");
+  const { rankByQuestion } = await import("@/lib/bos/ai-agent-prompt");
   const rows = [
     { title: "Yolias campaigns", content: "Yolias runs campaigns. Yolias finds people." },
     { title: "Yolias meetings", content: "Yolias books meetings on your booking page." },

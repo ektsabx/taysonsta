@@ -22,11 +22,11 @@ const common = {
 };
 const shared = {
   en: {
-    cost: { q: "How much does it cost?", a: "Pay As You Go from $5, or Growth ($100) and Scale ($200) a month, 20% off yearly. Every feature and unlimited users on every option." },
+    cost: { q: "How much does it cost?", a: "Pay As You Go from $20, or Growth ($100) and Scale ($200) a month, 20% off yearly. Every feature and unlimited users on every option." },
     team: { q: "Can my whole team use it?", a: "Yes. Unlimited users on every plan, with Admin, Advertiser and Analyst roles." },
   },
   ar: {
-    cost: { q: "كم التكلفة؟", a: "الدفع حسب الاستخدام من 5 دولارات، أو النمو (100 دولار) والتوسع (200 دولار) شهريًا، بخصم 20% سنويًا. كل الميزات ومستخدمون بلا حد في كل خيار." },
+    cost: { q: "كم التكلفة؟", a: "الدفع حسب الاستخدام من 20 دولارًا، أو النمو (100 دولار) والتوسع (200 دولار) شهريًا، بخصم 20% سنويًا. كل الميزات ومستخدمون بلا حد في كل خيار." },
     team: { q: "هل يستطيع فريقي كله استخدامه؟", a: "نعم. مستخدمون بلا حد في كل خطة، بأدوار مسؤول ومعلن ومحلل." },
   },
 };
@@ -54,8 +54,8 @@ export const solutionSeo: Record<SolutionSlug, Localized<SolutionSeo>> = {
     { title: "عملاء لوكالة التوظيف: صِل إلى الشركات التي توظّف", q: "هل يستهدف يولياس الشركات التي توظّف؟", a: "نعم. أضف التوظيف إلى إشارات الجمهور والمسميات التي تعيّنها، ويصل يولياس إلى مديري التوظيف والموارد البشرية في تلك الشركات." },
   ),
   freelancers: page(
-    { title: "Get Direct Freelance Clients with AI", q: "Is Yolias worth it for one person?", a: "Yes. Start from $5 with Pay As You Go, reach the businesses that need your skills and keep 100% of what they pay you." },
-    { title: "عملاء مباشرون للمستقلين بالذكاء الاصطناعي", q: "هل يناسب يولياس شخصًا يعمل وحده؟", a: "نعم. ابدأ من 5 دولارات بالدفع حسب الاستخدام، وصِل إلى الشركات التي تحتاج مهاراتك، واحتفظ بكل ما يدفعونه لك." },
+    { title: "Get Direct Freelance Clients with AI", q: "Is Yolias worth it for one person?", a: "Yes. Start from $20 with Pay As You Go, reach the businesses that need your skills and keep 100% of what they pay you." },
+    { title: "عملاء مباشرون للمستقلين بالذكاء الاصطناعي", q: "هل يناسب يولياس شخصًا يعمل وحده؟", a: "نعم. ابدأ من 20 دولارًا بالدفع حسب الاستخدام، وصِل إلى الشركات التي تحتاج مهاراتك، واحتفظ بكل ما يدفعونه لك." },
   ),
   "real-estate": page(
     { title: "Commercial Real Estate Leads: Companies That Need Space", q: "How does Yolias find companies that need space?", a: "Target growing companies by city, size and hiring, and the decision makers there. Yolias writes about your properties and books the viewing." },

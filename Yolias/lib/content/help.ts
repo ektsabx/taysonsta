@@ -243,7 +243,7 @@ const baseArticles: HelpArticle[] = [
           { p: "**Build with Yolias** fills the whole campaign from your Company Knowledge: name, offer, target, budget, messages a day and audiences. Review it and launch." },
           { h2: "1. Campaign" },
           { ul: [
-            "**Name** and **objective**: Meetings, Sales, Website leads or Qualified leads.",
+            "**Name** and **objective**: Meetings, Sales or Website leads.",
             "**Offer**: one of your offers from Company Knowledge, or your own words.",
             "**Target** (meetings, sales or leads you want) and **messages a day**.",
             "**Budget** in US dollars, total or per day, $5 minimum. The summary shows the people it reaches, the days it takes, and the replies and meetings to expect.",
@@ -265,7 +265,7 @@ const baseArticles: HelpArticle[] = [
           { p: "**أنشئها مع يولياس** يملأ الحملة كاملة من معرفة شركتك: الاسم والعرض والمستهدف والميزانية وعدد الرسائل اليومية والجماهير. راجعها وأطلقها." },
           { h2: "1. الحملة" },
           { ul: [
-            "**الاسم** و**الهدف**: اجتماعات أو مبيعات أو نماذج الموقع أو عملاء مؤهلون.",
+            "**الاسم** و**الهدف**: اجتماعات أو مبيعات أو نماذج الموقع.",
             "**العرض**: أحد عروضك من معرفة الشركة، أو بكلماتك.",
             "**المستهدف** (الاجتماعات أو المبيعات أو العملاء الذين تريدهم) و**عدد الرسائل اليومية**.",
             "**الميزانية** بالدولار، إجمالية أو يومية، وأقلها 5 دولارات. ويعرض الملخص من تصل إليهم والمدة والردود والاجتماعات المتوقعة.",
@@ -295,7 +295,6 @@ const baseArticles: HelpArticle[] = [
               ["Meetings", "Offers two free times and your booking page, and books", "A booked meeting"],
               ["Sales", "Sends the tracked link to your product or pricing page", "A purchase counted by the Yolias pixel"],
               ["Website leads", "Sends the tracked link to your form", "A form counted by the Yolias pixel"],
-              ["Qualified leads", "Finds and saves matching companies and people, without contacting them", "A saved lead"],
             ],
           } },
           { p: "Sales and Website leads need your website link and a pixel with its conversion event. Each objective has its ready columns in the Campaigns table." },
@@ -311,7 +310,6 @@ const baseArticles: HelpArticle[] = [
               ["اجتماعات", "يقترح موعدين متاحين وصفحة الحجز ويحجز", "اجتماع محجوز"],
               ["المبيعات", "يرسل الرابط المتتبَّع لصفحة المنتج أو الأسعار", "عملية شراء يحسبها بيكسل يولياس"],
               ["نماذج الموقع", "يرسل الرابط المتتبَّع لنموذجك", "نموذج يحسبه بيكسل يولياس"],
-              ["عملاء مؤهلون", "يجد الشركات والأشخاص المطابقين ويحفظهم دون التواصل معهم", "عميل محفوظ"],
             ],
           } },
           { p: "المبيعات ونماذج الموقع تحتاج رابط موقعك وبيكسل بحدث التحويل. ولكل هدف أعمدته الجاهزة في جدول الحملات." },
@@ -693,12 +691,12 @@ const baseArticles: HelpArticle[] = [
         title: "Pay As You Go or a monthly plan",
         summary: "Every option has every feature and unlimited users; you pay for leads only.",
         blocks: [
-          { p: "Signing up is free. Build your campaign, then pay when you launch it, from $5." },
+          { p: "Signing up is free. Build your campaign, then pay when you launch it, from $20." },
           { p: "A **lead** is a person Yolias finds and reaches for your campaigns. It's the only unit: writing and sending emails, replies and meetings are never charged, and the same lead is never counted twice." },
           { table: {
             head: ["Option", "Price", "How it works"],
             rows: [
-              ["Pay As You Go", "From $5", "Prepaid credit ($5, $20, $50 or $100), no subscription, no expiry"],
+              ["Pay As You Go", "From $20", "Prepaid credit ($20, $50 or $100), no subscription, no expiry"],
               ["Growth", "$100 a month", "2,000 leads a month"],
               ["Scale", "$200 a month", "4,000 leads a month"],
             ],
@@ -710,12 +708,12 @@ const baseArticles: HelpArticle[] = [
         title: "الدفع حسب الاستخدام أو خطة شهرية",
         summary: "كل خيار فيه كل المزايا ومستخدمون بلا حد، وتدفع مقابل العملاء فقط.",
         blocks: [
-          { p: "التسجيل مجاني. ابنِ حملتك ثم ادفع عند إطلاقها، من 5 دولارات." },
+          { p: "التسجيل مجاني. ابنِ حملتك ثم ادفع عند إطلاقها، من 20 دولارًا." },
           { p: "**العميل** شخص يجده يولياس ويصل إليه لحملاتك. وهو الوحدة الوحيدة: كتابة الرسائل وإرسالها والردود والاجتماعات لا تُحتسب أبدًا، ولا يُحسب العميل نفسه مرتين." },
           { table: {
             head: ["الخيار", "السعر", "كيف يعمل"],
             rows: [
-              ["الدفع حسب الاستخدام", "من 5 دولارات", "رصيد مسبق (5 أو 20 أو 50 أو 100 دولار)، بلا اشتراك وبلا انتهاء"],
+              ["الدفع حسب الاستخدام", "من 20 دولارًا", "رصيد مسبق (20 أو 50 أو 100 دولار)، بلا اشتراك وبلا انتهاء"],
               ["النمو", "100 دولار شهريًا", "2,000 عميل شهريًا"],
               ["التوسع", "200 دولار شهريًا", "4,000 عميل شهريًا"],
             ],

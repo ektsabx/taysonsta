@@ -224,7 +224,7 @@ export const solutions: Record<SolutionSlug, Localized<Solution>> = {
       ar: ["أنشطة محلية تحتاج موقعًا أو تصميمًا", "شركات ناشئة تحتاج مطورًا أو مسوقًا بدوام جزئي", "وكالات تعطي جزءًا من عملها لمستقلين", "شركات تشبه أفضل عملائك"],
     },
     icp: { en: "Goal: meetings. Audience: restaurants, cafés and clinics in Cairo and Dubai with an outdated website, owners.", ar: "الهدف: اجتماعات. الجمهور: مطاعم ومقاهٍ وعيادات في القاهرة ودبي بموقع قديم، الملاك." },
-    value: { en: "Start from $5. One direct client is worth more than months of marketplace bids.", ar: "ابدأ من 5 دولارات. وعميل مباشر واحد أفضل من شهور من المزايدات على المنصات." },
+    value: { en: "Start from $20. One direct client is worth more than months of marketplace bids.", ar: "ابدأ من 20 دولارًا. وعميل مباشر واحد أفضل من شهور من المزايدات على المنصات." },
   }),
   "real-estate": build({
     name: { en: "Commercial Real Estate", ar: "العقار التجاري" },

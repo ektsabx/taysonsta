@@ -39,7 +39,7 @@ export const docsE: Record<string, Localized<Doc>> = {
         ] } },
 
         { h2: "How it works" },
-        { p: "A campaign moves through the same stages whatever its objective. A Qualified leads campaign stops after step 3, because it contacts no one." },
+        { p: "A campaign moves through the same stages whatever its objective." },
         { ol: [
           "**You set the campaign.** You choose an objective, an offer, a budget, dates, audiences and a mailbox, or press **Build with Yolias** to fill the campaign from Company Knowledge and review it.",
           "**You launch.** Launching is the approval. There is no approval per email after it. If your balance is empty, the first payment happens here, and the campaign stays saved as a draft until you top up.",
@@ -57,14 +57,13 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["Meetings", "Sends two free times and your booking page", "A mailbox", "Booked meetings"],
           ["Sales", "Sends a tracked link to your website", "A mailbox, a website page and a pixel", "Conversions (Purchase by default)"],
           ["Website leads", "Sends a tracked link to your form", "A mailbox, a form page and a pixel", "Conversions (Lead by default)"],
-          ["Qualified leads", "Contacts no one", "Nothing beyond the audience", "People and companies found"],
         ] } },
 
         { h2: "What you pay for" },
         { p: "Signing up is free, and you can build and save campaigns without paying. Payment comes at launch, and the smallest campaign budget is $5." },
         { p: "Spend is the number of people found for a campaign multiplied by your rate. On Pay As You Go the rate is $0.10 per person. On Growth and Scale it works out at $0.05 per person. The same lead is never charged twice, and viewing your leads again is free." },
         { table: { head: ["Option", "Price", "Included"], rows: [
-          ["Pay As You Go", "Top up from $5", "Credit, which doesn't expire"],
+          ["Pay As You Go", "Top up from $20", "Credit, which doesn't expire"],
           ["Growth", "$100 a month", "2,000 leads a month"],
           ["Scale", "$200 a month", "4,000 leads a month"],
         ] } },
@@ -182,7 +181,7 @@ export const docsE: Record<string, Localized<Doc>> = {
         ] } },
 
         { h2: "كيف يعمل" },
-        { p: "تمر الحملة بالمراحل نفسها أيًا كان هدفها. وتتوقف حملة العملاء المؤهلين بعد الخطوة 3 لأنها لا تتواصل مع أحد." },
+        { p: "تمر الحملة بالمراحل نفسها أيًا كان هدفها." },
         { ol: [
           "**تضبط الحملة.** تختار الهدف والعرض والميزانية والتواريخ والجماهير والبريد، أو تضغط **أنشئ مع يولياس** ليملأ الحملة من معرفة الشركة ثم تراجعها.",
           "**تشغّل الحملة.** التشغيل هو الموافقة، ولا توجد بعده موافقة على كل رسالة. وإذا كان رصيدك فارغًا فهنا تأتي أول دفعة، وتبقى الحملة محفوظة كمسودة حتى تشحن.",
@@ -200,14 +199,13 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["اجتماعات", "يرسل موعدين متاحين وصفحة الحجز", "بريد", "الاجتماعات المحجوزة"],
           ["المبيعات", "يرسل رابطًا متتبَّعًا إلى موقعك", "بريد وصفحة في الموقع وبيكسل", "التحويلات (Purchase افتراضيًا)"],
           ["نماذج الموقع", "يرسل رابطًا متتبَّعًا إلى نموذجك", "بريد وصفحة نموذج وبيكسل", "التحويلات (Lead افتراضيًا)"],
-          ["عملاء مؤهلون", "لا يتواصل مع أحد", "لا شيء غير الجمهور", "الأشخاص والشركات التي يُعثر عليها"],
         ] } },
 
         { h2: "ما الذي تدفع مقابله" },
         { p: "التسجيل مجاني، ويمكنك إنشاء الحملات وحفظها دون دفع. ويأتي الدفع عند التشغيل، وأقل ميزانية للحملة 5 دولارات." },
         { p: "الإنفاق هو عدد الأشخاص الذين يُعثر عليهم للحملة مضروبًا في سعرك. في الدفع حسب الاستخدام يبلغ السعر 0.10 دولار للشخص، وفي خطتي النمو والتوسع يعادل 0.05 دولار للشخص. ولا يُحسب العميل نفسه مرتين، وعرض عملائك مجددًا مجاني." },
         { table: { head: ["الخيار", "السعر", "ما يتضمنه"], rows: [
-          ["الدفع حسب الاستخدام", "شحن من 5 دولارات", "رصيد لا تنتهي صلاحيته"],
+          ["الدفع حسب الاستخدام", "شحن من 20 دولارًا", "رصيد لا تنتهي صلاحيته"],
           ["النمو", "100 دولار شهريًا", "2,000 عميل شهريًا"],
           ["التوسع", "200 دولار شهريًا", "4,000 عميل شهريًا"],
         ] } },
@@ -332,14 +330,14 @@ export const docsE: Record<string, Localized<Doc>> = {
         { p: "What it changes: when someone shows interest, Yolias offers two free times from this page and sends its link." },
 
         { h3: "5. Add a pixel, for Sales or Website leads" },
-        { p: "Skip this step for Meetings and Qualified leads. For Sales or Website leads, open **Events Manager**, create a pixel and add its base code to your website. The campaign uses it to count purchases or forms from the people Yolias sends there. See [Pixel and events](/help-center/pixel-and-events)." },
+        { p: "Skip this step for Meetings. For Sales or Website leads, open **Events Manager**, create a pixel and add its base code to your website. The campaign uses it to count purchases or forms from the people Yolias sends there. See [Pixel and events](/help-center/pixel-and-events)." },
 
         { h3: "6. Build the campaign" },
         { p: "Open **Campaigns** and choose **Create campaign**. At the top of the builder press **Build with Yolias**. Yolias fills the campaign from Company Knowledge: a name, the offer, a meetings target, a budget, messages a day, and one to three audiences with countries, industries, job titles and company sizes. The objective, the channel and the mailbox stay as you set them." },
         { p: "Review the three steps: **Campaign**, **Audience** and **Message**. On the Message step choose the mailbox under **Send from**, then press **Write a sample email** to see how Yolias will write to a typical person in each audience." },
 
         { h3: "7. Launch" },
-        { p: "Tick the confirmation that Yolias may email the people it finds from your mailbox, and press **Launch campaign**. If the account has no plan or credit, Yolias asks you to top up from $5 or choose a plan; the campaign stays saved as a draft and you launch it after paying. See [Creating a campaign](/help-center/creating-a-campaign)." },
+        { p: "Tick the confirmation that Yolias may email the people it finds from your mailbox, and press **Launch campaign**. If the account has no plan or credit, Yolias asks you to top up from $20 or choose a plan; the campaign stays saved as a draft and you launch it after paying. See [Creating a campaign](/help-center/creating-a-campaign)." },
 
         { h2: "What the builder checks before launch" },
         { p: "**Launch campaign** stays blocked until every item under **Before you launch** is resolved. The messages below are the ones the builder shows." },
@@ -386,7 +384,7 @@ export const docsE: Record<string, Localized<Doc>> = {
         { table: { head: ["Problem", "What to do"], rows: [
           ["**Add your company in Company Knowledge first.**", "Company Knowledge is empty. Fill it in or run **Analyze website**, then press **Build with Yolias** again"],
           ["**Connect a mailbox to send from.**", "Connect a mailbox in Integrations. Only a connected mailbox of your own can be chosen"],
-          ["**Top up from $5 to keep using Yolias AI today.**", "A free account reached its daily AI limit in the builder. Top up, or fill the fields yourself"],
+          ["**Top up from $20 to keep using Yolias AI today.**", "A free account reached its daily AI limit in the builder. Top up, or fill the fields yourself"],
           ["**Your balance is empty. Top up to launch this campaign.**", "Top up or choose a plan. The draft keeps everything you entered"],
         ] } },
 
@@ -432,14 +430,14 @@ export const docsE: Record<string, Localized<Doc>> = {
         { p: "ما تغيّره: عندما يبدي شخص اهتمامًا، يعرض عليه يولياس موعدين متاحين من هذه الصفحة ويرسل رابطها." },
 
         { h3: "5. أضف بيكسل للمبيعات أو نماذج الموقع" },
-        { p: "تخطَّ هذه الخطوة في حملات الاجتماعات والعملاء المؤهلين. أما في المبيعات ونماذج الموقع فافتح **مدير الأحداث** وأنشئ بيكسل وأضف كوده الأساسي إلى موقعك، لتحسب الحملة عمليات الشراء أو النماذج ممن يرسلهم يولياس إلى موقعك. راجع [البيكسل والأحداث](/help-center/pixel-and-events)." },
+        { p: "تخطَّ هذه الخطوة في حملات الاجتماعات. أما في المبيعات ونماذج الموقع فافتح **مدير الأحداث** وأنشئ بيكسل وأضف كوده الأساسي إلى موقعك، لتحسب الحملة عمليات الشراء أو النماذج ممن يرسلهم يولياس إلى موقعك. راجع [البيكسل والأحداث](/help-center/pixel-and-events)." },
 
         { h3: "6. أنشئ الحملة" },
         { p: "افتح **الحملات** واختر **إنشاء حملة**، ثم اضغط **أنشئ مع يولياس** في أعلى المنشئ. يملأ يولياس الحملة من معرفة الشركة: الاسم والعرض وعدد الاجتماعات المستهدف والميزانية وعدد الرسائل اليومية، ومن جمهور إلى ثلاثة جماهير بالدول والمجالات والمسميات الوظيفية وأحجام الشركات. ويبقى الهدف والقناة والبريد كما ضبطتها أنت." },
         { p: "راجع الخطوات الثلاث: **الحملة** و**الجمهور** و**الرسالة**. وفي خطوة الرسالة اختر البريد في **الإرسال من**، ثم اضغط **اكتب رسالة نموذجية** لترى كيف سيكتب يولياس لشخص نموذجي في كل جمهور." },
 
         { h3: "7. شغّل الحملة" },
-        { p: "حدّد خانة الموافقة على أن يراسل يولياس من يجدهم من بريدك، واضغط **تشغيل الحملة**. وإذا لم يكن في الحساب خطة أو رصيد، يطلب منك يولياس الشحن من 5 دولارات أو اختيار خطة، وتبقى الحملة محفوظة كمسودة لتشغّلها بعد الدفع. راجع [إنشاء حملة](/help-center/creating-a-campaign)." },
+        { p: "حدّد خانة الموافقة على أن يراسل يولياس من يجدهم من بريدك، واضغط **تشغيل الحملة**. وإذا لم يكن في الحساب خطة أو رصيد، يطلب منك يولياس الشحن من 20 دولارًا أو اختيار خطة، وتبقى الحملة محفوظة كمسودة لتشغّلها بعد الدفع. راجع [إنشاء حملة](/help-center/creating-a-campaign)." },
 
         { h2: "ما يفحصه المنشئ قبل التشغيل" },
         { p: "يبقى زر **تشغيل الحملة** معطلًا حتى يُحل كل بند تحت **قبل التشغيل**. وهذه هي الرسائل كما يعرضها المنشئ." },
@@ -486,7 +484,7 @@ export const docsE: Record<string, Localized<Doc>> = {
         { table: { head: ["المشكلة", "ما تفعله"], rows: [
           ["**أضف شركتك في معرفة الشركة أولًا.**", "معرفة الشركة فارغة. املأها أو شغّل **تحليل الموقع**، ثم اضغط **أنشئ مع يولياس** مرة أخرى"],
           ["**اربط بريدًا للإرسال منه.**", "اربط بريدًا من التكاملات. ولا يمكن اختيار إلا بريد متصل خاص بك"],
-          ["**اشحن من 5 دولارات لتواصل استخدام Yolias AI اليوم.**", "بلغ الحساب المجاني حده اليومي من الذكاء الاصطناعي في المنشئ. اشحن رصيدك أو املأ الحقول بنفسك"],
+          ["**اشحن من 20 دولارًا لتواصل استخدام Yolias AI اليوم.**", "بلغ الحساب المجاني حده اليومي من الذكاء الاصطناعي في المنشئ. اشحن رصيدك أو املأ الحقول بنفسك"],
           ["**رصيدك فارغ. اشحن لتشغيل هذه الحملة.**", "اشحن أو اختر خطة، وتحتفظ المسودة بكل ما أدخلته"],
         ] } },
 
@@ -520,7 +518,7 @@ export const docsE: Record<string, Localized<Doc>> = {
 
         { h2: "Settings" },
         { h3: "Objective" },
-        { p: "One of **Meetings**, **Sales**, **Website leads (forms)** or **Qualified leads**. Sales and Website leads also ask for the website page Yolias links to, the pixel that measures it, the **Conversion event** (Purchase or Lead by default) and the **Attribution window**: 1, 7 or 28 days after the click or the email. Qualified leads contacts no one, so it has no mailbox and no message. See [Campaign objectives](/help-center/campaign-objectives)." },
+        { p: "One of **Meetings**, **Sales** or **Website leads (forms)**. Sales and Website leads also ask for the website page Yolias links to, the pixel that measures it, the **Conversion event** (Purchase or Lead by default) and the **Attribution window**: 1, 7 or 28 days after the click or the email. See [Campaign objectives](/help-center/campaign-objectives)." },
         { h3: "Offer and result" },
         { p: "Pick one of your offers from Company Knowledge, or describe the offer in up to 1,500 characters. The result you want (for example **Meetings you want**, from 1 to 1,000) is a target, not a promise: the campaign page shows progress against it. The builder also shows **Company Knowledge is N% complete**, counted from eight fields that hold more than a few words." },
         { h3: "Who to contact" },
@@ -660,7 +658,7 @@ export const docsE: Record<string, Localized<Doc>> = {
 
         { h2: "الإعدادات" },
         { h3: "الهدف" },
-        { p: "واحد من **اجتماعات** أو **المبيعات** أو **نماذج الموقع** أو **عملاء مؤهلون**. وتطلب المبيعات ونماذج الموقع أيضًا صفحة الموقع التي يرسل يولياس رابطها، والبيكسل الذي يقيسها، و**حدث التحويل** (Purchase أو Lead افتراضيًا)، و**نافذة الاحتساب**: يوم واحد أو 7 أيام أو 28 يومًا بعد النقرة أو الرسالة. أما العملاء المؤهلون فلا تتواصل مع أحد، فلا بريد فيها ولا رسالة. راجع [أهداف الحملة](/help-center/campaign-objectives)." },
+        { p: "واحد من **اجتماعات** أو **المبيعات** أو **نماذج الموقع**. وتطلب المبيعات ونماذج الموقع أيضًا صفحة الموقع التي يرسل يولياس رابطها، والبيكسل الذي يقيسها، و**حدث التحويل** (Purchase أو Lead افتراضيًا)، و**نافذة الاحتساب**: يوم واحد أو 7 أيام أو 28 يومًا بعد النقرة أو الرسالة. راجع [أهداف الحملة](/help-center/campaign-objectives)." },
         { h3: "العرض والنتيجة" },
         { p: "اختر أحد عروضك من معرفة الشركة، أو اكتب العرض بنفسك في حدود 1,500 حرف. والنتيجة المطلوبة (مثل **عدد الاجتماعات الذي تريده**، من 1 إلى 1,000) هدف وليست وعدًا، وتعرض صفحة الحملة التقدم نحوها. ويعرض المنشئ أيضًا **معرفة الشركة مكتملة بنسبة** محسوبة من ثمانية حقول تحتوي أكثر من بضع كلمات." },
         { h3: "مع من يتواصل" },
@@ -1418,7 +1416,7 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["**Write again**", "Writes the two openings for one audience"],
           ["**Write a sample email**", "Writes an example first email for a typical person in the audience. Nothing is saved or sent"],
         ] } },
-        { p: "These work on a free account up to 30 AI requests in 24 hours for the workspace. Past that, the builder shows **Top up from $5 to keep using Yolias AI today.** With a plan or credit there is no such limit." },
+        { p: "These work on a free account up to 30 AI requests in 24 hours for the workspace. Past that, the builder shows **Top up from $20 to keep using Yolias AI today.** With a plan or credit there is no such limit." },
 
         { h2: "Chat with Yolias AI" },
         { p: "Press **Ask Yolias AI** on any screen. A panel opens on the side of the page with ready questions, such as **How did my campaigns do last week?** and **What needs me today?** It knows which page you opened it from. **New chat** starts a fresh conversation, **Open full size** opens it on its own page, and past chats are listed under **Yolias AI chats** in the sidebar." },
@@ -1562,7 +1560,7 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["**إعادة الكتابة**", "يكتب الافتتاحيتين لجمهور واحد"],
           ["**اكتب رسالة نموذجية**", "يكتب رسالة أولى مثالًا لشخص نموذجي في الجمهور، دون حفظ أو إرسال"],
         ] } },
-        { p: "تعمل هذه الإجراءات على الحساب المجاني حتى 30 طلبًا للذكاء الاصطناعي خلال 24 ساعة لمساحة العمل. وبعدها يعرض المنشئ **اشحن من 5 دولارات لتواصل استخدام Yolias AI اليوم.** ومع خطة أو رصيد لا يوجد هذا الحد." },
+        { p: "تعمل هذه الإجراءات على الحساب المجاني حتى 30 طلبًا للذكاء الاصطناعي خلال 24 ساعة لمساحة العمل. وبعدها يعرض المنشئ **اشحن من 20 دولارًا لتواصل استخدام Yolias AI اليوم.** ومع خطة أو رصيد لا يوجد هذا الحد." },
 
         { h2: "محادثة Yolias AI" },
         { p: "اضغط **اسأل يولياس AI** في أي شاشة، فتُفتح لوحة على جانب الصفحة فيها أربعة أسئلة جاهزة: **كيف كان أداء حملاتي الأسبوع الماضي؟** و**أي جمهور يجلب أرخص اجتماعات؟** و**اقترح جمهورًا جديدًا لأفضل حملة عندي** و**ما الذي يحتاجني اليوم؟**. ويمكنك كتابة أي سؤال آخر عن حملاتك بكلماتك. ويعرف Yolias AI الصفحة التي فتحته منها. ويبدأ **محادثة جديدة** محادثة جديدة، ويفتحها **فتح بالحجم الكامل** في صفحة مستقلة، وتظهر المحادثات السابقة في **محادثات يولياس AI** بالشريط الجانبي." },
@@ -1652,7 +1650,6 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["Meetings", "Booked meetings", "Positive replies, then Learning"],
           ["Sales", "Purchases", "Positive replies, then Learning"],
           ["Website leads", "Website forms", "Positive replies, then Learning"],
-          ["Qualified leads", "Nothing: every audience keeps an equal share", "Learning"],
         ] } },
         { p: "Positive replies are replies classified as **Interested** or **Asked for a meeting**. Opens never count." },
         { h3: "2. Estimate which audience is best" },
@@ -1782,7 +1779,6 @@ export const docsE: Record<string, Localized<Doc>> = {
           ["اجتماعات", "الاجتماعات المحجوزة", "الردود الإيجابية، ثم التعلم"],
           ["المبيعات", "المشتريات", "الردود الإيجابية، ثم التعلم"],
           ["نماذج الموقع", "نماذج الموقع", "الردود الإيجابية، ثم التعلم"],
-          ["عملاء مؤهلون", "لا شيء: يحتفظ كل جمهور بنصيب متساوٍ", "التعلم"],
         ] } },
         { p: "الردود الإيجابية هي الردود المصنفة **مهتم** أو **طلب اجتماعًا**، ولا يُحسب فتح الرسائل أبدًا." },
         { h3: "2. تقدير أي جمهور هو الأفضل" },

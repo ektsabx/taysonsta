@@ -73,12 +73,12 @@ try {
   await db.rpc("set_payment_secret", { p_provider: "paymob", p_name: "hmac_secret", p_secret: HMAC });
   await db.from("site_settings").upsert({ key: "yolias_fx_usd_egp", value: { fixed: 50 } });
 
-  // ── 0. The configuration: four amounts at the system's own rate ──
+  // ── 0. The configuration: three amounts at the system's own rate ──
   const { data: rateRow } = await db.from("site_settings").select("value").eq("key", "credits").single();
   const rate = Number((rateRow!.value as { usd_per_prospect: number }).usd_per_prospect);
   assert.ok(rate > 0, "a rate is configured");
   const { data: packs } = await db.from("prospect_packs").select("*").eq("active", true).order("price_usd");
-  assert.deepEqual(packs!.map((p) => Number(p.price_usd)), [5, 20, 50, 100], "top-ups: $5, $20, $50, $100");
+  assert.deepEqual(packs!.map((p) => Number(p.price_usd)), [20, 50, 100], "top-ups: $20, $50, $100 (the smallest is $20, owner 2026-11-10)");
   for (const p of packs!) assert.equal(p.prospects, Math.floor(Number(p.price_usd) / rate), `$${p.price_usd} = price / rate prospects`);
   assert.deepEqual(offeredPlans, ["growth", "scale"], "Growth and Scale are the plans offered (pricing since 2026-11)");
   // The rate is the owner's setting (Admin → Plans); each pack follows it (checked above).
@@ -161,7 +161,7 @@ try {
   assert.match(html, /Scale/, "Scale is on the pricing page");
   assert.doesNotMatch(html, /\$5 = /, "the cards don't list the top-up amounts (owner, 2026-10-21)");
 
-  console.log("✓ payg: four amounts at the configured rate, failed payment adds nothing, duplicate webhooks credit once, no subscription, consumption, no email charge, PAYG ↔ monthly keeps the balance, Growth and Scale on the pricing page");
+  console.log("✓ payg: three amounts ($20 and up) at the configured rate, failed payment adds nothing, duplicate webhooks credit once, no subscription, consumption, no email charge, PAYG ↔ monthly keeps the balance, Growth and Scale on the pricing page");
 } finally {
   if (userId) {
     const { data: prof } = await db.from("profiles").select("workspace_id").eq("id", userId).maybeSingle();

@@ -28,8 +28,8 @@ export interface Workflow {
 }
 
 export const workflowLabels: Localized<{ used: string; resources: string; template: string; before: string; how: string; steps: string; step: string; where: string; result: string; act: string; related: string; start: string; ready: string; readyLead: string; updated: string; example: string }> = {
-  en: { used: "What we used", resources: "Free resources", template: "Open the ready-made template", before: "Before we begin", how: "How it works", steps: "Step by step", step: "Step", where: "Where", result: "What you should see", act: "Act on the results", related: "Related resources", start: "Start building now", ready: "Run this workflow in Yolias", readyLead: "Sign up free, build the campaign and pay when you launch it, from $5.", updated: "Updated", example: "Screenshot from Yolias with sample data" },
-  ar: { used: "ما استخدمناه", resources: "موارد مجانية", template: "افتح القالب الجاهز", before: "قبل أن نبدأ", how: "كيف يعمل", steps: "خطوة بخطوة", step: "الخطوة", where: "المكان", result: "ما يجب أن تراه", act: "ماذا تفعل بالنتائج", related: "موارد ذات صلة", start: "ابدأ البناء الآن", ready: "نفّذ هذا المسار في يولياس", readyLead: "سجّل مجانًا، وابنِ الحملة، وادفع عند إطلاقها من 5 دولارات.", updated: "آخر تحديث", example: "لقطة من يولياس ببيانات توضيحية" },
+  en: { used: "What we used", resources: "Free resources", template: "Open the ready-made template", before: "Before we begin", how: "How it works", steps: "Step by step", step: "Step", where: "Where", result: "What you should see", act: "Act on the results", related: "Related resources", start: "Start building now", ready: "Run this workflow in Yolias", readyLead: "Sign up free, build the campaign and pay when you launch it, from $20.", updated: "Updated", example: "Screenshot from Yolias with sample data" },
+  ar: { used: "ما استخدمناه", resources: "موارد مجانية", template: "افتح القالب الجاهز", before: "قبل أن نبدأ", how: "كيف يعمل", steps: "خطوة بخطوة", step: "الخطوة", where: "المكان", result: "ما يجب أن تراه", act: "ماذا تفعل بالنتائج", related: "موارد ذات صلة", start: "ابدأ البناء الآن", ready: "نفّذ هذا المسار في يولياس", readyLead: "سجّل مجانًا، وابنِ الحملة، وادفع عند إطلاقها من 20 دولارًا.", updated: "آخر تحديث", example: "لقطة من يولياس ببيانات توضيحية" },
 };
 
 export const workflowDemo: Localized<{ title: string; hint: string; next: string; back: string; of: string; restart: string }> = {
@@ -289,7 +289,7 @@ export const workflows: Workflow[] = [
         steps: [
           { title: "Write your ideal customer", where: "Company Knowledge", shot: "knowledge", body: ["Describe who buys from you and why. Yolias uses this in every email and in Build with Yolias."], result: "Company Knowledge shows how complete it is." },
           { title: "Set the targeting", where: "Campaigns → Create campaign → Audience", shot: "audience", body: ["Under Locations pick countries and cities. Under Companies pick the industry and size. Under People add job titles. Inside a field Yolias matches any value; across fields, all of them."], result: "A check shows the matching companies and people." },
-          { title: "Launch", where: "The Message step", shot: "message", body: ["Choose Send from, confirm and choose Launch campaign. For a list without emails, use the Qualified leads objective: Yolias finds and saves people without contacting anyone."], result: "The campaign is running." },
+          { title: "Launch", where: "The Message step", shot: "message", body: ["Choose Send from, confirm and choose Launch campaign."], result: "The campaign is running." },
           { title: "Review the companies", where: "Leads → Companies", shot: "companies", body: ["Check who was found. Open a company to see its details and its people."], result: "The Companies tab lists each company with its source, campaign and status." },
         ],
         act: ["Refine the targeting from what you saw.", "Exclude companies under Exclusions.", "Save the audience for later campaigns."],
@@ -312,7 +312,7 @@ export const workflows: Workflow[] = [
         steps: [
           { title: "اكتب عميلك المثالي", where: "معرفة الشركة", shot: "knowledge", body: ["صف من يشتري منك ولماذا. يستخدم يولياس ذلك في كل رسالة وفي أنشئ مع يولياس."], result: "تعرض معرفة الشركة نسبة اكتمالها." },
           { title: "اضبط الاستهداف", where: "الحملات ← إنشاء حملة ← الجمهور", shot: "audience", body: ["في المواقع اختر الدول والمدن، وفي الشركات اختر المجال والحجم، وفي الأشخاص أضف المسميات. داخل الحقل الواحد يكفي أي قيمة، وبين الحقول يجب أن تتحقق كلها."], result: "يعرض الفحص الشركات والأشخاص المطابقين." },
-          { title: "شغّل الحملة", where: "خطوة الرسالة", shot: "message", body: ["اختر الإرسال من، وأكّد، واختر تشغيل الحملة. ولقائمة بلا رسائل استخدم هدف عملاء مؤهلون: يجد يولياس الأشخاص ويحفظهم دون التواصل مع أحد."], result: "الحملة تعمل." },
+          { title: "شغّل الحملة", where: "خطوة الرسالة", shot: "message", body: ["اختر الإرسال من، وأكّد، واختر تشغيل الحملة."], result: "الحملة تعمل." },
           { title: "راجع الشركات", where: "العملاء ← الشركات", shot: "companies", body: ["راجع من وُجد. وافتح شركة لترى تفاصيلها وأشخاصها."], result: "يعرض تبويب الشركات كل شركة بمصدرها وحملتها وحالتها." },
         ],
         act: ["حسّن الاستهداف مما رأيته.", "استبعد الشركات في الاستبعادات.", "احفظ الجمهور للحملات القادمة."],

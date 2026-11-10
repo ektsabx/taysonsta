@@ -36,7 +36,7 @@ export const posts: BlogPost[] = [
           { p: "Ad platforms solved this problem for ads years ago. You create a campaign, pick an objective, define the audience, set a budget and read the results with the cost of each one. Yolias brings the same model to acquiring customers directly." },
           { h2: "How it works" },
           { ol: [
-            "**Campaign**: choose the objective (meetings, sales, website leads or qualified leads), your offer, the target and the budget in US dollars.",
+            "**Campaign**: choose the objective (meetings, sales or website leads), your offer, the target and the budget in US dollars.",
             "**Audiences**: the companies and people you want, by country and city, industry, company size and job title, or a saved, custom or lookalike audience.",
             "**Message**: the mailbox to send from, your tone and language. Yolias AI writes a different email to each person from your Company Knowledge.",
           ] },
@@ -45,7 +45,7 @@ export const posts: BlogPost[] = [
           { p: "Under every campaign is one engine. The objective only tells it which result to pursue. A meetings campaign sends interested people to your booking page; a sales campaign sends them to your product page and the Yolias pixel counts the purchase." },
           { h2: "Results you can manage" },
           { p: "Every campaign shows reached, replies, interested, meetings, spend and cost per result, by day, audience, country or job title. Once a day Yolias moves the budget toward the audiences that bring results." },
-          { p: "Yolias works in Arabic and English, with unlimited users on every plan, from $5 with Pay As You Go. [Create your first campaign](/signup)." },
+          { p: "Yolias works in Arabic and English, with unlimited users on every plan, from $20 with Pay As You Go. [Create your first campaign](/signup)." },
         ],
       },
       ar: {
@@ -56,7 +56,7 @@ export const posts: BlogPost[] = [
           { p: "منصات الإعلانات حلّت هذه المشكلة للإعلانات منذ سنوات: تنشئ حملة، وتختار الهدف، وتحدد الجمهور، وتضبط الميزانية، وتقرأ النتائج مع تكلفة كل نتيجة. ويطبق يولياس النموذج نفسه على اكتساب العملاء مباشرة." },
           { h2: "كيف يعمل" },
           { ol: [
-            "**الحملة**: اختر الهدف (اجتماعات أو مبيعات أو نماذج الموقع أو عملاء مؤهلون)، وعرضك، والمستهدف، والميزانية بالدولار.",
+            "**الحملة**: اختر الهدف (اجتماعات أو مبيعات أو نماذج الموقع)، وعرضك، والمستهدف، والميزانية بالدولار.",
             "**الجماهير**: الشركات والأشخاص الذين تريدهم حسب الدولة والمدينة والمجال وحجم الشركة والمسمى الوظيفي، أو جمهور محفوظ أو مخصص أو مشابه.",
             "**الرسالة**: البريد الذي تُرسل منه، وأسلوبك ولغتك. ويكتب Yolias AI رسالة مختلفة لكل شخص من معرفة شركتك.",
           ] },
@@ -65,7 +65,7 @@ export const posts: BlogPost[] = [
           { p: "تحت كل حملة محرك واحد، والهدف يحدد له النتيجة التي يسعى إليها. حملة الاجتماعات ترسل المهتمين إلى صفحة الحجز، وحملة المبيعات ترسلهم إلى صفحة منتجك ويحسب بيكسل يولياس عملية الشراء." },
           { h2: "نتائج تستطيع إدارتها" },
           { p: "تعرض كل حملة من وصلت إليهم والردود والمهتمين والاجتماعات والإنفاق وتكلفة كل نتيجة، حسب اليوم أو الجمهور أو البلد أو المسمى. ومرة يوميًا يوجّه يولياس الميزانية نحو الجماهير التي تأتي بالنتائج." },
-          { p: "يعمل يولياس بالعربية والإنجليزية، مع مستخدمين بلا حد في كل خطة، ويبدأ من 5 دولارات بالدفع حسب الاستخدام. [أنشئ حملتك الأولى](/signup)." },
+          { p: "يعمل يولياس بالعربية والإنجليزية، مع مستخدمين بلا حد في كل خطة، ويبدأ من 20 دولارًا بالدفع حسب الاستخدام. [أنشئ حملتك الأولى](/signup)." },
         ],
       },
     },

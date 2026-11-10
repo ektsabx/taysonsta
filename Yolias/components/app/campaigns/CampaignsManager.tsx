@@ -283,7 +283,7 @@ export function CampaignsManager({ lines, members, range, from, to, refreshedAt,
           <button type="button" className="sdr-btn cm-toggle" onClick={() => setOpen(open === "columns" ? null : "columns")}><Columns3 />{m.columns}</button>
           {open === "columns" && (
             <div className="cm-pop cm-columns">
-              <div className="cm-presets"><strong>{CM.presets}</strong><div className="cm-chips">{OBJECTIVES.map((o) => <button key={o} type="button" className="cm-chip" onClick={() => { setColumns(PRESETS[o]); setPinned([]); }}>{CM.presetNames[o]}</button>)}</div></div>
+              <div className="cm-presets"><strong>{CM.presets}</strong><div className="cm-chips">{OBJECTIVES.filter((o) => o !== "qualified_leads").map((o) => <button key={o} type="button" className="cm-chip" onClick={() => { setColumns(PRESETS[o]); setPinned([]); }}>{CM.presetNames[o]}</button>)}</div></div>
               {[...columns, ...[...METRICS, ...customs].map((x) => x.id).filter((id) => !columns.includes(id))].map((id) => {
                 const mm = mx(id)!; const on = columns.includes(id); const i = columns.indexOf(id);
                 return (

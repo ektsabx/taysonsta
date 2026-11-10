@@ -119,7 +119,7 @@ const baseDocs: DocPage[] = [
           { ol: [
             "**Create your account** with your work email on [Create account](/signup).",
             "**Set up your company.** Add your website and Yolias reads it, or fill in your company yourself.",
-            "**Choose how to pay:** Pay As You Go from $5, or the Growth or Scale plan, monthly or annual (20% off).",
+            "**Choose how to pay:** Pay As You Go from $20, or the Growth or Scale plan, monthly or annual (20% off).",
             "**Launch your first campaign** from Campaigns → Create campaign: the goal, the audiences and the message. Connect your mailbox in Integrations first.",
           ] },
         ],
@@ -131,7 +131,7 @@ const baseDocs: DocPage[] = [
           { ol: [
             "**أنشئ حسابك** ببريد العمل من [إنشاء حساب](/signup).",
             "**جهّز شركتك.** أضف موقعك فيقرؤه يولياس، أو املأ بيانات شركتك بنفسك.",
-            "**اختر طريقة الدفع:** الدفع حسب الاستخدام من 5 دولارات، أو خطة النمو أو التوسع شهريًا أو سنويًا (بخصم 20%).",
+            "**اختر طريقة الدفع:** الدفع حسب الاستخدام من 20 دولارًا، أو خطة النمو أو التوسع شهريًا أو سنويًا (بخصم 20%).",
             "**أطلق حملتك الأولى** من الحملات ← إنشاء حملة: الهدف والجماهير والرسالة. واربط بريدك من التكاملات أولًا.",
           ] },
         ],
@@ -151,7 +151,6 @@ const baseDocs: DocPage[] = [
             ["Meetings", "A booked meeting"],
             ["Sales", "A purchase the Yolias pixel counts on your site"],
             ["Website leads", "A form or registration the pixel counts"],
-            ["Qualified leads", "A matching company and person saved to Leads (no outreach)"],
           ] } },
           { h2: "Three levels" },
           { p: "**Campaign**: the goal, your offer, the budget in US dollars (total or daily), dates, days and hours. **Audiences**: who to reach. **Message**: the mailbox, tone, language and notes, with a preview." },
@@ -407,7 +406,7 @@ const baseDocs: DocPage[] = [
         summary: "What every number on the dashboard and in Campaigns means.",
         blocks: [
           { table: { head: ["Metric", "Definition"], rows: [
-            ["Results", "What the campaign's goal counts: meetings, purchases, website leads or qualified leads"],
+            ["Results", "What the campaign's goal counts: meetings, purchases or website leads"],
             ["Cost per result", "Spend ÷ results"],
             ["Found", "Companies and people the campaign found"],
             ["Sent", "First emails sent"],
@@ -426,7 +425,7 @@ const baseDocs: DocPage[] = [
         summary: "معنى كل رقم في لوحة التحكم والحملات، من الوصول والردود إلى تكلفة كل نتيجة.",
         blocks: [
           { table: { head: ["المقياس", "التعريف"], rows: [
-            ["النتائج", "ما يحسبه هدف الحملة: اجتماعات أو مشتريات أو عملاء من الموقع أو عملاء مؤهلون"],
+            ["النتائج", "ما يحسبه هدف الحملة: اجتماعات أو مشتريات أو عملاء من الموقع"],
             ["تكلفة النتيجة", "الإنفاق ÷ النتائج"],
             ["المكتشَفون", "الشركات والأشخاص الذين وجدتهم الحملة"],
             ["المُرسل", "الرسائل الأولى المرسلة"],
@@ -493,7 +492,7 @@ const baseDocs: DocPage[] = [
             "Companies, searches and AI work are not counted.",
             "On a plan, its monthly leads are used first, then any credit you topped up. Pla leads reset on the first day of every month (UTC); credit doesn’t expire.",
             "When no leads are left, discovery pauses until you top up or the plan renews.",
-            "Signing up is free: build your campaign, then pay when you launch it, from $5. Plans are billed monthly, or annually at 20% off.",
+            "Signing up is free: build your campaign, then pay when you launch it, from $20. Plans are billed monthly, or annually at 20% off.",
           ] },
           { p: "Current usage is in Settings → Usage." },
         ],
@@ -511,7 +510,7 @@ const baseDocs: DocPage[] = [
             "لا تُحسب الشركات أو عمليات البحث أو عمل الذكاء الاصطناعي.",
             "مع الخطة تُستخدم عملاؤها الشهريون أولًا ثم الرصيد الذي شحنته. يتجدد عملاء الخطة في أول كل شهر (بتوقيت UTC)، والرصيد لا تنتهي صلاحيته.",
             "عندما لا يتبقى عملاء، يتوقف الاكتشاف حتى تشحن رصيدك أو تتجدد الخطة.",
-            "التسجيل مجاني: ابنِ حملتك ثم ادفع عند إطلاقها، من 5 دولارات. وتُدفع الخطط شهريًا، أو سنويًا بخصم 20%.",
+            "التسجيل مجاني: ابنِ حملتك ثم ادفع عند إطلاقها، من 20 دولارًا. وتُدفع الخطط شهريًا، أو سنويًا بخصم 20%.",
           ] },
           { p: "تجد استخدامك الحالي في الإعدادات ← الاستخدام." },
         ],

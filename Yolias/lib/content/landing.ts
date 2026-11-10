@@ -39,7 +39,7 @@ export const landing: Localized<Landing> = {
       lead: "Everything you need to build campaigns that target the right customers, manage how you reach them, and follow the results in one place.",
       lead2: "Define your audience, launch your campaigns, and track their performance through to meetings and qualified leads.",
       primary: "Get started", secondary: "Explore the platform",
-      under: "Free signup. Pay when you launch, from $5.",
+      under: "Free signup. Pay when you launch, from $20.",
       shotAlt: "Yolias Campaigns: each campaign with its status, audience, people reached, replies, meetings, spend and cost per meeting",
     },
     intro: {
@@ -56,7 +56,7 @@ export const landing: Localized<Landing> = {
       eyebrow: "THE PLATFORM",
       title: "Everything you need to run your campaigns.",
       cards: [
-        { title: "Campaigns", body: "A campaign for each service, goal or market, with its objective: meetings, sales, website leads or qualified leads." },
+        { title: "Campaigns", body: "A campaign for each service, goal or market, with its objective: meetings, sales or website leads." },
         { title: "Audiences", body: "The companies and people you want, by industry, location, company size and job title. Save them and use them again." },
         { title: "Budget", body: "A budget in US dollars for each campaign, the spend so far, and the cost of each result." },
         { title: "Channels", body: "Campaigns reach people by email from your own mailbox: Gmail or any business mailbox." },
@@ -190,7 +190,7 @@ export const landing: Localized<Landing> = {
       title: "Choose how you run your campaigns.",
       body: "Every option includes every Yolias feature and unlimited users.",
       points: [
-        "Pay As You Go: free to sign up, top up from $5 when you launch. No subscription, credit never expires.",
+        "Pay As You Go: free to sign up, top up from $20 when you launch. No subscription, credit never expires.",
         "Yolias Growth: $100 a month for 2,000 leads. Yolias Scale: $200 a month for 4,000 leads. Annual billing is 20% off.",
         "You pay for the leads Yolias finds and reaches. Emails, replies and meetings are not charged.",
         "Cancel from Settings any time; your plan runs to the end of the period you paid for.",
@@ -228,7 +228,7 @@ export const landing: Localized<Landing> = {
       lead: "كل ما تحتاجه لإنشاء حملات تستهدف العملاء المناسبين، وإدارة الوصول إليهم، ومتابعة النتائج من مكان واحد.",
       lead2: "حدد جمهورك، وأطلق حملاتك، وتابع أداءها حتى الاجتماعات والعملاء.",
       primary: "ابدأ الآن", secondary: "استكشف المنصة",
-      under: "التسجيل مجاني، والدفع عند إطلاق حملتك من 5 دولارات.",
+      under: "التسجيل مجاني، والدفع عند إطلاق حملتك من 20 دولارًا.",
       shotAlt: "الحملات في يولياس: كل حملة بحالتها وجمهورها ومن وصلت إليهم والردود والاجتماعات والإنفاق وتكلفة الاجتماع",
     },
     intro: {
@@ -245,7 +245,7 @@ export const landing: Localized<Landing> = {
       eyebrow: "المنصة",
       title: "كل ما تحتاجه لإدارة حملاتك.",
       cards: [
-        { title: "الحملات", body: "حملة لكل خدمة أو هدف أو سوق، ولكل حملة هدفها: اجتماعات أو مبيعات أو عملاء من الموقع أو عملاء مؤهلون." },
+        { title: "الحملات", body: "حملة لكل خدمة أو هدف أو سوق، ولكل حملة هدفها: اجتماعات أو مبيعات أو عملاء من الموقع." },
         { title: "الجماهير", body: "الشركات والأشخاص الذين تريدهم حسب المجال والموقع وحجم الشركة والمسمى الوظيفي. احفظها واستخدمها مجددًا." },
         { title: "الميزانية", body: "ميزانية بالدولار لكل حملة، والإنفاق حتى الآن، وتكلفة كل نتيجة." },
         { title: "القنوات", body: "تصل الحملات إلى الأشخاص بالبريد الإلكتروني من بريدك: Gmail أو أي بريد عمل." },
@@ -379,7 +379,7 @@ export const landing: Localized<Landing> = {
       title: "اختر الطريقة المناسبة لإدارة حملاتك.",
       body: "كل خيار يشمل كل مزايا يولياس وعدد مستخدمين غير محدود.",
       points: [
-        "الدفع حسب الاستخدام: التسجيل مجاني، وتشحن من 5 دولارات عند التشغيل. بلا اشتراك، والرصيد لا تنتهي صلاحيته.",
+        "الدفع حسب الاستخدام: التسجيل مجاني، وتشحن من 20 دولارًا عند التشغيل. بلا اشتراك، والرصيد لا تنتهي صلاحيته.",
         "يولياس للنمو: 100 دولار شهريًا مقابل 2,000 عميل. يولياس للتوسع: 200 دولار شهريًا مقابل 4,000 عميل. والفوترة السنوية بخصم 20%.",
         "تدفع مقابل العملاء الذين يجدهم يولياس ويصل إليهم. الرسائل والردود والاجتماعات لا تُحتسب.",
         "ألغِ من الإعدادات في أي وقت؛ وتبقى خطتك حتى نهاية الفترة المدفوعة.",

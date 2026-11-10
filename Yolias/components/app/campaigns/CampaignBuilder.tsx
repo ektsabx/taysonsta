@@ -211,8 +211,10 @@ export function CampaignBuilder(p: BuilderProps) {
                 <label className="ws-label" htmlFor="cb-name">{b.campaign.name}</label>
                 <input id="cb-name" className="form-input" dir="auto" maxLength={160} placeholder={b.campaign.namePh} value={s.name} onChange={(e) => patch({ name: e.target.value })} />
               </div>
-              {/* D-274: type → objective → channel → whom to contact, each with what it means. */}
-              <div className="ws-field">
+              {/* D-274: type → objective → channel → whom to contact. Finding customers without
+                  reaching them isn't offered for new campaigns (owner, 2026-11-10); a find-only
+                  campaign made before still shows its type. */}
+              {p.initial.objective === "qualified_leads" && <div className="ws-field">
                 <span className="ws-label">{K.type}</span>
                 <div className="cb-choices two">
                   {(["outreach", "find"] as const).map((k) => {
@@ -224,7 +226,7 @@ export function CampaignBuilder(p: BuilderProps) {
                     );
                   })}
                 </div>
-              </div>
+              </div>}
               <div className="ws-field">
                 <span className="ws-label">{b.campaign.objective}</span>
                 <div className="cb-choices">

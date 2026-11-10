@@ -16,7 +16,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "You don't write a sequence. Yolias writes a different first email to each person from your Company Knowledge, follows up when there is no reply, reads every reply, answers it and, depending on the objective, books a meeting or sends your website link." },
 
         { h2: "How it works" },
-        { p: "Building and saving a campaign is free. Your first payment comes at launch: you top up from $5, and the smallest campaign budget is $5. Your budget buys people: each new person a campaign finds is charged at your rate per person. Emails, follow-ups, replies and meetings are not charged." },
+        { p: "Building and saving a campaign is free. Your first payment comes at launch: you top up from $20, and the smallest campaign budget is $5. Your budget buys people: each new person a campaign finds is charged at your rate per person. Emails, follow-ups, replies and meetings are not charged." },
         { p: "The builder has three steps, shown as a tree on the side: the campaign, its audiences, and the message. You can open any level at any time without losing the others. The summary box beside the form shows the campaign name, the objective with its target, the budget, the number of audiences, messages a day and the mailbox, followed by the forecast." },
         { p: "When you choose **Launch campaign**, Yolias checks that nothing is missing, writes two openings for every audience that doesn't have them yet, starts finding people for each audience, and gives itself the go-ahead to send from the mailbox you chose. Launching is the approval: there is no approval step for each email afterwards." },
 
@@ -26,8 +26,7 @@ export const helpB: Record<string, Localized<Doc>> = {
           "Open **Campaigns** and choose **Create campaign**. The page reads **Step 1 of 3 · Campaign** and asks **What do you want from this campaign?**",
           "To fill the whole campaign at once, choose **Build with Yolias**. Yolias reads your Company Knowledge and fills the name, the offer, the target, the budget, messages a day and one to three audiences (countries, industries, job titles and company sizes). Your objective, channel and mailbox stay as you set them. Review every field: the result is a proposal, nothing is saved or launched. If it says **Add your company in Company Knowledge first.**, fill [Company Knowledge](/help-center/company-knowledge) and try again.",
           "Enter **Campaign name** (up to 160 characters). Use a name that says the market and the audience, for example \"Dental clinics in Riyadh, Q4\".",
-          "Under **Campaign type** choose **Outreach** (Yolias finds people and writes to them) or **Find customers** (Yolias only finds and saves them in Leads).",
-          "Under **Objective** choose **Meetings**, **Sales** or **Website leads (forms)**. With **Find customers** the objective is **Qualified leads**. See [Campaign objectives](/help-center/campaign-objectives).",
+          "Under **Objective** choose **Meetings**, **Sales** or **Website leads (forms)**. See [Campaign objectives](/help-center/campaign-objectives).",
           "For **Sales** or **Website leads (forms)**, enter the page Yolias sends people to (**Your product or checkout page** or **Your form page**), then choose the **Pixel**, the **Conversion event** and the **Attribution window**.",
           "**Channel** shows **Email**. Under **Contact** choose **People** (decision makers by name), **Companies** (the company's general address, like info@) or **Both**.",
           "Under **What are you offering them?** pick one of your offers, or describe the offer in your own words (up to 1,500 characters).",
@@ -88,11 +87,11 @@ export const helpB: Record<string, Localized<Doc>> = {
         { ul: [
           "The smallest budget is $5. Launch needs a balance above zero; balance and top-ups are in **Settings → Usage**.",
           "Owners, Admins and Advertisers can build and launch campaigns. Analysts see campaigns and results but can't change anything. An Advertiser launches the campaigns they created.",
-          "You send only from a mailbox you connected yourself, and it must be connected at launch. Qualified leads needs no mailbox, because it contacts no one.",
+          "You send only from a mailbox you connected yourself, and it must be connected at launch.",
           "Sales and Website leads need the website page and a pixel. See [The Yolias pixel](/help-center/pixel-and-events).",
           "Up to 8 audiences per campaign. Each audience needs a targeting or a saved audience.",
           "A new mailbox sends less in its first weeks: up to 15 emails a day in week one, 25 in week two and 40 in week three, then its own limit. During warm-up the mailbox list shows today's limit and the date the full limit starts.",
-          "On a free account, AI help in the builder (Build with Yolias, openings and samples) has a daily limit. When it's reached, top up from $5 to keep using it that day.",
+          "On a free account, AI help in the builder (Build with Yolias, openings and samples) has a daily limit. When it's reached, top up from $20 to keep using it that day.",
         ] },
 
         { h2: "Important notes" },
@@ -140,7 +139,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "لا تكتب أنت سلسلة رسائل. يكتب يولياس رسالة أولى مختلفة لكل شخص من معرفة شركتك، ويتابع إذا لم يأتِ رد، ويقرأ كل رد ويجيب عليه، ثم يحجز اجتماعًا أو يرسل رابط موقعك بحسب هدف الحملة." },
 
         { h2: "كيف تعمل" },
-        { p: "بناء الحملة وحفظها مجاني. وتأتي دفعتك الأولى عند التشغيل: تشحن رصيدك من 5 دولارات، وأقل ميزانية للحملة 5 دولارات. وميزانيتك تشتري أشخاصًا: كل شخص جديد تجده الحملة يُحسب بسعرك للشخص. أما الرسائل والمتابعات والردود والاجتماعات فلا تُحسب عليها أي تكلفة." },
+        { p: "بناء الحملة وحفظها مجاني. وتأتي دفعتك الأولى عند التشغيل: تشحن رصيدك من 20 دولارًا، وأقل ميزانية للحملة 5 دولارات. وميزانيتك تشتري أشخاصًا: كل شخص جديد تجده الحملة يُحسب بسعرك للشخص. أما الرسائل والمتابعات والردود والاجتماعات فلا تُحسب عليها أي تكلفة." },
         { p: "للأداة ثلاث خطوات تظهر كشجرة في الجانب: الحملة، ثم جماهيرها، ثم الرسالة. ويمكنك فتح أي مستوى في أي وقت دون أن تفقد الباقي. ويعرض صندوق الملخص بجوار النموذج اسم الحملة، والهدف مع المستهدف، والميزانية، وعدد الجماهير، وعدد الرسائل اليومية، والبريد، ثم التوقع." },
         { p: "عند اختيار **تشغيل الحملة** يتحقق يولياس من أنه لا ينقص شيء، ويكتب افتتاحيتين لكل جمهور ليست له افتتاحيات بعد، ويبدأ إيجاد الأشخاص لكل جمهور، ويأخذ الإذن بالإرسال من البريد الذي اخترته. فالتشغيل نفسه هو الموافقة، ولا توجد موافقة على كل رسالة بعده." },
 
@@ -150,8 +149,7 @@ export const helpB: Record<string, Localized<Doc>> = {
           "افتح **الحملات** واختر **إنشاء حملة**. تظهر في الأعلى عبارة **الخطوة 1 من 3 · الحملة** ويسألك السؤال **ماذا تريد من هذه الحملة؟**",
           "لملء الحملة كلها دفعة واحدة اختر **أنشئ مع يولياس**. يقرأ يولياس معرفة شركتك ويملأ الاسم والعرض والمستهدف والميزانية وعدد الرسائل اليومية ومن جمهور إلى ثلاثة جماهير (الدول والمجالات والمسميات الوظيفية وأحجام الشركات). ويبقى الهدف والقناة والبريد كما حددتها أنت. راجع كل حقل، فالنتيجة اقتراح ولا يُحفظ أو يُشغّل شيء. وإذا ظهرت رسالة **أضف شركتك في معرفة الشركة أولًا.** فاملأ [معرفة الشركة](/help-center/company-knowledge) ثم حاول مجددًا.",
           "اكتب **اسم الحملة** (حتى 160 حرفًا). اختر اسمًا يذكر السوق والجمهور، مثل «عيادات الأسنان في الرياض، الربع الرابع».",
-          "في **نوع الحملة** اختر **التواصل** (يجد يولياس الأشخاص ويراسلهم) أو **إيجاد عملاء** (يجدهم ويحفظهم في العملاء فقط).",
-          "في **الهدف** اختر **اجتماعات** أو **المبيعات** أو **نماذج الموقع**. ومع **إيجاد عملاء** يكون الهدف **عملاء مؤهلون**. راجع [أهداف الحملة](/help-center/campaign-objectives).",
+          "في **الهدف** اختر **اجتماعات** أو **المبيعات** أو **نماذج الموقع**. راجع [أهداف الحملة](/help-center/campaign-objectives).",
           "مع **المبيعات** أو **نماذج الموقع** اكتب الصفحة التي يرسل إليها يولياس الأشخاص (**صفحة المنتج أو الدفع على موقعك** أو **صفحة النموذج على موقعك**)، ثم اختر **البيكسل** و**حدث التحويل** و**نافذة الاحتساب**.",
           "تعرض **القناة** خيار **البريد الإلكتروني**. وفي **التواصل مع** اختر **أشخاص** (أصحاب القرار بالاسم) أو **شركات** (البريد العام للشركة مثل info@) أو **الاثنين**.",
           "في **ماذا تقدم لهم؟** اختر أحد عروضك أو اكتب العرض بكلماتك (حتى 1500 حرف).",
@@ -212,11 +210,11 @@ export const helpB: Record<string, Localized<Doc>> = {
         { ul: [
           "أقل ميزانية 5 دولارات، ويحتاج التشغيل رصيدًا أكبر من صفر. والرصيد والشحن في **الإعدادات ← الاستخدام**.",
           "يبني الحملات ويشغّلها المالك والمسؤول والمعلن. ويرى المحلل الحملات والنتائج دون أن يغيّر شيئًا. ويشغّل المعلن الحملات التي أنشأها.",
-          "ترسل فقط من بريد ربطته أنت، ويجب أن يكون متصلًا عند التشغيل. ولا يحتاج هدف عملاء مؤهلون إلى بريد لأنه لا يتواصل مع أحد.",
+          "ترسل فقط من بريد ربطته أنت، ويجب أن يكون متصلًا عند التشغيل.",
           "تحتاج المبيعات ونماذج الموقع إلى صفحة الموقع وبيكسل. راجع [بيكسل يولياس](/help-center/pixel-and-events).",
           "حتى 8 جماهير في الحملة، ويحتاج كل جمهور استهدافًا أو جمهورًا محفوظًا.",
           "يرسل البريد الجديد أقل في أسابيعه الأولى: حتى 15 رسالة يوميًا في الأسبوع الأول، و25 في الثاني، و40 في الثالث، ثم حده الخاص. وأثناء الإحماء تعرض قائمة البريد حد اليوم وتاريخ بدء الحد الكامل.",
-          "في الحساب المجاني للمساعدة الذكية في أداة الإنشاء (أنشئ مع يولياس والافتتاحيات والرسائل النموذجية) حد يومي. وعند بلوغه اشحن من 5 دولارات لتواصل استخدامها في اليوم نفسه.",
+          "في الحساب المجاني للمساعدة الذكية في أداة الإنشاء (أنشئ مع يولياس والافتتاحيات والرسائل النموذجية) حد يومي. وعند بلوغه اشحن من 20 دولارًا لتواصل استخدامها في اليوم نفسه.",
         ] },
 
         { h2: "ملاحظات مهمة" },
@@ -263,16 +261,15 @@ export const helpB: Record<string, Localized<Doc>> = {
 
         { h2: "What is an objective?" },
         { p: "The objective is the result a campaign works toward. Under every objective runs the same engine: it understands your offer from Company Knowledge, finds the companies and people that match each audience, writes a personal message to each, holds the conversation, follows up and measures the result. The objective changes three things only: where interested people are sent, which event counts as the result, and which result the budget is optimized for." },
-        { p: "You choose it in the first step of the builder. **Campaign type** comes first: **Outreach**, where Yolias contacts the people you target, or **Find customers**, where it only finds and saves them. Then **Objective** lists the objectives of that type." },
+        { p: "You choose it in the first step of the builder, under **Objective**. Finding customers is the first stage of every campaign, not an objective of its own: Yolias finds the companies and people of each audience, then reaches them. Every company and person found is also saved in **Leads**." },
 
-        { h2: "The four objectives" },
+        { h2: "The three objectives" },
         { table: {
-          head: ["Objective", "Type", "When someone is interested", "The result", "Cost column"],
+          head: ["Objective", "When someone is interested", "The result", "Cost column"],
           rows: [
-            ["**Meetings**", "Outreach", "Yolias answers, offers two free times and your booking page, and books the meeting", "A booked meeting (canceled ones excluded)", "Cost per meeting"],
-            ["**Sales**", "Outreach", "Yolias sends your product or checkout page again with the reasons that matter to that person", "The conversion event you chose (Purchase by default), counted by the Yolias pixel", "Cost per result"],
-            ["**Website leads (forms)**", "Outreach", "Yolias sends your form page again and invites them to fill it in", "The conversion event you chose (Lead by default), counted by the Yolias pixel", "Cost per result"],
-            ["**Qualified leads**", "Find customers", "No one is contacted", "Each company and person found that matches the targeting, saved in Leads", "Cost per lead"],
+            ["**Meetings**", "Yolias answers, offers two free times and your booking page, and books the meeting", "A booked meeting (canceled ones excluded)", "Cost per meeting"],
+            ["**Sales**", "Yolias sends your product or checkout page again with the reasons that matter to that person", "The conversion event you chose (Purchase by default), counted by the Yolias pixel", "Cost per result"],
+            ["**Website leads (forms)**", "Yolias sends your form page again and invites them to fill it in", "The conversion event you chose (Lead by default), counted by the Yolias pixel", "Cost per result"],
           ],
         } },
 
@@ -285,11 +282,11 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "The result is the **Conversion event** you choose. The list holds the purchase events: Purchase, InitiateCheckout, AddPaymentInfo, AddToCart, AddToWishlist, ViewContent, Search, CustomizeProduct, StartTrial, Subscribe and Donate. Send Purchase with its value and currency to get **Purchase value** and **Purchase ROAS**." },
         { h3: "Website leads (forms)" },
         { p: "This works like Sales, with your form page under **Your form page**. Yolias invites interested people to fill in the form. The conversion event list holds the lead events: Lead, CompleteRegistration, Activated, Contact, SubmitApplication, Schedule, FindLocation, StartTrial and Subscribe." },
-        { h3: "Qualified leads" },
-        { p: "Choose **Find customers** as the campaign type. Yolias finds the companies and people that match each audience, every day, within your budget, and saves each match in Leads with what it found about it. No one is contacted, so the builder has no Message step, no mailbox and no confirmation: you launch from the Audience step. You pay for each match, and you can start an outreach campaign to these people whenever you want." },
-        { note: "The objective **Qualified leads** is different from the column **Qualified leads** in the Campaigns table. The column counts people who replied with interest or booked a meeting in any outreach campaign." },
+        { h3: "Finding customers in every objective" },
+        { p: "Every objective starts the same way: Yolias finds the companies and people that match each audience, every day, within your budget, and saves each one in Leads with what it found about it. Then it writes to them. Finding without reaching isn't a campaign of its own: the campaign is the outreach. Campaigns created before this change that only found people keep their objective and keep running as they were." },
+        { note: "The column **Qualified leads** in the Campaigns table counts people who replied with interest or booked a meeting." },
 
-        { h2: "What every outreach objective shares" },
+        { h2: "What every objective shares" },
         { p: "Meetings, Sales and Website leads differ in where interested people go. The way Yolias handles each conversation is the same in all three:" },
         { ul: [
           "A person gets at most three cold emails: the first one and two follow-ups, 3 and 7 days apart. A reply stops the follow-ups.",
@@ -305,7 +302,6 @@ export const helpB: Record<string, Localized<Doc>> = {
           "**Meetings**: Meetings, Cost per meeting, Spend, Found by Yolias, Sent, Open rate, Reply rate, Meetings held.",
           "**Sales**: Results, Cost per result, Conversion value, Purchase ROAS, Spend, Visits, Sent, Reply rate.",
           "**Website leads (forms)**: Results, Cost per result, Spend, Visits, Found by Yolias, Sent, Open rate, Reply rate.",
-          "**Qualified leads**: Found by Yolias, Cost per lead, Spend, Targeted companies, People found.",
         ] },
         { p: "In the Campaigns table, **Columns → Ready columns** has one set for each objective. See [Reading campaign results](/help-center/campaign-results)." },
 
@@ -314,14 +310,12 @@ export const helpB: Record<string, Localized<Doc>> = {
         { ul: [
           "**Meetings**: booked meetings, then positive replies.",
           "**Sales** and **Website leads (forms)**: the conversion event, then positive replies.",
-          "**Qualified leads**: no optimization event; the audiences keep equal shares.",
         ] },
         { p: "The campaign page shows what it is optimizing for next to the status. See [Budget and optimization](/help-center/budget-and-optimization)." },
 
         { h2: "Step-by-step: choose and set an objective" },
         { ol: [
           "Open **Campaigns**, choose **Create campaign**, and stay on the Campaign step.",
-          "Under **Campaign type** choose **Outreach** to contact people, or **Find customers** to only find and save them.",
           "Under **Objective** choose the one that matches the result you want to pay for. Changing the objective resets the conversion event.",
           "For **Sales** or **Website leads (forms)**, enter the full page address, starting with https://.",
           "Choose the **Pixel**. The hint under it says whether the pixel has sent events yet; **Open Events Manager** takes you to it.",
@@ -337,7 +331,6 @@ export const helpB: Record<string, Localized<Doc>> = {
           "An online course chooses **Sales** with its checkout page and Purchase as the conversion event, sending the price as the value. **Purchase ROAS** shows the return on spend.",
           "A software company with a free trial chooses **Website leads (forms)** with CompleteRegistration, then adds an Activated event in the product to see who starts using it.",
           "An agency with a quote form chooses **Website leads (forms)** with Lead fired when the form is sent.",
-          "A team that wants a list of matching companies before it writes to anyone chooses **Qualified leads**, reviews the list in Leads, then starts an outreach campaign.",
         ] },
 
         { h2: "How to choose" },
@@ -345,14 +338,14 @@ export const helpB: Record<string, Localized<Doc>> = {
           "Choose by where your customer decides. If they decide on a call, use Meetings. If they can buy or sign up on your site without talking to you, use Sales or Website leads.",
           "Choose the conversion event closest to revenue that happens often enough. Purchase is the clearest result, but if purchases are rare, InitiateCheckout or Lead reaches 5 events sooner, so optimization starts earlier.",
           "Use a shorter attribution window when people decide quickly after a click, and 28 days for considered purchases.",
-          "Use Qualified leads when you want to check who matches your targeting before paying to contact them.",
+          "To see who matches before launching, check the number of matching companies and people the builder shows for each audience.",
         ] },
 
         { h2: "Permissions and requirements" },
         { ul: [
           "Owners, Admins and Advertisers choose objectives when they build a campaign. Analysts see them.",
           "Sales and Website leads need a website page and a pixel. Every account has at least one pixel in Events Manager. The pixel must be on the page you send people to, and the conversion event must fire on your site. See [The Yolias pixel](/help-center/pixel-and-events).",
-          "Meetings, Sales and Website leads need a connected mailbox. Qualified leads doesn't.",
+          "Every objective needs a connected mailbox.",
           "The conversion event is chosen from the standard events in the list. A custom event appears in Events Manager but can't be chosen as the result.",
         ] },
 
@@ -368,8 +361,6 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "Open **Events Manager**, choose the pixel and check **Overview**: the conversion event must appear, and **From Yolias campaigns** must be above zero. If the event doesn't appear, it isn't firing on your site. If it appears but isn't credited, people didn't arrive through a campaign link, or the event happened after the attribution window." },
         { h3: "The pixel hint says to install the pixel" },
         { p: "The pixel hasn't sent any event yet. Add the base code to your site and check it in **Test events**." },
-        { h3: "I can't find the Message step" },
-        { p: "The campaign type is **Find customers**, which contacts no one. Switch to **Outreach** if you want Yolias to write to people." },
         { h3: "My event isn't in the Conversion event list" },
         { p: "The list holds standard events only. If your site sends a custom event, for example QuoteRequested, also send the closest standard event at the same moment (Lead for a quote request, Schedule for a booked appointment, SubmitApplication for an application), then choose that event in the campaign." },
         { h3: "Purchase value stays at zero" },
@@ -394,16 +385,15 @@ export const helpB: Record<string, Localized<Doc>> = {
 
         { h2: "ما هو الهدف؟" },
         { p: "الهدف هو النتيجة التي تعمل الحملة من أجلها. وتحت كل هدف يعمل المحرك نفسه: يفهم عرضك من معرفة الشركة، ويجد الشركات والأشخاص المطابقين لكل جمهور، ويكتب لكل واحد رسالة شخصية، ويدير المحادثة، ويتابع، ويقيس النتيجة. ولا يغيّر الهدف إلا ثلاثة أشياء: إلى أين يُرسل المهتمون، وأي حدث يُحسب نتيجة، وأي نتيجة تُوجَّه الميزانية نحوها." },
-        { p: "تختار الهدف في الخطوة الأولى من أداة الإنشاء. يأتي أولًا **نوع الحملة**: **التواصل** حيث يتواصل يولياس مع من تستهدفهم، أو **إيجاد عملاء** حيث يجدهم ويحفظهم فقط. ثم يعرض **الهدف** أهداف هذا النوع." },
+        { p: "تختار الهدف في الخطوة الأولى من أداة الإنشاء، تحت **الهدف**. إيجاد العملاء هو المرحلة الأولى في كل حملة لا هدف مستقل: يجد يولياس شركات كل جمهور وأشخاصه ثم يتواصل معهم. ويُحفظ كل من يجده أيضًا في **العملاء**." },
 
-        { h2: "الأهداف الأربعة" },
+        { h2: "الأهداف الثلاثة" },
         { table: {
           head: ["الهدف", "النوع", "عندما يهتم شخص", "النتيجة", "عمود التكلفة"],
           rows: [
             ["**اجتماعات**", "التواصل", "يرد يولياس ويعرض موعدين متاحين وصفحة الحجز ويحجز الاجتماع", "اجتماع محجوز (بدون الملغاة)", "تكلفة الاجتماع"],
             ["**المبيعات**", "التواصل", "يرسل يولياس صفحة المنتج أو الدفع مرة أخرى مع الأسباب التي تهم هذا الشخص", "حدث التحويل الذي اخترته (Purchase افتراضيًا) ويحسبه بيكسل يولياس", "تكلفة النتيجة"],
             ["**نماذج الموقع**", "التواصل", "يرسل يولياس صفحة النموذج مرة أخرى ويدعوه لملئه", "حدث التحويل الذي اخترته (Lead افتراضيًا) ويحسبه بيكسل يولياس", "تكلفة النتيجة"],
-            ["**عملاء مؤهلون (Qualified Leads)**", "إيجاد عملاء", "لا يتواصل يولياس مع أحد", "كل شركة وشخص مطابق للاستهداف يُحفظ في العملاء", "تكلفة العميل"],
           ],
         } },
 
@@ -416,9 +406,9 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "النتيجة هي **حدث التحويل** الذي تختاره. وتضم القائمة أحداث الشراء: Purchase وInitiateCheckout وAddPaymentInfo وAddToCart وAddToWishlist وViewContent وSearch وCustomizeProduct وStartTrial وSubscribe وDonate. أرسل حدث Purchase مع قيمته وعملته لتظهر **قيمة المبيعات** و**العائد على الإنفاق (المبيعات)**." },
         { h3: "نماذج الموقع" },
         { p: "يعمل مثل المبيعات، لكن مع صفحة النموذج في **صفحة النموذج على موقعك**، ويدعو يولياس المهتمين لملء النموذج. وتضم قائمة حدث التحويل أحداث العملاء: Lead وCompleteRegistration وActivated وContact وSubmitApplication وSchedule وFindLocation وStartTrial وSubscribe." },
-        { h3: "عملاء مؤهلون" },
-        { p: "اختر **إيجاد عملاء** نوعًا للحملة. يجد يولياس الشركات والأشخاص المطابقين لكل جمهور، كل يوم، في حدود ميزانيتك، ويحفظ كل عميل مطابق في العملاء مع ما وجده عنه. ولا يتواصل مع أحد، لذلك لا توجد في أداة الإنشاء خطوة رسالة ولا بريد ولا موافقة: تشغّل الحملة من خطوة الجمهور. وتدفع مقابل كل عميل مطابق، ويمكنك بدء حملة تواصل معهم متى شئت." },
-        { note: "هدف **عملاء مؤهلون** يختلف عن عمود **عملاء مؤهلون** في جدول الحملات. فالعمود يحسب من ردّوا باهتمام أو حجزوا اجتماعًا في أي حملة تواصل." },
+        { h3: "إيجاد العملاء في كل هدف" },
+        { p: "يبدأ كل هدف بالطريقة نفسها: يجد يولياس الشركات والأشخاص المطابقين لكل جمهور، كل يوم، في حدود ميزانيتك، ويحفظ كلًا منهم في العملاء مع ما وجده عنه، ثم يراسلهم. والإيجاد دون تواصل ليس حملة مستقلة، فالحملة هي التواصل. والحملات التي أُنشئت قبل هذا التغيير لإيجاد الأشخاص فقط تحتفظ بهدفها وتستمر كما كانت." },
+        { note: "عمود **عملاء مؤهلون** في جدول الحملات يحسب من ردّوا باهتمام أو حجزوا اجتماعًا." },
 
         { h2: "ما تشترك فيه أهداف التواصل" },
         { p: "تختلف الاجتماعات والمبيعات ونماذج الموقع في المكان الذي يُرسل إليه المهتمون. أما طريقة إدارة يولياس لكل محادثة فواحدة في الأهداف الثلاثة:" },
@@ -436,7 +426,6 @@ export const helpB: Record<string, Localized<Doc>> = {
           "**اجتماعات**: الاجتماعات، تكلفة الاجتماع، الإنفاق، اكتشفهم يولياس، المُرسل، نسبة الفتح، نسبة الرد، اجتماعات منعقدة.",
           "**المبيعات**: النتائج، تكلفة النتيجة، قيمة التحويلات، العائد على الإنفاق (المبيعات)، الإنفاق، الزيارات، المُرسل، نسبة الرد.",
           "**نماذج الموقع**: النتائج، تكلفة النتيجة، الإنفاق، الزيارات، اكتشفهم يولياس، المُرسل، نسبة الفتح، نسبة الرد.",
-          "**عملاء مؤهلون**: اكتشفهم يولياس، تكلفة العميل، الإنفاق، الشركات المستهدفة، أشخاص مكتشفون.",
         ] },
         { p: "وفي جدول الحملات تجد في **الأعمدة ← أعمدة جاهزة** مجموعة لكل هدف. راجع [قراءة نتائج الحملة](/help-center/campaign-results)." },
 
@@ -445,14 +434,12 @@ export const helpB: Record<string, Localized<Doc>> = {
         { ul: [
           "**اجتماعات**: الاجتماعات المحجوزة، ثم الردود الإيجابية.",
           "**المبيعات** و**نماذج الموقع**: حدث التحويل، ثم الردود الإيجابية.",
-          "**عملاء مؤهلون**: لا يوجد حدث تحسين، وتبقى أنصبة الجماهير متساوية.",
         ] },
         { p: "وتعرض صفحة الحملة بجانب الحالة ما يحسّن عليه يولياس. راجع [الميزانية والتحسين](/help-center/budget-and-optimization)." },
 
         { h2: "خطوة بخطوة: اختيار الهدف وضبطه" },
         { ol: [
           "افتح **الحملات** واختر **إنشاء حملة**، وابقَ في خطوة الحملة.",
-          "في **نوع الحملة** اختر **التواصل** لمراسلة الأشخاص، أو **إيجاد عملاء** لإيجادهم وحفظهم فقط.",
           "في **الهدف** اختر ما يطابق النتيجة التي تريد أن تدفع مقابلها. وتغيير الهدف يعيد تعيين حدث التحويل.",
           "مع **المبيعات** أو **نماذج الموقع** اكتب عنوان الصفحة كاملًا بدءًا من https://.",
           "اختر **البيكسل**. ويوضح التلميح تحته هل أرسل البيكسل أحداثًا بعد، ويأخذك **افتح مدير الأحداث** إليه.",
@@ -468,7 +455,6 @@ export const helpB: Record<string, Localized<Doc>> = {
           "دورة إلكترونية تختار **المبيعات** بصفحة الدفع وحدث Purchase، وترسل السعر كقيمة. ويعرض **العائد على الإنفاق (المبيعات)** ما عاد من الإنفاق.",
           "شركة برمجيات بتجربة مجانية تختار **نماذج الموقع** بحدث CompleteRegistration، ثم تضيف حدث Activated داخل المنتج لترى من بدأ استخدامه فعلًا.",
           "وكالة لديها نموذج طلب سعر تختار **نماذج الموقع** وتطلق حدث Lead عند إرسال النموذج.",
-          "فريق يريد قائمة بالشركات المطابقة قبل مراسلة أحد يختار **عملاء مؤهلون**، ويراجع القائمة في العملاء، ثم يبدأ حملة تواصل.",
         ] },
 
         { h2: "كيف تختار" },
@@ -476,14 +462,14 @@ export const helpB: Record<string, Localized<Doc>> = {
           "اختر حسب المكان الذي يقرر فيه عميلك. إذا كان يقرر في مكالمة فاستخدم الاجتماعات، وإذا كان يستطيع الشراء أو التسجيل في موقعك دون التحدث إليك فاستخدم المبيعات أو نماذج الموقع.",
           "اختر حدث التحويل الأقرب إلى الإيراد والذي يحدث بما يكفي. فالشراء أوضح نتيجة، لكن إذا كانت المشتريات نادرة فإن InitiateCheckout أو Lead يصل إلى 5 أحداث أسرع فيبدأ التحسين مبكرًا.",
           "استخدم نافذة احتساب أقصر حين يقرر الناس سريعًا بعد النقرة، و28 يومًا للمشتريات التي تحتاج تفكيرًا.",
-          "استخدم عملاء مؤهلون حين تريد أن ترى من يطابق استهدافك قبل أن تدفع لمراسلته.",
+          "لترى من يطابق قبل الإطلاق، راجع عدد الشركات والأشخاص المطابقين الذي تعرضه أداة الإنشاء لكل جمهور.",
         ] },
 
         { h2: "الصلاحيات والمتطلبات" },
         { ul: [
           "يختار المالك والمسؤول والمعلن الهدف عند بناء الحملة، ويراه المحلل.",
           "تحتاج المبيعات ونماذج الموقع إلى صفحة في موقعك وبيكسل. ولكل حساب بيكسل واحد على الأقل في مدير الأحداث. ويجب أن يكون البيكسل في الصفحة التي ترسل إليها الأشخاص، وأن يعمل حدث التحويل في موقعك. راجع [بيكسل يولياس](/help-center/pixel-and-events).",
-          "تحتاج الاجتماعات والمبيعات ونماذج الموقع إلى بريد متصل، ولا يحتاجه هدف عملاء مؤهلون.",
+          "يحتاج كل هدف إلى بريد متصل.",
           "يُختار حدث التحويل من الأحداث القياسية في القائمة. والحدث المخصص يظهر في مدير الأحداث لكن لا يمكن اختياره نتيجةً للحملة.",
         ] },
 
@@ -499,8 +485,6 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "افتح **مدير الأحداث**، واختر البيكسل، وراجع **نظرة عامة**: يجب أن يظهر حدث التحويل، وأن يكون عمود **من حملات يولياس** أكبر من صفر. إذا لم يظهر الحدث فهو لا يعمل في موقعك. وإذا ظهر دون أن يُنسب، فالأشخاص لم يصلوا عبر رابط الحملة، أو وقع الحدث بعد انتهاء نافذة الاحتساب." },
         { h3: "التلميح يطلب تركيب البيكسل" },
         { p: "لم يرسل البيكسل أي حدث بعد. أضف الكود الأساسي إلى موقعك وافحصه في **اختبار الأحداث**." },
-        { h3: "لا أجد خطوة الرسالة" },
-        { p: "نوع الحملة **إيجاد عملاء**، وهو لا يتواصل مع أحد. غيّره إلى **التواصل** إذا أردت أن يراسل يولياس الأشخاص." },
         { h3: "حدثي غير موجود في قائمة حدث التحويل" },
         { p: "تضم القائمة الأحداث القياسية فقط. فإذا كان موقعك يرسل حدثًا مخصصًا مثل QuoteRequested، فأرسل معه في اللحظة نفسها أقرب حدث قياسي إليه: Lead لطلب عرض السعر، وSchedule لحجز موعد، وSubmitApplication لتقديم طلب، ثم اختر هذا الحدث في الحملة. بهذه الطريقة يبقى حدثك المخصص ظاهرًا في مدير الأحداث، ويُحسب الحدث القياسي نتيجةً للحملة." },
         { h3: "قيمة المبيعات صفر" },
@@ -587,7 +571,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { h2: "Step-by-step: change the columns" },
         { ol: [
           "Open **Campaigns** and choose **Columns**.",
-          "To start from a ready set, pick one under **Ready columns**: **Meetings**, **Sales**, **Website leads** or **Qualified leads**.",
+          "To start from a ready set, pick one under **Ready columns**: **Meetings**, **Sales** or **Website leads**.",
           "Tick columns to add them, untick to remove them, and use **Move up** and **Move down** to order them.",
           "Choose **Pin** on a column to keep it first.",
           "To return to the default set, choose **Reset to default**.",
@@ -728,7 +712,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { h2: "خطوة بخطوة: تغيير الأعمدة" },
         { ol: [
           "افتح **الحملات** واختر **الأعمدة**.",
-          "للبدء من مجموعة جاهزة اختر واحدة من **أعمدة جاهزة**: **الاجتماعات** أو **المبيعات** أو **نماذج الموقع** أو **العملاء المؤهلون**.",
+          "للبدء من مجموعة جاهزة اختر واحدة من **أعمدة جاهزة**: **الاجتماعات** أو **المبيعات** أو **نماذج الموقع**.",
           "ضع علامة على الأعمدة لإضافتها أو أزلها لحذفها، واستخدم **لأعلى** و**لأسفل** لترتيبها.",
           "اختر **تثبيت** على عمود ليبقى في المقدمة.",
           "للعودة إلى المجموعة الافتراضية اختر **إعادة الافتراضي**.",
@@ -812,7 +796,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { h2: "What does the budget pay for?" },
         { p: "Your budget buys people: the new people a campaign finds for its audiences, each charged at your rate per person. The builder shows the rate under the budget, for example \"≈ 500 new people found and contacted with this budget ($0.10 each).\" On Pay As You Go the rate is $0.10 a person; on a monthly plan it is the plan's price divided by the people it includes. See [Pay As You Go or a monthly plan](/help-center/choosing-a-plan)." },
         { p: "Emails, follow-ups, replies, answers and meetings are never charged. The same person is never charged twice, and **Spend** in the Campaigns table is always the people found × your rate." },
-        { p: "Signing up is free. Payment comes when you launch your first campaign: top up from $5 in **Settings → Usage**. The smallest campaign budget is $5." },
+        { p: "Signing up is free. Payment comes when you launch your first campaign: top up from $20 in **Settings → Usage**. The smallest campaign budget is $5." },
 
         { h2: "How it works: Total and Per day" },
         { table: {
@@ -937,7 +921,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { h2: "ماذا تدفع الميزانية مقابله؟" },
         { p: "ميزانيتك تشتري أشخاصًا: الأشخاص الجدد الذين تجدهم الحملة لجماهيرها، ويُحسب كل واحد بسعرك للشخص. وتعرض أداة الإنشاء السعر تحت الميزانية، مثل «≈ 500 شخص جديد يُعثر عليه ويُتواصل معه بهذه الميزانية (0.10 دولار للشخص)». وفي الدفع حسب الاستخدام السعر 0.10 دولار للشخص، وفي الخطة الشهرية هو سعر الخطة مقسومًا على عدد الأشخاص المشمولين فيها. راجع [الدفع حسب الاستخدام أو الخطة الشهرية](/help-center/choosing-a-plan)." },
         { p: "لا تُحسب أي تكلفة على الرسائل والمتابعات والردود والإجابات والاجتماعات. ولا يُحسب الشخص نفسه مرتين، و**الإنفاق** في جدول الحملات هو دائمًا الأشخاص الذين وُجدوا × سعرك." },
-        { p: "التسجيل مجاني، والدفع يأتي عند تشغيل أول حملة: تشحن من 5 دولارات في **الإعدادات ← الاستخدام**. وأقل ميزانية للحملة 5 دولارات." },
+        { p: "التسجيل مجاني، والدفع يأتي عند تشغيل أول حملة: تشحن من 20 دولارًا في **الإعدادات ← الاستخدام**. وأقل ميزانية للحملة 5 دولارات." },
 
         { h2: "كيف تعمل: إجمالية ويومية" },
         { table: {

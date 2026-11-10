@@ -48,7 +48,7 @@ Yolias (Arabic: يولياس) publishes only on these accounts: ${SOCIAL_PROFILE
 
 ## Main pages
 ${line("Product", "/product", "how Yolias runs campaigns, answers replies and books meetings")}
-${line("Pricing", "/pricing", "Pay As You Go credit ($5, $20, $50 or $100 top-ups at $0.10 a prospect, no subscription) or the plans Growth ($100 a month, 2,000 prospects) and Scale ($200 a month, 4,000 prospects), billed monthly or annually at 20% off; every feature and unlimited users; you pay for the people Yolias finds and reaches for your campaigns, emails and meetings are never charged; no free trial")}
+${line("Pricing", "/pricing", "Pay As You Go credit ($20, $50 or $100 top-ups at $0.10 a prospect, no subscription) or the plans Growth ($100 a month, 2,000 prospects) and Scale ($200 a month, 4,000 prospects), billed monthly or annually at 20% off; every feature and unlimited users; you pay for the people Yolias finds and reaches for your campaigns, emails and meetings are never charged; no free trial")}
 ${line("Solutions", "/solutions", "how Yolias fits different service businesses")}
 ${solutionSlugs.map((s) => line(solutionSeo[s].en.seoTitle, `/solutions/${s}`, solutions[s].en.metaDescription)).join("\n")}
 

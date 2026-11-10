@@ -1,4 +1,5 @@
 import "server-only";
+import { MIN_TOP_UP_USD } from "../../Yolias/lib/top-up";
 import type { BosUser } from "@/lib/bos/auth";
 import { audit } from "@/lib/bos/audit";
 import { NotFoundError, ValidationError } from "@/lib/bos/errors";
@@ -98,6 +99,8 @@ export async function savePack(bos: BosUser, input: { id?: string | null; priceU
   const { usdPerProspect } = await getCreditRate();
   const prospects = prospectsFor(price, usdPerProspect);
   if (prospects < 1) throw new ValidationError("المبلغ أقل من سعر عميل محتمل واحد.", { price_usd: "مبلغ أكبر" });
+  // The smallest top-up is $20 (owner, 2026-11-10).
+  if (input.active && price < MIN_TOP_UP_USD) throw new ValidationError(`أقل مبلغ للشحن ${MIN_TOP_UP_USD} دولارًا.`, { price_usd: `${MIN_TOP_UP_USD} أو أكثر` });
   const row = {
     prospects,
     emails: 0,

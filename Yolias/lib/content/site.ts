@@ -27,7 +27,7 @@ export const home: Localized<{
     primary: "Get started",
     primaryTrial: "Start free trial",
     secondary: "See how it works",
-    reassure: "Free signup · Pay at launch, from $5 · Unlimited users",
+    reassure: "Free signup · Pay at launch, from $20 · Unlimited users",
     reassureTrial: "{days}-day free trial · All features on every plan · Cancel anytime",
     compare: {
       eyebrow: "WHY YOLIAS",
@@ -45,7 +45,7 @@ export const home: Localized<{
       eyebrow: "HOW IT WORKS",
       title: "Launch a campaign in three steps.",
       steps: [
-        { title: "Choose the goal", body: "Meetings, sales, website leads or qualified leads; then what you offer, the budget and the dates." },
+        { title: "Choose the goal", body: "Meetings, sales or website leads; then what you offer, the budget and the dates." },
         { title: "Define your customers", body: "One or more audiences: locations anywhere in the world, industries, company size, job titles and exclusions, or a custom or lookalike audience." },
         { title: "Launch, and let the AI work", body: "Pick the mailbox, the tone and the language, and preview the message. Yolias finds the people, contacts them, follows up, answers and books, and counts every result." },
       ],
@@ -80,7 +80,7 @@ export const home: Localized<{
         { q: "How does Yolias decide where the budget goes?", a: "Like campaign budget optimization in an ads platform: once a day it gives each audience a share of the campaign's budget from its rate of booked meetings (purchases or website leads for those objectives). While there are too few, it uses positive replies, and a new audience gets a fair try first. An audience that clearly does worse, or costs more than your cost cap per meeting, gets no new budget. It never changes how Yolias writes, how much it sends or who it may contact." },
         { q: "What do I need to get started?", a: "A work email, a mailbox to send from (Gmail or any IMAP/SMTP account), a few lines about your company (or your website, which Yolias reads), and credit or a plan." },
         { q: "Which languages does Yolias support?", a: "The product works in Arabic and English, and Yolias writes emails in 15 languages, in each person's language when you choose it." },
-        { q: "How much does Yolias cost?", a: "Pay As You Go (prepaid credit from $5, about $0.10 for each person Yolias finds and reaches) or the plans Growth ($100) and Scale ($200) at half the rate per person, monthly or annual at 20% off. Emails, replies and meetings aren't charged. All features and unlimited users on every option. See the pricing page." },
+        { q: "How much does Yolias cost?", a: "Pay As You Go (prepaid credit from $20, about $0.10 for each person Yolias finds and reaches) or the plans Growth ($100) and Scale ($200) at half the rate per person, monthly or annual at 20% off. Emails, replies and meetings aren't charged. All features and unlimited users on every option. See the pricing page." },
       ],
     },
     cta: {
@@ -98,7 +98,7 @@ export const home: Localized<{
     primary: "ابدأ الآن",
     primaryTrial: "ابدأ التجربة المجانية",
     secondary: "شاهد كيف يعمل",
-    reassure: "تسجيل مجاني · الدفع عند الإطلاق من 5 دولارات · مستخدمون غير محدودين",
+    reassure: "تسجيل مجاني · الدفع عند الإطلاق من 20 دولارًا · مستخدمون غير محدودين",
     reassureTrial: "تجربة مجانية {days} أيام · كل الميزات في كل خطة · إلغاء في أي وقت",
     compare: {
       eyebrow: "لماذا يولياس",
@@ -116,7 +116,7 @@ export const home: Localized<{
       eyebrow: "كيف يعمل",
       title: "أطلق حملتك في ثلاث خطوات.",
       steps: [
-        { title: "اختر الهدف", body: "اجتماعات، أو مبيعات، أو عملاء من موقعك، أو عملاء مؤهلون؛ ثم عرضك والميزانية والتواريخ." },
+        { title: "اختر الهدف", body: "اجتماعات، أو مبيعات، أو عملاء من موقعك؛ ثم عرضك والميزانية والتواريخ." },
         { title: "حدد عملاءك", body: "جمهور أو أكثر: مواقع في أي مكان في العالم، ومجالات، وحجم الشركة، ومسميات وظيفية، واستبعادات، أو جمهور مخصص أو مشابه." },
         { title: "أطلق الحملة ودع الذكاء الاصطناعي يعمل", body: "اختر البريد والأسلوب واللغة، وعاين الرسالة. يجد يولياس الأشخاص ويتواصل معهم ويتابع ويرد ويحجز، ويحسب كل نتيجة." },
       ],
@@ -151,7 +151,7 @@ export const home: Localized<{
         { q: "كيف يقرر يولياس أين تذهب الميزانية؟", a: "مثل تحسين ميزانية الحملة في منصات الإعلانات: مرة يوميًا يعطي كل جمهور نصيبًا من ميزانية الحملة حسب معدل الاجتماعات المحجوزة (أو الشراء أو النماذج لتلك الأهداف). وحين تكون قليلة يعتمد على الردود الإيجابية، ويحصل الجمهور الجديد على فرصة عادلة أولًا. والجمهور الأضعف بوضوح، أو الذي تتجاوز تكلفته الحد الأقصى الذي حددته للاجتماع، لا يحصل على ميزانية جديدة. ولا يغيّر ذلك طريقة الكتابة ولا كمية الإرسال ولا من يمكن التواصل معه." },
         { q: "ماذا أحتاج لأبدأ؟", a: "بريد عمل، وصندوق بريد للإرسال (Gmail أو أي بريد IMAP/SMTP)، وبضعة أسطر عن شركتك (أو موقعك ليقرأه يولياس)، ورصيد أو خطة." },
         { q: "ما اللغات التي يدعمها يولياس؟", a: "يعمل المنتج بالعربية والإنجليزية، ويكتب يولياس الرسائل بخمس عشرة لغة، وبلغة كل شخص عندما تختار ذلك." },
-        { q: "كم تكلفة يولياس؟", a: "الدفع حسب الاستخدام (رصيد مسبق من 5 دولارات، نحو 0.10 دولار لكل شخص يجده يولياس ويتواصل معه) أو خطتا النمو (100 دولار) والتوسع (200 دولار) بنصف السعر للشخص، شهريًا أو سنويًا بخصم 20%. الرسائل والردود والاجتماعات بلا رسوم. كل الميزات ومستخدمون بلا حد في كل خيار. الأسعار في صفحة الأسعار." },
+        { q: "كم تكلفة يولياس؟", a: "الدفع حسب الاستخدام (رصيد مسبق من 20 دولارًا، نحو 0.10 دولار لكل شخص يجده يولياس ويتواصل معه) أو خطتا النمو (100 دولار) والتوسع (200 دولار) بنصف السعر للشخص، شهريًا أو سنويًا بخصم 20%. الرسائل والردود والاجتماعات بلا رسوم. كل الميزات ومستخدمون بلا حد في كل خيار. الأسعار في صفحة الأسعار." },
       ],
     },
     cta: {
@@ -182,7 +182,7 @@ export const product: Localized<{
     sections: [
       {
         title: "Campaign Manager",
-        body: "A campaign for each service, goal or market, created in three levels like an ads manager. Campaign: the objective (meetings, sales, website leads or qualified leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone and language.",
+        body: "A campaign for each service, goal or market, created in three levels like an ads manager. Campaign: the objective (meetings, sales or website leads), your offer, the budget in US dollars and the dates. Audiences: who to reach. Message: your mailbox, tone and language.",
         points: ["Total or daily budget, with the people it buys shown before you launch", "On/off, edit, duplicate and compare campaigns", "Days and hours to contact people, in your time zone"],
       },
       {
@@ -235,7 +235,7 @@ export const product: Localized<{
     sections: [
       {
         title: "مدير الحملات",
-        body: "حملة لكل خدمة أو هدف أو سوق، تُنشأ على ثلاثة مستويات مثل مدير الإعلانات. الحملة: الهدف (اجتماعات أو مبيعات أو عملاء من موقعك أو عملاء مؤهلون)، وعرضك، والميزانية بالدولار، والتواريخ. الجماهير: من تريد الوصول إليه. الرسالة: بريدك ونبرتك ولغتك.",
+        body: "حملة لكل خدمة أو هدف أو سوق، تُنشأ على ثلاثة مستويات مثل مدير الإعلانات. الحملة: الهدف (اجتماعات أو مبيعات أو عملاء من موقعك)، وعرضك، والميزانية بالدولار، والتواريخ. الجماهير: من تريد الوصول إليه. الرسالة: بريدك ونبرتك ولغتك.",
         points: ["ميزانية إجمالية أو يومية، مع عدد الأشخاص الذي تشتريه قبل التشغيل", "تشغيل وإيقاف وتعديل ونسخ ومقارنة الحملات", "أيام وساعات التواصل بمنطقتك الزمنية"],
       },
       {
@@ -297,7 +297,7 @@ export const about: Localized<{
       "The customers they want are known: a company, a city, a job title. What was missing is a platform that reaches those exact people, starts the conversation and carries it to a meeting, a lead or a sale.",
       "Yolias is that platform. A campaign has a goal, audiences and a message, like an ads manager. Yolias finds the decision makers, writes to each one, answers, follows up, books the meeting and counts every result and what it cost.",
       "We build it in Arabic and English from day one, for the markets we know best and the companies everywhere that sell the way they do.",
-      "Under every campaign is one engine, Yolias AI. It understands the offer, finds the companies and people, writes each message, holds the conversation, follows up and measures the result; the campaign objective tells it which result to pursue: meetings, sales, website leads or qualified leads.",
+      "Under every campaign is one engine, Yolias AI. It understands the offer, finds the companies and people, writes each message, holds the conversation, follows up and measures the result; the campaign objective tells it which result to pursue: meetings, sales or website leads.",
       "Yolias is for agencies, consultants, service providers, freelancers and businesses of any size that want new customers every month, not only large sales teams. Each of them runs acquisition the way advertisers run ads: a campaign for each service, its own audience and budget, and its results next to the others.",
     ],
     principlesEyebrow: "WHAT WE BELIEVE",
@@ -320,7 +320,7 @@ export const about: Localized<{
       "العملاء الذين تريدهم معروفون: شركة، ومدينة، ومسمى وظيفي. وما كان ينقص هو منصة تصل إلى هؤلاء الأشخاص بالذات، وتبدأ المحادثة وتكملها حتى اجتماع أو عميل أو بيع.",
       "يولياس هو هذه المنصة. للحملة هدف وجماهير ورسالة، مثل مدير الإعلانات. ويجد يولياس صنّاع القرار، ويكتب لكل منهم، ويرد ويتابع ويحجز الاجتماع، ويحسب كل نتيجة وتكلفتها.",
       "نبنيه بالعربية والإنجليزية من اليوم الأول، للأسواق التي نعرفها جيدًا وللشركات في كل مكان التي تبيع بالطريقة نفسها.",
-      "وتحت كل حملة محرك واحد هو Yolias AI: يفهم العرض، ويجد الشركات والأشخاص، ويكتب كل رسالة، ويدير المحادثة، ويتابع، ويقيس النتيجة. وهدف الحملة يحدد له النتيجة التي يسعى إليها: اجتماعات أو مبيعات أو عملاء من الموقع أو عملاء مؤهلون.",
+      "وتحت كل حملة محرك واحد هو Yolias AI: يفهم العرض، ويجد الشركات والأشخاص، ويكتب كل رسالة، ويدير المحادثة، ويتابع، ويقيس النتيجة. وهدف الحملة يحدد له النتيجة التي يسعى إليها: اجتماعات أو مبيعات أو عملاء من الموقع.",
       "يولياس لوكالات التسويق والتصميم والتطوير، وللاستشاريين ومقدمي الخدمات والمستقلين، وللشركات الصغيرة والمتوسطة التي تبيع لشركات أخرى وتريد عملاء جددًا كل شهر، لا لفرق المبيعات الكبيرة وحدها. وكل منهم يدير اكتساب العملاء كما يدير المعلنون إعلاناتهم: حملة لكل خدمة، ولكل حملة جمهورها وميزانيتها، ونتائجها بجانب الحملات الأخرى.",
     ],
     principlesEyebrow: "ما نؤمن به",

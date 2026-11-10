@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { addMonths, planCharge, renewalEmails, startPlan } from "@/lib/billing";
+import { MIN_TOP_UP_USD } from "@/lib/top-up";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { priceForEgp } from "@/lib/pricing-math";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
@@ -174,7 +175,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     description = `${t.plans[row.plan!]} · ${row.billing_period === "annual" ? t.plans.annual : t.plans.monthly}`;
   } else {
     const { data: pack } = await db.from("prospect_packs").select("*").eq("id", target.packId).eq("active", true).maybeSingle();
-    if (!pack) return { ok: false, error: "not_found" };
+    if (!pack || Number(pack.price_usd) < MIN_TOP_UP_USD) return { ok: false, error: "not_found" };
     row = { kind: "prospect_pack", pack_id: pack.id, prospects: pack.prospects, amount: Number(pack.price_usd) };
     description = fmt(t.buyMore.packName, { count: formatNumber(pack.prospects) });
   }

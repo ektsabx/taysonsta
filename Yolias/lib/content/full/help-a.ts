@@ -17,7 +17,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { h2: "What is signing in to Yolias?" },
         { p: "Yolias has no passwords. To create an account or sign in, you enter your email address and Yolias emails you a one-time sign-in link. Opening the link signs you in. If Google sign-in is switched on, the sign-in and sign-up pages also show **Continue with Google**, which signs you in with your Google account instead of a link." },
         { p: "The sign-in, sign-up and setup pages work in English and Arabic; switch with the language menu at the top of the page. The language you pick before signing up becomes your account language, and sign-in emails follow it. See [Arabic and English](/help-center/switching-language)." },
-        { p: "Creating an account is free and doesn't ask for a card. You pay only when you launch a campaign, from $5. Your balance and top-ups are in **Settings → Usage**." },
+        { p: "Creating an account is free and doesn't ask for a card. You pay only when you launch a campaign, from $20. Your balance and top-ups are in **Settings → Usage**." },
 
         { h2: "How it works" },
         { ul: [
@@ -40,7 +40,7 @@ export const helpA: Record<string, Localized<Doc>> = {
           "Answer the remaining steps. **How did you find us?** is optional.",
           "Choose **Get Started** on the last step.",
         ] },
-        { p: "**How to know it worked:** you land on your dashboard, and a banner reads **Build your campaign for free. Top up from $5 when you launch.** What the website analysis found is already in [Company Knowledge](/help-center/company-knowledge)." },
+        { p: "**How to know it worked:** you land on your dashboard, and a banner reads **Build your campaign for free. Top up from $20 when you launch.** What the website analysis found is already in [Company Knowledge](/help-center/company-knowledge)." },
         { p: "If you picked a plan on the pricing page before signing up, Yolias keeps that choice and opens checkout after the last setup step." },
         { note: "Someone invited to an existing workspace only enters their name on the setup page. The company details belong to the workspace and were entered by its owner." },
 
@@ -84,7 +84,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { p: "Shared computers: sign out with **Log out** when you finish. Closing the browser tab doesn't sign you out." },
 
         { h2: "What happens after your first sign-in" },
-        { p: "From the dashboard you can build a whole campaign without paying: objective, audiences and message, with a sample first email. Payment is asked for only when you launch, from $5. Before your first campaign, review what Yolias wrote in [Company Knowledge](/help-center/company-knowledge) and connect the mailbox you will send from: [Connecting Gmail](/help-center/connect-gmail) or [Connecting another mailbox](/help-center/connect-imap-smtp). Owners invite their team from **Settings → Team**; each person signs in with their own email and their own links." },
+        { p: "From the dashboard you can build a whole campaign without paying: objective, audiences and message, with a sample first email. Payment is asked for only when you launch, from $20. Before your first campaign, review what Yolias wrote in [Company Knowledge](/help-center/company-knowledge) and connect the mailbox you will send from: [Connecting Gmail](/help-center/connect-gmail) or [Connecting another mailbox](/help-center/connect-imap-smtp). Owners invite their team from **Settings → Team**; each person signs in with their own email and their own links." },
 
         { h2: "Requirements and limits" },
         { table: { head: ["Item", "Limit"], rows: [
@@ -93,7 +93,7 @@ export const helpA: Record<string, Localized<Doc>> = {
           ["Email addresses", "Temporary and disposable addresses can't sign up"],
           ["Age", "You confirm you are at least 18 when you sign up"],
           ["Two-factor code", "6 digits from an authenticator app"],
-          ["Price", "Signing up is free; payment starts at campaign launch, from $5"],
+          ["Price", "Signing up is free; payment starts at campaign launch, from $20"],
         ] } },
 
         { h2: "Troubleshooting" },
@@ -142,7 +142,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { h2: "ما هو تسجيل الدخول في يولياس؟" },
         { p: "لا توجد كلمات مرور في يولياس. لإنشاء حساب أو الدخول إليه تكتب بريدك الإلكتروني، فيرسل لك يولياس رابط دخول صالحًا لمرة واحدة، وبمجرد فتحه يتم تسجيل دخولك. وإذا كان الدخول عبر Google مفعّلًا، تظهر في صفحتي الدخول والتسجيل أيضًا زر **المتابعة باستخدام Google**، فتدخل بحساب Google بدل الرابط." },
         { p: "تعمل صفحات الدخول والتسجيل والإعداد بالعربية والإنجليزية، وتغيّر اللغة من قائمة اللغة في أعلى الصفحة. واللغة التي تختارها قبل التسجيل تصبح لغة حسابك، وتصلك بها رسائل الدخول أيضًا، ويمكنك تغييرها لاحقًا من الإعدادات كما يشرح مقال [العربية والإنجليزية](/help-center/switching-language)." },
-        { p: "إنشاء الحساب مجاني ولا يطلب بطاقة دفع. لا تدفع إلا عند إطلاق حملة، بدءًا من 5 دولارات. ويوجد رصيدك وعمليات الشحن في **الإعدادات ← الاستخدام**." },
+        { p: "إنشاء الحساب مجاني ولا يطلب بطاقة دفع. لا تدفع إلا عند إطلاق حملة، بدءًا من 20 دولارًا. ويوجد رصيدك وعمليات الشحن في **الإعدادات ← الاستخدام**." },
 
         { h2: "كيف يعمل" },
         { ul: [
@@ -165,7 +165,7 @@ export const helpA: Record<string, Localized<Doc>> = {
           "أجب عن بقية الخطوات. سؤال كيف عرفت يولياس اختياري.",
           "اختر **ابدأ الآن** في الخطوة الأخيرة.",
         ] },
-        { p: "**كيف تتأكد أن العملية نجحت:** تصل إلى لوحة التحكم، ويظهر شريط نصه **ابنِ حملتك مجانًا، واشحن من 5 دولارات عند الإطلاق.** وما وجده تحليل الموقع موجود بالفعل في [معرفة الشركة](/help-center/company-knowledge)." },
+        { p: "**كيف تتأكد أن العملية نجحت:** تصل إلى لوحة التحكم، ويظهر شريط نصه **ابنِ حملتك مجانًا، واشحن من 20 دولارًا عند الإطلاق.** وما وجده تحليل الموقع موجود بالفعل في [معرفة الشركة](/help-center/company-knowledge)." },
         { p: "إذا اخترت خطة من صفحة الأسعار قبل التسجيل، يحتفظ يولياس باختيارك ويفتح صفحة الدفع بعد آخر خطوة إعداد." },
         { note: "من يُدعى إلى مساحة عمل قائمة يكتب اسمه فقط في صفحة الإعداد، لأن بيانات الشركة تخص مساحة العمل وقد أدخلها مالكها." },
 
@@ -209,7 +209,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { p: "على الأجهزة المشتركة: سجّل الخروج من قائمة اسمك عند الانتهاء، لأن إغلاق تبويب المتصفح لا يسجّل خروجك." },
 
         { h2: "ماذا يحدث بعد أول دخول" },
-        { p: "بعد آخر خطوة إعداد تصل إلى لوحة التحكم، ويمكنك من هناك أن تبني حملتك كاملة دون دفع: تختار الهدف والجمهور والرسالة، وتراجع معاينة الرسالة الأولى. ولا يُطلب منك الدفع إلا عند الضغط على إطلاق الحملة، ويبدأ الشحن من 5 دولارات. وقبل أول حملة ننصح بخطوتين: راجع ما كتبه يولياس في [معرفة الشركة](/help-center/company-knowledge)، واربط البريد الذي سترسل منه من صفحة التكاملات، عبر [ربط Gmail](/help-center/connect-gmail) أو [ربط بريد آخر](/help-center/connect-imap-smtp)." },
+        { p: "بعد آخر خطوة إعداد تصل إلى لوحة التحكم، ويمكنك من هناك أن تبني حملتك كاملة دون دفع: تختار الهدف والجمهور والرسالة، وتراجع معاينة الرسالة الأولى. ولا يُطلب منك الدفع إلا عند الضغط على إطلاق الحملة، ويبدأ الشحن من 20 دولارًا. وقبل أول حملة ننصح بخطوتين: راجع ما كتبه يولياس في [معرفة الشركة](/help-center/company-knowledge)، واربط البريد الذي سترسل منه من صفحة التكاملات، عبر [ربط Gmail](/help-center/connect-gmail) أو [ربط بريد آخر](/help-center/connect-imap-smtp)." },
         { p: "وإذا كنت مالك مساحة العمل، يمكنك دعوة فريقك من **الإعدادات ← الفريق**. ويسجّل كل عضو دخوله ببريده هو وبرابط خاص به، فلا يشارك أحد رابطه أو حسابه مع غيره." },
 
         { h2: "المتطلبات والحدود" },
@@ -219,7 +219,7 @@ export const helpA: Record<string, Localized<Doc>> = {
           ["عناوين البريد", "لا يمكن التسجيل ببريد مؤقت"],
           ["العمر", "تؤكد عند التسجيل أن عمرك 18 عامًا على الأقل"],
           ["رمز المصادقة الثنائية", "6 أرقام من تطبيق مصادقة"],
-          ["السعر", "التسجيل مجاني، والدفع يبدأ عند إطلاق الحملة من 5 دولارات"],
+          ["السعر", "التسجيل مجاني، والدفع يبدأ عند إطلاق الحملة من 20 دولارًا"],
         ] } },
 
         { h2: "حل المشكلات" },
@@ -910,7 +910,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { p: "The site is mostly images or loads its text in a way Yolias can't read. Fill the fields yourself." },
         { h3: "Build with Yolias says Add your company in Company Knowledge first" },
         { p: "The page is empty. Add at least **About the company**, **Products and services** and one offer, save, and try again." },
-        { h3: "Top up from $5 to keep using Yolias AI today" },
+        { h3: "Top up from $20 to keep using Yolias AI today" },
         { p: "A workspace without a plan or credit used its 30 AI requests in the builder for the last 24 hours. Top up in **Settings → Usage**, or try again the next day." },
         { h3: "That name already exists" },
         { p: "An offer or competitor with the same name is already listed. Edit that one with the pencil icon." },
@@ -1043,7 +1043,7 @@ export const helpA: Record<string, Localized<Doc>> = {
         { p: "الصفحة فارغة. أضف على الأقل **عن الشركة** والمنتجات والخدمات وعرضًا واحدًا، ثم احفظ وحاول مرة أخرى." },
         { h3: "لم يعثر اكتشاف المنافسين على شيء" },
         { p: "يحتاج يولياس إلى معرفة سوقك أولًا، فإذا ظهرت رسالة تطلب إضافة موقعك أو ما تبيعه، املأ ملف الشركة واحفظ ثم أعد المحاولة. وإذا لم يجد منافسين جددًا، فالموجودون في قائمتك هم ما وجده، ويمكنك إضافة غيرهم يدويًا." },
-        { h3: "اشحن من 5 دولارات لتواصل استخدام Yolias AI اليوم" },
+        { h3: "اشحن من 20 دولارًا لتواصل استخدام Yolias AI اليوم" },
         { p: "استخدمت مساحة عمل بلا خطة أو رصيد طلباتها الثلاثين للذكاء الاصطناعي في بناء الحملة خلال آخر 24 ساعة. اشحن من **الإعدادات ← الاستخدام**، أو حاول في اليوم التالي." },
         { h3: "هذا الاسم موجود بالفعل" },
         { p: "يوجد عرض أو منافس بالاسم نفسه في القائمة. عدّله من أيقونة القلم." },
@@ -1472,7 +1472,7 @@ export const helpA: Record<string, Localized<Doc>> = {
 
         { h2: "Troubleshooting" },
         { h3: "Your workspace needs an active plan to use Yolias AI" },
-        { p: "Top up from $5 in **Settings → Usage**, or choose a plan." },
+        { p: "Top up from $20 in **Settings → Usage**, or choose a plan." },
         { h3: "You've reached today's Yolias AI message limit for your plan" },
         { p: "The limit resets at 00:00 UTC. A higher plan has a higher daily limit." },
         { h3: "You're sending messages too fast" },
@@ -1606,7 +1606,7 @@ export const helpA: Record<string, Localized<Doc>> = {
 
         { h2: "حل المشكلات" },
         { h3: "تحتاج مساحة العمل إلى خطة فعّالة لاستخدام Yolias AI" },
-        { p: "اشحن من 5 دولارات من **الإعدادات ← الاستخدام**، أو اختر خطة." },
+        { p: "اشحن من 20 دولارًا من **الإعدادات ← الاستخدام**، أو اختر خطة." },
         { h3: "وصلت إلى الحد اليومي لرسائل Yolias AI في خطتك" },
         { p: "يتجدد الحد الساعة 00:00 بتوقيت UTC، والخطة الأعلى لها حد يومي أعلى." },
         { h3: "ترسل رسائل بسرعة كبيرة" },

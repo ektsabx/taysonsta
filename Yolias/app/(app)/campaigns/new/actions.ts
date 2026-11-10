@@ -70,12 +70,25 @@ function row(s: BuilderState) {
   };
 }
 
+/**
+ * Finding customers is how every campaign starts, not a campaign of its own
+ * (owner, 2026-11-10): new campaigns reach the people they find. A find-only
+ * campaign made before keeps its objective.
+ */
+async function findOnlyAllowed(workspaceId: string, objective: string, draftId: string | null): Promise<boolean> {
+  if (objective !== "qualified_leads") return true;
+  if (!draftId) return false;
+  const { data } = await (await createClient()).from("outreach_campaigns").select("objective").eq("id", draftId).eq("workspace_id", workspaceId).maybeSingle();
+  return data?.objective === "qualified_leads";
+}
+
 export async function saveDraft(input: unknown, draftId: string | null): Promise<BuilderResult<{ id: string }>> {
   const session = await requireMember();
   if (!canEdit(session)) return await viewOnly() as never;
   const t = await getDictionary();
   const p = builderSchema.safeParse(input);
   if (!p.success) return { ok: false, error: t.ag.builder.errors.settings };
+  if (!(await findOnlyAllowed(session.workspace.id, p.data.objective, draftId))) return { ok: false, error: t.ag.builder.errors.objective };
   const db = await createClient();
   const r = row(p.data);
   if (draftId) {
@@ -298,6 +311,7 @@ export async function launchCampaign(input: unknown, draftId: string | null, con
   const p = builderSchema.safeParse(input);
   if (!p.success) return { ok: false, error: e.settings };
   const s = p.data;
+  if (!(await findOnlyAllowed(session.workspace.id, s.objective, draftId))) return { ok: false, error: e.objective };
   const rate = await prospectRate(session.workspace.id);
   const gaps = missing(s, rate);
   const usd = (v: number) => `$${v.toFixed(2)}`;

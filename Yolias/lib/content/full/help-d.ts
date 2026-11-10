@@ -21,7 +21,7 @@ export const helpD: Record<string, Localized<Doc>> = {
           "**The lead shows interest without a time.** Yolias replies with two free times, one on each of the next two days that have free times, and the link to your booking page.",
           "**Your booking page is off.** Yolias sends the campaign's own link if the campaign has one. Without a link, the conversation is handed to you.",
         ] },
-        { p: "Meetings booked from a reply are booked on the page of the member whose mailbox holds the conversation. In a qualified leads campaign, an interested person is the result: Yolias answers and hands the lead to you instead of offering times, and a time the lead names in the reply is still booked." },
+        { p: "Meetings booked from a reply are booked on the page of the member whose mailbox holds the conversation." },
         { p: "Every booking, from the page or from a reply, creates or updates the lead in your workspace, moves it to the meeting stage, sends you an email and a notification, and sends the guest a confirmation email with a link to cancel." },
 
         { h2: "Set up your booking page" },
@@ -134,7 +134,7 @@ export const helpD: Record<string, Localized<Doc>> = {
           "**أبدى العميل اهتمامًا دون موعد.** يرد يولياس بموعدين متاحين، كل منهما في يوم من أقرب يومين فيهما مواعيد، ومعهما رابط صفحة الحجز.",
           "**صفحة الحجز مغلقة.** يرسل يولياس رابط الحملة نفسها إن كان لها رابط. ومن دون رابط تنتقل المحادثة إليك.",
         ] },
-        { p: "يُحجز الاجتماع الناتج عن رد على صفحة العضو الذي تجري المحادثة من بريده. وفي حملة العملاء المؤهلين يكون الشخص المهتم هو النتيجة: يجيبه يولياس ويسلمه إليك بدل عرض المواعيد، ومع ذلك يُحجز الموعد الذي يذكره العميل في رده." },
+        { p: "يُحجز الاجتماع الناتج عن رد على صفحة العضو الذي تجري المحادثة من بريده." },
         { p: "كل حجز، من الصفحة أو من رد، ينشئ العميل في مساحة عملك أو يحدّثه، وينقله إلى مرحلة الاجتماع، ويرسل إليك بريدًا وإشعارًا، ويرسل إلى الضيف بريد تأكيد فيه رابط للإلغاء." },
 
         { h2: "اضبط صفحة الحجز" },
@@ -474,7 +474,7 @@ export const helpD: Record<string, Localized<Doc>> = {
       summary: "Signing up is free and you pay when you launch a campaign. How leads are counted, what each option costs, how to pay, and how to choose between credit and a plan.",
       updated: "2026-11-05",
       blocks: [
-        { p: "Signing up to Yolias is free. You can set up your company, build a campaign and its audiences without paying. Payment comes when you launch a campaign: you top up credit from $5, or choose a monthly plan. This article explains what you pay for, the three options, how to pay, and how to pick the one that fits." },
+        { p: "Signing up to Yolias is free. You can set up your company, build a campaign and its audiences without paying. Payment comes when you launch a campaign: you top up credit from $20, or choose a monthly plan. This article explains what you pay for, the three options, how to pay, and how to pick the one that fits." },
 
         { h2: "What do you pay for?" },
         { p: "You pay for **leads**. A lead is a person Yolias finds and reaches for your campaigns. It is the only unit:" },
@@ -486,7 +486,7 @@ export const helpD: Record<string, Localized<Doc>> = {
 
         { h2: "What are the options?" },
         { table: { head: ["Option", "Price", "Leads", "Cost per lead"], rows: [
-          ["Pay As You Go", "Free to sign up, top up $5, $20, $50 or $100", "50, 200, 500 or 1,000", "10 cents"],
+          ["Pay As You Go", "Free to sign up, top up $20, $50 or $100", "50, 200, 500 or 1,000", "10 cents"],
           ["Yolias Growth", "$100 a month, or $80 a month billed $960 yearly", "2,000 a month", "5 cents, 4 cents on annual"],
           ["Yolias Scale", "$200 a month, or $160 a month billed $1,920 yearly", "4,000 a month", "5 cents, 4 cents on annual"],
         ] } },
@@ -551,7 +551,7 @@ export const helpD: Record<string, Localized<Doc>> = {
 
         { h2: "Which option fits?" },
         { table: { head: ["If you", "Choose"], rows: [
-          ["Want to test one campaign first", "Pay As You Go, from $5"],
+          ["Want to test one campaign first", "Pay As You Go, from $20"],
           ["Reach fewer than about 1,000 people a month, or irregularly", "Pay As You Go"],
           ["Reach 1,000 to 2,000 people every month", "Growth"],
           ["Reach more than 2,000 people a month", "Scale, and top up credit above 4,000"],
@@ -605,7 +605,7 @@ export const helpD: Record<string, Localized<Doc>> = {
       summary: "التسجيل مجاني وتدفع عند تشغيل الحملة. كيف تُحسب العملاء، وكم يكلف كل خيار، وكيف تدفع، وكيف تختار بين الرصيد والخطة.",
       updated: "2026-11-05",
       blocks: [
-        { p: "التسجيل في يولياس مجاني. تستطيع إعداد بيانات شركتك وبناء حملة وجماهيرها دون أن تدفع شيئًا. ويأتي الدفع عند تشغيل الحملة: تشحن رصيدًا يبدأ من 5 دولارات، أو تختار خطة شهرية. يشرح هذا المقال مقابل ماذا تدفع، والخيارات الثلاثة، وطريقة الدفع، وكيف تختار ما يناسبك." },
+        { p: "التسجيل في يولياس مجاني. تستطيع إعداد بيانات شركتك وبناء حملة وجماهيرها دون أن تدفع شيئًا. ويأتي الدفع عند تشغيل الحملة: تشحن رصيدًا يبدأ من 20 دولارًا، أو تختار خطة شهرية. يشرح هذا المقال مقابل ماذا تدفع، والخيارات الثلاثة، وطريقة الدفع، وكيف تختار ما يناسبك." },
 
         { h2: "مقابل ماذا تدفع؟" },
         { p: "تدفع مقابل **العملاء**. العميل شخص يجده يولياس ويصل إليه لحملاتك، وهو الوحدة الوحيدة للحساب:" },
@@ -682,7 +682,7 @@ export const helpD: Record<string, Localized<Doc>> = {
 
         { h2: "أي خيار يناسبك؟" },
         { table: { head: ["إذا كنت", "اختر"], rows: [
-          ["تريد تجربة حملة واحدة أولًا", "الدفع حسب الاستخدام، من 5 دولارات"],
+          ["تريد تجربة حملة واحدة أولًا", "الدفع حسب الاستخدام، من 20 دولارًا"],
           ["تصل إلى أقل من نحو 1,000 شخص شهريًا، أو بشكل غير منتظم", "الدفع حسب الاستخدام"],
           ["تصل إلى 1,000 حتى 2,000 شخص كل شهر", "النمو"],
           ["تصل إلى أكثر من 2,000 شخص شهريًا", "التوسع، مع شحن رصيد لما يزيد على 4,000"],
