@@ -17,14 +17,17 @@ import "./sdr.css";
 import { Suspense } from "react";
 import { VisitBeacon } from "@/components/VisitBeacon";
 
+// Fonts show once, in their final shape (owner, 2026-11-10: text was jumping
+// as fonts swapped in after the page opened): "block" waits briefly for the
+// preloaded files instead of drawing the fallback first.
 // Self-hosted by next/font (same domain, cached). If a font file fails to
 // load (YOLIAS-6, flaky networks) the text stays readable in the system
 // fallback below and the page keeps working.
 // (next/font needs literal values here, not constants.)
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap", fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"] });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap", fallback: ["Georgia", "Times New Roman", "serif"] });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "block", preload: true, fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"] });
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "block", fallback: ["Georgia", "Times New Roman", "serif"] });
 // D-274 (owner): Arabic in the same weight and feel as English (DM Sans): IBM Plex Sans Arabic, not the heavier Kufi.
-const kufi = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap", fallback: ["Tahoma", "Geeza Pro", "Arial", "sans-serif"] });
+const kufi = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "block", preload: true, fallback: ["Tahoma", "Geeza Pro", "Arial", "sans-serif"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDictionary();
