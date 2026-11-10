@@ -51,7 +51,7 @@ export interface ShellData {
   /** Buy More Prospects: active packs priced in the workspace currency. */
   packs: { id: string; prospects: number; emails: number; price: number }[];
   /** A payment provider is connected for the workspace currency / billing test mode is on. */
-  billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar" | "kashier"; portalUrl: string | null };
+  billing: { online: boolean; testMode: boolean; provider: "paymob" | "polar" | "kashier"; portalUrl: string | null; card: { brand: string | null; last4: string | null } | null };
   /** Unread in-app notifications. */
   unread: number;
   team: {

@@ -756,16 +756,17 @@ export const helpD: Record<string, Localized<Doc>> = {
           "In **Settings → Billing**, press **Adjust plan**. The checkout page opens, with your current plan marked **Current plan**.",
           "Choose **Monthly** or **Annual** at the top.",
           "Press **Yolias Growth** or **Yolias Scale**. If you pick the plan and period you already have, the button reads You’re on this plan · Continue and nothing changes.",
-          "Check **Order summary** and **Total due today**, then press **Continue to payment** and pay on the secure page.",
+          "Check **Order summary**: it shows the new plan's price, **Unused time on (current plan)** taken off it, and the total due today. Then press **Continue to payment** and pay on the secure page.",
         ] },
         { p: "**How to know it worked:** you return to Yolias, **Settings → Billing** shows the new plan and its renewal date, the payment appears under **Invoices**, and the payer receives a receipt by email." },
         { p: "**If it didn't work:** the plan stays as it was and nothing is charged. Try again, or see Troubleshooting below." },
 
         { h2: "What happens when you change plan?" },
         { ul: [
-          "The new plan's full price for the chosen period is charged at once, and a new period starts on the day you pay. The days left in the previous period aren't refunded or deducted.",
+          "The unused part of the period you already paid for, by days left, is deducted from the new plan's price, and you pay the rest at once. A new period starts on the day you pay. For example, moving from Growth ($100) to Scale ($200) with 20 of 30 days left deducts $66.66, so you pay $133.34.",
+          "If the unused time is worth more than the new plan (for example Scale to Growth early in the month), checkout says **The unused time of your current plan covers this one.** Switch when your current period ends: cancel the plan, then choose the new one after it ends.",
           "The new plan's monthly leads apply right away. Leads already used this calendar month count against them.",
-          "Moving from monthly to annual, or back, works the same way: a payment for the new period, starting that day.",
+          "Moving from monthly to annual, or back, works the same way: the unused time is deducted and the new period starts that day.",
           "If you had canceled your plan, choosing a new one clears the cancellation: the new plan renews normally.",
           "Credit you bought stays and is used after the plan's monthly leads.",
         ] },
@@ -819,7 +820,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "Important notes" },
         { ul: [
           "Canceling doesn't delete anything. To remove your data, see [Deleting your account](/help-center/deleting-account).",
-          "Billing has no option to change the saved card. To pay with another card, use **Pay now** on a **Due** invoice.",
+          "**Settings → Billing → Payment** shows the saved card, such as Visa ending in 4242. To use another card, press **Remove card**: renewals stop being charged automatically, and the next payment you make on the payment page with the option to save the card stores the new one. To pay a **Due** invoice with another card, use **Pay now**.",
           "Refunds follow the [Refund Policy](/legal/refunds).",
         ] },
 
@@ -857,16 +858,17 @@ export const helpD: Record<string, Localized<Doc>> = {
           "في **الإعدادات ← الفوترة** اضغط **تعديل الخطة**. تفتح صفحة الدفع وعلى خطتك الحالية وسم **الخطة الحالية**.",
           "اختر **شهري** أو **سنوي** في الأعلى.",
           "اضغط **يولياس للنمو** أو **يولياس للتوسع**. وإذا اخترت الخطة والفترة اللتين لديك يظهر الزر: أنت على هذه الخطة · متابعة، ولا يتغير شيء.",
-          "راجع **ملخص الطلب** و**المستحق اليوم**، ثم اضغط **المتابعة إلى الدفع** وادفع في الصفحة الآمنة.",
+          "راجع **ملخص الطلب**: فيه سعر الخطة الجديدة، و**الوقت غير المستخدم من (الخطة الحالية)** مخصومًا منه، والمستحق اليوم. ثم اضغط **المتابعة إلى الدفع** وادفع في الصفحة الآمنة.",
         ] },
         { p: "**كيف تعرف أن التغيير تم:** تعود إلى يولياس، وتعرض **الإعدادات ← الفوترة** الخطة الجديدة وتاريخ تجديدها، وتظهر الدفعة في **الفواتير**، ويصل إيصال إلى بريد من دفع." },
         { p: "**إذا لم يتم:** تبقى الخطة كما كانت ولا يُخصم شيء. حاول مرة أخرى، أو راجع حل المشكلات أدناه." },
 
         { h2: "ماذا يحدث عند تغيير الخطة؟" },
         { ul: [
-          "يُخصم سعر الخطة الجديدة كاملًا للفترة المختارة في الحال، وتبدأ فترة جديدة من يوم الدفع. ولا تُسترد الأيام المتبقية من الفترة السابقة ولا تُخصم من السعر.",
+          "يُخصم من سعر الخطة الجديدة الجزء غير المستخدم من الفترة التي دفعتها، بحسب الأيام المتبقية، وتدفع الباقي في الحال. وتبدأ فترة جديدة من يوم الدفع. فمثلًا الانتقال من النمو (100 دولار) إلى التوسع (200 دولار) مع بقاء 20 يومًا من 30 يخصم 66.66 دولارًا، فتدفع 133.34 دولارًا.",
+          "وإذا كانت قيمة الوقت غير المستخدم أكبر من الخطة الجديدة (مثل الانتقال من التوسع إلى النمو في أول الشهر)، تعرض صفحة الدفع **الوقت غير المستخدم من خطتك الحالية يغطي هذه الخطة.** فغيّرها عند انتهاء فترتك الحالية: ألغِ الخطة ثم اختر الجديدة بعد انتهائها.",
           "يبدأ عدد العملاء الشهري للخطة الجديدة فورًا، ويُحسب منه ما استخدمته في الشهر الميلادي الحالي.",
-          "الانتقال من الشهري إلى السنوي أو العكس يتم بالطريقة نفسها: دفعة للفترة الجديدة تبدأ في ذلك اليوم.",
+          "الانتقال من الشهري إلى السنوي أو العكس يتم بالطريقة نفسها: يُخصم الوقت غير المستخدم وتبدأ الفترة الجديدة في ذلك اليوم.",
           "إذا كنت قد ألغيت خطتك، فاختيار خطة جديدة يلغي الإلغاء، وتتجدد الخطة الجديدة كالمعتاد.",
           "يبقى الرصيد الذي اشتريته، ويُستخدم بعد عملاء الخطة الشهريين.",
         ] },
@@ -920,7 +922,7 @@ export const helpD: Record<string, Localized<Doc>> = {
         { h2: "ملاحظات مهمة" },
         { ul: [
           "الإلغاء لا يحذف شيئًا. ولحذف بياناتك راجع [حذف حسابك](/help-center/deleting-account).",
-          "لا يوجد في الفوترة خيار لتغيير البطاقة المحفوظة. وللدفع ببطاقة أخرى استخدم **ادفع الآن** في فاتورة **مستحقة**.",
+          "تعرض **الإعدادات ← الفوترة ← الدفع** البطاقة المحفوظة، مثل Visa المنتهية بـ 4242. ولاستخدام بطاقة أخرى اضغط **حذف البطاقة**، فتتوقف التجديدات عن الخصم التلقائي، ويحفظ الدفع التالي الذي تختار فيه حفظ البطاقة في صفحة الدفع البطاقة الجديدة. وللدفع ببطاقة أخرى لفاتورة **مستحقة** استخدم **ادفع الآن**.",
           "تخضع المبالغ المستردة لـ[سياسة الاسترداد](/legal/refunds).",
         ] },
 

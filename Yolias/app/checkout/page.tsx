@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LanguageMenu } from "@/components/LanguageMenu";
-import { billingTestMode } from "@/lib/billing";
+import { billingTestMode, unusedPlanCredit } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
 import { hasActivePlan, isBillingPeriod, isPaidPlan, offeredPlans, planPrice, priceFor } from "@/lib/plans";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
@@ -66,6 +66,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
         initialPlan={initial}
         currentPlan={current}
         currentPeriod={current ? ws.billing_period : null}
+        unusedCredit={current ? await unusedPlanCredit(ws) : 0}
         initialPeriod={initialPeriod}
         canManage={canManageTeam(session)}
         testMode={billingTestMode()}

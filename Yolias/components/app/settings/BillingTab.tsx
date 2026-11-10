@@ -8,7 +8,7 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { planName, priceFor } from "@/lib/plans";
 import { useToast } from "@/components/Toast";
-import { setPlanCanceled } from "@/app/(app)/settings/actions";
+import { removeSavedCard, setPlanCanceled } from "@/app/(app)/settings/actions";
 import type { ShellData } from "../types";
 import type { Currency } from "@/types/database";
 import { useSave, YoliasMarkStatic } from "./shared";
@@ -22,6 +22,13 @@ export function BillingTab({ data }: { data: ShellData }) {
   const canManage = data.role === "owner" || data.role === "admin";
   const paid = workspace.plan !== "free";
   const [confirming, setConfirming] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const removeCard = async () => {
+    setRemoving(true);
+    const r = await removeSavedCard();
+    setRemoving(false);
+    if (r.ok) { toast(b.cardRemoved); router.refresh(); } else toast(r.error, "error");
+  };
   const { pending, error, run } = useSave();
   const money = (v: number, currency: Currency = "USD") => formatMoney(v, currency, true);
   const price = priceFor(workspace.price, workspace.billingPeriod);
@@ -74,9 +81,13 @@ export function BillingTab({ data }: { data: ShellData }) {
             <div className="billing-row">
               <div className="billing-card">
                 <CreditCard />
-                <span>{data.billing.online ? t.checkout.paymentSecure : b.noCard}</span>
+                <span>{data.billing.card ? <span dir="auto">{fmt(b.cardOnFile, { brand: data.billing.card.brand ?? "Card", last4: data.billing.card.last4 ?? "••••" })}</span> : data.billing.online ? t.checkout.paymentSecure : b.noCard}</span>
               </div>
+              {data.billing.card && (
+                <button type="button" className="btn-secondary" disabled={removing} onClick={() => window.confirm(b.removeCardConfirm) && removeCard()}>{b.removeCard}</button>
+              )}
             </div>
+            {data.billing.card && <p className="billing-empty">{b.cardHint}</p>}
           </section>
 
           <section className="billing-section" data-setting="invoices">

@@ -1,4 +1,5 @@
 import "server-only";
+import { prorate as prorateAmount } from "./billing-math";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPaidPlan, paidPlans, planPrice, priceFor } from "@/lib/plans";
 import { canStartTrial, trialLimits } from "@/lib/trial";
@@ -41,6 +42,26 @@ export async function planCharge(ws: WorkspaceRow, plan: PaidPlan, period: Billi
   const monthly = planPrice(catalog[plan], currency);
   return monthly == null ? null : { amount: priceFor(monthly, period), currency };
 }
+
+/**
+ * Changing plans mid-period (audit, 2026-11-10): the unused part of what was
+ * paid for the current period, by time left, comes off the new plan's price.
+ * The new plan's period then starts on the day of the change. 0 when nothing
+ * paid is running (free, Pay As You Go, a trial, test billing without an invoice).
+ */
+export async function unusedPlanCredit(ws: WorkspaceRow, now = Date.now()): Promise<number> {
+  if (!isPaidPlan(ws.plan) || !["active", "test"].includes(ws.subscription_status) || !ws.current_period_end) return 0;
+  const end = Date.parse(ws.current_period_end);
+  if (!(end > now)) return 0;
+  const { data: inv } = await createAdminClient().from("invoices").select("amount, period_start, period_end, currency")
+    .eq("workspace_id", ws.id).eq("kind", "subscription").eq("status", "paid").eq("period_end", ws.current_period_end).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!inv?.period_start || !inv.period_end) return 0;
+  const start = Date.parse(inv.period_start), stop = Date.parse(inv.period_end);
+  if (!(stop > start) || inv.currency !== (await workspaceCurrency(ws))) return 0;
+  return prorateAmount(Number(inv.amount), start, stop, now);
+}
+
+export { prorate } from "./billing-math";
 
 /** The first plan fixes the workspace's billing country and currency (Egypt → EGP, else USD). */
 async function billingIdentity(ws: WorkspaceRow, currency: Currency) {

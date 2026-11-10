@@ -131,6 +131,22 @@ export async function billingOverview(): Promise<{ balanceUsd: number; resetsAt:
 }
 
 // Cancel keeps the paid plan until the end of the period, then Free.
+/**
+ * Removes the saved card (audit, 2026-11-10): its token leaves Vault and
+ * renewals stop being charged automatically. The next payment made on
+ * Paymob's page with "save card" stores the new one. Owner and admins only.
+ */
+export async function removeSavedCard(): Promise<ActionResult> {
+  const session = await requireMember();
+  const t = (await getDictionary()).settings.errors;
+  if (!canManageTeam(session)) return { ok: false, error: t.onlyAdminsManage };
+  const admin = createAdminClient();
+  const { data: cards } = await admin.from("billing_cards").select("id").eq("workspace_id", session.workspace.id).eq("status", "active");
+  for (const c of cards ?? []) await admin.rpc("clear_card_token", { p_card: c.id });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function setPlanCanceled(cancel: boolean): Promise<ActionResult> {
   const session = await requireMember();
   const t = await getDictionary();

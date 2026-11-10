@@ -110,3 +110,9 @@ export async function unreadNotifications(userId: string): Promise<number> {
   const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null);
   return count ?? 0;
 }
+
+/** The saved card renewals are charged to (brand and last 4 only), or null. */
+export async function savedCard(workspaceId: string): Promise<{ brand: string | null; last4: string | null } | null> {
+  const { data } = await createAdminClient().from("billing_cards").select("brand, last4").eq("workspace_id", workspaceId).eq("status", "active").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  return data ?? null;
+}

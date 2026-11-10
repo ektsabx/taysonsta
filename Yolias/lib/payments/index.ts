@@ -2,7 +2,7 @@ import "server-only";
 import * as Sentry from "@sentry/nextjs";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { addMonths, planCharge, renewalEmails, startPlan } from "@/lib/billing";
+import { addMonths, planCharge, renewalEmails, startPlan, unusedPlanCredit } from "@/lib/billing";
 import { getPlanCatalog, workspaceCurrency } from "@/lib/plan-catalog";
 import { priceForEgp } from "@/lib/pricing-math";
 import { notify, userRecipient, workspaceRecipients } from "@/lib/email/notify";
@@ -115,7 +115,10 @@ export type CheckoutTarget =
   | { kind: "prospect_pack"; packId: string };
 
 /** `url`: Paymob's hosted page (the browser goes there). `paymentId` lets the page confirm it. */
-export type CheckoutResult = { ok: true; url: string; paymentId: string } | { ok: false; error: "not_connected" | "not_priced" | "not_found" | "failed" };
+export type CheckoutResult = { ok: true; url: string; paymentId: string } | { ok: false; error: "not_connected" | "not_priced" | "not_found" | "failed" | "covered" };
+
+/** Below this, a plan change is covered by the unused time of the current plan: nothing to charge. */
+export const MIN_CHARGE = 1;
 
 interface Buyer {
   userId: string;
@@ -134,9 +137,11 @@ export function paysInEgp(ws: Pick<WorkspaceRow, "billing_country">, country: st
  * What Paymob charges for this purchase, in EGP: a plan bought from Egypt uses
  * its EGP price (Admin → Pricing), anything else the USD price at the day's rate (D-142).
  */
-async function chargeFor(db: Db, ws: WorkspaceRow, buyer: Buyer, row: Partial<PaymentRow> & { amount: number }): Promise<{ charge: number; currency: "USD" | "EGP"; rate: number | null } | null> {
+async function chargeFor(db: Db, ws: WorkspaceRow, buyer: Buyer, row: Partial<PaymentRow> & { amount: number }, share = 1): Promise<{ charge: number; currency: "USD" | "EGP"; rate: number | null } | null> {
   if (row.kind === "subscription" && row.plan && row.billing_period && paysInEgp(ws, buyer.country)) {
-    const egp = await egpPlanPrice(row.plan as PaidPlan, row.billing_period);
+    // `share`: what is left to pay after the unused time of the current plan, applied to the EGP price too.
+    const full = await egpPlanPrice(row.plan as PaidPlan, row.billing_period);
+    const egp = full ? Math.round(full * share * 100) / 100 : null;
     if (egp) return { charge: egp, currency: "EGP", rate: row.amount > 0 ? Math.round((egp / row.amount) * 10_000) / 10_000 : null };
   }
   const rate = await usdToEgp(db);
@@ -159,6 +164,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   // What is bought and its price — always from configuration on the server.
   let row: Partial<PaymentRow> & { amount: number; kind: PaymentRow["kind"] };
   let description: string;
+  let share = 1;
   const t = dictionaries.en;
   if (target.kind === "subscription") {
     if (target.invoiceId) {
@@ -169,7 +175,12 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
     } else {
       const charge = await planCharge(ws, target.plan, target.period);
       if (!charge) return { ok: false, error: "not_priced" };
-      row = { kind: "subscription", plan: target.plan, billing_period: target.period, amount: charge.amount };
+      // A different plan or period while one is paid and running: its unused time is deducted.
+      const credit = ws.plan !== target.plan || ws.billing_period !== target.period ? await unusedPlanCredit(ws) : 0;
+      const net = Math.round((charge.amount - credit) * 100) / 100;
+      if (net < MIN_CHARGE) return { ok: false, error: "covered" };
+      share = net / charge.amount;
+      row = { kind: "subscription", plan: target.plan, billing_period: target.period, amount: net };
     }
     description = `${t.plans[row.plan!]} · ${row.billing_period === "annual" ? t.plans.annual : t.plans.monthly}`;
   } else {
@@ -184,7 +195,7 @@ export async function startCheckout(ws: WorkspaceRow, buyer: Buyer, target: Chec
   const reuse = await reusableCheckout(db, ws.id, buyer.userId, gw, row);
   if (reuse) return { ok: true, url: reuse.url, paymentId: reuse.id };
 
-  const priced = await chargeFor(db, ws, buyer, row);
+  const priced = await chargeFor(db, ws, buyer, row, share);
   if (!priced) return { ok: false, error: "not_priced" };
   const { data: payment, error } = await db.from("payments").insert({
     ...row, workspace_id: ws.id, currency, provider: gw.id, mode: gw.mode, created_by: buyer.userId,

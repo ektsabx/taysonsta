@@ -13,7 +13,7 @@ import { unreadNotifications } from "@/services/workspace";
 import { billingRoute, paymentsConnected } from "@/lib/payments";
 import { canUseApp, planPrice } from "@/lib/plans";
 import { recentStrategies } from "@/services/strategies";
-import { listInvoices, listPacks, monthlyUsage, teamMembers } from "@/services/workspace";
+import { listInvoices, listPacks, monthlyUsage, savedCard, teamMembers } from "@/services/workspace";
 import type { Metadata as NoindexMetadata } from "next";
 import { noindex } from "@/lib/seo";
 
@@ -55,7 +55,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const h = await headers();
 
   // Everything the shell needs, at once (D-251: no step waits for another it doesn't need).
-  const [catalog, route, recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread] = await Promise.all([
+  const [catalog, route, recent, usage, team, invoices, packs, online, unread, phone, askReview, welcomeVideo, inboxUnread, card] = await Promise.all([
     getPlanCatalog(),
     billingRoute(workspace),
     recentStrategies(workspace.id),
@@ -69,6 +69,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     reviewPrompt(session).catch(() => null),
     loadWelcomeVideo(),
     unreadThreads(session.workspace.id),
+    canManageTeam(session) ? savedCard(workspace.id) : Promise.resolve(null),
   ]);
 
   const plan = catalog[workspace.plan];
@@ -122,7 +123,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     usage,
     invoices: invoices.map((i) => ({ id: i.id, number: i.number, date: i.created_at, amount: Number(i.amount), currency: i.currency, status: i.status, test: i.mode === "test" })),
     packs: packs.map((p) => ({ id: p.id, prospects: p.prospects, emails: p.emails, price: Number(p.price_usd) })),
-    billing: { online, testMode: billingTestMode(), provider: route, portalUrl: null },
+    billing: { online, testMode: billingTestMode(), provider: route, portalUrl: null, card },
     unread,
     team: {
       members: team.members.map((m) => ({
