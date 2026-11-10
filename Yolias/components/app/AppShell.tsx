@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, PlayCircle, Plug, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
+  Activity, ArrowUpRight, BookOpen, Bug, CalendarDays, ChartColumnIncreasing, ChevronRight, CircleHelp, CreditCard, EllipsisVertical, Gift, Library, LogOut, Menu, MessageCircle, MessageSquareText, MessagesSquare, PanelLeftClose, PanelLeftOpen, Plug, Send, SlidersHorizontal, User, UserSearch, Users, UsersRound, X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "./NotificationBell";
@@ -251,12 +251,6 @@ export function AppShell({ data, initialClosed, children }: { data: ShellData; i
                   <Link className="menu-item" role="menuitem" href="/help-center" target="_blank" onClick={() => setMenuOpen(false)}>
                     <BookOpen />
                     <span>{t.nav.helpCenter}</span>
-                    <ArrowUpRight className="menu-chevron" />
-                  </Link>
-                  {/* Platform videos (owner, 2026-10-28), listed in Yolias Admin. */}
-                  <Link className="menu-item" role="menuitem" href="/help-center/videos" target="_blank" onClick={() => setMenuOpen(false)}>
-                    <PlayCircle />
-                    <span>{t.nav.videos}</span>
                     <ArrowUpRight className="menu-chevron" />
                   </Link>
                   {/* Opens the support chat widget (D-140). */}

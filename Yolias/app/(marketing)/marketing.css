@@ -818,3 +818,7 @@ html[dir="ltr"] .mk .wf-flip { transform: scaleX(-1); }
 .mk .plan-help [role="tooltip"] { position: absolute; z-index: 20; bottom: calc(100% + 8px); inset-inline-end: -8px; width: 240px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--text-2); font-size: .8rem; line-height: 1.55; box-shadow: 0 12px 30px var(--shadow); opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none; }
 .mk .plan-help:hover [role="tooltip"], .mk .plan-help:focus-visible [role="tooltip"] { opacity: 1; visibility: visible; }
 .mk .plan-list li { align-items: flex-start; }
+
+/* A Help Center article's own video (owner, 2026-11-10). */
+.mk .article-video { margin: 0 0 28px; }
+.mk .article-video figcaption { margin-top: 8px; color: var(--muted); font-size: .88rem; line-height: 1.6; }

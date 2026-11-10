@@ -33,10 +33,6 @@ export default async function HelpCenterPage() {
 
       <section className="section">
         <div className="site-width">
-          <Link href="/help-center/videos" className="article-link help-videos-link">
-            <div><strong>{t.nav.videos}</strong><span>{locale === "ar" ? "جولات قصيرة بالفيديو في يولياس." : "Short video walkthroughs of Yolias."}</span></div>
-            <ChevronRight className="flip-rtl" />
-          </Link>
           <h2 className="mb-5 mt-10 text-lg font-bold">{hero.collectionsTitle}</h2>
           <div className="collections">
             {collections.map((c) => {

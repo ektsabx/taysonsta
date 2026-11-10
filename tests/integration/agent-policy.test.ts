@@ -9,7 +9,9 @@ import { bosUserFor } from "@/tests/integration/helpers";
 import { discardDraft, policyState, publishDraft, restoreVersion, savePolicySection } from "@/services/yolias/agent-policy";
 import { ValidationError } from "@/lib/bos/errors";
 
-const skip = !yoliasConfigured();
+// Writes the Yolias agent policy: only ever against a local Yolias database
+// (audit, 2026-11-10: the Admin .env.local points at production).
+const skip = !yoliasConfigured() || !/127\.0\.0\.1|localhost/.test(process.env.YOLIAS_SUPABASE_URL ?? "");
 let original: { id: string; version: number } | null = null;
 const created: number[] = [];
 

@@ -10,7 +10,7 @@ export async function saveTutorialAction(_prev: ActionState, formData: FormData)
   return handleAction("yolias.saveTutorial", async () => {
     const { bos } = await authorize("platform.manage", "all");
     const s = (k: string) => String(formData.get(k) ?? "");
-    await upsertTutorial(bos, { id: s("id") || null, titleAr: s("title_ar"), titleEn: s("title_en"), descAr: s("desc_ar"), descEn: s("desc_en"), url: s("url"), published: formData.get("published") === "on" });
+    await upsertTutorial(bos, { id: s("id") || null, titleAr: s("title_ar"), titleEn: s("title_en"), descAr: s("desc_ar"), descEn: s("desc_en"), url: s("url"), article: s("article"), published: formData.get("published") === "on" });
     revalidatePath("/admin/platform/tutorials");
     return { ok: true };
   });

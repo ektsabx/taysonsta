@@ -12,6 +12,19 @@ import { Prose } from "@/components/marketing/Prose";
 import { articles as shippedArticles, collections } from "@/lib/content/help";
 import { helpArticles } from "@/lib/content/store";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { articleVideo, TUTORIALS_KEY, youtubeThumb, type PlayableTutorial } from "@/lib/tutorials";
+import { ArticleVideo } from "./ArticleVideo";
+
+/** The article's video, set in Yolias Admin → Platform videos (read live). */
+async function videoOf(slug: string, locale: "en" | "ar"): Promise<PlayableTutorial | null> {
+  try {
+    const { data } = await createAdminClient().from("site_settings").select("value").eq("key", TUTORIALS_KEY).maybeSingle();
+    return articleVideo(data?.value, slug, locale);
+  } catch {
+    return null;
+  }
+}
 
 export function generateStaticParams() {
   return shippedArticles.map((a) => ({ slug: a.slug }));
@@ -35,12 +48,19 @@ export default async function HelpArticlePage({ params }: PageProps<"/help-cente
   const doc = article.doc[locale];
   const collection = collections.find((c) => c.id === article.collection)!;
   const related = articles.filter((a) => a.collection === article.collection && a.slug !== slug);
+  const video = await videoOf(slug, locale);
+  const thumb = video ? youtubeThumb(video.url) : null;
 
   return (
     <div className="site-width doc-layout">
       <JsonLd nodes={[
         webPageSchema({ title: doc.title, description: doc.summary, path: `/help-center/${slug}` }),
         breadcrumbSchema([{ name: t.site.helpCenter, path: "/help-center" }, { name: doc.title, path: `/help-center/${slug}` }]),
+        ...(video ? [{
+          "@type": "VideoObject", name: video.title, description: video.description || doc.summary,
+          ...(video.kind === "iframe" ? { embedUrl: video.src } : { contentUrl: video.src }),
+          ...(thumb ? { thumbnailUrl: thumb } : {}), ...(video.addedAt ? { uploadDate: video.addedAt } : {}),
+        }] : []),
       ]} />
       <article className="doc-main">
         <nav className="crumbs" aria-label="Breadcrumb">
@@ -55,6 +75,7 @@ export default async function HelpArticlePage({ params }: PageProps<"/help-cente
         <p className="doc-summary">{doc.summary}</p>
         {doc.updated && <p className="doc-updated">{locale === "ar" ? "آخر تحديث" : "Last updated"}: <time dateTime={doc.updated}>{doc.updated}</time></p>}
         <div className="doc-divider" />
+        {video && <ArticleVideo video={video} />}
         <Prose blocks={doc.blocks} />
         <ArticleFeedback kind="help" slug={slug} />
         <div className="help-cta">
