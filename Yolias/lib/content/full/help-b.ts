@@ -1089,7 +1089,7 @@ export const helpB: Record<string, Localized<Doc>> = {
             ["The campaign's conversion event", "Results, Website conversions and Conversion value"],
           ],
         } },
-        { p: "Visits count people; the other columns count events. A person can add at most 3 credited events of the same kind a day; more are kept in Events Manager but not credited." },
+        { p: "Visits count people; the other columns count events. A person can add at most 3 credited events of the same kind a day, across all your pixels; more are kept in Events Manager but not credited." },
 
         { h2: "Step-by-step: install the pixel" },
         { ol: [
@@ -1140,7 +1140,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "A large gap between Total and From Yolias campaigns is normal: most visitors to your site didn't come from a campaign. Test events are left out of Overview." },
 
         { h2: "One pixel per page" },
-        { p: "An event is credited to the campaign that sent the person, whichever of your pixels receives it. The base code can initialize more than one pixel ID, and every event the page sends then goes to each of them. If two pixels of the same workspace are on one page, each event is recorded by both and credited twice. Keep one pixel per page, and use separate pixels for separate websites. The pixel you choose in a campaign is the one shown in its setup and the one that can't be deleted while the campaign uses it." },
+        { p: "An event is credited to the campaign that sent the person, whichever of your pixels receives it. The base code can initialize more than one pixel ID, and every event the page sends then goes to each of them. If two pixels of the same workspace are on one page, each event is recorded by both and credited once: the same event ID from another pixel, or without one the same visitor and event within 30 seconds, is the same event. The 3-a-day limit per person and event also counts across all your pixels. Keep one pixel per page all the same, and use separate pixels for separate websites. The pixel you choose in a campaign is the one shown in its setup and the one that can't be deleted while the campaign uses it." },
         { h2: "Settings and pixels" },
         { ul: [
           "**Settings** holds the **Pixel name**, the **Website URL**, **Allowed domains** and **Blocked domains**.",
@@ -1228,7 +1228,7 @@ export const helpB: Record<string, Localized<Doc>> = {
             ["حدث التحويل في الحملة", "النتائج، وتحويلات الموقع، وقيمة التحويلات"],
           ],
         } },
-        { p: "تحسب الزيارات الأشخاص، وتحسب الأعمدة الأخرى الأحداث. ويمكن أن يُنسب للشخص الواحد 3 أحداث على الأكثر من النوع نفسه في اليوم، وما زاد يبقى في مدير الأحداث دون أن يُنسب." },
+        { p: "تحسب الزيارات الأشخاص، وتحسب الأعمدة الأخرى الأحداث. ويمكن أن يُنسب للشخص الواحد 3 أحداث على الأكثر من النوع نفسه في اليوم عبر كل بيكسلاتك، وما زاد يبقى في مدير الأحداث دون أن يُنسب." },
 
         { h2: "خطوة بخطوة: تركيب البيكسل" },
         { ol: [
@@ -1279,7 +1279,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { p: "الفرق الكبير بين الإجمالي وعمود من حملات يولياس أمر طبيعي، فأغلب زوار موقعك لم يأتوا من حملة. ولا تدخل أحداث الاختبار في نظرة عامة. وإذا أردت أن ترى أثر حملة بعينها على موقعك فارجع إلى أعمدتها في جدول الحملات، فهي تعرض الأحداث المنسوبة إليها فقط." },
 
         { h2: "بيكسل واحد في كل صفحة" },
-        { p: "يُنسب الحدث إلى الحملة التي أرسلت الشخص، أيًا كان البيكسل الذي استقبله من بيكسلاتك. ويستطيع الكود الأساسي تشغيل أكثر من رقم بيكسل، فيذهب كل حدث ترسله الصفحة إلى كل واحد منها. فإذا كان في الصفحة نفسها بيكسلان من مساحة العمل نفسها، يُسجَّل كل حدث مرتين ويُنسب إلى الحملة مرتين. لذلك اجعل في كل صفحة بيكسلًا واحدًا، واستخدم بيكسلات منفصلة للمواقع المنفصلة. أما البيكسل الذي تختاره في الحملة فهو الذي يظهر في إعدادها، ولا يمكن حذفه ما دامت الحملة تستخدمه." },
+        { p: "يُنسب الحدث إلى الحملة التي أرسلت الشخص، أيًا كان البيكسل الذي استقبله من بيكسلاتك. ويستطيع الكود الأساسي تشغيل أكثر من رقم بيكسل، فيذهب كل حدث ترسله الصفحة إلى كل واحد منها. فإذا كان في الصفحة نفسها بيكسلان من مساحة العمل نفسها، يُسجَّل كل حدث مرتين ويُنسب إلى الحملة مرة واحدة: فالحدث الذي يحمل رقم الحدث نفسه من بيكسل آخر، أو بلا رقم من الزائر نفسه وللحدث نفسه خلال 30 ثانية، هو الحدث نفسه. ويُحسب حد الثلاث مرات يوميًا لكل شخص وحدث عبر كل بيكسلاتك. ومع ذلك اجعل في كل صفحة بيكسلًا واحدًا، واستخدم بيكسلات منفصلة للمواقع المنفصلة. أما البيكسل الذي تختاره في الحملة فهو الذي يظهر في إعدادها، ولا يمكن حذفه ما دامت الحملة تستخدمه." },
         { h2: "الإعدادات والبيكسلات" },
         { ul: [
           "يضم تبويب **الإعدادات** **اسم البيكسل** و**رابط الموقع** و**النطاقات المسموح بها** و**النطاقات غير المسموح بها**.",

@@ -119,11 +119,15 @@ export async function recordPixelEvent(raw: IncomingEvent, now = Date.now()): Pr
     let credit = e.test ? null : await creditFor(db, px.workspace_id, e, now);
     // Audit (2026-11-03): a person reached by a campaign can't inflate its results by
     // sending the same event over and over: at most CREDIT_CAP credited per person, event and day.
+    // Counted across the workspace's pixels, not per pixel (audit, 2026-11-10).
     if (credit) {
       const { count: credited } = await db.from("pixel_events").select("id", { count: "exact", head: true })
-        .eq("pixel_id", px.id).eq("lead_id", credit.lead).eq("event", e.event).gte("created_at", new Date(now - 86_400_000).toISOString());
+        .eq("workspace_id", px.workspace_id).eq("lead_id", credit.lead).eq("event", e.event).gte("created_at", new Date(now - 86_400_000).toISOString());
       if ((credited ?? 0) >= CREDIT_CAP) credit = null;
     }
+    // Two pixels of one workspace on the same page send the same event twice: only the first is credited.
+    // The same event_id from another pixel is the same event; without one, the same visitor and event within 30 seconds is.
+    if (credit && (await creditedElsewhere(db, px.workspace_id, px.id, e, now))) credit = null;
     const { error } = await db.from("pixel_events").insert({
       pixel_id: px.id, workspace_id: px.workspace_id, event: e.event, value: e.value, currency: e.currency, url: e.url, referrer: e.ref, visitor: e.vid, event_id: e.eventId,
       lead_id: credit?.lead ?? null, campaign_id: credit?.campaign ?? null, group_id: credit?.group ?? null, attribution: credit?.how ?? null, test_code: e.test,
@@ -135,6 +139,15 @@ export async function recordPixelEvent(raw: IncomingEvent, now = Date.now()): Pr
     console.error("[pixel]", err instanceof Error ? err.message : err);
     return "ignored";
   }
+}
+
+async function creditedElsewhere(db: Db, workspaceId: string, pixelId: string, e: CleanEvent, now: number): Promise<boolean> {
+  let q = db.from("pixel_events").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).neq("pixel_id", pixelId).eq("event", e.event).not("campaign_id", "is", null);
+  if (e.eventId) q = q.eq("event_id", e.eventId);
+  else if (e.vid) q = q.eq("visitor", e.vid).gte("created_at", new Date(now - 30_000).toISOString());
+  else return false;
+  const { count } = await q;
+  return (count ?? 0) > 0;
 }
 
 /** Which campaign and audience reached this person, within the campaign's attribution window (click first, then view). */

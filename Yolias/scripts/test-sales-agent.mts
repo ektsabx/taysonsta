@@ -424,7 +424,16 @@ try {
   // Audit (2026-11-03): the same person can't inflate results: at most 3 credited InitiateCheckout a day.
   for (let i = 0; i < 4; i++) await recordPixelEvent({ pixel: second.public_id, event: "InitiateCheckout", yc, yct: Date.now(), event_id: `cap-${i}` });
   const { data: capped } = await admin.from("pixel_events").select("campaign_id").like("event_id", "cap-%");
-  assert.deepEqual([capped!.length, capped!.filter((x) => x.campaign_id).length], [4, 3], "kept all, credited three");
+  assert.deepEqual([capped!.length, capped!.filter((x) => x.campaign_id).length], [4, 2], "kept all; three credited a day across the workspace's pixels (one came from the first pixel above)");
+  // Audit (2026-11-10): two pixels of one workspace on the same page credit an event once.
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "Lead", url: "https://shop.example.com/form", yc, yct: Date.now(), vid: "v-dup", event_id: "dup-1" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: second.public_id, event: "Lead", url: "https://shop.example.com/form", yc, yct: Date.now(), vid: "v-dup", event_id: "dup-1" }), "ok");
+  const { data: dup } = await admin.from("pixel_events").select("campaign_id").eq("event_id", "dup-1");
+  assert.deepEqual([dup!.length, dup!.filter((x) => x.campaign_id).length], [2, 1], "same event_id from two pixels: kept twice, credited once");
+  assert.equal(await recordPixelEvent({ pixel: px.public_id, event: "AddToCart", url: "https://shop.example.com/p", yc, yct: Date.now(), vid: "v-dup2" }), "ok");
+  assert.equal(await recordPixelEvent({ pixel: second.public_id, event: "AddToCart", url: "https://shop.example.com/p", yc, yct: Date.now(), vid: "v-dup2" }), "ok");
+  const { data: dup2 } = await admin.from("pixel_events").select("campaign_id").eq("visitor", "v-dup2");
+  assert.deepEqual([dup2!.length, dup2!.filter((x) => x.campaign_id).length], [2, 1], "no event_id: same visitor and event within 30 seconds credited once");
   // A qualified-leads campaign only finds and saves people.
   const { enrollSearch } = await import("@/lib/agent-core/intake.ts");
   await admin.from("outreach_campaigns").update({ objective: "qualified_leads" }).eq("id", campId);
