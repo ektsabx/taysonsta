@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_SENDING_RULES, mailboxWindow, nextGapMs, parseSendingRules, withinWindow } from "../../lib/outreach/sending-rules.ts";
+import { DEFAULT_SENDING_RULES, mailboxWindow, nextGapMs, parseSendingRules, rampedLimit, warmupEnds, withinWindow } from "../../lib/outreach/sending-rules.ts";
 
 // 2026-10-21 was a Wednesday.
 const at = (iso: string) => new Date(iso);
@@ -51,4 +51,14 @@ test("new mailboxes warm up", async () => {
   assert.equal(rampedLimit(100, ago(30), now), 100);
   assert.equal(rampedLimit(10, ago(1), now), 10);
   assert.equal(rampedLimit(30, null, now), 30);
+});
+
+test("warm-up: 15, 25, 40 a day, and the date the full limit starts", () => {
+  const now = Date.parse("2026-11-10T12:00:00Z");
+  const connected = "2026-11-08T12:00:00.000Z";
+  assert.equal(rampedLimit(50, connected, now), 15);
+  assert.equal(warmupEnds(50, connected, now), "2026-11-29T12:00:00.000Z", "full 50 after three weeks");
+  assert.equal(warmupEnds(25, connected, now), "2026-11-15T12:00:00.000Z", "25 is reached in week two");
+  assert.equal(warmupEnds(10, connected, now), null, "a limit under 15 never warms up");
+  assert.equal(warmupEnds(50, "2026-10-01T00:00:00.000Z", now), null);
 });

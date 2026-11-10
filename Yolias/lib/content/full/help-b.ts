@@ -91,7 +91,7 @@ export const helpB: Record<string, Localized<Doc>> = {
           "You send only from a mailbox you connected yourself, and it must be connected at launch. Qualified leads needs no mailbox, because it contacts no one.",
           "Sales and Website leads need the website page and a pixel. See [The Yolias pixel](/help-center/pixel-and-events).",
           "Up to 8 audiences per campaign. Each audience needs a targeting or a saved audience.",
-          "A new mailbox sends less in its first weeks: up to 15 emails a day in week one, 25 in week two and 40 in week three, then its own limit.",
+          "A new mailbox sends less in its first weeks: up to 15 emails a day in week one, 25 in week two and 40 in week three, then its own limit. During warm-up the mailbox list shows today's limit and the date the full limit starts.",
           "On a free account, AI help in the builder (Build with Yolias, openings and samples) has a daily limit. When it's reached, top up from $5 to keep using it that day.",
         ] },
 
@@ -215,7 +215,7 @@ export const helpB: Record<string, Localized<Doc>> = {
           "ترسل فقط من بريد ربطته أنت، ويجب أن يكون متصلًا عند التشغيل. ولا يحتاج هدف عملاء مؤهلون إلى بريد لأنه لا يتواصل مع أحد.",
           "تحتاج المبيعات ونماذج الموقع إلى صفحة الموقع وبيكسل. راجع [بيكسل يولياس](/help-center/pixel-and-events).",
           "حتى 8 جماهير في الحملة، ويحتاج كل جمهور استهدافًا أو جمهورًا محفوظًا.",
-          "يرسل البريد الجديد أقل في أسابيعه الأولى: حتى 15 رسالة يوميًا في الأسبوع الأول، و25 في الثاني، و40 في الثالث، ثم حده الخاص.",
+          "يرسل البريد الجديد أقل في أسابيعه الأولى: حتى 15 رسالة يوميًا في الأسبوع الأول، و25 في الثاني، و40 في الثالث، ثم حده الخاص. وأثناء الإحماء تعرض قائمة البريد حد اليوم وتاريخ بدء الحد الكامل.",
           "في الحساب المجاني للمساعدة الذكية في أداة الإنشاء (أنشئ مع يولياس والافتتاحيات والرسائل النموذجية) حد يومي. وعند بلوغه اشحن من 5 دولارات لتواصل استخدامها في اليوم نفسه.",
         ] },
 
@@ -1001,7 +1001,7 @@ export const helpB: Record<string, Localized<Doc>> = {
         { ul: [
           "**حماية الحملة من الارتداد.** بعد أن ترسل الحملة 20 رسالة تتوقف وحدها إذا ارتد 5% منها أو أكثر. ويصلك إشعار، ويعرض **ما فعله يولياس** السبب.",
           "**حماية البريد من الارتداد.** إذا زاد ارتداد بريد عن 5% من 20 رسالة أو أكثر خلال آخر 7 أيام، تتوقف كل الحملات التي ترسل منه مع سبب «أُوقفت لحماية بريدك».",
-          "**التحمية.** يرسل البريد الذي رُبط حديثًا حتى 15 رسالة يوميًا في أسبوعه الأول، و25 في الثاني، و40 في الثالث، ثم حده الخاص.",
+          "**الإحماء.** يرسل البريد الذي رُبط حديثًا حتى 15 رسالة يوميًا في أسبوعه الأول، و25 في الثاني، و40 في الثالث، ثم حده الخاص.",
           "**الوتيرة.** يحدد **عدد الرسائل اليومية** أقصى عدد من الرسائل الجديدة للحملة كل يوم، في حدود البريد نفسه، وفي الأيام والساعات التي حددتها فقط.",
           "**محادثة واحدة لكل شخص.** لا تراسل حملتان الشخص نفسه في الوقت نفسه، ولا يُراسل من طلب التوقف مرة أخرى أبدًا.",
         ] },

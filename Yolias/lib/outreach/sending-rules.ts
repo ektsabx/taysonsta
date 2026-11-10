@@ -116,3 +116,12 @@ export function rampedLimit(limit: number, connectedAt: string | null | undefine
   const week = Math.floor((now - Date.parse(connectedAt)) / (7 * 86_400_000));
   return week >= 0 && week < RAMP.length ? Math.min(limit, RAMP[week]) : limit;
 }
+
+/** When the mailbox reaches its full limit, or null when it already has (shown next to its limit). */
+export function warmupEnds(limit: number, connectedAt: string | null | undefined, now = Date.now()): string | null {
+  if (!connectedAt) return null;
+  let week = RAMP.findIndex((r) => r >= limit);
+  if (week < 0) week = RAMP.length;
+  const at = Date.parse(connectedAt) + week * 7 * 86_400_000;
+  return at > now ? new Date(at).toISOString() : null;
+}

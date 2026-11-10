@@ -27,7 +27,7 @@ export const sdrEn = {
       attention: "Needs attention", attentionHint: "A mailbox that can't send: its permission expired or its password changed.",
       attentionNone: "Every mailbox is sending", attentionSome: "Reconnect to keep sending",
       sentToday: "Sent today", sentNote: "{pct}% of today's capacity",
-      leftToday: "Left today", leftHint: "Emails your connected mailboxes can still send today.", leftNote: "of {total} a day across connected mailboxes",
+      warmup: "Warming up: {today} a day now, full {limit} from {date}", warmupHint: "A new mailbox sends 15 a day in its first week, 25 in the second and 40 in the third, so its reputation builds before it reaches its full limit.", leftToday: "Left today", leftHint: "Emails your connected mailboxes can still send today.", leftNote: "of {total} a day across connected mailboxes",
       panelTitle: "Mailboxes", panelSub: "Daily limits, sending hours and connection health.",
       all: "All", healthy: "Healthy", search: "Search mailboxes…",
       colMailbox: "Mailbox", colStatus: "Status", colSent: "Sent today", colHours: "Sending hours",

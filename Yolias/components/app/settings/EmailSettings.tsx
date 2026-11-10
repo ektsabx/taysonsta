@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertCircle, AtSign, ChevronLeft, Clock, Gauge, Mail, MailCheck, MoreHorizontal, Plug, Search, SlidersHorizontal } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
-import { formatNumber } from "@/lib/format";
+import { formatDate, formatNumber } from "@/lib/format";
 import { timeZoneChoices, timeZoneLabel } from "@/lib/regions";
 import { useToast } from "@/components/Toast";
 import { GmailIcon } from "@/components/app/ConnectorIcons";
@@ -93,7 +93,7 @@ function Mailboxes({ provider, state, reload, onImap }: { provider: "gmail" | "i
   const connected = boxes.filter((m) => m.status === "connected");
   const attention = boxes.filter((m) => m.status === "error");
   const sent = connected.reduce((n, m) => n + m.sentToday, 0);
-  const capacity = connected.reduce((n, m) => n + m.dailyLimit, 0);
+  const capacity = connected.reduce((n, m) => n + m.todayLimit, 0);
   const shown = boxes
     .filter((m) => filter === "all" || (filter === "healthy" ? m.status === "connected" : m.status === "error"))
     .filter((m) => !q || `${m.email} ${m.displayName ?? ""}`.toLowerCase().includes(q.toLowerCase()));
@@ -140,7 +140,8 @@ function Mailboxes({ provider, state, reload, onImap }: { provider: "gmail" | "i
                     </td>
                     <td><span className={`sdr-badge ${m.status === "connected" ? "green" : "red"}`} title={m.status === "error" ? m.lastError ?? undefined : undefined}>{a.status[m.status]}</span></td>
                     <td style={{ minWidth: 150 }}>
-                      <div className="sdr-bar-row"><span className="sdr-bar"><span style={{ width: `${Math.min(100, (m.sentToday / Math.max(m.dailyLimit, 1)) * 100)}%` }} /></span><span>{num(m.sentToday)} <span className="muted">/ {num(m.dailyLimit)}</span></span></div>
+                      <div className="sdr-bar-row"><span className="sdr-bar"><span style={{ width: `${Math.min(100, (m.sentToday / Math.max(m.todayLimit, 1)) * 100)}%` }} /></span><span>{num(m.sentToday)} <span className="muted">/ {num(m.todayLimit)}</span></span></div>
+                      {m.warmupEnds && <span className="sdr-cell-sub" title={a.warmupHint}>{a.warmup.replace("{today}", num(m.todayLimit)).replace("{limit}", num(m.dailyLimit)).replace("{date}", formatDate(m.warmupEnds, locale))}</span>}
                     </td>
                     <td>
                       <div className="sdr-hours"><Clock /><div>

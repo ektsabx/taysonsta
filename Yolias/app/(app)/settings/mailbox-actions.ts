@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canManageTeam, requireUser, canEdit, viewOnly } from "@/lib/session";
 import { availableProviders, disconnectMailbox, loadSendingRules, memberMailboxes, saveMailbox } from "@/lib/mailbox";
-import { mailboxWindow, sendingRulesSchema, validTimeZone, type SendingRules } from "@/lib/outreach/sending-rules";
+import { mailboxWindow, rampedLimit, warmupEnds, sendingRulesSchema, validTimeZone, type SendingRules } from "@/lib/outreach/sending-rules";
 import { testMailboxAllowed } from "@/lib/mailbox/test-provider";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { MailProvider } from "@/types/database";
@@ -15,7 +15,7 @@ import { checkDomain, type DomainCheck } from "@/lib/mailbox/domain-check";
 
 export interface MailboxView {
   id: string; provider: MailProvider; email: string; displayName: string | null; status: "connected" | "error" | "disconnected"; lastError: string | null;
-  dailyLimit: number; sentToday: number; canRead: boolean; connectedAt: string; lastSyncedAt: string | null;
+  dailyLimit: number; todayLimit: number; warmupEnds: string | null; sentToday: number; canRead: boolean; connectedAt: string; lastSyncedAt: string | null;
   /** Sending hours (D-256): days 0 = Sunday, "HH:MM", the zone it sends in (its own, else the workspace's, else the member's). */
   sendDays: number[]; sendStart: string; sendEnd: string; timeZone: string | null; effectiveTimeZone: string;
 }
@@ -40,6 +40,7 @@ export async function mailboxState(): Promise<EmailState> {
     available, rules: gmail, rulesBy: { gmail, imap }, canEditRules: canManageTeam(s), memberTimeZone: s.profile.timezone ?? null,
     mailboxes: rows.map((m) => ({
       id: m.id, provider: m.provider, email: m.email, displayName: m.display_name, status: m.status, lastError: m.last_error, dailyLimit: m.daily_limit,
+      todayLimit: rampedLimit(m.daily_limit, m.connected_at), warmupEnds: warmupEnds(m.daily_limit, m.connected_at),
       sentToday: m.sent_day === today ? m.sent_today : 0, canRead: m.can_read, connectedAt: m.connected_at, lastSyncedAt: m.last_synced_at,
       sendDays: m.send_days, sendStart: m.send_start, sendEnd: m.send_end, timeZone: m.time_zone,
       effectiveTimeZone: mailboxWindow(m, rulesFor(m.provider), s.profile.timezone ?? null).timeZone,
