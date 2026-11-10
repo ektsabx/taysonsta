@@ -11,6 +11,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${(await getDictionary()).auth.join.title} | Yolias` };
 }
 
+/** A template with {email}-like slots, the values kept whole and left-to-right (an address never breaks at its hyphen). */
+function slots(template: string, values: Record<string, string>) {
+  return template.split(/(\{\w+\})/).map((part, i) => {
+    const key = part.match(/^\{(\w+)\}$/)?.[1];
+    return key && key in values ? <bdi key={i} dir="ltr" className="join-value">{values[key]}</bdi> : part;
+  });
+}
+
 // A team invitation (audit, 2026-11-10): the person sees who invited them and
 // joins only by accepting here, or by creating their account from here.
 export default async function JoinPage({ params }: { params: Promise<{ token: string }> }) {
@@ -44,7 +52,7 @@ export default async function JoinPage({ params }: { params: Promise<{ token: st
     return (
       <>
         <h1>{fmt(j.heading, { workspace })}</h1>
-        <p className="auth-lead">{lead} {fmt(j.forEmail, { email: inv.email })}</p>
+        <p className="auth-lead">{lead} {slots(j.forEmail, { email: inv.email })}</p>
         <a className="btn-primary auth-submit" style={{ justifyContent: "center" }} href={`/join/${token}/start?to=signup`}>{j.create}</a>
         <p className="auth-alt">{j.haveAccount} <a href={`/join/${token}/start?to=login`}>{j.signIn}</a></p>
       </>
@@ -54,7 +62,7 @@ export default async function JoinPage({ params }: { params: Promise<{ token: st
     return (
       <>
         <h1>{fmt(j.heading, { workspace })}</h1>
-        <p className="auth-lead">{fmt(j.wrongEmail, { email: inv.email, current: session.email })}</p>
+        <p className="auth-lead">{slots(j.wrongEmail, { email: inv.email, current: session.email })}</p>
         <a className="btn-primary auth-submit" href="/auth/signout">{j.switchAccount}</a>
       </>
     );

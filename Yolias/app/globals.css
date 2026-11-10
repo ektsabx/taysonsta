@@ -2734,3 +2734,6 @@ html.ay-docked .main-area { margin-inline-end: 400px; transition: margin .2s; }
 .setup-team { display: flex; align-items: center; gap: 8px; margin: 10px 6px 0; padding: 0; border: 0; background: none; color: var(--red); font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; }
 .setup-team svg { width: 16px; height: 16px; }
 @media (max-width: 900px) { .setup { inset-inline-start: 12px; bottom: 76px; } }
+
+/* Team invitation page (audit, 2026-11-10): an address stays whole, and a long one is cut rather than overflowing. */
+.join-value { display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; color: var(--ink); }
