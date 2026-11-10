@@ -26,8 +26,6 @@ interface Option {
 interface Props {
   initialPlan: PaidPlan;
   currentPlan: Plan | null;
-  /** Unused part of the current paid period, deducted when the plan or period changes. */
-  unusedCredit?: number;
   currentPeriod: BillingPeriod | null;
   /** D-275: monthly or annual (20% off). */
   initialPeriod?: BillingPeriod;
@@ -54,7 +52,7 @@ interface Props {
   initialPayg: boolean;
 }
 
-export function CheckoutForm({ initialPlan, currentPlan, unusedCredit = 0, currentPeriod, initialPeriod = "monthly", canManage, testMode, online, email, workspaceName, continueHref, options, currency, initialError, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
+export function CheckoutForm({ initialPlan, currentPlan, currentPeriod, initialPeriod = "monthly", canManage, testMode, online, email, workspaceName, continueHref, options, currency, initialError, checkoutId, egp, topUps, initialPayg, centsPerProspect }: Props) {
   const { t, locale } = useI18n();
   const c = t.checkout;
   const [selected, setSelected] = useState<PaidPlan>(initialPlan);
@@ -77,9 +75,6 @@ export function CheckoutForm({ initialPlan, currentPlan, unusedCredit = 0, curre
   const rate = (o: Option) => monthlyRate(o.price, period);
   const shownCurrency = currency;
   const money = (n: number) => formatMoney(n, shownCurrency, shownCurrency === "USD");
-  // Changing plan or period while one is paid and running: its unused time comes off (the server computes the same).
-  const credit = currentPlan && !isCurrent ? Math.min(unusedCredit, price(plan)) : 0;
-  const due = Math.round((price(plan) - credit) * 100) / 100;
 
   // Meta "InitiateCheckout" once, when the checkout page opens with a paid plan.
   useEffect(() => {
@@ -212,11 +207,9 @@ export function CheckoutForm({ initialPlan, currentPlan, unusedCredit = 0, curre
           <span dir="ltr" translate="no">{money(price(plan))}</span>
         </div>
         <div className="checkout-line muted"><span>{c.subtotal}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
-        {credit > 0 && <div className="checkout-line muted"><span>{fmt(c.unusedTime, { plan: planName(currentPlan!, t) })}</span><span dir="ltr" translate="no">−{money(credit)}</span></div>}
         <div className="checkout-line muted"><span>{c.tax}</span><span>{c.taxNotIncluded}</span></div>
-        <div className="checkout-line total"><span>{c.total}</span><span dir="ltr" translate="no">{money(due)}</span></div>
-        {egpOf(plan) != null && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(Math.round(egpOf(plan)! * (due / price(plan)) * 100) / 100, "EGP")}</span></div>}
-        {credit > 0 && <p className="ws-hint">{c.unusedNote}</p>}
+        <div className="checkout-line total"><span>{c.total}</span><span dir="ltr" translate="no">{money(price(plan))}</span></div>
+        {egpOf(plan) != null && <div className="checkout-line total"><span>{c.payInEgp}</span><span dir="ltr" translate="no">{formatMoney(egpOf(plan)!, "EGP")}</span></div>}
 
         <div className="checkout-payment">
           <div className="checkout-payment-title"><CreditCard aria-hidden="true" /> <span>{c.paymentMethod}</span></div>

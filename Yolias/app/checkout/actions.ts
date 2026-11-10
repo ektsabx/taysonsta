@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { canManageTeam, requireUser } from "@/lib/session";
 import { isBillingPeriod, isPaidPlan, offeredPlans, PERIOD_COOKIE, PLAN_COOKIE } from "@/lib/plans";
-import { billingTestMode, planCharge, startPlan, unusedPlanCredit } from "@/lib/billing";
-import { grantPack, MIN_CHARGE, providerFor, startCheckout, type CheckoutResult as ProviderResult } from "@/lib/payments";
+import { billingTestMode, planCharge, startPlan } from "@/lib/billing";
+import { grantPack, providerFor, startCheckout, type CheckoutResult as ProviderResult } from "@/lib/payments";
 import { getLocale } from "@/lib/i18n/server";
 import { workspaceCurrency } from "@/lib/plan-catalog";
 import { requestCountry } from "@/lib/geo-server";
@@ -25,7 +25,7 @@ function goPay(r: Extract<ProviderResult, { ok: true }>): never {
 
 function providerError(r: Exclude<ProviderResult, { ok: true }>, t: Dictionary): CheckoutResult {
   const e = t.checkout.errors;
-  return { ok: false, error: r.error === "not_priced" ? e.notPriced : r.error === "not_connected" ? e.notConnected : r.error === "covered" ? e.covered : e.paymentFailed };
+  return { ok: false, error: r.error === "not_priced" ? e.notPriced : r.error === "not_connected" ? e.notConnected : e.paymentFailed };
 }
 
 // Puts the workspace on the chosen plan (owner brief 2026-10-12): paid plans
@@ -63,13 +63,10 @@ export async function activatePlan(plan: string, period: string, method: string 
     await checkoutStep(cid, "payment_error", { ...track, reason: "not_connected" });
     return { ok: false, error: t.checkout.errors.notConnected };
   }
-  // Test mode: the plan starts as a test (paid up front, no trial), with the same unused-time credit as a real change.
+  // Test mode: the plan starts as a test (paid up front, no trial).
   const charge = await planCharge(ws, plan, period);
   if (!charge) return { ok: false, error: t.checkout.errors.notPriced };
-  const credit = ws.plan !== plan || ws.billing_period !== period ? await unusedPlanCredit(ws) : 0;
-  const net = Math.round((charge.amount - credit) * 100) / 100;
-  if (net < MIN_CHARGE) return { ok: false, error: t.checkout.errors.covered };
-  if ((await startPlan(ws, plan, period, payer, { mode: "test", ...charge, amount: net })) === false) return { ok: false, error: t.checkout.errors.failed };
+  if ((await startPlan(ws, plan, period, payer, { mode: "test", ...charge })) === false) return { ok: false, error: t.checkout.errors.failed };
 
   const jar = await cookies();
   jar.delete(PLAN_COOKIE);
